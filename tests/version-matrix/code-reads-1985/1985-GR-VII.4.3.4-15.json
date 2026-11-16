@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-15",
+ "rule-digest": "4fd98e9961ac",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-122",
+  "sources": {
+   "reader": "e080077ceb22eb3ac6c92be5015810d857cc8d3cf6a696bc9fa190575cf5ea16",
+   "refuter": "e0d8f312c8a0bd9394cb49e16d45a1cd9d915e81877ed8cb4981c381cd08e34a"
+  },
+  "imported": {
+   "reader": "6444cd17f975720410bc2ec80da5137074478065e9b40b184719e990ad9ab8a9",
+   "refuter": "28a04ab710a4a062b577bb2694381901b3320f64961b97a082d570b4561ba080"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.3.4-15",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 OPEN EXTEND of a sequential file must position it immediately after the last record written in it, so the records the program writes follow every record already in the file. This covers an empty file, a file whose last operation was an I-O REWRITE, consecutive EXTEND runs and RECORD VARYING records.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenWriter; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "at 85 the arbitration is skipped, and the release-ordinal mint is seeded only when the handle admits no other writer; the append itself is the same",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the default sharing is ALL OTHER at 85; the EXTEND handle's file lock follows from it",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the Extend arm of SequentialConnector.OpenCore (OpenWriter with FileMode.Append or CreateNew) reads no edition; grep for Edition and DialectBehavior in SequentialConnector found only SharingFacilityInEffect",
+  "behaviour-differs-by-edition": "no: the positioning is the same at 85 and 2023; the edition changes only the sharing posture of the handle",
+  "witnesses-cover": "part: g85_bf21_03 covers two consecutive EXTENDs of fixed records; it does not cover an empty file, RECORD VARYING, EXTEND after an I-O REWRITE, a non-optional absent file, or a WRITE after a failed OPEN EXTEND",
+  "probes": [
+   {
+    "class": "a,b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p15a.cob",
+    "printed": "X-EMPTY=00 / USE 47 / X-READ=47 / Q REW001 / Q EXT002 / Q EXT003 / V-EXT=00 / V 03 ABC / V 11 DEFGHIJKLMN / V 01 O / V 20 PQRSTUVWXYZ012345678 / N-EXT=35 / N-WRITE=48",
+    "expected": "EXTEND on an empty file writes the first record; a READ in extend mode is 47; the records follow in written order and the rewritten record is kept; RECORD VARYING records keep their lengths; a non-optional absent file is 35 and the WRITE after it is 48 (VII.1.3.5 4g)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p15c.cob",
+    "printed": "error COBOL2372: OPEN EXTEND 'FL' - the file description entry specifies a LINAGE clause, which EXTEND does not admit (ISO §2023:14.9.27.3 SR2)",
+    "expected": "refused under §1985:VII.4.3.3 SR3 (an adjacent syntax rule, not this one)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.4 GR15",
+    "check": "OK  §1985:VII.4.3.4 GR15  (4.3.4 General Rules)  the text is in GR15"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4g"
+   }
+  ],
+  "notes": "The Extend arm opens the writer through HostFile.OpenConnectorWriteStream in append mode, which repositions at the end. RECORD VARYING frames survive the append. The LINAGE refusal at 85 cites §2023:14.9.27.3 SR2, not §1985:VII.4.3.3 SR3. That is a citation-quality point for SR3, which is outside this slice.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.3.4-15",
+  "refutation": "UPHELD",
+  "classes": "a,c,e",
+  "evidence": "r15b.cob (1985 PADDING CHARACTER and BLOCK CONTAINS 3 RECORDS; BLOCK CONTAINS 2 TO 4 RECORDS with RECORD CONTAINS 2 TO 6 and two 01s): two EXTENDs printed P001..P004 in order, and S1/LONG01/S2/LONG02 in order. r15d.cob (a print stream written AFTER and BEFORE ADVANCING): od -c of the file shows each EXTEND's records appended after the last one written (\\nADV001\\n\\nEXT002\\rEXT003\\n\\nEXT004\\n), so the positioning holds. Reading that file back is misaligned, which is the print-stream framing defect noted under GR17, not EXTEND's position. r21b.cob: OPEN EXTEND of a read-only file is 37 (VII.1.3.5 3d1). cite.py: OK §1985:VII.4.3.4 GR15 (the text is in GR15); OK §1985:VII.1.3.5 (GRL2.3d.1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

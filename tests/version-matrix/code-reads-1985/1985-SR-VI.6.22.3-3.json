@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-SR-VI.6.22.3-3",
+ "rule-digest": "18b6ac7241ab",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-159",
+  "sources": {
+   "reader": "c2acb29deedbe786d1a7cfbf28014a4566b1f9d5fbab9b2095e2b9c1666dfbaf",
+   "refuter": "bf06085bd46da9670c40a16d8407146a1155863d6a0389247df09c0556e12861"
+  },
+  "imported": {
+   "reader": "f565d1283501d6da6e71da43b997de87781c40c829bfc550324cfea4d743f9db",
+   "refuter": "e05f8fa9e21e135414b1882322fbcef0098f81c23d7951bb1fc453cd6add5221"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.22.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a format 1 SEARCH WHEN condition-1 must admit every 1985 conditional expression (VI.6.3: relation including index-name relations per 6.3.1.1.3, class including ALPHABETIC-LOWER/UPPER and class-name, condition-name, switch-status, sign, negated, combined and abbreviated combined), evaluated per occurrence, while forms outside the 1985 set (XOR, <>, a bare data item) are refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#searchWhenClause; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#Phrases; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindCondition",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitXorOperator",
+    "switches": "XOR / EXCLUSIVE-OR refused below 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Expressions/RelationalOperatorGate.cs#Check",
+    "switches": "the <> relational operator refused below 2014 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch",
+    "switches": "DialectBehavior.SearchIndexBelowTableUnsuccessful (a general rule of the scan, not of condition-1)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the WHEN clause is the general `condition` rule bound by the one ConditionBinder.BindCondition, so the edition is consulted only through the condition-form gates of VersionConformancePass; grep Edition/Year in SearchBinder.cs",
+  "behaviour-differs-by-edition": "yes: later editions add condition forms (XOR 2023, <> 2014, boolean and omitted-argument conditions) that 1985 refuses; the 1985 forms evaluate identically",
+  "witnesses-cover": "part: the witness covers relation, ALPHABETIC, condition-name, switch-status, sign NEGATIVE, negated, combined, precedence and abbreviated combined; not exercised: class-name, ALPHABETIC-LOWER/UPPER, NUMERIC, sign ZERO, arithmetic expressions with a scaled operand, index-name relations, two-level subscripts with ALL literal, reference modification, an intrinsic function (Amendment 1), and the refusal half",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/srch-cond2.cob",
+    "printed": "C1=3 C2=2 C3=2 C4=4 C5=4 C6=3 C7=3 C8=2 C9=3 CB=5 CC=3 CD=ATEND",
+    "expected": "class-name 3, ALPHABETIC-UPPER 2, NOT ALPHABETIC-LOWER 2, NUMERIC 4, ZERO 4, K*2 > M+4 at 3, IX = WS-L(3) at 3, NOT < 2 AND NOT > 2 at 2, D(IX,2) = ALL \"Z\" at 3, refmod at 5, FUNCTION ORD at 3, none NEGATIVE -> AT END"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/srch-cond.cob",
+    "printed": "error COBOL2533: an index-name or index data item is compared with an operand ... (for WHEN IX = WS-L + 1)",
+    "expected": "§1985:VI.6.3.1.1.3 (Amendment 2): an index-name is compared only with an index-name, a numeric data item or a numeric literal: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/srch-bare.cob",
+    "printed": "error COBOL2318: 'WS-K (IX)' is used as a condition, but it is data item 'WS-K' of category numeric",
+    "expected": "not a conditional expression: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/srch-xor.cob",
+    "printed": "error COBOL0900: the logical XOR/EXCLUSIVE-OR operator requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "XOR is not a 1985 logical operator: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/srch-ne.cob",
+    "printed": "error COBOL0900: the relational operator <> requires COBOL-2014 (targeting COBOL-85)",
+    "expected": "<> is not a 1985 relational operator: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.22.3 SR3",
+    "check": "OK  §1985:VI.6.22.3 SR3  (║6.22.3 Syntax Rules║)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.3 GR2",
+    "check": "OK  §1985:VI.6.3.1.1.3 GR2  (6.3.1.1.3 Comparisons Involving Index-Names and/or Index Data Items)  the text is in GR2"
+   }
+  ],
+  "notes": "The WHEN clause reuses the one condition rule and binder, so the 1985 range is exactly what conditions admit at --std 85; every 1985 form probed evaluated correctly per occurrence and the post-1985 forms were refused. My first probe's IX = WS-L + 1 was itself illegal 1985 (index-name against an arithmetic expression) and the compiler refused it correctly.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.22.3-3",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "Admitted half holds: refute-1985-159/srch-ok.cob at --std 85 (runs/srch-ok-001) printed GE 04, GE2 02, LE 03 (>=, GREATER THAN OR EQUAL TO, <= on an arithmetic expression), NEQ 01 / NOTA 02 / NOTP 01 / MIX 05 (the four VI.6.3.3 expansion examples), SIGN 04, ZL-NOT 02 and ZL2 AT END (Amendment 2 zero-length group class test), GRP 03, IXN 04 -- all as the 1985 text gives. srch-bad2.cob refused NUMERIC on PIC A (COBOL6917), ALPHABETIC and class-name on numeric (COBOL6916), NUMERIC on COMP (COBOL6918), PIC 9V9 = \"AB\" (COBOL2532), index data item = 3 (COBOL2533); srch-bad.cob refused NOT NOT and NOT >= (COBOL0001). THE BREAK: srch-lit.cob at --std 85 compiles and runs 'WHEN 3 IS POSITIVE' and 'WHEN 1 + 1 = 2' with NO diagnostic at all (stdout A 01, B 01), also with --flag-extensions (runs/srch-lit-00x); only 'WHEN 1 = 1' draws warning COBOL3146. The 1985 text makes both non-conditional-expressions: cite.py OK §1985:VI.6.3.1.5 'Arithmetic-expression-1 must contain at least one reference to a variable'; OK §1985:VI.6.3.1.1 'The relation condition must contain at least one reference to a variable' (1+1=2 has none); SR3 leans on these: OK §1985:VI.6.22.3 SR3 'condition-1 may be any conditional expression'. Even taking non-detection as 1985 latitude, accepting them is a syntactically distinguishable extension that the warning mechanism must flag: OK §1985:I.1.5.2.5.2 'This warning mechanism is required to flag only extensions that are syntactically distinguishable' -- --flag-extensions does not. The compiler applies the 2023 reading at 1985 (2023 dropped the sign-condition sentence and relaxed the relation one to 'not a literal'; docs/conformance/3/D-RELLITERAL.md decides 1+1=2 draws nothing, reasoned from §2023 only). kb/Work search 'reference to a variable': only PB5481 (EVALUATE, landed), not this.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSignConditionOn: no 1985 check that arithmetic-expression-1 references a variable",
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#WrittenRelational: CheckRelationHasNonLiteralOperand applies the 2023 'not a literal' test at every edition, so a 1985 relation of two literal-only arithmetic expressions is not caught"
+  ],
+  "corrected": "PARTIAL (under-rejects, cause a/c): at --std 85 a SEARCH WHEN (any condition) of a sign condition over a literal-only arithmetic expression ('3 IS POSITIVE') or a relation condition with no variable ('1 + 1 = 2') is accepted with no diagnostic even under --flag-extensions; 1985 VI.6.3.1.5 and VI.6.3.1.1 say each must contain a reference to a variable, so the compiler needs a 1985 arm that refuses or at least flags them (I.1.5.2.5.2). Repro: srch-lit.cob; at --std 2023 both are legal (no diagnostic is correct there)."
+ }
+}

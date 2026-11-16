@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VII.3.3.3-2",
+ "rule-digest": "af31b9aa6ffc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-119",
+  "sources": {
+   "reader": "668292f5bea64a2ebda04368ea0c5b5116c23839c6b9a80a88be48d56cd05427",
+   "refuter": "263df7f3a8f35d39c4043566d15ccb2692c107760306ba31f7effb07a6212713"
+  },
+  "imported": {
+   "reader": "f28c8777fbabd8021bfc3a359bdbe2c878ed9be2b7cd6bdd3046435d96782ba5",
+   "refuter": "f3a746a18bc00d34c2710e8394bfd5e7c358bdd096af0d2b3add1f5025f6914d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, BLOCK CONTAINS may state the physical record size in RECORDS (with or without integer-1 TO, equal bounds allowed at 85), and the RECORDS phrase is forbidden only where the implementation's physical records span logical records, carry padding or would imply an inaccurate size; this implementation models no physical blocks, so none of situations a to c arises and the phrase must be accepted and must not change the logical records.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause",
+    "switches": "Edition.DialectLevel >= 2002 applies the 2002+ integer-2 > integer-1 rule (COBOL2009); at 85 equal bounds are accepted (the 85 clause has no syntax rules)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep BlockContains in VersionConformancePass.cs: no arm; the grammar rule has no edition predicate",
+  "behaviour-differs-by-edition": "yes: integer-1 TO integer-2 with equal values is accepted at 85 and refused from 2002 (COBOL2009); the RECORDS phrase itself is the same at every edition",
+  "witnesses-cover": "part: g85_f17_03 covers BLOCK CONTAINS 3 RECORDS on fixed records; not the integer-1 TO form, equal bounds, variable-length records, or the spelling without CONTAINS",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p6block.cob",
+    "printed": "F4 BLOCK CONTAINS 2 TO 4 RECORDS with RECORD VARYING 1 TO 6: F4 5 FIVE5, F4 1 1, F4 6 SIXSIX, F4 END 10",
+    "expected": "accepted, records unchanged"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p6block.cob",
+    "printed": "--std 85 exit 0 with BLOCK CONTAINS 2 TO 2 RECORDS; --std 2002 COBOL2009 integer-2 shall be greater than integer-1",
+    "expected": "85 has no ordering rule; 2002 does"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p6block.cob",
+    "printed": "BLOCK CONTAINS 1 RECORDS and BLOCK 4: W 00000000; AAA, BBB, CCC read back, END 10",
+    "expected": "accepted, records unchanged"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.3.3 GR2",
+    "check": "OK  §1985:VII.3.3.3 GR2  (3.3.3 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The rule's prohibition depends on the implementor's physical-record layout; WiseOwl models no blocks (the binder records the values only for the external-connector agreement check), so accepting RECORDS everywhere and leaving the logical records unaffected conforms. Doubt: if a reader holds that a mass storage file is situation a regardless of layout, the compiler under-rejects; the text conditions a on records that may extend across physical records, which does not happen here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "RECORDS accepted; equal bounds refused",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,f",
+  "evidence": "Attacked the reader's reading that none of situations a to c arises. The strongest case is b ('The physical record contains padding (area not contained in a logical record)'): COBOL1778 at --std 85 says a variable-length record is framed by a 4-byte length prefix, which is area outside the logical record, so a RECORDS phrase on a RECORD VARYING file could be read as forbidden. Even so the compiler need not refuse it: §1985:I.1.6 'The results of violating the formats or rules of Standard COBOL are undefined unless otherwise specified in this standard', and VII.3.3.3 GR2 specifies no outcome, so accepting the phrase and leaving the logical records unchanged is within the rule under either reading; docs/conformance/2/5.md documents BLOCK CONTAINS as accepted with no effect on the I-O model. Probe src/r6blk.cob --std 85: BLOCK CONTAINS 4 TO 2 RECORDS (reversed bounds, 1985 has no syntax rule against them) with RECORD CONTAINS 2 TO 5 CHARACTERS and two record descriptions, and BLOCK CONTAINS 12 CHARACTERS: compiled, W 00 00, read back [AB   ] 00, [CDEFG] 00, END 10, F2 [XYZ] 00: logical records unaffected. cite.py: OK §1985:VII.3.3.3 GR2 the text is in GR2; OK §1985:VII.3.3.3 GR1 the text is in GR1; OK §1985:I.1.6 the text is in the clause.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

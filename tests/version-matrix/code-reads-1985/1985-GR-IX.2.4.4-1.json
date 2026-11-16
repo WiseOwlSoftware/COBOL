@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-IX.2.4.4-1",
+ "rule-digest": "fc7509ec6703",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-091",
+  "sources": {
+   "reader": "856ff51229cf03620fffb2e5ae042782b609a5cdee52de36cd6aee0c01373113",
+   "refuter": "300791588672753519fa07b454a5d57638913067e263f8aa7a5ef100bb60448e"
+  },
+  "imported": {
+   "reader": "0a68f8feca36592921796815740565d6eee65970e4fa09ce85d6030eccfffea1",
+   "refuter": "cf22f669a4e41f15f659a43d99f3ec95aa2bb718c2f8b62c5e2ffdbe33c659f9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, an indexed (and relative) file control entry with no ACCESS MODE clause must have sequential access: format 1 READ only (no KEY / INVALID KEY), WRITEs in ascending prime-key order, REWRITE/DELETE of the last record read, START allowed.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AccessMode; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedAccess; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadKeyFormat; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration (ctx.Data.DialectLevel passed to FileRegistry.RegisterIndexed as the connector's Edition)",
+    "switches": "carries the edition into the connector for the DialectBehavior tests; access mode itself is passed edition-blind",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "The default is the FileModel.AccessMode initializer (Sequential), set only by MapAccessMode when the clause is written; grepped AccessMode/AccessModeWritten across Compiler, ConstructRegistry.g.cs (no access-mode construct), ReservedWords (DYNAMIC continuous since 1985), DialectBehavior (no access-mode behaviour): the default path consults no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pins sequential READ order and the ascending-WRITE requirement; the refusal of format 2 READ/INVALID KEY, REWRITE/DELETE without prior READ, relative files and a READ after a failed OPEN are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p1refuse.cob",
+    "printed": "COBOL0864 READ KEY on 'IX': the file's access mode is SEQUENTIAL (the ACCESS MODE clause is not specified, so sequential access is assumed ...)",
+    "expected": "refused: §1985:IX.4.5.3 SR4 format 1 only under sequential access"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p1refuse2.cob",
+    "printed": "COBOL1720 on READ ... INVALID KEY and on DELETE ... INVALID KEY",
+    "expected": "refused: both are format-2 / random-only phrases under sequential access"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p2seqrun.cob",
+    "printed": "W3-INVALID W3=21 (equal key); DEL-NO-READ=43; REW-KEYCHG=21; REW-OK=43 (last statement was a failed REWRITE); START=00 R2=00 BB02; relative RL1=00 R01 RL2=00 R02 RL3=10; NF-OPEN=35 NF-READ=47",
+    "expected": "sequential-access semantics for indexed and relative files; READ after failed OPEN 47"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p2seqrun.cob",
+    "printed": "VX=00 08 [K1ABCDEF] / VX=00 04 [K2XY    ] (RECORD VARYING indexed, no ACCESS clause)",
+    "expected": "records read sequentially with their lengths"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p6relk.cob",
+    "printed": "COBOL0900 a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause requires COBOL-2002",
+    "expected": "at 1985 RELATIVE KEY exists only as a phrase of ACCESS MODE"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/conformance-suite/cases/IX.2.4@1985-ACCESS-MODE-CLAUSE/g85_bf19_07",
+    "printed": "MATCH (IY:INVALID A1, IY:00 21)",
+    "expected": "witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.4.4 GR1",
+    "check": "OK  §1985:IX.2.4.4 GR1  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IX.4.5.3 SR4",
+    "check": "OK  §1985:IX.4.5.3 SR4  the text is in SR4"
+   }
+  ],
+  "notes": "The default is structural (FileModel.AccessMode = Sequential) and every verb's branch reads it, so an omitted clause behaves exactly as ACCESS MODE IS SEQUENTIAL. The COBOL0864 message cites §2023 text, but the behaviour is the 1985 rule's.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "Probe refute-1985-091/src/rd_seq.cob (run rd_seq-001), indexed file with no ACCESS MODE clause: SORT ... USING SQ GIVING IX gave 00; OPEN EXTEND 00, then WRITE of AB (below the highest key) took INVALID KEY 21 and WRITE DD gave 00 (OK §1985:IX.4.9.4 GR14 'released to the mass storage control system (MSCS) in ascending order of prime record key values'); REWRITE ... INVALID KEY compiled and a key change answered 21; START NOT LESS THAN then READ gave 00 BB02; DELETE after a REWRITE (not a READ) gave 43 (§1985:IX.4.3.4 GR2, which cite.py names after it refused GR3); SORT USING IX GIVING SQ DESCENDING gave DD04, CC03, BBXX, AA01. Probe ra_native.cob: the 7th WRITE, out of order, gave 21. Grepped FileControlBinder.cs for Edition/CobolVersion/DialectBehavior/Constructs: no access-mode edition switch, so the reader's edition-blind default holds. OK §1985:IX.2.4.4 GR1 'sequential access is assumed'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

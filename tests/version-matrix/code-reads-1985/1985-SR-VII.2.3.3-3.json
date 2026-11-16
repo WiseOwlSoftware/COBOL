@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-SR-VII.2.3.3-3",
+ "rule-digest": "f86530250e99",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-062",
+  "sources": {
+   "reader": "bcae14ed2cb9ef4fd129801d9934183cf9e56f22e5d496d086e444f68e37e988",
+   "refuter": "f6d2740f0365363e53468248473fec428211b7eb2cfc4ebe62ec90d36a92a187"
+  },
+  "imported": {
+   "reader": "4bf5f77290539817f78c8aa9069af2c304df754168972ab4d25664972aad4ba8",
+   "refuter": "50229bfb59ddc8bbb73556628faa1cb4b7c7ab9b9a50e727d7285a046c41944e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.3.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in the ASSIGN clause of a sequential (and, by the identical VIII/IX rule, relative and indexed) file control entry, literal-1 must be a 1985 nonnumeric literal (1 to 160 characters, §1985:IV.4.2.2.2.1) and is refused when numeric (any sign or scale) or a figurative constant (ZERO, SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL literal); implementor-name-1 and the value of literal-1 are the implementor's; the witnesses cover \"\" and SPACE plus the device-class list, not numeric literals, the other figurative constants, relative/indexed entries or the 1985-only literal forms.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignTarget; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Text; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#WordText; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen",
+    "switches": "sortMerge1985 (edition.DialectLevel < 2002 and an SD file): drops the deferred numeric / figurative-constant / list findings for a 1985 sort-merge entry; a sequential, relative or indexed entry reports them, the same arm as 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+    "switches": "the hexadecimal alphanumeric literal X\"...\" (2002) and the zero-length literal \"\" (2014) are COBOL0900 at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConcatenationExpression",
+    "switches": "a concatenation expression as literal-1 is COBOL0900 at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAssignClause",
+    "switches": "the ASSIGN USING phrase (2002) is COBOL0900 at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read AssignTargetRule whole (no edition read beyond edition.At/Error) and FileControlKeyRules.Screen's EntryShapeFindings loop; grep 'ZeroLength|HexAlphanumeric|ConcatOperator|AssignUsing' over Frontend/Parsing and Compiler/Validation for the literal-form gates.",
+  "behaviour-differs-by-edition": "yes: at 85 the hexadecimal, zero-length and concatenated literal forms and the USING phrase are refused as later-edition forms (COBOL0900); the numeric and figurative-constant refusals of a non-sort entry are the same as at 2023, and for a 1985 SD entry they are dropped (Sort-Merge module, not this rule)",
+  "witnesses-cover": "part: \"\" and SPACE refused and the DISK/PRINTER list accepted; numeric literals, ZERO/QUOTE/HIGH-VALUE/LOW-VALUE/ALL, relative and indexed entries and the later-edition literal forms are not",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r4_assign_refused-001/r4_assign_refused.cob",
+    "printed": "COBOL2645 at each of ASSIGN TO 123, ZERO, SPACES, QUOTE, HIGH-VALUE, LOW-VALUES, ALL\"AB\", \"\", -1.5 (relative entry), 7 (indexed entry); plus COBOL0900 the zero-length literal requires COBOL-2014",
+    "expected": "every one refused: literal-1 must be a nonnumeric literal and not a figurative constant (and \"\" is no 1985 nonnumeric literal)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r4_assign_refused-001/r4_assign_refused.cob",
+    "printed": "ASSIGN TO -1.5: literal-1 shall be an alphanumeric literal; ASSIGN TO 7: same",
+    "expected": "a signed, scaled numeric literal and an integer are refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r4_assign_legal-002/r4_assign_legal.cob",
+    "printed": "F3=LIT01 / F2=WORD2 / F4=RELAT (exit 0); files r4leg.dat, r4legw.txt, r4legX.dat",
+    "expected": "a nonnumeric literal, an implementor-name, a DISK-led list and a relative entry with a literal all compile and name their files"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r4_assign_later_forms-001/r4_assign_later_forms.cob",
+    "printed": "COBOL0900 hexadecimal alphanumeric literal requires COBOL-2002; COBOL0900 concatenation expression requires COBOL-2002; COBOL0900 the USING phrase of the ASSIGN clause requires COBOL-2002",
+    "expected": "later-edition literal forms and phrase refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r4_assign_symbolic-001/r4_assign_symbolic.cob",
+    "printed": "DONE (exit 0); writes starch.txt",
+    "expected": "a word that is also a declared symbolic-character, written in the ASSIGN clause, is read as implementor-name-1 (implementor-defined content per SR3), not as a figurative literal-1: accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.3.3 SR3",
+    "check": "OK  §1985:VII.2.3.3 SR3  (2.3.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "Every numeric and figurative-constant literal-1 is refused for sequential, relative and indexed entries at 85 via the deferred EntryShapeFindings that FileControlKeyRules.Screen reports for every non-SD entry. The zero-length literal draws two diagnostics (COBOL2645 and COBOL0900) for one fault, and every message cites §2023:12.4.5.2 SR4 rather than the 1985 rule; neither changes the verdict.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.3.3-3",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-062/p3_assign_null-001 (--std 85): SELECT F1 ASSIGN TO NULL. -> error COBOL1639 \"'NULL' is not defined ... §2023:8.9 does not reserve the word at this edition\". At 85 NULL is not a reserved word (the 1985 reserved list has no NULL; the compiler's own message says so), so in this position it is implementor-name-1, a system-name, which needs no declaration (§1985:IV.4.2.2.1 SR1b: the same word may be a system-name and a user-defined word, classified by context). The implementation's own determination for implementor-name-1 (AssignTargetRule.WordText, DOC-A.1-71) admits any word as the file name, and it does so for every other word that a later edition reserves: p3_assign_nulls-001 (NULLS), p3_assign_typedef-001 (TYPEDEF), p3_assign_self-001 (SELF) compile and run, exit 0, DONE. The NULL token alone is parsed as nonNumericLiteral.predefinedNull at every edition and AssignTargetRule.Text sends it to PredefinedNullRule.Report, whose 85 arm (UnreservedKeywordReference) treats it as an undeclared data reference. At --std 2023 the same program draws COBOL2576 (correct there: NULL is the predefined identifier). Other probes upheld the reader: p3_assign_list-001 refuses ZERO/QUOTES/12 as a second list operand (COBOL2645) and N\"...\" (COBOL0900 + COBOL2645). cite.py: OK §1985:VII.2.3.3 SR3 the text is in SR3; OK §1985:IV.4.2.2.1 the text lies in SR1b. kb/Work: PB1673 (landed) fixed the 85 NULL diagnostic for VALUE and constant entries and made it 'not defined'; no note covers ASSIGN, where the word is a system-name, not a data reference.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Text: the predefinedNull arm runs at every edition; at 85 the token is an implementor-name and should go to WordText",
+   "src/WiseOwl.Cobol.Compiler/Binding/PredefinedNullRule.cs#Report: below 2002 (UnreservedKeywordReference.IsFreeAt) reports an undefined data reference, wrong for a system-name position"
+  ],
+  "corrected": "NON-CONFORMING, rejects-legal-source, cause (a): at --std 85 ASSIGN TO NULL (NULL an unreserved COBOL word, so implementor-name-1) is refused with COBOL1639 while every other unreserved word is accepted as the file name; expected: accepted as implementor-name-1 like NULLS or TYPEDEF. At 2023 it is (correctly) COBOL2576. Known note: none (PB1673 is the nearest)."
+ }
+}

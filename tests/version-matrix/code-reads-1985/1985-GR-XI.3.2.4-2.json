@@ -1,0 +1,197 @@
+{
+ "rule-id": "1985-GR-XI.3.2.4-2",
+ "rule-digest": "f850e3ce1316",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-142",
+  "sources": {
+   "reader": "1b405c8d2d8789ea1783a031373970254b47f543c63e6fc47bea7632162d687f",
+   "refuter": "4ecd83abe57f4fc70a790418c834f24f58dd9091a1c22c6fb1a932faa9d473ff"
+  },
+  "imported": {
+   "reader": "7b0550e94d2a5b86fad430a27cb76514387fe4204d476a48ce67904c20523428",
+   "refuter": "b5a991e860935582bacff516533867a5b7cc7381ea31009c771f77ec45ead908"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.3.2.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the RECORD clause of an SD must carry all of §1985:VII.3.8 (the Sequential I-O RECORD clause): format 1 bounds every record description by integer-1 (SR1); format 2 bounds them by integer-2..integer-3 (SR2), requires integer-3 > integer-2 (SR3) and a DEPENDING ON item that is an elementary unsigned integer in Working-Storage or Linkage (SR4); at run time RELEASE takes its length from data-name-1 or the record (GR10 a-c) and is unsuccessful outside the range (GR10 last paragraph), RELEASE and an unsuccessful RETURN leave data-name-1 alone (GR9), a successful RETURN stores the length (GR11) and RETURN INTO sends that many characters (GR12); format 3 is implementor-defined (GR13-GR15) with no ordering rule on integer-4/integer-5 at this edition.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sortMergeDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt",
+    "switches": "each RECORD clause syntax-rule row applies from its Since edition: SR1/SR2/SR3/SR4 rows from 85 (cited through Of1985 as §1985:VII.3.8.3), the format-3 ordering row SR9 only from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Sr6Sentence",
+    "switches": "the DEPENDING ON section list drops LOCAL-STORAGE below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize (since 2002): format 3 integer-4/integer-5 bound the record size only from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+    "switches": "rangeFailsStatement = DialectLevel < 2002: an out-of-range RELEASE is unsuccessful and releases nothing at 85 (§1985:VII.3.8.4 GR10); from 2002 it raises EC-SORT-MERGE-RELEASE",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
+    "switches": "the BYTES spelling is refused below 2023 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for DialectLevel, DialectBehavior, Constructs, IsActive in FileControlBinder.FileSection.cs, RecordClauseRules.cs, SortBinder.cs, SortEmitter.cs, CobolSort.cs, VersionConformancePass.cs; the SD arm calls the one BindRecordClause the FD arm calls.",
+  "behaviour-differs-by-edition": "yes: at 85 format 3 'RECORD CONTAINS 5 TO 5' is accepted (no ordering rule) while 2023 refuses it under SR9; an out-of-range RELEASE is unsuccessful at 85 by the binder's own arm; BYTES is refused at 85; LOCAL-STORAGE is absent from the SR4 text.",
+  "witnesses-cover": "part: g85_bf07_11 covers the three formats accepted in an SD, GR10a and GR11; not exercised are the SR1-SR4 refusals, GR9 (RELEASE and unsuccessful RETURN leave data-name-1), GR10's out-of-range RELEASE, GR10c (ODO record with no DEPENDING), GR12 (RETURN INTO size).",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1a.cob",
+    "printed": "AFTER-REL 3 / R A 6 [AAAAAA] / R Z 3 [ZZZ   ] / END 9 [######]",
+    "expected": "RELEASE leaves C-LEN 3 (GR9); C-LEN 7 and 1 releases unsuccessful, not released (GR10); RETURN stores 6 and 3 (GR11); INTO sends 3 characters, group move pads (GR12a); unsuccessful RETURN leaves C-LEN 9 and does no INTO (GR9)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1l.cob",
+    "printed": "G 4 [C2pq] / G 6 [B4wxyz] / G 3 [A1x]",
+    "expected": "VARYING with no DEPENDING, ODO record: released length = fixed part + current occurrences (GR10c), carried through GIVING"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1b.cob",
+    "printed": "COBOL2010 record 'R1' describes 5 bytes, but integer-1 = 4 (§1985:VII.3.8.3 SR1)",
+    "expected": "refused, SR1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1c.cob",
+    "printed": "COBOL2009 FROM 5 TO 3; integer-3 shall be greater than integer-2 (§1985:VII.3.8.3 SR3) plus two COBOL2010",
+    "expected": "refused, SR3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1h.cob",
+    "printed": "COBOL2009 FROM 5 TO 5 (§1985:VII.3.8.3 SR3)",
+    "expected": "refused: equal bounds are not greater"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1d.cob",
+    "printed": "COBOL2010 R1 2 bytes fewer than integer-2 = 3; COBOL2010 R2 8 bytes more than integer-3 = 6",
+    "expected": "refused, SR2 both arms"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1e.cob",
+    "printed": "COBOL2922 DEPENDING ON 'W' (PIC S9) is not an unsigned integer",
+    "expected": "refused, SR4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1e2.cob",
+    "printed": "COBOL2922 DEPENDING ON 'W' (PIC 9V9) is not an unsigned integer",
+    "expected": "refused, SR4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1e3.cob",
+    "printed": "COBOL2922 DEPENDING ON 'W' is a group item",
+    "expected": "refused, SR4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1k.cob",
+    "printed": "COBOL2922 DEPENDING ON 'K2' is described in the file section; ... working-storage or linkage section",
+    "expected": "refused, SR4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1f.cob",
+    "printed": "COBOL0900 the RECORD clause BYTES phrase requires COBOL-2023",
+    "expected": "refused: BYTES is not in the 1985 format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1g.cob",
+    "printed": "--std 85: DONE (accepted); --std 2023: COBOL2009 5 TO 5, integer-5 shall be greater than integer-4 (§2023:13.18.43.3 SR9)",
+    "expected": "accepted at 85: §1985:VII.3.8 has no rule ordering integer-4 and integer-5"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1j.cob",
+    "printed": "DONE",
+    "expected": "VARYING TO 5 with no FROM accepted, minimum from the smallest record (GR6)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XI.3.2@1985-SORT-MERGE-FILE-DESCRIPTION-ENTRY/g85_bf07_11.cob",
+    "printed": "A1=PQ / B1=21 / C1=A6M2Z3 / D1=XY; EXPECT: MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.3.2.4 GR2",
+    "check": "OK  §1985:XI.3.2.4 GR2  (3.2.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.3.8.3 SR1",
+    "check": "OK  §1985:VII.3.8.3 SR1  (3.8.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VII.3.8.3 SR2",
+    "check": "OK  §1985:VII.3.8.3 SR2  (3.8.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VII.3.8.3 SR3",
+    "check": "OK  §1985:VII.3.8.3 SR3  (3.8.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VII.3.8.3 SR4",
+    "check": "OK  §1985:VII.3.8.3 SR4  (3.8.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR9",
+    "check": "OK  §1985:VII.3.8.4 GR9  (3.8.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR10",
+    "check": "OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR11",
+    "check": "OK  §1985:VII.3.8.4 GR11  (3.8.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR12",
+    "check": "OK  §1985:VII.3.8.4 GR12  (3.8.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR13",
+    "check": "OK  §1985:VII.3.8.4 GR13  (3.8.4 General Rules)  the text is in GR13"
+   }
+  ],
+  "notes": "The SD arm binds its RECORD clause through the one BindRecordClause the FD arm uses and is screened by the one RecordClauseRules table, whose rows carry their 1985 citations and editions; every syntax rule refusal and the run-time GR9-GR12 behaviour probed at --std 85 matched §1985:VII.3.8. GR2's external-connector clause cannot apply to an SD (no EXTERNAL on an SD).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.3.2.4-2",
+  "refutation": "OVERTURNED",
+  "classes": "a,b,c",
+  "evidence": "Probes under refute-1985-142/src at --std 85: q1a (VARYING FROM 5 TO 10 over an ODO record of 2..10) refused COBOL2010 SR2; q1b (RECORD CONTAINS 5 over ODO max 10) refused COBOL2010 SR1; q1c (DEPENDING ON qualified W-LEN OF W-GRP, COMP) R B 0005 [BBBBB ] / R A 0002 [AA    ] correct; q1d (VARYING, no FROM/TO/DEPENDING, a 2-char 01 released) R A [AQ    ] correct GR10b; q1f Linkage DEPENDING ON accepted; q1h GR9/GR11/GR12 correct (LEN 3, R A 6 [ABCDEF], R Q 3 [QRS   ]). THE FAILURE: q1e/q1j name as DEPENDING ON an elementary PIC 9 W-LEN subordinate to 05 W-ENT OCCURS 3 (unsubscripted; data-name-1 cannot carry a subscript). Compiles at 85 (and 2023). Run q1j with W-LEN(1..3)=2,5,4: RELEASE of ABCDEF released 6 characters (none of the three values) and after the successful RETURN W-TAB is still 254 (GR11 stored nothing): the DEPENDING ON is silently ignored. cite.py: OK §1985:IV.4.3.8.2.3 SR4 'Each table element reference must be subscripted except when such reference appears' (exceptions USE FOR DEBUGGING, SEARCH subject, REDEFINES, KEY IS; not the RECORD clause); OK §1985:VII.3.8.3 SR4; OK §1985:VII.3.8.4 GR10; OK §1985:VII.3.8.4 GR11; OK §1985:XI.3.2.4 GR2. kb/Work grep (RECORD VARYING DEPENDING with OCCURS/subscript): no note for it.",
+  "edition-sites-missed": [],
+  "corrected": "NOT CONFORMING (under-rejects, wrong-answer): RecordClauseRules has rows for elementary, unsigned integer and section of the DEPENDING ON item (SR4) but none refusing a table element, which §1985:IV.4.3.8.2.3 SR4 makes an illegal unsubscripted reference; the program compiles and the RELEASE/RETURN ignore data-name-1 (GR10a, GR11 broken). Cause (b): same at --std 2023 (q1i-002 R 256 [ABCDEF]). Site: src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs (the SR-13.18.43.3-6 rows)."
+ }
+}

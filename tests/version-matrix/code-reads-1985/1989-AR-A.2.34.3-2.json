@@ -1,0 +1,72 @@
+{
+ "rule-id": "1989-AR-A.2.34.3-2",
+ "rule-digest": "0dabea49d206",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-081",
+  "sources": {
+   "reader": "10b4aade8e8b99f9bc115cfbcccf36f29e1515815c3527e0342120b2257f790b",
+   "refuter": "353f6aa3fef4fa94d6dcd70227a67a8f22e47d6f6ce07edc9362bbe8db1e1554"
+  },
+  "imported": {
+   "reader": "9652711e42a6b652156a603c08ca86fb43b263f73a6541d4f547a5d16503b574",
+   "refuter": "8f785670a14a41c78101a4888559749534435ba85b1bb06d949226026d2ebc50"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.34.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, PRESENT-VALUE must compute the sum of argument-2/(1+argument-1)**n for every argument-1 greater than -1 (including rates arbitrarily close to -1; items, literals, expressions and table ALL references including OCCURS DEPENDING ON); for argument-1 <= -1 the result is undefined (A.2.2), so any result without failure conforms.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#PresentValueBase; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#LeadThenTail; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#PresentValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#PresentValueDomain",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: IntrinsicSig.IntroducedIn (85 for the 1989 module rows) against ctx.Edition.DialectLevel, COBOL1502/COBOL1503",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
+    "switches": "EC-ARGUMENT-FUNCTION is fatal only when checking is enabled (unreachable at 85: no >>TURN); returns 0 otherwise",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Version in the IntrinsicRenderer PresentValue arms and CobolIntrinsics.Float.cs: the domain screen (ArgumentDomain.AboveMinusOne) has no edition test; the arithmetic-mode switch (native vs standard-decimal) is native at 85, as for a 2023 program without OPTIONS",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1000_present_value_rate_near_minus_one covers the near -1 legal rate (scalar and ALL); zero rate, negative amounts, an ODO ALL table and the at/below -1 (undefined) arm are not exercised",
+  "probes": [
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/pv.cob",
+    "printed": "R0= 000300.0000 R10= 000200.0000 RM5ODO= 003400.0000 NEAR= 010000.0000 NEGAMT=-000010.0000 AT-M1= 000000.0000 M2= 000000.0000",
+    "expected": "rate 0: 300; rate 0.1 over 110,121: 200; rate -0.5 over ODO AM(ALL)=100,200,300 (N=3): 3400; -0.9999 over 1: 10000; -0.5 over -1,-2: -10; rates -1 and -2 violate AR2: undefined (any value, no failure)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.34.3 AR2",
+    "check": "OK  §1989:A.2.34.3 AR2  (2.34.3 Arguments)  the text is in AR2"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause ('do not have values within the permissible range, then the result of such a reference is undefined')"
+   }
+  ],
+  "notes": "The domain screen runs on the exact rate before binary64 narrowing and the discount base is formed exactly, so legal rates near -1 compute correctly; an illegal rate yields 0 through ArgumentError (unchecked at 85), which the 1985 text leaves undefined.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.34.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "rpv.cob runs at --std 85: rate SV9(18) -0.999999999999999999 over 1E-18 -> 1 (exact base 1E-18, no narrowing onto -1); COMP-3 -0.5 over 1 1 -> 6; COMP 1 over 2 4 8 -> 3; expression -1 + 0.5 -> 2; expression -0.5 - 0.5 (= -1, AR2 violated, undefined) -> 0 no failure; ZERO -> 5; 999 over 1000 -> 1; FUNCTION SQRT(0.25) rate -> 2; AM(ALL) rate 0 -> 10; rate 1 over AM(ALL) then 16 -> 2.125. All match RV1's sum of argument-2/(1+argument-1)**n. cite.py: OK §1989:A.2.34.3 AR2 'The value of argument-1 must be greater than -1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

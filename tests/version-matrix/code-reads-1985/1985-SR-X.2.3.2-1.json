@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-SR-X.2.3.2-1",
+ "rule-digest": "e16a803ccfa4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-067",
+  "sources": {
+   "reader": "e68b85fc8164787675e3b6f139342c367136fa91abc125e8a7b452b82be5eaf0",
+   "refuter": "1c8a6916d7af502ce51e76a8dd8a74a9aa4a682140753836f7c9b2ffa409772a"
+  },
+  "imported": {
+   "reader": "b209418425906c98368d7e87ad0bb2a98822ee102ed54a669317192438dacb96",
+   "refuter": "67723172f547ab4cc032f648ab7b4be8387f7666d1883ff7412160accbf1f630"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.2.3.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "An END PROGRAM header must be present for every program that contains another program and for every contained program; a single program, or the last of several separately compiled programs that contains nothing, may omit it. Because, without an intervening end program header, a following Identification Division header starts a CONTAINED source program (§1985:X.2.3.1 format, X.2.3.3 GR1b, X.2.5.4 GR4), a program without one followed by another program is a container and both need headers. 1985 also lets a container have no Procedure Division (X.2.3.1 prints separate brackets).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#Run; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#ContainedFollowProcedureDivision",
+    "switches": "Year >= 2002 requires a Procedure Division before contained programs; at 85 the check is skipped (X.2.3.1 separate brackets)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EndMarkerPass.cs grepped for Edition.|Year|CobolVersion: only the EditionContext parameter used to position and emit COBOL2793; no edition comparison. The grammar rules programUnit/nestedProgram/endProgramHeader carry no edition predicate; the pass is called unconditionally from BinderDriver (line 90).",
+  "behaviour-differs-by-edition": "yes: the 2023 rule also names a unit that merely PRECEDES another; under the 1985 structure such a unit is a container, so the same programs are refused; at 85 a container without a Procedure Division is accepted (2023 refuses it, COBOL2274)",
+  "witnesses-cover": "part: pb988-end-program-missing-container covers item a; item b (contained program without its own header), three-level nesting, the 1985 container without a Procedure Division and the legal omissions are not witnessed",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep1.cob",
+    "printed": "A / B / C (EXIT 0)",
+    "expected": "three-level nesting with every END PROGRAM present compiles and runs"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep2.cob",
+    "printed": "COBOL2793 PROGRAM-ID 'EP2A' contains another source unit (SR1); COBOL2793 END PROGRAM EP2A stands where the end marker of 'EP2B' belongs (SR3)",
+    "expected": "refused: contained EP2B has no end program header (item b)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep6.cob",
+    "printed": "COBOL2793 'EP6A' precedes another source unit; COBOL2793 'EP6B' contains another source unit",
+    "expected": "refused: A contains B contains C under 1985 structure; only C ends, A and B lack headers"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep12.cob",
+    "printed": "COBOL2793 PROGRAM-ID 'EP12A' precedes another source unit (SR1)",
+    "expected": "refused: two programs, neither with an end header; B is contained in A (X.2.3.3 GR1b), both need one"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep4.cob",
+    "printed": "A / B (EXIT 0)",
+    "expected": "legal: A ended, B separately compiled and last, contains nothing, may omit its header"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep5.cob",
+    "printed": "A (EXIT 0)",
+    "expected": "legal: a single program with an optional end program header"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep3.cob",
+    "printed": "85: EXIT 0; 2023: COBOL2274 a program that contains programs shall have a procedure division",
+    "expected": "85 accepts a container with no Procedure Division ([ procedure-division ] [ source-program ] ... are separate brackets)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.3.2 SR1",
+    "check": "OK  §1985:X.2.3.2 SR1  (║2.3.2 Syntax Rules║)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar makes nestedProgram's end header mandatory and ScreenProgram requires it of any programUnit with nested programs or a successor; every 1985 violation probed is refused and every legal omission accepted. For ep6/ep12 the message says 'precedes' (the 2023 reason) where the 1985 structure makes the unit a container; the refusal is right, only the stated reason is the 2023 one.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.2.3.2-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:X.2.2, X.2.3.1 format, X.2.3.2 SR1, X.2.3.3 GR1, X.2.5.4 GR1-GR4. Probes at 85: re1 - A contains B contains C, C has no end header, END PROGRAM B, END PROGRAM A: refused COBOL2793 (A contains another; END PROGRAM B stands where C's marker belongs). re2 - A contains B (ended), A has no end header and the source ends: refused 'PROGRAM-ID RE2A contains another source unit, so its end marker ... shall be present' (item a). re5 - A contains siblings B and C each ended, then END PROGRAM A: accepted, printed 'B / C'. re6 - the later edition's END FUNCTION closing a program: refused COBOL2274. cite.py: 'OK  §1985:X.2.3.2 SR1  (║2.3.2 Syntax Rules║)  the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

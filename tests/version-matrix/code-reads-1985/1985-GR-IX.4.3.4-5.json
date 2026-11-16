@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-IX.4.3.4-5",
+ "rule-digest": "b557f31fde18",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-094",
+  "sources": {
+   "reader": "df7c0d371c5b7143ebc895fabc831a27059f827dcef51c7cfeebd8156d9dd1cc",
+   "refuter": "d6931f8479f7e0fb86dd72baac85ce6e669cc541f0918fe55a7cc29c6b365672"
+  },
+  "imported": {
+   "reader": "203565a6cd11c817783afd337fd77e67431c5e7aa684666adcf9acd5ee52e3ad",
+   "refuter": "4708bed2702c71247e3ceefa5d66a68c5174b6a11133b485738ce4d8b87cd0a9"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-IX.4.3.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "A DELETE on an indexed file, in every access mode and whether it succeeds or fails, must leave the record area and the RECORD VARYING DEPENDING ON item unchanged.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteRecord; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility by FileConnector.Edition (set from ctx.Data.DialectLevel at FileRegisterIndexed): whether another run unit may lock the file, so whether FileRegistry#MutationTarget/ConflictOnLockedRecord govern the DELETE by record locks; at 85 the facility is absent",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped KeyedIoEmitter.cs for Edition|CobolVersion|Dialect (only the registration's DialectLevel argument) and Runtime/IO for Edition|DialectBehavior|SharingFacilityInEffect; the emitter sends the record-area image by value and emits no store back into the area or the DEPENDING ON item for DELETE at any edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf30_04 covers dynamic access (success and invalid key); not sequential access, a failed 43/49 DELETE, or an OCCURS DEPENDING ON record",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/IX.4.3@1985-DELETE-STATEMENT/g85_bf30_04",
+    "printed": "EXPECT: MATCH",
+    "expected": "the case's .out"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-094/p1seqdel.cob (run p1seqdel-002)",
+    "printed": "R1=00 K01 WL=10 | D1=00 [K01ZZZZZZZZZZZZZZZZZ] WL=19 | R2=00 K02 WL=15 | D2=00 | U=43 | D3=43 [K02BBBBBBBBBBBB     ] WL=15 | R3=00 K03 WL=05 | D4=00 [QQQCC               ] WL=11 | R4=00 K04 WL=07 | U=10 | R5=10 | R6=00 K04 | U=49 | D5=49 [K04DDDD             ] WL=08 | U=10 | R7=10 K04",
+    "expected": "sequential-access indexed RECORD VARYING DEPENDING ON WL: record area and WL as set before each DELETE survive it after 00, 43 and 49 (GR5); next READ after a successful or failed DELETE is the next record (GR6); status 00/43/49 each stored (GR7)"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-094/p2dyndel.cob (run p2dyndel-001)",
+    "printed": "N1=K02 A1 | DN1=00 | A1=[K01XX3bbbbzz] N=3 | N2=K04 A1 | DN2=00 | N3=K03 C3 | DI3=23 | A3=[K99C34bbbb    ] N=4 | N4=K05 D4 | AE5=10 | O1=K02 A1 | O2=K03 C3 | O3=K05 D4 | I1=K02 A1",
+    "expected": "dynamic access, OCCURS DEPENDING ON inside the record, ALTERNATE key WITH DUPLICATES as key of reference: area and ODO object kept (GR5); READ NEXT continues on the alternate key after deleting another record, the record at the indicator, and after an invalid key (GR6); reopen I-O/INPUT starts at lowest PRIME key K02 (GR10)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.3.4 GR5",
+    "check": "OK  §1985:IX.4.3.4 GR5  (4.3.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "EmitDelete passes SeqIo.RecordAreaSendImage(file) (a string copy) to FileDeleteShared and stores only the I-O status, so neither the area nor WL can change. Probes show the area and WL as the program set them before DELETE after 00, 43 and 49, and an ODO record's area unchanged. Same output at --std 2023."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.3.4-5",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "r2dyn46.cob (r2dyn46-001), RANDOM-form DELETE on DYNAMIC indexed RECORD VARYING 4 TO 12 DEPENDING ON WL: area and WL set before the DELETE survive it: 'D1=00 [K02ZZZZZZZZZ] WL=11' (stored record K02 had WL=5). Reader covered sequential and an ODO record. Code: KeyedIoEmitter#EmitDelete passes the area image by value; no store back. OK §1985:IX.4.3.4 GR5 (the text is in GR5).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

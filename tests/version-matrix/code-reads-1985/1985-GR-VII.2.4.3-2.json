@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VII.2.4.3-2",
+ "rule-digest": "88dc038f6cef",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-118",
+  "sources": {
+   "reader": "96bb92ba553385b02467dab1079c63a5975ffea93eea5ee50d70035c3f8ebae6",
+   "refuter": "939bffc94d17ed56ddb17501859558d5490eb1520bfe2a92f7bf91d6e56ea706"
+  },
+  "imported": {
+   "reader": "803dfc0e9c1fa00e65c7deb5115b3e31289c262211a4549fa34dba1c90fd0935",
+   "refuter": "c7357455d60b8ab780ebb27ee1116b39a9c1dd168952b4a78e5940afb9ca735d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.4.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a sequential file is read in the predecessor-successor order its WRITE statements established when it was created (OPEN OUTPUT) and, at level 2, extended (OPEN EXTEND appends after the existing records); a relative or indexed file in sequential access is read in its organization's order (relative record number, key value).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+  "edition-consulted": [],
+  "edition-search": "grep for DialectBehaviors.IsActive, Edition and DialectLevel in Runtime/IO/SequentialConnector.cs (none), RelativeConnector.cs (only RelativeWriteKeyOutOfRangeIsPermanentError, a WRITE status choice) and IndexedConnector.cs (IndexedReadPreviousAfterOpenAtEnd and IndexedDuplicateKeyStatusSequentialOnly, neither on a forward sequential READ); the ordering code is the code every edition takes",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf19_05 covers a sequential file created then extended; relative and indexed sequential order are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/g85_bf19_05.cob",
+    "printed": "SQ:S2 SQ:S1 SQ:S0 SQ:END ...; EXPECT: MATCH",
+    "expected": "write order S2, S1 then the extended S0"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/accdef.cob",
+    "printed": "SQ C03 SQ A01 SQ B02 SQ D04; RL C03 RL A01 RL B02; IX A0a IX B0b",
+    "expected": "sequential file in write order with the EXTEND record last (not sorted); relative file in relative record number order (= write order); indexed file in ascending key order"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.4.3 GR2",
+    "check": "OK  §1985:VII.2.4.3 GR2  (2.4.3 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "Records written unsorted (C03, A01, B02) then extended (D04) read back in exactly that order, so the order is the WRITE succession and not any value order. The rule's sentence on sequential files is the module's; the relative and indexed legs were run as the organizations' own orders.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.4.3-2",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "Probe ord.cob at --std 85 (ord-001): relative records written in RANDOM access with keys 5, 2, 9 read sequentially by a clause-less SELECT as R02 R05 R09 (record-number order, gaps skipped); a sequential file created, REWRITTEN, extended, then re-created by OPEN OUTPUT (N9, N1) and extended (N5) reads N9 N1 N5 (OUTPUT replaces, EXTEND appends after the last record, order is WRITE succession not value); an indexed file after START on an alternate key WITH DUPLICATES reads A1y D4y C3z B2z (key-of-reference order, duplicates in write order) and after START on the prime key B2z C3z D4y. cite.py: OK §1985:VII.2.4.3 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

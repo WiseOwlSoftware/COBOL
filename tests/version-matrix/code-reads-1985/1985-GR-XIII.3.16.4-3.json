@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XIII.3.16.4-3",
+ "rule-digest": "5d0b7aaa47c9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-147",
+  "sources": {
+   "reader": "aff0e1385e6225d488e8b2cc3ec3c7c65b700c07c5563f8d9152780be230c482",
+   "refuter": "4339c344b8821e5c914117f89968167c481a2bb1a6773ab21ae3ce0d3e67c9b3"
+  },
+  "imported": {
+   "reader": "15b04afb1fef22de2b36d82ccdec9743630aa95ed0118cf4d45a325bb6f1f03c",
+   "refuter": "066c572669371b8dfc4c6105a75121ca715de1c287871b7839239d4793d25b81"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.16.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a NEXT GROUP clause (absolute, PLUS or NEXT PAGE) of a control footing that is processed at a level other than the highest level of the detected control break (at a GENERATE break, and at TERMINATE, whose highest level is FINAL when FINAL is a control, else the most major control) must have no effect, so the final LINE-COUNTER is the footing's last print line (§1985:XIII.3.10.8 GR6 a/b/c first paragraphs); the footing at the highest level applies its clause.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel",
+  "edition-consulted": [],
+  "edition-search": "Read ProcessControlFootings (applyNextGroup: i == breakLevel), PresentBody, ApplyNextGroup, DetectBreakLevel, GenerateCore and TerminateCore; grepped ReportWriter.cs for Edition and DialectBehaviors.IsActive: the only consults are GroupIndicateConsumedByIssuedGenerate (GenerateCore, GROUP INDICATE), TerminateDiscardsSavedNextGroup (TerminateCore, the saved absolute NEXT GROUP, not this rule's which-footing decision) and ControlFootingPageGroupsSeePriorControlValues (WithPageGroupControlValues); none switches which control footing applies its NEXT GROUP clause. The binder's NEXT GROUP screens (BindNextGroupClauses) are syntax rules.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf36_03 exercises one control-break shape; the absolute and NEXT PAGE forms on a non-highest footing, a FINAL-headed TERMINATE, and a mid-report major break are not exercised there",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/ng3rel.cob",
+    "printed": "CF MIN NEXT GROUP PLUS 3, controls MAJ MIN: lines 1 'A 1 01', 2 'CFMIN 02', 3-5 blank, 6 'A 2 06', 7 'CFMIN 07', 8 'CFMAJ 08', 9 'B 1 09', 10 'CFMIN 10', 11 'CFMAJ 11'; LC-AFTER 11",
+    "expected": "minor break applies PLUS 3 (LC 5, next detail on 6); on the major break and at TERMINATE CFMIN is not the highest level, so its NEXT GROUP is ignored (CFMAJ on the next line)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/ng3abs.cob",
+    "printed": "controls FINAL MAJ MIN, CF MIN NEXT GROUP 20, CF MAJ NEXT GROUP PLUS 2: 1 'A 1', 2 CFMIN, 21 'A 2', 22 CFMIN, 23 CFMAJ, 26 'B 1', 27 CFMIN, 28 CFMAJ, 29 CFFIN; same at --std 2023",
+    "expected": "absolute 20 applied at the minor break only; CFMAJ PLUS 2 applied at the mid-report major break (B 1 on 26) and ignored at TERMINATE, where FINAL is the highest level (CFFIN on 29)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/ng3np.cob",
+    "printed": "CF MIN NEXT GROUP NEXT PAGE: minor break advanced the page (A 2 on line 1 of page 2); on the major break CFMIN 02, CFMAJ 03 on the same page, then B 1 at 06; LC-AFTER 9",
+    "expected": "NEXT PAGE is honoured only at the highest break level; on the major break no page advance follows CFMIN"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/ng3rst.cob",
+    "printed": "error COBOL0900: the WITH RESET phrase of NEXT GROUP NEXT PAGE (report group description) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "§1985:XIII.3.16.2 has no WITH RESET phrase; refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.16.4 GR3",
+    "check": "OK  §1985:XIII.3.16.4 GR3  (3.16.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:XIII.3.10.8 GR6",
+    "check": "OK  §1985:XIII.3.10.8 GR6  (3.10.8 Body Group Presentation Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "ProcessControlFootings walks the footings minor to the break level and passes applyNextGroup only for i == breakLevel; TERMINATE calls it with level 0 (FINAL when declared). An undeclared footing at the break level leaves every lower footing ignored, as the rule requires. All three NEXT GROUP forms probed at 85 behave as the 1985 table's GR6 first paragraphs say.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "ng3abs identical at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.16.4-3",
+  "refutation": "DOUBTFUL",
+  "classes": "c,d",
+  "evidence": "GENERATE-time breaks: the reader's ng3rel/ng3abs/ng3np agree with ProcessControlFootings (applyNextGroup only for i == breakLevel); not contested. TERMINATE is where the verdict rests on a reading. Probes E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-147/src/ngfin.cob (unpaged, CONTROLS ARE FINAL MAJ, NO CF FINAL declared, CF MAJ LINE PLUS 1 NEXT GROUP PLUS 3, RF LINE PLUS 1) and ngnof.cob (identical but CONTROLS ARE MAJ). --std 85: ngfin-001 'CFMAJ 07' then 'RFOOT 08', LC-AFTER 8; ngnof-001 'CFMAJ 07' then 'RFOOT 11', LC-AFTER 11. So writing the word FINAL in the CONTROL clause, with no FINAL group, silences the major footing's NEXT GROUP at TERMINATE (ProcessControlFootings(0), level 0 = the FINAL entry). The 1985 text: XIII.4.7.4 GR1 describes TERMINATE 'as though a control break has been sensed in the most major control data-name'; XIII.3.7.4 GR1 'FINAL, if specified, is the highest control, data-name-1 is the major control'; III.2 defines Control Data-Name as 'A data-name that appears in a CONTROL clause and refers to a control data item' (FINAL is not one; Control Break is 'A change in the value of a data item that is referenced in the CONTROL clause'). Read that way the highest level at which TERMINATE's break is sensed is data-name-1 (MAJ), so CF MAJ applies its NEXT GROUP in both programs (RFOOT on 11) and a CF FINAL, if declared, is the one ignored; the reader's ng3abs (CFMAJ PLUS 2 ignored at TERMINATE, CFFIN on 29) would then be wrong too (31 expected). The code's reading (FINAL is the break level because TERMINATE processes every footing) has no 1985 sentence of its own; the 'as though' clause is attached to the prior-values sentence, which leaves room for it. cite.py: 'OK  §1985:XIII.3.16.4 GR3  (3.16.4 General Rules)  the text is in GR3'; 'OK  §1985:XIII.4.7.4 GR1  (4.7.4 General Rules)  the text is in GR1'; 'OK  §1985:XIII.3.7.4 GR1  (3.7.4 General Rules)  the text is in GR1'; 'OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore: ProcessControlFootings(0) takes level 0 (the FINAL entry when FINAL is written) as TERMINATE's break level at every edition; no edition arm"
+  ],
+  "corrected": "Unsettled: if XIII.4.7.4 GR1's 'most major control data-name' fixes TERMINATE's break level, then at --std 85 the NEXT GROUP of the most major data-name's control footing applies at TERMINATE whether or not FINAL is written, and a CF FINAL's NEXT GROUP is ignored (ngfin.cob should place RFOOT on 11, as ngnof.cob does). The verdict stands only on the reading that FINAL is the highest break level at TERMINATE."
+ }
+}

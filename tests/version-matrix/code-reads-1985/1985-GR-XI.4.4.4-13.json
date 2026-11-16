@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-13",
+ "rule-digest": "52fc11175851",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-143",
+  "sources": {
+   "reader": "d6f5754ea6b503f937777c5361bf6adaf6363a918b1fb3366588b677ebe2604f",
+   "refuter": "fa1600c9e0ab9c13be7e4cc4a4eb952e187c8956152dfb8fbf2c3150a943f909"
+  },
+  "imported": {
+   "reader": "5e3ae6ab62173a5f96c2cfb5b64aca969bba84075bb6e1413ffc99850cebee65",
+   "refuter": "ce6c5d1eeb606d46d8b8515cbeb1ab57b9f17d37b3cd605e46bf289bcd43b1fe"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.4.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a GIVING file (file-name-3) contains only fixed length records, every sorted record shorter than that fixed length must be written to it space-filled on the right from the first position after its last character, for every organization of file-name-3 (sequential, relative, indexed) and whether the shortness comes from a shorter fixed SD, a RECORD VARYING SD or an OCCURS DEPENDING SD record; a variable-length GIVING file gets the record at its returned size.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortVaryingOf; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FillTo; src/WiseOwl.Cobol.Runtime/IO/RecordFill.cs#Fit",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect|IsAtLeast|Std' over SortEmitter.cs: no match; grep 'Edition|CobolVersion|Dialect' over src/WiseOwl.Cobol.Runtime/IO: only connector, status and report-writer files, not CobolSort, RecordFill or SortKeyColumns; SortBinder's edition reads (RELEASE range at line 517, SAME RECORD AREA at line 927) are not on this path; FileModel.RecordSizeVaries / ImpliesVariableFormat read no edition (the implied RECORD clause is the edition-independent determination D-FRA).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf33_01 leg G covers a RECORD VARYING SD into one fixed sequential GIVING file; not exercised are a shorter fixed SD, an OCCURS DEPENDING SD, relative and indexed GIVING files, several GIVING files, a GIVING file without a RECORD clause, and a variable-length GIVING file (no fill)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/sf2.cob",
+    "printed": "Q-[A3a   ] Q-[B3b   ] R-[A3a   ] R-[B3b   ] I-[A3a   ] I-[B3b   ] M-[A3a   ] M-[B3b   ] V-[A3a   ][3] V-[B3b   ][3] DONE",
+    "expected": "3-char fixed SD records written space filled to 6 on sequential, relative, indexed and implied-fixed (no RECORD clause, 4- and 6-char 01s) GIVING files; the RECORD VARYING GIVING file receives them at length 3 (W-VL=3)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/sf3.cob",
+    "printed": "Q-[C512345] Q-[B3PQR  ] Q-[A1Z    ] DONE",
+    "expected": "OCCURS DEPENDING SD records of 3, 5 and 7 chars written to the 7-char fixed GIVING file space filled"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/sf5.cob",
+    "printed": "error COBOL1757: SORT GIVING file 'SML2': 'SML2' describes fixed-length records of 4 bytes but 'SD6' describes fixed-length records of 6 bytes",
+    "expected": "SR10: an SD record larger than the fixed GIVING record is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.4 GR13",
+    "check": "OK  §1985:XI.4.4.4 GR13  (4.4.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR10",
+    "check": "OK  §1985:XI.4.4.3 SR10  (4.4.3 Syntax Rules)  the text is in SR10"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
+   }
+  ],
+  "notes": "EmitGivingFile pads each returned record with CobolSort.FillTo to output.RecordWidth whenever the GIVING file's size does not vary (and it is not LINE SEQUENTIAL, an organization 1985 does not have), before the as-if WRITE. Witness g85_bf33_01 MATCHes at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.4.4-13",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "su2.cob (runs/su2-001, --std 85): an 8-char fixed SD (RECORD CONTAINS 8, 01 of 6) GIVING a file with RECORD CONTAINS 10 and an 8-char 01. od of su2g.dat shows 10-byte records 'AFIRST' plus 4 spaces, and READ shows [AFIRST  ] [BSECND  ]. So the fill runs to the GIVING file's declared fixed length beyond its 01, which the reader's probes did not try. The reader's sf2/sf3 cover the sequential, relative, indexed, implied-fixed, ODO-SD and varying-GIVING arms. cite.py 'OK  §1985:XI.4.4.4 GR13  (4.4.4 General Rules)  the text is in GR13'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

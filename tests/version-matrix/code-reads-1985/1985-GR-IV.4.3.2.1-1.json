@@ -1,0 +1,110 @@
+{
+ "rule-id": "1985-GR-IV.4.3.2.1-1",
+ "rule-digest": "dff05847ffdd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-005",
+  "sources": {
+   "reader": "2b33b3fd84e577d1e3956cfca3f3e1b4ba342aef6633d8fb66faf257e9af3243",
+   "refuter": "e8a51ee43a12a13170182cd213d5e1e2346f8af4c32efc338396ac4b652905f8"
+  },
+  "imported": {
+   "reader": "dcede9a9bb82aa371e0d6a731debc0692bdb4814c80b442de0b4b7568d9140d0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.2.1-1",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85 a level-66 RENAMES entry (renaming an elementary item, a group, or a THRU range) has no true concept of level: it is not a subordinate of the record, adds nothing to the record's size or hierarchy, follows the record's last entry, and is itself no item of the record that another entry can rename (§1985:VI.5.11.3 SR2/SR4 state the consequences).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RenamesEntry.cs#ScreenRenamesPlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RenamesEntry.cs#ScreenEntryAfterRenames; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsWithinRegion",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates",
+    "switches": "ClauseOperandsTakeImplicitQualifiers (Edition.DialectLevel >= 2002): from 2002 the RENAMES operand candidates are the record's own subtree (SubtreeCandidates, which never reaches a level-66 alias); below 2002 the whole scope's QualifiedCandidates, filtered by IsWithinRegion, which a level-66 alias of the same record passes",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read BindEntries' level-66 arm (the alias attaches to the owning record and never enters the level stack, edition-invariant), DataBinder.RenamesEntry.cs whole (no edition test), and ResolveRedefinesPass.Run's RENAMES loop; grepped DialectLevel in DataBinder.cs and found the one RENAMES-relevant switch at ClauseOperandsTakeImplicitQualifiers (kb/Work PB5165).",
+  "behaviour-differs-by-edition": "yes: at 85 a level-66 entry resolves as a RENAMES operand of a later 66 entry of the same record (accepted and run); at 2002/2023 it 'does not name an item of the record' (COBOL1655)",
+  "witnesses-cover": "part: the witness covers a legal 66 THRU over two groups between other entries; not exercised: 66 over an elementary item, over one group, several 66 entries in a row, a FILE SECTION record, the record's size excluding 66 entries, and a 66 entry used as another 66's operand",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r1.cob",
+    "printed": "R=[ABCDE123            ] LEN=08 RA=[AB] 02 RG=[CDE] 03 RAG=[ABCDE] 05 RGC=[CDE123] 06 S=[SSSS] R2=[zz******] F=[abcde][cde] 05",
+    "expected": "the record is 8 characters with four 66 entries after it; each alias is its window; the next 01 is unaffected; FD record likewise 5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r7.cob",
+    "printed": "COBOL2740: 'A2': a data description entry follows the RENAMES entries of its record",
+    "expected": "a 66 entry does not open or continue a level: a level-10 entry after it is refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r6.cob",
+    "printed": "COBOL2740: the RENAMES entry follows no record description entry it can belong to",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r2.cob",
+    "printed": "COBOL2740: data-name-2 'R' refers to an entry described with level-number 1",
+    "expected": "refused (SR4: no 01)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r4.cob",
+    "printed": "COBOL2740: data-name-2 'A' is subject to an OCCURS clause",
+    "expected": "refused (SR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r10.cob",
+    "printed": "COBOL1655: 'B-ON' does not name an item of the record",
+    "expected": "refused (SR4: no 88)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r3b.cob",
+    "printed": "85: X1=[ABCD] X2=[ABCD] / R=[wxyz] (compiled and ran); 2002 and 2023: COBOL1655 'X2' RENAMES X1: 'X1' does not name an item of the record",
+    "expected": "refused: 'A 66 level entry cannot rename another 66 level entry' (§1985:VI.5.11.3 SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r11.cob",
+    "printed": "85: COBOL1655 'X2' RENAMES A THRU X1: the record's leaves do not tile the alias's storage window (kb/Work PB96); 2002/2023: 'X1' does not name an item of the record",
+    "expected": "refused for SR4 (a 66 operand), not for a tiling fault"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r3.cob",
+    "printed": "85: COMPILED; 2023: COBOL1655",
+    "expected": "refused at 85 as at 2023"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.2.1 GR1",
+    "check": "OK  §1985:IV.4.3.2.1 GR1  (4.3.2.1 Level-Numbers)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.11.3 SR4",
+    "check": "OK  §1985:VI.5.11.3 SR4  (║5.11.3 Syntax Rules║)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VI.5.11.3 SR2",
+    "check": "OK  §1985:VI.5.11.3 SR2  (║5.11.3 Syntax Rules║)  the text is in SR2"
+   }
+  ],
+  "notes": "The structural half conforms at 85: 66 aliases attach to the record without entering the level stack, take no storage, and a level entry after them is refused. The 85 arm of RegionClauseCandidates (PB5165's whole-scope candidates) finds the record's own level-66 alias by name, IsWithinRegion accepts it (its Parent is the record), and ScreenRenamesOperand bars only levels 1 and 77 because its comment assumes 66 and 88 are 'off the storage tree and already unreachable', which is true only of the 2002+ SubtreeCandidates arm. So at 85 a 66 entry is treated as a renamable item of the record.",
+  "seeded": true,
+  "harm": "under-rejects",
+  "cause": "a",
+  "at-2023": "refused: COBOL1655 'X2' RENAMES X1: 'X1' does not name an item of the record (also at --std 2002)",
+  "repro": "01 R. 05 A PIC X(2) VALUE \"AB\". 05 B PIC X(2) VALUE \"CD\". 66 X1 RENAMES A THRU B. 66 X2 RENAMES X1. PROCEDURE DIVISION. DISPLAY X1 X2. MOVE \"wxyz\" TO X2. DISPLAY R. (E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/r3b.cob) at --std 85",
+  "expected": "refused: §1985:VI.5.11.3 SR4 \"A 66 level entry cannot rename another 66 level entry\"; a RENAMES entry has no level in the record (§1985:IV.4.3.2.1 GR1)",
+  "observed": "compiles clean and runs: X1=[ABCD] X2=[ABCD], R=[wxyz]; 66 X2 RENAMES A THRU X1 is refused with a misleading tiling diagnostic (kb/Work PB96) instead of the SR4 reason",
+  "known_note": "none names it; related landed notes kb/Work PB5165 (introduced the 85 whole-scope candidate arm) and PB1283 (wrote ScreenRenamesOperand's SR5 screen assuming 66 is unreachable)"
+ }
+}

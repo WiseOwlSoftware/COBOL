@@ -1,0 +1,75 @@
+{
+ "rule-id": "1989-RV-A.2.19.4-2",
+ "rule-digest": "4b85b9bd4d54",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-179",
+  "sources": {
+   "reader": "752918f740d4701b243063a8a209b3ca969e7b471059a84e46d1ca15127b7cc4",
+   "refuter": "b120f52bcc190465b82233b0e0a336aa1189a5c292619628f87a891951c462ce"
+  },
+  "imported": {
+   "reader": "6d0f889313c28bb0347affd651b3e774046c96a142e320e603815296f747917a",
+   "refuter": "9e290740e9e820764d289424f0706dc234680e2eef0333e541db781348af9eb2"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.19.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION LENGTH of a group that contains an OCCURS DEPENDING ON table returns the group's size with the table counted at the current value of its DEPENDING data item, as for a sending item (§1985:VI.5.8.4 GR3), whether data-name-1 is inside or outside the group and whatever the group's nesting.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#VariableLengthGroupSum; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#WrapIfOdoGroup; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window sig.IntroducedIn (85): LENGTH admitted at 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs (VariableLengthGroupSum), ItemLength.cs, PlaceBuilder.cs and IntrinsicRenderer.cs for Edition, DialectLevel, DialectBehavior: the ODO sum takes no edition input; the only edition reads on the path are the function window and the 2014 PHYSICAL gate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f36_03 covers data-name-1 outside the group and inside it, at two values each; it does not cover zero occurrences (integer-1 = 0), the maximum, a subgroup holding the table, a COMP member in the element, a reference-modified ODO group, or a statement whose receiver is data-name-1.",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/len4.cob",
+    "printed": "REC3=029 SUB3=025 ELEM=008 REC0=005 SUB10=081 REC2-1=007 REC2X=068 REFMODODO=002",
+    "expected": "element = X(2)+S9(3) COMP 2+S9(3) TRAILING SEPARATE 4 = 8; REC at CNT 3 = 4+1+24 = 29; subgroup SUB = 1+24 = 25; CNT 0 -> 5; SUB at CNT 10 = 81; REC2 (K inside the group) at K 1 = 7; at K 5: 31*2+6 = 68; REC3(2:) at CNT 3 = 2"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/len4.cob",
+    "printed": "SELF=04 (COMPUTE CNT = FUNCTION LENGTH (REC3) with CNT 4)",
+    "expected": "the DEPENDING value at the start of the statement (4) gives length 4"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/len4.cob (--std 2023)",
+    "printed": "identical to the 85 run",
+    "expected": "the same counts"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.19.4 RV2",
+    "check": "OK  §1989:A.2.19.4 RV2  (2.19.4 Returned Values)  the text is in RV2"
+   }
+  ],
+  "notes": "VariableLengthGroupSum builds fixed part + data-name-1's current value x element width, which is the sending-item rule of §1985:VI.5.8.4 GR3 b. 1985 forbids an ODO table under another OCCURS (VI.5.8.3 SR1 b), so the single-level shapes probed are the whole range the edition allows.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.19.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "Probe rlen1.cob at --std 85 (runs/rlen1-001): DEPENDING item S9(3) PACKED-DECIMAL at 4 -> 21 (1 + 4*5), after MOVE 6 -> 31; an FD record with its own ODO (FRN 9(2), X(3) OCCURS 1 TO 9 DEPENDING ON FRN) at FRN 3 -> 11; the evaluation uses the DEPENDING value current when the function is evaluated, as AR2 requires. Together with the reader's subgroup, inside/outside DEPENDING item and self-referencing COMPUTE probes, no shape the 1985 OCCURS clause admits gave a different count. cite.py: OK  §1989:A.2.19.4 RV2  (2.19.4 Returned Values)  the text is in RV2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

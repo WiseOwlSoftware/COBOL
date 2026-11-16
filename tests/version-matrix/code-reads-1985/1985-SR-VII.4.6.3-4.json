@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-SR-VII.4.6.3-4",
+ "rule-digest": "524e352c4942",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-161",
+  "sources": {
+   "reader": "0ee01c589d82fd02e2245a993fb1d16b7696c13c6946f91dece28459ef98e1f4",
+   "refuter": "f69f057f460de758eb8ca3bd1c121864f38cd29b6dde5c291401af369111f7ee"
+  },
+  "imported": {
+   "reader": "8633e70b363efa5119884362307ee47751135e139775bc917e93b30c494fb41c",
+   "refuter": "55a9636dbd2de073c751bd8a5f20b745da21782dbc5da92b5b2f9aa36ba5ac57"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.6.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 USE AFTER STANDARD ERROR PROCEDURE and USE AFTER STANDARD EXCEPTION PROCEDURE must be the same statement for every target (file-names of any organization, INPUT, OUTPUT, I-O, EXTEND), while the 1985 format still requires AFTER and PROCEDURE and admits exactly one of the two words.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "below 2002 refuses Format 1 without AFTER (use-without-after-2002) or without PROCEDURE (use-without-procedure-2002); the EXCEPTION/ERROR alternation is not consulted",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: ERROR and EXCEPTION are one alternation in the grammar and no binder or emitter reads which was written (grep ERROR()|EXCEPTION() in the compiler finds only unrelated sites)",
+  "witnesses-cover": "part: g85_bf27_04 covers sequential files named explicitly; mode targets and relative/indexed files under each spelling are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/mix1.cob",
+    "printed": "USE AFTER ERROR PROCEDURE ON SQ RL IX IR NX fires for 38, 23 and 35; USE AFTER EXCEPTION PROCEDURE INPUT fires for 10 on an OPTIONAL relative file",
+    "expected": "GR5: each declarative runs on the unsuccessful operation, whichever word spells it"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_use_forms_ok.cob",
+    "printed": "exit 0 for ERROR and EXCEPTION on files, EXTEND, OUTPUT, I-O and INPUT, with and without STANDARD and ON",
+    "expected": "SR4: synonymous"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_use_both_words.cob",
+    "printed": "COBOL5506 unexpected 'EXCEPTION' after ERROR",
+    "expected": "the format takes one of the two words"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_use_no_procedure.cob",
+    "printed": "at 85 COBOL0900 without the word PROCEDURE requires COBOL-2002; at 2023 exit 0",
+    "expected": "§1985:VII.4.6.2 underlines PROCEDURE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.6.3 SR4",
+    "check": "OK  §1985:VII.4.6.3 SR4  (4.6.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VII.4.6.4 GR5",
+    "check": "OK  §1985:VII.4.6.4 GR5  (4.6.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The synonymy holds by construction: the grammar's (EXCEPTION | ERROR) alternation feeds one DeclBindUse path that never reads which token was written. The 1985-only required words AFTER and PROCEDURE are enforced by the version pass.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.6.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "u1.cob: USE AFTER STANDARD ERROR ON SQ plus USE AFTER STANDARD EXCEPTION ON SQ refused COBOL0897 (SR3 treats the two words as one condition); USE AFTER ERROR INPUT plus USE AFTER EXCEPTION INPUT refused COBOL0897 (SR6). u2.cob (runs/u2-001): the 1985 IPC form USE GLOBAL AFTER STANDARD EXCEPTION ON SQ and USE GLOBAL AFTER ERROR I-O in the outer program fire for a contained program's failed OPEN INPUT SQ and OPEN I-O RL (35 each), control returns and BACK prints. cite.py: OK §1985:VII.4.6.3 SR4 'The words ERROR and EXCEPTION are synonymous'; OK §1985:VII.4.6.3 SR3 'The same file-name must not appear in more than one USE AFTER EXCEPTION statement'; OK §1985:VII.4.6.3 SR6 'may each be specified only once in the declaratives portion'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

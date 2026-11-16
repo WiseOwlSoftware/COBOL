@@ -1,0 +1,176 @@
+{
+ "rule-id": "1985-SR-IX.4.7.3-4",
+ "rule-digest": "36cf79a672c1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-047",
+  "sources": {
+   "reader": "9bbef6ebfe1a7236a25f655700364e0d5407afbaf1cf4a4fc918abbc819e04a6",
+   "refuter": "34b1b04dc4a276e66e53ec68437e4bd991457d344507da4065ac88c10feda43f"
+  },
+  "imported": {
+   "reader": "6405e4284e7af51ecab8c1586c8332ebc7e2cdd09325031d28f707577b8a36fd",
+   "refuter": "33205dea9d21368c098140b1aafecb8619e6ba25e43e9f36b52cccd89f09b8a6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.7.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the START KEY operand must be (a) a prime or alternate record key of the file (including its implicit same-position twin in another record), or (b) any category-alphanumeric item (elementary or group) whose leftmost character position within a record of the file coincides with a record key's and whose length is not greater than that key's; everything else (other category, other position, longer, outside the file's records, reference-modified, subject to OCCURS) must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#GenericKeyIndex; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#SameClassCategoryUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#CategoryOfItem; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#UsageOfItem",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+    "switches": "ctx.Edition.SubscriptedClauseOperands (true only at 2002): at 85 an operand subject to OCCURS is refused (same arm as 2023)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "Year < 2002: mandatory INVALID KEY (SR3); does not decide SR4",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "KeyIndexOfKeyItem/GenericKeyIndex read no edition; grep DialectLevel|Edition.Year in RecordLayout.cs (no hits)",
+  "behaviour-differs-by-edition": "yes, in text only: 1985 b) requires category alphanumeric, while 2023 SR6 b) requires the same class, category and usage as the key. The code applies the 2023 test, which at 1985 is equivalent because a 1985 record key must be category alphanumeric (IX.2.7.3 SR2, enforced: COBOL0863 refuses a numeric key at --std 85) and a 1985 group is alphanumeric/DISPLAY to UsageOfItem.",
+  "witnesses-cover": "part: the four witnesses cover class mismatch, outside-record, too-long and alphanumeric-edited refusals; the accepted forms (key, alternate, generic prefix, generic in another 01, group operand) are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_prime.cob",
+    "printed": "IK FS=23 / START FS=23 (KEY = prime 'BB  ', no such key)",
+    "expected": "accepted; EQUAL on the full key finds none -> invalid key 23"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_alt.cob",
+    "printed": "IK FS=23",
+    "expected": "accepted; alternate 'MM ' not present"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_gen.cob",
+    "printed": "START FS=00 / BBBBMMMREC02",
+    "expected": "accepted (b); generic X(2) 'BB' positions at BBBB (GR4 truncated comparison)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_gen2rec.cob",
+    "printed": "START FS=00 / BBBBMMMREC02",
+    "expected": "accepted (b) from a second record description"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_grp.cob",
+    "printed": "IK FS=23 (group of 9(2)+X(1), value 'BB ')",
+    "expected": "accepted (a group is category alphanumeric); no key begins 'BB ' -> 23"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_compgrp.cob",
+    "printed": "START FS=00 / BBBBMMMREC02 (group USAGE COMP of 9(4), 2 bytes)",
+    "expected": "accepted (group is category alphanumeric)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_altgen.cob",
+    "printed": "START FS=00 / BBBBMMMREC02",
+    "expected": "accepted (b) against the alternate key; prefix MM -> MMM"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_alpha.cob",
+    "printed": "error COBOL0862 (PIC A(2) at key position)",
+    "expected": "refused: category alphabetic"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_num.cob",
+    "printed": "error COBOL0862 (PIC 9(3) at key position)",
+    "expected": "refused: category numeric"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_edit.cob",
+    "printed": "error COBOL0862 (PIC XBX)",
+    "expected": "refused: category alphanumeric-edited"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_offset.cob",
+    "printed": "error COBOL0862 (offset 1)",
+    "expected": "refused: leftmost positions differ"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_long.cob",
+    "printed": "error COBOL0862 (X(5) vs 4-byte key)",
+    "expected": "refused: longer than the key"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_ws.cob",
+    "printed": "error COBOL0862 (WORKING-STORAGE item)",
+    "expected": "refused: not within a record of the file"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_refmod.cob",
+    "printed": "error COBOL0862 (IXK(1:2))",
+    "expected": "refused: data-name-1 cannot be reference-modified"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_nonkey.cob",
+    "printed": "error COBOL0862 (IXD)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_numkey.cob",
+    "printed": "at 85: COBOL0863 RECORD KEY 'IXK' is a category-numeric item ... (ANSI §1985:IX.2.7.3 SR2)",
+    "expected": "refused at 85, so no numeric key can make the same-category test admit a non-alphanumeric generic operand"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c6_afterfail.cob",
+    "printed": "IK FS=23 / START FS=23 / READ FS=46 / record area unchanged",
+    "expected": "the READ NEXT after a failed START finds no valid next record; START does not alter the record area (GR3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.3 SR4",
+    "check": "OK  §1985:IX.4.7.3 SR4  (║4.7.3 Syntax Rules║)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:IX.2.7.3 SR2",
+    "check": "OK  §1985:IX.2.7.3 SR2  (2.7.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IX.4.7.4 GR4",
+    "check": "OK  §1985:IX.4.7.4 GR4  (║4.7.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:IX.2.7.4 GR3",
+    "check": "OK  §1985:IX.2.7.4 GR3  (2.7.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The code runs the 2023 SR6 a)/b) screens unchanged. At 1985 the class/category/usage equality reduces to 'category alphanumeric', because every 1985 record key is alphanumeric (enforced by COBOL0863) and groups count as alphanumeric/DISPLAY. Every accepted and refused form behaves as the 1985 text says, including truncated generic comparison at run time. Diagnostics cite §2023:14.9.41.3 SR6.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same code path",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.7.3-4",
+  "refutation": "OVERTURNED",
+  "classes": "a,d,c",
+  "evidence": "Probe r6_numalias.cob (refute-1985-047/r6_numalias-001), --std 85: RECORD KEY IXK PIC X(4); a second 01 has R2-NUM PIC 9(4) at offset 0. START IXF KEY IS NOT LESS THAN R2-NUM compiles and runs: 'START FS=00 / 2222REC02'. Expected: refused. a) is 'A data item specified as a record key ... (see page IX-11 ... and page IX-14, The RECORD KEY Clause)', and R2-NUM is named in neither clause and cannot be one, since IX.2.7.3 SR2 requires category alphanumeric. b) is 'Any data item of category alphanumeric whose leftmost character position', and R2-NUM is numeric. The reader's c6_num probe refused only a SHORTER numeric item (PIC 9(3)), which takes the GenericKeyIndex arm. An equal-width numeric item takes KeyIndexOfKeyItem's positional arm (ByteWidth equality only) and is admitted before GenericKeyIndex's SameClassCategoryUsage test can run. So the reader's own requirement ('other category ... must be refused') is broken. cite.py: 'OK  §1985:IX.4.7.3 SR4  (4.7.3 Syntax Rules)  the text is in SR4'; 'OK  §1985:IX.2.7.3 SR2 ... the text is in SR2'; 'OK  §1985:IX.2.7.4 GR3 ... the text is in GR3'. Also probed r6_renames.cob (66 GENK RENAMES IXK1, a generic alphanumeric RENAMES item): accepted, 'START FS=00 / BBBBREC02', which is correct. At --std 2023 (r6_numalias_23-001) the same is accepted: 'START FS=00 / 2222REC02'.",
+  "edition-sites-missed": [],
+  "corrected": "NONCONFORMING (under-rejects, cause b). Repro: r6_numalias.cob, START IXF KEY IS NOT LESS THAN R2-NUM with R2-NUM PIC 9(4) at the X(4) prime key's positions in a second 01. Expected: refused by §1985:IX.4.7.3 SR4, since it is neither a) nor b) (not alphanumeric). Observed: accepted, START FS=00. The a) check (KeyIndexOfKeyItem) admits any same-offset, same-width item of the file's records with no category test, which bypasses b)'s category condition. Known note: none (PB354 is related)."
+ }
+}

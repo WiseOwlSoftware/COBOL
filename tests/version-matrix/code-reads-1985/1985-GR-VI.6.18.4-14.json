@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-14",
+ "rule-digest": "efbcc1208d25",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-109",
+  "sources": {
+   "reader": "209f5f461b30b1b93dd15bf984c2d9907e18176fc8b201d69d702f16a07dcc4d",
+   "refuter": "2227f3e15da145526ed2347e66efe6397aebd1fd2813553b5f4d24b430147f00"
+  },
+  "imported": {
+   "reader": "4e6ba5feef2a167a545cab0f635f6ac7f9edb243a57762af4ec94bb68b92412b",
+   "refuter": "c2c353455bf52704041f0a558684a95a134080cf479288e7be14e70f72f5ad1c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.18.4-14",
+  "verdict": "CONFORMS",
+  "requirement": "In format 2 (and format 3's REPLACING), ALL, LEADING or FIRST written once applies to every following 'operand BY replacement' pair, identifiers and figurative replacements included, until the next adjective or CHARACTERS; each carried FIRST pair is its own FIRST phrase (GR15d), and a pair with no adjective is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectReplacingItem; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#IsBareInspectReplacingPair; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#RunCycle",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+    "switches": "DialectBehavior.InspectBeforeFromFirstEligiblePosition (active from 2023): at 85 a BEFORE delimiter is searched from the leftmost position (beforeFromLeftmost=true), at 2023 from the AFTER-derived start",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectSizeRulesCoverDataItems",
+    "switches": "DialectLevel < 2002: at 85 the SR7/SR8/SR9 size rules ask identifier-3/5/6/7 static sizes at compile time; from 2002 only literals (identifier sizes become run-time EC-RANGE-INSPECT-SIZE)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the adjective carry consults no edition; grep over the INSPECT binder, emitter and runtime found the two sites listed, neither of which switches the adjective",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf16_01 T1-T3 cover literal pairs; not exercised there: identifier pairs, figurative replacements, CHARACTERS between adjectives, two FIRST pairs with one literal, the refusals",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/g85_bf16_01-001",
+    "printed": "T1=[XYAB] T2=[XYZAYZ] T3=[xxBA] (MATCH)",
+    "expected": "FIRST, ALL and LEADING carry"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p2rules-002",
+    "printed": "T1=[12A ] T2=[1*1*] T3=[*212] T4=[1123] T5=[****] T6=[ \" \"]",
+    "expected": "FIRST \"A\" BY \"1\" \"A\" BY \"2\" replaces two A's (GR15d); CHARACTERS ends ALL; per-pair BEFORE; FIRST carried after LEADING; an identifier pair and ZERO; SPACE and QUOTE replacements"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p4carry-001",
+    "printed": "K3=[1143A4] K4=[21AXAB]",
+    "expected": "identifier and subscripted patterns inherit LEADING, ALL and FIRST"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rfb-002",
+    "printed": "COBOL5506 unexpected '\"A\"' ... expected ALL, CHARACTERS, FIRST, LEADING or TRAILING",
+    "expected": "refused: a pair with no adjective"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rfl-002",
+    "printed": "COBOL5506 unexpected '.' ... expected BY",
+    "expected": "refused: a carried operand with no BY"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rfj-002",
+    "printed": "COBOL2269 INSPECT REPLACING TRAILING ... prints only CHARACTERS, ALL, LEADING and FIRST",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rfm-002",
+    "printed": "COBOL1757 'ALL \"Q\"' is a figurative constant that begins with the word ALL",
+    "expected": "SR3 refusal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.4 GR14",
+    "check": "OK  §1985:VI.6.18.4 GR14  the text is in GR14 (quoted: \"are adjectives that apply to each succeeding BY phrase until the next adjective appears\")"
+   },
+   {
+    "cite": "§1985:VI.6.18.4 GR15d",
+    "check": "OK  §1985:VI.6.18.4 GR15d  the text is in GR15d (quoted: \"This rule applies to each successive specification of the FIRST phrase regardless of the value of literal-1\")"
+   }
+  ],
+  "notes": "Each inspectReplacingPair inherits its item's kind in BindPhraseOperands; the runtime keeps a separate live flag per FIRST operand, so carried FIRST pairs each replace one occurrence.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.18.4-14",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "q2.cob (q2-001, --std 85): ALL carried to figurative literal-1 pairs (SPACE BY \"2\", QUOTE BY ZERO) printed Q4=[121012]. LEADING SPACES BY ZEROS followed by FIRST \"A\" BY \"b\" \"A\" BY \"c\" printed Q5=[00bc  ], so the carried FIRST is its own FIRST phrase (GR15d). Identifier and function pairs gave F2=[babaXA]. Refusals (--compile-only, EXIT 65): rb `ALL \"B\" BY \"1\" CHARACTERS BY \"*\" \"A\" BY \"2\"` (no adjective carries past CHARACTERS) COBOL2269; rk two BEFORE phrases on a FIRST phrase (SR4) COBOL2269; rp CHARACTERS BY a 2-character literal (SR8) COBOL0846. cite.py: OK §1985:VI.6.18.4 GR14 (\"apply to each succeeding BY phrase until the next adjective appears\"); OK §1985:VI.6.18.4 GR15d.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

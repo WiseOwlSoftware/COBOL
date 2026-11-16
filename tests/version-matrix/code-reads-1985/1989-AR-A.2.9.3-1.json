@@ -1,0 +1,91 @@
+{
+ "rule-id": "1989-AR-A.2.9.3-1",
+ "rule-digest": "027f4ef0fa4d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-174",
+  "sources": {
+   "reader": "8a2dec28f86e235a9e21fb901ad02fb325a9f759c756cb55241e4581382feff4",
+   "refuter": "f3a1dcd4089b1d6fc6f6ff97d0c1f808a1c18a7466120fc3fb72152d1b93cf74"
+  },
+  "imported": {
+   "reader": "d2cd0c18fdcbc292b0993ea845c70179fa5fe883d9a9fbc938442853b3729b48"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.9.3-1",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85 the argument of FUNCTION CHAR must be an integer argument: an arithmetic expression which will always result in an integer value (an integer item or literal, an integer function, or an always-integral expression), never a numeric function, and the compiler must refuse every other operand.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NotAlwaysIntegral; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CollectAdditive",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window: CHAR IntroducedIn 85 vs ctx.Edition.DialectLevel; admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year); CHAR's Uniform('i') row has no predicates, so the integer screen is edition-neutral",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|ConstructRegistry|DialectBehavior over IntrinsicBinder.cs and IntrinsicArgumentRules.cs; IntegerViolation/NotAlwaysIntegral read no edition",
+  "behaviour-differs-by-edition": "no: the integer screen and its fail-open shapes are the same code at --std 85 and --std 2023 (probed)",
+  "witnesses-cover": "part: g85_f34_02 covers literal, item and N + 1 under an ALPHABET collating sequence; no witness exercises the refusal half (fraction literal, scaled item, numeric function, alphanumeric, quotient, power) or an expression with a numeric-function term",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/char-ok.cob",
+    "printed": "ODO=B EXPR=A INTFN=C ORD=A MUL=A LIT0=A",
+    "expected": "all admitted: ODO element, N - 1 + 1, FUNCTION INTEGER(..), FUNCTION ORD(..), N * 1, 66.0 are integer arguments"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/char-bad.cob",
+    "printed": "COBOL1627 on CHAR(1.5), CHAR(S PIC 9V9), CHAR(FUNCTION SQRT(4)), CHAR(\"A\"), CHAR(A PIC X), CHAR(N / 2), CHAR(S + 1), CHAR(SPACE), CHAR(N ** 0.5); line 19 CHAR(FUNCTION SQRT (4) + 1) compiled with no diagnostic",
+    "expected": "every one refused (§1989:A.2.2 AR4, §1989:A.2.3 GR2)"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/char-numfn-sum.cob",
+    "printed": "--std 85 EXIT 0: SUM=@ MUL=7 (CHAR(FUNCTION SQRT(N) + 64) and CHAR(FUNCTION SQRT(N) * 40) with N = 2 compile clean and run on the truncated arguments 65 and 56); --std 2023 identical",
+    "expected": "refused: SQRT(N) + 64 with N = 2 is 65.414..., not an expression that will always result in an integer value"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/char-pow-sum.cob",
+    "printed": "COBOL1627: CHAR argument-1 raises the data item 'N' to the power 0.5 ... not always an integer",
+    "expected": "refused; shows the compiler refuses N ** 0.5 + 64 but admits the equivalent FUNCTION SQRT(N) + 64"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/char-numfn-expr.cob",
+    "printed": "--std 85 and --std 2023: only CHAR((FUNCTION SQRT (N))) refused (COBOL1627, numeric function); the SUM and MUL lines draw nothing",
+    "expected": "all three refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.9.3 AR1",
+    "check": "OK  §1989:A.2.9.3 AR1  (2.9.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   },
+   {
+    "cite": "§1989:A.2.3 GR2",
+    "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+   }
+  ],
+  "notes": "The integer screen (IntegerViolation + NotAlwaysIntegral) refuses fraction literals, scaled items, a bare numeric function, quotients, scaled sums and fractional powers, but a numeric function that is one TERM of a sum or product clears AdditiveSpine.RestIntegral and the screen fails open (the code comment at NotAlwaysIntegral says so). FUNCTION SQRT(N) + 64 is the same value as N ** 0.5 + 64, which the PB5208 power arm refuses, so the gap is a missing witness arm for a numeric-function term (e.g. SQRT/LOG/trig of a bare item), not an undecidable shape. The screen is by design sound-not-complete (PB617, PB1526); this verdict is PARTIAL on that one shape.",
+  "seeded": true,
+  "harm": "under-rejects",
+  "cause": "b",
+  "at-2023": "identical: compiles clean and prints SUM=@ MUL=7",
+  "repro": "01 N PIC 9(3) VALUE 2. 01 C PIC X. ... MOVE FUNCTION CHAR (FUNCTION SQRT (N) + 64) TO C. DISPLAY C.  (--std 85 --source-format fixed)",
+  "expected": "refused: §1989:A.2.2 AR4 'An arithmetic expression which will always result in an integer value must be specified'; with N = 2 the expression is 65.414..., and §1989:A.2.3 GR2 bars a numeric function where an integer operand is required",
+  "observed": "compiles with no diagnostic and runs on the truncated value 65, printing '@'",
+  "known_note": "none open for this shape; related landed notes PB617, PB5208, PB5345, PB4757, PB4795, PB1526 (the sound-not-complete type-6 screen)"
+ }
+}

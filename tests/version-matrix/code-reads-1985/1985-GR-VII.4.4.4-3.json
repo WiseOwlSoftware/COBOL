@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-3",
+ "rule-digest": "43d7874a6b90",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-025",
+  "sources": {
+   "reader": "dde92b60efc95ce31baaefeae9939f4084f1f29d58a45aa253e056ad1595f3d9",
+   "refuter": "b321bae242d25139ede9cd256e0b6ef85dd3794fdec3ab640e6c64631d78fbf7"
+  },
+  "imported": {
+   "reader": "7063309a06fb1ec6d2c769e89a23d55ea49e77eac899e82575cbe77ed76c49b2",
+   "refuter": "6dcfec66499e760ec99919ff28fd13356be6946da77b284ec6476d619bb267b8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.4.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "Every execution of a sequential READ, successful or not, sets the file's I-O status to the 1985 value for its outcome (00, 04 length conflict, 10 at end or first read of an absent optional file, 46 no valid next record, 47 not open in input or I-O mode, 3x) before any AT END / NOT AT END imperative or USE procedure runs.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (from 2002): whether SequentialConnector.EnsureReaderCoherent re-reads for another run unit's writes; not the status value",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Dialect|CobolVersion|IsActive in SequentialConnector.cs, FileConnector.cs guards, FileStatus.cs and SequentialIoEmitter.cs: the status assignment (Status setter, SequentialReadGuard, the READ terminals) and the emitted status store and USE hook consult no edition; the only consult on the path is the sharing-facility coherence switch.",
+  "behaviour-differs-by-edition": "no: the same guards and status values at 85 and 2023 for a sequential file; the statuses later editions add (06, 09 for line sequential) are unreachable at 85 because the organization is not available",
+  "witnesses-cover": "part: pb336_optional_absent_read_46_85 covers 05/10/46 for an absent optional file and 00/10/46 for a present one; not exercised: 47 (closed, OUTPUT, EXTEND, after a failed OPEN), 04 (record longer than the varying maximum), the status visible inside the AT END imperative, READ INTO, I-O mode",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/r3status.cob",
+    "printed": "READ-OPEN-OUTPUT=47 READ-OPEN-EXTEND=47 READ-CLOSED=47 NAE1 00 REC00001 READ1=00 AE2 IN-IMPERATIVE=10 READ2=10 READ3=46 READ-IO=00 OPEN-NP=35 READ-AFTER-FAILED-OPEN=47",
+    "expected": "47 for a file not open in input/I-O mode (VII.1.3.5 4f), 00, 10 set before the AT END imperative runs, 46 after the at end (4e), 47 after a failed OPEN"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/r3status.cob",
+    "printed": "READ-LONG=04 LEN=20 LLLLLLLLLLLLLLLLLLLL READ-SHORT=00 LEN=05",
+    "expected": "a 30-character record read through RECORD VARYING 1 TO 20 is truncated to 20 with status 04 (GR13); a 5-character record 00"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.4.4 GR3",
+    "check": "OK  §1985:VII.4.4.4 GR3  (4.4.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4f (47)"
+   },
+   {
+    "cite": "§1985:VII.4.4.4 GR13",
+    "check": "OK  §1985:VII.4.4.4 GR13  (4.4.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause (set prior to the execution of any imperative statement)"
+   }
+  ],
+  "notes": "The connector's Status setter is the one assignment path; EmitRead stores the FILE STATUS item in both arms before the USE hook and the AT END / NOT AT END imperatives. Every status class 1985 defines for a sequential READ was probed and matched.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.4.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,e",
+  "evidence": "Read §1985:VII.4.4.4 GR1-GR14 and §1985:VII.1.3.5 (00,04,10,46,47 and the 'prior to ... any applicable USE' sentence). Probes beyond the reader's (refute-1985-025/src/r3b.cob, r3c_*.cob, --std 85): the SHORT side of GR13 (5-character record read through RECORD VARYING FROM 10 TO 20 -> 04, LEN=05; 15 -> 00; 25 -> 04 truncated to 20, READ INTO) ; with no AT END and a USE AFTER ERROR procedure the status is already set inside the USE procedure for 10, 46 and 47 (IN-USE-U=10/46/47, then the same after return); OPEN I-O of an absent OPTIONAL file 05 then READ 10 seen in its USE procedure; class c: READ ... WITH NO LOCK and READ PREVIOUS refused at 85 (COBOL0900), READ NEXT RECORD accepted (GR2, level 2). Edition grep over Runtime/IO (DialectBehavior/IsActive): no status-value switch on the sequential READ path; FileRegistry#ImplementorDefaultSharing (FileSharingFacility) affects OPEN, not READ status. cite.py: OK §1985:VII.4.4.4 GR3; OK §1985:VII.4.4.4 GR13; OK §1985:VII.1.3.5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

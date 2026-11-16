@@ -1,0 +1,65 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-6",
+ "rule-digest": "23829a739c59",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-050",
+  "sources": {
+   "reader": "8e01fa6550172ba1facd2fe4fb98c158da138cb22996003aea9facaa68b1c334",
+   "refuter": "4bf51d44593d59f61dffc405634107d030ebe087e126c032e9cc19b97e1e25dd"
+  },
+  "imported": {
+   "reader": "cb947e7066ccfec1e856ba0291c4681c949a6d121baef57be869c0ec5b910b9c",
+   "refuter": "70d14710b3253804c99c2c1904dfac1f09f9bdcc61abdff44443511aff48c091"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.4.5.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "THRU and THROUGH must mean the same in the ALPHABET literal phrase and the CLASS clause at --std 85, with numeric and nonnumeric operands and ascending or descending ranges.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#alphabetEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#classValueItem; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SwitchBindClass",
+  "edition-consulted": [],
+  "edition-search": "AlphabetLiteralPhrase reads `entry.THRU() is not null || entry.THROUGH() is not null`, one test; grep DialectLevel/Edition./ConstructRegistry in SpecialNamesBinder.Alphabets.cs and SpecialNamesBinder.Classes.cs finds no edition test on the THRU path; THRU and THROUGH are reserved at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers nonnumeric ranges in both clauses; numeric-ordinal ranges and mixing both spellings in one clause are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "src/sr6_both.cob",
+    "printed": "D-LT-B=Y B-LT-Z=Y Z-LT-X=Y X-LT-A=Y C1=Y C2-0123=Y C1-3210=Y T-LT-U=Y",
+    "expected": "\"D\" THRU \"B\" and \"Z\" THROUGH \"X\" give D<C<B<Z<Y<X<others; CLASS \"3\" THRU \"0\" \"a\" THROUGH \"c\" holds 0b3ca; numeric 52 THROUGH 49 holds 0123"
+   },
+   {
+    "class": "b",
+    "file": "src/sr4_thru2long.cob",
+    "printed": "COBOL1906 for THROUGH, the same refusal as THRU (sr4_thrulong)",
+    "expected": "same treatment for both spellings"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.3 SR6",
+    "check": "OK  §1985:VI.4.5.3 SR6  (4.5.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "One grammar alternative holds both tokens and the binder tests them as one; both spellings produce identical collating and class results.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.4.5.3-6",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Read §1985:VI.4.5.3 SR6 and the 1985 CLASS and ALPHABET formats (VI.4.5.2: CLASS has no IN phrase). Probes at --std 85: r6_class_mixed (CLASS C1 IS 50 THROUGH 49 \"a\" THRU \"b\" 68 THRU 68 against CLASS C2 with the spellings swapped) ran W1=Y W2=Y V1=N V2=N, identical for both spellings over numeric descending, nonnumeric and single-point ranges; r6_class_in85 (CLASS C1 IS 1 THROUGH 2 IN AL, a 2002 form) refused COBOL0900 'the IN alphabet-name phrase of the CLASS clause requires COBOL-2002'. The reader's sr6_both and sr4_thru2long already cover ALPHABET. grammar alphabetEntry and classValueItem hold (THRU | THROUGH) as one alternative. cite.py: OK §1985:VI.4.5.3 SR6.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitClassDefinitionClause: refuses the CLASS IN alphabet-name phrase (class-clause-in-alphabet-2002) below 2002, on the CLASS THRU path; not an arm that changes THRU/THROUGH equivalence"
+  ],
+  "corrected": ""
+ }
+}

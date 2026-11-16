@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.6.8.4-2",
+ "rule-digest": "b7574cf58073",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-117",
+  "sources": {
+   "reader": "7de40780b8cb6a72515b8717be3d8385b3fadba56275c753953c42e157e51f13",
+   "refuter": "2be25b7c9253341d4e7b43074ba07e54000ba81b034f970d74c6f38fbaf1e711"
+  },
+  "imported": {
+   "reader": "116444b7ef540fd6733ecc43b28f2cde43e9032a70a718122ea596ab2e337ab5",
+   "refuter": "12e0c5683a04beb5e6777697ec6f8fce8f73ed25453a45db44d0b7225c5264ac"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.8.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a COMPUTE with several identifier-1 must develop the expression's value once (before any receiver is stored) and then store that one value into each identifier-1 left to right as a sequence of separate stores (§1985:VI.6.4.6), each with its own ROUNDED and size-error test, a receiver's subscript being identified at its own store.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitCompute; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#MaterializesInitialEvaluation; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#Snapshot; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: unphrased size errors continue at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EmitCompute's multi-target arm (Snapshot then per-receiver GuardedStore) has no edition test; grep for DialectBehavior|DialectLevel in ArithmeticEmitter.cs finds only EmitArith.",
+  "behaviour-differs-by-edition": "no: one value stored into each receiver at both editions",
+  "witnesses-cover": "part: g85_bf02_02 covers A B = A + 1 and one value into differing shapes with ROUNDED; not exercised: a receiver subscripted by an earlier receiver, a size error in one receiver with others stored, an operand used twice with a receiver alias",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/comp2.cob",
+    "printed": "M1 3 00 03 (COMPUTE I TE (I) = 3 with I = 1)",
+    "expected": "I = 3, then TE (3) = 3 identified after I is stored (§1985:VI.6.4.6 (2): a sequence of statements in left-to-right order)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/comp2.cob",
+    "printed": "M2 0.7  0.66 [  0.6] (COMPUTE C ROUNDED D E = 2 / 3); M4 15 015 (COMPUTE A B = A * 2 + A, A = 5)",
+    "expected": "one value 0.666..: 9V9 ROUNDED 0.7, S9V99 0.66, ZZ9.9 0.6; the value 15 developed once and stored in both"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/comp2.cob",
+    "printed": "M3 SIZE 11 150 (COMPUTE A B = 150 ON SIZE ERROR, A PIC 99 = 11, B PIC 999)",
+    "expected": "A unchanged (11), B stored 150, the ON SIZE ERROR imperative runs (§1985:VI.6.4.2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.8.4 GR2",
+    "check": "OK  §1985:VI.6.8.4 GR2  (║6.8.4 General Rules║)  the text is in GR2"
+   }
+  ],
+  "notes": "With more than one receiver EmitCompute materializes the value once (Snapshot) and stores it per receiver inside its own GuardedStore, so an alias or a subscript that a prior receiver changed cannot alter the value; the probes printed the required results.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.8.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "rcomp.cob X10: COMPUTE I TE (I) = I + 1 with I = 1 -> I 2, TE(1) 00, TE(2) 02, TE(3) 00: the value developed once from the initial I, the receiver's subscript identified at its own store after I is stored (§1985:VI.6.4.6). X11: COMPUTE R1 R3 = -12.5 -> -12.50 and 012 (one value, each receiver's own sign rule). X15: COMPUTE R3 MX = 1000 with no phrase, R3 PIC 999 overflowing -> MX 000000000000001000 stored, control continues. rcnot.cob Y1: COMPUTE A B = 150 with only NOT ON SIZE ERROR, A PIC 99 overflowing -> B 150, NOT phrase not executed. cite.py: OK §1985:VI.6.8.4 GR2 the text is in GR2; OK §1985:VI.6.4.6 the text is in the clause; it lies in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

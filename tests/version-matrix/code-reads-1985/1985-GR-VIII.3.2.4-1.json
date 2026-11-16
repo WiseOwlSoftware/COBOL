@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-VIII.3.2.4-1",
+ "rule-digest": "f5573691ab4a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-130",
+  "sources": {
+   "reader": "82310cf41338ae9e7c482c179d67010eaf9e7e6d944aefbc8817fd8fb807316d",
+   "refuter": "3d556626bd58f455ba5b06e4a7e057b06372450d68af16a584207b701c1e7e2f"
+  },
+  "imported": {
+   "reader": "d977009e18da091a8e92a70637f4ad400a5220b746072ce88d5aa24148e3426d",
+   "refuter": "003b9488456231ddc17832dfb7185e0133114ee3bca855a128a739ba61268cbe"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.3.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each relative file's FD must associate its file-name with its own file connector: one FD per SELECTed file, followed by one or more record descriptions that share its record area, each connector's open state and position independent of every other file-name's, including a file-name in another program.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#DescriptionRepeated; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterRelative",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord",
+    "switches": "below 2002 an FD with no record description entry is refused (COBOL1837, §1985:VIII.3.2.3 SR3); 2002+ builds the implied record",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+    "switches": "passes the program's --std to the connector (FileConnector.Edition), read by the sharing and CLOSE WITH LOCK DialectBehaviors; the connector itself is the same",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel over FileControlBinder.FileSection.cs, KeyedIoEmitter.cs#EmitRegistration, FileRegistry.cs#RegisterRelative.",
+  "behaviour-differs-by-edition": "yes: at 85 a record-less FD is refused (2023 compiles it with an implied record); the association of file-name to connector is the same code",
+  "witnesses-cover": "part: the witness has two relative FDs with separate connectors; it does not exercise the FD/SELECT correspondence refusals, two record descriptions of one FD, a same-named file in another program, or statements after a failed OPEN",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/pconn.cob",
+    "printed": "B RX 47 / B OPEN 35 / B RY 47 / A W2 00 / A R2 00 A2XY XY",
+    "expected": "PCONNB's own R1 is a separate connector: READ unopened 47, OPEN of a missing non-OPTIONAL file 35, READ after the failed OPEN 47; PCONNA's R1 stays open, and its second record description R1-ALT writes through the same area: matches"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/fd_norec.cob",
+    "printed": "85: error COBOL1837 ... §1985:VIII.3.2.3 SR3; 2023: EXIT 0",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/fd_nosel.cob; fd_nofd.cob; fd_twice.cob",
+    "printed": "COBOL2636 FD names a file no file control entry specifies; COBOL2635 SELECT has no FD; COBOL4250 file-name described a second time",
+    "expected": "refused (§1985:VIII.2.3.3 SR2)"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/VIII.3.2@1985-FILE-DESCRIPTION-ENTRY/g85_f17_05.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "its .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.3.2.4 GR1",
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.3.2.4 GR1\" \"A file description entry associates file-name-1 with a file connector\" -> OK  §1985:VIII.3.2.4 GR1  (3.2.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VIII.3.2.3 SR3",
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.3.2.3 SR3\" \"One or more record description entries must follow the file description entry\" -> OK  §1985:VIII.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "BindFileSection attaches each FD to its SELECT's FileModel, and emission registers one connector per file key (per program). Connectors stay independent across programs and after failed statements.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.3.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "fd_ext.cob: two separately described programs with FD XR IS EXTERNAL share one connector: PXA opens I-O, PXB READs record 2 (B 00 EXT2 2) and WRITEs record 3 without opening, PXA then READs 3 (A 00 EXT3). keyglob_a.cob: a GLOBAL FD used by a contained program reaches the container's open connector. Together with the reader's pconn (non-external same-named files are separate connectors). cite.py: OK §1985:VIII.3.2.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

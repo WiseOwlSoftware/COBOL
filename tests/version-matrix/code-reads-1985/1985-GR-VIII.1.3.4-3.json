@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-3",
+ "rule-digest": "be493706dde9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-127",
+  "sources": {
+   "reader": "1cee9424aa0830998a16df340aff017f5f6b278055f56029b84815b8c3bd4053",
+   "refuter": "5be2bd587bac17aee83d32e65239aac0b77e7b437fbc4117cc4c8ef1a5948552"
+  },
+  "imported": {
+   "reader": "3849927f91d671f5e562c52a511c6f3fe121dfb5ab626ceab44f685c018f05b1",
+   "refuter": "24f41d7a758eec2bfc8171041e2add41d1a88f05ed724e4190df5dcf93d59d74"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.1.3.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a relative-file DELETE, READ, REWRITE, START or WRITE that meets the invalid key condition is unsuccessful with a 2x status (22 duplicate; 23 record absent, or START/random READ of an absent optional input file; 24 a write beyond the file's boundaries or a sequential WRITE whose record number overflows the RELATIVE KEY item), leaves the file unaffected, and takes INVALID KEY, else the USE procedure.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#BoundaryViolation; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#DuplicateKey; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordNotFound; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#InvalidKey; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError (from 2014): a random or dynamic WRITE whose key is below 1 or above the highest RRN answers the invalid key 24 at 85, the permanent error 34 at 2014 and 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -rn 'CobolVersion|Edition|Dialect|Std' src/WiseOwl.Cobol.Runtime/IO/*.cs; grep -n 'Edition|Version|Dialect' CodeGen/EcEmitter.cs CodeGen/DispatchEmitter.cs CodeGen/Verbs/IoStatusClass.cs; read Runtime/Control/DialectBehavior.cs rows 2, 14, 19",
+  "behaviour-differs-by-edition": "yes: a random or dynamic WRITE with RELATIVE KEY 0 is the invalid key condition 24 at 85 (INVALID KEY taken, the file still usable) and the permanent error 34 at 2014/2023 (no INVALID KEY, the error stays in effect)",
+  "witnesses-cover": "part: the witness covers 22 and 23 on WRITE/READ/REWRITE/DELETE/START; not exercised there: 24 in either form and 23 for an absent optional file (probed)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/g85_bf26_02.cob",
+    "printed": "EXPECT: MATCH (WR 22, RD 23, RW 23, DL 23, ST 23, RD1 ONE-01)",
+    "expected": "22 / 23, file unaffected"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p3invkey.cob",
+    "printed": "--std 85: K0 INVALID 24 / K0 24 USES 0 / USE 24 / K0B 24 USES 1 / K3 00",
+    "expected": "24 invalid key; INVALID KEY suppresses USE; without the phrase USE runs; the file still usable"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p3invkey.cob",
+    "printed": "--std 2023: USE 34 / K0 34 USES 1 / K0B 34 / K3 34",
+    "expected": "the 2023 arm (34 permanent, replayed)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p3invkey.cob",
+    "printed": "S INVALID 24 KEY 9 / S10 24 (tenth sequential WRITE, RELATIVE KEY PIC 9)",
+    "expected": "24 (item (3) c, second sentence)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p3invkey.cob",
+    "printed": "O0 05 / O1 INVALID 23 / O2 INVALID 23 (START and random READ of an absent OPTIONAL file, dynamic access)",
+    "expected": "23 (item (3) b 2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.1.3.4 GR3",
+    "check": "OK  §1985:VIII.1.3.4 GR3  (1.3.4 I-O Status)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4 GRL2.3",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.3  (1.3.4 I-O Status)  the text is in GRL2.3"
+   }
+  ],
+  "notes": "The one edition arm on the path is RelativeConnector.Write's out-of-range key; at 85 it takes BoundaryViolation (24), as §1985:VIII.1.3.4 item (3) c reads, and the probe shows both arms. The status class tests (CodeGen/Verbs/IoStatusClass.cs), the generated __IoCheck hook (DispatchEmitter.EmitUseMachinery) and the Status setter's permanent-error record are the same code at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.1.3.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e,f",
+  "evidence": "runs/r3a-001 (RANDOM access, RELATIVE KEY PIC 9(4) COMP): WRITE 3 NOT INVALID KEY 00; duplicate WRITE 3 -> 'W3D INV 22' and a later READ 3 returns R003 (file unaffected); key 0: READ/REWRITE/DELETE INVALID 23, WRITE INVALID 24 (the 85 arm of DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError); absent key 5: REWRITE/DELETE INVALID 23; USES 00 throughout (INVALID KEY suppresses USE). runs/r5a-001: dynamic WRITE duplicate 'DW22' with INVALID KEY, position kept. runs/rc6-001: START KEY IS LESS THAN refused at 85 (COBOL0900), the 1985 START format having only EQUAL/GREATER/NOT LESS/>=. cite.py: 'OK §1985:VIII.1.3.4 GRL2.3 (1.3.4 I-O Status) the text is in GRL2.3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

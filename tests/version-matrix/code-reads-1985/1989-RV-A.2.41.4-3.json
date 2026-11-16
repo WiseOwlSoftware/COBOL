@@ -1,0 +1,94 @@
+{
+ "rule-id": "1989-RV-A.2.41.4-3",
+ "rule-digest": "1f476edca2c2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-083",
+  "sources": {
+   "reader": "8cddf3defbf6ae2225c30c8eeab4ab2dc0dd44d9a5d0fca3066105d865219485",
+   "refuter": "be400553f381c0f7f3fef8da8a3c3518bebf2f769e51ab8723856fde4a129e2c"
+  },
+  "imported": {
+   "reader": "05e0757c724a94b49e18e4e81c94cc02f9b2f0736a3125d0c9e4eae8de2c2da8",
+   "refuter": "158435ab7744853cabaa297f22b8f6a98fd082cdd3a93fe3a1815cdef2790109"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.41.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, STANDARD-DEVIATION returns zero when the series is a single value (one literal, item or element) or consists only of variable-occurrence (ODO) items whose total occurrences are one; each ALL must yield at least one argument (§1989:A.2.2 AR4).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#ExactListBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#StdDevExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#VarianceExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Variance; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#CobolTable",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 edition window: sig.IntroducedIn (85 for the 1989 module rows, IntrinsicCatalog.cs#Build) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry NumericFunctionIdentifierOperand2002: at 85 a numeric/integer function written where an identifier stands (MOVE sender) is refused (COBOL0900), per §1989:A.2.3 GR2/GR3; never reached inside an arithmetic expression",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+    "switches": "Edition.DigitCapacityExcess: 18-digit cap on items and literals at 85 (31 later); bounds the argument range only",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+    "switches": "num.StandardDecimal (OPTIONS ARITHMETIC, a 2002+ paragraph, so always native at 85): the native dispatch is the one a 2023 program with no ARITHMETIC clause takes",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs, IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs for Edition|DialectLevel|CobolVersion|ArithmeticMode|StandardDecimal; the runtime bodies take no edition input",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: witnesses cover SD/VARIANCE of a single literal; not an ODO table(ALL) whose DEPENDING ON value is 1, a single ODO element, or a single negative item",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/stat1.cob",
+    "printed": "SD-ODO1(T(ALL), N=1)=0.000000000000 SD-ONE(A1=-1.5)=0 SD-LIT(-5)=0 SD-EQ(4 4 4)=0 (dir stat1-001)",
+    "expected": "0 for each"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/deg1.cob",
+    "printed": "SD(T(1))=0; SD(T(ALL) T(ALL)) with N=1 (two equal values)=0",
+    "expected": "0"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/ref1.cob",
+    "printed": "COBOL1627 for a non-numeric argument",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.41.4 RV3",
+    "check": "OK  §1989:A.2.41.4 RV3  (2.41.4 Returned Values)  the text is in RV3"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   }
+  ],
+  "notes": "The table(ALL) enumeration reads the ODO object at run time, so a one-occurrence table becomes a one-element list. The exact variance of one value is 0, and so is its root. Output was identical at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.41.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,d",
+  "evidence": "rsd1-002 (--std 85): ODO entry DX OCCURS 1 TO 5 DEPENDING ON N with subordinate DY OCCURS 2, N=1: SD(DY(ALL 1)) = 0 and SD(DY(ALL 2)) = 0 (variable-occurrence items, total one occurrence); one 18-digit item SD(A1) = 0; one float value SD(FUNCTION SQRT(2)) = 0; one expression SD(A1 / 3) = 0; SD(DY(1 1)) = 0 in a relation condition. Two variable-occurrence references each give at least one argument (§1989:A.2.2 AR4), so 'total one' is reachable only by a single reference, which the probes cover. cite.py: 'OK  §1989:A.2.41.4 RV3  (2.41.4 Returned Values)  the text is in RV3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

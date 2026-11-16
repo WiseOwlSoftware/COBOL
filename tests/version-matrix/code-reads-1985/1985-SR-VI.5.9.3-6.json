@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VI.5.9.3-6",
+ "rule-digest": "ab754637e277",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-157",
+  "sources": {
+   "reader": "2ff8d2f1138eea94abb9b7f7beac3f5bc21b839f2d17c35019ce6ee477bfb139",
+   "refuter": "6b4c1b03b601b4d5c358f550aa78c8f30a0a2f7ab20786771312ab94572497c0"
+  },
+  "imported": {
+   "reader": "d30f48402a1916641dbb802b832c37e35447a4e3362d55b8da3e101bcfe0853d",
+   "refuter": "7558fae76cafbb0d4a06031cca62db52b441ac77d755f0a355050e7f85a81ec8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.9.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the word PIC is accepted wherever PICTURE is, with or without IS, in any clause position, and describes exactly the same item for every category of character-string (alphabetic, alphanumeric, numeric with S/V/P, numeric-edited); a PIC and a PICTURE in one entry are the same clause written twice.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#pictureClause",
+  "edition-consulted": [],
+  "edition-search": "The lexer rule is PIC : ('PIC' | 'PICTURE'), one token, with no mode or predicate; pictureClause is PIC IS? PIC_STRING with no edition predicate. Grepped CobolLexer.g4 and the pictureClause rule for edition predicates; the only edition-gated part of the clause is the 2002 LOCALE phrase (pictureLocalePhrase), not the keyword.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf11_04 covers X and ZZ9.99 strings with and without IS; signed, scaled (P), alphabetic, currency/CR edited and lower-case spellings are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c5pic.cob",
+    "printed": "[   $12.34CR][   $12.34CR] / -011.34 -011.34 / ABCABC 99999 99999 / E EQUAL (exit 0)",
+    "expected": "each PIC/PICTURE pair (S9(3)V99, $$,$$9.99CR, A(3) incl. lower-case picture, COMP 9(5) after USAGE, PPP99) behaves identically"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c5bad.cob",
+    "printed": "error COBOL0001: unexpected '('",
+    "expected": "refused: PICT is not an abbreviation of PICTURE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c5bad2.cob",
+    "printed": "error COBOL2423: the clause 'PIC X(3)' is written 2 times",
+    "expected": "PIC X(3) PICTURE X(3) is the one clause twice, refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.5.9@1985-PICTURE-CLAUSE/g85_bf11_04.cob",
+    "printed": "EXIT 0, EXPECT: MATCH",
+    "expected": "the witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.9.3 SR6",
+    "check": "OK  §1985:VI.5.9.3 SR6  (5.9.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "Equivalence is by construction: both spellings lex to the one PIC token, so no later stage can tell them apart, and the duplicate-clause screen treats them as one clause.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.9.3-6",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Probe r5rw --std 85 in the Report Writer module (a report group entry the reader did not try): COLUMN 1 PIC IS -ZZ9.99 SOURCE A and COLUMN 10 PICTURE IS -ZZ9.99 SOURCE A with A = -12.34 write identical '- 12.34' fields to the report file (od of r5out.txt), exit 0. (A first run named the file PF, which is reserved at 1985 as the PAGE FOOTING abbreviation; renamed.) cite.py: 'OK  §1985:VI.5.9.3 SR6  (5.9.3 Syntax Rules)  the text is in SR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

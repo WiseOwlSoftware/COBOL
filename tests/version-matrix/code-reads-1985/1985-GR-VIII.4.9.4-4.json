@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-4",
+ "rule-digest": "8f3a0a9b0dd7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-030",
+  "sources": {
+   "reader": "6a54b92703dd89d91d8c2c8249243252dc12c32561af6395a54c23c9404933b8",
+   "refuter": "7153369b207d74fd7316f2cab1a1f5813e4a99b184d1b7973a87bc2b7478b0dc"
+  },
+  "imported": {
+   "reader": "2c058b972a93939787cd4c294bd8f08e743e24e96198d1c8bcc079b5bae1aa6f",
+   "refuter": "1f56c783f1669e2b5d71c2b5d8875d574c82e9591d8ab8a68f46edadfc4e6b18"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.9.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "After a relative WRITE with FROM identifier-1 (a data item of any category, or an alphanumeric function-identifier under Amendment 1), identifier-1 must keep its content, and record-name-1's content is available only through SAME RECORD AREA; FROM literal is not 1985 syntax.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+    "switches": "Constructs.FromLiteral2002: FROM literal-1 refused below 2002 (COBOL0871)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior in KeyedIoEmitter.cs (none); the FROM move (wr.FromMove) is the bound MOVE, the same at every edition.",
+  "behaviour-differs-by-edition": "yes: FROM literal-1 is refused at 85 and accepted at 2023; the identifier semantics are the same",
+  "witnesses-cover": "part: the witness writes a sequential file from an alphanumeric item; a relative file, a group, a numeric-edited and a function-identifier operand, and the FROM literal refusal are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/p2sra.cob",
+    "printed": "W1 00 SRC ABCD1234 / W2 00 ED   5.00 / W3 00 LOW     |LOW     |low",
+    "expected": "group WS-SRC, edited WS-ED and WS-LOW (argument of FUNCTION UPPER-CASE) unchanged after WRITE ... FROM; the record available through SAME RECORD AREA"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/pclit.cob",
+    "printed": "--std 85: error COBOL0871: FROM literal-1 requires COBOL-2002; --std 2023: 00 LITL",
+    "expected": "§1985:VIII.4.9.2 allows only identifier-1 after FROM: refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.9.4 GR4",
+    "check": "OK  §1985:VIII.4.9.4 GR4  (4.9.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VIII.4.9.3 SR1",
+    "check": "OK  §1985:VIII.4.9.3 SR1  (4.9.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The FROM phrase is lowered as the bound implicit MOVE into record-name-1 before the WRITE, so the sending item is never written to. The function-identifier operand (Amendment 1) compiles and runs at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.9.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "rfpi.cob at --std 85: WRITE RREC FROM WS-SRC to an occupied slot -> INVALID KEY 22, WS-SRC still SRC123 (identifier-1 available after a FAILED WRITE as well) and RREC SRC123 (the GR3 MOVE ran, GR15 leaves the area as the MOVE left it). rfunc.cob: FROM FUNCTION LENGTH(\"ABC\") refused at 85 (COBOL1914 citing §1985:VIII.4.9.3 SR1 and COBOL0900), so the operand class GR4 ranges over is the 1985 one; FROM literal refusal was shown by the reader. cite.py: OK §1985:VIII.4.9.4 GR4 'the information in the area referenced by identifier-1 is available'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

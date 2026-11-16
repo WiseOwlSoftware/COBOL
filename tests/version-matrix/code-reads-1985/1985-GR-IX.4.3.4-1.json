@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-IX.4.3.4-1",
+ "rule-digest": "54fedf2c67d0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-093",
+  "sources": {
+   "reader": "87566458a341535548f3b5a6dd7a32e41f8d29615141383f437bce21afb35729",
+   "refuter": "a4be79958e3090192e4df035e3d0235625d8e66c250d53fd8d46b0f100d23cda"
+  },
+  "imported": {
+   "reader": "15dfc774f6fe32d396289b00f397c6fd2b65f086234e0bde9ee40bd569884c7e",
+   "refuter": "aa9eb0cd7545d0bd46c628d4d8dc51eaed8168d9e32d975b3a334b0c9a889538"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "An indexed DELETE succeeds only on a file open in the I-O mode; a DELETE on a file not open, open INPUT or OUTPUT (or after a failed OPEN) is unsuccessful with I-O status 49 and removes nothing; DELETE on a non-mass-storage (sequential-organization) file is not a 1985 form at all.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteSharedInStatement; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect (via FileRegistry#RecordLocksGovern in DeleteSharedInStatement)",
+    "switches": "DialectBehavior.FileSharingFacility: off at 85, so a lone connector never meets a lock conflict; it does not reach the open-mode test",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "IndexedConnector.Delete and FileConnector.MutationOpenModeGuard read no Edition; grep of Runtime/IO for Edition|CobolVersion|Dialect lists FileConnector.Edition, sharing, CLOSE WITH LOCK and READ-only rows, none in Delete; KeyedIoEmitter.EmitDelete has no edition test",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf30_04 covers I-O success and open INPUT (49); never-opened, open OUTPUT and after a failed OPEN are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/del1.cob",
+    "printed": "NOT OPEN 49 / OUTPUT 49 / INPUT 49 (USE runs each time); DEL K01 00 in I-O",
+    "expected": "IX.1.3.4 49: DELETE attempted on a file not open in the I-O mode"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/del2.cob",
+    "printed": "OPEN IO ABSENT 35 / DELETE AFTER FAILED OPEN 49",
+    "expected": "a failed OPEN leaves the file not open: 49"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/delseq.cob",
+    "printed": "COBOL0865: DELETE RECORD shall not be specified for sequential-organization file 'SQ' (ISO §2023:14.9.10.3 SR1)",
+    "expected": "Sequential I-O at 1985 has no DELETE statement: refuse"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.3.4 GR1",
+    "check": "OK  §1985:IX.4.3.4 GR1  (4.3.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5h"
+   }
+  ],
+  "notes": "MutationOpenModeGuard answers 49 for every connector not open I-O before any key work, shared with REWRITE. The sequential-file refusal at 85 cites the 2023 clause rather than a 1985 one, a citation nit outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-093/del3.cob (del3-001), --std 85: indexed sequential file opened EXTEND (a 1985 indexed OPEN form, catalog 1985-FMT-IX.4.4.2): DELETE gives 49 with USE, nothing removed (LEFT 001AAA, 002BBB); random file OPEN I-O then CLOSE then DELETE gives 49 and the record survives (STILL 001AAA 00). Together with the reader's never-opened/INPUT/OUTPUT/failed-OPEN probes, every non-I-O state answers 49. cite.py: OK §1985:IX.4.3.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

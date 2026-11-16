@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-14",
+ "rule-digest": "14dd53dfce7e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-023",
+  "sources": {
+   "reader": "2a1b9ce771cb26875d4537a3ada881b7fa908e3c37f01e788153bb24311ccd4c",
+   "refuter": "bfe58dd96295a9a99e558e5cd0636af6b9ca2168b0e8e14aa3571a83c253fa28"
+  },
+  "imported": {
+   "reader": "f58fd56c52466fea2c2106595534fc29b900ce9b27e611662cdd4113ef5e2468",
+   "refuter": "1db5f9440dc703a3c936ac094f1386efa21ac13d906b8b5253873db87193b8b1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.8.4-14",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, with format 3, integer-4 and integer-5 only refer to (document) the smallest and largest record sizes; the size of each record is the one its record description entry defines (fixed part plus the current ODO occurrences), so no record is refused or resized against the integers, and 1985 prints no syntax rule for format 3, so integer-4 >= integer-5 is accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "BoundsEnforced via DialectBehavior.RecordContainsRangeBindsRecordSize (2002+); at 85 false, so VaryMin/VaryMax take the smallest/largest record description instead of integer-4/integer-5",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt",
+    "switches": "edition.DialectLevel >= Since: format 3's integer-5 > integer-4 rule (§2002:13.16.41.2 SR8 / §2023:13.18.43.3 SR9) is screened only from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 records outside integer-4..integer-5 are written at their own size and 10 TO 5 / 5 TO 5 compile; at 2023 such records get I-O status 44 and the reversed or equal integers are refused (COBOL2009).",
+  "witnesses-cover": "part: l1c23 covers records whose sizes coincide with the integers; descriptions outside the range, ODO records, reversed/equal integers and non-sequential organizations are exercised only by the probes.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/rec1.cob",
+    "printed": "CONTAINS 5 TO 10, records 3, 20 and ODO 6/4: all WRITEs 00, read back L=03, L=20, L=06, L=04; a READ of the 3-byte record through the format 3 file: F3R 00 [ABC]",
+    "expected": "each record's size is completely defined by its description (GR14)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/rec3.cob",
+    "printed": "--std 85: RECORD CONTAINS 10 TO 5 and 5 TO 5 compile; WA/WB/W4 00, bytes 05 'ABCDE' 0A 'FGHIJKLMNO' and 05 'PQRST'; --std 2023: COBOL2009 integer-5 shall be greater than integer-4 (ISO §2023:13.18.43.3 SR9) twice",
+    "expected": "no 1985 syntax rule for format 3; sizes from the descriptions"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/rec1.cob",
+    "printed": "--std 2023: WA 44, WB 44, WC 00, WD 44; the 85 run writes all four",
+    "expected": "1985 status 44 names only the RECORD IS VARYING clause (§1985:VII.1.3.5), so the integers do not bind at 85"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/rec2.cob",
+    "printed": "relative and indexed format 3 files: L=05 and L=10 records read back at their own sizes",
+    "expected": "same in every organization"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.4 GR14",
+    "check": "OK  §1985:VII.3.8.4 GR14  (3.8.4 General Rules)  the text is in GR14 [quote: the size of each data record is completely defined in the record description entry]"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4d.1 [quote: allowed by the RECORD IS VARYING clause of the associated file-name]"
+   }
+  ],
+  "notes": "The 85 arm is its own (BoundsEnforced false, RecordClauseRules gated from 2002), and probes show it does what the 1985 text says: the integers document sizes and constrain nothing, ODO records are sized by their current occurrences, and the reversed and equal integer forms that 2002 began to refuse are accepted.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "out-of-range records 44; 10 TO 5 and 5 TO 5 refused COBOL2009",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.8.4-14",
+  "refutation": "OVERTURNED",
+  "classes": "a,d",
+  "evidence": "The reader's requirement sizes a format 3 record at 'fixed part plus the current ODO occurrences'. The 1985 text under the same FORMAT 3 heading defines that size otherwise: GR15 'The size of a record is determined by the sum of the number of characters in all fixed length elementary items plus the sum of the maximum number of characters in any variable length item subordinate to the record', and §1985:VI.5.8.4 GR5 makes an ODO record variable length only when the FD 'contains the VARYING phrase of the RECORD clause'; GR15's 'may be different from the actual size' points only to character representation, SYNCHRONIZED and USAGE. Probe refute-1985-023/rr1.cob at --std 85: record 05 R3-N PIC 99, 05 R3-T PIC XX OCCURS 1 TO 4 DEPENDING ON N3 (max 10), N3=1. FD RECORD CONTAINS 4 TO 10: bytes 04 00 00 00 31 32 41 42 (written at 4, the current occurrences); the same record under RECORD CONTAINS 10 and under no RECORD clause: 10 bytes '12AB      '. So at 85 the format 3 ODO record is written at a size its record description does not define per GR14/GR15 (10). Same output at --std 2023 (the 2023 current-occurrence sizing): the 85 path has no arm of its own. The code-location the reader names (FileControlBinder.FileSection.cs#BindRecordClause, FileModel.cs#VaryMin/#MinRecordSize) is exactly the site of the open defect kb/Work/PB5731 ('sized with the table at its MINIMUM occurrences, where §1985:VII.3.8.4 GR15 sizes it at the maximum'; its sweep names 'the record size checks of WRITE and RELEASE'). cite.py: OK §1985:VII.3.8.4 GR14 (the text is in GR14); OK §1985:VII.3.8.4 GR15 (the text is in GR15); OK §1985:VI.5.8.4 GR5 (the text is in GR5). The integers-document-only half and the 10 TO 5 / 5 TO 5 acceptance stand (reader's rec1/rec3).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin: below 2002 (BoundsEnforced false) answers Records.Min(MinRecordSize), the ODO table at its minimum occurrences, where 1985 format 3 (GR15) needs the maximum; the WRITE length follows the 2023 current-occurrence rule at 85"
+  ],
+  "corrected": "Non-conforming at --std 85 (cause c, with a: 85 needs a format 3 sizing arm of its own): a format 3 record with an OCCURS DEPENDING ON table is sized by its current (and, for VaryMin, minimum) occurrences instead of GR15's maximum, so the WRITE releases 4 bytes of a 10-byte record. Harm: wrong-answer on the medium (record length), plus PB5731's under-rejects / rejects-legal-source in SORT GIVING and SD checks. Known note: kb/Work/PB5731 (open)."
+ }
+}

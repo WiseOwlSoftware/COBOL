@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-X.2.4.2-2",
+ "rule-digest": "2835c89218a6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-140",
+  "sources": {
+   "reader": "6b022913011a7954552e476d1ae0c92653e5f48c9f52fe81a4aeeede9db9996b",
+   "refuter": "935017612894b9e3812a77af1bb77f4690a6005610d5a6c20117a4126c77cf1d"
+  },
+  "imported": {
+   "reader": "65e344c8230b1ff82f023e56e2f5cb981fc21b644be6611125d82818fb119537",
+   "refuter": "7dd2c90c252a55b95cabcf4c6519fbb281ab99b350d5ff9f16566f66fbfe60ec"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.2.4.2-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a program must be in its initial state (VALUE items at their defined values, internal file connectors not open, PERFORM and ALTERed GO TO control at their initial states, X.2.4.1) the first time it is called after a CANCEL naming it, or after a CANCEL naming any program that directly or indirectly contains it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+    "switches": "DialectBehavior.CancelRefusesEveryActiveProgram (false at 85): which programs CancelNode refuses as active (GR5); for a program that is not active the two arms run the same reset body",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ProgramNameLiteral.cs#Form",
+    "switches": "the edition's spelling of the literal program name (final-sigma fold below 2023); basic-character names are unchanged",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of DialectLevel, Edition.Year, DialectBehaviors.IsActive, ConstructRegistry in ProgramTable.cs, RecordStructEmitter.cs, StorageTierSlice.cs, RouteStaticUnitStoragePass.cs: none on the reset path; the only switch is the GR5 arm folded into BoundCancel",
+  "behaviour-differs-by-edition": "no: the reset (instance dropped, static reset, connectors closed, cascade to contained programs in reverse order) is one body; only the GR5 refusal of an active program differs, which this rule does not reach",
+  "witnesses-cover": "part: g85_bf06_02 covers a direct CANCEL and one level of containment with VALUE data and an internal file; not exercised there: indirect (two-level) containment, CANCEL of a contained program by its container, ALTERed GO TO reset, ODO and edited items, the identifier form",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-140/p1_nested.cob",
+    "printed": "A1 B+0 C1 N3 G=3  Z E=  1.50  C FIRST / A2 CANCEL WB B+0 C1 N3 E=  1.50 C FIRST / A3 B+1 C2 N4 G=4  ZZ E=  7.25- C LATER / CANCEL PA / A1 B+0 C1 N3 G=3  Z E=  1.50  C FIRST",
+    "expected": "X.2.4.2 GR2 both branches: after CANCEL PA the indirectly contained PC is initial (CCNT, ODO object N, edited E VALUE, ALTER reset, X.2.4.1 GR1/GR4); CANCEL WB (identifier, PB contained in PA) resets PB and PC"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-140/p2_initial.cob",
+    "printed": "CANCEL of never-called PX no action; X1 X2; CANCEL twice; X1; INITIAL PI with contained PJ: I1 J1 three times",
+    "expected": "X.5.3.4 GR8 no action, GR2 initial; IS INITIAL PROGRAM (1985 level 2) X.2.4.2 GR3/GR4"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/X.2.4@1985-INITIAL-STATE-OF-A-PROGRAM/g85_bf06_02.cob",
+    "printed": "EXPECT: MATCH (C1 F1 OPEN 00 / C2 F2 WRITE 00 / C1 F1 OPEN 00 / C2 F2 WRITE 00)",
+    "expected": "internal connector of a contained program not open after its container is cancelled (X.2.4.1 GR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-140/p4_cancel_refuse.cob",
+    "printed": "COBOL1627 CANCEL 1234; COBOL1696 numeric WNUM; COBOL0900 N\"PX\" requires COBOL-2002; COBOL1639 undeclared word",
+    "expected": "X.5.3.3 SR1/SR2 refusals of the CANCEL that would trigger the rule"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.4.2 GR2",
+    "check": "OK  §1985:X.2.4.2 GR2  (2.4.2 Programs in the Initial State)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:X.2.4.1 GR2",
+    "check": "OK  §1985:X.2.4.1 GR2  (2.4.1 Characteristics of a Program)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:X.2.4.2 GR3",
+    "check": "OK  §1985:X.2.4.2 GR3  (2.4.2 Programs in the Initial State)  the text is in GR3"
+   }
+  ],
+  "notes": "CancelNode drops the cached instance, runs the emitted static reset, closes internal connectors and cascades to contained programs in reverse order; the next Activate builds a fresh instance. Every probe matched the 1985 text. The COBOL1627/1696 refusal messages cite §2023 clauses at --std 85 (wording only, outside this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.2.4.2-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read X.2.4.1 (1)-(4) and X.5.3.4 GR10 at 1985: the initial state also covers Communication Section data and the implicit CLOSE without USE procedures, which the reader's probes did not reach. Probes at --std 85 (run_probe.py, refute-1985-140/runs): r7_commsect.cob, an output CD record with VALUE in a called program: 'SUB OC=0001 OT=INIT / SUB OC=0002 OT=USED / --- CANCEL R7SUB / SUB OC=0001 OT=INIT' (Communication data back to its VALUE after CANCEL). r1_cancelclose.cob: sub opens OUTPUT, writes, exits without CLOSE, has a USE AFTER ERROR on the file; after CANCEL main reads 'AFTER CANCEL MF 00 REC-0001' (implicit CLOSE flushed, no USE line), re-call reopens '00'. r9_performstate.cob: a PERFORM range left by GO TO an EXIT PROGRAM paragraph; after CANCEL the next entry falls through P2 ('P2 / FELL THROUGH P2', PERFORM control initial). r3_extfileinit.cob: a program contained in an INITIAL program is reset on every call (CNT=1 three times, X.2.4.2 GR4 neighbour). r11_later_forms.cob: RECURSIVE (COBOL0885), LOCAL-STORAGE and GOBACK (COBOL0900/0880) refused at 85. cite.py: 'OK  §1985:X.2.4.2 GR2 ... the text is in GR2'; 'OK  §1985:X.2.4.1 GR1 ... the text is in GR1'; 'OK  §1985:X.5.3.4 GR10 ... the text is in GR10'; 'OK  §1985:X.2.4.2 GR4 ... the text is in GR4'. Read ProgramTable.cs#CancelNode: cascade, CloseFiles, instance drop and StaticReset sit after the GR5 test and the CalledSinceCancel test, with no other edition switch.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

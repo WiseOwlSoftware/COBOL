@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-SR-VI.6.16.3-1",
+ "rule-digest": "4792831bedf5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-056",
+  "sources": {
+   "reader": "f2dd6fd8e2e40a47ca74a6f7d089ea8c9258f8b656f86bf05a13ce26348ba623",
+   "refuter": "6bd2a26383e715570a1b5dcd4381651eee54858e79ebb475849f6c924646def3"
+  },
+  "imported": {
+   "reader": "77af71006aa926f1e492b90b13f28e46c82308cffba3519da7dc2bdb8cb1b958",
+   "refuter": "b5efd9c90baab1cbfc799c4e08ff7f1666681918a7277bbe9d7edf928bee4c51"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.16.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 (format as amended by X3.23b-1993: no ellipsis on statement-1/statement-2) statement-1 and statement-2 of IF must each be present when written (or be NEXT SENTENCE as the whole alternative) and be either an imperative statement (one or more consecutive imperative statements, delimited-scope statements included) or a conditional statement optionally preceded by imperative statements; an empty THEN or ELSE operand, and NEXT SENTENCE written beside another statement, is refused. The witness covers only the empty consequent before END-IF.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#IsNextSentenceArm; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement",
+  "edition-consulted": [],
+  "edition-search": "ifStatement is one grammar rule (IF condition THEN? statementBlock (ELSE statementBlock)? END_IF?) with statementBlock = statement+, no edition predicate; the NEXT SENTENCE arm reader IsNextSentenceArm reads the parse shape only. Grepped StatementBinder.cs NEXT SENTENCE arm and the grammar for Edition/CobolVersion/IsAvailable predicates: none. The only edition read near the path is VersionConformancePass.VisitNextSentenceStatement (the 2023 archaic warning COBOL0903), which does not decide this rule.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb396-if-empty-consequent exercises the empty consequent before END-IF; not exercised there: empty consequent before ELSE or the period, empty ELSE operand, NEXT SENTENCE beside a statement, and the legal shapes (imperative run followed by an unterminated conditional, delimited-scope statements, nested IF)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/if_ok.cob",
+    "printed": "I1 / I2 / SZ / SZ2 / E2 / NEST / N0 / AFTER-NEST (exit 0)",
+    "expected": "imperative run followed by ADD ON SIZE ERROR (conditional, absorbing the following DISPLAY into its phrase); ELSE with an END-ADD delimited statement then a nested IF; END-IF-delimited nested IF inside statement-1: all legal and executed per GR2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/if_empty1.cob",
+    "printed": "error COBOL2072: unexpected 'ELSE'. The IF statement's general format shows an imperative-statement here that is not bracketed",
+    "expected": "refused: statement-1 missing"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/if_empty2.cob",
+    "printed": "error COBOL2072: unexpected 'END-IF'",
+    "expected": "refused: ELSE written with no statement-2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/if_empty3.cob",
+    "printed": "error COBOL2072: unexpected '.'",
+    "expected": "refused: IF condition with no statement-1 before the period"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/if_nsmix.cob",
+    "printed": "error COBOL2269: NEXT SENTENCE ... never beside another statement in the same phrase",
+    "expected": "refused: DISPLAY followed by NEXT SENTENCE is neither statement-1 nor the NEXT SENTENCE alternative"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.16.3 SR1",
+    "check": "OK  §1985:VI.6.16.3 SR1  (6.16.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.6.4.2.3.1",
+    "check": "OK  §1985:IV.6.4.2.3.1  (6.4.2.3.1 Definition of Imperative Statement)  the text is in the clause"
+   }
+  ],
+  "notes": "statementBlock is statement+, so an empty operand is a parse refusal naming the unbracketed operand; a conditional statement's own phrases absorb what follows it, so 'a conditional statement optionally preceded by an imperative statement' is the only shape a parsed block can take. NEXT SENTENCE is admitted only as the whole arm.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.16.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "if_r1.cob (--std 85 --run --with ifr1.dat, exit 0, E1 / E2 / R:AB / S0 / S2 / N1 / N2 / T1 / T2): statement-1 = DISPLAY then an unterminated EVALUATE whose scope the IF's ELSE ends (GR1c); statement-1 = an unterminated READ AT END (sequential file) closed by ELSE; statement-2 = DISPLAY, SET then an unterminated SEARCH AT END/WHEN; statement-1 = DISPLAY then a nested IF..ELSE closed by the outer ELSE; THEN with two imperatives, ELSE with two imperatives, END-IF: all admitted and executed per GR2. if_r2.cob / if_r3.cob (exit 65): COBOL2269 for NEXT SENTENCE followed by DISPLAY in the THEN arm, ELSE NEXT SENTENCE followed by DISPLAY, DISPLAY then NEXT SENTENCE in the ELSE arm, and IF c NEXT SENTENCE DISPLAY \"X\". (with no ELSE): each neither statement-1/2 nor the whole NEXT SENTENCE alternative. cite.py: OK §1985:VI.6.16.3 SR1 'a conditional statement optionally preceded by an imperative statement'; OK §1985:VI.6.16.4 GR1c. The NEXT SENTENCE text of COBOL2269 cites only 2023 clauses (cosmetic).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

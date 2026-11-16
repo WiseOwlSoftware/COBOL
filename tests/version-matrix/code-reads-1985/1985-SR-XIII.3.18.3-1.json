@@ -1,0 +1,101 @@
+{
+ "rule-id": "1985-SR-XIII.3.18.3-1",
+ "rule-digest": "60105b9e4eb9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-075",
+  "sources": {
+   "reader": "d8493c73637a810f148e57b0d0c2073d850ef6647a06562cd472bafed9cd873a",
+   "refuter": "e56e979c1687f077d2f941eb6359db2ba212f08c10c8f1680c425b4ecd12ce6b"
+  },
+  "imported": {
+   "reader": "dced4c62ec584b4422e0517697ba0e4f47394d70769fc093d4b3b6c20b9f053f",
+   "refuter": "74987693a963a302ee1cfd5890a323430edc8607878a685fd17242b8c4636e2a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.18.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a SOURCE identifier-1 may name an item in any section of the data division, but if it names a Report Section item that item must be PAGE-COUNTER, LINE-COUNTER (of any report, qualified by report-name) or a sum counter of the report that holds the SOURCE clause; any other report-section name (a printable entry, a line or group entry, or another report's sum counter, qualified or not) must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#SumCounterFamilyFor; src/WiseOwl.Cobol.Compiler/Binding/ReportScope.cs#SumCountersNamed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportSourceClause",
+    "switches": "refuses at 85 the 2002 SOURCE operand forms (arithmetic-expression, ROUNDED phrase) with COBOL0900, so at 85 only identifier-1 reaches the SR1 screen",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel / Edition in ReportSectionBinder.cs#ReportSectionNameIn, CounterResolver.cs and ReportScope.cs: none. The SR1 screen and the sum-counter lookup (SumCountersNamed restricted to refs.EnclosingReport) are the same code at every edition",
+  "behaviour-differs-by-edition": "no for identifier-1. 2002 and later also admit arithmetic-expression-1, whose identifiers fall under the same rule; 85 refuses that form",
+  "witnesses-cover": "part: the witnesses cover the accepted forms (own sum counter, PAGE-COUNTER receiving). The refusal half (a non-counter report entry, a group or line entry, another report's sum counter) and LINE-COUNTER OF another report are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/src-a.cob",
+    "printed": "COBOL2144 SOURCE 'DFLD' names the report section item 'DFLD', which is neither a report counter nor a sum counter of this report (run src-a-001)",
+    "expected": "refused: printable entry of the report section"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/src-b.cob",
+    "printed": "COBOL2144 for SOURCE TOT2, a sum counter of RPT2, used in RPT (run src-b-001)",
+    "expected": "refused: sum counter of another report"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/src-c.cob",
+    "printed": "COBOL2144 for SOURCE DLN, a LINE entry (group) of the report (run src-c-001)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/src-e.cob",
+    "printed": "COBOL2145 'TOT OF RPT2': none is subordinate to the qualifiers written (both reports define TOT; RPT's SOURCE names TOT OF RPT2) (run src-e-001)",
+    "expected": "refused: another report's sum counter, qualified"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/src-d.cob",
+    "printed": "runs: '0005 01 01 00' then '0005 0005' (WS-AMT, PAGE-COUNTER, LINE-COUNTER, LINE-COUNTER OF RPT2; then own sum counter TOT1 SUM 5 and SOURCE TOT1) (run src-d-001)",
+    "expected": "accepted; PAGE-COUNTER 1, LINE-COUNTER 1, RPT2's LINE-COUNTER 0 before its first group; TOT1 = 5"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/src-f.cob",
+    "printed": "runs: TOT OF RPT (own counter, homonym in RPT2) prints 0005 (run src-f-001)",
+    "expected": "accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/src-expr.cob",
+    "printed": "COBOL0900 an arithmetic expression or function as a SOURCE operand requires COBOL-2002 (run src-expr-001)",
+    "expected": "refused at 85 (General Format: SOURCE IS identifier-1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.18.3 SR1",
+    "check": "OK  §1985:XIII.3.18.3 SR1  (3.18.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "Every form the rule admits works, and every report-section item it excludes is refused. One wording lead: the refusal of TOT OF RPT2 inside RPT (src-e) says no counter is subordinate to the qualifiers, when the real reason is that the counter belongs to another report. The verdict is correct and only the diagnosis wording is off.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.18.3-1",
+  "refutation": "DOUBTFUL",
+  "classes": "b,d",
+  "evidence": "Read ReportSectionBinder.ReportSectionNameIn / IsReportSectionOnlyName: the SR1 screen asks only names defined in the report section AND NOWHERE ELSE; a report-section name also declared in ordinary storage is treated as the storage item (comment cites §2023:8.4.2.1). Probe r-srcamb.cob at --std 85: WS-REC has 05 DFLD; report DET has printable 03 DFLD and 03 ... SOURCE DFLD (unqualified). Compiles and runs, line RPV  WSV (r-srcamb-001): resolved silently to the WS item; same at --std 2023 (r-srcamb-002); DISPLAY DFLD in the procedure division likewise accepted (r-srcambp-001). Control probe r-srcsum.cob: WS TOT plus this report sum counter TOT, SOURCE TOT -> COBOL2145 ambiguous (r-srcsum-001), so only the non-counter printable homonym escapes. Reading: §1985:IV.4.3.8.1 requires uniqueness through qualification for each user-defined name explicitly referenced, with no exception for a report-section printable data-name (§1985:XIII.3.12 makes it a data-name), so SOURCE DFLD is a non-unique reference that may name a Report Section item SR1 bars and should be refused; the compiler reads a non-counter printable item as no referenceable resource. The text does not settle whether that defect is SR1s or the qualification rules. cite.py: OK  §1985:XIII.3.18.3 SR1 the text is in SR1; OK  §1985:IV.4.3.8.1 the text is in the clause; it lies in SR3; OK  §1985:XIII.3.12.4 GR1 the text is in GR1",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#IsReportSectionOnlyName: not an edition switch, but the storage-wins homonym policy (from §2023:8.4.2.1) is applied at 85 with no 1985 basis"
+  ],
+  "corrected": "If the reading holds: UNDER-REJECTS at 85 (and every edition): SOURCE naming a printable report entry whose data-name is also a storage item, unqualified, is accepted and moves the storage item instead of being refused as non-unique."
+ }
+}

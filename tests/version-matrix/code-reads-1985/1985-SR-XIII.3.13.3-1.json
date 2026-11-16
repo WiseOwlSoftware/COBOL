@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-SR-XIII.3.13.3-1",
+ "rule-digest": "1f8fa530792f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-074",
+  "sources": {
+   "reader": "4e280ecb892567a1a70eba8a53575211af2f49a0afeef6f043c7ee194d7abde9",
+   "refuter": "bb40349bcbb5d0da945c3f118211db9163dddddb6816052f790a6399f6ca9150"
+  },
+  "imported": {
+   "reader": "13099e3f52f2a13eabb03ccfa3bfc836c5c0d75d999e258a05d028136d88dc6a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.13.3-1",
+  "verdict": "PARTIAL",
+  "requirement": "GROUP INDICATE is refused unless the entry is in a detail report group AND defines a printable item, which 1985 defines as an elementary report entry containing a COLUMN NUMBER clause, a PICTURE clause and a SOURCE, SUM or VALUE clause (§1985:III.2 'Printable Item'). The witnesses cover the detail-group half only.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#WrittenGroupKind; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClauseTable",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+    "switches": "'elementary && Edition.DialectLevel >= 2002 && !column' and the SOURCE-or-VALUE fault: the COLUMN half of the GROUP INDICATE placement screen is skipped below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClauseTable",
+    "switches": "called only when DialectLevel < 2002: Table 1 refuses GI on the SUM rows; rows 3/4 mark COLUMN 'P' and GI 'P'",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats",
+    "switches": "below 2002: level-01 entry with GROUP INDICATE refused as format 1",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "read ScreenReportEntryClausePresence's groupIndicate block and the DialectLevel tests above it.",
+  "behaviour-differs-by-edition": "yes: at 2023 GROUP INDICATE without COLUMN is refused (COBOL2519); at 85 it compiles and runs.",
+  "witnesses-cover": "part: no witness writes GROUP INDICATE on a SOURCE entry with no COLUMN NUMBER clause at 85",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_nocol.cob",
+    "printed": "exit 0, DONE; RGP.TXT ' AAA' twice (the indicated SOURCE item has no column and prints nothing)",
+    "expected": "refused: the entry 05 PIC ZZ9 SOURCE WB GROUP INDICATE has no COLUMN NUMBER clause, so it defines no printable item"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_ok.cob",
+    "printed": "exit 0; ' AAA    12' then '        12'",
+    "expected": "accepted; the indicated item prints on the first detail only (GR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_ch.cob",
+    "printed": "COBOL2519: specifies GROUP INDICATE but is in a CONTROL HEADING report group",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_group.cob; gi_01.cob",
+    "printed": "COBOL2247: group entry writes GROUP INDICATE (and, at 01, the format 1 refusal)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_nocol23.cob (--std 2023)",
+    "printed": "COBOL2519: specifies GROUP INDICATE but has no COLUMN clause",
+    "expected": "refused at 2023 as well"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.13.3 SR1",
+    "check": "OK  §1985:XIII.3.13.3 SR1  (3.13.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause (Printable Item: 'This elementary report entry contains a COLUMN NUMBER clause')"
+   },
+   {
+    "cite": "§1985:XIII.3.11.4 GR1",
+    "check": "OK  §1985:XIII.3.11.4 GR1  (3.11.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.3.9.3 SR11",
+    "check": "OK  §1985:XIII.3.9.3 SR11  (3.9.3 Syntax Rules)  the text is in SR11"
+   },
+   {
+    "cite": "§1985:XIII.3.9.3 SR8",
+    "check": "OK  §1985:XIII.3.9.3 SR8  (3.9.3 Syntax Rules)  the text is in SR8"
+   }
+  ],
+  "notes": "The detail-group and elementary halves are enforced at 85, but the 85 arm drops the COLUMN condition on the strength of Table 1 rows 3 and 4 (COLUMN 'P', GI 'P'). Table 1 lists combinations clause by clause; §1985:XIII.3.13.3 SR1 adds that the entry must define a printable item, and the glossary makes COLUMN NUMBER part of that definition. The binder already reads the same pattern this way for USAGE (SR8 a is applied as stricter than Table 1's USAGE 'P' cells), so GROUP INDICATE has been given a looser reading than its sibling rule.",
+  "seeded": true,
+  "harm": "under-rejects",
+  "cause": "a",
+  "at-2023": "refused: COBOL2519 'specifies GROUP INDICATE but has no COLUMN clause' (§2023:13.18.28.3 SR1)",
+  "repro": "RD R1. 01 D1 TYPE IS DETAIL. 03 LINE NUMBER IS PLUS 1. 05 COLUMN NUMBER IS 2 PIC X(3) SOURCE WA. 05 PIC ZZ9 SOURCE WB GROUP INDICATE. (E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_nocol.cob; cobol.exe --std 85 --run)",
+  "expected": "§1985:XIII.3.13.3 SR1: \"The GROUP INDICATE clause must only be specified in a detail report group entry that defines a printable item.\" A printable item's entry \"contains a COLUMN NUMBER clause\" (§1985:III.2), so the program is refused.",
+  "observed": "compiles with no diagnostic and runs (exit 0); the GROUP INDICATE clause is accepted and has no effect",
+  "known_note": "none records it as a defect. kb/Work PB5243 (landed) created this 85 arm: it treats 'the legal SOURCE with ... GROUP INDICATE and no COLUMN' as legal on Table 1 alone, and its refusal of that shape was what it removed. A fix would reverse that part of PB5243 for GROUP INDICATE (the JUSTIFIED/BLANK WHEN ZERO half is unaffected)."
+ }
+}

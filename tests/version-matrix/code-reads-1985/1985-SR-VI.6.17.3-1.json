@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-SR-VI.6.17.3-1",
+ "rule-digest": "a916a597dab8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-158",
+  "sources": {
+   "reader": "e524ade77929a094b6df368b7c91463a453eb8a7e9b869f3c7a6a5f7f2a04e17",
+   "refuter": "b4e5b5f6a92461ee143f3d37b758a7c315051cd071178f5173ad872aec149ed4"
+  },
+  "imported": {
+   "reader": "20acab2e81bac01179b17a18b921de7bb9e0b115f002bd5bd91fe57869e7c80e",
+   "refuter": "ded7520a6a2a172409e8b5eef1beb75cdc29cd16cea861ac46ccca9242d6df41"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.17.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 INITIALIZE must treat literal-1 (figurative constants included) and identifier-2 (elementary, group, signed, or an alphanumeric function-identifier) as sending operands that are only read, and each identifier-1 (subscripted or reference-modified included) as the receiving area, refusing an identifier-1 that cannot be a receiving operand (a literal, a function-identifier).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ReplacementFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#SenderFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ReceivingPlaceBar; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "below 2002 a numeric or integer function-identifier written as identifier-2 is refused (numeric-function-identifier-operand-2002, COBOL0900, §1985:IV.4.3.8.3.3 SR4); an alphanumeric function stays legal",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition/Construct/Version in InitializeBinder.cs (only a comment naming the version pass for the 2002 phrases) and in ExpressionBinder.ResolveReceiving/ReceivingPlaceBar (only the error sink): the sending/receiving split itself consults no edition; identifier-1 is the grammar's receivingIdentifier at every edition.",
+  "behaviour-differs-by-edition": "yes: a numeric or integer function-identifier as identifier-2 is refused at 85 (§1985:IV.4.3.8.3.3 SR4) and accepted at 2023 (ini3 prints [0005]); the sending/receiving roles themselves are the same",
+  "witnesses-cover": "part: the witness checks that elementary identifier-2 senders are left intact and literals are sent; it does not exercise a group sender, a signed sender, figurative constants, a subscripted or reference-modified identifier-1, a function-identifier sender, or the refusal of a non-receiving identifier-1",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/ini1.cob",
+    "printed": "1[QR34][QR34] 2[110711][-007] 3[+000.0][****][000000] 4[S   WX] 5[QR  ][QR    ][QR] 6[MN  ]",
+    "expected": "§1985:VI.6.17.3 SR1 with GR2/GR5: senders unchanged, each receiving elementary item gets the implicit MOVE (group-to-alphanumeric, -7 into PIC 99 is 07, ZERO/ALL \"*\", ref-mod receiver set to spaces)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/ini2.cob",
+    "printed": "COBOL5506 at INITIALIZE \"AB\" (no literal expected) and at INITIALIZE FUNCTION UPPER-CASE(G-X) (expected a user-defined word), exit 65",
+    "expected": "identifier-1 is the receiving area, and §1985:IV.4.3.8.3.3 SR3a bars a function-identifier as a receiving operand"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/ini3.cob",
+    "printed": "--std 85: COBOL0900 numeric or integer function-identifier ... requires COBOL-2002 (§1985:IV.4.3.8.3.3 SR4); --std 2023: [0005]",
+    "expected": "§1985:IV.4.3.8.3.3 SR4: an integer function may be used only in an arithmetic expression, so it is no identifier-2 at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.17.3 SR1",
+    "check": "OK  §1985:VI.6.17.3 SR1  (║6.17.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.17.4 GR2",
+    "check": "OK  §1985:VI.6.17.4 GR2  (║6.17.4 General Rules║)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR3a",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR3a  (4.3.8.3.3 Syntax Rules)  the text is in SR3a"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "identifier-1 is the grammar's receivingIdentifier and resolves through the one receiving funnel ExpressionBinder.ResolveReceiving; identifier-2 binds through MoveBinder.SendingOperand and literal-1 through NullAdmittingOperand, so the roles are structural. The only edition arm on the path is the 1985 refusal of a numeric function as identifier-2, which is correct for 1985 (Amendment 1's SR4).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.17.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read §1985:VI.6.17.3 SR1-SR6 and VI.6.17.4 GR2-GR7, and VII.1.3.7 (LINAGE-COUNTER). Probes at --std 85: in1.cob INITIALIZE K E (K) REPLACING NUMERIC DATA BY 2 printed K=2 T=020 (E(2) set: subscript of the second receiving operand evaluated after K was set, GR6 left-to-right series of MOVEs); group sender G and signed sender G2 left unchanged ([AB][-012]) with receivers [AB01K][012]; ALL \"XY\" sender gives [XYXYX]. in2.cob INITIALIZE LINAGE-COUNTER refused COBOL2026 (a receiving operand only the I-O control system may change). in3.cob INITIALIZE ZERO refused COBOL5506. in4.cob FUNCTION LENGTH (X) as identifier-2 refused COBOL0900 at 85. INITIALIZE X REPLACING NUMERIC BY X (GR7 undefined overlap) accepted, which the text permits. cite.py: OK §1985:VI.6.17.3 SR1; OK §1985:VI.6.17.4 GR6; OK §1985:VII.1.3.7.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateInitialize: figurative sender in REPLACING NUMERIC/NUMERIC-EDITED gated per edition (SR2 territory, not SR1)",
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85VariableOccurrence: refuses an ODO identifier-1 below 2002 (SR4, not SR1)",
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeStatement: gates the 2002 FILLER/VALUE/DEFAULT/THEN REPLACING phrases (not SR1)"
+  ],
+  "corrected": ""
+ }
+}

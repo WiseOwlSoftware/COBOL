@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-X.3.1.3-3",
+ "rule-digest": "2a3a6f21b1bc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-163",
+  "sources": {
+   "reader": "4b088dead2719e1fc593abf6e485ec7a48bf6bcc65261226c2ca26427d8bbf3e",
+   "refuter": "c21732898f741fa02834aa321ab3abb1732b605ad488443c012cc311b90ba757"
+  },
+  "imported": {
+   "reader": "f31420b10bd7268abb3f1013abfea62344ff1cd9759a5c495bc90c0f7772d01b",
+   "refuter": "e091d6c31e0f923e1da886766f1069fba65b60853494b8006d801daf2f99bc5d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.3.1.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the COMMON clause of the PROGRAM-ID paragraph (alone or with INITIAL in either order, with or without the optional words IS and PROGRAM) must be accepted on a program contained, directly or indirectly, within another program and refused on an outermost program, including a second separately compiled program of the same source.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramIdAttributes",
+    "switches": "refuses the 2002 RECURSIVE attribute (COBOL0885) below 2002; COMMON and INITIAL are not gated",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of COMMON()/commonProgramAttribute in VersionConformancePass (none) and of edition tests around the 'common && parent is null' check in BinderDriver.MakeUnit (none: edition is used only to report)",
+  "behaviour-differs-by-edition": "no: p6outer is refused with COBOL0887 at 85 and at 2023 by the same parent-is-null test",
+  "witnesses-cover": "part: g85_f26_01 shows only the permitted form on a directly contained program; the refusal half (outermost, second separately compiled program), the doubly contained program and the COMMON INITIAL combinations are probe-only",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p6ok.cob",
+    "printed": "PA RUNS 1 / PB CALLS PA / PA RUNS 2 / PC RUNS 1 / PD (COMMON IN PB) CALLED BY SIBLING PC / PB CALLS PA / PA RUNS 3 / PC RUNS 1 / PD (COMMON IN PB) CALLED BY SIBLING PC",
+    "expected": "PA COMMON, PC IS INITIAL COMMON PROGRAM, PD IS COMMON INITIAL (doubly contained) all accepted; PA callable from sibling PB, PD from sibling PC (§1985:X.3.1.4 GR2), PC reinitialized each call (GR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p6outer.cob",
+    "printed": "error COBOL0887: program 'P6OUTER': COMMON may be specified only in a CONTAINED program",
+    "expected": "outermost IS COMMON PROGRAM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p6outer2.cob",
+    "printed": "error COBOL0887 (outermost INITIAL COMMON)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p6sep.cob",
+    "printed": "error COBOL0887: program 'P6SEP2'",
+    "expected": "a second separately compiled program after END PROGRAM is not contained: COMMON refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p6rec.cob",
+    "printed": "error COBOL0885: PROGRAM-ID RECURSIVE requires COBOL-2002",
+    "expected": "the 1985 format offers only COMMON and INITIAL (§1985:X.3.1.2), so RECURSIVE beside COMMON is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.3.1.3 SR3",
+    "check": "OK  §1985:X.3.1.3 SR3  (║3.1.3 Syntax Rules║)  the text is in SR3"
+   }
+  ],
+  "notes": "MakeUnit reads the COMMON attribute through ChoiceIndicators.AtMostOnce and reports CommonProgramNotContained when the unit has no parent; the parent is the containing unit, so any depth of containment passes and every outermost unit, first or later in the source, is refused. The diagnostic cites the 2023 rule number (SR4), a message-text matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.3.1.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:X.3.1.2 (IS and PROGRAM optional, COMMON and INITIAL in either order) and X.3.1.3 SR3. r6forms-001 at 85: outermost 'IS INITIAL PROGRAM' accepted; contained 'PA COMMON PROGRAM' (no IS), 'PB IS COMMON' (no PROGRAM), 'PC INITIAL COMMON' (no IS, INITIAL first), and 'PD COMMON' contained in PC, called from sibling PE and PE calling the outer level's common PA, all compile and run: PA COMMON PROGRAM / PB IS COMMON / PB IS COMMON / PC INITIAL COMMON 1 / PD COMMON IN PC / PA COMMON PROGRAM / PB IS COMMON / PC INITIAL COMMON 1 (reinitialized on the second call) / ... r6outc-001: an outermost program that CONTAINS programs but is not contained, 'R6OUTC COMMON', refused COBOL0887 at line 2 while its contained 'PA COMMON' is not flagged. BinderDriver.cs line 514 is the only CommonProgramNotContained site. Diagnostic cites §2023:11.10.3 SR4 at 85 (message text only). cite.py: OK §1985:X.3.1.3 SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

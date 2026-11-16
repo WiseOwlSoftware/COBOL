@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-VI.5.3.3-2",
+ "rule-digest": "543ee6624b5f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-157",
+  "sources": {
+   "reader": "2ff8d2f1138eea94abb9b7f7beac3f5bc21b839f2d17c35019ce6ee477bfb139",
+   "refuter": "6b4c1b03b601b4d5c358f550aa78c8f30a0a2f7ab20786771312ab94572497c0"
+  },
+  "imported": {
+   "reader": "076f99d67300869c03a8943f98a15f22fc85ca6c4c3085fa04a11e7642a21ccf",
+   "refuter": "e34cb4115b82bea9558754b35cc06563a2c7fe469f7a50499b03201a27e922c9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in a format-1 data description entry the data-name-1 or FILLER (optional in 1985) must come directly after the level-number, a REDEFINES clause must come directly after that name or, when no name is written, directly after the level-number, and every other clause (PICTURE, USAGE, SIGN, OCCURS, SYNC, JUST, BLANK WHEN ZERO, VALUE) is accepted in any order.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenLeadingClausePosition",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#entryNameHere",
+    "switches": "whether a reservation-gated word after the level-number is read as data-name-1 (the edition's reserved-word set); not the clause-order rule itself",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read ScreenLeadingClausePosition and its caller in BindEntry (DataBinder.cs:3778): no edition test, it asks the written clause ordinal; grep of DataBinder.ClausePlacement.cs for DialectLevel/ConstructRegistry/Edition.Edition finds only SynchronizedViolation (another rule). The name-first half is the grammar: dataDescriptionEntry is levelNumber dataName? dataDescriptionBody, so a name after a clause falls to unrecognizedDataClause (COBOL1941) at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf09_01 covers the three legal REDEFINES placements and several free clause orders; it does not exercise the refusal half (REDEFINES after another clause, name after a clause, FILLER after REDEFINES)",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c1ok.cob",
+    "printed": "34 / [   ] / 7- / [  AB] / 0005 (exit 0): REDEFINES then OCCURS then PIC; FILLER REDEFINES SYNC PIC USAGE; BLANK WHEN ZERO OCCURS PIC; SIGN TRAILING SEPARATE VALUE PIC; JUST PIC; 77 VALUE USAGE COMP PIC",
+    "expected": "every order accepted; B(2)=34, zero blanked, 7-, right-justified AB, 0005"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c1bad1.cob",
+    "printed": "error COBOL2739: 'B': the REDEFINES clause follows PICTURE but shall immediately follow the entry-name clause",
+    "expected": "refused: REDEFINES must immediately follow data-name-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c1bad2.cob",
+    "printed": "error COBOL1941: 'B' is not a clause of the data description entry",
+    "expected": "refused: data-name-1 must immediately follow the level-number"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c1bad3.cob",
+    "printed": "error COBOL1941: unexpected 'FILLER' ... not a clause of the data description entry",
+    "expected": "refused: FILLER after REDEFINES"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c1bad4.cob",
+    "printed": "error COBOL2739: 'FILLER': the REDEFINES clause follows USAGE but shall immediately follow ... the level-number when the entry-name clause is not specified",
+    "expected": "refused: unnamed entry with REDEFINES not right after the level-number"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.5.3@1985-DATA-DESCRIPTION-ENTRY/g85_bf09_01.cob",
+    "printed": "EXPECT: MATCH (1234/1235/XY/12/-5/[   Z]); the 1985 unnamed `05 REDEFINES A` form binds",
+    "expected": "the witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.3.3 SR2",
+    "check": "OK  §1985:VI.5.3.3 SR2  (5.3.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The name-first half is grammatical (an optional dataName slot only right after levelNumber); the REDEFINES half is ScreenLeadingClausePosition's ordinal test, and the free-order half is dataDescriptionClause*. Diagnostics cite §2023 clauses (13.18.44.3 SR1, 13.16.2) rather than the 1985 rule; the behaviour is the 1985 requirement.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:VI.5.3.3 SR2 whole and the IPC format X.4.3.2 (EXTERNAL/GLOBAL are 'remaining clauses' of the same entry). Probes under refute-1985-157/src, --std 85: r1glob (01 B GLOBAL REDEFINES A) refused COBOL2739 'REDEFINES clause follows GLOBAL'; r1glob2 (REDEFINES A IS GLOBAL PIC; PIC IS EXTERNAL; IS GLOBAL VALUE PIC) exit 0 'ABCD WXYZ'; r1unn (unnamed 05 PIC X(6) REDEFINES A) refused COBOL2739; r1occ (OCCURS before REDEFINES) refused COBOL2739; r1ext (01 IS EXTERNAL B: name after a clause) refused COBOL1941/COBOL2404. Grep of DataBinder.ClausePlacement.cs for DialectLevel/CobolVersion/ConstructRegistry/EditionContext: only Edition.Error emission, no switch. cite.py: 'OK  §1985:VI.5.3.3 SR2  (5.3.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:X.4.3.3 SR3  (4.3.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

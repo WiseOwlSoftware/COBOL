@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XIII.3.21.4-3",
+ "rule-digest": "c5927178f785",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-150",
+  "sources": {
+   "reader": "7697c568dbb2a3c85cecd17e51af211a6f653d5e6cb0624595d46d53a5bde9a3",
+   "refuter": "1cf85c8f5c2ce69b9820c2199aa1ac9137fc69e3e23d294d2de8dae79b62d502"
+  },
+  "imported": {
+   "reader": "f5e5bdc7a63f13eb5b01e95f3ca871752abb4954fe2892e47a0b9f37786f5ef9",
+   "refuter": "d238ab40e68c831783bfe253e425cb9c8f04386f1d27dd004477fcffa463ece4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.21.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a report item whose USAGE IS DISPLAY (written on the item or on any group above it, the only usage the Report Writer format admits) is presented in standard data format: its value appears as characters in the print line, for alphanumeric, numeric, signed, edited and BLANK WHEN ZERO items alike.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#DescribeReportItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#ReportPrintablePicture; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportUsage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsagePhrases.cs#ScreenUsagePhrases",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+    "switches": "nothing for DISPLAY; the NATIONAL spelling is refused below 2002 by COBOL0900 (ConstructRegistry introduction gate via VersionConformancePass)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of EditionContext/DialectLevel/CobolVersion/DialectBehaviors in ReportSectionBinder, DataBinder.ReportItemDescription and PictureAnalyzer.ParseUsage; the DISPLAY path consults no edition; ScreenReportUsage takes no edition argument.",
+  "behaviour-differs-by-edition": "no: the same characters print at 85 and 2023 (usg2 probe identical); only the operand set differs (NATIONAL admitted from 2002, refused at 85 by COBOL0900)",
+  "witnesses-cover": "part: g85_bf13_06 covers an unsigned PIC 999 with explicit and implicit DISPLAY; signed SEPARATE, edited, BLANK WHEN ZERO, 18-digit and group-level USAGE DISPLAY are covered only by the probes here",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/usg1.cob",
+    "printed": "[-042   3.50- 007 ABC 123456789012345678     END]",
+    "expected": "characters in standard data format: -042, 3.50-, 007, ABC, the 18 digits, blanks for BLANK WHEN ZERO"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/usg1.cob",
+    "printed": "18-digit 123456789012345678 and zero under BLANK WHEN ZERO (spaces)",
+    "expected": "same"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/usgc.cob",
+    "printed": "error COBOL2198: usage Binary is not admitted here (also usgp PACKED-DECIMAL, usgg group COMP: COBOL2198)",
+    "expected": "refused: §1985:XIII.3.21.3 SR3 only USAGE IS DISPLAY for a report group item"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/usgn.cob",
+    "printed": "error COBOL0900: national data ... requires COBOL-2002 (targeting COBOL-85); plus COBOL2198",
+    "expected": "refused at 85 (the 1985 format admits DISPLAY only)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.21.4 GR3",
+    "check": "OK  §1985:XIII.3.21.4 GR3  (3.21.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "Explicit USAGE DISPLAY at the 01, the 05 group and the elementary item prints the same characters as no USAGE at all, at 85 and at 2023. The refusal diagnostics at 85 cite §2023 text and name NATIONAL as admissible (COBOL2198 message), a misleading but harmless wording for SR3's rule, not this GR.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.21.4-3",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Probe refute-1985-150/ubare.cob at --std 85 (runs/ubare-001, exit 0): the bare DISPLAY keyword with no USAGE word (the [USAGE IS] DISPLAY format of §1985:XIII.3.21.2) on the 01 TYPE DETAIL entry, on a 02 group and on elementary items, USAGE DISPLAY without IS, and USAGE IS DISPLAY, on items the reader did not try: PIC 99PP SOURCE 1200, PIC S99 SIGN LEADING SEPARATE -7, floating $$$9.99 of 12.5, insertion 99B99/9 of 1200, X(4) JUSTIFIED RIGHT of 'AB '. The print line is '12 -07  $12.50 01 20/0  AB  END', each field in standard data format. The reader's c probe (NATIONAL refused at 85 by COBOL0900) stands. cite.py: OK  §1985:XIII.3.21.4 GR3  (3.21.4 General Rules)  the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

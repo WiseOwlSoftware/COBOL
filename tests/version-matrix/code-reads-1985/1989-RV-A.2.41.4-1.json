@@ -1,0 +1,98 @@
+{
+ "rule-id": "1989-RV-A.2.41.4-1",
+ "rule-digest": "4ef2cdab7d77",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-083",
+  "sources": {
+   "reader": "8cddf3defbf6ae2225c30c8eeab4ab2dc0dd44d9a5d0fca3066105d865219485",
+   "refuter": "be400553f381c0f7f3fef8da8a3c3518bebf2f769e51ab8723856fde4a129e2c"
+  },
+  "imported": {
+   "reader": "c98ca250d5f85beeea9588f0c2478b602f6e093b9b1830ebb2b26d4a8c9dd3d8",
+   "refuter": "88aa89239f830ad415c549be8a9fe2af8816691306bec2845347933da66f4fb9"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.41.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION STANDARD-DEVIATION({argument-1}...) returns an (implementor-precision) approximation of the population standard deviation of the argument-1 series, for literals, items of any numeric usage, expressions and table(ALL) arguments in one or more dimensions, ODO included.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#FloatBody; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#ExactListBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#StandardDeviation; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#StdDevExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#StdDevDec",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 edition window: sig.IntroducedIn (85 for the 1989 module rows, IntrinsicCatalog.cs#Build) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry NumericFunctionIdentifierOperand2002: at 85 a numeric/integer function written where an identifier stands (MOVE sender) is refused (COBOL0900), per §1989:A.2.3 GR2/GR3; never reached inside an arithmetic expression",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+    "switches": "Edition.DigitCapacityExcess: 18-digit cap on items and literals at 85 (31 later); bounds the argument range only",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+    "switches": "num.StandardDecimal (OPTIONS ARITHMETIC, a 2002+ paragraph, so always native at 85): the native dispatch is the one a 2023 program with no ARITHMETIC clause takes",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs, IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs for Edition|DialectLevel|CobolVersion|ArithmeticMode|StandardDecimal; the runtime bodies take no edition input",
+  "behaviour-differs-by-edition": "no: the native exact-list arm (StdDevExact, then NarrowResult) is the same at 85 and 2023",
+  "witnesses-cover": "part: witnesses cover two 18-digit cancelling items, a two-element table(ALL) and SD(1 3); not negative or scaled lists, ODO ALL, two-dimensional ALL, expressions, or the 18-digit extreme",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/stat1.cob",
+    "printed": "SD-ODO6(T(ALL) 7 9)=2.000000000000 SD-ODO3=0.942809041582 SD-NEG(-1.5 -2.5 3.25)=2.508319490549 SD-SMALL=0.00000050 SD-PK(-3 COMP-3 -7 -2)=2.160246899469 SD-2D(E(ALL ALL))=1.707825127660 SD-ROW(E(1 ALL))=0.816496580928 SD-EXPR(A1 A1+1)=0.5 SD-MUL=-1.0 SD-SUBS=2 SD-BIG(999999999999999999 -999999999999999999) into S9(18)=000000000000000000 (dir stat1-001)",
+    "expected": "Fraction/sqrt oracle: 2, 0.9428090416, 2.508319490549, 5E-7, 2.160246899469, 1.707825127660, 0.816496580928, 0.5, -1, 2; SD-BIG 999999999999999999 approximated"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/pv1.cob",
+    "printed": "SD-BIG with ON SIZE ERROR: 'SD-BIG SIZE ERROR'",
+    "expected": "the binary64 approximation 1E18 exceeds S9(18); the size error fires, the receiver otherwise undefined (§1985:VI.6.4.2 GR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/ref1.cob",
+    "printed": "COBOL1627 for an alphanumeric argument-1 and a group argument-2",
+    "expected": "refused (§1989:A.2.41.3 AR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.41.4 RV1",
+    "check": "OK  §1989:A.2.41.4 RV1  (2.41.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.3 GR2",
+    "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.4.2 GR3",
+    "check": "OK  §1985:VI.6.4.2 GR3  (6.4.2 The ON SIZE ERROR Phrase)  the text is in GR3"
+   }
+  ],
+  "notes": "The exact list is formed exactly, rooted at 34 digits, then narrowed to binary64. That is why SD(999999999999999999 -999999999999999999) becomes 1E18 and overflows an S9(18) receiver. The precision is the implementor's under §1989:A.2.3 GR2, so this is a quality lead, not a defect: the exact value fits the edition's largest item. Output was identical at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output (at2023-stat1.txt)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.41.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "rsd1-002 (--std 85): two-dimensional ODO table DY(ALL ALL)/DY(1 ALL)/DY(ALL 1) -> 5.25/5.25/0 at N=1 and DY(ALL 1) -> 2 at N=2; 18-digit DISPLAY and COMP pair 100000000000000001/...003 -> 1 (no binary64 collapse); three-value list -> .942809041, and the same with a float-valued member A1 + FUNCTION SIN(0) -> .942809041; negative 18-digit DISPLAY/COMP-3 pair -> .5; literal list -2 -4 -6 -> 1.632993161. '- 2 - 4 - 6' is one arithmetic expression (one value) -> 0, correct parsing. rref1-001: floating literal argument refused at 85; rplace1-001: SUBTRACT FUNCTION STANDARD-DEVIATION(X 1) FROM R refused COBOL0900. The 1E18 narrowing of SD(999999999999999999 -999999999999999999) the reader noted is within the approximation the implementor defines (§1989:A.2.3 GR2). cite.py: 'OK  §1989:A.2.41.4 RV2  (2.41.4 Returned Values)  the text is in RV2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

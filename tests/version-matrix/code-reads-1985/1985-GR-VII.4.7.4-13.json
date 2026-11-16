@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-13",
+ "rule-digest": "4e8db6f25eb8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-126",
+  "sources": {
+   "reader": "20e9170bc5f4459a0cadc85ee07856342193ac4a9994c0f1a7c4d2bffcfdb769",
+   "refuter": "36f42f5698e704443f96abc322584ae83c422491de9c6ccc64124a0dc2d3e306"
+  },
+  "imported": {
+   "reader": "e984cd989d578d8e1f66de3de6159282b9ed28980192ae6944b69e7cea498e78",
+   "refuter": "4b63413963c2aeb8941d493986186085d76bea009f763f81dd5273304738db16"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.7.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a WRITE to a sequential file open in the extend mode adds the record at the end exactly as in the output mode, the first record written after OPEN EXTEND following the last record already in the file (or becoming the first record of an empty or newly created optional file), for fixed and variable-length records and across repeated EXTEND opens.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#CountRecords; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord",
+  "edition-consulted": [],
+  "edition-search": "grep Dialect|Edition|CobolVersion|Std in SequentialConnector.cs: none. The EXTEND arm opens the writer with FileMode.Append (CreateNew for an absent OPTIONAL file, status 05) after seeding the ordinal mint from CountRecords; the WRITE body is the same one the OUTPUT mode takes (Mode is Output or Extend).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf21_02 and 1985-GR-VII_4_7_4-13 cover fixed-length records and an existing empty file; not exercised: variable-length records, two EXTENDs in a row, and an absent OPTIONAL file",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr12.cob",
+    "printed": "EXTEND1 00 / EXTEND2 00; read-back: 30CCC, 10AAAAAAAAAA, 20B, then 05EE (first EXTEND), 99 (length 2, ODO 0), 01FFFFFFF (second EXTEND)",
+    "expected": "GR13: each EXTEND's first record follows the last record in the file; lengths preserved"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr12.cob",
+    "printed": "OPEN EXTEND of an absent OPTIONAL file -> 05; after OPEN OUTPUT (NEW001) then OPEN EXTEND (NEW002): O [NEW001] / O [NEW002]",
+    "expected": "the EXTEND record is the successor of the last record"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr1.cob",
+    "printed": "FAILED OPEN EXTEND 35 (absent non-optional file); WRITE AFTER FAILED OPEN 48",
+    "expected": "no extend mode is established, so the WRITE is refused (GR1) and adds nothing"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.4 GR13",
+    "check": "OK  §1985:VII.4.7.4 GR13  (4.7.4 General Rules)  the text is in GR13"
+   }
+  ],
+  "notes": "OPEN EXTEND appends through the same WRITE body OUTPUT uses, so 'as though open in the output mode' holds by construction; the ODO/varying frames append correctly. Edition-invariant.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.7.4-13",
+  "refutation": "DOUBTFUL",
+  "classes": "c,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-126/src/rw13.cob (run rw13-001, --std 85; each file carries an unexecuted WRITE ... AFTER ADVANCING, so it is a print stream): F written OPEN OUTPUT with four plain WRITEs = LF AAAA LF BBBB LF CCCC LF DDDD LF (25 bytes); G written OPEN OUTPUT AAAA, BBBB, CLOSE, OPEN EXTEND CCCC, DDDD = LF AAAA LF BBBB LF LF CCCC LF DDDD LF (26 bytes): the EXTEND inserts an empty line between the last record already in the file and the first record written after OPEN EXTEND, and the run printed the 'not a whole multiple of the 4-byte record' notice for the program's own file G. Same G bytes at --std 2023 (rw13b-002). The CLOSE ends the open line and the first EXTEND WRITE advances one line again, so the result is not the file the output mode gives for the same WRITE sequence. cite.py: OK §1985:VII.4.7.4 GR13 'as though the file were open in the output mode'; OK §1985:VII.4.7.4 GR16. For a file with no ADVANCING (fixed and varying) the reader's probes stand; OPEN EXTEND of a LINAGE file is refused at 85 (rw13l-001 COBOL2372; OK §1985:VII.4.3.3 SR3; side note: the diagnostic cites §2023:14.9.27.3 SR2 at --std 85). Reading: the extra line breaks GR13 only if 'as though open in the output mode' governs the printed-page representation across a CLOSE and OPEN EXTEND; if the page position after CLOSE is the implementor's (GR16), it does not.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore: the EXTEND arm does not record that the file already ends with the line end CLOSE wrote, so the first AFTER ADVANCING 1 (explicit or automatic) adds a blank line"
+  ],
+  "corrected": "If the reading holds: NONCONFORMING (wrong-answer, cause b): on a print-stream sequential file, OUTPUT + CLOSE + OPEN EXTEND yields one more line than OUTPUT alone for the same WRITEs."
+ }
+}

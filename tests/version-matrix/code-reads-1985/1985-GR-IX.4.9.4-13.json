@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-13",
+ "rule-digest": "ad8b3546107b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-010",
+  "sources": {
+   "reader": "d178026b84d5ea74b760e5b13501f0ed5145d2b39f65bfac7a7de503522add24",
+   "refuter": "194f01631a91d0f25693c5c5386c1f6308b0d4c49996d11fea72623679125d2d"
+  },
+  "imported": {
+   "reader": "94e4fc5bef89931ddce6c5dcbf6bf7dfc3a3626414904d49fd4bb23ead8cb8fa",
+   "refuter": "e6bef2b21d51b01207a08e2e06874ffba31aa0c91c527ab61140c8ff6931ccc4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the WRITE must release the record under the prime key value the program placed in the prime RECORD KEY item's character positions of the record area before the statement executes (however it was set: elementary moves into the key's subordinates, a move through another record description of the file, the FROM phrase's implicit MOVE identifier-1 TO record-name-1, a figurative constant), so that the record is later retrievable by exactly that value.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#WindowOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): the 85 mandatory INVALID KEY / USE (SR3), not the key-value rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read EmitWrite (FROM move emitted first, then the record-area image sent to FileWriteShared) and IndexedConnector.Write/KeyOf/WindowOf (prime value sliced from that image); neither consults EditionContext, CobolVersion or DialectBehaviors on this path (grep of DialectBehaviors.IsActive in Runtime/IO: no WRITE site in IndexedConnector).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness l1c38 sets the key by MOVE and writes out of order; not exercised there: the FROM phrase, a key set through a second record description, a key positioned after other fields, subordinate-item moves, a figurative-constant key, a key changed after the rest of the record was set.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/wk1.cob",
+    "printed": "R p1|ZZ09|V-1 (key set by MOVEs into its subordinates X(2) + 9(2)); R p1|AA01|V-2 (key set through R-ALT-REC); R ws|MM50|FRM (WRITE FROM WS-REC); R ws|<HIGH-VALUES>|V-4; R ws|LP02|V-L (loop); R p5|CC03|V-5 (key changed after the record move, area overwritten after WRITE); R INV 23 for BB02 (the superseded key value)",
+    "expected": "§1985:IX.4.9.4 GR13: the value in the prime key item when WRITE executes; GR3: FROM = MOVE then WRITE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR13",
+    "check": "OK  §1985:IX.4.9.4 GR13  (4.9.4 General Rules)  the text is in GR13 [\"must be set by the program to the desired value prior to the execution of the WRITE statement\"]"
+   },
+   {
+    "cite": "§1985:IX.4.9.4 GR3",
+    "check": "OK  §1985:IX.4.9.4 GR3  (4.9.4 General Rules)  the text is in GR3 [\"MOVE identifier-1 TO record-name-1\"]"
+   }
+  ],
+  "notes": "GR13 is an obligation on the program; the implementation's half is to take the key from the record area at the moment of the WRITE, after the FROM move, which EmitWrite and IndexedConnector.Write do through the one record-area image. A key that the program never set is undefined by the standard and was not probed for a value.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-13",
+  "refutation": "UPHELD",
+  "classes": "d",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-010/k13.cob at --std 85 (dynamic indexed file; nine key-setting forms the reader did not try), sequential read-back printed: saSA01SRA (key set through the SAME RECORD AREA partner record S-REC, then WRITE R-REC), rmRF02RMD (reference modification R-REC(3:4)), inII03INS (INSPECT REPLACING on the key), stST04STR (STRING INTO key), adAD06ADD (ADD 1 to the numeric key subordinate, AD05 -> AD06), clCL06CAL (nested program CALL BY REFERENCE sets the key through LINKAGE), mcMC44MCR (MOVE CORRESPONDING into the key group), unUN07UNS (UNSTRING into the subordinates), reRE08RDF (rest of the record set through REDEFINES). Every record is stored under the value the key positions held when WRITE executed. cite.py: 'OK §1985:IX.4.9.4 GR13 (4.9.4 General Rules) the text is in GR13' [must be set by the program to the desired value].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

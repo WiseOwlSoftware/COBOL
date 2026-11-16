@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-IX.2.4.4-4",
+ "rule-digest": "aacc763f8e2f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-091",
+  "sources": {
+   "reader": "856ff51229cf03620fffb2e5ae042782b609a5cdee52de36cd6aee0c01373113",
+   "refuter": "300791588672753519fa07b454a5d57638913067e263f8aa7a5ef100bb60448e"
+  },
+  "imported": {
+   "reader": "8fe84579b5a3f28d6b9f52e2135b054af6bbdd81252a3d0ca128d6ad0fcb0ce4",
+   "refuter": "e18da1cba92a319e6a8aaa6d5cade35f4e95dcc00ad5cc219706c91e2f72dbc0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.4.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 (level 2), under dynamic access one open file may be read randomly (format 2) and sequentially (format 1 with NEXT, which 1985 requires), written in any key order, and positioned by START, the sequential reads continuing from the record a random READ or START established.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadNext; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedAccess",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten (data.Edition.Edition.Year >= 2002)",
+    "switches": "at 1985 a dynamic-access sequential READ must write NEXT (COBOL7144); 2002 on implies it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection (Constructs.ReadPrevious2002)",
+    "switches": "refuses READ PREVIOUS below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom (DialectBehaviors.IsActive(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, Edition))",
+    "switches": "whether a random READ of an alternate key whose next record has the same value answers 02 (1985) or 00 (2002 on)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Edition consults on the dynamic path found by grepping Edition.Year, Constructs.*2002 and DialectBehavior in KeyedIoBinder, StatementValidation, VersionConformancePass, IndexedConnector.",
+  "behaviour-differs-by-edition": "yes: at 1985 a dynamic sequential READ must write NEXT and READ PREVIOUS does not exist; 2002 on implies NEXT and adds PREVIOUS",
+  "witnesses-cover": "part: the witness exercises random and dynamic reads; the 1985 NEXT requirement, PREVIOUS refusal, READ NEXT after a failed random READ and relative dynamic access are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p5dynamic.cob",
+    "printed": "N0=00 AA01; random R1=00 CC03 then N1=00 DD04; N2-END10; START GT AA then N3=00 BB02; DELETE D=00; random READ BB 23; WRITE AB99 random; READ NEXT N4=46 (after the failed READ); relative START = 1, RN=00 R01 0001, RN2=00 R03 0003",
+    "expected": "both access ways in one OPEN; after an unsuccessful READ no valid next record, 46 (§1985:IX.4.5.4 GR12)"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p6prev.cob",
+    "printed": "COBOL7144 dynamic READ with no NEXT (§1985:IX.4.5.3 SR5) and COBOL0900 READ PREVIOUS requires COBOL-2002",
+    "expected": "both refused at 1985"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/conformance-suite/cases/12.4.5-File-control/l1c12_access_mode_random_dynamic",
+    "printed": "MATCH",
+    "expected": "witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.4.4 GR4",
+    "check": "OK  §1985:IX.2.4.4 GR4  the text is in GR4"
+   },
+   {
+    "cite": "§1985:IX.4.5.3 SR5",
+    "check": "OK  §1985:IX.4.5.3 SR5  the text is in SR5"
+   },
+   {
+    "cite": "§1985:IX.4.5.4 GR12",
+    "check": "OK  §1985:IX.4.5.4 GR12  the text is in GR12"
+   }
+  ],
+  "notes": "The connector branches only on KeyedAccess.Dynamic per statement form; the 1985-specific parts (mandatory NEXT, no PREVIOUS) are compile-time arms that take the 1985 branch.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.4.4-4",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Probe rb_dyn.cob (run rb_dyn-002), DYNAMIC access: READ NEXT AA, then WRITE BB (ahead of the position), then READ NEXT gave BB (OK §1985:IX.4.9.4 GR5 'The file position indicator is not affected by the execution of a WRITE statement', with IX.4.5.4 GR4d). DELETE current, then NEXT gave CC (OK §1985:IX.4.3.4 GR6). Random READ KEY IS IX-ALT m3, then REWRITE moving the alternate key to m6, then NEXT gave EEm5 and then CCm6 again, as a key-value position requires (OK §1985:IX.4.6.4 GR7). A random READ on the duplicates key gave 02 AA; NEXT gave 02 CC, 00 GG, 00 EE, which is IX.4.5.4 GR4e. A random READ by prime EE re-established the prime as key of reference, and NEXT gave GG. Probes rb_dyn-001 and rf_acc confirm the 1985 refusals the reader did not try: COBOL6826 for WRITE with no INVALID KEY and no USE, and 'ALTERNATE KEY' with no RECORD refused. OK §1985:IX.2.4.4 GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,137 @@
+{
+ "rule-id": "1985-GR-XIII.3.6.4-2",
+ "rule-digest": "c75233c6fedb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-038",
+  "sources": {
+   "reader": "f3b868e25767543825ae53dd3a4e4af7e83b7881dfd29be45762d6d448c0beb2",
+   "refuter": "e30ccc4e1b9ad9e6428a667465d43f8ee6c7eb14c985ef145f14d12cf4b5c867"
+  },
+  "imported": {
+   "reader": "27c9510b8a88b641fd2b8badf599fb1fd216b593b5fde7850e1dbe33ac352509",
+   "refuter": "77728ada37eef0d626152d5af6092f9e6fda154aeadcdb1927c8000b2952d548"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-XIII.3.6.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "The two code characters stand before every report record of the report, outside the line description (COLUMN 1 is the first position after them) but inside the logical record size, so a RECORD clause's size is the code plus the line, in every RECORD form (fixed, range, VARYING), for every report sharing the file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReportCode; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause",
+    "switches": "Edition.DialectLevel < 2002 refuses the identifier-1 operand (COBOL2713); 2002+ accepts it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Screen85CodeLiteral",
+    "switches": "below 2002 literal-1 must be exactly two characters (1985 SR1); 2002+ any length",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportCodeClause",
+    "switches": "ConstructRegistry report-code-is-2002: the word IS after CODE refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#ReservedWords",
+    "switches": "CODE reserved at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the GR2 arithmetic (LineWidth = record size - code length; image = code + line) is edition-neutral; only the operand forms differ (85: a two-character literal only)",
+  "witnesses-cover": "part: one report with RECORD CONTAINS integer; two reports on one file, RECORD VARYING, a size range and the no-RECORD default are not exercised",
+  "probes": [
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p2code.cob",
+    "printed": "RECORD CONTAINS 8: L01 [A1DET YY] L02 [B2BBB  1] L03 [B2BBB  2] L04 [A1DET YY] (COLUMN 7 'Z' cut)",
+    "expected": "record = 2 code + 6 line columns; each report's own code"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p12var.cob",
+    "printed": "RECORD IS VARYING IN SIZE FROM 4 TO 8: the same four lines",
+    "expected": "maximum record 8 = code + 6"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p13rng.cob",
+    "printed": "RECORD CONTAINS 4 TO 8: the same four lines",
+    "expected": "same"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p1code.cob",
+    "printed": "no RECORD clause: [Q7DET 1  02], the whole line after the code",
+    "expected": "code prefixed, line uncut"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p3code_len.cob",
+    "printed": "COBOL2713 a literal of 3 characters; literal-1 must be a two-character nonnumeric literal",
+    "expected": "refused at 85 (SR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p4code_id.cob",
+    "printed": "COBOL2713 the CODE clause names 'WS-K', an identifier",
+    "expected": "refused at 85 (format: CODE literal-1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p2code.cob (first run, CODE IS \"B2\")",
+    "printed": "COBOL0900 the word IS of the CODE clause requires COBOL-2002",
+    "expected": "refused at 85 (the format prints CODE literal-1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p5code_num.cob",
+    "printed": "COBOL2713 12 is not an alphanumeric literal",
+    "expected": "refused (nonnumeric literal)"
+   },
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/13.18.12-CODE/pb1129_rd_code_literal.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.6.4 GR2",
+    "check": "OK  §1985:XIII.3.6.4 GR2  (3.6.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XIII.3.6.4 GR1",
+    "check": "OK  §1985:XIII.3.6.4 GR1  (3.6.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.3.6.3 SR1",
+    "check": "OK  §1985:XIII.3.6.3 SR1  (3.6.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "ResolveReports sets LineWidth = RecordClause.Upper - Code.Length (with no RECORD clause, the widest line), and PresentLine writes _code + Compose(). The COBOL2713 text for the identifier refusal says 'CODE IS literal-1' although 1985 prints no IS: a wording slip in a diagnostic, not a conformance defect."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.6.4-2",
+  "refutation": "OVERTURNED",
+  "classes": "a,b,c,f",
+  "evidence": "Degenerate record sizes the reader did not try. r7r3-001: FD RECORD CONTAINS 3 CHARACTERS, RD CODE \"AB\", DE COLUMN 1 PIC XXXX VALUE \"WXYZ\" -> record 'ABW' (3 = code + 1 line column; correct). r7r2-001: RECORD CONTAINS 2 CHARACTERS -> record 'ABW' (od -c: A B W \\r \\n), 3 characters in a file whose every record has 2 positions. r7r1-001: RECORD CONTAINS 1 CHARACTERS (the code cannot fit at all) -> accepted with no diagnostic and writes 'ABW'. Same at --std 2023 (r7r1-002, r7r2-002: 'ABW'). Cause in code: src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports line 3812-3813 `model.LineWidth = ... ? Math.Max(1, record - (model.Code?.Length ?? 0)) : widest;` -- the clamp to 1 adds a print-line column the logical record does not have whenever record size <= 2. cite.py: OK §1985:XIII.3.6.4 GR2 (\"are included in the logical record size\"); OK §1985:XIII.3.6.4 GR1; OK §1985:VII.3.8.4 GR3 (\"Integer-1 specifies the number of character positions contained in each record in the file\"). kb/Work: PB2519 and PB1934 (landed) name the same line but for the RECORD format arms, not the clamp; no note found for the clamp. SIBLING (another rule, 1985-FMT-XIII.3.2.2): the 1985 report FD format (rendered PDF page 589, folio XIII-7) admits only RECORD CONTAINS integer-3 and integer-4 TO integer-5; §1985:XIII.3.2.4 GR3 limits the clauses to those 'shown on page XIII-7'. r7var-001 RECORD IS VARYING IN SIZE FROM 3 TO 6 on a report FD compiles and runs at --std 85 (under-rejects); the reader's p12var relied on it and its requirement wrongly ranged over a VARYING form 1985 does not admit for a report file.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports: no edition consulted; the Math.Max(1, ...) clamp is the same arm at every edition",
+   "the report-FD RECORD clause validation (VersionConformancePass / FD binder): no 1985 refusal of RECORD IS VARYING on an FD with a REPORT clause"
+  ],
+  "corrected": "NON-CONFORMING (wrong-answer, minor, degenerate sizes): with CODE and a RECORD clause whose size is 2 the record must be the code alone (2 positions: code included in the logical record size, line width 0), and a size of 1 cannot hold the code at all (refuse, or at least never write past the record); the compiler writes a 3-character record in both. Cause (b): the same at --std 2023. Repro: FD RPT RECORD CONTAINS 2 CHARACTERS REPORT IS R-A. RD R-A CODE \"AB\". 01 DE-A TYPE DE LINE PLUS 1. 02 COLUMN 1 PIC XXXX VALUE \"WXYZ\". -> expected record 'AB', observed 'ABW'."
+ }
+}

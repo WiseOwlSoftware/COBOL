@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VIII.2.3.4-2",
+ "rule-digest": "5861547494fb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-128",
+  "sources": {
+   "reader": "818b2b1736fc0bfea2f57a9812ee858c7d1c6da2b172231e927e971b297c34f2",
+   "refuter": "30a504c9065d09eef0f7511e73ccc3edaffc08d811acf61d17a03809c2c45d48"
+  },
+  "imported": {
+   "reader": "60cce70af31fc07737d2e39565fee2001974d18ff59f886a626d7583f45e98ff",
+   "refuter": "146365bdc9bf3721265145649e87461c50e30437f38070f1664fd324bcd50892"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relative file (whose FD has no CODE-SET clause in 1985) keeps its data on the external medium in the native character set, the implementor-defined set of the OBJECT-COMPUTER, with no translation on WRITE or READ; a CODE-SET clause on a relative FD is not part of the format and must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#CodeSet; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ToMedium; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FromMedium; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordHasCharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Decoded; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindCodeSetClause",
+  "edition-consulted": [],
+  "edition-search": "grep IsActive( / Edition in Runtime/IO/FileConnector.cs (only SharingFacilityInEffect), FileCharacterSet and RelativeConnector Decoded/Write paths: no edition read; FileDescriptionClauseAdmitted (COBOL2604) refuses CODE-SET for the relative format from FileDescriptionFormats with no edition test (the same refusal at --std 2023).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf03_06 covers letters, space, LOW-VALUE, HIGH-VALUE and ordinal 234 on a fixed random file; not exercised: the CODE-SET refusal, variable-length records, ordinals 129/256 and characters above U+00FF",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p6_native.cob",
+    "printed": "W1 00; ORD-1=82 ORD-2=129 ORD-3=65536 ORD-4=65536 ORD-5=1 (Q, C129, C256 = U+00FF, HIGH-VALUE, LOW-VALUE); W2 91 for C257/C301",
+    "expected": "no translation; U+00FF returning as HIGH-VALUE and the '91' refusal above U+00FF are the documented DOC-A.1-31 storage-byte determination"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p6_native.cob",
+    "printed": "R1 00 5 001 (RECORD VARYING 1 TO 8, length 5 kept) / AE2 10",
+    "expected": "the variable record returns at its length, unconverted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p6_codeset.cob",
+    "printed": "COBOL2604: the CODE-SET clause (CODE-SET IS A-STD) is not a clause of Format 2 (relative-or-indexed) of the file description entry ... ISO §2023:13.4.5.3 SR7",
+    "expected": "refused: the 1985 relative FD has no CODE-SET clause"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.2.3@1985-FILE-CONTROL-ENTRY/g85_bf03_06.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.3.4 GR2",
+    "check": "OK  §1985:VIII.2.3.4 GR2  (2.3.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   }
+  ],
+  "notes": "With no CodeSet the connector writes through FileCharacterSet, the ISO 8859-1 storage-byte law that DOC-A.1-31 documents as the USAGE DISPLAY encoding (owner decisions kb/Work R47/R52). As a result U+00FF comes back as HIGH-VALUE and a character above U+00FF is refused with '91'. That is a documented implementor determination of the native set's external form, not a translation, so I judge it CONFORMS; a refuter may weigh it. The COBOL2604 refusal at --std 85 cites §2023 rather than the 1985 format, a cosmetic edition mismatch in the message.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.3.4-2",
+  "refutation": "OVERTURNED",
+  "classes": "d,c",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-128/r6_round.cob at --std 85 (runs/r6_round-001). In memory the native set has 65,536 characters (ORD(HIGH-VALUE) = 65536), and C256 (ordinal 256, U+00FF) is a native character distinct from HIGH-VALUE (MEM C256 NOT = HV). A random WRITE of 'A'+C256+'B' succeeds with W1 00. READ of the same record succeeds with R1 00, but QREC differs from the record written (ROUND TRIP DIFFERS), and the middle character comes back as ordinal 65536, which is HIGH-VALUE. WRITE of a record holding C257, a legal native character (SYMBOLIC CHARACTERS 257 is accepted at 85), is refused with W2 91. --std 2023 prints the same (runs/r6_round-002), so this is cause (b). The medium does not hold the native set: it holds ISO 8859-1 plus U+FFFF, with U+00FF and U+FFFF sharing byte 0xFF. That is a lossy translation, and the rule forbids one. docs/conformance/7/DOC-A.1-31.md records it as an 'Accepted cost (owner R52)', so it is a documented deviation, not an exercise of implementor latitude: the implementor may define the native set (§1985:III.2), but once defined, the rule says that set is what is on the medium. cite.py: OK §1985:VIII.2.3.4 GR2 the text is in GR2; OK §1985:III.2 the text is in the clause.",
+  "edition-sites-missed": [],
+  "corrected": "Not CONFORMS: PARTIAL, or a documented DIVERGES citing DOC-A.1-31/R52. Harm wrong-answer: a native character U+00FF written to a relative file with status 00 reads back with status 00 as HIGH-VALUE. Harm rejects-legal-operation: any native character above U+00FF makes the WRITE fail with '91'. The same happens at every edition (cause b), in FileCharacterSet's storage-byte law used by FileConnector.ToMedium/FromMedium."
+ }
+}

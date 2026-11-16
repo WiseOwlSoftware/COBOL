@@ -1,0 +1,106 @@
+{
+ "rule-id": "1985-SR-VI.6.18.3-6",
+ "rule-digest": "d62427be0143",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-057",
+  "sources": {
+   "reader": "ab7040499af21b07388b4fd170124a5fcefbfe1114402ba069cdc3d2ffd4c1d2",
+   "refuter": "fc56b3be0adc1c3bef0322333f30b164577bedae94d51baee9a12ab897c9ad15"
+  },
+  "imported": {
+   "reader": "3f60b227e82baa3ea66cea3800f5579de4bc266ad08771e5e03fa8ad10527d1a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.18.3-6",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85, in Formats 1 and 3, each TALLYING identifier-2 must reference an elementary numeric data item (DISPLAY or COMPUTATIONAL, signed, scaled or with a fraction, subscripted), and anything else (alphanumeric, alphabetic, numeric-edited, a group, an index data item, and a reference modification, which §1985:IV.4.3.8.4.4 GR5 makes category alphanumeric) must be refused at compile time.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectTallyCounter",
+  "edition-consulted": [],
+  "edition-search": "CheckInspectTallyCounter reads counter.Item.Pic only; grep of StatementValidation's INSPECT block and InspectBinder.BindPhraseOperands for DialectLevel|Edition.Year|ConstructRegistry|DialectBehavior finds the size-rule predicate InspectSizeRulesCoverDataItems (SR7-SR9, not this rule) and nothing on the counter path; ResolveReceiving (the counter's resolver) does not gate it by edition either",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises only the USAGE INDEX counter; the alphanumeric, edited, alphabetic, group and reference-modified counters were not exercised by it",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4ok.cob",
+    "printed": "CN=0004 CC=+0014 CV=005.5 TC=04 F3 CN=0005 S=ZBZCZDZE",
+    "expected": "DISPLAY, signed COMP (from 10), 9(3)V9 (from 1.5), subscripted and Format 3 counters admitted and incremented"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4p.cob",
+    "printed": "CP=00",
+    "expected": "PIC 9P counter admitted (an elementary numeric item)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4x.cob",
+    "printed": "COBOL0847 counter 'CX' shall be an elementary numeric data item",
+    "expected": "refused (alphanumeric)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4e.cob",
+    "printed": "COBOL0847 'CE'",
+    "expected": "refused (numeric-edited)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4a.cob",
+    "printed": "COBOL0847 'CA'",
+    "expected": "refused (alphabetic)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4g.cob",
+    "printed": "COBOL0847 'CG'",
+    "expected": "refused (group)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4ix.cob",
+    "printed": "COBOL0847 'IX'",
+    "expected": "refused (index data item)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4f3.cob",
+    "printed": "COBOL0847 'CX' (Format 3)",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4rm.cob",
+    "printed": "EXIT 70: error: backend compilation failed (generated C# at i4rm.g.cs): (89,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?'",
+    "expected": "refused with a diagnostic: CN (1:2) is a unique data item of class and category alphanumeric (§1985:IV.4.3.8.4.4 GR5), not an elementary numeric data item"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4sib.cob",
+    "printed": "COBOL1675 the arithmetic resultant 'CN(1:2)' is a reference-modified slice",
+    "expected": "sibling control: ADD's resultant screen refuses the same shape"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.3 SR6",
+    "check": "OK  §1985:VI.6.18.3 SR6  (6.18.3 Syntax Rules)  the text is in SR6"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.4.4 GR5",
+    "check": "OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "CheckInspectTallyCounter asks counter.Item.Pic, the BASE item's picture, so a reference-modified numeric counter passes as numeric although GR5 makes the slice alphanumeric; the emitter then generates C# that Roslyn refuses (CS1503), so illegal source reaches the user as a backend crash. ExpressionBinder.ScreenResultant asks p.DenotedItem and refuses the same shape for ADD (COBOL1675); the INSPECT counter screen should ask the same identity question.",
+  "seeded": true,
+  "harm": "crashes; under-rejects",
+  "cause": "b",
+  "at-2023": "the same: EXIT 70, backend compilation failed, CS1503 Argument 4: cannot convert from 'long' to 'string?' (§2023:8.4.3.3.4 GR6 also makes the slice alphanumeric)",
+  "repro": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. P47.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 S PIC X(8) VALUE \"ABACADAE\".\n       01 CN PIC 9(4) VALUE 0.\n       PROCEDURE DIVISION.\n       MAIN-PARA.\n           INSPECT S TALLYING CN (1:2) FOR ALL \"A\".\n           STOP RUN.",
+  "expected": "a compile-time diagnostic: \"Identifier-2 must reference an elementary numeric data item\" (§1985:VI.6.18.3 SR6), and CN (1:2) \"has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric\" (§1985:IV.4.3.8.4.4 GR5)",
+  "observed": "error: backend compilation failed (generated C# at i4rm.g.cs): (89,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?' (exit 70)",
+  "known_note": "none found (searched kb/Work for CheckInspectTallyCounter, TALLYING counter with reference-modif / (n:, COBOL0847; PB1127 and PB1830 are the USAGE INDEX counter and its SUM sibling, both landed)"
+ }
+}

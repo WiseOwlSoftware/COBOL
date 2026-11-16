@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-6",
+ "rule-digest": "b12994dc235e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-025",
+  "sources": {
+   "reader": "dde92b60efc95ce31baaefeae9939f4084f1f29d58a45aa253e056ad1595f3d9",
+   "refuter": "b321bae242d25139ede9cd256e0b6ef85dd3794fdec3ab640e6c64631d78fbf7"
+  },
+  "imported": {
+   "reader": "91c0a397ec6e131ad74bf8b85d4921b6088f40d515554b8f633987c553912e8b",
+   "refuter": "7404aecaadc23ea14e39dbb81155766692493ceb0ed5bc6a5dc374a1ca4ea4d7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.5.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "No sequential REWRITE (successful, unsuccessful with 43 or 44, after an at end, before any READ, of fixed, varying or OCCURS DEPENDING ON records) changes the file position indicator: the next READ selects the record after the one the last READ chose, or keeps 46 after an at end, or the first record when only OPEN has set it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OverwriteInPlace; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|Dialect|IsActive over SequentialConnector.cs (the REWRITE region and OverwriteInPlace), FileRegistry.cs RewriteShared/RewriteSharedInStatement (lines 2671-2760) and SequentialIoEmitter.cs#EmitRewrite: no consult. OverwriteInPlace saves and restores the base stream position, and no REWRITE arm writes the read offset or the last-read anchor.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c25_rewrite_position_unaffected covers a successful REWRITE followed by READ; not exercised: REWRITE before any READ (43), after an at end (43 then 46), an unsuccessful size REWRITE (44), a REWRITE repeated on the same record, variable-length records",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/rw6fpi.cob",
+    "printed": "RW-BEFORE-READ=43 READ-A=00 K001 RW-1=00 READ-B=00 K002 RW-2-AGAIN=00 READ-C=00 K003 RW-3=00 AE-D READ-D=10 RW-AFTER-AE=43 READ-E=46 FINAL=K001NEW-1  FINAL=K002TWO    FINAL=K003NEW-3 ",
+    "expected": "the READ after each REWRITE selects the next record (GR4d); a REWRITE after the at end leaves 'no valid next record', so the READ is 46"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/rw6fpi.cob",
+    "printed": "V-READ-A=00 N=03 V-RW-WRONG-SIZE=44 V-READ-B=00 N=05 DEFGH",
+    "expected": "after an unsuccessful REWRITE of an OCCURS DEPENDING ON record, the next READ delivers record 2"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.4 GR6",
+    "check": "OK  §1985:VII.4.5.4 GR6  (4.5.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VII.4.4.4 GR4d",
+    "check": "OK  §1985:VII.4.4.4 GR4d  (4.4.4 General Rules)  the text is in GR4d"
+   }
+  ],
+  "notes": "The in-place overwrite seeks to the record's anchor, writes, and seeks back to the saved position, so the reader's offset (the FPI's carrier) is untouched on every arm. The 43 and 44 refusals return before any stream access. All probes match.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.5.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "Probes beyond the reader's (refute-1985-025/src/rw6b.cob, --std 85; the -001 run counted the correct 43 of a doubled REWRITE as bad, -002 is the corrected probe): REWRITE on a file open INPUT -> 49 and the next READ delivers record 2; 3000 100-character records read in I-O mode with every 7th rewritten and then rewritten again (43, GR2): every READ delivers the next record number (BAD=0) and a re-read verifies exactly the 428 rewritten records; 40 variable-length records (lengths 2..41, DEPENDING ON) each rewritten, every following READ returns the next record at its own length (BAD=0). cite.py: OK §1985:VII.4.5.4 GR6; OK §1985:VII.4.4.4 GR4d.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

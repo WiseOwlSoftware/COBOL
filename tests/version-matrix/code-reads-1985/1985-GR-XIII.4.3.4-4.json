@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-4",
+ "rule-digest": "be579e54610f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-151",
+  "sources": {
+   "reader": "a12a58a63be1851511ed40f4a83a570d4b875d4271d26c2b066a5ea013e61409",
+   "refuter": "5325b85cac938cc72a59a6577402dc0d6e1669dcdf81cdb8e6554b02c3e9b1d5"
+  },
+  "imported": {
+   "reader": "6c40b7956aac63ed66b02ea79072030d94bb0f9b85051a6a7c3aa6c8661d511a",
+   "refuter": "2091ee8296df9ab7aa4a7c391d0e613f453e321c5b0bc290b1f167c6666c7215"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.3.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, whenever a body group (detail, control heading or control footing) needs a new page during GENERATE or TERMINATE, the page footing (if defined) is processed on the old page and the page heading (if defined) on the new one before the body group.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentOrPageHeadings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes ctx.Data.DialectLevel into CobolReport.Edition, the argument every DialectBehaviors.IsActive question of the engine is asked with; the CONTROL registration (AddControl order, FINAL, image/float/collated arms) is edition-independent",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues: at 85 a page heading/footing reached during a control-footing phase sees CURRENT control values (1985 GR13 c), from 2002 the priors; at 85 the binder's SR5 refusal makes the difference unobservable from source",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (85 keeps the saved NEXT GROUP location); the prior-value bracket and the CF minor-to-major loop are one arm",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "AdvancePage (PF, PageFeed, CODE, PH, OR PAGE headings) takes no edition; WithPageGroupControlValues and TerminateCore's saved-NEXT-GROUP arm are the edition arms on this path",
+  "behaviour-differs-by-edition": "yes: at 85 page groups reached during a control-footing phase see current control values (unobservable from source: SR5 refuses the reference) and TERMINATE keeps a saved NEXT GROUP location",
+  "witnesses-cover": "part: g85_f29_07; a page advance caused by a control footing and by TERMINATE's footing was probed",
+  "probes": [
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/XIII.4.3@1985-GENERATE-STATEMENT/g85_f29_07.cob",
+    "printed": "EXPECT: MATCH (run_probe --std 85 --expect)",
+    "expected": "the case's .out"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p4page.cob",
+    "printed": "PAGE LIMIT 8, FIRST DETAIL 3, LAST DETAIL 6, FOOTING 7: P1 RH L1, PH 01 L2, CHK L3, DE01-03 L4-6, PF 01 L8; P2 PH 02 L2, DE04 L3, DE05 L4, CFK L5, CHK 2 L6, PF 02 L8; P3 PH 03 L2, DE06 L3, DE07 L4, CFK L5, PF 03 L8",
+    "expected": "§1985:XIII.4.3.4 GR4: page footing then page heading whenever a body group needs a new page"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p5cfpage85.cob",
+    "printed": "--std 85: a CONTROL FOOTING failing its fit (FOOTING 4) causes PF 01, a new page, CFK 1 at FIRST DETAIL; TERMINATE's CF likewise PF 02 then CFK 2 and PF 03. The variant p5cfpage.cob, a PF USE procedure referencing control K, is refused at 85 with COBOL6825 (1985 SR5) and at 2023 shows the PF seeing the prior K",
+    "expected": "page footing/heading processing also on a page advance caused by a control footing"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.3.4 GR4",
+    "check": "OK  §1985:XIII.4.3.4 GR4  (4.3.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "PresentBody's failed fit calls AdvancePage, which presents the PF, feeds, and presents the PH; probes show it for detail- and CF-caused advances and at TERMINATE, and the first page heading at the first GENERATE.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Read §1985:XIII.4.3.4 GR4 with the 1985 Body Group Presentation Rules (fit tests 3a absolute, 3b relative, 3c LINE ... ON NEXT PAGE; final LINE-COUNTER 6c for NEXT GROUP NEXT PAGE). Probe r4np at --std 85, PAGE LIMIT 12 HEADING 1 FIRST DETAIL 3 LAST DETAIL 9 FOOTING 10, PF LINE 12: a 1985-only 'DETAIL LINE 5 ON NEXT PAGE' group after a detail on the page forced PF 01 then PH 02 then DNP on page line 5 (rule 3c); a CONTROL FOOTING with NEXT GROUP NEXT PAGE followed by an absolute 'CONTROL HEADING LINE 4' forced PF 02, PH 03, CHK 2 on line 4; TERMINATE's CF with NEXT GROUP NEXT PAGE then PF 03 on line 12. Every page advance for a body group processed the PF on the old page and the PH on the new. cite: OK  §1985:XIII.4.3.4 GR4  (4.3.4 General Rules)  the text is in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

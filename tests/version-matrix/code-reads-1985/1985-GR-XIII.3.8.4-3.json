@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-XIII.3.8.4-3",
+ "rule-digest": "8f8bf6ac5685",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-039",
+  "sources": {
+   "reader": "7a4457796b771bc74879f8bf7120fb8fc9c0556a64cdcccfa7b290aef2c357e3",
+   "refuter": "5b5e7dacf5d6d220560d67c9a706beed8e27c9d357e0559d6b013433940dd628"
+  },
+  "imported": {
+   "reader": "08334fb0a9959c254e1afff3eef50c5fb5454cf19c79ae3273b3273aa11d951f",
+   "refuter": "7aa707f2cd7227391ed5bdc68db773c54f091ea7ffc4eadbfc0e1becf7f596a3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.8.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an RD with no PAGE clause is one page of indefinite length: no page advance ever happens (no form feed, PAGE-COUNTER stays 1), LINE-COUNTER keeps growing past any page size, every group is placed relative to LINE-COUNTER, and the forms that need pages (page heading/footing groups, absolute LINE, NEXT PAGE, absolute NEXT GROUP) are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageClause",
+    "switches": "Constructs.ReportPageForms2002: a PAGE clause with no integer-1 (only a COLUMNS width) is refused below 2002, so at 85 the only unpaged report is one with no PAGE clause",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "model.Paged is set only by a written integer-1; the runtime's _paged arms (FirstLineTarget GR5c, the page-fit and NEXT GROUP arms) carry no edition test (grep of ReportWriter.cs for Edition/DialectBehavior).",
+  "behaviour-differs-by-edition": "yes: 2002+ also lets a PAGE clause with only a width leave the report unpaged; 1985 refuses that form. The unpaged behaviour itself is the same code",
+  "witnesses-cover": "part: pb484 covers relative placement on an unpaged report; length past 999 lines, PAGE-COUNTER, RH/CF/RF, and the refusals were not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r3np.cob",
+    "printed": "N=0001 0001/00004, N=0999 0001/01002, N=1200 0001/01203, N=1201 0001/01206, END 0001/01211; 1211 lines, 0 form feeds; RH line 1, CF 1205, CF 1208, RF 1211",
+    "expected": "one page: PAGE-COUNTER 1 throughout, LINE-COUNTER grows past 999, RH NEXT GROUP PLUS 2 -> 3, body groups relative"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r3ph.cob",
+    "printed": "error COBOL0899: TYPE PageHeading requires a PAGE clause that defines the page limit",
+    "expected": "refused (1985 presentation-table footnote: no page heading without PAGE)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r3abs.cob",
+    "printed": "error COBOL2199: the report is not divided into pages, so all its LINE clauses shall be relative",
+    "expected": "refused (§1985 LINE NUMBER SR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r3ngnp.cob",
+    "printed": "error COBOL2284: only the relative form of the NEXT GROUP clause may be specified",
+    "expected": "refused (§1985 NEXT GROUP SR3); r3ngabs.cob (NEXT GROUP 5) the same"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r3pf.cob",
+    "printed": "COBOL2199 (1985 SR9 PF first LINE absolute) and COBOL0899 TYPE PageFooting requires a PAGE clause",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/13.18.35-LINE/pb484_report_line_placement.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.8.4 GR3",
+    "check": "OK  §1985:XIII.3.8.4 GR3  (3.8.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "Unpaged is the model's Paged=false flag carried into the runtime as _paged. Every page-related arm is gated on it, and the binder refuses the page-only forms.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.8.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "At --std 85 (refute-1985-039): p3re (RD with no PAGE clause; RH LINE PLUS 1 NEXT GROUP PLUS 2, DE LINE PLUS 1, RF LINE PLUS 2; INITIATE/GENERATE/TERMINATE twice) -> report RH,_,_,001,_,RF,RH,_,_,002,_,RF with no form feed; PAGE-COUNTER 1 throughout, LINE-COUNTER 4 after GENERATE, 6 after TERMINATE, 0 after the second INITIATE: one page of indefinite length, groups placed relative to LINE-COUNTER (NEXT GROUP PLUS honoured). p3rhnp (RF LINE 1 ON NEXT PAGE with no PAGE clause) -> COBOL2199 refused (absolute LINE needs pages). The reader had covered LINE-COUNTER past 999, PH/PF and absolute NEXT GROUP refusals and the 2002 width-only PAGE clause refusal. cite.py: OK §1985:XIII.3.8.4 GR3 'If the PAGE clause is omitted, the report consists of a single page of indefinite length.'",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

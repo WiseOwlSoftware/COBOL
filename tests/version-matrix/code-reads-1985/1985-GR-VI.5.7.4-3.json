@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.5.7.4-3",
+ "rule-digest": "726754b0e3a1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-106",
+  "sources": {
+   "reader": "03e88e7bff35ac76e8e68c99dc85a880522de7d1334116fc4471a93059560858",
+   "refuter": "3317c8d04e9c6809595b476721c27213369c7446bd459c4bb93645d1801fb202"
+  },
+  "imported": {
+   "reader": "399c4afb12f25a5259a3d4aef878df6d535ada724ef4181daba448a3400cf65b",
+   "refuter": "52a84f56ce324371d28ebdecfc651c0dd912992720e6a2c2036aa60c4e37631f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.7.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "Every level-01 record under one FD (any organization), SD or CD shares one storage area (an implicit redefinition); records under an RD are excluded.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#LinkImplicitRecordArea; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#SetRedefinition; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsOutOfLineRecord",
+  "edition-consulted": [],
+  "edition-search": "grep of FileControlBinder.FileSection.cs, CommunicationSectionBinder.cs, DataItem.cs, ClassifyRedefinesClassesPass.cs and SequentialIoEmitter.cs for CobolVersion, Edition.Is/Version, DialectBehavior, ConstructRegistry, DialectLevel: the only hits are RECORD CONTAINS (FileSection.cs line 406) and SELECT WHEN (SequentialIoEmitter.cs line 593), neither on the record-area link. IsOutOfLineRecord excludes only dynamic-length, dynamic-capacity and pointer records, none of which exist at 1985, so every 1985 record is linked.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers an SD only; an FD of each organization, an OCCURS DEPENDING record and CD records are not exercised by it",
+  "probes": [
+   {
+    "class": "a,d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/lv1.cob",
+    "printed": "SQ-N=3 T3=C B=3ABCDEFG / B2=3AB / A=001234N / C-AFTER=0X1234NG / A-ALLZ=ZZZZZZZZ / IXK=KEY IXD=DAT / RLA=1235 / READ-C=... B=QWERTYUI / IXB-READ=K01VAL",
+    "expected": "the elementary, ODO-group and signed records of a sequential FD, the records of an indexed FD and of a relative FD each read what another record of the same FD stored, before and after WRITE and READ"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/lv2.cob",
+    "printed": "Q=QUEUENAME012 R=REST / COA=0043abc",
+    "expected": "two 01 records under a CD INPUT and under a CD OUTPUT share one area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.7.4 GR3",
+    "check": "OK  §1985:VI.5.7.4 GR3  (5.7.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "LinkImplicitRecordArea makes every non-anchor FD and SD record an ImplicitFileRecord redefinition of the anchor, and CommunicationSectionBinder.BindEntry does the same for CD records; no edition arm. The RD exclusion is not observable through a data reference (report groups are not MOVE targets) and was not probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.7.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,c,d,e",
+  "evidence": "l1.cob at --std 85 (run refute-1985-106/l1-001): FD with 01 records of 3, 10 and 4 chars (shorter anchor first): MOVE to R2 seen through R1 and R3A/R3B, MOVE to R1 changes only R2's first 3 chars (R2=XYZDEFGHIJ), a second FD's record untouched (Q1=QQQQQQQQQQ); FD EXTERNAL with RECORD IS VARYING ... DEPENDING ON (1985 forms) shares the area among its own 01s (V2=12, V1=ZZ345678) and with another program's differently described 01s of the same external file (SUB W1=ZZ3, V1C=kkk45678); SD with 01s of 2 and 6 chars (SR1=MN, SR2=abOPQR). Read FileControlBinder.FileSection.cs#LinkImplicitRecordArea (called for FD and SD): no edition consult; IsOutOfLineRecord excludes only record kinds absent at 1985. RD exclusion not observable through a data reference. cite.py: OK  §1985:VI.5.7.4 GR3  (5.7.4 General Rules)  the text is in GR3",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

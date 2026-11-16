@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-1",
+ "rule-digest": "d64dac7ddf57",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-127",
+  "sources": {
+   "reader": "1cee9424aa0830998a16df340aff017f5f6b278055f56029b84815b8c3bd4053",
+   "refuter": "5be2bd587bac17aee83d32e65239aac0b77e7b437fbc4117cc4c8ef1a5948552"
+  },
+  "imported": {
+   "reader": "f7d7386724df66406b1d713e71a091239ad36af39c56bc09897e6727fbc804f5",
+   "refuter": "04ab44bc120c346b275d11d67458110bdf1b4772cd0b3cc226b5f222e5386492"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.1.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 an input-output statement on a relative file that succeeds (OPEN, CLOSE, READ, WRITE, REWRITE, DELETE, START in every access mode) sets an I-O status of the successful class 0x (00, 04, 05), and no USE AFTER STANDARD EXCEPTION procedure runs for it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#Success; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#Successful; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (from 2002): off at 85, so no 5x/6x sharing status can replace a 1985 value; a second OPEN of an open physical file through another file-name is not a sharing conflict",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -rn 'CobolVersion|Edition|Dialect|Std' src/WiseOwl.Cobol.Runtime/IO/*.cs; grep -n 'Edition|Version|Dialect' CodeGen/EcEmitter.cs CodeGen/DispatchEmitter.cs CodeGen/Verbs/IoStatusClass.cs; read Runtime/Control/DialectBehavior.cs rows 2, 14, 19",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers 00 on every relative verb in dynamic access, 05 on OPEN I-O and 04 on a random READ; not exercised there: OPEN EXTEND/INPUT of an absent optional file, the largest key, a sequential READ's 04 (probed)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/g85_bf18_04.cob",
+    "printed": "EXPECT: MATCH (00 on OPEN/WRITE/CLOSE/READ/REWRITE/DELETE/START/READ NEXT, 05, 04, USE-COUNT 0 then 1)",
+    "expected": "successful class, no USE procedure for it"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p1succ.cob",
+    "printed": "X1 05 / X2 00 / X3 00 / X4 00 XREC (OPEN EXTEND of an absent optional file: 05, created); I1 05 / I2 00 / I3 05 (OPEN INPUT: 05, not created)",
+    "expected": "05 on OPEN of an absent optional file; I-O or extend creates it"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p1succ.cob",
+    "printed": "B1 00 / B2 00 BIGR (random WRITE and READ at RELATIVE KEY 999999999)",
+    "expected": "00"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p1succ2.cob",
+    "printed": "V-START INVALID / VS 23 / V1..V3 46: a dynamic reader opened on a zero-byte file does not see records another connector wrote later",
+    "expected": "no conclusion on a sequential 04 (the witness's random READ gives 04)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p1succ.cob",
+    "printed": "first version (run p1succ-002): V0 39 when the reader's RECORD VARYING 4 TO 8 meets a file created 1 TO 12; then V1..V3 47, USES 5",
+    "expected": "39 (fixed-attribute conflict, implementor-validated set, §1985:VIII.4.4.4 GR8): not a successful completion, the USE procedure runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.1.3.4 GR1",
+    "check": "OK  §1985:VIII.1.3.4 GR1  (1.3.4 I-O Status)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4 GRL2.1",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.1  (1.3.4 I-O Status)  the text is in GRL2.1"
+   },
+   {
+    "cite": "§1985:VIII.4.4.4 GR8",
+    "check": "OK  §1985:VIII.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "Every successful arm sets a 0x status, and the generated __IoCheck returns before any declarative tier when status[0] is '0' (IoStatusClass.Successful), at every edition. The status class tests (CodeGen/Verbs/IoStatusClass.cs), the generated __IoCheck hook (DispatchEmitter.EmitUseMachinery) and the Status setter's permanent-error record are the same code at every edition. A relative READ answers 04 only on a file whose OPEN could not check its record bounds (docs/conformance/3/D-IO-STATUS-04, a zero-byte store); a sequential reader opened on such a store does not see later records, so 04 was witnessed on the random path only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.1.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,e,f",
+  "evidence": "Read §1985:VIII.1.3.4 whole (the relative list has no 02/07: no relative CLOSE or OPEN format carries NO REWIND/REEL/REMOVAL). runs/rc1-001..rc4-001 at --std 85: CLOSE relative WITH NO REWIND -> COBOL1693, CLOSE REEL -> COBOL1693, OPEN INPUT WITH NO REWIND -> COBOL1802, CLOSE FOR REMOVAL -> COBOL2269, so 07 is unreachable as the relative list requires. runs/r1a-001: OPEN INPUT of an absent OPTIONAL relative file with USE ON INPUT -> 'OI 05 USES 00' (no USE for a successful completion; file not created), OPEN I-O of an absent OPTIONAL dynamic file -> 'OD 05 USES 01' unchanged (file created, later WRITE 00 / READ 00 DDDD). Edition sites: RelativeConnector.Write's DialectBehavior arm and FileConnector.SharingFacilityInEffect are the only IO-runtime edition reads on the path (grep DialectBehavior/Edition in RelativeConnector, KeyedConnector, FileConnector, FileRegistry). cite.py: 'OK §1985:VIII.1.3.4 GRL2.1 (1.3.4 I-O Status) the text is in GRL2.1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

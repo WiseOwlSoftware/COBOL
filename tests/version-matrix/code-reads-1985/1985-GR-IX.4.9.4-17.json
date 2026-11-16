@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-17",
+ "rule-digest": "27981cc7f067",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-101",
+  "sources": {
+   "reader": "bff385565c37f0a818cb1c8a19311ac73a3ae4c2d373490a7ca0b1985f64655b",
+   "refuter": "ae1c822230daf412febd9cb7a37a16dfdc2e079efce11252fad8bddb681f464f"
+  },
+  "imported": {
+   "reader": "181972e0b681c29ed0814c91659f4687231e1d437ea33d4fff5f54d092b78897",
+   "refuter": "f0979f8cd3f7a3c17f79a908a4411a48d50fc869aa4bad0d1cd2c562752717fb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-17",
+  "verdict": "CONFORMS",
+  "requirement": "WRITE on an indexed file raises the invalid key condition when (a) sequential access in OUTPUT/EXTEND and the prime key is not greater than the previous one (21), (b) OUTPUT or I-O and the prime key already exists (22), (c) OUTPUT, EXTEND or I-O and a no-DUPLICATES alternate key value already exists (22), (d) the write would pass the file's implementor-defined boundary (24).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Duplicates; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AlternateValue; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordWriteFailed; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Release; src/WiseOwl.Cobol.Runtime/IO/Store/PagedFile.cs#Reserve; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsFileSizeLimit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "DialectBehavior.FileSharingFacility: at 85 a clause-less OPEN gets FileSharing.AllOther (Table 19 not asked); at 2023 NoOther/ReadOnly. Reached at OPEN, not inside WRITE; a single connector's WRITE result is the same either way",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordLockPhrase",
+    "switches": "Constructs.RecordLockPhrase2002: WRITE ... WITH LOCK refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'Edition|DialectBehavior|DialectLevel|CobolVersion' over IndexedConnector.cs, KeyedConnector.cs, KeyedStore.cs, FileRegistry.cs, FileSupport.cs (only READ, CLOSE WITH LOCK and sharing sites; none in IndexedConnector#Write, #Opened, KeyedConnector#RecordWriteFailed); the same grep over KeyedIoEmitter.cs, SequentialIoEmitter.cs, EcEmitter.cs, DispatchEmitter.cs, UseTierEmitter.cs (DialectLevel only passed to registration, SELECT WHEN, EmitRunUseBody); KeyedIoBinder.cs uses ctx.Edition only as the diagnostic sink",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f16_08 covers a, b (OUTPUT, I-O) and c (OUTPUT, I-O); not exercised: c under EXTEND, dynamic access, variable-length records, d (the boundary is the host's file size)",
+  "probes": [
+   {
+    "class": "b, c, d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-101/p14seq.cob (run p14seq-002)",
+    "printed": "PCS IN RELATIONS: A > B / W M001 OK 00 (EXTEND on an empty file) / W A001 OK 00 / W B001 OK 00 / W B001 IK 21 AREA B001DUPKEY / W A999 IK 21 AREA A999LOWKEY / W C001 OK 00 / EXTEND: W C001 IK 21 (equal to highest) / W B999 IK 21 / W D001 OK 00 / W C500 IK 21 / FROM OK 00 / FROM IK 21 AREA D002AGAIN0 / read back: A001 B001 C001 D001 D002 only",
+    "expected": "GR14/GR17a: ascending native order (the program collating sequence REV, which puts B before A, does not apply to file keys: VI.4.4.4 GR7/GR8 list only relations, condition-names, CONTROL and SORT/MERGE); a key not greater than the previous one, or under EXTEND not greater than the highest existing key, is refused 21; GR18 record area unchanged; refused records absent"
+   },
+   {
+    "class": "a, b, d, e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-101/p17rnd.cob (run p17rnd-001)",
+    "printed": "OUTPUT dynamic: K050 OK 00; K010 (17 chars, ODO 3) OK 02 (DUPLICATES alternate); K010 dup prime IK 22; K020 dup no-DUPLICATES alternate IK 22; K030 30 chars OK 02; K040 length 11 -> USE 44, neither IK nor NOT IK; length 31 -> USE 44; WRITE without INVALID KEY on a dup prime -> USE 22, area K050A777D009 kept; I-O: K010 dup prime IK 22 (USE not run); K011 dup alternate IK 22; K005 OK 02; INPUT: USE 48; read back REC 12 K005..., REC 17 K010A010D00103XYZ, REC 30 K030A030D001160123456789ABCDEF, REC 12 K050...; USE COUNT 4",
+    "expected": "GR17b 22 in OUTPUT and I-O; GR17c 22 for a no-DUPLICATES alternate; IX-3 status 02 for an allowed duplicate; GR8 44; GR1 48; IX.1.3.5: INVALID KEY given -> USE not run, absent -> USE runs, a non-invalid-key exception -> USE and neither phrase; GR7 records read back with their own lengths"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-101/c1fcs.cob, c2lock.cob, c3cset.cob (compile-only; runs c1fcs-001, c2lock-001, c3cset-001)",
+    "printed": "c1: COBOL0900 the file COLLATING SEQUENCE clause requires COBOL-2002; c2: COBOL0900 a record-lock phrase on WRITE requires COBOL-2002; c3: COBOL2604 CODE-SET is not a clause of the relative-or-indexed FD",
+    "expected": "refused: none of the three is in the 1985 Indexed I-O formats"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR17",
+    "check": "OK  §1985:IX.4.9.4 GR17  (4.9.4 General Rules)  the text is in GR17"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause"
+   }
+  ],
+  "notes": "Items a-c probed at 85 under sequential and dynamic access in OUTPUT, EXTEND and I-O, with variable-length records. Item d is the store's 2^32-page format bound or the host's file-size refusal (PagedFile#Reserve -> StoreStatus.Boundary -> RecordWriteFailed '24'), read in code and not probed under the host-safety rule (unit tests FileBoundaryTests and PagedFileBoundaryTests exist). A duplicate prime under sequential OUTPUT answers 21, a choice IX-3 gives the implementor when 21 and 22 both apply.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-17",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,d,e",
+  "evidence": "Probe r1alt.cob (r1alt-001, --std 85): sequential file with a unique alternate key and a DUPLICATES alternate key. Under OUTPUT: A002AAADDD -> IK 22 (GR17c), A003BBBDDD -> OK 02. Under EXTEND (what the reader did not probe): B001AAAEEE -> IK 22 (GR17c under extend), B002CCCDDD -> OK 02, B002DDDEEE -> IK 21 (GR17a), B003BBBFFF -> IK 22; read back holds only A001, A003, B002CCC, B004. Item a and b fail for U+00FF against U+FFFF: probe r3hv.cob (r3hv-001) sequential -> 'SEQ W2 IK 21', random -> 'RND W2 IK 22' for two prime keys that differ in the native sequence ('NATIVE: K2 > K1'); same at --std 2023 (r3hv23-002). cite.py: 'OK  §1985:IX.4.9.4 GR17  (4.9.4 General Rules)  the text is in GR17' (quotes from a and c).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte: edition-free byte law that makes keys 'A'+U+00FF and 'A'+HIGH-VALUE equal on the file"
+  ],
+  "corrected": "Items c (extend included) and the ordinary forms of a and b conform. Under the native-sequence reading, items a and b over-report: a key holding U+00FF and one holding HIGH-VALUE in the same position are equal on the file, so a greater key answers 21 and a distinct key answers 22 (cause b, same at 2023). This is CONFORMS only if DOC-A.1-31's fold is accepted as defining the file's character set."
+ }
+}

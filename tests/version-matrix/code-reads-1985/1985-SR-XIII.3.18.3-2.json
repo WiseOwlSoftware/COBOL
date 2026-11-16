@@ -1,0 +1,112 @@
+{
+ "rule-id": "1985-SR-XIII.3.18.3-2",
+ "rule-digest": "085c2d921ea2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-075",
+  "sources": {
+   "reader": "d8493c73637a810f148e57b0d0c2073d850ef6647a06562cd472bafed9cd873a",
+   "refuter": "e56e979c1687f077d2f941eb6359db2ba212f08c10c8f1680c425b4ecd12ce6b"
+  },
+  "imported": {
+   "reader": "0459649a073a71fa1a2ae2be8dbcda2873bad7c67d3fa078920fa618925f6b3a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.18.3-2",
+  "verdict": "DIVERGES",
+  "requirement": "At --std 85 SOURCE identifier-1 is the sender of an implicit MOVE to the printable item, so (a) it must be a valid MOVE sender for that receiver under §1985:VI.6.19 (no index data item, SR4; GR3 a-c's category bans; level-2 de-editing of a numeric-edited sender is legal), and (b) the content must be moved by MOVE's rules, including GR5: a group sender is an alphanumeric-to-alphanumeric move with no conversion, whatever the printable item's category.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#ScreenSourceIdentifier; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Validity; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#TransferImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#RecordValue",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportSourceClause",
+    "switches": "refuses at 85 the 2002 SOURCE forms (arithmetic-expression, ROUNDED), so at 85 only the implicit-MOVE arm exists",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for DialectLevel|Edition|85|2002 in MoveTable16.cs (none in code), ReportWriterBinder.cs (lines 404 and 574 only: GENERATE summary and USE BEFORE REPORTING, not SOURCE) and ReportWriterEmitter.cs (only the Edition passed to the CobolReport engine). The validity chain and the transfer emit are the same at every edition",
+  "behaviour-differs-by-edition": "no (the validity table and the transfer are edition-blind; 1985 level 2's legal numeric-edited-to-numeric de-editing matches the later tables)",
+  "witnesses-cover": "part: the witnesses cover alphabetic-to-numeric, numeric-to-alphabetic and index-data-item refusals. Noninteger-to-alphanumeric, alphanumeric-edited-to-numeric-edited, de-editing, and a GROUP sender (GR5) are not exercised, and the group sender is the part that fails",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/mv-a.cob",
+    "printed": "COBOL2770 an alphabetic sending operand does not move to a numeric or numeric-edited receiver",
+    "expected": "refused (GR3a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/mv-b.cob",
+    "printed": "COBOL2770 numeric sender to PIC A printable",
+    "expected": "refused (GR3b)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/mv-c.cob",
+    "printed": "COBOL2770 noninteger numeric sender to PIC X printable",
+    "expected": "refused (GR3c)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/mv-d.cob",
+    "printed": "COBOL2770 alphanumeric-edited sender to ZZ9 printable",
+    "expected": "refused (GR3a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/mv-e.cob",
+    "printed": "COBOL2770 a MOVE operand shall not be of class index",
+    "expected": "refused (SR4)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/mv-f.cob",
+    "printed": "'00125  04  0012  -  7': ZZ9.99 '  1.25' de-edited into 999V99 = 00125 (correct); group WS-G '4X' into PIC 99 printed '04'; integer 12 into X(4) '0012'; -7 into -ZZ9 '-  7'",
+    "expected": "00125, then '4X' (GR5 group move, no conversion), 0012, '-  7'"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/grp-src.cob",
+    "printed": "procedure MOVE of group '4X7' to PIC 999 and to PIC ZZ9: '[4X7] [4X7]'; MOVE '045' group to ZZ9: '[045]'. The same groups as SOURCE: '047   47   45' (run grp-src-001; identical at --std 2023, grp-src-002)",
+    "expected": "'4X7 4X7 045': the implicit MOVE is a MOVE statement, so GR5 applies as in the procedure-division MOVE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/src-rnd.cob",
+    "printed": "COBOL0900 the ROUNDED phrase of the SOURCE clause requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.18.3 SR2",
+    "check": "OK  §1985:XIII.3.18.3 SR2  (3.18.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR5",
+    "check": "OK  §1985:VI.6.19.4 GR5  (6.19.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3a",
+    "check": "OK  §1985:VI.6.19.4 GR3a  (6.19.4 General Rules)  the text is in GR3a"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3d",
+    "check": "OK  §1985:VI.6.19.4 GR3d  (6.19.4 General Rules)  the text is in GR3d"
+   },
+   {
+    "cite": "§1985:VI.6.19.3 SR4",
+    "check": "OK  §1985:VI.6.19.3 SR4  (6.19.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "The validity half conforms: every category ban and the index ban are refused, and de-editing works. The transfer half does not. ReportWriterEmitter.TransferImage passes every FieldReferenceSource to MoveEmitter.ConvertSource, which handles elementary senders only (its own comment says a group sender never reaches it). The group arm MOVE uses (MoveClassifier.IsGroupSender, then GroupRecord, as in MoveEmitter.RecordValue) is never asked, so a group SOURCE into a numeric or numeric-edited printable item is converted and edited as a number.",
+  "seeded": true,
+  "harm": "wrong-answer",
+  "cause": "b",
+  "at-2023": "identical: grp-src at --std 2023 prints '047   47   45' while its procedure-division MOVEs print '[4X7] [4X7]' and '[045]' (run grp-src-002)",
+  "repro": "WORKING-STORAGE: 01 WS-G. 05 WS-G1 PIC X(3) VALUE \"4X7\". REPORT SECTION: RD RPT PAGE LIMIT 20 LINES. 01 DET TYPE DETAIL. 02 LINE PLUS 1. 03 COLUMN 1 PIC 999 SOURCE WS-G. 03 COLUMN 6 PIC ZZ9 SOURCE WS-G. Procedure: OPEN OUTPUT, INITIATE, GENERATE DET, TERMINATE, CLOSE (E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/grp-src.cob)",
+  "expected": "§1985:XIII.3.18.3 SR2: identifier-1 is the sender of \"the implicit MOVE statement\"; §1985:VI.6.19.4 GR5: \"Any move that is not an elementary move is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion of data\" -> the line holds '4X7  4X7'",
+  "observed": "'047   47' (the group's characters are converted to a number and edited); a procedure-division MOVE of the same group to a PIC 999 item gives '4X7'",
+  "known_note": "none found: kb/Work searched for SOURCE together with group/group move/printable/ConvertSource. PB562 (landed) is the sibling: a Format 4 VALUE went through the SOURCE conversion path. PB1294/PB1306/PB852 are unrelated"
+ }
+}

@@ -1,0 +1,173 @@
+{
+ "rule-id": "1985-SR-VI.6.13.3-4",
+ "rule-digest": "e61acf97cccb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-055",
+  "sources": {
+   "reader": "e17011329c83db2a64c309c533ec6164d114805fedbceecf89eb286f7b81ab8f",
+   "refuter": "03a7276e8e8d8c28b115d796f66fd6a7e6d6087cac7da7ec860eb12498b71df9"
+  },
+  "imported": {
+   "reader": "723d7b18c5c94c619da98a3f639b3f29f996cd0e4bf20f0a4490bd0d18adbbd7",
+   "refuter": "fdcb3bcc6578b6e84be0898aff11c832dc2b773984b732e14b8c1130b8936ff5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.13.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the two operands joined by THROUGH/THRU must be of the same 1985 class (alphabetic, numeric, alphanumeric; numeric-edited, alphanumeric-edited and group items are class alphanumeric; a nonnumeric literal is category alphanumeric; an arithmetic expression is numeric), and the compiler must refuse a mixed pair and treat the pair as ONE selection object; the 2002 IN alphabet-name phrase must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#valueRange; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindRangeObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenRangeOperands; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#TableTwoClassOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#SameClass; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenObjectCount",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#GateRangeAlphabetPhrase",
+    "switches": "Constructs.RangeInAlphabet2002: the THROUGH range's IN alphabet-name phrase is refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind",
+    "switches": "DialectBehavior.EvaluateObjectsInWhenPhraseOrder (evaluation timing only)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Year in IntrinsicArgumentRules.cs (ClassOf/TableTwoClass/SameClass read no edition) and in ScreenRangeOperands (none); the class screen is the same arm at every edition",
+  "behaviour-differs-by-edition": "no: the same-class screen is edition-free; only the 2002 IN alphabet-name extension is gated off at 85",
+  "witnesses-cover": "part: the witnesses cover numeric and literal ranges; alphabetic against alphanumeric, numeric-edited against literal, group ends, arithmetic-expression ends and figurative-constant ends are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4numalnlit.cob",
+    "printed": "error COBOL2107: '1 THRU \"Z\"' class numeric and class alphanumeric",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4alnnumlit.cob",
+    "printed": "error COBOL2107",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4numalnid.cob",
+    "printed": "error COBOL2107 (N2 THRU X)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4alnnumid.cob",
+    "printed": "error COBOL2107 (X THRU N2)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4arithaln.cob",
+    "printed": "error COBOL2107 (N2 - 5 THRU X)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4alpha.cob",
+    "printed": "error COBOL2107: class alphabetic and class alphanumeric (PIC A item THRU \"ZZZ\")",
+    "expected": "refused: nonnumeric literals are category alphanumeric (§1985:IV.4.2.2.2.1.3 GR3), so class alphanumeric"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4alphaaln.cob",
+    "printed": "error COBOL2107 (PIC A THRU PIC X)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4editaln.cob",
+    "printed": "EXIT 0, IN (numeric-edited THRU literal)",
+    "expected": "admitted: numeric edited is class alphanumeric (§1985:IV.4.3.3)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4grpaln.cob",
+    "printed": "EXIT 0, IN (group THRU PIC X)",
+    "expected": "admitted: a group is class alphanumeric"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4arith.cob",
+    "printed": "EXIT 0, IN (N2 - 5 THRU N2 + 1)",
+    "expected": "admitted: both numeric"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4fig.cob",
+    "printed": "EXIT 0, IN (LOW-VALUE THRU \"C\")",
+    "expected": "admitted"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4zero.cob",
+    "printed": "EXIT 0, IN (ZERO THRU 9)",
+    "expected": "admitted"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4notrng.cob",
+    "printed": "EXIT 0, IN (NOT N2 THRU 999 with N=7)",
+    "expected": "admitted, 7 not in 9..999"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4misc.cob",
+    "printed": "M1..M5, EXPECT: MATCH (refmod ends X(1:2), X(3:1), X(1:3); ODO group OG as a THRU end; S9(18) max; negative range; SPACE THRU \"Z\")",
+    "expected": "as written"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e2inalpha.cob",
+    "printed": "error COBOL0900: the THROUGH range's IN alphabet-name phrase requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4count.cob",
+    "printed": "error COBOL2106: 'WHEN 1 THRU 9 ALSO ANY' writes 2 selection objects, 1 subject",
+    "expected": "refused: the THRU pair is one selection object"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.13.3 SR4",
+    "check": "OK  §1985:VI.6.13.3 SR4  (║6.13.3 Syntax Rules║)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:IV.4.3.3",
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.1.3 GR3",
+    "check": "OK  §1985:IV.4.2.2.2.1.3 GR3  (4.2.2.2.1.3 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3",
+    "check": "OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The screen reads one class lattice, projected to the Table 2 class column, and that matches the 1985 three-class model (edited and group items alphanumeric). A figurative-constant end abstains, which cannot reject legal source. 1985 gives figurative constants a category only for MOVE (§1985:VI.6.19.4 GR3), so SPACE THRU \"Z\" being admitted is not read as a defect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.13.3-4",
+  "refutation": "OVERTURNED",
+  "classes": "b,d",
+  "evidence": "Probe v4spnum.cob at --std 85 (run dir v4spnum-001): 01 N PIC S9(3) VALUE 7. EVALUATE N WHEN SPACE THRU 9 DISPLAY \"IN\" WHEN OTHER DISPLAY \"OUT\" END-EVALUATE -> EXIT 0, prints IN. The same holds for v4quotnum (QUOTE THRU 9 -> IN) and v4hvnum (1 THRU HIGH-VALUE -> IN). Contrast: v4allnum (ALL \"A\" THRU 9) is refused COBOL2107, and v4idxnum (I1 THRU 9) is refused COBOL2107. Cause in the code: IntrinsicArgumentRules#CandidateClasses gives SPACE/HIGH-VALUE/LOW-VALUE/QUOTE two candidates [Alphanumeric, National]; IntrinsicArgumentRules#ClassOf returns null for a figurative with more than one candidate; EvaluateBinder#ScreenRangeOperands then skips the same-class test whenever either end is null (it fails open). Neither candidate is numeric, so the pair is decidably of two classes. At 1985: a figurative constant is a literal and every literal is numeric or nonnumeric (§1985:IV.4.2.2.2); SPACE 'Represents one or more of the character space' (§1985:IV.4.2.2.2.3); only ZERO takes the subject's class (§1985:VI.6.13.4 GR1b), and SPACE is category alphabetic, the others alphanumeric (§1985:VI.6.19.4 GR3). Under no 1985 reading is SPACE, QUOTE or HIGH-VALUE of class numeric, so SPACE THRU 9 joins two operands of different classes. At --std 2023 the same program also prints IN (run dir v4spnum-004). cite.py: OK §1985:VI.6.13.3 SR4 'Two operands connected by a THROUGH phrase must be of the same class'; OK §1985:IV.4.2.2.2 'Every literal belongs to one of two types: nonnumeric or numeric'; OK §1985:IV.4.2.2.2.3 (GR2) 'Represents one or more of the character space from the computer's character set'; OK §1985:VI.6.13.4 GR1b 'If literal-3, literal-5, is the figurative constant ZERO, it is assigned the class of the corresponding selection subject'; OK §1985:VI.6.19.4 GR3 'The figurative constant SPACE (SPACES) belongs to the category alphabetic'. kb/Work search (SPACE THRU, figurative range-expression, abstain, fail open with EVALUATE/THRU): no note found.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CandidateClasses: lists National as a candidate class for SPACE/HIGH-VALUE/LOW-VALUE/QUOTE at every edition, 85 included, where class national does not exist; with one candidate at 85, ClassOf would answer alphanumeric and SR4 would refuse the pair",
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenRangeOperands: the same-class test runs only when both ends have a single class; it does not test whether the other end's class is among a figurative's candidates"
+  ],
+  "corrected": "PARTIAL (under-rejects; cause b, the same at --std 2023). The same-class screen fails open when one end is a figurative constant other than ZERO, so EVALUATE N WHEN SPACE THRU 9 (also QUOTE THRU 9 and 1 THRU HIGH-VALUE against a numeric subject) compiles and runs. Under SR4 it must be refused, because SPACE, QUOTE and HIGH-VALUE are never of class numeric. The reader probed only SPACE THRU \"Z\", which is a same-class pair."
+ }
+}

@@ -1,0 +1,70 @@
+{
+ "rule-id": "1985-SR-XI.3.2.3-3",
+ "rule-digest": "bb3e18d27a23",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-164",
+  "sources": {
+   "reader": "6d8a53cec0accaefe2bb291e691ac63c7183c9fe3c9773a098fc5de8702ddabb",
+   "refuter": "416d110d13e37c263a308110960fcca2febb2009618d9486ee0ec1fba4bb829e"
+  },
+  "imported": {
+   "reader": "2499813684b91a3607a48081640bd5c2821bc667cad515e3e99ac408234b1f80"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.3.2.3-3",
+  "verdict": "DIVERGES",
+  "requirement": "At --std 85 an SD must be followed by one or more record description entries, and no input-output statement (CLOSE, DELETE, OPEN, READ, REWRITE, START, WRITE) may be written for the sort or merge file; the 1985 text adds no restriction on naming an SD record's data items as operands of an input-output statement for another file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeRecordReferences; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#InputOutputStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#UnsupportedOrg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#RecordLessSd",
+  "edition-consulted": [],
+  "edition-search": "Read ScreenSortMergeFile, ScreenSortMergeRecordReferences and the funnel call in StatementBinder (near line 474): no EditionContext, CobolVersion, ConstructRegistry or dialect check on either screen; the record-less SD error (COBOL1837) in FileControlBinder.FileSection is unconditional. data.Edition is used only as the diagnostic sink.",
+  "behaviour-differs-by-edition": "no: the code is the same at every edition; but the 1985 rule covers less than the 2023 text (no counterpart of §2023:13.4.6.3 SR4), and the 2023 SR4 screen runs at 85",
+  "witnesses-cover": "part: g85_f26_04 covers two records under one SD reached only by SORT/RELEASE/RETURN; not the refusals (no record, each I-O verb), MERGE, nor an SD record item as an operand of an I-O statement for another file",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/sdnorec.cob",
+    "printed": "COBOL1837: one or more record description entries shall be associated with the sort-merge file description entry",
+    "expected": "refused: SR3 requires one or more record description entries"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/sdio.cob",
+    "printed": "COBOL1692 at OPEN, READ, WRITE, REWRITE, DELETE, START, CLOSE naming SD file SA (plus COBOL2973 at START KEY A-KEY)",
+    "expected": "each input-output statement for the sort file refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/sdmerge.cob",
+    "printed": "M=A1 M=B2 M=C3 (exit 0)",
+    "expected": "MERGE USING two sequential files with an SD of two records, RETURN in an output procedure: legal, merged order"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/sdrec.cob",
+    "printed": "--std 85: COBOL2973: WRITE 'A-N' - 'A-N' belongs to 'A-REC', a record description entry of the sort-merge file 'SA', and ISO §2023:13.4.6.3 SR4 ...",
+    "expected": "accepted at 85: WRITE F1-REC AFTER ADVANCING A-N LINES is a WRITE for file F1, not for the sort file, and §1985:VII.4.7.3 SR4 only asks that identifier-2 be an integer item"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.3.2.3 SR3",
+    "check": "OK  §1985:XI.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VII.4.7.3 SR4",
+    "check": "OK  §1985:VII.4.7.3 SR4  (4.7.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "SR3's own two halves are enforced at 85 (COBOL1837 for a record-less SD, COBOL1692 for every I-O verb naming the SD). The funnel screen ScreenSortMergeRecordReferences implements §2023:13.4.6.3 SR4, which has no 1985 counterpart (grep of the 1985 text for 'following the word FROM' and 'record description entry associated with' finds only RECORD KEY, ALTERNATE KEY and LINAGE rules), and runs ungated at --std 85, so legal 1985 source is refused. If the integrator holds the over-reject to be another row's, SR3's own requirement conforms.",
+  "seeded": true,
+  "harm": "rejects-legal-source",
+  "cause": "a",
+  "at-2023": "sdrec.cob at --std 2023 (and 2002): COBOL2973, correct there by §2023:13.4.6.3 SR4",
+  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/sdrec.cob: SD SA with 01 A-REC (05 A-N PIC 9); FD F1; WRITE F1-REC AFTER ADVANCING A-N LINES at --std 85",
+  "expected": "§1985:XI.3.2.3 SR3 forbids only input-output statements for the sort file; §1985:VII.4.7.3 SR4 'Identifier-2 must reference an integer data item': the program compiles and runs at 85",
+  "observed": "error COBOL2973 citing ISO §2023:13.4.6.3 SR4 at --std 85, exit 65",
+  "known_note": "none for the 1985 arm; PB1291 (landed) introduced the screen for §2023:13.4.6.3 SR4 with no edition gate"
+ }
+}

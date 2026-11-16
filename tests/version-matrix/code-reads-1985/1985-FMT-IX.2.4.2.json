@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-FMT-IX.2.4.2",
+ "rule-digest": "851095aef17c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-085",
+  "sources": {
+   "reader": "d6faec901a0e42d0285c5733f6c3325d07dc9b56ab624d969490ddf57ba4b60c",
+   "refuter": "46be159cb679c9933a706b4e4f544fa242dac6073e36e359341e5cc8ab2e1d4a"
+  },
+  "imported": {
+   "reader": "576428bd4eb4398648bede596a0db0e2613082af3308c4dff0e64df6c055445d",
+   "refuter": "d965ff4298516c2cd2e01780212f35ba9e405684ed7402c83711306e2b00ea21"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-IX.2.4.2",
+  "verdict": "CONFORMS",
+  "requirement": "For an indexed file at --std 85 the compiler must accept ACCESS [MODE] [IS] followed by exactly one of SEQUENTIAL, RANDOM or DYNAMIC (MODE and IS optional, not underlined), refuse any other word or an empty choice, assume sequential when the clause is omitted (IX.2.4.4 GR1), and give each mode its access semantics (GR2-GR4).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#accessModeClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#accessMode; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadRandomAccessPhrases; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "below 2002 a READ of an ACCESS MODE DYNAMIC file that writes AT END must write NEXT (§1985:IX.4.5.3 SR5); 2002+ imply NEXT. Downstream of the clause (the READ verb's own rule), reached only because the mode is DYNAMIC",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
+    "switches": "the per-edition RECORD KEY / ALTERNATE KEY rule table screened on the same entry; switches nothing about ACCESS MODE",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (DYNAMIC row)",
+    "switches": "DYNAMIC reserved at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grammar rules accessModeClause/accessMode carry no predicate; grep of FileControlBinder.cs for DialectLevel|Year|Constructs. found only the PADDING gate (line 185); VersionConformancePass has no ACCESS MODE visit (VisitRelativeKeyClause is relative-file only).",
+  "behaviour-differs-by-edition": "no for the clause itself (ix1 prints identical output at --std 2023); downstream, the 1985 READ of a DYNAMIC file needs an explicit NEXT for sequential retrieval",
+  "witnesses-cover": "part: witnesses exercise RANDOM/DYNAMIC on relative/sequential entries and ASSIGN forms; omitted MODE/IS words, the omitted clause defaulting to sequential, and a refused non-mode word are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/ix1.cob",
+    "printed": "SEQ WRITE 00 / RANDOM 00 002BBBBB / DYN RANDOM 00 003CCCCC / DYN NEXT 00 001AAAAA / DYN NEXT 00 002BBBBB / DEFAULT SEQ 00 001AAAAA (exit 0; ACCESS MODE IS SEQUENTIAL, ACCESS RANDOM, ACCESS MODE DYNAMIC, clause omitted)",
+    "expected": "all four spellings accepted; random read by key, dynamic random plus START/READ NEXT, omitted clause reads sequentially (IX.2.4.4 GR1-GR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/ix2bad.cob",
+    "printed": "COBOL5506 the word 'EXCLUSIVE' is not expected here: expected DYNAMIC, RANDOM or SEQUENTIAL",
+    "expected": "refused: not one of the three modes"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/ix3bad.cob",
+    "printed": "COBOL5506 The word RECORD is not expected here: expected DYNAMIC, RANDOM or SEQUENTIAL",
+    "expected": "refused: the brace requires one choice"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/ix4bad.cob",
+    "printed": "COBOL1720 AT END / NEXT shall not be specified for a READ ... ACCESS MODE RANDOM; COBOL0862 START: the access mode shall be sequential or dynamic",
+    "expected": "random mode admits only keyed access (GR3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.4.1",
+    "check": "OK  §1985:IX.2.4.1  (2.4.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IX.2.4.4 GR4",
+    "check": "OK  §1985:IX.2.4.4 GR4  (2.4.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:IX.2.4.3 SR1",
+    "check": "OK  §1985:IX.2.4.3 SR1  (2.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar is the format exactly (ACCESS MODE? IS? {SEQUENTIAL|RANDOM|DYNAMIC}) and MapAccessMode maps the three words; nothing on the clause path depends on the edition. Diagnostics at --std 85 cite §2023 clause numbers, which is cosmetic for this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "ix1 prints the same six lines at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-IX.2.4.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-085/ at --std 85. ax1.cob (e): ACCESS MODE IS DYNAMIC indexed file, START + READ NEXT gives 001AAAAA, then a READ with no NEXT and no KEY phrase after a NEXT read is a random read by the record key (003CCCCC, status 00), READ NEXT after it gives EOF status 10 (003 is last), a missing key gives INVALID/23; ACCESS IS SEQUENTIAL (MODE omitted) reads in ascending key order 001,002 although written 002,001,003 (GR2, GR4). ax2bad.cob (b): an ACCESS MODE IS RANDOM indexed file in SORT USING/GIVING is refused COBOL1757 (SR1, which the reader cited but did not probe). ax3bad.cob (b,c): a RELATIVE KEY phrase on an indexed file's ACCESS clause (only the relative format prints it) is refused COBOL0863; the clause written twice is refused COBOL2423. Grep of FileControlBinder.cs/Resolve.cs and StatementValidation.cs for Edition/Year found only the reader's sites (PADDING gate; Year>=2002 READ NEXT rule). cite.py: OK §1985:IX.2.4.3 SR1 (the text is in SR1); OK §1985:IX.2.4.4 GR4 (the text is in GR4).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

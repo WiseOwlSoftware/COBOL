@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-2",
+ "rule-digest": "c9ea4ae936fe",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-097",
+  "sources": {
+   "reader": "12a423728fc4287e15cecad768a0a2288992ddcfb2187b300f1c193340b8cc88",
+   "refuter": "dc8f9bfa0839db68cc147ea42d070bdf13ad7370055e741cf79fcaf5d0bd09f0"
+  },
+  "imported": {
+   "reader": "8c4eb57e864e5cbaded1217315c2920e28b8bb9de146d3f3d7c2a0f0729b2875",
+   "refuter": "9d1a3b3c65eb110f60510f475d7fb02d88f28326471ab53605524bbd98639942"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-IX.4.5.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "For an indexed file in sequential access mode, READ with or without NEXT (with or without RECORD) must retrieve the same next record; NEXT changes nothing.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundKeyedIo.cs#ReadKind; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "READ ... PREVIOUS refused below COBOL-2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Edition",
+    "switches": "the compiling program's edition baked on the connector, read by every DialectBehaviors.IsActive in the connector",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord",
+    "switches": "DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, guarded by 'previous &&': only READ PREVIOUS after OPEN; a NEXT walk at 85 takes the same code as 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "read KeyedIoBinder.BindRead, KeyedIoEmitter.EmitRead and the IndexedConnector READ members; grep DialectBehaviors.IsActive|Edition|Year|DialectLevel over those files and the StatementValidation READ checks; CheckReadDynamicNextWritten and CheckReadRandomAccessPhrases return early for sequential access",
+  "behaviour-differs-by-edition": "no (BindRead's access-mode switch binds sequential access to ReadKind.Next whether NEXT is written or not, at every edition; only PREVIOUS is edition-gated)",
+  "witnesses-cover": "part: g85_f25_02; the probe adds READ ... RECORD with and without NEXT and the READ after at end",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-097/src/p2seqnext.cob",
+    "printed": "S1=00 01ZZ (READ) S2=00 02YY (READ NEXT) S3=00 03XX (READ NEXT RECORD) S4=00 04XX (READ RECORD) S5 END 10; S6 (READ after at end) took no AT END branch",
+    "expected": "prime-key order 01..04 whatever the spelling, then at end; a READ after the at end is unsuccessful but not at end (GR12, GR4a)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-097/src/p3refuse.cob",
+    "printed": "COBOL0900 READ PREVIOUS requires COBOL-2002; COBOL0864 READ KEY on a sequential-access file",
+    "expected": "PREVIOUS is not a 1985 phrase; format 2 not allowed for sequential access (SR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.4 GR2",
+    "check": "OK  §1985:IX.4.5.4 GR2  (4.5.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The binder binds a sequential-access READ to ReadKind.Next whether NEXT is written or not, so the emitted call is identical; probed alternating spellings."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.5.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "q2seq-002 (sequential access, after START KEY NOT LESS THAN R-ALT). Plain READ, READ NEXT RECORD INTO, READ RECORD and READ NEXT alternate and walk the alternate key in one order: S1=00 03AA, S2=02 02BB (INTO filled), S3=00 04BB, S4=00 01ZZ, then S5 END 10. A READ after CLOSE gave S6=47. q5refuse-001: READ WITH NO LOCK (2002) is refused with COBOL0900 at 85. cite.py: OK §1985:IX.4.5.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

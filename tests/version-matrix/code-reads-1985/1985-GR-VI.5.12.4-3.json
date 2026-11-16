@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.5.12.4-3",
+ "rule-digest": "91faed19c1f7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-103",
+  "sources": {
+   "reader": "df135a2141f6f595b27df3702753a0de19e3c71aa32277a637b05d67d2fcff8f",
+   "refuter": "8e04a85a2f8d90bdb85d2233a95119a128117f326a1233f3e2dfea55f04d6285"
+  },
+  "imported": {
+   "reader": "2595462045c54317f691564c6918822b7e4ac2a425adf05fd98f3ec26e56820f",
+   "refuter": "8cb6bfc4cb2426938d3216c3ea3659485e2a7be11cd06710fe911a6fce4418d6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.12.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 an elementary signed numeric entry that writes its own SIGN clause uses that clause (position and SEPARATE mode) instead of any enclosing group's clause, at any nesting depth.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritSignWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#WithInheritedSign; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveSign; src/WiseOwl.Cobol.Compiler/Binding/Passes/InheritSignClausesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#SignedSubordinatesTheClauseReaches",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#GateGroupSignSubordinates",
+    "switches": "below 2002 (DialectLevel < 2002) refuses a group SIGN clause with no signed subordinate or one reaching a non-DISPLAY signed item (constructs SignGroupUnsignedSubordinates2002 / SignGroupNondisplaySubordinate2002); it walks only the subordinates the group's clause reaches, honouring a nearer clause (GR2/GR3)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Dialect|Version in InheritSignClausesPass.cs and DataBinder.cs#InheritSignWalk/WithInheritedSign: none; the precedence walk (item.OwnSign ?? inherited) is edition-blind. CheckSignClausesPass#GateGroupSignSubordinates is the only edition switch near the rule.",
+  "behaviour-differs-by-edition": "no: precedence is the same code at 85 and 2023; only the 1985 SR1/SR2 group-subject refusals differ (2002 relaxations)",
+  "witnesses-cover": "part: g85_bf11_06 covers SEPARATE own clauses under one and two group levels; not an own embedded (non-SEPARATE) clause under a SEPARATE group (size change), deeper nesting, or a file record",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/sgn1.cob",
+    "printed": "S1=[01K] S5=[-012] S6=[034+] S2=[-012] S3=[-012] S4=[00G] / S1-VAL-OK / after moves S1=[00G] S5=[+007] S2=[+041] ARITH-OK",
+    "expected": "G LEADING SEPARATE > SUB TRAILING (embedded) > SUB2 LEADING SEPARATE: S1 takes SUB's embedded trailing (-12 -> 01K), S5 takes SUB2's (-012), S6/S2/S4 their own clauses (034+, -012, 00G), S3 G's (-012); values preserved through MOVE/ADD"
+   },
+   {
+    "class": "e,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/sgn1.cob",
+    "printed": "FR=[-010K03-] FILE-OK",
+    "expected": "FD record FR TRAILING SEPARATE > FS LEADING SEPARATE: FA '-01', FB own TRAILING embedded '0K', FC FR's '03-'; read back equal"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/sgn2.cob",
+    "printed": "COBOL2422 for C (COMP with own SIGN); COBOL0900 for HS over HC (USAGE BINARY) requires COBOL-2002; no diagnostic charged to H for HC",
+    "expected": "1985 SR2: the entries a SIGN clause applies to must be DISPLAY; the clause that applies to HC is HS's (GR2), so HS is refused and H is not"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.12.4 GR3",
+    "check": "OK  §1985:VI.5.12.4 GR3  (5.12.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The same walk: an elementary entry with OwnSign keeps its own clause and is not overwritten (ApplyEffectiveSign runs only when OwnSign is null). Probes show S4/FB (own embedded TRAILING under SEPARATE groups, 3 vs 4 characters) and S2/S6 (own SEPARATE) take their own clause.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.12.4-3",
+  "refutation": "UPHELD",
+  "classes": "d,a,e,b",
+  "evidence": "In sg1.cob (sg1-002), B2 PIC S9(2) SIGN TRAILING (embedded) sits in an OCCURS table under a SIGN LEADING subgroup and a TRAILING SEPARATE group. It stored 5O and 0R, with its own trailing overpunch, and moved back as B21=-56. In sg2.cob, FB has its own SIGN LEADING SEPARATE under a record with embedded LEADING. It wrote +06 and satisfied SR3 under CODE-SET, while sg3's item with no own clause was refused (COBOL1672). cite.py: OK §1985:VI.5.12.4 GR3 (the text is in GR3).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

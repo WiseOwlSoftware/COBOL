@@ -1,0 +1,57 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-2",
+ "rule-digest": "f16a06844dec",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-030",
+  "sources": {
+   "reader": "6a54b92703dd89d91d8c2c8249243252dc12c32561af6395a54c23c9404933b8",
+   "refuter": "7153369b207d74fd7316f2cab1a1f5813e4a99b184d1b7973a87bc2b7478b0dc"
+  },
+  "imported": {
+   "reader": "f8169f13e6a90b78a60d1138c52997a2de2a59cfb9bc66a968bf12a54a0f4905",
+   "refuter": "b767d74ccd540da440408391f1e6b3323d689ac82f551b3be275efeb1eed94bf"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.9.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "After a successful relative WRITE whose file is named in a SAME RECORD AREA clause, the released logical record must remain available in record-name-1 (every record of its FD) and as the record of every other file of that clause (sequential or relative peers, any record shape); without the clause the area's content is not defined and is not observable.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#BeginReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#ReleasedRecordNeedsAlsoAvailable; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl",
+  "edition-consulted": [],
+  "edition-search": "grep EditionContext|Edition.Year|CobolVersion|DialectBehavior|ConstructRegistry in KeyedIoEmitter.cs, SequentialIoEmitter.cs (BeginReleasedRecord/EndReleasedRecord/SentRecordImage) and FileModel.SameRecordAreaPeers: none on this path; the shared record area is one backing at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness uses two sequential files; a relative record-name-1, a relative peer, a second record description of the relative FD and a failed WRITE are not exercised",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/p2sra.cob",
+    "printed": "W1 00 SRC ABCD1234 / RREC ABCD|1234 RREC2 ABCD1234 / SREC AB|CD1234 TREC ABCD1234 / W2 00 ED   5.00 / RREC2   5.00   SREC   |5.00   / W3 00 LOW     |LOW     |low / W4 INV / W4 22 DUPLDUPL DUPLDUPL / T 00 12345678 1234|5678 / R2 00   5.00   / R3 00 LOW",
+    "expected": "the record released by a RANDOM relative WRITE stays in both record descriptions of its FD and in the sequential (SREC) and relative (TREC) peers of SAME RECORD AREA; a WRITE by the sequential relative peer is visible in RELF's records; the failed WRITE leaves the area as it was"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.9.4 GR2",
+    "check": "OK  §1985:VIII.4.9.4 GR2  (4.9.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The records of a SAME RECORD AREA share one character backing, so the 'also available' half holds by construction; BeginReleasedRecord/EndReleasedRecord add a store only for an out-of-line record, which no 1985 record shape is.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.9.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "rsra.cob at --std 85: SAME RECORD AREA FOR a RANDOM relative file (RECORD VARYING 3 TO 12 DEPENDING ON RLEN, record with OCCURS 1 TO 5 DEPENDING ON), a sequential file whose record also has an ODO, and an indexed file. WRITE RREC (RLEN 7) -> 00: RREC2 [3AABBCC     ], SREC [3AABBCC] SCNT 3 SITEM(3) CC, IREC/IKEY see the same bytes; WRITE RREC2 (RLEN 3) -> 00, RREC/SREC [1ZZ]. So an ODO record (the one 1985 variable shape) shares the one backing and the indexed peer is reached too. FileModel.IsOutOfLineRecord covers dynamic-length and pointer records only, none of which 1985 has; no edition site on the path (grep EditionContext|Edition|DialectBehavior in SequentialIoEmitter Begin/EndReleasedRecord and FileModel.SameRecordAreaPeers: none). cite.py: OK §1985:VIII.4.9.4 GR2 'also available to the program as a record of other files'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

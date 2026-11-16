@@ -1,0 +1,106 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-3",
+ "rule-digest": "4b961861f710",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-024",
+  "sources": {
+   "reader": "9709f841cac846cdc016cdfe1907176364fbbbeed2d15d9b4eb5f12004413809",
+   "refuter": "943b1a501348cb0f5cbcd3d292328f4fa0dffa4783931b13d7dcea5e8fd9c35f"
+  },
+  "imported": {
+   "reader": "2002a5f406d0019540dec64d543e42a63ddfbfb0581059e5809536eca3972733",
+   "refuter": "8f7cac00bbb83cce4bd49906b9c85a11af8ef170bb9ae2b7c69bcdb3988bdfcf"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.8.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a Format 1 RECORD CONTAINS integer-1 CHARACTERS makes the file's records fixed length, each record holding exactly integer-1 character positions, whatever the size of the record description written (any description no larger than integer-1, per SR1), for every organization and for an FD and an SD alike.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordContains; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
+    "switches": "the BYTES word (Constructs.RecordClauseBytes2023): refused at 85, admitted at 2023; CHARACTERS takes the same path at both",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt",
+    "switches": "Since column of the SR1(1985)/SR3(2023) row: 85, so the record-larger-than-integer-1 screen runs at 85 as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#CitationAt",
+    "switches": "the diagnostic cites §1985:VII.3.8.3 SR1 below 2002 instead of the 2023 clause (text only)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#ZeroMessage",
+    "switches": "the citation in the zero-integer refusal (§1985:III.2 below 2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped DialectLevel|DialectBehavior|Edition in FileModel.cs (none for RecordWidth/RecordContains), RecordClauseRules.cs, FileControlBinder.FileSection.cs#BindRecordClause (the Format 1 arm returns before the one DialectBehaviors call, which belongs to Format 3) and FileConnector.cs (Edition read only for the sharing facility).",
+  "behaviour-differs-by-edition": "no: the sizing behaviour is the same code at 85 and 2023 (probe p1 printed identical output at both); only the BYTES synonym (refused at 85) and diagnostic citations differ",
+  "witnesses-cover": "part: pb1276 covers an alphanumeric record smaller than integer-1 on a sequential FD and an SD; not a record with an OCCURS DEPENDING ON table, a COMP item, several record descriptions of different sizes, or a relative file",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/p1_gr3_fixed.cob",
+    "printed": "W-ODO=00 W-7=00 W-COMP=00; read back through a 20-char FD: RECORDS=03 FS=10; R1 N1=03; relative RECORD CONTAINS 12 with a 5-char record: R4=[AAAAA       ] R4=[BBBBB       ] REL RECORDS=02 (identical at --std 2023)",
+    "expected": "every record 20 (resp. 12) character positions regardless of the description written: three 20-char records, two 12-char records"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/b1_contains_small.cob",
+    "printed": "error COBOL2010 ... record 'R' describes 7 bytes, but the RECORD clause states integer-1 = 5 ... (ANSI §1985:VII.3.8.3 SR1)",
+    "expected": "refused: SR1 no record description larger than integer-1"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/b6_contains_zero.cob",
+    "printed": "error COBOL2386: RECORD CONTAINS 0 CHARACTERS: the integer operand 0 shall be nonzero — §1985:III.2",
+    "expected": "refused: integer must be neither signed nor zero (III.2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/c1_bytes_word.cob",
+    "printed": "error COBOL0900: the RECORD clause BYTES phrase requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "refused: the 1985 format writes CHARACTERS only"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/pb1276_record_contains_sizes_file.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.4 GR3",
+    "check": "OK  §1985:VII.3.8.4 GR3  (3.8.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VII.3.8.3 SR1",
+    "check": "OK  §1985:VII.3.8.3 SR1  (3.8.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "integer-1 is stored in FileModel.RecordContains and RecordWidth takes max(integer-1, widest description), which sizes the connector; FileConnector.Stored pads every fixed record to that width. The ODO record (5 chars at N1=3) and the COMP record were each written as one 20-char record.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p1 prints the same output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.8.4-3",
+  "refutation": "OVERTURNED",
+  "classes": "a,d,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-024/r1_gr3_into.cob (--std 85, run dir r1_gr3_into-001): FW (01 RW PIC X(12)) writes ABCDEFGHIJKL and MNOPQRSTUVWX; FR on the same file, FD FR RECORD CONTAINS 12 CHARACTERS with 01 RR PIC X(5); READ FR INTO W (PIC X(12)) printed 'INTO1 FS=00 W=[ABCDE       ]' and 'INTO2 FS=00 W=[MNOPQ       ]' (the file is read as 12-char records, so the sizing the reader probed is right, but the record handed to the program is the 5-char description). Same at --std 2023 (r1_gr3_into-002). Expected: GR3 makes every record of the file 12 character positions; READ GR8b moves 'the current record' whose 'size ... is determined by rules specified in the RECORD clause' (12), so W=[ABCDEFGHIJKL] with 00; the only other reading (READ GR13: a record longer than the largest description is truncated and a record-length-conflict status is set) wants 04, not 00. The compiler matches neither. Code: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindIntoPhrase sends `new BoundFieldOperand(area)` for a fixed file (comment: 'its current record IS the whole area (GR6 integer-1 bytes)') but `area` is the record-description item (5 chars), not the integer-1-wide record area, so FileModel.RecordContains never reaches the INTO sender. cite.py: 'OK  §1985:VII.3.8.4 GR3  (3.8.4 General Rules)  the text is in GR3'; 'OK  §1985:VII.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8'; 'OK  §1985:VII.4.4.4 GR13  (4.4.4 General Rules)  the text is in GR13'; 'OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause' (record area: 'the current number of character positions in the record area is determined by the explicit or implicit RECORD clause'). kb/Work search (INTO + RECORD CONTAINS + integer-1): no note; PB1276 (landed) fixed only the connector width, PB339 only the VARYING sender.",
+  "edition-sites-missed": [],
+  "corrected": "a non-conforming verdict (wrong-answer, cause b: same at --std 2023): when every record description of a Format 1 file is shorter than integer-1, the current record a READ/RETURN INTO delivers is the description's width, not integer-1's, so characters GR3 places in the record are lost (repro r1_gr3_into.cob: W=[ABCDE       ] where W=[ABCDEFGHIJKL] is expected). The connector sizing the reader verified is right; the INTO sender in MoveBinder.BindIntoPhrase ignores FileModel.RecordContains."
+ }
+}

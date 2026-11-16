@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-VIII.4.8.4-1",
+ "rule-digest": "0af3d17d273e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-138",
+  "sources": {
+   "reader": "1d0da3b2b68c66cf063d3fb0da8b75600ed535cdbc25e1c5a19cccf981ddffcb",
+   "refuter": "f00a1590c6b38096b68a691c96876784b74a7241298156153a80eaeca088afe5"
+  },
+  "imported": {
+   "reader": "91480135ef87026a7594da886db946287f86e73e6053e4b25267ab2ada763c4e",
+   "refuter": "5a4f18969a83f2195129f8aa7f1555841afe9f85dc57f8cbbd483b705bbe5f1e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.8.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a declarative is invoked only for a qualifying condition raised by a statement of the separately compiled program that holds it: a CALLed separately compiled program never reaches its caller's declaratives (nor the reverse), a contained program reaches a container's declarative only when it is USE GLOBAL (X.5.5.4 GR1), and with none qualifying no declarative runs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ChainHasGlobalUse; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "Format 3/4 USE (2002 introductions) and the optional AFTER / PROCEDURE words (2002); at 85 both words are required and F3/F4 refused",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 adds the SORT GR17 exit filter around the declarative's run; 1985 takes the plain try/finally, which does not touch selection",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers",
+    "switches": "nothing: the file-name tier then open-mode tier are documented edition-invariant (kb/Work PB344)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grepped DialectBehavior, DialectLevel, Edition., CobolVersion across DispatchEmitter, EcEmitter, ProgramEmitter, UseTierEmitter and the I-O verb emitters; VisitUseStatement in Validation",
+  "behaviour-differs-by-edition": "no: the selection (own program, then GLOBAL containers outward, never across a CALL) is one path at every edition",
+  "witnesses-cover": "part: the witnesses show each program's own declarative; they do not show the refusal half (a callee or a contained program with NO declarative, under a caller USE ON INPUT), which the probes add",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-138/gr1sep.cob",
+    "printed": "MAIN DECL 35 / MAIN OPEN 35 / SUB OPEN 35 / NEST OPEN 35 / MAIN END",
+    "expected": "caller's USE ON INPUT runs only for its own OPEN; not for the separately compiled GR1SUB nor for the contained non-GLOBAL case GR1NEST (VIII.4.8.4 GR1; X.5.5.4 GR1 a-c)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-138/gr1glob.cob",
+    "printed": "MAIN DECL 35 / MAIN OPEN 35 / SUB OPEN 35 / MAIN DECL 35 / NEST OPEN 35 / MAIN END",
+    "expected": "USE GLOBAL in the container reaches the contained program (X.5.5.4 GR1 b) but still not the separately compiled one (VIII.4.8.4 GR1)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-138/gr1sep.cob",
+    "printed": "statement after each failed OPEN (status 35) executes",
+    "expected": "with no qualifying declarative none runs and execution continues"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.4 GR1",
+    "check": "OK  §1985:VIII.4.8.4 GR1  (4.8.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.5.5.4 GR1",
+    "check": "OK  §1985:X.5.5.4 GR1  (║5.5.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "Selection is per emitted program class: __IoCheck walks the local tiers, then __outer.__RunGlobalUse only when a container holds USE GLOBAL; a CALL crosses into another class with its own __IoCheck, so the caller's declaratives are unreachable. The 1985 arm of EmitRunUseBody differs from the latest (no SORT GR17 filter) but that does not affect which declarative is selected.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.8.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "ext.cob (ext-001): EXTERNAL relative FX shared by EXTMAIN (USE ON FX) and separately compiled EXTSUB (no decl) / EXTSUB2 (own USE ON INPUT): main READ 47 -> MAIN DECL only; EXTSUB READ 47 and OPEN 35 -> no declarative (caller's not reached); EXTSUB2 OPEN 35 -> SUB2 DECL only; main again -> MAIN DECL only. nest3.cob (nest3-001): MID's own INPUT declarative chosen over OUTER's GLOBAL INPUT (one only); inner program with no decl, MID GLOBAL is OUTPUT only, MID INPUT non-GLOBAL skipped, OUTER GLOBAL INPUT reached for FH (X.5.5.4 GR1 a-c). useA/useD.cob: 'USE AFTER ERROR ON INPUT' and 'USE STANDARD ERROR ...' refused at 85 (COBOL0900), useC 'USE AFTER EXCEPTION CONDITION EC-I-O' refused (COBOL0877/0878), useB 'USE AFTER EXCEPTION PROCEDURE INPUT' (ON omitted) admitted and runs. cite.py: OK §1985:VIII.4.8.4 GR1 the text is in GR1; OK §1985:X.5.5.4 GR1 the text is in GR1; OK §1985:X.5.5.4 GR1b the text is in GR1b.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-GR-X.4.2.4-1",
+ "rule-digest": "43e828507868",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-032",
+  "sources": {
+   "reader": "0741a30d6c8dce394214e0128a80d0a2654d02fccc0ac1e76ea71c08aa785306",
+   "refuter": "fda5287409efc2a8402ec89359889f9a251930817caddc5e6d453480d939aa2e"
+  },
+  "imported": {
+   "reader": "e7cb977801c94d1e7149cb5bc25597e68d7fb62d55077ac0872d091f36da5a4f",
+   "refuter": "8965662fb4744808ed97d540f9501293a2ccc6f7812b8533aa974428a8745d80"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.4.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for a sequential file whose FD has LINAGE and EXTERNAL, LINAGE-COUNTER must be one run-unit item shared by every program describing the external file; for an FD with LINAGE and GLOBAL, LINAGE-COUNTER (qualified or, where unique, unqualified) must be referenceable from every program directly or indirectly contained in the declaring program; a containee must not reach the LINAGE-COUNTER of a container's non-GLOBAL file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf; src/WiseOwl.Cobol.Compiler/Binding/InheritedGlobals.cs#AddContainerFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBindState.cs#VisibleFiles; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindLinageClause; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#LinageCounter",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf",
+    "switches": "Edition.Has(2014): below 2014 an unqualified LINAGE-COUNTER counts only the program's OWN LINAGE files when it has any (a container's GLOBAL LINAGE file is a candidate only for a program with none of its own); from 2014 every visible LINAGE file counts",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "read LinageFileOf whole; grep LINAGE_COUNTER()/LinageCounter over Compiler and Runtime; the GLOBAL inheritance (InheritedGlobals.AddContainerFiles) and the runtime counter (FileRegistry.LinageCounter, keyed by the connector name, so an EXTERNAL connector shares it) consult no edition.",
+  "behaviour-differs-by-edition": "yes: for a contained program with its own LINAGE file and a container's GLOBAL LINAGE file both visible, an unqualified LINAGE-COUNTER is the program's own at 85 (and 2002) but ambiguous from 2014; the global-name and external-item semantics of this rule are the same code at every edition",
+  "witnesses-cover": "part: the witness covers GLOBAL (direct containee, qualified and unqualified) and EXTERNAL (separately compiled program); not exercised: indirect containment, an FD with both GLOBAL and EXTERNAL, the 85 own-file arm of unqualified resolution, and the refusal of a non-GLOBAL container file's LINAGE-COUNTER. All probed here.",
+  "probes": [
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/lin1.cob",
+    "printed": "M GF=0002 / D OWN=0006 / D GF=0002 / D GF=0003 / M GF=0003 / X GF=0003 / X BF=0003 / M GF=0004 / M BF=0004",
+    "expected": "GF is GLOBAL and EXTERNAL: the indirectly contained D reads GF's counter 2 (OF and IN), its WRITE makes it 3 for the container; D's unqualified LINAGE-COUNTER is its own DF (6) at 85; the separately compiled X sees the external GF and BF counters (3, 3) and its WRITEs reach the main program (4, 4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/lin2.cob",
+    "printed": "error COBOL5997: LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause; error COBOL0863: LINAGE-COUNTER OF 'NF': the qualifier shall name a file whose file description entry contains a LINAGE clause",
+    "expected": "NF is not GLOBAL, so its LINAGE-COUNTER is not a global name and the containee cannot reference it: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.2.4 GR1",
+    "check": "OK  §1985:X.4.2.4 GR1  (4.2.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "GLOBAL FDs reach containees through InheritedGlobals (non-GLOBAL ones are kept out), and the runtime counter belongs to the file connector, which an EXTERNAL FD shares across the run unit. The refusal of a non-GLOBAL container file is correct, but COBOL0863's text says the qualifier must name a file with a LINAGE clause when NF has one and is merely not visible: a wording imprecision, not a conformance failure of this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.4.2.4-1",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,e",
+  "evidence": "lin3.cob (run lin3-001, --std 85): A has FD AF IS GLOBAL LINAGE 10 and contains B; B has FD BF IS GLOBAL LINAGE 20 and contains D; D has no FD. B's unqualified LINAGE-COUNTER compiles (own-file arm). D's 'DISPLAY \"D UNQ=\" LINAGE-COUNTER' is refused: 'lin3.cob(44,29): error COBOL5997: unqualified LINAGE-COUNTER with more than one LINAGE file: qualify by file-name'. At 1985 D specifies no file description entry with a LINAGE clause, so SRL2.8 requires no qualifier. Both LINAGE-COUNTERs are global names (GR1). X.1.3.8.2 GR1 puts in D's name set 'all global names which are defined in program A and in any programs which directly or indirectly contain program A', and GR3b.1 resolves to the nearest container's object ('The object in program A if the name is declared in program A'), which is B's BF counter. The program is legal and is rejected. Control lin4.cob (lin4-001): a container with one GLOBAL and one non-GLOBAL LINAGE file and a containee with none: 'D UNQ=02', right (only GF is visible). At --std 2023 (lin3-002) the same line is refused too, plus B's line under the 2014+ visible count. cite.py: 'OK  §1985:X.4.2.4 GR1 ... the text is in GR1'; 'OK  §1985:IV.4.3.8.1 SRL2.8 ... the text is in SRL2.8'; 'OK  §1985:X.1.3.8.2 ... it lies in GR1'; 'OK  §1985:X.1.3.8.2 ... it lies in GR3b.1'. Known note: kb/Work/PB5166 (landed) fixed only the arm where the program has a LINAGE file of its own; this zero-own, several-inherited arm is a sibling it did not reach. Under the other reading of SRL2.8 ('the source program' counts the whole nest), the reader's own lin1 D (own DF plus inherited GF, unqualified, accepted) would have to be refused. So the path fails the rule under either reading.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf: the pre-2014 arm (!Edition.Has(2014)) narrows to the program's own LINAGE files only when it has some; with none, it falls back to the whole visible set instead of the nearest declaring program's GLOBAL LINAGE files (X.1.3.8.2 GR3b), unlike ReportOf, which uses Reports.NearestInScope"
+  ],
+  "corrected": "PARTIAL (rejects-legal-source, cause a: the 1985 arm of LinageFileOf is incomplete). At --std 85 an unqualified LINAGE-COUNTER in a contained program with no LINAGE file of its own, under containers at two or more levels that each declare a GLOBAL LINAGE file, must resolve to the nearest container's counter. It is refused with COBOL5997."
+ }
+}

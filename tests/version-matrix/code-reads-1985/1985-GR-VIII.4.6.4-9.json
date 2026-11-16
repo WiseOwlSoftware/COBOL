@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-9",
+ "rule-digest": "136af03a1b52",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-136",
+  "sources": {
+   "reader": "15c79324ed68ea6516287bb8931f5cef958eef5caa3ef38dad69d7c84f11ce98",
+   "refuter": "3286e614e427bf24fa93b65f249932df9023a44048f20bfc136422ad00f027b2"
+  },
+  "imported": {
+   "reader": "cf496d261ec0754f7334ec629438d1552a28ab5e00d0043bd76547c073c0def5",
+   "refuter": "cfa4ef30228c22468523ec90536ab58ad3e2720246af6d62aee45b4809428798"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.6.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "A successful REWRITE of a relative file must release the logical record to the file, so it is what any later READ of that record returns (on the same connector, another connector on the same file while still open, and after CLOSE and reopen), in every access mode.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "FileSharingFacility (from 2002): at 85 a second connector attaches the same store without sharing arbitration",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior over RelativeConnector.cs, RelativeStore, FileRegistry.cs RewriteShared: the release (_st.Replace) has no edition arm.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf27_02 covers random access on one connector and after reopen; not sequential access or a second connector reading while the first is open",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/rw9a.cob",
+    "printed": "RW 00 / OPEN-G 00 / SAME-OPEN 00 NEWBBB / NEXT 00 0003 CCCCCC / R0001 AAAAAA R0002 NEWBBB R0003 CCCCCC",
+    "expected": "sequential-access REWRITE of record 2 is read back as NEWBBB by a second random-access connector while open and after reopen; the area moved to ZZZZZZ after the REWRITE is not released; neighbours untouched"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/rw13a.cob",
+    "printed": "K3/K0/K9999/K2D/K5F INV 23; reread file: F0001 AAAAAA, F0004 KEY4WN, EOF 10",
+    "expected": "an unsuccessful REWRITE releases nothing (no records 0, 2, 3, 5, 9999 in the file)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.6.4 GR9",
+    "check": "OK  §1985:VIII.4.6.4 GR9  (4.6.4 General Rules)  the text is in GR9"
+   }
+  ],
+  "notes": "RelativeConnector.Rewrite replaces the slot in the shared store (_st.Replace) only after every refusal arm; a second connector on the same physical file sees it immediately. GR7 (position unaffected) also observed: the READ after the REWRITE returns record 3.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.6.4-9",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "Probe refute-1985-136/g9b.cob at --std 85 (runs/g9b-001), DYNAMIC access, RECORD VARYING DEPENDING ON, a COMP-3 field: random REWRITE shrinking record 1 to 8 chars with HIGH-VALUES text and -7654321 packed -> 'RW1 00', READ back 'LEN 08 P -7654321' and 'HV-YES'; START = 2 + READ NEXT, REWRITE growing record 2 to 12 -> 'RW2 00'; after CLOSE and OPEN INPUT 'RD2 00 LEN 12 BBBB +0000000 ZZZZ'. Also g4b (sequential, shorter record released, 'F1 00 LEN 05 03XYZ'). The released logical record, its length included, is what every later READ returns. cite.py: 'OK  §1985:VIII.4.6.4 GR9  (4.6.4 General Rules)  the text is in GR9'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

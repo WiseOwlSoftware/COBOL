@@ -1,0 +1,100 @@
+{
+ "rule-id": "1989-RV-A.2.42.4-3",
+ "rule-digest": "491b4b58cc84",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-184",
+  "sources": {
+   "reader": "9ad5c76e82afaef6d8a4318c9d4047db7db4ba11414c994318df67ff9cc21079",
+   "refuter": "b2e091ffd24ce7eded4da62b06193a0d73d22d9c66d2d8e95bb5041e26bbecb1"
+  },
+  "imported": {
+   "reader": "8ade747a566e71f7422d7ae139e75728ffdebb02f4829e4bf230d87d4aeaac28",
+   "refuter": "786bd11dfe7ab8df08b777581ceae1372d72f9d7a4f8eb6c4d63a4951fd2fef2"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.42.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, when any argument-1 is not an integer (a literal with a decimal point, an item with fraction positions, a non-integral expression) FUNCTION SUM is a numeric function: its value keeps the fraction and it is refused where an integer operand is required, even when the value is integral.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AlignedArgs; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#SumScaled",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 edition window: sig.IntroducedIn (85) > DialectLevel refuses COBOL1502; the 1989 module rows are admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric/integer function written where an identifier stands (MOVE, DISPLAY) is refused COBOL0900; at 2002+ admitted. The arithmetic-expression path the returned value takes is not screened",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "greps for Edition|DialectLevel|CobolVersion|DialectBehavior|ConstructRegistry in IntrinsicRenderer.cs, IntrinsicResultType.cs, IntrinsicArgumentRules.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs and Runtime/Intrinsics/CobolIntrinsics.*.cs: no hit on the value path of this function; the binder hits are listed",
+  "behaviour-differs-by-edition": "no for the value and the integer/numeric type (sum1 identical at 85 and 2023); the placement screen refuses DISPLAY/MOVE of FUNCTION SUM at 85 only",
+  "witnesses-cover": "part: the witnesses show a fractional sum value but not the refusal of the numeric type in an integer position",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/sum1.cob",
+    "printed": "SIGN 27.5; ONE 5; EXPR 68.625; NEG -6.5; DEC 6.000 (SUM(0.1 0.2 0.3)*10); MIX 3.75",
+    "expected": "-12.5+40; 5; -11.5+80+0.125; -6.5; 6; 3.75"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/sumtyp.cob",
+    "printed": "COBOL1627 numeric function for CHAR(SUM(2.0 64)) and CHAR(SUM(N / 2 50)); sumref.cob the same for CHAR(SUM(64 D)) with D PIC 9V9",
+    "expected": "refused: 2.0 is no integer literal, N/2 is no always-integer expression, D has a fraction position, so SUM is numeric (RV3) and §1989:A.2.3 bars it where an integer operand is required"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/sumtyp2.cob",
+    "printed": "S @ (CHAR(SUM(N + 1 32))); N A (CHAR(SUM(FUNCTION RANGE (N 1) 35))); sum1 INTARG A (SUM(30 B -4)), INTODO d (SUM(E1(ALL)))",
+    "expected": "all-integer arguments (items, literals, integer expression, nested integer function, ALL of an integer table) make SUM an integer function admitted as CHAR's integer argument: 65->@, 66->A, 101->d"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/edarm1.cob",
+    "printed": "at 85 COBOL0900 for DISPLAY FUNCTION SUM (1 2); at 2002 compiles",
+    "expected": "85 refuses a numeric/integer function outside an arithmetic expression (§1985:IV.4.3.8.3.3 SR4)"
+   },
+   {
+    "class": "e",
+    "file": "-",
+    "printed": "not applicable",
+    "expected": "the rule reaches no file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.42.4 RV3",
+    "check": "python scripts/spec/cite.py --check \"§1989:A.2.42.4 RV3\" \"If the argument-1 series are not all integers, a numeric value is returned\" -> OK"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "python scripts/spec/cite.py --check \"§1989:A.2.2\" \"When ALL is specified as a subscript, the effect is as if each table element associated with that subscript position were specified\" -> OK"
+   },
+   {
+    "cite": "§1989:A.2.3",
+    "check": "python scripts/spec/cite.py --check \"§1989:A.2.3\" \"A numeric function may not be referenced where an integer operand is required\" -> OK"
+   }
+  ],
+  "notes": "SumScaled adds scale-aligned Int128 values checked (size-escaped, never wrapped); IntrinsicResultType.Resolve selects Integer only when every argument is provably integer (IsIntegerOperand reads the literal FORM, the item's integer description, a nested call's resolved type), else Numeric, and the CHAR screen honours it. No edition switch on the value or type path. Witnesses g85_bf40_08 and 1989-RV-A_2_42_4-3 MATCH at 85.",
+  "at-2023": "sum1 output identical",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.42.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "rf1 SUM(NF 1) with NF PIC PP9 (fraction positions via P) -> 1.009, numeric value kept; reader's sumtyp/sumref refusals of CHAR(SUM(2.0 64)) and CHAR(SUM(64 D)) stand; rf3 confirms the same numeric-in-integer-position screen (COBOL1627) applies at 85. No form found where a non-integer argument series is typed integer. cite.py: OK §1989:A.2.42.4 RV3 'If the argument-1 series are not all integers, a numeric value is returned'; OK §1989:A.2.3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

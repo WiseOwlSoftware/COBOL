@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-L2.3",
+ "rule-digest": "b76aca5aebdb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-087",
+  "sources": {
+   "reader": "3a7372f623de84840730f25aaafe908e16fb6758ef274e8caa8bdd291c3ea2e4",
+   "refuter": "cb9bea7e3745bb11813da4e72dddd8f9d0adbb7f310aeaf95a0c9b612192d5d5"
+  },
+  "imported": {
+   "reader": "a85de5ad2a40c024a279f1d6bc8560f847831a46ff88bd1e22295db5815ce0e4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-L2.3",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85 the figurative ALL literal not associated with another data item (a DISPLAY operand; an ALPHABET literal-phrase operand of SPECIAL-NAMES, per the 1985 Annex's change note) is exactly the literal, once; and (the row's trailing sentence) a figurative constant may stand wherever a format writes 'literal', subject to the listed exceptions and each statement's own bans (STOP, STRING, UNSTRING and INSPECT refuse a figurative beginning with ALL). The witnesses exercise only DISPLAY ALL \"AB\"/ALL \"XYZ\".",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundAllLiteral; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#SpecialNamesFigurative; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#AllLiteralCharacters; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#literal; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#stopStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral",
+    "switches": "ConstructRegistry.IsAvailable(StopLiteralRemoved2002): STOP SR1 (no ALL figurative) is asked only at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStopStatement",
+    "switches": "Check(StopLiteralRemoved2002): STOP literal admitted at 85, refused 2002+",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/ConstructRegistry/CobolVersion/IsAvailable over OperandText.cs, SpecialNamesBinder.Literals.cs, StringUnstringBinder.cs, ConcatFolder.cs: the DISPLAY ALL-literal arm (AsStringVisitor.Visit(BoundAllLiteral)) and the SPECIAL-NAMES ALL-literal decoding consult no edition (Edition there is only the diagnostic sink).",
+  "behaviour-differs-by-edition": "no for the ALL-literal length (same code at every edition); yes only in that STOP literal exists at 85 alone.",
+  "witnesses-cover": "part: g85_bf02_01 and 1985-GR-IV_4_2_2_2_3-L2_3 cover DISPLAY only; not the ALPHABET clause, one-character or quote-bearing literals, the refusals of ALL in STOP/STRING/UNSTRING, or the trailing 'may be used whenever literal appears' sentence.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/fig1.cob",
+    "printed": "L23[AB][X][XYZ]",
+    "expected": "each ALL literal displayed as the literal once"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/all2.cob",
+    "printed": "[A\"B] / [\"] / [A\"BA\"BA] (VALUE ALL, associated) / XYZ (NO ADVANCING)",
+    "expected": "length of the literal unassociated; repeated and cut when associated (L2.1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/alph1.cob",
+    "printed": "ALPHABET SEQ-A IS ALL \"ZYX\" as PCS: Z<Y, Y<X, X<A (same as alph2.cob with \"ZYX\")",
+    "expected": "the 1985 Annex: in the alphabet-name clause 'the length of the string is the length of the literal' (not the 1974 leftmost character), so Y<X"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/strall.cob",
+    "printed": "COBOL1757 STRING sending operand 'ALL \"AB\"' ... ; COBOL1757 STRING DELIMITED BY 'ALL \"B\"' ...",
+    "expected": "refused: §1985 STRING SR 'Literal-1 or literal-2 must not be a figurative constant that begins with the word ALL'"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/stopall.cob",
+    "printed": "COBOL6817: STOP ALL \"AB\": the literal breaks §1985:VI.6.24.3 SR1",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/unsall.cob",
+    "printed": "UNSTRING DELIMITED BY ALL \"XY\" (the ALL phrase): [AB ][CD ][---]",
+    "expected": "ALL phrase over literal \"XY\", contiguous delimiters collapsed"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/stop4.cob",
+    "printed": "STOP STAR (symbolic-character): error COBOL5506 unexpected '.' ... expected '&'",
+    "expected": "accepted: 'A figurative constant may be used whenever literal appears in a format' and STOP SR1 bars only ALL"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GRL2.3",
+    "check": "OK  §1985:IV.4.2.2.2.3 GRL2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in GRL2.3 (quoted: the length of the string is the length of the literal)"
+   }
+  ],
+  "notes": "The ALL-literal length itself conforms at 85: DISPLAY renders BoundAllLiteral as the literal once and SpecialNamesFigurative gives an ALPHABET operand literal-1's full characters; STOP/STRING refuse ALL by their own 1985 SRs. The row's trailing sentence ('A figurative constant may be used whenever literal appears in a format') is broken by STOP symbolic-character, a parse error - the same single defect recorded on 1985-GR-IV.4.2.2.2.3-L2.2 (grammar `literal` has no symbolic-character arm), so this row is PARTIAL on that sentence alone.",
+  "seeded": true,
+  "harm": "rejects-legal-source",
+  "cause": "c",
+  "at-2023": "same COBOL5506 parse error (STOP literal is removed from 2002, so refusal is the right outcome there)",
+  "repro": "SPECIAL-NAMES. SYMBOLIC CHARACTERS STAR IS 43. ... PROCEDURE DIVISION. P. STOP STAR. STOP RUN.",
+  "expected": "§1985:IV.4.2.2.2.3: 'A figurative constant may be used whenever literal appears in a format'; STOP SR1 restricts only figuratives beginning with ALL",
+  "observed": "error COBOL5506: unexpected '.'. The separator period is not expected here: expected '&'",
+  "known_note": "none (same defect as the L2.2 record; no kb/Work note found)"
+ }
+}

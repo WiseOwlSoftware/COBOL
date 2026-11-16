@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-11",
+ "rule-digest": "1eed3ce10b9c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-051",
+  "sources": {
+   "reader": "4574bde3c52a27938a3e7d9cf239b9175d7e793a78a38be118b57a76aec077ca",
+   "refuter": "0a302e34a4ab2a82b27c5284564d89181c38ba77697deab20b08bcf532313a5d"
+  },
+  "imported": {
+   "reader": "d8ee9177eaa9be58ddb28b85b667a36d3a44f492d025214526262800b2e4383f",
+   "refuter": "985c3aa4f3766de9a641cc9279d1db50fe2885285bc45bdce3d6f282e457f1d0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.10.3-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a REDEFINES whose subject is separated from data-name-2 by any entry at the same scope that defines new character positions (an ordinary data entry, a 77 or 01 at the roots), and must accept the subject after intervening redefinitions of the same area, condition-names (88), subordinates of a redefinition and level-66 entries, which define no new positions.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#FirstInterveningStorage",
+  "edition-consulted": [],
+  "edition-search": "Grepped src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs, src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs, src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2/#ScreenDataNameShape and the grammar rule CobolData.g4 redefinesClause for CobolVersion, IsAtLeast, Std, Version., ConstructRegistry, DialectBehavior, ReservedWords and EditionContext edition properties: none. The only diagnostics sink is src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Error, which records the error with no edition test. REDEFINES is ungated in the grammar.",
+  "behaviour-differs-by-edition": "no: the same FirstInterveningStorage test runs at every --std; sr11_bad_sib draws the same COBOL2739 at --std 2023",
+  "witnesses-cover": "part: the witness is the legal half only (redefinitions, an 88 and a redefinition's subordinates between, at 05 and 01); the refusal half (an ordinary sibling, a 77 or 01 root, a redefinition of a different item between) and a level-66 entry between are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr11_bad_sib.cob",
+    "printed": "COBOL2739 'B' REDEFINES 'A': the entry 'C' between them defines new storage",
+    "expected": "refused (C defines new positions)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr11_bad_77.cob",
+    "printed": "COBOL2739 ... the entry 'X' between them defines new storage",
+    "expected": "refused (77 X between 01 A and 01 B)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr11_bad_01.cob",
+    "printed": "COBOL2739 ... the entry 'X' between them defines new storage",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr11_bad_cross.cob",
+    "printed": "COBOL2739 'D' REDEFINES 'A': the entry 'B' between them defines new storage",
+    "expected": "refused (B, which C redefines, defines new positions between A and D)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr11_ok_66.cob",
+    "printed": "EXIT 0; L1=PQ PQ P / L2=XY X",
+    "expected": "accepted: a 66 entry defines no new positions; B and C overlay A (GR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr11_ok_88grp.cob",
+    "printed": "EXIT 0; L1=12 2 D",
+    "expected": "accepted: redefinition with subordinate 88 between A and C"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/c_typedef.cob",
+    "printed": "COBOL0900 TYPEDEF clause requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "a later edition's TYPEDEF host of a REDEFINES refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.3 SR11",
+    "check": "OK  §1985:VI.5.10.3 SR11  (5.10.3 Syntax Rules)  the text is in SR11 [quote: without intervening entries that define new character positions]"
+   },
+   {
+    "cite": "§1985:VI.5.10.4 GR1",
+    "check": "OK  §1985:VI.5.10.4 GR1  (5.10.4 General Rules)  the text is in GR1 [quote: Storage allocation starts at data-name-2]"
+   }
+  ],
+  "notes": "The 1985 SR11 is the 2023 SR10 word for word apart from 'character positions' for 'storage areas'; the one screen implements it over the subject's sibling scope, or the subject's own section's roots at level 01/77. The diagnostic cites §2023:13.18.44.3 SR10 at --std 85, a citation of another edition, not a behaviour fault.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.10.3-11",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-051/: r11_fd_sib (05 A, 05 C, 05 B REDEFINES A in an FD record) -> COBOL2739 'the entry C between them defines new storage' (refused, as SR11 requires, File Section path too); r11_77_88 (77 A with 88 A-OK, then 77 B REDEFINES A) -> EXIT 0 L1=Y (an 88 defines no positions); r11_nofiller (05 REDEFINES A with the data-name omitted, a 1985 form, then 05 B REDEFINES A) -> EXIT 0 L1=a a. cite.py: OK  §1985:VI.5.10.3 SR11 (5.10.3 Syntax Rules) the text is in SR11 [without intervening entries that define new character positions].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-VII.4.6.3-3",
+ "rule-digest": "8e3ed3369b37",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-064",
+  "sources": {
+   "reader": "48b002003a3c2ef3cb7a7d1862c2bfec9faf954dfb6195f7b3e599d8a9f95474",
+   "refuter": "9bc47292e6c90111ca481f4753bcfbb8d97487629c58dc018abb14f77a8ebd41"
+  },
+  "imported": {
+   "reader": "e48050329f09ad6a7e259e4a4b9d28d07ea92579f16323f707ab0339c3b87fc6",
+   "refuter": "1aeb66e622c1b3b6f6a8f7cea92c1bce5b26332bdde98d65adec554e1cea153c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.6.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 (as amended by X3.23b-1993) a file-name may appear in at most one USE AFTER STANDARD EXCEPTION/ERROR statement of a given Procedure Division (ERROR and EXCEPTION being synonyms, SR4), for every file organization; a repeat inside one statement and the same file named in a contained program's own Procedure Division are not violations.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclEndUseStatement; src/WiseOwl.Cobol.Compiler/Binding/ConstructOperandRegister.cs#ConstructOperandRegister",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "AFTER/PROCEDURE required at 85; Formats 3/4 refused at 85 (not the file-name duplicate test)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the _useFiles register in DeclBindUse is reset per procedure division and asked with no edition test; grep of ProcedureTableBuilder.cs for DialectLevel/CobolVersion/ConstructRegistry finds none on the Format-1 file arm",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers the accepting half (one statement naming F1 twice); the refusing half across statements, the ERROR/EXCEPTION synonym, relative and indexed files and the contained-program case are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/u3a.cob",
+    "printed": "COBOL0897 x3: file 'F1' / 'F2' / 'F3' already has a USE procedure in this procedure division",
+    "expected": "F1 (sequential, ERROR then EXCEPTION), F2 (relative) and F3 (indexed) each named in two USE statements: refused (SR3, SR4)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/u3b.cob",
+    "printed": "OUTER-D1 ST1=10 / OUTER AFTER F1 EOF / OUTER-INPUT ST2=10 / OUTER AFTER F2 EOF / INNER-D1 ST1=10 / INNER AFTER F1 EOF (EXPECT: MATCH)",
+    "expected": "USE ON F1 beside USE ON INPUT is legal; a contained program's own USE ON the GLOBAL F1 is in another Procedure Division and legal; each declarative runs (GR4, GR5)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.6.3 SR3",
+    "check": "OK  §1985:VII.4.6.3 SR3  (4.6.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "DeclBindUse registers each file-name in _useFiles (a ConstructOperandRegister closed per statement by DeclEndUseStatement), so a repeat inside one statement binds once and a repeat across statements is COBOL0897; the same code runs at every edition. The amended 1985 text applies (C260).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.6.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r3a.cob (r3a-001): USE FOR DEBUGGING ON F1 (WITH DEBUGGING MODE) beside USE AFTER ERROR ON F1 in one Procedure Division is accepted (a debugging USE is no USE AFTER EXCEPTION statement) and both run, the debug section after the error procedure and after the at-end READ as §1985 Debug USE GR2b says; a second separately compiled program PR3B in the same source with its own USE ON F1 is accepted. r3c.cob: USE GLOBAL AFTER ERROR ON F1 plus USE AFTER EXCEPTION ON F1 in one Procedure Division (1985 IPC form with GLOBAL) refused COBOL0897. r3d.cob (r3d-001): outer USE GLOBAL ON global F1, contained program's own USE ON F1 accepted and the inner one wins inside the contained program (INNER E1 ST1=10, then OUTER D1 in the outer). cite.py: OK §1985:VII.4.6.3 SR3 (\"same file-name must not appear in more than one USE AFTER EXCEPTION statement\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-8",
+ "rule-digest": "a28cb464e0ad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-121",
+  "sources": {
+   "reader": "14765693275ab25651d3d10898dbaa20ad5bbd180380d3200754a48836162545",
+   "refuter": "7dbecbf905be77bcbc1585f4fb85f8005f0070d30a0b0f7c5b0fbc5355f364ab"
+  },
+  "imported": {
+   "reader": "a946efd441e63d4f232af76287bc4929e58f2a5e1eb4d90a48185687d4fe49d7",
+   "refuter": "f78e896556d3c91273a23aa711f41f7a0c04cd90ecd9b9106183bc78e1e822b6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.8.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "When a RECORD IS VARYING clause names DEPENDING ON data-name-1, the program places the record length in data-name-1 before each WRITE, REWRITE and RELEASE, so the compiler must take each such statement's record size from the content of data-name-1 at the time the statement executes (GR10 a) and must not overwrite it there (GR9).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingDepending; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingLengthArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RewriteLengthArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OutsideVaryingBounds",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+    "switches": "rangeFailsStatement = DialectLevel < 2002: at 1985 a RELEASE outside the SD range is unsuccessful (§1985:VII.3.8.4 GR10, Amendment 2); from 2002 it raises EC-SORT-MERGE-RELEASE. The length itself is read from data-name-1 on both arms",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped SequentialIoEmitter.cs, SortEmitter.cs, KeyedIoEmitter.cs and SortBinder.cs for DialectLevel/DialectBehavior; VaryingLengthArg and the REWRITE length read no edition; the only edition read on the GR8 statements is the RELEASE out-of-range arm.",
+  "behaviour-differs-by-edition": "no: the length is the content of data-name-1 at every edition; only what an out-of-range RELEASE does (GR10, not this rule) differs",
+  "witnesses-cover": "part: g85_f18_03 covers WRITE, REWRITE and RELEASE taking their size from data-name-1; not covered: zero and the largest value of the item, a COMP data-name-1, and the File Section refusal of data-name-1 (probes dn2, dn3)",
+  "probes": [
+   {
+    "class": "f,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/dn2.cob",
+    "printed": "W0 44 0000 / W3 00 0003 / W10 00 0010 / W9999 44 9999 / R1 00 0003 ABC / RW3 00 0003 / R2 00 0010 KLMNOPQRST / RW9 44 0009 / R3 00 0003 XYZ / S1 02 AA / S2 08 ZZZZZZZZ",
+    "expected": "FROM 1 TO 10 DEPENDING ON L (PIC 9(4) COMP): L=0 and L=9999 are outside 1..10, 44; L=3 and 10 written at those sizes; L unchanged by each WRITE/REWRITE (GR9); REWRITE of the 3-record with L=3 succeeds, of the 10-record with L=9 is 44 (§1985:VII.1.3.5 d 2); RELEASE at LS=8 and 2 returns those sizes"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/dn3.cob",
+    "printed": "error COBOL2922: ... the RECORD clause's DEPENDING ON 'L' is described in the file section; data-name-1 shall describe an elementary unsigned integer in the working-storage or linkage section (ANSI §1985:VII.3.8.3 SR4)",
+    "expected": "refused by §1985:VII.3.8.3 SR4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/dn2.cob",
+    "printed": "at --std 2023: identical output",
+    "expected": "same at every edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.4 GR8",
+    "check": "OK  §1985:VII.3.8.4 GR8  (3.8.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR10",
+    "check": "OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10"
+   }
+  ],
+  "notes": "GR8 is an obligation on the program; the compiler side is reading data-name-1 at each output statement, which VaryingLengthArg renders as a live read of the item for WRITE and REWRITE (sequential and keyed emitters) and SortEmitter.EmitRelease renders for RELEASE. Probe dn2 shows the content at execution governs and is not altered.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.8.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "Probe refute-1985-121/src/dnr1.cob (dnr1-001) at --std 85, FROM 1 TO 12 DEPENDING ON L over an ODO record R (RN PIC 9 + RT OCCURS 1 TO 11) and R2 X(12): WRITE R with RN=3 (ODO size 4) and L=7 wrote 7 positions (read back L=07 3QQQQQQ): data-name-1, not the ODO, sizes the record (GR10 a); WRITE R2 FROM SRC with L=5 wrote ABCDE (L=05); L unchanged by each WRITE (GR9). Data-name-1 in the LINKAGE SECTION of a called program (SR4 allows it): OPEN EXTEND, WRITE G1 with LK=4 wrote SUBR, LK unchanged. cite.py: OK §1985:VII.3.8.4 GR10a; OK §1985:VII.3.8.3 SR4. No edition arm on the size read; the reader's RELEASE arm (DialectLevel<2002) governs only the out-of-range outcome, GR10's last paragraph.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

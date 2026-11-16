@@ -1,0 +1,72 @@
+{
+ "rule-id": "1985-GR-IX.2.3.4-2",
+ "rule-digest": "5861547494fb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-090",
+  "sources": {
+   "reader": "6ab038ea6035d8f9ae4367c0d745ed9e52de3169af37c155f45817b22effaac4",
+   "refuter": "dc715fbd8dfc0a125afb51673dcf17c36c19afbfa88e462ab1fae41831d4fcd7"
+  },
+  "imported": {
+   "reader": "4044e0c6c013e786f96672751679281ae3968d2513522e7837c0c71e468eb5d1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.3.4-2",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85 an indexed file (whose FD can carry no CODE-SET clause) keeps its data on the external medium in the native character set: every native character a record holds is written without conversion and is read back as the same native character, whatever its ordinal.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileCharacterSet.cs#ToChannel; src/WiseOwl.Cobol.Runtime/IO/FileCharacterSet.cs#FromChannel; src/WiseOwl.Cobol.Runtime/IO/FileCharacterSet.cs#HasCharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/FileCharacterSet.cs#Medium; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindCodeSetClause",
+  "edition-consulted": [],
+  "edition-search": "grep CobolVersion|Edition|DialectBehavior over src/WiseOwl.Cobol.Runtime/IO (only DialectBehavior gates on READ PREVIOUS, duplicate-key status, sharing, relative WRITE, CLOSE WITH LOCK; none on the medium encoding); FileCharacterSet and StorageByte take no edition; FileDescriptionFormats.Rows (CODE-SET not admitted in Format 2) is edition-invariant.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf03_07 round-trips ordinals 1, 33, 58, 66, 123, 234 and HIGH-VALUE (65536); not covered: native ordinal 256 (U+00FF), which shares the medium byte 0xFF with HIGH-VALUE, and every native character above ordinal 256, which the WRITE refuses",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p3_native.cob",
+    "printed": "ordinals 200, 129, 1 (LOW-VALUE), 65536 (HIGH-VALUE), 'x' 121, '~' 127 round-trip through WRITE, START, READ NEXT, REWRITE and READ by an alternate key; the character of ordinal 256 written at position 5 and by the REWRITE at position 10 reads back as 65536",
+    "expected": "each native character reads back unchanged (ordinal 256 stays 256)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p3e_repro.cob",
+    "printed": "WRITTEN ORD=00256 / W1=00 / W2=91 / READ=00 ORD=65536 / READ BACK AS HIGH-VALUE",
+    "expected": "WRITE of ordinals 256 and 257 succeed (00) and READ returns ORD=00256"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p3c_ctrl.cob",
+    "printed": "control without a file: ORD of C255/C256/C257/HIGH-VALUE = 255/256/257/65536",
+    "expected": "the native set holds ordinals 1..65536, so ordinal 256 and HIGH-VALUE are distinct native characters"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p3d_roundtrip.cob",
+    "printed": "indexed WRITE of ordinals 255,256,257,1001,65535,HIGH-VALUE: WX=91 (refused); relative and sequential files: ordinal 256 reads back as 65536",
+    "expected": "native characters written to the medium unconverted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p3b_codeset.cob",
+    "printed": "error COBOL2604: the CODE-SET clause (CODE-SET IS EBC) is not a clause of Format 2 (relative-or-indexed) of the file description entry",
+    "expected": "no CODE-SET on an indexed FD at 1985 (the native set is the only one), so the clause is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.3.4 GR2",
+    "check": "OK  §1985:IX.2.3.4 GR2  (2.3.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The implementor's native character set is the UTF-16 BMP (DOC-A.1-31; ORD(HIGH-VALUE)=65536, SYMBOLIC CHARACTERS up to 65535 accepted), but a fixed-record file's medium is ISO/IEC 8859-1 under the storage-byte law: U+00FF (ordinal 256) and HIGH-VALUE share byte 0xFF, so a written ordinal-256 character reads back as HIGH-VALUE, and any character above U+00FF makes WRITE/REWRITE fail with '91'. The data on the medium is therefore a 256-character projection of the native set, not the native set the rule assumes. This is the owner-accepted cost recorded in kb/Work R52 and R47 (DOC-A.1-31); the orchestrator should weigh the verdict against those decisions.",
+  "seeded": true,
+  "harm": "wrong-answer (ordinal 256 silently reads back as HIGH-VALUE); rejects valid data at run time (native characters above ordinal 256 refused with status 91)",
+  "cause": "b",
+  "at-2023": "identical: WRITTEN ORD=00256 / W1=00 / W2=91 / READ=00 ORD=65536 / READ BACK AS HIGH-VALUE",
+  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p3e_repro.cob",
+  "expected": "§1985:IX.2.3.4 GR2 \"The native character set is assumed for data on the external media.\": W1=00, W2=00, READ=00 ORD=00256, and DX not equal to HIGH-VALUE",
+  "observed": "W1=00 / W2=91 / READ=00 ORD=65536 / READ BACK AS HIGH-VALUE",
+  "known_note": "kb/Work R52 (owner decision: HIGH-VALUE U+FFFF, byte 0xFF on a byte medium; accepted cost that U+00FF returns as HIGH-VALUE), kb/Work R47 (owner decision: Latin-1 medium, characters above U+00FF refused), kb/Work PB1759, PB690; docs/conformance/7/DOC-A.1-31.md"
+ }
+}

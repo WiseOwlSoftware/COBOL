@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-9",
+ "rule-digest": "a019940d1542",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-015",
+  "sources": {
+   "reader": "f1c2b03e7ee836ba38eee57b1584c5183bc99b1fba76cbf45b4b29ef90f5779e",
+   "refuter": "73835129bd9bc151e31048c04eb9c7b08ea0c2ae20226c831c9bfab1418a22ed"
+  },
+  "imported": {
+   "reader": "60125cb8d0cdd9c7d67c5b0011509fdb0a867250823c57e702f41916e90ec5b4",
+   "refuter": "c00d79a530a84adbcf3c00ad920c44827abc6acaac9e46080a9250ba386cd651"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.9.5-9",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 a character-string that uses more than one of '+', '-', '*', 'Z' and the currency symbol as floating replacement characters (+ with -, a sign with cs, Z with *, either suppression symbol with a floating insertion symbol) must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#MarkFloating; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Table10Rows; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence",
+    "switches": "dialectLevel < 2002: a non-floating currency symbol takes only the CurrencyLeading role (the 1985 chart has one fixed cs row/column); also appends the 1985 chart clause to the COBOL1935 message",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+    "switches": "edition.DialectLevel < 2002 selects the 1985 BLANK WHEN ZERO arm (asterisk only, VI.5.9.3 SR7) over the 2002+ S-or-asterisk arm; message text",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/ConstructRegistry/CobolVersion in PictureComposition.cs and PictureAnalyzer.cs. The cells that decide this rule (floating {+-}/cs rows and columns against {Z *}) are the 2023 Table 10 matrix used at every edition; compared by hand with the 1985 chart of VI.5.9.6 (spec md lines 11449-11471): the floating {Z*}-left row is blank in every floating +-/cs column, the floating {+-}-left and cs-left rows are blank in the {Z*} columns, the same as Table10Rows. SR21 (Z/* exclusive) and SR23 (+/- exclusive) are edition-blind.",
+  "behaviour-differs-by-edition": "no: every pair is refused by edition-blind code (SR21, SR23, Table-10 cells identical to the 1985 chart); ++$$9 gives the same COBOL1935 at --std 2023.",
+  "witnesses-cover": "part: pb530 is legal-source only (+$$$, $$.$$, ++.++); no witness refuses a pair of floating replacement characters",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p2_pic_10.cob .. p2_pic_14.cob",
+    "printed": "++$$9, $$++9, $$--9, --$$9: error COBOL1935; ++--9: error COBOL1934 'the editing sign control symbols + and - are mutually exclusive'",
+    "expected": "each refused (two floating replacement characters)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p2_pic_1.cob .. p2_pic_9.cob",
+    "printed": "cs/+/- with Z or *: COBOL1935; Z with *: COBOL1934",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p2_pic_22.cob, p3_fixcs_float.cob, p3_cur_e.cob",
+    "printed": "+$$$9 [+ $12][-  $3]; $++9 [$-12]; CURRENCY E, PIC EEE9.99 [ E12.00]",
+    "expected": "legal: one floating string beside a fixed symbol"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.9.5 GR9",
+    "check": "OK  §1985:VI.5.9.5 GR9  (5.9.5 Editing Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VI.5.9.5 GR7",
+    "check": "OK  §1985:VI.5.9.5 GR7  (5.9.5 Editing Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "Every pair of floating replacement characters probed was refused at --std 85, and a fixed symbol beside one floating string stays legal. The refusal comes from the SR21/SR23 checks and the Table-10 matrix, whose relevant cells match the 1985 chart.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.9.5-9",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "--std 85: +---9, -+++9, +(3)-(2)9 (fixed one sign, floating the other, and repeat-factor forms) COBOL1934 '+' and '-' mutually exclusive; ++++CR COBOL1934; $Z$9 COBOL1934 (two cs); ++9+ and $$9$$ (split floating strings) COBOL1935; every cs/+/-/Z/* floating pair refused (see -3 probes). One floating string with a fixed symbol stays legal: -$$$9 [   $1], $$$$+ [  $1+], $$$$CR [  $1  ], $$B$$9 [   $12], B$$9 [ $12]. Later-edition currency forms (CURRENCY \"EUR\", WITH PICTURE SYMBOL) refused at 85 so no second currency symbol can enter. cite.py: 'OK  §1985:VI.5.9.5 GR9  (5.9.5 Editing Rules)  the text is in GR9'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,98 @@
+{
+ "rule-id": "1989-AR-A.2.14.3-1",
+ "rule-digest": "2a350b019cd6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-167",
+  "sources": {
+   "reader": "509e48487795ec3912577b6c74daa6c42209bd2711676e42df3ac2c40812a80d",
+   "refuter": "675270f0bb4a549b69588b2b0ea9dd94ceeada1dbad64af2f13ff80a395329d0"
+  },
+  "imported": {
+   "reader": "9f40abe953f99fd872593f7565927c15fb8571d59a7d4712a854743b70254470",
+   "refuter": "89920cdf524442fefa6f5625af786a60ff9258167358cb533aaf403e8dfa88f8"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.14.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 argument-1 of FUNCTION FACTORIAL must be an integer argument (§1989:A.2.2 AR4: an arithmetic expression that always results in an integer): a non-numeric operand, a numeric item with decimal places, a non-integer literal, a numeric (not integer) function and a not-always-integral expression must be refused; the >= 0 half is a value constraint whose violation leaves the result undefined (§1989:A.1.2.2), so 0 and positive integers must evaluate.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 IntroducedIn/RemovedIn window: the function is available at 85 (IntroducedIn 85), so no refusal",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) for per-position predicates; the Uniform rows of COS/FACTORIAL/INTEGER-PART carry none, so the class screen is the same code at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f36_01 exercises only accepted forms (0, literals, item, integer expression); the refusals, nested functions and the largest value are probed here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/factbad.cob",
+    "printed": "COBOL1627 for PIC 9V9 item (digits right of the point), literal 2.5, FUNCTION SQRT (4) and FUNCTION COS (0) (numeric function in an integer position), PIC X item (class alphanumeric), WN / 2 (not always integral), numeric-edited item",
+    "expected": "each refused per §1989:A.2.2 AR4 and §1989:A.2.3 GR2"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/fnok2.cob",
+    "printed": "F(INT 2.5) 2 / F(LEN WX) 24 / F(WB*2-WN) 2 / F(ZERO) 1",
+    "expected": "accepted: integer functions INTEGER and LENGTH, an integer expression over COMP items, ZERO; 2!=2, 4!=24, 2!=2, 0!=1"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/fnok2.cob",
+    "printed": "F(19) 121645100408832000 / WN=F(WN-3)-WN 00",
+    "expected": "19! = 121645100408832000 in an 18-digit receiver; COMPUTE WN = FACTORIAL(WN - 3) - WN with WN=6 gives 3! - 6 = 0"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/factneg.cob",
+    "printed": "R=+000000000 / LIT R=+000000000",
+    "expected": "a negative argument violates the value constraint: the result is undefined (§1989:A.1.2.2); any result conforms"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.14.3 AR1",
+    "check": "OK  §1989:A.2.14.3 AR1  (2.14.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   },
+   {
+    "cite": "§1989:A.2.3 GR2",
+    "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
+   },
+   {
+    "cite": "§1989:A.1.2.2",
+    "check": "OK  §1989:A.1.2.2  (1.2.2 Value Returned by a Function)  the text is in the clause"
+   }
+  ],
+  "notes": "The 'i' kind screens class numeric plus IntegerViolation (non-integral item, literal, numeric function, provably non-integral quotient). A negative argument compiles and yields 0, which the text leaves undefined. Messages cite §2023 clauses at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.14.3-1",
+  "refutation": "OVERTURNED",
+  "classes": "b,d,f",
+  "evidence": "fact3.cob at --std 85, with WN PIC 9 VALUE 3 and WM PIC 9 VALUE 5. COMPUTE R = FUNCTION FACTORIAL (WN * 0.5), FUNCTION FACTORIAL (0.5 * WN) and FUNCTION FACTORIAL (WN * WM / 2) all compile clean. The program runs and prints 'WN*0.5 1', '0.5*WN 1' and 'WN*WM/2 5040'. Each argument (1.5, 1.5, 7.5) was silently truncated to an integer. The same compiler refuses FACTORIAL (WN / 2) (the reader's factbad), FACTORIAL (WN + 0.5) and FACTORIAL (WN ** 0.5) (fact1.cob, COBOL1627). So it enforces the 'always integral' requirement for a root quotient, an additive constant and a power, but fails open on a product with a non-integral literal and on a quotient below the root. At --std 2023 it does the same (fact3-002). fact2.cob confirms the accepted half is right: WP PIC 9PP / 25 gave 24, 2.0 gave 2, a signed integer item gave 24, 0.5 * 4 gave 2, FACTORIAL (INTEGER-PART (5.5)) gave 120 and WN ** 2 gave 362880. cite: OK  §1989:A.2.14.3 AR1  (2.14.3 Arguments)  the text is in AR1. OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4 ('An arithmetic expression which will always result in an integer value must be specified'). OK  §1989:A.1.2.2. The design (docs/INTRINSICS_DESIGN.md, PB1526) makes the screen fail-open on purpose and relies on run-time EC-ARGUMENT-FUNCTION. The 1989 module has no exception condition for that check to raise, and at --std 85 the truncation is silent. The project ruled the sibling shape (N ** 0.5 at --std 85, 1989-AR-A.2.2-4) OVERTURNED as under-rejects and fixed it in kb/Work PB5208. Its landing added only a power arm; the product shape is not in the design's recorded list of fail-open shapes.",
+  "edition-sites-missed": [],
+  "corrected": "Non-conforming, harm under-rejects, cause b (same at --std 2023). Repro: 01 WN PIC 9 VALUE 3. ... COMPUTE R = FUNCTION FACTORIAL (WN * 0.5). Expected: refused, because the argument does not always result in an integer value (§1989:A.2.2 AR4); the same compiler refuses WN / 2 at this position. Observed: it compiles and prints 1 (FACTORIAL of 1.5 truncated to 1). The mechanism is IntrinsicArgumentRules.NotAlwaysIntegral: it has no product witness arm (an item times a non-integral literal whose granularity the literal does not cancel), and its quotient arm fires only at the root. Known notes: PB5208 (landed; the power sibling) and PB1526 (landed; the 2023 run-time half). No open note covers the product shape."
+ }
+}

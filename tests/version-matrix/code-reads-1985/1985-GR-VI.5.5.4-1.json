@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-VI.5.5.4-1",
+ "rule-digest": "dc316850fcb1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-105",
+  "sources": {
+   "reader": "7a9965027fa8ac03da8da86a8e7e0dd4c809bb62cb704b42b9c66abe53006c8c",
+   "refuter": "730415957dd54d1805f677ff57a61db418ac6f2c3e310491da1b75365a6dcd2a"
+  },
+  "imported": {
+   "reader": "c65ca2faea761de3876c5678384ff9abd9a3b740de89fcc2ddeefdc0512c1c49",
+   "refuter": "0f93770dc9ad4591f70af1be71377f75370d64378a4e825f5a723215cf4f9180"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "A data description entry written with no data-name and no FILLER is a FILLER item in every respect, elementary or group, with REDEFINES, OCCURS or as a conditional variable, in the File, Working-Storage, Communication and Linkage Sections (INITIALIZE ignores it as an elementary FILLER, CORRESPONDING does not pair it, it cannot be referenced), while a 77 entry still needs a data-name; the witness covers unnamed elementary items in Working-Storage only.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#EntryNameObligation; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#entryNameHere",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#entryNameHere",
+    "switches": "whether a word at the head of an entry is the entry's name or the first clause of an unnamed entry, by the word's reserved status at the edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "BindEntry's isFiller (name null or FILLER) reads no edition; LevelNumberPass reads none.",
+  "behaviour-differs-by-edition": "yes: at 85 `05 NATIONAL PIC X(3)` and `05 BIT PIC X` name items NATIONAL and BIT (the words are not reserved); at 2023 the same entries are unnamed USAGE NATIONAL / BIT items and references to them are refused (COBOL0901)",
+  "witnesses-cover": "part: unnamed groups, unnamed REDEFINES, OCCURS and conditional-variable entries, unnamed 01 records in the File and Linkage Sections and the 77 refusal are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p55a.cob",
+    "printed": "G1I=[  CD0034] (unnamed group and FILLER group alike: their named leaves initialized, their unnamed leaves kept); G2I=[    QQQY] (unnamed REDEFINES, OCCURS and conditional-variable entries untouched); FN-T, G2Y=[WXYZQQQY] (88 on an unnamed item); G3=[AB..12] (MOVE CORRESPONDING pairs K1 and K2 only)",
+    "expected": "§1985:VI.6.17.4 GR3/GR4 and §1985:VI.6.4.3 GR1 and GR4 applied as for FILLER"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/r55_1.cob",
+    "printed": "COBOL1747 twice: level-number 77 on 'FILLER': the data-name ... shall be specified if level-number is 77",
+    "expected": "§1985:VI.5.2.1 requires a data-name in a 77 entry"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p55b.cob",
+    "printed": "R2=ABCD (unnamed 01 beside a named 01 in an FD; unnamed 01 in Linkage compiles)",
+    "expected": "unnamed records are FILLER records sharing the area"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p55c.cob",
+    "printed": "--std 85: G=XYZZ N=XYZ B=Z; --std 2023: COBOL0901 'NATIONAL' is a reserved word in COBOL-2023",
+    "expected": "at 85 the words are user words, so the entries are named"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.5.4 GR1",
+    "check": "OK  §1985:VI.5.5.4 GR1  (5.5.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.17.4 GR3",
+    "check": "OK  §1985:VI.6.17.4 GR3  (║6.17.4 General Rules║)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.4.3",
+    "check": "OK  §1985:VI.6.4.3  (║6.4.3 The CORRESPONDING Phrase║)  the text is in the clause; it lies in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.2.1",
+    "check": "OK  §1985:VI.5.2.1  (5.2.1 Noncontiguous Working Storage)  the text is in the clause"
+   }
+  ],
+  "notes": "The binder folds the omitted name and FILLER into one isFiller fact. Every later rule that excludes FILLER therefore sees an unnamed entry the same way. The edition shows up only in whether the head word of an entry is a name at all.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "u_QUEUE, u_SEGMENT, u_EGI and u_TERMINAL (class c reverse: words 85 reserves for the Communication and Segmentation modules) each draw COBOL0901 at 85, so a word reserved only in 85 does not begin an unnamed entry. u2 (u2-001): an unnamed 01 REDEFINES in Working-Storage and an unnamed 01 under CD FOR INPUT print AR=AB QN=QQQQQQQQQQQQ. u3: an unnamed 66 RENAMES draws COBOL1747. u4: unnamed records under FD IS GLOBAL and unnamed 01 EXTERNAL or GLOBAL Working-Storage entries each draw COBOL2404, as §1985:X.4.3.3 SR5 requires for an omitted name treated as FILLER. In the reader's p55a, the unnamed group and the FILLER group get the same CORRESPONDING treatment (§1985:VI.6.4.3 GR1: neither is a qualifier). cite.py: OK §1985:VI.5.5.4 GR1; OK §1985:X.4.3.3 SR5; OK §1985:VI.6.4.3 (it lies in GR1).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#ScreenFileRecordEntryNames: refuses unnamed records of an EXTERNAL/GLOBAL FD; reads no edition, and 85 has the same rule (X.4.3.3 SR5), so it is not an edition switch but a site on this rule's path the reader did not name"
+  ],
+  "corrected": ""
+ }
+}

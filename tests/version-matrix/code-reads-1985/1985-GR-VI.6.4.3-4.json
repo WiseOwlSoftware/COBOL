@@ -1,0 +1,96 @@
+{
+ "rule-id": "1985-GR-VI.6.4.3-4",
+ "rule-digest": "c86b4db25a41",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-116",
+  "sources": {
+   "reader": "801d4846124ac220b1bb6d8fe84b092470ef8cb2a20ab9c98f819dc3fc238061",
+   "refuter": "dfd9f2514c7aac4fd17adc5db6898145f3a8d752b7c419d5c6c57cb550382fda"
+  },
+  "imported": {
+   "reader": "74061b0de92852e2f650f245db92bd14e46d5324f9fb3f374abc79f187eed250",
+   "refuter": "6818442f50217b37d7d4d67eb09990e9067b565f2b3f748dfd261418d1875649"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.4.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for MOVE, ADD and SUBTRACT CORRESPONDING, an item subordinate to D1 or D2 that has a REDEFINES, RENAMES, OCCURS (fixed or DEPENDING ON) or USAGE IS INDEX clause, and every item subordinate to a REDEFINES/OCCURS/INDEX item, must take no part in pairing on either side; and a reference-modified D1 or D2 must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrEligible; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMembers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#RuleFiveExcludesSubordinates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsIndexMessageTagObjectOrPointer; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand",
+    "switches": "DialectLevel < 2002 adds the §1985:VI.6.4.3 GR3 level-66/USAGE INDEX operand refusal; the reference-modification refusal (this rule's last sentence) is the same code at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
+    "switches": "perPair = DialectLevel < 2002: group operands re-identified per pair (identification time, not the exclusion set)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition|DialectBehavior in CorrespondingBinder.cs and StatementValidation.cs; the exclusion predicates (CorrEligible, RuleFiveExcludesSubordinates) consult no edition.",
+  "behaviour-differs-by-edition": "no: the exclusion set and the ref-mod refusal are edition-independent; only operand identification timing (perPair) differs, which this rule does not govern.",
+  "witnesses-cover": "part: g85_bf04_05 covers ADD/SUBTRACT CORR with REDEFINES, OCCURS, INDEX and RENAMES items on the D1 side; l1c04/pb229 add D2-side REDEFINES groups and OCCURS. Not exercised by witnesses: MOVE CORRESPONDING exclusions, an OCCURS DEPENDING ON group in D1, a USAGE INDEX item on the D2 side, a subscripted D1/D2 table element, and the reference-modification refusal.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/corr4.cob",
+    "printed": "A1 A=101 C=100 D=100 F=100 W=100 (D2 REDEFINES C, D2 OCCURS D, F under D2 REDEFINES E, W under D1 ODO group, XI index on D2: all ignored)",
+    "expected": "only A pairs: 1+100=101; others stay 100"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/corr4.cob",
+    "printed": "A2 A=111 C=100 / A3 A=111 C=000 (subscripted D1 TG (2) and D2 TG (3))",
+    "expected": "D1/D2 themselves may be table elements; C OF G2 (REDEFINES) ignored both directions"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/corr4.cob",
+    "printed": "M1 A=AAA CR=--- T=--- F=FFF K=--- P=--- (MOVE CORR)",
+    "expected": "MOVE CORR ignores REDEFINES CR, OCCURS T, K under REDEFINES H, P under OCCURS M"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/corr4r.cob",
+    "printed": "COBOL1757 x4: ADD/SUBTRACT/MOVE CORRESPONDING operand 'G1(1:3)'/'G2(4:3)'/'G1(1:6)'/'G2(1:6)' is reference-modified",
+    "expected": "Neither D1 nor D2 may be reference modified: refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/g85_bf04_05.cob",
+    "printed": "EXPECT: MATCH; l1c04 MATCH; pb229 identical lines (the .out lacks a final newline, so run_case reports DIFFERS)",
+    "expected": "witness goldens"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.4.3 GR4",
+    "check": "OK  §1985:VI.6.4.3 GR4  (║6.4.3 The CORRESPONDING Phrase║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VI.6.4.3 GR3",
+    "check": "OK  §1985:VI.6.4.3 GR3  (║6.4.3 The CORRESPONDING Phrase║)  the text is in GR3"
+   }
+  ],
+  "notes": "CorrMembers never admits or descends into an OCCURS/REDEFINES/index item, and 66 entries never join Children, so every probed exclusion holds on both sides and for MOVE. The ref-mod refusal is correct at 85, but its message cites §2023:14.9.2.3 SR6 / §2023:14.9.25.3 SR12 instead of §1985:VI.6.4.3 GR4, a citation-only blemish. File organization class (e) does not apply.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.4.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "rc1.cob (rc1-002) at --std 85: a D2-subordinate GROUP written with USAGE INDEX (05 SG USAGE INDEX with 10 X1, 10 X2) against an elementary SG PIC X(8) in D1 is ignored by MOVE CORRESPONDING (X1=0003 X2=0004 kept after the move, 'M0 X1=0003 X2=0004'); group-vs-elementary namesakes pair for MOVE ('M1 HH=HHHH KK=11 LL=22') and not for ADD ('A1 KK=11 LL=22'). rc2.cob (rc2-001): a level-01 group written with USAGE INDEX as D1 or D2 of ADD/MOVE CORRESPONDING is refused COBOL1757 citing §1985:VI.6.4.3 GR3. Reader's corr4/corr4r cover REDEFINES/OCCURS/ODO/RENAMES/ref-mod. cite.py: 'OK  §1985:VI.6.4.3 GR4 ... the text is in GR4' for 'Neither D1 nor D2 may be reference modified'; 'OK  §1985:VI.6.4.3 GR3 ... the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

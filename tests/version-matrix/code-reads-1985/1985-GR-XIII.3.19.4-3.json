@@ -1,0 +1,76 @@
+{
+ "rule-id": "1985-GR-XIII.3.19.4-3",
+ "rule-digest": "5881410d70d2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-147",
+  "sources": {
+   "reader": "aff0e1385e6225d488e8b2cc3ec3c7c65b700c07c5563f8d9152780be230c482",
+   "refuter": "4339c344b8821e5c914117f89968167c481a2bb1a6773ab21ae3ce0d3e67c9b3"
+  },
+  "imported": {
+   "reader": "34b6dc9ca699dcd112525ccdcc18bfc605977e481cdc6c2b2f07233ef7493f42",
+   "refuter": "2b026399ab11088eca4f18e7f685b7ddb2780c9f6536c16a14370179c241164d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.19.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an elementary report entry whose SUM clause repeats the SUM phrase (SUM a UPON d1 SUM b UPON d2 ...) must establish exactly one sum counter, into which every phrase's addends accumulate under its own UPON filter, and the entry's data-name must name that one counter.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindSumClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumFamilyOf; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#SumAddition; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddSum; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddSumTerm; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumFamilyOf",
+    "switches": "SumCounterDigits(pic, Edition.DialectLevel): the counter's size by the 1985 GR1 table (18-digit alphanumeric cap) versus later editions; the size of the one counter, not how many",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportSumClause",
+    "switches": "the 2002 SUM forms refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf09_09 has one SUM phrase per entry; an entry with several SUM phrases is not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/sum1.cob",
+    "printed": "S-MUL (SUM W-A UPON DET1 SUM W-B UPON DET2) 21, 3, 4; S-X (SUM S-MUL S-MUL) 42",
+    "expected": "one counter: W-A=1 on DET1 plus W-B=20 on DET2 = 21; a crossfoot of the name reads that single counter (2*21)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/sum2.cob",
+    "printed": "COBOL1559 'writes its SUM clause in more than one piece' and COBOL2423 'the clause ... is written 2 times' for SUM W-A UPON DET1 COLUMN 11 SUM W-B UPON DET2",
+    "expected": "the §1985:XIII.3.9.2 Format 3 entry has one SUM clause slot, so a second SUM clause separated by another clause is not a legal form; the repeated phrase inside one clause is"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.19.4 GR3",
+    "check": "OK  §1985:XIII.3.19.4 GR3  (3.19.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "BindSumClause makes one ReportSumModel per entry with one ReportSumTerm per SUM phrase; the emitter registers one AddSum and an AddSumTerm per phrase, so the runtime holds one SumEntry. The diagnostics for a split clause cite §2023 at --std 85 (a wording point outside this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.19.4-3",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "sum3a-001: S-PH SUM W-A SUM W-A SUM W-B, three SUM phrases in one entry, accumulated into one counter (12, 24, 36). A Procedure Division DISPLAY S-PH by the entry's data-name after the first GENERATE read that one counter ('S-PH +012'), and a rolled SUM S-PH S-PH S-PH in CF FINAL read it as one addend (216). GR5 ('the data-name is the name of the sum counter') is honoured at 85 through an 85-only lookup arm the reader did not list (see edition-sites-missed). The reader's sum2 covered the refusal of a second SUM clause split by another clause. cite.py: 'OK  §1985:XIII.3.19.4 GR3  (3.19.4 General Rules)  the text is in GR3'; 'OK  §1985:XIII.3.19.4 GR5  (3.19.4 General Rules)  the text is in GR5'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85: DialectLevel < 2002 resolves a written reference to the one sum counter an entry establishes (an ambiguity diagnostic when two entries share the name); at 2002+ it returns null and the ordinary lookup answers"
+  ],
+  "corrected": ""
+ }
+}

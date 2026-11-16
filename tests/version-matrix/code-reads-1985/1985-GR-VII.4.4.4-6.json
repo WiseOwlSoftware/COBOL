@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-6",
+ "rule-digest": "2f2ec5fbbc12",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-124",
+  "sources": {
+   "reader": "1b2c7e83b49f8f430d6815a52c16da392fe89f68c56feb8dac7f732c3645b0b0",
+   "refuter": "061b37d3747cc55b61dd205c30467c93ca1ae687341aad6c80f84af078151f1f"
+  },
+  "imported": {
+   "reader": "d0ec90a480adecf3ae18195d1afbf2e3998e12fbe82f6924ddd78aeb6f49c521",
+   "refuter": "0e863b5480c2a43059ffef617d636b4c5ad0453e582c23219b22359e65822f56"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.4.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every record description of an FD is an implicit redefinition of one record area: after a READ each description sees the delivered characters (alphanumeric, numeric display, packed, sign separate, a record with OCCURS DEPENDING ON), a store through one description is seen through the others, and items past the current record are undefined.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#LinkImplicitRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsOutOfLineRecord; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceTable.cs#RecordArea; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordAreaStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitImageInto",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EnsureReaderCoherent",
+    "switches": "SharingFacilityInEffect off at 85 (reader re-anchoring), not the area sharing",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#LinkImplicitRecordArea",
+    "switches": "nothing: the implicit redefinition link is edition-free",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "LinkImplicitRecordArea, EmitRecordAreaStore, FileModel#IsOutOfLineRecord read; grep Edition|DialectLevel in FileControlBinder.FileSection.cs around the linker and in SequentialIoEmitter.cs",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f22_01 covers two equal-length alphanumeric/display descriptions; not exercised: an ODO record description, packed and sign-separate items, a record shorter than the area, variable-length file",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p4gr6c.cob",
+    "printed": "R1 00 04 RA=3ABC N=3 T=ABC / R1B RA=3AQC / R2 00 06 K=K P=-123 S=-45 W=-0168 / R3 00 03 RE3=XYZ RA=XYZ",
+    "expected": "the ODO record RB and RA alias both ways after READ and after a MOVE to RB-T(2); packed S9(3) and SIGN LEADING SEPARATE fields read back -123 and -45; a 3-char record is seen through RE3 and RA(1:3)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p4gr6b.cob",
+    "printed": "COBOL2010: record 'RB' describes 2 to 10 bytes, fewer than integer-2 = 3 (§1985:VII.3.8.3 SR2)",
+    "expected": "a description below the VARYING minimum is refused (SR2), the degenerate form"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VII.4.4@1985-READ-STATEMENT/g85_f22_01.cob",
+    "printed": "MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.4.4 GR6",
+    "check": "OK  §1985:VII.4.4.4 GR6  (4.4.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "One linker makes every record with a character window an implicit redefinition of the anchor; out-of-line records (dynamic-length, variable-length groups, pointer records) cannot occur in a 1985 program, and an ODO record is not out of line, which the aliasing probe confirms. The undefined part past a short record is not observable as a fault.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.4.4-6",
+  "refutation": "OVERTURNED",
+  "classes": "a,d",
+  "evidence": "r4min.cob (refute-1985-124/r4min-001, --std 85): FD F with 01 RA PIC X(4) followed by 01 RG. 05 RG-1 PIC 99. 05 RG-1X REDEFINES RG-1 PIC XX. 05 RG-2 PIC XX. and a READ then DISPLAY of RG-1, RG-1X, RG-2 fails in the backend: 'error: backend compilation failed (generated C# at r4min.g.cs): (101,143): error CS0103: The name 'RG' does not exist in the current context', exit 70. The generated access is RG._redef_RG_1 although RG is folded into RA's implicit-redefinition area (the same reference to RA reads _redef_RA). With RG written FIRST (r4min2-001) the same program runs: R1 00 RG-1=12 RG-1X=12 RG-2=AB, so only a record that is an implicit redefinition of the anchor AND holds an explicit REDEFINES breaks. Identical at --std 2023 (r4min-002), cause b. The larger probe r4gr6.cob (r4gr6-001) fails the same way; without the inner REDEFINES (r4gr6b-001) the other legs alias correctly both ways: elementary S9(5) display record RN=+12345, a 9(4) COMP record, an edited ZZ9.99 record, a JUSTIFIED RIGHT record and a level-66 RENAMES of a later record (RG-R=[AB12], MOVE to RG-R seen through RA). kb/Work searched for _redef_, CS0103 with record/REDEFINES: PB3166/PB203 are BIT-group REDEFINES (landed), PB1523 GLOBAL FD (landed); no note for this. cite.py: OK  §1985:VII.4.4.4 GR6 (4.4.4 General Rules) the text is in GR6.",
+  "edition-sites-missed": [],
+  "corrected": "PARTIAL (crashes, rejects-legal-source; cause b): any record description after the first of an FD that contains an explicit REDEFINES entry makes the generated C# fail to compile (CS0103 on the record's own name), at every edition. GR6 makes every record description an implicit redefinition of the one area, and a record description containing a REDEFINES is ordinary 1985 source (§1985:VI REDEFINES clause), so the implicit-redefinition linker (FileControlBinder.FileSection#LinkImplicitRecordArea) does not carry the nested REDEFINES backing of the folded record."
+ }
+}

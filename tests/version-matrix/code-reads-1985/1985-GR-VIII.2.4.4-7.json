@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VIII.2.4.4-7",
+ "rule-digest": "2f8750044459",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-130",
+  "sources": {
+   "reader": "82310cf41338ae9e7c482c179d67010eaf9e7e6d944aefbc8817fd8fb807316d",
+   "refuter": "3d556626bd58f455ba5b06e4a7e057b06372450d68af16a584207b701c1e7e2f"
+  },
+  "imported": {
+   "reader": "c487b019a2fa4afaeeb01f8a60b0e9b020626a01675e93b3a6d89b85466a0b9c",
+   "refuter": "f012507357e9f5399fe2347ca5cc69a781bd80eef92f2c81f6502d83eab98639"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.4.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every input-output statement on a relative file must use as its relative key the data item that file's own ACCESS MODE clause names (resolved with its qualification), never another file's key, even where several files share one physical file or the key lives in another file's record area.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#Rrn; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#SetPendingKey",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRelativeKeyClause",
+    "switches": "below 2002 the RELATIVE KEY must follow ACCESS MODE as its phrase",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel over FileControlBinder.Resolve.cs, PlaceTable.cs, KeyedIoEmitter.cs#Rrn: the per-file key association is edition-free.",
+  "behaviour-differs-by-edition": "yes: only where the clause may be written (a phrase of ACCESS MODE at 85); which item a statement uses is the same code at every edition",
+  "witnesses-cover": "part: the witness has two files with their own keys; it does not exercise three descriptions of one physical file, a qualified key, a key inside another file's record area, or START's KEY operand",
+  "probes": [
+   {
+    "class": "e,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/pkey.cob",
+    "printed": "RS3 00 0003 CCCC (START FS1 KEY IS = K1 with K1 OF KG) / ND3 00 0003 00CCCC (FD2's binary K2) / R3 00 00BBBB (FR3's key A-KEY is a field of FS1's record area)",
+    "expected": "each of the three descriptions of PKEYA.DAT reads by its own key item: matches"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/pkey_own.cob",
+    "printed": "COBOL0863: RELATIVE KEY 'R-K' shall not be defined within a record description of file 'RFL'",
+    "expected": "refused (§1985:VIII.2.4.3 SR3)"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/VIII.2.4@1985-ACCESS-MODE-CLAUSE/g85_bf30_01.cob",
+    "printed": "EXPECT: MATCH (NX=00 0003 F003 0001: READ NEXT of F leaves G's key KG at 0001)",
+    "expected": "its .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.4.4 GR7",
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.2.4.4 GR7\" \"the data item referenced by data-name-1 in the ACCESS MODE clause\" -> OK  §1985:VIII.2.4.4 GR7  (2.4.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VIII.2.4.3 SR2",
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.2.4.3 SR2\" \"must reference an unsigned integer data item whose description does not contain the PICTURE symbol\" -> OK  §1985:VIII.2.4.3 SR2  (2.4.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "FileModel.RelativeKeyItem is resolved once per file (qualifiers kept) and every keyed emitter asks PlaceTable.RelativeKeyOf(file), so no statement can reach another file's key. Probes with three descriptions of one physical file and a key in another file's record area agree.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.4.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "keyglob_a.cob / keyglob_b.cob: a contained program that declares its own 01 RK executes READ and READ NEXT on the container's GLOBAL dynamic file: the random READ uses the container's RK (5 -> GG05, local RK untouched), READ NEXT stores 5 into the container's RK (M1 005) and not the local one. keyglob.cob: START ... KEY IS NOT LESS THAN RK with the contained program's local RK refused COBOL0862 (§1985:VIII.4.7.3 SR4). keyalias.cob: two same-named KA items, the file uses KA OF GA only. fd_ext.cob: external file with external key used from two programs. cite.py: OK §1985:VIII.2.4.4 GR7; OK §1985:VIII.4.7.3 SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

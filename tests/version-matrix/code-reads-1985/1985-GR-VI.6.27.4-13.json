@@ -1,0 +1,119 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-13",
+ "rule-digest": "e8acba7d019b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-019",
+  "sources": {
+   "reader": "cac08827760b8caaf05d2d24cc3ecb7e6585b892b5d4949fa57ccdb12c87e9e7",
+   "refuter": "915b665368ad697fd9e06b3a65595021e012c10acde06b17ad688f066fd6a0e9"
+  },
+  "imported": {
+   "reader": "4620083d2b7da450669cab484cd03fa5dce7e7170dbaf1f482f366c6f1b4e42e",
+   "refuter": "8d9b9d4e161e9879190d088d29d40d85535ca9f8c22e466316fabe696136b896"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "p13 and p13b print identical output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-VI.6.27.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "Starting at identifier-7's position (or 1), each receiving area in turn takes the characters up to the first matching delimiter (earliest position, first-listed on a tie), or with no DELIMITED BY size-of-receiver characters (one less for a SEPARATE sign), or up to the end of identifier-1; they are MOVEd as an alphanumeric item into the area, the delimiter into identifier-5 (spaces at end of sender), the count excluding delimiters into identifier-6, and examination resumes after the delimiter until the sender is exhausted or the areas run out.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringSkipRun; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#ExaminationSize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#ConceptualCharacterItem",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
+    "switches": "at --std 85 refuses a reference-modified identifier-1 (SR7, COBOL0900); 2002+ admit it",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped StringUnstringBinder.cs, StringEmitter.cs, ReceivingStore.cs, CobolStringOps.cs and EcEmitter.cs#EmitOverflow for Edition|CobolVersion|Std|Dialect|Construct|ReservedWord: StringEmitter, ReceivingStore and CobolStringOps have none; the binder's ctx.Edition uses are the diagnostic sink only (BoundRejected.Report / BoundOperandError.Report -> edition.Error), no switch; EcEmitter#EmitOverflow reads the >>TURN checking state, not the edition. Grepped VersionConformancePass.cs for UNSTRING: only VisitUnstringStatement (SR7 sender ref-mod) and VisitConditionalPhrases (phrase order). The transfer itself (emitter, runtime kernel, examination size, conceptual-item MOVE) consults no edition: 85 runs the 2023 code.",
+  "behaviour-differs-by-edition": "no for the transfer; the only 85 arm on the path is the SR7 refusal of a reference-modified sender, which 2002 deleted",
+  "witnesses-cover": "part: the witness covers ref-mod receivers, a SEPARATE sign, numeric zero-fill, JUSTIFIED, DELIMITER IN at end of sender and a group receiver; it does not exercise ALL delimiters, OR-lists with a tie, identifier delimiters, a mid-field POINTER start, an ODO group sender, scaled or alphabetic receivers, or a subscript the statement changes",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p13.cob",
+    "printed": "A [AB ][* ]02 [CD ][* ]02 [EFG][* ]04 P=13 T=03 / A NOOVF",
+    "expected": "ALL '*' run treated as one, one '*' to DELIMITER IN (GR8, 13d), COUNT IN excludes delimiters (13e), truncating MOVE into R3"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p13.cob",
+    "printed": "B [D  ][EFG] P=13 T=02; H [C  ] P=13; D [05X][12 ] (OD is an ODO group '05XYZ12')",
+    "expected": "13a start at the pointer; end of sender ends the examination (13b); ODO group examined at its current size"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p13.cob",
+    "printed": "C OVF / C 123+ 56.0 [789A]",
+    "expected": "no DELIMITED: S9(3) SIGN SEPARATE examines 3 (13b one less); 9(2)V9 examines 3 and MOVE '456' as an integer gives 56.0; A(4) gets 789A; 'BC' unexamined gives overflow"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p13.cob",
+    "printed": "E I=1 [3  ][   ][   ]",
+    "expected": "INTO I SB(I) SB(I): subscripts evaluated once before examination (1985 Appendix substantive change 34), so both SB(I) are SB(1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p13.cob",
+    "printed": "F [A  ][B  ][C  ]; G [A  ][   ][B  ]",
+    "expected": "figurative SPACE is one character (GR8); without ALL two contiguous delimiters space-fill (GR9)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p13b.cob",
+    "printed": "M [AB ][<>][CD<][  ]; N [AB ][CD ][   ]; L 123456789012345678 [90 ]",
+    "expected": "two-character identifier delimiter; end-of-sender DELIMITER IN is spaces; ALL DL OR '<' tie at one position goes to the first listed (GR12); 9(18) receiver takes 18 characters"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/xrefmod.cob",
+    "printed": "error COBOL0900: a reference-modified UNSTRING sending operand requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "SR7 refuses a reference-modified identifier-1 at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/xcomp.cob, xp.cob, xd5.cob, xnodel.cob, xnum.cob",
+    "printed": "COBOL1626 (COMP and 9PP receivers); COBOL1651 (numeric DELIMITER IN, DELIMITER IN without DELIMITED BY, numeric literal delimiter)",
+    "expected": "SR1, SR2, SR3, SR6 refusals"
+   },
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/14.9.48-UNSTRING/pb979_unstring_receiver_size.cob",
+    "printed": "matches its .out at --std 85 (RM1..GRP)",
+    "expected": "the witness's derivation"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR13",
+    "check": "OK  §1985:VI.6.27.4 GR13  (║6.27.4 General Rules║)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:VI.6.27.4 GR13b",
+    "check": "OK  §1985:VI.6.27.4 GR13b  (║6.27.4 General Rules║)  the text is in GR13b"
+   },
+   {
+    "cite": "§1985:VI.6.27.4 GR9",
+    "check": "OK  §1985:VI.6.27.4 GR9  (║6.27.4 General Rules║)  the text is in GR9"
+   }
+  ],
+  "notes": "The whole transfer is the edition-invariant 2023 path; every probe at --std 85 printed the value derived from the 1985 text, and p13 and p13b print identical output at --std 2023. Diagnostics at --std 85 cite only §2023 clauses (cosmetic, not this rule)."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-13",
+  "refutation": "OVERTURNED",
+  "classes": "a,c,d,f",
+  "evidence": "r5.cob at --std 85: 01 NO2 PIC 9 VALUE 2. 01 OH. 05 OY PIC X OCCURS 1 TO 5 DEPENDING ON NO2 (object OUTSIDE the group); UNSTRING S INTO OH WITH POINTER P over '3ABCDEFGHI' prints 'A P=06 [3A***]': five characters examined (the group's maximum), two stored; a MOVE S TO OH at the same state stores two ('M [3A***]'). r4.cob: 'UNSTRING S INTO OH R1' gives R1=[EFG] where the text gives [BCD]. Same at --std 2023. Cause: ReceivingStore#CharacterPositions answers a group with its static ImageWidth (the maximum), never the ODO current size. Object INSIDE the group (r4 A: P/R1 show 6 examined, ON1=3) is right by GR3b's maximum length. Everything else held: identifier delimiter with trailing space (r1 A), ALL trailing run exhausting the sender, untouched later areas, no overflow (r1 B, r3 A vs B), pointer starting inside a 2-char delimiter (r1 D), partial delimiter at end (r1 E), numeric receiver truncation 12345->345, zero-fill on contiguous delimiters, JUSTIFIED, QUOTE/ZERO/ALL ZEROS figuratives (r1 F,G,H), function-identifier sender and delimiter (r2 D), subscripted delimiter C(PTR) and SB(PTR) evaluated once (r2 E), group/alphabetic receivers (r2 F), LEADING SEPARATE examines 3 (r3 E). cite.py: OK §1985:VI.6.27.4 GR13b 'the number of characters examined is equal to the size of the current receiving area'; OK §1985:VI.5.8.4 GR3a 'only that part of the table area that is specified by the value of the data item referenced by data-name-1 at the start of the operation will be used'; OK §1985:VI.5.8.4 GR3b; OK §1985:VI.6.27.4 GR13c; OK §1985:VI.6.27.4 GR11; OK §1985:VI.6.27.4 GR13g. kb/Work: PB979 fixed ANY LENGTH and ref-mod receivers' examined size, not an ODO group's; no note found for this.",
+  "edition-sites-missed": [],
+  "corrected": "WRONG-ANSWER, cause (b) (the same at --std 2023). Without DELIMITED BY, a group receiver whose ODO object lies outside it must be examined at its CURRENT size (GR13b with VI.5.8.4 GR3a); ReceivingStore#ExaminationSize -> CharacterPositions uses the group's maximum ImageWidth, so it consumes extra sender characters (pointer 6 not 3; the next receiver gets EFG not BCD). Repro: r5.cob / r4.cob in this scratch directory."
+ }
+}

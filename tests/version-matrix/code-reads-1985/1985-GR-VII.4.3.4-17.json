@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-17",
+ "rule-digest": "2dd0d296e8c9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-122",
+  "sources": {
+   "reader": "e080077ceb22eb3ac6c92be5015810d857cc8d3cf6a696bc9fa190575cf5ea16",
+   "refuter": "e0d8f312c8a0bd9394cb49e16d45a1cd9d915e81877ed8cb4981c381cd08e34a"
+  },
+  "imported": {
+   "reader": "33b151ca4ebe315532d2c620774b86c343b5f567b00f38ebe63ffbc48441ebc4",
+   "refuter": "df0d81de9ac9517e7d822161e184aab6b9c1ba5652ca8a07ee33d5696af27b46"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.3.4-17",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 OPEN I-O must refuse a file that cannot support sequential I-O-mode operations (status 37, VII.1.3.5 3d2). A successful OPEN I-O must allow both READ and REWRITE: WRITE is refused 48, REWRITE with no preceding READ is 43, and a REWRITE of a RECORD VARYING record to a different size is 44.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#PermitsWrite; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenReader; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#PermissionDenied",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered",
+    "switches": "SharingFacilityInEffect picks '61' (2002+) or '30' (85) for a host sharing refusal; the GR16/GR17 write-capability '37' is the same at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "Table 19 arbitration, skipped at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "HostFile.PermitsWrite and the IO arm of SequentialConnector.OpenCore read no edition; grep for Edition and DialectBehavior in FileSupport.cs found none",
+  "behaviour-differs-by-edition": "no: for this rule the I-O open's capability test and its READ and REWRITE mode are the same code at 85 and 2023",
+  "witnesses-cover": "part: g85_f19_01 covers OPEN I-O then READ and REWRITE on a fixed file; it does not cover the 37 refusal of a read-only file, WRITE in I-O mode (48), REWRITE without READ (43), RECORD VARYING REWRITE sizes (44), or a READ after the failed OPEN I-O",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p17a.cob",
+    "printed": "IO-OPEN=00 / IO-WRITE=48 / IO-READ=00 AAAAAA / IO-REWRITE=00 / IO-REWRITE2=43 / IO-ATEND 10 / Q A2A2A2 / Q BBBBBB / IN-REWRITE=49 / V-REW-SAME=00 / RO-IO=37 / RO-READ-AFTER-FAIL=47 / RO-IN=00 / RO RORORO",
+    "expected": "I-O open 00, WRITE 48, READ and REWRITE 00, the second REWRITE 43, REWRITE in input mode 49; a read-only physical file (attrib +R, passed with --with) gives 37 for I-O, then 47 for a READ, while INPUT opens it 00"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p17b.cob",
+    "printed": "V-REW-DIFF=44 / V-NEXT=04 DEFG 00 / V-REW-SAME=00 / V 03 ABC / V 04 WXYZ",
+    "expected": "a RECORD VARYING REWRITE of a different size is 44 (VII.1.3.5 4d2) and leaves the record; one of the same size replaces it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.4 GR17",
+    "check": "OK  §1985:VII.4.3.4 GR17  (4.3.4 General Rules)  the text is in GR17"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.3d.2"
+   }
+  ],
+  "notes": "The write-capability question is asked once above the organizations: FileConnector.OpenOnceEntered calls HostFile.PermitsWrite for a present file in any mode but INPUT and answers '37'. The I-O arm opens a ReadWrite reader, so READ and REWRITE share one stream. The probe's read-only file was copied into the run directory with its read-only attribute kept.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.3.4-17",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,e",
+  "evidence": "r17c.cob at --std 85: FD FL LINAGE IS 5 LINES (a level-2 SEQ form of 1985), OPEN OUTPUT, WRITE 'LIN001' and 'LIN002', CLOSE, OPEN I-O FL printed L-IO=00, then READ printed L-READ=00 '\\r\\nLIN0' (not LIN001), REWRITE 'REW001' printed L-REW=00, and a later OPEN INPUT read L-R1=00 REW001 / L-R2=00 '01\\r\\nLI'. od -c of the file after: 'REW0010 1\\r\\nLIN002\\r\\n' - the REWRITE overwrote the first line end and half of record 1, corrupting the file. Same bytes at --std 2023 (r17c-002). The mechanism: SequentialConnector.SelectLineEnd / IsRecordPrintStream make a LINAGE file (and any file written with ADVANCING) a text print stream (DOC-A.1-146 (c'); kb/Work PB1190 landing: 'a print file is written, not re-read as framed records'), while the I-O arm of OpenCore opens it as a fixed-record ReadWrite file with no test of that shape. r14d.cob shows the same for a non-LINAGE file written AFTER ADVANCING: IO-OPEN=00, IO-1=00 '[\\nADV00]', REWRITE 00, file now 'REW0011\\nADV002\\n'. GR17 requires that OPEN I-O 'must reference a file that supports the input and output operations that are permitted for a sequential file when opened in the I-O mode' and places it in open mode for both; VII.1.3.5 3d2 gives 37 for a file that does not. The implementation does neither: it admits OPEN I-O (00) on a medium whose READ does not deliver the written record and whose REWRITE does not replace it. The reader's probes used only plain fixed and RECORD VARYING files, never a LINAGE or ADVANCING-written file. kb/Work search (LINAGE/print with READ/I-O/REWRITE/read back): no note files this; PB1190 only asserts print files are not re-read. cite.py: OK §1985:VII.4.3.4 GR17 (the text is in GR17); OK §1985:VII.1.3.5 (GRL2.3d.2); OK §1985:VII.1.3.5 (GRL2.3d.3). Doubt stated: the READ misread is also visible on OPEN INPUT, so the root may be filed against READ / the print-stream representation; the GR17 failure is that OPEN I-O succeeds and REWRITE corrupts the file.",
+  "edition-sites-missed": [],
+  "corrected": "PARTIAL (harm wrong-answer, data corruption; cause b, same at --std 2023): OPEN I-O of a sequential file with a LINAGE clause, or one written with an ADVANCING phrase, returns 00 although the implementation's text print stream cannot support sequential I-O-mode READ and REWRITE; READ delivers bytes that straddle line ends and REWRITE overwrites them. Either the open must be refused 37 (VII.1.3.5 3d2) for a print-stream medium, or READ and REWRITE must work by line. Repro: r17c.cob / r14d.cob under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-122/."
+ }
+}

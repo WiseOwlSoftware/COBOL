@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-SR-VII.4.6.3-1",
+ "rule-digest": "8d997c87799f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-063",
+  "sources": {
+   "reader": "744802b4a1638c5c431fb1f76c34b64e12b58abc808032548c8227e0f0587f59",
+   "refuter": "d5e9c43dcd3ea7e29f71d48982b13f6c75fb4801c66b52167ec1743c03a77248"
+  },
+  "imported": {
+   "reader": "4524fa25549bc1a76cb0c4ddd34e1c8a354d0c66d4b26d5fd3310ac96d933659",
+   "refuter": "d4b48d5257f6433c180b97feac9748b3810e782dccafb4b3230e5fd3bd3ba742"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.6.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a USE statement must be refused unless it is the whole first sentence directly after a declarative section header (a USE in a nondeclarative paragraph, in a declarative paragraph, after a section's first sentence, or sharing its sentence with another statement is refused, and a declarative section that does not open with a USE sentence is refused), and the rest of the section must be named paragraphs only: sentences after the USE sentence without a paragraph-name are refused at 85 (IV.6.4.1.4.2 Format 1, IV.6.4.1.2's paragraph definition); zero paragraphs and a segment-number on the header are legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeclarativeSection; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLeadingSentences",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLeadingSentences (from VisitDeclarativeSection, construct procedure-without-leading-paragraph-2002)",
+    "switches": "sentences after the USE sentence with no paragraph-name: refused below 2002 (COBOL0900, 2002 Annex F.2 item 90), admitted as an anonymous paragraph from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection (use.DEBUGGING() arm)",
+    "switches": "USE FOR DEBUGGING handled as the 1985 debug facility; not the Sequential I-O USE this rule covers",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read DeclCollectSection and the USE arm of BindStatementCore (no edition test on the placement checks themselves); found the 85 gate on post-USE sentences by probing (COBOL0900) and grepping its message to VersionConformancePass.",
+  "behaviour-differs-by-edition": "yes: unnamed sentences after the USE sentence are refused at 85 and admitted at 2023 (use_anon.cob runs at --std 2023), which matches each edition's own format; the placement refusals are identical",
+  "witnesses-cover": "part: pb361-use-outside-declaratives covers only a USE in a nondeclarative paragraph; USE sharing a sentence, a section without USE, USE after the first sentence, USE in a declarative paragraph, and unnamed post-USE sentences are the probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/use_bad.cob",
+    "printed": "COBOL0897 D1 (USE ... DISPLAY \"X\" in one sentence) and D2 (no USE): 'the first sentence shall consist of a single USE statement'; COBOL2377 at (29,12) 'inside a declarative section, after its first sentence'; COBOL2377 at (34,12) 'in the nondeclarative portion'",
+    "expected": "all four refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/use_anon.cob",
+    "printed": "--std 85: COBOL0900 'sentences before the first paragraph-name ... requires COBOL-2002 ... declarative section D1'; --std 2023: runs, 'UNNAMED SENTENCE AFTER USE 35 / AFTER OPEN 35'",
+    "expected": "85: refused (remainder of the section must be procedural paragraphs); 2023 behaviour is its own edition's"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/use_ok.cob",
+    "printed": "D1-P1 35 / D1-P2 / AFTER OPEN F1 35 / AFTER OPEN F2 35 (a zero-paragraph section with segment-number 5, and a two-paragraph section, both run after the failed OPEN INPUT of a missing file)",
+    "expected": "accepted; the USE procedure runs after the failed OPEN and control returns"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/use_inpara.cob",
+    "printed": "COBOL0897 for section D1 (header followed by paragraph D1-HDR holding the USE) and COBOL2377 '... this one is in the nondeclarative portion of the procedure division' (same at --std 2023)",
+    "expected": "refused (correct); the second message's location clause is false: the USE is in the declaratives portion"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.6.3 SR1",
+    "check": "OK  §1985:VII.4.6.3 SR1  (4.6.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.6.4.1.2",
+    "check": "OK  §1985:IV.6.4.1.2  (6.4.1.2 Procedures)  the text is in the clause"
+   }
+  ],
+  "notes": "Every placement violation is refused at 85, and the 85-only refusal of unnamed sentences after the USE comes from the version-conformance gate. LEAD (diagnostic only): when a declarative section's first sentence is not a USE, a USE later in its paragraph is described as 'in the nondeclarative portion' because EnclosingContext.InDeclarative reads the BoundDeclarative, which that section never gets (StatementBinder.cs#BindStatementCore USE arm; same at 2023). Diagnostics cite ISO §2023 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same placement refusals; unnamed post-USE sentences admitted",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "PB361 (landed; does not cover the misleading location clause)"
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.6.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "refute-1985-063/use_r1.cob --std 85: two USE statements in one first sentence refused COBOL0897; use_r2.cob: a USE directly after DECLARATIVES with no section header refused (COBOL5506 syntax); use_r3.cob: a USE as the first sentence of a nondeclarative section refused COBOL2377 'in the nondeclarative portion' plus the 85 COBOL0900 for the unnamed sentence. With the reader's probes every placement violation is refused and the legal forms run. cite.py: OK §1985:VII.4.6.3 SR1 'must immediately follow a section header in the declaratives portion'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

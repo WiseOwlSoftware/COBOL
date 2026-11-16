@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-XIII.2.3.4-2",
+ "rule-digest": "ed605827b234",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-144",
+  "sources": {
+   "reader": "72264e88926b78dc3b8e0e2892ca0fd3d164afe74e3222cf08a546e41fb1f8d5",
+   "refuter": "152cfc7a214db13ef4263492ec5fde59da5bf728b175ca0fe9b29372aa999b5e"
+  },
+  "imported": {
+   "reader": "403cc6a9a3cae2b8d0e4e4bbb73b32fff0526be1934e90febd897c21e56fd3e5",
+   "refuter": "7bc5694e8c20e4249ab6fe7c0448702703c7f80f4e5134d2f9e6c69b8acc6413"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.2.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the OPTIONAL phrase of a report file's SELECT has effect only on OPEN EXTEND: an absent OPTIONAL report file opened EXTEND is created with status 05, a present one is extended with 00, an absent non-optional one fails with 35; OPEN OUTPUT is unaffected by OPTIONAL (00, file created or replaced).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility by Edition: Table 19 sharing arbitration, off at 85; does not touch the OPTIONAL/EXTEND arms",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior in SequentialConnector.cs (no match) and FileConnector.cs (Edition property, SharingFacilityInEffect only); FileControlBinder sets FileModel.Optional from grp.OPTIONAL() with no edition test; VersionConformancePass OPTIONAL() checks are the formal-parameter phrase only.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf19_04 covers absent OPTIONAL EXTEND (05), reopen (00), absent OPTIONAL OUTPUT (00), absent non-optional EXTEND (35); not exercised: a present OPTIONAL file extended (content kept and appended), OUTPUT of a present OPTIONAL file (replaced), the statement after the failed OPEN",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c3opt.cob",
+    "printed": "R1 EXTEND PRESENT 00; R1 CLOSE 00; R3 OUTPUT PRESENT 00; R2 ERR 35; AFTER R2 35; R2 ERR 42; AFTER CLOSE R2 42; PRE.DAT = PRE1,EX01; OLD.DAT = NEW1; MISS.DAT not created (same at --std 2023)",
+    "expected": "present OPTIONAL EXTEND: normal open 00, records appended; OUTPUT: OPTIONAL has no effect, file replaced; absent non-optional EXTEND: 35, file not created; CLOSE of the file not open: 42"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XIII.2.3@1985-FILE-CONTROL-ENTRY/g85_bf19_04.cob",
+    "printed": "RPT OPEN EXTEND 05 / RPT EXTEND REOPEN 00 / RPT OPEN OUTPUT 00 / REQ OPEN EXTEND 35 (MATCH)",
+    "expected": "as the witness derives from §1985:XIII.2.3.4 GR2 and the OPEN table"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.2.3.4 GR2",
+    "check": "OK  §1985:XIII.2.3.4 GR2  (2.3.4 General Rules**)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XIII.2.3.4 GR4",
+    "check": "OK  §1985:XIII.2.3.4 GR4  (2.3.4 General Rules**)  the text is in GR4"
+   }
+  ],
+  "notes": "A report file is a sequential connector; SequentialConnector.OpenCore's Extend arm returns 35 for an absent non-optional file, creates an absent optional file and returns 05, and appends to a present one; the Output arm ignores IsOptional. No edition switch on the path; the OPEN-after-failure CLOSE giving 42 is the same at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.2.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "run_probe --std 85 r3abs.cob (runs/r3abs-001): an ABSENT OPTIONAL report file opened EXTEND gives 05, is created and receives the report's line (AB01), CLOSE 00, a second OPEN EXTEND gives 00 and appends (two records read back); an absent OPTIONAL report file with no FILE STATUS and no declarative continues after OPEN EXTEND and its file holds AB04. r3inp.cob --compile-only (runs/r3inp-001): OPEN INPUT and OPEN I-O of an OPTIONAL report file refused COBOL2371 (the only modes left to OPTIONAL are excluded). The reader covered present EXTEND (00), OUTPUT replace, absent non-optional EXTEND 35. cite.py: OK §1985:XIII.2.3.4 GR2 the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

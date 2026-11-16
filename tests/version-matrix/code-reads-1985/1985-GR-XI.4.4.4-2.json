@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-2",
+ "rule-digest": "56e68c494f33",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-143",
+  "sources": {
+   "reader": "d6f5754ea6b503f937777c5361bf6adaf6363a918b1fb3366588b677ebe2604f",
+   "refuter": "fa1600c9e0ab9c13be7e4cc4a4eb952e187c8956152dfb8fbf2c3150a943f909"
+  },
+  "imported": {
+   "reader": "5a6082d9e16fe2b2147b4204c10181a538a79bad119417e187d419205bcd4e88",
+   "refuter": "50dad40b163005a547cf3ccdf31989b4eeeef447ebfb1b9f52993d3a504fe59c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.4.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a file SORT must order records by the KEY data-names taken left to right as decreasing significance regardless of how they are split into KEY phrases, ascending or descending per phrase, each key compared by the 1985 relation-condition rules: numeric keys (DISPLAY, SIGN SEPARATE, COMPUTATIONAL/BINARY, PACKED-DECIMAL, P-scaled) algebraically, nonnumeric keys (alphanumeric, numeric-edited, group) as character strings; a key described in only one of several record descriptions applies to every record; the edition has only the file format (no table SORT) and requires key data-names.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindSort; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortAddFileKeys; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#SortKeyColumns; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#Compare; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortStatement",
+    "switches": "construct table-sort-2002 (COBOL0870): a SORT with no USING/INPUT/GIVING/OUTPUT phrase (the Format 2 table sort) is refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Key binding and comparison (SortAddFileKeys, SortKeyColumns.Compare) read no edition: grep 'Edition|CobolVersion|Dialect' over SortKeyColumns.cs and SortEmitter.cs found nothing; SortBinder's ctx.Edition uses on this path are diagnostic sinks only. The edition arm is the Format 2 gate.",
+  "behaviour-differs-by-edition": "no for file-SORT key ordering; yes for the statement's range: the table SORT (the SortBindTable/EmitTableSort seeds) is refused at 85 and accepted at 2023",
+  "witnesses-cover": "part: g85_f27_04 covers alphanumeric and signed DISPLAY keys through input/output procedures; not exercised are COMPUTATIONAL, PACKED-DECIMAL, SIGN LEADING SEPARATE and P-scaled numeric keys, a numeric-edited key (nonnumeric comparison), a key from a second record description (SR4d), and the USING/GIVING paths",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/key1.cob",
+    "printed": "S1 2314 / S2 2413 / S3 3142 / S4 2143 / S5 4213 / S6 4321 / S8 1342 / S7 4213 / SG 1234",
+    "expected": "S1 COMP asc -20,0,5,100 = 2314; S2 PACKED-DECIMAL desc 2.0,0.1,-1.5,-9.9 = 2413; S3 SIGN LEADING SEPARATE asc -10,-3,0,7 = 3142; S4 9PP asc 0,100,200,300 = 2143; S5 numeric-edited ZZ9- compared as characters '  0 ','  3 ','  7-',' 12 ' = 4213 (algebraic would be 1423); S6 key of the second 01 desc = 4321; S7 GIVING asc K-A desc K-B = 4213; S8 USING, one phrase desc K-A K-B = 1342; SG USING/GIVING asc id = 1234"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/key2.cob",
+    "printed": "--std 85: error COBOL0870: SORT of a table (Format 2) requires COBOL-2002 (targeting COBOL-85); --std 2023: compiles",
+    "expected": "the 1985 SORT format has file-name-1 only"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/key3.cob",
+    "printed": "error COBOL1757: SORT/MERGE key phrase without data-name-1 (85 and 2023)",
+    "expected": "§1985:XI.4.4.2 prints KEY {data-name-1} ...: a key phrase needs a data-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/key4.cob",
+    "printed": "error COBOL1757: SORT of file 'SF' requires at least one ASCENDING/DESCENDING KEY phrase (85 and 2023)",
+    "expected": "the KEY phrase is braced with an ellipsis in §1985:XI.4.4.2"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.4 GR2",
+    "check": "OK  §1985:XI.4.4.4 GR2  (4.4.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XI.4.4.4 GR2a",
+    "check": "OK  §1985:XI.4.4.4 GR2a  (4.4.4 General Rules)  the text is in GR2a"
+   },
+   {
+    "cite": "§1985:XI.4.4.4 GR2b",
+    "check": "OK  §1985:XI.4.4.4 GR2b  (4.4.4 General Rules)  the text is in GR2b"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR4d",
+    "check": "OK  §1985:XI.4.4.3 SR4d  (4.4.3 Syntax Rules)  the text is in SR4d"
+   }
+  ],
+  "notes": "SortKeyColumns.Compare walks the keys most significant first and negates for DESCENDING; numeric keys go to decoded numeric lanes (algebraic), character keys to slices under the class's sequence. Witness g85_f27_04 MATCHes at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.4.4-2",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "sk1.cob (runs/sk1-001, --std 85) sorts key classes the reader did not try, each through input/output procedures: S9(3) trailing embedded sign asc {5,-7,0,-123} -> 4231; S9(3) SIGN LEADING (embedded) desc {-1,9,-50,2} -> 2413; PP9 asc {.009,.001,.005,.003} -> 2431; S9(4) COMP desc with negatives {-1,-300,300,0} -> 3412; alphabetic A(3) asc -> 2413; S99V9 SIGN TRAILING SEPARATE asc {-0.5,12.3,-12.3,0.1} -> 3142; SVPP9 signed asc {-.009,.002,-.001,.007} -> 1324. All are algebraic or character order as a relation condition gives. cite.py 'OK  §1985:XI.4.4.4 GR2a  (4.4.4 General Rules)  the text is in GR2a'. No edition read in SortKeyColumns.cs or SortEmitter.cs (grep).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

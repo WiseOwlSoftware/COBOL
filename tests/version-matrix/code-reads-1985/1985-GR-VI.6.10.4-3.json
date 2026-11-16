@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-VI.6.10.4-3",
+ "rule-digest": "b2f7be3db837",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-015",
+  "sources": {
+   "reader": "f1c2b03e7ee836ba38eee57b1584c5183bc99b1fba76cbf45b4b29ef90f5779e",
+   "refuter": "73835129bd9bc151e31048c04eb9c7b08ea0c2ae20226c831c9bfab1418a22ed"
+  },
+  "imported": {
+   "reader": "4cc332a8ccf6936997138bd82a8838b2a570e37311e16c954b68a25a77d7d661",
+   "refuter": "745d38e6ca0f70a3a064720ddb62e8e7265991e7120b50888f0582487e7c48f0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.10.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 a figurative constant written as a DISPLAY operand (ZERO/ZEROS/ZEROES, SPACE/SPACES, HIGH-VALUE(S), LOW-VALUE(S), QUOTE(S), each with or without the redundant ALL, a symbolic-character with or without ALL) must be transferred as ONE occurrence, i.e. one character, and ALL literal as the literal once (IV-11 rules 2 and 3), wherever it stands in the operand list.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplay; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#SymbolicOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsDeviceString; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDisplayStatement",
+    "switches": "END-DISPLAY (EndDisplay2002) and a signed or fractional numeric literal operand (DisplayNumericLiteral2002) are refused at 85; neither touches a figurative operand",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#FoldAllLiteral",
+    "switches": "ResultLengthViolation(folded, edition.DialectLevel) on the folded literal-1 of ALL; the X\"..\", N\"..\" and & forms of literal-1 are refused at 85 by their COBOL-2002 introduction gates (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|ConstructRegistry|DialectBehavior|Edition.Year over AcceptDisplayBinder.cs, AcceptDisplayEmitter.cs, OperandText.cs and CodeGen/Roslyn/FigurativeConstants.cs: none. The one-occurrence rendering (BoundFigurative -> new string(fill, 1); BoundAllLiteral -> the literal once) is the same code at every edition.",
+  "behaviour-differs-by-edition": "no: the DISPLAY probe's output is byte-identical at --std 85 and --std 2023 (diff p4.out p4_2023.out: SAME).",
+  "witnesses-cover": "part: pb243 covers ALL literal, ALL symbolic-character, bare symbolic-character, ALL ZEROES/SPACES/QUOTES; not covered there: bare ZERO/SPACE/QUOTE, HIGH-VALUE and LOW-VALUE, a figurative as the first or only operand, several figuratives in one statement, WITH NO ADVANCING",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p4_display_fig.cob",
+    "printed": "A[ ][ ][ ] / B[0][0][0][0] / C[\"][\"][\"] / D[*][*] / E[AB][X][WXYZ] / F[U+FFFF][U+0000][U+FFFF] (one character each) / '0 \"PQWXYZ0' / '0' / ' ' / 'G[AB]|0|'",
+    "expected": "one occurrence of each figurative (IV-11 rule 2: length one), ALL literal shown once (rule 3)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p4b_hv_item.cob",
+    "printed": "H[U+FFFF U+FFFF][U+0000] for PIC X(2) VALUE HIGH-VALUE; DISPLAY HIGH-VALUE gives one U+FFFF",
+    "expected": "the bare figurative is one character of the same value an item filled from it holds"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p4c_ALLX41.cob, p4c_ALLNAB.cob, p4c_ALLAB.cob, p4c_ALLZERO.cob",
+    "printed": "ALL X\"41\", ALL N\"AB\", ALL \"A\" & \"B\": COBOL0900 requires COBOL-2002; ALL \"ZERO\" prints [ZERO]",
+    "expected": "later-edition literal-1 forms refused at 85; ALL literal (permitted in DISPLAY from 1985) shown once"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.10.4 GR3",
+    "check": "OK  §1985:VI.6.10.4 GR3  (6.10.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3",
+    "check": "OK  §1985:IV.4.2.2.2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in the clause; it lies in GRL2.2"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3",
+    "check": "OK  §1985:IV.4.2.2.2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in the clause; it lies in GRL2.3"
+   }
+  ],
+  "notes": "Every figurative form in a DISPLAY operand list was transferred once at --std 85. HIGH-VALUE shows as U+FFFF (UTF-8 EF BF BF), the same character an item filled with HIGH-VALUE holds; which character HIGH-VALUE is belongs to the collating-sequence rules and GR1's implementor-defined device conversion, not to this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.10.4-3",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "d1_hv.cob at --std 85 with PROGRAM COLLATING SEQUENCE IS STANDARD-1, a user alphabet, SYMBOLIC CHARACTERS SA IS 66 IN REV and DISPLAY ... UPON a CONSOLE mnemonic: every figurative is one character on both the default device and UPON (od: 'U[ ][0][\"]'), SA and ALL SA one '>' (ordinal 66 of the REV alphabet, correct). cite.py: 'OK  §1985:VI.6.10.4 GR3  (6.10.4 General Rules)  the text is in GR3'. Reading noted, not overturning: under STANDARD-1 HIGH-VALUE still displays U+FFFF (EF BF BF), while §1985:IV.4.2.2.2.3 (cite.py: 'OK ... it lies in GR3') makes HIGH-VALUE the highest character of the program collating sequence; that is the value rule of IV.4.2.2.2.3(3)/the SPECIAL-NAMES rule (catalog rows of their own, and docs/rearchitecture/CODE-SPEC-AUDIT.md CA3 already records DISPLAY of HIGH-VALUE under a non-native PCS), not the single-occurrence count this rule governs. Side observation (not this rule): DISPLAY of a numeric PIC PP9 item holding .007 prints '.007' at 85 and 2023 (r3_pp9.cob), a DISPLAY-conversion question for GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

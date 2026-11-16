@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VIII.4.7.4-6",
+ "rule-digest": "663b2005d072",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-137",
+  "sources": {
+   "reader": "b99b010f47ceb4440d62a5ab9fbf74465d78a21f303966be37d6f768c8a357d1",
+   "refuter": "9cb22ce9e05df163cfda1695ded91135c4aeed657fb215ed49ca529a7b2f3f3a"
+  },
+  "imported": {
+   "reader": "3923866d9f21215bfc852d0ae3060614041ed837d658d07b3e3515b682243694",
+   "refuter": "ab1f6454a175a8c728ddd7a55b45f4ee0b9888b3b883da1275bb78d72bc16ad0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.7.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a START on an OPTIONAL relative file opened INPUT while not present shall be unsuccessful with the invalid key condition (status 23), every time it is executed; an optional file opened I-O is created and is not 'not present'.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#StartFail; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Unsuccessful",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): the 1985 mandatory INVALID KEY phrase",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "RelativeConnector.Start tests OptionalAbsent with no edition test; grep Edition|Dialect in RelativeConnector.cs hits only WRITE.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f20_06 covers dynamic access with INVALID KEY; sequential access, a second START, the USE path and OPEN I-O creation are probed here.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p3ctl.cob",
+    "printed": "M (OPTIONAL, ACCESS SEQUENTIAL) OPEN INPUT -> 05; START without INVALID KEY -> USE-M ST=23, T6-NOTINV not shown; second START -> T7-INV 23; N OPEN I-O -> 05 then START NOT LESS 1 -> T8-INV 23",
+    "expected": "invalid key 23 on the absent file; the created file is empty so GR4b gives 23"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.4 GR6",
+    "check": "OK  §1985:VIII.4.7.4 GR6  (║4.7.4 General Rules║)  the text is in GR6"
+   }
+  ],
+  "notes": "OptionalAbsent answers before the seek through StartFail ('23'), which goes through Unsuccessful and so also invalidates the file position (GR8). Same output at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.7.4-6",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "RelativeConnector.Start tests OptionalAbsent before the seek with no edition test. Probe q3big.cob at --std 85: OPTIONAL relative file in DYNAMIC access (reader probed sequential), absent, OPEN INPUT -> 05, START KEY IS GREATER THAN MK (MK PIC 9(9) COMP = 0) -> B6-INV, status 23, NOT INVALID KEY not run; the following READ NEXT -> 46 (GR8 consistent). cite.py: 'OK  §1985:VIII.4.7.4 GR6 ... the text is in GR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

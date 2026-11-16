@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-8",
+ "rule-digest": "f9781230d195",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-102",
+  "sources": {
+   "reader": "0aca3eed776d10077df1ada3f233644bd2d0ebb07e39741ed7b1f57803851a1a",
+   "refuter": "8820ad5928eff40479d7638c4a2f01dc02a28a619de196373de9498143191521"
+  },
+  "imported": {
+   "reader": "6fbf2b783cebe3d1b0ee7421add263173f9a1b393473062cc1a3652e63d295fb",
+   "refuter": "1c2a37fc5f99a183f2bb6d6fdd5ff3c9bfa93c9e89d1ff054a97114b7281d1be"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.4.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the alphabet named by PROGRAM COLLATING SEQUENCE orders every nonnumeric (alphabetic, alphanumeric, numeric-edited, alphanumeric-edited, group) SORT and MERGE key, whatever the input/output form (USING/GIVING or procedures) and in contained programs, unless the statement's own COLLATING SEQUENCE phrase names an alphabet, which then wins; numeric keys are compared algebraically and are untouched.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#ResolveProgramCollating; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingSelection; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#WeightsExpr; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#SequenceFor",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortCollatingPhrase",
+    "switches": "the 2002 alphabet-name-2 / FOR ALPHANUMERIC / FOR NATIONAL forms of the SORT/MERGE phrase (construct sort-collating-national-2002, COBOL0872): refused at 85, admitted at 2023; the single alphabet-name-1 form 1985 prints is not gated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramCollatingSequenceClause",
+    "switches": "the 2002 national surface of PROGRAM COLLATING SEQUENCE (program-collating-national-2002): refused at 85; the 1985 single-name form passes",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ChoiceIndicators.cs#AlphabetPair",
+    "switches": "nothing: the EditionContext is only the diagnostic sink for a repeated FOR phrase",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep -i collating over Validation/ and WiseOwl.Cobol.Editions/ (ConstructRegistry.g.cs rows sort-collating-national-2002, program-collating-national-2002); read SortBinder.SortBindCollating and SpecialNamesBinder.ResolveProgramCollating for DialectLevel/CobolVersion tests: none; the PCS-or-phrase precedence and the key-class selection (CollatingSelection.Of, SortKeyColumns.SequenceFor) are edition-neutral.",
+  "behaviour-differs-by-edition": "no for the 1985 forms; yes: the later editions' alphabet-name-2 / FOR phrases (national keys) are refused at 85 with COBOL0872, which the 1985 format requires since it prints only alphabet-name-1.",
+  "witnesses-cover": "part: g85_bf07_02 covers alphanumeric keys of SORT and MERGE with procedures and the phrase overriding the PCS; not numeric/numeric-edited keys, DESCENDING, multiple keys, USING/GIVING, contained programs, or the refusal of the later editions' forms (probed here).",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p1keys.cob",
+    "printed": "NUM=123 NED=321 SGN=213 DSC=123 TWO=321 STD=123 UG=CBA",
+    "expected": "PCS REVSEQ \"3\" \"2\" \"1\" \"C\" \"B\" \"A\": numeric key PIC 9 algebraic 123; numeric-edited PIC Z9 is nonnumeric so PCS 321; signed numeric -1 0 1 algebraic 213; DESCENDING alnum under PCS ABC (123); two keys K1 major 321; COLLATING SEQUENCE IS a STANDARD-1 alphabet wins 123; USING/GIVING under PCS CBA"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p1keys.cob",
+    "printed": "UG=CBA",
+    "expected": "the PCS applies to a SORT USING/GIVING sequential files too: CBA"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p1for.cob",
+    "printed": "error COBOL0872: COLLATING SEQUENCE alphabet-name-2 / FOR forms requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: §1985:XI.4.4.2 prints only COLLATING SEQUENCE IS alphabet-name-1"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p1two.cob",
+    "printed": "error COBOL0872 (and COBOL5989 on the second name)",
+    "expected": "refused: two alphabet-names is the 2002 form"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p1undecl.cob",
+    "printed": "error COBOL5989: 'NOSUCH' is not an alphabet declared in SPECIAL-NAMES",
+    "expected": "refused: the phrase must name an alphabet-name"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p1nest.cob",
+    "printed": "NEST=CBA",
+    "expected": "the containing program's PCS applies to a SORT in a contained program (§1985:VI.4.4.4 GR2): CBA"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.4.4@1985-OBJECT-COMPUTER-PARAGRAPH/g85_bf07_02.cob",
+    "printed": "S1=CBA S2=ABC M1=CBA M2=ABC (MATCH)",
+    "expected": "S1=CBA S2=ABC M1=CBA M2=ABC"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.4.4 GR8",
+    "check": "OK  §1985:VI.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:XI.4.4.2",
+    "check": "OK  §1985:XI.4.4.2  (4.4.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.4.4.4 GR2",
+    "check": "OK  §1985:VI.4.4.4 GR2  (4.4.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The program collating sequence is bound once into Configuration.Collating and SortBindCollating takes it unless the statement names its own alphabet; the runtime applies the sequence only to alphanumeric-class keys, so numeric keys stay algebraic and numeric-edited keys collate. Class a (variable length) does not apply to the rule beyond the fixed SD probed; the diagnostics at 85 still cite §2023 clause numbers, a message-text matter outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.4.4-8",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-102/. r1seq-001 (class c, the 1985 format's optional words: rendered PDF p.243 shows only SEQUENCE underlined in [PROGRAM COLLATING SEQUENCE IS alphabet-name-1], and the SORT/MERGE phrase prints [COLLATING SEQUENCE IS alphabet-name-1] with only SEQUENCE underlined): OBJECT-COMPUTER 'SEQUENCE IS REVSEQ' and SORT 'SEQUENCE IS STD' both accepted: PCS=CBA SEQ=ABC REL-PCS. r1mrg-002 (classes d,e): MERGE USING two sequential files GIVING under PCS C,B,A -> MRG=acb (expected acb); MERGE with its own COLLATING SEQUENCE IS STANDARD-1 alphabet -> MRS=acb (expected acb); alphanumeric-edited key PIC X/X under a PCS with \"1\" ALSO \"2\" -> AED=cab (expected cab); alphabetic key PIC A -> ALP=bca (expected bca); group key holding PIC 9 is nonnumeric, collated with the 1~2 tie and DUPLICATES -> GRP=bca (numeric order would give cba); ALSO tie in the statement's alphabet with WITH DUPLICATES IN ORDER keeps input order -> TIE=acdb (expected acdb). Read src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#SequenceFor/#LaneOf: numeric class gets no sequence, every other class the statement's sequence. cite.py: 'OK  §1985:VI.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8'; 'OK  §1985:VI.4.4.2  (4.4.2 General Format)  the text is in the clause'; 'OK  §1985:XI.4.4.2  (4.4.2 General Format)  the text is in the clause' (WITH DUPLICATES IN ORDER); 'OK  §1985:XI.4.1.2  (4.1.2 General Format)  the text is in the clause' (COLLATING SEQUENCE IS alphabet-name-1); 'OK  §1985:VI.4.5.4 GR4d ... the text is in GR4d'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-SR-XII.3.3-3",
+ "rule-digest": "642763c20adc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-073",
+  "sources": {
+   "reader": "1648f90507cba719c3e443f8f0b0e2de6ee890d2a44527f6ff625cbd51f59169",
+   "refuter": "f57489ea91dd4a858b11a93e9901d36bb0c1321db809946d27dc7dc869f597f8"
+  },
+  "imported": {
+   "reader": "71cc38bf003b3cd0fe9e4222acf0b89b3d725a3e9619df91dfe50e059b39e1c6",
+   "refuter": "cc71fe1dc3eb9d0b717c510f998c66402d87fd4f9a727fc18950fff9ddab7310"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XII.3.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a format 1 REPLACE whose pseudo-text-1 holds no text word (==== or a pseudo-text-1 holding only spaces, blank or comment lines) must be refused, while every pseudo-text-1 holding at least one text word (a separator other than space such as ( or a period, a literal, a word, a debugging line's words) is accepted; witness pb1353-replace-operand-content covers only the ==,== form (and is a free-form case).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#IsSpaceForMatching",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen.PartialWord",
+    "switches": "LEADING/TRAILING partial-word phrase gated by Constructs.ReplacingPartialWord2002 (COBOL0900 at 85); not the SR3 screen",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements (REPLACE parse loop, Gate / ReplaceAnywhere2002)",
+    "switches": "REPLACE ALSO / LAST gate and the SR1 separator-period rule; not the SR3 screen",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ScreenOperandPair's Whole arm (from.MatchWords.Count == 0) reads no edition; grepped CopyProcessor.cs and TextWord.cs for Edition|CobolVersion|Year|Dialect|ConstructRegistry: the only consults on the REPLACE path are the partial-word, ALSO/LAST and SR1 gates, none on the SR3 check. The rule is the same at 1985 and 2023, so the shared arm is right.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises ==,== only; ====, comment-only pseudo-text-1 and the legal separator-only forms are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p1empty.cob",
+    "printed": "error COBOL2572: REPLACE statement: pseudo-text-1 holds no text-word to match — §2023:7.2.4.3 SR3 ...",
+    "expected": "refused: SR3 one or more text words"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p5commentonly.cob",
+    "printed": "error COBOL2572 at (8,20): pseudo-text-1 holds no text-word to match",
+    "expected": "refused: a comment line is not a text word"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p6legal1.cob",
+    "printed": "[ONE] [TWO] [ALQ] [0] [B   ] [THR] EXPECT: MATCH",
+    "expected": "accepted: words, ALL literal, multi-word, a comment between words; GR6b/GR7 matching"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p9separators.cob",
+    "printed": "[Z] [NINE] [EIGHT] EXPECT: MATCH",
+    "expected": "accepted: ==(== (a parenthesis is always a text word, §1985:III.2) and a pseudo-text-1 holding only a debugging line"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p8leading85.cob",
+    "printed": "error COBOL0900: the LEADING / TRAILING partial-word phrases ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused at 85: the 1985 format has no partial-word phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.3.3 SR3",
+    "check": "OK  §1985:XII.3.3 SR3  (║3.3 Syntax Rules║)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XII.3.4 GR7",
+    "check": "OK  §1985:XII.3.4 GR7  (║3.4 General Rules║)  the text is in GR7"
+   }
+  ],
+  "notes": "The screen refuses a pseudo-text-1 whose match words (every element but separator commas/semicolons and directive lines) number zero, which is SR3 and SR7 together. The diagnostic text cites §2023:7.2.4.3 SR3 at --std 85 rather than §1985:XII.3.3 SR3 (the requirement is the same; message quality only). The scanner's DirectiveLine kind is edition-blind, so a >>-line inside pseudo-text at 85 would count as space; not probed, outside this rule's ordinary range.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XII.3.3-3",
+  "refutation": "OVERTURNED",
+  "classes": "b,c",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-073/q1gtgt.cob (--std 85, fixed): REPLACE == / a line '           >>XYZ' / == BY ==MOVE \"HIT\" TO W==. printed EXIT 65: 'q1gtgt.cob(8,20): error COBOL2572: REPLACE statement: pseudo-text-1 holds no text-word to match - §2023:7.2.4.3 SR3' plus COBOL2572 (§2023:7.2.4.3 SR10 directive line inside operand) and COBOL2697 (§2023:7.3.3 SR8 b). q2gtgt.cob (same with >>PAGE) adds COBOL0900 and the same SR3 refusal. Control q4gtx.cob: ==>>XYZ== on the REPLACE line compiles and runs '[OK  ]' (the text word is counted when it does not start a line). At 1985 there are no compiler directive lines: '>>XYZ' is a text word, '(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators' (OK §1985:III.2, the text is in the clause), and '>' is a COBOL character ('| &gt; | greater than symbol |', OK §1985:III.2). So pseudo-text-1 holds one text word and 'Pseudo-text-1 must contain one or more text words' (OK §1985:XII.3.3 SR3) is satisfied; the compiler refuses it with the SR3 diagnostic itself. Cause: TextWordScanner.TryNext classifies a line-initial '>>word' as TextWordKind.DirectiveLine through CompilerDirectiveLine.TryParse with no edition test, and Operand.MatchWords drops DirectiveLine (TextWord.IsSpaceForMatching), so the SR3 count is 0 at 85. At --std 2023 the same program draws the same three errors, which is right there (a directive line, SR10). kb/Work search (DirectiveLine, COBOL2697, '>>' with 1985): PB1353, PB1352, PB1384 cover the 2023 directive-in-pseudo-text rules; no note names the 1985 text-word case. The reader saw the risk ('a >>-line inside pseudo-text at 85 would count as space; not probed').",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner.DirectiveLineEnd: recognizes a '>>' compiler directive line at every edition, including 1985 which has none, so a 1985 text word becomes DirectiveLine",
+   "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWord.IsSpaceForMatching: DirectiveLine counted as a space for SR3 at 85",
+   "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair: the SR10 directive-line arm is applied at 85 (no edition arm)",
+   "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs: COBOL2697 emitted at 85 for a '>>' line inside REPLACE"
+  ],
+  "corrected": "NON-CONFORMING (rejects-legal-source), cause (a): at --std 85 a pseudo-text-1 whose only text word starts a line with '>>' (a legal 1985 text word) is refused with COBOL2572 'pseudo-text-1 holds no text-word to match'. Minimal repro q1gtgt.cob; expected: compiles (SR3 satisfied, no match in the program, prints [OK  ]); observed: EXIT 65, COBOL2572 x2 and COBOL2697. Edition arm needed: below COBOL-2002 a '>>' line is ordinary text words. Known note: none."
+ }
+}

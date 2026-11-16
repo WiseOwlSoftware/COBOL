@@ -1,0 +1,144 @@
+{
+ "rule-id": "1985-FMT-VI.5.11.2",
+ "rule-digest": "11907b6f3a05",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-001",
+  "sources": {
+   "reader": "0c9a101a853299950da8ce65771ad4138dfc395bfc0d780926bc926c1571ee99",
+   "refuter": "89a5772153a1525e6bece1230b6ae73722ec02060ca3c355cceb464de2407340"
+  },
+  "imported": {
+   "reader": "1befde414d9036da7fe5dd6953cf2226f0edc82df6e4f5f4bd61ec81a6735c42",
+   "refuter": "b24c3e63ee129c723e56574ba27f6074c9bbb3d7d46ebcbbe98cf5ef5c5647b2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VI.5.11.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept the level-66 entry 66 data-name-1 RENAMES data-name-2 [THROUGH|THRU data-name-3]. with data-name-2/3 optionally qualified, and refuse a missing data-name-2, a dangling THRU, a second THRU, other clauses in the entry, a subscripted or reference-modified operand, a non-66 level and a missing or FILLER data-name-1; witnesses cover only clause repetition and a MOVE use.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#EntryNameObligation; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#PlaceForRenames",
+  "edition-consulted": [],
+  "edition-search": "grep -i renames in VersionConformancePass.cs (only a skip comment at 1424/1997, no gate); grep Edition.Edition|Year|DialectLevel|IsActive in DataBinder.cs#BindRenames (lines 3070-3180), DataBinder.RenamesEntry.cs, LevelNumberPass.cs: only Edition.Cursor positioning, no switch",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: THRU vs THROUGH, the no-data-name-3 form, qualification and the refusal half are not exercised by the witnesses",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rn1.cob",
+    "printed": "THRU=AABB12 THROUGH=BB12DD ONE=13 C=13 GRP=BB13 QUAL=AABB13DD R2=XAXB REC1=ZZZZZZDD",
+    "expected": "THRU and THROUGH equivalent (SR7), elementary and group data-name-2 alone (GR2), qualified OF/IN operands (SR5), alias writes through"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr1.cob",
+    "printed": "COBOL0001 unexpected '.'",
+    "expected": "RENAMES without data-name-2 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr2.cob",
+    "printed": "COBOL0001 unexpected '.'",
+    "expected": "dangling THRU refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr3.cob",
+    "printed": "COBOL2024 RENAMES 'T(1)' is written with a subscript",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr4.cob",
+    "printed": "COBOL2024 RENAMES 'A (1:1)' is reference-modified",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr5.cob",
+    "printed": "COBOL0300 unexpected 'THRU'",
+    "expected": "second THRU refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr6.cob",
+    "printed": "COBOL0001 unexpected 'B'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr8.cob",
+    "printed": "COBOL1747 level-number 05 ... level-number 66 is assigned to identify RENAMES entries (plus a cascade COBOL0881)",
+    "expected": "refused (§1985:VI.5.7.4 GR2b)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr9.cob",
+    "printed": "COBOL0001 unexpected 'PIC'",
+    "expected": "no other clause in a 66 entry"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr10.cob",
+    "printed": "COBOL1747 ... can be neither unnamed nor FILLER",
+    "expected": "data-name-1 required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr11.cob",
+    "printed": "COBOL1747 ... can be neither unnamed nor FILLER",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr12.cob",
+    "printed": "COBOL1941 unexpected 'RENAMES'",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/rr14.cob",
+    "printed": "COBOL2740 data-name-3 'T' is subject to an OCCURS clause; COBOL2740 the beginning of data-name-3 precedes the beginning of data-name-2",
+    "expected": "refused per SR3/SR6 and SR8"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.11.2",
+    "check": "OK  §1985:VI.5.11.2  (║5.11.2 General Format║)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.5.11.1",
+    "check": "OK  §1985:VI.5.11.1  (║5.11.1 Function║)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.5.11.3 SR7",
+    "check": "OK  §1985:VI.5.11.3 SR7  (║5.11.3 Syntax Rules║)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:VI.5.11.3 SR5",
+    "check": "OK  §1985:VI.5.11.3 SR5  (║5.11.3 Syntax Rules║)  the text is in SR5"
+   }
+  ],
+  "notes": "RENAMES is a Nucleus level-2 element in 1985 and the compiler supports it unconditionally, as the full standard requires. An unqualified data-name-2 duplicated in another record is refused as non-unique (COBOL1639), consistent with SR5 and the 1985 uniqueness rules.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VI.5.11.2",
+  "refutation": "OVERTURNED",
+  "classes": "a,b,c",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-001/: rn_d.cob (01 REC1. 05 A PIC X(2) VALUE \"AA\". 05 B PIC X(2). 66 R1 RENAMES A. 66 R2 RENAMES R1. DISPLAY R2) COMPILES AND RUNS at 85, printing AA; at --std 2002 and --std 2023 the same source is refused, COBOL1655 \"'R1' does not name an item of the record\". cite.py: OK  §1985:VI.5.11.3 SR4  the text is in SR4 (\"A 66 level entry cannot rename another 66 level entry\"). Mechanism: ResolveRedefinesPass.Run resolves data-name-2/3 through DataBinder.RegionClauseCandidates, which below 2002 (ClauseOperandsTakeImplicitQualifiers false, kb/Work PB5165) returns QualifiedCandidates over the whole scope, so a level-66 alias (registered by BindRenames, Parent = the record) is a candidate and passes IsWithinRegion; ScreenRenamesOperand then tests only Level 1/77 and the owner, its comment stating levels 66 and 88 are 'off the storage tree and already unreachable (SR4)' -- true only on the 2002+ SubtreeCandidates arm. Other probes held: rn_a (A THRU G where G is the group containing A, and G THRU D over a fixed OCCURS between) compiles and prints AABB / AABBTTTDD, right by SR8 and SR3/SR6; rn_b (A THRU A), rn_c (G THRU B, dn3 subordinate), rn_e (RENAMES the 01), rn_f (range ends on an ODO table), rn_g (operand in an earlier record), rn_h (RENAMES an 88), rn_i (RENAMES a 77) are all refused. rn_d2 (66 R2 RENAMES A THRU R1; 66 R3 RENAMES R1 THRU C) is refused at 85 but with misleading messages (PB96 tiling, 'beginning of data-name-3 precedes'), since R1's offset is computed as if after the record's children.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates: ClauseOperandsTakeImplicitQualifiers (DialectLevel >= 2002) picks SubtreeCandidates vs whole-scope QualifiedCandidates for RENAMES data-name-2/3; the 85 arm admits level-66 aliases as operands",
+   "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand: no level-66 test, relying on the 2002+ arm's unreachability"
+  ],
+  "corrected": "PARTIAL / under-rejects, cause (a): at --std 85 the format's data-name-2 may name another level-66 entry (66 R2 RENAMES R1. compiles and runs), which §1985:VI.5.11.3 SR4 forbids; refused at 2002/2023. Introduced by the PB5165 below-2002 candidate arm; ScreenRenamesOperand should refuse operand.Level == 66 (and 88) itself. No kb/Work note owns it (PB1283 and PB5165 checked)."
+ }
+}
