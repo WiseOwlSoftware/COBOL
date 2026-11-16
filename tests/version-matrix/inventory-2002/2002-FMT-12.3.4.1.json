@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.3.4.1",
+ "rule-digest": "d0e6f33a04f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RequiredClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AssignWritten",
+ "test-ref": "conformance:cases/12.3.4@2002-FILE-CONTROL-ENTRY/g2fc01_four_formats_every_clause",
+ "notes": "Every clause of the four §2002:12.3.4.1 file control formats (indexed, relative, sequential with PADDING CHARACTER; RECORD DELIMITER is left to row 2002-FMT-12.3.4.11.1, since §2002:12.3.4.11.2 SR1 confines it to variable-length records, sort-merge) is accepted at --std 2002 and each connector behaves as its organization requires (statuses 02, 23, 10 per §2002:9.1.12; split key per §2002:12.3.4.5.3 GR2); the pinned compiler's output equals the derived .out."
+}

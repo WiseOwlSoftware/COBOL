@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.7.2-1",
+ "rule-digest": "8de075e4809d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenFileStatusItem",
+ "test-ref": "conformance:cases/12.3.4.7@2002-FILE-STATUS-CLAUSE/g2fsq01_qualified_file_status",
+ "notes": "§2002:12.3.4.7.2 SR1 grants a qualified FILE STATUS data-name-1: FS OF G2 (F1) and FS OF G1 (optional F2) each receive only their own file's status - 00, 05, 10, 00 per §2002:12.3.4.7.3 GR1 and 9.1.12 - the other FS untouched; --std 2002 run matched the derived .out."
+}

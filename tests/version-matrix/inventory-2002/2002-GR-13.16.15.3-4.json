@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.15.3-4",
+ "rule-digest": "c46a0f3cdbaa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FloatControlKey; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+ "test-ref": "conformance:cases/13.16.15@2002-CONTROL-CLAUSE/g2-control-forms-cd; conformance:cases/13.18.16-CONTROL/pb1234_report_control_float",
+ "notes": "§2002:13.16.15.3 GR4a: footings see the prior control and later references the restored value (B:CF AA33 then B:BB33, CD-record control); GR4b: with no footing the prior takes the new value, so a repeated Q does not break (C:CH Q, C:D Q, C:D Q). --std 2002 run matched the derived .out; pb1234 covers GR4a in WS."
+}

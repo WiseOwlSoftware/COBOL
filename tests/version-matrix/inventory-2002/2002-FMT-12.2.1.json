@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.2.1",
+ "rule-digest": "74728e633c07",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#configurationParagraph; src/WiseOwl.Cobol.Frontend/Cst/ClosedFormats.cs#ByContext; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ByClauseContext; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+ "test-ref": "conformance:cases/12.2.1@2002-CONFIGURATION-SECTION-GENERAL-FORMAT/g2cfg01_configuration_paragraphs",
+ "notes": "§2002:12.2.1: the four paragraphs are each optional, in the order SOURCE-COMPUTER, OBJECT-COMPUTER, SPECIAL-NAMES, REPOSITORY. The --std 2002 run accepted all four (each taking effect: 1,5 / REV / OK), an empty section (1.5) and SOURCE-COMPUTER with REPOSITORY alone (OK), matching the derived .out; the out-of-order, repeated and unknown-paragraph refusals already hold at 2002 through the pointer's negative cases."
+}

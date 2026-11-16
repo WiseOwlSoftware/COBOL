@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-10",
+ "rule-digest": "0447f7b68b55",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#AdmitsNoValueLiteral; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-usage-no-picture; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-value-on-index; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-value-on-pointer",
+ "notes": "§2002:13.14.2 SR10: VALUE on an INDEX item and on a level-1 POINTER record (VALUE 0) after an output CD draw COBOL2168 at the entry; VALUE on an alphanumeric item there is accepted and takes effect (A=[ABCD]); --std 2002 on build dc1f2dcce8."
+}

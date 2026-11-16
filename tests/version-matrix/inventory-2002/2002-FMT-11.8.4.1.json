@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-11.8.4.1",
+ "rule-digest": "4ddbbdf34b52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticClause; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticMethod; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitArithmeticMethod; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ArithmeticOf",
+ "test-ref": "conformance:cases/11.8.4@2002-ARITHMETIC-CLAUSE/g2002_arithmetic_native_standard",
+ "notes": "§2002:11.8.4.1 offers ARITHMETIC [IS] NATIVE | STANDARD (IS optional, PDF p206); the golden writes ARITHMETIC IS NATIVE and ARITHMETIC STANDARD in two programs, each computing the exact 7 * 6, and prints NATIVE 0042 and STANDARD 0042 at --std 2002 as derived; g2002_arithmetic_standard_decimal_refused shows the 2014 STANDARD-DECIMAL refused (COBOL0900). Standard-arithmetic precision is PB5575, not this format."
+}

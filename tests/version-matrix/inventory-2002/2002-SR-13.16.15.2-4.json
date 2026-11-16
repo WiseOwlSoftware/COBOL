@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.15.2-4",
+ "rule-digest": "9ff3e1590336",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#ReadOperandSuffixes; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#ResolveItemRefMod",
+ "test-ref": "conformance:cases/13.16.15@2002-CONTROL-CLAUSE/g2-control-forms-cd; conformance:cases/13.18.16-CONTROL/pb205-control-ref-mod-not-literal",
+ "notes": "§2002:13.16.15.2 SR4: a (1:2) literal reference modification makes the control the two leftmost characters, so XX11 -> XX22 does not break and YY33 does (A:CF-B XX33), in WS and in a CD record (B:CF AA33); the non-literal form is refused at 2002 by pb205-control-ref-mod-not-literal. --std 2002 run matched the derived .out."
+}

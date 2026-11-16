@@ -50,7 +50,9 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   2002 golden lane (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; with the fourth
   landing all 85 of its input files are integrated, and the 12 rows kb/Work PB5625's adjudication decided are recorded.
   The registrar landing records-sample-pb5692 (main fbe1a21ef4 merged) takes it to **1,899 GAP**: three KEPT rows follow
-  their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression.
+  their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression. The seventh
+  golden-lane landing (golden-2002-7, 16 wave-u slugs: rows the 2002 read left needs-own-witness, undecided or
+  uninterpretable) records 97 own-edition CONFORMS and takes it to **1,805 GAP** (1,787 never adjudicated, 18 open).
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
   2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
   NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded for the GAP count by the PB5675 line below). The 2026-11-12 method: code-read waves over rows whose witness exists
