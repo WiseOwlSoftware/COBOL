@@ -1092,6 +1092,13 @@
    "refuter": "—"
   },
   {
+   "key": "DRV-1985-GR-XIII.3.14.4-2",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of reads of a report group's area by a program is empty: a printable item cannot be referenced, every position of a print line is set anew from SOURCE, SUM, VALUE or spaces each time its group is presented, and the one item an entry lets a program read, a sum counter, holds at every read what the SUM, TYPE and INITIATE rules put in it, whether or not it lies in the group's area",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept-4.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-XIII.3.21.4-1",
    "arm": "indistinguishable-consequent",
    "names": "1985-GR-XIII.3.21.4-4",

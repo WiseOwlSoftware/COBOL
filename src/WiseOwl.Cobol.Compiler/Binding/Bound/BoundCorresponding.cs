@@ -55,4 +55,10 @@ public sealed record BoundCorresponding(
     /// the hoisted anchors are what the binder expanded them into, not references the program made (X3.23-1985 USE FOR DEBUGGING
     /// general rule 5: "explicitly references").</summary>
     public IEnumerable<object> ImplicitOperands => [Hoists, Pairs];
+
+    /// <summary>COBOL-85 MOVE only: the identification steps of the two group operands (the statement pre-ops their subscripts
+    /// registered), run again before EACH pair's MOVE, because §1985:VI.6.19.4 GR2 evaluates "Any length evaluation or
+    /// subscripting associated with identifier-2 ... immediately before the data is moved to the respective data item"
+    /// (kb/Work PB5767). Empty for every other verb and edition, whose operands are identified once, at the start.</summary>
+    public IReadOnlyList<BoundStatement> PairIdentification { get; init; } = [];
 }

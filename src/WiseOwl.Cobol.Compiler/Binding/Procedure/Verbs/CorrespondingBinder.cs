@@ -73,6 +73,17 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         if (sending is null || receiving is null)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, $"{verbName} CORRESPONDING: its general format prints exactly two group "
                 + "operands, the sending group and the receiving group");
+        // ⛔ WHEN THE GROUP OPERANDS ARE IDENTIFIED IS AN EDITION RULE, AND A VERB RULE BELOW 2002 (kb/Work PB5185, PB5814,
+        // PB5767). §1985:VI.6.19.4 GR1 makes MOVE CORRESPONDING "the same as if the user had referred to each pair of
+        // corresponding identifiers in separate MOVE statements", and GR2 evaluates "Any length evaluation or subscripting
+        // associated with identifier-2 ... immediately before the data is moved to the respective data item", so at 85 each MOVE
+        // pair identifies the groups afresh. ADD and SUBTRACT CORRESPONDING state no exception, so the general sentence of
+        // §1985:IV.4.3.8 as amended governs them: "any subscripting and reference modification are evaluated only once as the
+        // first operation of the execution of that statement" (docs/conformance/3/D-CORR85.md). From 2002 every verb is
+        // identified once, at the start (§2023:14.9.25.4 GR11, §2023:14.7.6).
+        bool perPair = verb is CorrVerb.Move && ctx.Edition.DialectLevel < 2002;
+        var preOps = ctx.Data.Procedure.PendingPreOps;
+        int identificationMark = preOps.Mark();
         if (host.Expr.ResolveSending(sending) is var srcR && srcR.Place is not { } src)
             return srcR.Refusal(ctx.Edition);   // kb/Work PB1030
         if (host.Expr.ResolveReceiving(receiving) is not { } dst)
@@ -107,16 +118,13 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         bool dstOk = ctx.Validation.CheckCorrespondingGroupOperand(dst, receiving.GetText(), rule);
         if (!srcOk || !dstOk) return BoundRejected.Reported(ctx.Edition);
 
-        // ⛔ WHEN THE GROUP OPERANDS' SUBSCRIPTS ARE EVALUATED IS AN EDITION RULE (kb/Work PB5185). §1985:VI.6.19.4 GR1 makes
-        // MOVE CORRESPONDING "the same as if the user had referred to each pair of corresponding identifiers in separate
-        // MOVE statements", and each separate MOVE evaluates its own subscripts, so a pair that stores into a subscript of
-        // a group operand moves the later pairs' element. The 2002 standard added the exception that freezes them
-        // ("the subscript value used is that resulting from the evaluation of the subscript at the start of the execution
-        // of the statement", §2023:14.9.25.4 GR11), and §2023:14.7.6 gives the same start-of-statement identification to
-        // ADD and SUBTRACT. §1985:VI.6.6.4 GR3 (ADD) and its SUBTRACT sibling print no identification time, so below 2002
-        // the choice is the implementor's and, by CLAUDE.md rule 1, GnuCOBOL's: it identifies afresh per pair for ADD and
-        // SUBTRACT as for MOVE (docs/CONFORMANCE.md D-CORR85). One edition rule for all three verbs.
-        bool perPair = ctx.Edition.DialectLevel < 2002;
+        // A per-pair MOVE re-runs the identification steps the two group operands registered while they resolved (a subscript
+        // the direct walk cannot read, here a data-name in a redefined record, becomes a statement pre-op that stores a
+        // temporary, kb/Work PB5767): they are taken off the statement's queue, so they do not run once before the first pair,
+        // and run again before EACH pair (BoundCorresponding.PairIdentification).
+        IReadOnlyList<BoundStatement> pairIdentification = perPair && preOps.AnyAfter(identificationMark)
+            ? host.Udf.OperandSteps(preOps.DrainFrom(identificationMark))
+            : [];
         int id = _corrCounter++;
         var hoists = new List<CorrespondingHoist>();
         if (CorrAccess.Create(src, new StatementLocal(StatementLocalRole.CorrespondingSendingAnchor, id), hoists, ctx.Refs, perPair) is not { } srcAcc
@@ -129,7 +137,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             return new BoundUnsupported(fail);
         // Zero pairs is a legal EMPTY implied set (§2023:14.7.6 selects none silently): MOVE does nothing; an arithmetic
         // statement raises no size error, so a NOT ON SIZE ERROR phrase still runs (§2023:14.7.5 rule 3).
-        return new BoundCorresponding(verb, hoists, pairs, rounding, sizeErr, src, dst);
+        return new BoundCorresponding(verb, hoists, pairs, rounding, sizeErr, src, dst) { PairIdentification = pairIdentification };
     }
 
     /// <summary>

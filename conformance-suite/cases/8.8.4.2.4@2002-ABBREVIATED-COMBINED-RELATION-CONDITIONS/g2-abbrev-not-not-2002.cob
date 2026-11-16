@@ -8,7 +8,9 @@
       *> followed immediately by the word NOT or the words IS NOT."
       *> The NOT NOT half of the rule (pb5123-not-is-not-operator-2002
       *> holds the IS NOT half): A > B AND NOT NOT > C is refused at its
-      *> IF.
+      *> IF, by the construct gate that removes the 1985 logical NOT of an
+      *> abbreviated relation (COBOL0902; at 85 the form parses, kb/Work
+      *> PB5784).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. G2ABR02.
        DATA DIVISION.
