@@ -161,8 +161,8 @@ public sealed class RunUnitImplicitCloseDriftTests
 
     /// <summary>⛔ THE STRUCTURAL HALF: the CLOSE dispatch is the only member of <see cref="FileRegistry"/> that calls
     /// a connector's own <c>Close()</c>. Every implicit close — run-unit termination (<c>CloseAll</c>), a new run
-    /// unit's <c>Reset</c>, a displaced registration, CANCEL's <c>CloseIfOpen</c>, an object's
-    /// <c>CloseAndDrop</c> — is an entry over it, so none can skip its guard or its lock release again. Before PB603
+    /// unit's <c>Reset</c>, a displaced registration, a CANCEL's emitted <c>CobolFile.Close</c> behind
+    /// <c>CobolFile.IsOpen</c> (kb/Work PB5847), an object's <c>CloseAndDrop</c> — is an entry over it, so none can skip its guard or its lock release again. Before PB603
     /// three members (<c>CloseAll</c>, <c>Reset</c>, <c>CloseDisplaced</c>) each called <c>Close()</c> directly.</summary>
     [Fact]
     public void OnlyTheCloseDispatch_CallsAConnectorsOwnClose()
