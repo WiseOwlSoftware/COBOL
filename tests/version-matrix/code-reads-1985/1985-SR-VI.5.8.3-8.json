@@ -93,5 +93,6 @@
   "expected": "A compile-time refusal: data-name-1 'must reference a data item possessing the external attribute which is described in the same Data Division' (§1985:VI.5.8.3 SR8); NE is described in the containing program's Data Division",
   "observed": "Compiles clean; prints XY|",
   "known_note": "none (kb/Work PB1261, landed, added the GLOBAL/EXTERNAL attribute screen but treated the same-Data-Division half as holding by construction)"
- }
+ },
+ "work": "PB5797"
 }

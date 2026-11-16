@@ -66,5 +66,6 @@
   "expected": "a compile-time refusal: §1985:VI.6.16.3 SR3 'If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.'",
   "observed": "compiles with no diagnostic, runs, prints NEXT-1 (control went to the next sentence)",
   "known_note": "kb/Work/PB396 (its DETERMINATION paragraph accepts IF X = 1 NEXT SENTENCE END-IF as a 2023 cross-format latitude, owner-overturnable; it does not address §1985:VI.6.16.3 SR3). No note found for the 1985 rule (grepped kb/Work for '6.16.3', 'NEXT SENTENCE END-IF')."
- }
+ },
+ "work": "PB5798"
 }

@@ -79,5 +79,11 @@
   "evidence": "nest3.cob run at --std 85 (runs/nest3-001): 'N3 inner OPEN INPUT FG' printed 'OUTER GLOBAL INPUT 35' although OUTERP names FG explicitly in USE ON FG; nest3x.cob (LABEL RECORDS removed) at --std 2023 prints the same. Code read: src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers Qualifies(d) = !globalOnly || d.Global gates the file-name switch, so on the outward GLOBAL walk (ProgramEmitter#EmitRunGlobalUse) a container's non-GLOBAL file-name USE is not consulted to exclude its file from the mode tier. Single-program file-beats-mode (reader's gr45 T1) holds. cite.py: OK §1985:VIII.4.8.4 GR4 the text is in GR4; OK §1985:VIII.4.8.4 GR5b the text is in GR5b; OK §1985:X.5.5.4 GR1 the text is in GR1 ('must satisfy the rules for execution of that declarative'); OK §1985:X.5.5.4 GR1b.",
   "edition-sites-missed": [],
   "corrected": "NON-CONFORMING (wrong-answer, cause b: same at --std 2023). Minimal program: refute-1985-138/nest3.cob. OUTERP declares FD FG IS GLOBAL and has two declaratives: OUT-IN 'USE GLOBAL AFTER STANDARD ERROR PROCEDURE ON INPUT' and OUT-FG 'USE AFTER STANDARD ERROR PROCEDURE ON FG' (not GLOBAL). Contained INNP (no declaratives) executes OPEN INPUT FG on a missing file. Expected: no declarative runs. GR4 'no other USE statement applies to file-name-1' and GR5b 'except those files referenced by file-name-1 in another USE statement specifying the same condition' remove FG from OUT-IN's scope; X.5.5.4 GR1 'The declarative which is selected for execution must satisfy the rules for execution of that declarative' and GR1b admits only GLOBAL declaratives of the container, so OUT-FG is not selectable either. Observed: 'OUTER GLOBAL INPUT 35' (nest3-001 at 85, nest3x at 2023 the same). Cause: UseTierEmitter.EmitScopeTiers with globalOnly=true drops the non-GLOBAL file-name cases from the switch (__f), so a file the container names explicitly falls through to the GLOBAL open-mode tier. No kb/Work note found (grepped globalOnly, 'except those files referenced', USE GLOBAL notes PB3554/PB369 are other defects)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A containing program holds USE GLOBAL ... ON INPUT and USE ... ON FG. A contained program with no declaratives fails to open FG, and the compiler runs the container's GLOBAL INPUT declarative. No declarative qualifies: see below. Not PB5812's question, because both USE statements are in one program.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-7.md"
+ },
+ "work": "PB5821"
 }

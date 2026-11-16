@@ -97,5 +97,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#IsReportSectionOnlyName: not an edition switch, but the storage-wins homonym policy (from §2023:8.4.2.1) is applied at 85 with no 1985 basis"
   ],
   "corrected": "If the reading holds: UNDER-REJECTS at 85 (and every edition): SOURCE naming a printable report entry whose data-name is also a storage item, unqualified, is accepted and moves the storage item instead of being refused as non-unique."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5775 (a report name that is also a Working-Storage name); `SOURCE DFLD` silently taking the Working-Storage item is its other direction.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5775"
 }

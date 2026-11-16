@@ -100,5 +100,10 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#WrittenRelational: CheckRelationHasNonLiteralOperand applies the 2023 'not a literal' test at every edition, so a 1985 relation of two literal-only arithmetic expressions is not caught"
   ],
   "corrected": "PARTIAL (under-rejects, cause a/c): at --std 85 a SEARCH WHEN (any condition) of a sign condition over a literal-only arithmetic expression ('3 IS POSITIVE') or a relation condition with no variable ('1 + 1 = 2') is accepted with no diagnostic even under --flag-extensions; 1985 VI.6.3.1.5 and VI.6.3.1.1 say each must contain a reference to a variable, so the compiler needs a 1985 arm that refuses or at least flags them (I.1.5.2.5.2). Repro: srch-lit.cob; at --std 2023 both are legal (no diagnostic is correct there)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "`WHEN 1 + 1 = 2` and `WHEN 3 IS POSITIVE` compile clean at 85. SEARCH's SR3 admits any conditional expression and the compiler admits it, so this row stands. What is broken is the 1985 text of the relation and sign conditions, which has no catalog row. See below.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md"
  }
 }

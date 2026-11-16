@@ -132,5 +132,6 @@
   "expected": "a compile-time refusal: \"A USE BEFORE REPORTING procedure must not alter the value of any control data item.\" (§1985:XIII.4.9.3 SR4)",
   "observed": "no diagnostic; the run prints SEQ=1 GRP=2 (the control item WS-GRP was altered from 1 to 2 by the declarative)",
   "known_note": "PB363 (landed) names this as its residual in its landing paragraph ('a store through a REDEFINES alias is not related to the control item'); no open kb/Work note carries it"
- }
+ },
+ "work": "PB5808"
 }

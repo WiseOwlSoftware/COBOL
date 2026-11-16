@@ -109,5 +109,11 @@
   "evidence": "rini3.cob (01 WA PIC A(3) VALUE 'abc'): INITIALIZE WA (2:1) REPLACING ALPHABETIC DATA BY 'Q' printed M1[abc] (expected aQc), and INITIALIZE WA (2:1) REPLACING ALPHANUMERIC DATA BY 'Q' printed M2[aQc] (expected abc); run_case --expect DIFFERS at --std 85 (rini3-001) and at --std 2023 (rini3-002). 1985 makes a reference-modified alphabetic item ALPHABETIC: only numeric, numeric edited and alphanumeric edited become alphanumeric. cite.py: OK  §1985:IV.4.3.8.4.4 GR5 'the unique data item has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric'; OK  §1985:VI.6.17.4 GR1 'corresponds to a category of data as defined elsewhere in this document'; OK §1985:VI.5.9.4 GR2a. Cause: InitializeBinder.cs#BindInitializeTarget, the 'place is RefModPlace' arm (line 266), hard-codes InitializeCategory.Alphanumeric for every reference-modified identifier-1 (comment cites a 2023 rule) and never asks the category of data-name-1. The reader's own note ('a reference-modified item is alphanumeric') states the wrong rule. Other categories checked and correct (rini1-002): ref-mod numeric, numeric edited and group to spaces; ***.**, ZZZ.ZZ, +ZZ9, ---9, 999DB, 9B9, 00099, $$$.99, 99/99, X0X, 9X/, 9X, S9(3) TRAILING SEPARATE all right with and without REPLACING. No kb/Work note found (grep of kb/Work for INITIALIZE with reference modification and alphabetic).",
   "edition-sites-missed": [],
   "corrected": "Non-conforming (wrong-answer, cause b: same at --std 2023): a reference-modified alphabetic identifier-1 is put in category alphanumeric, so REPLACING ALPHABETIC skips it and REPLACING ALPHANUMERIC stores into it, against §1985:IV.4.3.8.4.4 GR5 and §1985:VI.6.17.4 GR1/GR2b. Repro rini3.cob; expected M1[aQc] M2[abc], observed M1[abc] M2[aQc]."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "INITIALIZE ... REPLACING treats a reference-modified alphabetic item as alphanumeric, so the wrong REPLACING phrase applies (`M2[aQc]` where `abc` is right). Both editions keep the item's category. Leads: the same \"a reference-modified slice is always alphanumeric\" assumption is written in `MoveOverlap.cs` and `ExpressionBinder.cs`, not probed.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ },
+ "work": "PB5813"
 }

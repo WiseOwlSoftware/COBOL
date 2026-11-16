@@ -80,5 +80,11 @@
   "evidence": "Probe refute-1985-166/r7amb.cob: DTL2 is both an 01 TYPE DE report group of RD RPT and a 05 item under WS-G in WORKING-STORAGE; 'GENERATE DTL2.' (and 'MOVE \"X\" TO DTL2.') compiles and runs with EXIT 0 at --std 85 (runs/r7amb-001) and at --std 2023 (runs/r7amb-002). §1985:IV.4.3.8.1 requires a unique reference for every explicitly referenced user-defined name ('Identical user-defined names may appear in a source program; however, uniqueness must then be established through qualification for each user-defined name explicitly referenced'), so unqualified data-name-1 here does not name a type detail report group; it must be written DTL2 OF RPT. ReportGroupResolution.Resolve looks only at the report models, so COBOL1920 fires for a name in two RDs (the reader's p2gen) but never for a report group that collides with a non-report data-name. The reader's own requirement counts 'an ambiguous unqualified group name refused' in SR1's range. Other attacks held: r1gen 'GENERATE DTL OF PRT' (file-name qualifier) and 'GENERATE DTL OF WS-G' refused COBOL1757; r2genok an elementary level-01 detail (PIC/COLUMN/SOURCE on the 01) refused COBOL2247 citing §1985:XIII.3.9.3, correct since 1985 Format 1 (01) carries no PICTURE. cite.py: OK §1985:XIII.4.3.3 SR1 (the text is in SR1); OK §1985:IV.4.3.8.1 (the text is in the clause; it lies in SR3).",
   "edition-sites-missed": [],
   "corrected": "Not CONFORMS: under-rejects. GENERATE data-name-1 unqualified, where data-name-1 also names a non-report data item, is accepted at --std 85 although the reference is not unique (§1985:IV.4.3.8.1) and so does not name a type detail report group (§1985:XIII.4.3.3 SR1). Cause (b): same at --std 2023. The ambiguity test in src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve considers report groups only. If the inventory files uniqueness under IV.4.3.8.1 rather than SR1, the defect moves there and SR1 itself is otherwise implemented. No kb/Work note found (searched COBOL1920, ReportGroupResolution, working-storage collisions: PB365, PB4109, PB5524 are other defects)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5775: report names are resolved apart from data names, so an unqualified CONTROL name that a Report Section item also spells binds silently to WORKING-STORAGE, and `GENERATE DTL2` compiles when DTL2 names both a detail group and a data item.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
+ },
+ "work": "PB5775"
 }

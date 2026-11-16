@@ -115,5 +115,11 @@
   "evidence": "r5.cob at --std 85: 01 NO2 PIC 9 VALUE 2. 01 OH. 05 OY PIC X OCCURS 1 TO 5 DEPENDING ON NO2 (object OUTSIDE the group); UNSTRING S INTO OH WITH POINTER P over '3ABCDEFGHI' prints 'A P=06 [3A***]': five characters examined (the group's maximum), two stored; a MOVE S TO OH at the same state stores two ('M [3A***]'). r4.cob: 'UNSTRING S INTO OH R1' gives R1=[EFG] where the text gives [BCD]. Same at --std 2023. Cause: ReceivingStore#CharacterPositions answers a group with its static ImageWidth (the maximum), never the ODO current size. Object INSIDE the group (r4 A: P/R1 show 6 examined, ON1=3) is right by GR3b's maximum length. Everything else held: identifier delimiter with trailing space (r1 A), ALL trailing run exhausting the sender, untouched later areas, no overflow (r1 B, r3 A vs B), pointer starting inside a 2-char delimiter (r1 D), partial delimiter at end (r1 E), numeric receiver truncation 12345->345, zero-fill on contiguous delimiters, JUSTIFIED, QUOTE/ZERO/ALL ZEROS figuratives (r1 F,G,H), function-identifier sender and delimiter (r2 D), subscripted delimiter C(PTR) and SB(PTR) evaluated once (r2 E), group/alphabetic receivers (r2 F), LEADING SEPARATE examines 3 (r3 E). cite.py: OK §1985:VI.6.27.4 GR13b 'the number of characters examined is equal to the size of the current receiving area'; OK §1985:VI.5.8.4 GR3a 'only that part of the table area that is specified by the value of the data item referenced by data-name-1 at the start of the operation will be used'; OK §1985:VI.5.8.4 GR3b; OK §1985:VI.6.27.4 GR13c; OK §1985:VI.6.27.4 GR11; OK §1985:VI.6.27.4 GR13g. kb/Work: PB979 fixed ANY LENGTH and ref-mod receivers' examined size, not an ODO group's; no note found for this.",
   "edition-sites-missed": [],
   "corrected": "WRONG-ANSWER, cause (b) (the same at --std 2023). Without DELIMITED BY, a group receiver whose ODO object lies outside it must be examined at its CURRENT size (GR13b with VI.5.8.4 GR3a); ReceivingStore#ExaminationSize -> CharacterPositions uses the group's maximum ImageWidth, so it consumes extra sender characters (pointer 6 not 3; the next receiver gets EFG not BCD). Repro: r5.cob / r4.cob in this scratch directory."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "UNSTRING with no DELIMITED BY examines such a group receiver (count item outside) at its maximum size and takes the wrong characters. 2023 row `GR-14.9.48.4-11`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-1.md"
+ },
+ "work": "PB5777"
 }

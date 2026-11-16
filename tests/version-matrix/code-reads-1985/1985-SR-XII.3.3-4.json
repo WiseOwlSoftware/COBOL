@@ -79,5 +79,11 @@
    "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs: COBOL2697 at 85"
   ],
   "corrected": "NON-CONFORMING (rejects-legal-source), cause (a): a pseudo-text-2 whose one text word starts a line with '>>' is refused at --std 85 (COBOL2572 SR10, COBOL2697) though SR4 admits one text word and 1985 has no compiler directive lines. Repro q5pt2gt.cob; expected compiles and prints [OK  ]; observed EXIT 65. Same root as the SR3 case (one edition-blind directive-line recognizer). Known note: none."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "REPLACE and COPY REPLACING pseudo-text that begins a line with `>>` is refused at 85 (COBOL2572, COBOL2697): the scanner looks for compiler directive lines at every edition, and 1985 has none, so `>>XYZ` is an ordinary text word there.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5803"
 }

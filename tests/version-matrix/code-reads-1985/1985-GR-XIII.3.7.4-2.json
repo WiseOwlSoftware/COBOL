@@ -77,5 +77,6 @@
   "expected": "§1985:XIII.3.7.4 GR2: 'A change of value in any control data item causes a control break'; -0 and +0 compare equal as numeric operands (GR3 a), so no break: DE +0, DE -0, CFK",
   "observed": "DE +0, CFK, DE -0, CFK, while IF K = 0 is true",
   "known_note": "PB5782 (open; in E:/COBOL kb/Work, not in the pinned tree)"
- }
+ },
+ "work": "PB5782"
 }

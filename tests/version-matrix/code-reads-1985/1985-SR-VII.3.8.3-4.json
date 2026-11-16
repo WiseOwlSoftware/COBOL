@@ -93,5 +93,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#PlaceableItems: omits a level-66 RENAMES item, so a RECORD DEPENDING ON data-name that resolves to one has no Place"
   ],
   "corrected": "NON-CONFORMING (crashes, rejects-legal-source; cause b, same at 2023): a DEPENDING ON data-name-1 that is a Working-Storage 66 RENAMES of one elementary unsigned integer is legal (SR4 with VI.5.11.4 GR2) and passes the screen, but the first WRITE crashes code generation in SequentialIoEmitter.VaryingDepending via PlaceTable.Of. Same mechanism as the LINAGE case (one root: PlaceableItems omits RENAMES items that a file clause names; FILE STATUS and the other FileModel.ClauseOperandItems are likely siblings). Repro: refute-1985-063/rec4_ren.cob. No kb/Work note found."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "THE COMPILER CRASHES ON LEGAL SOURCE. A level 66 item that renames one elementary item, named as FILE STATUS, LINAGE, DEPENDING ON, RELATIVE KEY or a report CONTROL, ends the compiler with an unhandled `System.InvalidOperationException` (\"no Place was built for data item\"), at 85 and at 2023, with no COBOL diagnostic. Each use is legal: \"all of the data attributes of data-name-2 become the data attributes for data-name-1\" (`§1985:VI.5.11.4 GR2`). I ran the FILE STATUS case. Not probed: SORT and MERGE keys, SUM operands, RECORD KEY. For `1985-SR-XIII.3.7.3-2` the row's own check is right for every operand that compiles.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5801"
 }

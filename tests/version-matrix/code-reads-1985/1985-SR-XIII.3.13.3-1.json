@@ -100,5 +100,6 @@
   "expected": "§1985:XIII.3.13.3 SR1: \"The GROUP INDICATE clause must only be specified in a detail report group entry that defines a printable item.\" A printable item's entry \"contains a COLUMN NUMBER clause\" (§1985:III.2), so the program is refused.",
   "observed": "compiles with no diagnostic and runs (exit 0); the GROUP INDICATE clause is accepted and has no effect",
   "known_note": "none records it as a defect. kb/Work PB5243 (landed) created this 85 arm: it treats 'the legal SOURCE with ... GROUP INDICATE and no COLUMN' as legal on Table 1 alone, and its refusal of that shape was what it removed. A fix would reverse that part of PB5243 for GROUP INDICATE (the JUSTIFIED/BLANK WHEN ZERO half is unaffected)."
- }
+ },
+ "work": "PB5806"
 }

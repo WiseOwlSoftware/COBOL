@@ -106,5 +106,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind: perPair = DialectLevel < 2002 re-identifies the group operands per pair for ADD (and SUBTRACT) CORRESPONDING at 85; the reader listed the site but judged it unobservable and an implementor choice"
   ],
   "corrected": "NON-CONFORMING (wrong-answer), cause (a): at --std 85 the code takes its own per-pair arm, and that arm contradicts §1985:IV.4.3.8 (subscripts evaluated once as the first operation unless a statement's rules say otherwise; ADD's do not). Repro rc4.cob / pb5185_add_corresponding_subscript_per_pair.cob: expected 'Q1 AA=100 JJ=2 BB=200' (witness '25'), observed 'BB=400' (witness '27'); --std 2023 gives the expected answer. The SUBTRACT CORRESPONDING sibling (same perPair) is very likely the same; MOVE CORRESPONDING's per-pair arm is defended by §1985:VI.6.19.4 GR1. Known note: kb/Work/PB5185 (landed decision D-CORR85, which is the cause)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "ADD CORRESPONDING at 85 evaluates the group operand's subscript afresh for each pair (`BB=400`); the 1985 text as amended requires once, at the start (`BB=200`, which 2023 prints). See below: this overturns part of the documented determination D-CORR85. SUBTRACT CORRESPONDING takes the same switch.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ },
+ "work": "PB5814"
 }

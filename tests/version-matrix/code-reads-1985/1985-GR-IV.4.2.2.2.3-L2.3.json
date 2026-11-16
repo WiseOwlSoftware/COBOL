@@ -91,5 +91,6 @@
   "expected": "§1985:IV.4.2.2.2.3: 'A figurative constant may be used whenever literal appears in a format'; STOP SR1 restricts only figuratives beginning with ALL",
   "observed": "error COBOL5506: unexpected '.'. The separator period is not expected here: expected '&'",
   "known_note": "none (same defect as the L2.2 record; no kb/Work note found)"
- }
+ },
+ "work": "PB5809"
 }

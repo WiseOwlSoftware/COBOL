@@ -69,5 +69,11 @@
   "evidence": "Probe src/allrmstat.cob at --std 85 (runs/allrmstat-001): COMPUTE R = FUNCTION MIDRANGE (N-EL (ALL) (1:1)) over 11 72 33 compiles and prints MIDRANGE[0004.0000] = (1+7)/2; the arguments are class alphanumeric (§1985:IV.4.3.8.4.4 GR3a, GR5), so §1989:A.2.26.3 AR1 requires a refusal. Same at --std 2023 (runs/allrmstat-002). Non-ALL control MIDRANGE (N-ITEM (2:2)) is refused COBOL1627 (runs/rmstat-001). cite.py: 'OK  §1989:A.2.26.3 AR1  (2.26.3 Arguments)  the text is in AR1'.",
   "edition-sites-missed": [],
   "corrected": "NON-CONFORMING (under-rejects), cause (c): same mechanism as MEAN and MEDIAN in src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace. Same at --std 2023."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A reference-modified element under an ALL subscript (`N-EL (ALL) (1:1)`) is class alphanumeric by the 1985 text, and the argument-class screen classes it as its numeric element. MAX and MIN refuse legal lists; MEAN, MEDIAN and MIDRANGE compute from digit slices; an illegal MAX mix compiles and fails at run time. Not the mechanism of PB5780 or PB5813.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
+ },
+ "work": "PB5833"
 }

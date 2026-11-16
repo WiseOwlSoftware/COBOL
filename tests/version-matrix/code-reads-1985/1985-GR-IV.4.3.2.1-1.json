@@ -106,5 +106,6 @@
   "expected": "refused: §1985:VI.5.11.3 SR4 \"A 66 level entry cannot rename another 66 level entry\"; a RENAMES entry has no level in the record (§1985:IV.4.3.2.1 GR1)",
   "observed": "compiles clean and runs: X1=[ABCD] X2=[ABCD], R=[wxyz]; 66 X2 RENAMES A THRU X1 is refused with a misleading tiling diagnostic (kb/Work PB96) instead of the SR4 reason",
   "known_note": "none names it; related landed notes kb/Work PB5165 (introduced the 85 whole-scope candidate arm) and PB1283 (wrote ScreenRenamesOperand's SR5 screen assuming 66 is unreachable)"
- }
+ },
+ "work": "PB5772"
 }

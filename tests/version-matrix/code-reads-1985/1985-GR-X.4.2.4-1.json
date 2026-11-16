@@ -67,5 +67,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf: the pre-2014 arm (!Edition.Has(2014)) narrows to the program's own LINAGE files only when it has some; with none, it falls back to the whole visible set instead of the nearest declaring program's GLOBAL LINAGE files (X.1.3.8.2 GR3b), unlike ReportOf, which uses Reports.NearestInScope"
   ],
   "corrected": "PARTIAL (rejects-legal-source, cause a: the 1985 arm of LinageFileOf is incomplete). At --std 85 an unqualified LINAGE-COUNTER in a contained program with no LINAGE file of its own, under containers at two or more levels that each declare a GLOBAL LINAGE file, must resolve to the nearest container's counter. It is refused with COBOL5997."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "An unqualified LINAGE-COUNTER in a contained program is refused at 85 (COBOL5997, citing §2023), while the containing program's own unqualified reference is accepted. An unswept sibling of the landed kb/Work PB5166.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
+ },
+ "work": "PB5787"
 }

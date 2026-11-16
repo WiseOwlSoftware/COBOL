@@ -128,5 +128,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles (RECORD DEPENDING via ResolveClauseOperand, no OCCURS/occurrence screen; ScreenClauseOperandOccurrence gated on Edition.SubscriptedClauseOperands is not applied to it)"
   ],
   "corrected": "NONCONFORMING (under-rejects): at --std 85 RECORD VARYING ... DEPENDING ON a table element (an item subject to OCCURS) is admitted with no diagnostic and the clause's length register is then ignored at WRITE and READ (GR8/GR10a/GR11 dead). Cause (b): same at 2023. Known note: none exact (PB2041 open, adjacent: the data-name-n OCCURS screen sentence)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "`RECORD VARYING ... DEPENDING ON TL`, TL an element of a table, compiles, and at run time the length is ignored (a WRITE gives 00 where an elementary item gives 44). The subscripted spelling is refused. 2023 rows `FMT-13.18.43.2` and the operand rule `SR-13.18.43.3-6`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-5.md"
+ },
+ "work": "PB5810"
 }

@@ -89,5 +89,6 @@
   "expected": "A compile-time refusal: data-name-1 'must be a global name and must reference a data item which is described in the same Data Division' (§1985:VI.5.8.3 SR9)",
   "observed": "Compiles clean; prints AB|",
   "known_note": "none (kb/Work PB1261, landed, covers only the GLOBAL/EXTERNAL attribute agreement)"
- }
+ },
+ "work": "PB5797"
 }

@@ -140,5 +140,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand: no level-66 test, relying on the 2002+ arm's unreachability"
   ],
   "corrected": "PARTIAL / under-rejects, cause (a): at --std 85 the format's data-name-2 may name another level-66 entry (66 R2 RENAMES R1. compiles and runs), which §1985:VI.5.11.3 SR4 forbids; refused at 2002/2023. Introduced by the PB5165 below-2002 candidate arm; ScreenRenamesOperand should refuse operand.Level == 66 (and 88) itself. No kb/Work note owns it (PB1283 and PB5165 checked)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "`66 R2 RENAMES R1`, R1 itself a level 66, compiles and runs at 85 against `§1985:VI.5.11.3 SR4` (\"A 66 level entry cannot rename another 66 level entry\"); refused at 2023 (COBOL1655). I ran it.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-1.md"
+ },
+ "work": "PB5772"
 }

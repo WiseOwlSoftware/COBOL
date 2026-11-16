@@ -83,5 +83,11 @@
    "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#logicalNotBeforeRelationalOperator: excludes LA(2)==NOT at every edition, which at 85 removes GRL2.2's 'otherwise' arm for a NOT followed by NOT (the IS-less spelling of 'NOT IS NOT <')"
   ],
   "corrected": "NON-CONFORMING (rejects-legal-source), cause (b)/(c): at --std 85 'A > B AND NOT NOT < C' (equivalently 'NOT NOT = C', 'NOT NOT LESS C') is legal 1985 source meaning (A > B) AND (NOT (A NOT < C)) by GRL2.1's 'otherwise' and GRL2.2, yet it is refused with COBOL0001; the IS-spelled 'NOT IS NOT < C' with the same meaning compiles and evaluates correctly. The rest of the rule (the six words, the carry of a negated operator, logical NOT before IS/>=/<=/object) conforms on 1,782 checked combinations."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "`IF A > B OR NOT NOT < C` is refused at 85. By `§1985:VI.6.3.3 GRL2.1` the second NOT, followed by `<`, is part of the relational operator and the first is the logical operator, so the condition is `A > B OR NOT (A NOT < C)`; the same condition written `NOT IS NOT <` compiles. I ran both.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
+ },
+ "work": "PB5784"
 }

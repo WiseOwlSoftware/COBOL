@@ -103,5 +103,10 @@
   "evidence": "doi-bad.cob at --std 85: DISPLAY FUNCTION DATE-OF-INTEGER (1) COBOL0900 (SR4), (FUNCTION SQRT (4)) COBOL1627, ref-mod COBOL1629, all refused; doi-ok2.cob: a data item named DATE-OF-INTEGER as argument (16010228), INTEGER-OF-DATE(19991231)+1 = 20000101, relation condition OK. BUT doi-sum.cob: COMPUTE D = FUNCTION DATE-OF-INTEGER (FUNCTION SQRT (N) + 1) with N = 2 compiles clean at --std 85 and runs on the truncated value 2 (DOI=16010102); identical at --std 2023. The reader's own requirement says 'exactly one integer argument' and its notes say the integer kind is enforced; it is not for a numeric-function term in a sum (the same fail-open the reader found for CHAR, IntrinsicArgumentRules NotAlwaysIntegral/AdditiveSpine). cite.py: OK §1989:A.2.12.3 AR1 'Argument-1 is a positive integer'; OK §1989:A.2.2 (AR4) 'An arithmetic expression which will always result in an integer value must be specified'; OK §1989:A.2.3 (GR2) 'may not be referenced where an integer operand is required'.",
   "edition-sites-missed": [],
   "corrected": "Reading: the FMT row's 'argument-1' covers only keyword, name, parentheses and arity, so the format CONFORMS and the integer-argument under-rejection belongs to 1989-AR-A.2.12.3-1 (cause b, harm under-rejects, same at 2023). Under the reader's own requirement (which includes the integer argument) the verdict is PARTIAL on DATE-OF-INTEGER(FUNCTION SQRT(N) + 1)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The general formats of DATE-OF-INTEGER and DAY-OF-INTEGER are right. The integer requirement is their argument rules', which mechanism 1 covers.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
  }
 }

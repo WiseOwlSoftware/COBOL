@@ -107,5 +107,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandShapeViolation: the COBOL1700 index-data-item arm runs at every edition on the 2023 explicit-reference reading; 1985 needs an arm that admits an index data item as data-name-1 (GR3b) and compares it as two index data items"
   ],
   "corrected": "PARTIAL (rejects-legal-source, cause a: 1985 needs its own arm). Minimal repro: 01 WS-IX USAGE INDEX. ... RD R-1 CONTROL IS WS-IX. with a TYPE CF WS-IX group; expected at --std 85 to compile and break when WS-IX changes value (§1985:XIII.3.7.4 GR3b), observed COBOL1700. Correct at 2023 (no GR3b there; 2023 13.18.16 has no index case). kb/Work: none for CONTROL; PB5188 (landed) applied §1985 SR5 to a report SOURCE operand, a related reading that GR3b's CONTROL-specific text and IV.4.4.1's Procedure-Division-only definition do not support for CONTROL."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "An index data item as a CONTROL is refused at 85 (COBOL1700, citing a 2023 rule); `§1985:XIII.3.7.4 GR3b` provides for exactly that control, and 1985's limit on explicit references (`§1985:VI.5.14.3 SR5`) is about Procedure Division statements (`§1985:IV.4.4.1`). I ran it.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-1.md"
+ },
+ "work": "PB5774"
 }

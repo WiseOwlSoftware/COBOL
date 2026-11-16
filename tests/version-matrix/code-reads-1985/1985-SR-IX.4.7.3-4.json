@@ -172,5 +172,11 @@
   "evidence": "Probe r6_numalias.cob (refute-1985-047/r6_numalias-001), --std 85: RECORD KEY IXK PIC X(4); a second 01 has R2-NUM PIC 9(4) at offset 0. START IXF KEY IS NOT LESS THAN R2-NUM compiles and runs: 'START FS=00 / 2222REC02'. Expected: refused. a) is 'A data item specified as a record key ... (see page IX-11 ... and page IX-14, The RECORD KEY Clause)', and R2-NUM is named in neither clause and cannot be one, since IX.2.7.3 SR2 requires category alphanumeric. b) is 'Any data item of category alphanumeric whose leftmost character position', and R2-NUM is numeric. The reader's c6_num probe refused only a SHORTER numeric item (PIC 9(3)), which takes the GenericKeyIndex arm. An equal-width numeric item takes KeyIndexOfKeyItem's positional arm (ByteWidth equality only) and is admitted before GenericKeyIndex's SameClassCategoryUsage test can run. So the reader's own requirement ('other category ... must be refused') is broken. cite.py: 'OK  §1985:IX.4.7.3 SR4  (4.7.3 Syntax Rules)  the text is in SR4'; 'OK  §1985:IX.2.7.3 SR2 ... the text is in SR2'; 'OK  §1985:IX.2.7.4 GR3 ... the text is in GR3'. Also probed r6_renames.cob (66 GENK RENAMES IXK1, a generic alphanumeric RENAMES item): accepted, 'START FS=00 / BBBBREC02', which is correct. At --std 2023 (r6_numalias_23-001) the same is accepted: 'START FS=00 / 2222REC02'.",
   "edition-sites-missed": [],
   "corrected": "NONCONFORMING (under-rejects, cause b). Repro: r6_numalias.cob, START IXF KEY IS NOT LESS THAN R2-NUM with R2-NUM PIC 9(4) at the X(4) prime key's positions in a second 01. Expected: refused by §1985:IX.4.7.3 SR4, since it is neither a) nor b) (not alphanumeric). Observed: accepted, START FS=00. The a) check (KeyIndexOfKeyItem) admits any same-offset, same-width item of the file's records with no category test, which bypasses b)'s category condition. Known note: none (PB354 is related)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A `PIC 9(4)` item at the position of the `X(4)` record key is accepted as the KEY of READ and START: the match compares offset and width only. 2023 rows `SR-14.9.30.3-11`, `SR-14.9.41.3-6`. Lead, not ruled: an alphanumeric item of the same width is accepted for READ too.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-3.md"
+ },
+ "work": "PB5794"
 }

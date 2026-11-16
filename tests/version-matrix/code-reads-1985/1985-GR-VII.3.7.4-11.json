@@ -108,5 +108,10 @@
   "expected": "§1985:VII.3.7.4 GR11: all file description entries associated with the external connector \"must have: a. A LINAGE clause, if any file description entry has a LINAGE clause ... c. The same corresponding external data items referenced by data-name-1\"; the compiler, which refuses a GR11b violation with COBOL6847, should refuse these too",
   "observed": "both compile with no diagnostic and run (DONE); only the integer disagreement (l11b) draws COBOL6847",
   "known_note": "none: kb/Work PB5300 (landed) added the LINAGE integer comparison and does not mention GR11a or GR11c"
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "GR11 binds the run unit; 1985 requires no detection of a violation. That the compiler checks one of its three parts is an extra, and the two it does not check are no defect.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
  }
 }

@@ -102,5 +102,11 @@
    "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup: unconditional AdvancePage implements §2023 GR4a, not §1985:XIII.3.10.8 GR3b"
   ],
   "corrected": "NON-CONFORMING (wrong-answer), cause (a): at --std 85 this edition needs its own arm. After a body group's absolute NEXT GROUP fills the save location (LC = FOOTING), a control footing whose first line is LINE PLUS 0 passes fit test 3b (12 + 0 <= FOOTING 12) and must be presented on the current page at LC + 0 (rule 4b). The compiler instead advances the page and prints it at saved+1 (page 2, line 10), at 85 the same as at 2023. Repro: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-146/src/cfplus0.cob. Expected per 1985: PAGE 1 LINE 12 [CF12]. Observed: PAGE 2 LINE 10 [CF10]. It is narrow (only a first relative line of integer 0 in a group whose lower limit is FOOTING), but the rule text decides it."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "Report Writer. After a body group's absolute NEXT GROUP saves its integer, the next relative group whose LINE integers sum to zero (a control footing with LINE PLUS 0) is sent to the next page. The 1985 fit test keeps it on the page: a body group HAS been presented there, so the saved integer is not consulted. The forced page advance is the 2023 rule, applied at every edition. Narrow: only a relative group of integer sum 0 whose lower limit is at least the FOOTING line. The rules it rests on are printed text (folios XIII-32 to XIII-36), not reconstruction.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md"
+ },
+ "work": "PB5823"
 }

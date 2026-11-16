@@ -77,5 +77,6 @@
    "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore: ProcessControlFootings(0) takes level 0 (the FINAL entry when FINAL is written) as TERMINATE's break level at every edition; no edition arm"
   ],
   "corrected": "Unsettled: if XIII.4.7.4 GR1's 'most major control data-name' fixes TERMINATE's break level, then at --std 85 the NEXT GROUP of the most major data-name's control footing applies at TERMINATE whether or not FINAL is written, and a CF FINAL's NEXT GROUP is ignored (ngfin.cob should place RFOOT on 11, as ngnof.cob does). The verdict stands only on the reading that FINAL is the highest break level at TERMINATE."
- }
+ },
+ "work": "PB5824"
 }

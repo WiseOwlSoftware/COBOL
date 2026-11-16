@@ -69,5 +69,11 @@
   "evidence": "Refusal half holds: r4a at --std 85 refused PIC 9(4) BLANK WHEN ZERO (numeric edited in 1985) COBOL0863, an OCCURS element COBOL0863, a level-88 COBOL1639; r4b refused S9(3) SIGN LEADING SEPARATE. The admitting half fails: r4b/r4c key '66 K-REN RENAMES K-E' where K-E is PIC 9(3) (a RENAMES of one elementary item is that elementary item, an unsigned integer data item) passes the syntax check but the compile CRASHES: r4c-001 at --std 85 exit 1 'Unhandled exception: System.InvalidOperationException: no Place was built for data item 'K-REN' when binding finished' at PlaceTable.Of <- PlaceTable.RelativeKeyOf <- KeyedIoEmitter.Rrn <- EmitWrite. Same at --std 2023 (r4c-002). RENAMES itself works (r4d: MOVE 6 TO K-REN prints 006 006). PACKED-DECIMAL 9(5) and BINARY 9(18) keys accepted. cite.py: OK §1985:VIII.2.4.3 SR2 (2.4.3 Syntax Rules) the text is in SR2. kb/Work search (RENAMES with RELATIVE KEY, RelativeKeyOf, 'no Place was built'): no note for this; PB5602 only names RelativeKeyOf.",
   "edition-sites-missed": [],
   "corrected": "NON-CONFORMING (crashes / rejects-legal-source), cause (b): a level-66 RENAMES of an unsigned integer elementary item is a legal data-name-1, but DataBinder.PlaceableItems (AllItems plus linkage) gives PlaceTablePass no level-66 alias, so PlaceTable.RelativeKeyOf throws during code generation at every edition. Repro: src/r4c.cob under refute-1985-065. Sweep the siblings that go through OccurrenceOf/Of by item: FILE STATUS (FileStatusOf), ASSIGN USING, DEPENDING ON."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "THE COMPILER CRASHES ON LEGAL SOURCE. A level 66 item that renames one elementary item, named as FILE STATUS, LINAGE, DEPENDING ON, RELATIVE KEY or a report CONTROL, ends the compiler with an unhandled `System.InvalidOperationException` (\"no Place was built for data item\"), at 85 and at 2023, with no COBOL diagnostic. Each use is legal: \"all of the data attributes of data-name-2 become the data attributes for data-name-1\" (`§1985:VI.5.11.4 GR2`). I ran the FILE STATUS case. Not probed: SORT and MERGE keys, SUM operands, RECORD KEY. For `1985-SR-XIII.3.7.3-2` the row's own check is right for every operand that compiles.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5801"
 }

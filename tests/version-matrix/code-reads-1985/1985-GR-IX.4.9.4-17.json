@@ -82,5 +82,10 @@
    "src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte: edition-free byte law that makes keys 'A'+U+00FF and 'A'+HIGH-VALUE equal on the file"
   ],
   "corrected": "Items c (extend included) and the ordinary forms of a and b conform. Under the native-sequence reading, items a and b over-report: a key holding U+00FF and one holding HIGH-VALUE in the same position are equal on the file, so a greater key answers 21 and a distinct key answers 22 (cause b, same at 2023). This is CONFORMS only if DOC-A.1-31's fold is accepted as defining the file's character set."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The behaviour (a character above U+00FF refused with 91; U+00FF read back as HIGH-VALUE) is fixed by the owner's decisions R47 and R52 and documented in `docs/conformance/7/DOC-A.1-31.md`; the code does what was decided. Lead: that entry does not state one consequence the checker measured, that two keys differing only in U+00FF against HIGH-VALUE collide (status 21 on a sequential WRITE, 22 on a random one). The rows close on the documented determination, not on a plain CONFORMS.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-5.md"
  }
 }

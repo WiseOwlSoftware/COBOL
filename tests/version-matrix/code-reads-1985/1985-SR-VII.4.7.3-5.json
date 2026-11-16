@@ -73,5 +73,6 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ScreenAdvancingCount: no edition test; the 1985 glossary's 'neither signed nor zero unless explicitly allowed' and the 'literal'-only figurative license have no arm"
   ],
   "corrected": "DOUBTFUL: strict 1985 reading would make it NONCONFORMING (under-rejects +n and figurative ZERO as integer-1); permissive reading makes -0's refusal rejects-legal-source. Needs an adjudication of the 1985 reading."
- }
+ },
+ "work": "PB5805"
 }

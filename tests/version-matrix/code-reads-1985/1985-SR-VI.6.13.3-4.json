@@ -169,5 +169,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenRangeOperands: the same-class test runs only when both ends have a single class; it does not test whether the other end's class is among a figurative's candidates"
   ],
   "corrected": "PARTIAL (under-rejects; cause b, the same at --std 2023). The same-class screen fails open when one end is a figurative constant other than ZERO, so EVALUATE N WHEN SPACE THRU 9 (also QUOTE THRU 9 and 1 THRU HIGH-VALUE against a numeric subject) compiles and runs. Under SR4 it must be refused, because SPACE, QUOTE and HIGH-VALUE are never of class numeric. The reader probed only SPACE THRU \"Z\", which is a same-class pair."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "EVALUATE accepts `WHEN SPACE THRU 9` and `1 THRU HIGH-VALUE`: the same-class check skips a figurative constant. 2023 row `SR-14.9.13.3-4`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-3.md"
+ },
+ "work": "PB5796"
 }

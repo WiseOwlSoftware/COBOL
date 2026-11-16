@@ -102,5 +102,6 @@
   "expected": "a compile-time diagnostic: \"Identifier-2 must reference an elementary numeric data item\" (§1985:VI.6.18.3 SR6), and CN (1:2) \"has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric\" (§1985:IV.4.3.8.4.4 GR5)",
   "observed": "error: backend compilation failed (generated C# at i4rm.g.cs): (89,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?' (exit 70)",
   "known_note": "none found (searched kb/Work for CheckInspectTallyCounter, TALLYING counter with reference-modif / (n:, COBOL0847; PB1127 and PB1830 are the USAGE INDEX counter and its SUM sibling, both landed)"
- }
+ },
+ "work": "PB5734"
 }

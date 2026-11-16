@@ -101,5 +101,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/PredefinedNullRule.cs#Report: below 2002 (UnreservedKeywordReference.IsFreeAt) reports an undefined data reference, wrong for a system-name position"
   ],
   "corrected": "NON-CONFORMING, rejects-legal-source, cause (a): at --std 85 ASSIGN TO NULL (NULL an unreserved COBOL word, so implementor-name-1) is refused with COBOL1639 while every other unreserved word is accepted as the file name; expected: accepted as implementor-name-1 like NULLS or TYPEDEF. At 2023 it is (correctly) COBOL2576. Known note: none (PB1673 is the nearest)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "`ASSIGN TO NULL` is refused at 85 (COBOL1639 \"not defined\"); NULL is not a reserved word in 1985, so there it is an implementor-defined file name, as `ASSIGN TO NULLS` already is.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5802"
 }

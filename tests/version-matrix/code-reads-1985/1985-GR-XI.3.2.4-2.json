@@ -193,5 +193,11 @@
   "evidence": "Probes under refute-1985-142/src at --std 85: q1a (VARYING FROM 5 TO 10 over an ODO record of 2..10) refused COBOL2010 SR2; q1b (RECORD CONTAINS 5 over ODO max 10) refused COBOL2010 SR1; q1c (DEPENDING ON qualified W-LEN OF W-GRP, COMP) R B 0005 [BBBBB ] / R A 0002 [AA    ] correct; q1d (VARYING, no FROM/TO/DEPENDING, a 2-char 01 released) R A [AQ    ] correct GR10b; q1f Linkage DEPENDING ON accepted; q1h GR9/GR11/GR12 correct (LEN 3, R A 6 [ABCDEF], R Q 3 [QRS   ]). THE FAILURE: q1e/q1j name as DEPENDING ON an elementary PIC 9 W-LEN subordinate to 05 W-ENT OCCURS 3 (unsubscripted; data-name-1 cannot carry a subscript). Compiles at 85 (and 2023). Run q1j with W-LEN(1..3)=2,5,4: RELEASE of ABCDEF released 6 characters (none of the three values) and after the successful RETURN W-TAB is still 254 (GR11 stored nothing): the DEPENDING ON is silently ignored. cite.py: OK §1985:IV.4.3.8.2.3 SR4 'Each table element reference must be subscripted except when such reference appears' (exceptions USE FOR DEBUGGING, SEARCH subject, REDEFINES, KEY IS; not the RECORD clause); OK §1985:VII.3.8.3 SR4; OK §1985:VII.3.8.4 GR10; OK §1985:VII.3.8.4 GR11; OK §1985:XI.3.2.4 GR2. kb/Work grep (RECORD VARYING DEPENDING with OCCURS/subscript): no note for it.",
   "edition-sites-missed": [],
   "corrected": "NOT CONFORMING (under-rejects, wrong-answer): RecordClauseRules has rows for elementary, unsigned integer and section of the DEPENDING ON item (SR4) but none refusing a table element, which §1985:IV.4.3.8.2.3 SR4 makes an illegal unsubscripted reference; the program compiles and the RELEASE/RETURN ignore data-name-1 (GR10a, GR11 broken). Cause (b): same at --std 2023 (q1i-002 R 256 [ABCDEF]). Site: src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs (the SR-13.18.43.3-6 rows)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5810 in two more files: a relative file's WRITE with RECORD VARYING DEPENDING ON a table element gives status 00 where the length 9 requires 44, and a sort file's RETURN delivers all 8 characters and leaves the length item `00`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-7.md"
+ },
+ "work": "PB5810"
 }

@@ -170,5 +170,11 @@
    "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph: the optional computerName (objectComputerClauseAhead predicate) lets a header word end the paragraph instead of naming the computer"
   ],
   "corrected": "REJECTS_LEGAL_SOURCE (harm rejects-legal-source, cause a: 85 needs these words freed as a computer-name and has no arm for it; at --std 2023 the same programs are refused, correctly, as the words are reserved there). Repro: r6n_class_id.cob, 'SOURCE-COMPUTER. XYZ. OBJECT-COMPUTER. CLASS-ID.' at --std 85 -> COBOL5506 at PROCEDURE; expected: accepted, CLASS-ID is a COBOL word not reserved in 1985 and the documented system-name formation admits it."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "CLASS-ID, INTERFACE-ID, FUNCTION-ID and REPOSITORY are refused as the computer-name of OBJECT-COMPUTER and SOURCE-COMPUTER at 85; none is a reserved word in 1985.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5804"
 }

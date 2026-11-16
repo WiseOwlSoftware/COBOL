@@ -76,5 +76,11 @@
   "evidence": "r4min.cob (refute-1985-124/r4min-001, --std 85): FD F with 01 RA PIC X(4) followed by 01 RG. 05 RG-1 PIC 99. 05 RG-1X REDEFINES RG-1 PIC XX. 05 RG-2 PIC XX. and a READ then DISPLAY of RG-1, RG-1X, RG-2 fails in the backend: 'error: backend compilation failed (generated C# at r4min.g.cs): (101,143): error CS0103: The name 'RG' does not exist in the current context', exit 70. The generated access is RG._redef_RG_1 although RG is folded into RA's implicit-redefinition area (the same reference to RA reads _redef_RA). With RG written FIRST (r4min2-001) the same program runs: R1 00 RG-1=12 RG-1X=12 RG-2=AB, so only a record that is an implicit redefinition of the anchor AND holds an explicit REDEFINES breaks. Identical at --std 2023 (r4min-002), cause b. The larger probe r4gr6.cob (r4gr6-001) fails the same way; without the inner REDEFINES (r4gr6b-001) the other legs alias correctly both ways: elementary S9(5) display record RN=+12345, a 9(4) COMP record, an edited ZZ9.99 record, a JUSTIFIED RIGHT record and a level-66 RENAMES of a later record (RG-R=[AB12], MOVE to RG-R seen through RA). kb/Work searched for _redef_, CS0103 with record/REDEFINES: PB3166/PB203 are BIT-group REDEFINES (landed), PB1523 GLOBAL FD (landed); no note for this. cite.py: OK  §1985:VII.4.4.4 GR6 (4.4.4 General Rules) the text is in GR6.",
   "edition-sites-missed": [],
   "corrected": "PARTIAL (crashes, rejects-legal-source; cause b): any record description after the first of an FD that contains an explicit REDEFINES entry makes the generated C# fail to compile (CS0103 on the record's own name), at every edition. GR6 makes every record description an implicit redefinition of the one area, and a record description containing a REDEFINES is ordinary 1985 source (§1985:VI REDEFINES clause), so the implicit-redefinition linker (FileControlBinder.FileSection#LinkImplicitRecordArea) does not carry the nested REDEFINES backing of the folded record."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The trigger of the open kb/Work PB5729, at 85 as at 2023, with a second symptom that note lacks: a numeric redefined item gives a C# backend error (CS0103, exit 70) and no COBOL diagnostic; an alphanumeric one overflows the stack.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ },
+ "work": "PB5729"
 }

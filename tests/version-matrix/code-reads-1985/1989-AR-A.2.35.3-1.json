@@ -101,5 +101,11 @@
   "evidence": "Table 1 gives RANDOM argument type I1; §1989:A.2.2 type 4 requires 'An arithmetic expression which will always result in an integer value'. rr1.cob --std 85 --compile-only (runs/rr1-001): 14 of 16 shapes refused (2 ** -1, W-N ** -1, NUMVAL/REM/MEAN/RANDOM/PRESENT-VALUE as numeric functions, PIC PP9, USAGE INDEX item, index-name, ALL \"5\", a group, W-N + 0.5, 4 / 3), but FUNCTION RANDOM (W-SC * 2) with W-SC PIC 9V9 and FUNCTION RANDOM (W-N * 0.5) with W-N PIC 99 compile with no diagnostic. rr2.cob runs/rr2-001 (--std 85) and rr2-002 (--std 2023), identical: W-N = 5 gives RANDOM (2.5), whose value equals RANDOM (2) (HALF=0.771093898 = SEED2), and W-SC = 0.1 gives RANDOM (0.2), equal to RANDOM (0) (SCx2=0.726243269 = SEED0): the fraction is silently truncated. Cause in IntrinsicArgumentRules.cs#NotAlwaysIntegral: only a root item/literal quotient, an additive spine and a power arm have a witness; a product is treated as opaque and the check fails open, although a witness valuation exists (W-N = 1 gives 0.5, W-SC = 0.1 gives 0.2). cite.py: OK §1989:A.2.35.3 AR1 the text is in AR1 ['it must be zero or a positive integer']; OK §1989:A.2.2 the text lies in AR4 ['An arithmetic expression which will always result in an integer value must be specified'].",
   "edition-sites-missed": [],
   "corrected": "PARTIAL (under-rejects, cause b, the same at --std 2023): an argument-1 that is a product with a non-integral factor (an item with scale > 0 times an integer literal that does not cancel the scale, or an integer item times a non-integral literal) is not an always-integral arithmetic expression, so §1989:A.2.2 type 4 rejects it. The compiler admits it and truncates the value, though it refuses W-N / 2 and W-N + 0.5 on the same reading. Minimal repro: 01 W-N PIC 99 VALUE 5. ... COMPUTE W-R = FUNCTION RANDOM (W-N * 0.5) compiles and seeds with 2. No kb/Work note covers the product shape; the nearest are PB124, PB617, PB1526, PB5208 and PB5345 (sum, power and quotient arms, all landed)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "At 85 an integer argument that is a product (`WN * 0.5`), a quotient of two items inside a larger argument list (`A / B`), or an expression holding a numeric function (`FUNCTION SQRT (N) + 64`) compiles and is silently truncated: FACTORIAL, MOD, RANDOM, CHAR. A quotient written alone is refused. See below. I ran it.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
+ },
+ "work": "PB5832"
 }

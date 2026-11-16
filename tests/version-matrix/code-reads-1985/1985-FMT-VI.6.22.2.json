@@ -173,5 +173,11 @@
   "evidence": "Rendered the PDF page (render-spec-page.py 354 --edition 1985): Format 2 prints WHEN {data-name-1 {IS EQUAL TO | IS =} {identifier-3 | literal-1 | arithmetic-expression-1} | condition-name-1} [AND {...}]... with no parentheses; §1985:VI.6.22.3 SR3 gives 'any conditional expression' to Format 1's condition-1 only. Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/sr_paren.cob: SEARCH ALL ENT WHEN (K1(IX) = \"B\") DISPLAY \"HIT \" K2(IX) END-SEARCH compiles clean and prints 'HIT 2' at --std 85 (and at --std 2023); sr_paren2.cob WHEN (K1(IX) = \"B\") AND (K2(IX) = 2) also prints 'HIT 2'. Inconsistently, sr_paren3.cob WHEN ((K1-B(IX))) is refused COBOL1757 with the false reason 'this operand is not a condition-name'. Code: src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#TryPrimary unwraps `LPAREN condition RPAREN` silently; its own summary (TryConjuncts) says 'whether Format 2 admits parentheses at all is a question about its general format' and leaves it unanswered. Other forms probed behave: EQUAL without TO, IS EQUAL, condition-name AND, function identifier-3, Format 1 with a delimited conditional, IS NOT EQUAL refused, refmod key refused COBOL2024, K2 without K1 refused COBOL1965, EQUALS refused. cite.py: OK §1985:VI.6.22.2 'SEARCH ALL identifier-1 AT END imperative-statement-1'; OK §1985:VI.6.22.3 SR3 'In format 1, condition-1 may be any conditional expression'; OK §1985:VI.6.22.3 SR4. kb/Work: no note found (grep of SEARCH ALL notes for parenthes/unwrap).",
   "edition-sites-missed": [],
   "corrected": "NONCONFORMING (under-rejects; cause b, the same at --std 2023): the 1985 Format 2 WHEN admits only data-name-1 IS EQUAL TO/IS = operand or condition-name-1, AND-joined; a parenthesized WHEN operand is outside the format and must be refused, but SearchAllFormat2Rules.TryPrimary unwraps it and the program runs. Repro: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/sr_paren.cob prints HIT 2 with no diagnostic. The parenthesized condition-name form is refused with a misleading reason (misleads-diagnosis)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "SEARCH ALL accepts a parenthesised WHEN condition, which Format 2 does not print (page 354 rendered). 2023 row `FMT-14.9.37.2`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-1.md"
+ },
+ "work": "PB5773"
 }

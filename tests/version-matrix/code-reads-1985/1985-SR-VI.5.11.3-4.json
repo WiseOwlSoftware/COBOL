@@ -98,5 +98,6 @@
   "expected": "§1985:VI.5.11.3 SR4: \"A 66 level entry cannot rename another 66 level entry nor can it rename a 77, 88, or 01 level entry.\" A refusal.",
   "observed": "--std 85: exit 0, no diagnostic, prints [AB]",
   "known_note": "none (kb/Work PB5165 introduced the whole-scope 1985 arm for RENAMES operands; it does not mention level-66 operands)"
- }
+ },
+ "work": "PB5772"
 }

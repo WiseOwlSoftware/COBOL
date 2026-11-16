@@ -101,5 +101,6 @@
   "expected": "refused: 'page heading report groups may not be presented on or beyond the line number specified by integer-3' (§1985:XIII.3.8.4 GR1c); the last line for a PH is integer-3 minus 1 (§1985:XIII.3.10.7 GR2)",
   "observed": "exit 0; page heading line PB printed on line 5 (= FIRST DETAIL) and the detail merged over it: LINE 05 [DB05]",
   "known_note": "none covers it; related: kb/Work PB1270 (landed; its determination point 5 places a relative PH after a report heading 'lower' and screens only the HEADING-seeded walk), PB4952 (the reconstructed folio)"
- }
+ },
+ "work": "PB1003"
 }

@@ -101,5 +101,10 @@
    "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore: not an edition site. Its RefModPlace arm is taken before the group (AccessDir.Sending) arm at every edition, and the reader did not read that arm"
   ],
   "corrected": "Non-conforming. Harm: wrong-answer, silent. Cause (b): the same at --std 2023. Repro: q5.cob M1. Expected under §1985:VI.6.18.4 GR1 with §1985:VI.5.8.4 GR3b: [5bbbAA]. Observed: [5bbb  ]. Known note: none (PB5119 is a neighbour)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "INSPECT handles the characters inside the current count correctly; what it blanks lies past the DEPENDING ON value, whose content is undefined, so no conforming program can see it.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
  }
 }

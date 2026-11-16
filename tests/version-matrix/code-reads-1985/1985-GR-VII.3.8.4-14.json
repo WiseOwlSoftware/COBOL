@@ -88,5 +88,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin: below 2002 (BoundsEnforced false) answers Records.Min(MinRecordSize), the ODO table at its minimum occurrences, where 1985 format 3 (GR15) needs the maximum; the WRITE length follows the 2023 current-occurrence rule at 85"
   ],
   "corrected": "Non-conforming at --std 85 (cause c, with a: 85 needs a format 3 sizing arm of its own): a format 3 record with an OCCURS DEPENDING ON table is sized by its current (and, for VaryMin, minimum) occurrences instead of GR15's maximum, so the WRITE releases 4 bytes of a 10-byte record. Harm: wrong-answer on the medium (record length), plus PB5731's under-rejects / rejects-legal-source in SORT GIVING and SD checks. Known note: kb/Work/PB5731 (open)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of the open kb/Work PB5731 (a format 3 record with an OCCURS DEPENDING ON table is sized at the table's minimum at 85); this row adds a run-time consumer: WRITE puts out a 4-character record where `§1985:VII.3.8.4 GR15` makes it 10.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
+ },
+ "work": "PB5731"
 }

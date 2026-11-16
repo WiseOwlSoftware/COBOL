@@ -101,5 +101,11 @@
    "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs: COBOL2697 emitted at 85 for a '>>' line inside REPLACE"
   ],
   "corrected": "NON-CONFORMING (rejects-legal-source), cause (a): at --std 85 a pseudo-text-1 whose only text word starts a line with '>>' (a legal 1985 text word) is refused with COBOL2572 'pseudo-text-1 holds no text-word to match'. Minimal repro q1gtgt.cob; expected: compiles (SR3 satisfied, no match in the program, prints [OK  ]); observed: EXIT 65, COBOL2572 x2 and COBOL2697. Edition arm needed: below COBOL-2002 a '>>' line is ordinary text words. Known note: none."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "REPLACE and COPY REPLACING pseudo-text that begins a line with `>>` is refused at 85 (COBOL2572, COBOL2697): the scanner looks for compiler directive lines at every edition, and 1985 has none, so `>>XYZ` is an ordinary text word there.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5803"
 }

@@ -87,5 +87,6 @@
   "expected": "refused: §1989:A.2.2 AR4 'An arithmetic expression which will always result in an integer value must be specified'; with N = 2 the expression is 65.414..., and §1989:A.2.3 GR2 bars a numeric function where an integer operand is required",
   "observed": "compiles with no diagnostic and runs on the truncated value 65, printing '@'",
   "known_note": "none open for this shape; related landed notes PB617, PB5208, PB5345, PB4757, PB4795, PB1526 (the sound-not-complete type-6 screen)"
- }
+ },
+ "work": "PB5832"
 }

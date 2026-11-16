@@ -66,5 +66,6 @@
   "expected": "§1985:XI.3.2.3 SR3 forbids only input-output statements for the sort file; §1985:VII.4.7.3 SR4 'Identifier-2 must reference an integer data item': the program compiles and runs at 85",
   "observed": "error COBOL2973 citing ISO §2023:13.4.6.3 SR4 at --std 85, exit 65",
   "known_note": "none for the 1985 arm; PB1291 (landed) introduced the screen for §2023:13.4.6.3 SR4 with no edition gate"
- }
+ },
+ "work": "PB5827"
 }

@@ -127,5 +127,6 @@
   "expected": "refusal: §1989:A.2.2 type 4 'An arithmetic expression which will always result in an integer value must be specified'; A / B is 0.5 at A=1, B=2",
   "observed": "compiles clean at --std 85; runs and prints ' 00000' (3.5 truncated to 3, MOD 3)",
   "known_note": "PB1526 (landed) records NotAlwaysIntegral as deliberately sound-not-complete and leaves the static screen fail-open, relying on the runtime EC-ARGUMENT-FUNCTION test, which COBOL-85 does not have; PB617/PB5208/PB5345 closed sibling shapes. No note claims the item-quotient or scaled-product shape."
- }
+ },
+ "work": "PB5832"
 }

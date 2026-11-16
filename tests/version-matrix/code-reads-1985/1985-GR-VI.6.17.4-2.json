@@ -101,5 +101,11 @@
   "evidence": "Same repro as GR1 (rini3-001 at 85, rini3-002 at 2023): GR2b 'If identifier-1 references an elementary item, that item is initialized only if it belongs to the category specified in the REPLACING phrase' fails both ways for WA (2:1) of an alphabetic WA: not initialized under ALPHABETIC (M1[abc]), initialized under ALPHANUMERIC (M2[aQc]). cite.py: OK  §1985:VI.6.17.4 GR2 'that item is initialized only if it belongs to the category specified in the REPLACING phrase'; OK  §1985:IV.4.3.8.4.4 GR5. Everything else in the GR2 range probed and correct: rini2-001 every occurrence of a table with a subordinate REDEFINES D3[qq4qqq], REPLACING NUMERIC on a group holding a REDEFINES D7[qqqq] / on the redefining group D8[8qqq]; rini1-002 FILLER group's named items F3[Q0Q], REPLACING ALPHANUMERIC-EDITED / ALPHANUMERIC / NUMERIC-EDITED with editing and truncation E2, E3, E4. Cause site: InitializeBinder.cs#BindInitializeTarget RefModPlace arm.",
   "edition-sites-missed": [],
   "corrected": "Non-conforming (wrong-answer, cause b): with REPLACING, a reference-modified elementary identifier-1 is always judged alphanumeric, so the GR2b category test is wrong for an alphabetic data-name-1 (1985 ref-mod GR5 keeps it alphabetic)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "INITIALIZE ... REPLACING treats a reference-modified alphabetic item as alphanumeric, so the wrong REPLACING phrase applies (`M2[aQc]` where `abc` is right). Both editions keep the item's category. Leads: the same \"a reference-modified slice is always alphanumeric\" assumption is written in `MoveOverlap.cs` and `ExpressionBinder.cs`, not probed.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ },
+ "work": "PB5813"
 }

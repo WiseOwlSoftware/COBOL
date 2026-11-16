@@ -79,5 +79,11 @@
    "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord: reads the print stream as fixed blocks"
   ],
   "corrected": "PARTIAL: wrong-answer, cause (b) (same at --std 2023). Repro: src/r3ord.cob's FA section. Expected per §1985:VII.2.6.3 GR2 and VII.4.7.4 GR12: READs return A01, A02, A03, then at end (10), or OPEN INPUT refused with 37. Observed: four records of mixed control bytes and data, all 00."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A file written with ADVANCING or under LINAGE is opened INPUT or I-O with status 00 and then read as fixed blocks: records that were never written come back, a READ past the last record returns 00 with no AT END, and REWRITE overwrites a line end. The 1985 text allows the records as written or status 37 at OPEN, not this. `docs/conformance/7/DOC-A.1-146.md` (c') does not cover reading such a file back.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ },
+ "work": "PB5815"
 }

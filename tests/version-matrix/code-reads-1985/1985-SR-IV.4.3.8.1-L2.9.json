@@ -73,5 +73,6 @@
    "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#ReportOf: no edition arm. The count of reachable reports for an unqualified Procedure Division counter (nearest scope first) is the same at 85 as at 2023, even though rule 9 counts RDs 'specified in the source program' in 1985 and 'in the source element' in 2023."
   ],
   "corrected": "Under the literal 1985 reading this is NOT CONFORMING (under-rejects), cause (c). The 1985 'source program' includes contained programs, so (i) an unqualified Procedure Division LINE-COUNTER/PAGE-COUNTER in a program whose source program (contained programs included) specifies more than one RD, and (ii) an unqualified counter in a contained program that has its own RD and also sees a GLOBAL RD, would each need COBOL2729. The compiler accepts both and resolves to the nearest report. Under the reader's per-program reading it CONFORMS. Settle it with an adjudication note before closing the rule."
- }
+ },
+ "work": "PB5800"
 }

@@ -101,5 +101,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceTable.cs#FileStatusOf: no Place for a level-66 RENAMES item (every edition)"
   ],
   "corrected": "NON-CONFORMING, crashes, cause (b): a two-character alphanumeric level-66 RENAMES item in Working-Storage named in FILE STATUS crashes code generation at --std 85 and --std 2023 alike; expected: accepted, and the I-O status (35 for the failed OPEN) stored in it."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "THE COMPILER CRASHES ON LEGAL SOURCE. A level 66 item that renames one elementary item, named as FILE STATUS, LINAGE, DEPENDING ON, RELATIVE KEY or a report CONTROL, ends the compiler with an unhandled `System.InvalidOperationException` (\"no Place was built for data item\"), at 85 and at 2023, with no COBOL diagnostic. Each use is legal: \"all of the data attributes of data-name-2 become the data attributes for data-name-1\" (`§1985:VI.5.11.4 GR2`). I ran the FILE STATUS case. Not probed: SORT and MERGE keys, SUM operands, RECORD KEY. For `1985-SR-XIII.3.7.3-2` the row's own check is right for every operand that compiles.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5801"
 }

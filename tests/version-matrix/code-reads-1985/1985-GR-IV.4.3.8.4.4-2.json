@@ -59,5 +59,11 @@
   "evidence": "Probe refute-1985-088/src/p1b.cob at --std 85 (run p1b-003; p1b-002 is the same source at --std 2023 with the same output): N5 PIC 9(3) VALUE 123; IF N5 (1:3) > 5 printed 'NR-LIT NUMERIC' and IF N5 (1:3) > D5 (D5 PIC 9 VALUE 5) printed 'NR-ITEM NUMERIC', while the same relation over an alphanumeric X (1:3) and over a numeric-edited NE (1:3) printed ALNUM. Under GR2 the numeric item is operated upon as if it were redefined as an alphanumeric item, so the slice is the characters '123', and §1985:VI.6.3.1.1.2 makes 'one numeric and one nonnumeric operand' a character comparison of '123' with '5  ', which is false. The compiler compares the slice as the number 123, which is true. Everything else of GR2 held in p1.cob (run p1-001): the SIGN LEADING overpunch slice gives [J], the LEADING SEPARATE sign gives [-], MOVE 5 TO N(1:2) gives '5 34' (alphanumeric receive), MOVE D7 TO N2(2:2) gives '1074', INSPECT REPLACING on a numeric slice gives '1X34', UNSTRING INTO numeric slices gives 'ABCD', and INSPECT TALLYING SL(1:3) FOR '1' counts 0 (the overpunched J is not converted). p1c.cob (run p1c-001) refuses N5(1:2) in ADD, COMPUTE and a sign condition (COBOL0844). cite.py: OK §1985:IV.4.3.8.4.4 GR2 the text is in GR2; OK §1985:VI.6.3.1.1.2 the text is in the clause (GR1); OK §1985:IV.4.3.8.4.4 GR5 the text is in GR5. Known: kb/Work PB5780 (open, MAJOR, wrong_answer) files exactly this defect and claims row 1985-GR-IV.4.3.8.4.4-5.",
   "edition-sites-missed": [],
   "corrected": "NON-CONFORMING (wrong-answer, cause b, the same at --std 2023): a reference-modified numeric DISPLAY item in a relation with a numeric operand is compared algebraically, not as the alphanumeric redefinition that GR2 (with GR5 and §1985:VI.6.3.1.1.2) requires. Repro: IF N5 (1:3) > 5 with N5 PIC 9(3) VALUE 123 is true; the expected result is false. Known note PB5780, filed against GR5's row. The part of the reader's requirement that fails is 'a sending slice yields those characters unconverted'. If the inventory books the comparison under GR5 alone, GR2's position-mapping half does conform."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5780 (a reference-modified numeric item is compared as a number); this row joins it.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-5.md"
+ },
+ "work": "PB5780"
 }

@@ -111,5 +111,11 @@
    "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup: unconditional AdvancePage (the 2023 GR4a forced advance) on the 85 path"
   ],
   "corrected": "NON-CONFORMING (wrong-answer), cause (a): at --std 85 a body group that follows a saved absolute NEXT GROUP integer must first take the 1985 fit test against LINE-COUNTER = FOOTING (GR3a/3b/3c first paragraphs); only when that test fails does the page advance happen and the saved integer place the group (saved+1, or the reapplied absolute test). A control footing whose LINE clauses are all PLUS 0 (trial sum = FOOTING) must be presented on the current page at line FOOTING and leave the save set for the next body group. Minimal repro: ngp0.cob above."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "Report Writer. After a body group's absolute NEXT GROUP saves its integer, the next relative group whose LINE integers sum to zero (a control footing with LINE PLUS 0) is sent to the next page. The 1985 fit test keeps it on the page: a body group HAS been presented there, so the saved integer is not consulted. The forced page advance is the 2023 rule, applied at every edition. Narrow: only a relative group of integer sum 0 whose lower limit is at least the FOOTING line. The rules it rests on are printed text (folios XIII-32 to XIII-36), not reconstruction.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md"
+ },
+ "work": "PB5823"
 }

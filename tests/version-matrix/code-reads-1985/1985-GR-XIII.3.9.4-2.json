@@ -97,5 +97,10 @@
    "src/WiseOwl.Cobol.Compiler (the COBOL2422 SIGN-subject check, reached from ReportSectionBinder.cs#BindReportEntry): reads the post-BWZ category numeric-edited at 85, where the 1985 Report Writer table admits SIGN with BLANK WHEN ZERO; no 85 arm"
   ],
   "corrected": "Reading: GR2 says only that BWZ/JUST/PICTURE in a report entry are the Nucleus clauses; the compiler does that identically in both sections, so the GR2 equivalence itself holds (UPHELD on that reading). But the BWZ clause's category promotion is what makes a report entry the 1985 table explicitly permits (PIC S9(5) SIGN LEADING SEPARATE BLANK WHEN ZERO SOURCE x) fail: rejects-legal-source, cause (a), an 85-only combination (at 2023 S beside BWZ is refused before SIGN arises). If the BWZ effect belongs to GR2, OVERTURNED to PARTIAL; if it belongs to §1985:XIII.3.17.3 SR1 / XIII.3.9.3 SR11, GR2 stands and that rule carries the defect. Either way the defect is real and needs a kb/Work note (today only a lead in PB5191)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The compiler treats the report entry and the Working-Storage entry alike, as the row requires. Lead, not ruled: the printed Table 1 (page 605) permits SIGN SEPARATE with BLANK WHEN ZERO, which the compiler refuses at 85 (COBOL2422); rows `1985-SR-XIII.3.17.3-1`, `1985-SR-XIII.3.9.3-11`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
  }
 }

@@ -62,5 +62,11 @@
    "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#IsRecordPrintStream: selects the print-line framing that READ does not strip"
   ],
   "corrected": "If the reading holds: NONCONFORMING (wrong-answer, cause b, same at 2023): a sequential file written only by plain WRITEs does not read back as those records when the program also contains a WRITE ADVANCING of that file, even one never executed."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5815 by another trigger: one WRITE ... ADVANCING that never executes makes the file a print file, and two plain records then read back as three wrong ones. I ran it. Lead for the fix: the compiler classifies the file from the source text, while `docs/conformance/7/DOC-A.1-146.md` (c') says \"written with an ADVANCING phrase\".",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-7.md"
+ },
+ "work": "PB5815"
 }

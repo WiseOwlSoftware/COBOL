@@ -81,5 +81,6 @@
    "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse: the outward GLOBAL walk is consulted only after the local program's open-mode tier, so the exclusion of an explicitly named file from a local INPUT/OUTPUT/I-O/EXTEND USE is not applied across nesting (not an edition switch; the same arm at 2023)"
   ],
   "corrected": "NONCONFORMING (wrong-answer, cause b: the same at --std 2023). Under §1985:VII.4.6.4 GR4 and GR5b with §1985:X.5.5.4 GR1, a file named explicitly in a containing program's USE GLOBAL ... ON file-name-1 is excluded from a contained program's open-mode USE; the compiler runs the contained program's INPUT declarative instead of the container's named GLOBAL one. The opposing reading (that 'another USE statement' means one in the same Procedure Division, as SR3 is scoped) is the only way to uphold, and GR4's text carries no such limit."
- }
+ },
+ "work": "PB5812"
 }

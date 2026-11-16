@@ -127,5 +127,10 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin: reads BoundsEnforced, so at 85 a Format 3 integer-4 is not the key-window minimum (2002 on it is)"
   ],
   "corrected": "Not decided by the text. If SR5's 'specified' minimum is integer-4 for a variable Format 3 file, the 85 arm under-rejects (r5cont6 must be refused, as at 2023) and the cause is (a): PB5197's WRITE-bounds switch leaks into the key-window rule through VaryMin. If GR14's last sentence governs, the verdict stands, but the edition dependence should be recorded."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The compiler conforms at 85. See below.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-3.md"
  }
 }

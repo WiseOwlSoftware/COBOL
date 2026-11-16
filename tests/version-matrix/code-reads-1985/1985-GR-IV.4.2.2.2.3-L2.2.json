@@ -83,5 +83,6 @@
   "expected": "§1985:IV.4.2.2.2.3: a figurative constant 'may be used whenever literal appears in a format'; GRL2.2: in a STOP statement 'the length of the string is one character' - compiles, communicates '*', continues to A2",
   "observed": "error COBOL5506: unexpected '.'. The separator period is not expected here: expected '&'",
   "known_note": "none (searched kb/Work for STOP + symbolic-character; PB5074 covers STOP SPACE's spelling and PB1406 symbolic operands in concatenations, neither this)"
- }
+ },
+ "work": "PB5809"
 }

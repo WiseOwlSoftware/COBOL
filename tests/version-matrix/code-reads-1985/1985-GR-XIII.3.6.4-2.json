@@ -133,5 +133,11 @@
    "the report-FD RECORD clause validation (VersionConformancePass / FD binder): no 1985 refusal of RECORD IS VARYING on an FD with a REPORT clause"
   ],
   "corrected": "NON-CONFORMING (wrong-answer, minor, degenerate sizes): with CODE and a RECORD clause whose size is 2 the record must be the code alone (2 positions: code included in the logical record size, line width 0), and a size of 1 cannot hold the code at all (refuse, or at least never write past the record); the compiler writes a 3-character record in both. Cause (b): the same at --std 2023. Repro: FD RPT RECORD CONTAINS 2 CHARACTERS REPORT IS R-A. RD R-A CODE \"AB\". 01 DE-A TYPE DE LINE PLUS 1. 02 COLUMN 1 PIC XXXX VALUE \"WXYZ\". -> expected record 'AB', observed 'ABW'."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "With a CODE clause and RECORD CONTAINS 2 or 1 the compiler writes `ABW`; the 2-character record is `AB`. 2023 row `GR-13.18.12.4-2`. Lead in the same note: a report file with RECORD VARYING compiles at 85 (row `1985-FMT-XIII.3.2.2`, page 589).",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
+ },
+ "work": "PB5788"
 }

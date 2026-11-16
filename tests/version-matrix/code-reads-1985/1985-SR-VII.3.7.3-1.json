@@ -87,5 +87,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#PlaceableItems: the item set the PlaceTable is built from (no edition switch) omits a level-66 RENAMES item, so a LINAGE data-name that resolves to one has no Place"
   ],
   "corrected": "NON-CONFORMING (crashes, rejects-legal-source; cause b, same at 2023): a LINAGE data-name operand that is a 66-level RENAMES of one elementary unsigned integer item is legal under SR1 (VI.5.11.4 GR2 gives it data-name-2's attributes) and passes the screen, but code generation throws in SequentialIoEmitter.LinageOpExpr because places.Of(RN-66) has no entry. Repro: refute-1985-063/lin_r3.cob. No kb/Work note found (PB978, PB5658, PB2548 checked; none covers it)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "THE COMPILER CRASHES ON LEGAL SOURCE. A level 66 item that renames one elementary item, named as FILE STATUS, LINAGE, DEPENDING ON, RELATIVE KEY or a report CONTROL, ends the compiler with an unhandled `System.InvalidOperationException` (\"no Place was built for data item\"), at 85 and at 2023, with no COBOL diagnostic. Each use is legal: \"all of the data attributes of data-name-2 become the data attributes for data-name-1\" (`§1985:VI.5.11.4 GR2`). I ran the FILE STATUS case. Not probed: SORT and MERGE keys, SUM operands, RECORD KEY. For `1985-SR-XIII.3.7.3-2` the row's own check is right for every operand that compiles.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5801"
 }

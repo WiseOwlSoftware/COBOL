@@ -67,5 +67,6 @@
    "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore: the EXTEND arm does not record that the file already ends with the line end CLOSE wrote, so the first AFTER ADVANCING 1 (explicit or automatic) adds a blank line"
   ],
   "corrected": "If the reading holds: NONCONFORMING (wrong-answer, cause b): on a print-stream sequential file, OUTPUT + CLOSE + OPEN EXTEND yields one more line than OUTPUT alone for the same WRITEs."
- }
+ },
+ "work": "PB5815"
 }

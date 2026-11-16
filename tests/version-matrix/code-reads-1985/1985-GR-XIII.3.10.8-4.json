@@ -84,5 +84,11 @@
    "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup: consults no edition, but it encodes the §2023:13.18.37.4 GR4a forced advance ('a page advance to take place just before any other non-dummy body group'), which 1985 does not have; at --std 85 the fit test of §1985:XIII.3.10.8 GR3b first paragraph governs while a body group is on the page"
   ],
   "corrected": "Not CONFORMS: wrong-answer at --std 85, cause (a) (1985 needs its own arm: the 2023 forced advance is applied to 1985). A relative body group whose LINE integers are all zero, following a body group whose absolute NEXT GROUP filled the save location, belongs on the current page at LINE-COUNTER (the FOOTING line) by GR3b + GR4b second arm; the compiler moves it to the next page at saved + 1. The primary broken rule is the fit test §1985:XIII.3.10.8 GR3 (1985-GR-XIII.3.10.8-3), GR4's second arm being the placement it never reaches; file it there with this rule as the consequence."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "Report Writer. After a body group's absolute NEXT GROUP saves its integer, the next relative group whose LINE integers sum to zero (a control footing with LINE PLUS 0) is sent to the next page. The 1985 fit test keeps it on the page: a body group HAS been presented there, so the saved integer is not consulted. The forced page advance is the 2023 rule, applied at every edition. Narrow: only a relative group of integer sum 0 whose lower limit is at least the FOOTING line. The rules it rests on are printed text (folios XIII-32 to XIII-36), not reconstruction.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md"
+ },
+ "work": "PB5823"
 }

@@ -99,5 +99,10 @@
   "evidence": "doi-bad.cob at --std 85: DISPLAY FUNCTION DAY-OF-INTEGER (1) COBOL0900, (FUNCTION SQRT (4)) COBOL1627, (1 1) COBOL1504; doi-ok2.cob: a data item named DAY-OF-INTEGER (366) as argument gives 01602001, relation condition OK. BUT doi-sum.cob: FUNCTION DAY-OF-INTEGER (FUNCTION SQRT (N) + 1), N = 2, compiles clean and prints DAYOI=01601002 at --std 85 and at --std 2023. cite.py: OK §1989:A.2.13.3 AR1 'Argument-1 is a positive integer'; OK §1989:A.2.2 (AR4); OK §1989:A.2.3 (GR2).",
   "edition-sites-missed": [],
   "corrected": "Reading as for DATE-OF-INTEGER: the format itself conforms; the integer-argument requirement the reader folded into this row fails for a numeric-function term in a sum, which belongs to 1989-AR-A.2.13.3-1 (cause b, under-rejects, identical at 2023) or makes this row PARTIAL under the reader's requirement."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The general formats of DATE-OF-INTEGER and DAY-OF-INTEGER are right. The integer requirement is their argument rules', which mechanism 1 covers.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
  }
 }

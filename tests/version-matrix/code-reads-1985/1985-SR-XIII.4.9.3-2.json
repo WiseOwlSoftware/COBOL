@@ -115,5 +115,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve: searches report groups only, so a same-spelled Working-Storage data-name never makes the unqualified reference ambiguous (no edition switch; same at 2023)"
   ],
   "corrected": "DOUBTFUL: CONFORMS for SR2's own text; if identifier-1 must be a unique reference per §1985:IV.4.3.8.1, the compiler under-rejects USE BEFORE REPORTING DET-A when a non-report data item is also named DET-A (cause b: same at --std 2023)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5775 (a report name that is also a Working-Storage name); `SOURCE DFLD` silently taking the Working-Storage item is its other direction.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5775"
 }

@@ -136,5 +136,11 @@
    "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#computerName: no screen against the implementor system-name table; 1985 needs the disjointness arm that 2023 (§8.3.2.3.1, computer-name not in the exclusive list) does not"
   ],
   "corrected": "PARTIAL (harm: under-rejects; cause a/c). At --std 85, OBJECT-COMPUTER. EBCDIC. (or CONSOLE, SYSIN, C01, SWITCH-1, and the rest) compiles and runs, although under §1985:IV.4.2.2.1.2 an implementor-name of the implementation cannot also be a computer-name. Expected a refusal at 85. At --std 2023 it is accepted, correctly. Known note: none; the sibling is PB5482."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "`SOURCE-COMPUTER. CONSOLE.` runs in a program that also uses CONSOLE as an implementor-name; 1985 makes the computer-names and the implementor-names of an implementation disjoint sets. The checker rates this medium: the sentence is about the implementation's name sets, not a syntax rule on programs.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-3.md"
+ },
+ "work": "PB5795"
 }

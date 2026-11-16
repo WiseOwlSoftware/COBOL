@@ -59,5 +59,10 @@
   "evidence": "rptblank-001 (--std 85, RD CODE \"A-\", PAGE LIMIT 8, DE LINE PLUS 2): the file bytes are 'A-PH\\r\\n\\r\\nA-AAA 1 TA\\r\\n\\r\\nA-AAA 2 TA\\r\\n\\r\\nA-AAA 3 TA\\r\\n': every unoccupied line is a bare host newline with NO CODE characters. ReportWriter.FlushPendingLine writes a line through CobolFile.WriteAdvancing(image, advance), so the blank lines are the advance, not records. DOC-A.1-159 says 'One print line is one record', 'Each line is followed by the HOST newline' and 'A report record is the CODE characters ... followed by the line'; it never says how an unoccupied line (a multi-line advance) is represented. Read as a newline-delimited file, each bare CRLF is an empty record that lacks the code, which §1985:XIII.3.6.4 GR1 forbids ('literal-1 is automatically placed in the first two character positions of each report writer logical record'), and in a multi-report file (multi_code) those lines cannot be attributed to a report. Read as print-device advance control, the bytes are not records and the structure is conforming but undocumented. The verdict rests on that second reading, which the documented determination does not state. cite.py: 'OK  §1985:XIII.3.2.4 GR2  (3.2.4 General Rules)  the text is in GR2'; 'OK  §1985:XIII.3.6.4 GR1  (3.6.4 General Rules)  the text is in GR1'.",
   "edition-sites-missed": [],
   "corrected": "DOUBTFUL: either DOC-A.1-159 must state that an unoccupied line is a bare host newline (advance control, not a logical record, so it carries no CODE), or the writer must prefix the CODE characters on each blank line it emits. The same bytes occur at every edition (no edition switch on the path)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The compiler conforms: 1985's report writer logical record includes its vertical positioning, so the lines that only space the page need no CODE characters. Lead: the conformance entry `DOC-A.1-159` does not say how unoccupied lines are written.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
  }
 }

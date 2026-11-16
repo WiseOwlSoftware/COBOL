@@ -84,5 +84,10 @@
    "src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte (the storage-byte law, edition-free): U+00FF and U+FFFF share the byte 0xFF, so the file key order folds two native characters into one"
   ],
   "corrected": "The verdict holds only under the reading that 'the collating sequence of the file' is the byte medium's, in which U+00FF and HIGH-VALUE are one character (DOC-A.1-31, owner R52's accepted cost). Under the reading that the file uses the native collating sequence of the 65,536-code-unit native set (DOC-A.1-31's own repertoire, and the 1985 rationale's 'native collating sequence'), a strictly ascending pair of prime keys is refused with 21: a wrong answer, cause (b), the same at 2023. No kb/Work note records the key consequence; PB1759 records the fold."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The behaviour (a character above U+00FF refused with 91; U+00FF read back as HIGH-VALUE) is fixed by the owner's decisions R47 and R52 and documented in `docs/conformance/7/DOC-A.1-31.md`; the code does what was decided. Lead: that entry does not state one consequence the checker measured, that two keys differing only in U+00FF against HIGH-VALUE collide (status 21 on a sequential WRITE, 22 on a random one). The rows close on the documented determination, not on a plain CONFORMS.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-5.md"
  }
 }

@@ -68,5 +68,10 @@
   "expected": "§1985:IX.2.3.4 GR2 \"The native character set is assumed for data on the external media.\": W1=00, W2=00, READ=00 ORD=00256, and DX not equal to HIGH-VALUE",
   "observed": "W1=00 / W2=91 / READ=00 ORD=65536 / READ BACK AS HIGH-VALUE",
   "known_note": "kb/Work R52 (owner decision: HIGH-VALUE U+FFFF, byte 0xFF on a byte medium; accepted cost that U+00FF returns as HIGH-VALUE), kb/Work R47 (owner decision: Latin-1 medium, characters above U+00FF refused), kb/Work PB1759, PB690; docs/conformance/7/DOC-A.1-31.md"
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The behaviour (a character above U+00FF refused with 91; U+00FF read back as HIGH-VALUE) is fixed by the owner's decisions R47 and R52 and documented in `docs/conformance/7/DOC-A.1-31.md`; the code does what was decided. Lead: that entry does not state one consequence the checker measured, that two keys differing only in U+00FF against HIGH-VALUE collide (status 21 on a sequential WRITE, 22 on a random one). The rows close on the documented determination, not on a plain CONFORMS.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-5.md"
  }
 }

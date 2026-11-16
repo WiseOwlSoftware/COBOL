@@ -75,5 +75,11 @@
   "evidence": "Probe src/allrmstat.cob at --std 85 (runs/allrmstat-001): COMPUTE R = FUNCTION MEAN (N-EL (ALL) (1:1)) over PIC 9(2) elements 11 72 33 compiles and prints MEAN[0003.6666] = (1+7+3)/3: each argument is a reference-modified numeric item, class alphanumeric by §1985:IV.4.3.8.4.4 GR5 applied per element by GR3a, so §1989:A.2.24.3 AR1 ('Argument-1 must be class numeric') requires a refusal; the compiler decodes the digits instead. Same at --std 2023 (runs/allrmstat-002). Control: the non-ALL form MEAN (N-ITEM (1:2) 5) IS refused with COBOL1627 (src/rmstat.cob runs/rmstat-001), so the screen misses only the ALL+ref-mod shape. cite.py: 'OK  §1989:A.2.24.3 AR1  (2.24.3 Arguments)  the text is in AR1'; 'OK  §1985:IV.4.3.8.4.4 GR3a ...'; 'OK  §1985:IV.4.3.8.4.4 GR5 ...'.",
   "edition-sites-missed": [],
   "corrected": "NON-CONFORMING (under-rejects; the accepted program computes a value from digit slices), cause (c): an ALL-subscripted reference-modified numeric table is class alphanumeric at 1985 but src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace classes the TableAllPlace by its numeric element, so Admissible('n') passes it. Same at --std 2023."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A reference-modified element under an ALL subscript (`N-EL (ALL) (1:1)`) is class alphanumeric by the 1985 text, and the argument-class screen classes it as its numeric element. MAX and MIN refuse legal lists; MEAN, MEDIAN and MIDRANGE compute from digit slices; an illegal MAX mix compiles and fails at run time. Not the mechanism of PB5780 or PB5813.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
+ },
+ "work": "PB5833"
 }

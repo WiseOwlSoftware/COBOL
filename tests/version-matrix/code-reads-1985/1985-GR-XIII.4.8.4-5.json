@@ -74,5 +74,11 @@
    "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#BeginOpen: records the attempted mode before the 41 refusal (the kb/Work PB5200 fix)"
   ],
   "corrected": "NON-CONFORMING (wrong-answer, silent), cause b: the same at --std 2023. Repro u1.cob: OPEN OUTPUT SQ-F, then OPEN INPUT SQ-F with only USE ... ON OUTPUT declared; expected the OUTPUT procedure to run on the 41 (the file is open in output mode, GR5b), observed no procedure. Likewise OPEN INPUT of a file open EXTEND runs no EXTEND procedure (GR5c). The PB5200 fix (kb/Work/PB5200/2026-11-10-refuter-85.md) made the being-opened mode win outright, so the 'file open in the mode' half of GR5 b/c is lost whenever the attempted mode differs; when the attempted mode's procedure is absent the current mode's procedure must still run (which of two to run when both are declared is a reading the text leaves open). Known note: PB5200, the arm its fix introduced; no note covers this case."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "OPEN INPUT of a file already open OUTPUT (or EXTEND) fails with status 41 and runs no declarative, though USE ... ON OUTPUT (or ON EXTEND) is declared. See below. I ran it.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md"
+ },
+ "work": "PB5825"
 }

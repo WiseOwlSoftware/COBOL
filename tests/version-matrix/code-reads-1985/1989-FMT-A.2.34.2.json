@@ -108,5 +108,6 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument: ALL admissibility by function (RepeatsAnArgument), not by argument position; no edition consulted"
   ],
   "corrected": "Under reading B, NOT CONFORMS (under-rejects): FUNCTION PRESENT-VALUE (T (ALL)) must be refused because ALL may stand only for the repeated argument-2; the compiler admits it at 85 (and, the check consulting no edition, at every edition). Under reading A the verdict stands. Needs an adjudication of §1989:A.2.2 for a function with a non-repeating leading argument (ANNUITY-like PRESENT-VALUE)."
- }
+ },
+ "work": "PB5834"
 }
