@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.4.4.4-8",
  "rule-digest": "f9781230d195",
+ "test-ref": "conformance:cases/VI.4.4@1985-OBJECT-COMPUTER-PARAGRAPH/g85_bf07_02",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
