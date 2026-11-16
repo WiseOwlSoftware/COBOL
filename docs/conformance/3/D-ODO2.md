@@ -30,3 +30,6 @@
   `…/pb1880_odo_read_depending_item_outside_record` (a WORKING-STORAGE DEPENDING ON item) and
   `…/pb1880_odo_read_34_exception_paths` (the '34' with a USE procedure only, with FILE STATUS and a USE procedure, on
   the relative arm, and uncovered, where the run unit terminates, Annex A.1 item 103).
+  **Edition (kb/Work PB5811):** the condition is in the 2023 text only (`cite.py --find` over 1985, 2002 and 2014 finds none), so the predicate
+  yields no test below `--std 2023`: an older edition's READ of such a record is successful (`§1985:IX.4.5.4 GR18`), the count only
+  making later references to the table undefined. Witnessed by `…/pb5811_read_odo_past_maximum_by_edition` (00 at 85, 2002 and 2014; 34 at 2023).
