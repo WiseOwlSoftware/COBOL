@@ -142,6 +142,13 @@ public sealed class DataBindState
     /// carrier holds only a value.</summary>
     public FactSet<DataItem> CharacterChannelItems { get; }
 
+    /// <summary>The numeric stores through the rules of the MOVE statement whose receiver is a SIGN HOLDER and whose sender may
+    /// be negative (<see cref="Bound.SendersSignStore"/>; kb/Work PB5852), appended at UsageCollected by
+    /// <see cref="Passes.UsageCollectionPass"/> from every <see cref="Bound.BoundMove"/> and INITIALIZE store, and read whole by
+    /// <c>StorageFormPass</c>, which at 1985 and 2002 promotes to its image each receiver such a store can hand a negative zero
+    /// (§1985:VI.6.19.4 GR4b1 places the sign of the SENDING OPERAND, and a native carrier holds only a value).</summary>
+    public FactSet<Bound.NumericStore> NumericStores { get; }
+
     /// <summary>The parse nodes (and subscript tokens) the binder RESOLVED to a function activation or an object-property
     /// accessor invocation although the text carries no syntactic marker of one: a function-identifier written without
     /// the word FUNCTION (§2023:8.4.3.2.3 SR2 — <c>UPPER-CASE (X)</c> under <c>REPOSITORY. FUNCTION ALL INTRINSIC</c>) and a
@@ -161,6 +168,7 @@ public sealed class DataBindState
         WholeGroupReferenced = new(FactSetKind.WholeGroupReferenced, Gate);
         ImageForcedItems = new(FactSetKind.ImageForcedItems, Gate);
         CharacterChannelItems = new(FactSetKind.CharacterChannelItems, Gate);
+        NumericStores = new(FactSetKind.NumericStores, Gate, Bound.NumericStore.Identity);
         ActivationSites = new(FactSetKind.ActivationSites, Gate, ReferenceEqualityComparer.Instance);
     }
 }
