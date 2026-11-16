@@ -1,4 +1,4 @@
-## PB5822: a chained (KEPT) row of an older edition closes on a derivation of its own
+## Entry 3741 — 2026-11-16 01:58 PST — PB5822: a chained (KEPT) row of an older edition closes on a derivation of its own
 
 kb/Work PB5822 (a decision, filed in this change) lets a chained row whose rule no program can witness close on a
 derivation OF ITS OWN (DESIGN-spec-conformance-review.md section 1.1). Before it, `lineage.state_of` and the C#
@@ -93,3 +93,4 @@ the note): on the merged tree the 1985 line reads "37 GAP (12 inherited, no own-
 · 24 open)", from main's 55. The second fold's two rows on the sixth arm put `DOC-A.1-197` in their §8 Names cells,
 and the ANNEX A.1 audit's token count (`audit_annex_a1.evaluate`) counted them as prose: it now counts a `register-key`
 arm's Names cell as a legitimate occurrence, as it learned the §8 row keys in PB386, with a planted pair of cases.
+
