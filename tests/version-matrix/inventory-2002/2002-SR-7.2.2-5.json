@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.2-5",
+ "rule-digest": "dcc5ab2c4d4b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveLine.cs#TryParse",
+ "test-ref": "conformance:cases/7.2@2002-COMPILER-DIRECTIVES/g2dir01_every_directive_spacing",
+ "notes": "§2002:7.2.2 SR5: the indicator is treated as though followed by a space when none is written; g2dir01 writes every 2002 directive and every IF/EVALUATE phrase both as >>WORD and >> WORD and at --std 2002 selects exactly the derived lines (A/IF1-TRUE/IF2-FALSE/EV1-TWO/EV2-OTHER/2)."
+}

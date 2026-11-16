@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-11.3.2-2",
+ "rule-digest": "1b00d4078353",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateImplements; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#MethodConformanceMismatches; src/WiseOwl.Cobol.Compiler/Binding/Model/OoClassSymbol.cs#FindFactoryMethod",
+ "test-ref": "conformance:cases/11.3@2002-FACTORY-PARAGRAPH/g2fac01_factory_conforms",
+ "notes": "§2002:11.3.2 SR2 with §2002:9.3.7.1.2 rules 1, 3, 4 and §2002:9.3.7.1.1 (inherited methods are in the interface): single-inheritance conformance is witnessed: a factory whose own and inherited methods conform is accepted and runs (g2fac01: FAC SPEAK 0042 / GOT 07 / BASE HELLO, MATCH at --std 2002), and a PICTURE mismatch, a RETURNING mismatch and a missing method are each refused with COBOL0841 at --std 2002 (g2fac02-04). The multiple-inheritance factory interface is unwitnessed: At --std 2002 the compiler refuses multiple class inheritance (COBOL0849, citing §2023:4.2.7/Annex A.4.10), but §2002:3.1 makes only Annex A optional, so this rejects legal 2002 source; the MI branch of SR2 is unwitnessed. The unwitnessed multiple-inheritance branch is kb/Work PB5580 (COBOL0849 at 2002; re-probed by the golden-2002-6 integrator, PB5580/2026-11-15-factory-implements-inherited-reprobe.md)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.10.2-16",
+ "rule-digest": "8c5801b7dbd7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateCceText; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateCce",
+ "test-ref": "conformance:cases/7.2.10@2002-EVALUATE-DIRECTIVE/g2ev21_cce_formation_truth",
+ "notes": "§2002:7.2.10.2 SR16 forms >>WHEN conditions per 2002 7.2.7: relation, boolean, defined and AND/OR/NOT forms are accepted and evaluate as derived (S1-S4). <> and XOR (absent from 2002 8.8.4.1.1.1 and 8.8.4.2) are refused with COBOL0900; > between non-numeric literals (§2002:7.2.7.1 SR1a) and an abbreviated relation (SR1d) are refused with COBOL1619 (g2ev21n1-n4). Matched at --std 2002."
+}

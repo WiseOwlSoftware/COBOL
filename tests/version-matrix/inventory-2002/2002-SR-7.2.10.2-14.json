@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.10.2-14",
+ "rule-digest": "a841c7f9b668",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateOperandText; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CheckOperandSyntax",
+ "test-ref": "conformance:cases/7.2.10@2002-EVALUATE-DIRECTIVE/g2ev20_arith_operand_formation",
+ "notes": "§2002:7.2.10.2 SR14 forms EVALUATE operands per 2002 7.2.5: 31-digit fixed-point literals are accepted and evaluated in 32-digit standard arithmetic (§2002:7.2.5.2 GR1), so 10^30*100+9-10^30*100 selects WHEN 0 and 2/3*3 THRU 10/4-1 holds 1. Exponentiation (§2002:7.2.5.1 SR1a) and division by zero (SR1c) are refused (g2ev20n1, g2ev20n2, COBOL1619). Matched at --std 2002."
+}

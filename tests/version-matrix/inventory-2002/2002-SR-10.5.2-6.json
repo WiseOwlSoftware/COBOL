@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-10.5.2-6",
+ "rule-digest": "a222683e715b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveSiteProcessor.cs; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs",
+ "test-ref": "conformance:cases/10.5@2002-COBOL-COMPILATION-GROUP/g2-cg-flag-directives",
+ "notes": "§2002:10.5.2 SR6 admits the 7.2 directives in a structured compilation group. The 2002-only FLAG-85 and FLAG-NATIVE-ARITHMETIC, placed between clauses and between statements (§2002:7.2.11.2 SR1, §2002:7.2.12.2 SR1) in a prototype-plus-program group, compile and run unchanged at --std 2002: X=1, Y=2, OK as derived. Each ON directive sits between the PICTURE and VALUE clauses of its entry (refuter correction applied)."
+}

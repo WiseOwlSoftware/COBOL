@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.4.2.4.3-2",
+ "rule-digest": "9db997ac3502",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AbbrevCarry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation",
+ "test-ref": "conformance:cases/8.8.4.2.4@2002-ABBREVIATED-COMBINED-RELATION-CONDITIONS/g2_abbreviated_insertion_not; conformance:cases/8.8.4.2.4@2002-ABBREVIATED-COMBINED-RELATION-CONDITIONS/pb5123_not_is_simple_operator_2002",
+ "notes": "§2002:8.8.4.2.4.3 GR2b/GR2c: NOT before a simple operator joins it, otherwise it is logical and negates the inserted relation; g2_abbreviated_insertion_not L08-L13 matched at --std 2002. GR2a has no accepted 2002 form (§2002:8.8.4.2.4.1 format, §2002:F.1 item 22)."
+}
