@@ -44,16 +44,20 @@ def case_01_every_malformed_reader_field_is_named(expect):
             ("seeded as text", {"seeded": "true"}, "`seeded`"),
             ("no citation", {"citations": []}, "`citations`"),
             ("a citation that does not parse", {"citations": [{"cite": "§XII.2.4", "check": "x"}]}, "does not parse"),
-            ("a citation of another edition", {"citations": [{"cite": "§2023:7.2.2.5 GR3", "check": "x"}]},
-             "not of the rule's own text"),
+            ("a read that cites only another edition (PB5842)",
+             {"citations": [{"cite": "§2023:13.18.8.4 GR3", "check": "x"}]}, "no citation is of the rule's own text"),
+            ("another edition's citation that does not check (PB5842)",
+             {"citations": [{"cite": "§1985:XII.2.4 GR8", "check": "x"}, {"cite": "§2023:13.18.8.4 GR99", "check": "x"}]},
+             "does not check"),
+            ("a citation of an edition the repository does not hold", {"citations": [
+                {"cite": "§1985:XII.2.4 GR8", "check": "x"}, {"cite": "§2014:13.18.8.4 GR3", "check": "x"}]}, "does not hold"),
             ("a citation that does not check", {"citations": [{"cite": "§1985:XII.2.4 GR99", "check": "x"}]},  # citation-audit: example
              "does not check"),
             ("a rule of no catalog row", {"rule-id": "1985-GR-IX.99.9-1"}, "no rule of the 1985 catalog")):
         got = C.reader_problems(F.read(F.GR8, **kw), ctx)
         expect(f"refused, naming the field: {label}", any(needle in e for e in got), str(got))
-    expect("the amendment's §1989 is no citation of a 1985 rule",
-           any("not of the rule's own text" in e for e in C.reader_problems(
-               F.read(F.GR8, citations=[{"cite": "§1989:A.2.2 AR1", "check": "x"}]), ctx)))
+    expect.equal("the amendment's §1989 anchors a read (PB5842)", C.reader_problems(
+        F.read(F.GR8, citations=[{"cite": "§1989:A.2.2 AR1", "check": "x"}]), ctx), [])
     for label, kw, needle in (("no cause", {"cause": ""}, "`cause`"), ("no repro", {"repro": ""}, "`repro`"),
                               ("cause (b) and nothing said of the newest edition", {"cause": "b"}, "at-2023")):
         got = C.reader_problems(F.read(F.GR12, "PARTIAL", **kw), ctx)
@@ -290,6 +294,68 @@ def case_09_a_reader_who_did_not_decide_is_undecided(expect):
     F.plant(bad, "s-01", [F.read(F.GR8, "UNDECIDED")], [F.refute(F.GR8, "UPHELD", **{"rule-id": F.GR12})])
     expect("a refuter's case of a rule the reader did not read is still refused",
            F.refused(lambda: C.import_reads(ctx, bad, empty, pin), "attacks a rule the reader did not read"))
+
+
+def case_10_a_citation_of_another_held_edition_is_accepted_and_checked(expect):
+    repo, pin = F.tree()
+    ctx = F.context(repo.path)
+    both = F.read(F.GR12, "PARTIAL", cause="b", **{"at-2023": "the same at 2023", "citations": [
+        {"cite": "§1985:XII.2.4 GR12", "check": "x"}, {"cite": "§2023:13.18.8.4 GR3", "check": "x"}]})
+    expect.equal("a read citing its own edition and 2023 stands", C.reader_problems(both, ctx), [])
+    reads, store = repo.path / "reads", repo.path / "store"
+    F.plant(reads, "s-01", [both])
+    records, imported, _ = C.import_reads(ctx, reads, store, pin)
+    expect.equal("it is imported", imported, [F.GR12])
+    only = F.read(F.GR12, "PARTIAL", cause="b", **{"at-2023": "same", "citations": [
+        {"cite": "§2023:13.18.8.4 GR3", "check": "x"}]})
+    got = C.reader_problems(only, ctx)
+    expect("a read citing only 2023 is refused, naming the rule", any(
+        "no citation is of the rule's own text" in e and F.GR12 in e for e in got), str(got))
+    bad = F.read(F.GR12, "PARTIAL", cause="b", **{"at-2023": "same", "citations": [
+        {"cite": "§1985:XII.2.4 GR12", "check": "x"}, {"cite": "§2023:13.18.8.4 GR99", "check": "x"}]})
+    got = C.reader_problems(bad, ctx)
+    expect("a 2023 citation that does not check is refused beside a good 1985 one", any(
+        "GR99" in e and "does not check" in e for e in got), str(got))
+    # an import through the slice refuses the read that cites only another edition and writes nothing
+    refused_store = repo.path / "refused-store"
+    F.plant(reads, "s-02", [only])
+    expect("the import refuses a read that cites only another edition, naming the slice and the rule",
+           F.refused(lambda: C.import_reads(ctx, reads, refused_store, pin), "s-02", F.GR12, "no citation is of the rule's own")
+           and not refused_store.exists())
+
+
+def case_11_withdraw_removes_a_record_and_the_row_is_owed_again(expect):
+    repo, pin = F.tree()
+    ctx = F.context(repo.path)
+    reads, store = repo.path / "reads", repo.path / "store"
+    F.plant(reads, "s-01", [F.read(F.GR8), F.read(F.GR12, "PARTIAL")], [F.refute(F.GR8)])
+    C.store.write(C.import_reads(ctx, reads, store, pin)[0], store)
+    expect("the confirmed row is not owed", F.GR8 not in C.owed(ctx, C.load(ctx, store)))
+    records, removed = C.withdraw(ctx, store, F.GR8, "its location resolves nowhere")
+    C.store.write(records, store)
+    expect("the record removed is returned whole", removed["rule-id"] == F.GR8 and removed["reader"]["verdict"] == "CONFORMS")
+    left = C.load(ctx, store)
+    expect.equal("the store holds the other record only", sorted(left), [F.GR12])
+    expect("the row is owed a read again", F.GR8 in C.owed(ctx, left))
+    expect("the file is gone", not (store / f"{F.GR8}.json").exists())
+    expect("a rule with no record is refused", F.refused(lambda: C.withdraw(ctx, store, F.GR8, "r"), "no code read"))
+    expect("an empty reason is refused", F.refused(lambda: C.withdraw(ctx, store, F.GR12, "  "), "--reason is empty"))
+    expect("a refused withdrawal removed nothing", sorted(C.load(ctx, store)) == [F.GR12])
+
+
+def case_12_the_plan_leaves_out_a_row_its_own_derivation_closed(expect):
+    repo, _ = F.tree()
+    base = F.rows()
+    closed = {**base[0], "rule-id": "1985-GR-DRV-1", "state": "OK", "test-ref": ""}
+    open_ = {**base[0], "rule-id": "1985-GR-DRV-2", "state": "GAP", "test-ref": ""}
+    ok_witnessed = {**base[0], "rule-id": "1985-GR-DRV-3", "state": "OK", "test-ref": "conformance:cases/x/y"}
+    rows = {r["rule-id"]: r for r in base + [closed, open_, ok_witnessed]}
+    got = C.store.owed(rows, F.SCHEMA, {})
+    expect("a chained row OK with no test-ref of its own is not owed", "1985-GR-DRV-1" not in got)
+    expect("a chained row whose derivation does not stand (GAP) is owed", "1985-GR-DRV-2" in got)
+    expect("a chained row OK on a test-ref of its own is still owed", "1985-GR-DRV-3" in got)
+    expect.equal("the count of rows owed follows the plan", C.store.counts(rows, F.SCHEMA, {})["owed"], len(got))
+    expect("--witnessed leaves the closed row out too", "1985-GR-DRV-1" not in C.store.owed(rows, F.SCHEMA, {}, True))
 
 
 if __name__ == "__main__":
