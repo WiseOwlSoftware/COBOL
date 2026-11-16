@@ -95,6 +95,8 @@ WORK_DIR = "kb/Work"
 
 #: The refuter's verdicts: the one vocabulary every refuter brief of the repository uses (`lineage_reads`).
 REFUTATIONS = lineage_reads.REFUTE_VERDICTS
+#: The refuter's verdict that must say the right verdict (`corrected`).
+OVERTURNED = "OVERTURNED"
 #: The causes a non-conforming reader names (the reader brief's step 5): (a) another arm at this edition, (b) the same
 #: failure at every edition, (c) the rule covers more or less in this edition.
 CAUSES = ("a", "b", "c")
@@ -136,6 +138,8 @@ class Context:
     schema: Schema
     rows: dict[str, dict[str, Any]]
     root: pathlib.Path = REPO
+    #: The verdict each chained row shares with its chain at the next held edition, by id (`code_read_store.shared_verdicts`)
+    shared: dict[str, str] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def of(cls, year: int, root: pathlib.Path = REPO, schema: Schema | None = None,
@@ -150,7 +154,9 @@ class Context:
             raise SystemExit(f"{TOOL}: the schema's verdicts {sorted(schema.verdicts)} lack {CONFORMS}, the verdict a code "
                              "read confirms")
         rows = inventory_view.inventory(year, schema) if rows is None else rows
-        return cls(ed, schema, {r["rule-id"]: r for r in rows}, root)
+        by_id = {r["rule-id"]: r for r in rows}
+        targets = {r["rule-id"]: r for r in inventory_view.inventory(ed.next_held, schema)}
+        return cls(ed, schema, by_id, root, store.shared_verdicts(by_id, schema, targets))
 
 
 # -- the shape of a read: the ONE place the reader's and the refuter's records are checked ------------------------------
@@ -333,7 +339,8 @@ def reader_problems(case: Any, ctx: Context) -> list[str]:
     if rule is not None:
         out += citation_problems(case.get("citations"), rule, ctx.ed.year,
                                  [e.year for e in ctx.schema.all_editions if e.held])
-    if verdict in ctx.schema.verdicts and verdict != CONFORMS:   # an UNDECIDED reader owes no defect
+    if verdict in ctx.schema.verdicts and verdict not in ctx.schema.resolving:   # a resolving verdict (CONFORMS, a documented
+        # decline) and an UNDECIDED reader owe no defect (kb/Work PB5865)
         out += [e for k in NONCONFORMING_TEXT if (e := _text(case, k, True))]
         if (case.get("cause") or "").strip() not in CAUSES:
             out.append(f"a {verdict} read names its `cause`, one of {CAUSES}, not {case.get('cause')!r}")
@@ -350,8 +357,8 @@ def refuter_problems(case: Any) -> list[str]:
     out += [e for e in (_text(case, "rule-id", True), _text(case, "corrected", False)) if e]
     if case.get("refutation") not in REFUTATIONS:
         out.append(f"`refutation` {case.get('refutation')!r} is not one of {REFUTATIONS}")
-    elif case["refutation"] != UPHELD and (e := _text(case, "corrected", True)):
-        out.append(f"a {case['refutation']} says the right verdict: {e}")
+    elif case["refutation"] == OVERTURNED and (e := _text(case, "corrected", True)):   # a DOUBTFUL says why, never an
+        out.append(f"an {OVERTURNED} says the right verdict: {e}")                    # invented verdict (kb/Work PB5865)
     missed = case.get("edition-sites-missed")
     if not isinstance(missed, list) or not all(isinstance(s, str) and s.strip() for s in missed):
         out.append(f"`edition-sites-missed` must be a list of non-empty strings, not {missed!r}")
@@ -536,7 +543,7 @@ def record_problems(record: Any, ctx: Context) -> list[str]:
 
 def outcome(record: dict[str, Any], ctx: Context) -> str:
     """`record`'s outcome in `ctx` (`code_read_store.outcome`, the one function)."""
-    return store.outcome(record, ctx.rows)
+    return store.outcome(record, ctx.rows, ctx.shared, ctx.schema)
 
 
 def load(ctx: Context, directory: pathlib.Path | None = None) -> dict[str, dict[str, Any]]:
@@ -727,7 +734,7 @@ def withdraw(ctx: Context, directory: pathlib.Path, rid: str, reason: str) -> tu
 
 def owed(ctx: Context, records: dict[str, dict[str, Any]], witnessed: bool = False) -> list[str]:
     """The KEPT rows of `ctx`'s edition still owed a read (`code_read_store.owed`)."""
-    return store.owed(ctx.rows, ctx.schema, records, witnessed)
+    return store.owed(ctx.rows, ctx.schema, ctx.shared, records, witnessed)
 
 
 def moved_since(record: dict[str, Any], ctx: Context, tree: code_location.Tree | None = None) -> list[str]:
@@ -809,7 +816,7 @@ def check_edition(ctx: Context, records: dict[str, dict[str, Any]]) -> bool:
         errs = [f"{rid}: {e}" for rid, es in problems.items() for e in es]
         # `reread` asks the tree and the pin: a record that does not stand is no question for it
         again = reread(ctx, records) if not errs else []
-    c = store.counts(ctx.rows, ctx.schema, {rid: r for rid, r in records.items() if not problems[rid]})
+    c = store.counts(ctx.rows, ctx.schema, ctx.shared, {rid: r for rid, r in records.items() if not problems[rid]})
     print(f"{ctx.ed.year}: {len(records)} code read(s); {store.count_text(c)}")
     if not errs:
         if again:
