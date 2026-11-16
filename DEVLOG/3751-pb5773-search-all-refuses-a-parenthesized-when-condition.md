@@ -1,3 +1,4 @@
-## PB5773: SEARCH ALL refuses a parenthesized WHEN condition (Format 2 prints no parenthesis)
+## Entry 3751 — 2026-11-16 04:47 PST — PB5773: SEARCH ALL refuses a parenthesized WHEN condition (Format 2 prints no parenthesis)
 
 `SearchAllFormat2Rules.TryPrimary` unwrapped `LPAREN condition RPAREN` silently, so `SEARCH ALL ... WHEN (K1 (IX) = "B")` compiled and ran at every edition although Format 2's WHEN and AND phrases print no parenthesis (§2023:14.9.37.2; §1985:VI.6.22.2). Re-probe before the fix: exit 0, `HIT 2` at `--std 85` and `2023`. Now it is refused COBOL1757 ("a parenthesized condition") at all four editions; the unparenthesized control still prints `HIT 2`. Sibling: `WHEN ((CN (IX)))` was refused with the false reason "not a condition-name"; `CheckConditionNameSide` now names the parenthesis. Two refusal goldens (`pb5773-search-all-when-parenthesized-relation`, `...-condition-name`). No inventory verdict changes (FMT-14.9.37.2 stays CONFORMS, now true). Self-review (architecture, full code, performance, duplication): one refusal path through the existing `RejectStatementOperand`, no new code, no allocation on a hot path.
+
