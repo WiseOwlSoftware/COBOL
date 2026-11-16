@@ -518,6 +518,38 @@ section passing. CD 1.3 renumbers 167 of 588 clauses (`review-feasibility/cd13_n
 each 2023 row is matched to its 2027 rule: a changed `rule-digest` is a `variants` candidate, a new rule an `@2027`
 row, an unmatched one a band ending at 2023 (S20, PB4397).
 
+### 3.6 Source format before 2002, and the converter (kb/Work PB5754)
+
+**What a free-form case may be before 2002.** Free form is a 2002 feature (§2023:6.4; `generate.FIRST_FREE_FORM`, and
+`generate.format_defined_at` is the one statement of the fact). A free-form test of `cases/` is refused where it is
+ACCEPTED or FLAGGED before 2002 (`check_editions`, §4). A free-form REFUSAL test may still be refused at 85 (its
+`wiseowl/diagnostics/` `refuse-at`), and a free-form test of `wiseowl/cases/` may run at 85: both exercise WiseOwl's
+`--source-format free` extension (docs/CONFORMANCE.md DOC-A.1-158) and the edition gates, and main keeps about 1,250
+such refusal tests as regression tests. What none of them is, is a WITNESS of a row of an edition before 2002: a case
+witnesses a row at an edition only when its text is in a reference format that edition defines (kb/Work PB5754;
+`lineage_reads.format_problem`, which the inventory's audit, its writer and its planner ask: DESIGN-spec-conformance-
+review.md section 10.6). So a free-form case a 1985 row needs as its witness is converted to fixed form, and a
+free-form test no 1985 row names is left as it is. A test whose subject is free form itself or the `--source-format`
+option stays free form and witnesses no 1985 row.
+
+**The converter.** `python conformance-suite/harness/reformat.py [--dry-run] <case.cob>...` (S8's tool, §13) rewrites a
+free-form case and each library text it declares and copies, IN PLACE, in the 1985 layout (§1985:IV.7): division,
+section and paragraph headers, paragraph-names, FD/SD/CD/RD, level-numbers 01 and 77, DECLARATIVES and end markers in
+area A (columns 8-11); every sentence, entry and continued line in area B (column 12 on); any other data description
+entry where it was, right of margin A; a comment line `      *> text` (the asterisk in column 7), an inline floating
+comment moved to a comment line of its own before its line; a free-form mark `*> <<` becomes `<<` in the sequence
+number area (§3.2); margin R at column 72 (cobol_source.FIXED_TEXT_END), a longer line re-wrapped between separators.
+The header's `source-format:` becomes `fixed` and its lines move to column 7; nothing else in it changes; line endings
+stay LF. It decides each line from the harness's own reader (`cobol_source`: the tokens, `floating_comment`), never a
+second tokenizer, and a refusal test's expected position (`(line,col)`, `at line N`) moves with its text. It does not
+guess: a `>>` directive, a tab, a literal that would need the continuation rule, a line whose kind it cannot decide (a
+one-word sentence whose word is reserved at only some of the editions the free-form text is written for), a
+comment-entry, a line no separator lets end by column 72, a shared or twice-placed library text and a marked line whose
+comment holds more than its mark are each a refusal naming the file and line, and the converted text must have the
+original's tokens in the same order (comments aside) or it is refused and nothing is written. The gate proves each
+conversion: the case runs at every edition it is placed at with its expectation unchanged. A fixed-form text the
+compiler handles differently from its free-form original is a compiler defect, filed with the pair as its repro.
+
 ## 4. The tree, the generator and where it lives
 
 ```
@@ -914,7 +946,9 @@ rules 2, 5, 6).
 **Filed from revision 3** (2026-11-04), in this order, each blocked by the one before; each owns one module or register.
 - **S5 — the edition schema (§3.5).** (PB4683) Band start and optional end in schema, validator and C# twin; per-edition clause
   locators; `@<edition>` ids and folders; `{from: <edition>}`.
-- **S8 — the free-to-fixed converter (§6).** (PB4684) `reformat.py`, ahead of S5b, which uses it.
+- **S8 — the free-to-fixed converter (§6).** (PB4684) `reformat.py`, ahead of S5b, which uses it. The converter exists
+  (§3.6, kb/Work PB5754: built for the free-form cases 1985 rows name, its cases under `harness/selftests/reformat/`);
+  S8's remainder is its run over the mixed folders for S5b.
 - **S5b — the case file (§3-§5, §6 step 2; decision 17).** (PB4685) `casefile.py`: blocks, solo programs, per-profile grouped
   programs and their driver (`generate.py --profile`), sectioned outputs, `main` and what runs alone, the case-file
   refusals; the three-step run and INTERFERENCE in both runners, one xUnit result per test; the adapters' entry

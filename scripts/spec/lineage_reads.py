@@ -56,9 +56,11 @@ edition, and a register entry of its own where the rule's kind owes one.
 THE AUDIT (`--check`, the gate's LINEAGE READS): every read record loads and normalizes; every stored change record whose
 source names a read record is that record's decision (the read SAME, the refuter UPHELD, the same `to`); and, at every
 older held edition, every KEPT row's own witness (its `test-ref`) is a suite case that runs at the edition, of the kind
-its rule needs (`Witnesses.own_problems`, which reads no target). Every stored OWN verdict of a rule whose tracked
-read decides `own-verdict-from-pointer` is held to the same test of its own `test-ref`, whatever its notes say, and one
-whose notes name its read (`OWN_SOURCE`) to that read's standing as well (`own_stored_errors`). A later change that narrows a witness's band, moves
+its rule needs (`Witnesses.own_problems`, which reads no target); and every row's own suite witnesses are written in a
+reference format the edition defines (`format_problem`, kb/Work PB5754: before 2002 a free-form case witnesses nothing).
+Every stored OWN verdict of a rule whose tracked read decides `own-verdict-from-pointer` is held to the same test of its
+own `test-ref`, whatever its notes say, and one whose notes name its read (`OWN_SOURCE`) to that read's standing as well
+(`own_stored_errors`). A later change that narrows a witness's band, moves
 it, or rewrites a read, turns it red, naming the row and the case; a KEPT row with no witness of its own is a GAP. (A flag the screen raises AFTER a record is stored is the screen's change, listed as owed by
 lineage_screen.py --check, never red: kb/Work PB5597, branch review R2-1 of PB5589.)
 """
@@ -67,6 +69,7 @@ from __future__ import annotations
 import argparse
 import collections
 import dataclasses
+import functools
 import hashlib
 import json
 import pathlib
@@ -437,9 +440,54 @@ def import_records(year: int, reads: pathlib.Path, asked: pathlib.Path | None, o
 # -- the evidence at the row's own edition ------------------------------------------------------------------------------
 
 def _generator() -> Any:
-    sys.path.insert(0, str(SUITE / "harness"))
+    if str(SUITE / "harness") not in sys.path:
+        sys.path.insert(0, str(SUITE / "harness"))
     import generate  # noqa: PLC0415  (THE one reader of the suite's headers and its band check)
     return generate
+
+
+@functools.cache
+def _order() -> tuple[str, ...]:
+    return tuple(inventory_schema.load_schema().editions)
+
+
+@functools.cache
+def format_problem(source_format: str, spelling: str) -> str | None:
+    """THE ONE PREDICATE OF A WITNESS'S TEXT (kb/Work PB5754; DESIGN-spec-conformance-review.md section 10.6): a
+    conformance-suite case witnesses a row at an edition only when its text is written in a reference format that
+    edition defines (`generate.format_defined_at`: fixed form at every edition, free form from 2002), "each compiler
+    accepts source programs written in reference format" (§1985:IV.7.1). Accepted or refused, `cases/` or `wiseowl/`, a
+    KEPT row's own witness or an own verdict's: before 2002 a free-form case witnesses nothing, though it may still run
+    there as a regression test of WiseOwl's `--source-format free` extension. Why the case is no witness at the edition
+    spelled `spelling`, or None when its format is that edition's. Every asker calls this: the audit (`own_problems`,
+    `stored_errors`), the writer (`ref_format_problem`, record_verdicts.validate) and the planner (`Witnesses.at`,
+    `accepted_at`, `case_status`)."""
+    if _generator().format_defined_at(source_format, spelling, list(_order())):
+        return None
+    return (f"its text is in {source_format} form, a reference format {spelling} does not define: no witness at "
+            f"{spelling} (kb/Work PB5754)")
+
+
+def ref_format_problem(ref: str, ed: Edition, suite: pathlib.Path | None = None) -> str | None:
+    """THE WRITER'S QUESTION (record_verdicts.validate, before a record of an older edition is written): why the
+    test-ref `ref` is no witness at `ed` for its text's reference format (`format_problem`), or None. Only a
+    conformance-suite case has a reference format; its header is read as the generator reads it (`generate.read_header`,
+    `generate.source_format_of`). A case whose header does not read fails the record: its format cannot be told. A
+    reference that names no case on disk is not judged here: that it names a real test is the battery gate's check
+    (`SpecTraceabilityInventoryDriftTests`, the division of labour record_verdicts.py's docstring states), which fails
+    it loudly at every build."""
+    form, _, key = ref.partition(":")
+    g = _generator()
+    if form.strip() != lineage.SUITE_FORM or all(format_problem(f, ed.spelling) is None for f in g.SOURCE_FORMATS):
+        return None
+    path = (suite or SUITE) / f"{key.strip()}.cob"
+    if not path.is_file():
+        return None
+    header, _ = g.read_header(path.read_bytes().decode("utf-8"))
+    if header is None:
+        return f"{ref}: its metadata block does not read, so the reference format of its text cannot be told"
+    why = format_problem(g.source_format_of(header), ed.spelling)
+    return f"{ref}: {why}" if why else None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -655,15 +703,16 @@ class Witnesses:
         return [ref.partition(":")[2].strip() for ref in self.refs.get(rule, []) if ref.partition(":")[0] == lineage.SUITE_FORM]
 
     def at(self, rule: str, spelling: str) -> list[str]:
-        """The rule's suite witnesses that run at the edition spelled `spelling`, of any kind, in the COMMITTED tree."""
+        """The rule's suite witnesses that run at the edition spelled `spelling`, of any kind, in the COMMITTED tree, in
+        a reference format the edition defines (`format_problem`)."""
         return [k for k in self.suite_cases(rule) if k in self.cases and self.cases[k].committed
-                and spelling in self.cases[k].runs]
+                and spelling in self.cases[k].runs and format_problem(self.cases[k].source_format, spelling) is None]
 
     def accepted_at(self, rule: str, spelling: str) -> list[str]:
-        """The rule's suite witnesses ACCEPTED at the edition, in the COMMITTED tree: a program that runs there and whose
-        output the gate compares."""
+        """The rule's suite witnesses ACCEPTED at the edition, in the COMMITTED tree, in a reference format the edition
+        defines: a program that runs there and whose output the gate compares."""
         return [k for k in self.suite_cases(rule) if k in self.cases and self.cases[k].committed
-                and spelling in self.cases[k].accept]
+                and spelling in self.cases[k].accept and format_problem(self.cases[k].source_format, spelling) is None]
 
     def search(self, ed: Edition, diagnosable: bool, to: Iterable[str], licence: str | None,
                table: EvidenceTable) -> tuple[list[str], list[tuple[str, str]]]:
@@ -695,15 +744,17 @@ class Witnesses:
     def own_problems(self, ed: Edition, refs: Iterable[str], diagnosable: bool, licence: str | None) -> list[str]:
         """THE AUDIT'S EVIDENCE TEST of a stored chained row (kb/Work PB5675): why each test-ref the row carries of its
         own is no witness at `ed` of the kind its rule needs. It reads the row's own references, the suite and the
-        row's rule, never a target: each names a conformance-suite case (`lineage.SUITE_FORM`) that runs at the edition,
-        ACCEPTED there, or only diagnosed there for a `diagnosable` rule or a read whose `licence` `licence_problem`
-        accepts (the declined facility the writer found it through). A diagnosis beside a case ACCEPTED at the edition
-        is the rule's restriction witnessed beside its grant, so it is reported only when no reference of the row is
-        accepted there (a stored own verdict cites both: kb/Work PB5597 review R1-4). Empty when every one witnesses."""
+        row's rule, never a target: each names a conformance-suite case (`lineage.SUITE_FORM`) written in a reference
+        format the edition defines (`format_problem`) that runs at the edition, ACCEPTED there, or only diagnosed there
+        for a `diagnosable` rule or a read whose `licence` `licence_problem` accepts (the declined facility the writer
+        found it through). A diagnosis beside a case ACCEPTED at the edition is the rule's restriction witnessed beside
+        its grant, so it is reported only when no reference of the row is accepted there (a stored own verdict cites
+        both: kb/Work PB5597 review R1-4). Empty when every one witnesses."""
         sp, out = ed.spelling, []
         refs = list(refs)
         keys = [key.strip() for form, _, key in (r.partition(":") for r in refs) if form == lineage.SUITE_FORM]
-        granted = any(k in self.cases and sp in self.cases[k].accept for k in keys)
+        granted = any(k in self.cases and sp in self.cases[k].accept
+                      and format_problem(self.cases[k].source_format, sp) is None for k in keys)
         for ref in refs:
             form, _, key = ref.partition(":")
             c = self.cases.get(key.strip()) if form == lineage.SUITE_FORM else None
@@ -711,6 +762,8 @@ class Witnesses:
                 out.append(f"{ref}: a {form} test runs at no older edition")
             elif c is None:
                 out.append(f"{ref}: names no conformance-suite case")
+            elif why := format_problem(c.source_format, sp):
+                out.append(f"{ref}: {why}")
             elif sp in c.accept:
                 continue
             elif sp not in c.runs:
@@ -718,6 +771,18 @@ class Witnesses:
             elif not diagnosable and not granted and (why := licence_problem(ed, licence)):
                 out.append(f"{ref}: only a diagnosis at {sp}, which witnesses no rule that grants a form or states a "
                            f"behaviour, and no licence to decline it ({why})")
+        return out
+
+    def format_problems(self, ed: Edition, refs: Iterable[str]) -> list[str]:
+        """THE AUDIT'S FORMAT TEST of a row with a verdict of its own (kb/Work PB5754): why each conformance-suite case
+        among the row's own references is no witness at `ed` for its text's reference format (`format_problem`). The
+        rest of an own verdict's evidence is its own fields' (`Schema.state_for`); a KEPT row's is `own_problems`."""
+        out = []
+        for ref in refs:
+            form, _, key = ref.partition(":")
+            c = self.cases.get(key.strip()) if form == lineage.SUITE_FORM else None
+            if c is not None and (why := format_problem(c.source_format, ed.spelling)):
+                out.append(f"{ref}: {why}")
         return out
 
 
@@ -1018,6 +1083,9 @@ def summary(decisions: list[Decision]) -> dict[str, Any]:
 
 #: What a suite case of a kept-but-unwitnessed row can do at the edition (`widen_plan`).
 RUNS, WIDEN, WIDEN_REFUSAL, BAND, NO_EDITION, MISSING = "runs", "widen", "widen-refusal", "band", "no-edition", "missing"
+#: A case written in a reference format the edition does not define (`format_problem`, kb/Work PB5754): no witness there,
+#: and no widening makes it one; converting its text (conformance-suite/harness/reformat.py) does.
+FORMAT = "format"
 #: A case whose file the working tree changes: neither a witness nor a candidate until it is committed and gated.
 UNCOMMITTED = "uncommitted"
 #: What a widening that does not hold leaves: the row needs a witness of its own at the edition.
@@ -1029,9 +1097,10 @@ WIDENABLE, WITNESSED = "widenable", "witness-batch"
 #: WHY a lacking target of a row has no widening that helps it (kb/Work PB5730), one reason per case by its
 #: `case_status` (`REASON_OF`), and `NO_CASE` for a target whose test-ref names no suite case: the input of the witness
 #: lane, which writes the row's own witness.
-NO_CASE, BAND_HELD, NOT_EVIDENCE, DIAGNOSIS_ONLY, PLACED_NOWHERE, NOT_COMMITTED = (
-    "no-case", "band", "not-evidence", "diagnosis-only", "no-edition", "uncommitted")
+NO_CASE, BAND_HELD, NOT_EVIDENCE, DIAGNOSIS_ONLY, PLACED_NOWHERE, NOT_COMMITTED, NOT_ITS_FORMAT = (
+    "no-case", "band", "not-evidence", "diagnosis-only", "no-edition", "uncommitted", "reference-format")
 REASON_OF = {
+    FORMAT: NOT_ITS_FORMAT,      # its text is in a reference format the edition does not define (kb/Work PB5754)
     MISSING: NO_CASE,            # the test-ref names no case: the target has no suite case at all
     BAND: BAND_HELD,             # its cases cite a rule the edition does not have: the generator refuses it there
     WIDEN: NOT_EVIDENCE,         # a flag (or a refusal, below) is no evidence for the rule's kind (`EvidenceTable`)
@@ -1096,11 +1165,14 @@ def case_status(c: CaseInfo | None, sp: str, bands: dict[str, list[str]]) -> str
     """`RUNS` at the edition spelled `sp`; `WIDEN` (a case accepted or flagged at other editions) or `WIDEN_REFUSAL` (a
     refusal test refused at other editions) when every rule it cites exists at `sp` (the generator's own band check,
     `generate.check_cases`), else `BAND`; `NO_EDITION` for a case placed at no edition; `MISSING` for a test-ref naming
-    no case."""
+    no case; `FORMAT` for a case whose text is in a reference format `sp` does not define, whatever it runs at
+    (`format_problem`, kb/Work PB5754)."""
     if c is None:
         return MISSING
     if not c.committed:
         return UNCOMMITTED
+    if format_problem(c.source_format, sp):
+        return FORMAT
     if sp in c.runs:
         return RUNS
     if not c.runs:
@@ -1362,9 +1434,11 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
     rule, no edition key), every stored KEPT row's OWN witnesses (its `test-ref`, with `w`) are conformance-suite cases
     that run at the edition, of the kind its rule needs (`Witnesses.own_problems`; the licence is the read's when the
     record came from one). A KEPT row with no witness of its own is no error here: its state is GAP (`lineage.state_of`).
-    A witness whose band is later narrowed past the edition, or that moves, turns the audit red, naming row and case.
-    A stored OWN verdict of a rule whose tracked read decides `own-verdict-from-pointer` (`own_reads`), or whose notes
-    name its read, is held to its read and to the same test of its own witnesses (`own_stored_errors`)."""
+    A witness whose band is later narrowed past the edition, or that moves, turns the audit red, naming row and case. And
+    EVERY row's own conformance-suite witnesses, a verdict's of its own among them, are written in a reference format
+    the edition defines (`format_problem`, kb/Work PB5754). A stored OWN verdict of a rule whose tracked read decides
+    `own-verdict-from-pointer` (`own_reads`), or whose notes name its read, is held to its read and to the same test of
+    its own witnesses (`own_stored_errors`)."""
     schema = schema or inventory_schema.load_schema()
     by_slice = {s.name: s for s in slices}
     owned = own_reads(ed, slices, lin)
@@ -1373,6 +1447,11 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
     for r in rows:
         nxt = r.get("next") or {}
         src = nxt.get("source") or ""
+        if nxt.get("kind") != KEPT and w is not None:
+            # a row with a verdict of its own (or none yet): its own witnesses are held to the edition's reference
+            # format, as a KEPT row's are by `own_problems` (kb/Work PB5754)
+            errs += [f"{r['rule-id']}: {NO_OWN_WITNESS}: {why}"
+                     for why in w.format_problems(ed, lineage.own_witness_refs(r, schema))]
         if not nxt.get("kind"):
             if r.get("verdict"):
                 errs += own_stored_errors(ed, r, owned.get(r["rule-id"]), by_slice, w, lin, schema)
@@ -1399,7 +1478,8 @@ def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slic
         if nxt["kind"] == KEPT and w is not None:
             errs += [f"{rid}: {NO_OWN_WITNESS}: {why}" for why in w.own_problems(
                 ed, lineage.own_witness_refs(r, schema), lin.diagnosable(rid), licence)]
-    return errs
+    # an own verdict from a read meets the format test twice (`format_problems`, then `own_stored_errors`' own_problems)
+    return list(dict.fromkeys(errs))
 
 
 def older_years() -> list[int]:

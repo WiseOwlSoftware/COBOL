@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb201-odo-depending-not-integer
-*> rules: [SR-13.18.38.3-17]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb201-odo-depending-not-integer
+      *> rules: [SR-13.18.38.3-17]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB201 - THE GUARD THAT KEEPS THE SECOND EMITTER'S CARRIER CLAIM
       *> TRUE. RuntimeApi.TableOcc renders the OCCURS DEPENDING current-count read
       *> at CODEGEN time, from a Place, so unlike the subscript renderer it cannot

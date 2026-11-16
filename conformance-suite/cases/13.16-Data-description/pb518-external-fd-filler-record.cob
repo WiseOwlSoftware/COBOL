@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb518-external-fd-filler-record
-*> rules: [SR-13.16.3-7]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb518-external-fd-filler-record
+      *> rules: [SR-13.16.3-7]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 13.16.3 SR7, its second half: "The data-name format of the entry-name clause shall be specified
       *> ... for record descriptions associated with a file description entry that contains the EXTERNAL or
       *> GLOBAL clause." The record below is FILLER. Accepted with no diagnostic before (kb/Work PB518).

@@ -746,10 +746,10 @@ internal static class FileControlKeyRules
 
     /// <summary>The key's window when it reaches past the file's minimum record size (§2023:12.4.5.12.3 SR4 /
     /// §2023:12.4.5.6.3 SR5 — "contained within the first n bytes of the record, where n equals the minimum record size
-    /// specified for the file"; §2023:13.18.43.4 GR9 supplies the minimum a RECORD clause leaves unstated), else null.
+    /// specified for the file"; §2023:13.18.43.4 GR9 supplies the minimum a RECORD clause leaves unstated; at --std 85 a format 3 record is sized at its maximum, FileModel.RecordSizeRange, §1985:VII.3.8.4 GR15), else null.
     /// A key outside this file's records is SR2's to report, and is not measured here.</summary>
     private static RecordLayout.KeyWindow? BeyondMinimum(FileModel f, DataItem? key, IReadOnlyList<int> occurrence) =>
-        RecordLayout.KeyWindowInFile(f, key, occurrence) is { } w && w.MaxEnd > f.VaryMin ? w : null;
+        RecordLayout.KeyWindowInFile(f, key, occurrence) is { } w && w.MaxEnd > f.RecordSizeRange.Min ? w : null;
 
     /// <summary>The key — the prime record key, or ANOTHER alternate record key clause — whose leftmost byte
     /// position is the position of <paramref name="op"/>'s item (§2023:12.4.5.6.3 SR4), rendered for the message, else
@@ -781,7 +781,7 @@ internal static class FileControlKeyRules
             null => "is not contained within the minimum record size",
         };
         return $"{op.ClauseFace} {op.Written} {where}, but indexed file '{f.CobolName}' contains variable-length "
-            + $"records with minimum size {f.VaryMin}; the key shall be contained within the first {n} bytes of the "
+            + $"records with minimum size {f.RecordSizeRange.Min}; the key shall be contained within the first {n} bytes of the "
             + $"record, where {n} equals the minimum record size ({citation})";
     }
 

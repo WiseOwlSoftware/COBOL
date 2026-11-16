@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1280-redefines-level-01-file-section
-*> rules: [SR-13.18.44.3-3]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1280-redefines-level-01-file-section
+      *> rules: [SR-13.18.44.3-3]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1280 - SR3 - REDEFINES in a level-1 FILE SECTION entry.
       *>   cite.py --check 13.18.44.3 "This clause shall not be specified in level 1 entries in the file section" -> OK
       *> COBOL2739 (redefines-entry-rule; SR8 is COBOL1539, SR10 COBOL1654). The positive twin is

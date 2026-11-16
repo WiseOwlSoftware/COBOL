@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: l1_date_of_integer_standard_form
-*> rules: [RV-15.22.4-1, RV-15.22.4-2]
-*> accept: [2002, 2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_date_of_integer_standard_form
+      *> rules: [RV-15.22.4-1, RV-15.22.4-2]
+      *> accept: [85, 2002, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:15.22.4 r1/r2 — DATE-OF-INTEGER's returned value IS the standard
       *> date equivalent of argument-1, in the form (YYYYMMDD).
       *>

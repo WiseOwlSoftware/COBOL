@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb51_compute_figurative_zero
-*> rules: [GR-8.3.3.6.4-4, GR-14.9.8.4-2]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb51_compute_figurative_zero
+      *> rules: [GR-8.3.3.6.4-4, GR-14.9.8.4-2]
+      *> accept: [2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 8.8.1.1: "An arithmetic expression may be an identifier referencing
       *> a numeric data item, a numeric literal, THE FIGURATIVE CONSTANT ZERO
       *> (ZEROS, ZEROES), …" — so `COMPUTE <numeric> = ZERO` is arithmetic-

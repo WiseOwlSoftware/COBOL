@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb88-string-pointer-not-integer
-*> rules: [SR-14.9.43.3-7]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb88-string-pointer-not-integer
+      *> rules: [SR-14.9.43.3-7]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 14.9.43.3 SR7: identifier-4 (the POINTER) "shall be described as an elementary numeric integer data
       *> item ... The symbol 'P' shall not be used" - a PIC 9V9 pointer is not one. kb/Work PB88: COBOL1651.
        IDENTIFICATION DIVISION.

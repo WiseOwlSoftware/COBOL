@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb2727-io-control-period-per-clause
-*> rules: [FMT-12.4.6.2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb2727-io-control-period-per-clause
+      *> rules: [FMT-12.4.6.2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB2727 - ISO 12.4.6.2 prints the I-O-CONTROL paragraph's run of SAME clauses as ONE
       *> sentence closed by one separator period (only the APPLY COMMIT clause is a sentence of its
       *> own), and 5.2.1 binds the punctuation a general format prints.  A period after each SAME

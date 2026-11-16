@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1139-merge-file-in-using-and-giving
-*> rules: [SR-14.9.24.3-7]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1139-merge-file-in-using-and-giving
+      *> rules: [SR-14.9.24.3-7]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1139 - A MERGE FILE NAMED IN BOTH USING AND GIVING IS REFUSED.
       *>   cite.py --check 14.9.24.3 "File-names shall not be repeated within the MERGE statement." ->
       *>     OK §2023:14.9.24.3 7)
