@@ -237,9 +237,15 @@ is empty by construction (`SendersSignStore.Applies`).
 VALUE is zero: it compares equal to zero (§1985:VI.6.3.1.1.1, "Zero is considered a unique value regardless of the sign"),
 the sign condition calls it ZERO and not NEGATIVE (§1985:VI.6.3.1.5), and arithmetic reads it as zero. A group that
 contains it moves and is written as characters, so the record keeps the negative zero and READ restores it. A
-literal written `-0` keeps its normalized positive image (kb/Work PB2508): §1985:IV.4.2.2.2.2 SR2 lets a sign be written, and
-its rule 4 makes the value "the algebraic quantity represented by the characters", which does not decide whether `-0` is a
-negative sending operand; `VALUE -0` is an initial value, not a MOVE, and is unchanged.
+literal is its value, "the algebraic quantity represented by the characters in the numeric literal" (§1985:IV.4.2.2.2.2
+GR4), and the value zero has no sign to place, while a data item holds a stored sign: so `MOVE -0` and `VALUE -0` store a
+positive zero at 1985 too, as the normalized literal already does (kb/Work PB2508).
+
+**The sender is read once.** §1985:VI.6.19.4 GR2 evaluates a subscript, reference modifier or function-identifier of the
+sender "only once", so the store captures its one read of the sender and asks both the sign and the value of the capture:
+an image sender's image (its value decoded by the one windowed reader), any other sender's rendered value. At 1985 no read
+can have a side effect, since a subscript is "an integer, a data-name optionally followed by an integer with the operator
++ or -" or an index-name likewise (§1985:III.2), but the 2002 arm admits arithmetic expressions there.
 
 ### 2.2 The canonical `Place` lvalue model
 

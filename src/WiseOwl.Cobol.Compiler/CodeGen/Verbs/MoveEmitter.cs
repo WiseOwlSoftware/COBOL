@@ -1079,17 +1079,25 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     /// <summary>⛔ THE SIGN OF THE SENDING OPERAND OF A 1985 OR 2002 NUMERIC STORE (§1985:VI.6.19.4 GR4b1; kb/Work PB5852;
     /// DESIGN-data-model §2.1.1), read from what the operand IS, never from the truncated value: a negative literal is negative at
     /// compile time; an image-carried sign holder's sign is the one its characters carry, a negative zero's included
-    /// (<c>CobolNum.ImageIsNegative</c>, so a negative zero moved on stays negative); every other sender's is its value's,
-    /// CAPTURED from the one rendering of the value the store reads (<paramref name="n"/> is rewritten to read the capture), so
-    /// a function-identifier is evaluated once (§1985:VI.6.19.4 GR2).</summary>
+    /// (<c>CobolNum.ImageIsNegative</c>, so a negative zero moved on stays negative); every other sender's is its value's.
+    /// ⛔ THE SENDER IS READ ONCE (§1985:VI.6.19.4 GR2: a subscript, reference modifier or function-identifier "is evaluated
+    /// only once"): the one read is CAPTURED and both the sign and the value read the capture (<paramref name="n"/> is
+    /// rewritten to read it). An image sender's capture is its image, and its value is decoded from it by the one windowed
+    /// reader the place's own numeric read uses (<see cref="NumericRenderer.WindowedNum"/>); any other sender's capture is
+    /// its rendered value.</summary>
     private SendersSignCapture SendersSign(BoundOperand source, ref NumX n)
     {
         switch (source)
         {
             case BoundNumericLiteral:
                 return new("true", null);   // SendersSignStore.SenderMayBeNegative admitted it: a minus sign and a non-zero digit
-            case BoundFieldOperand f when SendersSignStore.HoldsNegativeZero(f.Place.Item):
-                return new(RuntimeApi.NumImageIsNegative(PlaceRenderer.Read(f.Place), f.Place.Item.ProfileName), null);
+            case BoundFieldOperand { Place: not (RefModPlace or TableAllPlace) and var place }
+                when SendersSignStore.HoldsNegativeZero(place.Item):
+            {
+                string image = $"__sg{ctx.Names.NextStoreTmp()}";
+                n = NumericRenderer.WindowedNum(image, place.Item, place.Item.Pic!, SendingRef.MoveToNumeric);
+                return new(RuntimeApi.NumImageIsNegative(image, place.Item.ProfileName), (PlaceRenderer.Read(place), image));
+            }
             default:
                 string variable = $"__sg{ctx.Names.NextStoreTmp()}";
                 string value = n.Expr;

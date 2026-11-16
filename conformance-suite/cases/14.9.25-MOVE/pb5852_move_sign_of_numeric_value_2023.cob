@@ -30,6 +30,9 @@
       *>  S3->U: an unsigned receiver takes "the absolute value of the
       *>   sending operand" and no sign (GR4b2): 00 at both.
       *>  POS->L5: a positive sender truncated to zero: +00 at both.
+      *>  LIT-0: a literal is its value, "the algebraic quantity
+      *>   represented by the characters" (§1985:IV.4.2.2.2.2 GR4,
+      *>   cite.py: OK), and zero has no sign to place: +00 at both.
       *>  INIT: INITIALIZE REPLACING moves -100 by "an implicit MOVE
       *>   statement" (§1985:VI.6.17.4 GR2b, cite.py: OK): -00 at 85.
       *>  FILE: a group holding -00 and 00- is written and read back as
@@ -95,6 +98,8 @@
            DISPLAY "S3->U   [" U "]".
            MOVE 100 TO L5.
            DISPLAY "POS->L5 [" L5 "]".
+           MOVE -0 TO L5.
+           DISPLAY "LIT-0   [" L5 "]".
            INITIALIZE INI REPLACING NUMERIC DATA BY -100.
            DISPLAY "INIT    [" INI-L "]".
            MOVE S3 TO G-L G-T.

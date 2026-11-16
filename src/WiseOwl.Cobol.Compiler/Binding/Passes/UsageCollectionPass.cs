@@ -402,7 +402,7 @@ internal static class UsageCollectionPass
         private void SignStores(BoundMove move)
         {
             for (int i = 0; i < move.Targets.Count; i++)
-                if (move.Stores[i] is { Kind: MoveKind.Convert, Sender: var sender }
+                if (move.Stores[i] is { Kind: MoveKind.Convert, Sender: var sender } && move.Targets[i] is not RefModPlace
                     && SendersSignStore.IsSignHolder(move.Targets[i].Item) && SendersSignStore.SenderMayBeNegative(sender))
                     numericStores.Add(new NumericStore(sender, move.Targets[i].Item));
         }

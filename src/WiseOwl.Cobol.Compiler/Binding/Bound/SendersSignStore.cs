@@ -52,14 +52,16 @@ internal static class SendersSignStore
         !item.IsGroup && item.Pic is { Category: PicCategory.Numeric, Signed: true, IsFloat: false, ByteForm: NumericByteForm.Zoned };
 
     /// <summary>Can the sending operand be negative? A literal written with a minus sign and a non-zero digit (a literal
-    /// <c>-0</c> keeps its normalized positive sign, kb/Work PB2508: §1985:IV.4.2.2.2.2 does not decide it), a signed numeric
+    /// is its value, "the algebraic quantity represented by the characters" (§1985:IV.4.2.2.2.2 GR4), and zero has no sign to
+    /// place, so <c>-0</c> stores a positive zero as kb/Work PB2508 has it), a signed numeric
     /// item, a numeric-edited item whose mask holds a sign (its de-edited value "which may be signed", GR4b), and a numeric
     /// function-identifier's value. An unsigned sender generates "a positive sign" (GR4b1), and a
     /// figurative ZERO or an alphanumeric sender is unsigned.</summary>
     public static bool SenderMayBeNegative(BoundOperand sender) => sender switch
     {
         BoundNumericLiteral lit => lit.Text.StartsWith('-') && NonZeroDigitExponents(lit.Text).Any(),
-        BoundFieldOperand { Place.Item.Pic: { Category: PicCategory.Numeric or PicCategory.NumericEdited, HoldsSign: true } } => true,
+        // A reference-modified sender is alphanumeric (§1985:VI.6.19.4 GR4b3's unsigned integer), whatever its item.
+        BoundFieldOperand { Place: not RefModPlace, Place.Item.Pic: { Category: PicCategory.Numeric or PicCategory.NumericEdited, HoldsSign: true } } => true,
         BoundComputedOperand c => c.IsNumericFunctionValue,
         _ => false,
     };
