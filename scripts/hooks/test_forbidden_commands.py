@@ -324,6 +324,12 @@ PS_CASES = [
 ]
 
 
+# A guard against a hung hook, never a time expectation: a case's verdict is its exit code. At 30 s (the hook's own
+# settings.json timeout) a unit-push case, whose hook asks git for the push's remote, timed out on a host at 100 % CPU
+# inside a gate (run 000001-20261116T025348Z of the PB5764 branch): a RED no change of the hook caused.
+HANG_GUARD = 300
+
+
 def blocked(cmd: str, unit: bool = False, tool: str = "Bash") -> bool:
     # The environment is part of the case: an orchestrator unit has COBOL_COORD_DIR, an attended session never does. Set or
     # removed EXPLICITLY, so the result never depends on who runs this test.
@@ -332,7 +338,7 @@ def blocked(cmd: str, unit: bool = False, tool: str = "Bash") -> bool:
         env["COBOL_COORD_DIR"] = "E:/COBOL-coord"
     r = subprocess.run([sys.executable, str(HOOK)], input=json.dumps({"tool_name": tool, "tool_input": {"command": cmd},
                                                                    "cwd": SESSION}),
-                       capture_output=True, text=True, timeout=30, env=env)
+                       capture_output=True, text=True, timeout=HANG_GUARD, env=env)
     return r.returncode == 2
 
 
