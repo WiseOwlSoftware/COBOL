@@ -274,6 +274,31 @@ public sealed class DeclarativesStructuralRulesTests
         Assert.DoesNotContain(d, x => x.Contains("COBOL2378"));
     }
 
+    /// <summary>SR11 places a store in the 01 record's own coordinates (kb/Work PB5808, review R2-1): a REDEFINES BELOW level 01
+    /// whose original is not at the record's first byte. WS-NB1 overlays the control data item WS-NGRP; WS-NB2 overlays only WS-NOTH.</summary>
+    [Theory]
+    [InlineData("MOVE \"2\" TO WS-NB1", true)]
+    [InlineData("MOVE \"2\" TO WS-NB2", false)]
+    public void AStoreThroughANestedRedefines_IsPlacedInTheRecordNotTheClass(string statement, bool refused)
+    {
+        string source = ReportProgram(statement)
+            .Replace("CONTROL IS WS-GRP", "CONTROL IS WS-NGRP")
+            .Replace("01 WS-IX PIC 9 VALUE 1.",
+                """
+                01 WS-NREC.
+                          02 WS-NPAD PIC X.
+                          02 WS-NA.
+                             03 WS-NGRP PIC 9.
+                             03 WS-NOTH PIC 9.
+                          02 WS-NB REDEFINES WS-NA.
+                             03 WS-NB1 PIC X.
+                             03 WS-NB2 PIC X.
+                       01 WS-IX PIC 9 VALUE 1.
+                """);
+        var d = BindDiagnostics(source, 2023);
+        Assert.Equal(refused, d.Any(x => x.Contains("COBOL2378")));
+    }
+
     // ── The structure that keeps the next case automatic ──────────────────────────────────────────────────
 
     /// <summary>Only PERFORM and RESUME name an exemption; every other caller of the ONE procedure-name funnel

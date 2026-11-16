@@ -22,3 +22,5 @@ hands the checker the Place, and `StorageExtent.OfStore` gives the bytes the sto
 literal reference-modification window, a Tier-B view's constant window); only an extent that is a run-time quantity falls back to
 the whole item. Unit cases: a window or occurrence over the non-control byte is accepted, over a control byte or by variable
 subscript refused.
+
+Round 2 review (R2-1): StorageExtent.OfStore placed a Tier-B view window by its class-relative offset in the 01 record's coordinates, so a REDEFINES below level 01 whose original is not at record offset 0 was mis-placed (an overlay of the control item accepted, a disjoint store refused). The window is now placed by the view item's record position (OfEveryOccurrence) plus the offset past its first occurrence in its class (OfViewWindow). Witness: DeclarativesStructuralRulesTests.AStoreThroughANestedRedefines_IsPlacedInTheRecordNotTheClass, both ways.

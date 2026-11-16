@@ -79,14 +79,22 @@ public readonly record struct StorageExtent(DataItem Area, int Start, int Length
     public static StorageExtent? OfStore(Place place) => place switch
     {
         MemberPlace { MemberItem.IsTableElement: true } m => OfLiteralOccurrence(m),
-        // A Tier-B view is already a (class offset, width) window: the offset is a constant when every subscript is a literal.
-        RedefViewPlace { Coding: null, Offset.ConstantValue: { } offset } v when offset is >= 0 and <= int.MaxValue && v.Width > 0 =>
-            IsProvable(v.ViewItem) ? new StorageExtent(AreaOf(v.ViewItem), (int)offset, v.Width) : null,
+        // A Tier-B view is a (class offset, width) window, and the offset counts from the CLASS's first byte, not the 01 record's:
+        // place it by the view item's record position plus how far the window lies past the item's first occurrence in its class.
+        RedefViewPlace { Coding: null, Offset.ConstantValue: { } offset } v => OfViewWindow(v, offset),
         NumericImagePlace n => OfStore(n.Inner),
         GroupImagePlace g => OfStore(g.Inner),
         RefModPlace r => OfStore(r.Inner) is { } inner ? Narrow(inner, r) : null,
         _ => OfReference(place),
     };
+
+    private static StorageExtent? OfViewWindow(RedefViewPlace v, long offset)
+    {
+        if (v.ViewItem.Class is null || v.Width <= 0 || OfEveryOccurrence(v.ViewItem) is not { } every) return null;
+        long shift = offset - v.ViewItem.ClassOffset;   // the occurrence displacement: 0 for the item's first occurrence
+        long start = every.First.Start + shift;
+        return shift >= 0 && start <= int.MaxValue ? new StorageExtent(every.First.Area, (int)start, v.Width) : null;
+    }
 
     private static StorageExtent? OfLiteralOccurrence(MemberPlace m)
     {
