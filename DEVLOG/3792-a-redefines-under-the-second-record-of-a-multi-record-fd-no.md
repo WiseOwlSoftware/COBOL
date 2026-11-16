@@ -1,4 +1,4 @@
-## A REDEFINES under the second record of a multi-record FD no longer overflows the compiler's stack
+## Entry 3792 — 2026-11-16 13:41 PST — A REDEFINES under the second record of a multi-record FD no longer overflows the compiler's stack
 
 kb/Work PB5729. A `REDEFINES` subordinate to the second or later level-01 record of one FD crashed the compiler with a .NET stack overflow in `StorageFormPass.Classify` (alphanumeric data-name-2), or emitted C# naming the folded record (`CS0103`, numeric data-name-2), at `--std 85`, 2002 and 2023. Re-probe on a Debug build of this branch before the fix: the four repros of the note and its 1985 addendum failed as recorded; after it all four run (`fdred.cob` prints `RG-1=12 RG-1X=12 RG-2=AB`, `fdred2.cob` and `fdred3.cob` print `H=[AB   ]`).
 
@@ -7,3 +7,4 @@ kb/Work PB5729. A `REDEFINES` subordinate to the second or later level-01 record
 **Goldens.** `13.18.33-Level-number/pb5729_fd_later_record_redefines` (2002, 2014, 2023) and `VII.4.4@1985-READ-STATEMENT/pb5729_fd_later_record_redefines_85`: three records of one FD, a REDEFINES in each of the second and third. With the one-line fix reverted the program fails with `CS0103`; restored, it prints the expected two lines.
 
 **Rows.** `GR-13.18.33.4-3` PARTIAL to CONFORMS; `1985-GR-XIII.3.14.4-2` closes with its signed derivation `docs/conformance/8/DRV-1985-GR-XIII.3.14.4-2.md`. `DESIGN-data-model.md` states the one-area-per-overlay-nest rule.
+
