@@ -18,6 +18,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// MIN, ORD-MAX, ORD-MIN). This test reads chapter 15 of both editions' text and fails when a function gains or loses an equivalent
 /// arithmetic expression without the set following it.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class StandardArgumentRoundingDriftTests
 {
     private static readonly string[] Exceptions = ["SQRT", "MAX", "MIN", "ORD-MAX", "ORD-MIN"];
