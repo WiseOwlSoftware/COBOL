@@ -1,4 +1,4 @@
-## golden-2002-8: 91 2002 rows CONFORMS from 13 wave-u slugs, two defects filed (GAP 1805 to 1714 on main with golden-2002-7)
+## Entry 3729 — 2026-11-15 23:13 PST — golden-2002-8: 91 2002 rows CONFORMS from 13 wave-u slugs, two defects filed (GAP 1805 to 1714 on main with golden-2002-7)
 
 The eighth landing of the 2002 golden lane (gl2002, kb/Work PB5597): the wave-u slugs g2002u-13-16-31 (LEVEL-NUMBER) through g2002u-14-8-3 (ALLOCATE), rows a 2002 read left as needs-own-witness or undecided. Each row closes on a witness that runs at `--std 2002`.
 
@@ -33,3 +33,4 @@ No validate stage ran, so I validated every draft on this worktree's build at `-
 - 2002-GR-14.8.1.3-1, -3 and -4: a device ACCEPT needs device data, and the harness runs every case with stdin closed.
 - 2002-GR-14.6.8.2-1, -2 and -4: RETRY needs a cross-run-unit witness, so the case is withheld.
 - 2002-GR-14.8.3.3-5: storage exhaustion (EC-STORAGE-NOT-AVAIL) cannot be probed on this host (host safety).
+
