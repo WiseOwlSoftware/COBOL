@@ -27,6 +27,20 @@ def case_01_real_host_names_its_lock_and_default_audits(expect):
            and "SELF-TESTS" not in [n for n, _ in host.audit_commands(False)], "")
 
 
+def case_02_real_host_captures_in_the_test_hosts_working_directory(expect):
+    """kb/Work PB4333 R2-1: the capture compiles where the Conformance test host runs, the directory of its BUILT
+    assembly (measured: `<project>/bin/Debug/net10.0`), never the project directory, which the fake host cannot see."""
+    host = Host(gate_mod.REPO)
+    try:
+        where = host.test_output_dir("Conformance")
+    except OSError as e:   # an unbuilt tree: the capture fails and nothing is carried, which the gate's cases hold
+        expect("the real host names the Conformance assembly's output directory, or refuses an unbuilt tree", "expected one built" in str(e), str(e))
+        return
+    expect("the real host's capture directory is the one holding the built WiseOwl.Cobol.Tests.Conformance.dll, under bin/",
+           (where / "WiseOwl.Cobol.Tests.Conformance.dll").is_file() and "bin" in where.parts
+           and where != gate_mod.REPO / "tests" / "WiseOwl.Cobol.Tests.Conformance", str(where))
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

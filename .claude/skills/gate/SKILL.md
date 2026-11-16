@@ -76,7 +76,12 @@ kb/Work PB2526), each population then checked by name against its `--list-tests`
   (`conformance-suite`, kb/Work PB5231): the gate generates them first (traced), keys Conformance on their OUTPUT DIGEST and
   hands the directory to its host (`WISEOWL_COBOL_GATE_SUITE`). So a records-only change re-runs Unit, and Conformance only
   when the generated suite changed; a docs, kb or tooling-lane change re-runs none (`GREEN — EVERY TARGET
-  UP TO DATE …`). The landing (`python scripts/orchestrator/enqueue.py land <branch>`, kb/Work
+  UP TO DATE …`). A pass is keyed to its TARGET'S inputs (`keys_end`, kb/Work PB4333): a commit to a path no target reads,
+  made while a gate runs, leaves every pass it measures standing. When Conformance runs, THE PROGRAM DIFFERENTIAL
+  (`scripts/gate_differential.py`, kb/Work PB4333, design section 3.14.13) carries each suite case whose program bytes,
+  diagnostics, entry and named files equal those of a case that passed on this host at the same harness key (the runtime,
+  the harness and every other `everything`-class input unchanged): the line says `Conformance N carried as byte-identical to
+  passed cases at harness key …`, and every other case runs. The landing (`python scripts/orchestrator/enqueue.py land <branch>`, kb/Work
   PB3023, MANDATORY-PRACTICES L1, L2) reads this record; CI's merge group is the first run of the merged tree, of Linux
   and of Release (PB4323 §2023:5.1).
 - **The cap is ONE shared setting, 3 by default** (owner 2026-10-10 10:20 PDT, kb/Work PB2514: "Cap 3 permanently"):

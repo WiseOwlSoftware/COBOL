@@ -245,6 +245,37 @@ public sealed class GateLegDriftTests
         }
     }
 
+    /// <summary>A retry written from the LISTING names a long theory row by its listed form, cut short and ended with
+    /// <see cref="GateOnly.Truncation"/>, where the host's case keeps its whole display name (kb/Work PB4333: run
+    /// 000004-20261116T085419Z listed a 474-character row in 447, and the eight such rows it named never ran). The listed
+    /// form names every case its stem begins; a row whose own argument is cut short (<c>"ab"···)</c>) is named exactly,
+    /// and a stem names no case it does not begin.</summary>
+    [Fact]
+    public void Only_ALongRowNamedByItsListedForm_Runs()
+    {
+        string dir = ScratchDirectory.Create("gate-only-listed-");
+        try
+        {
+            string file = Path.Combine(dir, "only.txt");
+            File.WriteAllText(file, "N.C.Long(a: \"x\", b: \"y\", " + GateOnly.Truncation + "\nN.C.Short(a: \"ab\"" + GateOnly.Truncation + ")\n");
+            GateOnly only = GateOnly.Read(n => n == GateOnly.Variable ? file : null)!;
+            var assembly = new TestAssembly(Reflector.Wrap(typeof(GateLegDriftTests).Assembly));
+            var collection = new TestCollection(assembly, null, "planted");
+            ITestCase Case(string name) => new PlantedCase(name, MethodIn(collection));
+            var cases = new List<ITestCase>
+            {
+                Case("N.C.Long(a: \"x\", b: \"y\", c: \"z\")"), Case("N.C.Long(a: \"x\", b: \"q\", c: \"z\")"),
+                Case("N.C.Short(a: \"ab\"" + GateOnly.Truncation + ")"), Case("N.C.Short(a: \"abc\")"),
+            };
+            Assert.Equal(new[] { "N.C.Long(a: \"x\", b: \"y\", c: \"z\")", "N.C.Short(a: \"ab\"" + GateOnly.Truncation + ")" },
+                only.CasesOf(cases).Select(c => c.DisplayName));
+        }
+        finally
+        {
+            ScratchDirectory.Remove(dir);
+        }
+    }
+
     [Fact]
     public void Shard_TheWeightsReader_RefusesEveryMalformedFile()
     {
