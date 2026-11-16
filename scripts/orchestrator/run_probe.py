@@ -14,10 +14,14 @@ nothing (kb/Work PB5764; MANDATORY-PRACTICES P17).
                 holds it (the configuration Debug unless named). Exactly one is required; a compiler that does not
                 exist is refused, never replaced by another.
 --with          a file the program needs beside it (a library text it copies, a data file it reads): copied in.
---expect        compare the program's standard output with this file, line endings aside: `EXPECT: MATCH`, or
-                `EXPECT: DIFFERS` and the differing lines with exit 1.
+--expect        compare the program's standard output with this file by the suite runner's own rule
+                (conformance-suite/harness/run.py `normalize`: CR LF is LF, each line's trailing spaces and the trailing
+                newlines dropped): `EXPECT: MATCH`, or `EXPECT: DIFFERS` and the differing lines with exit 1.
 --compile-only  compile without `--run` (a refusal probe): the diagnostics are the result.
 --timeout       seconds before the whole process tree (compiler and program) is killed (exit 124).
+The run's environment is this process's with the suite's WiseOwl adapter's `environment` over it
+(conformance-suite/adapters/wiseowl.json: the USER and SYSTEM locales pinned, the message-control directory the run
+directory), so a MATCH here is what the suite runner would compare.
 
 Exit status: 2 for a refused argument (nothing is run); 124 on the timeout; 1 when --expect differs; else the
 compiler's (or, with --run, the program's) own status, so a MATCH of a program that ends with a non-zero status keeps
@@ -44,9 +48,18 @@ import shutil
 import subprocess
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/: process_job, standard_streams
+REPO = pathlib.Path(__file__).resolve().parents[2]
+SUITE = REPO / "conformance-suite"
+sys.path.insert(0, str(REPO / "scripts"))  # process_job, standard_streams
+sys.path.insert(0, str(SUITE / "harness"))  # the suite runner's adapter reader and its output rule
+import config as suite_config  # noqa: E402
+import run as suite_run  # noqa: E402
 from process_job import ProcessJob  # noqa: E402  (the one way to hold, and kill, a whole process tree; PB5098)
 from standard_streams import ensure_utf8  # noqa: E402
+
+#: The suite's WiseOwl adapter: its `environment` (the USER and SYSTEM locales pinned, the message-control directory in
+#: the work directory) is every probe's too, so a program prints here what it prints under the suite runner.
+ADAPTER = SUITE / "adapters" / "wiseowl.json"
 
 EXIT_REFUSED = 2
 EXIT_DIFFERS = 1
@@ -83,6 +96,16 @@ def fresh_directory(root: pathlib.Path, stem: str) -> pathlib.Path:
             return run
         except FileExistsError:
             n += 1
+
+
+def suite_environment(run: pathlib.Path) -> dict[str, str]:
+    """This process's environment with the suite adapter's `environment` over it, `{work}` being the run directory.
+    An adapter that does not load stops the run (SystemExit naming its problems): a probe never runs under a guessed
+    environment."""
+    adapter, problems = suite_config.load_adapter(ADAPTER)
+    if adapter is None:
+        raise SystemExit(f"run_probe: the suite adapter {ADAPTER} does not load: " + "; ".join(problems))
+    return {**os.environ, **{k: suite_run.fill(v, {"work": str(run)}) for k, v in adapter.environment.items()}}
 
 
 def parse(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
@@ -150,7 +173,8 @@ def main(argv: list[str]) -> int:
     out_file, err_file = run / "stdout.txt", run / "stderr.txt"
     # files, never pipes, for the tree's output: a pipe an orphaned grandchild still holds blocks its reader (process_job)
     with open(out_file, "wb") as out, open(err_file, "wb") as err, \
-            ProcessJob.start(cmd, cwd=run, stdin=subprocess.DEVNULL, stdout=out, stderr=err) as job:
+            ProcessJob.start(cmd, cwd=run, env=suite_environment(run), stdin=subprocess.DEVNULL, stdout=out,
+                             stderr=err) as job:
         try:
             status = job.wait(a.timeout)
         except subprocess.TimeoutExpired:
@@ -172,8 +196,8 @@ def main(argv: list[str]) -> int:
     expect: pathlib.Path | None = got["expect"]
     if expect is None:
         return status
-    want = expect.read_bytes().decode("utf-8", errors="replace").replace("\r\n", "\n")
-    printed = text_out.replace("\r\n", "\n")
+    want = suite_run.normalize(expect.read_bytes().decode("utf-8", errors="replace"))
+    printed = suite_run.normalize(text_out)
     if printed == want:
         print(f"EXPECT: MATCH ({expect.name})")
         return status

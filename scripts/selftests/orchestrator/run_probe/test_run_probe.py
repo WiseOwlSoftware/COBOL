@@ -133,7 +133,7 @@ def case_030_with_files_compile_only_and_extra_arguments(expect):
 def case_040_expect_match_and_differs(expect):
     d = scratch_dir("run-probe-expect-")
     prog = _plant(d, "hello.cob", HELLO)
-    same = _plant(d, "same.out", "HELLO\r\nWORLD\r\n")          # line endings aside, the same output
+    same = _plant(d, "same.out", "HELLO  \r\nWORLD\r\n\r\n")    # the suite's rule: CR LF, trailing spaces and newlines aside
     other = _plant(d, "other.out", "HELLO\nEARTH\n")
     status, printed, _ = _run("--root", str(d / "runs"), "--std", "85", "--exe", EXE, "--expect", str(same), str(prog))
     expect.equal("MATCH: the program's own status, and `EXPECT: MATCH`", (status, "EXPECT: MATCH (same.out)" in printed),
@@ -153,6 +153,19 @@ def case_050_a_run_past_its_timeout_is_killed_and_exits_124(expect):
                  (status, "timed out after 1 s" in (run / "stderr.txt").read_bytes().decode(), "timed out" in printed),
                  (124, True, True))
     expect.equal("the program never reached its print", "never" in printed, False)
+
+
+def case_055_the_run_has_the_suite_adapter_s_environment(expect):
+    d = scratch_dir("run-probe-env-")
+    prog = _plant(d, "env.cob", "import os\nfor k in ('COBOL_USER_LOCALE', 'COBOL_SYSTEM_LOCALE', 'WISEOWL_COBOL_MCS'):\n"
+                                "    print(k, os.environ.get(k))\n")
+    status, printed, _ = _run("--root", str(d / "runs"), "--std", "85", "--exe", EXE, str(prog))
+    run = _run_directory(printed)
+    adapter, _ = rp.suite_config.load_adapter(rp.ADAPTER)
+    want = {k: v.replace("{work}", str(run)) for k, v in adapter.environment.items()}
+    expect.equal("every variable of the adapter's environment reaches the program, {work} being the run directory",
+                 (status, {k: v for k, v in (l.split(" ", 1) for l in printed.splitlines() if l.startswith(tuple(want)))}),
+                 (0, want))
 
 
 def case_060_a_tree_resolves_its_built_compiler(expect):

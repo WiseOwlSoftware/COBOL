@@ -125,7 +125,8 @@ BRIEFS = {
                                r'READY-TO-LAND <worktree> <branch>', r'enqueue\.py land',  # PB3023
                                r'I10', r'review_findings\.py', r'WAITING FOR REVIEW',  # PB3027: review on the branch
                                r'\| I11 \|',  # the owner's SORT and file I/O exception-path test rule (2026-10-17)
-                               r'\| I12 \|', FIX_GATE_ENV],  # PB4888: the finisher's targeted tests and its fix gate
+                               r'\| I12 \|', FIX_GATE_ENV,  # PB4888: the finisher's targeted tests and its fix gate
+                               r'\| P17 \|.*?run_probe\.py'],  # PB5764: no recursive delete of a variable path
 }
 # Prompts that live in code, not in a template (kb/Work PB4473): the loop's review lane builds its agents' prompts in
 # review_lane.py (its reviewer and conflict finisher), and each must tell the agent its own scratch directory in the rolling
@@ -202,9 +203,36 @@ TRX_NAME = re.compile(r'[A-Za-z0-9_.-]+\.trx\b')
 GATE_TRX = frozenset(f'{a}.trx' for a in GATED_ASSEMBLIES)
 
 
+# kb/Work PB5764 (MANDATORY-PRACTICES P17, owner 2026-11-15): no instruction tells an agent to delete RECURSIVELY a path
+# that holds a variable or a command substitution: `rd=$R/$id; rm -rf "$rd"` is `rm -rf /` when a variable is empty, and
+# the harness warned the owner for every one the probing agents wrote. A brief, a template, a rendered spec and every
+# instruction surface (the role definitions, the skills' and workflows' text, the loop units) is held to it; a line that
+# cites the practice's note names the forms to forbid them and passes. A probe runs through scripts/orchestrator/run_probe.py.
+_SPAN = r"[^\n;&|`]*"   # the rest of ONE command: a separator or a markdown code span's backquote ends it
+VARIABLE_DELETE = re.compile(
+    rf"(?<!git )\brm\s+(?:-[A-Za-z]*[rR][A-Za-z]*|--recursive)\b{_SPAN}\$"
+    rf"|\b(?:rmdir|rd)\s+/s\b{_SPAN}[$%]"
+    rf"|\b(?:Remove-Item|ri|del|rd|rmdir)\b(?:{_SPAN}-Recurse\b{_SPAN}\$|{_SPAN}\$[^\n;&|`]*-Recurse\b)"
+    r"|\bshutil\.rmtree\(\s*(?![\s'\"])"
+    rf"|\bgit\s+clean\b{_SPAN}\$", re.IGNORECASE)
+VARIABLE_DELETE_RULE = 'PB5764'
+VARIABLE_DELETE_SURFACES = ('.claude/agents/', '.claude/skills/', '.claude/workflows/', 'scripts/orchestrator/units/',
+                            'CLAUDE.md', 'PROMPT.md')
+
+
+def variable_deletes(rel, text):
+    """The lines of `text` (the instruction file `rel`) that tell an agent to delete recursively a path that holds a
+    variable (P17), as `rel:line: text` messages; a line citing VARIABLE_DELETE_RULE names the forms to forbid them."""
+    return [f'{rel}:{n}: {line.strip()[:100]} (a recursive delete of a variable path, MANDATORY-PRACTICES P17, kb/Work '
+            f'PB5764: run a probe through scripts/orchestrator/run_probe.py, remove a file by its literal path)'
+            for n, line in enumerate(text.splitlines(), 1)
+            if VARIABLE_DELETE.search(line) and VARIABLE_DELETE_RULE not in line]
+
+
 def check(path, pats):
     text = path.read_text(encoding='utf-8')
     missing = [p for p in pats if not re.search(p if p != POINTER else re.escape(POINTER), text)]
+    missing += variable_deletes(path.name, text)
     if path.name in ONCE_FILES or RENDERED_SPEC_NAME.fullmatch(path.name):
         missing += [f'PB3777: states twice: {s[:90]}…' for s in once_rule.repeated_sentences(text)]
     missing += [f'{n}: a test-result file no gate writes (the run directory holds {", ".join(sorted(GATE_TRX))})'
@@ -442,6 +470,8 @@ def fleet_tooling():
             continue
         found += retired_gating_lines(rel, text)
         found += bare_scratchpad_lines(rel, text)
+        if rel.startswith(VARIABLE_DELETE_SURFACES) and rel.endswith(('.md', '.js')):
+            found += variable_deletes(rel, text)
         if RETIRED.search(text):
             found.append(f'{rel} still calls a retired project copy (use the tools/claude-skills path)')
         found += [f'{rel} names tools/claude-skills/{m}, which the pinned submodule does not have'
