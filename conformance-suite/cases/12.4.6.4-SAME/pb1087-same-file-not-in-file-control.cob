@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1087-same-file-not-in-file-control
-*> rules: [SR-12.4.6.4.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1087-same-file-not-in-file-control
+      *> rules: [SR-12.4.6.4.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1087 - an operand (NOPE) that no FILE-CONTROL entry specifies.
       *>   cite.py --check 12.4.6.4.3 "File-name-1 and file-name-2 shall be specified in the FILE-CONTROL paragraph" -> OK
       *> COBOL2738 (same-clause-rule). The positive twin is conformance/2002/pb1087_same_clauses_legal.cob.

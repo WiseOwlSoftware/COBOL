@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.17.3-2",
+ "rule-digest": "52564c32be4f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitSelection; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitPropagationPickup",
+ "test-ref": "conformance:cases/7.2.17@2002-PROPAGATE-DIRECTIVE/g2_propagate_handled_not_propagated",
+ "notes": "§2002:7.2.17.3 GR2: under PROPAGATE ON a condition handled by the element's own declarative (B) or by ON SIZE ERROR (C) is not propagated, and an unhandled one (D) is propagated as GOBACK RAISING LAST to the activator's declarative (§2002:14.5.12.1.2 item 3, §2002:14.8.13.3 GR3). --std 2002 run of g2_propagate_handled_not_propagated on the pinned dc1f2dcce8 build printed the derived 8 lines."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.45.1",
+ "rule-digest": "16e52a4f2a48",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useOnTarget; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useEcEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+ "test-ref": "conformance:cases/14.9.49-USE/pb332_use_optional_words; conformance:cases/14.9.49-USE/pb365_use_eo_interface_two_pass",
+ "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-14.9.49.2, witnessed at 2002 by the cases test-ref names. The read: Token-identical except that 2002 names the format-4 operand class-name-1 and 2023 object-class-name-1; both editions' SR16 define it identically as a class named in the REPOSITORY paragraph, so the rename changes nothing a program can show. Cited: §2002:14.8.45.2 SR16."
+}

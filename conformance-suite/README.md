@@ -16,6 +16,7 @@ PB3160, PB4614); this folder is built slice by slice from its §13.
 | `implementor-defined.json` | The Annex A.1 items whose values the standard enumerates, and those values |
 | `harness/generate.py` | The one reader of the test headers: refuses a malformed test (and a malformed adapter, profile or baseline), writes the suites, reports completeness |
 | `harness/run.py` | The harness: runs the suites against a compiler through its adapter and reports a verdict per test |
+| `harness/reformat.py` | Converts a free-form test (and the library text it copies) to fixed form in place, in the 1985 layout, refusing what it cannot convert with certainty: a test that must witness a row before 2002 is fixed form (kb/Work PB5754; design §3.6) |
 | `harness/config.py` | The formats of the adapters, profiles and baselines, and their one loader |
 | `harness/normalization-fixture.json` | The output normalization's one fixture, which both runners' normalizations are held to |
 | `adapters/<compiler>.json` | How the harness drives a compiler: its compile, run and flag-mode commands, its edition map, how a diagnostic's line is read, file-name limits, crash codes |

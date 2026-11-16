@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-13",
+ "rule-digest": "638e974d18ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IntroducedText; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IsDebuggingLineAt; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-debugging-pseudo-text-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-debugging-pseudo-text-no-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/pb5214-debugging-line-copy-nested-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/pb5214-debugging-line-copy-nested-no-mode",
+ "notes": "§2002:7.1.2.3 GR13: library D lines (N3/D3), BY text over a library D line (A4S4T4Z4 / A4Z4), pseudo-text-2 D lines (P2S2T2Z2 / P2S2Z2) and COPY on a D line (pb5214) land on debugging lines exactly as derived, with and without DEBUGGING MODE at --std 2002."
+}

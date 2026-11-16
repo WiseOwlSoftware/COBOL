@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-11",
+ "rule-digest": "be5a2f3086f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OptionalAbsent; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_open_optional_input_absent",
+ "notes": "Own verdict from the read lineage-reads-2002/u-25.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.27.4-13, witnessed at 2002 by the cases test-ref names. The read: Words differ only in 'physical file'/'file'; operands are file-names (no CD reach). Cited: §2002:14.8.26.3 GR11."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.12.2-4",
+ "rule-digest": "891efaffa8e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#BeyondMinimum; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#SourceOperands",
+ "test-ref": "conformance:cases/12.4.5.12-RECORD-KEY/pb1025-indexed-key-beyond-minimum",
+ "notes": "Own verdict from the read lineage-reads-2002/u-11.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.4.5.12.3-4, witnessed at 2002 by the cases test-ref names. The read: Identical words; only the RECORD clause cross-reference renumbers, and the 2002 RECORD clause defines the minimum record size the same way (see 2002-SR-12.3.4.5.2-5). Indexed files only. Cited: §2002:12.3.4.12.2 SR4."
+}

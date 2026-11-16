@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb40_integer_argument_positions
 *> rules: [FMT-15.7.2, FMT-15.36.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.3.2-1",
+ "rule-digest": "40662b23be5e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Sr1Refusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb571-class-condition-index-operand",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.8.4.4.3-1, witnessed at 2002 by the cases test-ref names. The read: 2023 adds message-tag (2023 class), strongly-typed groups and variable-length groups (2023 facility); a 2002 strongly-typed group is already excluded by 2002 SR2/SR3 (a group has no usage display of its own). The 2002 list is a subset. Cited: §2002:8.8.4.1.3.2 SR1."
+}

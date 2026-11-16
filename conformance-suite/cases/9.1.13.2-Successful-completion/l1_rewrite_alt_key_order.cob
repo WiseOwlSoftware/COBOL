@@ -2,7 +2,7 @@
       *> id: l1_rewrite_alt_key_order
       *> rules: [GR-9.1.13.2-2, GR-14.9.30.4-26, GR-14.9.30.4-32,
       *>    GR-14.9.35.4-24]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

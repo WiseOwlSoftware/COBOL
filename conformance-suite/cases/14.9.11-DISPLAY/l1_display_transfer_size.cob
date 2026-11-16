@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: l1_display_transfer_size
-*> rules: [GR-14.9.11.4-2, GR-14.9.11.4-5, DOC-A.1-58]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_display_transfer_size
+      *> rules: [GR-14.9.11.4-2, GR-14.9.11.4-5, DOC-A.1-58]
+      *> accept: [85, 2002, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:14.9.11.4 GR2 DISPLAY statement — the implementor-defined SIZE OF A DATA TRANSFER (Annex A.1
       *> item 58, docs/CONFORMANCE.md#DOC-A.1-58).
       *>   python scripts/spec/cite.py --check 14.9.11.4 "The implementor shall define, for each device, the size

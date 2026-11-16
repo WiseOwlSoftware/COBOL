@@ -1801,14 +1801,63 @@ with every reason in `<out>.refused.json`.
 `reads-decisions.json`, which the import writes into the run's state (a generated view of the read records, never tracked:
 rule 8): `needs-own-witness` when the reader or the refuter showed the compiler correct at the edition (its probe is the
 candidate witness), `defect` when it showed it wrong (the records worker matches it to a kb/Work note), `undecided` for a
-DOUBTFUL or when nobody showed the compiler, `uninterpretable` as above, and `own-verdict-from-pointer` for a SAME of an
-unpaired rule. No inventory record is written for any of them here: `record_verdicts.py --edition 2002` records each once its witness or its note exists.
+DOUBTFUL or when nobody showed the compiler, `uninterpretable` as above, and `own-verdict-from-pointer` for a SAME its
+refuter UPHELD of an unpaired rule. The refuter is read FIRST for an unpaired rule as for a paired one: an unpaired SAME
+with no refuter record is refused `no refuter record`, a DOUBTFUL refuter makes it `undecided` and an OVERTURNED one its
+refuter's work item (until 2026-11-15 the pairing was asked first, and 133 overturned or doubtful pointer SAMEs of the
+dry run were counted `own-verdict-from-pointer`). No inventory record is written for any of them by the import:
+`record_verdicts.py --edition 2002` records each once its witness or its note exists, and the own verdicts through the
+next step.
+
+**The own verdict from a pointer** (`python scripts/spec/audit_batch.py own-verdict-batch --edition YEAR --state RUN
+--out BATCH`, beside `change-batch`; the edition is a parameter, as for every step). An unpaired rule is never KEPT: no
+pairing says the pointer states its requirement. But a SAME its refuter upheld says the older text states what the
+pointer states, so the row may take the pointer's verdict AS ITS OWN, on evidence at its own edition. From an imported
+run (it refuses a run `import-reads` did not write) it writes one record_verdicts batch of every `own-verdict-from-pointer`
+row that `lineage_reads.own_verdict_problems` holds nothing against, and lists every other row with its reasons in
+`<out>.refused.json` (and the rows whose store already holds a verdict or a change record as `recorded-already`, left as
+they are). The check, shared by the writer, `decide` (with witnesses), `widen` and the audit:
+1. the read names a pointer (`no pointer`), and every pointer's verdict resolves (`pointer verdict does not resolve`) and
+   all agree (`pointers disagree`): the record states one verdict;
+2. EVERY pointer has a witness at the edition of the kind the rule needs: `Witnesses.search`, the very candidate search
+   a new KEPT record passes (kb/Work PB5675; `no own-edition witness`, `no own-edition licence stated`); a pointer with
+   several targets is witnessed in each, or the row stays work;
+3. a DOCUMENTED-NON-SUPPORT pointer is declined at the edition only with the read's licence (`licence_problem`, as for
+   a KEPT record), and here whatever the witness: the own record states the decline itself, so even a pointer witnessed
+   by an accepted case needs the older text's permission to decline;
+4. the read cites the row's own edition (`no own-edition citation`), for the record's notes;
+5. a rule whose catalog kind owes a register determination for the verdict (`Schema.anchor_obliged`: a DOC row's
+   `docs/CONFORMANCE.md#<rule-id>`) has one of its OWN in the register (`no register entry of its own`); the pointer's
+   determination is another edition's and is never copied (its anchored locations are dropped from the record);
+6. the pointers name a code location where the verdict requires one (`Schema.requires`; `no code location`): the
+   writer would refuse the batch whole for one such record, so the check refuses the row alone.
+The record is the edition store's own-verdict shape: `verdict` the pointers' one verdict; `code-location` the pointer
+rows' (the register anchor of its own, where owed, first); `test-ref` ONLY the pointers' cases the search finds at the
+edition (`Witnesses.search` again, so what is checked and what is cited are one set, and the row's own witness as a new
+KEPT record's is: an accepted case; a diagnosis only where the evidence table or a licensed decline allows one); `notes` opening `Own verdict
+from the read lineage-reads-<year>/<slice>.json:`, then the read's reason and its citations of the edition.
+
+**How the audit finds an own verdict from a read, with no second register (review R1-4).** From the TRACKED READ
+RECORDS: `--check` runs `decide` over `tests/version-matrix/lineage-reads-<year>/` (no witnesses: the outcome alone,
+`own_reads`), and every stored own verdict (a verdict, no change record) of a rule whose read decides
+`own-verdict-from-pointer` is audited, whatever its notes say. It is held to the KEPT row's test of its OWN witnesses
+(kb/Work PB5675, `Witnesses.own_problems`: each `test-ref` a conformance-suite case that runs at the edition, of the kind
+the rule needs, a diagnosis only for a diagnosed kind or with the read's licence; and it must carry one). No pointer is
+read by the audit, as none is for a KEPT row: once recorded, the row stands on its own witness at its own edition. The
+notes' opening (`lineage_reads.OWN_SOURCE`, which `own_verdict` writes) is the record's PROVENANCE, held as `next.source`
+is for a KEPT record (`own_stored_errors`): the named record holds a read of the rule, a SAME its refuter UPHELD, of a rule
+with no candidate pair, or the audit is red. So a narrowed band, a moved case, a rewritten read or a pairing that now
+pairs the rule turns it red, each named, and rewriting the notes takes nothing out of the audit while the read still
+decides `own-verdict-from-pointer`. The own verdicts the first landing's witness writers recorded by hand for such rules
+(25 at 2002, with witnesses of their own) are held to the same test.
 
 **The band widening.** `python scripts/spec/lineage_reads.py widen --edition YEAR [--state RUN] --out PLAN` plans ONE
 POPULATION (kb/Work PB5730, `lineage_reads.unwitnessed`): the KEPT rows of the edition that lack a witness of their own,
 from both sources through one function, the STORED KEPT records with no own `test-ref` (`bare_kept`, the walk
 `witness-batch` shares; 1985's records of its comparison audit are all of this kind) and, where the edition has read
-records, the read decisions refused only for their evidence (`no own-edition witness`). `--state` (the audit run
+records, the read decisions refused only for their evidence (`no own-edition witness`): a KEPT-refused row, or an own
+verdict from a pointer that only its evidence blocks (the plan row's `for`, so one `widen --apply` feeds both writers;
+kb/Work PB5597). `--state` (the audit run
 `import-reads` wrote) is needed only there: an edition with no read records plans without it, and one with read records
 and no `--state` stops the tool, saying so (`widen_reads`), since its decisions would otherwise be missing unseen. A rule
 both sources name is planned once, and two sources that carry it into different targets stop the tool. For each row it
@@ -1821,7 +1870,8 @@ witnesses at every target, which `witness-batch` writes). A `needs-own-witness` 
 helps, from a closed set named once (`REASON_OF`, one reason per case by its status): `no-case` (no suite case at all),
 `band` (its cases cite a rule the edition does not have), `not-evidence` (a refusal or flag, which is no evidence for
 the rule's kind), `diagnosis-only` (a case runs at the edition already, as a diagnosis, for a rule whose kind takes
-none), `no-edition` and `uncommitted`. The plan counts rows by state and by reason and cases by status; the
+none), `no-edition`, `uncommitted` and `reference-format` (the case status `format`: its text is in a reference format
+the edition does not define, below). The plan counts rows by state and by reason and cases by status; the
 `needs-own-witness` rows with their reasons and the cases that ran are the input of the edition's witness lane, which
 writes each row's own program. With `--apply --compiler EXE --scratch DIR` it adds the
 edition to each widenable case's header (`accept` and the flag's `at`, a flagged case's control with it; the method of the
@@ -1831,7 +1881,11 @@ editions a case is placed at, `check_editions`: free form and a run-time expecta
 given its manifest entries by `entry_for`
 (`Witnesses.entries`), and run at the edition by the suite's runner (`run.py`) on a manifest in the scratch, which must be
 empty at the start; a run that exits outside 0 and 1 (the statuses on which it ran every test and wrote its results)
-proves nothing it was to judge; a refusal test must be refused with its expected diagnostic. Only then is the proof
+proves nothing it was to judge; a refusal test must be refused with its expected diagnostic AND draw no error there that
+it does not expect (`refused_at`, review R1-1 of records-2002-reads-2): every error code it draws at the edition is one
+its entry's `expect` names or one it also draws at its newest refusing edition, where it witnesses its rule, so a case
+the edition refuses first for an introduction gate (COBOL0900) or for the edition's own limit (COBOL1567) is never
+widened, its refusal there passing whatever the rule does. Only then is the proof
 written (`proof.json`) and each proven widening written into the tree, each recorded in `applied.json` once its files
 are written. A kill before the writes leaves the tree untouched; a kill during them leaves only proven widenings, and
 `--apply` with the same scratch reads the proof and finishes the writes, saying so (each write is idempotent). And a
@@ -1855,13 +1909,37 @@ licence where the record came from one), one witness-only record per row it find
 by `record_verdicts.py --edition YEAR`; a second run writes nothing. The audit of a STORED record asks no pairing: the
 pairing is word-identical text, and it is the writer's test of a NEW record only.
 
+**A witness at an edition is source text of that edition (kb/Work PB5754, decision of 2026-11-15).** A conformance-suite
+case witnesses a row at an edition only when its text is written in a reference format that edition defines. Before
+2002 that is fixed form alone: the 1985 text defines one reference format and "each compiler accepts source programs
+written in reference format" (§1985:IV.7.1). The rule has no exception: accepted or refused, `cases/` or `wiseowl/`, a
+KEPT row's own witness or the witness of a verdict of the row's own. A free-form case still runs at 85 where it is placed
+(a regression test of WiseOwl's `--source-format free` extension, docs/CONFORMANCE.md DOC-A.1-158, and of the edition
+gates), but it witnesses no 1985 row. ONE predicate holds it, `lineage_reads.format_problem`, over the one fact
+`generate.format_defined_at` (fixed form at every edition, free form from `generate.FIRST_FREE_FORM`), which
+`generate.check_editions` also asks; it reads the case's `source-format` as the generator does (`Case.source_format`,
+and for one case's header `generate.source_format_of`). Its askers: the AUDIT (`Witnesses.own_problems` for a KEPT row's
+references, `Witnesses.format_problems` from `stored_errors` for every other row's), the WRITER (`ref_format_problem`,
+asked by `record_verdicts.validate` of each conformance-suite reference a record of an older edition names, before
+anything is written; a case it cannot read fails the record) and the PLANNER (`Witnesses.at` and `accepted_at`, so the
+candidate search of `kept_witnesses`, `witness-batch` and `widen` never counts such a case, and `case_status` gives it the
+status `format`, whose reason is `reference-format`). The stronger evidence is cheap: fixed form is valid at every
+edition, so a free-form case a 1985 row needs is converted to fixed form IN PLACE by
+`conformance-suite/harness/reformat.py` (DESIGN-conformance-suite.md section 3.6) and keeps its expected output or
+diagnostic at every edition it is placed at; a case the converter refuses leaves the 1985 rows that name it (a
+`retire-witnesses` record). Measured on 2026-11-15 (main 30b21e7d87): 1985 rows named 134 free-form refusal tests of
+`cases/` (182 references) and 4 free-form accepted tests of `wiseowl/` (15 references), the strongest evidence of 107
+rows; 137 were converted and 1 refused (`pb485-level-number-missing`), and the 33 cases refused at 85 for free form
+alone were converted and widened (DEVLOG of kb/Work PB5754).
+
 **The audit.** `python scripts/spec/lineage_reads.py --check` (the gate's LINEAGE READS, and a step of CI's audits job),
 over every older held edition, one reading of the suite shared by all: every read record interprets and still matches
 the digests it was imported with; every stored change record whose source names a read record is that read's decision
 (the record holds a read of the rule, the read is a SAME its refuter UPHELD, the record is KEPT into the read's rules);
 and every stored KEPT row's own witnesses are each a conformance-suite case that runs at the row's edition, ACCEPTED
 there, or only diagnosed there for a diagnosable rule or a read whose licence passes `licence_problem`
-(`Witnesses.own_problems`, which reads the row's references and its rule, never a target). A later change that narrows
+(`Witnesses.own_problems`, which reads the row's references and its rule, never a target); and every row's own suite
+witnesses are in a reference format the row's edition defines (`format_problem`, above). A later change that narrows
 a witness's band, moves or deletes its case, or rewrites a read under a stored record, turns it red, naming the row and
 the case: an evidence loss is never one more GAP. The WITNESS LOSS audit (`audit_witness_loss.py --check`) compares
 every held edition's rows with the merge base's, so a witness erased from a chained row is red as a newest row's is.
@@ -1885,6 +1963,24 @@ that a refusal alone had witnessed; the licence check refused none of the kept d
 state opens with a checked 2002 citation; the 107 values that begin `none` or `not needed` are refused). `record_verdicts.py
 --edition 2002 --dry-run` accepts all 204 (GAP 3,297 to 3,094). Of the 96 rows refused only for their evidence, `widen`
 finds 66 widenable and 30 that need a witness of their own.
+
+**Measured again on 2026-11-15** (branch records-2002-reads-2, on main 1d40b123ca, every slice `u-01`..`u-56` with its
+refute: 125 slices, 3,098 rules, the 1,528 unpaired ones all read): the import keeps 807 before the evidence check,
+refuses 69 `flag unanswered` and lists the work items `defect` 435, `needs-own-witness` 977, `own-verdict-from-pointer`
+571, `undecided` 224, `uninterpretable` 15 (the refuter read first: the operator's dry run on the old order had counted
+698 own verdicts, 133 of them OVERTURNED or DOUBTFUL). `widen` plans 266 rows (94 widenable: 21 KEPT, 73 own verdicts)
+and proves 75 of 100 candidate cases at 2002 (24 accepted cases FAIL there and one refusal test is accepted: leads).
+`own-verdict-batch` then writes 398 own verdicts (CONFORMS 334, DOCUMENTED-NON-SUPPORT 64) and refuses 148 (no own-edition
+witness 93, no register entry of its own 83, no 2002 licence 3, no code location 1; a row counted under each reason),
+with 25 recorded already; `record_verdicts.py --edition 2002` takes the 2002 GAP from 2,169 to 1,771. After review
+round 1 and the PB5675 merge (main e870f98665): the 11 CONFORMS general-format records whose every 2002 witness is a
+refusal are dropped (kb/Work PB5740: the evidence table counts FMT as a diagnosed kind, though a format grants forms),
+7 rows take main's golden-lane records, 62 test-refs are rewritten to what `Witnesses.search` finds (accepted cases
+only, where any exist); the decisions are unchanged (571 own-verdict rows: 423 recorded, 148 refused for the same
+reasons), and the branch lands 380 own verdicts (CONFORMS 317, DOCUMENTED-NON-SUPPORT 63): 2002 GAP 2,074 to 1,694. `change-batch` on
+the same run adds no record: its 669 KEPT records are all stored, and 35 of the first landing's stored records are among
+the 69 a flag now leaves unanswered (the screen gained a trigger since they were stored; `lineage_screen.py --check`
+lists them owed).
 
 ### 10.7 Lineage runs forward: the decision, the switch's requirements, the open questions (kb/Work PB5679; STAGED)
 

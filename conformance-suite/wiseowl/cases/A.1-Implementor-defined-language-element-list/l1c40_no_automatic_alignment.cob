@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c40_no_automatic_alignment
       *> rules: [DOC-A.1-7]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

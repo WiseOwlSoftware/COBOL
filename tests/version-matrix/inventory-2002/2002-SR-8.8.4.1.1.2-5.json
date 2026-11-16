@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.1.2-5",
+ "rule-digest": "656cca342593",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/pb399-pointer-relation-category-mix; conformance:cases/8.8.4.2-Simple-relation-conditions/w59-relation-object-vs-pointer; conformance:cases/8.8.4.2-Simple-relation-conditions/pointer-refused-relation-figurative",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.8.4.2.3-5, witnessed at 2002 by the cases test-ref names. The read: 2023 adds class message-tag (a 2023 class); for pointer and object the requirement is the same words. Format 3 identical apart from 2023's <> (a 2014 operator). Cited: §2002:8.8.4.1.1.2 SR5."
+}

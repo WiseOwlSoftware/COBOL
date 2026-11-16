@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.3.4.2-8",
+ "rule-digest": "317fe6707a67",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenReportFileReference; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile",
+ "test-ref": "conformance:cases/13.4.5-File-description/pb1171_report_file_legal_references",
+ "notes": "Own verdict from the read lineage-reads-2002/u-12.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.4.5.3-9, witnessed at 2002 by the cases test-ref names. The read: 2023 adds only 'the WHEN phrase of a PERFORM statement', the exception-checking PERFORM format, which 2002 does not have; 2002's list is the 2023 list minus that, and the FD format 3 is identical. pb1171-report-file-io-reference also draws COBOL0900 at 2002 for its DELETE FILE line (2023-only), but COBOL2577 fires on the 2002 statements. Cited: §2002:13.3.4.2 SR8."
+}

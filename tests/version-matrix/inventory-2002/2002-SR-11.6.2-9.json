@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-11.6.2-9",
+ "rule-digest": "20f013f47fdf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateOverrideSignatures; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#MethodConformanceMismatches",
+ "test-ref": "conformance:cases/9.3.8.2.3-Conformance-between-interfaces/pb972_raising_conformance",
+ "notes": "Own verdict from the read lineage-reads-2002/u-08.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-11.7.3-9, witnessed at 2002 by the cases test-ref names. The read: The referenced clause was diffed line by line: 2023 adds ALIGNED and DYNAMIC LENGTH to rules 3 and 6 and a variable-length-group sentence (all 2014+ features), moves rule 10 (entry conventions) into the lead-in, and renames class-name; every 2002 condition is unchanged. The 2002 requirement is the 2023 one on 2002 programs, and the evidence holds at 2002. Cited: §2002:11.6.2 SR9; §2002:9.3.7.1.2."
+}

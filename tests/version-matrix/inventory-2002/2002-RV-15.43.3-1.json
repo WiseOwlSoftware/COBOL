@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.43.3-1",
+ "rule-digest": "5bf2106fa665",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#LogOnePlus",
+ "test-ref": "conformance:cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range; conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument",
+ "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.55.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical words (italic e only). Cited: §2002:15.43.3 RV1."
+}

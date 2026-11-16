@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.15.2-1",
+ "rule-digest": "45a8feb3b438",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitSharingRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#LocksEffective; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapSharing",
+ "test-ref": "conformance:cases/12.4.5.15-SHARING/pb321_table19_open_arbitration",
+ "notes": "Own verdict from the read lineage-reads-2002/u-12.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.4.5.15.3-1, witnessed at 2002 by the cases test-ref names. The read: Only the cross-reference number differs (9.1.14 vs 9.1.15). 2002 Table 20 is cell for cell 2023 Table 19; the 2002-only 'Additionally ...' sentence is what the table's SHARING WITH NO OTHER / READ ONLY rows already encode. 2023's 9.1.15 adds only APPLY COMMIT lock-release cases, a facility 2002 lacks. The SHARING general format is identical; the LOCK MODE requirement with ALL OTHER is in both OPEN statements. No CD reach. Cited: §2002:12.3.4.15.2 GR1; §2002:9.1.14."
+}

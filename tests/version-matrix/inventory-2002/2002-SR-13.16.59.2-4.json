@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.59.2-4",
+ "rule-digest": "b482ec2882cb",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.61-USING/a42-screen-using",
+ "notes": "Own verdict from the read lineage-reads-2002/u-18.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.61.3-4, witnessed at 2002 by the cases test-ref names. The read: Words differ only by the OCCURS cross-reference number (2002 SR12, 2023 SR13). Under the licensed non-support of the screen section the compiler declines the whole construct at 2002 with COBOL1560. Cited: §2002:13.16.59.2 SR4; §2002:3.1.5; §2002:B.3."
+}

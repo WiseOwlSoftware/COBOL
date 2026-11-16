@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb3511_implicit_goback_go_to_out_of_perform
-*> rules: [GR-14.6.3-3, GR-14.9.28.4-1]
-*> accept: [2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb3511_implicit_goback_go_to_out_of_perform
+      *> rules: [GR-14.6.3-3, GR-14.9.28.4-1]
+      *> accept: [85, 2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> PB3511 - ISO 14.6.3: running past the last statement of the source
       *>   element when that procedure is not under the control of another
       *>   statement executes an implicit GOBACK; it never returns to a

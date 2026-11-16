@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.7.3-1",
+ "rule-digest": "25d51945ed6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#IsNull; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs",
+ "test-ref": "conformance:cases/8.4.3.7-NULL-object-reference/oo_universal_relation",
+ "notes": "Own verdict from the read lineage-reads-2002/u-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.4.3.7.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical rule, identical clause; pointer chosen by me. Witness passes at 2002. Cited: §2002:8.4.2.7.3 GR1."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-12",
+ "rule-digest": "7849dac7dc11",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#TransfersPastRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#SentRecordImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb1907_write_past_record; conformance:cases/14.9.35-REWRITE/pb1907_keyed_rewrite_past_record",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.51.4-13, witnessed at 2002 by the cases test-ref names. The read: 'beyond the end' and 'outside the end' name the same bytes (those past the record's end). Nothing else differs. Cited: §2002:14.8.47.3 GR12."
+}

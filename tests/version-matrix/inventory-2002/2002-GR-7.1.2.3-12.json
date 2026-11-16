@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-12",
+ "rule-digest": "112c9a08f5dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped",
+ "test-ref": "conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-resultant-spacing",
+ "notes": "§2002:7.1.2.3 GR12: no space is introduced where the library text has none: G2N BY 3 and ==G2M== BY ==2== inside pictures and the LEADING/TRAILING joints compile and print A=[ABC] B=007 P=WXYZ S=42 C=[XY] at --std 2002."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.45.3-2",
+ "rule-digest": "843f7099477b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/WiseOwl.Cobol.Runtime/Globalization/CharacterClassification.cs#For",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification",
+ "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.57.4-3, witnessed at 2002 by the cases test-ref names. The read: 2023 adds 'When locale-name-1 is not specified' for its new LOCALE phrase; with no phrase in 2002 the condition is always true. The OBJECT-COMPUTER reference is renumbered (12.2.5 to 12.3.6) with the same CHARACTER CLASSIFICATION format. Cited: §2002:15.45.3 RV2."
+}

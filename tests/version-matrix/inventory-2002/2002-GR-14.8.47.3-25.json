@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-25",
+ "rule-digest": "5edd34d0f720",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#HighestRelativeRecordNumber; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#NextSequentialSlot; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Edge; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Insert",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb1192_relative_write_boundary_85",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.51.4-29, witnessed at 2002 by the cases test-ref names. The read: 2002 GR25 is 2023 GR29 without the last sentence of b) ('34' for a key out of range). The 2002 rule therefore says nothing about that case (2002 GR29 b) gives 24), and the row's own witness pb1192 shows 24 at 2002. Everything 2002 GR25 says is shown at 2002. Cited: §2002:14.8.47.3 GR25."
+}

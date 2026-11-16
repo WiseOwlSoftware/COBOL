@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.18.2-2",
+ "rule-digest": "0a3560ea5346",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/InitialReferenceFormat.cs#InitialReferenceFormat; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#InitialFormat; src/WiseOwl.Cobol.Compiler/CompilerDriver.cs#Options; src/WiseOwl.Cobol.Cli/Program.cs#BuildParser",
+ "test-ref": "conformance:cases/7.2.18@2002-SOURCE-FORMAT-DIRECTIVE/g2_source_format_default_fixed",
+ "notes": "§2002:7.2.18.2 GR2: with no SOURCE FORMAT directive the compilation group is 2002 fixed form, so column 1-6 labels are sequence numbers (§2002:6.2.1), '*' and '/' are comment lines and D/d are debugging lines compiled only under WITH DEBUGGING MODE (§2002:6.1.1, 6.2.7). --std 2002 run of g2_source_format_default_fixed, with and without --source-format fixed, printed the derived DEBUG-UPPER, DEBUG-LOWER, SEQ-AREA-OK, N-MAIN."
+}

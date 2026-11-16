@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.3.5.1",
+ "rule-digest": "d3e132436d83",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlClause; src/WiseOwl.Cobol.Frontend/Cst/ClosedFormats.cs#ByContext; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenParagraphPeriods",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb2727_paragraph_single_period",
+ "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.6.2, witnessed at 2002 by the cases test-ref names. The read: 2002's paragraph is 2023's without the apply-commit-clause; the subset is covered at 2002 and the addition is gated. Cited: §2002:12.3.5.1."
+}

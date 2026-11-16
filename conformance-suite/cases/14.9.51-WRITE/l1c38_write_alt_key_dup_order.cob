@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c38_write_alt_key_dup_order
       *> rules: [GR-14.9.51.4-40]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

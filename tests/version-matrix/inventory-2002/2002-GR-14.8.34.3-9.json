@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.34.3-9",
+ "rule-digest": "3dc743551643",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitAllScan; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearchAll",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb447_search_all_index_stays_in_table; conformance:cases/14.9.9-CONTINUE/ec_range_search",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.37.4-9, witnessed at 2002 by the cases test-ref names. The read: 'nonserial' vs 'non serial' and 'general rule' capitalization only. The conformance witnesses pass at 2002. The C# conformance-tests in the row were not run at 2002, but the conformance cases cover the same scope. Cited: §2002:14.8.34.3 GR9."
+}

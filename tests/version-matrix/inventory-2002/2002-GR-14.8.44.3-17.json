@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-17",
+ "rule-digest": "6317925464b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitOverflow",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_not_on_overflow",
+ "notes": "Own verdict from the read lineage-reads-2002/u-29.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.48.4-17, witnessed at 2002 by the cases test-ref names. The read: Same first sentence; the 2002 tail spells out explicit transfers of control where 2023 says 'If control is returned'; no program distinguishes them. Cited: §2002:14.8.44.3 GR17."
+}

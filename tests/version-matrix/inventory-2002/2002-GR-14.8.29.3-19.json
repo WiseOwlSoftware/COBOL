@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-19",
+ "rule-digest": "912c02c8eb4e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReadSharedCall",
+ "test-ref": "conformance:cases/14.9.30-READ/pb340_advancing_on_lock_relative; conformance:cases/14.9.30-READ/pb340_advancing_on_lock_indexed",
+ "notes": "Own verdict from the read lineage-reads-2002/u-26.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.30.4-22, witnessed at 2002 by the cases test-ref names. The read: Same words, except that the at-end rule is cited by number (2002 GR21, 2023 GR24). Both rules give the same observable result: status 10, then the AT END imperative, or the USE procedure when there is no AT END. Format 1 is identical in both editions, and the 2023 SR7 (no PREVIOUS on line sequential) concerns an organization 2002 does not have. The pointer's tests run clean at 2002. Cited: §2002:14.8.29.3 GR19."
+}

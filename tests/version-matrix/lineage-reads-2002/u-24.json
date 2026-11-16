@@ -1,0 +1,1633 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-24 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-24",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.19.3-5",
+   "2002-GR-14.8.19.3-6",
+   "2002-SR-14.8.21.2-3",
+   "2002-GR-14.8.21.3-11",
+   "2002-GR-14.8.21.3-16",
+   "2002-GR-14.8.21.3-3",
+   "2002-GR-14.8.21.3-4",
+   "2002-SR-14.8.22.2-11",
+   "2002-SR-14.8.22.2-15",
+   "2002-SR-14.8.22.2-3",
+   "2002-SR-14.8.22.2-4",
+   "2002-SR-14.8.22.2-5",
+   "2002-SR-14.8.22.2-9",
+   "2002-GR-14.8.22.3-10",
+   "2002-GR-14.8.22.3-2",
+   "2002-GR-14.8.22.3-6",
+   "2002-SR-14.8.23.2-13",
+   "2002-SR-14.8.23.2-4",
+   "2002-GR-14.8.23.3-12",
+   "2002-GR-14.8.23.3-7",
+   "2002-GR-14.8.23.3-8",
+   "2002-SR-14.8.24.2-1",
+   "2002-SR-14.8.24.2-10",
+   "2002-SR-14.8.24.2-11",
+   "2002-GR-14.8.24.3-1"
+  ],
+  "pointers": {
+   "2002-GR-14.8.19.3-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.20.4-5",
+    "similarity": 0.948
+   },
+   "2002-GR-14.8.19.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.20.4-6",
+    "similarity": 0.973
+   },
+   "2002-SR-14.8.21.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.22.3-3",
+    "similarity": 0.925
+   },
+   "2002-GR-14.8.21.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.22.4-12",
+    "similarity": 0.988
+   },
+   "2002-GR-14.8.21.3-16": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.22.4-17",
+    "similarity": 0.956
+   },
+   "2002-GR-14.8.21.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.22.4-4",
+    "similarity": 0.998
+   },
+   "2002-GR-14.8.21.3-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.22.4-5",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.22.2-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.23.3-11",
+    "similarity": 0.914
+   },
+   "2002-SR-14.8.22.2-15": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.23.3-15",
+    "similarity": 0.961
+   },
+   "2002-SR-14.8.22.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.23.3-3",
+    "similarity": 0.958
+   },
+   "2002-SR-14.8.22.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.23.3-4",
+    "similarity": 0.994
+   },
+   "2002-SR-14.8.22.2-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.23.3-5",
+    "similarity": 0.969
+   },
+   "2002-SR-14.8.22.2-9": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.23.3-9",
+    "similarity": 0.933
+   },
+   "2002-GR-14.8.22.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.23.4-10",
+    "similarity": 0.984
+   },
+   "2002-GR-14.8.22.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.23.4-2",
+    "similarity": 0.983
+   },
+   "2002-GR-14.8.22.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.23.4-6",
+    "similarity": 0.995
+   },
+   "2002-SR-14.8.23.2-13": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.24.3-13",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.23.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.24.3-4",
+    "similarity": 0.914
+   },
+   "2002-GR-14.8.23.3-12": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.24.4-12",
+    "similarity": 0.998
+   },
+   "2002-GR-14.8.23.3-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.24.4-7",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.23.3-8": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.24.4-8",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.24.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.25.3-1",
+    "similarity": 0.929
+   },
+   "2002-SR-14.8.24.2-10": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.25.3-12",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.24.2-11": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.25.3-13",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.24.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.25.4-1",
+    "similarity": 0.959
+   }
+  }
+ },
+ "read": {
+  "slice": "u-24",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.19.3-5",
+    "to": [
+     "GR-14.9.20.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.19.3 GR5",
+    "clause-2023": "14.9.20.4 GR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.19.3 GR5",
+      "quote": "A data-item format or table format VALUE clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.20.4 GR5",
+      "quote": "that VALUE clause specifies a value for the particular occurrence of the elementary data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "VALUE clauses in the working-storage, local-storage, and communication sections take effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "the values of other data items and indexes are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.19.3 GR6",
+      "quote": "the literal in the VALUE clause that corresponds to the occurrence being initialized determines the sending-operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "receiving-operand exclusions a1-a3 (non-MOVE receivers except data-pointer/object-reference/program-pointer, FILLER, REDEFINES/RENAMES subordinates)",
+     "possible receiving items b1-b2 (each table occurrence)",
+     "c1 VALUE phrase: pointer/object categories, data-item format VALUE, table format VALUE (every occurrence of an entry with a table-format VALUE)",
+     "c2 REPLACING, c3 DEFAULT, c4 neither",
+     "identifier-1 a record item of a CD (communication section), whose VALUE clauses take effect in 2002 (13.16.61.3 GR4)"
+    ],
+    "evidence-2002": {
+     "a/b/c on WS items": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.20-INITIALIZE/pb418_initialize_table_value_arms.cob, pb418_initialize_value_categorical.cob, pb415_initialize_category_set.cob, pb415_initialize_replacing_set_form.cob, initialize_program_pointer.cob, 14.9.11-DISPLAY/initialize_phrases.cob (PASS at 2002, identical at 2023) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "table-format VALUE occurrences": "covered by pb418_initialize_table_value_arms.cob (PASS at 2002); pb418_initialize_table_value_shapes.cob is refused at 2002 (OCCURS DYNAMIC, a 2014 feature) and shows nothing at 2002",
+     "CD record identifier-1": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob (lines I1-I3 of E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out)"
+    },
+    "reason": "The 2002 and 2023 sentences differ in two places. (1) a1/c1a: 2023 adds message-tag (and garbles the list as \"data-message-tag, pointer\"); 2002 has no message-tag or function-pointer, so for 2002 data the lists name the same categories. (2) c1b: 2002 qualifies EVERY occurrence of an elementary item whose entry has a table-format VALUE clause; 2023 splits it into c1b (data-item format) and c1c (only the occurrences the table VALUE gives a value). For an occurrence outside every FROM..TO range 2002 still makes it a VALUE-phrase receiving-operand, but GR6a3 then finds no corresponding literal and 13.16.61.3 GR4 leaves its initial value undefined, so the 2002 text defines no result for it: the compiler's 2023 behaviour (unchanged under TO VALUE, DEFAULT/REPLACING when given) is an admissible result at 2002, not a defect. The verdict is DIFFERENT for the CD reach: identifier-1 may be a CD record item whose VALUE clauses take effect in 2002. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope. Probe cd-ops.cob: INITIALIZE of a CD group ALL TO VALUE gives VV 07, the boolean item without VALUE keeps 11, table occurrences 1-2 P Q (3 keeps R); bare INITIALIZE gives spaces/zeros/boolean zeros/national spaces; REPLACING NUMERIC gives 05 and leaves the alphanumeric item alone. All as 2002 requires.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob",
+    "widening": "none for 2002 data (2023 adds message-tag)",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for an INITIALIZE whose identifier-1 is a CD record item (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob, expected E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out; pointer witnesses PASS at 2002)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.19.3-6",
+    "to": [
+     "GR-14.9.20.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.19.3 GR6",
+    "clause-2023": "14.9.20.4 GR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.19.3 GR6",
+      "quote": "the literal in the VALUE clause that corresponds to the occurrence being initialized determines the sending-operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.19.3 GR6",
+      "quote": "If the category of the receiving-operand is data-pointer or program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.20.4 GR6",
+      "quote": "If the category of the receiving-operand is data-pointer, function-pointer, message-tag, or program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "VALUE clauses in the working-storage, local-storage, and communication sections take effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "the values of other data items and indexes are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a1 data-pointer/program-pointer -> NULL; a2 object-reference -> NULL; a3 the VALUE literal (per occurrence for a table)",
+     "b REPLACING sender",
+     "c default table: 11 categories of 2002 (no function-pointer, no message-tag)",
+     "receiving-operands that are CD record items"
+    ],
+    "evidence-2002": {
+     "a/b/c on WS items": "covered by initialize_phrases.cob, pb418_initialize_value_categorical.cob, pb418_initialize_table_value_arms.cob, pb415_initialize_category_set.cob, pb415_initialize_replacing_set_form.cob, initialize_program_pointer.cob, pb420_initialize_float_value_default_2002.cob, pb420_initialize_float_receiver_85.cob, pb4512_initialize_to_value_edited_receivers.cob (PASS at 2002) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log); pb415_initialize_function_pointer, initialize-message-tag, pb4512_..._numeric_literal_in_edited are 2014/2023 forms refused COBOL0900 at 2002 (no 2002 case lost)",
+     "CD record receivers": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob (I1: VALUE senders VV/07/P/Q; I2: SPACES, ZEROES, boolean ZEROES, national SPACES; I3: REPLACING sender 05)"
+    },
+    "reason": "Identical except that 2023 adds the function-pointer and message-tag rows and the a1 categories (2023-only categories: a widening). The 2002 table and arms are reached unchanged by the 2023 witnesses at 2002. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope. The cd-ops probe shows every default row reachable from a CD record (alphanumeric, numeric, boolean, national, table occurrence) and the VALUE and REPLACING senders, all as 2002 states.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob",
+    "widening": "2023 adds function-pointer and message-tag rows (2023-only categories)",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for INITIALIZE receiving-operands in a CD record (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.21.2-3",
+    "to": [
+     "SR-14.9.22.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.21.2 SR3",
+    "clause-2023": "14.9.22.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.2 SR3",
+      "quote": "when identifier-1 is of class boolean, the figurative constant is of class boolean and only the figurative constant ZERO may be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.3 SR3",
+      "quote": "Literal-1, literal-2, literal-3, literal-4, or literal-5 shall not be a zero-length literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "each literal alphanumeric, boolean or national",
+     "no ALL figurative for literal-1..4",
+     "figurative literal-1/2/4 is one character",
+     "figurative class follows identifier-1 (national / boolean with ZERO only / alphanumeric)",
+     "identifier-1 a CD record item"
+    ],
+    "evidence-2002": {
+     "WS identifier-1": "covered by pb1029-inspect-numeric-literal (COBOL1757), pb1128-inspect-all-figurative-literal3 (COBOL1757), pb1127-inspect-boolean-figurative-not-zero (COBOL1757), pb3233-inspect-figurative-literal1-size (COBOL0846) refused alike at 2002 and 2023; pb3233_inspect_figurative_pattern_size, pb1127_inspect_constant_name_operands, pb1663, pb1414 PASS at 2002 (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "zero-length literal sentence": "no 2002 case (2002 has no zero-length literal; the two witnesses add COBOL0900 at 2002)",
+     "CD record identifier-1": "not shown by the 2023 row; covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-sr3-cd.cob (national SPACE replaced, boolean ZERO tallied 02) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-sr3-cd-neg.cob (SPACE on a boolean CD item refused COBOL1757)"
+    },
+    "reason": "2002 14.8.21.1 formats 1-4 and the tallying/replacing/after-before/replacement phrases are those of 2023 14.9.22.2 without the optional BACKWARD keyword (a 2023 widening); identifier and literal numbering identical. The 2023 rule only adds the zero-length-literal ban, a 2023-only literal form. The class of the figurative constant follows identifier-1, which in 2002 may be a CD record item. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-sr3-cd.cob",
+    "widening": "2023 adds a ban on zero-length literals (no 2002 counterpart)",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for an INSPECT whose identifier-1 is a CD record item (candidates: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-sr3-cd.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-sr3-cd-neg.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-sr3-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-sr3-cd-neg-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-11",
+    "to": [
+     "GR-14.9.22.4-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.21.3 GR11",
+    "clause-2023": "14.9.22.4 GR12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR11",
+      "quote": "provided that the leftmost such occurrence is at the point where comparison began",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR12",
+      "quote": "provided that the first such occurrence encountered is at the point where comparison began",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ALL tallying",
+     "LEADING tallying anchored at the first eligible comparison cycle",
+     "CHARACTERS tallying (GR7e)",
+     "identifier-1/identifier-2/identifier-3/4 CD record items"
+    ],
+    "evidence-2002": {
+     "WS": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.22-INSPECT/pb1124_inspect_leading_anchor_at_first_eligible_cycle.cob (PASS at 2002) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws.cob (T1 02 05 05)",
+     "CD record operands": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob (T1 02 05 05)"
+    },
+    "reason": "2002 14.8.21.1 formats 1-4 and the tallying/replacing/after-before/replacement phrases are those of 2023 14.9.22.2 without the optional BACKWARD keyword (a 2023 widening); identifier and literal numbering identical. The words differ only in \"leftmost such occurrence\" (2002) against \"first such occurrence encountered\" (2023, so that BACKWARD scans read right): for a forward scan, the only 2002 scan, the two pick the same occurrence. \"general rule 7e\" is 2023 \"General rule 8e\" (the same CHARACTERS rule, renumbered). In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob",
+    "widening": "2023 extends the anchor to BACKWARD scans",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for INSPECT TALLYING over CD record operands (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-16",
+    "to": [
+     "GR-14.9.22.4-17"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.21.3 GR16",
+    "clause-2023": "14.9.22.4 GR17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR16",
+      "quote": "the leftmost occurrence of literal-1 matched within the content of the data item referenced by identifier-1 is replaced by literal-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR17",
+      "quote": "or, if BACKWARD is specified, the rightmost occurrence of literal-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CHARACTERS replacement",
+     "ALL replacement",
+     "LEADING replacement anchored at the first eligible cycle",
+     "FIRST replacement of the leftmost occurrence",
+     "CD record operands"
+    ],
+    "evidence-2002": {
+     "WS": "LEADING covered by pb1124_inspect_leading_anchor_at_first_eligible_cycle.cob (PASS at 2002); pb1152_inspect_backward_leftmost_match_at_current_position.cob is a BACKWARD witness refused COBOL0845 at 2002; FIRST, CHARACTERS, ALL (via CONVERTING) and LEADING covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws.cob (R1 ZABAACAADA *****CAADA AABAACAADx ZZBAACAADA, same at 2023)",
+     "CD record operands": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob (same R1 line)"
+    },
+    "reason": "2002 14.8.21.1 formats 1-4 and the tallying/replacing/after-before/replacement phrases are those of 2023 14.9.22.2 without the optional BACKWARD keyword (a 2023 widening); identifier and literal numbering identical. The 2023 words add the BACKWARD arm of FIRST (\"or, if BACKWARD is specified, the rightmost occurrence\") and the \"first such occurrence encountered\" anchor; for 2002's forward scan both read as 2002. One of the pointer's two witnesses is a BACKWARD program that cannot run at 2002, so the FIRST and CHARACTERS arms rest on the probe at 2002. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws.cob",
+    "widening": "2023 adds the BACKWARD arm of FIRST",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for FIRST and CHARACTERS replacement and for CD record operands (candidates: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-3",
+    "to": [
+     "GR-14.9.22.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.21.3 GR3",
+    "clause-2023": "14.9.22.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR3",
+      "quote": "the original value of the sign is retained upon completion of the INSPECT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR4",
+      "quote": "the original value of the sign is retained upon completion of the INSPECT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a alphabetic/alphanumeric/boolean/national content",
+     "b alphanumeric-edited, numeric-edited and unsigned display numeric as alphanumeric",
+     "c national-edited / national numeric as national",
+     "d signed numeric: unsigned view, sign retained",
+     "CD record operands"
+    ],
+    "evidence-2002": {
+     "WS": "covered by pb1128_inspect_identifier1_class_store.cob and pb1128_inspect_signed_sign_retained.cob (PASS at 2002), pb1128-inspect-national-numeric-edited-mix (COBOL2306 at 2002 and 2023) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log); pb2004_dyn_element_character_channels is a 2023 dynamic-length form (COBOL0900 at 2002)",
+     "CD record operands": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob (N1 02 -7207: a signed CD item tallied and replaced, sign kept)"
+    },
+    "reason": "Same words except the internal reference \"general rule 3a/3b/3c\" (2002) = \"General rule 4a/4b/4c\" (2023), the same subrules renumbered. Categories are those of 2002 8.5.2. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for INSPECT over a signed numeric CD record item (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-4",
+    "to": [
+     "GR-14.9.22.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.21.3 GR4",
+    "clause-2023": "14.9.22.4 GR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR4",
+      "quote": "In general rules 6 through 21, all references to literal-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR5",
+      "quote": "In General rules 6 through 21, all references to literal-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.3 GR21",
+      "quote": "The size of literal-5 or the data item referenced by identifier-7 shall be equal to the size of literal-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR22",
+      "quote": "The size of literal-5 or the data item referenced by identifier-7 shall be equal to the size of literal-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR6",
+      "quote": "Item identification for any identifier is done only once as the first operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-3/4/5/6/7 stand for literal-1/2/3/4/5 in 2002 GR6-GR21 (matching, BEFORE/AFTER, tallying, replacement, format 3, format 4 and its GR21 size rule)",
+     "those identifiers as CD record items"
+    ],
+    "evidence-2002": {
+     "WS identifiers": "not shown by the 2023 row at 2002: its only witness E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.22-INSPECT/l1p5_inspect_general_rules.cob is refused COBOL0845 (INSPECT BACKWARD) at 2002; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws.cob (identifier-3 in LEADING/ALL tallying, identifier-4 in AFTER/BEFORE, identifier-5 in FIRST/CHARACTERS/LEADING replacement, identifier-6/7 in CONVERTING; outputs as 2002 requires, identical at 2023)",
+     "CD record identifiers": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob"
+    },
+    "reason": "The words are identical, but \"general rules 6 through 21\" names a different set in each edition because 2023 inserted a rule before them: in 2002 it spans the matching rules through GR21 (the literal-5/identifier-7 size rule); in 2023 it spans GR6 (item identification) through GR21 and leaves out GR22 (the same size rule). The size rule names both literal-5 and identifier-7 explicitly in both editions, so the shift changes nothing a program can show. The verdict is DIFFERENT because the pointer's only witness cannot run at 2002 (it uses INSPECT BACKWARD), and because the identifiers may be CD record items. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness (the pointer witness l1p5 uses BACKWARD and is refused at 2002; candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws.cob, and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob for CD identifiers)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/inspect-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-11",
+    "to": [
+     "SR-14.9.23.3-11"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22.2 SR11",
+    "clause-2023": "14.9.23.3 SR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR11",
+      "quote": "Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR11",
+      "quote": "Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-4 in the file, working-storage, local-storage or linkage section",
+     "identifier-4 in the communication section (a CD record item or a CD implicit field)",
+     "refusal for other sections / special registers"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms.cob (PASS at 2002); pb1137-invoke-returning-page-counter and pb1137-invoke-by-reference-page-counter refused COBOL2452 at 2002 and 2023 (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "communication section": "not shown by the 2023 row (its SR11 drops the communication section); covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob (SR11 RV=0007, RETURNING a CD record item) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-invoke-ret-implicit.cob (q-28 probe re-run: RETURNING the TEXT LENGTH implicit field, 5=0042)"
+    },
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is named object-class-name-1 in 2023. The 2002 rule names the communication section; the 2023 rule does not. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for INVOKE RETURNING a communication-section item (candidates: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-invoke-ret-implicit.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-invoke-ret-implicit-2002.out; the COBOL0828 refusal q-28 recorded for the implicit field no longer reproduces on this tree)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-15",
+    "to": [
+     "SR-14.9.23.3-15"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22.2 SR15",
+    "clause-2023": "14.9.23.3 SR15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR15",
+      "quote": "identifier-5 shall be of class numeric, object or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR15",
+      "quote": "identifier-5 shall be of class message-tag, numeric, object or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "BY VALUE identifier-5 (argument or formal BY VALUE) of class numeric, object or pointer admitted",
+     "other classes refused",
+     "identifier-5 a CD record item"
+    ],
+    "evidence-2002": {
+     "WS": "covered by pb1051_method_by_value.cob (PASS at 2002); pb1051-by-value-argument-alphanumeric, pb1051-inline-by-value-formal-alphanumeric, pb1136-invoke-null-by-value-alphanumeric refused COBOL2741 at 2002 and 2023 (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "CD record identifier-5": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob (SR15 RV=0010 BV=0005)"
+    },
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is named object-class-name-1 in 2023. 2023 adds message-tag, a 2023-only class (a widening). In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob",
+    "widening": "2023 adds class message-tag",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a BY VALUE CD record argument (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-3",
+    "to": [
+     "SR-14.9.23.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.22.2 SR3",
+    "clause-2023": "14.9.23.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR3",
+      "quote": "The value of literal-1 shall be the name of a method defined in the factory interface of class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR3",
+      "quote": "The value of literal-1 shall be the name of a method defined in the factory interface of object-class-name-1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class-name-1 specified: literal-1 required",
+     "literal-1 names a method of the factory interface of class-name-1"
+    ],
+    "evidence-2002": {
+     "all": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.23-INVOKE/oo_factory.cob (PASS at 2002), pb1548-new-without-base (COBOL2448) and pb1136-invoke-class-name-identifier-2 (COBOL0866), refused alike at 2002 and 2023 (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)"
+    },
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is named object-class-name-1 in 2023. The only difference in words is class-name-1 / object-class-name-1, the renamed operand of the same format position; a 2002 class-name is an object-class-name in 2023. The rule has no data operand, so no CD record item or other 2002-only context reaches it.",
+    "probe": null,
+    "widening": "2023 renames the operand object-class-name-1"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-4",
+    "to": [
+     "SR-14.9.23.3-4"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "14.8.22.2 SR4",
+    "clause-2023": "14.9.23.3 SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR4",
+      "quote": "If identifier-1 references an object reference described with a class-name and the FACTORY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1 or subordinate to a type declaration that includes the STRONG phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1 not universal: literal-1 required",
+     "a-i: the interface literal-1 names, by the description of identifier-1 (class-name +/- FACTORY, ACTIVE-CLASS, interface-name, SELF, SUPER)",
+     "identifier-1 a level-1 object reference described after a CD (if 2002 admits one)"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb1136-invoke-active-class-method and pb1136-invoke-self-method (COBOL0825 at 2002 and 2023) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log) and unit OoSpineTests.InvokeUnknownMethod_0825 (not run here)",
+     "CD object reference": "not shown; the q-28 probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-objref-null.cob found such a declaration refused (COBOL0899)"
+    },
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is named object-class-name-1 in 2023. Items a-i are word for word the same apart from class-name/object-class-name. Open question: 2002 admits USAGE OBJECT REFERENCE only at level 1 or under a STRONG type (13.16.58.2 SR13) and forbids it only in the file section (SR14); a level-1 record after a CD is a record description entry of the communication section, which the 2002 text neither admits nor forbids explicitly for class object (CD records implicitly redefine the record area). The same question left q-28's 2002-GR-14.8.22.3-5 DOUBTFUL. If 2002 admits it, SR4 reaches a CD identifier-1 that no witness shows (DIFFERENT, communication-reach, and the COBOL0899 refusal is a data-description defect); if not, the scope is the 2023 row's and the verdict is SAME.",
+    "probe": null,
+    "widening": null,
+    "needs": "a decision (one for this row and q-28 2002-GR-14.8.22.3-5) whether §2002 Annex A admits a USAGE OBJECT REFERENCE record after a CD; then SAME or a CD witness"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-5",
+    "to": [
+     "SR-14.9.23.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22.2 SR5",
+    "clause-2023": "14.9.23.3 SR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR5",
+      "quote": "The rules for conformance as specified in 14.7, Conformance for parameters and returning items, apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR5",
+      "quote": "a BY VALUE phrase shall be specified for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR5",
+      "quote": "The rules for conformance as specified in 14.8.2, Parameters and 14.8.3, Returning items apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR5",
+      "quote": "a BY VALUE phrase shall be specified or implied for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.7.1.2.1",
+      "quote": "If either the formal parameter or the corresponding argument is an object reference, the corresponding argument or formal parameter shall be an object reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a BY CONTENT/REFERENCE argument needs a BY REFERENCE formal",
+     "b BY VALUE argument needs a BY VALUE formal (specified)",
+     "c conformance per 2002 14.7",
+     "arguments that are CD record items"
+    ],
+    "evidence-2002": {
+     "WS": "covered by oo-interface-arg-mismatch (COBOL0826/0828/0840), pb1051-by-reference-argument-by-value-formal and pb1051-by-value-argument-by-reference-formal (COBOL0828) refused alike at 2002 and 2023; pb1116_strong_group_object_leaf and pb1051_method_by_value PASS at 2002 (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "CD record arguments": "not shown by the 2023 row; covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob (keywordless BY REFERENCE and BY VALUE CD arguments that conform) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-invoke-byref-implicit.cob (CD implicit field by reference)"
+    },
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is named object-class-name-1 in 2023. Differences in words: (b) \"shall be specified\" (2002) against \"specified or implied\" (2023): neither edition has a mechanism that implies BY VALUE on a formal parameter (the header's BY VALUE phrase is written), so nothing changes; (c) 2002 cites 14.7 (Conformance for parameters and returning items), 2023 cites 14.8.2 and 14.8.3: compared side by side, 2023 only adds ALIGN, DYNAMIC LENGTH, variable-length-group and message-tag conformance (2023-only constructs) and an explicit \"both shall be of class object-reference\" sentence that 2002 14.7.1.2.1 already states. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob",
+    "widening": "2023 14.8.2/14.8.3 add conformance for 2023-only clauses",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for INVOKE arguments that are CD record items (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-invoke-byref-implicit-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-9",
+    "to": [
+     "SR-14.9.23.3-9"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22.2 SR9",
+    "clause-2023": "14.9.23.3 SR9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "Identifier-3 shall be an address-identifier or shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR9",
+      "quote": "Identifier-3 shall be an address-identifier or shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-3 an address-identifier",
+     "identifier-3 in the file, working-storage, local-storage or linkage section",
+     "identifier-3 in the communication section"
+    ],
+    "evidence-2002": {
+     "address-identifier": "not shown by the 2023 row at 2002: E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.3.1-Identifier/pb1021_address_identifier_operands.cob is refused COBOL0900 at 2002 for its <> operator (a 2014 form), and pb1021-address-identifier-relation-at-85 is a 1985 refusal; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-sr9.cob (ADDRESS OF passed BY CONTENT and keywordless: LB=WXYZ twice)",
+     "WS/linkage": "covered by pb1137_invoke_argument_forms.cob (PASS at 2002)",
+     "communication section": "not shown by the 2023 row; covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob (GR6 BR=0042) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-invoke-byref-implicit.cob (5=0042)"
+    },
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is named object-class-name-1 in 2023. The 2002 rule names the communication section; the 2023 rule does not. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope. The address-identifier arm also lacks a witness that runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a communication-section identifier-3 and for an address-identifier argument (candidates: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-sr9.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-sr9-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-invoke-byref-implicit-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-10",
+    "to": [
+     "GR-14.9.23.4-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22.3 GR10",
+    "clause-2023": "14.9.23.4 GR10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR10",
+      "quote": "the EC-PROGRAM-ARG-OMITTED exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR10",
+      "quote": "the EC-OO-ARG-OMITTED exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a reference in an invoked method to an omitted parameter (outside the exemptions) sets EC-PROGRAM-ARG-OMITTED (Fatal); with checking for it enabled the run unit terminates abnormally"
+    ],
+    "evidence-2002": {
+     "2002 condition name": "not shown: the pointer's witnesses (conformance-test ArgOmittedConditionTests, run at 2002) assert EC-OO-ARG-OMITTED and assert the ABSENCE of EC-PROGRAM-ARG-OMITTED, the opposite of the 2002 text; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/argom-PROG.cob (>>TURN EC-PROGRAM-ARG-OMITTED CHECKING ON) at 2002 prints X=[    ] and AFTER SHOW and ends rc=0; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/argom-OO.cob (>>TURN EC-OO-ARG-OMITTED, a name 2002 does not have) ends with EC-OO-ARG-OMITTED at 2002"
+    },
+    "reason": "Own text: 2002 names EC-PROGRAM-ARG-OMITTED for a method (2002 has no EC-OO-ARG-OMITTED; its 14.5.12.1 table and index list only EC-PROGRAM-ARG-OMITTED), 2023 names EC-OO-ARG-OMITTED. The compiler keys the name on the element kind only (OmittedFormal.ConditionName: Method -> EC-OO-ARG-OMITTED) at every edition. So at --std 2002 enabling EC-PROGRAM-ARG-OMITTED does not check a method's omitted parameter at all, and the 2023-only name is accepted and raised. Sibling of u-05's 2002-GR-8.4.2.2.3-7 (the function arm, EC-FUNCTION-ARG-OMITTED at 2002): same table, same fix.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/argom-PROG.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a method reference to an omitted parameter is EC-OO-ARG-OMITTED (2023 name) and nothing under >>TURN EC-PROGRAM-ARG-OMITTED; a fix plus a 2002 witness (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/argom-PROG.cob, expected X-OMITTED then abnormal termination naming EC-PROGRAM-ARG-OMITTED)",
+    "compiler-at-2002": "wrong: program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/argom-PROG.cob at --std 2002; expected (§2002:14.8.22.3 GR10 \"the EC-PROGRAM-ARG-OMITTED exception condition is set to exist\", Fatal, and §2002:14.5.12.1.2 item 4 with checking enabled) \"X-OMITTED\" then abnormal run-unit termination naming EC-PROGRAM-ARG-OMITTED; observed E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/argom-PROG-2002.out: X-OMITTED / X=[    ] / AFTER SHOW, rc=0. Site: src/WiseOwl.Cobol.Runtime/Control/OmittedFormal.cs#ConditionName (and EcEmitter.cs EC-OO-ARG-OMITTED row), pinned wrong by tests/WiseOwl.Cobol.Tests.Conformance/ArgOmittedConditionTests.cs (runs at 2002, asserts EC-OO-ARG-OMITTED)."
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-2",
+    "to": [
+     "GR-14.9.23.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22.3 GR2",
+    "clause-2023": "14.9.23.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR2",
+      "quote": "the name of the method to be invoked as described in 8.3.1.1.1, User-defined words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR2",
+      "quote": "the name of the method to be invoked as described in 8.3.2.2, User-defined words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1 instance object / class-name-1 factory object",
+     "literal-1 or the content of identifier-2 names the method (COBOL method: per 8.3.1.1.1)",
+     "non-COBOL method: implementor-defined",
+     "identifier-2 a CD record item"
+    ],
+    "evidence-2002": {
+     "WS": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.1-Implementor-defined-language-element-list/l1_invoke_dotnet_member_universal.cob (PASS at 2002); l1-invoke-dotnet-class-new (COBOL0823/5962) and l1-invoke-dotnet-member-typed (COBOL0825) behave alike at 2002 and 2023 (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "CD record identifier-2": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob (INVOKE U MN with MN a CD item holding SET42: GR2 BR=0042)"
+    },
+    "reason": "General format: 2002 14.8.22.1 and 2023 14.9.23.2 are the same phrase for phrase except that class-name-1 is named object-class-name-1 in 2023. The words differ in class-name/object-class-name and in the clause number of User-defined words (2002 8.3.1.1.1, 2023 8.3.2.2: the same rules for forming a method-name). In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for identifier-2 in a CD record (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-6",
+    "to": [
+     "GR-14.9.23.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22.3 GR6",
+    "clause-2023": "14.9.23.4 GR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR6",
+      "quote": "if the argument meets the requirements of syntax rules 9 and 10, BY REFERENCE is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "Identifier-3 shall be an address-identifier or shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR9",
+      "quote": "Identifier-3 shall be an address-identifier or shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "keywordless argument with a BY REFERENCE formal: BY REFERENCE when the argument meets 2002 SR9 and SR10, else BY CONTENT",
+     "with a BY VALUE formal: BY VALUE",
+     "arguments that are communication-section items (admitted by 2002 SR9)"
+    ],
+    "evidence-2002": {
+     "WS": "covered by pb1135_invoke_keywordless_expression_argument, pb130_call_format2_bare, pb3760_grouped_argument_before_boolean_argument, pb5465_invoke_by_phrase_not_transitive, pb1137_invoke_argument_forms, pb1051_method_by_value (PASS at 2002) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "communication section": "not shown by the 2023 row; covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob (keywordless CD record argument passed BY REFERENCE: GR6 BR=0042) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-invoke-byref-implicit.cob"
+    },
+    "reason": "Identical words, but the rule defers to \"syntax rules 9 and 10\", and 2002 SR9 admits a communication-section identifier-3 where 2023 SR9 does not, so in 2002 a keywordless CD item meets SR9 and is passed BY REFERENCE. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a keywordless CD argument passed BY REFERENCE (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/invoke-cd-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-13",
+    "to": [
+     "SR-14.9.24.3-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23.2 SR13",
+    "clause-2023": "14.9.24.3 SR13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR13",
+      "quote": "references a relative or an indexed file, its access mode shall be sequential or dynamic",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a relative or indexed USING file of sequential or dynamic access admitted",
+     "random access refused"
+    ],
+    "evidence-2002": {
+     "all": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/pb994_sort_merge_keyed_using_giving.cob (PASS at 2002) and E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/12.4.5-File-control/pb994-merge-using-random-access.cob (COBOL1757 at 2002 and 2023) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)"
+    },
+    "reason": "MERGE general format identical in 2002 14.8.23.1 and 2023 14.9.24.2. The words differ only by a comma. The operands are file-names, so no CD record, debugging line or other 2002-only context reaches the rule; the access modes and file organizations are the same in both editions.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-4",
+    "to": [
+     "SR-14.9.24.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.23.2 SR4",
+    "clause-2023": "14.9.24.3 SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR4",
+      "quote": "Key data-names may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.2 SR4",
+      "quote": "The data items identified by key data-name shall not be variable-length data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.2 SR4",
+      "quote": "all the data items identified by key data-names shall be contained within the first x bytes of the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR4",
+      "quote": "Key data names shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR4",
+      "quote": "A key data item shall not be a variable-length group, an occurs-depending-on data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR8",
+      "quote": "that specifies the variable-table format of the OCCURS clause is a variable-length data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a keys in records of file-name-1",
+     "b key data-names may be qualified",
+     "c not boolean, object or pointer",
+     "d not variable-length data items (2002: a group with a subordinate ODO table)",
+     "e one record description suffices",
+     "f no OCCURS",
+     "g within the minimum record size of a variable-length SD"
+    ],
+    "evidence-2002": {
+     "a,c(pointer, boolean),d,e,f": "covered by pb1173-sort-file-key-not-in-record, pb1173-merge-key-pointer, pb1173-sort-file-key-boolean, pb1173-sort-file-key-odo-group, pb1173-merge-key-occurs (COBOL1757 at 2002 and 2023), pb5188-sort-merge-key-index-data-item (COBOL1757), pb1173_sort_key_second_record (PASS at 2002) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "b qualification": "not shown by the 2023 row (2023 b is a different sentence); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-qual.cob (KEY SK OF SR accepted at 2002)",
+     "c object": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-object.cob (COBOL1757 at 2002, with COBOL1725 for the file-section object reference)",
+     "d": "also probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-odo.cob (COBOL1757 at 2002)",
+     "g": "not shown by the 2023 row at 2002 (pb1025-sort-key-after-dynamic-beyond-minimum is a dynamic-length form refused COBOL0900 at 2002); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-varrec.cob (COBOL0874 at 2002)"
+    },
+    "reason": "MERGE general format identical in 2002 14.8.23.1 and 2023 14.9.24.2. Own text: 2002 b) \"Key data-names may be qualified\" is replaced in 2023 by \"Key data names shall not be subject to any OCCURS clauses\" (a repeat of f); 2002 d) \"shall not be variable-length data items\" (2002 13.16.36.3 GR8: a group with a subordinate variable-table OCCURS) becomes 2023 d), a list of 2023 terms (variable-length group, occurs-depending-on data item, dynamic-length, dynamic-capacity); c) gains message-tag. The 2002 requirement is the same in substance, but its b) permission and its g) case have no witness on the pointer's row that runs at 2002; the probes supply them.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-qual.cob",
+    "widening": "2023 adds message-tag, dynamic-length and dynamic-capacity exclusions",
+    "class": "own-text",
+    "needs": "its own verdict: the compiler at --std 2002 admits a qualified key (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-qual.cob) and refuses object (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-object.cob), ODO-group (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-odo.cob) and beyond-minimum (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-varrec.cob) keys; a 2002 witness for b) and g)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-qual-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-object-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-odo-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/mkey-varrec-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-12",
+    "to": [
+     "GR-14.9.24.4-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.23.3 GR12",
+    "clause-2023": "14.9.24.4 GR12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR12",
+      "quote": "the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the execution of the MERGE statement terminates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR12",
+      "quote": "On the first attempt to write beyond the externally defined boundaries of the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR12",
+      "quote": "On the first attempt to write outside the externally defined boundaries of the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "GIVING file in the open mode: EC-SORT-MERGE-FILE-OPEN (Fatal), MERGE terminates; then the 2002 fatal procedure (14.5.12.1.2)",
+     "a implicit OPEN OUTPUT SHARING WITH NO OTHER and USE handling",
+     "b implicit WRITEs, record sizes, relative keys",
+     "c implicit CLOSE",
+     "boundary overflow -> USE then terminate",
+     "DEPENDING ON item undefined"
+    ],
+    "evidence-2002": {
+     "a/b/c normal operation": "covered by pb994_sort_merge_keyed_using_giving, pb714_merge_using_sharing_read_only, pb993_sort_merge_transfer_termination (PASS at 2002) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "FILE-OPEN disposition": "not correct at 2002: E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec.cob PASSES at 2002 while expecting the run unit to continue after a normally completing declarative; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-open-GIVING.cob prints DECL=EC-SORT-MERGE-FILE-OPEN then AFTER MERGE, rc=0"
+    },
+    "reason": "MERGE general format identical in 2002 14.8.23.1 and 2023 14.9.24.2. The words differ only in \"non-fatal\"/\"nonfatal\" and \"write beyond\"/\"write outside\" the file boundaries (for an output file the same event). The difference is in the procedure the rule leans on: 2002 sets the Fatal EC-SORT-MERGE-FILE-OPEN and terminates the MERGE, and 2002 14.5.12.1.2 then terminates the run unit abnormally after a declarative that completes normally (or at once with no declarative); 2023 14.6.13.1.3 inserts item 2 (\"If the executed statement is a MERGE or SORT statement, then the rules for those statements apply\"), under which the run continues. The compiler applies the 2023 disposition at 2002. Known mechanism: kb/Work PB5612 (filed for GR7 USING); this row is another rule it reaches.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-open-GIVING.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 a MERGE whose GIVING file is open continues the run unit after the declarative (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-open-GIVING-2002.out); fix PB5612 at 2002 and add a 2002 witness",
+    "compiler-at-2002": "wrong: program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-open-GIVING.cob (>>TURN EC-SORT-MERGE-FILE-OPEN CHECKING ON, USE AFTER EXCEPTION CONDITION EC-SORT-MERGE-FILE-OPEN, MO1 opened OUTPUT before MERGE ... GIVING MO1); expected per §2002:14.8.23.3 GR12 and §2002:14.5.12.1.2 item 2: DECL=EC-SORT-MERGE-FILE-OPEN then abnormal run-unit termination; observed DECL=EC-SORT-MERGE-FILE-OPEN / AFTER MERGE, rc=0. Site: src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#RaisedByTheStatement and docs/conformance/3/D-SMA.md (b): the 2023-only disposition §2023:14.6.13.1.3 item 2 is applied at every edition. Known: kb/Work PB5612."
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-7",
+    "to": [
+     "GR-14.9.24.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.23.3 GR7",
+    "clause-2023": "14.9.24.4 GR7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR7",
+      "quote": "the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the execution of the MERGE statement terminates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "USING file in the open mode: EC-SORT-MERGE-FILE-OPEN (Fatal), MERGE terminates; then 14.5.12.1.2",
+     "a implicit OPEN INPUT (SHARING WITH READ ONLY when the SELECT has SHARING ALL)",
+     "b implicit READ NEXT IGNORING LOCK AT END; record sizes; EC-SORT-MERGE-RELEASE (Fatal)",
+     "c implicit CLOSE; relative key undefined",
+     "DEPENDING ON item undefined"
+    ],
+    "evidence-2002": {
+     "normal operation": "covered by pb993_sort_merge_transfer_termination, pb714_merge_using_sharing_read_only, pb2700_sort_merge_missing_using_covered, pb3511_implicit_goback_sort_merge_called_program (PASS at 2002); pb837_sort_implicit_io_status refused at 2002 (LINE SEQUENTIAL, a 2023 form) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "FILE-OPEN / RELEASE disposition": "not correct at 2002: pb1036_sort_merge_statement_ec PASSES at 2002 with the 2023 continuation; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-open-USING.cob prints DECL=EC-SORT-MERGE-FILE-OPEN then AFTER MERGE, rc=0"
+    },
+    "reason": "MERGE general format identical in 2002 14.8.23.1 and 2023 14.9.24.2. The rule's words are the same (bar \"non-fatal\"); the fatal EC it sets is disposed of by 2002 14.5.12.1.2, which has no MERGE/SORT exception: a normally completing declarative ends the run unit abnormally. The compiler applies 2023's 14.6.13.1.3 item 2 at 2002. This is exactly kb/Work PB5612 (filed for this rule's FILE-OPEN case); EC-SORT-MERGE-RELEASE is disposed of by the same path.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-open-USING.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 the compiler lets the run unit continue after EC-SORT-MERGE-FILE-OPEN on a USING file (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-open-USING-2002.out); PB5612 fix and a 2002 witness",
+    "compiler-at-2002": "wrong (known, kb/Work PB5612): program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-open-USING.cob; expected per §2002:14.8.23.3 GR7 and §2002:14.5.12.1.2 item 2: DECL=EC-SORT-MERGE-FILE-OPEN then abnormal run-unit termination; observed DECL=EC-SORT-MERGE-FILE-OPEN / AFTER MERGE, rc=0. Site: src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#RaisedByTheStatement and docs/conformance/3/D-SMA.md (b): the 2023-only disposition §2023:14.6.13.1.3 item 2 is applied at every edition."
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-8",
+    "to": [
+     "GR-14.9.24.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.23.3 GR8",
+    "clause-2023": "14.9.24.4 GR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR8",
+      "quote": "the EC-SORT-MERGE-ACTIVE exception condition is set to exist and the results of the merge operation are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.2 SR1",
+      "quote": "A MERGE statement may appear anywhere in the procedure division except in the declaratives portion",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR1",
+      "quote": "or in an output procedure of another MERGE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the output procedure range (incl. declaratives reached from it)",
+     "a MERGE, RELEASE or file SORT executed in that range, WRITTEN in the procedure (legal in 2002: SR1 forbids only the declaratives) or reached by transfer of control",
+     "-> EC-SORT-MERGE-ACTIVE (Fatal), merge results undefined, then 14.5.12.1.2"
+    ],
+    "evidence-2002": {
+     "raise": "covered by unit SortMergeStatementEcTests (Release_InAnOutputProcedure..., Init_WhileAProcedureRuns...) and pb1036_sort_merge_statement_ec (PASS at 2002, a SORT case); a MERGE written in the output procedure: compiled at 2002 (refused COBOL1572 at 2023) and EC-SORT-MERGE-ACTIVE set: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-in-op.cob; reached by PERFORM: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-in-op-es.cob",
+     "fatal disposition": "not correct at 2002: with >>TURN EC-SORT-MERGE-ACTIVE CHECKING ON and no USE, both probes print AFTER INNER MERGE [EC-SORT-MERGE-ACTIVE] and AFTER MERGE, rc=0"
+    },
+    "reason": "MERGE general format identical in 2002 14.8.23.1 and 2023 14.9.24.2. The words are the same bar the clause number of the transfers-of-control clause (14.5.3 / 14.6.3). Two things reach further in 2002: (1) 2002 SR1 lets a MERGE be WRITTEN in an output procedure, so GR8 governs it at run time (2023 SR1 refuses it at compile time; the pointer's evidence never shows the written case at 2002); (2) the Fatal EC is disposed of by 2002 14.5.12.1.2 (checking enabled, no USE: abnormal run-unit termination), while the compiler applies 2023's 14.6.13.1.3 item 2 and continues. Same mechanism as kb/Work PB5612.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-in-op.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 a MERGE executed in a MERGE output procedure with EC-SORT-MERGE-ACTIVE checking on sets the condition and the run continues (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-in-op-2002.out); PB5612-class fix and a 2002 witness for the written case",
+    "compiler-at-2002": "wrong: program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-in-op.cob at --std 2002; expected per §2002:14.8.23.3 GR8 (\"the EC-SORT-MERGE-ACTIVE exception condition is set to exist\") and §2002:14.5.12.1.2 item 4 (\"If checking for the exception condition is enabled, execution of the run unit is terminated abnormally\"): IN OP 0001 then abnormal run-unit termination naming EC-SORT-MERGE-ACTIVE; observed IN OP 0001 / AFTER INNER MERGE [EC-SORT-MERGE-ACTIVE] / AFTER MERGE, rc=0 (same with the MERGE reached by PERFORM, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/merge-in-op-es-2002.out). Site: src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#RaisedByTheStatement and docs/conformance/3/D-SMA.md (b): the 2023-only disposition §2023:14.6.13.1.3 item 2 is applied at every edition. Compiling the written MERGE at 2002 is correct."
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-1",
+    "to": [
+     "SR-14.9.25.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24.2 SR1",
+    "clause-2023": "14.9.25.3 SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR1",
+      "quote": "The class of identifier-1 or identifier-2 shall not be index, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR1",
+      "quote": "The class of identifier-1 or identifier-2 shall not be index, message-tag, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1/identifier-2 of class index, object or pointer refused",
+     "such items in a CD record (index at any level, pointer as a level-1 record after a CD)"
+    ],
+    "evidence-2002": {
+     "WS": "covered by move-index-name (COBOL1637), pb124-move-index-function, pb423-move-pointer-sender, pb423-move-pointer-receiver (COBOL0809) refused alike at 2002 and 2023, pb423_move_operand_class_admitted PASS at 2002 (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log); object reference: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-sr1.cob (COBOL0809)",
+     "CD record items": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-sr1.cob (CD index item and level-1 CD pointer refused COBOL0809 as sender and receiver)"
+    },
+    "reason": "Format 1 identical; 2023 adds class message-tag (a 2023-only class). In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-sr1.cob",
+    "widening": "2023 adds class message-tag",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for CD index/pointer MOVE operands (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-sr1.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-sr1-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-10",
+    "to": [
+     "SR-14.9.25.3-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24.2 SR10",
+    "clause-2023": "14.9.25.3 SR12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR10",
+      "quote": "Identifier-3 and identifier-4 shall specify group data items and shall not be reference modified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-3/4 group items, not reference modified",
+     "CD record groups as identifier-3/4"
+    ],
+    "evidence-2002": {
+     "WS": "covered by pb390-move-corr-elementary-operand and pb390-move-corr-reference-modified (COBOL1757 at 2002 and 2023), pb390_procedure_and_condition_operands and pb966_move_corresponding_through_alias (PASS at 2002) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "CD record group": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob (MOVE CORR from a CD group: M2 [AB ] 012 K)"
+    },
+    "reason": "Format 2 identical; the words differ only in \"reference modified\"/\"reference-modified\". In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for MOVE CORR with a CD record group (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-11",
+    "to": [
+     "SR-14.9.25.3-13"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24.2 SR11",
+    "clause-2023": "14.9.25.3 SR13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR11",
+      "quote": "The corresponding data items are determined according to the rules specified in 14.6.5, CORRESPONDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR13",
+      "quote": "The corresponding data items are determined according to the rules specified in 14.7.6, CORRESPONDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "at least one of the data items is an elementary data item and the resulting move is valid according to the rules for the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.6",
+      "quote": "strongly-typed group items, or variable-length groups",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "corresponding pairs per 2002 14.6.5 rules 1-6 (rule 2: the move valid by the MOVE rules, 2002 Table 17)",
+     "sending/receiving roles",
+     "CD record groups"
+    ],
+    "evidence-2002": {
+     "WS": "covered by pb391_corresponding_rule2_table16_85, pb391_corresponding_rule2_sr8_binary, pb391_corresponding_rule2_rule4_categories (PASS at 2002), pb391-move-noninteger-to-national-written, pb391-move-binary-long-to-alphanumeric-written (COBOL0819 at 2002 and 2023) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log); pb391_corresponding_rule2_sr9_varlen is a 2023 variable-length-group form (COBOL0900 at 2002)",
+     "CD record groups": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob (M2)"
+    },
+    "reason": "Identical words but the referenced clause number (14.6.5 / 14.7.6). Compared side by side: 2023 14.7.6 adds variable-length groups to D1/D2 and message-tag to rule 4 (2023-only constructs); rule 2 defers to the MOVE rules, whose validity table (2002 Table 17, 2023 Table 16) has the same cells for data-item pairs. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob",
+    "widening": "2023 adds variable-length groups and message-tag",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for MOVE CORR over CD record groups (candidate: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.24.3-1",
+    "to": [
+     "GR-14.9.25.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24.3 GR1",
+    "clause-2023": "14.9.25.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.3 GR1",
+      "quote": "it is as if literal-1 were specified as the figurative constant SPACE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.4 GR1",
+      "quote": "it is as if literal-1 were specified as a zero-length literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "move to each identifier-2 in order; receiver identified just before its move",
+     "zero-length identifier-2 unchanged",
+     "sender subscripts/ref-mod/function evaluated once",
+     "zero-length identifier-1 (2002 8.5.4: a group of a zero-occurrence ODO table) moves as the figurative constant SPACE",
+     "CD record operands"
+    ],
+    "evidence-2002": {
+     "order and evaluate-once": "covered by pb394_sending_value_evaluated_once_85/_2002/_2014/_2023, pb886_refmod_intermediate_positions, pb370_move_function_value_digits, pb370_move_first_condition, pb5386_move_receiver_identified_at_store (PASS at 2002) (run at --std 2002 and --std 2023 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/run.py; logs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2002.log, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cases-2023.log)",
+     "zero-length sender": "not shown by the 2023 row at 2002: pb425_zero_length_sender_shapes (>>REF-MOD-ZERO-LENGTH) and pb896_zero_length_group_sender (zero-length literals) are refused COBOL0900 at 2002; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-zl.cob (LENGTH 0; alphanumeric, numeric-edited, group and CD receivers all spaces, national receiver national spaces)",
+     "CD record operands": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops.cob (M1 3 003: MOVE AX(BX) TO BX, CX(BX) on CD items) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-zl.cob"
+    },
+    "reason": "Own text: for a zero-length sender 2002 says \"as if literal-1 were specified as the figurative constant SPACE\", 2023 \"as a zero-length literal\" (a 2014 literal 2002 lacks). For the receivers 2002 allows the results coincide (space fill, national spaces for a national receiver), but the pointer's zero-length witnesses use 2014/2023 forms and cannot run at 2002, so the 2002 sentence needs its own witness. In 2002 the communication facility is part of the standard (Annex A, optional for an implementation: §2002:3.1), and the compiler provides it at --std 2002; the record description entries after a CD are ordinary data description entries, so every identifier this rule governs may reference one of them. 2023 has no communication section, so the 2023 row cannot show that part of the 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-zl.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 a zero-length group sender moves as SPACE to every receiver (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-zl-2002.out); a 2002 witness for it and for CD operands",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/move-zl-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-24/cd-ops-2002.out)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-24",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.22.2-3",
+    "verdict": "UPHELD",
+    "reason": "General formats 2002 14.8.22.1 and 2023 14.9.23.2 match phrase for phrase (class-name-1 / object-class-name-1 in the same position). Attacks tried: (1) 2002 'class-name' names two kinds of word (8.3.1.1.1.3 object orientation, 8.3.1.1.1.4 truth value proposition) where 2023 splits them into object-class-name and class-name, so the 2002 format's class-name-1 can syntactically be a SPECIAL-NAMES CLASS name, which only SR3 (no factory interface) excludes in 2002; probe sr3-truthclass.cob is refused COBOL0823 at both 2002 and 2023, so that 2002-only reading is handled identically and correctly. (2) The name the literal matches: 2002 GR2a and 2023 GR2a both defer to User-defined words (2002 8.3.1.1.1, 2023 8.3.2.2), whose externalization and INVOKE method-name paragraphs are word-identical; METHOD-ID 11.6.3 GR1 = 11.7.4 GR1; probe sr3-aslit.cob behaves the same at both (PB4893 reading). (3) 2014 added method overloading (2002 11.6.2 SR4a unique names vs 2023 11.7.3 SR4a signatures): a 2023 widening only; a 2002 program's names are unique, so the requirement is unchanged. (4) BASE factory interface (2002 16.1 / 2023 16.2) identical: only New; probe sr3-factoryobject.cob refuses the instance method FactoryObject via a class-name at both. (5) Parameterized classes/EXPANDS exist in both. (6) No data operand: no CD, debugging or removed form reaches it. Probes sr3-instance/sr3-nosuch refused COBOL0825 at 2002 and 2023; sr3-ctl.cob refused because BUMP is externalized as bumpx (same at both).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR3",
+      "quote": "The value of literal-1 shall be the name of a method defined in the factory interface of class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR3",
+      "quote": "The value of literal-1 shall be the name of a method defined in the factory interface of object-class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1.4",
+      "quote": "A class-name identifies a proposition, for which a truth value can be determined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1.3",
+      "quote": "A class-name identifies a class, the entity that defines common behavior",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.2.2.17",
+      "quote": "An object-class-name identifies an object class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.3 GR2a",
+      "quote": "is the name of the method to be invoked as described in 8.3.1.1.1, User-defined words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR2a",
+      "quote": "is the name of the method to be invoked as described in 8.3.2.2, User-defined words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR4a",
+      "quote": "no inherited method shall have the same name as the method declared by this method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR4a",
+      "quote": "no inherited method shall have the same method resolution signature as the method declared by this method definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-24/sr3-truthclass.cob (also sr3-instance.cob, sr3-nosuch.cob, sr3-factoryobject.cob, sr3-aslit.cob, sr3-ctl.cob in the same folder)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-13",
+    "verdict": "UPHELD",
+    "reason": "MERGE general formats 2002 14.8.23.1 and 2023 14.9.24.2 identical; SR13 differs only by a comma. The terms it leans on are identical: ACCESS MODE clause 2002 12.3.4.4 = 2023 12.4.5.5 (same format, SR1 RANDOM ban for SORT/MERGE USING/GIVING, same default sequential GR1, same GR2-4); organizations sequential/relative/indexed in both. SR9 excludes report and sort-merge files in both. File-names only: no CD, debugging line or 2002-only form reaches it; Annex E of 2014 and 2023 list no MERGE USING access change (2023's MERGE change is SR1 placement, a different rule). Re-ran the witnesses on the pinned compiler: pb994_sort_merge_keyed_using_giving.cob output matches its .out at --std 2002 and 2023 (indexed DYNAMIC and SEQUENTIAL, relative SEQUENTIAL USING files); pb994-merge-using-random-access.cob refused COBOL1757 at both; added probe merge-sr13-relative-random.cob (relative RANDOM USING file) refused COBOL1757 at both.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR13",
+      "quote": "references a relative or an indexed file, its access mode shall be sequential or dynamic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR13",
+      "quote": "references a relative or an indexed file, its access mode shall be sequential or dynamic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.4.2 SR1",
+      "quote": "The RANDOM clause shall not be specified for file-names specified in the USING or GIVING phrase of a SORT or MERGE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.2 SR1",
+      "quote": "The RANDOM clause shall not be specified for file-names specified in the USING or GIVING phrase of a SORT or MERGE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.4.3 GR1",
+      "quote": "If the ACCESS MODE clause is not specified, sequential access is assumed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-24/merge-sr13-relative-random.cob"
+   }
+  ],
+  "disputed-different": [],
+  "observations": [
+   "Not a dispute of any verdict: §2002 Annex A says 'Support for data of classes boolean and national and exception handling are intentionally omitted from the obsolete communications facility'. The reader's cd-ops.cob and inspect-sr3-cd.cob probes put boolean and national items in CD records and the compiler accepted them at --std 2002; whether such items are admissible in a 2002 CD record (and so whether those probes are valid 2002 witnesses) should be settled before they are recorded."
+  ]
+ },
+ "imported": {
+  "asked": "5e4929cd5923e6c9777884202064f562a9bc869631189ff316725096a01e1b1f",
+  "read": "625b93d4f05376bc0b716f72991f008811b9fb6954f3d3eb3378e5427baea79d",
+  "refute": "d1943a57fc8f15f281d9bd48ba81a9380ed46a88437caeb0b938587bc509ed1c"
+ }
+}

@@ -1,0 +1,1572 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-22 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-22",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.9.2-1",
+   "2002-SR-14.8.9.2-2",
+   "2002-GR-14.8.9.3-10",
+   "2002-GR-14.8.9.3-11",
+   "2002-GR-14.8.9.3-2",
+   "2002-GR-14.8.9.3-3",
+   "2002-GR-14.8.9.3-4",
+   "2002-GR-14.8.9.3-5",
+   "2002-GR-14.8.9.3-6",
+   "2002-GR-14.8.9.3-7",
+   "2002-GR-14.8.9.3-8",
+   "2002-GR-14.8.9.3-9",
+   "2002-SR-14.8.10.2-2",
+   "2002-GR-14.8.10.3-1",
+   "2002-GR-14.8.10.3-10",
+   "2002-GR-14.8.10.3-2",
+   "2002-GR-14.8.10.3-4",
+   "2002-GR-14.8.10.3-5",
+   "2002-GR-14.8.10.3-6",
+   "2002-GR-14.8.10.3-8",
+   "2002-GR-14.8.10.3-9",
+   "2002-GR-14.8.11.3-1",
+   "2002-GR-14.8.11.3-3",
+   "2002-GR-14.8.11.3-7",
+   "2002-SR-14.8.12.2-4"
+  ],
+  "pointers": {
+   "2002-SR-14.8.9.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.10.3-1",
+    "similarity": 0.96
+   },
+   "2002-SR-14.8.9.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.10.3-2",
+    "similarity": 0.977
+   },
+   "2002-GR-14.8.9.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-10",
+    "similarity": 0.932
+   },
+   "2002-GR-14.8.9.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-11",
+    "similarity": 0.948
+   },
+   "2002-GR-14.8.9.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-2",
+    "similarity": 0.982
+   },
+   "2002-GR-14.8.9.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-3",
+    "similarity": 0.993
+   },
+   "2002-GR-14.8.9.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-4",
+    "similarity": 0.993
+   },
+   "2002-GR-14.8.9.3-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-5",
+    "similarity": 0.978
+   },
+   "2002-GR-14.8.9.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-6",
+    "similarity": 0.992
+   },
+   "2002-GR-14.8.9.3-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-7",
+    "similarity": 0.938
+   },
+   "2002-GR-14.8.9.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-8",
+    "similarity": 0.985
+   },
+   "2002-GR-14.8.9.3-9": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.10.4-9",
+    "similarity": 0.959
+   },
+   "2002-SR-14.8.10.2-2": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-14.9.11.3-2",
+    "similarity": 0.437
+   },
+   "2002-GR-14.8.10.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.11.4-1",
+    "similarity": 0.938
+   },
+   "2002-GR-14.8.10.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.11.4-11",
+    "similarity": 0.956
+   },
+   "2002-GR-14.8.10.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.11.4-2",
+    "similarity": 0.941
+   },
+   "2002-GR-14.8.10.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.11.4-4",
+    "similarity": 0.966
+   },
+   "2002-GR-14.8.10.3-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.11.4-5",
+    "similarity": 0.968
+   },
+   "2002-GR-14.8.10.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.11.4-6",
+    "similarity": 0.986
+   },
+   "2002-GR-14.8.10.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.11.4-9",
+    "similarity": 0.97
+   },
+   "2002-GR-14.8.10.3-9": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.11.4-10",
+    "similarity": 0.959
+   },
+   "2002-GR-14.8.11.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.12.4-1",
+    "similarity": 0.921
+   },
+   "2002-GR-14.8.11.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.12.4-3",
+    "similarity": 0.941
+   },
+   "2002-GR-14.8.11.3-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.12.4-7",
+    "similarity": 0.96
+   },
+   "2002-SR-14.8.12.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.13.3-4",
+    "similarity": 0.951
+   }
+  }
+ },
+ "read": {
+  "slice": "u-22",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.9.2-1",
+    "to": [
+     "SR-14.9.10.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.2",
+    "clause-2023": "14.9.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.2 SR1",
+      "quote": "The DELETE statement shall not be specified for a file with sequential organization",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.10.3 SR1",
+      "quote": "The DELETE RECORD statement shall not be specified for a file with sequential organization",
+      "check": "OK"
+     }
+    ],
+    "reason": "Differing words: 'DELETE statement' vs 'DELETE RECORD statement' only, which is the same statement (2002 has one format). General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only. The row's three refusal tests declare refuse-at 2002 and refuse at --std 2002 with COBOL0865.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "DELETE naming a file with explicit ORGANIZATION SEQUENTIAL",
+     "DELETE naming a file with implicit sequential organization"
+    ],
+    "evidence-2002": {
+     "explicit": "covered by conformance:cases/14.9.10-DELETE/delete-record-sequential-org and l1-delete-record-sequential-organization (REFUSED COBOL0865 at 2002, run now)",
+     "implicit": "covered by conformance:cases/14.9.10-DELETE/l1-delete-record-implicit-sequential-organization (REFUSED COBOL0865 at 2002, run now)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.9.2-2",
+    "to": [
+     "SR-14.9.10.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.2",
+    "clause-2023": "14.9.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.2 SR2",
+      "quote": "shall not be specified for a DELETE statement that references a file that is in sequential access mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.10.3 SR2",
+      "quote": "shall not be specified for a DELETE RECORD statement that references a file that is in sequential access mode",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement; only the statement's name differs. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "INVALID KEY / NOT INVALID KEY on DELETE of a sequential-access file (refuse)",
+     "the phrases on a random/dynamic file (accept)"
+    ],
+    "evidence-2002": {
+     "refuse": "covered by conformance:cases/14.9.10-DELETE/delete-record-invalid-key-sequential-access (REFUSED COBOL1720 at 2002, run now)",
+     "accept": "covered by conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record (PASS at 2002, run now)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-10",
+    "to": [
+     "GR-14.9.10.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR10",
+      "quote": "causes the value of the I-O status associated with file-name-1 to be updated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.10.4 GR10",
+      "quote": "causes the value of the I-O status associated with file-name-1 to be updated as specified in 9.1.13",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.6",
+      "quote": "The execution of a DELETE or REWRITE statement is attempted referencing a file connector that is not open in the I-O mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.6",
+      "quote": "prior to the execution of a DELETE or REWRITE statement through the same file connector was not a successfully executed READ statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in the pointer to the I-O status clause (2002 9.1.12, 2023 9.1.13). Read both I-O status clauses for every value a DELETE (record) can set: 00, 23, 30, 43, 49, 51-54, 9x are worded the same; what 2023 added (05/41/62/37/39 for DELETE FILE, 06/09 and the 7x class, EC-I-O-WARNING) belongs to statements or file kinds 2002 lacks. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "00 on success",
+     "23 record absent (random/dynamic)",
+     "43 sequential access without prior READ",
+     "49 not open I-O",
+     "51 record locked"
+    ],
+    "evidence-2002": {
+     "00/23/43/49": "covered by conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate (PASS at 2002, run now) and unit:FileStatusDisciplineTests (runtime, edition-free)",
+     "51": "covered by conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate (PASS at 2002, run now)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-11",
+    "to": [
+     "GR-14.9.10.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR11",
+      "quote": "depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the DELETE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.10.4 GR11",
+      "quote": "depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the DELETE RECORD statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement. 2002 9.1.13 (invalid key condition) routes to USE EXCEPTION procedures; 2023 9.1.14 adds the exception-checking PERFORM, a 2023 form a 2002 program cannot write, so the 2002 transfers are a subset. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": "2023 also routes through exception-checking PERFORM (not in 2002)",
+    "scope-2002": [
+     "INVALID KEY branch on absent key",
+     "NOT INVALID KEY branch on success",
+     "indexed and relative files"
+    ],
+    "evidence-2002": {
+     "both branches": "covered by conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record and conformance:cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer (both PASS at 2002, run now)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-2",
+    "to": [
+     "GR-14.9.10.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR2",
+      "quote": "shall have been a successfully executed READ statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement; 2002 adds the abbreviation '(MSCS)' and names the DELETE statement. The row's DELETE FILE witnesses (pb140_delete_file_gate, unit ReadGate_DeleteFile41...) are 2023-only forms outside the 2002 scope. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "sequential-access DELETE after a successful READ removes that record",
+     "without a prior successful READ: 43"
+    ],
+    "evidence-2002": {
+     "both": "covered by conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate (PASS at 2002, run now) and unit FileStatusDisciplineTests.ReadGate_* (runtime)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-3",
+    "to": [
+     "GR-14.9.10.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR3",
+      "quote": "logically removes from the physical file the record identified by the content of the prime record key data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement; differs only by '(MSCS)' and the pointer 9.1.13 vs 9.1.14 to the same invalid key condition. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "indexed random/dynamic delete by prime key",
+     "absent key: invalid key"
+    ],
+    "evidence-2002": {
+     "both": "covered by conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record (PASS at 2002, run now)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-4",
+    "to": [
+     "GR-14.9.10.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR4",
+      "quote": "logically removes from the physical file that record identified by the content of the relative key data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement; differs only by '(MSCS)' and the invalid-key clause number. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "relative random/dynamic delete by relative key",
+     "absent record: invalid key"
+    ],
+    "evidence-2002": {
+     "delete": "covered by conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate (PASS at 2002: DELQ=00 then READQ23=23)",
+     "invalid key": "covered by conformance:cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer (relative, random; PASS at 2002, run now; not in the row's test-ref but in the corpus)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-5",
+    "to": [
+     "GR-14.9.10.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR5",
+      "quote": "the identified record has been logically removed from the physical file and can no longer be accessed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "deleted record not accessible, through this and other file connectors"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/14.9.10-DELETE/pb143_shared_visibility (PASS at 2002, run now) and unit SharedRecordStoreTests (runtime)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-6",
+    "to": [
+     "GR-14.9.10.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR6",
+      "quote": "the result of the operation depends on the presence or absence of the RETRY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.8.2 GR4",
+      "quote": "the statement is unsuccessful, the appropriate value is placed in the I-O status associated with the file connector",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement; the referenced RETRY phrase (2002 14.6.8, 2023 14.7.9) has the same format and general rules (2023 only adds 'according to the rules for 9.1.13'). Record-operation-conflict values 51-54 are worded the same in both I-O status clauses. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "locked record, no RETRY: 51, record kept",
+     "RETRY n TIMES / FOREVER",
+     "lock released: delete succeeds"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/file_sharing_mutate and conformance:cases/14.9.10-DELETE/pb142_retry_open_sharing (both PASS at 2002, run now) and unit CobolFileLockTests (runtime)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-7",
+    "to": [
+     "GR-14.9.10.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR7",
+      "quote": "If record locks are in effect, the following actions take place",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.10.4 GR7",
+      "quote": "If record locks are in effect and the file is not subject to an active APPLY COMMIT clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 narrows the rule to files not under an active APPLY COMMIT clause; 2002 has no APPLY COMMIT clause, so every 2002 program is in the case 2023 still governs, and the lock-release actions a) 1., a) 2. and b) are worded the same. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "single record locking: own lock on deleted record released at completion; lock on another record released at start",
+     "multiple record locking: locks on deleted record released"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/14.9.10-DELETE/pb242_delete_record_lock_release and pb242_delete_lock_release_indexed (PASS at 2002, run now); pb242-delete-lock-below-2002 accepted at 2002 as its refuse-at [85] expects"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-8",
+    "to": [
+     "GR-14.9.10.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR8",
+      "quote": "does not affect the content of the record area",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "record area unchanged",
+     "RECORD DEPENDING ON item unchanged"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/14.9.10-DELETE/l1_delete_record_area_unchanged and pb144_indexed_delete_record (PASS at 2002, run now)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-9",
+    "to": [
+     "GR-14.9.10.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9.3",
+    "clause-2023": "14.9.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR9",
+      "quote": "The file position indicator is not affected by the execution of a DELETE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "file position indicator unchanged by DELETE"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/14.9.10-DELETE/l1_delete_fpi_unaffected and pb144_indexed_delete_record (PASS at 2002, run now)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.10.2-2",
+    "to": [
+     "SR-14.9.11.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.10.2",
+    "clause-2023": "14.9.11.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.2 SR2",
+      "quote": "Mnemonic-name-1 shall be associated with a hardware device in the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.3 SR2",
+      "quote": "identified in the operating environment as a hardware or software device capable of receiving data from the program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR7",
+      "quote": "The implementor may specify additional restrictions on the use of mnemonic-names that reference specific device-names",
+      "check": "OK"
+     }
+    ],
+    "reason": "Distant pointer, different words. 2002 requires only that mnemonic-name-1 be associated with a hardware device; 2023 adds 'capable of receiving data', which is what the row's input-only refusal (Upon_InputOnlyDevice_Rejected0817) tests. At 2002 that refusal is licensed instead by 12.2.6.2 SR7 (implementor restrictions on device mnemonics). The 2002 scope also has a leg the row never tests: a mnemonic of a switch-name or feature-name is not associated with a hardware device. The row's evidence runs only at 2023 (DisplayUponTests compile at 2023; pb135_oo_environment needs DEFAULT ROUNDED, a 2014 clause, and does not compile at 2002). Probes at 2002 show the compiler right on every leg. General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "UPON a declared output-device mnemonic (CONSOLE, SYSOUT, SYSERR) works",
+     "undeclared mnemonic refused",
+     "mnemonic of a switch-name or feature-name refused (not a hardware device)",
+     "input-only device (SYSIN) refused, by the 12.2.6.2 SR7 licence",
+     "a class's SPECIAL-NAMES device mnemonic used inside a method"
+    ],
+    "evidence-2002": {
+     "output devices": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_2002.cob (2002: A-DEFAULT, B-SYSOUT, C-CONSOLE on stdout; D-SYSERR on stderr)",
+     "undeclared": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_bad_NO-SUCH-DEV.cob (2002: COBOL0817)",
+     "switch/feature": "probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_bad_SW-ON-MN.cob and u22_display_upon_bad_TOP-MN.cob (2002: refused, 'not of a device-name')",
+     "input-only": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_bad_IN-DEV.cob (2002: COBOL0817)",
+     "OO": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_oo_2002.cob (2002: CLS-EVEN=0003 stdout, MTH-AWAY=0003 stderr)"
+    },
+    "class": "own-text",
+    "needs": "a 2002 witness for the device-mnemonic legs, incl. switch/feature mnemonics and the SR7-licensed input-only refusal: the probes above",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_*.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-1",
+    "to": [
+     "GR-14.9.11.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR1",
+      "quote": "If an operand is a zero-length data item, no data is transferred for that operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR1",
+      "quote": "If an operand is a zero-length data item or a zero-length literal, no data is transferred for that operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A data item defined with the ANY LENGTH clause corresponding to an argument or returning item that is a zero-length item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.2.3 GR1a",
+      "quote": "a zero-length item when the corresponding argument or returning item of the activating runtime element is a zero-length item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.2.3 GR1b",
+      "quote": "where n is the length of the corresponding argument or returning item of the activating runtime element",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 has no zero-length literal (2023's addition), so its zero-length leg is the zero-length data items of 2002 8.5.4: an ODO group at zero occurrences, a group holding only such a group, an ANY LENGTH formal bound to a zero-length argument, a zero-length record, a zero-length function value. The row's only zero-length witness (pb148_display_zero_length) does not compile at 2002 (>>REF-MOD-ZERO-LENGTH and \"\" are 2023/2014 forms). Probe at 2002: the ODO and nested group legs are right ([] and [][]), but an ANY LENGTH formal bound to a zero-occurrence ODO group displays three spaces: the formal takes the argument's MAXIMUM length (FUNCTION LENGTH = 3 at 0 and at 2 occurrences), so DISPLAY transfers data for a zero-length item. The same at --std 2023. Order and conversion legs hold at 2002 (pb148_display_forms, comp5_display_beyond_picture, pb5074/pb4305 2002 literal tests PASS). General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_zero_length_2002.cob",
+    "widening": "2023 adds the zero-length literal and software devices",
+    "scope-2002": [
+     "operands transferred in order",
+     "zero-length ODO group: nothing transferred",
+     "group of a zero-length group",
+     "ANY LENGTH formal bound to a zero-length argument",
+     "zero-length record",
+     "implementor-defined conversion (DOC-A.1-56)"
+    ],
+    "evidence-2002": {
+     "order/conversion": "covered by conformance:cases/14.9.11-DISPLAY/pb148_display_forms, comp5_display_beyond_picture (PASS at 2002, run now)",
+     "ODO group / nested": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_zero_length_2002.cob (2002: [] and [][], correct)",
+     "ANY LENGTH": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_any_length_odo_arg_2002.cob (2002: '<   > LEN=000000003', expected '<> LEN=000000000'; WRONG)",
+     "record": "not shown for DISPLAY (pb721_zero_length_record PASS at 2002 but is not a DISPLAY witness of this leg)"
+    },
+    "class": "other",
+    "needs": "its own verdict: the compiler at --std 2002 displays an ANY LENGTH formal bound to a zero-occurrence ODO group as 3 spaces (the argument's maximum length) where 8.5.4 item 3 makes it zero-length; plus a 2002 witness for the ODO-group legs",
+    "compiler-at-2002": "wrong (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_any_length_odo_arg_2002.cob)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_any_length_odo_arg_2002.cob",
+     "expected": "<> LEN=000000000 then <AB> LEN=000000002 (§2002:13.16.2.3 GR1a/GR1b; §2002:8.5.4 items 1 and 3)",
+     "observed": "<   > LEN=000000003 then <AB > LEN=000000003, at --std 2002 and --std 2023",
+     "site": "the ANY LENGTH formal's length on CALL BY REFERENCE of a group with OCCURS DEPENDING ON: the crossing passes the group's maximum width, not its current length (CallEmitter.cs argument carrier for a variable-occurrence group / ProgramEmitter ANY LENGTH binding; not traced further)",
+     "2023-rule-also": "GR-13.18.2.4-1 (its witnesses use fixed-length and zero-length-literal arguments, none an ODO group)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-10",
+    "to": [
+     "GR-14.9.11.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR10",
+      "quote": "If vertical positioning is not applicable on the hardware device, the vertical positioning shall be ignored",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement ('hardware device' vs 'device'). The row is recorded as a derivation (conforms by vacuity: the only devices are standard output and standard error, both line devices), and the device set is the same at --std 2002 (probe). General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "a device without vertical positioning"
+    ],
+    "evidence-2002": {
+     "all": "derivation as in the row; the 2002 device set shown by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_2002.cob"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-2",
+    "to": [
+     "GR-14.9.11.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR2",
+      "quote": "The implementor shall define, for each hardware device, the size of a data transfer",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement. DOC-A.1-58 (unbounded on every device) is edition-free; l1_display_transfer_size passes at 2002 and the row's xUnit program (Upon_EachOutputDevice_TransfersALongOperandAsOneLine), run verbatim at --std 2002, prints the 2000-character operand as one line on stdout three times and once on stderr. General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_transfer_each_device_2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "standard device",
+     "SYSOUT",
+     "CONSOLE",
+     "SYSERR"
+    ],
+    "evidence-2002": {
+     "standard device": "covered by conformance:cases/14.9.11-DISPLAY/l1_display_transfer_size (PASS at 2002, run now)",
+     "SYSOUT/CONSOLE/SYSERR": "the row's DisplayUponTests program re-run at 2002: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_transfer_each_device_2002.cob (3 stdout lines and 1 stderr line, each the full 2000 characters)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-4",
+    "to": [
+     "GR-14.9.11.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR4",
+      "quote": "If the hardware device is capable of receiving data of the same size as the data item being transferred",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement. The row's tests that fail at 2002 (pb164_vlg_display, pb189_dynamic_table_element_operand) exercise DYNAMIC LENGTH / OCCURS DYNAMIC, 2014 data kinds outside the 2002 scope; the 2002 data kinds are covered by tests that pass at 2002. General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "whole operand transferred when the device takes its size, every 2002 data kind"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/14.9.11-DISPLAY/initialize_phrases, conformance:cases/13.18.40-PICTURE/national_data, conformance:cases/14.9.11-DISPLAY/pb244_pointer_group_transfer, l1_display_transfer_size (PASS at 2002, run now), pb164_index_group_image (pass at 2002 per adopt-2002 S1 run)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-5",
+    "to": [
+     "GR-14.9.11.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR5",
+      "quote": "If a hardware device is not capable of receiving data of the same size as the data item being transferred",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement ('general rules' vs 'General rules' and 'hardware device' vs 'device'). Vacuous at both editions by the unbounded DOC-A.1-58 determination, evidenced at 2002 as for GR2. General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_transfer_each_device_2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "piecewise transfer (never taken: unbounded)"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/14.9.11-DISPLAY/l1_display_transfer_size (PASS at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_transfer_each_device_2002.cob"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-6",
+    "to": [
+     "GR-14.9.11.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR6",
+      "quote": "the size of the sending item is the sum of the sizes associated with the operands",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement. pb164_vlg_display (2014 data kinds) is outside the 2002 scope. General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "several operands: sizes summed, transferred in order, no repositioning between"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/14.9.11-DISPLAY/pb148_display_forms, pb164_comp5_group_image, ca3_figurative_display_pcs, initialize_phrases, pb244_pointer_group_transfer, conformance:cases/13.18.40-PICTURE/national_data (PASS at 2002, run now)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-8",
+    "to": [
+     "GR-14.9.11.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR8",
+      "quote": "If the WITH NO ADVANCING phrase is specified, then the positioning of the hardware device shall not be reset to the next line",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement (2002 GR8 is 2023 GR9: 2023 inserted GR7 on variable-length groups). General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "NO ADVANCING keeps the position after the last character of the last operand"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/14.9.11-DISPLAY/l1_display_no_advancing (PASS at 2002, run now)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-9",
+    "to": [
+     "GR-14.9.11.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR9",
+      "quote": "the positioning of the hardware device shall be reset to the leftmost position of the next line of the device",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement. General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "without NO ADVANCING: new line after the last operand, on every device"
+    ],
+    "evidence-2002": {
+     "all": "covered by conformance:cases/14.9.11-DISPLAY/comp5_display_beyond_picture, l1_display_no_advancing (PASS at 2002) and the row's DisplayUponTests program re-run at 2002 (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_display_upon_2002.cob)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.11.3-1",
+    "to": [
+     "GR-14.9.12.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.11.3",
+    "clause-2023": "14.9.12.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.11.3 GR1",
+      "quote": "When standard arithmetic is in effect, the quotient is the result of the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.12.4 GR1",
+      "quote": "When standard-decimal arithmetic, or standard-binary arithmetic is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "When a standard intermediate data item is being moved to a resultant-identifier for which the ROUNDED phrase has not been specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "The native leg is the same and holds at 2002. The standard leg names 2002's standard arithmetic, a different mode from 2023's. Derived: DIVIDE 3 INTO 2 GIVING Q (Q PIC V9(31), no ROUNDED) under ARITHMETIC IS STANDARD: 2/3 truncated to 32 digits is .66666666666666666666666666666666, rounded to 31 digits on the move is .6666666666666666666666666666667, which Q holds exactly. Observed at --std 2002: .6666666666666666666666666666666 (and the same in Format 4). This is PB5575's defect reaching DIVIDE (report, not a new find). Formats 1-5 of 2002 14.8.11.1 match 2023's, except ROUNDED (2002) vs rounded-phrase (2023 adds MODE IS, refused at 2002 as COBOL0803). 2002 has two arithmetic modes, native and standard (ARITHMETIC IS STANDARD, §2002:8.8.1.3: a 32-digit standard intermediate data item, each operation truncated to 32 digits, rounded to 31 digits on a move without ROUNDED); 2023 names standard-decimal and standard-binary, which do not exist in 2002. The row's standard-mode witnesses use ARITHMETIC IS STANDARD-DECIMAL / -BINARY and are refused at 2002 (COBOL0900), so the 2002 standard leg has no witness through the row. The pinned compiler predates the PB5575 run-time arm (PR #1720 is not an ancestor of 24372b7b17), and PB5575's witness has no DIVIDE statement.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_std2002_standard.cob",
+    "widening": null,
+    "scope-2002": [
+     "native arithmetic quotient (all 5 formats)",
+     "standard arithmetic (ARITHMETIC IS STANDARD) quotient"
+    ],
+    "evidence-2002": {
+     "native": "covered by conformance:cases/14.9.12-DIVIDE/l1_divide_quotient_remainder_native, pb2144_divide_phrase_sending_operands, pb4640_*, pb4702_* (PASS at 2002, run now) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_native2002.cob",
+     "standard": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_std2002_standard.cob: Q-NOROUND .6666666666666666666666666666666, expected .6666666666666666666666666666667; WRONG"
+    },
+    "class": "own-text",
+    "needs": "its own verdict: the compiler at --std 2002 (pinned tree) stores the DIVIDE quotient under ARITHMETIC IS STANDARD truncated, not rounded to 31 digits per 8.8.1.3.1.3 (PB5575 reach); a 2002 DIVIDE witness under ARITHMETIC IS STANDARD on main",
+    "compiler-at-2002": "wrong (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_std2002_standard.cob; PB5575, pinned tree)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.11.3-3",
+    "to": [
+     "GR-14.9.12.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.11.3",
+    "clause-2023": "14.9.12.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.11.3 GR3",
+      "quote": "Additional rules and explanations relative to this statement are given in 14.5.9, Overlapping operands",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.12.4 GR3",
+      "quote": "Additional rules and explanations relative to this statement are given in 14.6.13.2, Incompatible data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.9",
+      "quote": "If there are no specific rules addressing such overlapping operands, the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "if standard arithmetic is specified for the source unit or the implementor defines that the range of values allowed for the intermediate data item is to be checked",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "Storing of a standard intermediate data item in a resultant-identifier shall be according to the rules for the MOVE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "A pointer rule whose 2002 list differs: it adds 14.5.9 Overlapping operands (2002: undefined results for DIVIDE, no testable requirement; 2023's 14.6.10 instead defines same-entry overlap, and is not in 2023's list), and its 14.6.4 and 14.6.6 carry 2002's standard arithmetic (rule 4 range check of the standard intermediate, rule 3 storing per MOVE with 8.8.1.3.1.3 rounding). 14.6.3 ROUNDED (one mode, away from zero) and 14.5.12.2 Incompatible data read the same as 2023's default. At 2002: size error on zero divisor right (probe), incompatible data right (pb230 PASS); the standard-arithmetic store is wrong as in GR1 (PB5575 reach). Formats 1-5 of 2002 14.8.11.1 match 2023's, except ROUNDED (2002) vs rounded-phrase (2023 adds MODE IS, refused at 2002 as COBOL0803). 2002 has two arithmetic modes, native and standard (ARITHMETIC IS STANDARD, §2002:8.8.1.3: a 32-digit standard intermediate data item, each operation truncated to 32 digits, rounded to 31 digits on a move without ROUNDED); 2023 names standard-decimal and standard-binary, which do not exist in 2002. The row's standard-mode witnesses use ARITHMETIC IS STANDARD-DECIMAL / -BINARY and are refused at 2002 (COBOL0900), so the 2002 standard leg has no witness through the row. The pinned compiler predates the PB5575 run-time arm (PR #1720 is not an ancestor of 24372b7b17), and PB5575's witness has no DIVIDE statement.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_std2002_standard.cob",
+    "widening": null,
+    "scope-2002": [
+     "overlapping operands (undefined)",
+     "incompatible data",
+     "ROUNDED",
+     "SIZE ERROR incl. zero divisor",
+     "arithmetic statements incl. standard arithmetic storing"
+    ],
+    "evidence-2002": {
+     "overlap": "no testable requirement (§2002:14.5.9: undefined)",
+     "incompatible": "covered by conformance:cases/14.6.13.2-Incompatible-data/pb230_incompatible_sending_sweep (PASS at 2002, run now)",
+     "ROUNDED/size error native": "probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_native2002.cob (Q-ROUNDED .666...667, SIZE-ERR ZERO 0007, correct)",
+     "standard storing": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_std2002_standard.cob: WRONG as in GR1"
+    },
+    "class": "own-text",
+    "needs": "its own verdict: 2002's list adds 14.5.9 (undefined, signed derivation) and reaches standard arithmetic, where the compiler at --std 2002 is wrong (PB5575 reach); a 2002 witness for each referenced rule under ARITHMETIC IS STANDARD",
+    "compiler-at-2002": "wrong (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_std2002_standard.cob; PB5575)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.11.3-7",
+    "to": [
+     "GR-14.9.12.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.11.3",
+    "clause-2023": "14.9.12.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.11.3 GR7",
+      "quote": "When standard arithmetic is in effect, the remainder is the result of the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.4",
+      "quote": "The result shall be the exact product truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.11.3 GR6c",
+      "quote": "a subsidiary quotient is developed that is signed and derived from the quotient by truncation of digits at the least significant end",
+      "check": "OK"
+     }
+    ],
+    "reason": "Native leg the same and right at 2002. Standard leg: 2002's 32-digit standard arithmetic. Derived: D PIC 9(11)V9 = 12345678901.5, V PIC 9V9(29) = 1.00000000000000000000000000001, DIVIDE V INTO D GIVING Q REMAINDER R (Q PIC 9(11), R PIC V9(30)), ARITHMETIC IS STANDARD: subsidiary quotient 12345678901; product with V is 12345678901.00000000000000000012345678901 (40 digits), truncated to 32: 12345678901.000000000000000000123; remainder 12345678901.5 minus that = .499999999999999999877 exactly, R = .499999999999999999877000000000. Observed at --std 2002 and 2014: .499999999999999999876540000000 (the back-multiply not truncated to 32 digits). PB5575 reach; on main, ArithmeticEmitter.EmitDivideRemainder keeps the back-multiply exact (keepWide, lines 187-188), so the fix there is unproven without a DIVIDE witness. Formats 1-5 of 2002 14.8.11.1 match 2023's, except ROUNDED (2002) vs rounded-phrase (2023 adds MODE IS, refused at 2002 as COBOL0803). 2002 has two arithmetic modes, native and standard (ARITHMETIC IS STANDARD, §2002:8.8.1.3: a 32-digit standard intermediate data item, each operation truncated to 32 digits, rounded to 31 digits on a move without ROUNDED); 2023 names standard-decimal and standard-binary, which do not exist in 2002. The row's standard-mode witnesses use ARITHMETIC IS STANDARD-DECIMAL / -BINARY and are refused at 2002 (COBOL0900), so the 2002 standard leg has no witness through the row. The pinned compiler predates the PB5575 run-time arm (PR #1720 is not an ancestor of 24372b7b17), and PB5575's witness has no DIVIDE statement.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_rem_std2002.cob",
+    "widening": null,
+    "scope-2002": [
+     "native remainder",
+     "standard arithmetic remainder (32-digit truncated back-multiply and subtraction)"
+    ],
+    "evidence-2002": {
+     "native": "covered by conformance:cases/14.9.12-DIVIDE/l1_divide_quotient_remainder_native, l1_divide_remainder_backmultiply_size_error, pb3975_remainder_after_quotient_size_error, pb5182-unsigned-quotient-remainder-signed-subsidiary (PASS at 2002, run now)",
+     "standard": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_rem_std2002.cob: R .499999999999999999876540000000, expected .499999999999999999877000000000; WRONG"
+    },
+    "class": "own-text",
+    "needs": "its own verdict: the compiler at --std 2002 forms the DIVIDE REMAINDER under ARITHMETIC IS STANDARD without 32-digit truncation of the back-multiply (PB5575 reach); a 2002 witness",
+    "compiler-at-2002": "wrong (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_divide_rem_std2002.cob; PB5575)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.12.2-4",
+    "to": [
+     "SR-14.9.13.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.12.2",
+    "clause-2023": "14.9.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.12.2 SR4",
+      "quote": "The two operands in a range-expression shall be of the same class and shall not be of class boolean, object or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.13.3 SR4",
+      "quote": "shall not be of class boolean, message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format and range-expression identical in both editions; 2023 adds class message-tag (a 2023 usage), so the 2002 exclusions are a subset. The 2002 scope has three excluded classes plus the same-class rule; the row's evidence covers boolean, pointer and a class mix, but has no object-class range test (the gap is the 2023 row's too). Probe at 2002: an OBJECT REFERENCE range is refused (COBOL2107), a national/alphanumeric mix is refused, a legal range runs. So the compiler is right; the object leg needs a witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_eval_range_object_2002.cob",
+    "widening": "2023 adds message-tag to the excluded classes",
+    "scope-2002": [
+     "same class required",
+     "class boolean excluded",
+     "class object excluded",
+     "class pointer excluded"
+    ],
+    "evidence-2002": {
+     "same class": "covered by conformance:cases/8.3.3.2-Alphanumeric-literals/pb399-evaluate-range-class-mix (REFUSED COBOL2107 at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_eval_range_national_mix_2002.cob",
+     "boolean": "covered by conformance:cases/14.9.13-EVALUATE/pb399-evaluate-range-boolean-class (REFUSED at 2002, run now)",
+     "pointer": "covered by conformance:cases/14.9.13-EVALUATE/pb399-evaluate-range-pointer-class (REFUSED at 2002, run now)",
+     "object": "not shown by the row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_eval_range_object_2002.cob (2002: COBOL2107 on both ends, correct)"
+    },
+    "class": "other",
+    "needs": "a 2002 witness for the class-object leg (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_eval_range_object_2002.cob); the 2023 row lacks it too",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-22/src/u22_eval_range_object_2002.cob)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-22",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.9.2-1",
+    "verdict": "UPHELD",
+    "reason": "2002 14.8.9.1 has the one DELETE format, word for word 2023 Format 1. The 2002 organizations are sequential, relative and indexed; the 2023 line sequential organization is an addition. No CD operand: file-name-1 is a file-name. No 2002-only form.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.2 SR1",
+      "quote": "The DELETE statement shall not be specified for a file with sequential organization",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.9.2-2",
+    "verdict": "UPHELD",
+    "reason": "The format and the access modes are the same in both editions, and the rule defers to nothing else.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.2 SR2",
+      "quote": "shall not be specified for a DELETE statement that references a file that is in sequential access mode",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-10",
+    "verdict": "UPHELD",
+    "reason": "The 2002 9.1.12 values a record DELETE can set (00, 23 a, 30, 43, 49, 51-54, 9x) are worded as in 2023 9.1.13, and the fatal classes 3 and 4 are the same. 2023's additions (7x fatal, EC-I-O-WARNING for 0x, and 05/37/39/41/62 for DELETE FILE) do not reach a 2002 record DELETE that sets 00.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.12.6",
+      "quote": "prior to the execution of a DELETE or REWRITE statement through the same file connector was not a successfully executed READ statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.7",
+      "quote": "prior to the execution of a DELETE RECORD or REWRITE statement through the same file connector was not a successfully executed READ statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-11",
+    "verdict": "OVERTURNED",
+    "reason": "The rule hands transfer of control to the invalid key condition clause, and that clause's words for a statement without INVALID KEY differ. 2002 9.1.13 items 3 and 4 run only 'a USE AFTER EXCEPTION procedure ... associated with the file connector'; when there is none, control goes to the end of the statement. 2023 9.1.14 item 3 runs 'any applicable exception processing statements', which includes an exception-name USE with no FILE phrase. Inside 2002, 9.1.12 paragraph 6 and 14.8.45.3 GR3e point the other way, so the 2002 text conflicts with itself. Probe: DELETE of an absent relative key, no INVALID KEY, EC-I-O-INVALID-KEY checking on, and only a USE AFTER EXCEPTION CONDITION EC-I-O-INVALID-KEY declarative (no FILE). At --std 2002 and --std 2023 the declarative runs: ECUSE=23, then AFTER=23. A literal reading of 2002 9.1.13 item 4 expects AFTER=23 alone. The reader's 2002 scope for this rule left out the no-phrase legs altogether. The row's witness l1_delete_invalid_key_transfer covers only a file-name USE and declares accept [2023]. Needs: an adjudication of 2002 9.1.13 items 3 and 4 against 9.1.12 paragraph 6, and then a 2002 witness for the no-phrase legs.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "If the INVALID KEY phrase is not specified in the input-output statement and there is no USE AFTER EXCEPTION procedure associated with the file connector associated with the input-output statement, control is transferred to the end of the input-output statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "a USE AFTER EXCEPTION procedure is associated with the file connector associated with the input-output statement, that USE AFTER EXCEPTION procedure is executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.14",
+      "quote": "If the INVALID KEY phrase is not specified in the input-output statement, any applicable exception processing statements are executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "Otherwise, the exception condition that exists determines whether an applicable USE procedure shall be executed according to the rules in 14.8.45, USE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.45.3 GR3e",
+      "quote": "If the exception condition that was raised matches exception-name-1, that declarative is executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.9.3 GR11",
+      "quote": "depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the DELETE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.10.4 GR11",
+      "quote": "as specified in 9.1.14, Invalid key condition",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-22/r22_delete_ik_ecname_use.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-2",
+    "verdict": "UPHELD",
+    "reason": "The 2002 input-output statements (CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE) are a subset of 2023's, so for a 2002 program 'the last input-output statement' means the same thing. Status 43 has the same wording in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR2",
+      "quote": "shall have been a successfully executed READ statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-3",
+    "verdict": "UPHELD",
+    "reason": "The deletion by prime key and status 23 a are the same. The invalid key condition's transfer of control, where 2002 9.1.13 differs, is carried by GR11 (overturned), not by this rule.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR3",
+      "quote": "If the physical file does not contain the record specified by the key, the invalid key condition exists",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-4",
+    "verdict": "UPHELD",
+    "reason": "Same as GR3, for relative files: the transfer of control is carried by GR11.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR4",
+      "quote": "logically removes from the physical file that record identified by the content of the relative key data item",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-5",
+    "verdict": "UPHELD",
+    "reason": "Same text, and it defers to nothing.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR5",
+      "quote": "the identified record has been logically removed from the physical file and can no longer be accessed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-6",
+    "verdict": "UPHELD",
+    "reason": "RETRY 14.6.8 (2002) matches 14.7.9 (2023) rule for rule. Attack tried: 2002 evaluates the RETRY expressions under 2002 ARITHMETIC IS STANDARD, through the implicit COMPUTE of GR2 and the integer test of GR1. That reaches only the retry count and the timeout length, which a program cannot observe, so no observable requirement differs. Probe: DELETE with RETRY N / 3 * 3 TIMES and RETRY FOR N / 3 SECONDS under ARITHMETIC IS STANDARD compiles and runs at --std 2002 (DEL=00, INV=23); --std 2023 refuses ARITHMETIC IS STANDARD (COBOL0807), as expected.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR6",
+      "quote": "additional attempts may be made to delete the record as specified in the rules in 14.6.8, RETRY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.8.2 GR2",
+      "quote": "arithmetic-expression-2 is used as the sending item and the temporary data item as the receiving item in an implicit COMPUTE statement without the ROUNDED phrase",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-22/r22_delete_retry_std.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-7",
+    "verdict": "UPHELD",
+    "reason": "2023 narrows the rule to files without an active APPLY COMMIT clause, which 2002 does not have, so every 2002 file falls in the case 2023 still governs. Items a) 1., a) 2. and b) have the same wording, and the 2002 9.1.15 lock release by CLOSE is the 2023 non-commit case.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR7",
+      "quote": "If record locks are in effect, the following actions take place",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.10.4 GR7",
+      "quote": "If record locks are in effect and the file is not subject to an active APPLY COMMIT clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-8",
+    "verdict": "UPHELD",
+    "reason": "Same text, and it defers to nothing.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR8",
+      "quote": "does not affect the content of the record area",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-9",
+    "verdict": "UPHELD",
+    "reason": "Same text, and it defers to nothing.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR9",
+      "quote": "The file position indicator is not affected by the execution of a DELETE statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-10",
+    "verdict": "UPHELD",
+    "reason": "Format 1 is word for word the same in both editions. 2002 SR1 excludes the classes object and pointer, and 2023 adds message-tag. Attacks tried: (1) In 2002 a CD record item, qualified by a cd-name, can be an operand, but the communications facility is optional in 2002 (Annex A), and the rule's requirement does not depend on where the operand is defined. (2) 2023 inserted GR7 for variable-length groups, which are dynamic-length or dynamic-capacity items only and not ODO groups, so it carves nothing out of the 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR10",
+      "quote": "If vertical positioning is not applicable on the hardware device, the vertical positioning shall be ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility is an optional element in this International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-2",
+    "verdict": "UPHELD",
+    "reason": "An implementor-documentation rule, with the same text apart from 'hardware'. The same attacks as for GR10 apply and find nothing.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR2",
+      "quote": "The implementor shall define, for each hardware device, the size of a data transfer",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-4",
+    "verdict": "UPHELD",
+    "reason": "Identifier-1 admits the same 2002 data classes; 2023 GR7 (variable-length group) touches only 2014+ dynamic items.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR4",
+      "quote": "If the hardware device is capable of receiving data of the same size as the data item being transferred",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.12.1",
+      "quote": "A variable-length group is a group item whose data description has at least one dynamic-length elementary item or dynamic-capacity table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR7",
+      "quote": "If identifier-1 references a variable-length group, the format in which its contents are displayed is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-5",
+    "verdict": "UPHELD",
+    "reason": "The text is the same, and its cross-references (general rules 4 and 5) map to the same rules in 2023.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR5",
+      "quote": "If a hardware device is not capable of receiving data of the same size as the data item being transferred",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-6",
+    "verdict": "UPHELD",
+    "reason": "The text is the same. The operands are the 2002 identifier and literal forms; a CD-qualified operand belongs to the optional Annex A facility.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR6",
+      "quote": "the size of the sending item is the sum of the sizes associated with the operands",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-8",
+    "verdict": "UPHELD",
+    "reason": "The text is the same. The number shifts by one because 2023 inserted GR7.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR8",
+      "quote": "If the WITH NO ADVANCING phrase is specified, then the positioning of the hardware device shall not be reset to the next line",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-9",
+    "verdict": "UPHELD",
+    "reason": "The text is the same, and it defers to nothing.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR9",
+      "quote": "the positioning of the hardware device shall be reset to the leftmost position of the next line of the device",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "f2cdcc5148e3cb28440f72aa64b206522b0a24f9f0bf6017df38ab83f4b9dd9c",
+  "read": "7baf1748c706fb15a5e761b93ffa6acf12820dfc7b49711963b8c146a9af9b6c",
+  "refute": "14a0b080fd48cec53f09b8e02debf3b1febb013634bfea1972f90ccb92dd2478"
+ }
+}

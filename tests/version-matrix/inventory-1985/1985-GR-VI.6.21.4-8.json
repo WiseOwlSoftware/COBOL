@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.21.4-8",
  "rule-digest": "27214678e009",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb440_perform_range_composition; conformance:cases/14.9.28-PERFORM/pb440_sort_procedure_range; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_perform_thru_inverted; conformance:cases/14.9.14-EXIT/l1_exit_format1_common_endpoint",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

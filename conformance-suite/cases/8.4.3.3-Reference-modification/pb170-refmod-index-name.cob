@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb170-refmod-index-name
-*> rules: [SR-8.4.3.3.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb170-refmod-index-name
+      *> rules: [SR-8.4.3.3.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 13.18.38.3 syntax rule 7 lists "as a subscript" among the five
       *> contexts that may reference an index-name and does NOT list a
       *> reference-modification position. ResolveSubscriptName's index-name fast

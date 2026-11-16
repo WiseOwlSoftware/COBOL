@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-11.1.1",
+ "rule-digest": "8371d9a57053",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision; src/WiseOwl.Cobol.Frontend/Preprocessor/CompilationUnitStart.cs#IsAt; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ByClauseContext",
+ "test-ref": "conformance:cases/11.2-Identification-division-structure/pb829_identification_header_optional",
+ "notes": "Own verdict from the read lineage-reads-2002/u-40.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-11.2.1, witnessed at 2002 by the cases test-ref names. The read: The diagram is the same in both editions (render-identical text, same optional header, same seven alternatives, same optional options-paragraph); the term table differs only in subclause numbers. 2002 already has no AUTHOR..SECURITY paragraphs, as 2023. Shown at 2002 by the twin's 2002-band witnesses and the probe. Cited: §2002:11.1.1."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.3.1.2.1.1",
+ "rule-digest": "ee3ccba04018",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#HEX_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#nonNumericLiteral; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+ "test-ref": "conformance:cases/8.3.1.2.1@2002-ALPHANUMERIC-LITERALS/g2002_alnum_literal_forms",
+ "notes": "The 2002 format writes the content in braces (one or more occurrences). cobol.exe (pinned dc1f2dcce8) --std 2002 --run: g2002_alnum_literal_forms exit 0, MATCH 1[AB\"C] 2[D'E\"F] 3[Q][x] 4[04] 5[ABC][ab][z0] 6[03] 7[HEX-EQ] 8[AB][B] 9[160]; zero-length twins refused COBOL0900 at the DISPLAY line. Equals derivation."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-7.1.3.1",
+ "rule-digest": "6184159e7b94",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1357_replace_also_last; conformance:cases/7.2.3-COPY/pb1670_replacing_partial_word_copy_replace",
+ "notes": "Own verdict from the read lineage-reads-2002/u-42.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-7.2.4.2, witnessed at 2002 by the cases test-ref names. The read: The two transcriptions print the same two formats, word for word: the low similarity (0.479) comes from the figure notes the 2023 transcription appends and the diagram line breaks, not from the format. Same operands, same optionality (ALSO, LEADING/TRAILING, LAST), same repetition. The pointer row's two conformance witnesses carry accept [2002] and pass at --std 2002 now (re-run). No communication or debugging-line reach: the format names no data entry. Cited: §2002:7.1.3.1."
+}

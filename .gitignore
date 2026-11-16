@@ -162,3 +162,10 @@ conformance-suite/suites/
 # A harness run's results are OUTPUT too (DESIGN-conformance-suite.md §5; kb/Work PB3175): run.py writes
 # results/<compiler>/results.json and junit.xml; a compiler's recorded verdicts are baselines/, which is tracked.
 conformance-suite/results/
+
+# A probe run of a case beside its source leaves build output (PB5731 review R2-1: a 5 MB runtime dll reached a commit).
+conformance-suite/cases/**/*.dll
+conformance-suite/cases/**/*.g.cs
+conformance-suite/cases/**/*.runtimeconfig.json
+conformance-suite/cases/**/*.pdb
+conformance-suite/cases/**/*.deps.json

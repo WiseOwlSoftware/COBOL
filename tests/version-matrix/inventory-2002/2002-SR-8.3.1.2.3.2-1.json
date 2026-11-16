@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.3.1.2.3.2-1",
+ "rule-digest": "37c86d90d9b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#LengthViolation; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#MaxPositions",
+ "test-ref": "conformance:cases/8.3.1.2.3@2002-BOOLEAN-LITERALS/g2002_boolean_literal_forms",
+ "notes": "§2002:8.3.1.2.3.2 SR1 (more than 0, at most 160): B'1' and a 40-digit BX ending in F (160, position 160 = 1 under right zero fill, §2002:14.5.8) are accepted; 0 (COBOL0900), a 161-character B literal and a 41-digit BX (164) (COBOL0814) are refused at --std 2002. Matched the derivation."
+}

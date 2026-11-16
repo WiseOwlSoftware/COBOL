@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.3.1.2.5.3-2",
+ "rule-digest": "1ee308b48fe8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundAllLiteral; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#MoveEmitter; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteFill; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#SpliceInto",
+ "test-ref": "conformance:cases/8.3.1.2.5@2002-FIGURATIVE-CONSTANT-VALUES/g2002_figurative_all_literal_length",
+ "notes": "Ordered legs: a) concatenation -> one char: \"X\" & SPACE & \"Y\" = X Y, ALL (\"A\" & QUOTE) into X(6) = A\"A\"A\"; b) VALUE/associated item -> repeat then truncate to size (min 1), before JUSTIFIED: V5/Y5/J5 ABABA, Z2 AB, Q1 X, V5 = ALL \"AB\" equal; c) not ALL literal-1 -> one char: SPACE, ALL SPACES, QUOTE, ZERO in DISPLAY and STRING ([ ][ ][\"][0], AB\"0 C  ); d) DISPLAY ALL \"AB\" -> AB.. cobol.exe (pinned dc1f2dcce8) --std 2002 --run: MATCH 1[X Y] 2[A\"A\"A\"] 3[ABABA] 4[ABABA][ABABA] 5[AB][X] 6[CMP-EQ] 7[ ][ ][\"][0] 8[AB\"0 C  ] 9[AB] A[XYXY][10101] B[ABCABCAB]. Equals derivation."
+}

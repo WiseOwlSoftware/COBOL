@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-11.5.1",
+ "rule-digest": "bca632b5d64b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-11.6.2, witnessed at 2002 by the cases test-ref names. The read: Identical format. Cited: §2002:11.5; §2002:11.5.2 SR1."
+}

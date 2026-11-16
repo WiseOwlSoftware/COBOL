@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.5.3-2",
+ "rule-digest": "9fd5729ae58a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitPointerBackings; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#ActivationPointerSeeds",
+ "test-ref": "conformance:cases/13.6-Local-storage-section/w67q_pb1132_ls_activation_reseed",
+ "notes": "Own verdict from the read lineage-reads-2002/u-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.5.4-2, witnessed at 2002 by the cases test-ref names. The read: Different words, same requirement: 2023 adds a pointer to the SET statement rules (SET ADDRESS OF exists in 2002 too) and renumbers the based-entries clause (8.6.4 to 8.6.5, identical text). BASED is WS/LS/LK only, so no CD reach. Cited: §2002:13.16.5.3 GR2; §2002:8.6.4."
+}

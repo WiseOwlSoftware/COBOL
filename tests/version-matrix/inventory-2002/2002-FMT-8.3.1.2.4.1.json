@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.3.1.2.4.1",
+ "rule-digest": "8a8f7d8bf876",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NAT_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#nonNumericLiteral; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#SplitLiteral",
+ "test-ref": "conformance:cases/8.3.1.2.4@2002-NATIONAL-LITERALS/g2002_national_literal_forms",
+ "notes": "Braces: one or more. cobol.exe (pinned dc1f2dcce8) --std 2002 --run: accepted case MATCH 1[XY'][AB] 2[AB][C] 3[NX-EQ] 4[AB][B] 5[160]; empty twins COBOL0900. Equals derivation."
+}

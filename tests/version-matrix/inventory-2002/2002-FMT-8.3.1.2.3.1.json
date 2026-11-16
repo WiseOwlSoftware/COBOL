@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.3.1.2.3.1",
+ "rule-digest": "0ffcc1d028c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BOOL_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#BOOLLIT; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode",
+ "test-ref": "conformance:cases/8.3.1.2.3@2002-BOOLEAN-LITERALS/g2002_boolean_literal_forms",
+ "notes": "Braces: one or more boolean characters / hex digits. cobol.exe (pinned dc1f2dcce8) --std 2002 --run: accepted case MATCH 1[1010][1] 2[10100101][00001111] 3[1][10][0]; empty twins COBOL0900. Equals derivation."
+}

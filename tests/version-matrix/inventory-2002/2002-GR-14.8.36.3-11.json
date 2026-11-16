@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-11",
+ "rule-digest": "9ac15d886770",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitDisposition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Release",
+ "test-ref": "conformance:cases/14.6.13.1.3-Fatal-exception-conditions/pb993_sort_merge_transfer_termination; conformance:cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec",
+ "notes": "Own verdict from the read lineage-reads-2002/u-28.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.40.4-12, witnessed at 2002 by the cases test-ref names. The read: Word-identical apart from \"non-fatal\"/\"nonfatal\". 2002 format 1 of SORT has the same USING phrase; IGNORING LOCK, SHARING ALL / READ ONLY and EC-SORT-MERGE-RELEASE (Fatal, 2002 Table) exist in 2002 with the same meaning. 2023 adds LINE SEQUENTIAL files the sentence also reaches (a widening). The pointer witnesses that are 2002 programs pass at --std 2002. Cited: §2002:14.8.36.3 GR11."
+}

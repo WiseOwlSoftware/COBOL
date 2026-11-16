@@ -3,7 +3,7 @@
 *> rules: [RV-15.7.4-1, RV-15.44.4-1, RV-15.49.4-1, RV-15.71.4-1,
 *>    RV-15.72.4-1, RV-15.76.4-1, RV-15.77.4-1, AR-15.81.3-1,
 *>    RV-15.81.4-1, FMT-15.7.2, FMT-15.42.2, DOC-A.1-92]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

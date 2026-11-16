@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.1.2-10",
+ "rule-digest": "b226d421b9dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataAddressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programAddressIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs",
+ "test-ref": "conformance:cases/8.4.2.1@2002-Identifier/g2idf02_address_identifier_formats",
+ "notes": "§2002:8.4.2.1.2 SR10 defines both address-identifier arms (§2002:8.4.2.11.3 GR1, §2002:8.4.2.12.3 GR1). Ran at --std 2002: DA-EQ / DA-NE / L1=ABCD / IN-SUB / IN-SUB / PP-SET, as derived. The not-found leg is not pinned: EC-PROGRAM-NOT-FOUND is fatal and unchecked by default, so §2002:14.5.12.1.2 rule 5 makes the outcome implementor-defined."
+}
