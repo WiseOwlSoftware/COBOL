@@ -3,6 +3,8 @@
 10.6.1): every refusal of the import, each naming the slice, the rule and the field, and nothing written when any slice
 is refused; each outcome of the one outcome function; the work and adjudication writers; the plan; and the audit of a
 stored record (a hand edit, a digest's shape, a contradicted record with no note)."""
+import contextlib
+import io
 import json
 import sys
 
@@ -381,9 +383,10 @@ def case_13_a_contradicted_read_whose_fix_has_landed_is_owed_a_re_read(expect):
     expect("a contradicted record that names a note landed AT its pin is not fixed 'since'",
            not C.fixed_since(contradicted(F.GR12, "PB3"), ctx))
     records = {F.GR12: landed_since, F.GR8: confirmed, F.SR1: contradicted(F.SR1, "PB4")}
-    expect.equal("`reread` lists the fixed-since rows", C.reread(ctx, records), [F.GR12])
+    expect.equal("`reread` lists the fixed-since rows, with the note", [(r.rule_id, r.fixed, r.moved) for r in C.reread(ctx, records)],
+                 [(F.GR12, "PB1", [])])
     expect.equal("`--witnessed` keeps those with a test-ref of their own (SR1 has none)",
-                 C.reread(ctx, {**records, F.SR1: contradicted(F.SR1, "PB1")}, witnessed=True), [F.GR12])
+                 [r.rule_id for r in C.reread(ctx, {**records, F.SR1: contradicted(F.SR1, "PB1")}, witnessed=True)], [F.GR12])
     expect.equal("the rows owed a read are the plan's other group: a contradicted row is decided, fixed since or not",
                  C.owed(ctx, records), [F.AR1])
     expect.equal("the store's counts still count the fixed-since record as contradicted",
@@ -403,6 +406,93 @@ def case_13_a_contradicted_read_whose_fix_has_landed_is_owed_a_re_read(expect):
     expect.equal("... and silent on one fixed since (information, never red)", C.record_problems(landed_since, ctx), [])
     expect("a pin that is no commit is no answer of `absent`: it refuses",
            F.refused(lambda: C.status_at("PB1", "0" * 40, repo.path), "no commit"))
+
+
+def case_14_an_import_resolves_every_location_at_its_pin(expect):
+    """kb/Work PB5863: a read is evidence AT ITS PIN, so the import resolves each `code-location` entry in the tree of the
+    pin, by the gate's own rule (`code_location`), and refuses the slice when one does not resolve there."""
+    repo, pin = F.tree()
+    ctx = F.context(repo.path)
+    bad, empty = repo.path / "bad", repo.path / "empty-store"
+    for label, loc, needle in (
+            ("a member the file does not hold", f"{F.CODE_FILE}#NoSuchMember", "'NoSuchMember' is not in that file's code"),
+            ("a member only a comment holds", f"{F.CODE_FILE}#OnlyInAComment", "'OnlyInAComment' is not in that file's code"),
+            ("a file the pin does not hold", "src/Gone.cs#BindEntry", "no such file"),
+            ("a member of a type that does not declare it", f"{F.CODE_FILE}#Other.BindEntry", "is not in that file's code")):
+        F.plant(bad, "s-01", [F.read(F.GR8, **{"code-location": f"{F.LOCATION}; {loc}"})], [F.refute(F.GR8)])
+        expect(f"refused, naming the slice, the rule, the entry and the pin: {label}",
+               F.refused(lambda: C.import_reads(ctx, bad, empty, pin), f"s-01: {F.GR8}", loc, needle, pin[:10])
+               and not empty.exists())
+    reads, store = repo.path / "reads", repo.path / "store"
+    F.plant(reads, "s-01", [F.read(F.GR8, **{"code-location": f"{F.LOCATION} (the 85 arm)"})], [F.refute(F.GR8)])
+    expect("a remark after the entry is no part of the location the pin resolves",
+           F.GR8 in C.import_reads(ctx, reads, store, pin)[0])
+    repo.commit("a member added after the read", {F.CODE_FILE: F.CODE.replace(
+        "BindEntry() { }", "BindEntry() { }\n    internal void BindLater() { }")})
+    F.plant(bad, "s-01", [F.read(F.GR8, **{"code-location": f"{F.CODE_FILE}#BindLater"})], [F.refute(F.GR8)])
+    expect("a member the working tree holds and the pin does not is refused: the read cannot have read it",
+           F.refused(lambda: C.import_reads(ctx, bad, empty, pin), f"s-01: {F.GR8}", "'BindLater'", pin[:10]))
+
+
+def case_15_a_read_whose_code_moved_is_owed_a_re_read_never_a_red(expect):
+    """kb/Work PB5863: the tree moving under a read is no failure of the read; `moved_since` lists it in the plan's re-read
+    group, beside a read whose fix landed, each with its reason, and the audit stays green."""
+    repo, pin = F.tree()
+    ctx = F.context(repo.path)
+    reads, store = repo.path / "reads", repo.path / "store"
+    F.plant(reads, "s-01", [F.read(F.GR8), F.read(F.GR12, "PARTIAL"), F.read(F.SR1)],
+            [F.refute(F.GR8), F.refute(F.SR1, "OVERTURNED")])
+    C.store.write(C.import_reads(ctx, reads, store, pin)[0], store)
+    C.store.write(C.attach_work(ctx, store, F.GR12, "PB1"), store)
+    records = C.load(ctx, store)
+    expect.equal("nothing has moved and nothing is fixed: no re-read is owed", C.reread(ctx, records), [])
+    repo.commit("a fix renames the member and lands its note", {
+        F.CODE_FILE: F.CODE.replace("BindEntry", "BindItem"), "kb/Work/PB1.md": F.note("PB1", "landed")})
+    expect("a read made at the pin still imports: its entry resolves where the code was read",
+           F.GR8 in C.import_reads(ctx, reads, repo.path / "store-2", pin)[0])
+    got = C.reread(ctx, records)
+    expect.equal("the confirmed and the contradicted read are owed a re-read, each with its reasons; the undecided one is "
+                 "in the owed group already", [(r.rule_id, r.fixed, len(r.moved)) for r in got],
+                 [(F.GR8, None, 1), (F.GR12, "PB1", 1)])
+    expect("the moved reason names the entry and the member", all(F.LOCATION in r.moved[0] and "'BindEntry'" in r.moved[0]
+                                                                  for r in got), str(got))
+    expect.equal("`moved_since` is the predicate: the unresolved entries in the working tree",
+                 [bool(C.moved_since(records[r], ctx)) for r in (F.GR8, F.GR12, F.SR1)], [True, True, True])
+    expect("the undecided row is in the owed group, not the re-read group", F.SR1 in C.owed(ctx, records))
+    doc = C.plan_doc(ctx, records)
+    expect.equal("`plan --json` carries each re-read row with why it is there",
+                 doc["re-read"], [{"rule-id": F.GR8, "fixed": None, "moved": got[0].moved},
+                                  {"rule-id": F.GR12, "fixed": "PB1", "moved": got[1].moved}])
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        red = C.check_edition(ctx, records)
+    expect("the audit is green with moved records and prints their count as information",
+           not red and "2 read(s) owed a re-read" in out.getvalue() and "1 whose fix has landed" in out.getvalue()
+           and "2 whose code has moved" in out.getvalue(), out.getvalue())
+
+
+def case_16_the_resolver_answers_the_parity_fixture(expect):
+    """The planted cases both resolvers answer (`tests/doc-facts/code-location-parity-cases.json`): the C# gate compares
+    the two engines and the fixture; this runs the Python one on its own, so a self-test run names a case it breaks."""
+    doc = json.loads(C.code_location.PARITY_FIXTURE.read_text(encoding="utf-8"))
+    got = C.code_location.parity(C.code_location.PARITY_FIXTURE)
+    expect("the fixture carries cases that resolve and cases that do not",
+           {c["resolves"] for c in doc["cases"]} == {True, False})
+    for c in doc["cases"]:
+        expect.equal(f"{c['name']} ({c['location']})", got[c["name"]], c["resolves"])
+
+
+def case_17_verify_pins_lists_a_stored_read_that_does_not_resolve_at_its_own_pin(expect):
+    repo, pin = F.tree()
+    ctx = F.context(repo.path)
+    good = C.record_of(F.read(F.GR8), F.refute(F.GR8), "0b2e58f8a250", pin, "s", {"reader": "a" * 64})
+    wrong = C.record_of(F.read(F.GR12, **{"code-location": f"{F.CODE_FILE}#NoSuchMember"}), F.refute(F.GR12),
+                        "0b2e58f8a250", pin, "s", {"reader": "a" * 64})
+    lost = {**good, "rule-id": F.SR1, "read": {**good["read"], "pin": "0" * 40}}
+    got = C.verify_pins(ctx, {F.GR8: good, F.GR12: wrong, F.SR1: lost})
+    expect.equal("the records that do not resolve at their own pin, and only those", sorted(got), [F.GR12, F.SR1])
+    expect("each names the entry and the pin", any("'NoSuchMember'" in e and pin[:10] in e for e in got[F.GR12]), str(got))
+    expect("a pin that is no commit of the repository is named as such", any("no commit" in e for e in got[F.SR1]), str(got))
 
 
 if __name__ == "__main__":

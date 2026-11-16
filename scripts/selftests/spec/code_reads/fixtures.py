@@ -30,10 +30,19 @@ def note(ident, status="open"):
     return f'---\ntitle: "{ident} - planted"\nid: {ident}\nkind: defect\nstatus: {status}\n---\n# {ident}\n'
 
 
+#: The C# file every planted read names (`read`'s `code-location`), as the pin holds it: `BindEntry` in its code, and a
+#: name only its comment holds.
+CODE_FILE = "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs"
+LOCATION = f"{CODE_FILE}#BindEntry"
+CODE = ("namespace WiseOwl.Cobol.Binding;\n// OnlyInAComment\npublic sealed partial class DataBinder\n{\n"
+        "    internal void BindEntry() { }\n}\n")
+
+
 def tree():
-    """A scratch repository with one commit (the pin), an OPEN kb/Work note PB1 and a tracked adjudication file."""
+    """A scratch repository with one commit (the pin): an OPEN kb/Work note PB1, a tracked adjudication file and the code
+    file the planted reads name (`CODE_FILE`)."""
     repo = ScratchRepo.init(scratch_dir("code-reads-") / "repo")
-    repo.commit("the tree", {"kb/Work/PB1.md": note("PB1"), "kb/Work/PB1/adj.md": "the adjudication\n"})
+    repo.commit("the tree", {"kb/Work/PB1.md": note("PB1"), "kb/Work/PB1/adj.md": "the adjudication\n", CODE_FILE: CODE})
     return repo, repo.git("rev-parse", "HEAD").strip()
 
 
@@ -44,7 +53,7 @@ def context(root, digest="0b2e58f8a250"):
 def read(rid, verdict="CONFORMS", **kw):
     """A reader's record as the reader brief writes it."""
     base = {"rule-id": rid, "verdict": verdict, "requirement": "the compiler must do what the rule says",
-            "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+            "code-location": LOCATION,
             "edition-consulted": [{"site": "src/X.cs#Y", "switches": "the arm", "same-arm-as-latest": True}],
             "edition-search": "", "behaviour-differs-by-edition": "no", "witnesses-cover": "all of it",
             "probes": [{"class": "b", "file": "p.cob", "printed": "X=3", "expected": "X=3"}],

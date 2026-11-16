@@ -7,6 +7,7 @@ a reader and a refuter (kb/Work PB5759, PB5683, PB5692; DESIGN-spec-conformance-
     python scripts/spec/code_reads.py adjudicate --edition YEAR RULE-ID --verdict V --reason TEXT --ref PATH [--work PBnnnn]
     python scripts/spec/code_reads.py withdraw --edition YEAR RULE-ID --reason TEXT  # remove a read defective as a read
     python scripts/spec/code_reads.py plan --edition YEAR [--witnessed] [--json]  # the KEPT rows owed a read, and the re-reads
+    python scripts/spec/code_reads.py verify-pins --edition YEAR                  # every stored read resolved at its own pin
     python scripts/spec/code_reads.py --check [YEAR]                              # the gate's CODE READS audit
 
 WHY (kb/Work PB5692's ruling, 2026-11-15). A verdict shared from the 2023 adjudication does not close a 1985 row: every
@@ -41,6 +42,16 @@ THE OUTCOME OF A RECORD is ONE function, `code_read_store.outcome` (confirmed, c
 the audit, the view and the planner all ask; the store's reader and writer live beside it, in the half the inventory view
 imports (`code_read_store.py`, whose docstring says why the code reads are two files).
 
+A READ IS EVIDENCE AT ITS PIN (kb/Work PB5863). The import resolves every `code-location` entry in the tree of the commit
+the code was read at (`code_location.PinnedTree`, by the rule the gate holds the inventory's rows to: `code_location` is its
+Python twin, kept one rule by a parity fixture and a whole-tree comparison in the C# gate) and refuses a slice with an
+entry that does not resolve there, naming the rule, the entry and the pin. That is the only time a read's locations are
+judged: code moves, and a read made at an older commit is not wrong because it did, it is OLD. `moved_since` (an entry no
+longer resolves in the working tree) puts such a row in `plan`'s RE-READ group beside a contradicted read whose fix has
+landed (`fixed_since`), each with its reason; nothing is red for it. `verify-pins` is the hand verb that resolves every
+stored record at its own pin (the records imported before the rule); it is not part of `--check`, because a pin's commit
+may be absent from a shallow checkout.
+
 THE AUDIT (`--check`, the gate's CODE READS) reads every store of an older held edition and is RED on: a record that does
 not parse to the shape (`record_problems`, the import's own checks); a rule the edition does not have; a citation that
 does not parse (`citation.parse`), is of an edition the repository does not hold, does not check (`cite.resolve`), or a
@@ -48,15 +59,12 @@ read none of whose citations is of the rule's own edition, its catalog citation'
 (`inventory_schema.witness_shape_error`); a held part edited since its import; a digest of the wrong shape; an
 adjudication whose `ref` is no file of the tree; a contradicted record whose `work` is no note of kb/Work, or is a note
 already `landed` at the record's own pin (`landed_at_pin_problem`). Stale, undecided and owed are counted, never red, and so
-is a contradicted read FIXED SINCE (`fixed_since`: its note landed after its pin), which `plan` lists as owed a RE-READ
-(kb/Work PB5854). That every site of a code-location still RESOLVES is the battery gate's question, asked
-with the one predicate the inventory's rows are held to (`SpecTraceabilityInventoryDriftTests.SymbolResolves`, its
-`EveryCodeReadLocation_ResolvesInTheTree`): the inventory's own division of labour (`inventory_schema`'s docstring, SHAPE
-here and REFERENCE there), so no second copy of the resolver exists.
+are the reads owed a RE-READ (`reread`: fixed since, kb/Work PB5854, or moved since, kb/Work PB5863).
 """
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
 import json
 import pathlib
@@ -64,11 +72,12 @@ import re
 import subprocess
 import sys
 from collections import Counter
-from typing import Any, Iterable
+from typing import Any, Iterable, Iterator
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import cite  # noqa: E402  (THE checker of a citation)
 import citation  # noqa: E402  (THE citation parser)
+import code_location  # noqa: E402  (THE resolver of a code-location, the gate's rule: at a pin and in the working tree)
 import code_read_store as store  # noqa: E402  (the store, the outcome, the counts: the view's half)
 from code_read_store import CONFIRMED, CONFORMS, CONTRADICTED, OUTCOMES, READER_UNDECIDED, UPHELD  # noqa: E402
 import inventory_schema  # noqa: E402  (the editions, the verdict vocabulary, the code-location shape)
@@ -388,16 +397,35 @@ def status_in_tree(work: str, root: pathlib.Path) -> str | None:
     return note_status(work, path.read_text(encoding="utf-8") if path.is_file() else None)
 
 
+_OPEN_PINS: dict[pathlib.Path, code_location.PinnedTrees] = {}
+
+
+@contextlib.contextmanager
+def pins_open(root: pathlib.Path) -> Iterator[code_location.PinnedTrees]:
+    """The trees of the commits of the repository at `root`: inside the outermost `with`, every read at a pin goes through
+    ONE `git cat-file` process per pin (`code_location.PinnedTrees`), closed when it ends. The audit reads a note at the pin
+    of every contradicted record and the import every location at its pin: a process per read cost the audit 33 s of its
+    47 on a busy host."""
+    key = root.resolve()
+    if key in _OPEN_PINS:
+        yield _OPEN_PINS[key]
+        return
+    with code_location.PinnedTrees(root) as pins:
+        _OPEN_PINS[key] = pins
+        try:
+            yield pins
+        finally:
+            del _OPEN_PINS[key]
+
+
 def status_at(work: str, pin: str, root: pathlib.Path) -> str | None:
     """`work`'s status in the commit `pin` of the repository at `root` (None when the note was no file there). A pin that is
     no commit of the repository refuses: a status that cannot be read is no answer of "absent"."""
-    shown = subprocess.run(["git", "-C", str(root), "show", f"{pin}:{WORK_DIR}/{work}.md"], capture_output=True)
-    if shown.returncode:
-        if subprocess.run(["git", "-C", str(root), "cat-file", "-e", f"{pin}^{{commit}}"], capture_output=True).returncode:
+    with pins_open(root) as pins:
+        if not pins.is_commit(pin):
             raise SystemExit(f"{TOOL}: {work}: the pin {pin} is no commit of the repository at {root}, so the note's status "
                              "at the read cannot be known")
-        return None
-    return note_status(work, shown.stdout.decode("utf-8"))
+        return note_status(work, pins.at(pin).text(f"{WORK_DIR}/{work}.md"))
 
 
 def landed_at_pin(work: str, pin: str, root: pathlib.Path) -> bool:
@@ -529,7 +557,8 @@ def import_reads(ctx: Context, reads: pathlib.Path, out: pathlib.Path, pin: str,
     imported, the rules whose earlier record they replace). Nothing is written by this function (`write` does), and every
     problem of every slice is raised together: a rule of no catalog row, a row the read does not apply to (not KEPT), a
     read of a rule read twice (in two slices, or already recorded and not `replace`), a malformed reader's record or
-    refuter's case, a refuter's case of no CONFORMS read, a CONFORMS read with no refuter's case, an orphan refute file."""
+    refuter's case, a `code-location` entry that does not resolve in the tree AT THE PIN (`location_problems`, kb/Work
+    PB5863), a refuter's case of no CONFORMS read, a CONFORMS read with no refuter's case, an orphan refute file."""
     if not reads.is_dir():
         raise SystemExit(f"{TOOL}: {reads} is not a directory of read files")
     if not PIN.match(pin):
@@ -538,6 +567,20 @@ def import_reads(ctx: Context, reads: pathlib.Path, out: pathlib.Path, pin: str,
         raise SystemExit(f"{TOOL}: --pin {pin} is no commit of the repository at {ctx.root}")
     year = ctx.ed.year
     existing = load(ctx, out)
+    with pins_open(ctx.root) as pins:
+        return _import_reads(ctx, reads, existing, pins.at(pin), pin, replace)
+
+
+def location_problems(case: dict[str, Any], tree: code_location.Tree, ctx: Context) -> list[str]:
+    """Why the entries of the reader's `code-location` (the locations alone, `take_remarks`) do not resolve in `tree`, by
+    the gate's rule (`code_location`): one problem per entry that does not."""
+    return code_location.unresolved(ctx.schema.split(case.get("code-location") or "", ctx.schema.code_location_sep),
+                                    tree, ctx.schema.code_location_re)
+
+
+def _import_reads(ctx: Context, reads: pathlib.Path, existing: dict[str, dict[str, Any]], at_pin: code_location.Tree,
+                  pin: str, replace: bool) -> tuple[dict[str, dict[str, Any]], list[str], list[str]]:
+    year = ctx.ed.year
     errs: list[str] = []
     orphans = sorted(p.name for p in reads.glob(f"*{REFUTE_SUFFIX}.json")
                      if not (reads / p.name.replace(f"{REFUTE_SUFFIX}.json", ".json")).exists())
@@ -580,6 +623,9 @@ def import_reads(ctx: Context, reads: pathlib.Path, out: pathlib.Path, pin: str,
             if isinstance(case, dict):
                 case, remark_problems = take_remarks(case, ctx)
             if bad := remark_problems + reader_problems(case, ctx):
+                errs += [f"{label}: {e}" for e in bad]
+                continue
+            if bad := location_problems(case, at_pin, ctx):   # evidence at its pin (kb/Work PB5863)
                 errs += [f"{label}: {e}" for e in bad]
                 continue
             if rid in readers or rid in where:
@@ -668,7 +714,8 @@ def adjudicate(ctx: Context, directory: pathlib.Path, rid: str, verdict: str, re
 
 def withdraw(ctx: Context, directory: pathlib.Path, rid: str, reason: str) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
     """The store without `rid`'s record, and the record removed. For a read that is defective AS A READ (a location that
-    resolves nowhere), never for one someone disagrees with (`adjudicate`); the row is owed a read again (kb/Work PB5842)."""
+    never resolved at its own pin, `verify-pins`), never for one someone disagrees with (`adjudicate`) and never for one whose
+    code has moved since (`moved_since`: owed a re-read, kb/Work PB5863); the row is owed a read again (kb/Work PB5842)."""
     if not reason.strip():
         raise SystemExit(f"{TOOL}: withdraw {rid}: --reason is empty")
     records, record = _one(ctx, directory, rid)
@@ -683,18 +730,97 @@ def owed(ctx: Context, records: dict[str, dict[str, Any]], witnessed: bool = Fal
     return store.owed(ctx.rows, ctx.schema, records, witnessed)
 
 
-def reread(ctx: Context, records: dict[str, dict[str, Any]], witnessed: bool = False) -> list[str]:
-    """The rows owed a RE-READ (kb/Work PB5854), in the catalog's order: each a contradicted record `fixed_since` its read.
-    `witnessed` keeps those that carry a test-ref of their own, as `owed` does. The record stays in the store, counted as
-    contradicted, until the re-read replaces it (`import --replace`)."""
-    return [rid for rid in ctx.rows if rid in records and fixed_since(records[rid], ctx)
-            and (not witnessed or lineage.own_witness_refs(ctx.rows[rid], ctx.schema))]
+def moved_since(record: dict[str, Any], ctx: Context, tree: code_location.Tree | None = None) -> list[str]:
+    """THE PREDICATE of kb/Work PB5863: the entries of `record`'s `code-location` that no longer resolve in the working tree
+    (`tree`, by default the tree at `ctx.root`), each with why; empty when none has moved. The read resolved at its pin (the
+    import's rule), so an entry that does not resolve now names code that moved since the read: the row is owed a re-read,
+    and nothing is wrong with the record."""
+    return location_problems(record["reader"], tree or code_location.working_tree(ctx.root), ctx)
+
+
+@dataclasses.dataclass(frozen=True)
+class ReRead:
+    """A row owed a RE-READ and why: `fixed`, the note of its contradiction that has landed since the read
+    (`fixed_since`), and `moved`, the entries of its location that no longer resolve (`moved_since`). One or both."""
+    rule_id: str
+    fixed: str | None
+    moved: list[str]
+
+
+def reread(ctx: Context, records: dict[str, dict[str, Any]], witnessed: bool = False) -> list[ReRead]:
+    """The rows owed a RE-READ, in the catalog's order: each a DECIDED record (confirmed or contradicted: an undecided or
+    stale one is in `owed` already) that is `fixed_since` its read (kb/Work PB5854) or `moved_since` it (kb/Work PB5863).
+    `witnessed` keeps those that carry a test-ref of their own, as `owed` does. The record stays in the store, counted by
+    its outcome, until the re-read replaces it (`import --replace`)."""
+    tree = code_location.working_tree(ctx.root)
+    out = []
+    with pins_open(ctx.root):
+        for rid in ctx.rows:
+            record = records.get(rid)
+            if record is None or outcome(record, ctx) not in (CONFIRMED, CONTRADICTED):
+                continue
+            if witnessed and not lineage.own_witness_refs(ctx.rows[rid], ctx.schema):
+                continue
+            fixed = record["work"] if fixed_since(record, ctx) else None
+            moved = moved_since(record, ctx, tree)
+            if fixed or moved:
+                out.append(ReRead(rid, fixed, moved))
+    return out
+
+
+def plan_doc(ctx: Context, records: dict[str, dict[str, Any]], witnessed: bool = False) -> dict[str, Any]:
+    """What `plan --json` prints: the rows owed a read, and the rows owed a re-read, each with why it is there."""
+    return {"owed": owed(ctx, records, witnessed),
+            "re-read": [{"rule-id": r.rule_id, "fixed": r.fixed, "moved": r.moved} for r in reread(ctx, records, witnessed)]}
+
+
+def reread_text(r: ReRead) -> str:
+    why = ([f"fixed: {r.fixed} has landed since the read"] if r.fixed else []) + [f"moved: {m}" for m in r.moved]
+    return f"{r.rule_id} ({'; '.join(why)})"
+
+
+def verify_pins(ctx: Context, records: dict[str, dict[str, Any]]) -> dict[str, list[str]]:
+    """Every record whose `code-location` does not resolve in the tree of its OWN pin, with why (kb/Work PB5863): the import
+    refuses such a read now; this lists the ones imported before it did, for the dispatching session to judge. A pin that
+    is no commit of the repository is named as such (a shallow checkout lacks old commits: this is a hand verb, never part
+    of `--check`)."""
+    out: dict[str, list[str]] = {}
+    with pins_open(ctx.root) as pins:
+        for rid, record in sorted(records.items()):
+            pin = record["read"]["pin"]
+            if not pins.is_commit(pin):
+                out[rid] = [f"the pin {pin} is no commit of the repository at {ctx.root}"]
+            elif bad := location_problems(record["reader"], pins.at(pin), ctx):
+                out[rid] = bad
+    return out
 
 
 def older_years(root: pathlib.Path = REPO) -> list[int]:
     """Every older held edition that has a store of code reads."""
     return [e.year for e in inventory_schema.load_schema().all_editions
             if e.held and not e.newest and store.load(e.year, root)]
+
+
+def check_edition(ctx: Context, records: dict[str, dict[str, Any]]) -> bool:
+    """The audit of one edition's store (`check`): prints its counts, the reads owed a re-read (information) and every
+    problem; True when it is RED."""
+    with pins_open(ctx.root):
+        problems = {rid: record_problems(r, ctx) for rid, r in sorted(records.items())}
+        errs = [f"{rid}: {e}" for rid, es in problems.items() for e in es]
+        # `reread` asks the tree and the pin: a record that does not stand is no question for it
+        again = reread(ctx, records) if not errs else []
+    c = store.counts(ctx.rows, ctx.schema, {rid: r for rid, r in records.items() if not problems[rid]})
+    print(f"{ctx.ed.year}: {len(records)} code read(s); {store.count_text(c)}")
+    if not errs:
+        if again:
+            print(f"  {len(again)} read(s) owed a re-read (information, never red): "
+                  f"{sum(1 for r in again if r.fixed)} whose fix has landed since its read, "
+                  f"{sum(1 for r in again if r.moved)} whose code has moved since its read: `plan` lists them")
+        else:
+            print("  no read is owed a re-read: no fix has landed and no code has moved since a read")
+    for e in errs:
+        print(f"  ⛔ {e}")
+    return bool(errs)
 
 
 def check(years: list[int]) -> int:
@@ -709,17 +835,7 @@ def check(years: list[int]) -> int:
             print(f"  ⛔ {e.code}")
             red.append(y)
             continue
-        problems = {rid: record_problems(r, ctx) for rid, r in sorted(records.items())}
-        errs = [f"{rid}: {e}" for rid, es in problems.items() for e in es]
-        c = store.counts(ctx.rows, ctx.schema, {rid: r for rid, r in records.items() if not problems[rid]})
-        print(f"{y}: {len(records)} code read(s); {store.count_text(c)}")
-        if not errs:   # `fixed_since` asks the tree and the pin: a record that does not stand is no question for it
-            fixed = reread(ctx, records)
-            print(f"  {len(fixed)} contradicted read(s) fixed since their read (their note has landed): `plan` lists them "
-                  "as owed a re-read" if fixed else "  no contradicted read is fixed since its read")
-        for e in errs:
-            print(f"  ⛔ {e}")
-        if errs:
+        if check_edition(ctx, records):
             red.append(y)
     print(f"=== CODE READS: {'GREEN' if not red else f'RED ({red})'} ===")
     return 1 if red else 0
@@ -759,6 +875,9 @@ def main(argv: list[str] | None = None) -> int:
     pl.add_argument("--edition", type=int, required=True)
     pl.add_argument("--witnessed", action="store_true", help="only the rows that carry a test-ref of their own")
     pl.add_argument("--json", action="store_true")
+    vp = sub.add_parser("verify-pins", help="resolve every stored read's code-location at its own pin (a hand verb; "
+                                            "not part of --check)")
+    vp.add_argument("--edition", type=int, required=True)
     a = ap.parse_args(argv)
     if a.cmd is None:
         if a.check is None:
@@ -769,17 +888,28 @@ def main(argv: list[str] | None = None) -> int:
     tracked = store.store_dir(a.edition)
     if a.cmd == "plan":
         records = load(ctx)
-        rows, again = owed(ctx, records, a.witnessed), reread(ctx, records, a.witnessed)
         if a.json:
-            print(json.dumps({"owed": rows, "re-read": again}, indent=1))
+            print(json.dumps(plan_doc(ctx, records, a.witnessed), indent=1))
         else:
+            rows, again = owed(ctx, records, a.witnessed), reread(ctx, records, a.witnessed)
             print(f"plan {a.edition}: {len(rows)} KEPT row(s){' with a witness of their own' if a.witnessed else ''} "
                   "owed a code read")
             print("\n".join(rows))
-            print(f"plan {a.edition}: {len(again)} contradicted row(s) fixed since their read, owed a RE-READ "
-                  "(import --replace)")
-            print("\n".join(f"{rid} ({records[rid]['work']})" for rid in again))
+            print(f"plan {a.edition}: {len(again)} row(s) owed a RE-READ (import --replace): "
+                  f"{sum(1 for r in again if r.fixed)} whose fix has landed since the read, "
+                  f"{sum(1 for r in again if r.moved)} whose code has moved since the read")
+            print("\n".join(reread_text(r) for r in again))
         return 0
+    if a.cmd == "verify-pins":
+        records = load(ctx)
+        bad = verify_pins(ctx, records)
+        for rid, problems in bad.items():
+            print(f"{rid} (pin {records[rid]['read']['pin'][:10]}, slice {records[rid]['read']['slice']}):")
+            print("\n".join(f"  {p}" for p in problems))
+        pins = len({r["read"]["pin"] for r in records.values()})
+        print(f"verify-pins {a.edition}: {len(records)} record(s) at {pins} pin(s); {len(bad)} whose code-location does not "
+              "resolve at its own pin")
+        return 1 if bad else 0
     if a.cmd == "import":
         directory = pathlib.Path(a.record) if a.record else tracked
         records, imported, replaced = import_reads(ctx, pathlib.Path(a.reads), directory, a.pin, a.replace)

@@ -76,6 +76,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// ANTLR task's build copies under <c>obj/</c> are not read twice).</summary>
     private static readonly TreeScope GrammarSources = new(Under: ["src/WiseOwl.Cobol.Frontend/Grammar/"], Kinds: [".g4"]);
 
+    /// <summary>The compiler's C# sources: the population the two resolvers' declared names are compared over (kb/Work PB5863).</summary>
+    private static readonly TreeScope CompilerSources = new(Under: ["src/"], Kinds: [".cs"]);
+
     // ── the artifacts under test ─────────────────────────────────────────────────────────────────────
 
     /// <summary>A row of the view (<see cref="TraceabilityInventory.Row"/>, the one row type) with <paramref name="State"/>:
@@ -1774,25 +1777,123 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// Every code read's code-location (<c>tests/version-matrix/code-reads-&lt;year&gt;/&lt;rule-id&gt;.json</c>, its
-    /// <c>reader</c>'s, kb/Work PB5759) still points at code that exists, by the ONE predicate a row's is held to
-    /// (<see cref="SymbolResolves"/>): <c>scripts/spec/code_reads.py</c> checks the record's SHAPE at its import and in
-    /// the CODE READS audit, and this checks the REFERENCE, the inventory's own division of labour.
+    /// ⛔ THE CROSS-LANGUAGE PARITY GATE OF THE RESOLVER (kb/Work PB5863). A code read
+    /// (<c>tests/version-matrix/code-reads-&lt;year&gt;/</c>) is evidence AT ITS PIN: <c>scripts/spec/code_reads.py</c>
+    /// validates its <c>code-location</c> once, at its import, against the tree of the commit it was read at, and lists a
+    /// read whose code has MOVED since as owed a re-read; the tree moving is never a red of this gate. Those questions are
+    /// asked in Python (<c>scripts/spec/code_location.py</c>), so the rule <see cref="UnresolvedCodeLocations"/> holds the
+    /// inventory's rows to exists twice, and this is what keeps it one rule: this engine, the Python engine and the
+    /// recorded answer agree on every planted case of <c>tests/doc-facts/code-location-parity-cases.json</c>.
     /// </summary>
     [Fact]
-    public void EveryCodeReadLocation_ResolvesInTheTree()
+    public void TheCodeLocationResolver_AgreesWithTheFixtureAndWithPython()
     {
-        string matrix = Path.Combine(TestRepo.Root, "tests", "version-matrix");
-        var reads = Directory.EnumerateDirectories(matrix, "code-reads-*")
-            .SelectMany(d => Directory.EnumerateFiles(d, "*.json"))
-            .Select(f =>
-            {
-                using var doc = JsonDocument.Parse(File.ReadAllText(f));
-                return FixtureRow(doc.RootElement.GetProperty("reader").Clone());
-            })
+        string path = Path.Combine(TestRepo.Root, "tests", "doc-facts", "code-location-parity-cases.json");
+        using var doc = JsonDocument.Parse(File.ReadAllText(path));
+        var cases = doc.RootElement.GetProperty("cases").EnumerateArray()
+            .Select(c => (Name: c.GetProperty("name").GetString()!, Location: c.GetProperty("location").GetString()!,
+                          Resolves: c.GetProperty("resolves").GetBoolean()))
             .ToList();
-        var bad = UnresolvedCodeLocations(reads, LoadSchema(), TestRepo.Root);
-        Assert.True(bad.Count == 0, Report("unresolved code-read code-location(s)", bad, reads.Count));
+        Assert.True(cases.Count > 20, $"the resolver's parity fixture carries {cases.Count} case(s): too few to measure the rule");
+        Assert.Contains(cases, c => c.Resolves);
+        Assert.Contains(cases, c => !c.Resolves);
+
+        var s = LoadSchema();
+        string fixture = ScratchDirectory.Create("pb5863_");
+        try
+        {
+            foreach (var f in doc.RootElement.GetProperty("files").EnumerateObject())
+            {
+                string file = Path.Combine(fixture, f.Name.Replace('/', Path.DirectorySeparatorChar));
+                Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+                File.WriteAllText(file, f.Value.GetString()!);
+            }
+            var run = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "code_location.py"), "--parity", path);
+            string? line = run.Stdout.Split('\n').Select(l => l.Trim()).FirstOrDefault(l => l.StartsWith("JSON ", StringComparison.Ordinal));
+            Assert.True(run.ExitCode == 0 && line is not null,
+                $"code_location.py --parity exited {run.ExitCode} with no JSON line:\n{run.Stdout}\n{run.Stderr}");
+            var python = JsonSerializer.Deserialize<Dictionary<string, bool>>(line!["JSON ".Length..])!;
+
+            List<string> bad = [];
+            foreach (var (name, location, resolves) in cases)
+            {
+                bool mine = UnresolvedCodeLocations(
+                    [new TraceabilityInventory.Row("X-PB5863", "", "", 0, "", "", location, "", "", "", "")], s, fixture).Count == 0;
+                bool? theirs = python.TryGetValue(name, out bool t) ? t : null;
+                if (mine != resolves || theirs != resolves)
+                    bad.Add($"{name} ('{location}'): the fixture says {resolves}, this engine {mine}, Python {theirs?.ToString() ?? "no answer"}");
+            }
+            Assert.True(bad.Count == 0, $"{bad.Count} of {cases.Count} parity case(s) the two resolvers or the fixture disagree on:"
+                + Environment.NewLine + string.Join(Environment.NewLine, bad.Select(v => "    " + v)));
+        }
+        finally
+        {
+            ScratchDirectory.Remove(fixture);
+        }
+    }
+
+    /// <summary>
+    /// The planted cases above measure the rule; this measures the population (kb/Work PB5863): for EVERY tracked C# file
+    /// under <c>src/</c>, the names the Python engine finds declared (<c>code_location.csharp_symbols</c>) and the words
+    /// of its code are the ones Roslyn gives (<see cref="CSharpSymbolsOf"/>), compared as one digest per file. A C# form
+    /// the Python lexer or declaration reader mishandles shows up here on the first file that uses it, never as a code
+    /// read refused or accepted for the wrong reason.
+    /// </summary>
+    [Fact]
+    public void EveryCSharpFilesSymbols_AgreeWithThePythonResolver()
+    {
+        IReadOnlyList<string> files = TrackedTree.Files(CompilerSources);
+        Assert.True(files.Count > 100, $"{files.Count} C# file(s) under {CompilerSources.Under[0]}: the scope lost the compiler");
+        string scratch = ScratchDirectory.Create("pb5863_digests_");
+        try
+        {
+            string list = Path.Combine(scratch, "files.txt");
+            File.WriteAllText(list, string.Join('\n', files) + "\n");
+            var run = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "code_location.py"), "--digests", list);
+            string? line = run.Stdout.Split('\n').Select(l => l.Trim()).FirstOrDefault(l => l.StartsWith("JSON ", StringComparison.Ordinal));
+            Assert.True(run.ExitCode == 0 && line is not null,
+                $"code_location.py --digests exited {run.ExitCode} with no JSON line:\n{run.Stdout}\n{run.Stderr}");
+            var python = JsonSerializer.Deserialize<Dictionary<string, string>>(line!["JSON ".Length..])!;
+            var mine = files.ToDictionary(rel => rel, rel =>
+            {
+                CSharpSymbols symbols = CSharpSymbolsOf(Path.Combine(TestRepo.Root, rel.Replace('/', Path.DirectorySeparatorChar)));
+                return (Paths: symbols.Paths.Order(StringComparer.Ordinal).ToList(),
+                        Words: Regex.Matches(symbols.Code, "[A-Za-z0-9_]+").Select(m => m.Value).Distinct().Order(StringComparer.Ordinal).ToList());
+            }, StringComparer.Ordinal);
+            List<string> differ = [.. files.Where(rel => python.GetValueOrDefault(rel) != Convert.ToHexStringLower(
+                System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(
+                    string.Join('\n', mine[rel].Paths) + "\0" + string.Join('\n', mine[rel].Words)))))];
+            List<string> bad = [];
+            if (differ.Count > 0)
+            {
+                // The failure names what differs: the Python engine's lists of the first files that disagree, beside Roslyn's.
+                var detail = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "code_location.py"),
+                    ["--symbols", .. differ.Take(10)]);
+                using var theirs = JsonDocument.Parse(detail.Stdout);
+                foreach (string rel in differ)
+                {
+                    if (!theirs.RootElement.TryGetProperty(rel, out var t))
+                    {
+                        bad.Add($"{rel}: the digests differ");
+                        continue;
+                    }
+                    string Diff(string what, List<string> ours, JsonElement other)
+                    {
+                        var py = other.GetProperty(what).EnumerateArray().Select(e => e.GetString()!).ToHashSet(StringComparer.Ordinal);
+                        var only = ours.Where(x => !py.Contains(x)).Take(8).ToList();
+                        var extra = py.Where(x => !ours.Contains(x)).Order(StringComparer.Ordinal).Take(8).ToList();
+                        return only.Count + extra.Count == 0 ? "" : $" {what}: Roslyn only [{string.Join(", ", only)}], Python only [{string.Join(", ", extra)}];";
+                    }
+                    bad.Add($"{rel}:{Diff("paths", mine[rel].Paths, t)}{Diff("words", mine[rel].Words, t)}");
+                }
+            }
+            Assert.True(bad.Count == 0, $"{bad.Count} of {files.Count} C# file(s) whose declared names or code words the two resolvers "
+                + "disagree on:" + Environment.NewLine + string.Join(Environment.NewLine, bad.Take(20).Select(v => "    " + v)));
+        }
+        finally
+        {
+            ScratchDirectory.Remove(scratch);
+        }
     }
 
     /// <summary>

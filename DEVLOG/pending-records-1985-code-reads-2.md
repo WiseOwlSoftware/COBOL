@@ -1,2 +1,0 @@
-
-The branch bounced twice from the merge queue (pull request 1799) on one case, `EveryCodeReadLocation_ResolvesInTheTree`, a merge red: kb/Work PB5847's fix landed after the last merge and removed `RuntimeApi.FileCloseIfOpen`, which the stored read of `1985-GR-X.5.3.4-10` names. That read was withdrawn (`code_reads.py withdraw`, reason naming the member and PB5847) and the row is read again on the fixed code; no other read was unresolved.

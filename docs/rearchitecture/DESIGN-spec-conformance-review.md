@@ -2089,7 +2089,7 @@ refuses, naming the slice, the rule and the text.
    reader's record verbatim except for that one field's split; the source file's digest (`read.sources`) is of the file as
    given, so nothing is lost. The remark is never used to decide anything. Refused: a remark with no location, an empty
    remark, two remarks (or the same location listed with two), text after the closing parenthesis, a `(` glued to its
-   location, an unbalanced parenthesis, and a location that does not resolve in shape or in the tree.
+   location, an unbalanced parenthesis, and a location that does not resolve in shape or in the tree at the read's pin.
 2. *A reader who did not decide.* The verdict `UNDECIDED` (that exact word, `code_read_store.READER_UNDECIDED`) is
    accepted as "no verdict": it owes no defect fields and no location, the record's outcome is `undecided` whatever the
    refuter says (a refuter's case on it is legal), it is counted with the undecided records, and `plan` still lists the
@@ -2115,8 +2115,11 @@ recorded rule replaces it only with `--replace`, which says what it replaced; `-
 `adjudicate --edition YEAR RULE --verdict V --reason TEXT --ref PATH [--work PBnnnn]` records what a tracked file
 decides. `work --edition YEAR RULE PBnnnn` names a record's mechanism note. `withdraw --edition YEAR RULE --reason TEXT`
 removes the rule's record through the store's writer and prints what it removed; it refuses a rule with no record and an
-empty reason, and the row is owed a read again. It is for a read defective as a read (a code location that resolves
-nowhere), never for a read someone disagrees with: that is `adjudicate`. `plan --edition YEAR [--witnessed] [--json]`
+empty reason, and the row is owed a read again. It is for a read defective as a read (a code location that never resolved
+at its own pin), never for a read someone disagrees with (that is `adjudicate`) and never for a read whose code has moved
+since (that row is owed a re-read, below). `verify-pins --edition YEAR` resolves every stored record's `code-location` at
+its own pin and prints each that does not resolve there, naming the entry and the pin (a pin that is no commit of the
+repository is named as such); it exits 1 when it prints one. `plan --edition YEAR [--witnessed] [--json]`
 lists the KEPT rows no confirmed or contradicted record decides (stale and undecided are still owed; `--witnessed` keeps
 those with a test-ref of their own), leaving out a KEPT row the view computes OK with no test-ref of its own, which is
 closed on a derivation of its own (`lineage.derivation_refusals`, kb/Work PB5822) and needs no code read; the view's count
@@ -2125,10 +2128,33 @@ of rows owed is the plan's count: the population the campaign's slices are built
 **The audit** (`code_reads.py --check`, the gate's CODE READS and a step of CI's audits job) is RED on a record that does
 not parse to its shape, a rule the edition lacks, a citation that does not parse, is of an edition the repository does not
 hold or does not check, a read with no citation of an anchoring edition (the third acceptance), a code-location of no inventory shape, a held part edited since its import, a digest or pin of the wrong shape, an
-adjudication whose `ref` is no file, and a contradicted record whose `work` is no note; stale, undecided and owed are
-printed. That every site still RESOLVES is the battery gate's, by the one predicate a row is held to
-(`SpecTraceabilityInventoryDriftTests.EveryCodeReadLocation_ResolvesInTheTree`, `SymbolResolves`): the inventory's own
-division of SHAPE (Python, at record time) and REFERENCE (the C# battery), so the resolver has no second copy.
+adjudication whose `ref` is no file, and a contradicted record whose `work` is no note; stale, undecided, owed and the reads owed a re-read are
+printed, never red. A note's status at a pin and every location at a pin are read through one `git cat-file --batch`
+process per pin (`code_reads.pins_open`): a process per read cost the audit 33 s of its 47 on a busy host.
+
+**A read is evidence at its pin; the tree moving is no failure (kb/Work PB5863, 2026-11-16).** A record names compiler members
+(`code-location`), and code moves: a fix renames, moves or removes a member a read named. Until 2026-11-16 the C# battery
+resolved every stored read's locations in the CURRENT tree (`EveryCodeReadLocation_ResolvesInTheTree`), so every such fix
+turned a merged tree red for whichever branch landed second (twice in one morning, and once an implementer re-sited three
+reads under its own pin to make the red go away). That test is deleted. A read made at an older commit is not wrong
+because the code moved; it is OLD. So: (1) WHAT VALIDATES A READ, AND WHEN: the import, once, resolves each `code-location`
+entry (the locations alone; a remark is split off first) in the tree of the record's pin (`git cat-file --batch` of
+`<pin>:<path>`) and refuses the slice, naming the rule, the entry and the pin, when one does not resolve there: the file
+absent at the pin, or the member not in its code. The rule is the gate's own: `scripts/spec/code_location.py` is the
+Python twin of `SpecTraceabilityInventoryDriftTests.SymbolResolves`/`UnresolvedCodeLocations` (a C# file's simple name in
+its tokens, a dotted name declared in it, a grammar file without comments, any other file whole, a document's anchor left
+to `docchecks/inventory.py`), and the C# gate keeps the two one rule twice over:
+`TheCodeLocationResolver_AgreesWithTheFixtureAndWithPython` (both engines and the recorded answer agree on every planted
+case of `tests/doc-facts/code-location-parity-cases.json`: a member present and absent, a name only in a comment, a doc
+comment or a disabled region, the file absent, a remark after the entry, qualified, local, positional, enum, indexer and
+event names, a string literal's anchor, a grammar rule and a document's anchor) and `EveryCSharpFilesSymbols_AgreeWithThePythonResolver`
+(for every tracked C# file under `src/`, Roslyn's declared names and code words and the Python engine's, one digest per
+file). (2) A MOVED READ IS OWED A RE-READ: `code_reads.moved_since(record, ctx)` is the entries of the record that no
+longer resolve in the working tree. (3) `--check` never resolves a location: it prints the count of reads owed a
+re-read as information. `verify-pins` (above) is the one hand verb for the records imported before the import resolved
+at the pin; it is no part of `--check`, because a pin's commit may be absent from a shallow CI checkout. The inventory's
+own `code-location` cells are unchanged: they describe the current compiler, `EveryCodeLocation_ResolvesInTheTree` still
+holds them to the tree, and a fix is expected to update them.
 
 **A contradicted read whose fix has landed is owed a re-read (kb/Work PB5854, 2026-11-16).** A contradiction is true when it
 is read; when its mechanism's note (`work`) lands, nothing told the store, and `plan` (which lists only rows no confirmed or
@@ -2136,10 +2162,13 @@ contradicted record decides) never offered the row again, so the count of contra
 PREDICATE, `code_reads.fixed_since(record, ctx)`: the record's outcome is `contradicted`, it names a `work` note whose
 `status` in the tree is `landed`, and at the record's own pin (`read.pin`, `git show <pin>:kb/Work/<id>.md`) the note was
 absent or not `landed`. A note's status, in the tree and at the pin alike, is read from its TEXT by the register's own reader
-(`work.read_note`): never a second parser. `plan` lists such a row in a group of its own after the rows owed a read (the text
-prints a second header and `rule (note)` lines; `--json` is `{"owed": [...], "re-read": [...]}`, which replaces the earlier
-bare list: nothing in the tree read it), and `--check` prints under the edition's counts line how many contradicted reads
-are fixed since: information, never red. The re-read replaces the record (`import --replace`): a replaced record loses its
+(`work.read_note`): never a second parser. THE RE-READ GROUP has two reasons and is one group (`code_reads.reread`): a
+DECIDED record (confirmed or contradicted; an undecided or stale one is in the owed group already) that is fixed since its
+read, or whose code has moved since it (`moved_since`, kb/Work PB5863). `plan` lists the group after the rows owed a read,
+each row with why it is there (`rule (fixed: PBnnnn has landed since the read; moved: <the entry and why>)`); `--json` is
+`{"owed": [...], "re-read": [{"rule-id", "fixed", "moved"}]}` (`fixed` the landed note or null, `moved` the entries that no
+longer resolve), and `--check` prints under the edition's counts line how many reads are owed a re-read and for which
+reason: information, never red. The re-read replaces the record (`import --replace`): a replaced record loses its
 adjudication and its `work`, and its new reader and refuter judge the fixed code. THE REFUSAL that makes the predicate total:
 a note ALREADY `landed` at the record's pin cannot be the mechanism of a contradiction read after it (it would never be fixed
 "since"), so `work` and `adjudicate` refuse to name one (the message says to file a NEW note) and `--check` is red on a record
