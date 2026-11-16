@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_perform_thru_through_equivalent
       *> rules: [SR-14.9.28.3-10]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
