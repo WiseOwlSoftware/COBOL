@@ -1,4 +1,4 @@
-## PB5781, PB5793, PB5809: a list's items as the declarations read them, the separator as the space it is, STOP with a symbolic-character
+## Entry 3757 — 2026-11-16 06:27 PST — PB5781, PB5793, PB5809: a list's items as the declarations read them, the separator as the space it is, STOP with a symbolic-character
 
 Wave 20262074 group A, three 1985 refusals of legal source around the expression grammar's lists. Each re-probed on
 ce3dceb0db before any change; each reproduced as filed.
@@ -56,3 +56,4 @@ Merging main brought in the imported 1985 code reads, two of which (`1989-FMT-A.
 1985-081) named `IntrinsicBinder.cs#ArgsOf`, which PB5781 deleted; `EveryCodeReadLocation_ResolvesInTheTree` was red at the
 review finisher's first gate. Their probes (`fmtok.cob`, `fmtbad.cob`) re-run at the branch head print the recorded values
 and refusals, so both reads were re-imported (`code_reads.py import --replace`) re-sited to `ArgumentsOf` at the new pin.
+
