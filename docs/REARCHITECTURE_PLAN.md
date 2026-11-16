@@ -53,18 +53,11 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression. The seventh
   golden-lane landing (golden-2002-7, 16 wave-u slugs: rows the 2002 read left needs-own-witness, undecided or
   uninterpretable) records 97 own-edition CONFORMS and takes it to **1,805 GAP** (1,787 never adjudicated, 18 open).
-  The eighth (golden-2002-8, 13 wave-u slugs) records 91 more CONFORMS: **1,805 → 1,714 GAP**.
-- **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
-  2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
-  NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded for the GAP count by the PB5675 line below). The 2026-11-12 method: code-read waves over rows whose witness exists
-  (pipeline `coderead-85-pipe.js`, Opus readers and refuters, each closing verdict refuted before it counts); rows held
-  from earlier waves decided by adjudicators and recorded through `record_verdicts.py --edition 1985`; mismatching
-  drafts re-run and triaged; and the COPY drafts unblocked by kb/Work PB5067 (landed). The dated records are the
-  directories kb/Work/PB4996 and kb/Work/PB4995. What is left is state, each part with its owner: rows with a
-  non-conforming verdict wait on their defect notes' fixes in the fix lane; rows that gained a witness today still need
-  their code read; fourteen rows KEPT in 2023 wait on kb/Work PB479 (their 2023 text is unnumbered prose or Table 12 and
-  has no catalog row); the 21 no-witness rules decided by class in kb/Work PB5373 wait on PB5374 (the derivation
-  tooling); five warning-only refusals are held for adjudication (kb/Work/PB4995/2026-11-12-drafts-85n.md).
+- **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary` computes every figure).** Two lines of work close it: the
+  own-edition witnesses (a 1985 case that witnesses a 1985 rule, kb/Work PB5675), and the code read of every KEPT row at `--std 85`
+  (kb/Work PB5683, sized by PB5692); a row a read contradicts gets its own defect note, and a non-conforming row waits on that
+  note's fix in the fix lane. This bullet carries no figure and no stamp because every 1985 landing changes the figures, so a
+  hand-written number here made every 1985 landing collide on this line (kb/Work PB5730's landing stopped on it on 2026-11-15).
 - **▶ ONE OWN-EDITION RULE FOR EVERY OLDER EDITION (kb/Work PB5675, 2026-11-15).** A KEPT row of 1985 or 2002 closes
   only on its chain AND a witness of its own, a suite case that runs at its own edition (design section 10.6; the
   2002-only switch `own-edition-evidence` is gone). Before this change 1985 stood at **32 GAP**; with it 1985 stands at
