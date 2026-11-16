@@ -152,12 +152,14 @@ public sealed class CrossRunUnitSequentialLockDriftTests
         finally { FileHarness.TryDelete(host); }
     }
 
-    /// <summary>⛔ A READ'S LOCK GRANT THE HOST REFUSES IS THE READ'S STATUS (kb/Work PB5770). A sequential connector has no store
-    /// statement, so another run unit can take the record between A's conflict test and A's lock; the forced interleaving
-    /// (<see cref="FileRegistry.ReadLockWindow"/>) has B lock record 1 in that instant. §2023:14.9.30.4 GR11 c): under
-    /// automatic locking the lock of a successfully accessed record "is set", and §2023:9.1.16 makes the record inaccessible to
-    /// another run unit's connector, so A cannot both succeed and not hold it: A's READ is '51' (§2023:9.1.13.8 1)), makes no record
-    /// available, and A holds nothing — B's lock stands, and A's next READ (the file position invalidated, GR18) is not served.</summary>
+    /// <summary>⛔ A READ'S LOCK GRANT IS ITS CONFLICT TEST, TAKEN BEFORE THE POSITION MOVES (kb/Work PB5770, review R1-1). A
+    /// sequential connector has no store statement, so another run unit can take the record between A's conflict test and
+    /// A's lock; the forced interleaving (<see cref="FileRegistry.ReadLockWindow"/>, at each attempt of A's grant) has B lock
+    /// record 1 in that instant. §2023:14.9.30.4 GR11c: under automatic locking the lock of a successfully accessed record "is
+    /// set", and §2023:9.1.16 makes the record inaccessible to another run unit's connector, so A cannot both succeed and not
+    /// hold it: A's READ is '51' (§2023:9.1.13.8 1)) and makes no record available. It is the record operation conflict
+    /// condition, so §2023:14.9.30.4 GR10a holds: "The file position indicator is unchanged" — once B gives the record back,
+    /// A's next READ makes record 1 available, and A then holds its lock.</summary>
     [Theory]
     [InlineData(Framing.Fixed, RegionHostKind.OfThisProcess)]
     [InlineData(Framing.Line, RegionHostKind.OfThisProcess)]
@@ -169,12 +171,9 @@ public sealed class CrossRunUnitSequentialLockDriftTests
         try
         {
             Seed(host, framing, "AAAA", "BBBB");
-            var a = new FileRegistry();
+            var a = AutomaticReader(host, framing);
             var b = new FileRegistry();
-            Register(a, "A", host, framing, shared: false);
-            a.RegisterSharing("A", FileSharing.AllOther, FileLockMode.Automatic, multiple: false);
             Register(b, "B", host, framing);
-            a.OpenStatic("A", FileOpenMode.IO);
             b.OpenStatic("B", FileOpenMode.IO);
 
             string inWindow = "";
@@ -188,15 +187,87 @@ public sealed class CrossRunUnitSequentialLockDriftTests
             Assert.Equal("", image);
             Assert.Equal("51", a.Status("A"));
 
-            // B still holds record 1: another run unit's READ WITH LOCK of it is refused while B lives.
+            // B still holds record 1, and A took nothing: another run unit's READ WITH LOCK of it is refused while B lives.
             var c = new FileRegistry();
             Register(c, "C", host, framing);
             c.OpenStatic("C", FileOpenMode.IO);
             Assert.Equal("51", Read(c, "C", FileRecordLock.WithLock, out _));
             c.Close("C");
-            a.Close("A");
+
+            // GR10a: A's position did not move, so once B gives record 1 back A's next READ makes record 1 available — and A
+            // holds its lock (a fourth run unit is refused it).
             b.Close("B");
+            Assert.Equal("00", Read(a, "A", FileRecordLock.None, out string first));
+            Assert.Equal("AAAA", first);
+            var d = new FileRegistry();
+            Register(d, "D", host, framing);
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("51", Read(d, "D", FileRecordLock.WithLock, out _));
+            d.Close("D");
+            a.Close("A");
         }
         finally { FileHarness.TryDelete(host); }
+    }
+
+    /// <summary>⛔ A REFUSED READ-LOCK GRANT HONORS THE READ'S RETRY PHRASE (kb/Work PB5770, review R1-1). §2023:14.9.30.4 GR9: for
+    /// a record locked by another file connector, "If the RETRY phrase is specified, additional attempts may be made to read the
+    /// record as specified in the rules in 14.7.9". B takes record 1 at A's first grant attempt and gives it back before the
+    /// second; A's READ RETRY 2 TIMES waits one interval against that run unit and then makes record 1 available, holding its
+    /// lock. Without the phrase the same interleaving is '51' (the case above): the outcome is the phrase's, not the
+    /// timing's.</summary>
+    [Theory]
+    [InlineData(Framing.Fixed, RegionHostKind.OfThisProcess)]
+    [InlineData(Framing.Fixed, RegionHostKind.LockFiles)]
+    public void ARefusedLockGrant_IsRetriedUnderTheRetryPhrase(Framing framing, RegionHostKind regionHost)
+    {
+        using var forced = RegionHostSeam.Use(regionHost);
+        string host = FileHarness.Tmp($"window-retry-{framing}");
+        int pauses = 0;
+        FileRegistry.PauseObserver.Value = _ => pauses++;
+        try
+        {
+            Seed(host, framing, "AAAA", "BBBB");
+            var a = AutomaticReader(host, framing);
+            var b = new FileRegistry();
+            Register(b, "B", host, framing);
+            b.OpenStatic("B", FileOpenMode.IO);
+
+            var inWindow = new List<string>();
+            a.ReadLockWindow = _ =>
+            {
+                if (inWindow.Count == 0) inWindow.Add(Read(b, "B", FileRecordLock.WithLock, out _));   // attempt 1: B takes it
+                else if (inWindow.Count == 1) { b.Close("B"); inWindow.Add("released"); }             // attempt 2: B gives it back
+            };
+            Assert.Equal("00", a.ReadShared("A", previous: false, FileRecordLock.None, advancingOnLock: false,
+                ignoringLock: false, FileRetryKind.Times, 2, out string image));
+            Assert.Equal(["00", "released"], inWindow);
+            Assert.Equal("AAAA", image);
+            Assert.Equal(1, pauses);   // one interval against the other run unit's holder (§2023:14.7.9.3 GR1)
+            a.ReadLockWindow = null;
+
+            var c = new FileRegistry();
+            Register(c, "C", host, framing);
+            c.OpenStatic("C", FileOpenMode.IO);
+            Assert.Equal("51", Read(c, "C", FileRecordLock.WithLock, out _));   // A holds record 1
+            c.Close("C");
+            a.Close("A");
+        }
+        finally
+        {
+            FileRegistry.PauseObserver.Value = null;
+            FileHarness.TryDelete(host);
+        }
+    }
+
+    /// <summary>Run unit A: the shared file open I-O under SHARING WITH ALL OTHER and LOCK MODE AUTOMATIC, so every READ sets
+    /// its record's lock (§2023:12.4.5.9.4 GR4).</summary>
+    private static FileRegistry AutomaticReader(string host, Framing framing)
+    {
+        var a = new FileRegistry();
+        Register(a, "A", host, framing, shared: false);
+        a.RegisterSharing("A", FileSharing.AllOther, FileLockMode.Automatic, multiple: false);
+        a.OpenStatic("A", FileOpenMode.IO);
+        Assert.Equal("00", a.Status("A"));
+        return a;
     }
 }
