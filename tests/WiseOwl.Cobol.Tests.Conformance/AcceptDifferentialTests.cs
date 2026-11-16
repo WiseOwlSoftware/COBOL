@@ -274,6 +274,24 @@ public sealed class AcceptDifferentialTests
             expected: "00000.00|\n00012.50|\n+00000.00|\n+00000.00|\n000.00|\n012.50|",
             stdin: "12.5CR\n12.50CR\n12.5-\n1.2.3\n12.5CR\n12.50CR\n");
 
+    // A BINARY-CAPACITY item keeps every digit its container holds and wraps to it (DOC-A.1-208): the nine-character window
+    // 999999999 into PIC S9(4)V9(5) COMP-5 is the unscaled 99999999900000, which wraps to the four-byte container (the
+    // two's-complement value 276347232, shown 2763.47232); the same text into the COMP item truncates to its PICTURE, 9999.
+    [Fact]
+    public void Device_BinaryCapacityReceiver_WrapsAScaledValueToItsContainer()
+        => AssertOutputs(
+            Program("ACCWRAP", """
+                01 WS-A PIC S9(4)V9(5) COMP-5.
+                01 WS-B PIC S9(4)V9(5) COMP.
+                """, """
+                ACCEPT WS-A.
+                DISPLAY WS-A "|".
+                ACCEPT WS-B.
+                DISPLAY WS-B "|".
+            """),
+            expected: "+02763.47232|\n+9999.00000|",
+            stdin: "999999999\n999999999\n");
+
     // kb/Work PB3573: a text wider than the item's integer positions loses its HIGH-order digits (§2023:14.6.8.2 4), and the
     // characters ahead of the last digit dropped are skipped unexamined, a non-digit among them included, as GnuCOBOL 3.2.0
     // does (the results below are its own, measured 2026-10-25): "Y123" into PIC 9(2)V99 holds 23.00 where "1Y23" is not a
