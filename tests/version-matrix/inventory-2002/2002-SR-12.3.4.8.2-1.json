@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-12.3.4.8.2-1",
  "rule-digest": "b45432187acb",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/l1c17-lock-multiple-access-sequential; conformance:cases/12.4.5.9-LOCK-MODE/l1c17-lock-multiple-access-omitted; conformance:cases/12.4.5.9-LOCK-MODE/lock-mode-multiple-sequential",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

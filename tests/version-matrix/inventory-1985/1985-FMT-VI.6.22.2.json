@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VI.6.22.2",
  "rule-digest": "3bc7dfb52aa8",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb444_search_next_sentence; conformance:cases/14.9.34-RETURN/pb351_delimited_conditional_operand",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

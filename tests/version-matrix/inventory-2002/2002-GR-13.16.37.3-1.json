@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.37.3-1",
  "rule-digest": "bfd4b4e2bdff",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb484_report_line_placement; conformance:cases/13.18.39-PAGE/pb1270_report_relative_first_boundaries",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.53.2-2",
+ "rule-digest": "ed2021621e54",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KnownWidth",
+ "test-ref": "conformance:cases/15.53@2002-NATIONAL-OF-FUNCTION/g2-national-of-argument-2-national-one-char",
+ "notes": "§2002:15.53.2 AR2: a one-character national argument-2 (PIC N(1) item, N\"#\" literal, reference-modified PIC N(3)) is accepted and, every argument-1 character having a correspondent, the result equals the one-argument conversion (§2002:15.53.3 RV1, RV2, RV4); the --std 2002 run of the pinned build dc1f2dcce8 matched, and an alphanumeric argument-2 is refused with COBOL1546."
+}

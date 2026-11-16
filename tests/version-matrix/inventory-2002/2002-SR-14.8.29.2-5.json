@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.29.2-5",
  "rule-digest": "f4252edf5429",
+ "test-ref": "conformance:cases/14.9.30-READ/read-auto-with-lock",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

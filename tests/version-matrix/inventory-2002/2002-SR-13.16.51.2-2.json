@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.51.2-2",
+ "rule-digest": "2b578ec97a81",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#ScreenSourceIdentifier; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Validity",
+ "test-ref": "conformance:cases/13.16.51@2002-SOURCE-CLAUSE/g2src02_source_cd_move_rounded; conformance:cases/13.16.51@2002-SOURCE-CLAUSE/g2src03_source_cd_move_invalid",
+ "notes": "§2002:13.16.51.2 SR2 with Table 17 (§2002:14.8.24.2 SR8): valid moves from CD-record senders compile and print as derived; an alphabetic CD item into PIC 9(3) is refused COBOL2770 at --std 2002."
+}

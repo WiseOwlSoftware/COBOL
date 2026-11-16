@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.35.3-7",
  "rule-digest": "644d48aa9aca",
+ "test-ref": "conformance:cases/14.9.39-SET/pb450_set_outer_repetition; conformance:cases/14.9.39-SET/pb450_set_condition_mixed_groups",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

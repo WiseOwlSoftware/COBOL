@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.45.2-11",
  "rule-digest": "619fc2b454e3",
+ "test-ref": "conformance:cases/14.9.49-USE/pb363-control-item-altered",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

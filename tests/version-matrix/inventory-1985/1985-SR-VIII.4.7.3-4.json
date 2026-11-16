@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VIII.4.7.3-4",
  "rule-digest": "d8f564afd39d",
+ "test-ref": "conformance:cases/14.9.41-START/pb602_start_key_identity",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

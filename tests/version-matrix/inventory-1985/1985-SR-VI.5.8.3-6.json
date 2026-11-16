@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.8.3-6",
  "rule-digest": "4910bdc7225a",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb201-odo-depending-not-integer",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

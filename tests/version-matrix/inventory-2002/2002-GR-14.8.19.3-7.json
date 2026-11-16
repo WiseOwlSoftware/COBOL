@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.19.3-7",
  "rule-digest": "78d7f71a2d4c",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb393_initialize_odo_group; conformance:cases/14.9.11-DISPLAY/initialize_phrases",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

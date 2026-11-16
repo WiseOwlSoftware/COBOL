@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.2.2.3-6",
+ "rule-digest": "a4af4507d271",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Disable; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#ValidCount",
+ "test-ref": "conformance:cases/A.2.2@2002-DISABLE-STATEMENT/g2002-disable-output-count-range",
+ "notes": "§2002:A.2.2.3 GR6; every line of the pinned --std 2002 run matched the derived .out."
+}

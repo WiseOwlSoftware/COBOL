@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIII.3.10.10-2",
  "rule-digest": "4022f80b103d",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

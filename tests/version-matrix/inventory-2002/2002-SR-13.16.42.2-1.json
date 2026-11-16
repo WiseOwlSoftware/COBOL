@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-1",
+ "rule-digest": "b6043fe653e1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionClauses; src/WiseOwl.Cobol.Frontend/Cst/DataClauseKind.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenLeadingClausePosition",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-entry-rules; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-after-picture",
+ "notes": "§2002:13.16.42.2 SR1: REDEFINES immediately after the entry-name, or after the level-number when the entry-name is omitted. In a CD record at --std 2002 the named and unnamed placements compile and share data-name-2's storage (C1=0013), and PICTURE before REDEFINES is refused COBOL2739 at line 25; both runs matched the derivation."
+}

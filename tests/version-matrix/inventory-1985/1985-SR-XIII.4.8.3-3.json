@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.4.8.3-3",
  "rule-digest": "8b3681274b75",
+ "test-ref": "conformance:cases/14.9.49-USE/l1_use_sr8_file_named_twice",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.24.2-4",
  "rule-digest": "a59016221781",
+ "test-ref": "conformance:wiseowl/cases/13.18.26-FULL/a42-screen-full",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

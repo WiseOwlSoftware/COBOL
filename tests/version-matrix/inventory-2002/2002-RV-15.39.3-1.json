@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.39.3-1",
+ "rule-digest": "b851fa3b1731",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#Positions",
+ "test-ref": "conformance:cases/15.39@2002-LENGTH-FUNCTION/g2-length-boolean-and-fractional-positions",
+ "notes": "§2002:15.39.3 RV1: LENGTH of a bit group (7; 12 subordinate), of elementary boolean items of usage bit, display and national (5, 5, 3), of a boolean literal (6) and of a boolean TYPEDEF (6) is in boolean positions; the pinned --std 2002 run matched."
+}

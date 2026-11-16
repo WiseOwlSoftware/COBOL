@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.45.2-10",
  "rule-digest": "abc22054e5a3",
+ "test-ref": "conformance:cases/14.9.49-USE/pb363-generate-in-before-reporting",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

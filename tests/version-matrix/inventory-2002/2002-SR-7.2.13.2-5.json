@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.13.2-5",
  "rule-digest": "07a3f3b65ef6",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb806-end-if-trailing-word",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

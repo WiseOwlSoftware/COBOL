@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.29.3-28",
  "rule-digest": "0b0c13c39e0b",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1_read_key_of_reference",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

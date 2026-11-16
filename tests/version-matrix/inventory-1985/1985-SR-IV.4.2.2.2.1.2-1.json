@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.2.2.2.1.2-1",
  "rule-digest": "530eff6fccdf",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/l1c01_alnum_literal_characters",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

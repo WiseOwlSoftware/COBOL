@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.2.9.3-1",
  "rule-digest": "d759151bbec9",
+ "test-ref": "conformance:cases/12.4.5.14-RESERVE/pb643_reserve_areas_all_organizations",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

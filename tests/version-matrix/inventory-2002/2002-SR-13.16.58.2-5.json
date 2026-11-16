@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-5",
+ "rule-digest": "a73b495ca6e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2-usage-cd-comp-abbreviation",
+ "notes": "§2002:13.16.58.2 SR5 makes COMP the abbreviation of COMPUTATIONAL: a COMP and a COMPUTATIONAL PIC S9(4) item in a CD record (§2002:A.1.1.2) have equal byte length and equal bytes before and after the same ADD, and both edit to -0005; matched at --std 2002 (the pinned build dc1f2dcce8)."
+}

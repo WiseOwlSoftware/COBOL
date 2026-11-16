@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IX.4.3.3-1",
  "rule-digest": "79e2e6fd29c4",
+ "test-ref": "conformance:cases/14.9.10-DELETE/delete-record-invalid-key-sequential-access",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

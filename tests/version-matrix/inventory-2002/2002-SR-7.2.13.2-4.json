@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.13.2-4",
  "rule-digest": "4ca719a910e5",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb806-else-trailing-word; conformance:cases/7.3.16-IF/pb806-else-trailing-word-in-omitted-branch",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

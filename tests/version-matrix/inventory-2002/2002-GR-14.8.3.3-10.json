@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.3.3-10",
  "rule-digest": "39f8a5f00ffc",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/allocate_initialized",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

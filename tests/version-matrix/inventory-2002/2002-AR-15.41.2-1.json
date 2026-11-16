@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.41.2-1",
+ "rule-digest": "db56e53e38e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#LOCALE-DATE",
+ "test-ref": "conformance:cases/15.41@2002-LOCALE-DATE-FUNCTION/g2ldt02-argument-class-length",
+ "notes": "§2002:15.41.2 AR1 (class alphanumeric or national, 8 character positions) with §2002:8.5.2 Table 3: X(8), an alphanumeric literal and group, Z(7)9 of usage display, N(8), a national literal and Z(7)9 USAGE NATIONAL are each accepted and give 19/08/2026 under fr-FR; PIC 9(8) USAGE NATIONAL (class numeric, PB5625 reading B) and N(7) are refused with COBOL1627 (g2ldt03, g2ldt04). Pinned build at --std 2002 matched."
+}

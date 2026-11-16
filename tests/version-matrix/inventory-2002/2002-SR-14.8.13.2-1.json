@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.13.2-1",
+ "rule-digest": "aaf7af3f7b02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#StatementPosition; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2_exit_alone_in_paragraph; conformance:cases/14.9.14-EXIT/pb397-exit-not-alone",
+ "notes": "§2002:14.8.13.2 SR1 with §2002:14.3.2: EXIT alone in a named paragraph and in the unnamed paragraph after a section header is accepted and, by §2002:14.8.13.3 GR1, has no effect (P1/S2-A/S3-B/DONE); EXIT not alone is refused (pb397-exit-not-alone, COBOL2966). Matched at --std 2002 with the pinned build of dc1f2dcce8."
+}
