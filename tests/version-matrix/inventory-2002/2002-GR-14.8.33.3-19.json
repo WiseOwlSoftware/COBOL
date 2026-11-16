@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-19",
+ "rule-digest": "2162939d82b7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5579_relative_write_rewrite_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.33.3 GR19: RECORD VARYING FROM 2 TO 6, a REWRITE of 1 byte and of 7 bytes is '44' (neither INVALID KEY phrase runs) and leaves the record; 3 bytes is '00'."
+}

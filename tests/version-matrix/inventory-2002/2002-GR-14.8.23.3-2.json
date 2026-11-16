@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.23.3-2",
+ "rule-digest": "e985dee4f8a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#SelectedIsNational; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/pb5578_sort_merge_short_record_select_when_fill; conformance:cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill",
+ "notes": "kb/Work PB5578: §2002:14.8.23.3 GR2: MERGE's USING fill, the same three arms; the CODE-SET file with SELECT WHEN fills its national record with national spaces and the plain file's alphanumeric record with alphanumeric ones (MU)."
+}

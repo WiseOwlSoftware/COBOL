@@ -2,7 +2,7 @@
 *> id: pb1055_table_sort_nested_subject
 *> rules: [SR-8.4.2.3.3-6, SR-14.9.40.3-13, GR-14.9.40.4-18,
 *>    GR-14.9.40.4-24, FMT-14.9.40.2]
-*> accept: [2002]
+*> accept: [2014]
 *> source-format: free
 *> portable: unverified
 *>---

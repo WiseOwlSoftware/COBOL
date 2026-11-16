@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.41.3-1",
+ "rule-digest": "61cca5b6d730",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes",
+ "notes": "kb/Work PB5578: §2002:13.16.41.3 GR1: each integer of a RECORD clause is a size in bytes; a national record of N(10) is 20 bytes against the clause's integers (pb1277, accepted at 2002)."
+}
