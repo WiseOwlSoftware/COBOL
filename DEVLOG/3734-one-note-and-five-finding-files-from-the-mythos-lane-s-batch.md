@@ -1,4 +1,4 @@
-## One note and five finding files from the Mythos lane's batch-7 rulings of 2026-11-15
+## Entry 3734 — 2026-11-16 00:03 PST — One note and five finding files from the Mythos lane's batch-7 rulings of 2026-11-15
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). The defect note carries the rule text with its `cite.py --check` line, both repro programs in full, expected and observed at `--std 85` and `--std 2023`, and the leads.
 
@@ -9,3 +9,4 @@ Five dated finding files beside existing notes: `kb/Work/PB5812/2026-11-15-the-s
 Mechanism 3 of the batch is REJECTED by the ruling and filed as no note; it lives in the ruling copied under PB5683.
 
 **The rate so far at 1985:** 69 of 924 rows read are contradicted, about 7.5 %; open readings are the six notes of before (PB5789, PB5799, PB5800, PB5805, PB5812, PB5817), one more row on PB5812, and the EXTEND question beside PB5815.
+
