@@ -69,16 +69,20 @@ def claims_support(disposition: str) -> bool:
 # ── the extract the compiler tests read ───────────────────────────────────────────────────────────────────────────
 
 def build_extract(conformance: Conformance, derivation_heading: str) -> dict:
-    """The register rows as data: §2, §5, §7 (the A.1 determinations) and §8 (the signed derivations), and the
+    """The register rows as data: §2, §5, §7 (the A.1 determinations), the keys of sections 3 and 3.1 (the
+    determinations) and §8 (the signed derivations), and the
     diagnostic codes §2 and §5 name. The rows stand in natural key order whatever order the document holds them in, so
     the extract is order-stable (kb/Work PB5429): the document's own order is `conformance_source.check`'s to hold."""
     return {
         "comment": "GENERATED from docs/CONFORMANCE.md by `python scripts/doc_audits.py --write-register`; held fresh by "
                    "the DOC AUDITS gate audit. Do not edit: edit the register and regenerate (kb/Work PB4453). annexA1 "
                    f"carries each §7 row's key and the first {LEAD_LENGTH} characters of its determination, enough for "
-                   "every schema determination-prefix; the prose behind it is not data and is not here.",
+                   "every schema determination-prefix; the prose behind it is not data and is not here. determinations "
+                   "carries the key of each section 3 and 3.1 determination (D-<NAME>), which a derivation of the "
+                   "unfalsifiable-under-determination arm names (kb/Work PB5831).",
         "annexA1": [{"key": r.key, "lead": schema.plain(r.determination)[:LEAD_LENGTH]}
                     for r in sorted(conformance.a1_rows(), key=lambda r: conformance_source.natural_key(r.key))],
+        "determinations": sorted(conformance.determinations(), key=conformance_source.natural_key),
         "derivations": [{"key": r.key, "arm": r.arm, "names": r.names, "signature": r.signature, "refuter": r.refuter}
                         for r in sorted(conformance.derivation_rows(conformance_source.number_of(derivation_heading)),
                                         key=lambda r: conformance_source.natural_key(r.key))],
@@ -346,6 +350,12 @@ def self_test() -> list[str]:
         ("a prefix exactly at the lead is not", prefixes_over_lead(["y" * 64]), []),
         ("the extract keeps each §7 key with the determination's lead, emphasis stripped",
          build_extract(conformance_source.parse(
+             "## 3. Determinations\n\n## 3.1 More\n\n"
              "## 7. Annex A.1\n| A.1 item | E | D | P |\n|---|---|---|---|\n| DOC-A.1-9 | E | **Not provided.** because | — |\n"), "## 8. Rules")["annexA1"],
          [{"key": "DOC-A.1-9", "lead": "Not provided.** because"}]),
+        ("the extract keeps the key of each section 3 and 3.1 determination, in natural key order (kb/Work PB5831)",
+         build_extract(conformance_source.parse(
+             "## 3. Determinations\n\n- **D-B10 — b**: text\n\n- **D-B2 — a**: text\n\n## 3.1 More\n\n- **D-A — c**: text\n\n"
+             "## 7. Annex A.1\n| A.1 item | E | D | P |\n|---|---|---|---|\n"), "## 8. Rules")["determinations"],
+         ["D-A", "D-B2", "D-B10"]),
     ])

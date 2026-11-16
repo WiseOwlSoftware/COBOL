@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-6",
+ "rule-digest": "edbaa8aeaeee",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-02",
+  "sources": {
+   "reader": "947391f858415b91571413850b8dfa4d67aafeca9bcd46000d5d84a7f2418a24",
+   "refuter": "907717b7e6c40c57a172ea394fbfbec32a5c3910046b2600f5383a0707419c6d"
+  },
+  "imported": {
+   "reader": "e36fdcb0e9e06dabd133143f5ffd89a43909bb64d659f499feca3820e6e863cb",
+   "refuter": "9926810ceaafc938600ae1e2df1890d5063c54cccc5d6c2256edc53da3641359"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every execution of a WRITE on an indexed file, successful or not, must store into the file's I-O status (and its FILE STATUS item, before any USE procedure runs) the IX.1.3.4 value for the outcome: 00, 02 (duplicate allowed alternate), 21 (sequence error, sequential access and EXTEND), 22 (duplicate prime or non-DUPLICATES alternate), 24 (boundary), 44 (RECORD VARYING size, GR8), 48 (not open in output, I-O or extend), in every access mode.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteSharedInStatement; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "file-sharing facility (record locks) on/off; set at OPEN (FileRegistry#SharedOpenAttempt), so at 85 the governed WRITE's lock arms are inert; the status values themselves are not switched",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'Edition|DialectBehavior' in IndexedConnector.cs, FileRegistry.cs (WriteShared/WriteSharedInStatement span), KeyedIoEmitter.cs#EmitWrite and SequentialIoEmitter.cs#EmitStoreFileStatus: the only edition reference reachable is the OPEN-time sharing posture; Debug.LandBeforeIo is the USE FOR DEBUGGING hook, not a status switch. IndexedConnector#Write assigns Status on every exit (48, 44, 21, 22, 30, 51/53/54, 02/00) with no edition test.",
+  "behaviour-differs-by-edition": "no (for the status values a 1985 program can reach; locking statuses 51-54 are unreachable at 85 because the sharing facility is off)",
+  "witnesses-cover": "part: l1_open_not_open_statements exercises only the '48' of WRITE on a file not open; not exercised: 00, 02, 21 (sequential and EXTEND), 22 prime and alternate, 44 RECORD VARYING, the status seen inside a USE procedure, WRITE FROM.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r3/p3.cob",
+    "printed": "A0=48 (not open); A1 OK A1=00; A2 OK A2=02 (duplicate allowed alternate); A3 INV A3=22 (dup prime); A4 INV A4=22 (dup unique alternate); A5=48 (OPEN INPUT); A6=02 (I-O mode); B1=00 B2 INV B2=21 B3 INV B3=21 (ACCESS SEQUENTIAL out of order / equal); B4O=00 B4 INV B4=21 (EXTEND, first key not above the highest) B5=00",
+    "expected": "IX.1.3.4 values 00, 02 item 2, 21, 22 items 1 and 2, 48 per §1985:IX.4.9.4 GR6"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r3/p3.cob",
+    "printed": "RECORD IS VARYING FROM 6 TO 10 DEPENDING ON VL: VL=5 C1=44, VL=11 C2=44, VL=8 C3=00",
+    "expected": "§1985:IX.4.9.4 GR8: outside the varying range the WRITE is unsuccessful and the status indicates the cause (44, IX.1.3.4 item 5d1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r3/p3b.cob",
+    "printed": "D1=00; USE XS=22 D2=22 (dup, no INVALID KEY, USE AFTER STANDARD ERROR); USE XS=48 D3=48 (after CLOSE)",
+    "expected": "the status is updated before the USE procedure runs; WRITE FROM writes the moved image"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR6",
+    "check": "OK  §1985:IX.4.9.4 GR6  (4.9.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:IX.4.9.4 GR8",
+    "check": "OK  §1985:IX.4.9.4 GR8  (4.9.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.1b.2"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5g"
+   }
+  ],
+  "notes": "EmitWrite calls the governed FileWriteShared entry, then EmitStoreFileStatus copies the connector status into the FILE STATUS item before the USE hook and INVALID KEY dispatch. Every IX.1.3.4 WRITE value reachable from source printed as the 1985 text requires; '24' (an implementor-defined boundary) was not probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:IX.1.3.4 whole (the WRITE values 00, 02 item 2, 21, 22 as amended by Amendment 2, 24, 44, 48; the status is set before any imperative statement or USE procedure) and IX.4.9.4 GR1, GR6, GR8, GR14. Probes at --std 85 beyond the reader's: s2/w1.cob ACCESS SEQUENTIAL OPEN I-O WRITE (not permitted by IX.4.4.4 GR4 Table 2) gave Q2=48 with the USE AFTER STANDARD ERROR procedure seeing QS=48, and no record written; WRITE FROM in dynamic I-O gave P2=00; a duplicate-allowed alternate WRITE after a DELETE gave P5=02. s2/w2.cob: a plain WRITE in random OUTPUT gave S=00; the 2002 WITH LOCK phrase is refused at 85 (COBOL0900). Reading noted: the 1985 48 text names a file 'not open in the I-O, output, or extend mode' and the file is in I-O, so no listed value fits a WRITE the table forbids; 48 is the logic error the compiler chooses and GR6 (the status is updated) holds under any reading. cite.py: OK §1985:IX.4.9.4 GR6; OK §1985:IX.1.3.4 (it lies in GRL2.5g); OK §1985:IX.4.4.4 GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

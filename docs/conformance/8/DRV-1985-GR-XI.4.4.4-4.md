@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-XI.4.4.4-4", "undefined-in-rule", "\"then the order of return of these records is undefined\"", "§1985:XI.4.4.4 GR4 (SORT): \"If the DUPLICATES phrase is not specified and the contents of all the key data items associated with one data record are equal to the contents of the corresponding key data items associated with one or more other data records, then the order of return of these records is undefined.\" The rule declares its own consequence undefined, so every order of equal-key records conforms and no golden can pin one. Mechanical arm; no Annex A.2 at 1985.", "claude: 2026-11-16", "—"]
+---

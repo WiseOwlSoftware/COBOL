@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-SR-VI.5.9.3-7",
+ "rule-digest": "18de4f70c8ea",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-06",
+  "sources": {
+   "reader": "e55e548b5e6aaa24b9a4a5773803694bc83db1502affa278584bb6f57c7c1c5e",
+   "refuter": "e676cfa069cef4f3ef933361d6ff3df214542537a99dec66381b31dc5d3347f8"
+  },
+  "imported": {
+   "reader": "e2b8c24f854c84a0d4c407b028d72f53176bc6bf6508530638faaf7a85957b8e",
+   "refuter": "89b338bf83f3602f47c234306885f17a304c0ad3f8473823e5e77f63bb829bca"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.9.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse any data description entry (working-storage, file, linkage, and report group description entries, since RW BLANK WHEN ZERO and PICTURE are the Nucleus clauses) whose PICTURE uses the asterisk zero-suppression symbol and that also carries BLANK WHEN ZERO, in either clause order; the 1985 rule bars only the asterisk (not 'S'), so PIC S9(4) BLANK WHEN ZERO stays legal at 85.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#ReportPrintablePicture",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+    "switches": "the '*'+BLANK WHEN ZERO refusal fires at every edition; edition.DialectLevel < 2002 selects only the message text (cites §1985:VI.5.9.3 SR7 instead of §2023 SR22)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+    "switches": "the 'S'+BLANK WHEN ZERO refusal is gated edition.DialectLevel >= 2002, so 1985 does not take it (correct: SR7 names the asterisk alone)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString",
+    "switches": "BWZ promotion of a numeric picture to numeric-edited admits a signed picture when DialectLevel < 2002 (adjacent rule VI.5.4.4 GR2, not this one)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'blankWhenZero' over Binding/*.cs and PictureComposition.cs; read the Validate arm and its two DialectLevel comparisons",
+  "behaviour-differs-by-edition": "yes: 2002+ also bars 'S' with BLANK WHEN ZERO; 1985 bars only '*' (PIC S9(4) BLANK WHEN ZERO compiles at 85, refused at 2023)",
+  "witnesses-cover": "part: pb528-picture-composition exercises the working-storage asterisk refusal; the report group description entry, the BLANK-before-PICTURE clause order and the 1985 'S' admission are not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c1a.cob",
+    "printed": "COBOL1934 x3: PIC **9.99 BWZ, BLANK ZERO PIC $***.** (clause order reversed), PIC **** BWZ each refused citing §1985:VI.5.9.3 SR7",
+    "expected": "refused (SR7)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c1b.cob",
+    "printed": "85: compiles and runs: [      ][    ][    ][**0.00] then [  7.00][0012][0007][**7.00]; 2023: COBOL1934 on S9(4) BWZ (SR22)",
+    "expected": "85 accepts ZZ9.99/S9(4)/9(4) with BWZ and PIC **9.99 without BWZ; zero BWZ items blank"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c1c.cob",
+    "printed": "COBOL1934 on report group entry PIC ***9 SOURCE N BLANK WHEN ZERO citing §1985:VI.5.9.3 SR7",
+    "expected": "refused (RW clause is the Nucleus clause, §1985 XIII report group rule 2)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c1d.cob",
+    "printed": "PIC ZZZ9 SOURCE N BLANK WHEN ZERO in RD compiles and runs; zero line written as blank",
+    "expected": "accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.9.3 SR7",
+    "check": "OK  §1985:VI.5.9.3 SR7  (5.9.3 Syntax Rules)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:VI.5.4.3 SR1",
+    "check": "OK  §1985:VI.5.4.3 SR1  (5.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "One refusal in PictureComposition.Validate serves every entry type (data and report items both route through PictureAnalyzer with blankWhenZero), so clause order and entry type do not matter. Side observation outside this rule: MOVE -12 to PIC S9(4) BLANK WHEN ZERO at 85 displays 0012 (sign not visible); that belongs to VI.5.4.4 GR2/DISPLAY rules, not SR7.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusal for '*'; also refuses 'S' with BWZ",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.9.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Read PictureComposition.Validate (the '*'+BWZ arm fires at every edition, S+BWZ gated DialectLevel>=2002) and its caller PictureAnalyzer (line 293, reached for every PICTURE before the category arms). Probe E:/COBOL-coord/scratch/sample-shared/out/refute-1985-06/r1a.cob at --std 85: COBOL1934 citing §1985:VI.5.9.3 SR7 for FD record item PIC *(4).99 BWZ (repeat-expanded), an OCCURS item PIC $**,***.99 BLANK ZERO, lower-case pic ***9cr blank when zero, and a LINKAGE item PIC ***9- BWZ. The 1985 PICTURE gives '*' no use other than zero suppression, so no form escapes. cite.py: OK  §1985:VI.5.9.3 SR7  (5.9.3 Syntax Rules)  the text is in SR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

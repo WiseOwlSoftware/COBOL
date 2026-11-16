@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-7",
+ "rule-digest": "b12994dc235e",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-04",
+  "sources": {
+   "reader": "be50138e22430c137194b3f2f7f1a377dea341308564b9fff83f02392d22c913",
+   "refuter": "ad6e92f9e4d13e42c5e99b7b2fb70a7ba31f653b0e440e19c502cb8f119c6201"
+  },
+  "imported": {
+   "reader": "6efddb161224bb44aaf359925b3754a303c82269d77f0b6a38135368a4af54be",
+   "refuter": "389342079cd80188652636512aa8da3e91e2286c02e322c617d0d4d65a8c685d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.6.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a REWRITE of a relative file, in every access mode (sequential, random, dynamic) and whether it succeeds or fails (43, invalid key 23), leaves the file position indicator where the previous READ/START put it, so the next sequential READ / READ NEXT returns the record after the one last read.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteAnyOrg; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteKeyed; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "refuses the 2002 FILE phrase and the word RECORD after record-name at 85 (syntax only, not the FPI)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|IsActive|DialectBehavior over RelativeConnector.Rewrite, FileRegistry REWRITE dispatch, FileConnector.MutationOpenModeGuard/RecordProcessed: none; Rewrite never writes _fpi/FpiValid/_inclusive. The only edition switch in RelativeConnector is the WRITE key-range arm.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises the position after a sequential REWRITE; not exercised: dynamic access REWRITE of a different key than the last read, a failed REWRITE (43, invalid key 23), random READ then REWRITE then READ NEXT",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c2/p2.cob",
+    "printed": "SEQ-READ2=00 REC2---- SEQ-REWR=00 SEQ-NEXT=00 REC3---- | DYN-NEXT=00 (rec 2) DYN-REWR5=00 DYN-NEXT2=00 REC3---- RK=0003 | RW9 INV DYN-REWR9=23 DYN-NEXT3=00 REC4---- | DYN-REWR1=00 DYN-NEXT4=00 rec 2 | DYN-NEXT6=00 DYN5REWR | EOF6 DYN-NEXT7=10",
+    "expected": "§1985:VIII.4.6.4 GR7: each READ NEXT continues from the record last read, unaffected by the REWRITE (whatever key it rewrote)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c2/p2b.cob",
+    "printed": "SEQ-REWR2=00 SEQ-REWR3=43 SEQ-NEXT2=00 REC4----",
+    "expected": "a failed REWRITE (43) leaves the position too; the next READ gives record 4"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.6.4 GR7",
+    "check": "OK  §1985:VIII.4.6.4 GR7  (cite.py --check \"The file position indicator is not affected by the execution of a REWRITE statement\")"
+   }
+  ],
+  "notes": "Rewrite reads _lastSlot or the pending relative key, replaces the slot and returns; no FPI field is touched on any path. Probes in sequential and dynamic access, with success, 23 and 43 outcomes, all continue from the last record read.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.6.4-7",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "Probe refute-1985-04/c2/r2.cob at --std 85, a RECORD VARYING 2 TO 8 DEPENDING ON relative file in dynamic access, positions the reader did not try: REWRITE of record 1 straight after OPEN I-O (FPI=1, nothing read) then READ NEXT gives NEW1 RK=0001 (the first record, not the second); START KEY NOT LESS THAN 3, REWRITE of key 5, READ NEXT gives REC0003 (the START position survives); a REWRITE that fails 44 (length 9 > 8) leaves the position (next READ NEXT = REC0004); a random READ of 6 then REWRITE of key 2 then READ NEXT gives AT END 10 (the position stays on 6, not on 2). No REWRITE path moves the position. cite.py: OK §1985:VIII.4.6.4 GR7 ('The file position indicator is not affected by the execution of a REWRITE statement'). Side observation (label only, not this rule): COBOL2796 at --std 85 cites §2023:14.5.1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

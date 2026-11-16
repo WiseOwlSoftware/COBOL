@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-VIII.2.5.3-1",
+ "rule-digest": "adea653a8efb",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-04",
+  "sources": {
+   "reader": "be50138e22430c137194b3f2f7f1a377dea341308564b9fff83f02392d22c913",
+   "refuter": "ad6e92f9e4d13e42c5e99b7b2fb70a7ba31f653b0e440e19c502cb8f119c6201"
+  },
+  "imported": {
+   "reader": "92a194ad9afd81a32a33a54756cb1c5b214a9ecf5d5a855395b814cbc87ffe92",
+   "refuter": "14c12eda389860cc62c6960844b78d894aa4e7af6eae474bbd26244d6b2052f1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.5.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a file created with ORGANIZATION [IS] RELATIVE keeps relative organization for its whole existence: an OPEN (other than OUTPUT, which creates a new file) through a description of another organization or other fixed file attributes must not reinterpret it (the implementor-defined validation of VIII.4.4.4 GR8 answers I-O status 39), and OPEN OUTPUT establishes the organization anew.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/Store/MetaPage.cs#Describes",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
+    "switches": "refuses the 2023 LINE SEQUENTIAL and RECORD SEQUENTIAL phrases below 2023; the RELATIVE arm passes untouched",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError: a key of 0 is '24' at 85 vs '34' from 2014 (adjacent rule, not the permanence)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Dialect|IsActive over FileControlBinder, FileConnector, KeyedConnector, RelativeConnector, SequentialConnector, FixedFileAttributes, Store/MetaPage: the GR10 '39' comparison (FileConnector.Open -> FixedAttributeConflict overrides -> Conflicts) consults no edition.",
+  "behaviour-differs-by-edition": "no: the organization's permanence and the '39' refusal are the same code at 85 and 2023; only the 2023 LINE/RECORD SEQUENTIAL phrases are refused at 85",
+  "witnesses-cover": "part: witnesses cover organization change (relative<->indexed<->sequential I-O/EXTEND); not exercised: a relative description with a different record size, an empty relative store reopened as indexed, a sequential OPEN OUTPUT re-creating the file, the bare RELATIVE form without ORGANIZATION IS",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c1/p1.cob",
+    "printed": "SIZE12-IO=39 SIZE12-IN=39 AS-INDEXED=39 RL-READ3=00 REL3AAAA SQ-RECREATE=00 RL-AFTER-SQ=39 RE-EMPTY=00 EMPTY-REL-AS-IX=39 RE-REOPEN=00 RE-AT-END RE-READ=10",
+    "expected": "the relative file keeps its organization and attributes (39 on a conflicting description, store intact); OPEN OUTPUT creates a new file whose organization is then fixed"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c1/w1.cob",
+    "printed": "witness pb1098_organization_permanence_85 at --std 85: identical to its .out (trailing spaces only): SQ-IO=39 SQ-EXT=39 SQ-IN=00 RL-READ7=00 RL-KEY0=24 IX-OVER-RL=39 RL-OVER-IX=39 SQ-IX=39",
+    "expected": "§1985:VIII.2.5.3 GR1 permanence; 39 per §1985:VIII.4.4.4 GR8"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c1/p1c.cob",
+    "printed": "RX=00 BARE-REL (bare RELATIVE without ORGANIZATION IS accepted, and read back through ORGANIZATION IS RELATIVE)",
+    "expected": "§1985:VIII.2.5.2 general format [ORGANIZATION IS] RELATIVE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c1/p1l.cob",
+    "printed": "error COBOL0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-85); accepted at --std 2023",
+    "expected": "the 2023 phrase is refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.5.3 GR1",
+    "check": "OK  §1985:VIII.2.5.3 GR1  (cite.py --check \"The file organization is established at the time a file is created and cannot subsequently be changed\")"
+   },
+   {
+    "cite": "§1985:VIII.4.4.4 GR8",
+    "check": "OK  §1985:VIII.4.4.4 GR8  (cite.py --check \"The implementor defines which of the fixed file attributes are validated\")"
+   },
+   {
+    "cite": "§1985:III",
+    "check": "OK  §1985:III  (cite.py --check \"These attributes include the organization of the file\")"
+   }
+  ],
+  "notes": "The organization is recorded in the relative/indexed store header and compared at every non-OUTPUT OPEN of an existing file; a conflicting description gets 39 and the store is left intact. The path is edition-agnostic; the only edition gate near the clause is the 2023 LINE/RECORD SEQUENTIAL phrase refusal.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.5.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe refute-1985-04/c1/r1.cob at --std 85 (creation paths the reader did not try: OPTIONAL relative file created by OPEN I-O and by OPEN EXTEND, §1985:VIII.4.4.4 GR15, then reopened under other organizations): IO-CREATE=05 IOCREATED-AS-IX=39 IOCREATED-AS-SQIO=39 EXT-CREATE=05 EXT-WRITE=00 EXTCREATED-AS-IX=39 EXTCREATED-AS-SQEXT=39 EXTCREATED-AS-SQIN=00 RE-READ=00 EXT1AAAA. The organization is established by every creating OPEN (OUTPUT, I-O, EXTEND) and an organization-changing OPEN that would write is refused with 39; the store stays readable through its relative description. The one soft spot: OPEN INPUT through a SEQUENTIAL description of the relative store answers 00 and READ returns the store's header bytes as a record (SE-READ=00 [M   X..]); this reinterprets the bytes but does not change the file's organization, and §1985:VIII.4.4.4 GR8 leaves which fixed attributes OPEN validates to the implementor, so it does not refute GR1. cite.py: OK §1985:VIII.2.5.3 GR1 ('established at the time a file is created and cannot subsequently be changed'); OK §1985:VIII.4.4.4 GR15 ('EXTEND or I-O phrase creates the file'); OK §1985:VIII.4.4.4 GR8 ('The implementor defines which of the fixed file attributes are validated').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

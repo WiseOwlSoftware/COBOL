@@ -1,0 +1,162 @@
+{
+ "rule-id": "1989-FMT-A.2.43.2",
+ "rule-digest": "82f705c98980",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-10",
+  "sources": {
+   "reader": "3d30a56ccbda16d118316e117b197172c15c128a6ba71ed78f12a663676b0d1d",
+   "refuter": "c9a32fd6314b887eaa2ab65ffdac7428d3df9534ddb6c7fdbbf6f9b26c20edab"
+  },
+  "imported": {
+   "reader": "baf47f638bddda46e3cfe30c557ee9256eba67ee20d7bbad94e04ccd4166e5b6",
+   "refuter": "bb41b767f1fd8edf5cb47c937193f30932ba07c1fcd788446de9d20373225ec3"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.43.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 (Amendment 1's Intrinsic Function module) FUNCTION TAN takes exactly one parenthesised argument-1 of class numeric (an identifier, numeric literal or arithmetic expression), and as a numeric function it may stand only inside an arithmetic expression. Any other argument count, a non-numeric argument, an ALL subscript or missing parentheses must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: sig.IntroducedIn (85 on the catalog row) > ctx.Edition.DialectLevel raises COBOL1502, RemovedIn raises the removal error; at --std 85 neither fires",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry numeric-function-identifier-operand-2002: below 2002 a numeric/integer function written where an identifier stands (MOVE, DISPLAY) is refused COBOL0900; a function inside an arithmetic expression is not screened",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "function-empty-argument-list-2002: '( )' refused COBOL0900 below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOptionsParagraph",
+    "switches": "the OPTIONS paragraph (so ARITHMETIC IS STANDARD-*) is refused below 2002, so NumericRenderer#StandardDecimal is false at 85 and the renderer takes its native arm, the same arm 2023 takes with no OPTIONS paragraph",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep IsDefinedAt/IntroducedIn/RemovedIn/DialectLevel/ConstructRegistry over IntrinsicBinder.cs, IntrinsicArgumentRules.cs and IntrinsicRenderer.cs; the arity and argument-class screens consult no edition",
+  "behaviour-differs-by-edition": "yes: at 85, TAN as an identifier operand (MOVE FUNCTION TAN(1) TO R) and an empty '( )' are refused with COBOL0900 (2002 and later accept them). The one-argument shape is enforced the same way at 85 and at 2023.",
+  "witnesses-cover": "part: the witness exercises only the two-argument refusal. Zero arguments, missing parentheses, a non-numeric argument, an ALL subscript, and the legal shape over items, expressions, literals and ZERO are not exercised.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tanr2.cob",
+    "printed": "error COBOL1504: FUNCTION TAN takes 1 argument(s); 2 given",
+    "expected": "refused: the format shows one argument-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tanr0.cob",
+    "printed": "COBOL1504 (0 given) + COBOL0900 empty function argument list requires COBOL-2002",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tanr0b.cob",
+    "printed": "COBOL1504: takes 1 argument(s); 0 given (FUNCTION TAN with no parentheses)",
+    "expected": "refused: the format requires ( argument-1 )"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tansp.cob",
+    "printed": "COBOL1504: 2 given (space-separated arguments)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tanra.cob",
+    "printed": "COBOL1627: argument-1 is of class alphanumeric; requires class numeric",
+    "expected": "refused (§1989:A.2.43.3 AR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tanrlit.cob",
+    "printed": "COBOL1627 for TAN(\"1\")",
+    "expected": "refused: a nonnumeric literal is not class numeric"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tanrall.cob",
+    "printed": "COBOL1645: an ALL subscript is permitted only where the format repeats an argument",
+    "expected": "refused (§1989:A.2.2: ALL only where the argument may repeat)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tanmove.cob",
+    "printed": "COBOL0900: numeric function-identifier where an identifier is written requires COBOL-2002",
+    "expected": "refused at 85: a numeric function may be used only in an arithmetic expression (§1989:A.2.3 GR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tannokw.cob",
+    "printed": "COBOL1639: 'TAN(1)' is not defined (the FUNCTION keyword omitted)",
+    "expected": "refused: the format requires the word FUNCTION"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tan1.cob",
+    "printed": "TAN-PI4= 000.999999999999999, TAN-0=0, TAN-M1=-001.557407724654902, TAN-EXP (expression)=0, TAN-ZERO (figurative)=0, TAN-TE2=000.546302489843790; identical at --std 2023",
+    "expected": "the legal one-argument forms are accepted and return tangent approximations"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/tanlc.cob",
+    "printed": "+001.557407 (lower case: function tan (1))",
+    "expected": "accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.43.2",
+    "check": "FAIL [quote-too-short]: 'FUNCTION TAN ( argument-1 )' has 3 real word(s). The format has no 4-word quotation; the clause exists (a probe quote of 2.43.1's words is reported as lying in §1989:A.2.43.1)."
+   },
+   {
+    "cite": "§1989:A.2.43.1",
+    "check": "OK  §1989:A.2.43.1  (2.43.1 Description)  the text is in the clause ['approximates the tangent of an angle or arc']"
+   },
+   {
+    "cite": "§1989:A.2.43.3 AR1",
+    "check": "OK  §1989:A.2.43.3 AR1  (2.43.3 Arguments)  the text is in AR1 ['Argument-1 must be class numeric']"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause ['The definition of a function specifies the number of arguments required']"
+   },
+   {
+    "cite": "§1989:A.2.3",
+    "check": "OK  §1989:A.2.3  (2.3 TYPES OF FUNCTIONS)  the text is in the clause; it lies in GR2 ['A numeric function may be used only in an arithmetic expression']"
+   }
+  ],
+  "notes": "The catalog's Fixed 1..1 arity (COBOL1504) and the argument-class table enforce the format. Neither consults the edition, and both are correct for 85. The 85-only arms (identifier-operand placement, empty '( )') are separate ConstructRegistry gates, and both fire as they should. Citations use §1989 because cite.py files Amendment 1's Section A under the 1989 token (§1985:A.* fails with no-clause).",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "TAN(1, 2) is refused with COBOL1504 at --std 2023 too; tan1.cob prints the same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog": "TAN row: Fixed 1..1, 'n', IntroducedIn 85",
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult": "arity, COBOL1504",
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses": "COBOL1627",
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified": "TAN Uniform 'n'"
+  }
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.43.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Ran at --std 85 (and the runnable ones at 2023): FUNCTION TAN(1)(1:2) -> COBOL1629 (SR2: ref-mod only on alphanumeric functions); ADD/MULTIPLY FUNCTION TAN(1), DISPLAY FUNCTION TAN(1), PERFORM VARYING R FROM FUNCTION TAN(1) -> COBOL0900 (SR4); TE(FUNCTION TAN(1)) -> COBOL0900 (1985 subscript form); MOD(FUNCTION TAN(1) 2) -> COBOL1627 (numeric function in an integer position, A.2.3); IF FUNCTION TAN(1) NUMERIC -> COBOL6918; COMPUTE FUNCTION TAN(1) = 1 -> parse refusal (receiving); TAN(NE numeric-edited), TAN(group), TAN(SPACE), TAN(ALL \"1\") -> COBOL1627; TAN(1,) refused. Accepted and correct: IF/sign condition/EVALUATE subject/WHEN ... THRU/relation with TAN, TAN(FUNCTION LOG(2))=0.830640, TAN(FUNCTION INTEGER(1.5))=1.557407, TAN(X)**2, TAN (X) with a space, TAN(- X) ROUNDED=-0.546302, TAN(1.5707963267948966) ON SIZE ERROR taken; REPOSITORY FUNCTION TAN INTRINSIC refused at 85, runs at 2002; TAN as a user data-name with FUNCTION TAN(TAN) accepted (function-names are not reserved, IV-5). cite.py: OK §1985:IV.4.3.8.3.3 SR2; OK §1985:IV.4.3.8.3.3 SR4; OK §1985:IV.4.3.8.3.2; OK §1989:A.2.43.3 AR1; OK §1989:A.2.3 (GR2). Probes: E:/COBOL-coord/scratch/sample-shared/out/refute-1985-10/T*.cob, TEVAL.cob, TPERF.cob, TREPO.cob, FNW.cob.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic / #KeywordOmittedFunction: ConstructRegistry RepositoryFunction2002 (the keyword-omitted function form and the REPOSITORY entry are refused below 2002; TREPO.cob at 85 gives COBOL0900 on REPOSITORY FUNCTION TAN, at 2002 it runs) - the reader saw the refusal (tannokw) but did not list the site"
+  ],
+  "corrected": ""
+ }
+}
