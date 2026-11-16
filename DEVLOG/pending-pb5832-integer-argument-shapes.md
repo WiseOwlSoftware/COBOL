@@ -31,6 +31,13 @@ admitted rows pin the cancelling shapes.
 **Rows.** `1989-AR-A.2.2-4`, `1989-AR-A.2.12.3-1`, `1989-AR-A.2.13.3-1` PARTIAL to CONFORMS in the 1985 store (GAP 56 to 53), with every
 earlier code-location and test-ref kept.
 
+**Review round 1 (R1-1).** The reviewer showed three more members of the class compiling at `--std 85`: `FACTORIAL (A * B * 0.5)`, `MOD (A * B / 2, 3)` and
+`MEAN (N, 0) + 64`. `WitnessOf` gained a product-of-two-items arm (both at one least value the product is 10^(-(sa+sb)), times the
+coefficient) and `MeanWitness` (MEAN, MEDIAN of two: sum of the arguments over n, stepped by one least value of an item). The leaf and
+default arms are unchanged. Goldens: refusals pb5832-product-of-items and pb5832-mean-term (four editions); two admitted rows
+(`U * N * 2`, `MEAN (N, N) + 1`) added to pb5832_scaled_integral_shapes; three unit rows. What stays fail-open is bounded in the
+landing addendum kb/Work/PB5832/2026-11-16-residue.md and in the NodeVerdicts table of IntrinsicTypeSixPowerShapesDriftTests.
+
 **Found on the way, not fixed.** `python scripts/semgrep/verify.py` fails on main already: it lists `IntrinsicArgumentRules.cs`,
 `VersionConformancePass.cs` and `DiagnosticCatalog.cs` as files semgrep cannot read, unnamed in `WHOLE_FILE_UNREADABLE`; the same three
 appear with `IntrinsicArgumentRules.cs` restored to the base.

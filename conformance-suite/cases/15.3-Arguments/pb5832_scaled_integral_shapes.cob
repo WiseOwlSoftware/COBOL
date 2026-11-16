@@ -27,6 +27,8 @@
       *>   A / AR + 65, AR redefining A, is 66 as well: the two
       *>   items are one storage area, so no valuation of them
       *>   makes the quotient fractional.
+      *>   U * N * 2              = 8         MOD (8, 7) = 1
+      *>   MEAN (N, N) + 1        = 3         MOD (3, 7) = 3
       *> A screen that refused a product or a quotient for its
       *> shape alone, or a function term it cannot value, fails here.
        IDENTIFICATION DIVISION.
@@ -58,5 +60,9 @@
            COMPUTE R = FUNCTION MOD (A / A + 65, 100).
            DISPLAY R.
            COMPUTE R = FUNCTION MOD (A / AR + 65, 100).
+           DISPLAY R.
+           COMPUTE R = FUNCTION MOD (U * N * 2, 7).
+           DISPLAY R.
+           COMPUTE R = FUNCTION MOD (FUNCTION MEAN (N, N) + 1, 7).
            DISPLAY R.
            STOP RUN.

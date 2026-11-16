@@ -1998,7 +1998,7 @@ internal static class IntrinsicArgumentRules
                 CollectAdditive(term, negated ? -factor : factor, spine); break;
             // A TERM WITH A WITNESS VALUATION is a term whose own value is not always an integer (kb/Work PB5345, PB5832): it is neither a
             // constant nor an item of the Net, and the verdict on it waits for the other terms (the end of NotAlwaysIntegral).
-            case BoundPower or BoundBinary { Op: '/' } or BoundIntrinsicCall when ExactValue(e) is null && WitnessOf(e, factor) is { } witnessWhy:
+            case BoundPower or BoundBinary { Op: '/' or '*' } or BoundIntrinsicCall when ExactValue(e) is null && WitnessOf(e, factor) is { } witnessWhy:
                 spine.Residue = true;   // a witness term is no constant and no item of the Net (IsNeverNegativeWhereItemsAreNot's "no other term")
                 spine.WitnessWhy ??= witnessWhy;
                 spine.WitnessTerms++;
@@ -2076,6 +2076,22 @@ internal static class IntrinsicArgumentRules
                             + "does not always result in an integer value — ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in one";
                 return null;
             }
+            case BoundBinary { Op: '*', Left: var factorLeft, Right: var factorRight }:
+            {
+                // A product of two numeric items: both at one granule, the product is 10^(−(sa+sb)), times the coefficient. A sum that is
+                // not an integer there is no integer for every valuation (kb/Work PB5832, review R1-1: `A * B * 0.5`, `MOD (A * B / 2, 3)`).
+                if (BareNumericItem(factorLeft) is not { Place: { } pl } || BareNumericItem(factorRight) is not { Place: { } pr }
+                    || GranuleScale(pl) is not { } scaleL || GranuleScale(pr) is not { } scaleR
+                    || (!ReferenceEquals(pl.Item, pr.Item) && StorageOverlap.MayShareStorage(pl, pr)))
+                    return null;
+                if ((factor * ExactRational.FromScaled(1, -(scaleL + scaleR))).IsInteger) return null;
+                return $"is an arithmetic expression that multiplies data item '{pl.Item.CobolName}' by data item '{pr.Item.CobolName}' under the coefficient {factor}, "
+                    + "so with both at their least value the product is not an integer, and the sum does not always result in an integer value — "
+                    + "ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in one";
+            }
+            case BoundIntrinsicCall { ResultType: IntrinsicType.Numeric, Args.Count: >= 2 } meanCall
+                when CobolNames.Same(meanCall.Sig.Name, "MEAN") || (CobolNames.Same(meanCall.Sig.Name, "MEDIAN") && meanCall.Args.Count == 2):
+                return MeanWitness(meanCall, factor);
             case BoundIntrinsicCall { ResultType: IntrinsicType.Numeric, Args: [var argument] } call
                 when NonIntegerAtTwoGranules.Any(name => CobolNames.Same(call.Sig.Name, name))
                     && argument is not BoundFieldOperand { Place: TableAllPlace }
@@ -2088,6 +2104,40 @@ internal static class IntrinsicArgumentRules
             default:
                 return null;
         }
+    }
+
+    /// <summary>The scale of the fixed-point numeric item a place is (its least value is 10^(−scale)), or null for an index, a floating-point
+    /// or a non-numeric item.</summary>
+    private static int? GranuleScale(Place place) =>
+        place.DescribedItem is { IsGroup: false, Pic: { Category: PicCategory.Numeric, Usage: not Usage.Index, IsFloat: false } p } ? p.Scale : null;
+
+    /// <summary>The witness of MEAN, or MEDIAN of two values, over two or more arguments that are numeric items (distinct items sharing no
+    /// storage) and exact literals: both are the sum of the arguments over their count n, §2023:15.60.4 RV1 c) and §2023:15.61.4 RV2
+    /// (two values: the mean of the two middle values). An item occurring m times steps the sum by m × 10^(−scale) when it moves one granule,
+    /// so the term steps by coefficient × m × 10^(−scale) / n; the others stay fixed. A step that is no integer means both valuations
+    /// cannot give an integer. Any other argument shape fails open (kb/Work PB5832, review R1-1: <c>FUNCTION MEAN (N, 0)</c>).</summary>
+    private static string? MeanWitness(BoundIntrinsicCall call, ExactRational factor)
+    {
+        var multiplicity = new List<(Place Place, int Scale, int Count)>();
+        foreach (var argument in call.Args)
+        {
+            if (argument is BoundFieldOperand { Place: TableAllPlace } || ValueOfArgument(argument) is not { } value) return null;
+            if (ExactValue(value) is not null) continue;
+            if (BareNumericItem(value) is not { Place: { } place } || GranuleScale(place) is not { } scale) return null;
+            int at = multiplicity.FindIndex(m => ReferenceEquals(m.Place.Item, place.Item));
+            if (at >= 0) multiplicity[at] = (multiplicity[at].Place, scale, multiplicity[at].Count + 1);
+            else
+            {
+                if (multiplicity.Any(m => StorageOverlap.MayShareStorage(m.Place, place))) return null;
+                multiplicity.Add((place, scale, 1));
+            }
+        }
+        foreach (var (place, scale, count) in multiplicity)
+            if (!(factor * ExactRational.FromScaled(count, -scale) / ExactRational.FromScaled(call.Args.Count, 0)).IsInteger)
+                return $"is an arithmetic expression with the term FUNCTION {call.Sig.Name}, the sum of {call.Args.Count} arguments over {call.Args.Count}, whose value "
+                    + $"steps by a non-integer when '{place.Item.CobolName}' moves one least value, so the sum does not always result in an integer value — "
+                    + "ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in one";
+        return null;
     }
 
     /// <summary>The functions whose value with ONE argument is that argument (the equivalent arithmetic expression for one

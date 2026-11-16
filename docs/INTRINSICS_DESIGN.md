@@ -970,6 +970,10 @@ coefficient is a rational and `ItemWitness` asks one question of every such shap
 `WN * 0.5`, `WN / 2 + 1` and `W-S * 2 + 65.5` are refused, `WN * 0.5 * 2`, `WN / 2 * 2` and `W-S / 0.1` admitted. This is the
 COBOL-85 arm too: §1989:A.2.2 AR4 requires "an arithmetic expression which will always result in an integer value", and 85 has no
 run-time EC-ARGUMENT-FUNCTION net, so the screen carries no edition switch (it refuses at 2023, where "shall be specified" allows it).
+A PRODUCT of two numeric items (the same item, or two that cannot share storage) is 10^(−(sa+sb)) at both one least value, so
+`A * B * 0.5` and `MOD (A * B / 2, 3)` are refused; `FUNCTION MEAN` (or MEDIAN of two) over items and literals is the sum over n
+(§2023:15.60.4 RV1, §2023:15.61.4 RV2), which steps by `coefficient × m × 10^(−scale) / n` when an item occurring m times moves one
+least value, so `MEAN (N, 0) + 64` is refused and `MEAN (N, N) + 1` admitted (`MeanWitness`, PB5832 review R1-1).
 A quotient of two numeric items that are not the same item and cannot share storage (`StorageOverlap`) is 10^(sb−sa) / 3 or / 7 at
 A = one least value and B = 3 or 7 times its own, so `MOD (A / B, 3)` is refused; a REDEFINES pair, a table's two subscripts and `A / A`
 fail open. A call of SQRT, LOG, LOG10, EXP, SIN, COS, TAN or ATAN over a bare item of scale >= 0 is irrational or transcendental at two

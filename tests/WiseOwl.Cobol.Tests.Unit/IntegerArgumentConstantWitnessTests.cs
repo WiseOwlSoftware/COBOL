@@ -53,6 +53,9 @@ public sealed class IntegerArgumentConstantWitnessTests
         { "W-I / 2 + 0.5", Bin(Bin(IntItem, '/', Lit("2")), '+', Lit("0.5")), true },
         { "W-I * 0.5", Bin(IntItem, '*', Lit("0.5")), true },
         { "0.5 * W-I", Bin(Lit("0.5"), '*', IntItem), true },
+        // kb/Work PB5832 review R1-1: a product of two items (both at one granule) under a non-integral factor.
+        { "W-S * W-S * 0.5", Bin(Bin(ScaledItem, '*', ScaledItem), '*', Lit("0.5")), true },
+        { "W-I * W-I / 2", Bin(Bin(IntItem, '*', IntItem), '/', Lit("2")), true },
         // Admitted: the constant is integral, or a term defeats the proof (fail open).
         { "1.5 + 0.5", Bin(Lit("1.5"), '+', Lit("0.5")), false },
         { "3 - 1", Bin(Lit("3"), '-', Lit("1")), false },
@@ -66,6 +69,8 @@ public sealed class IntegerArgumentConstantWitnessTests
         { "W-I * 0.5 + W-I * 0.5", Bin(Bin(IntItem, '*', Lit("0.5")), '+', Bin(IntItem, '*', Lit("0.5"))), false },
         { "W-S / 0.1", Bin(ScaledItem, '/', Lit("0.1")), false },
         { "W-I * 0", Bin(IntItem, '*', Lit("0")), false },
+        { "W-I * W-I * 2", Bin(Bin(IntItem, '*', IntItem), '*', Lit("2")), false },
+        { "W-I * W-I", Bin(IntItem, '*', IntItem), false },
         { "1 / 0 + 0.5 (zero divide is not this screen's)", Bin(Bin(Lit("1"), '/', Lit("0")), '+', Lit("0.5")), false },
     };
 
