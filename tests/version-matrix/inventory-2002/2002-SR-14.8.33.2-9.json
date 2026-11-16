@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.33.2-9",
+ "rule-digest": "dfb58a753864",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#ScreenFromFunctionClass; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/g2rw09_from_user_defined_numeric_function; conformance:cases/14.9.35-REWRITE/pb5645_rewrite_from_intrinsic_numeric_refused",
+ "notes": "kb/Work PB5645: §2002:14.8.33.2 SR9 restricts only an INTRINSIC function (alphanumeric, boolean or national when the FILE phrase is not specified); MoveBinder.ScreenFromFunctionClass applies FromPhraseRules.Rewrite's category set to an intrinsic function at every edition, so FUNCTION LENGTH is refused COBOL1914 at --std 2002 (pb5645_rewrite_from_intrinsic_numeric_refused), and exempts a user-defined function below COBOL-2014 (FromPhraseRules.IntrinsicOnlyBefore2014), which the MOVE rules alone judge (g2rw09 accepts a numeric one, [042]). From COBOL-2014 the rule names 'a function' (§2014:14.9.33.2 SR8) and the user-defined one is refused too (pb5645_rewrite_from_user_function_refused)."
+}
