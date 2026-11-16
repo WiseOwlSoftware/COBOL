@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.22.2-1",
+ "rule-digest": "9fb77fd91ff4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#FunctionValue",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-std-arith-function-values",
+ "notes": "kb/Work PB5575. §2002:15.22.2 RV1: E is (2 + .7182818284590452353602874713526); the function value is the 32-digit standard intermediate data item, so E - 2 equals that literal and E less 2.71828182845904523536028747135 is 26E-31."
+}

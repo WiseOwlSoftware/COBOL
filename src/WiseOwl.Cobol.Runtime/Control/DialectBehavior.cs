@@ -292,6 +292,13 @@ public enum DialectBehavior
     /// with the implicit or any pointer of 1 is the overflow condition and runs ON OVERFLOW (kb/Work PB5816; VCR row 7.80). Both editions
     /// are QUOTED. The consumer is <c>StringEmitter.EmitUnstring</c>.</summary>
     UnstringZeroLengthSenderTerminates = 24,
+    /// <summary>§2014:8.8.1.3.1.3.1 situation 2 — under ARITHMETIC IS STANDARD a standard intermediate data item "is the argument of a
+    /// function and there is no equivalent arithmetic expression defined for the rules of the function" is rounded to 31 digits, and
+    /// the 2014 INTEGER function (§2014:15.40.3 RV1) has no equivalent expression and no exception, so its argument is rounded.
+    /// §2002:15.34.3 RV1 is that exception at 2002: "When standard arithmetic is specified, argument-1 is not rounded", so at
+    /// <c>--std 2002</c> FUNCTION INTEGER (1 - 1 / 10 ** 32) is 0 and from 2014 it is 1 (kb/Work PB5575; VCR row 7.81). Both editions
+    /// are QUOTED. The consumer is <c>IntrinsicRenderer</c>'s argument intake.</summary>
+    IntegerArgumentRoundedUnderStandardArithmetic = 25,
 }
 
 /// <summary>
@@ -429,6 +436,11 @@ public static class DialectBehaviors
             "an UNSTRING whose sending item is a zero-length item terminates immediately, running neither the ON OVERFLOW nor the "
             + "NOT ON OVERFLOW phrase, only from COBOL-2002; COBOL-85 has no such rule, so a POINTER value of 1 is greater than the "
             + "sender's size of 0 and the statement is an overflow"),
+        new(DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic, "integer-argument-rounded-under-standard-arithmetic", 2014,
+            "7.81", "§2014:8.8.1.3.1.3.1", "§2002:15.34.3 RV1",
+            "under ARITHMETIC IS STANDARD the argument of FUNCTION INTEGER that is a standard intermediate data item is rounded to 31 "
+            + "digits, as every argument of a function with no equivalent arithmetic expression is, only from COBOL-2014; COBOL-2002 "
+            + "says that argument-1 is not rounded, so INTEGER (1 - 1 / 10 ** 32) is 0 there and 1 from 2014"),
     ];
 
     static DialectBehaviors()

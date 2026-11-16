@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-16",
+ "rule-digest": "ec691222c6cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb862-write-advancing-device-mnemonic; conformance-test:FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance",
+ "notes": "kb/Work PB5579: §2002:14.8.47.2 SR16: mnemonic-name-1 of WRITE ADVANCING is a feature-name's (C01, CSP; DOC-A.1-190); a device-name's mnemonic is refused COBOL2243 at COBOL-2002 as at every edition (the refusal's refuse-at lists 2002)."
+}

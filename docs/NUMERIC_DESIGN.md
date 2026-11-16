@@ -256,12 +256,26 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   same CobolDec decimal carrier but NOT the SDIDI's model (kb/Work PB5575): its standard intermediate data item
 >   holds 32 digits in the range 10^-999 to 10^1000 - 10^968 (§2002:8.8.1.3.1.1, §2014:8.8.1.3.1.1), so the emitter
 >   runs the engine's operations at TRUNCATION and cuts every operation result with `CobolDec.ToSidi` (32 digits,
->   EC-SIZE-OVERFLOW / EC-SIZE-UNDERFLOW outside the range; `NumericRenderer.StandardIntermediate`), rounds to 31
->   digits with `CobolDec.ToSidiRounded` where §2002:8.8.1.3.1.3 says (a comparison and a sign condition, a move to a
->   resultant without ROUNDED: `NumericRenderer.SidiRounded`, `SidiAtTransfer`) and the compile-time 2002 mode
->   (`CompileTimeArithmetic.Standard2002`) calls the same `ToSidi`. Open: the rounding of a function argument with
->   no equivalent arithmetic expression (§2002:8.8.1.3.1.3 situation 2) and the 32-digit limit of a function's returned
->   value; the
+>   EC-SIZE-OVERFLOW / EC-SIZE-UNDERFLOW outside the range; `NumericRenderer.StandardIntermediate`); an integer power
+>   develops one standard intermediate per multiplication (`CobolDec.PowStandard`, `MulStep`; §2002:8.8.1.3.6). It
+>   rounds to 31 digits with `CobolDec.ToSidiRounded` in §2002:8.8.1.3.1.3's three situations: a comparison and a sign
+>   condition (`NumericRenderer.SidiRounded`), a move to a resultant without ROUNDED (`SidiAtTransfer`, reached by
+>   every final transfer: COMPUTE, the in-place statements, and the GIVING forms through `ArithmeticEmitter.EmitGiving`'s
+>   per-receiver `Settle`), and a function argument with no equivalent arithmetic expression
+>   (`IntrinsicRenderer.StandardArgument` over `IntrinsicCarrierRules.RoundsStandardArgument`: the functions with one,
+>   SQRT, and MAX / MIN / ORD-MAX / ORD-MIN, whose arguments are compared, keep all 32 digits, and INTEGER keeps them at
+>   2002 alone, `DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic`, VCR row 7.80). INTERMEDIATE ROUNDING IS
+>   PROHIBITED (2014) rounds nothing at 31 digits (`ToSidiRounded` returns the value unchanged) and makes an inexact
+>   result EC-SIZE-TRUNCATION. A numeric function's returned value is a standard intermediate data item
+>   (§2002:15.3.1; `NumericRenderer.FunctionValue`), and a function with an equivalent arithmetic expression evaluates it
+>   in the 32-digit model: every decimal body (`CobolIntrinsics.*Dec`) takes a `DecArithmetic`, the ONE parameter that
+>   is either the SDIDI (`DecArithmetic.Sdidi`, 34 digits, per-operation rounding) or the standard intermediate data
+>   item (`DecArithmetic.Standard`, each operation cut by `ToSidi`), and `IntrinsicRenderer.RenderDec` takes every such
+>   call under ARITHMETIC IS STANDARD (the exact family's digit-identity with the SDIDI is a 34-digit one). FUNCTION PI
+>   and FUNCTION E are their equivalent expressions' 32-digit constants, EXP is `E ** argument-1` over that E, SQRT is the
+>   exact root truncated to 32 digits (§2002:15.68.3 RV2), and MOD and REM never take the exact-integer remainder there.
+>   The compile-time 2002 mode (`CompileTimeArithmetic.Standard2002`) calls the same `ToSidi` (one spelling of the model).
+>   The
 >   `arithmetic-standard-2002` dual-window row emits 0900 below 2002, the 0903 obsolete flag at 2014, and 0807
 >   at 2023 (error strict / warning permissive).
 > - **Edition gates:** the OPTIONS paragraph is 2002+ (COBOL0804, `options-paragraph-2002` — with ARITHMETIC

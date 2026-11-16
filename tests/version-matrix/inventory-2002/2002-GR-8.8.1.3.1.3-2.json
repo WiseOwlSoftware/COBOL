@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.1.3.1.3-2",
+ "rule-digest": "337c0fbe6cca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StandardArgument; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#RoundsStandardArgument",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-std-arith-function-values",
+ "notes": "kb/Work PB5575. §2002:8.8.1.3.1.3 situation 2: a standard intermediate data item that is the argument of a function with no equivalent arithmetic expression is rounded to 31 digits. IntrinsicRenderer.StandardArgument rounds such an argument (CobolDec.ToSidiRounded) unless IntrinsicCarrierRules.RoundsStandardArgument names a function whose argument keeps all 32 digits (an equivalent expression, SQRT, the comparison functions, INTEGER at 2002). DATE-OF-INTEGER (145732 + 1 / K * K) is 20000102, DAY-OF-INTEGER 2000002, INTEGER-OF-DATE (20000100 + 1 / K * K) 145732; INTEGER-PART and INTEGER (2002) keep .99999999999999999999999999999999 and give 0."
+}

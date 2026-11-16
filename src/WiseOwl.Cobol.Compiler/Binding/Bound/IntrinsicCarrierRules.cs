@@ -3,6 +3,7 @@
 using System.Collections.Frozen;
 using System.Diagnostics;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Bound;
 
@@ -56,6 +57,42 @@ internal static class IntrinsicCarrierRules
         "SUM", "RANGE",                                             // §2023:15.88.4 / §2023:15.76.4 — AlignedArgs
         "MEDIAN", "MIDRANGE",                                       // §2023:15.61.4 / §2023:15.62.4 — AlignedArgs
     }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>
+    /// ⛔ THE FUNCTIONS WHOSE STANDARD INTERMEDIATE ARGUMENT KEEPS ALL 32 DIGITS UNDER ARITHMETIC IS STANDARD (kb/Work PB5575). Every other
+    /// numeric argument that is a standard intermediate data item is "rounded to 31 digits" when it "is the argument of a function and
+    /// there is no equivalent arithmetic expression defined for the rules of the function, unless otherwise specified in the rules for
+    /// a function or unless situation 1, above, applies" (§2002:8.8.1.3.1.3 situation 2; §2014:8.8.1.3.1.3.1 the same). Asked by
+    /// <c>IntrinsicRenderer</c>'s argument intake through <see cref="RoundsStandardArgument"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>Three kinds of member: a function whose 2002 or 2014 returned-value rules give an equivalent arithmetic expression (its
+    /// argument is an operand of that expression, which situation 2 does not reach); SQRT, whose rules say "When standard arithmetic is
+    /// specified, argument-1 is not rounded" (§2002:15.68.3 RV1, 2014 the same); and the functions that COMPARE their arguments,
+    /// situation 1's exception: "except when the comparison is among the arguments of an intrinsic function, in which case it shall
+    /// not be rounded and all 32 digits shall be used" (MAX, MIN, ORD-MAX, ORD-MIN). INTEGER is the one edition edge: 2002 says its
+    /// argument "is not rounded" (§2002:15.34.3 RV1) and 2014 does not (<c>DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic</c>).
+    /// <c>StandardArgumentRoundingDriftTests</c> derives the equivalent-expression members from both editions' text, so a function
+    /// whose definition gains or loses one cannot leave this set unchanged.</para>
+    /// </remarks>
+    internal static readonly FrozenSet<string> StandardArgumentKeepsAllDigits = new[]
+    {
+        // An equivalent arithmetic expression in the 2002 or the 2014 returned-value rules.
+        "ABS", "ANNUITY", "COMBINED-DATETIME", "DATE-TO-YYYYMMDD", "DAY-TO-YYYYDDD", "E", "EXP", "EXP10", "FACTORIAL",
+        "FRACTION-PART", "INTEGER-PART", "MEAN", "MEDIAN", "MIDRANGE", "MOD", "PI", "PRESENT-VALUE", "RANGE", "REM",
+        "SECONDS-FROM-FORMATTED-TIME", "SIGN", "STANDARD-DEVIATION", "SUM", "VARIANCE", "YEAR-TO-YYYY",
+        // "argument-1 is not rounded".
+        "SQRT",
+        // A comparison among the arguments.
+        "MAX", "MIN", "ORD-MAX", "ORD-MIN",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>Is a standard intermediate data item that is an argument of <paramref name="functionName"/> rounded to 31 digits under
+    /// ARITHMETIC IS STANDARD at <paramref name="editionYear"/> (§2002:8.8.1.3.1.3 situation 2; <see cref="StandardArgumentKeepsAllDigits"/>)?</summary>
+    internal static bool RoundsStandardArgument(string functionName, int editionYear) =>
+        functionName == "INTEGER"
+            ? DialectBehaviors.IsActive(DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic, editionYear)
+            : !StandardArgumentKeepsAllDigits.Contains(functionName);
 
     /// <summary>
     /// ⛔ THE FUNCTIONS WHOSE RETURNED VALUE IS THE SDIDI QUOTIENT OF THEIR EQUIVALENT ARITHMETIC EXPRESSION IN EVERY ARITHMETIC

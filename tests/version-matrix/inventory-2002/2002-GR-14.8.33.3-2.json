@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-2",
+ "rule-digest": "fec731aa697c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteKeyed",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_indexed_write_rewrite_keys_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.33.3 GR2: a REWRITE through a connector open INPUT is '49' (M1), and of a file not open is '49' (M2)."
+}
