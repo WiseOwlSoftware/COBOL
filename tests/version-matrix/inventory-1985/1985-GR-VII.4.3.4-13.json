@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.4.3.4-13",
  "rule-digest": "2b4a98d426f8",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_open_optional_input_absent",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -18,6 +18,7 @@ from standard_streams import ensure_utf8
 
 R = selftest_cases.subject(__file__)   # scripts/spec/lineage_reads.py
 ED = R.edition(2002)
+SCHEMA = R.inventory_schema.load_schema()
 
 
 def case_00_the_one_normalization_reads_every_shape_and_refuses_what_it_cannot(expect):
@@ -273,7 +274,7 @@ def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
     ds = [R.Decision(f"2002-{t}", "p-01", (t,), "s", refused=((R.NO_OWN_WITNESS, "x"),)) for t in ("GR-1", "GR-2", "GR-3",
                                                                                                   "SR-5")]
     ds.append(R.Decision("2002-GR-4", "p-01", ("GR-4",), "s", refused=((R.FLAG_UNANSWERED, "x"),)))
-    plan = R.widen_plan(ED, ds, w, F.lineage([d.rule_id for d in ds]))
+    plan = R.widen_plan(ED, R.unwitnessed([], ds, SCHEMA), w, F.lineage([d.rule_id for d in ds]))
     expect.equal("a case whose every cited rule exists at the edition is widenable, a refusal test too; one citing a later "
                  "rule is held by its band; a row refused for anything but its evidence is not planned",
                  {k: c["status"] for k, c in plan["cases"].items()},
@@ -282,6 +283,14 @@ def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
                  {r["rule-id"]: r["state"] for r in plan["rows"]},
                  {"2002-GR-1": "widenable", "2002-GR-2": "needs-own-witness", "2002-GR-3": "needs-own-witness",
                   "2002-SR-5": "widenable"})
+    expect.equal("kb/Work PB5730: each needs-own-witness row says why, per lacking target, from the closed set",
+                 {r["rule-id"]: r.get("reasons") for r in plan["rows"]},
+                 {"2002-GR-1": None, "2002-GR-2": {"GR-2": [R.BAND_HELD]}, "2002-GR-3": {"GR-3": [R.NOT_EVIDENCE]},
+                  "2002-SR-5": None})
+    expect.equal("and the counts give rows by state, by reason and cases by status",
+                 plan["counts"], {"rows": {"needs-own-witness": 2, "widenable": 2},
+                                  "reasons": {R.BAND_HELD: 1, R.NOT_EVIDENCE: 1},
+                                  "cases": {R.BAND: 1, R.WIDEN: 1, R.WIDEN_REFUSAL: 2}})
     d = scratch_dir("lineage-reads-widen")
     cob = d / "a.cob"
     text = ("      *>--- WiseOwl test\n      *> id: a\n      *> accept: [2023]\n      *> flag: {kind: refuse, at: [2014]}\n"
@@ -300,6 +309,82 @@ def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
            json.loads(side.read_text(encoding="utf-8")) == {"refuse-at": ["2002", "2023"], "expect": "COBOL0900"})
     R.revert(side, e2)
     expect("and its revert restores it", side.read_text(encoding="utf-8") == '{"refuse-at": ["2023"], "expect": "COBOL0900"}')
+
+
+def _stored(rid, to, src="audit-1985/state-route", **kw):
+    """A planted STORED KEPT inventory row of `rid` carrying into `to` (no test-ref: no witness of its own)."""
+    return {"rule-id": rid, "next": {"kind": "KEPT", "to": list(to), "source": src}, **kw}
+
+
+def case_06b_the_stored_kept_rows_are_planned_proven_and_written(expect):
+    """kb/Work PB5730: an edition whose KEPT records are STORED (1985: no read records) has a widening path, through the
+    one population (`unwitnessed`) and the one classifier (`widen_plan`)."""
+    e85 = R.edition(1985)
+    d = scratch_dir("lineage-reads-stored")
+    text = "      *>--- WiseOwl test\n      *> id: {0}\n      *> accept: [2023]\n      *>---\n"
+    (d / "a.cob").write_text(text.format("a"), encoding="utf-8", newline="")
+    cases = {"cases/X/a": R.CaseInfo("cases/X/a", d / "a.cob", ("2023",), ("2023",), (), ("GR-1",), None),
+             "cases/X/b": R.CaseInfo("cases/X/b", R.REPO, ("2023",), ("2023",), (), ("GR-2", "GR-LATE"), None),
+             "cases/X/c": R.CaseInfo("cases/X/c", R.REPO, ("85", "2023"), ("2023",), (), ("GR-3",), None, ("85", "2023"))}
+    w = R.Witnesses(cases, {"GR-1": ["conformance:cases/X/a"], "GR-2": ["conformance:cases/X/b"],
+                            "GR-3": ["conformance:cases/X/c"], "GR-4": ["unit:T.M"]},
+                    {r: ["85", "2002", "2023"] for r in ("GR-1", "GR-2", "GR-3", "GR-4")} | {"GR-LATE": ["2023"]})
+    w.entries = lambda keys, sp: ({k: [{"id": k.rsplit("/", 1)[1]}] for k in keys}, {})
+    rows = [_stored("1985-GR-1", ["GR-1"]), _stored("1985-GR-2", ["GR-2"]), _stored("1985-GR-3", ["GR-3"]),
+            _stored("1985-GR-4", ["GR-4"]), _stored("1985-GR-5", ["GR-1"], **{"test-ref": "conformance:cases/X/a"}),
+            {"rule-id": "1985-GR-6", "verdict": "CONFORMS"}]
+    pop = R.unwitnessed(rows, [], SCHEMA)
+    expect.equal("the population is the stored KEPT rows with no witness of their own (a witnessed row and an unchained "
+                 "row are not in it), with no read decision at all",
+                 [(u.rule_id, u.to) for u in pop], [(f"1985-GR-{i}", (f"GR-{i}",)) for i in (1, 2, 3, 4)])
+    plan = R.widen_plan(e85, pop, w, F.lineage([u.rule_id for u in pop]))
+    expect.equal("a stored row whose target has a widenable case is planned widenable; a band case, a diagnosis that runs "
+                 "at 85 for a general rule and a target with no suite case each need an own witness, saying why",
+                 {r["rule-id"]: (r["state"], r.get("reasons")) for r in plan["rows"]},
+                 {"1985-GR-1": (R.WIDENABLE, None), "1985-GR-2": (R.NEEDS_OWN_WITNESS, {"GR-2": [R.BAND_HELD]}),
+                  "1985-GR-3": (R.NEEDS_OWN_WITNESS, {"GR-3": [R.DIAGNOSIS_ONLY]}),
+                  "1985-GR-4": (R.NEEDS_OWN_WITNESS, {"GR-4": [R.NO_CASE]})})
+    got = R.widen_apply(plan, w, e85, d / "cobol", d / "scratch", _harness({"a": "PASS"}, results_edition="85"))
+    expect("the planted harness proves the stored row's case at 85 and only then is it written",
+           got["widened"] == ["cases/X/a"] and not got["reverted"]
+           and (d / "a.cob").read_text(encoding="utf-8") == text.format("a").replace("[2023]", "[85, 2023]"))
+
+
+def case_06c_stored_and_read_rows_share_the_one_classifier(expect):
+    """kb/Work PB5730: the stored and the read population are ONE population; a rule planned as either is classified
+    identically (this fails the day either source gets a planner of its own)."""
+    rid, t = "2002-GR-1", "GR-1"
+    w = R.Witnesses({"cases/X/a": R.CaseInfo("cases/X/a", R.REPO, ("2023",), (), (), (t,), None, ("2023",))},
+                    {t: ["conformance:cases/X/a"]}, {t: ["2002", "2023"]})
+    lin = F.lineage([rid])
+    read = R.Decision(rid, "p-01", (t,), "lineage-reads-2002/p-01.json", refused=((R.NO_OWN_WITNESS, "x"),))
+    from_read = R.widen_plan(ED, R.unwitnessed([], [read], SCHEMA), w, lin)
+    from_store = R.widen_plan(ED, R.unwitnessed([_stored(rid, [t], src="audit-2002/x")], [], SCHEMA), w, lin)
+    strip = lambda p: [{k: v for k, v in r.items() if k != "source"} for r in p["rows"]]  # noqa: E731
+    expect("the same rule and targets plan the same row from either source (only the source differs)",
+           strip(from_read) == strip(from_store) and from_read["cases"] == from_store["cases"]
+           and from_read["counts"] == from_store["counts"] and len(strip(from_read)) == 1)
+    expect.equal("a rule both sources name is planned once", len(R.unwitnessed(
+        [_stored(rid, [t], src="audit-2002/x")], [read], SCHEMA)), 1)
+    expect("and one whose two sources carry into different targets stops the tool, naming the rule",
+           F.raises(lambda: R.unwitnessed([_stored(rid, ["GR-9"])], [read], SCHEMA), rid, "two populations"))
+    expect.equal("a stored row the search already witnesses at every target is witness-batch's, not a widening",
+                 R.widen_plan(ED, R.unwitnessed([_stored(rid, [t])], [], SCHEMA), F.witnesses({t: ["2002"]}),
+                              lin)["rows"][0]["state"], R.WITNESSED)
+
+
+def case_06d_an_edition_with_no_reads_plans_without_a_state(expect):
+    """kb/Work PB5730: `--state` is needed only where read records exist, and its absence there is said plainly."""
+    d = scratch_dir("lineage-reads-nostate")
+    expect.equal("an edition with no read records plans from its stored rows alone, without --state",
+                 R.widen_reads(1985, None, d / "none"), [])
+    held = d / "held"
+    held.mkdir()
+    sr = "2002-SR-2.1.2-9"
+    (held / "p-01.json").write_text(json.dumps(F.record("p-01", [F.read(sr)], [F.refute(sr)])), encoding="utf-8",
+                                    newline="\n")
+    expect("an edition WITH read records and no --state stops the tool, saying it needs the audit run",
+           F.raises(lambda: R.widen_reads(2002, None, held), "1 read record(s)", "--state RUN"))
 
 
 def _planted_widening(root):
@@ -322,15 +407,15 @@ def _planted_widening(root):
     return w, plan, files
 
 
-def _harness(results, code=1, refusal_out="error COBOL0900 here"):
-    """A planted subprocess.run: run.py exits `code` writing `results` (None: writes nothing); the compiler refuses
-    with `refusal_out`."""
+def _harness(results, code=1, refusal_out="error COBOL0900 here", results_edition="2002"):
+    """A planted subprocess.run: run.py exits `code` writing `results` at `results_edition` (None: writes nothing); the
+    compiler refuses with `refusal_out`."""
     def run(cmd, **kw):
         if cmd[1].endswith("run.py"):
             if results is not None:
                 out = pathlib.Path(cmd[cmd.index("--out") + 1])
                 out.mkdir(parents=True, exist_ok=True)
-                (out / "results.json").write_text(json.dumps({"tests": [{"edition": "2002", "id": i, "verdict": v}
+                (out / "results.json").write_text(json.dumps({"tests": [{"edition": results_edition, "id": i, "verdict": v}
                                                                         for i, v in results.items()]}),
                                                   encoding="utf-8", newline="\n")
             return F.completed(code)

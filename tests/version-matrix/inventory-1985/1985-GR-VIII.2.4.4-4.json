@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.2.4.4-4",
  "rule-digest": "aacc763f8e2f",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_random_dynamic",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
