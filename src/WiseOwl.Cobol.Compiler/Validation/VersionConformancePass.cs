@@ -974,7 +974,7 @@ internal sealed class VersionConformancePass
         /// override (14h.3).</summary>
         public override object? VisitStopStatement(CobolParserCore.StopStatementContext ctx)
         {
-            if (ctx.literal() is not null)
+            if (ctx.literal() is not null || ctx.cobolWord() is not null)   // literal-1 written as a word too (kb/Work PB5809)
                 _p.Check(Constructs.StopLiteralRemoved2002, "the STOP literal statement");
             // STOP RUN … WITH NORMAL/ERROR STATUS (Format 1) — a COBOL-2002 INTRODUCTION (14h.3), a disjoint
             // alternative from the STOP literal (Format 2) removal above; both fire from this one override.
