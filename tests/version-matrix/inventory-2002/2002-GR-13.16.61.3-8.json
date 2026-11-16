@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-8",
+ "rule-digest": "ff2f799dd010",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-initial-image; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-ws-report-no-editing",
+ "notes": "§2002:13.16.61.3 GR8: BLANK WHEN ZERO does not blank the initial value: VALUE ZERO fills ZZ9.99 with 000000, VALUE \"000.00\" stays, in formats 1, 2 (WS, CD) and 4 (report 0000). Both cases PASS at --std 2002 on the pinned build."
+}

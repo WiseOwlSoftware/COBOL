@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.49.3-1",
+ "rule-digest": "1172ebf9b62e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordFormatRegistration",
+ "test-ref": "conformance:cases/13.18.13-CODE-SET/select_when_code_set_rewrite_record_name_by_edition; conformance:cases/13.18.51-SELECT-WHEN-clause/select_when_record_name_write_by_edition; conformance:cases/13.16.49@2002-SELECT-WHEN-CLAUSE/select_when_selects_record_2002",
+ "notes": "§2002:13.16.49.3 GR1 evaluates file-section SELECT WHEN clauses for every READ, REWRITE and WRITE of a CODE-SET/FORMAT file, record-name forms included: REWRITE REC-A selects REC-B (OTHER) and converts its one display byte ('MEDIUM 1 194', the rest unconverted), a WRITE of an unselected record answers 45, and READ selects A/B/OTHER in order. All three cases run at --std 2002 on the pinned build match their 2002 goldens."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.56.3-3",
+ "rule-digest": "b75b5aa16b4a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TryFindTypeDecl; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/InheritedGlobals.cs#AddContainerTypeDecls; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#Seed",
+ "test-ref": "conformance:cases/13.16.56@2002-TYPEDEF-CLAUSE/g2-typedef-cd-record-assumes-clauses",
+ "notes": "§2002:13.16.56.3 GR3: a CD record of TYPE GT assumes GT's subordinates, VALUE, JUSTIFIED and PACKED-DECIMAL usage (length equal to a hand-coded twin), and GLOBAL on GT lets a contained program use the type-name; matched at --std 2002."
+}

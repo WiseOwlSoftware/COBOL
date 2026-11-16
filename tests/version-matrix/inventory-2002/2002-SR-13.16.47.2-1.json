@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.47.2-1",
+ "rule-digest": "8de075e4809d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "test-ref": "conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-qualified",
+ "notes": "§2002:13.16.47.2 SR1 permits a qualified data-name-1; SAME AS F OF R2, F IN R1 and F OF G OF R3 (three different F) take their own target's description at --std 2002 (S1=00012 S2=AAA S3=GG, then 00007/LEN=05, 'XY |'/LEN=03, LEN=02; §2002:13.16.47.3 GR1), equal to the .out."
+}

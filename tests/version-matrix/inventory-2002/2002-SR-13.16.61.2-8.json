@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-8",
+ "rule-digest": "86a12b5bc13a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-initial-image; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-ws-report-no-editing",
+ "notes": "§2002:13.16.61.2 SR8: editing characters count in the size and cause no editing at initialization; XX/XX VALUE \"ABCD\" is [ABCD ], ZZ9 VALUE \"007\" is [007], ZZ9.99 VALUE \"001.50\" is [001.50] in a CD record and WS (formats 1, 2), and an 88 VALUE \"AB/CD\" on XX/XX is accepted (format 3). Both cases PASS at --std 2002 on the pinned dc1f2dcce8 build."
+}

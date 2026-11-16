@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-18",
+ "rule-digest": "961ff9066109",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-program-pointer-to-no-typedef; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-program-pointer-to-no-typedef",
+ "notes": "§2002:13.16.58.2 SR18 requires the TYPEDEF clause on an entry naming program-prototype-name-1; with the prototype defined, a WS and a CD-record PROGRAM-POINTER TO G2URPT without TYPEDEF are each refused at --std 2002 with COBOL0881 alone."
+}

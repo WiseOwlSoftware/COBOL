@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-6",
+ "rule-digest": "d959a479ec63",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-initial-image; conformance:cases/13.18.63-VALUE/pb577_odo_value_initialize",
+ "notes": "§2002:13.16.61.3 GR6: OD OCCURS 1 TO 5 DEPENDING ON IX VALUE \"Z\" is seeded as if IX were 5, then IX VALUE 3 is placed; IX=3 and, after MOVE 5 TO IX, OD=ZZZZZ in a CD record. PASS at --std 2002 on the pinned build."
+}

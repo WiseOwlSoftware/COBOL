@@ -51,6 +51,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   landing all 85 of its input files are integrated, and the 12 rows kb/Work PB5625's adjudication decided are recorded.
   The registrar landing records-sample-pb5692 (main fbe1a21ef4 merged) takes it to **1,899 GAP**: three KEPT rows follow
   their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression.
+  The eighth golden landing (golden-2002-8, 13 wave-u slugs, on main 5e49d46678) records 91 CONFORMS: **1,899 → 1,808 GAP**.
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
   2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
   NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded for the GAP count by the PB5675 line below). The 2026-11-12 method: code-read waves over rows whose witness exists

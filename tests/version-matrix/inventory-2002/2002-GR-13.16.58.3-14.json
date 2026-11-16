@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-14",
+ "rule-digest": "31a57c2cb89b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/ObjectRefDescriptor.cs#ObjectRefDescriptor; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ObjectReferenceItem; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#objectReferenceUsage; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ObjectRefAssignmentMismatch; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindObjectRefDescriptor; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_object_reference_kinds",
+ "notes": "§2002:13.16.58.3 GR14 b-d (universal, interface-name-1, class-name-1 with and without FACTORY and ONLY) on level-1 output-CD records: each holds the reference SET or INVOKE NEW places in it (§2002:14.8.35.3 GR8/GR9, §2002:16.1.1.1 GR1) and dispatches on the object held, and the universal one also holds NULL; the case matched at --std 2002."
+}

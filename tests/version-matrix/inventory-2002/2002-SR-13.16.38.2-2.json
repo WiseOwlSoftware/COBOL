@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-2",
+ "rule-digest": "0fba74afa959",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-case-length-currency; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr2-not-a-symbol; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr2-precedence",
+ "notes": "§2002:13.16.38.2 SR2 with Table 11: in CD records, 9K9 (not a symbol) is refused COBOL0808 and 9Z (Z after 9, a blank cell) COBOL1935, while five allowed combinations compile and edit as derived, at --std 2002."
+}

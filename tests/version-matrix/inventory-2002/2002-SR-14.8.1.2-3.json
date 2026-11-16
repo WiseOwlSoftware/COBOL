@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.1.2-3",
+ "rule-digest": "df00096b5e98",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept",
+ "test-ref": "conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr3-cd-index; conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr3-index; conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr3-pointer; conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr3-object; conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr3-alphabetic; conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr3-boolean",
+ "notes": "§2002:14.8.1.2 SR3: a format 2 ACCEPT receiver shall not be of class alphabetic, boolean, index, object or pointer; a CD-record index item and WS index, pointer, object-reference, alphabetic and boolean items are each refused COBOL0818 at the ACCEPT line at --std 2002."
+}

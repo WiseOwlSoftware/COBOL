@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-2",
+ "rule-digest": "dfa20b4c388f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoBindOccursSpec; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportOccursOf",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-qualified-names; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-report-depending-qualified",
+ "notes": "Qualified DEPENDING and KEY data-names (§2002:13.16.36.2 SR2) are accepted and bind to the qualified items: in a CD record LENGTH of the DEPENDING ON M OF C1 table is 3 and SEARCH ALL by K OF E / K OF E1 finds occurrences 2 and 3; a report DEPENDING ON WS-N OF C1 prints two repetitions (§2002:13.16.36.3 GR13); --std 2002 matched."
+}

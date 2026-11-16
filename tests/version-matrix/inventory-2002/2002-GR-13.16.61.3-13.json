@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-13",
+ "rule-digest": "4fce2f1c638e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#LiteralAt",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-initial-image; conformance:cases/13.18.63-VALUE/pb1722_table_value_runs",
+ "notes": "§2002:13.16.61.3 GR13: with TO the literals are reused in order up to subscript-2: \"A\" \"B\" FROM (1) TO (3) gives ABA in a CD record. PASS at --std 2002 on the pinned build."
+}

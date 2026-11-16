@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.30.3-3",
+ "rule-digest": "3483d5579e3d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreAligned; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.30@2002-JUSTIFIED-CLAUSE/g2-just-omitted-cd-record",
+ "notes": "Without JUSTIFIED the receiver aligns by §2002:14.5.8 (numeric by decimal point, numeric-edited by point with zero suppression, alphabetic/alphanumeric/national left with space fill, boolean left with zero fill) per §2002:13.16.30.3 GR3, here for items of a record under an OUTPUT CD; the --std 2002 run matched all 11 derived lines."
+}

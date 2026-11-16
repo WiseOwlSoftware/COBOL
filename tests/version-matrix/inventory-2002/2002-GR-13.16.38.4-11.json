@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-11",
+ "rule-digest": "7efbc69c6082",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Globalization/MonetaryFacts.cs#Require",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-locale-symbols-and-locale; conformance:cases/13.18.40-PICTURE/pb64t6_picture_locale_smoke",
+ "notes": "§2002:13.16.38.4 GR11: with LOCALE IS US, an OUTPUT-CD record item edits '$1' and de-edits under en-US. With no locale-name, the item uses the current locale, which the harness pins to INVARIANT (currency U+00A4, ORD 165) and de-edits back to 1. The --std 2002 run matched the derived lines."
+}

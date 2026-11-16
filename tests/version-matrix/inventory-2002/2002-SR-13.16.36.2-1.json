@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-1",
+ "rule-digest": "6be089ab394a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#OdoResolvePass; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportOccursOf",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-level-01; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-nested-depending; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-ws-nested-depending; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-report-nested-depending",
+ "notes": "OCCURS at level 01 in a CD record (§2002:13.16.36.2 SR1a) and OCCURS over a subordinate variable-occurrence item (SR1b, §2002:4) in a CD record, in working storage and in a report group are each refused at --std 2002 (COBOL2404, COBOL0854, COBOL0854, COBOL2021)."
+}

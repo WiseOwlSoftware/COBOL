@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-7",
+ "rule-digest": "5ac6dee8a0e9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditFormatSimpleInsertion; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#IsEditedCategorySymbol",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-symbols-categories",
+ "notes": "XXBXX and AA/A0A each hold an 'X' or 'A' and one of B 0 /, so both are alphanumeric-edited and take simple insertion (§2002:13.16.38.4 GR2 Table 8, GR3): 'ABCD' edits to 'AB CD' and 'AB/C0D'. (§2002:13.16.38.3 GR7, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out)."
+}

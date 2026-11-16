@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-3",
+ "rule-digest": "731bee4e6eb2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateNumericValue; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenValueLiteral",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr3-signed-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr3-unsigned-cd",
+ "notes": "§2002:13.16.61.2 SR3: a signed literal requires a signed numeric subject, in a CD record too (§2002:A.1.1.2); PIC 99 VALUE +1 under a CD (in range, so SR2 is met) is refused COBOL1625 at --std 2002, and S99 SIGN LEADING SEPARATE VALUE -7/+12 under a CD runs 'CS=-07 CP=+12' as derived (§2002:13.16.50.3 GR6b). Format 5 is not covered (D1/PB5577)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-17",
+ "rule-digest": "f590a6f91d9b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolLocaleEdit.cs#Format",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-locale-symbols-and-locale; conformance:cases/13.18.40-PICTURE/pb64t6_locale_edit_rules",
+ "notes": "§2002:13.16.38.3 GR17 symbol meanings, run at --std 2002 on OUTPUT-CD record items under en-US. Z suppresses leading zeros ('  5.25'), 9 always holds a digit ('005.25'), '.' inserts the locale separator and aligns (' 12.50'), '+' signs per the locale ('-$  5.25' de-edits negative), no '+' means unsigned ('$  5.25' de-edits to +5.25), and cs is the locale currency '$'. Every line equals the derivation."
+}

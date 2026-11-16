@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-4",
+ "rule-digest": "7a99e9f1a646",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-initial-image; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-ext-based-initialize",
+ "notes": "§2002:13.16.61.3 GR4: leg c (communication section) - the CD record is seeded at initial state and INITIALIZE ... ALL TO VALUE restores A1, E3, J1, B2 and N2 (g2-value-cd-initial-image). Leg a (external) - INITIALIZE X ALL TO VALUE gives X(1:4)=[AABB]. Leg b (based) - ALLOCATE B INITIALIZED gives [AABB  ] (§2002:14.8.3.3 GR7) and an explicit INITIALIZE B ALL TO VALUE restores B(1:4)=[AABB] (g2-value-ext-based-initialize). Only defined content is displayed. Both PASS at --std 2002 on the pinned dc1f2dcce8 build."
+}

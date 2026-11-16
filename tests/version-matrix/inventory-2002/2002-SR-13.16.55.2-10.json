@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.55.2-10",
+ "rule-digest": "c40d286533ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlLevelOf; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum04_reset_type_qualified_refmod",
+ "notes": "§2002:13.16.55.2 SR10: TYPE CH CX OF GRP(1:2)/(5:2) and TYPE CF CX OF GRP(5:2)/(3:2)/(1:2) are qualified, reference-modified CONTROL operands; each heading and footing prints at its own level's breaks (§2002:13.16.55.3 GR6c, GR6e). The --std 2002 run on the pinned build matched."
+}

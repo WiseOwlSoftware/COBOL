@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.2.1",
+ "rule-digest": "500639fd218f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addToPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticPhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers",
+ "test-ref": "conformance:cases/14.8.2@2002-ADD-STATEMENT/g2-add-three-formats",
+ "notes": "§2002:14.8.2.1 (PDF p437): formats 1-3 with plain ROUNDED, the size-error pair in either order, TO optional in format 2, CORRESPONDING/CORR; values by §2002:14.8.2.3 GR1-GR3 and §2002:14.6.3/14.6.4 (03 02, SE 9, 07 06, 03, 03, 1112, 1213) matched at --std 2002."
+}

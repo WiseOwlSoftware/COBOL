@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.55.3-5",
+ "rule-digest": "5bf65e328209",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-groups-print-in-generate-terminate",
+ "notes": "§2002:13.16.55.3 GR5: USE BEFORE REPORTING markers show nothing printed at INITIATE, RH/PH/CH/DA inside the first GENERATE, DA alone in the second, the never-generated detail never printed, CF/PF/RF inside TERMINATE, and nothing for a report with no GENERATE (GR6a-g); matched at --std 2002."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-11",
+ "rule-digest": "4871f418099e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-symbols-categories",
+ "notes": "S99, S99 SIGN LEADING SEPARATE, 99V99, 9PP and VPP9 each hold a '9' with only P S V besides, so they are numeric and serve as arithmetic operands: -7+3 = -4 ('-04'), -7 through SIGN SEPARATE ('-07'), 12.34+1 = 13.34; 9PP and VPP9 compare as numeric (300, .001). (§2002:13.16.38.3 GR11, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out)."
+}

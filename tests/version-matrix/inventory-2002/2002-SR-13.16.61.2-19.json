@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-19",
+ "rule-digest": "9bb8a18fd7e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckFalseValueDistinct; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ConditionValueOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CompareConditionValues; src/WiseOwl.Cobol.Compiler/Binding/Model/Condition88.cs#FalseValue",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr18-sr19-cd-legal; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr19-false-in-range-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr19-false-equal-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr19-false-nat",
+ "notes": "§2002:13.16.61.2 SR19/SR19a/SR19b: the FALSE literal shall equal no literal-2 and lie in no range; the CD-record and national violations are refused COBOL2048 at --std 2002, and the legal CD FALSE values run as derived (SET FALSE gives 7 and 5, §2002:13.16.61.3 GR17)."
+}

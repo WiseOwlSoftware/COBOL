@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.51.1",
+ "rule-digest": "614fb3c0d335",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSourceClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindSourceOperand; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#IdentifierOperandOf",
+ "test-ref": "conformance:cases/13.16.51@2002-SOURCE-CLAUSE/g2src01_source_cd_compute_and_operands; conformance:cases/13.18.53-SOURCE/pb1292_source_forms_85",
+ "notes": "§2002:13.16.51.1: g2src01 (amended) writes SOURCE IS, SOURCE, SOURCES ARE and SOURCES with identifier and arithmetic-expression operands, alone and in a parenthesized list, with and without ROUNDED; pb1292 writes SOURCE without IS. Both --std 2002 runs on the pinned build matched."
+}

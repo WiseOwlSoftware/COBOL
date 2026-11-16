@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-12",
+ "rule-digest": "c73e1bde4a21",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Step",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-initial-image; conformance:cases/13.18.63-VALUE/pb505_table_value_subordinate_odometer",
+ "notes": "§2002:13.16.61.3 GR12: the format 2 fill steps the least inclusive subscript and carries into the next at its maximum: T6C \"A\" \"B\" \"C\" FROM (1 2) TO (2 2) gives (1 2)=A (2 1)=B (2 2)=C in a CD record. PASS at --std 2002 on the pinned build."
+}

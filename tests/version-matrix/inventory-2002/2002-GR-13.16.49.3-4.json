@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.49.3-4",
+ "rule-digest": "43dd2376b308",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordIdentificationFailure; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ExternalRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#InternalRecord",
+ "test-ref": "conformance:cases/13.18.51-SELECT-WHEN-clause/select_when_no_record_selected_status_45; conformance:cases/13.18.51-SELECT-WHEN-clause/select_when_record_name_write_by_edition",
+ "notes": "§2002:13.16.49.3 GR4 with §2002:9.1.12.6: when no record description entry is selected the operation is unsuccessful with status 45, for a READ ('SECOND 45') and for a record-name WRITE at 2002 ('WRITE Z 45', record not written). Both cases match at --std 2002 on the pinned build."
+}

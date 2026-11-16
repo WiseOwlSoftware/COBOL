@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-1",
+ "rule-digest": "b34cb26cb85c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsPictureless; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageInheritancePass.cs#UsageInheritancePass; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_group_usage_not_the_group",
+ "notes": "§2002:13.16.58.3 GR1 applies a group's USAGE to its leaves and not to the group: in WS and an output-CD record FUNCTION LENGTH gives the USAGE groups as alphanumeric (PACKED 05, NATIONAL 06, BIT 01, §2002:15.39.3 RV3) against the GROUP-USAGE national (03) and bit (08) groups, matched at --std 2002."
+}

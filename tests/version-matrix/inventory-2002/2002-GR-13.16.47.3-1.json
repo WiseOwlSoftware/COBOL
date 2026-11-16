@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.47.3-1",
+ "rule-digest": "f543add42015",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription",
+ "test-ref": "conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-excluded-clauses",
+ "notes": "§2002:13.16.47.3 GR1 copies data-name-1's description but not its level-number, name, EXTERNAL, GLOBAL, REDEFINES or SELECT WHEN; at --std 2002 g2-same-as-excluded-clauses prints BASEA=BASE RD1=BASE S1=ZZZZ / IN-EXT1=EEEE IN-GLB1=GLOB / EXT1=IIII S2=QQQQ / S3=GLOB GRP=GLOB! / LEN-S=05, equal to the .out, and g2-same-as-global-excluded is refused COBOL1639 (S3 not global)."
+}

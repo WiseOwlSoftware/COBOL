@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-10",
+ "rule-digest": "1102ed2ef4f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs; docs/CONFORMANCE.md#DOC-A.1-215; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_usage_packed_decimal_storage",
+ "notes": "§2002:13.16.58.3 GR10 with the implementor's DOC-A.1-215 (one nibble per digit, trailing C/D/F sign nibble, digits/2+1 bytes): in WS and an output-CD record seven packed items have byte lengths 1,2,2,3,3,10,16, hold their pictures' maxima, and image 123 as X'123F' and -1234 as X'01234D'; matched at --std 2002."
+}

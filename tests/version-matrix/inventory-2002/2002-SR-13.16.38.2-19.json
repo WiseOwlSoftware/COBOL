@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-19",
+ "rule-digest": "d287438e6875",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sign-currency-forms; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr19-plus-and-cr",
+ "notes": "The floating-point exception of GR12b: -9.9E+99 carries '-' in the significand and the exponent's '+', and is accepted; zero edits with all digits zero, a positive significand sign ('-' gives space, Table 9) and a positive exponent sign: ' 0.0E+00' (§2002:13.16.38.4 GR8). (§2002:13.16.38.2 SR19, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out and refused the violating form with COBOL1934)."
+}

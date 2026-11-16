@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-3",
+ "rule-digest": "ccd2cee2664c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-case-length-currency",
+ "notes": "§2002:13.16.38.2 SR3: in a CD record zz9.99 edits 5.5 to '  5.50', x(3) holds 'ABC' and uuU9 (PICTURE SYMBOL 'U' for EUR) edits 12 to ' EUR12', size 6 by §2002:13.16.38.3 GR13d; the --std 2002 run equals the derived .out."
+}

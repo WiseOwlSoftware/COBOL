@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.32.2-1",
+ "rule-digest": "7739554c04f8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#LinageOperandShapeFault; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage",
+ "test-ref": "conformance:cases/13.16.32@2002-LINAGE-CLAUSE/g2-linage-qualified-operands",
+ "notes": "All four LINAGE data-names written qualified (OF L1, same names in L2) are accepted per §2002:13.16.32.2 SR1 and resolve to L1: page size 3 caps LINAGE-COUNTER at 3 and footing 2 raises END-OF-PAGE (§2002:13.16.32.3 GR7, §2002:14.8.47.3 GR22); --std 2002 printed MAXLC=03 and EOP-SEEN=Y as derived."
+}

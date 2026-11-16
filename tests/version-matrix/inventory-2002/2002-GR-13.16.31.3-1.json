@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.31.3-1",
+ "rule-digest": "14bc03e310e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-lvl-cd-records; conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-lvl-rd-groups-own-area; conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-lvl-cd-first-entry-not-01",
+ "notes": "Each level-1 entry opens its own record or report group (§2002:13.16.31.3 GR1): three CD records measure 23, 3 and 4 positions and two RD groups print their own lines at --std 2002 (MATCH); a CD record opened at level 05 is refused COBOL2771."
+}

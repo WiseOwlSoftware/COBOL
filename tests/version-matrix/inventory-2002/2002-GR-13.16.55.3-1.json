@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.55.3-1",
+ "rule-digest": "29382d8ff20a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenComposedBased; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsBased; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-excluded-clauses",
+ "notes": "§2002:13.16.55.3 GR1: the subject takes type-name-1's description less level-number, name, alignment, GLOBAL, SELECT WHEN and TYPEDEF; a level-05 TYPE of a GLOBAL SELECT WHEN typedef has storage, the copied PICTUREs/VALUEs/88, and is valid only because GLOBAL and SELECT WHEN (level 1 only) are not copied; matched at --std 2002 (REC=RATTT042 ... W=ATTT). Alignment is unobservable under the documented one-byte natural boundary."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.53.3-3",
+ "rule-digest": "e5074a0e8bb0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SynchronizedPhrase.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameEssentialCharacteristics; docs/CONFORMANCE.md#DOC-A.1-197",
+ "test-ref": "conformance:cases/13.16.53@2002-SYNCHRONIZED-CLAUSE/g2-sync-left-cd-record",
+ "notes": "§2002:13.16.53.3 GR3: under the documented one-byte natural boundary (DOC-A.1-197; §2002:8.5.1.5.4), SYNC LEFT items of a CD record begin immediately after their predecessor and keep their size (GR5), laid out like the unsynchronized twin; matched at --std 2002."
+}

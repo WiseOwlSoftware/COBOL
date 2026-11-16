@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-4",
+ "rule-digest": "35c7763d4819",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#MaxPictureStringLength; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#MaxStringLength",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-case-length-currency; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr4-51-characters",
+ "notes": "§2002:13.16.38.2 SR4 (maximum 50): in a CD record a 50-character string is accepted with length 50 and a 51-character string is refused COBOL2146 at --std 2002."
+}

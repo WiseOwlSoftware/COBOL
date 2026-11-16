@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-4",
+ "rule-digest": "cb23f9ddef6c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-level-01",
+ "notes": "§2002:13.16.42.2 SR4 bars REDEFINES in level 1 entries in the communication section; g2-redefines-cd-level-01 (01 CREC-B REDEFINES CREC-A under CD CDIN, every other REDEFINES rule met) is refused COBOL2739 at line 27 at --std 2002, as derived."
+}

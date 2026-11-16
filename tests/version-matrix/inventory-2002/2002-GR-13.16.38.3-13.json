@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-13",
+ "rule-digest": "919c327137ed",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#CharacterPositions; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#EditingPositions; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Materialize",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-symbols-categories",
+ "notes": "Sizes from the symbol meanings: S counted only with SEPARATE (S99=2, S99 LEADING SEPARATE=3), V and P not counted (99V99=4, 9PP=1, VPP9=1), 1(4)=4, B 0 / , . Z * each 1 (99B99=5, 9900=4, 99/99=5, ZZ,ZZ9.99=9, **9=3), E counted (+9.99E+99=9), CR and DB two characters (999CR=5, 999DB=5), the first currency symbol adds the string's 3 characters and each later one 1 (U999=6, UU99=6 with CURRENCY SIGN 'EUR' PICTURE SYMBOL 'U'). P's algebraic value: comparison (d) 9PP holding 12345 = 300, VPP9 holding .00123 = .001; elementary move (b) 9PP to ZZZZ9 gives '  300'; numeric sender (a) ADD VPP9 gives 0.001. Insertion: '12 34', '3400' (9900 holds two digit positions, 1234 truncates to 34), '12/34', ' 1,234.50', '**5', '+0.00E+00' (zero, §2002:13.16.38.4 GR8). (§2002:13.16.38.3 GR13, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out)."
+}

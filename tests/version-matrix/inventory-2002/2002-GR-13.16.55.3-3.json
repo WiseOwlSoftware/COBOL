@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.55.3-3",
+ "rule-digest": "c64830094225",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsBased; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-subject-value-overrides",
+ "notes": "§2002:13.16.55.3 GR3: the subject's own VALUE applies and the type's is ignored, at initial state in working-storage and a CD record and by INITIALIZE ALL TO VALUE in working-storage, CD and linkage; twins without a VALUE take the type's; matched at --std 2002."
+}

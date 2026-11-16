@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.49.3-2",
+ "rule-digest": "de67e72c8133",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordFormatRegistration; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#NamedRecordEntry",
+ "test-ref": "conformance:cases/13.16.49@2002-SELECT-WHEN-CLAUSE/g2sw02_select_when_storage_sections_no_effect",
+ "notes": "§2002:13.16.49.3 GR2: storage-section SELECT WHEN clauses have no effect. In a record-less CODE-SET file, WRITE FILE F FROM a working-storage record and READ INTO a local-storage record, each with a false SELECT WHEN, succeed with 00 (no 45) and convert by the FROM description; the linkage record behaves normally. The --std 2002 run on the pinned build matched."
+}

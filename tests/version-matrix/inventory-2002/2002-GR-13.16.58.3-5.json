@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-5",
+ "rule-digest": "d8765b727523",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBits.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_bit_alignment",
+ "notes": "§2002:13.16.58.3 GR5 with §2002:8.5.1.5.3: in an output-CD record two same-level 4-bit items share one byte, a third starts the next, and filler bits precede the following character item; the record image read through a second CD record is 165 224 090 with LENGTH 3, matched at --std 2002."
+}
