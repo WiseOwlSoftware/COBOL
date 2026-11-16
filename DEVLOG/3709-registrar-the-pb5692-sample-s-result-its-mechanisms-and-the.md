@@ -1,4 +1,4 @@
-## Registrar: the PB5692 sample's result, its mechanisms, and the records they correct (8 2023 rows and one 1985 row)
+## Entry 3709 — 2026-11-15 17:01 PST — Registrar: the PB5692 sample's result, its mechanisms, and the records they correct (8 2023 rows and one 1985 row)
 
 **The 2023 GAP rises from 1 to 9, and that is not a regression in the compiler.** Eight 2023 rows were recorded CONFORMS
 while the defects below already existed; the sample's code read found them, and this landing corrects the records to
@@ -61,3 +61,4 @@ Every citation above went through `python scripts/spec/cite.py --check` (verdict
 `E:/COBOL-coord/scratch/op-20261115/registrar-sample/cites.log`). `work.py check`: 4,825 work items, all well-formed;
 `inventory_view.py --check`, `lineage_reads.py --check` and `edition_gates.py --check` GREEN after the re-records. No change
 record's kind changed, so no edition-gate proof moved.
+
