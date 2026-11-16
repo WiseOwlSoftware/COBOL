@@ -19,7 +19,9 @@
       *> (13c), so WX is space filled. A DELIMITER IN item is space filled when the delimiting condition is the end of the
       *> sender (13d), a COUNT IN item receives the number of characters examined, 0 (13e), and the TALLYING item grows by 1
       *> for the one receiving item accessed (GR7, GR16): 5 + 1 = 06. The second receiving item (WY) is never reached (13g).
-      *> Leg E: the MOVE of zero examined characters into a numeric receiving item gives 0.
+      *> Leg E: §1985:VI.6.19.4 GR4b, "When a numeric or numeric edited item is the receiving item, alignment by decimal point and any
+      *> necessary zero filling takes place as previously defined": the zero characters examined supply no digit, so every digit
+      *> position of the receiving item PIC 9(3) is zero filled and WN is 000.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5816A.
        DATA DIVISION.
