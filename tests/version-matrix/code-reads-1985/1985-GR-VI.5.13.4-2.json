@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.5.13.4-2",
+ "rule-digest": "8c82de80408b",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-191",
+  "sources": {
+   "reader": "f79c1e53f16169309b98fd73d01548ddf5f1f52d20ab5c3a6a7ca32929d753ca",
+   "refuter": "4b6629f737dbf9518ef40f154e29ec9ddfd9c17bca9e454bde0f0f2fec9296d5"
+  },
+  "imported": {
+   "reader": "4ca754dd02321d99facd8571b8f2c94f59566ecf848930738e0e8afde5942ebf",
+   "refuter": "2d5de18c333100a4eedaa1b15487af71bc77f013eb6652edc5aff03c26ab59e5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.13.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 bare SYNCHRONIZED positions the elementary item between natural boundaries in an implementor-determined way; the implementation must have a determination and apply it consistently.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryImageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ImageWidth",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "group-level SYNC refused below 2023; not the positioning",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "no layout member reads DataItem.Synchronized (grep '.Synchronized' over src); grammar syncClause in CobolData.g4 has no edition predicate; the positioning is the same no-op at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "all of the rule's range at this edition",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p3sync.cob",
+    "printed": "G=ac (GC at position 10 after X + 8-byte COMP SYNCHRONIZED); ODO table of X + S9(4) COMP SYNC LEFT is 3 positions per occurrence",
+    "expected": "per DOC-A.1-197: the item begins at the byte after the preceding item; no slack"
+   },
+   {
+    "class": "witness",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/VI.5.13@1985-SYNCHRONIZED-CLAUSE/g85_f09_02.cob",
+    "printed": "EXPECT: MATCH (W-A=A C=C T=TTT)",
+    "expected": "GN begins at position 2, GC at 4"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.4 GR2",
+    "check": "OK  §1985:VI.5.13.4 GR2  (5.13.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The determination is documented in docs/conformance/7/DOC-A.1-197.md ('positioned exactly where it would be without the clause', 'The same in every edition') and the compiler follows it. Implementor latitude, so conformance is determination-plus-consistency, which the probes show.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.13.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "Implementor latitude: DOC-A.1-197 states the determination (positioned exactly where it would be without the clause; every edition). r3sync.cob at --std 85 (runs/r3sync-001): bare SYNC on a 77 COMP item and on a COMP item inside an ODO table positions each item at the byte after its predecessor (occurrence size 5, no slack), consistent with SYNC LEFT/RIGHT in the same program. No edition switch on positioning (only GateSynchronizedGroup and the INDEX screen). cite.py: OK §1985:VI.5.13.4 GR2 (the text is in GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

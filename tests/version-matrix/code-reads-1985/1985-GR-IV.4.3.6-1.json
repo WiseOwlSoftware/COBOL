@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-IV.4.3.6-1",
+ "rule-digest": "27430188698e",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-187",
+  "sources": {
+   "reader": "6a998a4b1e57a690f7e45cdec6fe86e3fd296177f87d26c4e5397bed4746166a",
+   "refuter": "d6a21439328cab15932be6b7a4e5f211c8acebc58be757ed8d33d358dae71686"
+  },
+  "imported": {
+   "reader": "e2259ac1a085f6e397065ac3b7f5bf6eac8710a1330f46cd7874cac7e2ebe8cf",
+   "refuter": "170b017f66a37bed4efe8e32d1749cba1845a01d3be8e440f18af2730fbbeb53"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.6-1",
+  "verdict": "CONFORMS",
+  "requirement": "Data stored into a numeric receiver is aligned by decimal point (an item or literal with no explicit point has one after its rightmost digit) and placed in the receiving digit positions with zero fill or truncation at either end, for every numeric usage, sign form and P-scaled picture a 1985 receiver can have and every sender (numeric, alphanumeric as an unsigned integer, ZERO, ALL literal, an arithmetic result).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#AllLiteralNumber; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StoreArgs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#TransferWide; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Store",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#AllLiteralNumber",
+    "switches": "DialectLevel < 2002: a digit-only ALL literal into a numeric receiver is an unsigned INTEGER repeated to the receiver's character positions (85) instead of the receiver's digit positions at its scale (2002+)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/DialectBehavior in MoveEmitter.cs, NumericRenderer.cs, CobolNum.cs, CobolFloat.cs: only AllLiteralNumber consults the edition; the alignment and truncation code is shared by every edition",
+  "behaviour-differs-by-edition": "yes: MOVE ALL \"12\" TO PIC 9(3)V99 gives 121.00 at 85 (an integer aligned by its implied point) and 121.21 from 2002; every other alignment is the same code",
+  "witnesses-cover": "part: g85_f04_01 covers literal and unsigned DISPLAY senders into unsigned DISPLAY receivers; not exercised are P scaling, signed separate receivers, PACKED-DECIMAL and BINARY receivers, alphanumeric, ZERO and ALL-literal senders, 18-digit senders and arithmetic results",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/aln1.cob",
+    "printed": "P1 [12] 12000 / P2 [12] / SL [-234] / ST [345-] / PK -0123.45 / BN -123.4 / A5 [34500] / ZR [00000] / AL [12100] / S2 99 / 18 99999999999999999.0 / C1 [00066] / C2 [76543] / PN [00000] / PV [00000]",
+    "expected": "12345.678 into 99PPP keeps 12 (12000); 0.0012345 into VPP99 keeps 12; -123.456 into S99V9 LEADING SEPARATE is -23.4 and into S9V99 TRAILING SEPARATE 3.45-; packed and binary truncate both ends; \"12345\" as an unsigned integer into 9(3)V99 is 345.00; ALL \"12\" at 85 is the integer 121 -> 121.00; 18 nines truncate left into 99 and into 9(17)V9; COMPUTE results truncate at the receiver's point"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.6 GR1",
+    "check": "OK  §1985:IV.4.3.6 GR1  (4.3.6 Standard Alignment Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The input's seed site MoveEmitter.cs#Numeric does not exist; the numeric arm is ConvertSource's numeric receiver path through NumericRenderer.StoreArgs/TransferWide into CobolNum.Store. Every probe line aligns by the point with truncation and zero fill at both ends.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.6-1",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "Probe refute-1985-187/ra1.cob (runs/ra1-001, --std 85): numeric-edited sender de-edited and aligned (the 1985 amendment of §1985:VI.6.19.4 GR4b): -$1,234.50 into S9(4)V99 -> -1234.50, into 9(2)V9 -> 345; VALUE clause alignment 1.5 into 9(3)V99 -> 00150, 12000 into 99PPP -> 12, -.5 into S9V999 TRAILING SEPARATE -> 0500-; COMP 9(3) into COMP 9(3)V99 -> 007.00; 1234.5 into COMP 9(3)V99 -> 234.50. All match decimal-point alignment with truncation and zero fill. cite.py: 'OK  §1985:IV.4.3.6 GR1  (4.3.6 Standard Alignment Rules)  the text is in GR1'; 'OK  §1985:VI.6.19.4 GR4  (6.19.4 General Rules)  the text is in GR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

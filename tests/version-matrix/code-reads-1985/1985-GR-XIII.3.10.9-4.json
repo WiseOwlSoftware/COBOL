@@ -1,0 +1,106 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.9-4",
+ "rule-digest": "f344a870f0f8",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-202",
+  "sources": {
+   "reader": "d62b1f86a5e0c82ef539c77b85d2afa99d230d06d7c725d6a79a4e39518c3e39",
+   "refuter": "a07a7838b5d3e16c51b85a49cfeb493f866f3e26fa43d7e35cf17e83e593fb67"
+  },
+  "imported": {
+   "reader": "1f9d101c75445b6707acd6c85be88208fc55db6f329b1bcc2bb205040d058ffa",
+   "refuter": "45e7264f4bfbfe0291dca0e73ccad5ec73fb8810ebfde50a559769078c3d46e4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.9-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a page footing's NEXT GROUP must (a) absolute: be greater than the line of the footing's final print line and not greater than PAGE LIMIT integer-1; (b) relative: added to that final line, not exceed integer-1; the compiler must refuse each violation. The witness covers the legal forms of a and b only.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportNextGroupClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+    "switches": "Edition.DialectLevel < 2002 adds the §1985:XIII.3.16.3 SR1 check (NEXT GROUP needs a LINE NUMBER clause in the group); the presentation-rule range checks after it take no edition branch",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ExceedsThreeSignificantDigits85",
+    "switches": "DialectLevel < 2002: the 85-only three-significant-digit limit on integer-1/integer-2 (§1985:XIII.3.16.3 SR2), checked before the range checks",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/Year in BindNextGroupClauses and MinimumLastLine: the page-footing cases and the page-limit check take no edition branch",
+  "behaviour-differs-by-edition": "no for this rule's limits; at 85 a page footing's first LINE clause must be absolute (Table 4 lists only 'A R'; refused separately as COBOL2199)",
+  "witnesses-cover": "part: the legal forms of a and b (g85_f01_04); no refusal",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/PFABS17.cob",
+    "printed": "COBOL2284 integer-1 17 shall be greater than the minimum last line number of the page footing (17)",
+    "expected": "refused: the final print line is 17 (GR4a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/PFABS21.cob",
+    "printed": "COBOL2284 integer-1 21 exceeds the page limit 20",
+    "expected": "refused: greater than integer-1 20 (GR4a)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/PFABS20.cob",
+    "printed": "EXIT 0 RAN (PFABS18 also EXIT 0 RAN)",
+    "expected": "accepted: 18, and 20 = the page limit"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/PFREL04.cob",
+    "printed": "COBOL2284 minimum last line (17) plus integer-2 4 shall not exceed the page limit 20; PFREL03 EXIT 0",
+    "expected": "17+4=21 refused, 17+3=20 accepted (GR4b)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/PFRLA19.cob",
+    "printed": "COBOL2199 the first LINE clause of a page footing is relative (§1985:XIII.3.15.3 SR9); PFRLA18 and PFRLR03 also get COBOL2284 from the walked final line 18",
+    "expected": "85 Table 4 permits only 'A R'; refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/PFNXPG.cob",
+    "printed": "COBOL2284 the NEXT PAGE phrase shall not be specified in a page footing",
+    "expected": "refused (§1985:XIII.3.16.3 SR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.9 GR4a",
+    "check": "OK  §1985:XIII.3.10.9 GR4a  (3.10.9 Page Footing Presentation Rules)  the text is in GR4a"
+   },
+   {
+    "cite": "§1985:XIII.3.10.9 GR4b",
+    "check": "OK  §1985:XIII.3.10.9 GR4b  (3.10.9 Page Footing Presentation Rules)  the text is in GR4b"
+   },
+   {
+    "cite": "§1985:XIII.3.16.3 SR4",
+    "check": "OK  §1985:XIII.3.16.3 SR4  (3.16.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "Every boundary of a and b is refused or accepted as the text requires: the page-limit half of a is the page-limit check (ng.Value > VerticalLimit), the other halves the PageFooting cases over MinimumLastLine. The diagnostics cite §2023:13.18.37.3 SR1/SR6c/SR7b, which state the same limits.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.9-4",
+  "refutation": "UPHELD",
+  "classes": "b,f",
+  "evidence": "Tested the 'A R' sequence (LINE 16, LINE PLUS 2, final line 18; PAGE LIMIT 20, FOOTING 15). PFAA18 was refused COBOL2284 (not greater than 18) and PFAA19 accepted. PFAR2 (18+2=20) was accepted and PFAR3 (18+3=21) refused. MinimumLastLine walks absolute-then-relative lines correctly. cite.py: OK §1985:XIII.3.10.9 GR4a.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

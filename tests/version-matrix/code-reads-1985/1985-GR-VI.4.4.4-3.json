@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-3",
+ "rule-digest": "c8c1b10f9de7",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-189",
+  "sources": {
+   "reader": "3af5318bf9ff3976f66ce74c54ffe674c4f422852c670fb921cfe8c4c13b3f15",
+   "refuter": "f1088f9ce80fd8fc6afebba27599237dfdb6a4bf42fb275ba450e4cef10d73c3"
+  },
+  "imported": {
+   "reader": "9e4b4cfb3a5cf973a48c7bd73d8a5cef07063a79f0644084152232c5f4e15e80",
+   "refuter": "fb885f4029879299268dad5997e5641c1da5247e14b4e6244ab2466fcd48bd54"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.4.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a program with no OBJECT-COMPUTER paragraph, not contained in a program with one, runs on the implementor-defined object computer: the compiler must accept it and apply that default (here the .NET runtime, documented in DOC-A.1-126), with the native collating sequence in effect.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#configurationParagraph; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#BindSpecialNames; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit",
+  "edition-consulted": [],
+  "edition-search": "The default path (no paragraph) visits no OBJECT-COMPUTER node, so VersionConformancePass's gates do not run; grep Edition|Version in ConfigurationStep.cs and the PCS resolution in SpecialNamesBinder.BindSpecialNames found no edition switch on the default. docs/conformance/7/DOC-A.1-126.md documents the default as the same in every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f04_02 compiles a container and containee with no paragraph; the default collating sequence they then use is not checked",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/oc2.cob",
+    "printed": "OC2 A<B (NATIVE) / OC2 1<A (ASCII NATIVE) / OC2IN 1<A (ASCII NATIVE)",
+    "expected": "no paragraph in container or containee: the implementor's object computer with its native collating sequence"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/sc1.cob",
+    "printed": "SC1 NO ENVIRONMENT DIVISION",
+    "expected": "a program with no environment division compiles and runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.4.4 GR3",
+    "check": "OK  §1985:VI.4.4.4 GR3  (4.4.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The implementor-defined object computer is documented in docs/conformance/7/DOC-A.1-126.md as the .NET runtime the program is compiled for, one object computer whatever the paragraph says. With no paragraph the configuration slice keeps its native collating default.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.4.4-3",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "refute-1985-189/seqcfg.cob: SQA with PROGRAM COLLATING SEQUENCE IS REV (END PROGRAM SQA) then separately compiled SQB with no OBJECT-COMPUTER: SQA prints A>B (REV) and LOW-VALUE IS Z, SQB prints A<B (NATIVE) and LOW-VALUE NOT Z, so the implementor's object computer and native sequence apply to a program not contained in one with the paragraph, and the configuration does not leak along a sequence (ConfigurationSource.Own inherits nothing). The default is documented in docs/conformance/7/DOC-A.1-126.md. cite.py: OK  §1985:VI.4.4.4 GR3  (4.4.4 General Rules)  the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

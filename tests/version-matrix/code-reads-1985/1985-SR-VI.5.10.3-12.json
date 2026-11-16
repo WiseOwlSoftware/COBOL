@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-12",
+ "rule-digest": "742e5e36fa41",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-207",
+  "sources": {
+   "reader": "1e685c287cf25c6b82ba3533f88499a0cee75edba5218bec9e04b0aa5eedfbcc",
+   "refuter": "f5444eb570593d583f39afd12b302904d4909af21ca72f4b52ff47f207b6f700"
+  },
+  "imported": {
+   "reader": "7adcbfc681396d8d75e74f364fae80526d20578fab91571192fc15fe81c93bed",
+   "refuter": "a5112d3df23d54c554bcb418cf704bbfb640277df878431c3d13ab6bf4e5c4be"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.10.3-12",
+  "verdict": "CONFORMS",
+  "requirement": "At the level-2 Nucleus this implementation provides, data-name-2 may be subordinate to an entry that itself contains a REDEFINES clause; the compiler must accept such a redefinition (at any depth and at level 01) and overlay it on data-name-2's positions.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#Run",
+  "edition-consulted": [],
+  "edition-search": "Grepped ResolveRedefinesPass.cs, ClassifyRedefinesClassesPass.cs and DataItem.RedefinedEntry for Edition.Edition, .Year, CobolVersion, Constructs., ConstructRegistry: none. The only edition-adjacent consult is EditionContext.Removed, the strict/permissive severity seam. Also grepped src for 'VI.5.10' and 'subordinate to an entry which contains a REDEFINES': no level-1 restriction exists, which is right for a level-2 implementation.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f09_01 covers one depth (Q3 REDEFINES Q2 under Q REDEFINES P). Not exercised: two levels of nesting, a level-01 redefinition's subordinates.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r12pos.cob",
+    "printed": "A=WX42 B2=42 B41=4 / A=WX47 / R1=AQR R232=R",
+    "expected": "accepted; B3/B4 overlay B2, B43 overlays B42 two levels down, R23 overlays R22 under 01 R2 REDEFINES R1; storage shared per GR1/GR2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r8ref3.cob",
+    "printed": "error COBOL1654: 'C' REDEFINES 'B1': data-name-2 does not name a preceding entry in the same scope",
+    "expected": "refused (degenerate: data-name-2 under a redefinition but not a sibling; SR2/SR10)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.3 SR12",
+    "check": "OK  §1985:VI.5.10.3 SR12  (5.10.3 Syntax Rules)  the text is in SR12"
+   }
+  ],
+  "notes": "The level-2 sentence permits the form and the compiler accepts it with correct storage sharing; the level-1 sentence restricts only a level-1 implementation, which this is not. No code refuses the form at any edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.10.3-12",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "The level-2 sentence permits the form; this is a level-2 implementation. Run at --std 85: B2 REDEFINES B1 and B3 REDEFINES B1 where B1 is subordinate to B REDEFINES A, then 05 C REDEFINES A (d5nestok) accepted with shared storage (B2=WX B3=W B4=YZ C=WXYZ). No code path refuses data-name-2 under a REDEFINES entry at any edition (ResolveRedefinesPass grep: no edition branch). cite.py: 'OK  §1985:VI.5.10.3 SR12  (5.10.3 Syntax Rules)  the text is in SR12'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

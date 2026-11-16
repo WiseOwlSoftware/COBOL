@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-XI.4.2.4-4",
+ "rule-digest": "3a0810477a1e",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-201",
+  "sources": {
+   "reader": "936cada97ec16c97b1455d17cf21dde8a45cc6fb78469daa47404beadd64246d",
+   "refuter": "9abe86d702cdfe03e9f5ffb384226eea6c0cd60316199a366e9b94901e7c4f56"
+  },
+  "imported": {
+   "reader": "ff2eb7f92ff4cb5771debbdb4a8fcd51d719de8ad8955a8d82018c2e9915dd8f",
+   "refuter": "ef916834e38d30505624b7b1921542f4d13e5525050d3c40b36bbcb926d71c39"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.2.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "After RELEASE ... FROM identifier-1 completes, identifier-1's area still holds what it held (the implicit MOVE reads it and nothing writes it), for every identifier-1 class 85 admits: group, elementary numeric, reference-modified, variable-length (ODO) group and, under Amendment 1, an alphanumeric function-identifier.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+    "switches": "rangeFailsStatement = DialectLevel < 2002: at 85 a varying record outside the record range makes the RELEASE unsuccessful (§1985:VII.3.8.4 GR10); later editions release it. The 'also available' store is gated on that success",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for Edition/DialectLevel/DialectBehavior in SortBinder.BindRelease and SortEmitter.EmitRelease; the FROM literal-1 arm is gated post-1985 in VersionConformancePass.ParseArm.VisitRecordFromPhrase (a refusal of a different rule); the FROM phrase is bound as the one implicit MOVE (MoveBinder.BindFromPhrase) at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_release_from_sender_available covers a group identifier; not exercised: elementary numeric, reference-modified, ODO and function-identifier senders",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/r4a.cob",
+    "printed": "F1=[ccczzzzz] F2=[#BBByyyyy#] F3=[007] F4=[3AAA] SORTED=[007     ] [3AAA    ] [BBByyyyy] [CCCZZZZZ] DONE (MATCH)",
+    "expected": "each sender unchanged after RELEASE (FUNCTION UPPER-CASE argument, ref-modified WS-Y(2:8), numeric WS-N, ODO group WS-T) and each released image the MOVE result"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/r2a.cob",
+    "printed": "R3-WS=[BBB2yy    ] and WS=[BBB2yy    ] after the SORT",
+    "expected": "FROM sender available after RELEASE under SAME RECORD AREA as well"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/wfrom.cob",
+    "printed": "witness l1_release_from_sender_available at --std 85: MATCH",
+    "expected": "SEND1/SEND2/SEND3 unchanged"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.2.4 GR4",
+    "check": "OK  §1985:XI.4.2.4 GR4  (4.2.4 General Rules)  the text is in GR4 -- 'the information in the area referenced by identifier-1 is available'"
+   }
+  ],
+  "notes": "EmitRelease emits the bound FROM MOVE (record-name-1 is its only receiver) and then the release of the record image; nothing on the path writes identifier-1. SR3 keeps identifier-1 off the record's own storage.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.2.4-4",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-201/src/r4.cob (run r4-002, --std 85): RELEASE FROM a numeric-edited item, a scaled PIC S9(3)PP item, a table element by index and by data-name subscript, and a JUSTIFIED RIGHT item; each sender unchanged afterwards ('ED=[- 1,234.50] SC=-12300 TAB=[E1E1E2E2E3E3] XI-ELT=[E3E3] J=[JR    ]') and each released image the MOVE result (SORTED lines). Class c: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-201/src/r4c.cob (run r4c-001) RELEASE FROM \"LITERAL\" and FROM SPACES are refused at 85 (COBOL0871 'FROM literal-1 requires COBOL-2002'), so no literal sender reaches this rule at 85. (r4-001 refused a numeric VALUE on a numeric-edited item at 85, COBOL0900, an unrelated 85 arm.) cite.py: OK §1985:XI.4.2.4 GR4 'the information in the area referenced by identifier-1 is available'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

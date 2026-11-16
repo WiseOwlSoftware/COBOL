@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-2",
+ "rule-digest": "3f382c9ad365",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-189",
+  "sources": {
+   "reader": "3af5318bf9ff3976f66ce74c54ffe674c4f422852c670fb921cfe8c4c13b3f15",
+   "refuter": "f1088f9ce80fd8fc6afebba27599237dfdb6a4bf42fb275ba450e4cef10d73c3"
+  },
+  "imported": {
+   "reader": "7c291917a5bc2f4b2a0f03ff677ce59e68b3d5c6d269e228c5a31b32c15d906c",
+   "refuter": "1c350784648a2b847c2a33b6e8b4d0852f73024dc5ddf1d370baed90c89c3183"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.4.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every OBJECT-COMPUTER clause (MEMORY SIZE, PROGRAM COLLATING SEQUENCE) written or implied in a program applies to that program and to every program it contains directly or indirectly, so a contained program's comparisons and SORT keys use the container's program collating sequence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#BindSpecialNames; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Produce; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph",
+    "switches": "Constructs.ComputerNameOptional2002: at 85 a clause needs computer-name-1; lone-period gate",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMemorySizeClause",
+    "switches": "Constructs.MemorySizeRemoved2002: MEMORY SIZE accepted at 85, refused from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Version in ConfigurationStep.cs found none: the inheritance (into.Collating = from.Collating) is the same code at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f06_01 covers one level of containment for relation and condition-name conditions; doubly contained programs and SORT keys in a containee are not exercised",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/oc1.cob",
+    "printed": "OC1 A>B (REV) / OC1IN A>B (REV) / OC1DEEP A>B (REV)",
+    "expected": "the container's PROGRAM COLLATING SEQUENCE IS REV (Z thru A) governs the container, the containee and the doubly contained program; MEMORY SIZE accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/oc3.cob",
+    "printed": "OC3IN SORTED C / OC3IN SORTED B / OC3IN SORTED A",
+    "expected": "a SORT ASCENDING in the containee orders by the inherited reverse sequence"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/sc7.cob",
+    "printed": "error COBOL1643: a CONFIGURATION SECTION is specified in a program contained within another program",
+    "expected": "refused: a containee cannot restate the paragraph, so inheritance is its only route"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.4.4 GR2",
+    "check": "OK  §1985:VI.4.4.4 GR2  (4.4.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "ConfigurationStep.Inherit copies the container's whole configuration slice, including Collating, into each contained unit before it binds; units bind container-first, so one level carries the whole ancestry. MEMORY SIZE has no runtime effect (implementor-defined configuration).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.4.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "refute-1985-189/ocfig.cob: container OBJECT-COMPUTER with PROGRAM COLLATING SEQUENCE IS REV ('Z' THRU 'A') and the 1985 Segmentation clause SEGMENT-LIMIT IS 10 (accepted at 85) -> the container and the containee OF1IN both give LOW-VALUE = 'Z' (figurative constant from the inherited sequence, §1985:VI.4.5.4 GR6), a GROUP comparison A>B, and an 88 VALUE 'Z' THRU 'N' that excludes 'M'; the second, SIBLING containee OF1SIB (after OF1IN's END PROGRAM) also gives A>B (REV) and A not > HIGH-VALUE. ConfigurationStep#Inherit copies Collating for every Contained source. cite.py: OK  §1985:VI.4.4.4 GR2 ... the text is in GR2; OK  §1985:VI.4.5.4 GR6 ... the text is in GR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

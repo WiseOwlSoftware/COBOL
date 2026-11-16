@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-VI.5.13.4-1",
+ "rule-digest": "548a1b563a4f",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-191",
+  "sources": {
+   "reader": "f79c1e53f16169309b98fd73d01548ddf5f1f52d20ab5c3a6a7ca32929d753ca",
+   "refuter": "4b6629f737dbf9518ef40f154e29ec9ddfd9c17bca9e454bde0f0f2fec9296d5"
+  },
+  "imported": {
+   "reader": "28645222b0462af4e07ea8381521942a9fc5f341d10d994ad7c6cae4427e4cec",
+   "refuter": "e170c43887a6d60a9f41b10d1c645e6c16ea06df6df4abf555aed34161f8adc2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.13.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a SYNCHRONIZED elementary item occupies its natural-boundary span exclusively, any unused positions in that span count in the containing group's size and in a REDEFINES of that group but not in a REDEFINES of the elementary item itself; under the implementor determination (every character position a natural boundary, DOC-A.1-195/197) there are no unused positions, so the layout equals the unsynchronized layout.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryImageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ImageWidth",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "SYNC on a group item refused below 2023 (COBOL0900, SyncOnGroup2023); 85's SR1 'only with an elementary item'",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#SynchronizedViolation",
+    "switches": "below 2002 SYNC on a USAGE INDEX item is refused (§1985:VI.5.14.3 SR6, COBOL2405)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep '.Synchronized' over src: the flag is read only by subject screens, type-equivalence and repository codec; no layout, width or emit member reads it, so the storage layout takes the same (no-alignment) code at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f09_02 covers SYNC binary items in groups, group REDEFINES, REDEFINES of an elementary SYNC item and a file record; not SYNC inside OCCURS/ODO (GR7 interplay), 8-byte binary, PACKED-DECIMAL SYNC RIGHT, or SYNC on a sign-separate DISPLAY item",
+  "probes": [
+   {
+    "class": "a,d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p3sync.cob",
+    "printed": "ODO-LAST=X ODO-TB2=-000000002 G=ac GB=-999999999999999999 H=AC K=[K007-Z] KTR=[K567+Z] F-1=1 C=2 E=3 F-RB=-000000005 RE=3",
+    "expected": "no other item overlaps a SYNC item; group of X + S9(18) COMP SYNC + X puts GC at 10; REDEFINES of elementary SYNC HB covers exactly 2 positions; file record X,S9(9) COMP SYNC,X,S9(5) COMP-3 SYNC RIGHT,X is 10 bytes"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p3ref.cob",
+    "printed": "COBOL0900 SYNCHRONIZED on a group item requires COBOL-2023; COBOL2405 SYNCHRONIZED on USAGE INDEX (§1985:VI.5.14.3 SR6)",
+    "expected": "group SYNC (a 2023 form) and SYNC with INDEX refused at 85"
+   },
+   {
+    "class": "witness",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/VI.5.13@1985-SYNCHRONIZED-CLAUSE/g85_f09_02.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.4 GR1",
+    "check": "OK  §1985:VI.5.13.4 GR1  (5.13.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.13.4 GR5",
+    "check": "OK  §1985:VI.5.13.4 GR5  (5.13.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.5.13.4 GR6",
+    "check": "OK  §1985:VI.5.13.4 GR6  (5.13.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "With the documented one-position natural boundary (docs/conformance/7/DOC-A.1-195.md, DOC-A.1-197.md) there are never unused positions, so a/b and the last sentence are met by the plain layout; probes confirm no overlap, no padding and the exact REDEFINES spans. Sibling GR5 (truncation on original size) and GR6 (sign position of a SYNC signed item) also hold in p3sync.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.13.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "grep '.Synchronized' over src: readers are subject screens (CheckClauseSubjectsPass, ClausePlacement#SynchronizedViolation: INDEX refused below 2002), type-equivalence keys (StrongTypeModel), repository codec and SynchronizedClause#GateSynchronizedGroup; no layout member reads it, matching docs/conformance/7/DOC-A.1-197 (every byte position a natural boundary, 'The same in every edition') and DOC-A.1-195 (no implicit FILLER). With a one-position natural boundary there are never unused positions, so GR1 a/b and the REDEFINES sentence are met by the plain layout. Probe refute-1985-191/r3sync.cob at --std 85 (runs/r3sync-001): 77-level S9(4) COMP SYNC, X + S9(3) SIGN LEADING SEPARATE SYNC RIGHT + REDEFINES X(4) + X + S9(9) COMP SYNC LEFT + X -> REDEFINES of the elementary SYNC item covers exactly its 4 positions ([-012]), group image [A-012B], D at position 11 (group 11 bytes, no slack); ODO table of X + S9(4) COMP SYNC + S9 TRAILING SEPARATE SYNC is 5 positions per occurrence (TA(3) at 12, TC(2) at 10-11 = '5-'). cite.py: OK §1985:VI.5.13.4 GR1 (the text is in GR1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

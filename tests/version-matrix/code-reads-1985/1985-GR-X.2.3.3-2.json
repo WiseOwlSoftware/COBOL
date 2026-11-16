@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-X.2.3.3-2",
+ "rule-digest": "e059a7786fb5",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-198",
+  "sources": {
+   "reader": "caef838ac74e1bcf53cc909e4d02aab906b025894cf6c92ea174675b764d9872",
+   "refuter": "063949351f81cf3514569fd27cba225f4684a82ba71145513e7580139eb4aafe"
+  },
+  "imported": {
+   "reader": "cd3fdf28c18b3bfff4d8da590af16f4e4dea60c696082d4a03e157ae01ef7176",
+   "refuter": "c885b7cdcafe96180985aa36e2d98ab8e50dc8facb0a8e13e6f90eb640b4d2e3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.2.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "A program directly or indirectly contained in another must be bound and run as a separate program (its own data, files, procedure names and state, names it declares hiding nothing of and being hidden by nothing of the container except through GLOBAL), which may additionally reference the container's GLOBAL data items and files at any depth (the nearest declaring program winning) and the container's Configuration Section names, which apply to it (VI.4.2), and nothing else of the container.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ReserveInheritedMemberNames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UnitIsContained; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#NearestDeclaring; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+  "edition-consulted": [],
+  "edition-search": "grep for Edition.Year, .Year comparisons, IsAtLeast, DialectBehaviors.IsActive and Constructs.* in BinderDriver.cs, DataBinder.cs, ConfigurationStep.cs, ConfigurationSlice.cs, LinkageBinder.cs (one hit, DataBinder.cs:1514, a VALUE-literal gate unrelated to scope) and for Edition/Year in SymbolTable.cs (none); the contained-Configuration-Section refusal in DataBinder (COBOL1643) is not edition-gated",
+  "behaviour-differs-by-edition": "no: the GLOBAL inheritance, the nearest-declaring lookup and the configuration inheritance are one path for every edition; p4nest prints the same lines at --std 2023 (plus the 2023 ARCHAIC warning for EXIT PROGRAM)",
+  "witnesses-cover": "part: g85_f06_05 covers one level of containment, a same-named local item and paragraph, and one GLOBAL elementary item; not exercised there: indirect containment, a GLOBAL group with subordinate and condition-name, a GLOBAL file, a contained program's own GLOBAL hiding the outer one, state kept across calls, inherited SPECIAL-NAMES, and the refusals",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p4nest.cob",
+    "printed": "MID CNT=1 SAME=MID-G LOCAL=MID-L / MID G-ONE TRUE / IN SAME=MID-G LOCAL=IN-L  G-A=ABC / IN VOWEL * / IN WRITE 00 / MID CNT=2 SAME=IN-SM LOCAL=MIDXX / IN SAME=IN-SM LOCAL=IN-L  G-A=XYZ / IN WRITE 00 / OUT G-A=XYZ G-N=3 SAME=OUTER LOCAL=OUT-L / OUT GF=INREC1 00",
+    "expected": "each program its own LOCAL-X and state (MID CNT 1 then 2); the doubly-contained IN sees MID's GLOBAL SAME-NAME (nearest), the outer GLOBAL group, its 88, the GLOBAL file (written in IN, read in OUT) and the outer CLASS and SYMBOLIC CHARACTERS; the outer SAME-NAME untouched"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p4bad1.cob",
+    "printed": "error COBOL1639: 'ONLY-OUTER' is not defined",
+    "expected": "a container's non-GLOBAL data item is not a resource of the contained program: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p4bad2.cob",
+    "printed": "error COBOL1639: 'LF' is not defined as a file",
+    "expected": "a container's non-GLOBAL file: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p4bad3.cob",
+    "printed": "error COBOL1639: PERFORM 'OUTER-PARA' names no procedure",
+    "expected": "a container's paragraph is not referable from the separate program: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p4bad4.cob",
+    "printed": "error COBOL1643: a CONFIGURATION SECTION is specified in a program contained within another program",
+    "expected": "§1985:VI.4.2 forbids it; the container's entries apply instead"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.3.3 GR2",
+    "check": "OK  §1985:X.2.3.3 GR2  (║2.3.3 General Rules║)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.4.2",
+    "check": "OK  §1985:VI.4.2  (4.2 CONFIGURATION SECTION)  the text is in the clause"
+   }
+  ],
+  "notes": "The containment path binds each unit with its own symbol table, inherits only GLOBAL subtrees and the container's configuration, and resolves names through the nearest declaring program. The diagnostics cite §2023 clauses even at --std 85 (wording only, not a conformance defect of this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.2.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Probe r4nest.cob at --std 85 (runs/r4nest-001): a non-GLOBAL USE on a GLOBAL file in the container is NOT run for the contained program's 47 (IN GF 47 with no DECL line) but is run for the container's own (OUT LOCAL-DECL 47); a USE GLOBAL in the container runs for the contained program (OUT GLOBAL-DECL 47, X.5.5.4 GR1); a GLOBAL table's index-name is shared (SET in container, used and SET UP BY in contained, seen back as CC); a COMMON sibling sees the container's GLOBAL item. r4bad.cob (runs/r4bad-001): the REDEFINES subject of a GLOBAL entry referenced from the contained program is refused COBOL1639 (X.4.6.4 GR3). INITIAL COMMON / COMMON INITIAL orders both compile (r5ini). cites: OK  §1985:X.2.3.3 GR2  (║2.3.3 General Rules║)  the text is in GR2; OK  §1985:X.5.5.4 GR1  (║5.5.4 General Rules║)  the text is in GR1; OK  §1985:X.4.6.4 GR3  (║4.6.4 General Rules║)  the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

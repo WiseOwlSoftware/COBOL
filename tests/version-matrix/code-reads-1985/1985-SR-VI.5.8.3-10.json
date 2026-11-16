@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-10",
+ "rule-digest": "3f4d579981d5",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-224",
+  "sources": {
+   "reader": "aa6484067af501a770f0cf1e656244237b0a05020b2ebf52ceb9691dc936915e",
+   "refuter": "4cb51058433e09b56135cfce4d3601e3e5dee9d7ed95fd9cf4ef2f3ec627315f"
+  },
+  "imported": {
+   "reader": "82f8186f98e96a971c6946602d5221afe2db81b6ae51a50b484cfb5995dc20e4",
+   "refuter": "d9cebdd9701268b7932fd05e901c9e68642b5842e524bac37776b7174090b3ce"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.8.3-10",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a data description entry with OCCURS ... DEPENDING ON must be followed, within its record description (file, working-storage or linkage), only by entries subordinate to it: any later non-subordinate entry at the same or a higher level, however deeply the table is nested, must be refused, while subordinate entries (and the start of a new record) are accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#InRedefinesArea",
+  "edition-consulted": [],
+  "edition-search": "Read OdoResolvePass.Run; grepped OdoResolvePass.cs for CobolVersion, IsAtLeast, Edition.Is, ConstructRegistry, DialectBehavior, 85: the only edition-specific arm is SumCounterOperand85 (a report-writer SUM counter as data-name-1), which does not touch the following-entry check. The SR22 climb over parent.Children runs at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f08_01 covers the accepted half (subordinates three levels deep, then a new record); it does not exercise the refusal half or the file and linkage sections",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/o1a.cob",
+    "printed": "COBOL0856 x3: T1 followed by sibling AFTER1; T2 inside G2 followed by 05 AFTER2; T3 group followed by 10 AFTER3",
+    "expected": "each refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/o1b.cob",
+    "printed": "COBOL2739 'B1' REDEFINES 'A1': the entry 'T1' between them defines new storage",
+    "expected": "refused (the SR22 climb skips a REDEFINES follower, but such a follower can only redefine across the table, which §1985:VI.5.10.3 SR11 refuses, or redefine an area holding the table, which the REDEFINES-area check refuses)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/o1d.cob",
+    "printed": "COBOL0856 for FD record FREC (FT followed by FZ) and for linkage record LR (LT followed by LZ)",
+    "expected": "refused in the file and linkage sections"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/o1c.cob",
+    "printed": "[H:A1B2              ] NEXT / [H:                  ] / [3Z1Y2X3] 3 / Z1 / [1Q9] 1 / EOF3",
+    "expected": "accepted: subordinates with an 88 two levels down, OCCURS 0 TO 9 at zero, and an FD variable record written and read back at lengths 7 and 3"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.3 SR10",
+    "check": "OK  §1985:VI.5.8.3 SR10  (5.8.3 Syntax Rules)  the text is in SR10"
+   },
+   {
+    "cite": "§1985:VI.5.10.3 SR11",
+    "check": "OK  §1985:VI.5.10.3 SR11  (5.10.3 Syntax Rules)  the text is in SR11"
+   }
+  ],
+  "notes": "OdoResolvePass climbs from the table to its record and refuses any later non-REDEFINES sibling at each level (COBOL0856). The REDEFINES exemption is narrower than the 1985 words but no legal 1985 source reaches it: probe o1b is refused by the REDEFINES placement rule. Level-66 entries follow the record description (§1985:VI.5.11.3 SR2) and were not treated as part of it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.8.3-10",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "cite.py: OK  §1985:VI.5.8.3 SR10 (the text is in SR10); OK  §1985:VI.5.10.3 SR5 (the text is in SR5). I attacked the REDEFINES exemption in OdoResolvePass's following-entry climb: r5a.cob (05 G1 holding the ODO table, then 05 G2 REDEFINES G1) is refused COBOL0855 (an ODO table within a REDEFINES area, which §1985:VI.5.10.3 SR5 forbids), so the skipped follower is still refused. r5c.cob (SD record: ODO followed by sibling SZ) is refused COBOL0856; r5d.cob (CD record in the Communication Section: ODO followed by CZ) is refused COBOL0856; r5b.cob (66 RENAMES after a record whose last entry is an ODO table) is accepted and prints [3Q], which is right because RENAMES entries follow the record description and are not in it. OdoResolvePass.cs reads the edition only at SumCounterOperand85 (line 128, the data-name-1 lookup), not in the following-entry check.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

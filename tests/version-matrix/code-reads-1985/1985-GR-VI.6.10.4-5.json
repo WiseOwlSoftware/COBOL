@@ -1,0 +1,57 @@
+{
+ "rule-id": "1985-GR-VI.6.10.4-5",
+ "rule-digest": "09b34a5def51",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-192",
+  "sources": {
+   "reader": "4a68cbe3cd84f7a9f354cf2aac4d07323512c1bd9a9d19b41240fdbdee6b837d",
+   "refuter": "2bdd3e2fb0ab1d610efc20ebec801f6e002b4401a1ee80c6c14965b5f0fd1ee6"
+  },
+  "imported": {
+   "reader": "a6bdb4e215e086ca22ea78aaf7910163574b8c77bef0bc10441a929223abba06",
+   "refuter": "b19f9b86c1ae560fc20c58532cf2c2d5a8c3b6974114a3e3061a98575b01aa64"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.10.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "When the device cannot take the item in one transfer it is stored left-aligned and (level 2) the rest transferred by further transfers (level 1: one transfer only); when the device takes more than the item, the item is stored left-aligned; with the implementor's unbounded transfer size, only the left-aligned single-transfer arm (b) is reachable.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
+  "edition-consulted": [],
+  "edition-search": "grep for Dialect|Edition|Version|DialectBehavior in AcceptDisplayEmitter.cs: none.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_display_transfer_size shows one line for 2000 positions; the short-item left alignment and the mnemonic-name devices were exercised by the probe",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/dspxfr.cob",
+    "printed": "1500-character and 605-character items each one unsplit line; DISPLAY SHRT \"|\" -> [AB |] at column 1; DISPLAY \"X\" WITH NO ADVANCING then \"Y\" -> XY",
+    "expected": "arm a never taken (unbounded transfer size); arm b: the data stored from the leftmost position of the line, no padding before it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.10.4 GR5",
+    "check": "OK  §1985:VI.6.10.4 GR5  (6.10.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "With the documented unbounded transfer size (DOC-A.1-58), GR5a's split is unreachable, so 'In level 1, only one transfer of data is provided' is satisfied trivially, and GR5b's left alignment is what a byte stream gives. Probed at --std 85 on the default device and on the CONSOLE and SYSOUT mnemonic-names.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same emitter",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.10.4-5",
+  "refutation": "UPHELD",
+  "classes": "c",
+  "evidence": "cite.py: OK  §1985:VI.6.10.4 GR5. With the defined unbounded transfer size (DOC-A.1-58) arm a is unreachable and level 1's single transfer holds; arm b holds: refute-1985-192/src/dspxfr2.cob at --std 85 shows a 1-character DISPLAY ('A') at column 1 with no padding before it, and 921- and 302-character items each as one unsplit, left-aligned line on SYSOUT and SYSERR mnemonics. No edition consultation in AcceptDisplayEmitter#EmitDisplay; ImplementorNames#Build is edition-free.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

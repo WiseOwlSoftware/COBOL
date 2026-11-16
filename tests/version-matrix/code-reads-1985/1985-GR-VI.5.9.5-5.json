@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-5",
+ "rule-digest": "67bf965ae2f7",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-192",
+  "sources": {
+   "reader": "4a68cbe3cd84f7a9f354cf2aac4d07323512c1bd9a9d19b41240fdbdee6b837d",
+   "refuter": "2bdd3e2fb0ab1d610efc20ebec801f6e002b4401a1ee80c6c14965b5f0fd1ee6"
+  },
+  "imported": {
+   "reader": "0f5550546ef33213f83f5a95e9b285272fd287f722fa3b89a0e990afe2fefe30",
+   "refuter": "9bb6f26815c84e9099300f96a5a117df292d035654def96f0c4ed0900fef82fc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.9.5-5",
+  "verdict": "CONFORMS",
+  "requirement": "The period is the special insertion character and the actual decimal point (counted in the size, aligning the value and appearing in its picture position); V and '.' in one character-string are refused; a '.' that is the last symbol must be immediately followed by the separator period as the entry's last clause; under DECIMAL-POINT IS COMMA the comma takes these roles (',.').",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_STRING; src/WiseOwl.Cobol.Frontend/Parsing/PictureSeparatorPeriodRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#LexAndParse; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Materialize",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence",
+    "switches": "at 1985 a fixed currency symbol takes only the leading role in the precedence chart; the decimal-point and digit roles are the same arm",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#RepeatableSymbol",
+    "switches": "at 1985 S, V, the decimal point, CR and DB take no repeat factor (§1985:VI.5.9.4 GR7); a single '.' is unaffected",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#MaxStringLength",
+    "switches": "the maximum character-string length of the edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f08_02/03 edit through '.'; the V-with-'.' refusal, the trailing-'.' separator rule and the DECIMAL-POINT IS COMMA ',.' form were exercised only by these probes",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/spins.cob",
+    "printed": "G1=[012.3407.123.45.56] / E1=[234.50] / E1=[000.50] / E1=[000.00] / E5=[12.34]",
+    "expected": "PIC 999.99 (6), 99.. (3), 9(3).9(2) (6), .99 (3) sum to 18 positions; values aligned on the actual decimal point, truncated at both ends, '.' at its picture position"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/spinsbad2.cob",
+    "printed": "COBOL1934 for 99V9.9 and 9.V99 (V and '.' mutually exclusive); COBOL1934 for 99.9.9 ('.' twice)",
+    "expected": "refused: V and the actual decimal point in one string is disallowed"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/spinssep.cob",
+    "printed": "COBOL2419 for PIC 999., VALUE ZERO. and PIC 999.; USAGE DISPLAY.",
+    "expected": "refused: a trailing '.' must be followed immediately by the separator period"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/spinsbad.cob",
+    "printed": "COBOL0001 unexpected 'VALUE' for PIC 99. VALUE \"12.\".",
+    "expected": "refused: '99' then the separator period ends the entry, so VALUE cannot follow"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/spinsdpc.cob",
+    "printed": "G1=[012,3407,1.234,5]",
+    "expected": "under DECIMAL-POINT IS COMMA: 999,99 -> 012,34; 99,. -> 07, (3 positions); 9.999,9 -> 1.234,5"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/spinsdpcbad.cob",
+    "printed": "COBOL1934 for 99V9,9 (V and ',') and 99,9,9 (',' twice)",
+    "expected": "refused under DECIMAL-POINT IS COMMA"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.9.5 GR5",
+    "check": "OK  §1985:VI.5.9.5 GR5  (5.9.5 Editing Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "Every clause of GR5 holds at --std 85: size counting, alignment, position, the V exclusion, the last-symbol separator-period rule (the lexer plus PictureSeparatorPeriodRule, COBOL2419) and the DECIMAL-POINT IS COMMA interchange. The edition arms on the path (currency role, repeat factors, string length) do not touch the period's special-insertion role. Diagnostics cite §2023 clauses at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same composition and edit code",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.9.5-5",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "cite.py: OK  §1985:VI.5.9.5 GR5. refute-1985-192/src/spins2.cob at --std 85: alphanumeric sender '1234' to 999.99 -> [234.00] and to 9.9(4) -> [4.0000] (unsigned integer, aligned on the actual decimal point); 12345.6789 to 999.99 [345.67], 9.9(4) [5.6789], 99.. [45.], .9(3) [.678]; P-scaled senders 9PP=500 -> [500.00], PP9=.005 -> 9.9(4) [0.0050] and .9(3) [.005]; COMPUTE 1234/7 into ZZ9.99 [176.28], ROUNDED [176.29]. Every result aligned on and shows '.' at its picture position. The reader's refusal probes (V with '.', trailing '.' not followed by separator period, DECIMAL-POINT IS COMMA) stand.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

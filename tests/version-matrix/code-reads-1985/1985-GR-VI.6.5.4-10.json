@@ -1,0 +1,133 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-10",
+ "rule-digest": "aeb8135f1133",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-195",
+  "sources": {
+   "reader": "8e9f846199cca1176b5b277e8ee59437f30f48aa84ef54c6c128ea345f8b1ab1",
+   "refuter": "1e43cf4cb1cc89170dc57bf1e7ddb0124a517da7b11476c126cb01ec9a395a49"
+  },
+  "imported": {
+   "reader": "e407d512a788f39387ef3e38d4cde856e6ab690f2d3b74c9aef7e65e30ff9320",
+   "refuter": "a54b2ccef3905f2a57c59816659da75732a6bb1df80316cbaf29a7cce150daee"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.5.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "ACCEPT identifier-2 FROM DAY-OF-WEEK must deliver, as if from an unsigned one-digit integer item, the current weekday numbered 1 = Monday through 7 = Sunday, stored into identifier-2 by the MOVE rules (GR6).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ConceptualItem; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundAccept.cs#ConceptualDigits; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptTemporal; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DayOfWeek",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAcceptStatement",
+    "switches": "refuses DATE YYYYMMDD / DAY YYYYDDD (accept-four-digit-year-2002, COBOL0815) and END-ACCEPT (end-accept-2002, COBOL0816) below 2002; the bare DATE / DAY / DAY-OF-WEEK / TIME forms pass through unchanged",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#Entries",
+    "switches": "the rows accept-four-digit-year-2002 and end-accept-2002 (introduced 2002) that the pass checks",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "DATE, DAY, DAY-OF-WEEK and TIME are reserved at 85, 2002, 2014 and 2023 alike, so a user item of those names is refused (COBOL0901)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep for Edition|CobolVersion|Dialect|Construct in AcceptDisplayBinder.cs, AcceptDisplayEmitter.cs, BoundAccept.cs, AcceptSource.cs and MoveTable16.cs: the binder's ctx.Edition is only the diagnostic sink; the emitter, the conceptual-digit table and the runtime clock reads consult no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f12_01 checks the one-digit length and Monday = 1 relative to DATE on the run day only; Sunday = 7, and non-numeric, edited, scaled, signed, group, JUSTIFIED and 9(18) receivers are not exercised there",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/acc2.cob",
+    "printed": "pin 2026-11-15 (Sunday): DOW=7; pin 2026-11-16 (Monday): DOW=1; pin 1988-12-31 and 2000-01-01 (Saturday): DOW=6",
+    "expected": "1 represents Monday ... 7 represents Sunday"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/acc1.cob",
+    "printed": "pin 1986-12-25 (Thursday): DOW=4 X1=[4] X3=[4  ] S9=[4+] 9V9=[4.0] ED=[ 4.00] 18=[000000000000000004] GRP=[4   ] JR=[   4]",
+    "expected": "one-digit unsigned integer 4 moved by the MOVE rules into each receiver"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/acc1.cob",
+    "printed": "ODO=[3  4] (W-T(3) of an ODO table) RM=[****4**861] (W-RM(5:1) FROM DAY-OF-WEEK)",
+    "expected": "the digit stored in the subscripted ODO element and in the one-character reference-modified slice"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref4.cob",
+    "printed": "error COBOL0818: ACCEPT receiver 'W-A' ... a numeric or numeric-edited sending operand does not move to an alphabetic receiver",
+    "expected": "refused: an integer sender does not move to an alphabetic item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref5.cob",
+    "printed": "error COBOL0901: 'DAY-OF-WEEK' is a reserved word in COBOL-85",
+    "expected": "refused: DAY-OF-WEEK is a reserved conceptual item, not described in the program"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref6.cob",
+    "printed": "error COBOL0818: ACCEPT receiver 'W-I' is an index data item",
+    "expected": "refused: an index data item is not a MOVE receiver"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref7.cob",
+    "printed": "error COBOL5506: ... literal \"A\" is not expected here",
+    "expected": "refused: identifier-2 must be an identifier"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref1.cob",
+    "printed": "error COBOL0815: ACCEPT FROM DATE YYYYMMDD / DAY YYYYDDD requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: §1985:VI.6.5.2 format 2 lists bare DATE / DAY / DAY-OF-WEEK / TIME only"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref2.cob",
+    "printed": "error COBOL0815 ... ACCEPT FROM DAY YYYYDDD",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref3.cob",
+    "printed": "error COBOL0816: END-ACCEPT (explicit scope terminator) requires COBOL-2002",
+    "expected": "refused at 85 (no END-ACCEPT in the 1985 format)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref8.cob",
+    "printed": "error COBOL2269: unexpected 'ON'. ACCEPT ON EXCEPTION ... specifies FROM",
+    "expected": "refused: format 2 has no exception phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.5.4 GR10",
+    "check": "OK  §1985:VI.6.5.4 GR10  (6.5.4 General Rules)  the text is in GR10 [\"the value 1 represents Monday\"]"
+   }
+  ],
+  "notes": "AcceptSource.DayOfWeek remaps .NET's Sunday=0 numbering by ((d+6) mod 7)+1, and the binder materializes a one-digit unsigned display integer that MoveBinder stores into the receiver. Pinned-clock probes give 1 on a Monday, 7 on a Sunday, 4 on Thursday 1986-12-25, and every receiver class takes the digit by the MOVE rules; the witness g85_f12_01 also MATCHES at 85. The same path runs at --std 2023 with identical output.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "acc1.cob at --std 2023 prints the same lines",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.5.4-10",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "Read §1985:VI.6.5.4 GR6-GR10 and the format 2 diagram (bare DATE/DAY/DAY-OF-WEEK/TIME, no END-ACCEPT, no exception phrase); read AcceptSource.DayOfWeek (((int)DayOfWeek+6)%7+1) and SystemClock (one pinned clock read per ACCEPT). Probe racc1.cob at --std 85, WISEOWL_COBOL_CLOCK=1986-12-25T14:41 (Thursday): VP PIC V9 =[.0], NE Z9.99- =[ 4.00 ], ST S9 TRAILING =+4, W-E(W-D) with W-D just ACCEPTed FROM DAY-OF-WEEK lands in element 4; all by the MOVE rules. Class c refusals at 85: rx11 (DAY-OF-WEEK ON EXCEPTION) COBOL2269, rx7 END-ACCEPT COBOL0816, rx1/rx3/rx4/rx10 GnuCOBOL forms (COMMAND-LINE, CENTURY-DATE, YYYYMMDD, MICROSECOND-TIME) COBOL0817, rx2 FROM ENVIRONMENT and rx13 FROM EXCEPTION STATUS COBOL5506, rx12 USER NAME COBOL0307; class b: rx5 condition-name receiver COBOL1639, rx6 FUNCTION CURRENT-DATE receiver COBOL5506, rx9 two receivers COBOL5506. cite.py: OK §1985:VI.6.5.4 GR10 [\"the value 1 represents Monday\"]. No arm found that differs from the reader's account.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

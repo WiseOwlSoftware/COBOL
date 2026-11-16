@@ -1,0 +1,131 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-6",
+ "rule-digest": "cd53206ed51b",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-195",
+  "sources": {
+   "reader": "8e9f846199cca1176b5b277e8ee59437f30f48aa84ef54c6c128ea345f8b1ab1",
+   "refuter": "1e43cf4cb1cc89170dc57bf1e7ddb0124a517da7b11476c126cb01ec9a395a49"
+  },
+  "imported": {
+   "reader": "8fb5ef19add8b7f8c4dbba935ea2d6483e8a4fe401f1af9f235ca1e75fdad0e6",
+   "refuter": "d4728737be3a9db2321cba930d12da97a1d1730cc262e0814d44923d73fdc9d4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.5.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "Format 2 ACCEPT must transfer the conceptual DATE, DAY, DAY-OF-WEEK or TIME value to identifier-2 by the rules of the MOVE statement, and those four names are conceptual items the program does not describe (so they are reserved and cannot be user data names).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ConceptualItem; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptTemporal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Validity",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAcceptStatement",
+    "switches": "refuses DATE YYYYMMDD / DAY YYYYDDD (accept-four-digit-year-2002, COBOL0815) and END-ACCEPT (end-accept-2002, COBOL0816) below 2002; the bare DATE / DAY / DAY-OF-WEEK / TIME forms pass through unchanged",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#Entries",
+    "switches": "the rows accept-four-digit-year-2002 and end-accept-2002 (introduced 2002) that the pass checks",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "DATE, DAY, DAY-OF-WEEK and TIME are reserved at 85, 2002, 2014 and 2023 alike, so a user item of those names is refused (COBOL0901)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep for Edition|CobolVersion|Dialect|Construct in AcceptDisplayBinder.cs, AcceptDisplayEmitter.cs, BoundAccept.cs, AcceptSource.cs and MoveTable16.cs: the binder's ctx.Edition is only the diagnostic sink; the emitter, the conceptual-digit table and the runtime clock reads consult no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f12_02 covers alphanumeric left/right, numeric truncation, edited, JUSTIFIED, group, signed, scaled and TIME zero fill; it does not exercise the refusal half (alphabetic or index receivers, a user item named DAY-OF-WEEK), a variable-length receiving group, or reference modification",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/acc1.cob",
+    "printed": "DATEED=[86/12/25] DAYED=[86 359] DATE18=[000000000000861225] DATEX3=[861] DAYX2=[86] GRP=[4   ] JR=[   4] S9=[4+] 9V9=[4.0]",
+    "expected": "the MOVE rules: edited insertion, high-order zero fill, alphanumeric right truncation, group as alphanumeric, JUSTIFIED RIGHT, sign generated, decimal alignment"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/acc1.cob",
+    "printed": "RECGRP=[86359 ] (W-REC = 9 + X OCCURS 1 TO 5 DEPENDING ON W-N, W-N 3 before); RM=[****4**861]",
+    "expected": "a receiving group containing its ODO object uses its maximum length (§1985:VI.5.8.4 GR3b): 6 positions, 86359 then a space; the 3-character slice takes 861"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref9.cob",
+    "printed": "error COBOL0818: ACCEPT receiver 'W-A': ... does not move to an alphabetic receiver",
+    "expected": "refused: the MOVE rules forbid a numeric integer into an alphabetic item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref5.cob",
+    "printed": "error COBOL0901: 'DAY-OF-WEEK' is a reserved word in COBOL-85 and cannot be used as a user-defined word",
+    "expected": "refused: the conceptual items are not described in the program"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref6.cob",
+    "printed": "error COBOL0818: ACCEPT receiver 'W-I' is an index data item (class index)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref1.cob",
+    "printed": "error COBOL0815: ACCEPT FROM DATE YYYYMMDD / DAY YYYYDDD requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: §1985:VI.6.5.2 format 2 lists bare DATE / DAY / DAY-OF-WEEK / TIME only"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref2.cob",
+    "printed": "error COBOL0815 ... ACCEPT FROM DAY YYYYDDD",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref3.cob",
+    "printed": "error COBOL0816: END-ACCEPT (explicit scope terminator) requires COBOL-2002",
+    "expected": "refused at 85 (no END-ACCEPT in the 1985 format)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref8.cob",
+    "printed": "error COBOL2269: unexpected 'ON'. ACCEPT ON EXCEPTION ... specifies FROM",
+    "expected": "refused: format 2 has no exception phrase"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/runs/g85_f12_02-001",
+    "printed": "EXPECT: MATCH (g85_f12_02.out)",
+    "expected": "the witness's eleven OK lines"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.5.4 GR6",
+    "check": "OK  §1985:VI.6.5.4 GR6  (6.5.4 General Rules)  the text is in GR6 [\"according to the rules for the MOVE statement\"]"
+   },
+   {
+    "cite": "§1985:VI.5.8.4 GR3b",
+    "check": "OK  §1985:VI.5.8.4 GR3b  (5.8.4 General Rules)  the text is in GR3b [\"If the group is a receiving item, the maximum length of the group will be used\"]"
+   }
+  ],
+  "notes": "The binder builds the conceptual item as a compiler temp and binds the transfer as MoveBinder.BindMoveOf's implicit MOVE, after asking MoveTable16.Validity, so every receiver class follows the one MOVE path. Class e (file organization) does not apply to ACCEPT. The same path runs at --std 2023 with identical output.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "acc1.cob at --std 2023 prints the same lines",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.5.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "racc1.cob at --std 85 pinned 1986-12-25T14:41: P-scaled 999PPP FROM DATE holds 861 (W-P3/1000 = 0861 in a 9(4) COMP), PPP999 FROM DATE = 0, 9(4) COMP FROM DATE = 1225, 9 COMP FROM DAY = 9, alphanumeric-edited XBXBX FROM DAY = [8 6 3], BLANK WHEN ZERO 9(6) = 861225, SIGN LEADING SEPARATE = +861225, $$$,$$9 FROM DATE = $61,225, ***,**9 FROM DAY = *86,359, 9(3)/9(3) = 861/225, 99 FROM TIME = 00 (low-order truncation of 14410000), variable reference modification W-XS(W-IX:W-L) FROM DATE = AB86EFGH, subscripted table elements take 86359. Every result is the MOVE statement's for an unsigned integer sender. Refusals at 85: condition-name (COBOL1639), function-identifier (COBOL5506), every GnuCOBOL/Micro Focus source name (COBOL0817/5506/0307), END-ACCEPT (COBOL0816), DATE YYYYMMDD (rx14 COBOL0815). cite.py: OK §1985:VI.6.5.4 GR6 [\"according to the rules for the MOVE statement\"]. (DISPLAY of 999PPP prints 861000: a DISPLAY rule matter, not this one.)",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

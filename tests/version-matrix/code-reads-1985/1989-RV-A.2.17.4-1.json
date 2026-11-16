@@ -1,0 +1,94 @@
+{
+ "rule-id": "1989-RV-A.2.17.4-1",
+ "rule-digest": "1f8585b8ee25",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-214",
+  "sources": {
+   "reader": "97f8c65c4098135ed1d60fb44cb2038836398e34ef9994273321a33ae82c3eb2",
+   "refuter": "349979257c11da5f69d405ae4ff7d14114d83e4c1abfd0f1cfeadb54a9388cd8"
+  },
+  "imported": {
+   "reader": "43926ff925b371f7ed5722b6c0365ffaa008b95855312e1ea48906e8f0a2b842",
+   "refuter": "1a4c7827eb0c66305b66c03fb3264cca445a691aefea9f336dde48525d03e57d"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.17.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "INTEGER-OF-DAY returns the number of days the valid Julian date YYYYDDD (year above 1600, no upper bound at 1985, DDD valid for the year) succeeds 1600-12-31.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDay; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DaysBeforeYear; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#InYearRange; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the catalog's D8 edition window (IntroducedIn 85 for the 1989 module rows): the function is admitted at --std 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "DialectBehaviors.IsActive(IntegerDateFormBounded, year): inactive at 85, so BoundIntrinsicCall.IntegerDateFormUnbounded is true",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IsActive",
+    "switches": "the row integer-date-form-bounded-9999, active from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+    "switches": "renders `unbounded: true` into the CobolDate call when IntegerDateFormUnbounded",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder, IntrinsicRenderer, CobolDate and DialectBehavior for Edition, DialectLevel, DialectBehavior, IntegerDateForm, ConstructRegistry",
+  "behaviour-differs-by-edition": "yes: at 85 INTEGER-OF-DAY(10000001) = 3,067,672; from 2002 a year past 9999 is an incorrect value (0)",
+  "witnesses-cover": "part: the witness covers 1601001, 9999365 and the leap branches; not a year past 9999 or day 366 of a leap year",
+  "probes": [
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/15.46.4-Returned-value-rule/l1_integer_date_form_returned.cob",
+    "printed": "EXPECT: MATCH at --std 85",
+    "expected": "the golden"
+   },
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-214/pdate2.cob",
+    "printed": "SIGNED=19950215 COMP=17000301 PACKED=16040229 SUBSCR=16010228 EXPR=16010301 Y1601END=16011231 Y1602=16020101 MAX9999=99991231 Y10000=100000101 Y10000B=100000229 RT1=19991231 RT2=20241231 RT3=21001231 IOD1969=0134774 IOD2024=0154558 IODAY2024=0154558 IOD9999=3067671 IOD10000=3067672 IODAY10000=3067672 EDITED=16010410 ARITH=16010411 IODBIG=0000000 (an invalid argument, undefined at 1985)",
+    "expected": "proleptic Gregorian count with 1601-01-01 = day 1, every value checked against Python datetime; year 10000 representable at 1985 (the 1989 module bounds the year below only, §1989:A.2.16.3 AR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-214/pdate2.cob",
+    "printed": "at --std 2023: Y10000=000000000 Y10000B=000000000 IOD10000=0000000 IODAY10000=0000000 (bounded at 9999-12-31); at --std 85 the same lines print 100000101, 100000229, 3067672, 3067672",
+    "expected": "1985 admits years past 9999; 2002 and later end the integer date form at 3,067,671"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.17.4 RV1",
+    "check": "OK  §1989:A.2.17.4 RV1  (2.17.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.17.3 AR1",
+    "check": "OK  §1989:A.2.17.3 AR1  (2.17.3 Arguments)  the text is in AR1"
+   }
+  ],
+  "notes": "DaysBeforeYear + day; INTEGER-OF-DAY(2024061) equals INTEGER-OF-DATE(20240301) = 154558, the round trips 2024366 -> 20241231 and 2100365 -> 21001231 hold, and 10000001 = 3067672 at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.17.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "§1989:A.2.17.3 AR1: YYYY > 1600, DDD positive, below 367 and valid for the year. CobolDate.cs#IntegerOfDay. rdate.cob at 85: INTEGER-OF-DAY(24000366)=8181432 (Python), (21000366)=0 and (123456789366)=0 (non-leap years: invalid, undefined), consistent with INTEGER-OF-DATE(240000229)=8181126 plus the 306 days to 31 Dec. cite.py: OK §1989:A.2.17.3 AR1 the text is in AR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

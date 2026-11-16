@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.8-5",
+ "rule-digest": "827f76106d91",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-202",
+  "sources": {
+   "reader": "d62b1f86a5e0c82ef539c77b85d2afa99d230d06d7c725d6a79a4e39518c3e39",
+   "refuter": "a07a7838b5d3e16c51b85a49cfeb493f866f3e26fa43d7e35cf17e83e593fb67"
+  },
+  "imported": {
+   "reader": "8edc51f6b8d238c6327adfe1689055d44bb9d30fce14d91834c07f41a8643d1a",
+   "refuter": "c724a6f5bd8f346fd7e28e8b48b6631f22b01092322f91a08fd6dde986cf9661"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.8-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the integer of an absolute NEXT GROUP clause of a body group (control heading, detail, control footing) must lie between the FIRST DETAIL and FOOTING integers inclusive; the compiler must refuse one outside that range. The witness covers both legal bounds on detail groups only.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+    "switches": "Edition.DialectLevel < 2002 adds the §1985:XIII.3.16.3 SR1 check (NEXT GROUP needs a LINE NUMBER clause in the group); the presentation-rule range checks after it take no edition branch",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ExceedsThreeSignificantDigits85",
+    "switches": "DialectLevel < 2002: the 85-only three-significant-digit limit on integer-1/integer-2 (§1985:XIII.3.16.3 SR2), checked before the range checks",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/Year in BindNextGroupClauses: the body-group (ControlHeading/Detail/ControlFooting, absolute) case takes no edition branch",
+  "behaviour-differs-by-edition": "no: the same FIRST DETAIL..FOOTING range check at 85 and 2023",
+  "witnesses-cover": "part: the two legal bounds on detail groups (g85_f01_04); no refusal, no control heading or control footing",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/BDABS09.cob",
+    "printed": "COBOL2284 integer-1 9 shall lie between the FIRST DETAIL integer 10 and the FOOTING integer 15",
+    "expected": "refused: below FIRST DETAIL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/BDABS16.cob",
+    "printed": "COBOL2284 integer-1 16 ... the FOOTING integer 15",
+    "expected": "refused: above FOOTING"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/BDABS10.cob",
+    "printed": "EXIT 0 RAN (BDABS15 also EXIT 0 RAN)",
+    "expected": "accepted: both bounds inclusive"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/CHABS16.cob",
+    "printed": "COBOL2284 on a CONTROL HEADING NEXT GROUP 16; CFABS09: COBOL2284 on a CONTROL FOOTING NEXT GROUP 9 (each also COBOL0899 for the missing CONTROL clause)",
+    "expected": "refused for every body group type"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.8 GR5",
+    "check": "OK  §1985:XIII.3.10.8 GR5  (3.10.8 Body Group Presentation Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The (ControlHeading or Detail or ControlFooting, absolute) case of BindNextGroupClauses refuses a value below FIRST DETAIL or above FOOTING and accepts both bounds. The diagnostic cites §2023:13.18.37.3 SR6b, which states the same range.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.8-5",
+  "refutation": "UPHELD",
+  "classes": "b,f",
+  "evidence": "Tested the omitted-phrase defaults of §1985:XIII.3.8.4 GR2, which the reader did not try (ReportSectionBinder.cs lines 260-265 apply them). NGF15/NGF14: with LAST DETAIL 14 and FOOTING omitted (integer-5 = 14), NEXT GROUP 15 was refused COBOL2284 ('FOOTING integer 14') and 14 accepted. NGP20: with LAST DETAIL and FOOTING omitted (integer-5 = 20), 20 was accepted. NGH02/NGH03: with HEADING 3 and FIRST DETAIL omitted (integer-3 = 3), 2 was refused and 3 accepted. NGD01: with HEADING and FIRST DETAIL omitted (integer-3 = 1), 1 was accepted. cite.py: OK §1985:XIII.3.10.8 GR5; OK §1985:XIII.3.8.4 GR2b; OK §1985:XIII.3.8.4 GR2c; OK §1985:XIII.3.8.4 GR2e.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

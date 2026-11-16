@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-1",
+ "rule-digest": "f81962f3e939",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-190",
+  "sources": {
+   "reader": "9f84612e1446d04f92a3e05be9d85915c1ae8946ea67fbf9f11ec70e8c6d13a0",
+   "refuter": "d420eaba9d38718a153d905d95f312f4181bc8113eb6a67dba76c88228f581f8"
+  },
+  "imported": {
+   "reader": "bc7de5174575db08569d5e16de5c773c455b753f10c807ab818650d0e42f87be",
+   "refuter": "1887d1d0829443cd7e25cea7cf8b8d6dd59bde656ac5b4403b5ddc7ecb2b1944"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every SPECIAL-NAMES clause of a containing program (implementor-name mnemonics, switch condition-names, ALPHABET, SYMBOLIC CHARACTERS, CLASS, CURRENCY SIGN, DECIMAL-POINT IS COMMA) must apply to every directly or indirectly contained program, which itself may not write a Configuration Section, and the container's condition-names must be referenceable there.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Produce; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition/DialectLevel/CobolVersion/ConstructRegistry in ConfigurationStep.cs and the contained-program refusal in DataBinder.BindDeclarations: none; inheritance and the COBOL1643 refusal are edition-independent",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f06_04 covers one level of containment; indirect containment, a mnemonic-name for a device, an alphabet used by a contained SORT, and the refusal of a contained Configuration Section are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/sn1a.cob",
+    "printed": "C ED=# 12,50 / C VOWEL YES / C SYM=ZZ / C SW2 ON / C SORTED Z B A C",
+    "expected": "doubly contained SN1C sees DECIMAL-POINT IS COMMA and CURRENCY #, CLASS VOWEL, SYMBOLIC ZED (1 IN REV = Z), SWITCH-2 condition-names, DISPLAY UPON the SYSOUT mnemonic, and SORT COLLATING SEQUENCE IS REV"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/sn1b.cob",
+    "printed": "COBOL1643 a CONFIGURATION SECTION is specified in a program contained within another program",
+    "expected": "refused (§1985 Configuration Section must not be stated in a contained program)"
+   },
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/g85_f06_04.cob",
+    "printed": "MATCH DP=12,50 CUR=#1.234,50 CLASS 1A9F=YES 1G9F=NO SYM=*** SW ON/OFF",
+    "expected": "witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.4 GR1",
+    "check": "OK  §1985:VI.4.5.4 GR1  (4.5.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "ConfigurationStep.Produce seeds a contained unit's slice from its container through Inherit, which copies the whole SPECIAL-NAMES-derived state; the container itself inherited first, so indirect containment works (sn1a, two levels). The contained-config refusal cites only 2023 text at 85 but the 1985 rule is the same.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "r41a-001: container SPECIAL-NAMES (SWITCH-3 with ON/OFF condition-names, ALPHABET EB IS EBCDIC, SYMBOLIC CHARACTERS EBA IS 194 STAR IS 43, CLASS HEXD with THRU, DECIMAL-POINT IS COMMA) applied to two SIBLING contained programs: R41B does SET SW3 TO ON and writes a sequential file with FD CODE-SET IS EB; R41C sees SW3-ON, VALUE STAR gives '**', VALUE 1,25 and PIC Z9,99 print ' 1,25', CLASS HEXD true for 'C'; the container then sees SW3 ON and reads back the byte as EBCDIC 'A' (= symbolic 194). Reader's sn1b covers the contained CONFIGURATION SECTION refusal. cite.py: OK  §1985:VI.4.5.4 GR1  (4.5.4 General Rules)  the text is in GR1",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

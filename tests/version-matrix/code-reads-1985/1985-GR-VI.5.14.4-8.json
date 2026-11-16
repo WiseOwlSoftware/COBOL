@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-8",
+ "rule-digest": "a291b779b1d8",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-192",
+  "sources": {
+   "reader": "4a68cbe3cd84f7a9f354cf2aac4d07323512c1bd9a9d19b41240fdbdee6b837d",
+   "refuter": "2bdd3e2fb0ab1d610efc20ebec801f6e002b4401a1ee80c6c14965b5f0fd1ee6"
+  },
+  "imported": {
+   "reader": "174a0185f57d1d207574551e2a4077a0cbf9395110efcb53c048956eb72f5d28",
+   "refuter": "629f8e1ba32af9b06c6fbe46769bdb4a18803a558412bb2353d36b8a215a6ba5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.14.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "When a MOVE statement or an input-output statement (WRITE/REWRITE FROM, READ/RETURN INTO, RELEASE FROM, or the record itself) references a group item containing an index data item, the index item's storage is transferred as part of the group image with no conversion, so its occurrence value survives the transfer.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs#Run; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#EmitImageMethods; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#GroupImage; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteGroupImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#EmitGroupMove; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#FileRegister",
+    "switches": "passes the compiling --std to CobolFile.Register, which selects the edition's I/O status behaviours; the record image transferred is the same group image at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep for Edition|CobolVersion|DialectLevel in MoveClassifier.cs, MoveTable16.cs, MoveEmitter.cs, GroupImageCodec.cs, PlaceRenderer.cs, SequentialIoEmitter.cs, SortEmitter.cs: only MoveEmitter#AllLiteralNumber (ALL literal into numeric, not on this path) and the file register's edition argument; the index item's 8-byte binary image (PicInfo#ByteForm Usage.Index => Binary) is edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses are MOVE/READ INTO/RELEASE/RETURN cases written for other rules; none puts an index data item inside the transferred group",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/idxgrp.cob",
+    "printed": "G2: ABC 07 DE / G3: ABC 07 DE / RD: ABC 07 DE / FR: ABC 07 DE",
+    "expected": "index value 7 preserved through group-to-group MOVE, group to PIC X(40) and back, WRITE FROM and READ INTO on a sequential file (no conversion)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/idxsort.cob",
+    "printed": "RET: AAA 03 / RET: BBB 12 / REL: RRR 25",
+    "expected": "index values preserved through RELEASE FROM / RETURN INTO (sort file) and relative random WRITE FROM, READ, REWRITE, READ INTO; same output at --std 2023"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/idxodo.cob",
+    "printed": "ODO: 17 ABCD",
+    "expected": "index item in a group with OCCURS DEPENDING ON preserved by group MOVE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/idxgrp.cob",
+    "printed": "first run: COBOL2326 for SET GIX TO 7",
+    "expected": "§1985:VI.6.23.4 GR3b: an index data item is set only from an index-name or another index data item, so the refusal is correct; the probe then used SET TX TO 7, SET GIX TO TX"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.4 GR8",
+    "check": "OK  §1985:VI.5.14.4 GR8  (5.14.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VI.5.14.3 SR5",
+    "check": "OK  §1985:VI.5.14.3 SR5  (5.14.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "An index data item is a record-struct field whose group image is its fixed 8-byte big-endian binary form (implementor-defined representation, GR7); AsImage/FromImage copy it unchanged, so every group transfer is conversion-free. Probed MOVE, sequential WRITE/READ INTO, relative WRITE/REWRITE/READ INTO, SORT RELEASE/RETURN, and an ODO group; identical at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output (idxgrp, idxsort)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.14.4-8",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "§1985:III.2 (cite.py: OK  §1985:III.2 the text is in the clause) makes DISPLAY and ACCEPT input-output statements in 1985, an operand class the reader did not probe. refute-1985-192/src/idxdsp.cob at --std 85: DISPLAY of group G1 (X(3), USAGE INDEX = 7, X(2)) emits the bytes 'ABC' 00x7 07 'DE' (od -c), byte-identical to MOVE G1 TO ALNUM then DISPLAY ALNUM: the index item's image is transferred unconverted on DISPLAY as on MOVE. The reader's MOVE, WRITE FROM/READ INTO, RELEASE/RETURN and ODO probes stand. cite.py: OK  §1985:VI.5.14.4 GR8  the text is in GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

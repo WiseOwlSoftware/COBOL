@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-IV.4.4.2-L2.4",
+ "rule-digest": "7e78e8a386d8",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-220",
+  "sources": {
+   "reader": "50a8f3d68f3d437a001985558ba4659dc474823cff7dca3474cc911605a78541",
+   "refuter": "3db9c99631f73777b37640bd411ef66839539b74e8f6ef69e0309533a50ff9aa"
+  },
+  "imported": {
+   "reader": "6d1048171d62409dff769efed329bf67fb63a3b06cc375d2980a70c7abbfc83a",
+   "refuter": "6f8b4f71ac59427ad77c1b8e985fee89869eb1ec047723961d83790d18abe1fc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.4.2-L2.4",
+  "verdict": "CONFORMS",
+  "requirement": "A STOP RUN statement, or an EXIT PROGRAM statement executed in a called program, transfers control outside the program and has no next executable statement (nothing after it runs: STOP RUN ends the run unit even from a called program, EXIT PROGRAM returns to the caller); an EXIT PROGRAM in a program not under control of a CALL does not transfer control out and continues with the next statement (§1985:X.5.4.4 GR1).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatcher; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunModule",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStopStatement",
+    "switches": "the STOP RUN WITH NORMAL/ERROR STATUS phrase is refused below 2002 (COBOL0900); plain STOP RUN and EXIT PROGRAM take the same emission at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "StatementEmitter.Visit(BoundStop) and CallEmitter.EmitExitProgram consult no edition (read in full); the __asCalled activation flag, not the edition, chooses EXIT PROGRAM's return or continue",
+  "behaviour-differs-by-edition": "no: STOP RUN and EXIT PROGRAM transfer out the same way; 2002+ add GOBACK and the WITH STATUS / RAISING phrases, which 1985 refuses",
+  "witnesses-cover": "part: the witnesses end main programs with STOP RUN; STOP RUN inside a called program, EXIT PROGRAM in a called program followed by unreachable statements, and EXIT PROGRAM in a main program are not exercised at 85",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/tc1.cob",
+    "printed": "SUBB B1 / AFTER SUBB (SUBB's B2 never runs); AFTER MAIN EXIT PROGRAM (main's EXIT PROGRAM continues); SUBC STOP RUN then nothing (the caller's following DISPLAY never runs); exit 0; EXPECT MATCH",
+    "expected": "EXIT PROGRAM in a called program returns to the caller; STOP RUN in a called program ends the run unit; EXIT PROGRAM in the main program continues (§1985:X.5.4.4 GR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/tc4.cob",
+    "printed": "error COBOL0900: STOP RUN WITH status requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "the WITH STATUS phrase is not in the 1985 STOP format; refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.4.2 GRL2.4",
+    "check": "OK  §1985:IV.4.4.2 GRL2.4  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in GRL2.4"
+   },
+   {
+    "cite": "§1985:X.5.4.4 GR1",
+    "check": "OK  §1985:X.5.4.4 GR1  (5.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "STOP RUN emits throw StopRun, unwound to the run-unit entry whatever the call depth; EXIT PROGRAM emits ProgramReturn guarded by __asCalled, so it returns only from a called activation. Both probed at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.4.2-L2.4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85, EXPECT MATCH. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/r2.cob: EXIT PROGRAM in a called program reached under that program's own PERFORM returns to the caller's PERFORMed paragraph and nothing after it runs; STOP RUN in a USE declarative of a called program ends the run unit (caller's next DISPLAY never runs, exit 0). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/r3.cob: EXIT PROGRAM from a USE declarative of a program CALLed from a SORT INPUT PROCEDURE returns to the CALL and the SORT continues (IP AFTER SUBU / OUT AAAA / OUT CCCC / AFTER SORT) at 85; at --std 2023 the same program prints SUBU USE 10 / AFTER SORT (the 2002+ SORT-termination rule), so the edition arm is real and the 1985 arm is right. The reader's edition-consulted list missed that arm. cite.py: OK §1985:IV.4.4.2 GRL2.4; OK §1985:X.5.4.4 GR2.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody: DialectLevel >= 2002 adds the UseProcedureExitFilter on ProgramReturn leaving a declarative (SORT termination when an EXIT PROGRAM leaves a USE procedure during another element's SORT); the 1985 arm omits it, so the SORT continues"
+  ],
+  "corrected": ""
+ }
+}

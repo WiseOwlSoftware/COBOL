@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-XIII.4.7.4-3",
+ "rule-digest": "be579e54610f",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-204",
+  "sources": {
+   "reader": "dffb0e24abb8dbf7a5dca9f2740d667c494a7beae275ada08d1fc408f2742f3c",
+   "refuter": "cf5adc8b29c2f9f8c7b939135d61e7541a5ad8d238409d167c4ec071b65784a6"
+  },
+  "imported": {
+   "reader": "20620ff87790ab3f4aa5725d61801d2a2d2bcf63ec55cb1746eb5d2439b372ce",
+   "refuter": "db49a28094578e96c54469ab4310aa2d11335ab7f62f457c0f6e5bf183173860"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.7.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, whenever the RWCS must advance to a new page to present a body group (a detail, control heading or control footing, during GENERATE or TERMINATE), it must process the page footing (on the old page) and the page heading (on the new page), each only if defined, before presenting that body group; a body group that is not presented (SUPPRESS) causes no advance and so no page footing/heading.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentOrPageHeadings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues (2002): at 85 the PH/PF a control footing's page advance processes see the CURRENT control values (§1985:XIII.3.20.4 GR13 c), from 2002 the PRIOR ones; at 85 SR5 forbids PH/PF SOURCE and USE references to control items, so the difference is not observable through those groups",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (2002): at 85 a saved absolute NEXT GROUP integer stays for the fit test of the control footings TERMINATE produces (so it can force their page advance); from 2002 it is discarded",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior in ReportWriter.cs; AdvancePage, PageFeed, PresentPageFooting, PresentPageHeading and the fit test in PresentBody consult no edition themselves",
+  "behaviour-differs-by-edition": "no for the probed forms (term2.cob prints the same at --std 85 and --std 2023); the two edition arms on the path change which control values the page groups see (unobservable at 85 by SR5) and whether a saved NEXT GROUP integer survives into TERMINATE's footings",
+  "witnesses-cover": "part: g85_f01_03 covers a detail overflow during GENERATE and a CF FINAL overflow during TERMINATE with PH and PF both defined; overflow of a control heading and of a control footing at a GENERATE control break, a report with a PF but no PH, and a SUPPRESSed detail that would not fit were probed here",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/term2.cob",
+    "printed": "page 1: PH CHK DE01-03 PF; suppressed DE04 at LC 06: USE DE1 only, no PF/PH; DE05 at LC 06: USE DE1, USE PF1 PG 01, USE PH1 PG 02, DE05 at line 3; break B: CFK fits at line 6, CHK at LC 06 does not: USE PF1 PG 02, USE PH1 PG 03, CHK B at line 3; break C: CHK overflow likewise to page 4; TERMINATE: CFK C at line 6, PF at line 11",
+    "expected": "PF then page feed then PH before every body group that needed an advance (detail, control heading); none for a suppressed group (§1985:XIII.3.20.4 GR11 c)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/term3.cob",
+    "printed": "no PH defined; break C: CFK B at LC 06 PLUS 4 > FOOTING 9: USE PF1 PG 03, then CFK B at page 4 line 3, CHK C, DE10; TERMINATE CFK C fits at line 9; no PH line anywhere",
+    "expected": "a control footing overflow during GENERATE takes the advance with PF; the undefined PH is not processed"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/term2.cob (--std 2023)",
+    "printed": "same stdout as --std 85 (diff differs only in line endings)",
+    "expected": "same at the latest edition"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/XIII.4.7@1985-TERMINATE-STATEMENT/g85_f01_03.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "R1 CF FINAL PG 2 LC 04 / R1 PF PG 2 LC 04 / R1 PH PG 3 LC 00 / R1 PF PG 3 LC 02"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.7.4 GR3",
+    "check": "OK  §1985:XIII.4.7.4 GR3  (4.7.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR12",
+    "check": "OK  §1985:XIII.3.20.4 GR12  (3.20.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR11",
+    "check": "OK  §1985:XIII.3.20.4 GR11  (3.20.4 General Rules)  the text is in GR11"
+   }
+  ],
+  "notes": "Every body group presentation (PresentBody, used by GENERATE and by TERMINATE's ProcessControlFootings) runs its USE procedure, then the page-fit test, and on failure AdvancePage: PF if defined, PageFeed, PH if defined. A suppressed group returns from BeginGroup before the fit test. At 85 the probe confirmed that PH/PF SOURCE or USE references to a control item are refused (COBOL6825, §1985:XIII.3.20.3 SR5), which is why the WithPageGroupControlValues arm cannot change output here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.7.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Aimed at the 1985-only fit-test arms of the Body Group Presentation Rules the GR points to: refute-1985-204/pg1.cob at --std 85 (runs/pg1-001), PAGE LIMIT 12 HEADING 1 FIRST DETAIL 3 LAST DETAIL 9 FOOTING 10, PH line 1, PF line 11, with USE procedures tracing PG/LC. (1) 'LINE 5 ON NEXT PAGE' detail as the first body group: presented on page 1 line 5 with no advance (rule 3c, no body group yet on the page). (2) the same detail after a body group: PF, PH, then line 5 of page 2. (3) absolute LINE 6 detail with LC 5: same page; with LC 6: PF, PH, page 3 line 6 (rule 3a). (4) NEXT GROUP NEXT PAGE detail sets LC 10 (rule 6c); the next relative detail takes PF, PH and lands on FIRST DETAIL line 3 (rules 3b, 4b). (5) TERMINATE: PF on the last page. Every advance for a body group processed PF on the old page then PH on the new one, in that order, and none without a body group needing one. cite.py: OK §1985:XIII.4.7.4 GR3 'process page heading and page footing report groups, if defined'; OK §1985:XIII.3.10.8 (GR3b) 'If no body group has yet been presented on the page to which the report is currently positioned'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

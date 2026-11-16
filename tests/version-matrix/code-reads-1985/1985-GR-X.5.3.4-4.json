@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-4",
+ "rule-digest": "029a03bcee12",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-201",
+  "sources": {
+   "reader": "936cada97ec16c97b1455d17cf21dde8a45cc6fb78469daa47404beadd64246d",
+   "refuter": "9abe86d702cdfe03e9f5ffb384226eea6c0cd60316199a366e9b94901e7c4f56"
+  },
+  "imported": {
+   "reader": "a56b70e2382ad82e468639d0e0c59cd5a2b544aac13c8cf2fa0ba65aaba9ca38",
+   "refuter": "75378bd2d6f0f17809341ce58e2849a520ad11f501ea039630829b3326a97fda"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.3.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "An explicit or implicit CANCEL of a program also cancels every program directly or indirectly contained in it, as if a valid CANCEL were executed for each in reverse source order: each is reset to its initial state and its open internal files are implicitly closed.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+    "switches": "folds DialectBehavior.CancelRefusesEveryActiveProgram (active from 2002) into BoundCancel: false at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+    "switches": "refusesEveryActiveProgram selects the GR5 active test: at 85 the never-called active MAIN program is GR8's no-action case instead of EC-PROGRAM-CANCEL-ACTIVE (kb/Work PB5241); every later step of CancelNode (GR8 test, GR4 cascade, implicit close, reset) is one arm for all editions",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "as for GR10: the cascade loop over Node.Children from last to first calls CancelNode with the CANCEL's own GR5 flag; CancelContained (INITIAL path) always passes true, which its comment justifies (no contained program is active there).",
+  "behaviour-differs-by-edition": "no: the cascade is the same code at every edition",
+  "witnesses-cover": "part: g85_f02_10 covers one directly contained program with an open file; not exercised: an indirectly contained (depth 2) program, several siblings, a container cancelled through identifier-1, the reverse order",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p4b.cob",
+    "printed": "SL1 KA1 GG1 00 KB1 SL2 KA2 GG2 00 KB2 CANCELLED MAIN OPEN 00 MAIN GGGG SL1 KA1 GG1 00 KB1 (MATCH)",
+    "expected": "CANCEL identifier naming P4ASL resets P4ASL, its contained KA and KB and KA's contained GG (counters back to 1) and closes GG's open relative file (caller reads GGGG; GG's next OPEN OUTPUT 00)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p8a.cob",
+    "printed": "CK1 KK1 ... CK2 KK2 ... AFTER 3 ... CK1 KK1 (MATCH)",
+    "expected": "cancel of P8ACK resets its contained P8AKK too"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p3a.cob",
+    "printed": "IY O 00 on both calls of INITIAL P3AIX (MATCH)",
+    "expected": "the implicit CANCEL of an INITIAL program cascades to its contained program (file closed, reopen 00)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.3.4 GR4",
+    "check": "OK  §1985:X.5.3.4 GR4  (║5.3.4 General Rules║)  the text is in GR4 -- 'all programs contained within the program referenced by the CANCEL statement are also cancelled'"
+   }
+  ],
+  "notes": "The reverse source order is read from the loop over Node.Children; no probe made the order observable, since cancelling one contained program does not affect its siblings. The GR8 test runs before the cascade, which is sound because a contained program can only have been called after its container was.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-201/src/q4.cob (run q4-001, --std 85): separately compiled Q4P contains Q4A (which contains Q4AA) and COMMON sibling Q4B; Q4A calls Q4B and Q4AA. Printed 'P1 A1 B1 AA1 A1 B2 AA1 P2 A2 B3 AA2 A1 B4 AA1 M CANCELLED P P1 A1 B1 AA1 A1 B2 AA1 M SECOND CANCEL NO ACTION': CANCEL of Q4A resets Q4A and its contained Q4AA but not the COMMON sibling Q4B it called (B counts on), CANCEL of Q4P through a group identifier ('Q4P' + spaces) resets every program directly or indirectly contained in it (P1 A1 B1 AA1), and a second operand naming the just-cancelled Q4P is no action. CancelNode recurses over Node.Children last-to-first with no edition test; the reverse order is not observable (no probe made it so). The implicit CLOSE inside each cascaded CANCEL inherits the FILE STATUS defect recorded against 1985-GR-X.5.3.4-10 (same CloseFiles block); that is GR10's requirement, not GR4's. cite.py: OK §1985:X.5.3.4 GR4 'all programs contained within the program referenced by the CANCEL statement are also cancelled'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

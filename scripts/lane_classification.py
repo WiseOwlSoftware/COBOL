@@ -393,6 +393,10 @@ CLASSIFICATION = Classification(inert={
        "tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj": "scripts/linux-gate.sh",
        "tests/_shared/SpecClauseText.cs": "scripts/spec/spec_headings.py",
        "tests/_shared/TestRepo.cs": "scripts/spec/drift_rules.py",
+       "tests/doc-facts/code-location-parity-cases.json": "scripts/spec/code_location.py and the code_reads self-test (the "
+                                                          "resolver's parity fixture, kb/Work PB5863)",
+       "tests/doc-facts/inventory-anchor-kinds.json": "scripts/spec/code_location.py (the document kinds the resolver leaves "
+                                                      "to the document audit) and the code_reads self-test",
        "tests/external/gnucobol-verdict-baseline.tsv": "scripts/corpus_sweep.py (the differential's committed cases)",
        "tests/nist/corpus.tsv": "scripts/guard-nist-audit.sh, guard-verify.sh, linux-gate.sh, "
                                 "scripts/orchestrator/test_orchestrate_account.ps1",

@@ -2,119 +2,119 @@
  "rule-id": "1985-SR-XIII.3.7.3-1",
  "rule-digest": "026ac7bcdf51",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-165",
+  "pin": "e14987286bd9c554f1472215a32fb73e4acdccbe",
+  "slice": "1985-226",
   "sources": {
-   "reader": "33a634f8775865fadbb8ae9792708c139cef0d2f3d430b2edfebd14f738b511e",
-   "refuter": "55d291252e80be0bec81fc1e5090b7c44bebe67b285d7aa906d8c70e9de3df4c"
+   "reader": "3ea24128ece6257870afbb626f5a12a2062043a2fe62843bdf80fee9defc9a2d",
+   "refuter": "72e4a837b9f57d04b8ca2ef0ee37583050ad98fdb6ed32b939ff82a827a9f3a7"
   },
   "imported": {
-   "reader": "915b74d637d8180b1e2485f3bdc94923190ef23309d67ad454c148bbdf05db9d"
+   "reader": "755d8310257022c39e64b02c945f110cce46093f8d21c4c172a3dc3beab702b7",
+   "refuter": "26b0b788cd6eceade68612822a3b91efc6ea2ab1a3b5fab876f10bfa99d3ffb8"
   }
  },
  "reader": {
   "rule-id": "1985-SR-XIII.3.7.3-1",
-  "verdict": "PARTIAL",
-  "requirement": "At --std 85 each data-name-1 of the CONTROL clause must reference a data item defined outside the Report Section (File, Working-Storage, Linkage, Communication) and may be qualified; a reference that names a Report Section item, including an unqualified name that a referenceable Report Section entry (a sum counter, qualifiable up to report-name by §1985:XIII.3.5.3 SR3) also spells, must be refused; the witnesses cover only the accepted qualified forms.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#IsReportSectionOnlyName; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#LookupQualified; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlClause",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 each data-name-1 of a CONTROL clause must name a data item defined outside the Report Section (file, working-storage or linkage), possibly qualified (OF/IN); a name defined only in the Report Section (report group, group entry, printable item, sum counter) is refused, and a name that is both is a nonunique reference unless qualified to the non-report item.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#LookupQualified; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#IsReportSectionOnlyName; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionOnlyNames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
-    "switches": "the written-operand uniqueness screen (§2023 SR6) runs only at DialectLevel >= 2002; 85 asks §1985 SR2 on resolved items instead (not this rule)",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
+    "switches": "Edition.DialectLevel < 2002 picks the cited rule text of the nonunique-reference message (§1985:IV.4.3.8.1 SR3 vs §2023:8.4.2.2.3 SR1); the verdict is the same",
     "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
-    "switches": "Edition.SubscriptedClauseOperands: the subscripted-operand screen for 2002; the SR1 report-section arm (IsReportSectionOnlyName) is edition-blind",
-    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "no for this rule: the report-section refusal and the lookup are the same code at 85 and 2023",
-  "witnesses-cover": "part: g85_f29_01 and pb5573_qualified_control_name_85 cover qualified File/Working-Storage operands; no witness names a Report Section item, and none spells a name a Report Section sum counter shares",
+  "edition-search": "Read the CONTROL operand loop of ResolveReports (LookupQualified, then IsReportSectionOnlyName -> ReportControlOperandShape COBOL1699, else ReportControlOperandUnresolved). The SR1 arm itself has no edition test; the following branches (Edition.SubscriptedClauseOperands, Edition.Edition.ControlOperandMayBeIndexDataItem) belong to SR3 and the index-item rule, not SR1.",
+  "behaviour-differs-by-edition": "no: the refusal of a report-section name and the admission of a qualified non-report name are one code path at every edition; only the cited rule in the ambiguity message differs.",
+  "witnesses-cover": "part: the witnesses cover qualified file and working-storage controls and the unqualified WS/report homonym; not the refusal of a printable item, group entry, report group or sum counter, nor the qualified homonym legal form.",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct1.cob",
-    "printed": "COBOL1699 CONTROL operand 'TW' names a report section data item (sum counter)",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/ctl1print.cob",
+    "printed": "error COBOL1699: CONTROL operand 'DAMT' names a report section data item",
+    "expected": "refused (printable item defined in Report Section)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/ctl2group.cob",
+    "printed": "error COBOL1699 on 'DLN' (group entry)",
     "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct2.cob",
-    "printed": "COBOL1699 CONTROL operand 'DKEY' names a report section data item (SOURCE item)",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/ctl3rgroup.cob",
+    "printed": "error COBOL1699 on 'DET' (report group)",
     "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct3.cob",
-    "printed": "COBOL1699 CONTROL operand 'DE-G' (report group)",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/ctl4sum.cob",
+    "printed": "error COBOL1699 on 'TOT1' (sum counter); same at --std 2023",
     "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct4.cob",
-    "printed": "COBOL0899 CONTROL operand 'PAGE-COUNTER' does not resolve to a data item",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/ctl9damtq.cob",
+    "printed": "error COBOL1699 on 'DAMT OF DET' (qualified report item)",
     "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct5.cob",
-    "printed": "COBOL1699 CONTROL operand 'DKEY OF DE-G'",
-    "expected": "refused (qualified report item)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/ctl7linec.cob",
+    "printed": "error COBOL0899: CONTROL operand 'LINE-COUNTER' does not resolve to a data item (PAGE-COUNTER likewise, ctl8pagec.cob)",
+    "expected": "refused (a report counter is no data-name defined outside the Report Section)"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct6.cob",
-    "printed": "RAN (CONTROLS ARE FINAL W-KEY OF WS-A)",
-    "expected": "accepted: may be qualified"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/ctl5qual.cob",
+    "printed": "EXIT 0 (CONTROL IS FINAL WS-K OF WS-G; IN form ctl6qualin.cob also EXIT 0)",
+    "expected": "legal: data-name-1 may be qualified"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct7.cob",
-    "printed": "RAN; report P 01 / CFW 01 / Q 02 / CFW 02 (W-KEY OF WS-A, a sum counter CF-W.W-KEY also declared)",
-    "expected": "accepted: the qualifier makes the reference unique and outside the Report Section"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/ctl10homq.cob",
+    "printed": "COMPILED AND RAN (W-KEY OF WS-A while W-KEY is also a sum counter)",
+    "expected": "legal: qualification selects the non-report item"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XIII.3.7@1985-CONTROL-CLAUSE/g85_f29_01.cob",
+    "printed": "EXPECT: MATCH (file-section and working-storage controls, qualified)",
+    "expected": "the witness's derived output"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct8.cob",
-    "printed": "RAN, exit 0 (CONTROLS ARE FINAL W-KEY, unqualified, with WS-A.W-KEY and sum counter CF-W.W-KEY both declared)",
-    "expected": "refused: W-KEY names a Report Section item as well (SR1) and is not unique (§1985:IV.4.3.8.1 SR3)"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct9.cob",
-    "printed": "COBOL2145 'W-KEY': the reference is ambiguous (same program, DISPLAY W-KEY in the Procedure Division)",
-    "expected": "the compiler's own Procedure Division arm judges the same spelling ambiguous"
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XIII.3.7@1985-CONTROL-CLAUSE/pb5775-control-homonym-85.cob",
+    "printed": "error COBOL1639: CONTROL operand 'W-KEY' does not uniquely identify a data item (ISO §1985:IV.4.3.8.1 SR3)",
+    "expected": "refused (nonunique)"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.3.7.3 SR1",
     "check": "OK  §1985:XIII.3.7.3 SR1  (3.7.3 Syntax Rules)  the text is in SR1"
-   },
-   {
-    "cite": "§1985:IV.4.3.8.1 SR3",
-    "check": "OK  §1985:IV.4.3.8.1 SR3  (4.3.8.1 Qualification)  the text is in SR3"
-   },
-   {
-    "cite": "§1985:XIII.3.5.3 SR3",
-    "check": "OK  §1985:XIII.3.5.3 SR3  (3.5.3 Syntax Rules)  the text is in SR3"
-   },
-   {
-    "cite": "§1985:XIII.3.9.3 SR10d",
-    "check": "OK  §1985:XIII.3.9.3 SR10d  (3.9.3 Syntax Rules)  the text is in SR10d"
    }
   ],
-  "notes": "LookupQualified resolves CONTROL operands over ordinary storage only (report section names never enter ByName), and IsReportSectionOnlyName fires only for a name declared in the Report Section AND NOWHERE ELSE, by design (its comment: a name also declared in ordinary storage resolves there). So an unqualified CONTROL operand that a referenceable sum counter also spells is silently bound to the Working-Storage item, while the same spelling in the Procedure Division is refused as ambiguous (COBOL2145). Every other refusal and the qualified forms conform.",
+  "notes": "Conforms on every probed form. COBOL1699 at --std 85 cites §2023:13.18.16.3 SR2 instead of §1985:XIII.3.7.3 SR1 (message text only).",
   "seeded": true,
-  "harm": "under-rejects",
-  "cause": "b",
-  "at-2023": "ct8.cob at --std 2023 also compiles and runs (exit 0, RAN); ct9.cob's DISPLAY W-KEY is COBOL2145 at 2023 as at 85",
-  "repro": "WORKING-STORAGE: 01 WS-A. 02 W-KEY PIC X VALUE 'P'. 02 W-AMT PIC 99. REPORT SECTION: RD RPT CONTROLS ARE FINAL W-KEY. ... 01 CF-W TYPE CF W-KEY LINE PLUS 1. 02 COLUMN 1 PIC X(3) VALUE 'CFW'. 02 W-KEY COLUMN 5 PIC 99 SUM W-AMT. (full program E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/ct8.cob)",
-  "expected": "§1985:XIII.3.7.3 SR1 \"Data-name-1 must not be defined in the Report Section\" and §1985:IV.4.3.8.1 SR3 \"uniqueness must then be established through qualification for each user-defined name explicitly referenced\": the unqualified W-KEY names a Report Section sum counter as well as WS-A's item and must be refused",
-  "observed": "--std 85: compiles clean, runs, prints RAN; the control is bound to WS-A.W-KEY",
-  "known_note": "none (searched kb/Work for IsReportSectionOnlyName, 'CONTROL operand', CONTROL + ambiguous; PB3767 and PB5524 are the landed ambiguity notes for ReportUnidentified and the UPON operand, not the CONTROL lookup)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5775"
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.7.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "c1link.cob at --std 85: CONTROL IS LK-K AUX-F OF AUX, a LINKAGE SECTION item and a FILE SECTION item qualified by its file-name, in a contained program called three times; EXIT 0 and the report shows the control break 'AA','AA','CF-K','BB'. s4cd.cob: CONTROL IS CD-Q, a COMMUNICATION SECTION item, EXIT 0. c2refmod.cob: CONTROL IS LK-K(1:1) refused COBOL0900 'a reference-modified control name ... requires COBOL-2002' (SR1 permits qualification only at 85). With the reader's refusals of every report-section name class and admission of qualified homonyms, the rule holds. cite.py: 'OK  §1985:XIII.3.7.3 SR1  (3.7.3 Syntax Rules)  the text is in SR1'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportControlClause: asks GateCobol85ControlName for each CONTROL operand",
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85ControlName: refuses a reference-modified control name at 85 (ReportControlReferenceModification2002)"
+  ],
+  "corrected": ""
+ }
 }

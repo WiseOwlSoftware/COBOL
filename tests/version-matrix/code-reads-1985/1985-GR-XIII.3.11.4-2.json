@@ -1,0 +1,96 @@
+{
+ "rule-id": "1985-GR-XIII.3.11.4-2",
+ "rule-digest": "00882fa9e09a",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-202",
+  "sources": {
+   "reader": "d62b1f86a5e0c82ef539c77b85d2afa99d230d06d7c725d6a79a4e39518c3e39",
+   "refuter": "a07a7838b5d3e16c51b85a49cfeb493f866f3e26fa43d7e35cf17e83e593fb67"
+  },
+  "imported": {
+   "reader": "9c5a13aea2eff3236a5e60e911d47f1b486f6792caf811be0b2fd2691e75f1a9",
+   "refuter": "19fb6e14726ea8a59fb882fb2172e29a80bd7e5d2eca35d761bd8347b129aa59"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.11.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the leftmost character of a printable item is placed in print-line column integer-1 of its COLUMN NUMBER IS integer-1 clause (column 1 the leftmost, GR4), for every printable item category (VALUE, SOURCE, SUM; alphanumeric, numeric edited, signed). The witness covers literal VALUE items.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#ReportColumnSpec; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#AbsoluteLeftmost; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause",
+    "switches": "ConstructRegistry report-multi-column-2002 (minimum 2002): at 85 refuses the multiple, relative PLUS, LEFT/CENTER/RIGHT and COL/COLS/COLUMNS/NUMBERS forms (COBOL0900); the 85 form COLUMN NUMBER IS integer-1 passes",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral",
+    "switches": "IntegerOperandRules.Classify(ctx, edition.DialectLevel): COLUMN 0 is refused at 85 citing §1985:III.2 (an integer must not be zero)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/Year/DialectLevel in ReportWriterEmitter.EmitFieldPlacements, ReportColumnSpec.AbsoluteLeftmost and CobolReport.Place: none; the 85 form reaches AbsoluteLeftmost's default arm (= integer-1), the same code 2023 runs for an unaligned or LEFT column",
+  "behaviour-differs-by-edition": "yes: 85 has only COLUMN NUMBER IS integer-1; the 2002+ relative, multiple and aligned forms are refused at 85; placement of the 85 form is identical",
+  "witnesses-cover": "part: VALUE literals (g85_f30_01, g85_z01); not SOURCE edited or signed items, nor a far-right column",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/COLSP.cob",
+    "printed": "' XYZ' / 'Q1  AB      -  5 *' / 'L1' / '   L2   007' / '  Z' (SOURCE X(6) at col 5, -ZZ9 of -5 at col 12, ALL '*' at col 17, VALUE SPACE at col 1)",
+    "expected": "each item's first character at its COLUMN integer"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/COLSG.cob",
+    "printed": "'  -042' (S9(3) SIGN LEADING SEPARATE at COLUMN 3)",
+    "expected": "the sign character in column 3"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/COLWD.cob",
+    "printed": "'XYZ' at byte offset 119, column 120",
+    "expected": "column 120"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/COL00.cob",
+    "printed": "COBOL2386 COLUMN 0: the integer operand 0 shall be nonzero (§1985:III.2)",
+    "expected": "refused: an integer must not be zero"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/COLRT.cob",
+    "printed": "COBOL0900 the RIGHT alignment word requires COBOL-2002; COLPL (PLUS 2) and COLMU (COLUMNS 2 6) likewise",
+    "expected": "the 85 format is COLUMN NUMBER IS integer-1 only; refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.11.4 GR2",
+    "check": "OK  §1985:XIII.3.11.4 GR2  (3.11.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XIII.3.11.4 GR4",
+    "check": "OK  §1985:XIII.3.11.4 GR4  (3.11.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The emitter places each item at AbsoluteLeftmost (= integer-1 for the unaligned 85 form) and Place writes from index column-1. Probes over alphanumeric, numeric-edited, signed-separate, ALL-literal and wide columns all land at their integer.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.11.4-2",
+  "refutation": "UPHELD",
+  "classes": "d",
+  "evidence": "COLJB tested the 85 Format 3 clauses the reader did not try. JUSTIFIED RIGHT X(6) at COLUMN 3 holding a source 'AB  ' put 'AB' at columns 5-6, so the item starts at column 3. ZZ9 BLANK WHEN ZERO at COLUMN 11 printed 5 at column 13. GROUP INDICATE X(4) at COLUMN 16 printed at 16 on the first detail and spaces after. VALUE '|' landed at column 22. A SUM counter ZZZ9 at COLUMN 7 printed '17' at columns 9-10. The file bytes show '    AB      5  AB    |', '    CD               |' and '        17  |'. cite.py: OK §1985:XIII.3.11.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

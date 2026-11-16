@@ -2,78 +2,80 @@
  "rule-id": "1985-GR-VI.6.27.4-17",
  "rule-digest": "4ef52be809de",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-114",
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-218",
   "sources": {
-   "reader": "32db31cf70df4d7ef171121d99fc690dc0e1d97df0cddda97380269810bbef58",
-   "refuter": "aa64710d97213766196ce98602e344723f873c20e8a0d1c2c55173f6ebd4c986"
+   "reader": "cfe4d5c943059164c740b95b8c7610ab3083cbb9e458314248fa3d7317c57a2d",
+   "refuter": "446d7608587e1a37923ce3eb4eed10b4b95d56ffc03c222c898da3bf2ae5103a"
   },
   "imported": {
-   "reader": "719ec2e7335c518bf937c67bd9ff8d40e54780bebe69e9566018c6651e949038"
+   "reader": "0f91075de86f5f4bf8b38dd31d2eb843ec80e646129774dca4279ee851227201",
+   "refuter": "7ce429c2e19d5b48b43a081f59b79582b82aaa9e90f34ed10b24019072dce213"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.6.27.4-17",
-  "verdict": "DIVERGES",
-  "requirement": "At --std 85, UNSTRING raises the overflow condition (a) at initiation when the POINTER item's value is below 1 or above the CURRENT size of identifier-1, including a variable-length identifier-1 whose current size is zero (1985 has no zero-length termination rule), and (b) when every receiving area has been acted upon and identifier-1 still has unexamined characters; otherwise no overflow.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitOverflow; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringSkipRun",
-  "edition-consulted": [],
-  "edition-search": "grep of DialectLevel|CobolVersion|DialectBehaviors|ConstructDialectStatus|EditionContext|Edition.Year over StringEmitter.cs, CobolStringOps.cs, StringUnstringBinder.cs (ctx.Edition there is only the diagnostic sink), EcEmitter#EmitOverflow (>>TURN-gated only); grep of ZeroLength in WiseOwl.Cobol.Editions and DialectBehavior.cs: no behaviour for the zero-length sender. The 2023 GR2 guard `if (src.Length != 0)` in EmitUnstring runs at every edition.",
-  "behaviour-differs-by-edition": "yes: at 2023 (§2023:14.9.48.4 GR2) a zero-length identifier-1 terminates the statement before the overflow test; 1985 has no such rule, so its GR17a overflow applies (POINTER value 1 > size 0). The compiler takes the 2023 arm at 85.",
-  "witnesses-cover": "part: g85_f14_05 covers the pointer-out-of-range and unexamined-characters overflows on fixed-length senders; not exercised: a variable-length (ODO) sender, including one of current size zero, a trailing delimiter or ALL run that exhausts the sender, and the separate-sign examination size.",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, UNSTRING raises the overflow condition (a) at initiation when the POINTER value (1 when POINTER is omitted) is less than 1 or greater than the size of identifier-1, including a size of zero, transferring nothing, and (b) when every receiving area has been acted upon and identifier-1 still holds unexamined characters.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IsActive",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+    "switches": "DialectBehaviors.IsActive(UnstringZeroLengthSenderTerminates, DialectLevel): from 2002 a zero-length identifier-1 ends the statement before the GR17a test; at 85 the guard is absent, so pointer 1 > size 0 is an overflow",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: a zero-length (ODO 0) sender is an overflow at 85 (ON OVERFLOW runs) and terminates with neither phrase at 2002+; the pointer tests and the unexamined-characters test are one code path at every edition",
+  "witnesses-cover": "part: pb5816 covers the zero-length sender and pointer > size; g85_f14_05 an overflow case; pointer 0 and negative, pointer equal to the size, the exact-consumption no-overflow and the no-DELIMITED overflow are not in the witnesses",
   "probes": [
    {
     "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/unsgr17.cob",
-    "printed": "U1 OVF [   ] +00; U2 OVF; U3 OVF; U4 NOOVF [   ] +07",
-    "expected": "pointer 0, -1, 7 (size 6): overflow, nothing moved, pointer kept; pointer 6 on the trailing delimiter: no overflow"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/unsgr17.cob",
-    "printed": "U5 NOOVF; U6 OVF; U7 NOOVF; U8 OVF; U9 NOOVF; U10 NOOVF 123+ [456]",
-    "expected": "GR17b: overflow only when receivers are used up with characters unexamined (U6, U8); a delimiter or ALL run ending the sender is examined (U5, U7); separate-sign receiver examines size-1 (U10)"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/unsgr17.cob",
-    "printed": "A1 OVF; A2 OVF [ABC] +04 01; A3 NOOVF; Z1 END +01 (neither phrase ran); Z2 END (neither phrase ran)",
-    "expected": "ODO sender judged at its current size (A1-A3 correct); Z1: current size 0 with POINTER 1 is GR17a's overflow, so 'Z1 OVF' must print"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c4_overflow.cob",
+    "printed": "A0 OVF [rrr] PT=+00 / A1 OVF [rrr] PT=-03 / A2 OVF [rrr] PT=+07 / A3 NO [   ] PT=+07 TL=01 / B1 OVF [AB ] PT=+04 TL=01 / B2 NO [AB ][CD ] PT=+06 / B3 NO [AB ][CD ] PT=+07 / B4 OVF [AB,]",
+    "expected": "GR17a pointer 0, -3, 7 on size 6: overflow, nothing moved, pointer unchanged; pointer 6 = size: no overflow; GR17b one receiver with CD left: overflow; exhausted exactly or with trailing delimiter consumed: no overflow; no DELIMITED and receiver of 3 on 5: overflow"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/unszero.cob",
-    "printed": "--std 85: X=[QQQ] P=01 (no OVERFLOW line); --std 2023: X=[QQQ] P=01",
-    "expected": "--std 85: OVERFLOW then X=[QQQ] P=01 (§1985:VI.6.27.4 GR17a, GR18); --std 2023: as printed (§2023:14.9.48.4 GR2)"
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/VI.6.27@1985-UNSTRING-STATEMENT/pb5816_unstring_zero_length_sender_overflow.cob",
+    "printed": "at --std 85: A OVERFLOW, C OVERFLOW, B OVERFLOW, EXPECT MATCH; at --std 2023: A and C print neither phrase, B OVERFLOW",
+    "expected": "1985 has no zero-length rule: pointer 1 > size 0 is GR17a"
    }
   ],
   "citations": [
    {
-    "cite": "§1985:VI.6.27.4 GR17",
-    "check": "OK  §1985:VI.6.27.4 GR17  (║6.27.4 General Rules║)  the text is in GR17"
+    "cite": "§1985:VI.6.27.4 GR17a",
+    "check": "OK  §1985:VI.6.27.4 GR17a  (║6.27.4 General Rules║)  the text is in GR17a"
    },
    {
     "cite": "§1985:VI.6.27.4 GR17b",
     "check": "OK  §1985:VI.6.27.4 GR17b  (║6.27.4 General Rules║)  the text is in GR17b"
-   },
-   {
-    "cite": "§1985:VI.6.27.4 GR18",
-    "check": "OK  §1985:VI.6.27.4 GR18  (║6.27.4 General Rules║)  the text is in GR18"
-   },
-   {
-    "cite": "§2023:14.9.48.4 GR2",
-    "check": "OK  §2023:14.9.48.4 GR2  (General rules)  the text is in GR2"
    }
   ],
-  "notes": "Every fixed-length and nonzero variable-length overflow case conforms. The divergence is the zero-length sender: PB1184 added the 2023 GR2 guard `if (src.Length != 0)` around the whole statement with no edition test, so at 85 an ODO sender of current size 0 with POINTER 1 skips the GR17a overflow and ON OVERFLOW never runs. Whether a zero-size ODO group is an ordinary 1985 sender is the one judgement made here (§1985 OCCURS SR5 allows integer-1 = 0); the GR17a text itself is unambiguous.",
+  "notes": "EmitUnstring tests ptr < 1 || ptr > src.Length before any transfer and, after the receivers, ptr <= src.Length for unexamined characters; the 2002+ zero-length guard is the DialectBehavior row whose 85 arm is off, which is right for the 1985 text. All probes matched.",
   "seeded": true,
-  "harm": "wrong-answer",
-  "cause": "a",
-  "at-2023": "prints X=[QQQ] P=01 with neither phrase run, which is correct at 2023 by §2023:14.9.48.4 GR2",
-  "repro": "01 WS-X PIC X(3) VALUE \"QQQ\". 01 WS-P PIC 99 VALUE 1. 01 WS-CNT PIC 9 VALUE 0. 01 WS-OG. 05 OG-E PIC X OCCURS 0 TO 8 DEPENDING ON WS-CNT. ... UNSTRING WS-OG INTO WS-X WITH POINTER WS-P ON OVERFLOW DISPLAY \"OVERFLOW\" NOT ON OVERFLOW DISPLAY \"NO OVERFLOW\". (E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/unszero.cob, --std 85)",
-  "expected": "\"An UNSTRING is initiated, and the value in the data item referenced by identifier-7 is less than 1 or greater than the size of the data item referenced by identifier-1\" causes an overflow condition (§1985:VI.6.27.4 GR17a), and then control goes to imperative-statement-1 (GR18): OVERFLOW is displayed.",
-  "observed": "Neither OVERFLOW nor NO OVERFLOW is displayed; X=[QQQ] P=01. EmitUnstring wraps the statement in the zero-length guard at every edition.",
-  "known_note": "none for 1985; PB1184 (landed) introduced the unconditional 2023 GR2 guard and names only --std 2023/2014"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5816"
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-17",
+  "refutation": "OVERTURNED",
+  "classes": "a,c,f",
+  "evidence": "GR17a names only 'the value in the data item referenced by identifier-7'; with no POINTER phrase there is no identifier-7, and GR13a says only that examination begins 'with the leftmost character position'. GR17b needs unexamined characters, which a zero-size sender lacks. So at 1985 an UNSTRING with no POINTER from a zero-size sender meets neither GR17 condition and GR20 sends control to NOT ON OVERFLOW. StringEmitter.cs#EmitUnstring (lines 236-247) writes 'long ptr = 1;' when POINTER is omitted and then tests 'ptr < 1 || ptr > src.Length', so the absent identifier-7 is treated as 1 and a zero-size sender becomes an overflow. Probe r4_nopointer_zero.cob (OG = OCCURS 0 TO 8 DEPENDING ON WC, WC=0; UNSTRING OG DELIMITED BY \",\" INTO WX TALLYING IN WT, no POINTER): --std 85 printed 'C OVERFLOW / C X=[QQQ] T=00' (runs/r4_nopointer_zero-001); --std 2023 printed neither phrase (2023 GR2 guard). The witness pb5816_unstring_zero_length_sender_overflow leg C expects 'C OVERFLOW' on 'the implicit pointer 1', which the 1985 text does not state; kb/Work PB5816's own repro uses WITH POINTER only. Everything else holds: r4_overflow.cob (runs/r4_overflow-001) ODO sender current size 4 with POINTER 5 overflows and POINTER 4 does not; zero size with explicit POINTER 1 overflows with TALLYING untouched; 'AB,,' into one receiver overflows at PT 4; ALL ',' consumes the trailing commas with no overflow (PT 6); 'AB,,,' into two receivers overflows at PT 5. cite.py: 'OK  §1985:VI.6.27.4 GR17a  the text is in GR17a'; 'OK  §1985:VI.6.27.4 GR17b  the text is in GR17b'; 'OK  §1985:VI.6.27.4 GR20  the text is in GR20'; 'OK  §1985:VI.6.27.4 GR13a  the text is in GR13a'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring: the POINTER-absent arm ('long ptr = 1') feeds the GR17a initiation test at every edition; at 85 the test must apply only when identifier-7 is written (the 85 arm of DialectBehavior.UnstringZeroLengthSenderTerminates removes the guard but nothing restricts GR17a to identifier-7)"
+  ],
+  "corrected": "PARTIAL (wrong-answer, cause c: 1985 GR17a covers less than the code applies, only a written POINTER item). At --std 85, UNSTRING with no POINTER from a zero-size identifier-1 must not raise overflow; the ON OVERFLOW imperative runs where GR20 requires NOT ON OVERFLOW. With POINTER, every GR17a and GR17b case probed conforms. The pb5816 witness's leg C expectation must change with the fix. Known note: kb/Work PB5816 (landed) introduced the behaviour; its repro and text cover only the POINTER form."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "At `--std 85` an UNSTRING with NO POINTER phrase from a zero-size sender runs ON OVERFLOW, where the 1985 text gives NOT ON OVERFLOW. The fix of kb/Work PB5816 carried the ruling made for WITH POINTER to the form with no POINTER, and leg C of its witness expects the wrong answer.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-11.md"
+ },
+ "work": "PB5858"
 }

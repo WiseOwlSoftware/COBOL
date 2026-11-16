@@ -2,49 +2,56 @@
  "rule-id": "1989-AR-A.2.27.3-1",
  "rule-digest": "e291d783a8ff",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-169",
+  "pin": "e14987286bd9c554f1472215a32fb73e4acdccbe",
+  "slice": "1985-227",
   "sources": {
-   "reader": "9fd75e16d10fc29e767e79a49edb29f1519e3110fb617740517d0b314c238e6b",
-   "refuter": "c5169ecc1732ffc0f21595e3e7ae4ca5b7d3348850cb56ff2acb8f54880fbd0e"
+   "reader": "b5bca5c1a45856cc9b194daee49c9dc397461dd4edf21c4b94124ae14351cfc0",
+   "refuter": "53ee790252bee66d9070ea1b2579d9f3a461d5a872cba2633fb1f5aaddcd4e2c"
   },
   "imported": {
-   "reader": "d902e459c20329e6c2570f5ebc04b6c08be7fefbca3fefd48ff66f8448f866d9",
-   "refuter": "1f90ec294976f8444c9c3e3c65bd737cd082e2db8d59d6599bedf933f3879b7b"
+   "reader": "dadbd834a04aad594101dbdb1ebaabffcb573d077163d2a7d785cc3ef683198d",
+   "refuter": "6bdb2bba0f3d9bae1aa72b5170d7c65cf503c23d3f2892444dae203752b96329"
   }
  },
  "reader": {
   "rule-id": "1989-AR-A.2.27.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At 1985 (as amended by X3.23b-1993, C315), when FUNCTION MIN has more than one argument-1 all must be of the same class, except that alphabetic and alphanumeric arguments may be mixed; the compiler must refuse a list mixing numeric with alphabetic/alphanumeric (including numeric-edited and group items, which are class alphanumeric) and accept every same-class or alphabetic/alphanumeric list.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass",
+  "requirement": "At --std 85, when FUNCTION MIN has more than one argument-1 all must be of one class (numeric, or alphabetic/alphanumeric mixed, the 1985 alphanumeric class holding numeric-edited, alphanumeric-edited and group items per §1985:IV.4.3.3), so a numeric argument beside an alphabetic or alphanumeric one is refused and same-class lists are accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
-    "switches": "D8 window: IntroducedIn 85 against DialectLevel; MIN available at 85 and 2023",
-    "same-arm-as-latest": true
-   },
-   {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-    "switches": "ArgPredicate.AppliesAt(year) for the NotStrongGroup tail predicate (Since 85); applies at both editions",
+    "switches": "ArgPredicate.AppliesAt(edition year) for the MIN row's NotStrongGroup predicate (Since default 85, so applied at every edition; inert at 85 where no strongly-typed group can be declared)",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of IntrinsicArgumentRules.cs for CobolVersion|EditionContext|Edition|IsAtLeast|ConstructRegistry|DialectBehavior found nothing.",
-  "behaviour-differs-by-edition": "no: same refusals and the same alphabetic/alphanumeric merge at 85 and 2023",
-  "witnesses-cover": "part: g85_f33_03 runs legal lists and 1989-AR-A_2_27_3-1 one refusal; not exercised: numeric-edited/group as alphanumeric, ALL-subscripted ODO tables, expressions, nested functions, figuratives",
+  "edition-search": "grep of IntrinsicArgumentRules.cs (Since/Edition/Version/1985) and IntrinsicBinder.cs (IsAvailable/DialectLevel/Edition.Edition/AppliesAt): CrossViolation, CrossBlock and the class lattice consult no edition; the 2023-only legs of the row (boolean/pointer/object exclusions, zero-length literal) cannot be reached by 85 source.",
+  "behaviour-differs-by-edition": "no: the same cross-class screen runs at 85 and 2023",
+  "witnesses-cover": "part: g85_f33_03 covers the alphabetic/alphanumeric mix and all-numeric lists (accepts); 1989-AR-A_2_27_3-1 covers one alphanumeric/numeric refusal. Not exercised: numeric-edited, alphanumeric-edited and group items as class alphanumeric, ref-modified numeric items, alphanumeric functions, expressions, table(ALL)/ODO, and the reverse-order mixes",
   "probes": [
    {
-    "class": "a,d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/maxok2.cob",
-    "printed": "2[CAT] 4[ 42] (numeric-edited + alphanumeric-edited) 6[CAT] (group + A) 8[-99999999999999999.0] 10[-00000000000000009.0] (ODO ALL + 0) 12[AC] (X table ALL) 15[ ] (SPACE + X)",
-    "expected": "all compile; each the least argument, leftmost on ties (§1989:A.2.27.4)"
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-227/min_ok.cob",
+    "printed": "H[-  3.0000] (TE(ALL), ODO 3: 5 -3 9) F[00] (MIN(X5 N1(1:2)) - ref-modified numeric is class alphanumeric)",
+    "expected": "-3; \"00\" accepted as two alphanumeric arguments"
    },
    {
-    "class": "b,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/maxbad2.cob",
-    "printed": "COBOL1627 'FUNCTION MIN argument-2 is of class numeric|alphanumeric, which cannot agree with the earlier arguments; ISO §2023:15.63.3 r2 ...' for MIN(A num), MIN(7 group), MIN(num-table ALL X), MIN(UPPER-CASE(X) 3)",
-    "expected": "each list mixes numeric with alphabetic/alphanumeric; refused"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-227/min_bad.cob",
+    "printed": "COBOL1627 'cannot agree with the earlier arguments' for (X5 3), (N1 \"A\"), (N1 ED), (N1 A3), (FUNCTION CHAR(66) 1), (N1 G1), (N1 + 1, X5), (A3 X5 N1) argument-3",
+    "expected": "all refused (§1989:A.2.27.3 AR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-227/later_cls.cob",
+    "printed": "MIN(X5 NN) with PIC N item: COBOL0900 national requires 2002, and COBOL1627 class national",
+    "expected": "no national class at 85; refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-227/min_ok.cob",
+    "printed": "A[CAT] (A(3) vs X(5)) B[ 42] (X5 vs ZZ9 edited) C[AA] (group, X5, literal) D[CAT] (XBX edited, literal, A(3)) E[BAT] G[-  6.0000] (N1+1, 4.5, 3) I[   4.0000] (INTEGER(4.5), 4.5) J[Q] (single literal)",
+    "expected": "all accepted, least value per §1989:A.2.27.4 RV1, size of the selected argument for alphanumeric"
    }
   ],
   "citations": [
@@ -53,15 +60,23 @@
     "check": "OK  §1989:A.2.27.3 AR1  (2.27.3 Arguments)  the text is in AR1"
    },
    {
-    "cite": "§1989:A.2.2",
-    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR3 [quotation: A data item of the class alphabetic or alphanumeric or a nonnumeric literal]"
+    "cite": "§1989:A.2.2 AR3",
+    "check": "OK  §1989:A.2.2 AR3  (2.2 ARGUMENTS**)  the text is in AR3"
+   },
+   {
+    "cite": "§1989:A.2.27.4 RV2",
+    "check": "OK  §1989:A.2.27.4 RV2  (2.27.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1985:IV.4.3.3",
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
    }
   ],
-  "notes": "MIN shares MAX's Verified row shape (Uniform 'p' + CrossArgRule.AllSameClass) and the one CrossViolation/CrossBlock path, which implements the amended rule's alphabetic/alphanumeric exception. Diagnostics cite §2023:15.63.3 r2 at --std 85.",
+  "notes": "CrossViolation intersects each argument's Table-2 class (TableTwoClass projects numeric-edited to alphanumeric) after CrossBlock merges alphabetic into alphanumeric, which is the amended (X3.23b-1993) 1985 rule exactly; groups and ref-modified items are class alphanumeric as §1985:IV.4.3.3 has them. Every same-class list ran with the right least value and every mixed list was refused. The diagnostic names §2023:15.63.3 r2, not the 1985 rule.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "same refusals and results",
+  "at-2023": "same COBOL1627 refusals at --std 2023 for min_bad.cob",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -69,16 +84,10 @@
  },
  "refuter": {
   "rule-id": "1989-AR-A.2.27.3-1",
-  "refutation": "OVERTURNED",
+  "refutation": "UPHELD",
   "classes": "a,b,c,d",
-  "evidence": "Probe src/allrmmix.cob at --std 85 (runs/allrmmix-001): DISPLAY FUNCTION MIN (N-EL (ALL) (1:1) A-ITEM) is REFUSED with COBOL1627 'FUNCTION MIN argument-2 is of class alphanumeric, which cannot agree with the earlier arguments', though argument-1's elements are class alphanumeric (§1985:IV.4.3.8.4.4 GR3a, GR5) and A-ITEM is class alphabetic, a mix §1989:A.2.27.3 AR1 explicitly allows (rejects legal source). In src/allrmmax.cob, MIN (N-ITEM N-EL (ALL) (2:1)) draws no COBOL1627 for the numeric/alphanumeric mix; it is refused only by COBOL0900 because the compiler typed the call numeric. Identical at --std 2023 (runs/allrmmix-002). Non-ALL control MIN (N-ITEM (1:2) X-ITEM) -> 19 and MIN (\"9\" N-ITEM (2:3)) -> 9 are right (runs/rmmaxok-002). cite.py: 'OK  §1989:A.2.27.3 AR1  (2.27.3 Arguments)  the text is in AR1'; 'OK  §1985:IV.4.3.8.4.4 GR3a ...'; 'OK  §1985:IV.4.3.8.4.4 GR5 ...'.",
+  "evidence": "Attacked the amended (X3.23b-1993) rule's operand classes the reader did not probe. Accepts at --std 85: zero_min.cob MIN(N1 ZERO 4) printed 0 and MIN(ZEROS + 3, N1) printed 3 (ZERO as a numeric arithmetic expression); tab2.cob MIN(C(ALL ALL)) printed -8, MIN(FUNCTION CHAR(66) X5 A3) printed 'A' (alphanumeric function beside alphanumeric and alphabetic items, size of the selected argument per RV3), MIN(FUNCTION UPPER-CASE(A3) X5) printed BAT; min_mix.cob MIN(A3 ED) with ED PIC ZZ9 printed ' 42' and MIN(ED A3(1:2) N1(2:2)) printed ' 42' (alphabetic, numeric-edited and ref-modified items all alphanumeric-compatible). Refusals: bad_tbl.cob MIN(NE(ALL) X5), MIN(XE(ALL) N1), MIN(G(ALL) N1) each refused COBOL1627 (class mix reached through ALL); later_lit.cob MIN(X5 N\"AB\") and MIN(X5 B\"1\") refused COBOL0900 plus COBOL1627. fig_min.cob: MIN(X5 SPACE), MIN(X5 ZERO), MIN(X5 HIGH-VALUE) accepted and printed the one-character figurative value; §1989:A.2.2 AR3 names only data items and nonnumeric literals, so a figurative constant there is a reading, not a decisive violation of this rule. cite.py: OK §1989:A.2.27.3 AR1 (the text is in AR1, amended text 'mixing of arguments of alphabetic and alphanumeric classes is allowed'); OK §1985:VI.6.2.1.",
   "edition-sites-missed": [],
-  "corrected": "NON-CONFORMING (rejects-legal-source), cause (c): same ClassOfPlace defect as MAX (src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace classes TableAllPlace over RefModPlace as the numeric element). Same at --std 2023."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "A reference-modified element under an ALL subscript (`N-EL (ALL) (1:1)`) is class alphanumeric by the 1985 text, and the argument-class screen classes it as its numeric element. MAX and MIN refuse legal lists; MEAN, MEDIAN and MIDRANGE compute from digit slices; an illegal MAX mix compiles and fails at run time. Not the mechanism of PB5780 or PB5813.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
- },
- "work": "PB5833"
+  "corrected": ""
+ }
 }

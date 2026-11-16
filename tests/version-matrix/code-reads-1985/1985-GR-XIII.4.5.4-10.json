@@ -1,0 +1,101 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-10",
+ "rule-digest": "3a41564c1fa6",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-204",
+  "sources": {
+   "reader": "dffb0e24abb8dbf7a5dca9f2740d667c494a7beae275ada08d1fc408f2742f3c",
+   "refuter": "cf5adc8b29c2f9f8c7b939135d61e7541a5ad8d238409d167c4ec071b65784a6"
+  },
+  "imported": {
+   "reader": "b712f62b0792ee3fad973f426a2a37ce63e67c5e1fb15a3ba34846ef4b7749d2",
+   "refuter": "ad505b64865937f54d5a428d7a597d18d33d06aa3e9c6e753e77933bd6075664"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.5.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an OPEN EXTEND of a report file must position the file immediately after the last logical record written in it, so the report lines a later INITIATE/GENERATE/TERMINATE produce follow every record already there (an empty file: from its start; an absent OPTIONAL file: created per GR1 Table 1; an absent non-optional file: the OPEN is unsuccessful).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "DialectBehavior.FileSharingFacility (2002): at 85 the implementor default sharing is AllOther (no Table 19), from 2002 NoOther for an EXTEND",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "FileConnector.SharingFacilityInEffect: at 85 no Table 19 arbitration and sibling connectors release buffered records before the OPEN; from 2002 Table 19 arbitrates",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "the posture-derived HostShare, which selects the writer stream kind (a repositioning append stream when another writer is admitted, plain FileMode.Append otherwise); both append at the end of the medium",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior in SequentialConnector.cs, FileConnector.cs, FileRegistry.cs; the EXTEND arm of SequentialConnector.OpenCore itself consults no edition",
+  "behaviour-differs-by-edition": "no: the sharing posture differs (85 AllOther, 2023 NoOther) but the EXTEND position is the end of the medium in both; ext1.cob prints identical output at --std 85 and --std 2023",
+  "witnesses-cover": "part: g85_z02 covers one OUTPUT then one EXTEND of a nonempty unpaged file; repeated EXTEND, a paged file ending after a page feed, an empty existing file, an absent OPTIONAL file and an absent non-optional file were probed here",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/ext1.cob",
+    "printed": "EXTEND R STATUS 00 / EXTEND O (EMPTY) STATUS 00 / EXTEND M (ABSENT) STATUS 35 / AFTER FAILED OPEN / EXT1R: A1 A2 A3 <FF> A4 B1 C1 C2 (od: 'A3 FF A4 CR LF B1 CR LF C1 CR LF C2 CR LF') / EXT1O: O1 / OPEN INPUT EXT1M STATUS 35",
+    "expected": "each EXTEND appends after the last record written (B1 after A4, C1 C2 after B1); an empty existing file takes O1 as its first record; an absent non-optional file: OPEN unsuccessful (35), the INITIATE/GENERATE after it produce nothing and no file is created"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/ext2.cob",
+    "printed": "EXTEND O (EMPTY) STATUS 05 ... report file EXT2O read back: REC 01 [O1]",
+    "expected": "an absent OPTIONAL file opened EXTEND is created (Table 1) and the report line is its first record"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/ext3.cob",
+    "printed": "error COBOL1803: OPEN EXTEND 'RPT-FILE' WITH NO REWIND - the phrase may be specified only when the INPUT or OUTPUT phrase is specified",
+    "expected": "refused: the 1985 format gives NO REWIND to the OUTPUT phrase only"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/ext1.cob (--std 2023)",
+    "printed": "identical to the --std 85 output",
+    "expected": "same positioning at the latest edition"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/XIII.4.5@1985-OPEN-STATEMENT/g85_z02.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "REC 1 [FIRST-A] / REC 2 [FIRST-B] / REC 3 [SECOND]"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.5.4 GR10",
+    "check": "OK  §1985:XIII.4.5.4 GR10  (4.5.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:XIII.4.5.4 GR1",
+    "check": "OK  §1985:XIII.4.5.4 GR1  (4.5.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "A report file is a sequential file; its EXTEND arm opens the writer with FileMode.Append (CreateNew for an absent OPTIONAL file) after the 35 check for an absent non-optional file. The seed sites in IndexedConnector/KeyedConnector are not on a report file's path. Variable-length (class a) and numeric (class f) probe classes do not apply to this positioning rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.5.4-10",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "refute-1985-204/ex1.cob at --std 85 (runs/ex1-002): OPEN OUTPUT of two report files in one statement, then OPEN EXTEND R1-FILE R2-FILE (GR17 multi-file form) status 00 00, a re-INITIATE in the other order, then a third OPEN EXTEND of one file. The paged file (PAGE LIMIT 6, PF at line 5) reads back as the first report's lines 1-5 followed immediately by the second report's lines (no padding of the unwritten page bottom, no extra form feed), and the unpaged file reads B1 B2 B3 contiguous: each EXTEND writes immediately after the last record written. Grepped SequentialConnector/FileConnector/FileRegistry/CobolFile for Edition/DialectBehavior: only the sharing posture sites the reader listed. cite.py: OK §1985:XIII.4.5.4 GR10 'positions the file immediately after the last logical record for that file'; OK §1985:XIII.4.5.4 GR17 'the same as if a separate OPEN statement had been written for each file-name'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

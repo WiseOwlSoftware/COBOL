@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-10",
+ "rule-digest": "695bc9ee95a6",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-194",
+  "sources": {
+   "reader": "bdd3863e8ec76aad6f11f7e0e65a0c8963616a15ae67e48a809b4a2c0a6f76df",
+   "refuter": "10340cc44f038713176d94e3e5c8e9ab7219d8557dae7045825a145a7d1ded96"
+  },
+  "imported": {
+   "reader": "a7c46033b20961fab6d68ce203cb5e85e9993a43b00eabdcb48e5731978bc47c",
+   "refuter": "7cb88a1d5dec6c8357805cf4f11b41587405a64263e8ce2f70cfe9b00d1360f9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.27.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "An UNSTRING delimiter, whether literal-1 or the content of identifier-2, may hold any character of the native character set (LOW-VALUE, HIGH-VALUE, QUOTE, SPACE, control characters and high-ordinal characters named by SYMBOLIC CHARACTERS, punctuation, lower case), alone or in a multi-character delimiter, and each such delimiter is matched as written.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringSkipRun",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
+    "switches": "construct UnstringSenderReferenceModified2002: a reference-modified identifier-1 refused at 85 (SR7), not the delimiter's character content",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior|ConstructRegistry in StringUnstringBinder.cs and CobolStringOps.cs: the delimiter screens (SR1/SR2 category, ALL figurative, zero length) and the runtime's ordinal IndexOf matching take no edition; the one UNSTRING edition gate on the path is VersionConformancePass.VisitUnstringStatement's SR7 check.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f08_08 covers LOW-VALUE in an identifier, an embedded quotation mark, lower case, ';' and space; HIGH-VALUE, control and high-ordinal characters via SYMBOLIC CHARACTERS, a figurative QUOTE delimiter and a multi-character delimiter of non-printing characters are covered only by un1.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/un1.cob",
+    "printed": "LH 02 03 05 03 / SY AB   02 CD   02 EF   02 03 / QS X    |Y    |Z     / DOT 1    |2    |3     / ALL a    |b    |c     / MC p    |q",
+    "expected": "LOW-VALUE OR HIGH-VALUE split AA|AAA|AAAAA (counts 2,3,5, tally 3); identifier holding ordinal-10 (tab), symbolic HICH (ordinal 201) and NULC (ordinal 1) split AB|CD|EF; QUOTE, SPACE and ',' split X|Y|Z; '.' splits 1|2|3; ALL '*' collapses '**'; two-character delimiter tab+HICH matched contiguously splits p|q"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/un1.cob",
+    "printed": "first build: COBOL0900 the apostrophe-delimited literal requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "1985 has only quotation-mark delimited nonnumeric literals; the probe builds the quote with the QUOTE figurative instead"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/g85_f08_08.cob",
+    "printed": "EXPECT: MATCH (g85_f08_08.out)",
+    "expected": "the witness's derived split"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR10",
+    "check": "OK  §1985:VI.6.27.4 GR10  (║6.27.4 General Rules║)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VI.6.27.4 GR11",
+    "check": "OK  §1985:VI.6.27.4 GR11  (║6.27.4 General Rules║)  the text is in GR11"
+   }
+  ],
+  "notes": "The binder places no restriction on a delimiter's characters, and the runtime matches with ordinal string comparison, so any character of the set, printable or not, delimits. The seed sites (PictureAnalyzer, CobolEdit) do not implement this rule; the implementation is StringUnstringBinder.BindUnstring and CobolStringOps.UnstringExtract.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-10",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/ru1.cob at --std 85 (runs/ru1-002): an identifier-2 PIC X(3) holding ',' is the three-character delimiter ',  ' matched as written, not trimmed (A='AB,CD ', B='EF', TALLYING 02, per GR11 contiguous); a nonnumeric literal \"\"\"\" (embedded quotation mark) splits AB|CD|EF; a non-ASCII literal 'é' delimiter splits 12|34|56; '5' OR 'X' with adjacent delimiters gives 12|34|(spaces). Refusal half: a numeric identifier-2 PIC 9 (runs/ru1-001) refused COBOL1651, right per §1985:VI.6.27.3 SR2 (category alphanumeric), so the 'any character' rule is not widened to other categories. cite.py: OK §1985:VI.6.27.4 GR10 the text is in GR10; OK §1985:VI.6.27.4 GR11; OK §1985:VI.6.27.3 SR2 the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

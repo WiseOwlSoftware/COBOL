@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.3.2-6",
+ "rule-digest": "7612c6b90251",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#TextWordCharacters; src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs#IsOutsideRepertoire; src/WiseOwl.Cobol.Editions/EditionInfo.cs#TextWordsAreCobolCharacters",
+ "test-ref": "conformance:cases/7.1.3@2002-REPLACE-STATEMENT/pb5608-replace-partial-word-2-one-text-word-accepted; conformance:cases/7.1.3@2002-REPLACE-STATEMENT/pb5608-replace-partial-word-2-non-cobol-character-refused; unit:TextManipulationStatementTests.TextWordCharacters_BelowCobol2014_AreCobolCharacters",
+ "notes": "§2002:7.1.3.2 SR6: \"Partial-word-2 shall consist of zero or one text-word\", with §2002:7.1.1.4 item 3: a text-word is \"any other sequence of contiguous COBOL characters bounded by separators\". Below COBOL-2014 (EditionInfo.TextWordsAreCobolCharacters: COBOL-85 and 2002; from 2014 a text-word is a sequence from the compile-time coded character set, §2014:7.2.1.4 item 3) a character-string text-word of an operand holding a character outside the edition's COBOL character repertoire (CobolCharacterRepertoire.IsOutsideRepertoire: beyond ASCII, and at 2002 not an extended letter of Annex B) is COBOL2572. Probes: REPLACE LEADING ==XX== BY ==Y¤Z== at --std 2002 is COBOL2572 (accepted at 2014 and 2023), ==Yé== at 2002 is accepted (an extended letter). kb/Work PB5608."
+}

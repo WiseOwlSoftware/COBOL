@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-8",
+ "rule-digest": "27214678e009",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-194",
+  "sources": {
+   "reader": "bdd3863e8ec76aad6f11f7e0e65a0c8963616a15ae67e48a809b4a2c0a6f76df",
+   "refuter": "10340cc44f038713176d94e3e5c8e9ab7219d8557dae7045825a145a7d1ded96"
+  },
+  "imported": {
+   "reader": "4920161e9b88399aaf34cc338448a5433d75d00ba87145e6fe256600288ec8da",
+   "refuter": "31ea13f86657996d8cab945fd8e313aeffd5945e9246507fcb3c95e06c4c772e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.21.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "An out-of-line PERFORM procedure-name-1 THRU procedure-name-2 starts at procedure-name-1 and returns when execution completes procedure-name-2, whatever path reaches it: GO TO and PERFORM statements may occur inside the range (including GO TO out of the span and back, an inverted range whose procedure-name-2 precedes procedure-name-1, sections and paragraphs mixed, pn1 = pn2), and an EXIT paragraph may serve as the common return point of several paths.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs#Through; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures",
+    "switches": "construct SegmentNumbersRemoved2002: at 85 the PERFORM range's reached segments are checked against §1985:XVI.3.3.2; absent from 2002 (a separate rule, not GR8's execution)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition.Edition|Year|DialectBehavior|ConstructRegistry|CobolVersion in ControlFlowBinder.cs, DispatchEmitter.cs and PcRange.cs: the only hit on the PERFORM path is Segmentation.CheckProcedures; the range composition and the dispatcher's return-at-end-of-procedure-name-2 are edition-invariant.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the four witnesses cover the inverted range, an EXIT common endpoint, range composition and a SORT procedure range; a GO TO leaving the span and re-entering at procedure-name-2, a section-THRU-section range and PERFORM THRU with TIMES over a nested PERFORM sharing the endpoint are covered only by pf1.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/pf1.cob",
+    "printed": "R1 a / R2 axbz / R3 182 / R4 c / R5 stuv / R6 ED / R7 effeff",
+    "expected": "R1 GO TO the EXIT endpoint returns at once; R2 nested PERFORM X1 returns into the range, GO TO A9 outside the span then GO TO A3 returns after A3; R3 GO TO B8 past procedure-name-2 then GO TO B2 returns after B2; R4 pn1 = pn2; R5 section THRU section runs all four paragraphs; R6 inverted D2 THRU D1 via GO TO returns after D1; R7 TIMES 2 with a nested PERFORM E3 sharing the endpoint gives eff twice"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/pb3511_implicit_goback_perform_thru_inverted.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's derived output at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/l1_exit_format1_common_endpoint.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's derived output at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/pb440_perform_range_composition.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's derived output at 85"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/pb440_sort_procedure_range.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's derived output at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.4 GR8",
+    "check": "OK  §1985:VI.6.21.4 GR8  (6.21.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VI.6.21.4 GR7c",
+    "check": "OK  §1985:VI.6.21.4 GR7c  (6.21.4 General Rules)  the text is in GR7c"
+   }
+  ],
+  "notes": "BindPerform composes the range as procedure-name-1's start through procedure-name-2's end (PcRange.Through) and the dispatcher returns when the exit procedure completes wherever it lies, so the inverted and GO TO-threaded ranges behave as GR8 says. Classes a, d and f do not apply to a control-flow rule; class b was read here as the degenerate and multi-path forms the rule permits.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.21.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/rp1.cob at --std 85 (runs/rp1-002; run rp1-001 was a probe bug of mine, a GO TO loop outside any range, stopped by EC-BOUND-REF-MOD): paragraph THRU section S2B THRU S3 = ijk; class c, the 1985-only ALTER: ALTER A-SW TO PROCEED TO A3 inside PERFORM A1 THRU A3 = ac; PERFORM B1 THRU B2 3 TIMES with GO TO past the EXIT endpoint and back = dedede; section THRU section with GO TO skipping a paragraph = hjk; GO TO backward to a paragraph before procedure-name-1 then falling through into the range = fxfg. Every path returns on the first completion of procedure-name-2. cite.py: OK §1985:VI.6.21.4 GR8 the text is in GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

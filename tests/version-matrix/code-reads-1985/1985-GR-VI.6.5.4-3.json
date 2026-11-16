@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-3",
+ "rule-digest": "3ad08f9e9e7a",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-216",
+  "sources": {
+   "reader": "3b7646bf42922a2658edef0fcc3fd548476033cb695823d8bb6c07271ee84524",
+   "refuter": "137fede05aeb2c66926551a20dcf1510fe229ca8aa9a65013918339e4f77b5f8"
+  },
+  "imported": {
+   "reader": "13bc620b419212fcef0686042cc59772503b62a3463fe260a8b4265a5edbdba8",
+   "refuter": "f6a3c6c8ee57aa9f4e2ec368367763e76255f0912cd0d89db72a7f525255567a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.5.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when the device's transfer (one 80-character record) is the same size as the receiving item, the whole record must be stored in the receiver, for every receiver shape whose size is 80 character positions (elementary, group, reference-modified slice, ODO group at 80 occurrences).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#CharacterPositions; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Device",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|DialectLevel|CobolVersion|DialectBehavior in AcceptDisplayEmitter.cs, AcceptSource.cs and ReceivingStore.cs: no hit; the conversion form is the --numeric-display compile option, not the edition (DOC-A.1-1: 'at every --std').",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_z06 covers an elementary PIC X(80); not exercised: an 80-position group, an 80-position reference-modified slice, an ODO group at 80 occurrences",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_size.cob",
+    "printed": "1[ABCDEFGHIJKLMNOPQRSTUVWXYZ...AB]; 2[abcdefghijklmnopqrstuvwxyzabcdefghijklmn|opqrstuvwxyzabcdefghijklmnopqrstuvwxyzab]",
+    "expected": "an 80-character record stored whole in PIC X(80) and across a group of two X(40), no preset Q surviving"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_size.cob",
+    "printed": "3[QQQQQQQQQQ + the reversed record + QQQQQQQQQQ]; 4[ABCDEFGHIJKLMNOPQRSTUVWXYZ...AB]",
+    "expected": "W100(11:80) receives the record in exactly positions 11-90; an ODO group at ODC=80 receives it whole"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.5.4 GR3",
+    "check": "OK  §1985:VI.6.5.4 GR3  (6.5.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "Device(width) returns exactly width characters; at width 80 it consumes one record and returns it whole, and ReceivingStore.CharacterPositions gives the receiver's size (slice length, group positions, ODO current size).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.5.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "Probe acc_80 (runs/acc_80-001, input acc_80.in redirected), receivers of exactly 80 character positions the reader did not try: a level-66 RENAMES R2 THRU R3 (80 positions inside a 90-position record) takes the record whole in positions 6-85 with the Q's around it untouched; a PIC X(80) JUSTIFIED RIGHT takes it whole; an alphanumeric-edited PIC X(40)BX(39) takes it whole and unedited (DOC-A.1-1). acc_grp: an 80-byte group ending in a COMP item stores all 80 characters. acc_lines: W PIC X(80) takes an 80-character line whole. cite.py: 'OK  §1985:VI.6.5.4 GR3  (6.5.4 General Rules)  the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
