@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.13.3-2",
+ "rule-digest": "19f445c62ea3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageCounter; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#LinageCounter; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit",
+ "test-ref": "conformance:cases/8.4.3.14-LINAGE-COUNTER/pb578_advancing_page_eop_overflow",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.4.3.14.4-2, witnessed at 2002 by the cases test-ref names. The read: Pointer rule: only the clause number differs (13.16.32 vs 13.18.34). I compared the referenced LINAGE GR7 a)-d) of both editions word for word: identical, including 'qualify LINAGE-COUNTER by file-name when necessary', which itself defers to qualification (handled at the SR3 row). No CD or debugging reach (file section only). Cited: §2002:8.4.2.13.3 GR2; §2002:13.16.32.3 GR7."
+}

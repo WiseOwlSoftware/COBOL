@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-29",
+ "rule-digest": "090368b9fa74",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrame; src/WiseOwl.Cobol.Runtime/IO/Store/PagedFile.cs#FormatPages; src/WiseOwl.Cobol.Runtime/IO/Store/HandlePageMedium.cs#Write; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#IsFileSizeLimit; src/WiseOwl.Cobol.Runtime/IO/Store/PagedFile.cs#TryWrite; src/WiseOwl.Cobol.Runtime/IO/Store/PagedFile.cs#Reserve; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordWriteFailed",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb1192_relative_write_boundary_85",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.51.4-33, witnessed at 2002 by the cases test-ref names. The read: 'beyond' versus 'outside' only. In 2023 GR29 b) takes the random out-of-range key away to '34'; in 2002 it stays here as '24', and the row's own pb1192 shows 24 at 2002 (the runtime switch RelativeWriteKeyOutOfRangeIsPermanentError is off below 2014). Cited: §2002:14.8.47.3 GR29."
+}

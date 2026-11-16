@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.2.2-1",
+ "rule-digest": "dbf58043f8e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSimpleBooleanCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BoolExprAllLengthOne; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#StaticBoolRefLength; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#StaticBoolCallWidth",
+ "test-ref": "conformance:cases/8.8.4.3-Simple-boolean-condition/l1-bool-condition-length-8",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.8.4.3.3-1, witnessed at 2002 by the cases test-ref names. The read: Words identical; format identical ([NOT] boolean-expression-1). 2002 8.8.2 boolean expressions are 2023's minus the 2023 shift operators (refused at 2002 with COBOL0900), so the rule's 2002 scope is a subset. Cited: §2002:8.8.4.1.2.2 SR1."
+}

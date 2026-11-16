@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.9.1",
+ "rule-digest": "4733f89bce97",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#deleteFileStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDeleteFile",
+ "test-ref": "conformance:cases/14.8.9@2002-DELETE-STATEMENT/g2del01_record_format_phrases",
+ "notes": "§2002:14.8.9.1: DELETE with and without RECORD, each RETRY form, INVALID/NOT INVALID KEY alone, both in either order, neither, END-DELETE or not, on indexed dynamic and relative sequential/random files; statuses per §2002:14.8.9.3 GR2-GR5 and 9.1.12 (00/23); g2del01 matched at --std 2002."
+}

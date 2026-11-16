@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.3.3-9",
+ "rule-digest": "dd64d9a5e61c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ForbiddenIn; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#HoldsComment",
+ "test-ref": "conformance:cases/7.1.3@2002-REPLACE-STATEMENT/g2-replace-result-literal-and-debugging-line; conformance:cases/7.2.4-REPLACE/pb1356-replace-produces-replace; conformance:cases/7.2.4-REPLACE/pb1356-replace-produces-comment",
+ "notes": "§2002:7.1.3.3 GR9 forbids a produced COPY, REPLACE or comment. A literal holding those characters is one text-word (§2002:7.1.1.4), and a pseudo-text-2 D line is no comment at REPLACE time (§2002:6.2.7), so the new case is accepted and prints its literal, R1 and Z at --std 2002; the pb1356 cases refuse at 2002 (COBOL2574)."
+}

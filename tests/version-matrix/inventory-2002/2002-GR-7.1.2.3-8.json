@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-8",
+ "rule-digest": "b9bfb9e8d655",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-replacing-text-word-literal; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-replacing-word-operands",
+ "notes": "§2002:7.1.2.3 GR8: matched text-1, word-1 and literal-3 are replaced by text-2, word-2, literal-4. The --std 2002 runs print [cba|ywx2|R1l1|h] and N=6/Y=[yw][x2], as derived; both cases name 2002-GR-7.1.2.3-8."
+}

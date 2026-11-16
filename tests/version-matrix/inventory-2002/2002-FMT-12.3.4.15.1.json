@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.3.4.15.1",
+ "rule-digest": "4e3538e0d02b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sharingClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sharingMode; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSharingClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapSharing",
+ "test-ref": "conformance:cases/12.4.5.15-SHARING/pb321_table19_open_arbitration",
+ "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.5.15.2, witnessed at 2002 by the cases test-ref names. The read: Identical format, no operand. Cited: §2002:12.3.4.15.1; §2002:12.3.4.15."
+}

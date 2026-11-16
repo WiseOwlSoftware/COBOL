@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-18",
+ "rule-digest": "83c304109d4f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Compiler/Binding/Model/StorageSharing.cs#StorageSharing; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringSkipRun; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb1907_unstring_overlap_sender; conformance:cases/14.9.48-UNSTRING/pb1907_unstring_overlap_delimiter; conformance:cases/14.9.48-UNSTRING/pb1907_unstring_overlap_tallying; conformance:cases/14.9.48-UNSTRING/pb1907_unstring_overlap_pointer; conformance:cases/14.9.48-UNSTRING/pb1907_unstring_overlap_linkage",
+ "notes": "Own verdict from the read lineage-reads-2002/u-29.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.48.4-18, witnessed at 2002 by the cases test-ref names. The read: Identical apart from the cross-reference number (14.5.9 vs 14.6.10, both 'Overlapping operands', both undefined). The documented D-UNS choice holds at 2002. Cited: §2002:14.8.44.3 GR18."
+}

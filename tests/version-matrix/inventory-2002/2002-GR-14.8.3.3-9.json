@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.3.3-9",
+ "rule-digest": "152fdc54ef61",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitAllocate; src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Allocate",
+ "test-ref": "conformance:cases/14.8.3@2002-ALLOCATE-STATEMENT/g2alloc01_data_name_null_init",
+ "notes": "§2002:14.8.3.3 GR9: ALLOCATE data-name-1 without INITIALIZED initializes class object and class pointer items in the new storage to null; POINTER, PROGRAM-POINTER, OBJECT REFERENCE and a POINTER table element test NULL after each of two ALLOCATEs (a SET between them as control). --std 2002 run matched all 8 derived lines."
+}

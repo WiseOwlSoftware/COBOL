@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.22.3-2",
+ "rule-digest": "9677b616c32a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke; src/WiseOwl.Cobol.Runtime/Control/CobolObject.cs#NormalizeMethodName",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv42-cd-operand-reach",
+ "notes": "§2002:14.8.22.3 GR2: the content of the CD item MN (\"SET42\") as identifier-2 names the method invoked (BR=0042), and the factory and instance references resolve. --std 2002 on the pinned tree matched g2inv42. FO, CO and CP each have their own CD so that no record overlaps another (§2002:A.1.2.2 SR9)."
+}

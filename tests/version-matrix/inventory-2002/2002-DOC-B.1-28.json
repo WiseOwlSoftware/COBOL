@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-DOC-B.1-28",
+ "rule-digest": "d101d51352e5",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#IsDirective",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/w59h-imp-directive-undefined",
+ "notes": "Own verdict from the read lineage-reads-2002/u-38.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer DOC-A.1-30, witnessed at 2002 by the cases test-ref names. The read: Pointer is DOCUMENTED-NON-SUPPORT (condition absent). 2002 text conditions the item the same way and the B.1 preamble licenses it; the compiler defines no IMP directive at 2002 and diagnoses >>IMP. Cited: §2002:B.1; §2002:7.2.2 SR9; §2002:7.2.3 GR3."
+}

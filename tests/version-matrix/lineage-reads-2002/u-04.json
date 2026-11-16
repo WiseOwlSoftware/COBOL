@@ -1,0 +1,1494 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-04 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-04",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-8.3.1.2.1.2-5",
+   "2002-GR-8.3.1.2.1.3-3",
+   "2002-GR-8.3.1.2.1.3-4",
+   "2002-SR-8.3.1.2.3.2-1",
+   "2002-SR-8.3.1.2.3.2-3",
+   "2002-GR-8.3.1.2.3.3-3",
+   "2002-SR-8.3.1.2.4.2-1",
+   "2002-SR-8.3.1.2.4.2-2",
+   "2002-SR-8.3.1.2.4.2-5",
+   "2002-GR-8.3.1.2.4.3-3",
+   "2002-GR-8.3.1.2.4.3-4",
+   "2002-SR-8.3.1.2.5.2-2",
+   "2002-GR-8.3.1.2.5.3-2",
+   "2002-GR-8.3.1.2.5.3-7",
+   "2002-SR-8.4.1.1.2-1",
+   "2002-SR-8.4.1.1.2-4",
+   "2002-SR-8.4.1.1.2-6",
+   "2002-SR-8.4.1.2.2-1",
+   "2002-SR-8.4.1.2.2-3",
+   "2002-SR-8.4.1.2.2-5",
+   "2002-SR-8.4.1.2.2-6",
+   "2002-GR-8.4.1.2.3-2",
+   "2002-SR-8.4.2.1.2-10",
+   "2002-SR-8.4.2.1.2-11",
+   "2002-SR-8.4.2.1.2-12"
+  ],
+  "pointers": {
+   "2002-SR-8.3.1.2.1.2-5": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-8.3.3.2.3-5",
+    "similarity": 0.67
+   },
+   "2002-GR-8.3.1.2.1.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.3.3.2.4-3",
+    "similarity": 0.924
+   },
+   "2002-GR-8.3.1.2.1.3-4": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-8.3.3.2.4-5",
+    "similarity": 0.769
+   },
+   "2002-SR-8.3.1.2.3.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.3.3.4.3-1",
+    "similarity": 0.91
+   },
+   "2002-SR-8.3.1.2.3.2-3": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-8.3.3.4.3-3",
+    "similarity": 0.632
+   },
+   "2002-GR-8.3.1.2.3.3-3": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-8.3.3.4.4-3",
+    "similarity": 0.843
+   },
+   "2002-SR-8.3.1.2.4.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.3.3.5.3-1",
+    "similarity": 0.911
+   },
+   "2002-SR-8.3.1.2.4.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.3.3.5.3-2",
+    "similarity": 0.999
+   },
+   "2002-SR-8.3.1.2.4.2-5": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-8.3.3.5.3-5",
+    "similarity": 0.861
+   },
+   "2002-GR-8.3.1.2.4.3-3": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-8.3.3.5.4-3",
+    "similarity": 0.89
+   },
+   "2002-GR-8.3.1.2.4.3-4": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-8.3.3.5.4-5",
+    "similarity": 0.773
+   },
+   "2002-SR-8.3.1.2.5.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-8.3.3.6.3-2",
+    "similarity": 0.889
+   },
+   "2002-GR-8.3.1.2.5.3-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-8.3.3.6.4-2",
+    "similarity": 0.792
+   },
+   "2002-GR-8.3.1.2.5.3-7": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-8.3.3.6.4-8",
+    "similarity": 1.0
+   },
+   "2002-SR-8.4.1.1.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.4.2.2.3-1",
+    "similarity": 0.997
+   },
+   "2002-SR-8.4.1.1.2-4": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-8.4.2.2.3-4",
+    "similarity": 0.7
+   },
+   "2002-SR-8.4.1.1.2-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-8.4.2.2.3-8",
+    "similarity": 0.793
+   },
+   "2002-SR-8.4.1.2.2-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-8.4.2.3.3-1",
+    "similarity": 1.0
+   },
+   "2002-SR-8.4.1.2.2-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-8.4.2.3.3-3",
+    "similarity": 1.0
+   },
+   "2002-SR-8.4.1.2.2-5": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-8.4.2.3.3-5",
+    "similarity": 0.617
+   },
+   "2002-SR-8.4.1.2.2-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-8.4.2.3.3-6",
+    "similarity": 0.714
+   },
+   "2002-GR-8.4.1.2.3-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-8.4.2.3.4-2",
+    "similarity": 0.859
+   },
+   "2002-SR-8.4.2.1.2-10": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-8.4.3.1.3-10",
+    "similarity": 1.0
+   },
+   "2002-SR-8.4.2.1.2-11": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-8.4.3.1.3-2",
+    "similarity": 0.615
+   },
+   "2002-SR-8.4.2.1.2-12": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-8.4.3.1.3-2",
+    "similarity": 0.519
+   }
+  }
+ },
+ "read": {
+  "slice": "u-04",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-5",
+    "to": [
+     "SR-8.3.3.2.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.1 Alphanumeric literals",
+    "clause-2023": "8.3.3.2 Alphanumeric literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 (X\"...\") alphanumeric literals in every context: each hex-character-sequence-1 composed of hexadecimal digits 0-9, A-F (8.3.1.2 defines the digits, same words in 8.3.3.1 of 2023)"
+    ],
+    "evidence-2002": [
+     "refusal of a non-hex digit: covered by w73a-hex-literal-non-hex-digit (refuse-at includes 2002; refused COBOL2630 at --std 2002, refuse.sh r_ref_2002.txt) and probe p01_hex_nonhex.cob (COBOL2630)",
+     "admission of hex digits: covered by probe p01c_hex_ok.cob at 2002 (ABC)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR5",
+      "quote": "Hex-character-sequence-1 shall be composed of hexadecimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR5",
+      "quote": "Hex-character-sequence-1 shall be composed of hexadecimal digits",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence; the 2023 rule adds only NOTE 2 (zero-length hexadecimal literals), a 2014 form 2002 forbids by its own SR1 (a separate row). The hexadecimal-digit definition is word-identical in both editions. No CD, debugging or removed-form reach (a lexical rule). The pointer's refusal witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p01_hex_nonhex.cob",
+    "widening": "2023 NOTE 2 admits zero-length X\"\" (2014 form; refused at 2002 by SR1)"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.1.3-3",
+    "to": [
+     "GR-8.3.3.2.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.1 Alphanumeric literals",
+    "clause-2023": "8.3.3.2 Alphanumeric literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "value of every format 1 alphanumeric literal (length >= 1 in 2002): compile-time string of character-1 in the compile-time DISPLAY set, converted to runtime characters (8.1.1)",
+     "implementor-specified rules when UTF-8/mixed content is provided"
+    ],
+    "evidence-2002": [
+     "value of a nonzero-length literal (doubled quotes, non-ASCII characters): not shown by the pointer row, whose only witness pb425_zero_length_literal_move is accept [2014] and is refused at --std 2002 (COBOL0900 zero-length literal); covered by probe p02_alnum_value.cob at 2002 (AB\"C / D'E\"F / éü) and by l1c01_alnum_literal_characters (accept [85, 2002], runs clean at 2002, case.sh c1.txt MATCH; it is SR-8.3.3.2.3-2/-4's witness, not this row's)",
+     "UTF-8/mixed option: implementor documentation (not probed)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.3 GR3",
+      "quote": "The value of the literal at compile time is the string of occurrences of character-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.4 GR3",
+      "quote": "If character-1 is not specified, the literal is a zero-length literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 alphanumeric character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 GR3 wraps the same a)-c) in a zero-length branch (8.1.2 is the renumbered 8.1.1, Computer's coded character set). The 2002 rule governs only literals of one or more characters; the pointer row's evidence is the zero-length leg alone, which is not a 2002 program. The nonzero-length value is right at 2002 by probe.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p02_alnum_value.cob",
+    "widening": "2023 adds the zero-length literal (no 2002 counterpart)",
+    "class": "other",
+    "needs": "its own verdict: at --std 2002 the compiler gives format 1 literals their character value (probe p02_alnum_value.cob; l1c01_alnum_literal_characters runs clean at 2002) - or add l1c01 to the row's witnesses",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p02_alnum_value.cob)"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.1.3-4",
+    "to": [
+     "GR-8.3.3.2.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.1 Alphanumeric literals",
+    "clause-2023": "8.3.3.2 Alphanumeric literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "runtime value of every X\"...\" literal: one alphanumeric character per hex-character-sequence-1, of that bit configuration",
+     "implementor-defined result for a sequence with no character, and the mapping when characters are not a multiple of four bits"
+    ],
+    "evidence-2002": [
+     "bit-configuration value: covered by pb2919_hex_literal_ff_is_the_storage_byte and l1c12_hex_alphanumeric_every_group (accept [2002], run clean at 2002, case.sh c1.txt MATCH) and probe p01c_hex_ok.cob (X\"414243\" = ABC)",
+     "implementor-defined legs: covered by l1c12_hex_alphanumeric_every_group at 2002 (every group, ORD values)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.3 GR4",
+      "quote": "each of which has the bit configuration specified by one occurrence of hex-character-sequence-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.4 GR4",
+      "quote": "each of which has the bit configuration specified by one occurrence of hex-character-sequence-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.4 GR5",
+      "quote": "The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 split the 2002 rule: its first sentence (the value) is GR-8.3.3.2.4-4 (with an added zero-length branch), its implementor sentences GR-8.3.3.2.4-5 (the pointer). The pointer alone does not carry the value leg. Both targets are CONFORMS and the witnesses run clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p01c_hex_ok.cob",
+    "widening": "2023 GR4 adds the zero-length X\"\" branch",
+    "class": "split-rule",
+    "needs": "KEPT to both targets (GR-8.3.3.2.4-5 and GR-8.3.3.2.4-4); witnesses pb2919 and l1c12_hex_alphanumeric_every_group run clean at 2002",
+    "compiler-at-2002": "correct (case.sh c1.txt; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p01c_hex_ok.cob)",
+    "second-targets": [
+     "GR-8.3.3.2.4-4"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.3.2-1",
+    "to": [
+     "SR-8.3.3.4.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.3 Boolean literals",
+    "clause-2023": "8.3.3.4 Boolean literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every boolean literal (B\"\" and BX\"\"): length greater than zero",
+     "every boolean literal: at most 160 boolean positions"
+    ],
+    "evidence-2002": [
+     "upper bound 160 at 2002: covered by the row's LiteralScreenTests.LiteralLength_BoundIsTheEditions (InlineData 2002 boolean 160 ok / 161 COBOL0814, boolean-hex 160 / 164) and probes p04b (161 refused COBOL0814), p04c (160 accepted)",
+     "lower bound (zero length refused): not shown by the row (the 2023 rule has no lower bound); covered by probes p04a_bool_zero.cob (B\"\") and p04d_bx_zero.cob (BX\"\") refused COBOL0900 at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 boolean character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.4.3 SR1",
+      "quote": "shall be less than or equal to 8,191 boolean character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 rule requires a nonzero length and a 160 bound; the 2023 rule states only 8,191. The 160 leg is witnessed at 2002 by the row's own theory; the greater-than-zero leg is a 2002 requirement the row does not witness. Compiler refuses both zero-length forms at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p04a_bool_zero.cob",
+    "widening": "2023 raises the bound to 8,191 and admits zero length",
+    "class": "own-text",
+    "needs": "a 2002 witness for the zero-length refusal (probes p04a_bool_zero.cob, p04d_bx_zero.cob: COBOL0900 at 2002)",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p04a_bool_zero.cob, p04b_bool_161.cob, p04c_bool_160.cob, p04d_bx_zero.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.3.2-3",
+    "to": [
+     "SR-8.3.3.4.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.3 Boolean literals",
+    "clause-2023": "8.3.3.4 Boolean literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 (BX\"...\") boolean literals: each hexadecimal-digit-1 a hexadecimal digit"
+    ],
+    "evidence-2002": [
+     "refusal of a non-hex digit: covered by w73a-hex-boolean-literal-non-hex-digit (refuse-at includes 2002; COBOL2630 at --std 2002, r_ref_2002.txt) and probe p05_bx_nonhex.cob",
+     "admission: probe p06_bool_value.cob (BX\"A5\" = 10100101)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.2 SR3",
+      "quote": "Hexadecimal-digit-1 shall be a hexadecimal digit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.4.3 SR3",
+      "quote": "Hexadecimal-digit-1 shall be a hexadecimal digit",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence; 2023 adds only a NOTE on zero length (a 2014 form). Same digit definition. Witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p05_bx_nonhex.cob",
+    "widening": "2023 NOTE admits zero-length BX\"\""
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.3.3-3",
+    "to": [
+     "GR-8.3.3.4.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.3 Boolean literals",
+    "clause-2023": "8.3.3.4 Boolean literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "value of every format 1 boolean literal (length >= 1 in 2002): the sequence of its boolean characters"
+    ],
+    "evidence-2002": [
+     "covered by the row's NationalBooleanLiteralTests.Display_BooleanLiteral_DecodesPrefixAndQuotes, which compiles and runs at 2002 (new WiseOwlCobolCompiler(2002)); probe p06_bool_value.cob (B\"1010\" -> 1010, comparison EQ)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.3 GR3",
+      "quote": "The value of a boolean literal is the value of the sequence of occurrences of boolean-character-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.4.4 GR3",
+      "quote": "If Boolean-character-1 is specified, the value of a boolean literal is the value of the sequence of occurrences of boolean-character-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 conditions the same sentence on boolean-character-1 being specified (zero length is GR4, a 2014 form); every 2002 boolean literal specifies it. The row's witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p06_bool_value.cob",
+    "widening": "2023 adds the zero-length branch (its GR4)"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.4.2-1",
+    "to": [
+     "SR-8.3.3.5.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.4 National literals",
+    "clause-2023": "8.3.3.5 National literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every national literal (N\"\" and NX\"\"): length greater than zero",
+     "every national literal: at most 160 national positions"
+    ],
+    "evidence-2002": [
+     "upper bound 160 at 2002: covered by LiteralScreenTests.LiteralLength_BoundIsTheEditions (InlineData 2002 national 160 / 161 COBOL0814) and probes p07b (161 refused), p07c (160 accepted)",
+     "lower bound: not shown by the row; covered by probes p07a_nat_zero.cob (N\"\") and p07d_nx_zero.cob (NX\"\") refused COBOL0900 at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 national character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.3 SR1",
+      "quote": "shall be less than or equal to 8,191 national character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "As the boolean twin: the 2002 rule's greater-than-zero requirement has no counterpart in the 2023 rule and no witness in the row; compiler refuses zero-length national literals at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p07a_nat_zero.cob",
+    "widening": "2023 raises the bound to 8,191 and admits zero length",
+    "class": "own-text",
+    "needs": "a 2002 witness for the zero-length refusal (probes p07a_nat_zero.cob, p07d_nx_zero.cob: COBOL0900 at 2002)",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p07a_nat_zero.cob, p07b_nat_161.cob, p07c_nat_160.cob, p07d_nx_zero.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.4.2-2",
+    "to": [
+     "SR-8.3.3.5.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.4 National literals",
+    "clause-2023": "8.3.3.5 National literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "character-1 of every national literal: any national source character, or an alphanumeric source character with a national correspondent"
+    ],
+    "evidence-2002": [
+     "covered by NationalBooleanLiteralTests.NationalLiteral_NonLatin1Char_Accepted_DisplayOfCarriesIt, which runs at 2002 (WiseOwlCobolCompiler(2002)); probe p08_nat_char.cob (N\"é漢ü\" accepted, length 3)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR2",
+      "quote": "any character in the national coded character set that the implementor has designated for source code representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.3 SR2",
+      "quote": "any character in the national coded character set that the implementor has designated for source code representation",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical (only the NOTE is renumbered NOTE 1); general format 1 identical apart from 2023's optional character-1. Witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p08_nat_char.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.4.2-5",
+    "to": [
+     "SR-8.3.3.5.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.4 National literals",
+    "clause-2023": "8.3.3.5 National literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every NX\"...\" literal: each hex-character-sequence-1 has the implementor's digit count per national character (4, docs/CONFORMANCE A.1)"
+    ],
+    "evidence-2002": [
+     "well-formed grouping: covered by pb1393_hex_literal_positions (accept [2002], runs clean at 2002, c1.txt MATCH)",
+     "refusal of a misgrouped NX literal: not shown at 2002 by the row (LiteralScreenTests.HexGrouping_IsScreenedAtEveryPosition and DirectiveLiteralScreenTests.HexGrouping_IsScreenedAtEveryDirectivePosition compile at 2023); covered by probe p09_nx_group.cob (NX\"004\" refused COBOL1635 at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR5",
+      "quote": "the number of hexadecimal digits that map to a national character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.3 SR5",
+      "quote": "the number of hexadecimal digits that map to a national character",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement (2023 adds a zero-length NOTE). The rule is a 'shall' whose violation the row witnesses only at 2023; at 2002 only the well-formed leg runs. Probe shows the refusal at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p09_nx_group.cob",
+    "widening": "2023 NOTE 2 admits zero-length NX\"\"",
+    "class": "other",
+    "needs": "a 2002 witness for the grouping refusal (probe p09_nx_group.cob, COBOL1635 at 2002), or the row's refusal theory run at 2002",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p09_nx_group.cob)"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.4.3-3",
+    "to": [
+     "GR-8.3.3.5.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.4 National literals",
+    "clause-2023": "8.3.3.5 National literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "value of every format 1 national literal (length >= 1 in 2002): character-1 in the compile-time NATIONAL set, encoding-switch controls excluded, converted to runtime national characters"
+    ],
+    "evidence-2002": [
+     "covered by NationalBooleanLiteralTests.NationalLiteral_NonLatin1Char_Accepted_DisplayOfCarriesIt at 2002 (A-Omega-B carried); probe p10_nat_value.cob (N\"AB\"\"C\" -> AB\"C, VALUE N'X''Y')"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR3",
+      "quote": "Control functions, if any, that switch character set encoding are not included in the value of the literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR3",
+      "quote": "If character-1 is not specified, the literal is a zero-length literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 wraps the same a)-b) in a zero-length branch; 8.1.2 is the renumbered 8.1.1. Unlike the alphanumeric twin, this row's witness is a nonzero-length literal and runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p10_nat_value.cob",
+    "widening": "2023 adds the zero-length national literal"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.4.3-4",
+    "to": [
+     "GR-8.3.3.5.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.4 National literals",
+    "clause-2023": "8.3.3.5 National literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "runtime value of every NX\"...\" literal: one national character per hex-character-sequence-1, of that bit configuration",
+     "implementor-defined result for a sequence with no character and the non-multiple-of-four mapping"
+    ],
+    "evidence-2002": [
+     "bit-configuration value: covered by l1c12_hex_national_no_character (accept [2002], runs clean at 2002) and probe p11_nx_value.cob (NX\"00410042\" = AB, NX\"6F22\" = the CJK character)",
+     "implementor legs: covered by l1c12_hex_national_no_character at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR4",
+      "quote": "The value of the literal at runtime shall be a string of national characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR4",
+      "quote": "If hex-character-sequence-1 is not specified the literal is a zero-length literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR5",
+      "quote": "The implementor also defines the mapping of each hex-character-sequence-1 to a character",
+      "check": "OK"
+     }
+    ],
+    "reason": "Split in 2023 like the alphanumeric twin: the value sentence is GR-8.3.3.5.4-4, the implementor sentences the pointer GR-8.3.3.5.4-5.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p11_nx_value.cob",
+    "widening": "2023 GR4 adds the zero-length NX\"\" branch",
+    "class": "split-rule",
+    "needs": "KEPT to both targets (GR-8.3.3.5.4-5 and GR-8.3.3.5.4-4); l1c12_hex_national_no_character runs clean at 2002",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p11_nx_value.cob)",
+    "second-targets": [
+     "GR-8.3.3.5.4-4"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.5.2-2",
+    "to": [
+     "SR-8.3.3.6.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.5 Figurative constant values",
+    "clause-2023": "8.3.3.6 Figurative constant values",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "literal-1 of ALL literal-1: alphanumeric, boolean or national, possibly a concatenation (admitted)",
+     "literal-1 numeric: refused",
+     "literal-1 a figurative constant: refused"
+    ],
+    "evidence-2002": [
+     "admission of alphanumeric, national, boolean and concatenation: covered by pb71_all_national_boolean_figurative (accept [2023]; runs clean at --std 2002, c2.txt MATCH) and probe p12c_all_ok.cob",
+     "mixed-class concatenation refused: pb71-all-literal-mixed-class-concatenation (refuse-at includes 2002)",
+     "numeric literal-1 refused: not shown by the row; probe p12a_all_numeric.cob (ALL 5 refused COBOL5506 at 2002)",
+     "figurative literal-1 refused: not shown by the row; probe p12b_all_fig.cob (ALL ALL \"A\" refused at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.2 SR2",
+      "quote": "The literal shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.3 SR2",
+      "quote": "The literal shall be neither a figurative constant nor a zero-length literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 6 identical. 2023 adds the zero-length prohibition (no 2002 counterpart: 2002 SR1 of each literal clause). The 2002 class and not-figurative requirements' refusal legs have no witness in the row; probes show them at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p12a_all_numeric.cob",
+    "widening": "2023 adds 'nor a zero-length literal'",
+    "class": "other",
+    "needs": "a 2002 witness for the refusal of a numeric or figurative literal-1 (probes p12a_all_numeric.cob, p12b_all_fig.cob); pb71_all_national_boolean_figurative runs clean at 2002 for the admission leg",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p12a_all_numeric.cob, p12b_all_fig.cob, p12c_all_ok.cob)"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-2",
+    "to": [
+     "GR-8.3.3.6.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.5 Figurative constant values",
+    "clause-2023": "8.3.3.6 Figurative constant values",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) a figurative constant in a concatenation expression: one character",
+     "b) in a VALUE clause or associated with a data item, literal or intermediate result: repeated then truncated to the item's size (at least 1), before JUSTIFIED",
+     "c) other than ALL literal-1 elsewhere (DISPLAY, STOP, STRING, UNSTRING): one character",
+     "d) otherwise the length of literal-1"
+    ],
+    "evidence-2002": [
+     "b): covered by pb110_symbolic_and_class_in, pb71_all_national_boolean_figurative, pb1655_all_literal_refmod_receiver (all run clean at 2002, c2.txt) and probe p13_fig_len.cob (VALUE/MOVE ABABA, JUSTIFIED ABABA, truncation AB, comparison EQ)",
+     "a), c), d): in 2023 these are GR-8.3.3.6.4-3, not the pointer; covered at 2002 by probe p13_fig_len.cob (\"X\" & SPACE & \"Y\" -> X Y; DISPLAY SPACE / ALL SPACES -> one character; STRING QUOTE ZERO SPACE -> one each; DISPLAY ALL \"AB\" -> AB) and p12d_all_figconcat.cob (ALL \"A\" & QUOTE -> A\"A\"A\")"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR2",
+      "quote": "When a figurative constant is specified in a concatenation expression, the length of the string is one character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR2",
+      "quote": "in association with a fixed-length data item, literal, or intermediate result",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR3",
+      "quote": "the length of the string is not specified in the rules for the context in which the figurative constant is used",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 split the one ordered list of 2002 GR2 into GR2 (the repeat-and-truncate case, restricted to fixed-length items because 2023 adds dynamic-length ones) and GR3 (concatenation, one character, length of literal-1). The pointer carries only the b) leg; the a), c), d) legs sit in GR-8.3.3.6.4-3. Order of application matches what the compiler does at 2002 (concatenation inside VALUE gives one character).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p13_fig_len.cob",
+    "widening": "2023 restricts b) to fixed-length items because it adds dynamic-length items (no 2002 counterpart)",
+    "class": "split-rule",
+    "needs": "KEPT to both targets (GR-8.3.3.6.4-2 and GR-8.3.3.6.4-3); their witnesses pb110 and pb71_all_national_boolean_figurative run clean at 2002",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p13_fig_len.cob, p12d_all_figconcat.cob)",
+    "second-targets": [
+     "GR-8.3.3.6.4-3"
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-7",
+    "to": [
+     "GR-8.3.3.6.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5 Figurative constant values",
+    "clause-2023": "8.3.3.6 Figurative constant values",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "QUOTE/QUOTES represent the quotation mark in the runtime set",
+     "QUOTE/QUOTES shall not bound a literal"
+    ],
+    "evidence-2002": [
+     "value: covered by l1c10_figurative_space_quote_zero_chars (accept [85], runs clean at 2002, c2.txt MATCH) and probe p14_quote.cob (\"A\", ALL QUOTES -> \"\"\")",
+     "not a bound: covered by l1c10-quote-bounds-literal (refuse-at includes 2002, found at 2002) and probe p14b_quote_bound.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR7",
+      "quote": "The word QUOTE or QUOTES shall not be used in place of a quotation symbol to bound a literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR8",
+      "quote": "The word QUOTE or QUOTES shall not be used in place of a quotation symbol to bound a literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical text (renumbered only); format 5 identical. Both witnesses run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p14_quote.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-1",
+    "to": [
+     "SR-8.4.2.2.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.1 Qualification",
+    "clause-2023": "8.4.2.2 Qualification",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every explicitly referenced nonunique user-defined name in formats 1-8: data-names, condition-names, index-names, paragraph-names, screen-names, record-key-names, LINAGE-COUNTER, report counters",
+     "the file-cd-report-qualifier: a data-name, condition-name or index-name made unique by a cd-name (communication section)"
+    ],
+    "evidence-2002": [
+     "data-name / index-name ambiguity: covered by pb919-index-name-ambiguous and qualified-ambiguous-match (refuse-at includes 2002, found at 2002) and pb919_index_name_qualified (accept includes 2002)",
+     "qualification by cd-name: not shown by the row (2023 has no cd-name qualifier); covered by probes p15a_qual_cd_ok.cob (FLD IN CDA, FLD OF RECB OF CDB accepted and resolved) and p15b_qual_cd_ambig.cob (unqualified FLD refused COBOL1639) at --std 2002",
+     "screen-name qualification (format 5): not shown; the compiler declines the screen section at 2002 (COBOL1560, p20s_screen_from_table.cob) - its licence is the screen-section rows' question"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR1",
+      "quote": "uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR1",
+      "quote": "uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "file-cd-report-qualifier",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format's qualifier is file-cd-report-qualifier (file-name, cd-name or report-name); 2023's is file-report-qualifier. The identical sentence therefore also governs names under a CD made unique by the cd-name. Compiler handles it at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p15a_qual_cd_ok.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for cd-name qualification (probes p15a_qual_cd_ok.cob, p15b_qual_cd_ambig.cob)",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p15a_qual_cd_ok.cob, p15b_qual_cd_ambig.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-4",
+    "to": [
+     "SR-8.4.2.2.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.1 Qualification",
+    "clause-2023": "8.4.2.2 Qualification",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data-name-2 qualifiers of data-names, condition-names and index-names: superordinate levels, innermost first, including record entries under a CD",
+     "a condition-name: the hierarchy of its conditional variable (in 2002 also a condition-name in a CD record, which formats 2's file-cd-report-qualifier may end with a cd-name)"
+    ],
+    "evidence-2002": [
+     "ordinary records: covered by pb567_condition_name_qualification (accept [85], runs clean at 2002), pb567-condition-name-misqualified and qualified-ambiguous-match (refuse-at includes 2002), pb1454_sum_counter_group_qualifier (accept includes 2002)",
+     "CD record hierarchy: not shown by the row; covered by probes p15a_qual_cd_ok.cob (FLD-YES OF CDA, FLD-YES IN FLD IN RECB IN CDB resolve), p16_cond_cd_misorder.cob (FLD-YES OF CDA OF RECA refused COBOL1639) and p16b_cond_cd_ambig.cob at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR4",
+      "quote": "For a condition-name, the hierarchy is that of the associated conditional variable",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR4",
+      "quote": "the hierarchy of an item declared at level 88 includes the conditional variable with which it is associated",
+      "check": "OK"
+     }
+    ],
+    "reason": "Differing words: 2002 says the condition-name's hierarchy 'is that of' its conditional variable; 2023 spells out that it includes the variable and its superiors - same behaviour (the compiler accepts FLD-YES IN FLD at 2002, as 1985 did). The scope difference is the CD: 2002 hierarchies include record entries under a CD and the format 2 qualifier may end in a cd-name (2023 format 2 allows only file-name-1).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p16_cond_cd_misorder.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for qualification within CD records (probes p15a_qual_cd_ok.cob, p16_cond_cd_misorder.cob)",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p15a_qual_cd_ok.cob, p16_cond_cd_misorder.cob, p16b_cond_cd_ambig.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-6",
+    "to": [
+     "SR-8.4.2.2.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.1 Qualification",
+    "clause-2023": "8.4.2.2 Qualification",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "unqualified LINAGE-COUNTER refused when more than one FD with LINAGE is specified in the source element (a source unit excluding contained units)",
+     "unqualified LINAGE-COUNTER legal in a contained program with one LINAGE FD of its own even when a containing program's GLOBAL LINAGE FD is visible"
+    ],
+    "evidence-2002": [
+     "two LINAGE FDs in one source element: not shown at 2002 by the row (LinageConformanceTests.UnqualifiedCounter_TwoLinageFiles_IsRejected compiles at 85); covered by probe p17a_linage_two_unqual.cob (refused COBOL5997 at --std 2002)",
+     "nested program with a visible GLOBAL LINAGE file: not shown by the row; covered by probe p17b_linage_nested_global.cob: accepted at --std 2002, the unqualified counter is the local file's (INNER-UNQUAL=04, F1=02), and refused COBOL5997 at --std 2023 as 2023's 'may be referenced' requires"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR6",
+      "quote": "LINAGE-COUNTER shall be qualified if more than one file description entry containing a LINAGE clause has been specified in the source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR8",
+      "quote": "may be referenced within the source element in which the reference to LINAGE-COUNTER occurs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A source unit excluding any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.1.5",
+      "quote": "LINAGE-COUNTER is global if the GLOBAL clause is specified in the file description entry for the associated file",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 counts FDs specified in the source element (4.172: excluding contained units); 2023 counts FDs that may be referenced, which includes a containing program's GLOBAL file. A nested program with one own LINAGE FD and a visible global one needs no qualifier in 2002 but needs one in 2023. The compiler implements the 2002 text at --std 2002 and the 2023 text at --std 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p17b_linage_nested_global.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 the compiler refuses two local LINAGE FDs unqualified (p17a) and accepts the nested-global case, resolving to the local counter (p17b); both probes are candidate 2002 witnesses",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p17a_linage_two_unqual.cob, p17b_linage_nested_global.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-1",
+    "to": [
+     "SR-8.4.2.3.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.2 Subscripts",
+    "clause-2023": "8.4.2.3 Subscripts",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the base of a subscripted reference is a qualified-data-name or qualified-condition-name as 2002 8.4.1.1 defines it, including the cd-name qualifier"
+    ],
+    "evidence-2002": [
+     "ordinary qualified bases: covered by l1c32_subscript_qualified_names (accept [85], runs clean at 2002, c2.txt MATCH)",
+     "cd-name-qualified subscripted base: not shown by the row; covered by probe p15a_qual_cd_ok.cob (TAB IN CDA (2), TAB OF RECB OF CDB (3) store into the right CD record at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR1",
+      "quote": "Qualified-data-name-1 and qualified-condition-name-1 are defined in 8.4.1.1, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR1",
+      "quote": "Qualified-data-name-1 and qualified-condition-name-1 are defined in 8.4.2.2, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "file-cd-report-qualifier",
+      "check": "OK"
+     }
+    ],
+    "reason": "A cross-reference whose target changed: 2002 8.4.1.1 admits cd-name as a qualifier, 2023 8.4.2.2 does not.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p15a_qual_cd_ok.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a cd-name-qualified subscripted reference (probe p15a_qual_cd_ok.cob)",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p15a_qual_cd_ok.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-3",
+    "to": [
+     "SR-8.4.2.3.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.2 Subscripts",
+    "clause-2023": "8.4.2.3 Subscripts",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every subscripted table reference: one subscript per OCCURS level (at most seven), outermost first",
+     "the exception of SR5 as 2002 writes it: an unsubscripted reference in the five listed contexts, and a SORT table reference whose rightmost subscript is ALL"
+    ],
+    "evidence-2002": [
+     "count mismatch refused: covered by pb877-subscript-count-mismatch (refuse-at includes 2002, COBOL2097 at 2002)",
+     "seven subscripts: probe p19_seven_subscripts.cob at 2002",
+     "pb877_subscripted_subscript (accept [2023]) does not run at 2002 (subscripted SEARCH subject, COBOL0900); pb1016_constant_length_subscripts runs clean at 2002",
+     "SORT nested table with the rightmost subscript omitted: WRONG at 2002 (accepted; see compiler-at-2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR3",
+      "quote": "the number of subscripts shall equal the number of OCCURS clauses in the description of the table element being referenced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR3",
+      "quote": "the number of subscripts shall equal the number of OCCURS clauses in the description of the table element being referenced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR5",
+      "quote": "In a SORT statement that references a table, subscripting may be specified with the rightmost subscript being the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR5",
+      "quote": "As the subject of a SORT statement that references a table where the rightmost subscript is not the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR13",
+      "quote": "subscripts shall be specified for all levels with the exception that the rightmost subscript shall be the word ALL",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence, but its 'except as defined in syntax rule 5' defers to a rule that differs: 2023 SR5 e) lets a SORT subject omit the rightmost subscript, 2002 SR5 permits only a rightmost ALL. The 2023 evidence therefore accepts a program 2002 forbids.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p24_sort_nested_omitted_subscript.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: the compiler at --std 2002 accepts SORT E(2) for a nested table (wrong; known defect, defects-2002-c); the remaining scope is shown at 2002 by pb877-subscript-count-mismatch and p19",
+    "compiler-at-2002": "wrong (SORT E(2) of a table E nested in ROW OCCURS 2 is accepted and run at --std 2002 (probe p24_sort_nested_omitted_subscript.cob prints E2=CBADEF, exit 0; the pointer witness pb1055_table_sort_nested_subject, accept [2002], asserts it legal). 2002 requires two subscripts with the rightmost ALL: SR3 'the number of subscripts shall equal the number of OCCURS clauses' except as SR5 defines, SR5 defines only 'the rightmost subscript being the word ALL', and 14.8.36.2 SR13 'subscripts shall be specified for all levels with the exception that the rightmost subscript shall be the word ALL'. Expected: a diagnostic at SORT E(2). Already recorded: defects-2002-c.json (p23b_table_sort_nested_no_all.cob).)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-5",
+    "to": [
+     "SR-8.4.2.3.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.2 Subscripts",
+    "clause-2023": "8.4.2.3 Subscripts",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "table element references unsubscripted only: a) SEARCH subject, b) REDEFINES clause, c) OCCURS KEY IS, d) a SORT statement that references a table, e) screen FROM/TO/USING of an OCCURS entry",
+     "in a SORT referencing a table: subscripting with the rightmost subscript ALL",
+     "every other unsubscripted table element reference refused"
+    ],
+    "evidence-2002": [
+     "refusal elsewhere: covered by pb681-table-element-not-subscripted (refuse-at includes 2002, COBOL2270 at 2002)",
+     "a)-d): covered at 2002 by probe p20_unsubscripted_contexts.cob (SEARCH T / SEARCH ALL T, V2 REDEFINES V inside OCCURS, ASCENDING KEY IS K, SORT T ... KEY K, SORT S, SORT S(ALL)); pb1016_constant_length_subscripts runs clean at 2002",
+     "e): not shown; the compiler declines the screen section at 2002 (COBOL1560, p20s_screen_from_table.cob)",
+     "SORT nested subject: WRONG at 2002 - SORT E(2) without the rightmost ALL accepted (see compiler-at-2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR5",
+      "quote": "In a SORT statement that references a table, subscripting may be specified with the rightmost subscript being the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR5",
+      "quote": "As the subject of a SORT statement that references a table where the rightmost subscript is not the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR13",
+      "quote": "subscripts shall be specified for all levels with the exception that the rightmost subscript shall be the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.52.2 SR3",
+      "quote": "If it is associated with an OCCURS clause, it shall be specified without the subscripting normally required",
+      "check": "OK"
+     }
+    ],
+    "reason": "The list differs: 2002 has one SORT item (d) plus a sentence admitting a rightmost ALL; 2023 has d) key phrase, e) a SORT subject that may omit its rightmost subscript, and g) SUM addends (2002 grants the SUM exemption in 13.16.52 SR3 instead, so g) is not a 2002 gap). The 2023 e) admits SORT E(2), which 2002 forbids.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p20_unsubscripted_contexts.cob",
+    "widening": "2023 g) moves the SUM-addend exemption into this list (2002 has it in the SUM clause)",
+    "class": "own-text",
+    "needs": "its own verdict: a)-d) right at 2002 (probe p20), e) declined with the screen section, and the nested SORT subject without ALL wrongly accepted at 2002 (known defect)",
+    "compiler-at-2002": "wrong (SORT E(2) of a table E nested in ROW OCCURS 2 is accepted and run at --std 2002 (probe p24_sort_nested_omitted_subscript.cob prints E2=CBADEF, exit 0; the pointer witness pb1055_table_sort_nested_subject, accept [2002], asserts it legal). 2002 requires two subscripts with the rightmost ALL: SR3 'the number of subscripts shall equal the number of OCCURS clauses' except as SR5 defines, SR5 defines only 'the rightmost subscript being the word ALL', and 14.8.36.2 SR13 'subscripts shall be specified for all levels with the exception that the rightmost subscript shall be the word ALL'. Expected: a diagnostic at SORT E(2). Already recorded: defects-2002-c.json (p23b_table_sort_nested_no_all.cob).)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-6",
+    "to": [
+     "SR-8.4.2.3.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.2 Subscripts",
+    "clause-2023": "8.4.2.3 Subscripts",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "subscript ALL admitted in an intrinsic function argument",
+     "subscript ALL admitted to identify the table of a table-format SORT (rightmost, per 14.8.36.2 SR13)",
+     "ALL refused anywhere else"
+    ],
+    "evidence-2002": [
+     "refused elsewhere: pb1030-all-subscript-outside-function (refuse-at includes 2002, COBOL2363 at 2002)",
+     "SORT: pb1055_table_sort_nested_subject leg 2 SORT E(1, ALL) (runs clean at 2002), pb1473-table-sort-all-not-rightmost (refused at 2002, consistent with 2002 SORT SR13), probe p20 SORT S(ALL)",
+     "intrinsic function argument: not in the row's witnesses; covered by probe p20_unsubscripted_contexts.cob (FUNCTION SUM(K(ALL)) = 10, FUNCTION MAX(S(ALL)) = e at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR6",
+      "quote": "The subscript ALL may be used only when the subscripted identifier is used as an intrinsic function argument",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR6",
+      "quote": "as the rightmost or only subscript of a table in the table format of a SORT statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same two permitted contexts; 2023 adds 'rightmost or only' (2002 says the same in SORT SR13) and an equivalence-to-omission sentence that 2002 does not have (omission is the SR3/SR5 defect, not this rule's). The row's witnesses show the SORT and refusal legs at 2002 but not the intrinsic-function leg.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p20_unsubscripted_contexts.cob",
+    "widening": "2023 equates a rightmost ALL with omitting the subscript (omission is not 2002)",
+    "class": "other",
+    "needs": "a 2002 witness for ALL as an intrinsic function argument (probe p20_unsubscripted_contexts.cob), or KEPT if an intrinsic-function row's witness of ALL runs at 2002",
+    "compiler-at-2002": "correct for this rule (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p20_unsubscripted_contexts.cob)"
+   },
+   {
+    "rule-id": "2002-GR-8.4.1.2.3-2",
+    "to": [
+     "GR-8.4.2.3.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.2 Subscripts",
+    "clause-2023": "8.4.2.3 Subscripts",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "subscript value of fixed and occurs-depending tables: 1 .. OCCURS maximum",
+     "greater than the maximum: EC-BOUND-SUBSCRIPT (fatal in 2002's exception table)",
+     "zero or negative: EC-BOUND-SUBSCRIPT"
+    ],
+    "evidence-2002": [
+     "greater than the maximum, handled by a declarative: covered by ec_bound_subscript (accept [2023]; runs clean at --std 2002, c2.txt MATCH)",
+     "zero and negative: not in the row's witnesses; covered by probe p23_ec_bound_zero_neg.cob at 2002 (HANDLED=EC-BOUND-SUBSCRIPT for 0 and -1, none for 3)",
+     "fatal when unhandled: probe p23n_ec_bound_fatal.cob at 2002 (abnormal run-unit termination: EC-BOUND-SUBSCRIPT (fatal), exit 1)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.3 GR2",
+      "quote": "the EC-BOUND-SUBSCRIPT exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.4 GR2",
+      "quote": "The highest permissible occurrence number for any given dimension of a dynamic-capacity table is implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement for 2002's tables (2023 adds dynamic-capacity tables). The row's witness shows only the over-maximum leg; the 'less than one' leg and the fatal disposition (2002 table: Fatal) are shown at 2002 only by probes.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p23_ec_bound_zero_neg.cob",
+    "widening": "2023 adds the dynamic-capacity table bound",
+    "class": "other",
+    "needs": "a 2002 witness for a zero or negative subscript and for the unhandled fatal termination (probes p23_ec_bound_zero_neg.cob, p23n_ec_bound_fatal.cob); ec_bound_subscript runs clean at 2002 for the over-maximum leg",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p23_ec_bound_zero_neg.cob, p23n_ec_bound_fatal.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.1.2-10",
+    "to": [
+     "SR-8.4.3.1.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.1 Identifier",
+    "clause-2023": "8.4.3.1 Identifier",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 9 identifier: data-address-identifier ADDRESS OF identifier-1 (2002 8.4.2.11)",
+     "format 9 identifier: program-address-identifier ADDRESS OF PROGRAM identifier/literal/prototype (2002 8.4.2.12), NULL when the program is not found"
+    ],
+    "evidence-2002": [
+     "data-address-identifier: covered by pb1407_address_of_reference_modified (accept [2002], runs clean at 2002) and probe p22_address_identifiers.cob; receiving use refused (p22c_address_move_receiving.cob, COBOL3979)",
+     "program-address-identifier: not shown at 2002 by the row - its witness pb1021_address_identifier_operands is accept [2014] and is refused at --std 2002 for its <> operator (COBOL0900); covered by probes p22_address_identifiers.cob (ADDRESS OF PROGRAM \"P22SUB\" and of an identifier, CALL through the pointer) and p22d_program_not_found.cob (NULL)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.1.2 SR10",
+      "quote": "Address-identifiers are defined by 8.4.2.11, Data-address-identifier and 8.4.2.12, Program-address-identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.1.3 SR10",
+      "quote": "Address-identifiers are defined by 8.4.3.11, Data-address-identifier and 8.4.3.13, Program-address-identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.12.3 GR4",
+      "quote": "the EC-PROGRAM-NOT-FOUND exception condition is set to exist and the value of the address-identifier is the predefined address NULL",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same cross-reference (clause numbers only; 2023 inserts 8.4.3.12 between them). The program-address-identifier half has no witness that runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p22_address_identifiers.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for the program-address-identifier (probes p22_address_identifiers.cob, p22d_program_not_found.cob)",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p22_address_identifiers.cob, p22c_address_move_receiving.cob, p22d_program_not_found.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.1.2-11",
+    "to": [
+     "SR-8.4.3.1.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.1 Identifier",
+    "clause-2023": "8.4.3.1 Identifier",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 10 identifier LINAGE-COUNTER [IN|OF file-name-1], defined by 2002 8.4.2.13"
+    ],
+    "evidence-2002": [
+     "not shown by the slice's pointer (SR-8.4.3.1.3-2 is the function-identifier rule; its witness pb10_function_identifier_sending says nothing of LINAGE-COUNTER)",
+     "covered by the true twin SR-8.4.3.1.3-11's witness l1c15_linage_counter_qualified (accept [85]; runs clean at --std 2002, c2.txt MATCH) and probe p17b_linage_nested_global.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.1.2 SR11",
+      "quote": "The LINAGE-COUNTER identifier is defined by 8.4.2.13, LINAGE-COUNTER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.1.3 SR11",
+      "quote": "Qualified-linage-counter-1 is defined in 8.4.2.2, Qualification",
+      "check": "OK"
+     }
+    ],
+    "reason": "Wrong pointer: the 2023 counterpart is SR11 of the same clause. Its target differs in words (2002 points at the LINAGE-COUNTER clause, 2023 at Qualification) but both define the same format 10 identifier; the qualification difference itself is row 2002-SR-8.4.1.1.2-6.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-04/p17b_linage_nested_global.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "re-point to SR-8.4.3.1.3-11 and KEPT: its witness l1c15_linage_counter_qualified runs clean at --std 2002",
+    "compiler-at-2002": "correct (case.sh c2.txt l1c15 MATCH at 2002)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.1.2-12",
+    "to": [
+     "SR-8.4.3.1.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.1 Identifier",
+    "clause-2023": "8.4.3.1 Identifier",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 11 identifiers PAGE-COUNTER / LINE-COUNTER [IN|OF report-name-1], defined by 2002 8.4.2.14"
+    ],
+    "evidence-2002": [
+     "not shown by the slice's pointer (the function-identifier rule)",
+     "covered by the true twin SR-8.4.3.1.3-12's witnesses pb429_page_counter_receiving and pb1456_other_report_counters_85 (accept [85]; both run clean at --std 2002, c2.txt MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.1.2 SR12",
+      "quote": "The PAGE-COUNTER and LINE-COUNTER identifiers are defined by 8.4.2.14, Report counters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.1.3 SR12",
+      "quote": "Qualified-report-counter-1 is defined in 8.4.2.2, Qualification",
+      "check": "OK"
+     }
+    ],
+    "reason": "Wrong pointer, as for SR11: the counterpart is SR-8.4.3.1.3-12, whose witnesses run at 2002.",
+    "probe": null,
+    "widening": null,
+    "class": "other",
+    "needs": "re-point to SR-8.4.3.1.3-12 and KEPT: pb429 and pb1456 run clean at --std 2002",
+    "compiler-at-2002": "correct (case.sh c2.txt pb429/pb1456 MATCH at 2002)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-04",
+  "cases": [
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-5",
+    "verdict": "UPHELD",
+    "reason": "Format 2 X\"...\" is in both editions; 2023 only makes the sequence optional (zero length, NOTE 2), a widening. The rule is lexical, sits under FORMAT 2 in both, and the hexadecimal-digit definition is word-identical (2002 8.3.1.2 / 2023 8.3.3.1). Case folding of a-f inside hexadecimal formats is the same in both (2002 8.1.2.1 GR3a excepts only the non-hexadecimal formats; 2023 8.1.3.2 GR3a likewise); probe hex_lower.cob gives [JK] at both. No CD, debugging-line or removed-form reach: the token is the same wherever it appears.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR5",
+      "quote": "Hex-character-sequence-1 shall be composed of hexadecimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR5",
+      "quote": "Hex-character-sequence-1 shall be composed of hexadecimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2",
+      "quote": "The hexadecimal digits are the basic digits '0' through '9' and the basic letters 'A' through 'F'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.1",
+      "quote": "The hexadecimal digits are the basic digits '0' through '9' and the basic letters 'A' through 'F'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.1.2.1 GR3a",
+      "quote": "Except when used in the non-hexadecimal formats of alphanumeric and national literals",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-04/hex_lower.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.3.2-3",
+    "verdict": "UPHELD",
+    "reason": "BX format present in both; 2023 adds only a zero-length NOTE. Same hexadecimal-digit definition and case folding; probe hex_lower.cob BX\"a5\" = 10100101 at both editions. Lexical rule, no context dependence, no removed form.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.2 SR3",
+      "quote": "Hexadecimal-digit-1 shall be a hexadecimal digit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.4.3 SR3",
+      "quote": "Hexadecimal-digit-1 shall be a hexadecimal digit",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-04/hex_lower.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.3.3-3",
+    "verdict": "UPHELD",
+    "reason": "2023 GR3 is the same sentence conditioned on boolean-character-1 being specified; every 2002 format 1 boolean literal specifies it (2002 SR1 requires length > 0). The literal's value does not depend on the context it appears in, so a 2002-only context (e.g. a VALUE under a CD record) changes nothing a program can show about this rule (consistent with p-07's UPHELD of the sibling class/category rules).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.3 GR3",
+      "quote": "The value of a boolean literal is the value of the sequence of occurrences of boolean-character-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.4.4 GR3",
+      "quote": "the value of a boolean literal is the value of the sequence of occurrences of boolean-character-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.4.2-2",
+    "verdict": "UPHELD",
+    "reason": "Word-identical, both under ALL FORMATS (character-1 occurs only in format 1 in both). Format 1 N\"...\" is the same apart from 2023's optional character-1 (widening). The rule leans on the implementor's source coded character sets (2002 8.1.1 / 2023 8.1.2), whose text on literal content is identical. Lexical, no context reach.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR2",
+      "quote": "any character in the national coded character set that the implementor has designated for source code representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.3 SR2",
+      "quote": "any character in the national coded character set that the implementor has designated for source code representation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.4.3-3",
+    "verdict": "UPHELD",
+    "reason": "2023 GR3 a)-b) are the 2002 sentences inside a zero-length branch. The deferral 'as described in 8.1.1, Computer's coded character set' was checked: 2023 8.1.2 keeps the conversion paragraph word for word and only adds implementor-specification paragraphs (figurative-constant and editing-character code values), which narrow nothing 2002 permits. Value is context-independent. (Reader's 2023 quote was the zero-length sentence; the matching sentence is cited here.)",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR3",
+      "quote": "Control functions, if any, that switch character set encoding are not included in the value of the literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR3",
+      "quote": "Control functions, if any, that switch character set encoding are not included in the value of the literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.1.1",
+      "quote": "the content of alphanumeric and national literals shall be converted, prior to use at runtime",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.2",
+      "quote": "the content of alphanumeric and national literals shall be converted, prior to use at runtime",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-7",
+    "verdict": "OVERTURNED",
+    "reason": "Same words, but the rule's 'one or more of the quotation mark character' is sized by the item QUOTE is associated with (2002 GR2 b), and in 2002 QUOTE can be the VALUE operand of an entry in the first redefinition of a CD record (A.1.2.2 SR5/SR9/SR14) or be moved to/compared with a CD-record item. 2023 has no communication section, so the 2023 row's evidence says nothing about that case. The reader's scope-2002 omits it. Same cause and class as p-08's OVERTURNED of the direct siblings GR6 (LOW-VALUE), GR8 (ALL literal), GR9 (ALL symbolic). Compiler correct at 2002: VALUE QUOTE in PIC X(5) under CD CDIN FOR INPUT = [\"\"\"\"\"], VALUE ALL QUOTES PIC X(4) = [\"\"\"\"], MOVE QUOTES = [\"\"\"\"\"], IF Q2 = QUOTE true; 2023 refuses the CD (COBOL0902). Secondary: the count also defers to 2002 GR2, which the reader already holds DIFFERENT (2023 restricts repetition to fixed-length items). Needs: a 2002 witness for QUOTE under a CD record (this probe).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR7",
+      "quote": "The quote format represents one or more of the quotation mark character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR8",
+      "quote": "The quote format represents one or more of the quotation mark character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "only the first redefinition may contain VALUE clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR2",
+      "quote": "When a figurative constant is specified in a VALUE clause or in association with a data item, literal, or intermediate result",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-04/cd_quote.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "966d68df54e29e70289b2eba858ae2f84ce1ab1d394dea1afadb9c54e3643350",
+  "read": "f2e7a37afde0165b4fa4a0aea69dfeb8b99d9e788f8e2192f3f362cf32e78451",
+  "refute": "1a92846a85a84add08ed8fdea2c2af3b2b1d867821abe3905db297b4ed6d0b86"
+ }
+}

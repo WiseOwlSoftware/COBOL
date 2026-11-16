@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-3",
+ "rule-digest": "ffb94264a82b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageCollectionPass.cs; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#RetainSign; src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs#Classify",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-cd-operands",
+ "notes": "GR3a: alphabetic AL 'ABBA' ALL 'B' -> 02, boolean BO B'1010' ALL B'1' -> 02 and ALL B'0' BY B'1' -> 1111, national NA ALL N'B' -> 02 (A1). GR3b: unsigned display NU 10203 ALL '0' BY '5' -> 15253; numeric-edited NE ' 12.50' tallies 1 space and '.'->',' gives ' 12,50'; alphanumeric-edited AE 'AB CD' -> 'AB-CD' (N2). GR3c: national-edited NX NNBNN 'AB CD' tallies 1 national space and becomes 'AB-CD' (A2 01 OK). GR3d: NS S9(4) -1201 is inspected as unsigned 1201: 2 ones, 1->7 gives 7207 and the sign is kept (-7207 via MOVE to -9(4)); NL S9(3) SIGN LEADING SEPARATE -102 is inspected as 3 ... Run at --std 2002 on the pinned dc1f2dcce8 build matched. c and d also hold on usage-national numeric CD items (A3: NN 02 7207; SN -7207, sign kept)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.3.3-11",
+ "rule-digest": "7239dee7d093",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IntroducedText; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IsDebuggingLineAt",
+ "test-ref": "conformance:cases/7.1.3@2002-REPLACE-STATEMENT/g2-replace-debugging-line-matching-no-mode",
+ "notes": "§2002:7.1.3.3 GR11: replaced text that begins on a D line yields resultant text on a debugging line, a comment without WITH DEBUGGING MODE (§2002:6.2.7), so a two-line result vanishes (AZ; AL4Z if unmatched, AR3R4Z if placed on a normal line). The --std 2002 run matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.10.3-6",
+ "rule-digest": "713200be448b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.2.10@2002-EVALUATE-DIRECTIVE/g2ev20_arith_operand_formation",
+ "notes": "§2002:7.2.10.3 GR6 omits all text-1 when no WHEN is TRUE, with or without a WHEN OTHER (legs C-AFTER, D-OTHER). A TRUE WHEN with no WHEN OTHER keeps its text-1 (E-TRUE) under §2002:7.2.10.3 GR4, the rule that governs that branch; the literal 'or' reading would void GR4. Matched at --std 2002."
+}

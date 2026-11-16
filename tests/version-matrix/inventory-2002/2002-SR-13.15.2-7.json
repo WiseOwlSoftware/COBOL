@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.15.2-7",
+ "rule-digest": "9575d0c2a039",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportSection",
+ "test-ref": "conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section",
+ "notes": "Own verdict from the read lineage-reads-2002/u-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.17.3-7, witnessed at 2002 by the cases test-ref names. The read: Words differ only in 'a ERASE' / 'an ERASE'; the list is the same six cases. The pointer row is DOCUMENTED-NON-SUPPORT; 2002 licenses the same non-support (screen section processor-dependent, unclaimed support need not be implemented), and the compiler declines every screen construct at --std 2002 with a diagnostic. No CD or debugging reach. Cited: §2002:13.15.2 SR7; §2002:3.1.5; §2002:B.3."
+}

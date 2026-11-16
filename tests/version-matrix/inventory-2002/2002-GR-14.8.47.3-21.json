@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-21",
+ "rule-digest": "f4867a5f7de0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Advance; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#SupportsVerticalPositioning; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancingRecord",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb1027_plain_write_is_after_advancing_85",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.51.4-25, witnessed at 2002 by the cases test-ref names. The read: 2023 f) adds the BEFORE+AFTER combination that 2023's format admits and 2002's does not; for every 2002 form the text is the same. b) (negative identifier-2) is undefined in both. Cited: §2002:14.8.47.3 GR21."
+}

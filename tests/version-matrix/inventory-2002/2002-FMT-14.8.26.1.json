@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.26.1",
+ "rule-digest": "a02502400429",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sharingPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
+ "test-ref": "conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2opn-format-io-extend-sharing; conformance:cases/14.9.27-OPEN/pb316_open_group_scope; conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_norewind_input_output",
+ "notes": "The §2002:14.8.26.1 OPEN arms EXTEND, I-O, SHARING WITH NO OTHER / READ ONLY and multi-group OPENs, with statuses and contents from §2002:14.8.26.3 GR2, GR13, GR14, GR19 and 9.1.12; g2opn-format-io-extend-sharing at --std 2002 on the pinned build printed the eight derived lines; pb316_open_group_scope and g2002_open_norewind_input_output cover INPUT/OUTPUT, retry, ALL OTHER and NO REWIND at 2002."
+}

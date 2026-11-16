@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.26.1",
+ "rule-digest": "e622ce512129",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupIndicateClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupClause",
+ "test-ref": "conformance:cases/13.18.28-GROUP-INDICATE/l1c12_group_indicate",
+ "notes": "Own verdict from the read lineage-reads-2002/u-52.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.28.2, witnessed at 2002 by the cases test-ref names. The read: General format identical (only GROUP underlined). Report-section only, no CD or debugging reach. Pointer witness accepts and runs at --std 2002 with the expected output. Cited: §2002:13.16.26; §2002:13.16.26.2 SR1."
+}

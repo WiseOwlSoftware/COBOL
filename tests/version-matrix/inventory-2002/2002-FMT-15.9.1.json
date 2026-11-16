@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.9.1",
+ "rule-digest": "303466ff5696",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sendingOperand",
+ "test-ref": "conformance:cases/15.10.4-Returned-value-rule/pb65_bounded_returned_value_landing",
+ "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.10.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; witness runs at 2002. Cited: §2002:15.9."
+}

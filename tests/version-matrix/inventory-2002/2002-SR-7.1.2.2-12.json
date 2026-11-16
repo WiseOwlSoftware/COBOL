@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-12",
+ "rule-digest": "0efa1a922f72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IsDebuggingLineAt; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IntroducedText; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-debugging-pseudo-text-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-debugging-pseudo-text-no-mode",
+ "notes": "§2002:7.1.2.2 SR12 'Pseudo-text-1 and pseudo-text-2 may contain debugging lines': pseudo-text-1 spanning a D line matches in both modes (S1T1Z1) and a D line in pseudo-text-2 stays a debugging line (P2S2T2Z2 with DEBUGGING MODE, P2S2Z2 without) at --std 2002."
+}

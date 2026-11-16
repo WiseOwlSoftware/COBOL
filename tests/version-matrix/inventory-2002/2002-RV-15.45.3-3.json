@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.45.3-3",
+ "rule-digest": "031d57363ca6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#LowerCase; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#TextInfo",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification",
+ "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.57.4-5, witnessed at 2002 by the cases test-ref names. The read: 2023 says 'correspondence rules in effect' because it adds the LOCALE phrase; in 2002 the only source is the classification locale (or the implementor's map), which is what 2023's words also cover. The non-one-to-one sentence is permissive ('may'). Cited: §2002:15.45.3 RV3."
+}

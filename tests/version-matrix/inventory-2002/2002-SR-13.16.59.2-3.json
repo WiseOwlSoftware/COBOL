@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.59.2-3",
+ "rule-digest": "289e1ee4dc41",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.61-USING/a42-screen-using",
+ "notes": "Own verdict from the read lineage-reads-2002/u-18.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.61.3-3, witnessed at 2002 by the cases test-ref names. The read: 2023 adds \"Identifier-1 shall not specify a variable-length group\" (narrower in 2023). Both editions license not supporting the screen section; the compiler declines it at 2002 with COBOL1560, the same evidence as the 2023 DOCUMENTED-NON-SUPPORT row. Cited: §2002:13.16.59.2 SR3; §2002:3.1.5; §2002:B.3."
+}

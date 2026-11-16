@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.3.1",
+ "rule-digest": "eda2a4bbe67f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#allocateStatement",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/allocate_initialized; conformance:cases/14.9.3-ALLOCATE/pointer_alloc",
+ "notes": "Own verdict from the read lineage-reads-2002/u-48.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-14.9.3.2, witnessed at 2002 by the cases test-ref names. The read: Word-identical format (0.917 is the anchor). Pointer witnesses run green at 2002 and cover each alternative. Cited: §2002:14.8.3."
+}

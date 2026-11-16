@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1477_cond88_odo_figurative
       *> rules: [GR-8.8.4.5.3-2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

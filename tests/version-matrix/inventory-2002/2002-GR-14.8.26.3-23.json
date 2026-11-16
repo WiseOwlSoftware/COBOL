@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-23",
+ "rule-digest": "949b72976166",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RetryLoop; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RenderRetry",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb142_retry_open_sharing; conformance:cases/14.9.27-OPEN/pb316_open_group_scope",
+ "notes": "Own verdict from the read lineage-reads-2002/u-25.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.27.4-24, witnessed at 2002 by the cases test-ref names. The read: RETRY clauses identical (2023 spells out MSCS and adds 'according to the rules for 9.1.13'). Cited: §2002:14.8.26.3 GR23; §2002:14.6.8.2 GR4."
+}

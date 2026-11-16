@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.13.3-1",
+ "rule-digest": "e75986db54ee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs; src/WiseOwl.Cobol.Runtime/IO/StoreTable.cs; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs",
+ "test-ref": "conformance:cases/_unassigned/l1c24_relative_record_numbering",
+ "notes": "Own verdict from the read lineage-reads-2002/u-11.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.4.5.13.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical but for the ellipsis typography ('. . .' vs '... .'). Relative organization and its key are the same in both editions. Cited: §2002:12.3.4.13.3 GR1."
+}

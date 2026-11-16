@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.7.3-2",
+ "rule-digest": "5c7672dd97f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+ "test-ref": "conformance:cases/14.8.7@2002-COMPUTE-STATEMENT/g2cmp05_single_operand_and_evaluation; conformance:cases/14.8.7@2002-COMPUTE-STATEMENT/g2cmp06_single_operand_standard",
+ "notes": "§2002:14.8.7.3 GR2: the arithmetic expression (1.25+2)*3-0.5 = 9.25 -> 09.2 and the boolean expressions (§2002:8.8.2, stored by MOVE per GR3) 10000000, 11, 00111100 00 are determined; g2cmp05/g2cmp06 at --std 2002 matched."
+}

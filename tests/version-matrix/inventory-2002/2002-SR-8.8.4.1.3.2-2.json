@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.3.2-2",
+ "rule-digest": "067799e7a341",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Violates; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#Alternatives",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/class-numeric-on-bit",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.8.4.4.3-8, witnessed at 2002 by the cases test-ref names. The read: Words identical to 2023 SR8 (pointer chosen as the word-identical rule; 2023 renumbered it). Usages and categories involved are the same in both editions. Cited: §2002:8.8.4.1.3.2 SR2."
+}

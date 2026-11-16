@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.38.2",
  "rule-digest": "774b4d1809fa",
+ "test-ref": "conformance:cases/A.2.38@1985-REVERSE-FUNCTION/g85_f39_03",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

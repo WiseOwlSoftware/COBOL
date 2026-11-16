@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-DOC-B.1-67",
+ "rule-digest": "723ccdbeac99",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/w59h_non_cobol_names_not_found",
+ "notes": "Own verdict from the read lineage-reads-2002/u-39.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer DOC-A.1-88, witnessed at 2002 by the cases test-ref names. The read: 2002 GR5d is 2023 GR6d without function-pointer-name-1 (2023 widening). The condition is absent at 2002 as at 2023 and the witness of the absence runs at 2002. Cited: §2002:B.1; §2002:8.4.2.2.3 GR5d."
+}

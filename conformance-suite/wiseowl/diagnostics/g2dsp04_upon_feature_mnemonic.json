@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "COBOL0817: DISPLAY UPON 'TOP-MN': 'TOP-MN' is the mnemonic-name of the feature-name 'C01', not of a device-name"}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.9.2-2",
+ "rule-digest": "cbca864e0979",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.9-BLINK/a42-screen-blink",
+ "notes": "Own verdict from the read lineage-reads-2002/u-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.9.3-2, witnessed at 2002 by the cases test-ref names. The read: 2023 only repeats the word 'statement'. DOCUMENTED-NON-SUPPORT licensed in 2002 as processor-dependent (B.3 item 1; item 2 names BLINK); declined at --std 2002 with a diagnostic. Cited: §2002:13.16.9.2 GR2; §2002:3.1.5; §2002:B.3."
+}

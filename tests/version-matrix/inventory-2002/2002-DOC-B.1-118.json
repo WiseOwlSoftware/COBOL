@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-DOC-B.1-118",
+ "rule-digest": "f32c6c0406a6",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness",
+ "notes": "Own verdict from the read lineage-reads-2002/u-34.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer DOC-A.1-150, witnessed at 2002 by the cases test-ref names. The read: General format, SR1, SR2, GR1, GR4, GR5 identical (2023 only modernizes the ISO 1001 reference of the STANDARD-1 arm, not this item). Cited: §2002:B.1; §2002:12.3.4.11.2 SR2."
+}

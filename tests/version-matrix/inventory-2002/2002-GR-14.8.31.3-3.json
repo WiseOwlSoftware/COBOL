@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.31.3-3",
+ "rule-digest": "d50f54f2c47b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ResumeTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ExplicitTransferOut",
+ "test-ref": "conformance:cases/14.9.33-RESUME/pb1148_resume_at_paragraph_after_perform_exit",
+ "notes": "Own verdict from the read lineage-reads-2002/u-26.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.33.4-3, witnessed at 2002 by the cases test-ref names. The read: The normative sentence is identical. Only the NOTE's cross-reference differs (PERFORM GR11 against GR2), and the NOTE is informative. The 2023 SR1 requirement of NEXT STATEMENT in a PERFORM WHEN phrase concerns a 2023-only context. The pointer's test passes at 2002. Cited: §2002:14.8.31.3 GR3."
+}

@@ -1,0 +1,1682 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-11 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-11",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-12.3.4.2-4",
+   "2002-SR-12.3.4.2-8",
+   "2002-GR-12.3.4.3-1",
+   "2002-SR-12.3.4.5.2-1",
+   "2002-SR-12.3.4.5.2-5",
+   "2002-GR-12.3.4.6.3-1",
+   "2002-SR-12.3.4.7.2-1",
+   "2002-SR-12.3.4.7.2-2",
+   "2002-GR-12.3.4.7.3-1",
+   "2002-GR-12.3.4.8.3-3",
+   "2002-GR-12.3.4.8.3-6",
+   "2002-GR-12.3.4.8.3-7",
+   "2002-GR-12.3.4.8.3-8",
+   "2002-GR-12.3.4.9.2-2",
+   "2002-GR-12.3.4.9.2-5",
+   "2002-GR-12.3.4.10.3-4",
+   "2002-GR-12.3.4.10.3-5",
+   "2002-SR-12.3.4.11.2-1",
+   "2002-GR-12.3.4.11.3-2",
+   "2002-GR-12.3.4.11.3-3",
+   "2002-SR-12.3.4.12.2-1",
+   "2002-SR-12.3.4.12.2-4",
+   "2002-SR-12.3.4.13.2-1",
+   "2002-GR-12.3.4.13.3-1",
+   "2002-GR-12.3.4.13.3-2"
+  ],
+  "pointers": {
+   "2002-SR-12.3.4.2-4": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-12.4.5.2-4",
+    "similarity": 0.802
+   },
+   "2002-SR-12.3.4.2-8": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-12.4.5.2-7",
+    "similarity": 0.308
+   },
+   "2002-GR-12.3.4.3-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-12.4.5.3-1",
+    "similarity": 0.899
+   },
+   "2002-SR-12.3.4.5.2-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-12.4.5.6.3-1",
+    "similarity": 0.649
+   },
+   "2002-SR-12.3.4.5.2-5": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-12.4.5.6.3-5",
+    "similarity": 1.0
+   },
+   "2002-GR-12.3.4.6.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-12.4.5.7.4-1",
+    "similarity": 1.0
+   },
+   "2002-SR-12.3.4.7.2-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-12.4.5.8.3-1",
+    "similarity": 0.512
+   },
+   "2002-SR-12.3.4.7.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.4.5.8.3-2",
+    "similarity": 0.968
+   },
+   "2002-GR-12.3.4.7.3-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-12.4.5.8.4-1",
+    "similarity": 0.725
+   },
+   "2002-GR-12.3.4.8.3-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-12.4.5.9.4-3",
+    "similarity": 1.0
+   },
+   "2002-GR-12.3.4.8.3-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-12.4.5.9.4-6",
+    "similarity": 1.0
+   },
+   "2002-GR-12.3.4.8.3-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.4.5.9.4-7",
+    "similarity": 0.954
+   },
+   "2002-GR-12.3.4.8.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.4.5.9.4-8",
+    "similarity": 0.954
+   },
+   "2002-GR-12.3.4.9.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-12.4.5.10.3-2",
+    "similarity": 0.73
+   },
+   "2002-GR-12.3.4.9.2-5": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-12.4.5.10.3-6",
+    "similarity": 0.825
+   },
+   "2002-GR-12.3.4.10.3-4": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-12.3.4.10.3-5": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-12.3.4.11.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.4.5.11.3-1",
+    "similarity": 0.951
+   },
+   "2002-GR-12.3.4.11.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.4.5.11.4-2",
+    "similarity": 0.903
+   },
+   "2002-GR-12.3.4.11.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.4.5.11.4-3",
+    "similarity": 0.909
+   },
+   "2002-SR-12.3.4.12.2-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-12.4.5.12.3-1",
+    "similarity": 0.649
+   },
+   "2002-SR-12.3.4.12.2-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-12.4.5.12.3-4",
+    "similarity": 1.0
+   },
+   "2002-SR-12.3.4.13.2-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-12.4.5.13.3-1",
+    "similarity": 0.512
+   },
+   "2002-GR-12.3.4.13.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-12.4.5.13.4-1",
+    "similarity": 1.0
+   },
+   "2002-GR-12.3.4.13.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.4.5.13.4-2",
+    "similarity": 0.99
+   }
+  }
+ },
+ "read": {
+  "slice": "u-11",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-12.3.4.2-4",
+    "to": [
+     "SR-12.4.5.2-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4 File control entry (SR4)",
+    "clause-2023": "12.4.5 File control entry (SR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR4",
+      "quote": "Literal-1 shall be an alphanumeric literal and shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR4",
+      "quote": "shall be neither a figurative constant nor a zero-length literal",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ASSIGN TO literal-1 that is a figurative constant (refused)",
+     "literal-1 numeric, national or boolean (refused)",
+     "alphanumeric literal incl. X\"..\" (admitted)"
+    ],
+    "evidence-2002": {
+     "figurative": "covered by conformance-suite/cases/12.4.5-File-control/pb1078-assign-literal-shape (ASSIGN TO SPACE refused COBOL2645 at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py)) and probe assign_lit_bad.cob (ZERO, ALL \"A\", QUOTE refused COBOL2645)",
+     "non-alphanumeric": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/assign_lit_bad.cob (123, N\"F2.DAT\", B\"1\" refused COBOL2645 at 2002)",
+     "alphanumeric": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/assign_lit_ok.cob (X\"...\" and \"...\" literals open, write, read back at 2002)"
+    },
+    "reason": "2023 adds only 'nor a zero-length literal'; a zero-length literal is not a 2002 literal at all (the compiler refuses \"\" at --std 2002 with COBOL0900, a COBOL-2014 introduction), so the 2002 rule is the 2023 rule minus a case 2002 cannot write. ASSIGN TO literal-1 is the same in all four formats of both editions (no CD or debugging reach). 2002 literal kinds that are not alphanumeric (numeric, national N\"\", boolean B\"\") and the figurative constants are refused at 2002 exactly as at 2023; a hexadecimal alphanumeric literal is admitted.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/assign_lit_bad.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-8",
+    "to": [
+     "SR-12.4.5.2-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4 File control entry (SR8)",
+    "clause-2023": "12.4.5 File control entry (no counterpart; pointer SR7)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR8",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR7",
+      "quote": "Data-name-1 shall reference an alphanumeric data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ASSIGN USING data-name-1 written qualified (admitted, resolves to the qualified item)",
+     "an ambiguous unqualified data-name-1 (refused)"
+    ],
+    "evidence-2002": {
+     "qualified": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/assign_qual.cob (USING FNAME OF G1 with a second FNAME OF G2: opens the G1 name, writes and reads back at 2002)",
+     "ambiguous": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/assign_ambig.cob (refused COBOL1639 at 2002)"
+    },
+    "reason": "2002 SR8 permits a qualified ASSIGN USING data-name-1. 2023 dropped the clause's 'may be qualified' sentence (qualification is governed generally by the data-name reference rules in both editions), so the pointer is the 2023 rule of the same ordinal, which is about OCCURS and shows nothing about qualification. No pointer evidence covers a qualified operand at --std 2002. The pointer's witnesses (pb324, pb746, pb850) use unqualified names.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/assign_qual.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for a qualified ASSIGN USING data-name-1: assign_qual.cob (and assign_ambig.cob) are candidates",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/assign_qual.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/assign_ambig.cob)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.3-1",
+    "to": [
+     "GR-12.4.5.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4 File control entry (GR1 a-m)",
+    "clause-2023": "12.4.5 File control entry (GR1 a-m)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR1h",
+      "quote": "The same specification of the PADDING CHARACTER clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.3 GR1i",
+      "quote": "The same specification of the RELATIVE KEY clause, where data-name-7 references an external data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR1i",
+      "quote": "The same specification of the FILE STATUS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR1k",
+      "quote": "the same SUPPRESS WHEN phrase",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a)-g), j)-m) agreement items",
+     "h) PADDING CHARACTER agreement and data-name-8 external",
+     "i) RELATIVE KEY external",
+     "no FILE STATUS agreement or external requirement (2002 has none)"
+    ],
+    "evidence-2002": {
+     "a)-g), j)-m)": "covered by conformance-suite/cases/12.4.5-File-control/pb5069_external_entries_agree (PASS) and pb5069-external-access-mode-differs (refused COBOL6847) at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py)",
+     "h) PADDING": "not shown by the 2023 row; covered by pb5069_external_padding_agrees (PASS), pb5069-external-padding-differs (COBOL6847), pb5069-external-padding-not-external (COBOL1624) at --std 2002",
+     "i) RELATIVE KEY": "covered by pb5069-external-relative-key-not-external (COBOL1624 at 2002)",
+     "FILE STATUS free": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/ext_fs.cob (accepted and runs at 2002; refused at 2023)"
+    },
+    "reason": "The enumeration differs. 2002 item h) is PADDING CHARACTER (with data-name-8 an external item) and i) is RELATIVE KEY; 2002 has NO FILE STATUS item and no SUPPRESS WHEN in k). 2023 drops PADDING, moves RELATIVE KEY to h), adds i) FILE STATUS (external, the same item) and SUPPRESS WHEN. So the 2002 rule requires the PADDING arm (not in the pointer's test-ref) and leaves FILE STATUS free (a 2002 program the 2023 rule refuses). Probe ext_fs.cob: two programs sharing EXTERNAL file XF with different non-external FILE STATUS items run at --std 2002 (00 throughout, status updates per program); the same source is refused at --std 2023 (COBOL1624, COBOL1573), so the compiler gates i) at 2023 as the 2002 text requires.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/ext_fs.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 the PADDING CHARACTER arm h) is enforced (pb5069 padding cases) and no FILE STATUS agreement is imposed (ext_fs.cob runs); KEPT with those as the 2002 witnesses",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/ext_fs.cob; conformance-suite/cases/12.4.5-File-control/pb5069-external-padding-*.cob)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.5.2-1",
+    "to": [
+     "SR-12.4.5.6.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.5 ALTERNATE RECORD KEY (SR1)",
+    "clause-2023": "12.4.5.6 ALTERNATE RECORD KEY (no counterpart; pointer SR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ALTERNATE RECORD KEY IS data-name-1 qualified",
+     "record-key-name-1 SOURCE IS data-name-2 qualified",
+     "ambiguous unqualified key name (refused)"
+    ],
+    "evidence-2002": {
+     "qualified data-name-1": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob (AK OF IR1 WITH DUPLICATES, two records both declaring AK; READ KEY IS AK OF IR1 finds 003BBQR at 2002)",
+     "qualified data-name-2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob (SK SOURCE IS S1 OF IR1 S2 OF IR1; READ KEY IS SK finds 002AAZW at 2002)",
+     "ambiguous": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_ambig.cob (ALTERNATE RECORD KEY 'AK' refused COBOL1639 at 2002)"
+    },
+    "reason": "2002 SR1 permits qualified ALTERNATE RECORD KEY data-name-1 and SOURCE data-name-2. 2023 dropped the clause's 'may be qualified' sentence (qualification is governed generally by the data-name reference rules in both editions), so the pointer is the 2023 rule of the same ordinal, which is about OCCURS and shows nothing about qualification. No pointer evidence covers a qualified operand at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for qualified ALTERNATE RECORD KEY operands: key_qual.cob and key_ambig.cob are candidates",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_ambig.cob)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.5.2-5",
+    "to": [
+     "SR-12.4.5.6.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.5 ALTERNATE RECORD KEY (SR5)",
+    "clause-2023": "12.4.5.6 ALTERNATE RECORD KEY (SR5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.2 SR5",
+      "quote": "each data-name-1 and data-name-2 shall be contained within the first x bytes of the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR5",
+      "quote": "each data-name-1 and data-name-2 shall be contained within the first x bytes of the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR7",
+      "quote": "Integer-2 specifies the minimum number of bytes to be contained in any record of the file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "alternate key data-name-1 beyond the minimum record size (refused)",
+     "SOURCE data-name-2 beyond the minimum (refused)"
+    ],
+    "evidence-2002": {
+     "data-name-1": "covered by conformance-suite/cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1025-alternate-key-beyond-minimum (refused COBOL0863 at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py))",
+     "data-name-2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/src_beyond_min.cob (SOURCE operand FK at bytes 11..12 of a 10-byte minimum refused COBOL0863 at 2002)"
+    },
+    "reason": "Identical words; only the RECORD clause cross-reference renumbers (13.16.41 -> 13.18.43). The 2002 RECORD clause has the same three formats (fixed, VARYING, CONTAINS integer-4 TO integer-5) and the same minimum-size meaning; 2023's additions (dynamic-length members) only widen. The key operands are the same (data-name-1, SOURCE data-name-2). Indexed files only, no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/src_beyond_min.cob",
+    "widening": "2023 also reaches records with dynamic-length members (pb1025_key_after_dynamic_member)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.6.3-1",
+    "to": [
+     "GR-12.4.5.7.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.6 COLLATING SEQUENCE (GR1)",
+    "clause-2023": "12.4.5.7 COLLATING SEQUENCE (GR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.3 GR1",
+      "quote": "Each collating sequence is a fixed file attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.4 GR1",
+      "quote": "Each collating sequence is a fixed file attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.5",
+      "quote": "a conflict has been detected between the fixed file attributes and the attributes specified for that file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "collating sequence set at the creating OPEN and fixed thereafter",
+     "the sequence chosen by GR2-GR6"
+    ],
+    "evidence-2002": {
+     "fixed attribute": "covered by unit:FileBoundaryTests.CollatingFingerprint_SeesADifferenceAboveLatin1 (edition-free runtime) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/coll_fixed.cob (OPEN 39 at 2002)",
+     "sequence applied": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/coll_fixed.cob (F1 FIRST 00 CCCC at 2002)"
+    },
+    "reason": "Words differ only in 'general rules' vs 'General rules'. Both general formats (file-level and key-level) are the same; the 'following' rules GR2-GR6 are word-identical in both editions (2023 adds only SR6, no subscripting). The pointer's witness is a runtime unit test (no edition); probe coll_fixed.cob confirms at --std 2002: an indexed file created with COLLATING SEQUENCE IS REV (Z thru A) reads CCCC first, and a second connector to the same physical file with the native sequence gets OPEN status 39 (2002 9.1.12.5).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/coll_fixed.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.7.2-1",
+    "to": [
+     "SR-12.4.5.8.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.7 FILE STATUS (SR1)",
+    "clause-2023": "12.4.5.8 FILE STATUS (no counterpart; pointer SR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.7.2 SR1",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.8.3 SR1",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FILE STATUS IS data-name-1 qualified",
+     "ambiguous unqualified data-name-1 (refused)"
+    ],
+    "evidence-2002": {
+     "qualified": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_qual.cob (FILE STATUS IS FS OF G1: G1's FS receives 35, G2's FS keeps BB, at 2002)",
+     "ambiguous": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_ambig.cob (refused COBOL1639 at 2002)"
+    },
+    "reason": "2002 SR1 permits a qualified FILE STATUS data-name-1. 2023 dropped the clause's 'may be qualified' sentence (qualification is governed generally by the data-name reference rules in both editions), so the pointer is the 2023 rule of the same ordinal, which is about OCCURS and shows nothing about qualification. No pointer evidence covers a qualified operand at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_qual.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for a qualified FILE STATUS data-name-1: fs_qual.cob and fs_ambig.cob are candidates",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_qual.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_ambig.cob)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.7.2-2",
+    "to": [
+     "SR-12.4.5.8.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.7 FILE STATUS (SR2)",
+    "clause-2023": "12.4.5.8 FILE STATUS (SR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.7.2 SR2",
+      "quote": "Data-name-1 shall be a two-character data item of the category alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.8.3 SR2",
+      "quote": "Data-name-1 shall reference a two-character data item of the category alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "category, size, OCCURS-free and section checks for WS/LS/linkage and file section items",
+     "an item in a record under a CD (communication section, refused)",
+     "local-storage and linkage items (admitted)"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by conformance-suite/cases/12.4.5.8-FILE-STATUS/pb1080-file-status-item-shape and pb850-file-status-alphanumeric-edited (refused COBOL2455 at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py)), _unassigned/pb1080_file_status_item_forms (PASS at 2002)",
+     "CD record": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_cd.cob (refused COBOL2455 at 2002)",
+     "LS/linkage": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_lsl.cob (both receive 35 at 2002)"
+    },
+    "reason": "'shall be' vs 'shall reference' changes nothing. But in 2002 the section list it excludes includes the communication section (Annex A, which 2002 provides): a two-character alphanumeric item in a record under a CD is NOT in working-storage, local-storage or linkage, so the 2002 rule refuses it as FILE STATUS. The 2023 row cannot show that case. Probe fs_cd.cob at --std 2002: refused COBOL2455 'defined in the communication section'. The other arms hold at 2002 through the pointer's witnesses, and the admitted local-storage and linkage arms by probe.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a FILE STATUS item in a record under a CD is correct (fs_cd.cob refused COBOL2455); KEPT with fs_cd.cob as the 2002 witness",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_cd.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_lsl.cob)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.7.3-1",
+    "to": [
+     "GR-12.4.5.8.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.7 FILE STATUS (GR1)",
+    "clause-2023": "12.4.5.8 FILE STATUS (GR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.7.3 GR1",
+      "quote": "the data item referenced by data-name-1 is updated to contain the value of the I-O status",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.8.4 GR1",
+      "quote": "A list of the possible I-O status values is contained in 9.1.13",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.5",
+      "quote": "A permanent error exists because an OPEN statement is attempted on a file connector previously closed with lock",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.1.3",
+      "quote": "is global if the GLOBAL clause is specified in the file description entry for that file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "status update after each I-O statement (2002 9.1.12 values)",
+     "38 after CLOSE WITH LOCK",
+     "global file, local data-name-1, contained program (NOTE)"
+    ],
+    "evidence-2002": {
+     "updates": "not shown at 2002 by the 2023 row (pb749 refused COBOL0878 at 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py)); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_update.cob",
+     "38": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_38.cob",
+     "NOTE": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_update.cob (AFTER INNER 10)"
+    },
+    "reason": "The rule leans on 'the value of the I-O status', whose list is 2002 9.1.12 (not yet catalogued). That list differs from 2023 9.1.13: 2002 has 38 (OPEN after CLOSE WITH LOCK, a phrase 2023 deleted) and lacks 06, 09, 62, 71. So the 2002 rule makes FILE STATUS receive 38, which the 2023 row cannot show. Also the pointer's statement witness pb749_sort_implicit_statement_status does not run at --std 2002 (COBOL0878: >>TURN EC-I-O-WARNING is 2023-only). Probes at --std 2002: fs_38.cob shows CLOSE WITH LOCK 00 then OPEN 38 (refused at 2023, COBOL0902); fs_update.cob shows 00/10/46/42 updates and the NOTE case (a global file READ in a contained program updates the outer program's non-global status item to 10).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_38.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 the FILE STATUS item receives the 2002 9.1.12 values, including 38 after CLOSE WITH LOCK (fs_38.cob) and the contained-program update (fs_update.cob); a 2002 witness is needed because the twin's golden does not compile at 2002",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_38.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/fs_update.cob)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-3",
+    "to": [
+     "GR-12.4.5.9.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.8 LOCK MODE (GR3)",
+    "clause-2023": "12.4.5.9 LOCK MODE (GR3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR3",
+      "quote": "If a physical file is open in the sharing with no other mode, the LOCK MODE clause has no effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR3",
+      "quote": "If a physical file is open in the sharing with no other mode, the LOCK MODE clause has no effect",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LOCK MODE inert when the physical file is open sharing with no other"
+    ],
+    "evidence-2002": {
+     "inert": "covered by conformance-suite/cases/12.4.5.9-LOCK-MODE/l1c17_lock_mode_no_other_inert (PASS at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py))"
+    },
+    "reason": "Words differ only in 'general rules' capitalisation. LOCK MODE format identical (2023 adds only an APPLY COMMIT syntax rule). 'The general rules that follow' are GR4-GR8 in both; GR7 and GR8 differ in their own text (separate rows) but this rule only routes to them. SHARING WITH NO OTHER exists in both the clause and the OPEN phrase in 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-6",
+    "to": [
+     "GR-12.4.5.9.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.8 LOCK MODE (GR6)",
+    "clause-2023": "12.4.5.9 LOCK MODE (GR6)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR6",
+      "quote": "Details of record locking are specified in 9.1.15, Record locking",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR6",
+      "quote": "Details of record locking are specified in 9.1.16, Record locking",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.15",
+      "quote": "While locked by a given file connector, a record is not accessible to another file connector",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "single record locking explicit/implicit",
+     "any I-O statement except START releases the prior lock"
+    ],
+    "evidence-2002": {
+     "release": "covered by conformance-suite/cases/12.4.5.9-LOCK-MODE/pb338_read_releases_prior_lock (PASS at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py))"
+    },
+    "reason": "Identical except the cross-reference number. 2002 9.1.15 is word-for-word the first paragraphs of 2023 9.1.16; 2023 only adds the commit/rollback carve-outs (a widening). The I-O statements of 2002 that can release a lock are a subset of 2023's.",
+    "probe": null,
+    "widening": "2023 9.1.16 adds files subject to commit and rollback"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-7",
+    "to": [
+     "GR-12.4.5.9.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.8 LOCK MODE (GR7)",
+    "clause-2023": "12.4.5.9 LOCK MODE (GR7)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR7",
+      "quote": "Both of these maximum numbers shall be at least one",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR7",
+      "quote": "that maximum shall be at least 15",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.7",
+      "quote": "but this file connector holds the maximum number of locks allowed by this implementation",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "multiple record locking holds several locks",
+     "limits documented and at least one",
+     "exceeding a limit: unsuccessful with 53/54"
+    ],
+    "evidence-2002": {
+     "multiple": "covered by conformance-suite/cases/12.4.5.9-LOCK-MODE/pb755_lock_on_multiple_records and pb3794_multiple_data_item_lock_on_multiple (PASS at 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py))",
+     "limit": "covered by conformance-suite/cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb338_read_lock_limit_position (PASS at 2002: the 16th lock is 54)"
+    },
+    "reason": "The only difference is the minimum of the implementor's limits: 2002 at least one, 2023 at least 15 and 255. A processor meeting 2023 meets 2002, and the limits are documented once (2002 B.1 item 122). The over-limit statuses 53/54 exist in 2002 9.1.12.7. The MULTIPLE phrase and its sequential ban are the same in both.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-8",
+    "to": [
+     "GR-12.4.5.9.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.8 LOCK MODE (GR8)",
+    "clause-2023": "12.4.5.9 LOCK MODE (GR8)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR8",
+      "quote": "The setting of a record lock is part of the atomic operation of an I-O statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR8",
+      "quote": "The setting of a record lock is part of the operation of an I-O statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "lock setting atomic with the I-O operation, relative and indexed",
+     "the same for sequential files (LOCK MODE without MULTIPLE)"
+    ],
+    "evidence-2002": {
+     "keyed": "not shown by a test; code read: KeyedConnector.BeginStatement mutex (src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs:1261)",
+     "sequential": "not shown"
+    },
+    "reason": "2002 says the lock is set as part of the ATOMIC operation of the I-O statement; 2023 dropped 'atomic'. The 2023 row (no witness aimed at GR8; l1c17_lock_mode_no_other_inert) shows the lock is set inside the verb, not that check, read and lock are indivisible against other run units. Code read: keyed connectors run each governed statement inside KeyedConnector.BeginStatement's cross-run-unit store mutex (atomic); the sequential connector's BeginStatement is inert (FileConnector.cs:932), and FileRegistry.ReadSharedInStatement checks conflicts before the read and calls LockRecord after it, so atomicity for a shared sequential file depends on PhysicalFileTable.LockRecord/RegionLocks, which I did not read.",
+    "probe": null,
+    "widening": null,
+    "class": "own-text",
+    "needs": "a signed derivation or a two-run-unit race witness that a sequential file's READ conflict check, read and LockRecord are indivisible (PhysicalFileTable.LockRecord with RegionLocks); keyed organizations rest on the store mutex",
+    "compiler-at-2002": "not probed: atomicity needs two concurrent run units, which a three-line program cannot show"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.9.2-2",
+    "to": [
+     "GR-12.4.5.10.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.9 ORGANIZATION (GR2)",
+    "clause-2023": "12.4.5.10 ORGANIZATION (GR3; slice pointer GR2 is LINE SEQUENTIAL)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.9.2 GR2",
+      "quote": "The SEQUENTIAL phrase specifies that the file organization is sequential",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.10.3 GR3",
+      "quote": "The RECORD SEQUENTIAL phrase specifies that the file organization is record sequential",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.10.3 GR2",
+      "quote": "The LINE SEQUENTIAL phrase specifies that the file organization is line sequential",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ORGANIZATION IS SEQUENTIAL gives predecessor-successor order",
+     "record content not treated as lines"
+    ],
+    "evidence-2002": {
+     "order": "not shown at 2002 by the row (pb706 refused COBOL0900 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py)); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/org_default.cob",
+     "content": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/seq_bytes.cob"
+    },
+    "reason": "The slice's pointer (GR2, LINE SEQUENTIAL) is the wrong subject: 2002 has one sequential organization and no line delimiter. The 2023 counterpart is GR3 (RECORD SEQUENTIAL = bare SEQUENTIAL), whose only witness pb706_organization_record_sequential is refused at --std 2002 (COBOL0900: RECORD SEQUENTIAL is 2023 syntax), so the row shows nothing at 2002. 2023 GR3 also adds implementor record-length headers, not in 2002. Probes at 2002: org_default.cob (records read back in written order through ORGANIZATION IS SEQUENTIAL, 10 at end) and seq_bytes.cob (a record holding X\"0A\" and trailing spaces reads back unchanged: no line semantics).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/org_default.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for ORGANIZATION IS SEQUENTIAL (org_default.cob, seq_bytes.cob are candidates); the 2023 row's golden uses RECORD SEQUENTIAL, not 2002 syntax",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/org_default.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/seq_bytes.cob)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.9.2-5",
+    "to": [
+     "GR-12.4.5.10.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.9 ORGANIZATION (GR5)",
+    "clause-2023": "12.4.5.10 ORGANIZATION (GR6)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.9.2 GR5",
+      "quote": "When the ORGANIZATION clause is not specified, sequential organization is implied",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.10.3 GR6",
+      "quote": "sequential organization with the RECORD SEQUENTIAL phrase is implied",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "omitted ORGANIZATION clause gives sequential organization"
+    ],
+    "evidence-2002": {
+     "default": "not shown at 2002 by the row (pb706 refused COBOL0900 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py)); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/org_default.cob"
+    },
+    "reason": "2002 implies plain sequential organization (its only sequential kind); 2023 says sequential 'with the RECORD SEQUENTIAL phrase'. Same behaviour, but the row's witness pb706_organization_record_sequential is refused at --std 2002 (COBOL0900), so nothing at 2002 shows the default. Probe org_default.cob at 2002: a file created through a SELECT with no ORGANIZATION clause reads back through ORGANIZATION IS SEQUENTIAL (00, 00, 10) and is refused by a RELATIVE connector (OPEN 39), so the default is sequential organization.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/org_default.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for the omitted ORGANIZATION clause: org_default.cob is a candidate",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/org_default.cob)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.10.3-4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.10 PADDING CHARACTER (GR4)",
+    "clause-2023": "none",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.10.3 GR4",
+      "quote": "conversion of the padding character specified by literal-1 or the content of data-name-1 is established for the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10.3 GR2",
+      "quote": "the creation or recognition of padding characters shall not occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The decision of whether to claim support for a processor-dependent language element is within an implementor's discretion",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The PADDING CHARACTER clause is dependent upon whether padding characters are applicable to the device type",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "conversion of the padding character under CODE-SET at the OPEN"
+    ],
+    "evidence-2002": {
+     "null facility": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/pad_codeset.cob (records AB**, **** read back unchanged at 2002)"
+    },
+    "reason": "PADDING CHARACTER is a 2002 Format 3 clause (obsolete in 2002) with no 2023 counterpart, so there is no pointer. The compiler accepts it at --std 2002 with COBOL0903 and records it as a null facility (pinned tree docs/conformance/3.6/index.md: no blocking model, no padding written or bypassed, under the not-applicable arm of GR2; 2002 B.3 item 9 makes the clause processor-dependent). With no padding ever created, the CODE-SET conversion of the padding character has nothing to act on. Probe pad_codeset.cob at 2002: PADDING CHARACTER IS PADC on a file with CODE-SET IS STANDARD-1 compiles (COBOL0903 only) and the all-'*' record reads back unchanged.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/pad_codeset.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 the clause is a documented null facility, so GR4 has nothing observable; KEPT on the not-applicable arm of GR2 with docs/conformance/3.6 as the determination and pad_codeset.cob as the witness",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/pad_codeset.cob)",
+    "licence-2002": "§2002:12.3.4.10.3 GR2 with §2002:3.1.5 and §2002:B.3 item 9"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.10.3-5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.10 PADDING CHARACTER (GR5)",
+    "clause-2023": "none",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.10.3 GR5",
+      "quote": "the value used for the padding character shall be defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "This item is conditionally required because it is conditioned upon the existence of a device that requires padding",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10.3 GR2",
+      "quote": "the creation or recognition of padding characters shall not occur",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the implementor's default padding character when the clause is omitted"
+    ],
+    "evidence-2002": {
+     "null facility": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/pad_codeset.cob (SN records read back unchanged); determination in docs/conformance/3.6/index.md"
+    },
+    "reason": "PADDING CHARACTER is a 2002 Format 3 clause (obsolete in 2002) with no 2023 counterpart, so there is no pointer. The compiler accepts it at --std 2002 with COBOL0903 and records it as a null facility (pinned tree docs/conformance/3.6/index.md: no blocking model, no padding written or bypassed, under the not-applicable arm of GR2; 2002 B.3 item 9 makes the clause processor-dependent). The default padding character is 2002 B.1 item 106, conditionally required only where a device requires padding; this processor has none, and docs/conformance/3.6 records that the implementor-defined padding character is never used. Probe pad_codeset.cob file SN (no PADDING clause): an all-space record and a short record read back unchanged at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/pad_codeset.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 no default padding character is used (no device requires padding, B.1 item 106 not required); KEPT with docs/conformance/3.6 as the determination",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/pad_codeset.cob)",
+    "licence-2002": "§2002:B.1 item 106 (conditionally required) with §2002:12.3.4.10.3 GR2"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.11.2-1",
+    "to": [
+     "SR-12.4.5.11.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.11 RECORD DELIMITER (SR1)",
+    "clause-2023": "12.4.5.11 RECORD DELIMITER (SR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.11.2 SR1",
+      "quote": "The RECORD DELIMITER clause may be specified only for variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.11.3 SR1",
+      "quote": "The RECORD DELIMITER clause may be specified only for variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "it is not required to diagnose syntax errors within this unsupported syntax",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "RECORD DELIMITER clause (feature-name and associated method for determining length of variable-length records). This item is optional",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RECORD DELIMITER on a fixed-length file (not diagnosed; licensed)",
+     "on a variable-length file (accepted, COBOL1778)"
+    ],
+    "evidence-2002": {
+     "variable": "covered by conformance-suite/cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness (PASS at --std 2002 with COBOL1778 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py))",
+     "fixed": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/rd_fixed.cob (COBOL1778, runs, at 2002)"
+    },
+    "reason": "The normative sentence is identical; only the informative NOTE differs ('format 3 RECORD CONTAINS' vs 'fixed-or-variable-length format', the same 2002 13.16.41 Format 3). Format 3 only in both, sequential files, no CD reach. The 2023 row is DOCUMENTED-NON-SUPPORT (COBOL1778 names the clause at every edition). 2002 gives the same licence: 3.1.5 (processor-dependent elements need not be implemented; the warning mechanism need not diagnose syntax errors within unsupported syntax), B.3 item 10 (STANDARD-1 depends on a reel device) and B.1 item 118 (feature-names are optional). pb292_record_delimiter_witness passes at --std 2002 with COBOL1778. Probe rd_fixed.cob at 2002: RECORD DELIMITER on a fixed-length and on a VARYING file both draw COBOL1778 and run, exactly the 2023 posture.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/rd_fixed.cob",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 10 and §2002:B.1 item 118"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.11.3-2",
+    "to": [
+     "GR-12.4.5.11.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.11 RECORD DELIMITER (GR2)",
+    "clause-2023": "12.4.5.11 RECORD DELIMITER (GR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.11.3 GR2",
+      "quote": "If STANDARD-1 is specified, the external medium shall be a magnetic tape file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.11.4 GR2",
+      "quote": "If STANDARD-1 is specified, the external medium shall be a tape drive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "STANDARD-1 requires a tape medium (declined, named by COBOL1778)"
+    ],
+    "evidence-2002": {
+     "decline": "covered by conformance-suite/cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness (COBOL1778 at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py)) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/rd_fixed.cob"
+    },
+    "reason": "'magnetic tape file' vs 'tape drive': both require a reel/tape device, which the processor does not have. The 2023 row is DOCUMENTED-NON-SUPPORT (COBOL1778 names the clause at every edition). 2002 gives the same licence: 3.1.5 (processor-dependent elements need not be implemented; the warning mechanism need not diagnose syntax errors within unsupported syntax), B.3 item 10 (STANDARD-1 depends on a reel device) and B.1 item 118 (feature-names are optional). pb292_record_delimiter_witness passes at --std 2002 with COBOL1778.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/rd_fixed.cob",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 10"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.11.3-3",
+    "to": [
+     "GR-12.4.5.11.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.11 RECORD DELIMITER (GR3)",
+    "clause-2023": "12.4.5.11 RECORD DELIMITER (GR3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.11.3 GR3",
+      "quote": "the method used for determining the length of a variable-length record is that specified in ISO 1001:1986",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.11.4 GR3",
+      "quote": "shall be that specified in ISO/IEC 1001:2012, 7.1.2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "STANDARD-1 length method per ISO 1001:1986 (declined)"
+    ],
+    "evidence-2002": {
+     "decline": "covered by conformance-suite/cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness (COBOL1778 at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py))"
+    },
+    "reason": "The referenced tape-label standard differs (ISO 1001:1986 7.2 vs ISO/IEC 1001:2012 7.1.2), but the STANDARD-1 phrase is declined whole under the same 2002 licence, so neither framing is implemented or observable. The 2023 row is DOCUMENTED-NON-SUPPORT (COBOL1778 names the clause at every edition). 2002 gives the same licence: 3.1.5 (processor-dependent elements need not be implemented; the warning mechanism need not diagnose syntax errors within unsupported syntax), B.3 item 10 (STANDARD-1 depends on a reel device) and B.1 item 118 (feature-names are optional). pb292_record_delimiter_witness passes at --std 2002 with COBOL1778.",
+    "probe": null,
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 10"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.12.2-1",
+    "to": [
+     "SR-12.4.5.12.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.12 RECORD KEY (SR1)",
+    "clause-2023": "12.4.5.12 RECORD KEY (no counterpart; pointer SR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RECORD KEY IS data-name-1 qualified",
+     "SOURCE data-name-2 qualified",
+     "ambiguous unqualified key (refused)"
+    ],
+    "evidence-2002": {
+     "qualified data-name-1": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob (RECORD KEY IS PK OF IR1, two records declaring PK; READ KEY IS PK OF IR1 finds 002AAZW at 2002)",
+     "qualified data-name-2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob for the ALTERNATE arm (same SOURCE grammar); not separately probed for RECORD KEY",
+     "ambiguous": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_ambig.cob (RECORD KEY 'PK' refused COBOL1639 at 2002)"
+    },
+    "reason": "2002 SR1 permits qualified RECORD KEY data-name-1 and SOURCE data-name-2. 2023 dropped the clause's 'may be qualified' sentence (qualification is governed generally by the data-name reference rules in both editions), so the pointer is the 2023 rule of the same ordinal, which is about OCCURS and shows nothing about qualification. No pointer evidence covers a qualified operand at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for a qualified RECORD KEY operand: key_qual.cob and key_ambig.cob are candidates",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_ambig.cob)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.12.2-4",
+    "to": [
+     "SR-12.4.5.12.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.12 RECORD KEY (SR4)",
+    "clause-2023": "12.4.5.12 RECORD KEY (SR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.2 SR4",
+      "quote": "data-name-1 and each data-name-2 shall be contained within the first n bytes of the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR4",
+      "quote": "data-name-1 and each data-name-2 shall be contained within the first n bytes of the record",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "prime key data-name-1 beyond the minimum (refused)",
+     "SOURCE data-name-2 beyond the minimum (refused)"
+    ],
+    "evidence-2002": {
+     "data-name-1": "covered by conformance-suite/cases/12.4.5.12-RECORD-KEY/pb1025-indexed-key-beyond-minimum (refused COBOL0863 at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py))",
+     "data-name-2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/src_beyond_min.cob (RECORD KEY 'PKN' SOURCE operand FK refused COBOL0863 at 2002)"
+    },
+    "reason": "Identical words; only the RECORD clause cross-reference renumbers, and the 2002 RECORD clause defines the minimum record size the same way (see 2002-SR-12.3.4.5.2-5). Indexed files only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/src_beyond_min.cob",
+    "widening": "2023 also reaches records with dynamic-length members"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.13.2-1",
+    "to": [
+     "SR-12.4.5.13.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.13 RELATIVE KEY (SR1)",
+    "clause-2023": "12.4.5.13 RELATIVE KEY (no counterpart; pointer SR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.13.2 SR1",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.3 SR1",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RELATIVE KEY IS data-name-1 qualified",
+     "ambiguous unqualified data-name-1 (refused)"
+    ],
+    "evidence-2002": {
+     "qualified": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob (RELATIVE KEY IS RK OF G1 with RK OF G2 = 9: record 3 written and read back at 2002)",
+     "ambiguous": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_ambig.cob (RELATIVE KEY 'RK' refused COBOL1639 at 2002)"
+    },
+    "reason": "2002 SR1 permits a qualified RELATIVE KEY data-name-1. 2023 dropped the clause's 'may be qualified' sentence (qualification is governed generally by the data-name reference rules in both editions), so the pointer is the 2023 rule of the same ordinal, which is about OCCURS and shows nothing about qualification. No pointer evidence covers a qualified operand at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for a qualified RELATIVE KEY: key_qual.cob and key_ambig.cob are candidates",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_qual.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/key_ambig.cob)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.13.3-1",
+    "to": [
+     "GR-12.4.5.13.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.13 RELATIVE KEY (GR1)",
+    "clause-2023": "12.4.5.13 RELATIVE KEY (GR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.13.3 GR1",
+      "quote": "The first logical record has a relative record number of 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.4 GR1",
+      "quote": "The first logical record has a relative record number of 1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "relative record numbering from 1"
+    ],
+    "evidence-2002": {
+     "numbering": "covered by conformance-suite/cases/_unassigned/l1c24_relative_record_numbering (PASS at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py))"
+    },
+    "reason": "Identical but for the ellipsis typography ('. . .' vs '... .'). Relative organization and its key are the same in both editions.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.13.3-2",
+    "to": [
+     "GR-12.4.5.13.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.13 RELATIVE KEY (GR2)",
+    "clause-2023": "12.4.5.13 RELATIVE KEY (GR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.13.3 GR2",
+      "quote": "data-name-1 is used to communicate a relative record number between the user and the mass storage control system",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.4 GR2",
+      "quote": "data-name-1 is used to communicate a relative record number between the user and the mass storage control system",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the relative key carries the record number to and from I-O statements"
+    ],
+    "evidence-2002": {
+     "key": "covered by conformance-suite/cases/12.4.5.13-RELATIVE-KEY/l1_read_relative_key_moved (PASS at --std 2002 (run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/run.py))"
+    },
+    "reason": "2023 drops only the abbreviation '(MSCS)'. Same statements use the relative key in both.",
+    "probe": null,
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-11",
+  "cases": [
+   {
+    "rule-id": "2002-SR-12.3.4.2-4",
+    "verdict": "UPHELD",
+    "reason": "ASSIGN literal-1 is the same operand in all four 2002 formats (indexed, relative, sequential incl. report file, sort-merge) as in 2023; no CD or debugging reach. 2023 adds only 'nor a zero-length literal', and a zero-length literal cannot be written in 2002: 2002 8.3.1.2.1.2 SR1 requires an alphanumeric literal's length to be greater than zero. So 2023 conformance implies the 2002 rule. Re-run at --std 2002 on the pinned tree: pb1078_assign_hex_and_concat_literal PASS; assign_lit_bad.cob refused COBOL2645 for 123, N\"..\", B\"1\", ZERO, ALL \"A\", QUOTE; pb1078-assign-literal-shape refused COBOL2645 (SPACE) plus COBOL0900 for the 2014-only \"\".",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR4",
+      "quote": "Literal-1 shall be an alphanumeric literal and shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR4",
+      "quote": "shall be neither a figurative constant nor a zero-length literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/assign_lit_bad.cob (re-run by refuter with E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-11/run.py)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.5.2-5",
+    "verdict": "UPHELD",
+    "reason": "Same words, only the RECORD clause cross-reference renumbers. 2002 13.16.41 and 2023 13.18.43 have the same three formats and define the minimum record size identically (GR5 implicit clause, GR7, GR9, Format 3 GR17-18); 2023 adds only BYTES as a synonym. Indexed files only (no CD, report or debugging reach). The 2002 ALTERNATE RECORD KEY format has the same operands; 2023 adds SUPPRESS WHEN, which this rule does not touch. Re-run at 2002: pb1025-alternate-key-beyond-minimum refused COBOL0863; src_beyond_min.cob refused COBOL0863 for the SOURCE operand. Evidence note: the pointer row's own tests do not show the SOURCE data-name-2 arm at 2002 (pb1025_key_after_dynamic_member is 2023 syntax); the reader's probe does.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.2 SR5",
+      "quote": "each data-name-1 and data-name-2 shall be contained within the first x bytes of the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR5",
+      "quote": "each data-name-1 and data-name-2 shall be contained within the first x bytes of the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR9",
+      "quote": "the minimum number of bytes to be contained in any record of the file is equal to the least number of bytes described for a record in that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR9",
+      "quote": "the minimum number of bytes to be contained in any record of the file is equal to the least number of bytes described for a record in that file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/src_beyond_min.cob"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.6.3-1",
+    "verdict": "UPHELD",
+    "reason": "Same words. Both formats (file-level, key-level) identical; the 'following general rules' GR2-GR6 are word-identical in both editions. 2002 9.1.6 lists the collating sequence of the keys for indexed files among the fixed file attributes exactly as 2023 9.1.6 does (2023 adds SUPPRESS WHEN and drops padding character from that list, neither of which this rule names). Indexed files only. Re-run at 2002: coll_fixed.cob PASS.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.3 GR1",
+      "quote": "Each collating sequence is a fixed file attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.4 GR1",
+      "quote": "Each collating sequence is a fixed file attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.6",
+      "quote": "the collating sequence of the keys for indexed files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.6",
+      "quote": "the collating sequence of the keys for indexed files",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/coll_fixed.cob"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-3",
+    "verdict": "OVERTURNED",
+    "reason": "The rule has two arms: under sharing with no other the clause has no effect (same in both: 2002 9.1.14 item 1 = 2023 9.1.15 item 1, and l1c17_lock_mode_no_other_inert PASSes at 2002), and OTHERWISE 'the LOCK MODE clause has the effects described in the general rules that follow'. That second arm defers to GR4-GR8, and 2002 GR8 is a different requirement from 2023 GR8: 2002 makes the setting of a record lock part of the ATOMIC operation of the I-O statement; 2023 drops 'atomic' (the word does not occur anywhere in the 2023 text). The reader itself judged 2002-GR-12.3.4.8.3-8 DIFFERENT on that word. So the 2002 GR3 requirement, read whole, includes atomic lock setting for every file not open sharing with no other, which the 2023 GR3 verdict (CONFORMS, witness l1c17_lock_mode_no_other_inert, code FileRegistry.LocksEffective) does not show.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR3",
+      "quote": "If a physical file is open in the sharing with no other mode, the LOCK MODE clause has no effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR3",
+      "quote": "If a physical file is open in the sharing with no other mode, the LOCK MODE clause has no effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.8.3 GR8",
+      "quote": "The setting of a record lock is part of the atomic operation of an I-O statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR8",
+      "quote": "The setting of a record lock is part of the operation of an I-O statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.14",
+      "quote": "The sharing with no other mode specifies exclusive access to a physical file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.15",
+      "quote": "The sharing with no other mode specifies exclusive access to a physical file",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "KEPT for the no-other arm (l1c17_lock_mode_no_other_inert runs at 2002); the otherwise arm closes only with 2002-GR-12.3.4.8.3-8's own verdict (atomic lock setting)",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-6",
+    "verdict": "UPHELD",
+    "reason": "Same words except the record-locking cross-reference number. 2002 9.1.15 is 2023 9.1.16 minus the commit/rollback paragraphs; the one changed sentence ('In all cases' vs 'Except for files subject to commit and rollback') excepts only files 2002 cannot declare. No 2002 I-O statement on a file connector is absent from 2023, and the LOCK MODE formats are identical in all three file formats. Re-run at 2002: pb338_read_releases_prior_lock PASS.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR6",
+      "quote": "Execution of any I-O statement except START releases any previously locked record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR6",
+      "quote": "Execution of any I-O statement except START releases any previously locked record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.15",
+      "quote": "In all cases, all record locks established for a file are released by the execution of an explicit or implicit CLOSE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.16",
+      "quote": "Except for files subject to commit and rollback, all record locks established for a file are released",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.8.3-7",
+    "verdict": "UPHELD",
+    "reason": "2002 requires both implementor maxima to be at least one; 2023 at least 15 (connector) and 255 (run unit). An implementation meeting 2023 meets 2002. The over-limit statuses 53 (run unit) and 54 (connector) are word-identical in 2002 9.1.12.7 and 2023 9.1.13.8. MULTIPLE phrase and its sequential ban identical. Re-run at 2002: pb338_read_lock_limit_position PASS (16th lock 54).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.3 GR7",
+      "quote": "Both of these maximum numbers shall be at least one",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.4 GR7",
+      "quote": "that maximum shall be at least 15",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.7",
+      "quote": "but this file connector holds the maximum number of locks allowed by this implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.8",
+      "quote": "but this file connector holds the maximum number of locks allowed by this implementation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.11.2-1",
+    "verdict": "UPHELD",
+    "reason": "Normative sentence identical; format identical (Format 3 only, sequential and report files). The 2023 row is DOCUMENTED-NON-SUPPORT and its licence text is the same in 2002: 3.1.5 = 2023 4.2.6 (warning mechanism required; syntax errors within unsupported syntax need not be diagnosed), B.3 item 10 = 2023 A.3 (STANDARD-1 depends on a reel device), B.1 item 118 = 2023 A.1 (feature-names optional). Re-run at 2002: pb292_record_delimiter_witness PASS with COBOL1778; rd_fixed.cob accepted with COBOL1778.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.11.2 SR1",
+      "quote": "The RECORD DELIMITER clause may be specified only for variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.11.3 SR1",
+      "quote": "The RECORD DELIMITER clause may be specified only for variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "it is not required to diagnose syntax errors within this unsupported syntax",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.6",
+      "quote": "it is not required to diagnose syntax errors within this unsupported syntax",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.3",
+      "quote": "The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "RECORD DELIMITER clause (feature-name and associated method for determining length of variable-length records). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "RECORD DELIMITER clause (feature-name and associated method for determining length of variable-length records). This item is optional",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/rd_fixed.cob"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.11.3-2",
+    "verdict": "UPHELD",
+    "reason": "'magnetic tape file' vs 'tape drive' both require a reel device; the STANDARD-1 phrase is processor-dependent in both editions with identical licence text (see 2002-SR-12.3.4.11.2-1), and the 2023 row is DOCUMENTED-NON-SUPPORT. pb292_record_delimiter_witness PASS with COBOL1778 at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.11.3 GR2",
+      "quote": "If STANDARD-1 is specified, the external medium shall be a magnetic tape file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.11.4 GR2",
+      "quote": "If STANDARD-1 is specified, the external medium shall be a tape drive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.11.3-3",
+    "verdict": "UPHELD",
+    "reason": "The referenced external standard differs (ISO 1001:1986, 7.2 vs ISO/IEC 1001:2012, 7.1.2), so the method the rule would require differs; but the row carries DOCUMENTED-NON-SUPPORT, not a behaviour, and the licence for declining STANDARD-1 is identical text in both editions (2002 3.1.5 and B.3 item 10). The carried verdict therefore holds at 2002; a future claim of STANDARD-1 support would need the 1986 method at --std 2002. pb292_record_delimiter_witness PASS with COBOL1778 at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.11.3 GR3",
+      "quote": "the method used for determining the length of a variable-length record is that specified in ISO 1001:1986, 7.2, Records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.11.4 GR3",
+      "quote": "shall be that specified in ISO/IEC 1001:2012, 7.1.2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "it is not required to diagnose syntax errors within this unsupported syntax",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.12.2-4",
+    "verdict": "UPHELD",
+    "reason": "Same words; RECORD clause minimum size defined identically (see 2002-SR-12.3.4.5.2-5). Indexed files only. Re-run at 2002: pb1025-indexed-key-beyond-minimum refused COBOL0863; src_beyond_min.cob refused COBOL0863 for the RECORD KEY SOURCE operand.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.2 SR4",
+      "quote": "data-name-1 and each data-name-2 shall be contained within the first n bytes of the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR4",
+      "quote": "data-name-1 and each data-name-2 shall be contained within the first n bytes of the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR9",
+      "quote": "the minimum number of bytes to be contained in any record of the file is equal to the least number of bytes described for a record in that file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-11/src_beyond_min.cob"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.13.3-1",
+    "verdict": "UPHELD",
+    "reason": "Identical but for ellipsis typography; relative format and RELATIVE KEY format identical. Re-run at 2002: l1c24_relative_record_numbering PASS.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.13.3 GR1",
+      "quote": "The first logical record has a relative record number of 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.4 GR1",
+      "quote": "The first logical record has a relative record number of 1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.13.3-2",
+    "verdict": "UPHELD",
+    "reason": "2023 drops only the abbreviation '(MSCS)'. The relative-file I-O statements are the same set in 2002. Re-run at 2002: l1_read_relative_key_moved PASS.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.13.3 GR2",
+      "quote": "data-name-1 is used to communicate a relative record number between the user and the mass storage control system",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.4 GR2",
+      "quote": "data-name-1 is used to communicate a relative record number between the user and the mass storage control system",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "bae1e191338994e8f304da402f4f6f48d3330a09ec4db88d895ad25ccc446b4d",
+  "read": "1bcc4528683951c7cb1d86f4cddd9cbffb71d34715369c9c9a2cc10a4872dae4",
+  "refute": "2597ae8f1791d869c858525aaa140f0f0bf6b7e3d6ab49b765c3b1dfed0f4c23"
+ }
+}

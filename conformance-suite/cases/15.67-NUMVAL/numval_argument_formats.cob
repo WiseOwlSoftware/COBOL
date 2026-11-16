@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: numval_argument_formats
 *> rules: [FMT-15.67.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

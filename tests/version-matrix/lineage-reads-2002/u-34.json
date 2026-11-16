@@ -1,0 +1,1678 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-34 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-34",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-16.1.1.1-1",
+   "2002-DOC-B.1-1",
+   "2002-DOC-B.1-10",
+   "2002-DOC-B.1-100",
+   "2002-DOC-B.1-101",
+   "2002-DOC-B.1-102",
+   "2002-DOC-B.1-103",
+   "2002-DOC-B.1-104",
+   "2002-DOC-B.1-105",
+   "2002-DOC-B.1-106",
+   "2002-DOC-B.1-107",
+   "2002-DOC-B.1-108",
+   "2002-DOC-B.1-109",
+   "2002-DOC-B.1-11",
+   "2002-DOC-B.1-110",
+   "2002-DOC-B.1-111",
+   "2002-DOC-B.1-112",
+   "2002-DOC-B.1-113",
+   "2002-DOC-B.1-114",
+   "2002-DOC-B.1-115",
+   "2002-DOC-B.1-116",
+   "2002-DOC-B.1-117",
+   "2002-DOC-B.1-118",
+   "2002-DOC-B.1-119",
+   "2002-DOC-B.1-12"
+  ],
+  "pointers": {
+   "2002-GR-16.1.1.1-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-16.2.1.2-1",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-1",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-10": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-10",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-100": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-127",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-101": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-128",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-102": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-129",
+    "similarity": 0.991
+   },
+   "2002-DOC-B.1-103": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-130",
+    "similarity": 0.996
+   },
+   "2002-DOC-B.1-104": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-131",
+    "similarity": 0.996
+   },
+   "2002-DOC-B.1-105": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-106": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-107": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-108": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-141",
+    "similarity": 0.994
+   },
+   "2002-DOC-B.1-109": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-142",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-11": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-11",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-110": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-143",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-111": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-144",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-112": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-145",
+    "similarity": 0.997
+   },
+   "2002-DOC-B.1-113": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-114": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-146",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-115": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-147",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-116": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-148",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-117": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-149",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-118": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-150",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-119": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-151",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-12": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-12",
+    "similarity": 1.0
+   }
+  }
+ },
+ "read": {
+  "slice": "u-34",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-16.1.1.1-1",
+    "to": [
+     "GR-16.2.1.2-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "16.1.1.1 New method (BASE factory interface)",
+    "clause-2023": "16.2.1.2 New method",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every New of a class: storage allocated, instance data put in its initial state per 14.5.2.2 -> 14.5.2.1.2.1 (working-storage VALUEs, internal file connectors not open, based items null; screen items declined)",
+     "the returned object reference"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/16.2.1-New-method/oo_instance_data at --std 2002 (golden MATCH, probe-cases.log)",
+     "covered by conformance:cases/16.2.1-New-method/pb1548_standard_class_base at --std 2002 (golden MATCH, probe-cases.log)",
+     "unit:StandardClassBaseNewResourceTests is runtime-only (BASE__FACTORY.__New, no edition)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:16.1.1.1 GR1",
+      "quote": "The New method allocates storage for an object, initializes its instance data in accordance with 14.5.2.2, Initial state of object data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:16.2.1.2 GR1",
+      "quote": "The New method allocates storage for an object, initializes its instance data in accordance with 14.6.2.4, Initial state of object data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.2",
+      "quote": "Internal data, internal file connectors, and the attributes of screen items are initialized in the same manner as when data in a function, method, or program is placed in the initial state",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "The internal data described in the working-storage section, local-storage section, and communication section is initialized as described in 13.16.61, VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication section is located in the data division of a source program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:10.5.2 SR4",
+      "quote": "The data division of a method in a class definition shall not contain a communication section",
+      "check": "OK"
+     }
+    ],
+    "reason": "The referenced clauses were read in both editions: §2002:14.5.2.2 is word-identical to §2023:14.6.2.4 (only clause numbers change). Its target §2002:14.5.2.1.2.1 lists the communication section among the data initialized, but that cannot reach an object: §2002:A.1.1 places the communication section in the data division of a source PROGRAM and §2002:10.5.2 SR4 bars it from methods, so object data is working-storage and file connectors as in 2023. 2023's initial-state list ADDS the OPTIONS INITIALIZE fill, dynamic-capacity tables and dynamic-length items (2023-only data, a widening). No debugging line, report or removed form reaches New. Both witnesses run clean at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": "2023's initial state adds INITIALIZE-clause fill, dynamic-capacity tables and dynamic-length items, none of which exists in 2002"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-1",
+    "to": [
+     "DOC-A.1-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 1 (14.8.1 ACCEPT GR1, GR14)",
+    "clause-2023": "A.1 item 1 (14.9.1 ACCEPT GR1, GR14)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 (device) ACCEPT: conversion from the hardware device into every 2002 receiver class (alphanumeric, alphabetic, edited, national, numeric of every usage, FLOAT-SHORT/LONG/EXTENDED, boolean, groups)",
+     "format 3 (screen) conversion, GR14"
+    ],
+    "evidence-2002": [
+     "device arms covered by the pointer's AcceptDifferentialTests, which compile at 85, 2002 and 2023 per arm (boolean, national/bit group and ANY LENGTH arms at 2002); the decimal-numeric and float arms (85/2023 there) shown at --std 2002 by probe acc/acc.cob: 12.50CR->12.50, 1234567890->890.00 in S9(3)V99 COMP, -1.5E+2->-150 in FLOAT-LONG, -1.5E2 (no exponent sign)->0, 1x10->1010 boolean, Y123->23.00, edited receiver stored as-is; output byte-identical to the --std 2023 build and to the determination",
+     "screen arm: declined at --std 2002 (COBOL1560, run-a42-screen-background-color-2002), licensed by §2002:3.1.5 + B.3 item 1 and withdrawn by the B.1 preamble"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "ACCEPT statement (conversion of data). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "ACCEPT statement (conversion of data). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.3 GR1",
+      "quote": "Any conversion of data required between the hardware device and the data item referenced by identifier-1 is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR1",
+      "quote": "Any conversion of data required between the device and the data item referenced by identifier-1 is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.3 GR14",
+      "quote": "Any conversion of data required between the hardware device and the data items referenced in screen-name-1 is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 differs only in wording: 2002 says 'hardware device', 2023 'device' (2023 widens SR2 to software devices). 2002's SR1 excludes strongly-typed groups and index/object/pointer items; 2023 adds message-tag (2023-only class) and SR6's variable-length group (2023-only). Every 2002 receiver class exists in 2023 and the determination (docs/conformance/7/DOC-A.1-1.md) states the conversion 'at every --std'; the probe shows the arms the host tests pin only at 85/2023 behave identically at 2002. The screen half (GR14) is processor-dependent in 2002 (B.3 item 1) and declined with COBOL1560 at 2002 as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/acc/out2-2002.txt",
+    "widening": "2023 widens the device to software devices and adds 2023-only receiver classes"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-10",
+    "to": [
+     "DOC-A.1-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 10 (12.3.4 GR4)",
+    "clause-2023": "A.1 item 10 (12.4.5.3 GR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ASSIGN ... USING data-name-1 with and without the TO phrase on sequential (record), relative and indexed files: consistency rules between data-name-1's content and device-name-1/literal-1 (none)"
+    ],
+    "evidence-2002": [
+     "NOT shown by the pointer: its only witness pb324_assign_using_dynamic is refused at --std 2002 (COBOL0900 ORGANIZATION LINE SEQUENTIAL and DELETE FILE, run-pb324_assign_using_dynamic-2002)",
+     "shown by probe asg/asg.cob at --std 2002 (pb324 with ORGANIZATION SEQUENTIAL and no DELETE FILE): BLANK=31 OPENA=00 OPENB=00 CHK=05 READA/READB, MIX with TO \"pb324mix.dat\" USING WS-NAME writes pb324e.dat (OPENM=00, CHK2=05, READE=EEEEE); identical at 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "ASSIGN clause, USING phrase (meaning and rules for operands; consistency rules). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "ASSIGN clause, USING phrase (meaning and rules for operands; consistency rules). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.3 GR4",
+      "quote": "The consistency rules, if any, that apply between the content of the data item referenced by data-name-1 and either the specification of device-name-1 or the value of literal-1 are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR4",
+      "quote": "The consistency rules, if any, that apply between the content of the data item referenced by data-name-1 and either the specification of device-name-1 or the value of literal-1 are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.3 GR3",
+      "quote": "When the USING phrase of the ASSIGN clause is specified, the file connector referenced by file-name-1 is associated with a physical file identified by the content of the data item referenced by data-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule (GR4) and its GR3 b) are word-identical in both editions and the requirement is the same; the determination ('there are NONE') applies unchanged. But the pointer's evidence does not hold at --std 2002: its one witness uses ORGANIZATION LINE SEQUENTIAL and DELETE FILE, which 2002 does not have (the compiler refuses it, correctly). The record-sequential probe shows the compiler at 2002 behaves exactly as the determination says.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/asg/r2002/out.txt",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for ASSIGN USING with and without TO: probes-u-34/asg/asg.cob (record sequential pb324) is the candidate",
+    "compiler-at-2002": "correct (probes-u-34/asg/r2002/out.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-100",
+    "to": [
+     "DOC-A.1-127"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 100 (12.2.5 GR2)",
+    "clause-2023": "A.1 item 127 (12.3.6.4 GR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "computer-name-1 of the OBJECT-COMPUTER paragraph: no equipment configuration is provided (optional item), with the name, without it (GR3) and with no paragraph (GR4)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/pb373_object_computer_name_inert at --std 2002 (golden MATCH, probe-cases.log); note its accept header lists only 2023, so the generated 2002 suite does not yet carry it"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "OBJECT-COMPUTER paragraph (computer-name and implied equipment configuration). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "OBJECT-COMPUTER paragraph (computer-name and implied equipment configuration). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR2",
+      "quote": "Computer-name-1 may provide a means for identifying equipment configuration, in which case computer-name-1 and its implied configuration are specified by each implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR2",
+      "quote": "Computer-name-1 may provide a means for identifying equipment configuration, in which case computer-name-1 and its implied configuration are specified by each implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Optional: The element may be provided at the implementor's option",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format of OBJECT-COMPUTER identical in 2002 and 2023 (computer-name-1, CHARACTER CLASSIFICATION, PROGRAM COLLATING SEQUENCE; 2002 has no MEMORY SIZE/SEGMENT-LIMIT either); GR1-GR4 word-identical. Optional in both; not provided; the witness runs clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-101",
+    "to": [
+     "DOC-A.1-128"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "B.1 item 101 (13.16.36 GR2)",
+    "clause-2023": "A.1 item 128 (13.18.38.4 GR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the documented range of index values (the signed 64-bit interval), reached through SET, PERFORM VARYING and SEARCH",
+     "EC-RANGE-INDEX when a statement creates a value outside it"
+    ],
+    "evidence-2002": [
+     "range statement itself: docs/conformance/7/DOC-A.1-128.md, edition-neutral",
+     "pb459_set_index_amount_guards, pb459_set_index_amount_ec, pb459_set_index_range_ec, pb459_set_index_overflow_unchanged all MATCH at --std 2002 (probe-cases.log) - BUT every EC-RANGE-INDEX leg reaches the range boundary by SET IX UP BY past a 5-occurrence table, which the normative 2002 SET rule makes EC-BOUND-SUBSCRIPT with IX unchanged, so under that reading these goldens assert 2023 semantics at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "OCCURS clause (range of values allowed in the index). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR2",
+      "quote": "the EC-RANGE-INDEX exception condition is set to exist and the value of the index is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR2",
+      "quote": "the value of the index is undefined unless the value of the index is specified by the rules of that statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.3 GR3",
+      "quote": "otherwise the EC-BOUND-SUBSCRIPT exception condition is set to exist, the execution of the SET statement is unsuccessful, and the content of the receiving operand is unchanged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.3 GR2",
+      "quote": "If the value of the subscript is not a positive integer or is less than one or greater than the highest permissible occurrence number, the EC-BOUND-SUBSCRIPT exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "The range rule is the same except that 2023 adds 'unless the value of the index is specified by the rules of that statement' (2002: simply undefined; leaving it unchanged is within both). What is not settled is the evidence: the 2002 SET statement (§2002:14.8.35.3 GR2 a)1. and GR3 b)) makes an index move outside the table unsuccessful with EC-BOUND-SUBSCRIPT, whereas the determination and all four witnesses rely on 2023's 'even if that occurrence is not a valid occurrence within this table'. At --std 2002 the compiler follows 2023 (OVERFLOW=+9223372036854775801; RANGE=EC-RANGE-INDEX). This is kb/Work PB5625 Reading 1 (normative GR2/GR3b against informative §2002:F.2 item 121), already open. Settled by: PB5625 Reading 1. If the normative text governs, the item-101 range is unreachable by SET at 2002, these witnesses are wrong at 2002 and the row needs its own 2002 witness; if F.2 governs, SAME.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-102",
+    "to": [
+     "DOC-A.1-129"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 102 (14.8.26 GR8)",
+    "clause-2023": "A.1 item 129 (14.9.27.4 GR10)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN of an existing physical file of sequential, relative or indexed organization: which fixed file attributes (9.1.6, including 2002's padding character and record delimiter) are validated, '39' on a conflict"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/9.1.13.6-Permanent-error-condition-with-unsuccessful-completion/open_fixed_attribute_conflict at --std 2002 (accept [85, 2002], golden MATCH)",
+     "covered by .../open_fixed_attribute_conflict_ix at --std 2002 (golden MATCH; accept header lists 2023 only)",
+     "unit:FixedFileAttributeFormatTests is runtime-only"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "OPEN statement (validation of fixed file attributes). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR8",
+      "quote": "The implementor defines which of the fixed-file attributes are validated during the execution of the OPEN statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR10",
+      "quote": "The implementor defines which of the fixed-file attributes are validated during the execution of the OPEN statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.6",
+      "quote": "the minimum and maximum physical record size in bytes, the padding character, and the record delimiter",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR8 (2002) and GR10 (2023) are the same sentence with 'physical file' for 'file'. §2002:9.1.6 lists the padding character among the fixed attributes (2023 drops it and adds SUPPRESS WHEN); the determination validates only what each organization's physical format encodes, which a padding character is not (CONFORMANCE §3.6 says so for PADDING CHARACTER), so the 2002-only attribute is answered by the same rule. The line-sequential arm of the determination is 2023-only (extra). Witnesses run clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": "the determination's line sequential arm is 2023-only"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-103",
+    "to": [
+     "DOC-A.1-130"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 103 (14.8.26 GR16)",
+    "clause-2023": "A.1 item 130 (14.9.27.4 GR18)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN OUTPUT of a sequential (record) file, with and without LINAGE: position relative to physical page boundaries (top of first page, nothing written by the OPEN)"
+    ],
+    "evidence-2002": [
+     "LINAGE leg covered by conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85 at --std 2002 (accept [85, 2002], golden MATCH); the pointer's other witness pb523_linage_margins_on_the_medium is LINE SEQUENTIAL (refused at 2002) and covers only 2023-only line sequential files beyond that"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "OPEN statement with OUTPUT phrase (positioning of the output file with regard to physical page boundaries). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR16",
+      "quote": "the positioning of the output medium with respect to physical page boundaries is implementor-defined following the successful execution of the OPEN statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR18",
+      "quote": "the positioning of the output medium with respect to physical page boundaries is implementor-defined following the successful execution of the OPEN statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence ('physical file' -> 'file'). 2002 has only record sequential among page-bearing files; the pointer's record-sequential witness runs clean at 2002, so the 2002 scope has the evidence the 2023 row has for it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": "2023 adds LINE SEQUENTIAL files to the page-bearing files"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-104",
+    "to": [
+     "DOC-A.1-131"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 104 (14.8.26 GR22)",
+    "clause-2023": "A.1 item 131 (14.9.27.4 GR23)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN with no SHARING phrase and no SHARING clause: the sharing mode per open mode (INPUT read only, others no other), for sequential, relative and indexed files"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.27-OPEN/pb322_default_sharing_by_open_mode at --std 2002 (golden MATCH)",
+     "covered by conformance:cases/14.9.27-OPEN/pb322_clauseless_reader_sees_record_lock at --std 2002 (golden MATCH)",
+     "unit:OpenTable19Tests runtime-only; the 85 witness pb670 is 85-only by design"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "OPEN statement without the SHARING phrase and no SHARING clause in the file control entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR22",
+      "quote": "If neither a SHARING phrase on the OPEN statement nor a SHARING clause in the file control entry is specified, the implementor shall define the sharing mode that is established for each file connector",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR23",
+      "quote": "If neither a SHARING phrase on the OPEN statement nor a SHARING clause in the file control entry is specified, the implementor shall define the sharing mode that is established for each file connector",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence; the determination says 'COBOL 2002 and later'. Sharing is a 2002 feature (processor-dependent, claimed). Witnesses run clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-105",
+    "to": [
+     "DOC-A.1-42"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 105 (12.2.6 GR17)",
+    "clause-2023": "A.1 item 42 (12.3.7.4 GR17)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "literal-9 of ORDER TABLE: the allowable content naming an ordering table that complies with ISO/IEC 14651:2001 (2002's default table is 'ISO14651_2002_TABLE1')"
+    ],
+    "evidence-2002": [
+     "pointer found by reading (the slice gave none): DOC-A.1-42; its witnesses pb101_standard_compare, pb101_ec_order_not_supported, pb1537_figurative_literal_clauses MATCH at --std 2002 (probe-cases.log), but they pin a 14651:2020 table",
+     "probe ord/ord02.cob at --std 2002: ORDER TABLE OT02 IS \"ISO14651_2002_TABLE1\" -> COBOL1662 warning, STANDARD-COMPARE(\"a\" \"B\" OT02) = '=' (EC-ORDER-NOT-SUPPORTED, checking off); ord20.cob: \"ISO 14651_2020_TABLE1\" -> '<'; no ordering-name -> '<'"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Ordering table (allowable content of literal identifying an ordering table that complies with ISO/IEC 14651:2001)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR17",
+      "quote": "ordering-name-1 references an ordering table constructed in accordance with ISO/IEC 14651:2001 and identified by literal-9. The implementor specifies the allowable content of literal-9",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR17",
+      "quote": "ordering-name-1 shall reference a cultural ordering table that is identified by literal-9 and constructed in accordance with ISO/IEC 14651:2020, Annex A",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.69.2 AR4",
+      "quote": "If ordering-name-1 is not specified, the default ordering table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The STANDARD-COMPARE intrinsic function and the ORDER TABLE clause in SPECIAL-NAMES are dependent upon an implementation of ISO/IEC 14651:2001",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Conditionally required: If the associated feature or language element is implemented then this element is also required",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words differ where it matters: 2002 requires a table constructed per ISO/IEC 14651:2001 (default 'ISO14651_2002_TABLE1', §2002:15.69.2 AR4), 2023 per 14651:2020 Annex A. The determination documents only 'ISO 14651_2020_TABLE1' (CLDR root, UCA 17) and locale tags, and refuses 2002's own table name. The literal's content is the implementor's in both, so declining the 2002 spelling is within GR17; but nothing shows that the table provided at --std 2002 is 'constructed in accordance with ISO/IEC 14651:2001'.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/ord",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 literal-9 admits 'ISO 14651_2020_TABLE1' and locale tags and draws COBOL1662 + EC-ORDER-NOT-SUPPORTED for 'ISO14651_2002_TABLE1' (probes ord02/ord20); plus a recorded decision whether a 14651:2020 table satisfies 2002's 14651:2001 requirement (lead: §2002:15.69.2 AR4's default table)",
+    "compiler-at-2002": "correct for the literal-content latitude (probes-u-34/ord); the 14651:2001 conformance of the table is not shown"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-106",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 106 (12.3.4.10 GR5)",
+    "clause-2023": "none (PADDING CHARACTER is not in 2023)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the padding character used when the PADDING CHARACTER clause is omitted, conditioned on a device that requires padding"
+    ],
+    "evidence-2002": [
+     "documented in docs/CONFORMANCE.md §3.6 (no blocking model: no padding character is written or bypassed, the implementor's default is never used)",
+     "probe pad/pad.cob at --std 2002: PADDING CHARACTER IS \"*\" accepted with COBOL0903 (obsolete), file holds exactly ABC, read back R=ABC; at 2023 COBOL0902"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "PADDING CHARACTER clause (default character). This item is conditionally required because it is conditioned upon the existence of a device that requires padding",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10.3 GR5",
+      "quote": "If the PADDING CHARACTER clause is not specified, the value used for the padding character shall be defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10.3 GR2",
+      "quote": "If the PADDING CHARACTER clause is not applicable to the device type to which the file is assigned, the creation or recognition of padding characters shall not occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Conditionally required: If the associated feature or language element is implemented then this element is also required",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 counterpart (the clause left after 2002). In 2002 the item is conditional on a device needing padding; WiseOwl COBOL has none (no blocking), so the condition is absent and GR2 makes padding not occur; the probe shows that at 2002. No pointer row carries it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/pad/r2002/out.txt",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 the clause is accepted (COBOL0903) and no padding is created or recognized (probe pad.cob); condition absent per CONFORMANCE §3.6",
+    "compiler-at-2002": "correct (probes-u-34/pad/r2002/out.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-107",
+    "to": [
+     "DOC-A.1-138"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 107 (7 Compiler directing facility)",
+    "clause-2023": "A.1 item 138 (Clause 7)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "when (and how) parameterized classes - and, by clause 7's sentence, parameterized interfaces - are expanded: after text manipulation"
+    ],
+    "evidence-2002": [
+     "pointer found by reading (the slice gave none): DOC-A.1-138; its witness conformance:cases/11.3-CLASS-ID/pb759_parameterized_class MATCH at --std 2002 (accept [2002], probe-cases.log); the row's own notes record a REPLACE-before-expansion probe at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Parameterized classes (when expanded). This item is required. This item need not be documented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7",
+      "quote": "The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor, except that it occurs after the text manipulation stage of processing",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.1",
+      "quote": "The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor, except that it occurs after the text manipulation stage of processing",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's item names classes only and 2023's 'classes and interfaces', but the governing sentence of clause 7 is word-identical in both and already covers interfaces in 2002. Required, not documented, in both. The expansion code (OoExpansion) is edition-independent and the witness runs clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-108",
+    "to": [
+     "DOC-A.1-141"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 108 (14.1.3 GR13)",
+    "clause-2023": "A.1 item 141 (14.2.3 GR13)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a .NET host activating a COBOL program/function: parameter matching, representation, RETURNING, OMITTED/OPTIONAL"
+    ],
+    "evidence-2002": [
+     "pointer's HostEntryTests compile their COBOL at 2023 (NonCobolElement.CompileCobol default); probe host/hst.cob compiled at --std 2002 and 2023: the generated host surface (HostLanding entries) is identical modulo namespace and the Edition stamp (diff of hst2002.g.cs / hst2023.g.cs)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Procedure division header rules when either the activating or the activated runtime element is not a COBOL element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.1.3 GR13",
+      "quote": "the implementor shall specify the restrictions and mechanisms for all supported language products",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR13",
+      "quote": "the implementor shall specify the restrictions and mechanisms for all supported language products",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence, same conditional item. The mechanism is the code generator's host surface, which emits the same entries at 2002 as at 2023, so the host tests' evidence carries to a 2002 module.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/host",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-109",
+    "to": [
+     "DOC-A.1-142"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 109 (8.4.2.12 GR2)",
+    "clause-2023": "A.1 item 142 (8.4.3.13 GR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADDRESS OF PROGRAM naming a non-COBOL program: condition absent (no non-COBOL program can be addressed), documented"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/w59h_non_cobol_names_not_found at --std 2002 (accept [2002], golden MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Program-address identifier (relation between address and non-COBOL program). This item is conditionally required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.12.3 GR2",
+      "quote": "For a non-COBOL program, the relation between the address and the associated program is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.4 GR2",
+      "quote": "For a non-COBOL program, the relation between the address and the associated program is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Conditionally required: If the associated feature or language element is implemented then this element is also required",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format (identifier-1 / literal-1 / program-prototype-name-1) and GR2 identical; conditional in both, condition absent, the same DOCUMENTED-NON-SUPPORT licence (the B.1 preamble's conditionally-required definition is word-identical). Witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null,
+    "licence-2002": "§2002:B.1 preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required'"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-11",
+    "to": [
+     "DOC-A.1-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 11 (13.16.4 GR4)",
+    "clause-2023": "A.1 item 11 (13.18.4 GR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the default background color of a screen item (clause absent or value outside 0-7)"
+    ],
+    "evidence-2002": [
+     "declined at --std 2002: wiseowl/cases/13.18.4-BACKGROUND-COLOR/a42-screen-background-color draws COBOL1560 (run-a42-screen-background-color-2002/stdout.txt), as at 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "BACKGROUND-COLOR clause (the background color when the clause is not specified or the value specified is not in the range 0 to 7). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.4.3 GR4",
+      "quote": "When a BACKGROUND-COLOR clause is not specified or the value is not in the range 0 to 7, the background color is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR4 identical. 2002 licenses the non-support on its own ground: the screen section is processor-dependent (§2002:B.3 item 1), §2002:3.1.5 lets an unclaimed one go unimplemented with a compile-time diagnostic and documented absence, and the B.1 preamble withdraws the required item. COBOL1560 at 2002; CONFORMANCE §5 records screen handling not claimed. (COBOL1560's text cites 2023's A.4.2 licence, a wording matter already noted by the q-44 refuter.)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/run-a42-screen-background-color-2002/stdout.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1 (screen section) and the §2002:B.1 preamble"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-110",
+    "to": [
+     "DOC-A.1-143"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 110 (8.3.1.1.1.20 Program-name)",
+    "clause-2023": "A.1 item 143 (8.3.2.2.21 Program-name)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "formation rules for a non-COBOL program-name: not provided (optional)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/w59h_non_cobol_names_not_found at --std 2002 (golden MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Program-name (formation rules for a non-COBOL program). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1.20",
+      "quote": "For a non-COBOL program, the rules for formation of the program-name are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Optional: The element may be provided at the implementor's option",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence and the same optional class in both; not provided; the witness (a CALL of .NET names takes ON EXCEPTION) runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null,
+    "licence-2002": "§2002:B.1 preamble, 'Optional: The element may be provided at the implementor's option'"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-111",
+    "to": [
+     "DOC-A.1-144"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 111 (15.62 AR4)",
+    "clause-2023": "A.1 item 144 (15.75.3 AR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the implementor's seed when the first RANDOM reference has no argument"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/l1_random_seed_determination at --std 2002 (golden MATCH; accept header lists 2023 only)",
+     "probe rnd/rnd.cob identical at 2002 and 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "RANDOM function (seed value when no argument on first reference). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.62.2 AR4",
+      "quote": "If the first reference to this function in the run unit does not specify argument-1, the seed value is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.75.3 AR4",
+      "quote": "If the first reference to this function in the run unit does not specify argument-1, the seed value is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Argument and returned-value rules of RANDOM are word-identical; the generator is runtime-only. Witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-112",
+    "to": [
+     "DOC-A.1-145"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 112 (15.62 RV3)",
+    "clause-2023": "A.1 item 145 (15.75.4 RV3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the subset of argument-1 values giving distinct sequences (>= 0..32767)"
+    ],
+    "evidence-2002": [
+     "unit:RandomSeedSubsetTests are runtime-only (CobolIntrinsics.Random, no edition)",
+     "probe rnd/rnd.cob at --std 2002: RANDOM(0), (32767), (65535), (2147483648 -> aliases to 0, as documented) identical to 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "RANDOM function (subset of the domain of argument-1). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.62.3 RV3",
+      "quote": "This subset shall include the values from 0 through at least 32767",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.75.4 RV3",
+      "quote": "This subset shall include the values from 0 through at least 32767",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; the evidence is the runtime's, and the probe shows the compiled call is the same at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/rnd/r2002/out.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-113",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 113 (A.2.5 RECEIVE GR5)",
+    "clause-2023": "none (communication facility, annexA)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RECEIVE (communication facility, optional and obsolete in 2002): the conditions under which data is not available"
+    ],
+    "evidence-2002": [
+     "documented in docs/CONFORMANCE.md §3.3 ('RECEIVE: when data is not available': the designated structure holds no complete message; without NO DATA the run unit waits) - labelled '2002 B.1 item 116', which is the wrong number (the PDF's item 116 is the RECORD clause format 3 item; RECEIVE is 113)",
+     "probe rcv/rcv.cob at --std 2002 (mcs.json: T1 empty, T2 with HELLO): RECEIVE on T1 takes NO DATA (status 00); COBOL0903 obsolete warnings; at 2023 COBOL0902"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "RECEIVE statement (conditions under which data is not available). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.3 GR5",
+      "quote": "The conditions under which data is not made available are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Optional: The element may be provided at the implementor's option",
+      "check": "OK"
+     }
+    ],
+    "reason": "The communication facility has no 2023 counterpart. The item is provided and documented, and the compiler does it at 2002, but no inventory row carries a witness; the only RECEIVE NO DATA tests (ScheduledProgramTests) compile at 85.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/rcv/r2002/out.txt",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: at --std 2002 RECEIVE without available data takes NO DATA (probe rcv.cob is the candidate witness); and correct CONFORMANCE §3.3's item numbers (RECEIVE is 2002 B.1 item 113, status key 9x item 27, error key item 26)",
+    "compiler-at-2002": "correct (probes-u-34/rcv/r2002/out.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-114",
+    "to": [
+     "DOC-A.1-146"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 114 (13.16.41 GR2)",
+    "clause-2023": "A.1 item 146 (13.18.43.4 GR2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "size on the medium for record sequential (fixed, variable, print stream), relative and indexed files, with the CODE-SET and FORMAT clause factors"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.18.43-RECORD/pb1276_record_contains_sizes_file at --std 2002 (accept [85, 2002], MATCH)",
+     "covered by conformance:cases/9.1.13.2-Successful-completion/io_status_04 at --std 2002 (MATCH)",
+     "pb1540_ls_lone_cr_is_data is LINE SEQUENTIAL (refused at 2002) and covers only the 2023-only line sequential arm; unit:RelativeEngineTests runtime-only"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "RECORD clause (calculations to derive size of records on storage medium). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR2",
+      "quote": "The implementor shall specify the calculations necessary for the user to derive the size for records on the storage medium",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR2",
+      "quote": "The implementor shall specify the calculations necessary for the user to derive the size for records on the storage medium",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR2 is word-identical, including both factors (CODE-SET, FORMAT clause). 2023's format adds the BYTES synonym and GR3 says 'occurs-depending table' where 2002 says 'variable-length data item' (2002 has no dynamic-length items, so the same items). The determination's line-sequential arm is extra at 2023; every 2002 organization's arm has the same witnesses, which run clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": "LINE SEQUENTIAL arm is 2023-only"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-115",
+    "to": [
+     "DOC-A.1-147"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 115 (13.16.41 GR5)",
+    "clause-2023": "A.1 item 147 (13.18.43.4 GR5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the implicit RECORD clause of an FD or SD without one"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.18.43-RECORD/pb322_release_short_record_fixed_sd at --std 2002 (accept [85, 2002], MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "RECORD clause (implicit RECORD clause if RECORD clause is not specified). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR5",
+      "quote": "This implicit RECORD clause is defined by the implementor with the following characteristics",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR5",
+      "quote": "This implicit RECORD clause is defined by the implementor with the following characteristics",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR5 a) and b) are word-identical; the witness runs clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-116",
+    "to": [
+     "DOC-A.1-148"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 116 (13.16.41 GR17)",
+    "clause-2023": "A.1 item 148 (13.18.43.4 GR17)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 3 RECORD CONTAINS integer-4 TO integer-5: variable-length records"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.18.43-RECORD/l1c23_record_format3_variable at --std 2002 (accept [85, 2002], MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "RECORD clause (whether fixed or variable records produced for fixed-or-variable-length format). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR17",
+      "quote": "It is implementor defined whether format 3 of the RECORD clause produces fixed-length records or variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR17",
+      "quote": "It is implementor defined whether format 3 of the RECORD clause produces fixed-length records or variable-length records",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule and format 3 (2023 adds only BYTES as a synonym of CHARACTERS); witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-117",
+    "to": [
+     "DOC-A.1-149"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 117 (12.3.4 GR1c)",
+    "clause-2023": "A.1 item 149 (12.4.5.3 GR1c)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "consistency rules for feature-name-1 across external file connectors: condition absent (no feature-name-1)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness at --std 2002 (accept [2002, 2023], MATCH; COBOL1778 on each RECORD DELIMITER clause)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "RECORD DELIMITER clause (consistency rules when used with external file connectors). This item is conditionally required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.3 GR1",
+      "quote": "Either the STANDARD-1 phrase or a consistent value of feature-name-1 in the RECORD DELIMITER clause. The implementor shall specify the consistency rules for feature-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Conditionally required: If the associated feature or language element is implemented then this element is also required",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR1 c) identical; the condition (a feature-name-1 exists) is absent in both; the same diagnostic at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null,
+    "licence-2002": "§2002:B.1 preamble, conditionally required"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-118",
+    "to": [
+     "DOC-A.1-150"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 118 (12.3.4.11 SR2, GR4)",
+    "clause-2023": "A.1 item 150 (12.4.5.11 SR2, GR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "names available as feature-name-1 and their methods: none (optional, not provided); a written feature-name is accepted with COBOL1778 and framed by GR5's method"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness at --std 2002 (MATCH, COBOL1778 on RECORD DELIMITER IS PB292-TAPE-FORMAT)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "RECORD DELIMITER clause (feature-name and associated method for determining length of variable-length records). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.11.2 SR2",
+      "quote": "The implementor shall specify the names available for use as feature-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.11.3 SR2",
+      "quote": "The implementor shall specify the names available for use as feature-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Optional: The element may be provided at the implementor's option",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format, SR1, SR2, GR1, GR4, GR5 identical (2023 only modernizes the ISO 1001 reference of the STANDARD-1 arm, not this item).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null,
+    "licence-2002": "§2002:B.1 preamble, 'Optional: The element may be provided at the implementor's option'"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-119",
+    "to": [
+     "DOC-A.1-151"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 119 (12.3.4.11 GR5)",
+    "clause-2023": "A.1 item 151 (12.4.5.11.4 GR5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the method of determining a variable-length record's length when no RECORD DELIMITER clause applies: 4-byte little-endian prefix for record sequential, relative, indexed"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness at --std 2002 (MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "RECORD DELIMITER clause (if not specified, method for determining length of variable-length records). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.11.3 GR5",
+      "quote": "If the RECORD DELIMITER clause is not specified, the method used for determining the length of a variable-length record is specified by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.11.4 GR5",
+      "quote": "If the RECORD DELIMITER clause is not specified, the method used for determining the length of a variable-length record is specified by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; the determination's line-sequential arm is 2023-only. Witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": "LINE SEQUENTIAL arm is 2023-only"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-12",
+    "to": [
+     "DOC-A.1-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 12 (8.1.1)",
+    "clause-2023": "A.1 item 12 (8.1.2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the number of bits in a byte (8)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler at --std 2002 (accept [2002], MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Byte (number of bits in). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.1.1",
+      "quote": "The implementor shall specify the number of bits in a byte for each supported computer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.2",
+      "quote": "The implementor shall specify the number of bits in a byte for each supported computer",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence; the witness (bit items, BYTE-LENGTH) runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-34/probe-cases.log",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-34",
+  "cases": [
+   {
+    "rule-id": "2002-GR-16.1.1.1-1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "New initializes instance data 'in accordance with 14.5.2.2', which defers to 14.5.2.1.2.1, whose item 1 initializes working-storage, local-storage AND communication-section data (2023 14.6.2.3.2 item 2 drops the communication section). The reader closed the reach with A.1.1 ('data division of a source program') and 10.5.2 SR4, but SR4 bars a communication section only from a METHOD; no 2002 rule bars it from a factory or instance definition (13.1's format lists it with no source-unit limit, unlike the file, working-storage, report and screen sections, each of which states where it may stand in a class definition, e.g. 13.8.2 SR1), and 8.6.3 names communication-section items of a 'source element' among those set to their initial state when 'the runtime element or object containing them' is, 'as described in ... 14.5.2.2'. So in 2002 New's initialization also reaches CD-record VALUEs in an instance definition; the witnesses (oo_instance_data, pb1548) have none. Probe oocd.cob (OBJECT. ... COMMUNICATION SECTION. CD OUTCD FOR OUTPUT ... 01 CREC with VALUE 'AAAA'): at --std 2002 the compiler refuses it with COBOL1519, whose text is wrong on its face ('an instance definition shall not contain a SCREEN SECTION - it may appear only in a factory or instance definition', for a COMMUNICATION SECTION). needs: a decision on the A.1.1 'source program' reading; if 2002 permits a CD in an instance definition, the refusal is a compiler defect and the row needs its own 2002 witness. COBOL1519's wording is a defect either way. Not decisive for the reader, so refuted.",
+    "citations": [
+     {
+      "cite": "§2002:16.1.1.1 GR1",
+      "quote": "initializes its instance data in accordance with 14.5.2.2, Initial state of object data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "The internal data described in the working-storage section, local-storage section, and communication section is initialized as described in 13.16.61, VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.2.3.2",
+      "quote": "The internal data described in the working-storage section and local-storage section is initialized as described in 13.18.63, VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.6.3",
+      "quote": "Data items and file connectors defined in the working-storage, communication, or file section of a source element that is not an initial program are static items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.6.3",
+      "quote": "These items are set to their initial state each time the runtime element or object containing them is set to its initial state",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:10.5.2 SR4",
+      "quote": "The data division of a method in a class definition shall not contain a communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.8.2 SR1",
+      "quote": "Within a class definition, the screen section may be specified only in a factory definition or an instance definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication section is located in the data division of a source program",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-34/oocd/r2002/out.txt"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "Item 1 is GR1's device-to-identifier-1 conversion, and 2002 SR1 lets identifier-1 be any item that is not strongly-typed, index, object or pointer, so it may be an item of a record description under a CD or an implicit CD data-name, whose description exists only in Annex A (SYMBOLIC QUEUE X(12) at positions 1-12, MESSAGE COUNT unsigned 9(6) at 82-87) and whose storage is the CD record area that the user record implicitly redefines. The reader's scope enumerated receiver classes, not sections, and no pointer witness or reader probe has a CD. Probe acccd.cob: ACCEPT into I-QUEUE, I-MCNT, C1 X(4) and C2 S9(3)V99 of an input CD at --std 2002 compiles (COBOL0903 only) and prints Q=[ABCD0125{   ] MC=000042 C1=[ABCD] C2=+012.50: the same conversion as for working-storage items, and C1/C2 overwrite the queue name through the implicit redefinition, as A.1.1.2 requires. Correct at 2002 (COBOL0902 at 2023), but shown by nothing in the row. needs: a 2002 witness for ACCEPT into a CD record item and an implicit CD data-name (acccd.cob is the candidate).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR1",
+      "quote": "Any conversion of data required between the hardware device and the data item referenced by identifier-1 is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR1",
+      "quote": "Any conversion of data required between the device and the data item referenced by identifier-1 is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.2 SR1",
+      "quote": "Identifier-1 shall reference neither a strongly-typed group item nor a data item of class index, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2k",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-34/acccd/r2002/out.txt"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-100",
+    "verdict": "UPHELD",
+    "reason": "Compared both OBJECT-COMPUTER formats: computer-name-1, CHARACTER CLASSIFICATION and PROGRAM COLLATING SEQUENCE in both, no MEMORY SIZE or SEGMENT-LIMIT in 2002; GR2-GR4 word-identical. The paragraph reaches no CD entry or debugging line. Optional, not provided; witness passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR2",
+      "quote": "Computer-name-1 may provide a means for identifying equipment configuration",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-102",
+    "verdict": "UPHELD",
+    "reason": "Attacked through the 2002-only fixed attribute: §2002:9.1.6 lists 'the padding character' (2023 drops it and adds SUPPRESS WHEN). GR8 lets the implementor choose which attributes are validated, and the determination states the choice as a derivation ('exactly what each organization's physical format encodes'), which answers the padding character (no blocking, nothing encoded) without naming it; its list of attributes left out names only 2023's three, a wording gap, not a different requirement. The 2002 OPEN format (incl. WITH NO REWIND) is the same as 2023's. Witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.6",
+      "quote": "the minimum and maximum physical record size in bytes, the padding character, and the record delimiter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR8",
+      "quote": "The implementor defines which of the fixed-file attributes are validated during the execution of the OPEN statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-103",
+    "verdict": "UPHELD",
+    "reason": "GR16 identical incl. 'whether or not the LINAGE clause is specified'; the OPEN format is the same in both (NO REWIND is in both and concerns reel positioning, GR10, not page boundaries). Report files are page-bearing in both editions. The record-sequential LINAGE witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-104",
+    "verdict": "UPHELD",
+    "reason": "GR22 identical; sharing-phrase and the sharing table the same; no CD or removed form reaches a SHARING default. Witnesses pass at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-107",
+    "verdict": "UPHELD",
+    "reason": "The clause-7 sentence is identical; 2002 adds only that debugging-line inclusion occurs in the compilation stage, which does not constrain expansion beyond 'after the text manipulation stage'. Required, need not be documented; witness pb759 passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:7",
+      "quote": "The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-108",
+    "verdict": "UPHELD",
+    "reason": "GR13 identical; the host-entry surface is generated the same at 2002 (reader's diff). No 2002-only header form.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-109",
+    "verdict": "UPHELD",
+    "reason": "Program-address-identifier format (identifier-1 | literal-1 | program-prototype-name-1) and SR1-SR4 identical in 2002; condition absent, licensed by the conditionally-required preamble; witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-11",
+    "verdict": "UPHELD",
+    "reason": "GR4 identical; screen section unclaimed at 2002 under 3.1.5 and B.3; COBOL1560 at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-110",
+    "verdict": "UPHELD",
+    "reason": "Same sentence, optional, not provided; witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-111",
+    "verdict": "UPHELD",
+    "reason": "15.62 is word-identical to 2023 15.75 (format, AR1-AR5, RV1-RV3). The default seed is runtime-only; witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-112",
+    "verdict": "UPHELD",
+    "reason": "RV3 identical. Considered argument-1 as an implicit CD data-name (MESSAGE COUNT, 9(6)): the rule is about argument VALUES, and those values (0-999999) lie in the documented domain whatever section holds them, so not a different requirement. Reader's probe identical at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.62.3 RV3",
+      "quote": "This subset shall include the values from 0 through at least 32767",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-114",
+    "verdict": "UPHELD",
+    "reason": "GR2 identical incl. the CODE-SET and FORMAT factors (the FORMAT clause exists in 2002, 13.16.22). The RECORD clause stands only in FD/SD, never under a CD. Record-sequential, relative and indexed witnesses pass at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-115",
+    "verdict": "UPHELD",
+    "reason": "GR5 a)/b) identical; FD/SD only; witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-116",
+    "verdict": "UPHELD",
+    "reason": "GR17 identical; format 3 the same (2023 adds BYTES only); witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-117",
+    "verdict": "UPHELD",
+    "reason": "GR1 c) identical; no feature-name-1 provided at either edition; witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-118",
+    "verdict": "UPHELD",
+    "reason": "12.3.4.11 compared in full: format, SR1, SR2, GR1, GR4-GR6 identical; 2002 GR2/GR3 differ only in the tape wording and ISO 1001 edition of the STANDARD-1 arm, not this item. Witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-119",
+    "verdict": "UPHELD",
+    "reason": "GR5 identical; variable-length records arise the same three ways (SR1 NOTE) in both; witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-12",
+    "verdict": "UPHELD",
+    "reason": "Same sentence; no operand; witness passes at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "7af3a12bcc16593ce7262c4f670dc892d2382430e3239c8fa8e0c405ceb8df60",
+  "read": "16bffc50f5b5165a713773fe9834e9a83d872f8458593b1982b9a5eb6287d04d",
+  "refute": "184134a93826cc25e8c3d44893c6e7c6156a5889a998ddb39709a8233915d284"
+ }
+}
