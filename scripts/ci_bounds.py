@@ -4,6 +4,7 @@ DESIGN-test-build-ci.md §1.4).
 
     python scripts/ci_bounds.py --check       # every workflow and action; exit 1 naming each offender
     python scripts/ci_bounds.py --self-test   # each audit fires on the shape it forbids, then the real tree
+    python scripts/ci_bounds.py --durations   # NETWORK (gh): each job's longest recent run against its limit; the nightly's
 
 Every job of every workflow under `.github/workflows/` states a `timeout-minutes` of 1 to MAX_JOB_MINUTES (a hung step
 otherwise holds a merge-queue slot for GitHub's six hours); every `actions/checkout` step and every
@@ -14,6 +15,12 @@ saves, so a merge group, whose ref is new every time, would save a copy nothing 
 would otherwise store a partial package set under the exact key, kb/Work PB4348); and the toolchain action caches
 Python's tool-cache directory with the rest, restored before `actions/setup-python`.
 
+A limit is there to catch a HANG, so it must sit clear of the job's NORMAL duration (kb/Work PB5841: the `audits` job,
+limit 10 minutes, ran 354 to 530 s, grew, and bounced a green landing). `--durations` reads the last DURATION_RUNS runs
+of each workflow with `gh` and reports every job whose longest run times HEADROOM passes its limit, BEFORE it bounces a
+landing. It is the nightly's `job-limits` job and never part of the tree audits, which every gate runs and which make no
+network call.
+
 Merge-group run 41226218068 (pull request #893, 2026-10-31) sat 45 minutes in `actions/checkout` of a job whose code was
 fine, and the queue removed the pull request. The workflow had no `timeout-minutes` at all. The reader is
 scripts/ci_workflow.py (kb/Work PB3819). Until kb/Work PB4395 these audits were a C# class of the compiler's test assembly
@@ -23,10 +30,12 @@ bounds (kb/Work PB4349: the pointer named DESIGN-test-build-ci.md §3.17, the la
 """
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
 from collections.abc import Iterable, Iterator
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # scripts/, for the shared modules
@@ -42,8 +51,13 @@ TOOLCHAIN_ACTION_FILE = ".github/actions/setup-toolchain/action.yml"
 #: The design doc whose section this module's docstring cites (`cited_design_section`).
 DESIGN_DIR = "docs/rearchitecture/"
 
-#: The longest a job may run: the nightly workflow's bound (kb/Work PB4332); a pull-request job is far below it.
-MAX_JOB_MINUTES = 60
+#: The longest a job may state: the nightly differential's bound (kb/Work PB4332; its longest run was 32 minutes on
+#: 2026-11-16, kb/Work PB5841); a pull-request job is far below it.
+MAX_JOB_MINUTES = 90
+#: A job's limit must be at least HEADROOM times its longest recent run (kb/Work PB5841), over the last DURATION_RUNS runs
+#: of its workflow.
+HEADROOM = 2
+DURATION_RUNS = 20
 #: The longest a checkout or toolchain step may run before it is killed and (the checkout) retried.
 MAX_STEP_MINUTES = 5
 TOOLCHAIN_ACTION = "./.github/actions/setup-toolchain"
@@ -283,6 +297,82 @@ def check(repo: Path = REPO) -> int:
     return 1 if bad else 0
 
 
+# ── the recorded durations: each job's longest recent run against its limit (kb/Work PB5841) ──────────────────────
+
+def job_limits(workflow: str) -> list[tuple[str, int]]:
+    """(the job's display name, its limit in minutes) for every job: a `${{ … }}` in the name is a matrix expression,
+    kept as written."""
+    return [(j.value("name") or j.id, int(j.value("timeout-minutes") or 0)) for j in ci_workflow.jobs(workflow)]
+
+
+def name_pattern(name: str) -> re.Pattern[str]:
+    """The pattern a run's job name must match to be this workflow job: each `${{ … }}` stands for any text, and GitHub
+    appends ` (<matrix values>)` to the name of a matrix job whose name states none."""
+    parts = re.split(r"\$\{\{.*?\}\}", name)
+    return re.compile("^" + ".+".join(re.escape(p) for p in parts) + r"(?: \(.+\))?$")
+
+
+def slow_jobs(file: str, limits: list[tuple[str, int]], runs: list[list[tuple[str, float]]]) -> list[str]:
+    """Findings over `runs` (newest first, each a list of (a job's name, its seconds)): a job of the NEWEST run that no
+    job of the workflow names (the match would silently measure nothing; an older run's name may be a job since
+    renamed), and a job whose longest run times HEADROOM exceeds its limit."""
+    longest: dict[str, float] = {}
+    out: list[str] = []
+    patterns = [(n, name_pattern(n), m) for n, m in limits]
+    for age, run in enumerate(runs):
+        for seen, seconds in run:
+            hit = next((n for n, pattern, _ in patterns if pattern.match(seen)), None)
+            if hit is not None:
+                longest[hit] = max(longest.get(hit, 0.0), seconds)
+            elif age == 0:
+                out.append(f"  {file}: the newest run has a job named `{seen}` that no job of the workflow names")
+    for name, _, minutes in patterns:
+        seconds = longest.get(name)
+        if seconds is not None and seconds * HEADROOM > minutes * 60:
+            need = -(-int(seconds * HEADROOM) // 60)
+            out.append(f"  {file}: job `{name}` limit {minutes} min, longest recent run {seconds / 60:.1f} min "
+                       f"({seconds / (minutes * 60):.0%} of the limit; at most {1 / HEADROOM:.0%}): raise the limit "
+                       f"to at least {need} min or make the job faster")
+    return out
+
+
+def _gh(*args: str) -> object:
+    """`gh`'s JSON, tried twice: a transient API error is not a finding, a second one is the job's failure."""
+    for attempt in (1, 2):
+        try:
+            return json.loads(subprocess.run(["gh", *args], check=True, capture_output=True, text=True,
+                                             encoding="utf-8").stdout)
+        except subprocess.CalledProcessError:
+            if attempt == 2:
+                raise
+
+
+def _seconds(job: dict) -> float | None:
+    if not job.get("startedAt") or not job.get("completedAt") or job.get("conclusion") == "skipped":
+        return None
+    return (datetime.fromisoformat(job["completedAt"].replace("Z", "+00:00"))
+            - datetime.fromisoformat(job["startedAt"].replace("Z", "+00:00"))).total_seconds()
+
+
+def recent_durations(file: str) -> list[list[tuple[str, float]]]:
+    """Per run, newest first, (job name, seconds) of every job that ran in the last DURATION_RUNS runs of the workflow
+    file: a job that failed or was cancelled counts, since the cancelled-at-the-limit job is the very signal. NETWORK."""
+    runs = _gh("run", "list", "--workflow", Path(file).name, "--limit", str(DURATION_RUNS), "--json", "databaseId")
+    return [[(job["name"], seconds) for job in _gh("run", "view", str(run["databaseId"]), "--json", "jobs")["jobs"]
+             if (seconds := _seconds(job)) is not None] for run in runs]
+
+
+def durations(repo: Path = REPO) -> int:
+    bad: list[str] = []
+    for file in tracked(repo, WORKFLOWS, WORKFLOW_KINDS):
+        bad += slow_jobs(file, job_limits((repo / file).read_text(encoding="utf-8")), recent_durations(file))
+    for line in bad:
+        print(line)
+    print(f"=== CI JOB DURATIONS: {'RED' if bad else 'GREEN'} ({DURATION_RUNS} runs a workflow, limit at least "
+          f"{HEADROOM}x the longest) ===")
+    return 1 if bad else 0
+
+
 # ── the self-test: each audit fires on the shape it forbids, on a fixture ─────────────────────────────────────────
 
 BUILD = """\
@@ -432,6 +522,18 @@ def self_test(repo: Path = REPO) -> int:
          bool(python_cache_offenders(_swap(ACTION, "actions/cache/restore@v6", "actions/cache/other@v6"))))
         == ([], 1, True, 1, True))
 
+    limits = [("audits (x)", 25), ("Shard ${{ matrix.shard }}/5", 20)]
+    arm("the recorded durations: a longest run at half the limit is clean; one past half is one finding naming the limit "
+        "to state; a matrix name matches its expression; a job of the newest run that no workflow job names is a finding, one of an older run is not (kb/Work PB5841)",
+        (slow_jobs("w.yml", limits, [[("audits (x)", 750.0), ("Shard 3/5", 600.0)]]),
+         len(slow_jobs("w.yml", limits, [[("audits (x)", 100.0)], [("audits (x)", 751.0)]])),
+         "at least 26 min" in "".join(slow_jobs("w.yml", limits, [[("audits (x)", 751.0)]])),
+         len(slow_jobs("w.yml", limits, [[("Shard 3/5", 601.0), ("Shard 4/5", 100.0)]])),
+         (len(slow_jobs("w.yml", limits, [[("ghost", 1.0)]])), len(slow_jobs("w.yml", limits, [[], [("ghost", 1.0)]]))),
+         job_limits(BUILD)[0][1]) == ([], 1, True, 1, (1, 0), 15))
+    arm("the nightly runs `ci_bounds.py --durations` (a check nothing runs reports nothing)",
+        "ci_bounds.py --durations" in (repo / ".github/workflows/nightly.yml").read_text(encoding="utf-8"))
+
     doc = "# D\n\n## 1 One\n\ntext Pinned\n\n### 1.1 Sub\n\nnested\n\n## 2 Two\n\nother\n"
     sec1 = design_section(doc, "1")
     try:
@@ -471,6 +573,8 @@ def main(argv: list[str]) -> int:
         return self_test()
     if argv == ["--check"]:
         return check()
+    if argv == ["--durations"]:
+        return durations()
     print(__doc__.split("\n\n")[1])
     return 2
 
