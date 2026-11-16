@@ -1,7 +1,8 @@
-## PB5629: only a GLOBAL record possesses the global attribute; its same-named subordinates are told apart by qualification
+## Entry 3784 — 2026-11-16 11:58 PST — PB5629: only a GLOBAL record possesses the global attribute; its same-named subordinates are told apart by qualification
 
 PB5150 had made the declaration screen (COBOL6862) treat every subordinate of a GLOBAL record as an item possessing the global attribute, which refused two same-named subordinates inside one GLOBAL record (legal before PB5150, common in real programs) and put a TYPE-copy clash at the TYPEDEF's line. The note asked for an adjudication, and the 1985 row `1985-SR-IV.4.3.8.1-4` waited on it.
 
 Re-probe on a Debug build of this tree: a GLOBAL 01 with two same-named subordinates was refused COBOL6862, the TYPE-copy clash was reported at the TYPEDEF's subordinate. Ruling (kb/Work/PB5629/2026-11-16-ruling-and-landing.md): the item that possesses the attribute is the entry carrying the GLOBAL clause (or whose FD does); subordinates are global names, a matter of scope (§2023:13.18.27.4 GR1 and GR3, §2023:8.4.6.2.3, §1985:X.4.6.4 GR1 and GR3, §1985:X.1.3.8.2 GR1; each run through cite.py), and the text leaves the choice to the implementor, so GnuCOBOL and IBM (which accept the shape) decide it. PB5150's reading is reversed.
 
 Fix: `DataBinder.ScreenGlobalNameUniqueness` takes an item as global only when it is a global record, and positions a clash at `DataItem.ReferenceSite` with the `ViaReference` text. Goldens: new `pb5629_global_subordinate_names_told_apart_by_qualification` (accepted 85 to 2023, output 12 / 123); `pb5150-global-subordinate-name-reused-by-local-record` deleted; `pb1047-two-globals-one-element-ambiguous` back to the reference-time COBOL1639; the TYPE-copy refusal pins its report site text. Row `1985-SR-IV.4.3.8.1-4` PARTIAL to CONFORMS (GAP 57 to 56).
+
