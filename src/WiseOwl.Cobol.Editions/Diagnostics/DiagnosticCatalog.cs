@@ -3342,6 +3342,14 @@ public static class DiagnosticCatalog
     /// is the procedure's paragraphs and every statement executed as the result of a transfer of control in it (§1985:XI.4.4.4 GR7, GR10).
     /// A COBOL-85 rule, reported at --std 85, asked of the bound program once every SORT and MERGE statement is bound
     /// (<c>VersionConformancePass.GateReleaseReturnRange</c>).</summary>
+    public static readonly DiagnosticDescriptor ReleaseReturnPlacement = new(
+        "COBOL7081", "release-return-placement", EditionSeverity.Error,
+        "A RELEASE or RETURN statement stands outside the range of a SORT or MERGE procedure that names its file. "
+        + "\"A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement for the file-name "
+        + "whose sort-merge file description entry contains record-name-1.\" (§1985:XI.4.2.3 SR2) \"A RETURN statement may only be used within "
+        + "the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\" (§1985:XI.4.3.3 SR3)",
+        "§1985:XI.4.2.3 SR2; §1985:XI.4.3.3 SR3");
+
     /// <summary>COBOL7486 — at COBOL-85 an IF statement that has the END-IF phrase also has the NEXT SENTENCE phrase (kb/Work PB5798).
     /// §1985:VI.6.16.3 SR3: "If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified." The rule is
     /// 1985's alone (2002, 2014 and 2023 print none), asked by <c>VersionConformancePass.VisitIfStatement</c>.</summary>
@@ -3350,14 +3358,6 @@ public static class DiagnosticCatalog
         "An IF statement with the END-IF phrase also has the NEXT SENTENCE phrase. "
         + "\"If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.\" (§1985:VI.6.16.3 SR3)",
         "§1985:VI.6.16.3 SR3");
-
-    public static readonly DiagnosticDescriptor ReleaseReturnPlacement = new(
-        "COBOL7081", "release-return-placement", EditionSeverity.Error,
-        "A RELEASE or RETURN statement stands outside the range of a SORT or MERGE procedure that names its file. "
-        + "\"A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement for the file-name "
-        + "whose sort-merge file description entry contains record-name-1.\" (§1985:XI.4.2.3 SR2) \"A RETURN statement may only be used within "
-        + "the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\" (§1985:XI.4.3.3 SR3)",
-        "§1985:XI.4.2.3 SR2; §1985:XI.4.3.3 SR3");
 
     /// <summary>COBOL7234 — a PERFORM in a USE BEFORE REPORTING procedure has a GENERATE, INITIATE or TERMINATE statement in its range
     /// (kb/Work PB5254). §1985:XIII.4.9.3 SR3: "A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or

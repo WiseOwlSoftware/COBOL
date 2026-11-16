@@ -33,6 +33,11 @@ redefined record is read afresh (§1985:VI.6.19.4 GR1, GR2).
 **PB5798, PB5784, PB5768.** IF with END-IF and NEXT SENTENCE is refused at 85 (§1985:VI.6.16.3 SR3, new code COBOL7486);
 `NOT NOT < C` parses at 85 as the logical NOT of `NOT < C` (§1985:VI.6.3.3 GRL2.1, GRL2.2); a declarative RELEASE or RETURN
 is in the 85 range only where the range holds an I-O statement on a file its USE names, or a CALL (§1985:XI.4.4.4 GR7, GR10).
+The branch review (round 1) asked for an accepting witness of each exempting arm: five fixed-form 85 cases
+(`XI.4.2@1985-RELEASE-STATEMENT/pb5768_release_in_*`: a CALL-only reach, an open-mode USE ON INPUT, an OPEN nested in an IF,
+an OPEN in a PERFORMed paragraph, a USE FOR DEBUGGING section), each shown to be refused COBOL7081 with its arm disabled; and
+PB5815's OPEN 37 gained its exception paths at 85 and 2002-2023 (a USE declarative, neither USE nor FILE STATUS, an absent
+OPTIONAL LINAGE file opened INPUT, which is 37 too).
 
 Rows, on main 858087e09f and on this branch after the merge: 1985 GAP 61 to 34 and 2023 GAP 24 to 16 (1985-GR-VII.4.7.4-16,
 1985-GR-IV.4.3.8.4.4-5, 1985-GR-VI.6.19.4-1, 1985-SR-XI.4.2.3-2, 1985-SR-XI.4.3.3-3; the 2023 rows GR-9.1.13.6-6,
