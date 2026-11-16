@@ -1,4 +1,4 @@
-## Five notes and three finding files from the Mythos lane's rulings of 2026-11-16
+## Entry 3772 — 2026-11-16 08:54 PST — Five notes and three finding files from the Mythos lane's rulings of 2026-11-16
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record).
 
@@ -9,3 +9,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 - PB5870 (analysis): two 1985 choices settled by the precedence have no sentence in the conformance register.
 
 Finding files: PB5810 (a 1985 row joins its mechanism), and the rulings of code-read batches 14 and 15 beside PB5683.
+
