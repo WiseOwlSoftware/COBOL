@@ -1,4 +1,4 @@
-## At 2002 an alphabetic item stands where an alphanumeric one does, and the 85 SET index-amount refusal names its operand
+## Entry 3782 — 2026-11-16 11:33 PST — At 2002 an alphabetic item stands where an alphanumeric one does, and the 85 SET index-amount refusal names its operand
 
 Two notes, one binder file's neighbourhood (kb/Work PB5615 and PB5593; wave 20262045 group G).
 
@@ -9,3 +9,4 @@ Two notes, one binder file's neighbourhood (kb/Work PB5615 and PB5593; wave 2026
 Self-review: architecture (one predicate on EditionInfo, the Place reader and the argument screen ask it, no per-site `Year == 2002`); the cited rule (the screens apply 8.5.2.1's sentence at the one edition that prints it, and each case names §2002 and §2014:E.2 through `cite.py --check`); duplication (CommunicationBinder's two private PIC A tests were the only copies and now take the edition).
 
 Gate: `=== BUILD-LOCAL GATE: GREEN` at c044dbd7e4 (run 000002-20261115T224324Z: Conformance 25,919/25,919, Unit 40,915/40,915, RepoDrift 173/173, Characterization 37/37). The first gate (run 000001) was RED on three 2002 refusals the rule made legal (pb5211-read-into-alphabetic-refmod, l1-test-numval-f-alphabetic-item, pb1452-program-address-alphabetic-operand: each now refuses from 2014, with a comment naming PB5615) and on one RunUnitProcessBoundaryTests harness timeout (no stdout within 120 s, a non-observation under load; green at the re-gate, no code path of this diff reaches DELETE FILE).
+
