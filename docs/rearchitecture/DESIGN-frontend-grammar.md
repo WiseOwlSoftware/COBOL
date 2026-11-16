@@ -3216,7 +3216,11 @@ character of the literal") and §2023:8.7.1 (the operators "shall be preceded by
 **The mechanism, as built.** No lexer MODE: the lexer's paren stack (`_parenRegions`, the mechanism the FUNCTION
 argument list already had) records which open parens are LIST REGIONS — an argument list (`FNARG_LPAREN`) or a
 reference's parenthesized tail (`REF_LPAREN`, typed by the same `PreviousTokenCouldBeDataName` trigger that used to push
-the mode). Inside a list region the §2023:8.3.5 2) separator survives as `FNARG_SEPARATOR` and a sign that follows a separator
+the mode). Inside a list region the §2023:8.3.5 2) separator survives as `FNARG_SEPARATOR` where it is a BOUNDARY between
+two items — the token before it ends an item and the character after it begins one (`CobolLexer.ListItemBoundary`,
+kb/Work PB5793); after an opening parenthesis, an operator, a qualifier connective or another separator, and before a
+closing parenthesis or a spaced operator, it stands where only a space can and is skipped as the space is, so
+`T (, I)`, `T (I, )` and `T (I +, 1)` are `T (I)`, `T (I)` and `T (I + 1)` — and a sign that follows a separator
 and touches its digits is retyped `SIGNED_INTEGERLIT` / `SIGNED_DECIMALLIT` (actions, never predicates — PB1715);
 everything else is the DEFAULT vocabulary, so the grammar parses the list by juxtaposition, the shape `functionArgList`
 always had. That is the "minimal WS / sign-adjacency mechanism" Option A predicted, and nothing more.

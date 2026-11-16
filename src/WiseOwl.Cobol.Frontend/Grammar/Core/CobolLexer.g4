@@ -186,6 +186,36 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
 
     private bool InListRegion() => _openListRegions > 0;
 
+    // ⛔ A LIST SEPARATOR IS A BOUNDARY ONLY BETWEEN AN ITEM THAT HAS ENDED AND ONE THAT BEGINS (kb/Work PB5793). The comma or
+    // semicolon followed by a space is the space separator (§2023:8.3.5 SR2), so inside a list region it is kept as a token
+    // only where a space there would separate two items: never after a token after which an operand must follow (an
+    // opening parenthesis, an operator, a qualifier connective, another separator: ListOperandFollows), and never before
+    // a closing parenthesis or an operator written with its spaces — `(A, * B)` is `(A * B)`, as `(A - 1)` is one
+    // subtraction (§2023:8.7.1), while `(A, -1)` keeps the boundary before its signed literal (§2023:8.3.3.3.2).
+    // Asked by FNARG_SEPARATOR's action, after the match: LA(1) is the character after the separator's spaces.
+    private bool ListItemBoundary()
+    {
+        if (ListOperandFollows.Contains(_lastNonWsTokenType)) return false;
+        int next = InputStream.LA(1), after = InputStream.LA(2);
+        return next switch
+        {
+            ')' or '*' or '/' or ':' or '&' => false,
+            '+' or '-' => after != ' ' && after != '\n',
+            _ => true,
+        };
+    }
+
+    // The tokens after which an OPERAND must follow, so a separator after one stands where only a space can and
+    // separates nothing: the three opening parentheses, the arithmetic and concatenation operators (§2023:8.8.1.1, §2023:8.8.3),
+    // the boolean operators (§2023:8.8.2), the reference modifier's colon, the OF/IN qualifier connectives (§2023:8.4.2.2.2)
+    // and a separator itself (more than one space is one separator, §2023:8.3.5 SR1). CobolLexerModeDriftTests
+    // pins every member.
+    private static readonly System.Collections.Generic.HashSet<int> ListOperandFollows =
+    [
+        LPAREN, REF_LPAREN, FNARG_LPAREN, PLUS, MINUS, STAR, SLASH, POWER, AMPERSAND, COLON, OF, IN,
+        B_AND, B_OR, B_XOR, B_NOT, B_SHIFT_LC, B_SHIFT_RC, B_SHIFT_L, B_SHIFT_R, FNARG_SEPARATOR, COMMA,
+    ];
+
     // Fragment re-parse hook (the compile-time directive-expression parse): treat the WHOLE input as a directive
     // operand / cce region — DEFINED is a token and every '(' groups (DESIGN §4.1).
     public void PrimeDirectiveExpr() => _primeDirectiveExpr = true;
@@ -1312,7 +1342,12 @@ DOT         : '.' ;
 // is skipped exactly as the space is. ONE rule matches the separator everywhere and its action says which it is;
 // ⛔ never a predicate choosing between two rules (kb/Work PB1715): the predicate this rule carried kept every
 // `, ` and `; ` of every compile off the cached DFA, and the unpredicated twin it needed is gone with it.
-FNARG_SEPARATOR : [,;] [ \n]+ { if (!InListRegion()) Skip(); } ;
+// ⛔ AND INSIDE A LIST REGION IT IS KEPT ONLY WHERE IT MARKS A BOUNDARY BETWEEN TWO ITEMS (kb/Work PB5793). The separator IS
+// a space (§2023:8.3.5 SR2; §1985:IV.4.2.1 SR2), so it may stand wherever a space may: after an opening parenthesis and
+// before a closing one (SR8, SR9 of 1985), and around an arithmetic operator, which a space must surround (§2023:8.7.1).
+// There it separates no two items, and keeping it made `W-E (, I)`, `W-E (I, )` and `W-E (I +, 1)` parse errors
+// (COBOL0001) at every edition. ListItemBoundary decides, from the token before it and the character after it.
+FNARG_SEPARATOR : [,;] [ \n]+ { if (!InListRegion() || !ListItemBoundary()) Skip(); } ;
 // A comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA, where it is a numeric literal's
 // decimal point; anywhere else it is no separator (§2023:8.3.5 rule 2) and SeparatorRule reports it (COBOL2631).
 COMMA       : ',' ;

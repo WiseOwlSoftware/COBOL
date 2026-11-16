@@ -87,8 +87,8 @@ public sealed class SubscriptAdmissionDriftTests
                      "*.cs", SearchOption.AllDirectories))
         {
             if (Path.GetFileName(file) is "StorageClaimScan.cs") continue;   // names the head word of a by-reference operand only
-            foreach (Match m in Regex.Matches(File.ReadAllText(file), @"functionArgList\(\)[^;]*?\.functionArgument\(\)"))
-                Assert.True(m.Value.Contains("?? []", StringComparison.Ordinal) && file.EndsWith("IntrinsicBinder.cs", StringComparison.Ordinal),
+            foreach (Match m in Regex.Matches(File.ReadAllText(file), @"(?<call>ArgumentsOf\(fc\.)?functionArgList\(\)[^;]*?\.functionArgument\(\)"))
+                Assert.True(m.Groups["call"].Success && file.EndsWith("IntrinsicBinder.cs", StringComparison.Ordinal),
                     $"{Path.GetFileName(file)} reads a function argument list's items itself ('{m.Value}'): read them through "
                     + "IntrinsicBinder.ArgumentsOf, which gives a '(' no name may own to the next argument (kb/Work PB5781).");
         }
