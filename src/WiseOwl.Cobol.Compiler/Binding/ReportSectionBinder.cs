@@ -2238,7 +2238,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // SR18 is a FORMATS 2 AND 3 rule (kb/Work PB1261): a report group entry is subordinate to its report
         // description entry, which §2023:13.18.27.3 SR1 e) lets carry the GLOBAL clause — the data-division twin is
         // Passes/OdoResolvePass.cs#DependingAttributeFault, over the same global-name answer (IsGlobalRecord).
-        if (model.IsGlobal && !_d.IsGlobalRecord(spec.DependingItem.Root))
+        if (model.IsGlobal && _d.IsDescribedInContainer(spec.DependingItem))
+        {
+            using var _ = Editions.DiagnosticCursorExtensions.At(Edition, spec.DependingAt);
+            Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch, $"RD '{model.Name}': OCCURS … DEPENDING ON "
+                + $"'{spec.DependingName}' — the report is global and data-name-1 is described in the data division of a "
+                + "containing program: \"shall reference a data item that is described in the same data division\" "
+                + "(ISO §2023:13.18.38.3 SR18)");
+        }
+        else if (model.IsGlobal && !_d.IsGlobalRecord(spec.DependingItem.Root))
         {
             using var _ = Editions.DiagnosticCursorExtensions.At(Edition, spec.DependingAt);
             Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch, $"RD '{model.Name}': OCCURS … DEPENDING ON "

@@ -1,0 +1,7 @@
+## PB5797: a GLOBAL or EXTERNAL table may no longer depend on a counter of a containing program
+
+`§2023:13.18.38.3 SR18` and `SR21` (and `§1985:VI.5.8.3 SR8` and `SR9`) require data-name-1 of OCCURS DEPENDING ON to be described in the same data division as a GLOBAL or EXTERNAL table. `OdoResolvePass` held that "by construction", on the premise that it runs before a contained program inherits its containers' names. The premise was false: `DataBinder.InheritContainerGlobalData` runs at the end of `BindDeclarations`, before the pass. The re-probe on this branch's build showed `o8.cob` (EXTERNAL table, container's EXTERNAL GLOBAL counter) and `o9.cob` (GLOBAL table, container's GLOBAL counter) compiling and running at `--std 85` and `--std 2023` (`E=XY|`, `G=AB|`, exit 0).
+
+Fix: one predicate, `DataBinder.IsDescribedInContainer` (is the item's root one of the inherited container roots), asked by `DependingAttributeFault` (Format 2) and by the Format 3 arm in `ReportSectionBinder.ResolveReportOccursDepending`, which had the same hole for a GLOBAL RD. Both report `COBOL2788`. After the fix both probes exit 65 with `COBOL2788` at both editions; a non-GLOBAL table in the contained program on the container's counter still compiles and runs.
+
+Goldens (refused at every edition; the report one from 2002): `pb5797-depending-container-counter-global`, `pb5797-depending-container-counter-external`, `pb5797-report-depending-container-counter`. Rows `SR-13.18.38.3-18` and `-21` re-verdicted CONFORMS (GAP 24 to 22); the 1985 rows named in the note are the registrar's.
