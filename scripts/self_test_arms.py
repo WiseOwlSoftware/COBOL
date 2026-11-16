@@ -282,6 +282,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'gate classes in service order: landing, then fix, then implementer tickets, FIFO within each class',
         "a hold far past the median of its kind's recorded holds is flagged by status, never killed",
         'a queued waiter whose abandon turns true withdraws its ticket at once and never takes the slot (kb/Work PB5322)',
+        'a first ticket with a slot free waits for COMMIT while the admission refuses, then takes it (kb/Work PB5697)',
         'a waiting gate says why a later ticket is served first (fix before implementer) and what the gate next in line waits for',
         'a queued gate whose place does not move still writes a heartbeat line at every interval (kb/Work PB5097)',
     ),

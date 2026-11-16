@@ -1467,8 +1467,7 @@ def self_test() -> int:
         arm("a hold far past the median of its kind's recorded holds is flagged by status, never killed", long_holds)
         arm("a queued waiter whose abandon turns true withdraws its ticket at once and never takes the slot (kb/Work PB5322)",
             withdrawn)
-        arm("a first ticket waits for COMMIT with a slot free while the admission refuses, and takes it once it opens "
-            "(kb/Work PB5697)", commit_admission)
+        arm("a first ticket with a slot free waits for COMMIT while the admission refuses, then takes it (kb/Work PB5697)", commit_admission)
         arm("a waiting gate says why a later ticket is served first (fix before implementer) and what the gate next in line waits for", passer_explained)
         arm("a queued gate whose place does not move still writes a heartbeat line at every interval (kb/Work PB5097)", heartbeat)
     finally:
@@ -1480,7 +1479,7 @@ def self_test() -> int:
     if failures:
         print(f"gate_slot.py --self-test: RED — {len(failures)} arm(s) failed")
         return 1
-    print("gate_slot.py --self-test: ALL GREEN — 15 arms")
+    print("gate_slot.py --self-test: ALL GREEN — 16 arms")
     return 0
 
 

@@ -36,12 +36,15 @@ gap in the test's message, not in the classifier.
 - Run 000004-20261116T000652Z (wf_f60b9cb3-27d-27): GREEN, Conformance 26,182, build 2.9 s, tests 643 s. Peak tree
   commit **8.6 GiB**.
 - The two together peaked at **12.1 GiB**.
+- This branch's own gate, run 000001-20261116T004607Z, was sampled the same way from its start. It ran the whole
+  population, with the script self-tests beside the test hosts because the change touches tooling. Its whole tree
+  peaked at **12.1 GiB**, and its slot-held job (the build and the test hosts, `peak_commit_bytes` in its record) at
+  **7.6 GiB**.
 - Two earlier gates were sampled only in their Conformance tails (pids 498152 and 501472, from 16:00 PST). They peaked at
   2.6 GiB each.
 - The samples are in the coordination scratch directory (`op-20261115/pb5697/waiting-sample.tsv`,
   `others-sample.tsv`).
-- Every gate after this change records its own job peak (`peak_commit_bytes`, PeakJobMemoryUsed). The branch's own
-  gate's figure is quoted in the implementer's report.
+- Every gate after this change records its own job peak (`peak_commit_bytes`, PeakJobMemoryUsed).
 
 **The host.** The figures are the coordinator's, 15:45 PST, with no gate holding a slot, confirmed by GetPerformanceInfo
 here.
@@ -56,11 +59,12 @@ here.
   owner's machine setting, sets the limit.
 - The mechanism reads the limit and the charge live, so it stays correct whatever the paging file is set to.
 
-**The threshold.** `GATE_PEAK_COMMIT_BYTES` = 9 GiB, the largest measured peak rounded up. `ADMISSION_MARGIN_BYTES` =
-8 GiB, which covers the pool growth a gate's files cause outside its tree and the host's own work. So `GATE_NEED_BYTES`
-= 17 GiB, stated in `host_resources.py` and nowhere else.
+**The threshold.** `GATE_PEAK_COMMIT_BYTES` = 13 GiB, the largest whole-tree peak (12.1 GiB) rounded up. The whole tree
+is what the admission reads of a holder. `ADMISSION_MARGIN_BYTES` = 8 GiB, which covers the pool growth a gate's files
+cause outside its tree and the host's own work. So `GATE_NEED_BYTES` = 21 GiB, stated in `host_resources.py` and
+nowhere else.
 
-**The cap of 3.** On commit alone it fits this host with nothing else running: 81 + 3 × 9 = 108 GiB of the 137.7 GiB
+**The cap of 3.** On commit alone it fits this host with nothing else running: 81 + 3 × 13 = 120 GiB of the 137.7 GiB
 limit. What exhausted the host was three gates beside two probe fleets. At 16:19 an interactive program committing
 30 GiB brought free commit down to 26.5 GiB with two gates in their tails. The admission is what keeps a third gate
 from starting into that, so no change to the owner's default is recommended. The temporary cap of 2 can expire on

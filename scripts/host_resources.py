@@ -38,6 +38,8 @@ import sys
 from dataclasses import dataclass, field
 from typing import Callable, Iterable
 
+from standard_streams import ensure_utf8  # this directory's: UTF-8 standard streams, called first in __main__
+
 IS_WINDOWS = os.name == "nt"
 GIB = 1 << 30
 
@@ -192,13 +194,15 @@ def judge(hosts: Iterable[HostEvidence]) -> Judgement:
 # ── THE ADMISSION ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 #: ⛔ ONE WHOLE-POPULATION GATE'S PEAK COMMIT ON THIS HOST, MEASURED (kb/Work PB5697; DESIGN-test-build-ci.md section
-#: 3.14.6): the most private commit a gate's slot-held tree (its build and its four test hosts) held at once. Measured
-#: 2026-11-15 16:32-16:43 PST by sampling, every 2 s, the process trees of two whole-population gates from their slot to
-#: their GREEN verdicts (runs 000004-20261116T000125Z, Conformance 26,277 cases with a 106 s build, and
-#: 000004-20261116T000652Z, 26,182 cases): 7.5 GiB and 8.6 GiB, 12.1 GiB the two together. Rounded up to 9 GiB. Every gate
-#: now records its own (`peak_commit_bytes`, the job's PeakJobMemoryUsed, scripts/process_job.py `bound_peak_bytes`), so a
-#: re-measurement reads the records.
-GATE_PEAK_COMMIT_BYTES = 9 * GIB
+#: 3.14.6): the most private commit a gate's whole process tree (the audits and self-tests beside it, its build and its
+#: test hosts) held at once, the same tree `tree_commit` reads of a holder. Measured 2026-11-15 PST by sampling each tree
+#: every 2 s: two whole-population gates from their slot to their GREEN verdicts, 7.5 GiB and 8.6 GiB (runs
+#: 000004-20261116T000125Z and 000004-20261116T000652Z, 12.1 GiB the two together); and the gate of this change's own branch
+#: (run 000001-20261116T004607Z, whole population with the script self-tests beside its test hosts), 12.1 GiB, of which
+#: its slot-held job peaked at 7.6 GiB (`peak_commit_bytes`). Rounded up to 13 GiB. Every gate now records its slot-held
+#: job's peak (`peak_commit_bytes`, PeakJobMemoryUsed, scripts/process_job.py `bound_peak_bytes`), so a re-measurement
+#: reads the records.
+GATE_PEAK_COMMIT_BYTES = 13 * GIB
 #: The margin above the peak a gate needs free to start. It covers what a gate adds to the host's charge OUTSIDE its tree:
 #: the kernel's paged and nonpaged pools grow with every file the gate touches (about 8 KB a cached file on this host's
 #: ReFS Dev Drive), and what the host's own work (an editor, a language server) commits while the gate runs, so a gate
@@ -424,6 +428,5 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    from standard_streams import ensure_utf8
     ensure_utf8()
     sys.exit(main(sys.argv[1:]))

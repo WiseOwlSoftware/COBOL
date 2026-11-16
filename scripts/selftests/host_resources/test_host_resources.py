@@ -86,7 +86,7 @@ def case_05_admission_waits_under_the_threshold_and_proceeds_over_it(expect):
     expect("admit_now reads each holder's pid from its label: pid 42 has 1 GiB of its peak committed, the label with no "
            "pid is unreadable and reserved whole", f"less {gib(want)}" in got.why, got.why)
     expect("holder_pid reads gate.py's and run's labels", hr.holder_pid("gate E:\\x (pid 123, since 2026)") == 123
-           and hr.holder_pid("dotnet test (pid 9, 2026-11-15 10:00:00)") == 9 and hr.holder_pid("none") is None)
+           and hr.holder_pid("pwsh scripts/x.ps1 (pid 9, 2026-11-15 10:00:00)") == 9 and hr.holder_pid("none") is None)
 
 
 def case_06_the_real_reading(expect):
