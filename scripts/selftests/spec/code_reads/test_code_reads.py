@@ -47,7 +47,7 @@ def case_01_every_malformed_reader_field_is_named(expect):
             ("a read that cites only another edition (PB5842)",
              {"citations": [{"cite": "§2023:13.18.8.4 GR3", "check": "x"}]}, "no citation is of the rule's own text"),
             ("another edition's citation that does not check (PB5842)",
-             {"citations": [{"cite": "§1985:XII.2.4 GR8", "check": "x"}, {"cite": "§2023:13.18.8.4 GR99", "check": "x"}]},
+             {"citations": [{"cite": "§1985:XII.2.4 GR8", "check": "x"}, {"cite": "§2023:13.18.8.4 GR99", "check": "x"}]},  # citation-audit: example
              "does not check"),
             ("a citation of an edition the repository does not hold", {"citations": [
                 {"cite": "§1985:XII.2.4 GR8", "check": "x"}, {"cite": "§2014:13.18.8.4 GR3", "check": "x"}]}, "does not hold"),
@@ -312,7 +312,7 @@ def case_10_a_citation_of_another_held_edition_is_accepted_and_checked(expect):
     expect("a read citing only 2023 is refused, naming the rule", any(
         "no citation is of the rule's own text" in e and F.GR12 in e for e in got), str(got))
     bad = F.read(F.GR12, "PARTIAL", cause="b", **{"at-2023": "same", "citations": [
-        {"cite": "§1985:XII.2.4 GR12", "check": "x"}, {"cite": "§2023:13.18.8.4 GR99", "check": "x"}]})
+        {"cite": "§1985:XII.2.4 GR12", "check": "x"}, {"cite": "§2023:13.18.8.4 GR99", "check": "x"}]})  # citation-audit: example
     got = C.reader_problems(bad, ctx)
     expect("a 2023 citation that does not check is refused beside a good 1985 one", any(
         "GR99" in e and "does not check" in e for e in got), str(got))
