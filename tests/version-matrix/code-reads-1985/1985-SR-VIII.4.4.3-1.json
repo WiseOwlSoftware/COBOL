@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-VIII.4.4.3-1",
+ "rule-digest": "60fa72b84a00",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-07",
+  "sources": {
+   "reader": "9e72b95aeaf2386e6b0225ad32fc510fa05daebbacf5f6cdf53fe9c8fb6f5022",
+   "refuter": "61367aa677a245292474507a02e0f62dd01c1dd87d9e527d7c73929a8681bbfb"
+  },
+  "imported": {
+   "reader": "cf8399086304ac36243b5ab6031ea1330fcde030afd306a9084ed42c29671b5d",
+   "refuter": "fa684107664e3e8074ca020f71bc2c3f043b64009fdce825e68eda0df9805460"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.4.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, OPEN EXTEND naming a relative file must be refused unless the file's access mode is sequential (ACCESS MODE IS SEQUENTIAL or no ACCESS MODE clause, which defaults to sequential); RANDOM and DYNAMIC access are refused, and a legal EXTEND appends records after the existing ones.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+    "switches": "DialectLevel picks the citation of the FORMAT-clause I-O arm only (2002/2014/2023); the EXTEND access-mode arm has no edition test",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read CheckOpenModeForFile and BindOpen's call site; grep -n 'EXTEND|Extend' VersionConformancePass.cs found no OPEN EXTEND gate. The access-mode arm (mode is Extend && AccessMode is not Sequential) is edition-blind.",
+  "behaviour-differs-by-edition": "no for this rule (the 2023 rule adds a LINAGE conjunct that the 1985 Relative I-O rule lacks, but a 1985 relative file cannot carry LINAGE, so the conjunct is vacuous here; the diagnostic cites ISO §2023:14.9.27.3 SR2 at --std 85)",
+  "witnesses-cover": "part: the witness covers ACCESS RANDOM on a relative file; DYNAMIC, the default access mode, the legal run-time append and the failed open are not in it (probed here)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c4/rnd.cob",
+    "printed": "error COBOL2372: OPEN EXTEND 'FR' — the file's access mode is RANDOM; EXTEND requires sequential access (ISO §2023:14.9.27.3 SR2)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c4/dyn.cob",
+    "printed": "error COBOL2372 ... access mode is DYNAMIC",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c4/seq.cob",
+    "printed": "EXT 00 | WR 00 RK 0002 | AAAA 0001 | BBBB 0002 | EOF",
+    "expected": "accepted; record appended as relative record 2"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c4/nokey.cob",
+    "printed": "EXT 00 | WR 00 | AAAA | BBBB | EOF",
+    "expected": "accepted: no ACCESS clause = sequential access"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c4/fail.cob",
+    "printed": "DECL 35 | EXT 35 | DECL 48 | WR 48",
+    "expected": "unavailable non-optional file: open unsuccessful (Table 1), subsequent WRITE fails with a not-open status"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.3 SR1",
+    "check": "OK  §1985:VIII.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The single access-mode test refuses RANDOM and DYNAMIC and admits sequential (written or defaulted) at --std 85, and the legal EXTEND appends at run time. Diagnostic-face observation: COBOL2372 cites ISO §2023:14.9.27.3 SR2 at --std 85 instead of the 1985 Relative I-O rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not run separately: the arm is edition-blind",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.4.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VIII.4.4 whole (format: INPUT/OUTPUT/I-O/EXTEND, no NO REWIND or LOCK phrases for a relative file; SR1; Table 1; Table 2) and StatementValidation.cs#CheckOpenModeForFile's access-mode arm. Probes at --std 85 (refute-1985-07/c4), aimed at what the reader did not try: multi.cob 'OPEN INPUT FB EXTEND FA FC' and 'OPEN EXTEND FA FB' (several phrases and several files per phrase) -> COBOL2372 for exactly the DYNAMIC FC and the RANDOM FB, none for the sequential FA, so each operand of the series is screened; extrn.cob an EXTERNAL relative FD with RANDOM -> COBOL2372; nestg.cob a GLOBAL DYNAMIC relative file opened EXTEND in a contained program -> COBOL2372 (the screen follows the file, not the program); opt.cob OPTIONAL relative sequential file absent -> 'EXT 05 | WR 00 RK 0001 | CCCC 0001' (Table 1 'Open causes the file to be created', record appended as 1); lock.cob OPEN EXTEND FR WITH NO REWIND on a relative file -> COBOL1802 (a form the 1985 relative format does not print, refused). cite.py: 'OK  §1985:VIII.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:VIII.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1'. Diagnostic face only: COBOL2372 cites ISO §2023:14.9.27.3 SR2 at --std 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

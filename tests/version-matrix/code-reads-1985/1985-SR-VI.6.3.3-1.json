@@ -1,0 +1,113 @@
+{
+ "rule-id": "1985-SR-VI.6.3.3-1",
+ "rule-digest": "3f00f408ad7e",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-06",
+  "sources": {
+   "reader": "e55e548b5e6aaa24b9a4a5773803694bc83db1502affa278584bb6f57c7c1c5e",
+   "refuter": "e676cfa069cef4f3ef933361d6ff3df214542537a99dec66381b31dc5d3347f8"
+  },
+  "imported": {
+   "reader": "5ff62fb356db0b7a615e504424c8e3b58e44e9aa58338bfffbe768543dca3b48",
+   "refuter": "c196bb3f53740f4516f6409ae9bacf2d4bca141e418be1c7c0fd6cb658781399"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in a paren-free consecutive sequence of simple or negated simple relation conditions joined by AND/OR, the compiler must accept any relation after the first written with its subject omitted ([NOT] relational-operator object, every 1985 operator including >=, <= and the IS ... THAN OR EQUAL TO spellings), evaluate it as if the last preceding stated subject were inserted (NOT before GREATER/>/LESS/</EQUAL/= is part of the operator, otherwise the logical operator), and refuse an omitted subject that has no preceding stated subject: in the first position, after a complete non-relation simple condition (class, sign, condition-name) or across a parenthesis.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#succeedingCondition; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#abbreviatedRelation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#negatedAbbreviatedRelation; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#logicalNotBeforeRelationalOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPrimary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ReportAbbreviatedRelationWithoutSubject",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindNegatedAbbreviatedRelation",
+    "switches": "Edition.Has(2002): at 85 a NOT before a relational operator that is not GREATER/>/LESS/</EQUAL/= is always the logical NOT over the abbreviated relation (§1985:VI.6.3.3 GRL2.2); from 2002 the IS-led form reads NOT as part of the operator",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNegatedAbbreviatedRelation",
+    "switches": "ConstructRegistry abbreviated-not-logical-removed-2002 / abbreviated-not-is-simple-operator-removed-2014: available at 85, refused (COBOL0902) at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Expressions/RelationalOperatorGate.cs#Check",
+    "switches": "<> requires COBOL-2014: refused (COBOL0900) at 85 in an abbreviated relation",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'Edition.Edition|DialectLevel|ConstructRegistry|DialectBehavior' ConditionBinder.cs (BindNegatedAbbreviatedRelation's Has(2002) is the only edition term on the abbreviation path; AbbrevCarry, BindAbbreviatedRelation and BindPrimary's reset have none); grep NegatedAbbreviat in VersionConformancePass.cs",
+  "behaviour-differs-by-edition": "yes: only the logical-NOT form (NOT >= c, NOT <= c, NOT IS ...) differs: legal at 85 with NOT as the logical operator, removed from 2002 (COBOL0902 at 2023); the plain subject-omitted form binds and evaluates identically at 85 and 2023",
+  "witnesses-cover": "part: the witnesses exercise an omitted subject without a preceding subject and AND/OR tails; the NOT interpretation examples of the clause, an arithmetic-expression or index-name subject, the IS ... THAN OR EQUAL TO spellings, the fresh scope inside parentheses and the termination at a class/sign/condition-name condition are not exercised by them",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c6a.cob",
+    "printed": "85: TFTTFFTTFTFFTT (fourteen conditions: the clause's five table examples, A + 1 > 5 AND < 7, IX > 1 AND < 5, = ZERO and IS NOT GREATER THAN tails, A = 9 OR (B = 3 AND < 4), A > 3 AND NOT >= 4 OR 6, NOT A = 6 AND < 4, >= with IS LESS THAN OR EQUAL TO, AND/OR precedence); 2023: COBOL0902 on the NOT >= line",
+    "expected": "T F T T F F T T F T F F T T, each derived by the clause's expansion rule with A=5, B=3, IX=3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c6b.cob",
+    "printed": "COBOL0001 on IF > 5, IF A > 1 AND (< 7), IF NOT < 7, IF A = 1 OR NOT (< 7)",
+    "expected": "refused: first relation abbreviated / abbreviation inside a parenthesis"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c6b1.cob",
+    "printed": "c6b1-c6b4: COBOL2552 '< 7' omits the subject ... for A > 1 AND B NUMERIC AND < 7, (A > 1) AND < 7, A5 OR < 7, A IS POSITIVE AND < 7",
+    "expected": "refused: insertion terminates at a complete simple condition (§1985:VI.6.3.3 SR2's closing sentence) and at a parenthesis"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c6b5.cob",
+    "printed": "COBOL0900: the relational operator <> requires COBOL-2014 (targeting COBOL-85)",
+    "expected": "refused: <> is no 1985 relational operator"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c6c.cob",
+    "printed": "warning COBOL3146 (both operands literals) and LIT-SUBJECT T for IF 5 = A OR = 6; the unabbreviated IF 5 = 6 (c6d.cob) gets the same warning",
+    "expected": "expanded (5 = A) OR (5 = 6) = T; the literal-only relation is the relation condition's own rule (§1985:VI.6.3.1.1), not this one"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.3.3 SR1",
+    "check": "OK  §1985:VI.6.3.3 SR1  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.3.3",
+    "check": "OK  §1985:VI.6.3.3  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.3.3 SR2",
+    "check": "OK  §1985:VI.6.3.3 SR2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.3.3 GRL2.1",
+    "check": "OK  §1985:VI.6.3.3 GRL2.1  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in GRL2.1"
+   },
+   {
+    "cite": "§1985:VI.6.3.3 GRL2.2",
+    "check": "OK  §1985:VI.6.3.3 GRL2.2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in GRL2.2"
+   }
+  ],
+  "notes": "The grammar admits an abbreviated relation only as a succeeding condition after a connective, and AbbrevCarry threads the last stated subject and operator in source order, reset by every complete non-relation simple condition and by a parenthesized group (which gets a fresh carry). All fourteen evaluations match the 1985 expansion, including the five examples printed in the clause. Outside this rule: a literal-only relation (5 = 6) draws only a warning at 85 although §1985:VI.6.3.1.1 says the relation condition must contain a variable; it is the same for an unabbreviated relation.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same evaluations; the NOT >= form is refused (COBOL0902)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read §1985:VI.6.3.3 whole. Run E:/COBOL-coord/scratch/sample-shared/out/refute-1985-06/r5a.cob at --std 85, A=5 B=3 C=7: A > 1 AND B < 4 AND > 2 =T and AND > 3 =F (subject is the LAST stated, B); A > 9 OR B = 1 OR = 3 =T; S > \"A\" AND < \"Z\" =T; ZERO < A AND < B =T (figurative subject); A + B > C AND < C + 2 =T (arithmetic subject and object); abbreviation inside EVALUATE WHEN and PERFORM UNTIL (A ends 9); A NOT = 1 AND NOT < 2 =T (NOT before < is operator). r5b.cob: an inserted subject whose comparison is illegal (N PIC 9V9 > 1 AND < \"X\") draws COBOL2532 exactly as the unabbreviated N > \"X\", so the insertion is checked against the comparison rules. Reading: A > (B + 1) AND < 7 is admitted (=T); I read 'no parentheses are used within such a consecutive sequence' as parentheses grouping conditions, not those inside an arithmetic expression. cite.py: OK  §1985:VI.6.3.3 SR1 ; OK  §1985:VI.6.3.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

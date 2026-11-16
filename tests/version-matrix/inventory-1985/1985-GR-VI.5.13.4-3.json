@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.13.4-3",
  "rule-digest": "d0c26d7f7d8f",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-3",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

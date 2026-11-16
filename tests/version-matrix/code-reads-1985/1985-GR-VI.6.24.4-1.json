@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-VI.6.24.4-1",
+ "rule-digest": "d9c3cb353f91",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-02",
+  "sources": {
+   "reader": "947391f858415b91571413850b8dfa4d67aafeca9bcd46000d5d84a7f2418a24",
+   "refuter": "907717b7e6c40c57a172ea394fbfbec32a5c3910046b2600f5383a0707419c6d"
+  },
+  "imported": {
+   "reader": "8b060bfbbb19235be2542d0cab3475c6daa7ec85d0e615905a16e7c78d89fd5f",
+   "refuter": "28be6a5fb4655eb9bb93b936553cef7c9cb6e0765e3ed3351730eb9815ab02a5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.24.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, executing STOP RUN anywhere in the run unit (the main program, a called or nested program at any depth, inside an in-line or out-of-line PERFORM, a SORT input/output procedure, a USE procedure) must end the whole run unit at once, so that no further statement of any program runs, and return control to the operating system (the process ends; GR2's implicit CLOSE of open files with no USE procedures).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#stopStatement; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Runtime/Control/Signals/StopRun.cs#StopRun; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunModule; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitMain",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStopStatement",
+    "switches": "Constructs.StopRunStatus2002 (ConstructRegistry introduced 2002): refuses the WITH NORMAL/ERROR STATUS phrase at 85 with COBOL0900; plain STOP RUN passes at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for Edition/DialectLevel in StatementEmitter#Visit(BoundStop), StopRun.cs, ProgramTable.cs RunModule/RunMain and ProgramEmitter#EmitMain: none; grep 'catch (StopRun' over the compiler and runtime: one catch, at the generated Main's RunModule boundary. The only edition consultation is the 2002 introduction gate of the status phrase; BoundStop at 85 has Status null and emits exactly 'throw new StopRun();', the latest edition's code for plain STOP RUN.",
+  "behaviour-differs-by-edition": "yes: only the WITH NORMAL/ERROR STATUS phrase (2002+) is refused at 85; plain STOP RUN behaves identically",
+  "witnesses-cover": "part: l1c30 covers STOP RUN in a called program under an out-of-line PERFORM; not exercised: a nested program two levels deep, an in-line PERFORM inside a SORT INPUT PROCEDURE (the OUTPUT procedure and the statement after SORT must not run), a USE procedure, the implicit CLOSE, and the edition's refusal of WITH STATUS.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r5/p5.cob",
+    "printed": "M-BEFORE / N-RAN / M-AFTER-NESTED-RETURN / IP-STOP / IN-LOOP 2; exit=0 (OP-RAN, IP-AFTER and M-AFTER-SORT never printed)",
+    "expected": "STOP RUN inside an in-line PERFORM in a SORT input procedure ends the run unit; the output procedure never runs"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r5/p5b.cob",
+    "printed": "B-BEFORE / C-RAN / D-STOP; exit=0 (C-AFTER, B-AFTER never printed)",
+    "expected": "STOP RUN in a doubly nested called program ends the run unit, not the program"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r5/p5c.cob",
+    "printed": "USE 47; exit=0; p5e.dat holds AAAA (the WRITE before the failed READ reached the file through the implicit close); AFTER-READ never printed",
+    "expected": "STOP RUN in a USE procedure after a failed READ ends the run unit; open files are closed (GR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r5/p5d.cob",
+    "printed": "error COBOL0900: STOP RUN WITH status requires COBOL-2002 (targeting COBOL-85); exit=65",
+    "expected": "the 1985 format is STOP {RUN | literal-1}; the later WITH STATUS phrase is refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r5/p5e.cob",
+    "printed": "error COBOL2968: The STOP statement shall be specified only as the last statement ...; exit=65",
+    "expected": "§1985:VI.6.24.3 SR2 refuses STOP RUN followed by an imperative statement in the sequence"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.24.4 GR1",
+    "check": "OK  §1985:VI.6.24.4 GR1  (6.24.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.24.4 GR2",
+    "check": "OK  §1985:VI.6.24.4 GR2  (6.24.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.24.3 SR2",
+    "check": "OK  §1985:VI.6.24.3 SR2  (6.24.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "STOP RUN emits 'throw new StopRun()', which unwinds every activation to the single catch at the generated Main's RunModule boundary, whose finally writes the exit code; nothing between catches it. Probes from nested programs, SORT procedures and declaratives all ended the run unit at once; COBOL2968 cites the 2023 clause in its text although the 1985 SR2 is the rule applied (a diagnostic-wording matter outside this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.24.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VI.6.24 whole (GR1-GR4). Probes at --std 85 (refute-1985-02/s5): q1.cob dynamic CALL identifier ... ON OVERFLOW of a sibling program that STOP RUNs: printed M-BEFORE / S-RAN, exit=0 (ON OVERFLOW, S-AFTER, M-AFTER-CALL never ran) and the caller's open OUTPUT file q1out.dat holds WXYZ through the implicit close (GR2). q2.cob STOP RUN in a nested program CALLed from a MERGE OUTPUT PROCEDURE: M-BEFORE / OP-GOT BBBB / N-RAN, exit=0 (OP-AFTER-CALL, M-AFTER-MERGE never ran). q3.cob class c: STOP 'OPERATOR-LIT' (the 1985-only literal form, GR4) is accepted, shown, and execution continues (M-AFTER-STOP-LIT); STOP RUN as the ON SIZE ERROR imperative in a program reached by CALL ... ON EXCEPTION / NOT ON EXCEPTION: S-RAN, exit=0, neither exception phrase ran. The only catch that matches StopRun is ProgramTable.cs:531 at the run-unit boundary (grep of catch sites in Runtime and CodeGen); ProgramTable.cs:236 wraps only registrar faults. cite.py: OK §1985:VI.6.24.4 GR1 (the text is in GR1); OK §1985:VI.6.24.4 GR2 (the text is in GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,133 @@
+{
+ "rule-id": "1985-SR-VI.5.5.3-1",
+ "rule-digest": "01543cf59596",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-05",
+  "sources": {
+   "reader": "4e026e4ca8e7d9587b19cd1db70afcd88f5ab39909bcba9e1a0ea09ace9a9597",
+   "refuter": "bf6bcbb4287d4b923e260ed10390cdba27847f0033f73632bad7bedf6ee70498"
+  },
+  "imported": {
+   "reader": "13f6dcad8109af3cf8f1931c0009b95d9e173d8cd266c9015ce1ad05f93fd5c0",
+   "refuter": "dcdb8f13d757e1e36237cb8cf5488c51988e644c54bfa3318cb2389c1e825874"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.5.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in the File, Working-Storage, Communication and Linkage Sections, a data-name-1 or FILLER written in a data description entry must be the word immediately after the level-number: an entry that writes it after any other clause (PICTURE, VALUE, USAGE, REDEFINES, OCCURS) at any level must be refused, while an entry that omits it (treated as FILLER, GR1) or writes it first must be accepted, including a word that is reserved only in a later edition.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#entryNameHere; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#ClosedFormatResidue",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#entryNameHere",
+    "switches": "ReservedGatedWord(word): whether the head word is reserved at THIS edition decides if the name slot yields to a clause reading (05 NATIONAL PIC X. is a data-name at 85, an unnamed USAGE NATIONAL item at 2023)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "The grammar rule `levelNumber ({entryNameHere(...)}? dataName)? dataDescriptionBody DOT` admits the name only in the slot after the level-number, at every edition; the only edition input is the reservation table read by entryNameHere/ReservedGatedWord (same code, edition-specific word set). The COBOL1941 report comes from CobolErrorStrategy's closed-format residue, which has no --std switch on this path.",
+  "behaviour-differs-by-edition": "no (the position rule is identical; only which words are reserved differs, and that is the reserved-word rule's business)",
+  "witnesses-cover": "part: pb1280 witnesses REDEFINES placement after GLOBAL/PICTURE (SR of REDEFINES), not a data-name written after a clause; that half, the File/Linkage/Communication sections, FILLER after a clause and the omitted-name form are covered by probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/w1.cob",
+    "printed": "error COBOL1941: 'FOO' is not a clause of the data description entry",
+    "expected": "refused: 05 PIC X(3) FOO. writes the data-name after PICTURE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/w2.cob",
+    "printed": "error COBOL1941: unexpected 'FILLER'",
+    "expected": "refused: FILLER after PICTURE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/w3.cob",
+    "printed": "COBOL1941 'BAR' (after VALUE and PIC)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/w6.cob",
+    "printed": "COBOL1941 'D' (05 REDEFINES C D PIC X.)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/w7.cob",
+    "printed": "COBOL1941 'E' (05 OCCURS 2 TIMES E PIC X.)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/w5.cob",
+    "printed": "COBOL1941 'TOP' at level 01",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/w4.cob",
+    "printed": "COBOL1747 (77 needs a data-name) and COBOL1941 'BAZ'",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/f1.cob",
+    "printed": "COBOL1941 'FRX' (File Section)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/l1.cob",
+    "printed": "COBOL1941 'LX' (Linkage Section)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/cd1.cob",
+    "printed": "COBOL1941 'CQ' (Communication Section CD record); cd2.cob with the name first: RAN",
+    "expected": "refused / accepted"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/ok.cob",
+    "printed": "RAN (unnamed 05 PIC X(3) VALUE, FILLER first, FILLER REDEFINES C)",
+    "expected": "accepted: omitted name is FILLER (GR1); FILLER first"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c4/g1.cob",
+    "printed": "--std 85: NT (NATIONAL and TYPEDEF are data-names); --std 2023: COBOL0901 'NATIONAL' is a reserved word in COBOL-2023",
+    "expected": "at 85 these words are user words in the name slot"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.5.3 SR1",
+    "check": "OK  §1985:VI.5.5.3 SR1  (5.5.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.5.4 GR1",
+    "check": "OK  §1985:VI.5.5.4 GR1  (5.5.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The rule is structural in the grammar: the optional dataName sits only immediately after levelNumber, and a name-like word later in the entry falls to the closed clause list (COBOL1941). The message cites §2023:13.16.2 at --std 85 rather than the 1985 rule (presentation only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.5.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "cite.py: OK §1985:VI.5.5.3 SR1 ('must be the first word following the level-number'); OK §1985:VI.5.5.4 GR1. Probes at --std 85 under refute-1985-05/c4: n1 ten words reserved only in later editions (CONSTANT, GROUP-USAGE, BASED, DEFAULT, STRONG, VALIDATE, ANYCASE, PROPERTY, UNSIGNED, FORMAT) in the name slot -> RAN; n2 '01 X PIC X BASED.' -> COBOL0900 BASED requires 2002; n3 '01 X CONSTANT AS 5.' -> COBOL0900; n4 '05 PIC X(3) CONSTANT.' and n5 '05 X PIC X GROUP-USAGE.' (a word that is a user word at 85, written after a clause) -> refused, but by a COBOL5506 'expected RECORD' / 'expected IS' message that reads the word as the later edition's clause keyword (misleading diagnosis, not a wrong verdict: the entry is refused as SR1 requires); n6 name after SYNC -> COBOL1941; n7 '01 FILLER ... 88 FC' and n8 unnamed 10-level under 05 FILLER -> RAN (GR1, GR2 conditional-variable FILLER); n10 '66 FILLER RENAMES' -> COBOL1747. No refusal hole and no legal form refused.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

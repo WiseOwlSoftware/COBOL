@@ -181,6 +181,14 @@ DERIVATION_SELF_TEST_ROWS = (
     '| Rule | Arm | Names | The derivation | Signed |\n|---|---|---|---|---|\n'
     '| DRV-DOC-A.1-2 | undefined-A.2 | A.2 item 4 | a fabricated derivation | owner: 2026-09-03 |\n')
 
+#: A fabricated §8 row of the `unfalsifiable-under-determination` arm (kb/Work PB5831), whose Names cell is the key of
+#: the §7 row of item 2: a third legitimate home of the token.
+REGISTER_KEY_SELF_TEST_ROWS = (
+    '\n' + load_schema().derivation.heading + '\n\n'
+    '| Rule | Arm | Names | The derivation | Signed |\n|---|---|---|---|---|\n'
+    '| DRV-1985-GR-VI.5.13.4-3 | unfalsifiable-under-determination | DOC-A.1-2 | a fabricated derivation | '
+    'owner: 2026-09-03 |\n')
+
 
 def self_test() -> int:
     """Prove every check can FAIL, and for its OWN reason (feedback_green_gates_arent_evidence).
@@ -238,6 +246,12 @@ def self_test() -> int:
          good + '\n' + DERIVATION_SELF_TEST_ROWS, None),
         ('…and a PROSE mention beside that §8 row is STILL caught',
          good + '\n' + DERIVATION_SELF_TEST_ROWS + '\nSee DOC-A.1-2 for the ACCEPT case.', 'appears 3×'),
+        # ⚙ A `register-key` ARM'S NAMES CELL (kb/Work PB5831): the key of the determination the derivation rests on.
+        ('a §8 row of a register-key arm naming the item is a legitimate occurrence of its token',
+         good + '\n' + REGISTER_KEY_SELF_TEST_ROWS, None),
+        ('…and the same token in the Names cell of an arm that does not name a register key is caught',
+         good + '\n' + REGISTER_KEY_SELF_TEST_ROWS.replace('unfalsifiable-under-determination', 'unpopulatable-antecedent'),
+         'appears 2×'),
         # ⚙ A ROW'S BODY (kb/Work PB5429): the `#### <key>` heading of a row's extended prose is the row's own key.
         ('a row BODY heading is a legitimate second occurrence of its row key',
          good + '\n\n#### DOC-A.1-2\n\nThe rest of the determination.', None),
@@ -442,10 +456,17 @@ def evaluate(register: dict[int, dict], text: str) -> tuple[list[str], dict[int,
     # by the inventory rule-id it closes, so `DRV-DOC-A.1-19` is a second, LEGITIMATE occurrence of the item-19
     # token. The invariant is therefore stated over BOTH registers — a row key here or a row key there — which
     # keeps it exactly as sharp against the thing it was written for: a PROSE mention, which is a key of neither.
+    # ⚙ AND A §8 ROW'S `Names` CELL ON AN ARM WHOSE CHECK IS `register-key` (kb/Work PB5831,
+    # `unfalsifiable-under-determination`): the cell IS the key of the determination the derivation rests on, alone, and the
+    # arm's check refuses it unless that key is a register row, so the occurrence names a row that exists; a prose
+    # mention is still a key of neither.
     if (deriv := load_schema().derivation) is not None:
+        keyed_arms = {name for name, arm in deriv.arms.items() if arm["check"] == "register-key"}
         for row in conformance.derivation_rows(conformance_source.number_of(deriv.heading)):
             if row.key.startswith('DRV-') and ITEM_KEY_RX.match(row.key[len('DRV-'):]):
                 keys[row.key[len('DRV-'):]] += 1
+            if row.arm in keyed_arms and ITEM_KEY_RX.fullmatch(row.names.strip()):
+                keys[row.names.strip()] += 1
     # ⚙ AND A ROW'S BODY (kb/Work PB5429): a row whose determination runs past one cell carries the rest under a
     # `#### <key>` heading after the table, and that heading is the row's own key a second time — the same row, never a
     # prose mention.

@@ -1,0 +1,82 @@
+{
+ "rule-id": "1985-GR-XIII.4.2.4-4",
+ "rule-digest": "cc69075e0c78",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-04",
+  "sources": {
+   "reader": "be50138e22430c137194b3f2f7f1a377dea341308564b9fff83f02392d22c913",
+   "refuter": "ad6e92f9e4d13e42c5e99b7b2fb70a7ba31f653b0e440e19c502cb8f119c6201"
+  },
+  "imported": {
+   "reader": "4e5c4d8aab981097a02d6aea4e996f4eb170dee51f8b4f5fe9bd80bd77c1c523",
+   "refuter": "8e67109067892215d76c524e48d9b071b742bb2a54fabcf7c7db2daa8030aa95"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.2.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every CLOSE of a report file (plain, WITH LOCK, WITH NO REWIND, REEL/UNIT [FOR REMOVAL], several file-names, not open) updates that file's I-O status with the §1985:VII.1.3.5 value: 00 success, 07 for a phrase on a non-reel medium, 42 not open; a later OPEN of a file closed with lock gives 38.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseNoRewind; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (2002+): at 85 the physical file is locked (any file-name's OPEN gives 38), from 2002 only the connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility off at 85; SharedClose's lock release does not depend on it",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep IsActive/Edition in the FileRegistry Close paths and FileConnector.Close; no CLOSE arm in VersionConformancePass. The status assignment in CloseCell (Table 14 cell, the '42' guard, '07') is the same code at every edition.",
+  "behaviour-differs-by-edition": "yes: the CLOSE WITH LOCK lock scope (physical file at 85, connector from 2002) and WITH LOCK removed at 2023; the status update itself is the same",
+  "witnesses-cover": "part: the witnesses cover close forms and the 42 status on sequential files; not exercised: a report file (REPORT clause) through each format, several file-names in one CLOSE with one not open, CLOSE WITH LOCK then OPEN through another file-name",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c6/p6.cob",
+    "printed": "NOT-OPEN=42 OPEN=00 CLOSE=00 CLOSE-AGAIN=42 EXTEND=00 NO-REWIND=07 REEL=07 UNIT-REMOVAL=07 MULTI=00 00 MULTI-2=00 42 LOCK=00 REOPEN-LOCKED=38 OTHER-NAME-LOCKED=38 CLOSE-RP3=42; the USE procedure ran on each 42/38; report content DET1",
+    "expected": "§1985:XIII.4.2.4 GR4 with §1985:VII.1.3.5 values; GR7 each file-name updated; GR3 F (REEL on non-reel: file stays open); 38 for a physical file closed with lock"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c6/p6.cob",
+    "printed": "--std 2023: error COBOL0902: the CLOSE WITH LOCK phrase was removed in COBOL-2023",
+    "expected": "WITH LOCK is a phrase of 85 that 2023 dropped"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.2.4 GR4",
+    "check": "OK  §1985:XIII.4.2.4 GR4  (cite.py --check \"causes the value of the I-O status associated with file-name-1 to be updated\")"
+   },
+   {
+    "cite": "§1985:XIII.4.2.4 GR1",
+    "check": "OK  §1985:XIII.4.2.4 GR1  (cite.py --check \"A CLOSE statement may only be executed for a file in an open mode\")"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (cite.py --check \"A CLOSE statement is attempted for a file not in the open mode\")"
+   }
+  ],
+  "notes": "Every CLOSE format goes through FileRegistry.CloseByFormat, which sets 42, 07 or the connector's close status from Table 14; report files take the same path. The 85 edition arm in this area, the physical-file lock, behaves as the 1985 text says.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.2.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe refute-1985-04/c6/r6.cob at --std 85 (a GLOBAL report file with a GLOBAL FILE STATUS item and a USE AFTER STANDARD ERROR procedure), aimed at failed CLOSE forms and a contained program: CLOSE WITH LOCK of a file not open = 42 (USE ran) and the next OPEN OUTPUT = 00, so the failed CLOSE locked nothing; CLOSE WITH NO REWIND = 07 and the file is closed (the next OPEN OUTPUT = 00, not 41, GR6); CLOSE REEL, CLOSE WITH NO REWIND and CLOSE UNIT FOR REMOVAL of a file not open each give 42, not 07; a contained program INNER closing the GLOBAL report file updates the status item to 00 and a second CLOSE to 42, which the caller sees (AFTER-INNER=42); the outer program's non-GLOBAL USE procedure correctly does not run for INNER's CLOSE. cite.py: OK §1985:XIII.4.2.4 GR4 ('causes the value of the I-O status associated with file-name-1 to be updated'); OK §1985:XIII.4.2.4 GR6 ('the report file is removed from the open mode').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

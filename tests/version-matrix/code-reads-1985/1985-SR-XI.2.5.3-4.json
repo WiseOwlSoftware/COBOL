@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-SR-XI.2.5.3-4",
+ "rule-digest": "a9ca6099b23d",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-08",
+  "sources": {
+   "reader": "202d91b2ed26e5c3ce2e3f4679bd6b14d1db0526e78703866c5edf4ae776acb2",
+   "refuter": "50d13ea7be3d7dc9403270870e5e7a135de95c4fcd134e35ff35643863b226a8"
+  },
+  "imported": {
+   "reader": "2195b7206a227e8f9927250409ce980d779c4ffe351bb51ff1eeeb79db8efd56",
+   "refuter": "86ec3d50b481f2eaba070a462fc3789fc87fcb0aff5d6a526304ef00587c9d95"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.2.5.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a file-name described by an SD entry (a sort or merge file) must be refused in a SAME AREA clause (the format without RECORD, SORT or SORT-MERGE, written with or without the optional word AREA) and admitted in SAME RECORD AREA, SAME SORT AREA and SAME SORT-MERGE AREA.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameKindOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "Edition.Edition.Year < 2002 selects the 1985 report-file row (SAME SORT/SORT-MERGE AREA unlimited for a report file); the SortMerge row this rule uses (file-area max 0) is not switched",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of sameClause/SameClause/SORT_MERGE across src/**/*.cs (no VersionConformancePass, ConstructRegistry or ReservedWords consult for the clause); grammar CobolIO.g4#sameClause is edition-neutral: SAME (RECORD|SORT|SORT_MERGE)? AREA? FOR? fileName+",
+  "behaviour-differs-by-edition": "no: a sort or merge file in the file-area format is refused at 1985 and 2023 alike (only the report-file row of the occurrence table differs below 2002, which is SR5/XIII.2.4.3 SR2, not this rule)",
+  "witnesses-cover": "part: the witnesses exercise SAME AREA naming a sort file and two SAME RECORD AREA clauses; not exercised: SAME without the word AREA, a clause naming only sort files, and the admitted SORT / SORT-MERGE / RECORD forms at --std 85",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c1-area-sort.cob",
+    "printed": "error COBOL2738: SAME AREA: sort or merge file 'S1' is named in a file-area format clause, which its kind bars (ISO §2023:12.4.6.4.3 SR6 ...)",
+    "expected": "refused: S1 is a sort file in SAME AREA (SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c1-area-noword.cob",
+    "printed": "error COBOL2738 for 'S1' (SAME FOR F1 S1)",
+    "expected": "refused: AREA is an optional word, the clause is still the SAME AREA format"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c1-area-two-sorts.cob",
+    "printed": "error COBOL2738 for 'S1' and for 'S2'",
+    "expected": "refused for each sort file"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c1-record.cob",
+    "printed": "RAN",
+    "expected": "admitted: RECORD phrase used"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c1-sort.cob",
+    "printed": "RAN",
+    "expected": "admitted: SORT phrase used"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c1-sortmerge.cob",
+    "printed": "RAN",
+    "expected": "admitted: SORT-MERGE phrase used"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c1-area-plain.cob",
+    "printed": "RAN",
+    "expected": "admitted: SAME AREA of two FD files (§1985:VII.2.13)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.2.5.3 SR4",
+    "check": "OK  §1985:XI.2.5.3 SR4  (2.5.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VII.2.13.4 GR1",
+    "check": "OK  §1985:VII.2.13.4 GR1  (2.13.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The occurrence table gives a sort-merge file a file-area limit of 0 at every edition, and the 1985 arm only changes the report-file row. The rule is enforced at --std 85 in every spelling; the diagnostic text cites §2023:12.4.6.4.3 SR6 rather than the 1985 rule, which is a wording point and not a conformance failure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.2.5.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:XI.2.5.3 SR1-SR6 and FileControlBinder.IoControl.cs#BindIoControl/#SameOccurrenceRule/#ScreenSameClauses: the SortMerge row (file-area max 0) is not edition-switched. Probes at --std 85: E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r1-merge-lower.cob (SAME AREA FOR f1 m1, lower-case names, m1 an SD used as a MERGE file) -> COBOL2738 'sort or merge file M1 is named in a file-area format clause'; E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r1-sort-two.cob (SAME SORT AREA FOR S1 S2 F1 + SAME RECORD AREA FOR S1 S2) -> RAN. cite.py: 'OK §1985:XI.2.5.3 SR4 (2.5.3 Syntax Rules) the text is in SR4'. No refusal/admission mismatch found.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -42,16 +42,18 @@ import contextlib
 import io
 import json
 import pathlib
+import re
 import subprocess
 import sys
 from collections import Counter
-from typing import Any, NamedTuple
+from typing import Any, Callable, NamedTuple
 
 from inventory_schema import (HELD, NEWEST, REPO, RETIRED_WITNESS_MARK, SCHEMA_PATH, SCHEMA_REL, Schema, StatementLoss,
                               Tree, WitnessLoss, load_schema, statement_losses, statement_text,
                               witness_losses, witness_shape_error)
 from inventory_store import history_pathspecs
 from inventory_view import inventory, inventory_at
+from lineage import chain_of
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -163,13 +165,16 @@ def compare_revisions(before: list[dict[str, Any]], after: list[dict[str, Any]],
     return losses, vanished
 
 
-def compare_statements(before: list[dict[str, Any]], after: list[dict[str, Any]], schema) -> list[StatementLoss]:
+def compare_statements(before: list[dict[str, Any]], after: list[dict[str, Any]], schema,
+                       chain: Callable[[dict[str, Any]], bool | None] | None = None) -> list[StatementLoss]:
     """Every statement (`notes` prose, `derivation`, `verdict`, `editions`) a row present on both sides said
     something in and says nothing in now (`inventory_schema.statement_losses`, kb/Work PB3795). A hand-written
-    edit, a merge and a record from before the writer refused it are all caught here; there is no excuse to write."""
+    edit, a merge and a record from before the writer refused it are all caught here; there is no excuse to write.
+    `chain` gives an older edition's row the verdict it is judged under (`lineage.chain_of`: a chained row's chain,
+    kb/Work PB5822), so a chained row's derivation is lost by the same rule as any row's; None for the newest edition."""
     by_after = {r["rule-id"]: r for r in after}
     return [s for row in before if (now := by_after.get(row["rule-id"])) is not None
-            for s in statement_losses(row, now, schema)]
+            for s in statement_losses(row, now, schema, chain(now) if chain else None)]
 
 
 class Erasure(NamedTuple):
@@ -198,6 +203,12 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
     losses: list[WitnessLoss] = []
     vanished: list[str] = []
     erased: list[StatementLoss] = []
+    heads: dict[int, list[dict[str, Any]]] = {}
+
+    def head(year: int) -> list[dict[str, Any]]:
+        if year not in heads:
+            heads[year] = now(year)
+        return heads[year]
     for year in sorted(HELD, reverse=True):
         before = at(base, year)
         if before is None:
@@ -206,11 +217,14 @@ def check(base: str, schema, at: Any = inventory_at, now: Any = inventory, revis
                 return 2
             print(f"  ⓘ the {year} store does not exist at {base[:12]}: nothing of it to lose")
             continue
-        after = now(year)
+        after = head(year)
         got, gone = (revisions or compare_revisions)(before, after, base, None, schema)
         losses += got
         vanished += gone
-        erased += compare_statements(before, after, schema)
+        ed = schema.edition(year)
+        # an older edition's chained row is judged under its chain, at the head (kb/Work PB5822)
+        targets = {} if ed.newest else {r["rule-id"]: r for r in head(ed.next_held)}
+        erased += compare_statements(before, after, schema, lambda r: chain_of(r, ed, schema, targets))
     unexcused = [l for l in losses if not l.excused]
     retired = [l for l in losses if l.retired]
     resited = [l for l in losses if l.resited and not l.retired]
@@ -685,6 +699,50 @@ def self_test(schema) -> int:
                {rid85: kept85}, ed85, targets85)))
     verify("writer at 1985: ... and refused on a row with no change record (nothing adjudicated to join)",
            any("needs a row that is already adjudicated" in e for e in errors85({**changed85, "next": {}})))
+    # kb/Work PB5822: a KEPT row's derivation OF ITS OWN, written through the one predicate (`lineage.derivation_refusals`)
+    # against a planted schema whose derivation reads a fabricated register and catalog.
+    from inventory_schema import DerivationRow
+    ds = Schema(json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
+    assert ds.derivation is not None
+    drv85 = ds.derivation.anchor_template.replace("{rule-id}", rid85)
+    ds._catalog = {rid85: (1985, "The effect of the INSPECT statement on overlapping operands is undefined.")}
+    ds._register_items = set()
+    ds.derivation._undefined, ds.derivation._refuters = {}, {}
+
+    def drv_errors(rec: dict[str, Any], on: dict[str, Any], quote: str = "on overlapping operands is undefined",
+                   targets: dict[str, dict[str, Any]] = targets85) -> list[str]:
+        ds.derivation._register = {f"DRV-{rid85}": DerivationRow(f"DRV-{rid85}", "undefined-in-rule", f'"{quote}"', "",
+                                                                 "claude: 2026-11-12", "—")}
+        return validate([(pathlib.Path("self-test"), 0, {"rule-id": rid85, **rec})], ds, {rid85: "GR"}, {rid85: on},
+                        ed85, targets)
+
+    def coded(errs: list[str]) -> list[str]:
+        """The stable refusal codes the writer printed (`[<code>] <message>`), sorted."""
+        return sorted(m.group(1) for e in errs if (m := re.search(r": \[([a-z0-9-]+)\] ", e)))
+
+    open85 = {"SR-1": {**targets85["SR-1"], "state": "GAP"}}
+    derived85 = {**kept85, "derivation": drv85}
+    verify("writer at 1985 (PB5822): a derivation of its own on a KEPT row with a closed chain is accepted",
+           not drv_errors({"derivation": drv85}, kept85))
+    verify("writer at 1985 (PB5822): ... refused when the arm's check fails against the row's own catalog text",
+           coded(drv_errors({"derivation": drv85}, kept85, "the effect of overlapping is undefined")) == ["quote-not-in-rule"])
+    verify("writer at 1985 (PB5822): ... refused beside a spec-derived test-ref of its own (refusal 1)",
+           coded(drv_errors({"derivation": drv85, "test-ref": place}, kept85)) == ["has-spec-derived-test"])
+    chain_open = drv_errors({"derivation": drv85}, kept85, targets=open85)
+    verify("writer at 1985 (PB5822): ... refused while its chain is not closed, under the stable code",
+           coded(chain_open) == ["verdict-does-not-resolve"] and "its chain is not closed" in chain_open[0])
+    verify("writer at 1985 (PB5822): withdrawing it is a loss while the chain is closed, and accepted once it opens",
+           any("'derivation' would go from" in e for e in drv_errors({"derivation": ""}, derived85))
+           and not drv_errors({"derivation": ""}, derived85, targets=open85))
+    with contextlib.redirect_stdout(io.StringIO()) as seen:
+        lost = check("HEAD", ds, lambda _b, y: {older: [derived85], ed85.next_held: list(targets85.values())}.get(y, []),
+                     lambda y: {older: [kept85], ed85.next_held: list(targets85.values())}.get(y, []), no_git)
+    verify("WITNESS LOSS (PB5822): a KEPT row's derivation erased while its chain is closed turns the audit red",
+           lost == 1 and f"ERASED   {rid85} derivation" in seen.getvalue(),
+           "" if lost == 1 else seen.getvalue()[-300:])
+    verify("... and the naive reading (no chain) would have excused it: the chain is what makes it a loss",
+           not statement_losses(derived85, kept85, ds) and statement_losses(derived85, kept85, ds,
+                                                                             chain_of(kept85, ed85, ds, targets85)))
     read85 = {**changed85, "verdict": "CONFORMS", "code-location": "src/Planted.cs#PlantedSymbol", "notes": "Read."}
     for on in (changed85, removed85, read85):
         got = {**on, **merged(on, witness85, schema, ed85)}

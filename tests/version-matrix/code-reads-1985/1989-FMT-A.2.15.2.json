@@ -1,0 +1,163 @@
+{
+ "rule-id": "1989-FMT-A.2.15.2",
+ "rule-digest": "0baaf26f4e1d",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-09",
+  "sources": {
+   "reader": "2b5d4d717412a43a15a2ad02336fb327afb76598435e08ccca7c0e96cc110f02",
+   "refuter": "dfad5fdf6dd02d62fe0671256b59fb0a63ab97a6e9ce71b43437b519b8097b67"
+  },
+  "imported": {
+   "reader": "0d26372c8b034286f0467d3b4fb10f897af37c07618980e5f079e39399a45c0e",
+   "refuter": "51d4988ebfaced7736c2437558d87d2ed903e39f70d3e3fd8d7e41be396fc673"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.15.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 (the 1989 amendment) the compiler must accept FUNCTION INTEGER ( argument-1 ) with exactly one argument (identifier, literal or arithmetic expression, A.2.2) and refuse every other shape: no FUNCTION word, no parentheses, zero or two arguments, and the 2002 argument forms (empty list, OMITTED, boolean, ALL on a fixed-arity function, REPOSITORY keyword omission).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+    "switches": "the D8 window (sig.IntroducedIn 85 > DialectLevel; RemovedIn): INTEGER is available at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "FunctionEmptyArgumentList2002: '( )' refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+    "switches": "ConstructRegistry.IsAvailable(RepositoryFunction2002): keyword-omitted routing inert below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "NumericFunctionIdentifierOperand2002: an integer function outside an arithmetic expression refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the format: the one-argument shape and the floor values are the same at 2023 (legal.cob prints identical lines at --std 2023, two_args_comma.cob is refused identically); the 2002 argument forms and the keyword omission differ.",
+  "witnesses-cover": "part: the witnesses cover two arguments and the floor values of identifiers; not exercised: the no-parentheses and empty-list forms, expression, literal, nested, scaled and 18-digit arguments, the 2002 argument forms at 85.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/legal.cob",
+    "printed": "SPACE-PAREN -2, LIT -3, EXPR(-1.5*3+2.25) -3, NEST 1, BIG -999999999999999999, BIGF -100000000000000000, SP(9PP=300) 300, SV(SVPP9=-.003) -1, ZERO 0, SUB(TE(I)=-2.5) -3, TINY 0+(-1) = -1",
+    "expected": "the greatest integer <= argument-1 (A.2.15.4 RV1) for each"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/legal.cob",
+    "printed": "BIG and BIGF (18-digit extremes, negative) as above",
+    "expected": "-999999999999999999 and -100000000000000000"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/two_args_comma.cob",
+    "printed": "error COBOL1504: FUNCTION INTEGER takes 1 argument(s); 2 given",
+    "expected": "refused: one argument"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/noargs_parens.cob",
+    "printed": "error COBOL1504 (0 given) and COBOL0900: an empty function argument list '( )' requires COBOL-2002",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/noparens.cob",
+    "printed": "error COBOL1504: takes 1 argument(s); 0 given",
+    "expected": "refused: ( argument-1 ) is required"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/nofunction_word.cob",
+    "printed": "error COBOL1639: 'INTEGER(A)' is not defined",
+    "expected": "refused: the word FUNCTION is required at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/repository_85.cob",
+    "printed": "error COBOL0900: the REPOSITORY FUNCTION entry requires COBOL-2002; and COBOL1639 'INTEGER(A)' not defined",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/alnum_arg.cob",
+    "printed": "error COBOL1627: argument-1 is of class alphanumeric",
+    "expected": "refused (A.2.15.3 AR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/nonnum_lit.cob",
+    "printed": "error COBOL1627 (an alphanumeric literal)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/bool_arg.cob",
+    "printed": "error COBOL0900: the boolean literal requires COBOL-2002; COBOL1627",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/omitted_arg.cob",
+    "printed": "error COBOL1544: OMITTED shall not be specified as an intrinsic-function argument",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c5/all_arg.cob",
+    "printed": "error COBOL1645: the ALL subscript is permitted only when the function's definition permits an argument to be repeated",
+    "expected": "refused: one argument, no repetition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.15.2",
+    "check": "FAIL [quote-too-short]: 'FUNCTION INTEGER ( argument-1 )' has 3 real word(s) (a format has no four-word quotation; the locator is the catalog row itself)"
+   },
+   {
+    "cite": "§1989:A.2.15.1",
+    "check": "OK  §1989:A.2.15.1  (2.15.1 Description)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.15.3 AR1",
+    "check": "OK  §1989:A.2.15.3 AR1  (2.15.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.15.4 RV1",
+    "check": "OK  §1989:A.2.15.4 RV1  (2.15.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   }
+  ],
+  "notes": "The grammar makes the argument list optional for every function; the catalog row's fixed arity 1..1 is what refuses the no-parentheses and empty forms, and VersionConformancePass adds the 2002 empty-list refusal. Every value matches A.2.15.4 RV1.",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog": "INTEGER row: Fixed 1..1, 'n', IntroducedIn 85"
+  }
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.15.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1989:A.2.15 (INTEGER: one class-numeric argument, type integer), §1985:IV.4.3.8.3.3 SR1/SR2/SR4 (function-identifier, as amended in place) and §1985:VI.6.2.2 (operators spaced). Probes at --std 85 under refute-1985-09/c5: DISPLAY / MOVE / ADD / PERFORM ... TIMES with FUNCTION INTEGER as the identifier operand (display_int, move_int, add_int, perform_times) -> COBOL0900 (integer function only in an arithmetic expression); IF FUNCTION INTEGER(A) = -2 and IF FUNCTION INTEGER (- A) > 0 (if_int) -> 'EQ','POS'; (A -1) and (A +1), a space-separated signed literal (signed_lit_second, signed_lit_plus) -> COBOL1504 two arguments, identically at 2023; numeric-edited argument (edited_arg) and ref-modified argument (refmod_arg) -> COBOL1627; index-name argument (index_arg) -> COBOL1637; FUNCTION INTEGER(A) (1:1) (refmod_fn) -> COBOL1629. cite.py: OK §1989:A.2.15.3 AR1; OK §1985:IV.4.3.8.3.3 SR4; OK §1985:IV.4.3.8.3.3 SR2; OK §1985:VI.6.2.2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

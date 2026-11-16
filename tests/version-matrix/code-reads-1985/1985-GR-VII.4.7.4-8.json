@@ -1,0 +1,107 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-8",
+ "rule-digest": "05b4bb568a7f",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-03",
+  "sources": {
+   "reader": "9790cc467c3b586ac588730bbc505d6fcfb8b0adb29e0f59e38e179b812e39aa",
+   "refuter": "2a3fa4b37a43dcb87419e3ab5080c47f5ce8c630cb6c0d65e69e2ff546abdc45"
+  },
+  "imported": {
+   "reader": "f6d118ab5bfd0e2cedb56f18a5c57de21d743909837f28282429dbc10e6e3a58",
+   "refuter": "4c2aad7fb37cc0814d86146818311a7a72e4e9b459d704cd4512f414c0479aeb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.7.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a WRITE to a sequential file whose RECORD IS VARYING clause allows min..max character positions (integer-2/integer-3, or the least/greatest described record when omitted) with a record whose size (the DEPENDING ON data-name-1 value, else the record's size including the current OCCURS DEPENDING ON portion) is below min or above max is unsuccessful: nothing is written (no line advance or LINAGE-COUNTER change on a print file), the record area and data-name-1 are unchanged, and the I-O status is '44'; a Format 3 RECORD CONTAINS range is not a RECORD IS VARYING clause and does not bound the WRITE at 85.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancingRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WrittenLength; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OutsideVaryingBounds; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordSizeViolation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize (from 2002): BoundsEnforced is true for a RECORD IS VARYING clause at every edition, and for a Format 3 RECORD CONTAINS m TO n only from 2002",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|IsActive in SequentialConnector.cs (none on the write path; only the sharing read at OPEN) and FileControlBinder.FileSection.cs (the one DialectBehavior site above). For a RECORD IS VARYING file the 85 arm is the latest edition's arm (varyingClause short-circuits the switch); only the Format 3 arm differs.",
+  "behaviour-differs-by-edition": "yes: not for RECORD IS VARYING (same '44' at every edition); for Format 3 RECORD CONTAINS 5 TO 20, a 3-character record writes '00' at 85 and '44' at 2023, which matches 85's GR8 and status 44 naming only the RECORD IS VARYING clause",
+  "witnesses-cover": "part: the witnesses cover the DEPENDING ON bound on WRITE and WRITE ADVANCING and the REWRITE twin; not exercised: the OCCURS DEPENDING ON size without data-name-1, the omitted integer-2 (least described record), an unchanged record area and data-name-1 after the refusal, the LINAGE-COUNTER and medium untouched, the Format 3 edition arm",
+  "probes": [
+   {
+    "class": "a,b,f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r6/p6a.cob",
+    "printed": "FROM 5 TO 20 DEPENDING ON RL: RL=04 FS=44, RL=21 FS=44, RL=00 FS=44, RL=99 FS=44 (USE ran each, AREA unchanged, RL unchanged), RL=05 FS=00, RL=20 FS=00; read back: two records only (RL=05 ABCDE, RL=20 ...), END 10; medium holds only the two framed records",
+    "expected": "GR8: unsuccessful, no write, record area unaffected, status 44 (VII.1.3.5 4 d 1); VII.3.8.4 GR9 data-name-1 unchanged"
+   },
+   {
+    "class": "a,b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r6/p6b.cob",
+    "printed": "RECORD IS VARYING (no integers) with ODO 2..6: CNT=2 00, CNT=6 00 (frames 3 and 7 bytes); TO 12 DEPENDING ON DL with ODO 1..10 (min = least described 3): DL12 00, DL2 44, DL1 44, DL13 44; Format 3 RECORD CONTAINS 5 TO 20: 00, 00",
+    "expected": "VII.3.8.4 GR10 a/c sizes; GR6/GR7 implicit bounds; '44' outside them"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r6/p6c.cob",
+    "printed": "--std 85: F3 TINY 00 (3-byte record written); --std 2023: USE F3=44 / F3 TINY 44",
+    "expected": "85: GR8 and status 44 cover only RECORD IS VARYING; Format 3 sizes are 'completely defined in the record description entry' (VII.3.8.4 GR14), fixed or variable is implementor-defined (GR13)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r6/p6d.cob",
+    "printed": "error COBOL2010 record 'VF-SHORT' describes 3 bytes, fewer than the integer-2 = 5",
+    "expected": "VII.3.8.3 SR2 refuses a record description outside the VARYING bounds at compile time"
+   },
+   {
+    "class": "e,d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r6/p6e.cob",
+    "printed": "VARYING 2..8 DEPENDING ON RL with LINAGE 10: OK FS=00 LC=03 / SHORT(1) FS=44 LC=03 / LONG(9, BEFORE PAGE) FS=44 LC=03 / OK2 FS=00 LC=04; medium: two blank lines, LINE1, LINE2 only",
+    "expected": "the WRITE operation does not take place: no advance, no LINAGE-COUNTER change"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.4 GR8",
+    "check": "OK  §1985:VII.4.7.4 GR8  (4.7.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.4",
+    "check": "OK  §1985:VII.1.3.5 GRL2.4  (1.3.5 I-O Status)  the text is in GRL2.4"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR10",
+    "check": "OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR6",
+    "check": "OK  §1985:VII.3.8.4 GR6  (3.8.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR9",
+    "check": "OK  §1985:VII.3.8.4 GR9  (3.8.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR13",
+    "check": "OK  §1985:VII.3.8.4 GR13  (3.8.4 General Rules)  the text is in GR13"
+   }
+  ],
+  "notes": "OutsideVaryingBounds is asked by both the plain and the ADVANCING write arms before anything reaches the medium, with the length from DEPENDING ON or the ODO-sized image. The only edition switch is in BindRecordClause and leaves RECORD IS VARYING on the latest arm; at 85 it correctly leaves a Format 3 range unbounded.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.7.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "r6/q1.cob at --std 85: VARYING 4 TO 12 DEPENDING ON RL over an ODO record: RL=3 with CNT=10 -> 44 and RL=12 with CNT=2 -> 00 (data-name-1 decides the size, GR10a over GR10c); WRITE FROM W with RL=13 -> 44 (record area holds W from the GR3 MOVE), RL=6 -> 00; OPEN EXTEND RL=2 -> 44, RL=4 -> 00; read back exactly the three successful records (12, 6, 4 bytes), then 10. Class c: r6/q2.cob DEPENDING ON item in the File Section refused COBOL2922 citing §1985:VII.3.8.3 SR4 (the 2023 text widens to local-storage; same refusal at 2023). cite.py: 'OK §1985:VII.3.8.4 GR10a', 'OK §1985:VII.3.8.3 SR4', 'OK §1985:VII.4.7.4 GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

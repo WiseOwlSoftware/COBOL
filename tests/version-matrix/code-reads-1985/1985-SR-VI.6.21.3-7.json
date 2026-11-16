@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-7",
+ "rule-digest": "1a74a76736c0",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-06",
+  "sources": {
+   "reader": "e55e548b5e6aaa24b9a4a5773803694bc83db1502affa278584bb6f57c7c1c5e",
+   "refuter": "e676cfa069cef4f3ef933361d6ff3df214542537a99dec66381b31dc5d3347f8"
+  },
+  "imported": {
+   "reader": "8495f2dd9b1045ab24bf2de0104e5b50932f5082c4ef78f174e9e1595c78fb0f",
+   "refuter": "70de98732456d124aa53ad0c4e4361b31049f7a41b4f3273c847816c641b3754"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, whenever an index-name is the varied operand of a VARYING or of any AFTER phrase of PERFORM format 4, the compiler must refuse a FROM or BY identifier that is not an integer data item (one with no digit positions right of the decimal point, §1985:III.2), a FROM literal that is not a positive integer (0, negative, 1.0, 1.5, ZERO), and a BY literal that is not a nonzero integer, while admitting negative integer BY literals and scaled integer items such as PIC 9P.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckVaryingOperandRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingLevel; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry numeric-function-identifier-operand-2002: at 85 a numeric/integer function-identifier written as the FROM/BY identifier is refused (COBOL0900, §1985:IV.4.3.8.3.3 SR4); 2002+ admits it and SR7a's integer test then applies",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindPerformVarying",
+    "switches": "DialectBehavior PerformVaryingInitInnerBeforeAugmentOuter selects the run-time augment order (a general rule, not this syntax rule)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep -n 'Edition|DialectLevel|DialectBehavior|ConstructRegistry' ControlFlowBinder.PerformVarying.cs, OperandClassScreen.cs (no edition comparison) and IntrinsicResultType.IsIntegerOperand (none); CheckVaryingOperandRules itself has no edition term",
+  "behaviour-differs-by-edition": "yes: only for a function-identifier operand: at 85 a numeric/integer function as the FROM/BY identifier is refused by the 1985 placement rule, at 2023 it is admitted and judged by the integer test; every literal and data-item case prints identical diagnostics at 85 and 2023",
+  "witnesses-cover": "part: pb432-varying-operand-rules covers the VARYING-phrase literal and identifier refusals; the AFTER-phrase index-name arm, 1.0 (decimal point with zero fraction), figurative ZERO, the scaled integer PIC 9P FROM operand and the function-identifier operand are not exercised by the witnesses",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c3a.cob",
+    "printed": "COBOL2120 on: FROM NF (9V9), BY NF, FROM 0, FROM -1, FROM 1.0, FROM 1.5, FROM ZERO, BY 0 (SR6), BY 1.0, BY 1.5, AFTER IY FROM 0, AFTER IY FROM NF BY NF (two), AFTER IY BY 0.5; identical set at 2023",
+    "expected": "each refused (SR7 a/b/c; 1.0 is not an integer under §1985:III.2)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c3b.cob",
+    "printed": "01 02 03 / 30 27 24 21 (BY NB = -3, TEST AFTER) / 10 13 16 (FROM NP PIC 9P = 10, BY N3) / 02 (FROM +2 BY -1)",
+    "expected": "all accepted and run (negative nonzero integer BY, signed positive FROM literal, scaled integer item)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c3c.cob",
+    "printed": "85: COBOL0900 on FUNCTION INTEGER (NF) as FROM and as BY and on FUNCTION NUMVAL as BY (plus COBOL2120 SR7a for NUMVAL); 2023: only COBOL2120 on BY FUNCTION NUMVAL",
+    "expected": "85 refuses numeric/integer function-identifiers outside an arithmetic expression (§1985:IV.4.3.8.3.3 SR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR7",
+    "check": "OK  §1985:VI.6.21.3 SR7  (6.21.3 Syntax Rules)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:VI.6.21.3 SR7c",
+    "check": "OK  §1985:VI.6.21.3 SR7c  (6.21.3 Syntax Rules)  the text is in SR7c"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "CheckVaryingOperandRules is called from BindVaryingLevel for the VARYING and each AFTER level, so both phrases take the same screen; the integer test is the form test (no decimal point), which matches the 1985 definition of integer. Diagnostics cite §2023:14.9.28.3 SR4/SR6 at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusals; function-identifier FROM/BY admitted and integer-tested",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-7",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,f",
+  "evidence": "Read §1985:VI.6.21.3 SR4-SR9. Probe E:/COBOL-coord/scratch/sample-shared/out/refute-1985-06/r3a.cob at --std 85: COBOL2120 SR7a on FROM PIC P9 and BY PIC SPP9 (digit positions right of the point, not integer); COBOL0844 on reference-modified FROM N2 (1:1) and BY N2 (1:2) (alphanumeric, not an integer item); FROM 1E0 refused (at 85 it is a user word, undefined); BY +0, BY -0, BY -00.0 refused (SR9/SR7c); FROM +0 refused (SR7b); the sixth AFTER phrase FROM 0.5 refused, so every AFTER level takes the screen; FROM NE (1) BY NE (2) subscripted integer items admitted. cite.py: OK  §1985:VI.6.21.3 SR7 ; OK  §1985:VI.6.21.3 SR7c.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
