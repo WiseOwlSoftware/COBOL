@@ -152,7 +152,12 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     // ⛔ ONE FAULT, ONE WORDING (kb/Work PB4818): which decision met the word after a dangling level-number is the
                     // grammar's shape (a data entry's optional name, a section's entry loop) and tells the user nothing.
                     : BuildMessage(subject ?? at.Token, at.EntrySlotYields ? ErrorKind.InputMismatch : kind, hints), e);
-        if (violation is not null && ReadsAsTheNameAhead(recognizer, at, kind))
+        // ⛔ ONLY THE WORD THE REPORT NAMED IS READ AS THE NAME (kb/Work PB5809). Where the report names an earlier word than
+        // the offending token (a procedure-name the misreading died after, PB4229), the offending token is no word the user
+        // wrote as a name — `PERFORM STOP.` dies at its period — and reading IT as an IDENTIFIER re-parsed the sentence with
+        // the period gone, which `STOP word` (a STOP literal-1 written as a symbolic-character) let the walk accept, so the
+        // `STOP RUN.` after it was refused as the inline PERFORM's next statement. That case is the orphaned tail above.
+        if (violation is not null && named == at.Token && ReadsAsTheNameAhead(recognizer, at, kind))
         {
             ((CobolParserCoreBase)recognizer).ReadAsUserWord(at.Token);
             _reportedReservedWordUse = false;   // the word stays in the source as the name; the recovery has nothing to consume

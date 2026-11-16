@@ -525,7 +525,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         /// <summary>No parenthesis in the item hangs on a name that cannot own it: the item is one operand as parsed.</summary>
         None,
         /// <summary>The item ends with such a list, which the declarations gave to the NEXT item (the list is marked
-        /// <c>GivenToNextItem</c>): the item is two operands, the second the list's content
+        /// <c>SubscriptPartOwnership.GiveToNextItem</c>): the item is two operands, the second the list's content
         /// (<see cref="GivenAwayOperand"/>).</summary>
         GivenAway,
         /// <summary>Such a list stands where the tree gives it no reading — followed by more of the item, or a second one
@@ -543,7 +543,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// side: a unary-led expression that "immediately follows an identifier" stands in its own parentheses, so
     /// <c>FUNCTION MIN (A (- B))</c> has two arguments.
     /// <para>A list is given away only when the tree has that reading: the list CLOSES the item and it is the only such
-    /// list in the item. It is then marked <c>GivenToNextItem</c>, which every reader of the written reference honours,
+    /// list in the item. It is then marked <c>SubscriptPartOwnership.GiveToNextItem</c>, which every reader of the written reference honours,
     /// and returned in <paramref name="list"/> — also for <see cref="ListCut.Unreadable"/>, whose list is where the item
     /// splits. What the list holds is the next item's own question (<see cref="GivenAwayOperand"/>). The marking is
     /// idempotent: the same item and the same declarations give the same answer to every reader.</para></summary>
@@ -557,7 +557,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (cuts is null) return ListCut.None;
         list = cuts[0];
         if (cuts.Count != 1 || !ReferenceEquals(item.Stop, list.Stop)) return ListCut.Unreadable;
-        list.GivenToNextItem = true;
+        list.GiveToNextItem();
         return ListCut.GivenAway;
     }
 

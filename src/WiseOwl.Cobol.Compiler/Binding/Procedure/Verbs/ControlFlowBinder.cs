@@ -57,8 +57,9 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     private BoundStatement BindStopWord(Core.CobolWordContext word)
     {
         string written = word.GetText();
-        if (ctx.Data.SpecialNames.NamesSymbolic(written) && ctx.Data.SpecialNames.SymbolicOf(word, written) is { } sym)
-            return new BoundStopLiteral(sym.Value);
+        // The ONE resolution of a literal-alias word (ExpressionBinder.LiteralAliasOf, kb/Work PB1544); a constant-name is a
+        // COBOL-2002 entry, so at COBOL-85 only the symbolic-character half can answer.
+        if (host.Expr.LiteralAliasOf(word) is { Symbolic: { } sym }) return new BoundStopLiteral(sym.Value);
         // From 2002 the statement itself is removed: the edition gate's COBOL0902 refuses it, whatever the word names.
         if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.StopLiteralRemoved2002))
             return new BoundStopLiteral(written);

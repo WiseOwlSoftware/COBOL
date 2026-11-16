@@ -10,7 +10,7 @@ it (kb/Work PB136's cut, read by the direct position walk alone). §1985:VI.6.2.
 expression that follows an identifier in its own parenthesis, and §2023:8.4.2.3.3 SR2 allows a subscript only on a table
 element, so the paren is the second argument. The cut is now ONE list reader, `SubscriptBinder.GiveAwayClosingList`, asked
 by the subscript list and by both function-identifier forms' argument lists (`IntrinsicBinder.ArgumentsOf`), and the paren
-it gives away is marked on the parse node (`SubscriptPartContext.GivenToNextItem`): `ReferenceResolver.ReadWritten` reads
+it gives away is marked on the parse node (`SubscriptPartOwnership.GiveToNextItem`): `ReferenceResolver.ReadWritten` reads
 the reference without it and `VersionConformancePass` asks it no subscript form, so every reader agrees. `PositionSegment.Cut`
 is deleted, and a materialized subscript whose head carries a cut (`D2 (X / 1 (B - 1))`) now binds. A given-away list that
 holds no expression is COBOL1543 (§2023:8.4.3.2.3 SR8). Goldens: `g85_bf15_01` relanded (E8=-0003, E9= 0004),
@@ -32,7 +32,14 @@ a concatenation operand). A symbolic-character is a figurative constant (§1985:
 has the superset arm `STOP cobolWord` and `ControlFlowBinder.BindStopWord` communicates its one character (GRL2.2); any
 other word is refused by name at 85 with the new COBOL7558 (the refusal test `1985-FMT-VI_6_24_2` expected the parse error
 and now expects it), and from 2002 the edition gate's COBOL0902 covers both arms. The other literal slots, swept by probe,
-already read a symbolic-character. Golden `pb5809_stop_symbolic_character`.
+already read a symbolic-character. Golden `pb5809_stop_symbolic_character`. The word arm exposed a latent error-recovery
+defect, fixed in the same change: `CobolErrorStrategy.ReportError` read the OFFENDING token as the name and re-parsed even
+when the report named an earlier word (a reserved word written as a procedure-name, kb/Work PB4229), so the period of
+`PERFORM STOP.` was retyped as an IDENTIFIER and the `STOP RUN.` after it refused (a false COBOL2269, caught by
+`ReservedWordPositionConformanceTests` at gate run 000002); the re-read now requires the named word to be the offending
+token. The same gate run also caught a stale inventory witness (`IntrinsicBinder.cs#ArgsOf`, retired from FMT-15.49.2), the
+documented diagnostic count, and the parse-node mark, first written as a partial of the generated context type (the
+architecture census counts that type as generated) and now a weak annotation, `SubscriptPartOwnership`.
 
 Self-review (architecture, code, performance, duplication): one list reader for both list kinds and one mark every reader
 honours, instead of a field the direct walk alone read; no allocation added on the argument path when nothing is given away

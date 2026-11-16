@@ -1021,7 +1021,7 @@ gives its paren to a NEW subscript) is applied to the tree by ONE list reader, `
 which every list whose items a space separates asks (§2023:8.3.5 SR1): the subscript list (`SegmentsOf`) and, since
 kb/Work PB5781, the argument list of both function-identifier forms (`IntrinsicBinder.ArgumentsOf`; `FUNCTION MIN (A
 (- B))` with A no table is two arguments, the §1985:VI.6.2.3 SR4 reading). A list it gives away is MARKED on the parse
-node (`SubscriptPartContext.GivenToNextItem`), so every reader of the written reference (`ReferenceResolver.ReadWritten`)
+node (`SubscriptPartOwnership.GiveToNextItem`), so every reader of the written reference (`ReferenceResolver.ReadWritten`)
 reads the reference without it — the direct position walk, the expression binder behind a materialized position (`T
 (X / 1 (B - 1))` binds), an argument's bind and the edition gates (`VersionConformancePass` asks a given-away list no
 subscript form) — and the list's single item is the next subscript or argument; a list given away that holds no
