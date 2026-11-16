@@ -1158,6 +1158,15 @@
       ]
     },
     {
+      "name": "LastReturnedImage",
+      "parameters": [
+        {
+          "name": "name",
+          "optional": false
+        }
+      ]
+    },
+    {
       "name": "LastReturnedLength",
       "parameters": [
         {

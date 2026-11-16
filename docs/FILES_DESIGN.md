@@ -1617,6 +1617,18 @@ short-final-record '04' case of §2023:14.9.30.4 GR14 included (there the area r
 *undefined*, not short). `OperandText.CurrentRecordImage` renders it once, as
 `CobolString.RefMod(<the ONE record-area image channel>, 1, <the GR16 count>, allowZeroLength: true)`.
 
+⛔ **Where the RECORD clause sizes the record larger than every record description** (kb/Work PB5785 —
+`FileModel.RecordClauseExceedsDescriptions`: a Format 1 integer-1, or a Format 2 integer-3, above the largest
+description; §2023:13.18.43.3 SR3 and §1985:VII.3.8.3 SR1 allow the shorter descriptions) the record area holds only the
+description-wide leading part of the record, yet §2023:13.18.43.4 GR6/GR7 give every record the clause's size and
+§2023:14.9.30.4 GR4 b) (§1985:VII.4.4.4 GR8b) moves THE CURRENT RECORD sized by the clause. The sender is then a
+`BoundCurrentRecord` even for a Format 1 file (designated an alphanumeric group move: it is no one data item the
+descriptions define), and `CurrentRecordImage` windows the CONNECTOR's current record (`CobolFile.CurrentRecord`; for
+RETURN, `CobolSort.LastReturnedImage`) instead of the area image. The record is within the file's fixed attributes, so
+the status stays 00 (§1985:VII.1.3.5 GRL2.1b) and GR14/GR15's truncation-and-04 has nothing to act on; an in-range
+record is never cut to the largest description. Format 3 and a file with a variable-length record are excluded (GR18;
+D-FRA's contiguous image).
+
 - **Why the length could not stay implicit.** The old shape sent the whole space-padded area and argued in a
   comment that the two are *observationally identical* — true for a LEFT-justified receiver, since the area's
   padding and the receiver's fill are both spaces on the right. The discriminator is the receiving item's
