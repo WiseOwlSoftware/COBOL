@@ -1,4 +1,4 @@
-## records-2002-reads-2: the unpaired 2002 reads imported; 380 own verdicts from pointers; 2002 GAP 2074 -> 1694
+## records-2002-reads-2: the unpaired 2002 reads imported; 375 own verdicts from pointers; 2002 GAP 1805 -> 1430
 
 The second records landing of the 2002 reads (kb/Work PB5597). The first imported the paired reads and wrote the KEPT
 change records. This one imports the reads of the 1,528 unpaired 2002 rules (slices `u-01`..`u-56`). It adds the
@@ -38,3 +38,14 @@ own verdicts (CONFORMS 317, DOCUMENTED-NON-SUPPORT 63), 2002 GAP 2074 -> 1694. A
 `--std 2002`: 10 PASS, 5 refused with their expected diagnostic, none dropped. `change-batch` adds nothing new. Of the 69
 rows a flag leaves unanswered, 35 are KEPT records the first landing stored before the screen gained a trigger. They
 need an answer pass.
+
+**Review round 1 at dd67311714, finding R1-1, and the merge of main 111a265843.** The widening had written
+message-tag-refused-strong-group-ordering to refuse at 2002, where USAGE MESSAGE-TAG does not exist: `--std 2002` refuses
+it with the COBOL0900 introduction gate and COBOL1567 beside its COBOL1535, so the refusal witnessed no 2002 rule.
+`lineage_reads.refused_at` now accepts a refusal only when every error it draws at the edition is one its entry expects
+or one it also draws at its newest refusing edition (self-test `case_07b`; design 10.6). Swept over every refusal entry a
+widening wrote below its band: 35 of 57 refused, 6 at 2002 and 29 at 85 (kb/Work PB5730's 1985 widening), each band
+reverted; two 2002 KEPT rows that stood on two of them got 2002-legal witnesses of their own
+(pb1160-resume-in-global-declarative, pb807-define-directive-concatenation). The merge kept PB5730's one widening
+population and added this branch's own-verdict rows to it. On the merged tree: 375 own verdicts close their rows (5 of the
+380 took main's golden-lane records), 2002 GAP 1805 -> 1430; 1985 (780) and 2023 (9) as on main.
