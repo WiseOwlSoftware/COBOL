@@ -977,14 +977,19 @@ internal sealed class StatementValidation(DataBinder data)
 
     // ── INSPECT (ISO §2023:14.9.22.3) — lifted at 10c ─────────────────────────────────────────────────────────────
 
-    /// <summary>SR5 — a TALLYING counter shall be an elementary numeric data item.</summary>
+    /// <summary>SR5 (§1985:VI.6.18.3 SR6 at --std 85) — a TALLYING counter shall be an elementary numeric data item, AS
+    /// REFERENCED (<see cref="ItemCategory.IsElementaryNumericReference"/>): a reference-modified counter is class and category
+    /// alphanumeric, so <c>N1 (1:2)</c> is refused here and never reaches the generated C# (kb/Work PB5859; the check read the
+    /// base item's PICTURE, and Roslyn refused the program with CS1503).</summary>
     public bool CheckInspectTallyCounter(Place counter)
     {
-        // "An elementary numeric data item" is §2023:8.5.2.1 Table 2's class NUMERIC — a USAGE INDEX item is class INDEX, and
-        // its storage PicInfo (category Numeric, Digits 0) must not pass for it (kb/Work PB1127, the R27/PB640 trap).
-        if (counter.Item.Pic is { Category: PicCategory.Numeric, Usage: not Usage.Index }) return true;
+        if (ItemCategory.IsElementaryNumericReference(counter)) return true;
+        string why = counter is RefModPlace
+            ? ": a reference-modified item is class and category alphanumeric ("
+              + (InspectSizeRulesCoverDataItems ? "§1985:IV.4.3.8.4.4 GR5" : "§2023:8.4.3.3.4 GR6") + ")"
+            : "";
         data.Edition.Error(DiagnosticCatalog.InspectOperandRule, $"INSPECT TALLYING counter '{counter.Item.CobolName}' shall "
-            + "be an elementary numeric data item (ISO §2023:14.9.22.3 SR5)");
+            + $"be an elementary numeric data item ({InspectRuleCitation("SR5", "SR6")}){why}");
         return false;
     }
 
