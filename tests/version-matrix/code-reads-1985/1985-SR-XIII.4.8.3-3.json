@@ -1,0 +1,111 @@
+{
+ "rule-id": "1985-SR-XIII.4.8.3-3",
+ "rule-digest": "8b3681274b75",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-09",
+  "sources": {
+   "reader": "2b5d4d717412a43a15a2ad02336fb327afb76598435e08ccca7c0e96cc110f02",
+   "refuter": "dfad5fdf6dd02d62fe0671256b59fb0a63ab97a6e9ce71b43437b519b8097b67"
+  },
+  "imported": {
+   "reader": "c59127ce1bb9aceaff5cca6e74cd84e1f9afa96a849fb817f2f854ae51d174b4",
+   "refuter": "7e87c8b4ed066e9fe17c9ab267863ae05edd8909012aa4635489484ee7ec4884"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.8.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a (report) file-name written in more than one USE AFTER STANDARD EXCEPTION/ERROR PROCEDURE statement of one Procedure Division must be refused (ERROR and EXCEPTION are synonyms, so one of each is still two); one statement naming the file twice, and a file named explicitly beside an OUTPUT or EXTEND declarative (GR4: only the explicit one applies) are legal and run one procedure.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclEndUseStatement; src/WiseOwl.Cobol.Compiler/Binding/ConstructOperandRegister.cs#Register; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "refuses at 85 the 2002 USE formats 3/4 (EXCEPTION CONDITION / EXCEPTION OBJECT), USE without AFTER and USE without PROCEDURE",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of DeclBindUse (ProcedureTableBuilder lines 1009-1130) for DialectLevel/Version/Construct: the _useFiles register and its Duplicate verdict have no edition condition.",
+  "behaviour-differs-by-edition": "no for the file-name register; the USE formats around it differ (the 1985 Report Writer format has only file-name, OUTPUT, EXTEND).",
+  "witnesses-cover": "part: the witnesses use a sequential non-report file; not exercised: a report file, ERROR beside EXCEPTION, an explicit file beside an OUTPUT declarative at run time, the EC format at 85.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c4/two_stmts.cob",
+    "printed": "error COBOL0897: file 'RPT' already has a USE procedure in this procedure division",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c4/err_exc.cob",
+    "printed": "error COBOL0897 (ERROR in one statement, EXCEPTION in the other)",
+    "expected": "refused (SR4: synonyms)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c4/named_twice.cob",
+    "printed": "S1 ST=30 / AFTER-OPEN ST=30 HITS=1",
+    "expected": "legal; the failed OPEN OUTPUT of the report file runs the one declarative once"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c4/file_and_output.cob",
+    "printed": "FILE-DECL ST=30 / AFTER-OPEN ST=30 HITS=1",
+    "expected": "legal; only the explicit file's procedure runs (XIII.4.8.4 GR4, GR5 b)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c4/output_and_extend.cob",
+    "printed": "OUT ST=30 / AFTER-OPEN ST=30 HITS=1",
+    "expected": "legal; only the OUTPUT declarative applies to an OPEN OUTPUT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c4/output_twice.cob",
+    "printed": "error COBOL0897: this open mode already has a USE procedure",
+    "expected": "refused (XIII.4.8.3 SR6)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c4/ec_form_85.cob",
+    "printed": "error COBOL0878 (EC-I-O is 2002) and COBOL0877: USE AFTER EXCEPTION CONDITION requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.8.3 SR3",
+    "check": "OK  §1985:XIII.4.8.3 SR3  (4.8.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:XIII.4.8.4 GR4",
+    "check": "OK  §1985:XIII.4.8.4 GR4  (4.8.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XIII.4.8.3 SR4",
+    "check": "OK  §1985:XIII.4.8.3 SR4  (4.8.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:XIII.4.8.3 SR6",
+    "check": "OK  §1985:XIII.4.8.3 SR6  (4.8.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "A per-procedure-division operand register refuses a file-name repeated across USE statements and folds a repeat inside one statement; at run time the explicit-file declarative wins over OUTPUT. The diagnostics cite the 2023 clause only (cosmetic).",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.8.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:XIII.4.8.3 SR3 (the RW text, not the Amendment-2 rewording of the I-O modules), XIII.4.8.4 GR4/GR5, and the Inter-Program USE GLOBAL precedence (§1985:X.5.5.4 GR1). Probes at --std 85: outer USE GLOBAL ON a GLOBAL report file plus a contained program's own USE ON it (refute-1985-09/c4/nested_global.cob) compiles; the inner OPEN failure runs only INNER (ST=30), the outer only OUTER: one procedure per request. USE GLOBAL ON RPT and USE ON RPT in one Procedure Division (global_and_local.cob) -> COBOL0897 (two explicit procedures). USE ON EXTEND beside USE ON RPT with OPEN EXTEND failing (file_and_extend_rw.cob) runs FILE only (ST=35), per GR4. cite.py: OK §1985:XIII.4.8.3 SR3; OK §1985:XIII.4.8.4 GR4; OK §1985:X.5.5.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

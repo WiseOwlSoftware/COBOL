@@ -29,8 +29,9 @@ def case_01_every_malformed_reader_field_is_named(expect):
     repo, _ = F.tree()
     ctx = F.context(repo.path)
     for label, kw, needle in (
-            ("a verdict outside the inventory's vocabulary (the brief's UNDECIDED)", {"verdict": "UNDECIDED"}, "`verdict`"),
-            ("a code-location with a parenthetical note (the sample's shape)",
+            ("a verdict outside the inventory's vocabulary and not UNDECIDED", {"verdict": "Undecided"}, "`verdict`"),
+            ("a verdict outside the vocabulary (a refuter's word)", {"verdict": "UPHELD"}, "`verdict`"),
+            ("a code-location with a parenthetical note left in it (the import splits it; a stored record holds none)",
              {"code-location": "src/A.cs#B (the arm)"}, "`code-location`"),
             ("an empty code-location on a CONFORMS read", {"code-location": ""}, "`code-location` is empty"),
             ("no requirement", {"requirement": ""}, "`requirement`"),
@@ -192,6 +193,103 @@ def case_06_the_plan_is_the_kept_rows_no_read_decides(expect):
 def case_07_the_newest_edition_has_no_store(expect):
     expect("the newest held edition is refused",
            F.refused(lambda: C.Context.of(F.SCHEMA.newest.year, rows=[]), "newest held edition"))
+
+
+def case_08_a_remark_after_a_location_is_kept_beside_it(expect):
+    repo, pin = F.tree()
+    ctx = F.context(repo.path)
+    a, b, c = "src/A.cs#B", "src/C.cs#D", "src/E.cs"
+    ok = {
+        f"{a} (the 85 arm)": ({a: "the 85 arm"}, [a]),
+        f"{a}; {b} (TAN row: Fixed 1..1, 'n'); {c}": ({b: "TAN row: Fixed 1..1, 'n'"}, [a, b, c]),
+        f"{c} (FD clause loop; reportClause arm)": ({c: "FD clause loop; reportClause arm"}, [c]),
+        f"{a} (a (nested) remark)": ({a: "a (nested) remark"}, [a]),
+        f"{a}\t(tab before it)": ({a: "tab before it"}, [a]),
+        f"{a}; {b}": ({}, [a, b]),
+    }
+    for text, (remarks, sites) in ok.items():
+        got, problems = C.take_remarks(F.read(F.GR8, **{"code-location": text}), ctx)
+        expect.equal(f"{text!r}: no problem", problems, [])
+        expect.equal(f"{text!r}: the locations alone, in the inventory's shape",
+                     ctx.schema.split(got["code-location"], ctx.schema.code_location_sep), sites)
+        expect.equal(f"{text!r}: the remarks by location", got.get(C.REMARKS_KEY, {}), remarks)
+        if remarks:
+            expect.equal(f"{text!r}: the stored form stands", C.reader_problems(got, ctx), [])
+    for label, text, needle in (
+            ("a remark with no location", "(the arm)", "a remark with no location"),
+            ("a remark with no location after a good one", f"{a}; (the arm)", "a remark with no location"),
+            ("two remarks", f"{a} (one) (two)", "text after the closing parenthesis"),
+            ("text after the closing parenthesis", f"{a} (one) and more", "text after the closing parenthesis"),
+            ("an unclosed parenthesis", f"{a} (one", "never closed"),
+            ("a closing parenthesis alone", f"{a} one)", "no '('"),
+            ("an empty remark", f"{a} ( )", "empty remark"),
+            ("a remark glued to its location", f"{a}(one)", "white space"),
+            ("the same location with two remarks", f"{a} (one); {a} (two)", "two remarks")):
+        got, problems = C.take_remarks(F.read(F.GR8, **{"code-location": text}), ctx)
+        expect(f"refused, naming the text: {label}", any(needle in e and ("(" in e or ")" in e) for e in problems),
+               str(problems))
+    got, problems = C.take_remarks(F.read(F.GR8, **{"code-location": f"{a} (x)", C.REMARKS_KEY: {a: "y"}}), ctx)
+    expect("a reader's file that already holds the derived key is refused", any("derived" in e for e in problems),
+           str(problems))
+    # the stored form is held to its own shape: a remark for a location the list does not hold, and an empty remark
+    for label, remarks in (("a remark of no listed location", {"src/Z.cs#Q": "x"}), ("an empty remark", {
+            "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry": " "}), ("a map that is no map", ["x"])):
+        got = C.reader_problems(F.read(F.GR8, **{C.REMARKS_KEY: remarks}), ctx)
+        expect(f"the audit refuses a stored `location-remarks`: {label}", any(C.REMARKS_KEY in e for e in got), str(got))
+    # through the import: a remark is kept, a refusal names the row and the text, and nothing is written
+    reads, store, bad_store = repo.path / "reads", repo.path / "store", repo.path / "bad-store"
+    loc = "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry"
+    F.plant(reads, "s-01", [F.read(F.GR8, **{"code-location": f"{loc} (the 85 arm)"})], [F.refute(F.GR8)])
+    records, _, _ = C.import_reads(ctx, reads, store, pin)
+    r = records[F.GR8]
+    expect("the record holds the location and, beside it, the remark",
+           r["reader"]["code-location"] == loc and r["reader"][C.REMARKS_KEY] == {loc: "the 85 arm"})
+    expect.equal("the record stands in the audit", C.record_problems(r, ctx), [])
+    expect("the digest of the held reader is the digest of the part the record holds",
+           r["read"]["imported"]["reader"] == C.lineage_reads.digest(r["reader"]))
+    expect("the remark decides nothing: the outcome is the one without it",
+           C.outcome(r, ctx) == C.CONFIRMED == C.outcome(C.record_of(F.read(F.GR8), F.refute(F.GR8), r["rule-digest"],
+                                                                   pin, "s-01", r["read"]["sources"]), ctx))
+    bad = repo.path / "bad"
+    F.plant(bad, "s-01", [F.read(F.GR8, **{"code-location": f"{loc} (one) (two)"})], [F.refute(F.GR8)])
+    expect("an import refuses the row, naming it and the text, and writes nothing",
+           F.refused(lambda: C.import_reads(ctx, bad, bad_store, pin), f"s-01: {F.GR8}", "(one) (two)")
+           and not bad_store.exists())
+    F.plant(bad, "s-01", [F.read(F.GR8, **{"code-location": "src/Nowhere Such (the arm)"})], [F.refute(F.GR8)])
+    expect("a location of no shape is refused whatever its remark",
+           F.refused(lambda: C.import_reads(ctx, bad, bad_store, pin), f"s-01: {F.GR8}", "`code-location`"))
+
+
+def case_09_a_reader_who_did_not_decide_is_undecided(expect):
+    repo, pin = F.tree()
+    ctx = F.context(repo.path)
+    und = F.read(F.GR8, "UNDECIDED")
+    expect.equal("an UNDECIDED reader owes no defect fields", C.reader_problems(und, ctx), [])
+    expect.equal("nor a location", C.reader_problems({**und, "code-location": ""}, ctx), [])
+    expect("every other field is still required",
+           any("`requirement`" in e for e in C.reader_problems({**und, "requirement": ""}, ctx)))
+    reads, store = repo.path / "reads", repo.path / "store"
+    F.plant(reads, "s-01", [und, F.read(F.GR12, "UNDECIDED"), F.read(F.SR1, "UNDECIDED")],
+            [F.refute(F.GR12), F.refute(F.SR1, "OVERTURNED")])
+    records, _, _ = C.import_reads(ctx, reads, store, pin)
+    expect.equal("UNDECIDED whatever the refuter says (none, UPHELD, OVERTURNED)",
+                 [C.outcome(records[r], ctx) for r in (F.GR8, F.GR12, F.SR1)], [C.store.UNDECIDED] * 3)
+    expect.equal("the stored record stands in the audit", [C.record_problems(records[r], ctx) for r in records],
+                 [[], [], []])
+    expect.equal("counted where undecided records are counted",
+                 C.store.counts(ctx.rows, ctx.schema, records),
+                 {C.CONFIRMED: 0, C.CONTRADICTED: 0, C.store.UNDECIDED: 3, C.store.STALE: 0, "owed": 4})
+    expect.equal("plan still lists each row as owed a read", C.owed(ctx, records), [F.GR8, F.GR12, F.SR1, F.AR1])
+    expect("an adjudication still decides the record",
+           C.outcome({**records[F.GR8], "adjudication": {"verdict": "CONFORMS", "reason": "r", "ref": "x"}}, ctx)
+           == C.CONFIRMED)
+    bad, empty = repo.path / "bad", repo.path / "empty-store"
+    F.plant(bad, "s-01", [F.read(F.GR8, "Undecided")], [])
+    expect("any other word outside the vocabulary is still refused",
+           F.refused(lambda: C.import_reads(ctx, bad, empty, pin), f"s-01: {F.GR8}", "`verdict`") and not empty.exists())
+    F.plant(bad, "s-01", [F.read(F.GR8, "UNDECIDED")], [F.refute(F.GR8, "UPHELD", **{"rule-id": F.GR12})])
+    expect("a refuter's case of a rule the reader did not read is still refused",
+           F.refused(lambda: C.import_reads(ctx, bad, empty, pin), "attacks a rule the reader did not read"))
 
 
 if __name__ == "__main__":

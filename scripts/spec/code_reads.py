@@ -27,6 +27,13 @@ kb/Work note of the mechanism, required of a contradicted record; written by `wo
 record must carry is `READER_REQUIRED` and `reader_problems`, decided field by field from the reader brief; a missing or
 malformed required field refuses the whole import, naming the slice, the rule and the field.
 
+TWO ACCEPTANCES beyond the inventory's shape (kb/Work PB5759, the Mythos lane's decision of 2026-11-15: nothing is read twice
+and no fact is dropped). (1) A REMARK AFTER A LOCATION: a `code-location` entry may be `path#Member (a remark)`, one
+parenthesised remark after white space (`take_remarks`); the record holds the location list in the inventory's shape and the
+remarks in the reader's `location-remarks` map, location to remark, and the remark decides nothing. (2) A READER WHO DID NOT
+DECIDE: the verdict `UNDECIDED` is accepted as "no verdict" (`code_read_store.READER_UNDECIDED`): the record is `undecided`.
+Anything else outside the schema's verdicts, or in a `code-location` entry, is refused.
+
 THE OUTCOME OF A RECORD is ONE function, `code_read_store.outcome` (confirmed, contradicted, undecided, stale), which
 the audit, the view and the planner all ask; the store's reader and writer live beside it, in the half the inventory view
 imports (`code_read_store.py`, whose docstring says why the code reads are two files).
@@ -58,7 +65,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import cite  # noqa: E402  (THE checker of a citation)
 import citation  # noqa: E402  (THE citation parser)
 import code_read_store as store  # noqa: E402  (the store, the outcome, the counts: the view's half)
-from code_read_store import CONFIRMED, CONFORMS, CONTRADICTED, OUTCOMES, UPHELD  # noqa: E402
+from code_read_store import CONFIRMED, CONFORMS, CONTRADICTED, OUTCOMES, READER_UNDECIDED, UPHELD  # noqa: E402
 import inventory_schema  # noqa: E402  (the editions, the verdict vocabulary, the code-location shape)
 import inventory_view  # noqa: E402  (each edition's rows and their digests)
 import lineage  # noqa: E402  (which rows are KEPT, and a row's own witnesses)
@@ -94,6 +101,8 @@ READER_TEXT = ("requirement", "behaviour-differs-by-edition", "witnesses-cover",
 NONCONFORMING_TEXT = ("harm", "repro", "expected", "observed", "known_note")
 #: The reader's fields that are text when present, possibly empty (a CONFORMS read leaves its defect fields empty).
 READER_OPTIONAL_TEXT = ("edition-search", "cause", "at-2023") + NONCONFORMING_TEXT
+#: The key the IMPORT adds to a reader's record when a `code-location` entry carried a remark; a reader's file never has it.
+REMARKS_KEY = "location-remarks"
 PROBE_TEXT = ("class", "file", "printed", "expected")
 REFUTER_TEXT = ("classes", "evidence")
 
@@ -168,6 +177,82 @@ def citation_problems(cites: Any, rule: dict[str, Any], year: int) -> list[str]:
     return out
 
 
+def _entries(location: str, sep: str) -> tuple[list[str], str | None]:
+    """The entries of a `code-location` (split at `sep` outside parentheses, each trimmed, the empty ones dropped), or why
+    its parentheses do not balance."""
+    out, depth, start = [], 0, 0
+    for i, ch in enumerate(location):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth < 0:
+                return [], f"`code-location` has a ')' with no '(' ({location!r})"
+        elif ch == sep and depth == 0:
+            out.append(location[start:i])
+            start = i + 1
+    if depth:
+        return [], f"`code-location` has a '(' that is never closed ({location!r})"
+    out.append(location[start:])
+    return [e for e in (e.strip() for e in out) if e], None
+
+
+def split_remark(entry: str) -> tuple[str, str | None, str | None]:
+    """(location, remark, problem) of one `code-location` entry: `path#Member`, or `path#Member (remark)`: white space and
+    ONE parenthesised remark, balanced inside, ending the entry. The location is not judged here (its shape is the
+    schema's); a remark with no location, an empty one, a second one, text after the closing parenthesis and a '(' not
+    preceded by white space are the problems."""
+    if "(" not in entry:
+        return entry, None, None
+    i = entry.index("(")
+    location = entry[:i].rstrip()
+    if not location:
+        return "", None, f"a remark with no location: {entry!r}"
+    if not entry[i - 1].isspace():
+        return location, None, f"the remark must follow its location after white space: {entry!r}"
+    depth = 0
+    for j in range(i, len(entry)):
+        depth += (entry[j] == "(") - (entry[j] == ")")
+        if depth == 0:
+            if entry[j + 1:].strip():
+                return location, None, f"text after the closing parenthesis of the remark (one remark only): {entry!r}"
+            remark = entry[i + 1:j].strip()
+            return (location, remark, None) if remark else (location, None, f"an empty remark: {entry!r}")
+    return location, None, f"unbalanced parenthesis: {entry!r}"
+
+
+def take_remarks(case: dict[str, Any], ctx: Context) -> tuple[dict[str, Any], list[str]]:
+    """The reader's record `case` as a record holds it: its `code-location` the locations alone (the inventory's shape),
+    the remarks in `location-remarks` (location to remark), and the problems of the entries (each naming the text). A
+    `code-location` that is no string is left for `reader_problems`; a file that already carries `location-remarks` is
+    refused (the import derives it)."""
+    location = case.get("code-location")
+    if REMARKS_KEY in case:
+        return case, [f"`{REMARKS_KEY}` is derived by the import from the remarks of `code-location`; a reader's file has none"]
+    if not isinstance(location, str):
+        return case, []
+    sep = ctx.schema.code_location_sep.strip()
+    entries, problem = _entries(location, sep)
+    if problem:
+        return case, [problem]
+    locations: list[str] = []
+    remarks: dict[str, str] = {}
+    problems: list[str] = []
+    for entry in entries:
+        loc, remark, bad = split_remark(entry)
+        if bad:
+            problems.append(f"`code-location`: {bad}")
+            continue
+        locations.append(loc)
+        if remark is not None:
+            if loc in remarks:
+                problems.append(f"`code-location`: {loc!r} carries two remarks (second: {entry!r})")
+            remarks[loc] = remark
+    if problems or not remarks:
+        return case, problems
+    return {**case, "code-location": f"{sep} ".join(locations), REMARKS_KEY: remarks}, []
+
+
 def reader_problems(case: Any, ctx: Context) -> list[str]:
     """Why the reader's record `case` is no read a record can hold (every problem, each naming its field). The rule must be
     a rule of the edition; the verdict one of the inventory schema's; every site of the code-location of the inventory's
@@ -181,9 +266,11 @@ def reader_problems(case: Any, ctx: Context) -> list[str]:
     if rule is None:
         out.append(f"`rule-id` {rid!r} is no rule of the {ctx.ed.year} catalog")
     verdict = case.get("verdict")
-    if verdict not in ctx.schema.verdicts:
-        out.append(f"`verdict` {verdict!r} is not one of the inventory's verdicts {sorted(ctx.schema.verdicts)}")
+    if verdict not in ctx.schema.verdicts and verdict != READER_UNDECIDED:
+        out.append(f"`verdict` {verdict!r} is not one of the inventory's verdicts {sorted(ctx.schema.verdicts)} "
+                   f"or {READER_UNDECIDED} (the reader did not decide)")
     location = case.get("code-location")
+    sites: list[str] = []
     if not isinstance(location, str):
         out.append(f"`code-location` must be a string, not {location!r}")
     else:
@@ -192,6 +279,10 @@ def reader_problems(case: Any, ctx: Context) -> list[str]:
             out.append(f"`code-location` is empty, and a {verdict} read names the code")
         out += [f"`code-location`: {e}" for s in sites
                 if (e := inventory_schema.witness_shape_error("code-location", s, ctx.schema))]
+    if (remarks := case.get(REMARKS_KEY)) is not None:
+        if not isinstance(remarks, dict) or not all(
+                k in sites and isinstance(v, str) and v.strip() for k, v in remarks.items()):
+            out.append(f"`{REMARKS_KEY}` maps a location of `code-location` to its non-empty remark, not {remarks!r}")
     consulted = case.get("edition-consulted")
     if not isinstance(consulted, list):
         out.append(f"`edition-consulted` must be a list of {{site, switches, same-arm-as-latest}}, not {consulted!r}")
@@ -212,7 +303,7 @@ def reader_problems(case: Any, ctx: Context) -> list[str]:
         out.append(f"`seeded` must be a boolean (the case's own value), not {case.get('seeded')!r}")
     if rule is not None:
         out += citation_problems(case.get("citations"), rule, ctx.ed.year)
-    if verdict in ctx.schema.verdicts and verdict != CONFORMS:
+    if verdict in ctx.schema.verdicts and verdict != CONFORMS:   # an UNDECIDED reader owes no defect
         out += [e for k in NONCONFORMING_TEXT if (e := _text(case, k, True))]
         if (case.get("cause") or "").strip() not in CAUSES:
             out.append(f"a {verdict} read names its `cause`, one of {CAUSES}, not {case.get('cause')!r}")
@@ -291,7 +382,7 @@ def record_problems(record: Any, ctx: Context) -> list[str]:
         return out
     if reader["verdict"] == CONFORMS and refute is None:
         out.append("a CONFORMS read with no refuter's case")
-    if reader["verdict"] != CONFORMS and refute is not None:
+    if reader["verdict"] not in (CONFORMS, READER_UNDECIDED) and refute is not None:
         out.append(f"a refuter's case on a {reader['verdict']} read: the refuter attacks only CONFORMS")
     if not isinstance(record["rule-digest"], str) or not re.fullmatch(r"[0-9a-f]{12}", record["rule-digest"]):
         out.append(f"`rule-digest` {record['rule-digest']!r} is not a rule digest (inventory_view.rule_digest)")
@@ -403,7 +494,10 @@ def import_reads(ctx: Context, reads: pathlib.Path, out: pathlib.Path, pin: str,
         for case in doc["records"]:
             rid = case.get("rule-id") if isinstance(case, dict) else None
             label = f"{name}: {rid if isinstance(rid, str) else '(no rule-id)'}"
-            if bad := reader_problems(case, ctx):
+            remark_problems: list[str] = []
+            if isinstance(case, dict):
+                case, remark_problems = take_remarks(case, ctx)
+            if bad := remark_problems + reader_problems(case, ctx):
                 errs += [f"{label}: {e}" for e in bad]
                 continue
             if rid in readers or rid in where:
@@ -434,7 +528,7 @@ def import_reads(ctx: Context, reads: pathlib.Path, out: pathlib.Path, pin: str,
             refute = refutes.get(rid)
             if case["verdict"] == CONFORMS and refute is None:
                 errs.append(f"{name}: {rid}: a CONFORMS read with no refuter's case")
-            elif case["verdict"] != CONFORMS and refute is not None:
+            elif case["verdict"] not in (CONFORMS, READER_UNDECIDED) and refute is not None:
                 errs.append(f"{name}: {rid}: a refuter's case on a {case['verdict']} read: the refuter attacks only CONFORMS")
             else:
                 new[rid] = record_of(case, refute, ctx.rows[rid]["rule-digest"], pin, name, sources)

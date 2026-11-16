@@ -1891,9 +1891,9 @@ was read at, which the importer is told with `--pin`; `slice`; `sources`, the SH
 `imported`, the SHA-256 of each part held, so a hand edit is red), and, written by subcommands only, `adjudication`
 (`verdict`, `reason`, `ref`, a tracked file) and `work` (the mechanism's kb/Work note). The reader's required fields are
 decided from the reader brief (`code_reads.reader_problems`): `rule-id` (a rule of the edition), `verdict` (the schema's
-vocabulary: the brief's `UNDECIDED` is no verdict, and such a row is left out of a slice or read again), `requirement`,
-`code-location` (every site of the inventory's shape, `inventory_schema.witness_shape_error`; empty only where the
-schema's `requires` of the verdict allows), `edition-consulted` (`site`, `switches`, a boolean `same-arm-as-latest`; an
+vocabulary, plus the one word `UNDECIDED`: see the two acceptances below), `requirement`,
+`code-location` (every site of the inventory's shape, `inventory_schema.witness_shape_error`, each optionally followed by a
+remark; empty only where the schema's `requires` of the verdict allows), `edition-consulted` (`site`, `switches`, a boolean `same-arm-as-latest`; an
 empty list needs `edition-search`), `behaviour-differs-by-edition`, `witnesses-cover`, `probes` (non-empty, each `class`,
 `file`, `printed`, `expected`), `citations` (non-empty, each `{cite, check}`, its `cite` parsed by `citation.py`, of the
 rule's own edition or of the edition the catalog's own citation of the rule names, the amendment's `§1989:`, and checked
@@ -1901,9 +1901,30 @@ by `cite.resolve`), `notes`, `seeded` (a boolean); and for a non-conforming read
 `expected`, `observed`, `known_note`, and `at-2023` for cause (b). The refuter's: `refutation` (UPHELD, OVERTURNED,
 DOUBTFUL), `classes`, `evidence`, `edition-sites-missed` (a list), and `corrected` for an overturn or a doubt.
 
+**Two acceptances beyond the inventory's shape** (the Mythos lane's decision of 2026-11-15, after the first import refused
+four of the sample's ten slices: nothing is read twice, and no fact is dropped). Everything else outside the shape still
+refuses, naming the slice, the rule and the text.
+1. *A remark after a location.* A `code-location` entry may be `path#Member` (or a bare `path`) followed by white space and
+   ONE parenthesised remark, balanced inside (`...IntrinsicCatalog.cs#IntrinsicCatalog (TAN row: Fixed 1..1, 'n')`);
+   separators inside the parentheses do not split the entry. The import (`code_reads.take_remarks`) resolves and validates
+   the location exactly as before and keeps the remark in the record beside it. SHAPE CHOSEN: the reader's held part has
+   `code-location` as the locations alone, so every consumer of the location list (the audit, the C# resolver, the
+   switch's fold into a row's `code-location`) sees the inventory's shape and none has to parse prose, and a parallel
+   map `location-remarks`, location to remark, written only by the import (a reader's file that carries the key is
+   refused; the audit refuses a key naming a location the list lacks, or an empty remark). The reader part is therefore the
+   reader's record verbatim except for that one field's split; the source file's digest (`read.sources`) is of the file as
+   given, so nothing is lost. The remark is never used to decide anything. Refused: a remark with no location, an empty
+   remark, two remarks (or the same location listed with two), text after the closing parenthesis, a `(` glued to its
+   location, an unbalanced parenthesis, and a location that does not resolve in shape or in the tree.
+2. *A reader who did not decide.* The verdict `UNDECIDED` (that exact word, `code_read_store.READER_UNDECIDED`) is
+   accepted as "no verdict": it owes no defect fields and no location, the record's outcome is `undecided` whatever the
+   refuter says (a refuter's case on it is legal), it is counted with the undecided records, and `plan` still lists the
+   row as owed a read. An adjudication still decides it. Every other word outside the schema's verdicts refuses.
+
 **The outcome, one function** (`code_read_store.outcome`; the audit, the view and the planner ask it): `confirmed` (reader
 CONFORMS and refuter UPHELD, or an adjudication of CONFORMS); `contradicted` (reader not CONFORMS, or an adjudication of
-another verdict; it names its `work`); `undecided` (an overturn or a doubt nobody has adjudicated); `stale` (the rule's
+another verdict; it names its `work`); `undecided` (an overturn or a doubt, or a reader's UNDECIDED, nobody has
+adjudicated); `stale` (the rule's
 catalog digest is no longer the record's), which counts as no read.
 
 **The commands.** `import --edition YEAR --reads DIR --pin COMMIT [--record DIR] [--replace]` takes each `<slice>.json`
@@ -1932,13 +1953,14 @@ row, change record or schema key is written, and nothing is adjudicated: a disag
 decides it. What the switch takes from the store: each confirmed or contradicted record as the row's own adjudicated
 verdict (provenance `adjudicated`, 10.7.1 D3), its code-location and its probes as the evidence.
 
-**The first import** (2026-11-15, the PB5692 sample, pin `d615406082`, the reading tree's head while the sample ran):
-of the sample's ten 1985 slices, four (`1985-01`, `1985-07`, `1985-09`, `1985-10`, 24 rows) are refused, because
-eleven rows write a parenthetical note inside a code-location (`path#Member (the arm)`), which is no inventory shape;
-the six others give 36 records: 31 confirmed, 4 contradicted (the three cause (a) rows adjudicated from
-`kb/Work/PB5692/2026-11-15-adjudication-of-the-sample.md`, notes PB5731 and PB5732, and one reader PARTIAL of cause (b),
-PB5734), 1 undecided (`1985-SR-VI.5.8.3-1`, open adjudication PB5737). 1,338 KEPT rows are owed a read, 535 of them
-witnessed.
+**The first import** (2026-11-15, the PB5692 sample, pin `d615406082`, the reading tree's head while the sample ran): all ten
+1985 slices, 60 records. The first attempt refused four slices (`1985-01`, `1985-07`, `1985-09`, `1985-10`, 24 rows)
+because eleven rows write a remark in parentheses after a location, which led to the first acceptance above; the six
+clean slices were imported first (36 records), the other four after it (24). By outcome: 54 confirmed, 5 contradicted (the
+three cause (a) rows adjudicated from `kb/Work/PB5692/2026-11-15-adjudication-of-the-sample.md`, notes PB5731 and PB5732,
+and the two reader PARTIALs of cause (b), PB5733 and PB5734), 1 undecided (`1985-SR-VI.5.8.3-1`, open adjudication
+PB5737). Before the three adjudications the same 60 give the sample's result exactly: 54 confirmed, 2 reader PARTIAL, 4
+refuter OVERTURNED. 1,314 KEPT rows are owed a read, 511 of them witnessed.
 
 ### 10.7 Lineage runs forward: the decision, the switch's requirements, the open questions (kb/Work PB5679; STAGED)
 

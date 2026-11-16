@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-SR-X.5.6.3-1",
+ "rule-digest": "25268802746c",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-07",
+  "sources": {
+   "reader": "9e72b95aeaf2386e6b0225ad32fc510fa05daebbacf5f6cdf53fe9c8fb6f5022",
+   "refuter": "61367aa677a245292474507a02e0f62dd01c1dd87d9e527d7c73929a8681bbfb"
+  },
+  "imported": {
+   "reader": "2dd57ff3ea835f3dfd447b44e909f83ecbcf406bc63880435f47a14f55743674",
+   "refuter": "e6512434ffa514e0dd3749f5a9f3e535d940f1c5f89584f301808ac8844fdfe2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.5.6.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "The Inter-Program Communication USE [GLOBAL] BEFORE REPORTING identifier-1 statement is available exactly when the Report Writer module is supported; this implementation supports Report Writer at --std 85, so at --std 85 the statement, with and without GLOBAL, must be accepted in a program that may contain or be contained in other programs, and its declarative must be invoked for report groups produced in contained programs only when GLOBAL is written (the precedence GR1 reads against it).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateBeforeReportingPerformRange",
+    "switches": "below 2002 only: the 1985 Report Writer SR3 refusal of GENERATE/INITIATE/TERMINATE in the range of a PERFORM inside a USE BEFORE REPORTING procedure (not the availability rule itself)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -rni 'beforeReporting|before-reporting|UseGlobal|use-global|report-writer' over VersionConformancePass*.cs and WiseOwl.Cobol.Editions/*.cs, and the Constructs.g.cs 'use-'/'report-' rows: no construct gates USE BEFORE REPORTING or its GLOBAL phrase at any edition; DeclBindUse reads use.GLOBAL() and use.REPORTING() with no edition test. The only edition switch on this statement's path is the <2002 PERFORM-range gate above.",
+  "behaviour-differs-by-edition": "no for availability: Report Writer and USE [GLOBAL] BEFORE REPORTING are accepted at 85 as at 2023",
+  "witnesses-cover": "part: the witnesses cover a non-GLOBAL USE BEFORE REPORTING in one program (qualified and ambiguous group names); the GLOBAL phrase and contained programs, the 1985 IPC form this rule belongs to, are not in them (probed here)",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c5/glob.cob",
+    "printed": "GEN-OUTER | OUTER-HOOK | GEN-INNER | OUTER-HOOK | N=2",
+    "expected": "USE GLOBAL BEFORE REPORTING accepted; outer's global declarative runs for the GENERATE in the contained program (X.5.6.4 GR1 b)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c5/local.cob",
+    "printed": "GEN-OUTER | OUTER-HOOK | GEN-INNER | N=1",
+    "expected": "non-GLOBAL declarative not invoked from the contained program"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c5/innerown.cob",
+    "printed": "GEN-OUTER | OUTER-HOOK | GEN-INNER | INNER-HOOK | N=1",
+    "expected": "the contained program's own declarative first (GR1 a), and only it"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c5/notgrp.cob",
+    "printed": "error COBOL0897: USE BEFORE REPORTING 'WS-N' does not name a report group (ISO §2023:14.9.49.3 SR9)",
+    "expected": "refused (§1985:XIII.4.9.3 SR2: identifier-1 must reference a report group)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.49-USE/pb365-report-group-ambiguous.cob",
+    "printed": "error COBOL1920 report group 'DET-A' is described in more than one report description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.49-USE/pb365_report_group_qualified_85.cob",
+    "printed": "GEN-A | GEN-B | HOOK | N=1",
+    "expected": "matches the .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.6.3 SR1",
+    "check": "OK  §1985:X.5.6.3 SR1  (║5.6.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:X.5.6.4 GR1",
+    "check": "OK  §1985:X.5.6.4 GR1  (║5.6.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "The rule makes the statement's availability depend on Report Writer support. Report Writer is supported at --std 85, so the rule requires the statement to be accepted, and it is, with GLOBAL dispatch across contained programs behaving as GR1 orders. Diagnostic face: the non-report-group refusal cites ISO §2023:14.9.49.3 SR9 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not run separately: no edition switch on the availability path",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.5.6.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:X.5.6 whole (format USE [GLOBAL] BEFORE REPORTING identifier-1; SR1 availability; GR1 a-c precedence) and §1985:XIII.4.9 (the Report Writer USE BEFORE REPORTING it points to). Report Writer is supported at --std 85, so SR1 requires the statement, with GLOBAL, to be available, and the reader showed it is. I attacked the IPC half the reader's probes left: refute-1985-07/c5/three.cob, outer GLOBAL declarative, a middle program with none, GENERATE in the innermost -> 'GEN-OUTER | OUTER-HOOK | GEN-INNER | OUTER-HOOK | N=2' (GR1c, the search climbs past the middle program); midloc.cob, the middle program has a NON-GLOBAL USE BEFORE REPORTING DET -> the outer GLOBAL one still fires for the inner GENERATE and the middle one does not (GR1b admits only GLOBAL declaratives of containing programs); midglob.cob, the middle one GLOBAL -> 'GEN-INNER | MID-HOOK | N=1': the first qualifying declarative only, the outer not run. All at --std 85. cite.py: 'OK  §1985:X.5.6.3 SR1  (║5.6.3 Syntax Rules║)  the text is in SR1'; 'OK  §1985:X.5.6.4 GR1b  (║5.6.4 General Rules║)  the text is in GR1b'; 'OK  §1985:X.5.6.4 GR1c  (║5.6.4 General Rules║)  the text is in GR1c'. The rule is an availability statement whose condition (Report Writer supported) holds, and nothing at --std 85 withholds the statement or its GLOBAL phrase.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

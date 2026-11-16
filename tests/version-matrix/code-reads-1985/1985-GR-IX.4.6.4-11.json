@@ -1,0 +1,119 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-11",
+ "rule-digest": "c473a6cfa39d",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-01",
+  "sources": {
+   "reader": "ae7b0ba59b0f1dd6b06859ad490862c2cfe63129ba6bbe55d1e58bfc6bab6259",
+   "refuter": "405427b22c46a9832d3c727844362904ad33987cad19d7cb7cd35dcfb537678c"
+  },
+  "imported": {
+   "reader": "100ef966f1b3a403882761e8630d5ae7a2435624e8d8c73e539dfdcf7cc75edc",
+   "refuter": "5261258ff73d2a0847eb2cf8278c4b1d521ed42b478ee7732af16b55b50e8b31"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an indexed REWRITE written with END-REWRITE must end at that terminator: statements after it are outside the INVALID KEY and NOT INVALID KEY phrases; with same-verb nesting each END-REWRITE ends the most recent unterminated REWRITE (§1985:IV.6.4.3), with or without conditional phrases on it; without the terminator the phrase runs to the period or to the containing statement's next phrase; a terminator with no REWRITE to end is refused. The witnesses cover the 1985 format and the FROM operand, not the scope.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rewriteStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#conditionalPhraseAssociates; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#Associates; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#MayAssociate",
+    "switches": "a phrase associates only with a format available at the edition (ConstructRegistry.IsAvailable on the format's construct); REWRITE's one format, Pair(InvalidKey), carries no construct, so 85 and 2023 take the same arm",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "gates REWRITE FILE and the RECORD word after record-name (2002 on), and the retry/lock phrases, at 85; END-REWRITE is not gated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries (END-REWRITE row)",
+    "switches": "reserved at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the scope; the 1985 REWRITE format lacks FILE file-name, RECORD, the lock and retry phrases, which are refused at 85 by the version-conformance pass",
+  "witnesses-cover": "part: the witnesses exercise the 1985 format and FROM operand; the terminator's scope, nesting of REWRITE within REWRITE and the refusal of a stray END-REWRITE are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s5-scope.cob",
+    "printed": "T1 INVALID 23 / T1 AFTER / T2 NOT INVALID 00 / T2 AFTER / T3 OUTER INVALID / T3 STILL OUTER INVALID / T3 AFTER / T4 00 / T5 INVALID / T5 IN PHRASE / T5B AFTER PERIOD / T6 INNER INVALID / T6 IN OUTER PHRASE / R1 0001RRRR / R2 0002YYYY",
+    "expected": "T1 a failed REWRITE (status 23) inside IF, then the statement after END-REWRITE; T2 NOT INVALID then after; T3 inner END-REWRITE ends the inner REWRITE so NOT INVALID KEY is the outer's and is skipped; T4 a terminator with no phrase; T5 without terminator the phrase runs to the period; T6 one END-REWRITE ends the inner REWRITE, the next statement stays in the outer phrase"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s5-t7.cob",
+    "printed": "T7 AFTER 00",
+    "expected": "the outer REWRITE succeeds, so its INVALID KEY phrase (the nested REWRITE and the statement after the inner END-REWRITE) is skipped and only the statement after the outer END-REWRITE runs"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s5-stray.cob",
+    "printed": "error COBOL0306: unexpected 'END-REWRITE'. END-REWRITE appears without a matching REWRITE statement.",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s5-twice.cob",
+    "printed": "error COBOL0306: unexpected 'END-REWRITE' ... without a matching REWRITE statement",
+    "expected": "refused: the second terminator ends nothing"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s5-endif.cob",
+    "printed": "error COBOL0306: unexpected 'END-IF'",
+    "expected": "refused: another verb's terminator does not end REWRITE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s5-lock.cob",
+    "printed": "error COBOL0900: a record-lock phrase ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: WITH LOCK is not in the 1985 format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s5-file.cob",
+    "printed": "error COBOL0900: the FILE phrase of a WRITE or REWRITE statement requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: REWRITE FILE is not in the 1985 format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s5-scope.cob",
+    "printed": "--std 2023: the identical fifteen lines",
+    "expected": "scope is one rule at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR11",
+    "check": "OK  §1985:IX.4.6.4 GR11  (4.6.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+   }
+  ],
+  "notes": "END-REWRITE is an optional token closing the rewriteStatement rule, and the one conditionalPhrases predicate assigns each INVALID KEY / NOT INVALID KEY to the nearest unterminated statement that may take it, so the terminator's scope falls out of the parse at every edition. A run of six scope shapes and four refusals matched the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-11",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:IX.4.6.4 GR11 and the scope text it points to (§1985:IV.6.4.3, §1985:IV.4.4.4 item 2). Probes at --std 85 under refute-1985-01/: r3-nest2 (P1: a delimited REWRITE inside a failing READ's INVALID KEY, then a statement and NOT INVALID KEY: prints 'P1 READ INVALID / P1 RW INVALID / P1 IN READ PHRASE', so NOT INVALID KEY went to READ; P2 READ succeeds: only 'P2 READ NOT INVALID', REWRITE skipped; P4 ELSE implicitly ends an unterminated REWRITE: 'P4 RW INVALID / P4 IN PHRASE / P4 AFTER'; P5 delimited REWRITE inside inline PERFORM twice) all as the text says; --std 2023 output identical (md5). r3-nest (no END-REWRITE inside READ INVALID KEY) and r3-condinimp (unterminated REWRITE inside another REWRITE's INVALID KEY) refused COBOL2796: correct, the 1985 phrase operand is imperative-statement-1 and only a delimited scope statement is imperative. r3-seq (class e, ACCESS SEQUENTIAL): REWRITE with no prior READ 'DECL 43 / E1 AFTER 43' (neither phrase runs, statement after END-REWRITE does); changed prime key 'E2 INVALID 21 / E2 AFTER'; REWRITE on a closed file 'DECL 49 / E3 AFTER 49'. cite.py: OK §1985:IX.4.6.4 GR11; OK §1985:IV.6.4.3; OK §1985:IV.4.4.4 (GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

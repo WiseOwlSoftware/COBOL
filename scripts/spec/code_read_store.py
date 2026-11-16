@@ -12,7 +12,8 @@ generator; so the view's half imports only what the view already imports (`inven
 THE OUTCOME OF A RECORD is ONE function, `outcome`, which the audit, the view and the planner all ask:
   confirmed     the reader CONFORMS and the refuter UPHELD it; or an adjudication whose verdict is CONFORMS;
   contradicted  the reader is not CONFORMS; or an adjudication whose verdict is not CONFORMS (it names its `work`);
-  undecided     the refuter OVERTURNED or DOUBTFUL a CONFORMS, and nobody has adjudicated it;
+  undecided     the refuter OVERTURNED or DOUBTFUL a CONFORMS, or the reader answered UNDECIDED (it did not decide),
+                and nobody has adjudicated it;
   stale         the rule's catalog text is no longer the text it was read against: it counts as no read.
 """
 from __future__ import annotations
@@ -35,6 +36,9 @@ OUTCOMES = (CONFIRMED, CONTRADICTED, UNDECIDED, STALE)
 #: The reader's verdict that the refuter attacks and that confirms a rule: the inventory schema's own word
 #: (`code_reads.Context.of` checks it is in the vocabulary); every other verdict contradicts the shared one.
 CONFORMS = "CONFORMS"
+#: The reader's word for "I did not decide" (the reader brief's): no verdict of the inventory's vocabulary, accepted as the
+#: absence of one. A record that holds it is `undecided` whatever its refuter says, and its row is still owed a read.
+READER_UNDECIDED = "UNDECIDED"
 #: The refuter's verdict that upholds a CONFORMS.
 UPHELD = "UPHELD"
 #: The keys a record carries, in the order it is written.
@@ -60,12 +64,14 @@ def write(records: dict[str, dict[str, Any]], directory: pathlib.Path) -> int:
 
 def outcome(record: dict[str, Any], rows: dict[str, Row]) -> str:
     """The outcome of `record` against the edition's `rows` by id (module docstring): `stale` when the rule's text moved
-    under it, else the adjudication's, else the reader's and the refuter's."""
+    under it, else the adjudication's, else the reader's (an UNDECIDED reader leaves it undecided) and the refuter's."""
     row = rows.get(record["rule-id"])
     if row is None or row["rule-digest"] != record["rule-digest"]:
         return STALE
     if adj := record.get("adjudication"):
         return CONFIRMED if adj["verdict"] == CONFORMS else CONTRADICTED
+    if record["reader"]["verdict"] == READER_UNDECIDED:
+        return UNDECIDED
     if record["reader"]["verdict"] != CONFORMS:
         return CONTRADICTED
     return CONFIRMED if (record.get("refuter") or {}).get("refutation") == UPHELD else UNDECIDED

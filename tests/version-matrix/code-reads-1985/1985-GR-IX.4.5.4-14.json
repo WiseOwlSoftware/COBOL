@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-14",
+ "rule-digest": "6c20b1ad603e",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-01",
+  "sources": {
+   "reader": "ae7b0ba59b0f1dd6b06859ad490862c2cfe63129ba6bbe55d1e58bfc6bab6259",
+   "refuter": "405427b22c46a9832d3c727844362904ad33987cad19d7cb7cd35dcfb537678c"
+  },
+  "imported": {
+   "reader": "2dfc0dd3d5660a2ee4e4ad18a3227f13f57631e7988e6320a768a24e18f09d3d",
+   "refuter": "fc3d5d0485fa664ea62e6d7429d7c681ca660052abb97eacd78a83a1e9d24501"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.5.4-14",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when an indexed file is read sequentially (sequential access, or READ NEXT in dynamic access) on an alternate key that allows duplicates, the records sharing one value of that key must come back in the order they were released by WRITE, or by a REWRITE that changed the record's alternate key to that value; a REWRITE that leaves the key unchanged keeps the record's place, and the order survives CLOSE and OPEN. The witnesses cover WRITE order and survival across CLOSE, not the REWRITE half.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReleaseOrdinals; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Release; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Replace; src/WiseOwl.Cobol.Runtime/IO/Store/KeyOrders.cs#CompositeKeyOrder; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrame",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd)",
+    "switches": "a READ PREVIOUS right after OPEN answers at end at 2023 only; guarded by previous, so a forward sequential READ (the only direction 1985 has) takes the one arm every edition takes",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom (DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly)",
+    "switches": "the '02' status of a random READ of a duplicate (85 only); not the order, and not a sequential READ",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/Dialect in IndexedConnector.cs, KeyedStore.cs, Store/KeyOrders.cs, RecordFraming.cs: the two DialectBehavior tests above are the only ones; the release ordinal mint, the composite (value, ordinal) key order and REWRITE's re-stamp of changed keys only have no edition test.",
+  "behaviour-differs-by-edition": "no for the order; the adjacent status of a random READ of a duplicate differs (02 at 85, 00 at 2023), a different rule",
+  "witnesses-cover": "part: REWRITE that creates a duplicate, REWRITE that keeps the key, DELETE then WRITE again, sequential access through START, and variable-length records are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s4-order.cob",
+    "printed": "DYNAMIC START A1 = AA, READ NEXT: 0003AArw2 02 / 0002AAw4 02 / 0005AArw1 02 / 0001AAw6 00 / 0004BBw5 00",
+    "expected": "release order of the AA set: 0003 (WRITE, its later data-only REWRITE keeps its place), 0002 (WRITE), 0005 (REWRITE BB to AA creates the duplicate, so after 0002), 0001 (deleted and written again, last)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s4-order.cob",
+    "printed": "SEQUENTIAL access, START SA1 >= AA, READ: the same five lines in the same order",
+    "expected": "the same order under ACCESS MODE SEQUENTIAL through a second SELECT of the file"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s4-order.cob",
+    "printed": "RW 0005 02 / W 0001 02",
+    "expected": "the REWRITE and WRITE that create a duplicate value report it"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s4-vary.cob",
+    "printed": "0009 16 02 / 0007 06 02 / 0008 11 00",
+    "expected": "RECORD VARYING 6 TO 16 DEPENDING ON with an OCCURS DEPENDING ON tail: duplicates of ZZ in release order 0009, 0007, 0008 whatever their lengths"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s4-order.cob",
+    "printed": "--std 2023: the same order in both reads; the random READ prints 00 where 85 prints 02",
+    "expected": "the order is one rule at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.4 GR14",
+    "check": "OK  §1985:IX.4.5.4 GR14  (4.5.4 General Rules)  the text is in GR14"
+   }
+  ],
+  "notes": "Each WRITE stamps one fresh monotone release ordinal into every key slot, and the alternate trees order entries by the composite (value, ordinal), so a sequential read of a duplicate set returns release order. REWRITE re-stamps only the alternate keys whose value it changed, which puts a newly created duplicate last and leaves an unchanged key's place alone. The order is held in the stored frame, so it survives CLOSE.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.5.4-14",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Read §1985:IX.4.5.4 GR14 and the indexed-organization text that the order of retrieval of duplicates is their original order of arrival into the set. Probes at --std 85 under refute-1985-01/, four SEPARATE runs on one file with two alternate keys WITH DUPLICATES (aimed at the release mint across runs, OPEN EXTEND, a REWRITE that changes one of two keys, a key changed away and back, a DELETE while positioned): r5-w1 (OPEN OUTPUT, sequential, 0003 0005 0007 all A1=AA A2=PP); r5-w2 (new run, OPEN I-O: WRITE 0001; REWRITE 0003 A2 PP->QQ->PP; REWRITE 0005 A1 AA->BB->AA); r5-w3 (new run, OPEN EXTEND, WRITE 0009: 'EXTEND 00 / W 0009 02'); r5-rd (ACCESS SEQUENTIAL, START A1 = AA, READ, DELETE 0007 when read): A1 set '0003 02 / 0007 02 / DELETED 0007 00 / 0001 02 / 0005 02 / 0009 00', A2 set '0005 02 / 0001 02 / 0003 02 / 0009 00'. Both are exact release order, with the REWRITE that recreates a duplicate placed last under the key it changed only, and the mint monotone across runs and EXTEND. Class c: r5-prev READ PREVIOUS refused COBOL0900 'requires COBOL-2002'. cite.py: OK §1985:IX.4.5.4 GR14.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
