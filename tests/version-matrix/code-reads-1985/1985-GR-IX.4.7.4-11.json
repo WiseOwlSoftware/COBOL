@@ -1,0 +1,150 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-11",
+ "rule-digest": "7618f3864d86",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-01",
+  "sources": {
+   "reader": "ae7b0ba59b0f1dd6b06859ad490862c2cfe63129ba6bbe55d1e58bfc6bab6259",
+   "refuter": "405427b22c46a9832d3c727844362904ad33987cad19d7cb7cd35dcfb537678c"
+  },
+  "imported": {
+   "reader": "77456f90f6b89a7f2151e000b65a84254293aaf81f60d37b0d88812c5240f19e",
+   "refuter": "1c8828fa161902c2b449a82a22882b9898170bedd62b7346f80e862bedca63a5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a START with the KEY phrase on an indexed file must compare the file's keys of reference against the content of data-name-1 (the record key itself, or an alphanumeric item of any record of the file that begins at a record key's leftmost position and is no longer than it, SR4), the longer operand truncated to the shorter (GR4), under each of the 1985 operators (=, >, NOT <, >=, in words or symbols), and not against the RECORD KEY item (that is GR12, without the KEY phrase). The witnesses cover the no-KEY form and the refusal of the 2002 reverse operators, not GR11's own comparison.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartFail; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartKeyPhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart (ctx.Edition.SubscriptedClauseOperands)",
+    "switches": "EditionInfo.SubscriptedClauseOperands is Year == 2002: only 2002 admits a subscripted data-name-1; 85 refuses it with COBOL0862, as 2023 does",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartKeyPhrase",
+    "switches": "the reverse operators LESS, NOT GREATER, LESS OR EQUAL (COBOL0900 below 2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartWithLength",
+    "switches": "the WITH LENGTH phrase (COBOL0900 below 2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+    "switches": "START FIRST / LAST (COBOL0900 below 2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the comparison itself; 1985 lacks the reverse operators, WITH LENGTH and FIRST/LAST, which are refused at 85, and 2002 alone admits a subscripted data-name-1",
+  "witnesses-cover": "part: the comparison against a shorter data-name-1 at a key's leftmost position, an item of another record description, the alternate key with a prime key holding other content, and each forward operator are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-start.cob",
+    "printed": "BA01MMN333 00 / BB07KKA444 00 / CA03ZZZ555 00 / AA01MMM111 00 / BB07KKA444 00 / INVALID 23 / AB02KKK222 00 / BA01MMN333 00",
+    "expected": "1 KEY = K1 (group prime key) BA01; 2 KEY > K1H 'BA' (2 of 4 positions compared, so BA01 is equal and skipped) BB07; 3 KEY = K2H 'C' from record R2 CA03; 4 KEY NOT < A1 'MMM' with K1 = 'ZZ99' gives the alternate MMM record AA01; 5 KEY >= A2H 'KK' over the alternate key gives KKA (BB07); 6 KEY = 'D' finds nothing, INVALID KEY 23; 7 no KEY phrase uses K1 AB02 (GR12); 8 KEY > A1 'MMM' gives MMN (BA01)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-notleft.cob",
+    "printed": "error COBOL0862: 'K1T' is neither a record key of the file nor an item that begins at the leftmost character position of one",
+    "expected": "refused by SR4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-longer.cob",
+    "printed": "error COBOL0862: 'R2' is neither a record key ...",
+    "expected": "refused: SR4b length not greater than the key (R2 is 10, K1 is 4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-nonkey.cob",
+    "printed": "error COBOL0862: 'D1' is neither a record key ...",
+    "expected": "refused by SR4"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-numeric.cob",
+    "printed": "error COBOL0862: 'K3N' is neither a record key ...",
+    "expected": "refused: SR4b asks for category alphanumeric, K3N is PIC 9(2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-less.cob",
+    "printed": "error COBOL0900: a reverse-search START KEY operator (LESS, NOT GREATER, LESS OR EQUAL) requires COBOL-2002",
+    "expected": "refused: not a 1985 operator"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-length.cob",
+    "printed": "error COBOL0900: the START KEY ... WITH LENGTH phrase requires COBOL-2002",
+    "expected": "refused: not in the 1985 format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-first.cob",
+    "printed": "error COBOL0900: START FIRST/LAST requires COBOL-2002",
+    "expected": "refused: not in the 1985 format"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-subscr.cob",
+    "printed": "error COBOL0862: 'KT' is subject to an OCCURS clause; data-name-1 shall not be (at --std 2002 it runs: BA01MMN333 00)",
+    "expected": "refused at 85: the format writes data-name-1, which SR2 allows qualified only"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s4-vary.cob",
+    "printed": "0009 16 02 / 0007 06 02 / 0008 11 00",
+    "expected": "START KEY IS EQUAL TO A1 on a RECORD VARYING ... DEPENDING ON file with an OCCURS DEPENDING ON tail positions at the first ZZ record"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s6-start.cob",
+    "printed": "--std 2023: the identical eight lines",
+    "expected": "one comparison at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR11",
+    "check": "OK  §1985:IX.4.7.4 GR11  (║4.7.4 General Rules║)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:IX.4.7.4 GR4",
+    "check": "OK  §1985:IX.4.7.4 GR4  (║4.7.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:IX.4.7.4 GR12",
+    "check": "OK  §1985:IX.4.7.4 GR12  (║4.7.4 General Rules║)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:IX.4.7.3 SR4b",
+    "check": "OK  §1985:IX.4.7.3 SR4b  (║4.7.3 Syntax Rules║)  the text is in SR4b"
+   }
+  ],
+  "notes": "EmitStart sends the whole record area and the length of data-name-1, and the connector slices the key of reference out of the area. At 1985 that is the same thing as comparing data-name-1's content, because SR4 confines data-name-1 to the leftmost positions of a key within a record of the file, which all share the one record area. Every forward operator and both truncation directions behaved as GR4 and GR11 say.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-11",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read §1985:IX.4.7 whole (SR1-4, GR1-12) and the 1985 appendix item that the indexed file's collating sequence is the native one. Probes at --std 85 under refute-1985-01/: r4-coll (class c, PROGRAM COLLATING SEQUENCE IS REV reversing Z..A, START KEY > K2 = 'B' through a 1-character item of a second record): 'AFTER START K2 > B: Z1zzzz' and sequential order A1/B1/Z1, so the comparison uses data-name-1 under the native sequence, not the program sequence; r4-qual (SR2 qualified data-name-1, two records each with HH and KK): Q1 KEY NOT LESS THAN HH OF R2 'MN' over the alternate key gives 0003MNN333; Q2 KEY > HH OF R3 'K' (1 of 3 positions) gives 0001MMM111; Q3 KEY >= KK OF R3 '0003' gives 0003; class e: Q0 START on a file open OUTPUT 'DECL 47 / Q0 AFTER 47' (INVALID KEY not taken, GR1), Q4 START after a failed OPEN (35) 'DECL 00 47 / Q4 AFTER 47'. Each result matches GR4 with GR11's data-name-1. The reader's slice-the-record-area design is equivalent at 1985 because SR4 and the ALTERNATE RECORD KEY rules put every data-name-1 in the file's one record area at a unique key's leftmost position. cite.py: OK §1985:IX.4.7.4 GR11; OK §1985:IX.4.7.4 GR4; OK §1985:IX.4.7.4 GR1; OK §1985:IX.4.7.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

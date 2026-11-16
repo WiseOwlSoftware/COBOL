@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-SR-XIII.3.6.3-2",
+ "rule-digest": "313ecd8b96b5",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-09",
+  "sources": {
+   "reader": "2b5d4d717412a43a15a2ad02336fb327afb76598435e08ccca7c0e96cc110f02",
+   "refuter": "dfad5fdf6dd02d62fe0671256b59fb0a63ab97a6e9ce71b43437b519b8097b67"
+  },
+  "imported": {
+   "reader": "e80d0b7fbb4ba674aad5548568bd570e3218b802b8a0dc942125fe683b3cfd04",
+   "refuter": "1d54b7225c8a82162fce17ab9ae7e3a473b2b9d03a751ad8143471bae3884ee1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.6.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when the reports named by one FD's REPORT clause disagree about having a CODE clause (some written, some not), the program must be refused; reports on different files, an all-CODE file and a no-CODE file are legal, and the CODE literal then leads each record (GR1).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportCodeAgreement; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportCodeClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportCodeClause",
+    "switches": "refuses the word IS of the CODE clause at 85 (ReportCodeIs2002); 1985 prints CODE literal-1",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause",
+    "switches": "the identifier operand of CODE refused below 2002 (COBOL2713, per the VisitReportCodeClause summary)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ScreenReportCodeAgreement grep: no DialectLevel/Construct consultation; the agreement test is the same at every edition.",
+  "behaviour-differs-by-edition": "no for the agreement rule; the CODE clause's own form differs (85: CODE literal-1 only).",
+  "witnesses-cover": "part: the witnesses cover two reports on one file, one with CODE; not exercised: three reports with the first lacking CODE, two files with one report each, the all-CODE output.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c3/mixed.cob",
+    "printed": "error COBOL2713: file 'RPT': the CODE clause is specified for 'R-A' but not for 'R-B'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c3/mixed_first_missing.cob",
+    "printed": "error COBOL2713: specified for 'R-B', 'R-C' but not for 'R-A'",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c3/both.cob",
+    "printed": "'AAA' / 'BB  B' / 'AAA'",
+    "expected": "legal; literal-1 in the first two positions of each record (XIII.3.6.4 GR1)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c3/neither.cob",
+    "printed": "'A' / '  B'",
+    "expected": "legal"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c3/two_files.cob",
+    "printed": "PT1.TXT 'AAA'; PT2.TXT '  B'",
+    "expected": "legal: different files"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c3/code_is_85.cob",
+    "printed": "error COBOL0900: the word IS of the CODE clause requires COBOL-2002",
+    "expected": "refused at 85 (the format is CODE literal-1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c3/single_code.cob",
+    "printed": "'AAA'",
+    "expected": "legal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.6.3 SR2",
+    "check": "OK  §1985:XIII.3.6.3 SR2  (3.6.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XIII.3.6.4 GR1",
+    "check": "OK  §1985:XIII.3.6.4 GR1  (3.6.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The agreement screen groups RDs by the FD whose REPORT clause names them and refuses a mix of written and unwritten CODE; mixed.cob is refused identically at --std 2023. The message cites only §2023:13.18.12.3 SR3 (cosmetic).",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.6.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Read §1985:XIII.3.6.3 SR2 and ReportSectionBinder#ScreenReportCodeAgreement. Probes at --std 85: three reports over two files with the last of RPT's two lacking CODE (refute-1985-09/c3/three_last_missing.cob) -> COBOL2713 at R-C, and RPT2's lone uncoded report is not drawn in. Attacked the 'file' reading with one EXTERNAL file connector described by two separately compiled programs in one source, R-A with CODE 'AA' and R-B without (ext_mixed.cob): compiles and writes 'AAA' then '  B' to one file. Not an overturn: SR2 is a syntax rule over one source program's FD, and where 1985 means the run unit's shared connector it says so (XIII.3.3.4 GR3, 'every file description entry in the run unit'); SR2 carries no such phrase. cite.py: OK §1985:XIII.3.6.3 SR2; OK §1985:XIII.3.3.4 GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

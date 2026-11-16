@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-SR-XI.4.1.3-10",
+ "rule-digest": "66656fe088aa",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-08",
+  "sources": {
+   "reader": "202d91b2ed26e5c3ce2e3f4679bd6b14d1db0526e78703866c5edf4ae776acb2",
+   "refuter": "50d13ea7be3d7dc9403270870e5e7a135de95c4fcd134e35ff35643863b226a8"
+  },
+  "imported": {
+   "reader": "bf587279f140cb0f496eb3bb7bb83905fcb92679005bfa6619064468f6cf88f6",
+   "refuter": "af9c6187548d553d97e4c25a0c00d293a32e232492639e05458147f323b88a04"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.1.3-10",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when any file-name-4 of a MERGE GIVING phrase is an indexed file, the MERGE must be refused unless the first KEY data-name is under ASCENDING and occupies exactly the character positions (offset and length) in the sort-merge record that the prime record key occupies in that file's record; a MERGE whose GIVING files are not indexed is unconstrained by the rule.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenIndexedGivingKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition.Edition, DialectLevel, Year <, CobolVersion, Dialect in SortBinder.cs, SortKeyAdmission.cs and RecordLayout.cs: the only consults are SortBinder#BindRelease (DialectLevel < 2002, RELEASE range outcome) and SortBinder#ScreenSameClauses (held1985, SORT GIVING in SAME RECORD AREA); neither is on the BindMerge -> ScreenIndexedGivingKey path, which is edition-neutral",
+  "behaviour-differs-by-edition": "no: the 1985 'same character positions' and the 2023 'same byte positions' ask one offset-and-length comparison, and the screen runs identically at --std 85 and --std 2023",
+  "witnesses-cover": "part: the witness exercises only a DESCENDING first key; not exercised by it: an ASCENDING first key at a different offset or length, several GIVING files with one indexed, a DESCENDING first key followed by an ascending one, a variable-occurrence SD record, and the admitted forms",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-ok.cob",
+    "printed": "01ZZ01 / 02XX02 / 03YY03 / 04WW04",
+    "expected": "admitted (ASCENDING SA at bytes 1..2 = prime key IK 1..2, sequential access); records written in key order"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-ok-dyn.cob",
+    "printed": "01ZZ01 / 02XX02 / 03YY03 / 04WW04",
+    "expected": "admitted with ACCESS DYNAMIC and a DESCENDING minor key"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-two-giving.cob",
+    "printed": "01ZZ01 / 02XX02 / 03YY03 / 04WW04",
+    "expected": "admitted: GIVING sequential G2 and indexed G1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-desc.cob",
+    "printed": "error COBOL1757: MERGE GIVING file 'G1' is an indexed file ... associated with a DESCENDING phrase",
+    "expected": "refused: first key DESCENDING"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-desc-then-asc.cob",
+    "printed": "error COBOL1757 ... DESCENDING phrase",
+    "expected": "refused: the FIRST data-name-1 is under DESCENDING even though a later one is ASCENDING"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-offset.cob",
+    "printed": "error COBOL1757 ... first key occupies bytes 1..2 ... prime record key 'IK' occupies bytes 3..4",
+    "expected": "refused: different character positions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-length.cob",
+    "printed": "error COBOL1757 ... bytes 1..2 ... 'IK' occupies bytes 1..4",
+    "expected": "refused: same start, different length"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-second-matches.cob",
+    "printed": "error COBOL1757 ... bytes 1..2 ... bytes 3..4",
+    "expected": "refused: only the second key matches the prime key's positions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-two-giving-desc.cob",
+    "printed": "error COBOL1757 for G1",
+    "expected": "refused: the indexed one of two GIVING files"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-odo-ok.cob",
+    "printed": "013AB  / 023EF  / 033CD  / 043GH ",
+    "expected": "admitted: SD record with OCCURS DEPENDING ON after the key; key at 1..2"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c2-odo-bad.cob",
+    "printed": "error COBOL1757 ... bytes 3..3 ... bytes 1..2",
+    "expected": "refused: the ODO count item is the first key"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.1.3 SR10",
+    "check": "OK  §1985:XI.4.1.3 SR10  (4.1.3 Syntax Rules)  the text is in SR10"
+   }
+  ],
+  "notes": "ScreenIndexedGivingKey compares the first key's (offset, length) in the SD record to the prime key's window in each indexed GIVING file and refuses a DESCENDING first key; it is the same code at every edition and needs no 1985 arm because the 1985 rule is the same comparison. Every refusal and admission probed at --std 85 matched the text; the refusal cites §2023:14.9.24.3 SR10 in its message.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.1.3-10",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Read §1985:XI.4.1.3 SR10 and SortBinder.cs#ScreenIndexedGivingKey (keys[0] Descending check, then PrimeKeyBytes window vs first key offset/length via RecordLayout.KeyWindowOf with each key's own root). Probes at --std 85 aimed at multiple record descriptions: E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r2-sd-second-rec.cob (key SA OF SR2, the SD's second record, at 1..2; RECORD KEY IK OF G1S, the indexed file's second record, at 1..2) -> ran, 01ZZ01/02XX02/03YY03; E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r2-sd-second-bad.cob (key SB OF SR2 at 3..4) -> COBOL1757 'first key occupies bytes 3..4 ... prime record key IK occupies bytes 1..2'. cite.py: 'OK §1985:XI.4.1.3 SR10 (4.1.3 Syntax Rules) the text is in SR10'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
