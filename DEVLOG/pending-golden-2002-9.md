@@ -19,7 +19,7 @@ overturned 23 verdicts: does-not-exercise-rule 13, expected-value 9 and conventi
   `source-format` line, which generate.py requires.
 
 **Records.** `record_verdicts.py --edition 2002` wrote 98 CONFORMS store files, and the 2002 GAP went from 1,899 to
-1,801. Every test-ref runs at 2002 on this tree. Two records rest on a refusal alone, and both are SR rows that grant
+1,801 on the branch. With main 111a265843 merged in (golden-2002-7 among it), it reads 1,707. Every test-ref runs at 2002 on this tree. Two records rest on a refusal alone, and both are SR rows that grant
 no form (2002-SR-14.8.14.2-1, 2002-SR-14.8.19.2-4).
 
 **Defects**, each re-run on this build:

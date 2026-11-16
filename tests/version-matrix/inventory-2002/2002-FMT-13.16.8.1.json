@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.8.1",
+ "rule-digest": "a2ce25c33c05",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blankWhenZeroClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#ZERO; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#FigurativeSpellingMessage",
+ "test-ref": "conformance:cases/13.16.8@2002-BLANK-WHEN-ZERO-CLAUSE/g2-bwz-cd-record",
+ "notes": "§2002:13.16.8.1 BLANK WHEN ZERO, written on PIC 999 and PIC ZZ9.99 items in a CD record (§2002:A.1.1.2), is accepted and blanks zero receivers per §2002:13.16.8.3 GR1. The --std 2002 run matched the golden."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-6",
+ "rule-digest": "ad23a6fcb8c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ScreenSendAdvancing; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic",
+ "test-ref": "conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2002_feature_mnemonic_send_and_write; conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2002-feature-mnemonic-in-set; conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2002-feature-mnemonic-in-display",
+ "notes": "§2002:12.2.6.2 SR6: a feature mnemonic-name (C01 IS TOP-PAGE) is accepted in WRITE ... ADVANCING (runs, WRITE-OK) and SEND ... ADVANCING on an output CD, and refused in SET (COBOL1757) and DISPLAY UPON (COBOL0817); all three --std 2002 runs matched."
+}

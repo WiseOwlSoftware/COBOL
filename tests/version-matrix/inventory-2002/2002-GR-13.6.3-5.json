@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.6.3-5",
+ "rule-digest": "182dfb4b91da",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/DataEmitter.cs#UnboundFormalRecord; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/DataEmitter.cs#AreaFormalShape; src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindLinkage",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-linkage-initialize; conformance:cases/13.6@2002-LINKAGE-SECTION/g2-lk-value-implicit-initialize",
+ "notes": "§2002:13.6.3 GR5: linkage data-item and table VALUEs ignored on entry (the argument ...999... shows) and applied by explicit INITIALIZE (ABC123XYX) and by the implicit INITIALIZE of ALLOCATE INITIALIZED on a linkage based item (LKVPQ, §2002:14.8.3.3 GR7); both cases matched at --std 2002. The OS leg is undefined; the non-COBOL leg is documented in DOC-A.1-116 and is not shown by a 2002 run."
+}

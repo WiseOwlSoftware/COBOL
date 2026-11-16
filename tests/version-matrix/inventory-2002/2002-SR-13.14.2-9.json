@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-9",
+ "rule-digest": "2710967a2ae2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#Sr9ImpliedFor; src/WiseOwl.Cobol.Compiler/Binding/Passes/SynthesizeImpliedPicturesPass.cs#SynthesizeImpliedPicturesPass",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-implied-picture",
+ "notes": "§2002:13.14.2 SR9: in a record after a CD, entries with VALUE \"HELLO\", X\"414243\", N\"HI\" and B\"101\" and no PICTURE are accepted with implied lengths 5, 3, 2 national and 3 boolean positions (§2002:15.39.3 RV1-RV3) and their values; MATCH at --std 2002 on build dc1f2dcce8."
+}

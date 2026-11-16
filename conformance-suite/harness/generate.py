@@ -192,6 +192,12 @@ class Case:
     #: A WiseOwl test's message servers (§3.1 `servers`, DESIGN-message-control.md §0 Q9): in the header's order, each `(server
     #: name as written, declared file)`; None for a test that starts none.
     servers: tuple[tuple[str, str], ...] | None = None
+    #: Where the program (or a library text it copies) observes an exception condition, `(path, line)`, None when it
+    #: observes none; and the header line of its `source-format`. Read once from the text, so the checks that depend on
+    #: the editions a test is placed at (`check_editions`) are made from the Case alone (kb/Work PB5730: a band widened
+    #: in memory is checked exactly as one read from disk).
+    observes_at: tuple[Path | str, int] | None = None
+    format_line: int = 1
 
     @property
     def in_suite(self) -> bool:
@@ -651,22 +657,8 @@ class Reader:
                                if t.kind == cobol.WORD and any(ch.isalpha() for ch in t.text))
         case.defined = frozenset(cobol.defined_names(expanded))
         observed = cobol.observes_exception(expanded)
-        if observed is not None:
-            early = [e for e in case.accept if self.inputs.editions.index(e) < self.inputs.editions.index(
-                FIRST_RUN_TIME)]
-            if early:
-                self.refuse(observed.source or rel, observed.line,
-                            f"a run-time expectation (it observes an exception condition) accepted at "
-                            f"{', '.join(early)}: run-time violations are judged only from {FIRST_RUN_TIME} on (§3.2)")
-        # Free form before it existed. A WiseOwl test may use it at 85: `--source-format free` at every edition is
-        # WiseOwl's extension (docs/CONFORMANCE.md §7, DOC-A.1-158), and its own regression tests exercise it.
-        if case.source_format == "free" and case.tree != "wiseowl":
-            first = self.inputs.editions.index(FIRST_FREE_FORM)
-            early = sorted({e for e in case.accept + (case.flag.at if case.flag else ())
-                            if self.inputs.editions.index(e) < first}, key=self.inputs.editions.index)
-            if early:
-                self.refuse(rel, h.lines.get("source-format", 1), f"free form at {', '.join(early)}: the free-form "
-                                                                  f"reference format is a {FIRST_FREE_FORM} feature")
+        case.observes_at = (observed.source or rel, observed.line) if observed is not None else None
+        case.format_line = h.lines.get("source-format", 1)
         # The portability lint (§3.3), for a test the suites carry: on the program text the compiler reads, the
         # test's own and every library text it copies.
         if case.in_suite:
@@ -852,6 +844,7 @@ def check_cases(reader: Reader) -> None:
                     reader.refuse(rel, 1, f"accepted at {e}, where the construct {c} does not exist (tests/version-matrix/constructs/: "
                                           f"{', '.join(window) or 'no edition'})")
         _check_band_against_constructs(reader, case, known, windows)
+        check_editions(reader, case)
         if case.flag is not None:
             _check_flag(reader, case, known, windows, by_id)
         elif case.control is not None:
@@ -915,6 +908,28 @@ def check_cases(reader: Reader) -> None:
         if case.flag is not None and case.test_id not in inputs.diagnostics:
             reader.refuse(case.path, 1, "a flagged test needs a file wiseowl/diagnostics/<id>.json: the editions at "
                                         "which WiseOwl COBOL refuses it and what it reports (§4, §9)")
+
+
+def check_editions(reader: Reader, case: Case) -> None:
+    """The refusals that depend only on the editions a test is placed at and on what its text was read to hold
+    (`Case.observes_at`, `Case.format_line`), so a band widened in memory (lineage_reads.Witnesses.entries) is refused
+    exactly where the tree's would be (kb/Work PB5730: 33 free-form cases were proven at 85 without this)."""
+    order = reader.inputs.editions
+    if case.observes_at is not None:
+        early = [e for e in case.accept if order.index(e) < order.index(FIRST_RUN_TIME)]
+        if early:
+            reader.refuse(case.observes_at[0], case.observes_at[1],
+                          f"a run-time expectation (it observes an exception condition) accepted at "
+                          f"{', '.join(early)}: run-time violations are judged only from {FIRST_RUN_TIME} on (§3.2)")
+    # Free form before it existed. A WiseOwl test may use it at 85: `--source-format free` at every edition is
+    # WiseOwl's extension (docs/CONFORMANCE.md §7, DOC-A.1-158), and its own regression tests exercise it.
+    if case.source_format == "free" and case.tree != "wiseowl":
+        first = order.index(FIRST_FREE_FORM)
+        early = sorted({e for e in case.accept + (case.flag.at if case.flag else ()) if order.index(e) < first},
+                       key=order.index)
+        if early:
+            reader.refuse(case.path, case.format_line, f"free form at {', '.join(early)}: the free-form "
+                                                       f"reference format is a {FIRST_FREE_FORM} feature")
 
 
 def _check_band_against_constructs(reader: Reader, case: Case, known: list[str],
@@ -2087,6 +2102,20 @@ def self_test() -> int:
     check("arm: COPY in a comment-entry is part of the comment-entry, which runs to the next line with a word in area "
           "A (§1985:XII.2.3 SR10, §1985:IV.7.3.3); outside the Identification Division AUTHOR is no such paragraph",
           [c.name for c in entries] == ["REAL1", "REAL2"], [c.name for c in entries])
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        _plant(root, {"cases/2.2.2-Free/free02.cob": "*>--- conformance-case\n*> id: free02\n*> rules: [RV-2.2.2-1]\n"
+                                                     "*> accept: [2002]\n*> source-format: free\n*>---\nSTOP RUN.\n"})
+        inputs = _planted_inputs()
+        reader = Reader(root, inputs)
+        reader.read_tree()
+        read_ok = not [r for r in reader.refusals if "free form" in str(r)]
+        widened = Reader(root, inputs)
+        widened.cases = [replace(c, accept=("85", "2002")) for c in reader.cases]
+        check_cases(widened)
+        check("arm: a band widened IN MEMORY to 85 (lineage_reads.Witnesses.entries) is refused for free form there, "
+              "as the tree's would be: the edition-dependent refusals are check_cases' (kb/Work PB5730)",
+              read_ok and any("free form at 85" in str(r) for r in widened.refusals), [str(r) for r in widened.refusals])
     print("=== generate.py --self-test: " + ("ALL GREEN" if not rc else "FAILED") + " ===")
     return rc
 

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.5.3-2",
+ "rule-digest": "8fdeadb9c07c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#KeySegments; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source",
+ "notes": "§2002:12.3.4.5.3 GR2: record-key-name-1 is the concatenation of all occurrences of data-name-2 in the order specified. pb1099 declares 'ALTERNATE RECORD IX-AK SOURCE IX-D IX-C WITH DUPLICATES' with IX-C before IX-D in the record; records carry IX-D IX-C = 2X, 1Y, 2X. START KEY IS > IX-AK with IX-D IX-C = 1Y gives S1 00 and READ NEXT S2 02 REC1, S3 00 REC3, S4 10; in record order (C then D: X2, Y1, X2) nothing exceeds Y1, so only the specified concatenation order gives these lines. R1 00 REC1 (READ KEY IS IX-AK = 2X) agrees. pb1099_record_key_source run at --std 2002 on the pinned build: PASS."
+}

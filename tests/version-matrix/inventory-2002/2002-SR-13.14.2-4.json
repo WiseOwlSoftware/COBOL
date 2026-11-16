@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-4",
+ "rule-digest": "ef56ee7d569c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenLeadingClausePosition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegisterTypeDecl",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-entry-order; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-redefines-late; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-typedef-late; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-typedef-unnamed",
+ "notes": "§2002:13.14.2 SR4: in a record after a CD, REDEFINES after the name or (unnamed) after the level, implied and explicit FILLER and clauses in free order are accepted and print B=[AB] REC=[ABCDEFGHXYZ] D=[GH] at --std 2002, equal to the derivation; REDEFINES after PICTURE (COBOL2739), TYPEDEF after PICTURE (COBOL2404) and an unnamed TYPEDEF (COBOL1529) are refused."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.6.3-3",
+ "rule-digest": "de46ef663e2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveKeyCollating",
+ "test-ref": "conformance:cases/12.3.4.6@2002-COLLATING-SEQUENCE-CLAUSE/g2col03_national_alphabet_name_2",
+ "notes": "§2002:12.3.4.6.3 GR3: under COLLATING SEQUENCE IS REV NU (NU FOR NATIONAL IS UCS-4, §2002:12.2.6.3 GR7f code-point order) the national prime and national alternate keys walk A M Z (tags 3 1 2 and 2 3 1) while the alphanumeric alternate takes REV (3 2 1); --std 2002 run matched the derived .out."
+}

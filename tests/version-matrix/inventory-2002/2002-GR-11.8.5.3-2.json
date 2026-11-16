@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-11.8.5.3-2",
+ "rule-digest": "85fb09c36aaa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ScreenEntryConvention; src/WiseOwl.Cobol.Runtime/Control/ExternalizedNames.cs#Same",
+ "test-ref": "conformance:cases/11.8.5@2002-ENTRY-CONVENTION-CLAUSE/g2002_entry_convention_default_names",
+ "notes": "§2002:11.8.5.3 GR2: with no clause, program-names map per §2002:8.3.1.1.1 (a CALL literal is a COBOL word under the default COBOL call convention, case-equivalent per §2002:8.1.2.1 GR3a, one externalized name = one instance); CALL \"g2ecvsub\", \"G2EcvSub\", \"G2ECVSUB\" reach one G2ECVSUB whose counter prints 1, 2, 3 at --std 2002 as derived. No entry-convention-name is provided (§2002:B.1 item 44, optional)."
+}

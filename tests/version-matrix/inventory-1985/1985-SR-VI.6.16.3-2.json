@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.16.3-2",
  "rule-digest": "69d388fc3695",
+ "test-ref": "conformance:cases/14.9.19-IF/l1_if_else_next_sentence_omissible",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

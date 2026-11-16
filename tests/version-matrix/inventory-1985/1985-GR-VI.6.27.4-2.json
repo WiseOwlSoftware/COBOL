@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.27.4-2",
  "rule-digest": "646a12dc1caa",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/da4_function_sending_operand",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
