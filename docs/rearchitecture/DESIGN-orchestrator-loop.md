@@ -2027,7 +2027,7 @@ root, the clock and `say`:
 
 | Module · class | The job it owns | `Gate` methods that become its methods |
 |---|---|---|
-| `gate_reuse.py` · `PassCarry` | What a recorded run lets this run reuse: the facets of a pass, the carried passes, the passes recorded, a re-derivation | `reusable`, `facets`, `carry`, `record_passes`, `rederive`, `_rederived_keys`, `_listing_at`, `write_rederived`, `_red_explained`, with `Rederived` and `Carry` |
+| `gate_reuse.py` · `PassCarry` | What a recorded run lets this run reuse: the facets of a pass, the carried passes, the passes recorded, a re-derivation | `reusable`, `facets`, `carry`, `record_passes`, `rederive`, `_rederived_keys`, `_listing_at`, `write_rederived`, `red_explained`, with `Rederived` and `Carry` |
 | `gate_generated.py` · `Generations` | The generated targets a gate brings up to date, hands to their dependents and checks after them | `_generate`, `_handed`, `_check_generated`, `_all_up_to_date`, `_generated_detail`, and the `_generations` field |
 | `gate_legs.py` · `Legs` | The test populations: the plan, the listings, the first classes, the hosts, the population check, the walls and concurrency the record reports | `_plan`, `_pool_listings`, `_listings`, `_first`, `_keep_unreadable`, `_run_hosts`, `_check_populations`, `_assembly_walls`, `_concurrency` |
 | `gate.py` · `Gate` (stays) | The run: its stages in order, the audits and lanes, the work beside it, THE one place a verdict is written | `__init__`, `_base`, `run`, `_reused`, `_gate`, `_audits`, `_audits_known_red`, `_audit_red`, `_inert`, `_tooling`, `_tested`, `_verdict`, `_finish`, `_record`, `_record_growth`, `_beside`, `_join_beside`, `new_run`, `previous_run`, `_prune` |
