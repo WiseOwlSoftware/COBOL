@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.17.1",
+ "rule-digest": "3376e41be57c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#gobackStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#raisingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#statusPhrase; src/WiseOwl.Cobol.Compiler/Binding/ChoiceIndicators.cs#AtMostOnce",
+ "test-ref": "conformance:cases/14.8.17@2002-GOBACK-STATEMENT/g2-goback-raise-resume-formats",
+ "notes": "Per §2002:14.8.17.1 (rendered p.476) GOBACK with no phrase, RAISING EXCEPTION, RAISING identifier, RAISING LAST EXCEPTION and RAISING LAST are all accepted at --std 2002 and raise in the caller per §2002:14.8.17.3 GR1 / §2002:14.8.13.3 GR3; the run printed BACK 1..BACK 5 with the derived declarative lines."
+}

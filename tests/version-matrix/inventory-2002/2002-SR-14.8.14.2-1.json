@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.14.2-1",
+ "rule-digest": "83191232a875",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindFree; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#PtrResolvePointer",
+ "test-ref": "conformance:cases/14.8.14@2002-FREE-STATEMENT/g2-free-non-data-pointer",
+ "notes": "Per §2002:14.8.14.2 SR1 a FREE operand shall be of category data-pointer; at --std 2002 the pinned build refuses FREE of a PROGRAM-POINTER item and of an output CD's TEXT LENGTH item with COBOL0869, and accepts data-pointer operands (g2-free-resume-next-implicit)."
+}

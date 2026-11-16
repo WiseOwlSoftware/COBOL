@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-16",
+ "rule-digest": "cbb18b6de231",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#OpenLeadingAnchors",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-cd-operands",
+ "notes": "S='AABAACAADA'. a CHARACTERS BY ISTAR BEFORE INITIAL IC -> *****CAADA. b ALL IA BY IZ -> ZZBZZCZZDZ. c LEADING IA BY IZ -> ZZBAACAADA; LEADING IA BY IZ AFTER INITIAL IC, first eligible at 7 -> AABAACZZDA. d FIRST IA BY IZ -> ZABAACAADA (leftmost); FIRST IA BY IZ AFTER INITIAL IB -> AABZACAADA; F6 'ABACADAB' FIRST 'C' BY '3' 'D' BY '4' after ALL 'A'/'B' -> 12131412 (each successive FIRST operand replaces its own leftmost occurrence); F2 FIRST 'C' replaces only position 3. Run at --std 2002 on the pinned dc1f2dcce8 build matched. Same-valued FIRST operands (F9 12BAAC) and a LEADING list (F8 11BBC) also matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.12.1",
+ "rule-digest": "ea998ad60678",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenOther; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateWhenItem; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#valueRange; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#RangeAlphabet; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateSubject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenObjectNegation",
+ "test-ref": "conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2eva02_format_arms",
+ "notes": "Every subject and object arm of §2002:14.8.12.1, with values from §2002:14.8.12.3 GR3-GR5, gives the fourteen derived lines S1 NOT-OBJECTS ... S14 NONE; the --std 2002 run matched."
+}

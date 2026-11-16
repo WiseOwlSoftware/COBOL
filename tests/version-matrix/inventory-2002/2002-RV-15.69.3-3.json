@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.69.3-3",
+ "rule-digest": "629f7e68a3ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#StandardCompare",
+ "test-ref": "conformance:cases/15.69@2002-STANDARD-COMPARE-FUNCTION/g2-stdcmp-argument-classes",
+ "notes": "Default ordering table (§2002:15.69.2 AR4), highest level (RV1); every comparison is of identical strings ('=' under any ISO/IEC 14651 table) or differs only in a final base letter C/D ('<'/'>' at level 1), so RV5/RV6 fix each result. RV3: with one national and one non-national argument the other is converted to class national before comparison. R3XN (alphanumeric 'ABD' vs N'ABC' -> >), R3NX (-> <), R3AN (alphabetic 'ABC' vs N'ABC' -> =), R3LIT ('ABC' vs N'ABC' -> =), R3NE (national numeric-edited N'1.25' vs '1.25' -> =). The '=' legs hold only if the conversion happens. Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}

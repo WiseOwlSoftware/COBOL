@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.24.2-11",
+ "rule-digest": "cad0a5c1c688",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrRule2MoveValid; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrEligible; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#DataItemRefusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ShapeRefusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#VariableLengthRefusal; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsIndexMessageTagObjectOrPointer; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#Table16Refusal",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov19_cd_move_corresponding",
+ "notes": "SR11: the corresponding items of identifier-3 are sending operands, those of identifier-4 receiving, determined by §2002:14.6.5. CG->WG: F1, F2, F7 pair (rule 1, same name and qualifiers); F3 A(2)->9(2) is not a pair (rule 2: alphabetic to numeric is No in Table 17), so WG F3 keeps 55; F5 has OCCURS in CG (rule 4), WG F5 keeps ##; CG's F6 is qualified by SUB and WG's is not (rule 1), WG F6 keeps #; FILLER never pairs. Moves: ABC to X(4) 'ABC ', 012 to 9(5) 00012, 77 -> 'M1 [ABC ] 00012 55 ## # 77'; the senders are unchanged 'M1S ABC012XY77'. WH->CK: 'hi' to X(5) 'hi   ', 34 to 9(4) 0034, ... Run at --std 2002 on the pinned dc1f2dcce8 build matched."
+}
