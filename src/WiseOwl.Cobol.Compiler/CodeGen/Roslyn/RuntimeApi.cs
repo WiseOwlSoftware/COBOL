@@ -2240,6 +2240,11 @@ internal static class RuntimeApi
     public static string FileOpenModeOf(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenModeOf)}({name})";
 
+    /// <summary>The one open mode a USE open-mode switch selects on, from the set of modes (a bit mask of ordinals) the unit
+    /// declares a procedure for — <c>CobolFile.UseModeOf</c>.</summary>
+    public static string FileUseModeOf(string name, int declaredModes) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.UseModeOf)}({name}, {declaredModes})";
+
     /// <summary>The mode a connector IS open in, −1 when not open — <c>CobolFile.OpenedModeOf</c>.</summary>
     public static string FileOpenedModeOf(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenedModeOf)}({name})";

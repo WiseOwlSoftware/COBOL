@@ -74,27 +74,22 @@ internal static class UseTierEmitter
             : null;
         string? when = modeTierWhen is not null && !string.IsNullOrEmpty(excepted) ? $"({modeTierWhen}) && {excepted}"
             : modeTierWhen ?? (string.IsNullOrEmpty(excepted) ? null : excepted);
-        void ModeSwitch(string view)
-        {
-            using (w.Block($"switch ({view})"))
-                for (int i = 0; i < decls.Count; i++)
-                    if (Qualifies(decls[i]) && decls[i].ModeIndex is { } m)
-                        w.Line($"case {m}: {action(i)}");
-        }
         // Open-mode scope (GR3 b)/GR6 b)–e)): the mode the executing OPEN or CLOSE is scoped to ("in the process of being opened"),
-        // then the mode the file IS open in, which an OPEN refused '41' leaves unchanged and which names a declarative the
-        // attempted mode does not (§1985:XIII.4.8.4 GR5b/GR5c, §2023:14.9.49.4 GR6c: "open in the output mode"; kb/Work PB5825).
-        // Where both modes have a procedure the text names no order; the attempted mode's runs, as it did before.
-        void Tiers()
+        // else a mode the file IS open in that has a declarative (an OPEN refused '41' leaves the file open as it was:
+        // §1985:XIII.4.8.4 GR5b/GR5c, §2023:14.9.49.4 GR6c: "open in the output mode"; kb/Work PB5825). The runtime picks the one
+        // mode from the set this unit declares (<c>UseModeOf</c>), so the switch stays single: where both modes have a procedure
+        // the text names no order, and the attempted mode's runs, as it did before.
+        int declared = 0;
+        foreach (var d in decls)
+            if (Qualifies(d) && d.ModeIndex is { } mi) declared |= 1 << mi;
+        string switchHead = $"switch ({RuntimeApi.FileUseModeOf("__f", declared)})";
+        if (when is not null)
+            switchHead = $"if ({when}) {switchHead}{(modeTierNote is null ? "" : $"   {modeTierNote}")}";
+        using (w.Block(switchHead))
         {
-            ModeSwitch(RuntimeApi.FileOpenModeOf("__f"));
-            ModeSwitch(RuntimeApi.FileOpenedModeOf("__f"));
-        }
-        if (when is null) { Tiers(); return; }
-        using (w.Block($"if ({when})"))
-        {
-            if (modeTierNote is not null) w.Line(modeTierNote);
-            Tiers();
+            for (int i = 0; i < decls.Count; i++)
+                if (Qualifies(decls[i]) && decls[i].ModeIndex is { } m)
+                    w.Line($"case {m}: {action(i)}");
         }
     }
 }

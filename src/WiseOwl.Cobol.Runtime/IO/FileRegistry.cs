@@ -774,6 +774,9 @@ public sealed class FileRegistry
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §2023:14.9.49.4 GR6b–e); −1 unknown/closed.</summary>
     public int OpenModeOf(string name) => _files.TryGetValue(name, out var c) ? c.OpenModeView : -1;
 
+    /// <summary>The mode a USE open-mode switch selects on (<see cref="FileConnector.UseModeView"/>), −1 unknown.</summary>
+    public int UseModeOf(string name, int declaredModes) => _files.TryGetValue(name, out var c) ? c.UseModeView(declaredModes) : -1;
+
     /// <summary>The mode the file IS open in (<see cref="FileConnector.OpenedModeView"/>), −1 unknown or not open.</summary>
     public int OpenedModeOf(string name) => _files.TryGetValue(name, out var c) ? c.OpenedModeView : -1;
 

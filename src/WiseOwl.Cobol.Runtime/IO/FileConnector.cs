@@ -665,6 +665,18 @@ public abstract class FileConnector
     /// tier consults this view when the attempted mode (<see cref="OpenModeView"/>) selects no declarative (kb/Work PB5825).</summary>
     public int OpenedModeView => _openMode ? (int)Mode : -1;
 
+    /// <summary>The mode a USE open-mode switch selects on: the statement-scoped mode (<see cref="OpenModeView"/>) when the unit
+    /// declares a procedure for it, else the mode the file IS open in (<see cref="OpenedModeView"/>) when it does, else the
+    /// statement-scoped view. <paramref name="declaredModes"/> is a bit mask of the mode ordinals the unit has a procedure for.
+    /// Where both have one the text names no order and the attempted mode's runs (kb/Work PB5825).</summary>
+    public int UseModeView(int declaredModes)
+    {
+        int scoped = OpenModeView;
+        if (scoped >= 0 && (declaredModes >> scoped & 1) != 0) return scoped;
+        int opened = OpenedModeView;
+        return opened >= 0 && (declaredModes >> opened & 1) != 0 ? opened : scoped;
+    }
+
     /// <summary>The open mode while the connector IS OPEN (ISO §2023:9.1.4), null otherwise.
     /// ⛔ DELIBERATELY NOT <see cref="OpenModeView"/>: that view also answers with the mode an OPEN now
     /// executing is ATTEMPTING (§2023:14.9.49.4 GR6b's "in the process of being opened"), which is what USE-declarative mode
