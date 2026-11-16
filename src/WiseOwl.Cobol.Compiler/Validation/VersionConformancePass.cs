@@ -1376,6 +1376,26 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>⛔ §1985:VI.6.16.3 SR3 — "If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified"
+        /// (kb/Work PB5798; COBOL7486, COBOL-85 only: §2002:14.8.18, §2014:14.9.18 and §2023:14.9.19 print no such rule). The NEXT
+        /// SENTENCE phrase of THIS IF is a statement of one of its two arms; a nested IF's phrase is that IF's own.</summary>
+        public override object? VisitIfStatement(CobolParserCore.IfStatementContext ctx)
+        {
+            if (_p._edition.Year < 2002 && ctx.END_IF() is not null)
+                foreach (var block in ctx.statementBlock())
+                    foreach (var s in block.statement())
+                        if (s.nextSentenceStatement() is { } next)
+                        {
+                            using var _ = Sink.At(next);
+                            _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.NextSentenceWithEndIf.Code, EditionSeverity.Error,
+                                DiagnosticCatalog.NextSentenceWithEndIf.Id,
+                                "an IF statement with the END-IF phrase has the NEXT SENTENCE phrase — §1985:VI.6.16.3 SR3: \"If the "
+                                + "END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.\"", "NEXT SENTENCE",
+                                DiagnosticCatalog.NextSentenceWithEndIf.IsoSection));
+                        }
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>NEXT SENTENCE — ARCHAIC in 2023 (0903 warning; VCR 90; P2.6).</summary>
         public override object? VisitNextSentenceStatement(CobolParserCore.NextSentenceStatementContext ctx)
         {

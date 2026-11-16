@@ -3332,6 +3332,15 @@ public static class DiagnosticCatalog
     /// is the procedure's paragraphs and every statement executed as the result of a transfer of control in it (§1985:XI.4.4.4 GR7, GR10).
     /// A COBOL-85 rule, reported at --std 85, asked of the bound program once every SORT and MERGE statement is bound
     /// (<c>VersionConformancePass.GateReleaseReturnRange</c>).</summary>
+    /// <summary>COBOL7486 — at COBOL-85 an IF statement that has the END-IF phrase also has the NEXT SENTENCE phrase (kb/Work PB5798).
+    /// §1985:VI.6.16.3 SR3: "If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified." The rule is
+    /// 1985's alone (2002, 2014 and 2023 print none), asked by <c>VersionConformancePass.VisitIfStatement</c>.</summary>
+    public static readonly DiagnosticDescriptor NextSentenceWithEndIf = new(
+        "COBOL7486", "next-sentence-with-end-if", EditionSeverity.Error,
+        "An IF statement with the END-IF phrase also has the NEXT SENTENCE phrase. "
+        + "\"If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.\" (§1985:VI.6.16.3 SR3)",
+        "§1985:VI.6.16.3 SR3");
+
     public static readonly DiagnosticDescriptor ReleaseReturnPlacement = new(
         "COBOL7081", "release-return-placement", EditionSeverity.Error,
         "A RELEASE or RETURN statement stands outside the range of a SORT or MERGE procedure that names its file. "
