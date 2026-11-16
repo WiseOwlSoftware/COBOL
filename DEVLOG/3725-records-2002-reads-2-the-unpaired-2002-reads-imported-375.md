@@ -1,4 +1,4 @@
-## records-2002-reads-2: the unpaired 2002 reads imported; 375 own verdicts from pointers; 2002 GAP 1805 -> 1430
+## Entry 3725 — 2026-11-15 20:46 PST — records-2002-reads-2: the unpaired 2002 reads imported; 375 own verdicts from pointers; 2002 GAP 1805 -> 1430
 
 The second records landing of the 2002 reads (kb/Work PB5597). The first imported the paired reads and wrote the KEPT
 change records. This one imports the reads of the 1,528 unpaired 2002 rules (slices `u-01`..`u-56`). It adds the
@@ -49,3 +49,4 @@ reverted; two 2002 KEPT rows that stood on two of them got 2002-legal witnesses 
 (pb1160-resume-in-global-declarative, pb807-define-directive-concatenation). The merge kept PB5730's one widening
 population and added this branch's own-verdict rows to it. On the merged tree: 375 own verdicts close their rows (5 of the
 380 took main's golden-lane records), 2002 GAP 1805 -> 1430; 1985 (780) and 2023 (9) as on main.
+
