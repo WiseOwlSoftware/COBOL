@@ -34,8 +34,12 @@ public static class ArchOracle
 {
     /// <summary>What one case observed: the emitted C# (null when the backend never ran) and the canonical
     /// diagnostic stream — outcome, compile-time output, errors and warnings, in the order the driver produced them
-    /// (the order is observed, not sorted: a refactor that reorders two diagnostics is a difference to explain).</summary>
-    internal sealed record Observation(string? CSharp, string Diagnostics);
+    /// (the order is observed, not sorted: a refactor that reorders two diagnostics is a difference to explain); and
+    /// the SHA-256 of the emitted PROGRAM BYTES (null when no assembly was written): the assembly and the runtime
+    /// configuration beside it, exactly as the backend wrote them, which is what a test runs (kb/Work PB4333). Roslyn
+    /// emits deterministically and no output path enters the bytes, so one program is one digest in any directory; a
+    /// program that read the compile clock (WHEN-COMPILED) has a new digest every compile.</summary>
+    internal sealed record Observation(string? CSharp, string Diagnostics, string? Program = null);
 
     /// <summary>One compile configuration the suites perform, by its stable identity.</summary>
     /// <param name="Id">The case identity, e.g. <c>suite/2023/pb803_sign_encoding_ascii</c>,
@@ -191,16 +195,22 @@ public static class ArchOracle
     {
         var diagnostics = new StringBuilder();
         var csharp = new StringBuilder();
-        bool anyCSharp = false;
+        var program = new StringBuilder();
+        bool anyCSharp = false, anyProgram = false;
         foreach (var (label, o) in parts)
         {
             diagnostics.Append("== ").Append(label).Append('\n').Append(o.Diagnostics);
+            if (o.Program is not null)
+            {
+                anyProgram = true;
+                program.Append("== ").Append(label).Append('\n').Append(o.Program).Append('\n');
+            }
             if (o.CSharp is null) continue;
             anyCSharp = true;
             csharp.Append("== ").Append(label).Append('\n').Append(o.CSharp);
         }
 
-        return new(anyCSharp ? csharp.ToString() : null, diagnostics.ToString());
+        return new(anyCSharp ? csharp.ToString() : null, diagnostics.ToString(), anyProgram ? Sha256(program.ToString()) : null);
     }
 
     /// <summary>The canonical observation of one driver result whose outputs went to <paramref name="scratch"/>.</summary>
@@ -223,7 +233,26 @@ public static class ArchOracle
         // correct compiler changes run to run. Masked only in a compilation that recorded reading the clock (kb/Work PB985's input record).
         if (csharp is not null && r.Inputs.ReadsCompilationTime)
             csharp = WhenCompiledStamp.Replace(csharp, "<when-compiled>");
-        return new(csharp is null ? null : Portable(csharp, scratch), Portable(diagnostics.ToString(), scratch));
+        return new(csharp is null ? null : Portable(csharp, scratch), Portable(diagnostics.ToString(), scratch), ProgramDigest(r));
+    }
+
+    /// <summary>THE EMITTED PROGRAM'S BYTES as one digest (kb/Work PB4333): the assembly the driver wrote and the runtime
+    /// configuration the packager wrote beside it (<c>AssemblyPackager.Package</c>; a library has none). The runtime copy
+    /// beside them is not hashed: it is the runtime's build output, an input the differential compares whole. Null when
+    /// no assembly was written (a refusal).</summary>
+    private static string? ProgramDigest(CompilerDriver.Result r)
+    {
+        if (!r.Success || string.IsNullOrEmpty(r.OutputDll) || !File.Exists(r.OutputDll)) return null;
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        string config = Path.ChangeExtension(r.OutputDll, ".runtimeconfig.json");
+        foreach (var (label, path) in new[] { ("assembly", r.OutputDll), ("runtimeconfig", config) })
+        {
+            hash.AppendData(Encoding.UTF8.GetBytes(label + "\0"));
+            if (File.Exists(path)) hash.AppendData(File.ReadAllBytes(path));
+            hash.AppendData("\0"u8);
+        }
+
+        return Convert.ToHexStringLower(hash.GetHashAndReset());
     }
 
     /// <summary>One path segment as it appears in a diagnostic or a C# literal: anything up to a separator,
@@ -263,6 +292,9 @@ public static class ArchOracle
     /// <c>capture --out DIR [--jobs N]</c> compiles every case and writes, under DIR, each case's emitted C#
     /// (<c>&lt;id&gt;.g.cs</c>) and diagnostic stream (<c>&lt;id&gt;.diag.txt</c>), <c>cases.tsv</c> — one line
     /// per case, ordinal order: id, population, SHA-256 of the C# (<c>-</c> when none), SHA-256 of the diagnostics.
+    /// <c>digests --out FILE [--jobs N]</c> compiles every case and writes FILE alone, one line per case: id, population,
+    /// the C# digest, the diagnostics digest and the PROGRAM digest (<c>-</c> when none; <c>!</c> for each when the case
+    /// threw), the program differential's input (kb/Work PB4333; scripts/gate_differential.py).
     /// <c>list</c> prints the population (id TAB population) without compiling. Exit 0 on success; 2 on a usage
     /// error; 3 when the compiled-program cache is on (the oracle must observe the compiler); 4 when a case threw.
     /// </summary>
@@ -288,7 +320,8 @@ public static class ArchOracle
             return 0;
         }
 
-        if (verb != "capture" || outDir is null) return Usage(stderr, "expected 'list' or 'capture --out DIR'");
+        if (verb is not ("capture" or "digests") || outDir is null)
+            return Usage(stderr, "expected 'list', 'capture --out DIR' or 'digests --out FILE'");
         if (CompiledProgramCache.Enabled)
         {
             stderr.WriteLine($"error: the compiled-program cache is on; run with {CompiledProgramCache.SwitchVariable}=off");
@@ -298,6 +331,24 @@ public static class ArchOracle
         var cases = Population();
         var lines = new string[cases.Count];
         var failures = new System.Collections.Concurrent.ConcurrentBag<string>();
+        if (verb == "digests")
+        {
+            // THE PROGRAM DIFFERENTIAL'S CAPTURE (kb/Work PB4333; scripts/gate_differential.py): the digests alone, no
+            // per-case file. A case that throws is written with `!` digests and is never carried: the gate runs it.
+            Parallel.For(0, cases.Count, new ParallelOptions { MaxDegreeOfParallelism = jobs }, i =>
+            {
+                var c = cases[i];
+                Observation o;
+                try { o = c.Observe(); }
+                catch (Exception) { lines[i] = $"{c.Id}\t{c.Population}\t!\t!\t!"; return; }
+                lines[i] = $"{c.Id}\t{c.Population}\t{(o.CSharp is null ? "-" : Sha256(o.CSharp))}\t{Sha256(o.Diagnostics)}\t{o.Program ?? "-"}";
+            });
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outDir))!);
+            File.WriteAllText(outDir, string.Join("\n", lines) + "\n");
+            stdout.WriteLine($"digests of {cases.Count} cases written to {outDir}");
+            return 0;
+        }
+
         Parallel.For(0, cases.Count, new ParallelOptions { MaxDegreeOfParallelism = jobs }, i =>
         {
             var c = cases[i];
@@ -326,7 +377,7 @@ public static class ArchOracle
     private static int Usage(TextWriter stderr, string message)
     {
         stderr.WriteLine($"error: {message}");
-        stderr.WriteLine("usage: WiseOwl.Cobol.ArchOracle list | capture --out DIR [--jobs N]");
+        stderr.WriteLine("usage: WiseOwl.Cobol.ArchOracle list | capture --out DIR [--jobs N] | digests --out FILE [--jobs N]");
         return 2;
     }
 

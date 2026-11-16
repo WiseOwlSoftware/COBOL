@@ -254,6 +254,10 @@ class Outcome:
     #: even when an input of no target (a plan file committed mid-gate) moved the tree. A target missing here (its key
     #: could not be resolved at the end) records nothing.
     keys_end: dict[str, str] = field(default_factory=dict)
+    #: THE PROGRAM DIFFERENTIAL (kb/Work PB4333; scripts/gate_differential.py): the harness key, whether a pass set stood
+    #: there, how many Conformance cases it carried and how many ran by which rule, and how many it recorded; empty when
+    #: it was not prepared (Conformance up to date, or no suite) and the whole population ran.
+    differential: dict = field(default_factory=dict)
     #: The targets the store showed UP TO DATE, by assembly: the pass that stands (its worktree, run, counts, evidence).
     up_to_date: dict[str, dict] = field(default_factory=dict)
     #: The assemblies whose pass THIS gate recorded in the store.

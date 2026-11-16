@@ -4,6 +4,7 @@ planting one defect into them. An ordinary module, no case and no expectation: t
 (`scripts/selftests/gate/`) and `scripts/arch/perf_baseline.py`'s self-test both plant `gate.Gate` over it."""
 
 from collections import Counter
+import json
 from gate_slot import QueueAbandoned, Slot
 from pathlib import Path
 from test_population import GATED_ASSEMBLIES, PopulationError, synthetic_listing, synthetic_trx
@@ -69,6 +70,55 @@ class FakeHost(Host):
         self.listing_handed: dict[str, dict[str, str]] = {}   # what each listing was handed (`listing`, kb/Work PB5231)
         self.planted_peak: int | None = 7 << 30   # the slot-held tree's peak commit the host reports (kb/Work PB5697)
         self.growth: list[tuple[str, float, int]] = []   # the growth samples taken: (run name, tests_s, Conformance cases)
+        #: THE PROGRAM DIFFERENTIAL'S PLANTED WORLD (kb/Work PB4333), when the arm plants `differential`: the suite's
+        #: manifest, the measured tree's entries (path -> blob) and the capture's rows (oracle id -> three digests); the
+        #: Conformance population is then the suite's display names (`DIFFERENTIAL_POPULATION`).
+        self.suite_manifest: dict = {}
+        self.blobs: dict[str, str] = {}
+        self.oracle: dict[str, tuple[str, str, str]] = {}
+        self.captures = 0
+        if "differential" in plant:
+            self.POPULATION = {**self.POPULATION, "Conformance": list(self.DIFFERENTIAL_POPULATION)}
+
+    #: The planted suite's display names: four accept tests and one refusal of the carried families, and one case of no
+    #: carried family, which always runs.
+    DIFFERENTIAL_POPULATION = (
+        *(f'WiseOwl.Cobol.Tests.Conformance.ConformanceSuiteTests_P{i}.SuiteTest_IsNoWorseThanItsVerdictAllows'
+          f'(edition: "2023", id: "t{i}")' for i in range(1, 5)),
+        'WiseOwl.Cobol.Tests.Conformance.ConformanceSuiteTests_P0.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic'
+        '(id: "r5", edition: "2023")',
+        "N.Conf.Hand",
+    )
+
+    def generate(self, tree, facets, stable):
+        """The real generations over the planted graph's scratch repository (`graph`, kb/Work PB5231); none without one,
+        once the graph has loaded (a malformed one raises here, as the real host's does). The `differential` arm plants
+        the conformance suite as generated, its manifest `suite_manifest`."""
+        self.graph()
+        if "differential" in self.plant:
+            directory = self.root / "suite"
+            (directory / "wiseowl").mkdir(parents=True, exist_ok=True)
+            (directory / "wiseowl" / "manifest.json").write_text(json.dumps(self.suite_manifest),
+                                                                 encoding="utf-8", newline="\n")
+            return {"conformance-suite": buildgraph.Generation("conformance-suite", "k", "planted-suite", 1, directory,
+                                                               False, None, "planted")}
+        return super().generate(tree, facets, stable) if self.planted_graph is not None else {}
+
+    def output_digest(self, generation):
+        return generation.outputs if "differential" in self.plant else super().output_digest(generation)
+
+    def tree_entries(self, tree):
+        """The planted measured tree (`blobs`), as `git ls-tree` entries."""
+        return [(f"100644 blob {b}\t{p}".encode(), p) for p, b in sorted(self.blobs.items())]
+
+    def oracle_digests(self, out, spawn, handed):
+        """The planted capture (`oracle`): written as the oracle host writes it; `capture-fails` plants a host that failed."""
+        self.captures += 1
+        if "capture-fails" in self.plant:
+            raise OSError("planted: `WiseOwl.Cobol.ArchOracle digests` exited 4")
+        out.write_text("".join(f"{i}\tpop\t{c}\t{d}\t{p}\n" for i, (c, d, p) in sorted(self.oracle.items())),
+                       encoding="utf-8", newline="\n")
+        return out
 
     def lock_path(self) -> Path:
         return self._lock
@@ -132,12 +182,6 @@ class FakeHost(Host):
 
     def graph(self) -> buildgraph.Graph:
         return self.planted_graph if self.planted_graph is not None else super().graph()
-
-    def generate(self, tree, facets, stable):
-        """The real generations over the planted graph's scratch repository (`graph`, kb/Work PB5231); none without one,
-        once the graph has loaded (a malformed one raises here, as the real host's does)."""
-        self.graph()
-        return super().generate(tree, facets, stable) if self.planted_graph is not None else {}
 
     def target_keys(self, tree, facets, outputs=None, refused=None):
         """The planted keys: per assembly, the tree's `keys` value (else the tree itself) with the facets; the real ones

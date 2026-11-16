@@ -111,6 +111,45 @@
         "scripts/guard*.sh": "CorpusManifestTests lists and reads them",
         "tests/doc-facts/": "DocFacts (tests/_shared), used by DynamicLengthTests and StopGobackExitCodeTests (found by the BUILD TARGETS audit)"
       },
+      "differential": {
+        "about": "THE PROGRAM DIFFERENTIAL'S CLASSIFICATION (kb/Work PB4333; scripts/gate_differential.py; DESIGN-test-build-ci.md section 3.14.13). Every input above is classed here by its own pattern, and a narrower pattern may class a part of one (the longest pattern a path lies under wins); buildgraph.load_targets refuses an input with no class, so the BUILD TARGETS audit is the drift test. `program`: its effect on a carried case is that case's emitted program bytes and diagnostics, which the oracle's digests name. `case`: its effect is a file a case names (its manifest entry names its source, data and expected output, each in the case's digest). `everything`: any other effect, so the paths of this class, the facets, the suite manifest's non-case content and `inputs` below make the HARNESS KEY, and a case is carried only from passes recorded at the same harness key. In doubt, `everything`.",
+        "classes": {
+          "src/": ["program", "the compiler (front end, binder, back end, editions, its source generator and the CLI): a carried case is one compiled in process, so the compiler reaches it only through what it emits, its assembly and runtime configuration (the program digest) and its diagnostics (the diagnostics digest)"],
+          "src/WiseOwl.Cobol.Runtime/": ["everything", "the runtime every program runs on and the copy deployed beside it, which the program digest leaves out"],
+          "Directory.Build.props": ["everything", "the build of the compiler, the runtime and the harness"],
+          "Directory.Packages.props": ["everything", "the package versions, Roslyn's among them (the C# to assembly step)"],
+          "global.json": ["everything", "the SDK the harness and the runtime are built with"],
+          "nuget.config": ["everything", "the package sources"],
+          "nuget-feed/": ["everything", "the ANTLR runtime package"],
+          ".gitattributes": ["everything", "the bytes of every file a test reads"],
+          "toolchain.env": ["everything", "the tool versions (also the toolchain facet)"],
+          "WiseOwl.Cobol.sln": ["everything", "the solution the gate builds"],
+          "tests/Directory.Build.props": ["everything", "the test-tree props"],
+          "tests/_shared/": ["everything", "the shared harness: SuiteManifest, TestRepo, ScratchDirectory, the process observer"],
+          "scripts/gen-vault-reference.ps1": ["everything", "the Cli project's Exec step (a build input)"],
+          "scripts/gen-grammar-diagrams.ps1": ["everything", "the Cli project's Exec step (a build input)"],
+          "tools/rr/": ["everything", "a build input of the Cli project"],
+          "tests/WiseOwl.Cobol.Tests.Conformance/": ["everything", "the harness itself: the theories, ConformanceSuiteRunner, CutRunner, the oracle's code"],
+          "conformance-suite/": ["everything", "the adapters, profiles, baselines, implementor-defined values and harness/run.py, which every case's verdict reads"],
+          "conformance-suite/cases/": ["case", "the tests' folders: a file there reaches a case as a file its manifest entry names (staged byte for byte, so in its digest) or as library text its compile reads (so in its program digest)"],
+          "conformance-suite/wiseowl/cases/": ["case", "WiseOwl's own tests' folders, as conformance-suite/cases/"],
+          "conformance-suite/wiseowl/diagnostics/": ["case", "a refusal's sidecar, which the generator folds into its manifest entry (in its digest)"],
+          "conformance-suite/wiseowl/options/": ["case", "a test's WiseOwl compile options, which the generator folds into its manifest entry (in its digest)"],
+          "tests/nist/": ["everything", "the NIST corpus: no NIST case is carried yet"],
+          "tests/differential/": ["everything", "the differential goldens"],
+          "tests/version-matrix/constructs/": ["everything", "the construct catalogue: no matrix case is carried yet"],
+          "scripts/standard_streams.py": ["everything", "imported by harness/run.py"],
+          "scripts/live_tools.py": ["everything", "imported by scripts/standard_streams.py"],
+          "scripts/guard*.sh": ["everything", "CorpusManifestTests reads them"],
+          "tests/doc-facts/": ["everything", "DocFacts"]
+        },
+        "inputs": {
+          "tests/WiseOwl.Cobol.ArchOracle/": "the host the digests are captured in (WiseOwl.Cobol.ArchOracle `digests`)",
+          "scripts/gate_differential.py": "the selection: the case digest, the harness key and the store of passed cases",
+          "scripts/buildgraph.py": "this classification's reader (Differential, the harness key's entries)",
+          "scripts/build_targets.json": "this classification"
+        }
+      },
       "exclude": {
         "@inert": "no test reads it (the inert lane's watch)",
         "@tooling-lane": "no compiler test or build reads it (the watch and the INERT LANE audit)",

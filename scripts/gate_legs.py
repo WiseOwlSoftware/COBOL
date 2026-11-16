@@ -63,10 +63,12 @@ class Legs:
             plan[asm].write_text("".join(f"{n}\n" for n in left), encoding="utf-8", newline="\n")
         if any(carried.values()):
             out.carried, out.composed_from = {a: c for a, c in carried.items() if c}, carry.runs
-            self.say(f"build-local: earlier runs of this worktree passed cases at these targets' keys (runs "
-                     f"{', '.join(carry.runs)}), so only what they did not pass runs: "
-                     + ", ".join(f"{a} {carried[a]:,} passed / {to_run[a]:,} to run" for a in todo)
-                     + " (kb/Work PB5099, PB5218)")
+            whence = (f"earlier runs of this worktree passed cases at these targets' keys (runs {', '.join(carry.runs)})"
+                      if carry.runs else "no earlier run of this worktree is carried")
+            self.say(f"build-local: {whence}, and the program differential carries the Conformance cases byte-identical "
+                     f"to a passed one where it applies, so only the rest runs: "
+                     + ", ".join(f"{a} {carried[a]:,} carried / {to_run[a]:,} to run" for a in todo)
+                     + " (kb/Work PB5099, PB5218, PB4333)")
         return plan
 
     def pool_listings(self, spawn: Spawn, todo: list[str]) -> dict[str, concurrent.futures.Future]:
