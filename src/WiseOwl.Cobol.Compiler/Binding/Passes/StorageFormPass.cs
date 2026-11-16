@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 
 using WiseOwl.Cobol.Compiler.Oo;
@@ -39,6 +40,10 @@ internal static class StorageFormPass
         //    the storage-level harmonize below).
         foreach (var d in ctx.AllBindersAndInterfaces())
             Compute(d, promoted);
+
+        // 2b) The 1985 and 2002 receivers a store can hand a negative zero (kb/Work PB5852): a promotion that reads the
+        //     storage forms just classified, so it follows the classification and re-classifies what it adds.
+        PromoteNegativeZeroReceivers(ctx, promoted);
 
         // 3) The STORAGE-level harmonize: the override/implements crossing-form fixed point, expressed as
         //    NativeInt→CharImage Storage flips (proven equal to the legacy flag-level harmonize by the P5.7a
@@ -128,6 +133,39 @@ internal static class StorageFormPass
             foreach (var child in item.Children) AddBackgroundFilled(child, promoted);
         }
 
+    }
+
+    /// <summary>⛔ (7) THE RECEIVERS THAT CAN BE HANDED A NEGATIVE ZERO, AT 1985 AND 2002 (kb/Work PB5852; DESIGN-data-model
+    /// §2.1.1). §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1 place "the sign of the sending operand" in a signed numeric
+    /// receiving item, so a negative sender whose digits all truncate away stores a NEGATIVE zero, and a native carrier holds a
+    /// VALUE, which has none. Each native sign holder some store can hand one (<see cref="SendersSignStore.MayHandNegativeZero"/>
+    /// over <see cref="DataBindState.NumericStores"/>) is promoted to its image by the ONE promotion (<see cref="IsImagePromotable"/>,
+    /// <see cref="Classify"/>), and nothing else changes form. The membership reads the senders' storage forms (an image-carried
+    /// sign holder can hold a negative zero and pass it on), so the arm follows the classification, re-classifies after each
+    /// round, and runs to the fixed point: a promoted receiver can make another store's sender a holder. A Tier-A REDEFINES
+    /// alias forwards to its canonical (arm 6's reason). From 2014 the sign is the value's (§2014:14.9.24.3 GR6d2a) and the
+    /// arm promotes nothing.</summary>
+    private static void PromoteNegativeZeroReceivers(GroupBindContext ctx, HashSet<DataItem> promoted)
+    {
+        if (!SendersSignStore.Applies(ctx.Session.Edition.Edition.Year)) return;
+        var stores = new List<NumericStore>();
+        foreach (var d in ctx.AllBindersAndInterfaces())
+            foreach (var store in d.State.NumericStores)
+                stores.Add(store);
+        while (true)
+        {
+            int before = promoted.Count;
+            foreach (var (sender, receiver) in stores)
+                if (!receiver.StoreAsImage && IsImagePromotable(receiver) && SendersSignStore.MayHandNegativeZero(sender, receiver))
+                {
+                    promoted.Add(receiver);
+                    if (receiver is { IsCanonical: false, Class: { Tier: RedefinesTier.Alias } cls } && IsImagePromotable(cls.Canonical))
+                        promoted.Add(cls.Canonical);
+                }
+            if (promoted.Count == before) return;
+            foreach (var d in ctx.AllBindersAndInterfaces())
+                Compute(d, promoted);
+        }
     }
 
     private static void AddImagePromotableLeaves(DataItem item, HashSet<DataItem> promoted)

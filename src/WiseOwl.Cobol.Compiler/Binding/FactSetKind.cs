@@ -18,6 +18,8 @@ public enum FactSetKind
     CharacterChannelItems,
     /// <summary><see cref="DataBindState.ActivationSites"/>.</summary>
     ActivationSites,
+    /// <summary><see cref="DataBindState.NumericStores"/>.</summary>
+    NumericStores,
 }
 
 /// <summary>When each fact set may be appended to, and when it is complete: the contract a pass's declared
@@ -39,6 +41,7 @@ public static class FactSetContract
         FactSetKind.ImageForcedItems => [PassPhase.RedefinesClassified, PassPhase.FilesResolved, PassPhase.ProcedureBound],
         FactSetKind.CharacterChannelItems => [PassPhase.UsageCollected],
         FactSetKind.ActivationSites => [PassPhase.ProcedureBound],
+        FactSetKind.NumericStores => [PassPhase.UsageCollected],
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a fact set kind has no contract row"),
     };
 
