@@ -1,4 +1,4 @@
-## PB5759: the tracked record of a code read at an edition, and the first import of 1985 reads
+## Entry 3739 — 2026-11-16 01:43 PST — PB5759: the tracked record of a code read at an edition, and the first import of 1985 reads
 
 **Why.** Kb/Work PB5692's ruling (2026-11-15) makes every KEPT row of 1985 owe a verdict adjudicated on the code at
 `--std 85`, and the reads were starting on the other account with nowhere to land: `audit_batch.py import-reads` refused
@@ -37,3 +37,4 @@ open); before the three adjudications that is the sample's own result, 54 upheld
 sample has no reader UNDECIDED. 1,314 KEPT rows are owed a read, 511 witnessed. The self-test has 10 cases.
 
 **Gate.** See the branch's report for the verdict line.
+
