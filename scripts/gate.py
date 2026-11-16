@@ -121,6 +121,7 @@ import host_resources  # noqa: E402  — THE host-resource signatures and their 
 from test_population import UnreadableTrx, failed_texts  # noqa: E402
 from gate_generated import Generations  # noqa: E402
 from gate_legs import Legs  # noqa: E402
+import gate_differential  # noqa: E402  — THE program differential: Conformance cases byte-identical to a passed case (kb/Work PB4333)
 
 
 #: The cases a gate could not judge because the host ran out (kb/Work PB5697), one `<assembly>: <case>` per line.
@@ -144,6 +145,7 @@ class Gate:
         self.passes = PassCarry(host, run_root, say, now)
         self.generations = Generations(host, say)
         self.legs = Legs(host, say, self.generations, heartbeat, heartbeat_poll_s)
+        self.differential = gate_differential.Differ(host, say)
 
     def _base(self) -> str:
         """The change's cut point, resolved once: `--base`, else the merge base with origin/main (raises when none)."""
@@ -176,7 +178,7 @@ class Gate:
         nothing, and a COMPOSED one ran only the part of the population its earlier runs had not passed, kb/Work PB5099; nor one
         that found a target up to date, kb/Work PB5218). A sample that cannot be written is said and never changes the verdict: the trigger reads fewer gates."""
         conformance = out.populations.get("Conformance")
-        if (out.verdict != "GREEN" or out.reused_from or out.composed_from or out.up_to_date
+        if (out.verdict != "GREEN" or out.reused_from or out.composed_from or out.carried or out.up_to_date
                 or "tests_s" not in out.timings or conformance is None):
             return
         try:
@@ -478,6 +480,32 @@ class Gate:
         listed = self.legs.pool_listings(spawn, todo)
         listings: dict[str, Counter] | None = None
         plan: dict[str, Path | None] = {asm: None for asm in todo}
+        # ⭐ THE PROGRAM DIFFERENTIAL (kb/Work PB4333; scripts/gate_differential.py; DESIGN-test-build-ci.md §3.14.13). When
+        # a pass set stands at this tree's harness key, the Conformance host's plan is DEFERRED: the other hosts start now,
+        # and in its own thread the capture (only the compiles the capture store does not hold) decides which of its cases
+        # are carried. When none stands, the capture runs BESIDE the hosts and the pass this gate records leaves the set.
+        # Anything it cannot read leaves the whole population to run.
+        asm_d = gate_differential.ASSEMBLY
+        selection: list[gate_differential.Selection] = []   # set by whichever thread made it
+        prepared: gate_differential.Prepared | None = None
+        handed = self.generations.handed(asm_d)
+        if asm_d in todo:
+            prepared = self.differential.prepare(out, self.passes.facets(str(out.toolchain)), handed)
+
+        def differential(say: Callable[[str], None]) -> gate_differential.Selection | None:
+            """The capture and the selection over Conformance's own listing (joined here: ~2 s, no file written)."""
+            try:
+                listing = listed[asm_d].result()[0]
+            except PopulationError as e:
+                say(f"build-local: program differential: Conformance could not be listed ({e}); nothing is carried")
+                return None
+            inputs = gate_differential.case_inputs(listing, prepared.manifest, prepared.blobs)
+            sel = self.differential.select(prepared, self.differential.capture(prepared, inputs, run, spawn, handed, say),
+                                           inputs, say)
+            if sel is not None:
+                selection.append(sel)
+            return sel
+
         if carry is not None:
             # A RETRY needs the population first (what the carried passes leave is the listing less them), where a whole
             # run joins the listings after the hosts: ~2 s each, which the retry's saved minutes repay.
@@ -487,6 +515,29 @@ class Gate:
                 return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
                                     f"the population could not be listed: {e}", 2)
             plan = self.legs.plan(out, run, listings, carry, todo)
+        if prepared is not None and prepared.passed is not None and asm_d in plan:
+            retry = plan[asm_d]
+
+            def conformance_plan() -> Path | None | object:
+                """Conformance's plan, in its host thread: its retry (or whole run) when nothing is carried, else the cases
+                neither an earlier run nor the differential passed (`Legs.plan` over the one Carry)."""
+                sel = differential(self.say)
+                if sel is None:
+                    return retry
+                merged = self._with_differential(carry, sel)
+                kept, runs = dict(out.carried), list(out.composed_from)
+                one = self.legs.plan(out, run, {asm_d: listed[asm_d].result()[0]}, merged, [asm_d])
+                out.carried, out.composed_from = {**kept, **out.carried}, runs or out.composed_from
+                if not merged.passed.get(asm_d):
+                    sel.carried.clear()   # `Legs.plan` dropped every carried pass of a host red in an earlier run
+                return one.get(asm_d, Legs.NO_HOST)
+            plan[asm_d] = conformance_plan
+        elif prepared is not None:
+            def capture_beside() -> tuple[list[str], list[str]]:
+                lines: list[str] = []
+                differential(lines.append)
+                return [], lines
+            self._beside(out, "differential_capture", capture_beside)
         if out.tooling:
             self._beside(out, "post_build_self_tests", lambda: self.host.built_self_tests(spawn))
         first = self.legs.first(out, run, self.previous_run(run))
@@ -509,13 +560,31 @@ class Gate:
         except PopulationError as e:
             return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
                                 f"the population could not be listed: {e}", 2)
+        if selection:
+            out.differential = selection[0].record()
+            # the one Carry the population check composes: an earlier run's passes and the cases the differential carried
+            carry = self._with_differential(carry, selection[0])
         self.legs.check_populations(out, listings, run, carry, todo)
         stale = self.generations.check_generated(out, run, [r.asm for r in out.runs])
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
         out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`PassCarry.reusable`)
+        # ...but a TARGET whose declared inputs did not move keeps its pass (kb/Work PB4333): its key at the end tree
+        out.keys_end = self.passes.end_keys(out)  # equals its key at the start
         self.passes.record_passes(out, run, [a for a in todo if a not in stale], self.generations.outputs())
+        self.differential.record(out, selection[0] if selection else None)
         self._prune(run, out.composed_from)
         return self._verdict(out, run)
+
+    @staticmethod
+    def _with_differential(carry: Carry | None, selection: gate_differential.Selection) -> Carry:
+        """The passes this gate carries: an earlier run's at each key (`carry`, kb/Work PB5099) and, for Conformance, the
+        cases the program differential found passed at their digest (kb/Work PB4333). One Carry, so one plan and one
+        population check compose both; a host red in an earlier run still drops every carried pass of it (`Legs.plan`)."""
+        asm = gate_differential.ASSEMBLY
+        passed = {a: Counter(c) for a, c in carry.passed.items()} if carry is not None else {a: Counter() for a in GATED_ASSEMBLIES}
+        passed[asm] = passed.get(asm, Counter()) | selection.carried
+        return Carry(list(carry.runs) if carry is not None else [], passed,
+                     red_hosts=set(carry.red_hosts) if carry is not None else set())
 
     def _verdict(self, out: Outcome, run: Path) -> Outcome:
         pops = out.populations
@@ -530,10 +599,13 @@ class Gate:
         tally = " · ".join(one(a) for a in GATED_ASSEMBLIES)
         skipped = sum(p.skipped for p in pops.values())
         first = f"{len(out.first)} class(es) first" if out.first else "no class first"
-        carried = sum(p.carried for p in pops.values())
+        differential = int(out.differential.get("carried", 0)) if out.differential else 0
+        carried = sum(p.carried for p in pops.values()) - differential
         detail = (f"{tally} (skipped {skipped:,})" + self.generations.detail()
                   + (f" · passes recorded: {', '.join(out.recorded)}" if out.recorded else "")
-                  + (f" · {carried:,} carried from run(s) {', '.join(out.composed_from)} (kb/Work PB5099)" if carried else "")
+                  + (f" · {carried:,} carried from run(s) {', '.join(out.composed_from)} (kb/Work PB5099)" if carried > 0 else "")
+                  + (f" · Conformance {differential:,} carried as byte-identical to passed cases at harness key "
+                     f"{str(out.differential.get('harness'))[:12]} (program differential, kb/Work PB4333)" if differential else "")
                   + (f" · {out.slot}" if out.slot else "")
                   + (f" · toolchain {out.toolchain}" if out.toolchain else "") + f" ({first}; run {run.name})")
         # ⛔ THE HOST'S RED IS NOT A TEST RED (kb/Work PB5697; scripts/host_resources.py): a red host whose every red case
@@ -595,7 +667,7 @@ class Gate:
                 "head_tree": out.head_tree, "toolchain": out.toolchain,
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "composed_from": out.composed_from, "carried": out.carried,
-                "keys": out.keys, "up_to_date": out.up_to_date, "recorded": out.recorded, "audit_reds": out.audit_reds,
+                "keys": out.keys, "keys_end": out.keys_end, "differential": out.differential, "up_to_date": out.up_to_date, "recorded": out.recorded, "audit_reds": out.audit_reds,
                 "generated": out.generated,
                 "exhausted": out.exhausted, "unjudged": out.unjudged, "peak_commit_bytes": out.peak_commit_bytes,
                 "slot": out.slot, "gate_class": out.gate_class, "lane": out.lane, "tooling": out.tooling, "first": out.first,
