@@ -1147,6 +1147,18 @@ internal static class PlaceRenderer
         : group.Item.GroupUsage is GroupUsage.Bit ? SendingBits(group)
         : SendingNat(group);
 
+    /// <summary>⛔ THE READ TWIN OF <see cref="WriteGroupValue"/>: the value of a group operand that a verb reads, rewrites and
+    /// stores back through <see cref="WriteGroupValue"/> in the RECEIVING direction (STRING's identifier-3, ISO §2023:14.9.43.4
+    /// GR7 — every position the transfer does not touch keeps its content). The image is the one the store replaces, so it
+    /// follows the same <see cref="UsesCurrentExtent"/> law: an occurs-depending group whose data-name-1 lies INSIDE it is
+    /// read at its MAXIMUM length, as GR8b's second sentence sizes a receiving operand (§1985:VI.5.8.4 GR3b), and every other
+    /// group is read as <see cref="SendingGroupValue"/> reads it. Reading the current extent and storing at the maximum
+    /// left the stored image short (kb/Work PB5776).</summary>
+    public static string ReceivingGroupValue(Place group, string context = "whole-group image of") =>
+        !group.Item.IsAsIfElementary ? GroupImageAs(group, AccessDir.Receiving, context)
+        : group.Item.GroupUsage is GroupUsage.Bit ? BitsAs(group, AccessDir.Receiving)
+        : NatAs(group, AccessDir.Receiving);
+
     /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §2023:13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>
     public static string SendingImage(OdoGroupPlace p, string context = "whole-group image of", bool transfer = false) =>

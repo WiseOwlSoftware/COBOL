@@ -87,11 +87,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         {
             if (dynInto)
             {
-                w.Line($"string {old} = {ReadImage(s.Into)};");
+                w.Line($"string {old} = {ReadReceiverImage(s.Into)};");
                 w.Line($"string {acc} = {old}.PadRight({ReceivingStore.DynamicReceivingSize(s.Into.Item)});");
             }
             else
-                w.Line($"string {acc} = {ReadImage(s.Into)};");
+                w.Line($"string {acc} = {ReadReceiverImage(s.Into)};");
             // The POINTER item is identifier-4, written after identifier-3, so its value is taken after identifier-3 is
             // read (the order above). ReceiverBracketEmitter.Receive emits this body inline, so the locals stay in scope
             // for the store-back below.
@@ -216,7 +216,10 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // neither the ON nor the NOT ON OVERFLOW imperative runs (GR17 acts "after completion of the transfer of
         // data", and none takes place); the pointer and the tally are untouched. The rest of the statement is this
         // guard's scope.
-        using var zeroLengthSender = w.Block($"if ({src}.Length != 0)");
+        // §1985:VI.6.27.4 has no such rule (GR17 makes the pointer of 1 past a size of 0 an overflow), so the guard is the
+        // 2002+ rule's alone (kb/Work PB5816, DialectBehavior.UnstringZeroLengthSenderTerminates).
+        using var zeroLengthSender = DialectBehaviors.IsActive(DialectBehavior.UnstringZeroLengthSenderTerminates, ctx.Data.DialectLevel)
+            ? (CodeWriter.BlockScope?)w.Block($"if ({src}.Length != 0)") : null;
         if (s.Delimiters.Count > 0)
         {
             // GR10: applied in statement order (the kernel's earliest-match-then-first-listed scan); a figurative
@@ -450,6 +453,12 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// concatenated image, a numeric-DISPLAY item's sign-carrying zoned image): the verbs operate on character
     /// positions, never converted values (STRING GR3a / UNSTRING GR11).</summary>
     private string ReadImage(Place p) => OperandText.AsString(new BoundFieldOperand(p), num);
+
+    /// <summary>The character image of the STRING receiver, in the direction its store takes (§1985:VI.5.8.4 GR3b; §2023:13.18.38.4 GR8b):
+    /// a group holding an OCCURS DEPENDING ON table whose object lies inside the group is a receiving item of its MAXIMUM
+    /// length, so the image read here is as long as the one <see cref="WriteImage"/> stores (kb/Work PB5776).</summary>
+    private string ReadReceiverImage(Place p) =>
+        p is OdoGroupPlace ? PlaceRenderer.ReceivingGroupValue(p) : ReadImage(p);
 
     /// <summary>Store a full-width character image back into the STRING receiver, preserving its storage shape
     /// (§2023:14.9.43.4 GR7 — the image already carries the untouched positions): a character-image group distributes
