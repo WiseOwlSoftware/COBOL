@@ -100,6 +100,52 @@ def case_07_red_host_makes_gate_red_exit_1(expect):
         said("PLANTED-RED-MESSAGE") and said("Conformance: RED"), "\n".join(sink[-20:]))
 
 
+def case_08_host_exhaustion_is_not_run_naming_the_resource(expect):
+    """kb/Work PB5697: each PRIMARY signature, as run 000004-20261115T203340Z recorded it, beside a secondary symptom."""
+    from gate_verdict import read_verdict
+    root, sink, gate, said = fixtures.world()
+    for tag, resource in (("pagefile-quota", "commit limit"), ("commitment-limit", "commit limit"), ("out-of-memory", "memory")):
+        o, _ = gate(f"x-{tag}", plant={f"exhausted-{tag}"})
+        r = read_verdict(o.verdict)
+        run = next(p for p in (root / f"x-{tag}" / "runs").iterdir() if p.is_dir())
+        rec = json.loads((run / VERDICT_FILE).read_text(encoding="utf-8"))
+        expect(f"a red whose every case is the host's ({tag}) is NOT RUN [host-exhausted], exit 2, an ENVIRONMENT cause, "
+               f"naming {resource} and both unjudged cases: never GREEN, never RED",
+               o.verdict == "NOT RUN [host-exhausted]" and o.exit_code == 2 and r.cause is not None
+               and r.cause.carried == "environment" and f"HOST EXHAUSTED ({resource} exhausted)" in o.line
+               and "2 case(s) UNJUDGED" in o.line and "Conformance RED" not in o.line
+               and rec["unjudged"] == {"Conformance": ["N.Conf.A", "N.Conf.B"]} and rec["peak_commit_bytes"] == 7 << 30
+               and (run / gate_mod.UNJUDGED_FILE).read_text(encoding="utf-8").splitlines()
+               == ["Conformance: N.Conf.A", "Conformance: N.Conf.B"], o.line)
+
+
+def case_09_secondary_symptoms_alone_stay_red(expect):
+    root, sink, gate, said = fixtures.world()
+    o, _ = gate("empty-only", plant={"empty-only"})
+    expect("an empty output and a silent exit with no primary signature are a test RED (exit 1), nothing unjudged",
+           o.verdict == "RED" and o.exit_code == 1 and "Conformance RED" in o.line and "HOST EXHAUSTED" not in o.line
+           and o.unjudged == {}, o.line)
+
+
+def case_10_mixed_run_red_for_the_genuine_red_naming_the_unjudged_apart(expect):
+    root, sink, gate, said = fixtures.world()
+    o, _ = gate("mixed", plant={"exhausted-mixed"})
+    expect("a genuine failure beside host signatures is RED for the genuine one (Unit RED) and names Conformance's "
+           "two cases UNJUDGED apart, not as a test red",
+           o.verdict == "RED" and o.exit_code == 1 and "Unit RED" in o.line and "Conformance RED" not in o.line
+           and "HOST EXHAUSTED (commit limit exhausted): 2 case(s) UNJUDGED" in o.line
+           and o.unjudged == {"Conformance": ["N.Conf.A", "N.Conf.B"]}, o.line)
+
+
+def case_11_host_that_could_not_start_is_unjudged_whole(expect):
+    root, sink, gate, said = fixtures.world()
+    o, _ = gate("nostart", plant={"exhausted-nostart"})
+    expect("a test host that could not start (its log: 0x8007000E, no trx) is the host's whole: its UNMEASURED "
+           "population is no test red, and the verdict is NOT RUN [host-exhausted] naming memory",
+           o.verdict == "NOT RUN [host-exhausted]" and "the whole of Unit" in o.line and "memory" in o.line
+           and "Unit POPULATION UNMEASURED" not in o.line and o.unjudged.get("Unit") == ["*"], o.line)
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

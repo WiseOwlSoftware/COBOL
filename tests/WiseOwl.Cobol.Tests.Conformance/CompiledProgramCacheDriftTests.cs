@@ -87,6 +87,28 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
         Assert.Equal("PLAIN", stdout);
     }
 
+    /// <summary>A stored blob that does not decode (torn, or a Brotli decoder that could not allocate on a host out of
+    /// commit, kb/Work PB5697) is a MISS that compiles for real, never a crash of the case that asked: run
+    /// 000004-20261115T203340Z crashed four cases on "Decoder ran into invalid data".</summary>
+    [Fact]
+    public void ABlobThatDoesNotDecode_Misses_AndCompilesForReal()
+    {
+        string src = Write("src/prog.cob", Plain);
+        var first = Through(Options(src));
+        Assert.True(first.Result.Success, string.Join("\n", first.Result.Errors));
+        var blobs = Directory.GetFiles(Path.Combine(Store, "blobs"), "*", SearchOption.AllDirectories);
+        Assert.NotEmpty(blobs);
+        File.WriteAllBytes(blobs[0], [0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x13, 0x37]);   // one torn blob of the entry's files
+
+        var second = Through(Options(src, runDir: "run2"));
+        Assert.False(second.Hit, "a blob that does not decode must be a miss");
+        Assert.True(second.Result.Success, string.Join("\n", second.Result.Errors));
+        var (ok, stdout, detail) = CutRunner.Run(second.Result.OutputDll, Path.Combine(_dir, "run2"));
+        Assert.True(ok, detail);
+        Assert.Equal("PLAIN", stdout);
+        Assert.True(Through(Options(src, runDir: "run3")).Hit, "the real compile stores the blob again: the next one hits");
+    }
+
     [Fact]
     public void APreviousBuildWithAnotherSignature_IsNeverReplayedOver()
     {

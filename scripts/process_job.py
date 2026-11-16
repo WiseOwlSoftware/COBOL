@@ -132,6 +132,19 @@ def bind_current() -> None:
     _CURRENT_JOB = job
 
 
+def bound_peak_bytes() -> int | None:
+    """Windows: the PEAK COMMIT of the job `bind_current` bound this process into (PeakJobMemoryUsed: the most private
+    memory its processes, nested jobs' included, held at once since the bind), in bytes: a gate slot holder's whole tree,
+    what kb/Work PB5697's admission threshold is measured from. None when this process bound no job (POSIX, or no slot
+    was taken)."""
+    if not IS_WINDOWS or _CURRENT_JOB is None:
+        return None
+    info = _EXTENDED_LIMIT()
+    _check(_k32.QueryInformationJobObject(_CURRENT_JOB, _JobObjectExtendedLimitInformation, ctypes.byref(info),
+                                          ctypes.sizeof(info), None))
+    return int(info.PeakJobMemoryUsed)
+
+
 class ProcessJob:
     """One root process and everything it starts, stopped as one (module docstring). Use it as a context manager: the
     block's end kills whatever of the tree is still alive, so nothing it started outlives its caller's step."""
@@ -429,10 +442,15 @@ def _self_test() -> int:
         if sys.platform.startswith("linux") and proc_stat(grand):
             os.waitpid(grand, 0)
 
+    check("no job bound yet: bound_peak_bytes is None", bound_peak_bytes(), None)
     if IS_WINDOWS:
         bind_current()
         bind_current()
         check("bind_current is idempotent and holds one job", _CURRENT_JOB is not None, True)
+        # A child in the job commits 300 MiB and exits: the job's peak covers it, a reading no process of the tree holds now.
+        subprocess.run([sys.executable, "-c", "b = bytearray(300 << 20); b[::4096] = b'x' * len(b[::4096])"], check=True)
+        check("the bound job's peak commit covers a child's 300 MiB (kb/Work PB5697)",
+              (bound_peak_bytes() or 0) >= 300 << 20, True)
     print(f"process_job self-test: {'GREEN' if not fails else 'RED — ' + ', '.join(fails)}")
     return 1 if fails else 0
 

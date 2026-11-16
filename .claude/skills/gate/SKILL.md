@@ -166,7 +166,12 @@ re-run). Here, additionally:
   2: it measured nothing; the cause's class is `gate_verdict.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
   `[interpreter]` `[toolchain]` `[toolchain-unread]` is no defect of yours (`[toolchain-unread]`: a tool's version
   command did not answer, could not start or answered no version; install nothing, and file a recurrence against
-  kb/Work PB5616 with its record), BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
+  kb/Work PB5616 with its record), BRANCH `[driver]` `[population]` is code your tree carries: fix it;
+  `[host-exhausted]`, ENVIRONMENT, kb/Work PB5697: every red was this host running out of commit or memory, the line
+  names the resource and the UNJUDGED cases (`<run>/unjudged.txt`): they are neither passed nor your defect, so do not
+  hunt them; check `python scripts/gate_slot.py status` (its `commit admission` line), then gate again, which runs only
+  what this gate did not pass. A `RED` line that also says `HOST EXHAUSTED` has a test red besides: fix that one, the
+  unjudged cases are not it) —
   block on that line, never on the exit code. The run directory it names holds
   every host's full log and trx (`Conformance.trx`, `Unit.trx`, `Characterization.trx`), each listing, the first-classes
   file and `verdict.json` (timings, first red, slot, per-assembly wall and effective concurrency).
