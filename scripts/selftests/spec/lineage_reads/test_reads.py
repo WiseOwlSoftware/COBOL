@@ -628,7 +628,11 @@ def case_12_a_witness_at_an_edition_is_text_in_a_format_it_defines(expect):
         expect("THE WRITER refuses a 1985 record naming a free-form case, before it is written",
                len(errs("conformance:cases/X/free")) == 1)
         expect.equal("and writes one naming a fixed-form case", errs("conformance:cases/X/fixed"), [])
-        expect("and fails loudly on a case it cannot read", len(errs("conformance:cases/X/absent")) == 1)
+        (root / "cases" / "X" / "broken.cob").write_text("IDENTIFICATION DIVISION.\n", encoding="utf-8", newline="")
+        expect("and refuses one whose header does not read (its format cannot be told)",
+               len(errs("conformance:cases/X/broken")) == 1)
+        expect.equal("a reference to no case on disk is the battery gate's to refuse, never guessed here",
+                     errs("conformance:cases/X/absent"), [])
         expect.equal("a 2002 reference is not asked to be fixed form",
                      R.ref_format_problem("conformance:cases/X/free", ED), None)
     finally:

@@ -461,14 +461,17 @@ def ref_format_problem(ref: str, ed: Edition, suite: pathlib.Path | None = None)
     """THE WRITER'S QUESTION (record_verdicts.validate, before a record of an older edition is written): why the
     test-ref `ref` is no witness at `ed` for its text's reference format (`format_problem`), or None. Only a
     conformance-suite case has a reference format; its header is read as the generator reads it (`generate.read_header`,
-    `generate.source_format_of`). A case that cannot be read fails loudly: its format cannot be told."""
+    `generate.source_format_of`). A case whose header does not read fails the record: its format cannot be told. A
+    reference that names no case on disk is not judged here: that it names a real test is the battery gate's check
+    (`SpecTraceabilityInventoryDriftTests`, the division of labour record_verdicts.py's docstring states), which fails
+    it loudly at every build."""
     form, _, key = ref.partition(":")
     g = _generator()
     if form.strip() != lineage.SUITE_FORM or all(format_problem(f, ed.spelling) is None for f in g.SOURCE_FORMATS):
         return None
     path = (suite or SUITE) / f"{key.strip()}.cob"
     if not path.is_file():
-        return f"{ref}: names no conformance-suite case, so the reference format of its text cannot be told"
+        return None
     header, _ = g.read_header(path.read_bytes().decode("utf-8"))
     if header is None:
         return f"{ref}: its metadata block does not read, so the reference format of its text cannot be told"
