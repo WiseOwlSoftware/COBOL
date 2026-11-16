@@ -9450,8 +9450,8 @@ public static class DiagnosticCatalog
         "COBOL7558", "stop-literal-word-not-literal", EditionSeverity.Error,
         "STOP is followed by a word that is not RUN and names no symbolic-character. The X3.23-1985 STOP statement is "
         + "STOP RUN or STOP literal-1 (its general format), and a word stands for a literal only as a symbolic-character, which "
-        + "is a figurative constant (§1985:IV.4.2.2.2.3 GR7) and \"may be used whenever 'literal' appears in a format\" "
-        + "(GRL2.3). A data-name, a mnemonic-name or an undeclared word is none.",
+        + "is a figurative constant (§1985:IV.4.2.2.2.3 GR7), and by §1985:IV.4.2.2.2.3 GRL2.3 a figurative constant \"may be "
+        + "used whenever 'literal' appears in a format\". A data-name, a mnemonic-name or an undeclared word is none.",
         "X3.23-1985 STOP statement general format; §1985:IV.4.2.2.2.3 GR7, GRL2.3");
 
     /// <summary>COBOL6818 — an X3.23-1985 target-less GO TO (no procedure-name-1) that is not the whole of a single statement

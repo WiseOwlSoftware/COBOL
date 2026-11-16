@@ -49,7 +49,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
     }
 
     /// <summary>STOP literal-1 written as a WORD (kb/Work PB5809): a symbolic-character is a figurative constant
-    /// (§1985:IV.4.2.2.2.3 GR7), which "may be used whenever 'literal' appears in a format" (GRL2.3), and "if a figurative
+    /// (§1985:IV.4.2.2.2.3 GR7), which by §1985:IV.4.2.2.2.3 GRL2.3 "may be used whenever 'literal' appears in a format", and "if a figurative
     /// constant ... appears in a DISPLAY, STOP, STRING, or UNSTRING statement, the length of the string is one character"
     /// (GRL2.2), so STOP STAR communicates the one character STAR names (§1985:VI.6.24.4 GR4). A word that names no
     /// symbolic-character is no literal at all and is refused by name (COBOL7558) where STOP literal exists; from 2002 the

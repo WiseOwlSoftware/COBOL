@@ -6,10 +6,11 @@
       *> portable: unverified
       *>---
       *> kb/Work PB5809 - a symbolic-character is a figurative
-      *> constant (§1985:IV.4.2.2.2.3 GR7), and "A figurative
-      *> constant may be used whenever 'literal' appears in a format"
-      *> (GRL2.3); STOP literal-1 bars only a figurative constant
-      *> that begins with the word ALL (§1985:VI.6.24.3 SR1). So
+      *> constant (§1985:IV.4.2.2.2.3 GR7). By the rule
+      *> §1985:IV.4.2.2.2.3 GRL2.3, "A figurative constant may be
+      *> used whenever 'literal' appears in a format", and STOP
+      *> literal-1 bars only a figurative constant that begins with
+      *> the word ALL (§1985:VI.6.24.3 SR1). So
       *> STOP STAR translates, communicates the one character STAR
       *> names to the operator (GRL2.2, §1985:VI.6.24.4 GR4) and
       *> execution continues with the next statement: the program
