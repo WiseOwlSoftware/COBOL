@@ -236,12 +236,64 @@ class Target:
         return any(_matches(directory, p, lane_classification.CLASSIFICATION) or p.startswith(directory) for p in self.inputs)
 
 
+#: THE CLASSES OF A TEST TARGET'S INPUT TO THE PROGRAM DIFFERENTIAL (kb/Work PB4333; DESIGN-test-build-ci.md §3.14.13):
+#: `program` — its effect on a carried case is that case's emitted program bytes and diagnostics, which the oracle's digests
+#: name (the compiler); `case` — its effect is the files a case names, which the case's own digest names (a test's source,
+#: expected output, data, sidecar); `everything` — any other effect: a change runs every case (the runtime, the harness,
+#: the build). A path takes the class of the LONGEST pattern it lies under.
+DIFFERENTIAL_CLASSES = ("program", "case", "everything")
+
+
+@dataclass(frozen=True)
+class Differential:
+    """A test target's classification for the program differential (`differential` in the targets file): each pattern's
+    class (longest first), and the differential's OWN inputs, which no key of the target covers but every carried case
+    depends on (the digest capture's host, the selection's code, this classification)."""
+    classes: tuple[tuple[str, str], ...]
+    inputs: tuple[str, ...]
+
+    def class_of(self, path: str) -> str | None:
+        """The class of a tracked path the target's key covers; None when no pattern holds it (never once the graph is
+        checked: `load_targets` refuses a declared input with no class)."""
+        for pattern, klass in self.classes:
+            if lane_classification.under(path, pattern):
+                return klass
+        return None
+
+
 @dataclass(frozen=True, kw_only=True)
 class TestTarget(Target):
     """A test assembly: what it records is a PASS of its whole population."""
     assembly: str
     project: str
+    #: Its classification for the program differential (kb/Work PB4333), when it has one.
+    differential: Differential | None = None
     KIND: ClassVar[str] = "test"
+
+
+def _differential(name: str, inputs: tuple[str, ...], spec: Mapping | None) -> Differential | None:
+    """THE DRIFT RULE OF THE CLASSIFICATION (kb/Work PB4333): every input pattern the target declares is classed, by its
+    own pattern, and every pattern classed lies under a declared input, so an input added to the target and left
+    unclassified, or a class naming a path the target no longer reads, is a GraphError (the BUILD TARGETS audit)."""
+    if spec is None:
+        return None
+    classes = spec.get("classes") or {}
+    pairs: list[tuple[str, str]] = []
+    for pattern, value in classes.items():
+        if not (isinstance(value, list) and len(value) == 2 and value[0] in DIFFERENTIAL_CLASSES):
+            raise GraphError(f"{name}: differential class of {pattern!r} is not [<one of "
+                             f"{', '.join(DIFFERENTIAL_CLASSES)}>, <why>]")
+        if not any(pattern == p or lane_classification.under(pattern, p) for p in inputs):
+            raise GraphError(f"{name}: differential classes {pattern!r}, which lies under no input the target declares")
+        pairs.append((pattern, value[0]))
+    if missing := [p for p in inputs if p not in classes]:
+        raise GraphError(f"{name}: its declared input(s) {', '.join(missing)} have no differential class (one of "
+                         f"{', '.join(DIFFERENTIAL_CLASSES)}): classify each, or the differential could carry a case one "
+                         "of them changed")
+    own = tuple(spec.get("inputs") or ())
+    if not own:
+        raise GraphError(f"{name}: its differential names no inputs of its own (the capture's host, the selection)")
+    return Differential(tuple(sorted(pairs, key=lambda pc: -len(pc[0]))), own)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -413,8 +465,11 @@ def load_targets(path: Path = TARGETS_FILE) -> Graph:
         kind = t.get("kind")
         try:
             if kind == TestTarget.KIND:
-                targets[name] = TestTarget(**common, assembly=t["assembly"], project=t["project"])
+                targets[name] = TestTarget(**common, assembly=t["assembly"], project=t["project"],
+                                           differential=_differential(name, tuple(inputs), t.get("differential")))
             elif kind == GeneratedTarget.KIND:
+                if "differential" in t:
+                    raise GraphError(f"{name}: a generated target has no differential (only a test target's cases are carried)")
                 targets[name] = GeneratedTarget(**common, command=tuple(t["command"]), outputs=tuple(t["outputs"]),
                                                 env=t["env"])
             else:

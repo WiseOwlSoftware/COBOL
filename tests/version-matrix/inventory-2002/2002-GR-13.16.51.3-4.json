@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-GR-13.16.51.3-4",
  "rule-digest": "8789b721755e",
- "verdict": "DIVERGES",
+ "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportOccursOf",
- "notes": "kb/Work PB5651: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) an OCCURS DEPENDING item under a multiple-operand LINE entry, legal at 2002, is refused COBOL2021, so the third sentence of GR4 cannot run."
+ "test-ref": "conformance:cases/13.16.51@2002-SOURCE-CLAUSE/g2src04_source_suppressed_before_printed",
+ "notes": "kb/Work PB5651: the SR10 nesting check of ReportOccursOf reads only the repetitions an OCCURS clause writes (ReportOccursSpec.FromMultipleLine marks those a multiple LINE clause stands for), so an OCCURS DEPENDING item under a multiple-operand LINE entry is legal at 2002 (§2002:13.16.36.2 SR9; §2002:13.13.3 GR3) and the third sentence of GR4 runs: the suppressed occurrences still take their SOURCE operands (g2src04_source_suppressed_before_printed)."
 }

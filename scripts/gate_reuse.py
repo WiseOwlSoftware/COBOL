@@ -83,8 +83,9 @@ class PassCarry:
         """THE GATE'S COMPOSITION RULE, PER TARGET (kb/Work PB5099, owner 2026-11-09: "if only one test failed, any retry
         should test only that one case"; kb/Work PB5218): for each assembly in `todo` (a target the store does not show up
         to date), what the earlier runs of THIS WORKTREE passed at ITS key. An earlier run counts when it is a full-lane
-        run that measured its own tree (a RED one included, its trx are its results; a REUSED record ran nothing) and its
-        tree did not change while it ran; its trx of an assembly count when it recorded that assembly's key as this one.
+        run that measured its own tree (a RED one included, its trx are its results; a REUSED record ran nothing); its trx
+        of an assembly count when it recorded that assembly's key as this one and that key did not move while it ran
+        (its tree did not change, or its `keys_end` names the same key: kb/Work PB4333).
         `_tested` then runs only the listed cases those passes do not cover. The per-case evidence stays in this worktree's
         run directories in stage 1 (kb/Work PB5218): the store holds whole-target passes only. None when no run
         qualifies."""
@@ -96,13 +97,18 @@ class PassCarry:
         for p in reversed(run_dirs(self.run_root)):
             rec = read_record(p) if p != current else None
             if (rec is None or rec.get("reused_from") or rec.get("lane") != "full" or record_schema(rec) < SCHEMA_WHOLE
-                    or not rec.get("tree") or rec.get("tree_end") != rec["tree"]):
+                    or not rec.get("tree") or not rec.get("tree_end")):
                 continue
             keys = rec.get("keys") if isinstance(rec.get("keys"), dict) else {}
+            # A run whose tree moved while it ran counts for a target whose KEY did not (kb/Work PB4333): its recorded key
+            # at the end tree equals its key at the start.
+            still = keys if rec["tree_end"] == rec["tree"] else (
+                rec.get("keys_end") if isinstance(rec.get("keys_end"), dict) else {})
             found = {}
             try:
                 for asm in todo:
-                    if keys.get(asm) == out.keys.get(asm) and (p / f"{asm}.trx").is_file():
+                    if (keys.get(asm) == out.keys.get(asm) and still.get(asm) == keys.get(asm)
+                            and (p / f"{asm}.trx").is_file()):
                         found[asm] = passed_cases([p / f"{asm}.trx"])
             except UnreadableTrx as e:
                 self.say(f"build-local: ⚠ run {p.name}'s passes are not carried ({e})")
@@ -116,16 +122,40 @@ class PassCarry:
                               and not self.red_explained(p, r["asm"])}
         return Carry(runs, passed, red_hosts=red_hosts) if runs else None
 
+    def end_keys(self, out: Outcome) -> dict[str, str]:
+        """EACH TARGET'S KEY AT THE END TREE (kb/Work PB4333): `out.keys` itself when the tree did not move; else the keys
+        at `out.tree_end`, a generated dependency's digest read from the store at ITS key there (so a generator whose
+        inputs moved has no digest and its dependents no key). A target whose key cannot be resolved is left out, and
+        records nothing; {} when the end tree is unknown or git cannot say."""
+        if not out.tree_end or not out.keys:
+            return {}
+        if out.tree_end == out.tree:
+            return dict(out.keys)
+        refused: dict[str, str] = {}
+        got = self.host.target_keys(out.tree_end, self.facets(str(out.toolchain)), refused=refused) or {}
+        for asm, why in refused.items():
+            self.say(f"build-local: {asm}'s key at the end tree {out.tree_end[:12]} is unresolved ({why})")
+        return got
+
     def record_passes(self, out: Outcome, run: Path, assemblies: list[str], generated: dict[str, str]) -> None:
-        """RECORD WHAT WAS PROVEN (kb/Work PB5218): each assembly whose host was green (or that ran no host because its
-        carried passes covered it) and whose population check was EXACT, at a tree that did not change while the gate
-        ran, gets its pass in the store at its key. A red, a partial or an unmeasured population records nothing."""
-        if not out.tree or out.tree_end != out.tree:
+        """RECORD WHAT WAS PROVEN (kb/Work PB5218, PB4333): each assembly whose host was green (or that ran no host because
+        its carried passes covered it), whose population check was EXACT and whose KEY did not move while the gate ran
+        (`out.keys_end`, its key at the end tree, equals `out.keys`) gets its pass in the store at its key. A red, a
+        partial or an unmeasured population records nothing, and neither does a target one of whose declared inputs
+        changed mid-run; a change to a path no target reads (a plan file committed while the gate ran) moves the tree
+        and leaves every pass standing."""
+        if not out.tree or not out.tree_end:
             return
         store = self.host.store()
         for asm in assemblies:
             pop, k = out.populations.get(asm), out.keys.get(asm)
             if pop is None or not pop.exact or k is None or any(r.asm == asm and r.red for r in out.runs):
+                continue
+            if out.keys_end.get(asm) != k:
+                # ⛔ ITS INPUTS MOVED WHILE IT RAN (kb/Work PB4333): the pass is keyed to the target's inputs, and they are
+                # not the ones it started on, so it proves neither key.
+                self.say(f"build-local: {asm}'s pass is NOT recorded: its key moved while it ran ({k[:12]} at the start, "
+                         f"{str(out.keys_end.get(asm) or 'unresolved')[:12]} at the end)")
                 continue
             target = self.host.targets()[asm]
             store.record(target.name, k, {
