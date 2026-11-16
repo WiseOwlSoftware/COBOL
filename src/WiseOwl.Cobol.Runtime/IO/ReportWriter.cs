@@ -1262,7 +1262,9 @@ public sealed class CobolReport(
     /// preceding body group's integer-1 was not below LINE-COUNTER, so it went into the save location and
     /// LINE-COUNTER was set to the FOOTING integer, "causing a page advance to take place just before any other
     /// non-dummy body group is printed for the report" — the advance is the GR's stated effect, so it is taken
-    /// here unconditionally rather than re-derived from a page-fit test. Then:
+    /// here unconditionally rather than re-derived from a page-fit test — from 2002. At <c>--std 85</c> this method is reached only after
+    /// a page-fit test failed (§1985:XIII.3.10.8 GR3: the saved integer is read after the page advance; kb/Work PB5823,
+    /// <see cref="DialectBehavior.SavedNextGroupForcesPageAdvance"/>), and the advance it takes IS that test's. Then:
     /// <list type="number">
     /// <item>a first LINE clause that is absolute: "the save location is moved to LINE-COUNTER and the page fit
     /// test is re-applied before the first line of the body group is printed" (GR4a 1; the returned null lets
