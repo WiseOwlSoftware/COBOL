@@ -1,0 +1,82 @@
+{
+ "rule-id": "1989-AR-A.2.36.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-171",
+  "sources": {
+   "reader": "b9e1fb2dbadce3c7a5d8fb6b4c742c50d1f946596a6ce67df9c7c2055b5bf3a5",
+   "refuter": "cb6f0ea645b0cd3ae00802e52db865e1a5964587e93a9697ae35be5074b42c28"
+  },
+  "imported": {
+   "reader": "b161608646d7b7f1a3b469d0c9f4beb5b0473b5e5492f1e3d7d7f37ebfc96704",
+   "refuter": "f8fcf79ea0dc271fc269c9fed2b19c4dd710296160df8e1cb04b8750c3d8ca07"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.36.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every argument-1 of FUNCTION RANGE must be of class numeric: an arithmetic expression, a numeric item of any usage, a numeric literal, ZERO, or a numeric or integer function, including a table(ALL) list over OCCURS DEPENDING ON. An alphanumeric item or literal, a numeric-edited item, a reference-modified numeric item (class alphanumeric at 1985) and a non-ZERO figurative constant must be refused. The witness covers items, literals and expressions; it does not cover ZERO, table(ALL), nested functions, the largest item or the refusal half.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#RangeScaled",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: whether FUNCTION RANGE exists at the edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year); the RANGE row ('n') carries no predicate, so the class screen is edition-free",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped IntrinsicBinder.cs and IntrinsicArgumentRules.cs for Edition/DialectLevel/ConstructRegistry/since:; the RANGE row is Uniform('n') with no edition predicate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: items, literals and expressions; not ZERO, table(ALL) over OCCURS DEPENDING ON, nested functions, the 1985 digit limit, or any refusal",
+  "probes": [
+   {
+    "class": "b,c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rg_refuse.cob",
+    "printed": "COBOL1627 on all five: PIC X item, \"100\" literal, PIC Z9.99 numeric-edited item, W-N (1:2) reference-modified numeric item, QUOTE (each 'is of class alphanumeric ... requires class numeric')",
+    "expected": "refused: argument-1 must be class numeric (§1989:A.2.36.3 AR1); ref-mod of a numeric item is class alphanumeric at 1985 (§1985:IV.4.3.8.4.4 GR5)"
+   },
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rg_accept.cob",
+    "printed": "RG-ALL4= 09.2; RG-ALL2= 03.5; RG-ZERO= 00.0; RG-BIG= 100000000000000000; RG-FN= 03.0",
+    "expected": "9.2 and 3.5 over a signed scaled ODO table(ALL) at 4 then 2 elements, 0 for ZERO alone, 99999999999999999 - (-1) = 100000000000000000, SQRT(16) - 1 = 3 (§1989:A.2.36.4 RV1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.36.3 AR1",
+    "check": "OK  §1989:A.2.36.3 AR1  (2.36.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1 [\"An arithmetic expression must be specified\"]"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.4.4 GR5",
+    "check": "OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The same edition-free class screen as PRESENT-VALUE ('n' -> ClassNumeric through CandidateClasses), so a figurative ZERO passes and SPACE/QUOTE are refused, as the 1985 definition of an arithmetic expression requires. The refusal and acceptance probes matched the text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.36.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "rg1.cob --std 85 --compile-only (runs/rg1-001): RANGE refuses PIC AAA (class alphabetic, also as argument-2 after a numeric one), PIC XBX, a group, ALL \"5\", HIGH-VALUE, FUNCTION CHAR (65) (COBOL1627), a USAGE INDEX item (COBOL6979) and an index-name (COBOL1637). rg2.cob (runs/rg2-001): N\"5\", 1.0E2 and B\"1\" refused at 85 (COBOL0900, a COBOL-2002 literal). rg3.cob (runs/rg3-001): RG-2D=13.5 over (ALL ALL), RG-COL1=5 over (ALL 1), RG-P=299.997 over PIC 9PP and PIC PP9, RG-SGN=12 over SIGN LEADING SEPARATE, COMP and DISPLAY, RG-EXP=2 for the two expressions W-N + 1 and W-N - 1, RG-NEST=6 for a nested RANGE, all as A.2.36.4 RV1 gives. cite.py: OK §1989:A.2.36.3 AR1 the text is in AR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

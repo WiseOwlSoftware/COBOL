@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb957-next-group-next-page-in-page-footing
-*> rules: [SR-13.18.37.3-5]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb957-next-group-next-page-in-page-footing
+      *> rules: [SR-13.18.37.3-5]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> NEXT GROUP NEXT PAGE IN A PAGE FOOTING (kb/Work PB957).
       *> ISO/IEC 1989:2023 §2023:13.18.37.3 SR5: "The NEXT PAGE phrase shall not be specified in a page
       *> footing."

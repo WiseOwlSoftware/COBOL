@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-X.4.4.4-1",
+ "rule-digest": "f82a2b23a019",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-032",
+  "sources": {
+   "reader": "0741a30d6c8dce394214e0128a80d0a2654d02fccc0ac1e76ea71c08aa785306",
+   "refuter": "fda5287409efc2a8402ec89359889f9a251930817caddc5e6d453480d939aa2e"
+  },
+  "imported": {
+   "reader": "3daf191df973328f9ab23887b494aa85c033fd8cb050f9026167499e54e92f04",
+   "refuter": "1c80ef856942ec34748008d07181d86709551bb963d284d529a6c8aac1557522"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.4.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the LINE-COUNTER and PAGE-COUNTER of a report whose RD carries GLOBAL must be global names: referenceable (qualified by the report-name, or unqualified where it is the only such counter the program has) from every program directly or indirectly contained in the declaring program, naming the same registers the declaring program sees; the counters of a non-GLOBAL report must not be reachable from a containee.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#InheritContainerReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#InheritGlobalReport; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#ReportOf",
+  "edition-consulted": [],
+  "edition-search": "read ReportOf, InheritGlobalReport, InheritContainerReports and the GLOBAL arm of BindReportDescriptionClauses; grep of Edition.Has/Edition.Edition/DialectLevel/CobolVersion/DialectBehavior/ConstructRegistry over ReportSectionBinder.cs and CounterResolver.cs: the only DialectLevel use in ReportSectionBinder is the CONTROL-operand uniqueness screen (SR6, not this rule), and ReportOf / NearestInScope consult no edition; no construct row gates the RD GLOBAL clause.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers a direct containee reading both counters (qualified and unqualified) of a GLOBAL report; not exercised: indirect containment, a containee with its own report beside the inherited one (nearest-element qualification), a containee altering PAGE-COUNTER OF the global report, and the refusal for a non-GLOBAL report. All probed here.",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/rep1.cob",
+    "printed": "M LC=03 / D OWN LC=10 / D R-1 LC=03 / D R-1 LC=05 / M LC=05 / M PC=07",
+    "expected": "indirectly contained D: unqualified LINE-COUNTER is its own R-3's (10, FIRST DETAIL 10); LINE-COUNTER OF/IN R-1 is the container's (3, then 5 after D's two GENERATEs of the global detail); MOVE 7 TO PAGE-COUNTER OF R-1 (§1985:XIII.3.5.5 rule 6 allows procedure statements to alter it) is seen by the declaring program"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/rep2.cob",
+    "printed": "error COBOL2729: LINE-COUNTER referenced, but the program has no report description entry; error COBOL2729: PAGE-COUNTER OF 'R-2': the qualifier shall name a report description entry",
+    "expected": "R-2 is not GLOBAL: its counters are not global names and the containee may not reference them"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.4.4 GR1",
+    "check": "OK  §1985:X.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "A GLOBAL RD is inherited into every containee through InheritedGlobals.Reports and ReportScope; ReportOf resolves the counter against the nearest declaring element's reports, so a containee's own report wins an unqualified reference and the inherited one answers its report-name qualifier. The counters are runtime registers of the one report instance, so reads and writes in the containee are the container's. No edition is consulted on this path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.4.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "rpa.cob (run rpa-001, --std 85): A has GLOBAL RD R-A and contains B; B has GLOBAL RD R-B and contains D; D has a non-GLOBAL RD R-D and contains E; E has no RD. E printed 'E UNQ LC=10 / E R-A LC=03': the unqualified counter skips D's non-GLOBAL R-D and resolves to the nearest GLOBAL one, R-B (LC 10 at its FIRST DETAIL), per X.1.3.8.2 GR1/GR3b, and OF R-A reaches the outermost one. D's own detail line 'SOURCE LINE-COUNTER OF R-A / OF R-B / unqualified' wrote '03 10 05' to RPAD.RPT: in the Report Section a global counter of a different report is reached by explicit report-name qualification (SRL2.9), and the unqualified one is implicitly R-D's. rpb.cob (rpb-001, compile only): a containee with no RD under a container with two GLOBAL RDs, unqualified LINE-COUNTER and PAGE-COUNTER, is refused with COBOL2729 twice. That is right: two objects are identified, neither local and both declared in the same program, so no rule of X.1.3.8.2 GR3 picks one. cite.py: 'OK  §1985:X.4.4.4 GR1 ... the text is in GR1'; 'OK  §1985:X.1.3.8.2 ... it lies in GR2'; 'OK  §1985:IV.4.3.8.1 SRL2.9 ... the text is in SRL2.9'. Unlike LinageFileOf (previous case), ReportOf uses Reports.NearestInScope, so the multi-level arm is right.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

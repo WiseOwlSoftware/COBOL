@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.5-5",
+ "rule-digest": "1123e9a95b56",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-150",
+  "sources": {
+   "reader": "7697c568dbb2a3c85cecd17e51af211a6f653d5e6cb0624595d46d53a5bde9a3",
+   "refuter": "1cf85c8f5c2ce69b9820c2199aa1ac9137fc69e3e23d294d2de8dae79b62d502"
+  },
+  "imported": {
+   "reader": "c704d43171e0de7d50c9bc66de735abced1c4347c3b854cddaccff646a9fff0c",
+   "refuter": "85c31d70ed5fc6ffa767f23edafe9df8cc83138d036d8013d9afb02e9e006ec3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.5.5-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every page advance the RWCS executes (a body group that does not fit, LINE integer ON NEXT PAGE, an absolute LINE not beyond LINE-COUNTER, NEXT GROUP NEXT PAGE, the report heading alone on its page, the report footing ON NEXT PAGE) adds one to PAGE-COUNTER, from whatever value it holds, including a procedurally moved one; WITH RESET does not exist at 85.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportNextGroupClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportNextGroupClause",
+    "switches": "Constructs.ReportNextPageReset2002: WITH RESET refused below 2002 (COBOL0900), so _resetPageCounterAtAdvance is never set at 85 and PageFeed takes the +1 arm",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues (via WithPageGroupControlValues): which control values the page groups see; not the counter",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "PageFeed is the one site that changes PAGE-COUNTER on an advance (PageCounter = reset ? 1 : PageCounter + 1); it reads no edition. grep of 'PageFeed(' shows the three callers (AdvancePage, ApplyNextGroup RH NEXT PAGE, report footing own page).",
+  "behaviour-differs-by-edition": "yes: from 2002 a NEXT GROUP NEXT PAGE WITH RESET sets PAGE-COUNTER to 1 at the next advance; at 85 the phrase is refused (COBOL0900), so every advance adds one",
+  "witnesses-cover": "part: g85_bf35_07 covers the overflow advance, the RH NEXT PAGE and the RF ON NEXT PAGE advances; LINE ON NEXT PAGE, an absolute LINE not beyond LINE-COUNTER, and counting from a moved 999999 and 0 are probe-only",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pc1.cob",
+    "printed": "MOVE 999999; overflow advance -> PH: PC 01000000 LC 00; MOVE 0; D-NP LINE 3 ON NEXT PAGE -> PH: PC 00000001; D-AB LINE 2 after LC 3 -> PH: PC 00000002",
+    "expected": "+1 at each advance: 1000000, 1, 2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pcr.cob",
+    "printed": "error COBOL0900: the WITH RESET phrase of NEXT GROUP NEXT PAGE ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: §1985:XIII.3.9.2 Format 1 prints NEXT PAGE with no WITH RESET"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pc1.cob",
+    "printed": "--std 2023: identical trace",
+    "expected": "same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.5 GR5",
+    "check": "OK  §1985:XIII.3.5.5 GR5  (3.5.5 PAGE-COUNTER Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "Witness g85_bf35_07 MATCHes at 85. 1000000 exceeds the 1..999999 range the register must be capable of (§1985:XIII.1.2.2); beyond it the capacity is the implementor's (32-bit unsigned).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.5.5-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "I tested two places where the 1985 text implies no page advance, and the reader tested neither. (1) refute-1985-150/sup.cob (runs/sup-001): the detail that does not fit (LC 05, LAST DETAIL 5) is SUPPRESSed in its USE BEFORE REPORTING. No PH and no advance followed, PC stayed 00000001 and LC 05. The next unsuppressed GENERATE advanced, giving 'PH: PC 00000002 LC 00', and the file shows 04, a form feed, PH 00000002, 06. This fits §1985:XIII.3.20.4 GR12, under which the advance follows only 'after determining that the body group is to be presented' (cite.py: OK  §1985:XIII.3.20.4 GR12  (3.20.4 General Rules)  the text is in GR12). (2) refute-1985-150/cfnp.cob (runs/cfnp-001): CONTROL FOOTING FINAL NEXT GROUP NEXT PAGE at TERMINATE, then PF LINE 9, then RF LINE PLUS 1. The 1985 rule sets LINE-COUNTER to FOOTING rather than advancing (cite.py: OK  §1985:XIII.3.10.8 GR6c  (3.10.8 Body Group Presentation Rules)  the text is in GR6c). The output was PF: PC 000001 LC 08, RF: PC 000001 LC 09, one page: no page advance and no extra increment. cite.py: OK  §1985:XIII.3.5.5 GR5  (3.5.5 PAGE-COUNTER Rules)  the text is in GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

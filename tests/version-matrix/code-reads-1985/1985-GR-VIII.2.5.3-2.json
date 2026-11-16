@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VIII.2.5.3-2",
+ "rule-digest": "60235f1c731b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-027",
+  "sources": {
+   "reader": "fd23e0b0bc1d1d7c605b5f311a04e2b0993c86b5be3e5a258e565fef035f0a0a",
+   "refuter": "e4ba0104cfd61f9386e26ae9a7898ae75d668e9819c419c14a590a237f8f10f6"
+  },
+  "imported": {
+   "reader": "76d0cbdad2fee3c340616571a5a71dedeefe68f65db1103391b20ddb27f02b6b",
+   "refuter": "2aa78b1d1a196ade5019ca22f40e0451f0d13e270f932cc6923d0764fa200bdf"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.5.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a file whose entry says [ORGANIZATION IS] RELATIVE must be a permanent structure in which each record is identified by an integer greater than zero giving its ordinal position: records persist across CLOSE and OPEN at their numbers, a number less than 1 identifies no record, and the structure is not reinterpreted by another organization (GR1's permanence, which GR2 states as a property of the structure).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#AttachStore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError: key < 1 on a random WRITE is '24' below 2014, '34' from 2014",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "read FileControlBinder.MapOrganization (no edition test), RelativeConnector Write/ReadRandom/Start; grep DialectBehavior/Edition in RelativeConnector.cs and FileControlBinder organization arm.",
+  "behaviour-differs-by-edition": "yes: only the status of a random WRITE with key < 1 ('24' at 85, '34' from 2014); the structure and the greater-than-zero identification are the same.",
+  "witnesses-cover": "part: pb1098_organization_permanence_85 is a free-format case the probe helper (fixed form) could not run, so this slice's own probes carry the evidence: positive numbers persisting across CLOSE/OPEN, key 0 refused by WRITE/READ/START",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-027/rrn.cob",
+    "printed": "records 1,2,3 written by one SELECT, record 7 by a second SELECT on the same file, all read back after CLOSE/OPEN in order 1,2,3,7,8; WRITE key 0 -> INVALID KEY 24, READ key 0 -> 23, START = 0 -> 23",
+    "expected": "each record identified by an integer greater than zero, permanent across opens; zero identifies no record"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-027/rrnf.cob",
+    "printed": "key 2147483647 WRITE 00 and READ back 'MAX '; key 999999999999999999 WRITE INVALID KEY 24",
+    "expected": "any positive number within the implementor's boundary identifies a record; beyond it the write is the invalid key condition 24 (§1985:VIII.1.3.4)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/12.4.5.10-ORGANIZATION/pb1098_organization_permanence_85.cob",
+    "printed": "not run: the case is free-format and the run helper compiles fixed form (COBOL2616 on every line); recorded so the gap is visible",
+    "expected": "n/a"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.5.3 GR2",
+    "check": "OK  §1985:VIII.2.5.3 GR2  (2.5.3 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c"
+   }
+  ],
+  "notes": "MapOrganization maps RELATIVE with or without ORGANIZATION IS at every edition; the relative store keys records by a positive RRN and every key below 1 is refused (WRITE 24 at 85, READ/START 23). Records persist across CLOSE/OPEN and across two file-names on one physical file.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.5.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-027/org.cob (org-001), ORGANIZATION written as bare RELATIVE: second random WRITE of key 3 -> INVALID KEY 22 (uniquely identified; §1985:VIII.1.3.4 22 'duplicate key in a relative file'); REWRITE 3 replaces at its number, READ 3 CCCC; REWRITE of absent 2 -> 23; DELETE 3 then READ 3 -> 23, re-WRITE 3 -> 00 and READ EEEE. orgneg.cob: a signed RELATIVE KEY PIC S9(4) is refused COBOL0863, so a value below 1 cannot be named by a signed key. A SEQUENTIAL SELECT on the same physical relative file OPENs INPUT with 00: GR1 permits that because §1985:VIII.4.4.4 GR8 'The implementor defines which of the fixed file attributes are validated', and the open does not change the organization. cite.py: OK §1985:VIII.2.5.3 GR2 the text is in GR2; OK §1985:VIII.2.5.3 GR1 the text is in GR1; OK §1985:VIII.1.3.4 (GRL2.3a); OK §1985:VIII.4.4.4 GR8. Side note: COBOL0863 at --std 85 cites §2023:12.4.5.13.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

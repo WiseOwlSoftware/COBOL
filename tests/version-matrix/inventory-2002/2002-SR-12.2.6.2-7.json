@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-7",
+ "rule-digest": "fc8b1dca4ad5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic",
+ "test-ref": "conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2spn01_device_mnemonic_accept_display; conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2spn02_send_advancing_device_mnemonic; conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2spn03_set_device_mnemonic",
+ "notes": "Same text as the 2023 twin; at 2002 the excluded statements include SEND (ADVANCING mnemonic-name-1, §2002:A.2.6.1). The golden accepts and runs DISPLAY UPON and ACCEPT FROM a device mnemonic at --std 2002 (MATCH); SEND ADVANCING (COBOL6171) and SET (COBOL1757) with that mnemonic are refused at 2002, and WRITE ADVANCING is pb862-write-advancing-device-mnemonic."
+}

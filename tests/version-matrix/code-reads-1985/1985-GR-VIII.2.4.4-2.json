@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VIII.2.4.4-2",
+ "rule-digest": "90e267768c6d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-129",
+  "sources": {
+   "reader": "b3071f7b6436600a50ce0da5153ddc103ba8737cb68a57ef384e86e7577a20da",
+   "refuter": "b96e05144740c9f8385ccfef50ac159ad5d6ab142c44ae60b5d3f8a3c15bc20a"
+  },
+  "imported": {
+   "reader": "f3852f37f8f5159acafceb8e71e32521ad0d3b3f4e400bfbcfd41c9c0b8a8773",
+   "refuter": "f53630dc1464f3311474084b34e15fde0f7b6f0026ca769be87ebac9e5e95f79"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.4.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 sequential access to a relative file (sequential access mode, or READ NEXT in dynamic mode) returns only existing records in ascending relative record number, skipping deleted and never-written numbers, and updates the RELATIVE KEY item when one is declared.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadNext; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start",
+  "edition-consulted": [],
+  "edition-search": "grep Edition/DialectBehaviors in RelativeConnector.cs: the only use is Write's out-of-range key arm; ReadSequential, ReadNext and Start consult no edition. KeyedConnector.OpenCore's positioning has no edition test either.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf19_06 and g85_bf21_05 cover gaps from out-of-order random writes; not deleted records, variable-length records, a large RRN, or READ NEXT after a START or after a random READ (probed here).",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p5accd-001",
+    "printed": "RS 001 [ONE   ] / RS 004 [00004 ] / RS 010 [0010  ] / RS 999 [999LLL]",
+    "expected": "ascending RRN of existing records (7 deleted), RELATIVE KEY set to each RRN"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p5accd-001",
+    "printed": "RDY AFTER START>4 010 [0010  ] / RDY NEXT 999 [999LLL] / RDY KEY 1 00 [ONE   ] / RDY NEXT AFTER RANDOM 004 [00004 ]",
+    "expected": "after START GREATER 4 the next existing record is 10, then 999 (the largest 3-digit key); after a random READ of 1, NEXT gives 4"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/g85_bf19_06-001; g85_bf21_05-001",
+    "printed": "EXPECT: MATCH for both",
+    "expected": "the witnesses' .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.4.4 GR2",
+    "check": "OK  §1985:VIII.2.4.4 GR2  (2.4.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The relative store is keyed by RRN, so ReadSequential walks keys in ascending order and a deleted slot is absent. A dynamic READ NEXT after a random READ continues from the record that READ returned.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.4.4-2",
+  "refutation": "UPHELD",
+  "classes": "f,e",
+  "evidence": "r42-002 (--std 85), records at RRN 2,5,9,12: dynamic READ NEXT gives 2, then after MOVE 11 TO the RELATIVE KEY item the next READ NEXT gives 5 (the key item does not position a format 1 READ, §1985:VIII.4.5.4 GR4 d); a random DELETE of 9 then READ NEXT gives 12 (deleted record skipped); a random WRITE of 3 behind the position then READ NEXT gives 10 at end; a failed random READ (23) then READ NEXT gives 46 (§1985:VIII.4.5.4 GR12); START EQUAL 3 then READ NEXT gives 3; START NOT LESS 6 then READ NEXT gives 12; sequential access with RELATIVE KEY: MOVE 9999 then MOVE 1 to the key between READs has no effect, the reads give 2,3,5,12 with the key set to each RRN, then 10. cite.py: 'OK  §1985:VIII.2.4.4 GR2  (2.4.4 General Rules)  the text is in GR2'; 'OK  §1985:VIII.4.5.4 GR4'; 'OK  §1985:VIII.4.5.4 GR12'. Grep of RelativeConnector.cs for DialectBehavior: only Write's key-out-of-range arm.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,106 @@
+{
+ "rule-id": "1989-RV-A.2.45.4-3",
+ "rule-digest": "1f476edca2c2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-084",
+  "sources": {
+   "reader": "d76922e7053ef1d27c6000be16dd9e134f4a1aae704e2597c600d7d4d09c7a16",
+   "refuter": "848dd86ce04d1a205cf1eaf2249f22ed29255b8c08462ae840eef6ff3df92b73"
+  },
+  "imported": {
+   "reader": "6c6d5d2117d2c0f8b65f31c596e7d330c21ca724b5ce2a6163d1ad67bb53b38e",
+   "refuter": "cbde09e636d650a59ee1c0c3a2d85915c3e00f9c18bb867ff62d51c01b6f3a5c"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.45.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, FUNCTION VARIANCE must return zero when the argument series is one value, or when every argument is a variable-occurrence data item (table(ALL) under OCCURS DEPENDING ON) and their occurrences total one.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#TryVariance; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#VarianceExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Variance; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#NarrowResult; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: sig.IntroducedIn (85 for the 1989 Intrinsic Function module rows) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands (DISPLAY/MOVE operand) is refused (COBOL0900), per 1985 IV.4.3.8.3.3 SR4; 2002+ accepts it. Not consulted inside COMPUTE",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 a COMPUTE with no SIZE ERROR phrase catches every size condition and continues (1985 VI.6.4.2 GR3); 2002+ takes the fatal-EC shape. Statement-level, around the function value, not inside it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
+    "switches": "num.StandardDecimal (arithmetic mode): the ARITHMETIC clause does not exist at 85, so 85 always takes the native arms, the same arms the latest edition takes by default",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicRenderer.cs and the runtime CobolIntrinsics.*.cs for Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior: the renderer's function dispatch and every runtime body consult no edition (the runtime Intrinsics folder has none); the generated C# at --std 85 and --std 2023 differs only in the assembly Edition attribute and the COMPUTE size-error wrapper (diff of var85-002/var85.g.cs vs var85-003, trig85-001 vs trig85-002)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover only VARIANCE(5); the variable-occurrence arm (an ODO extent of one) is not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/var85-002/var85.cob",
+    "printed": "VODO1= 00000.0000000000 (E(ALL) with N=1, E(1)=42.5); VODO11= 00000.0000000000 (E(ALL) E(ALL) with N=1: two equal values)",
+    "expected": "0 (RV3, one occurrence); 0 (equal values, zero deviations)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/var85-002/var85.cob",
+    "printed": "V7= 00000.0000000000; VNEG1 (-3.25)= 00000.0000000000; VBIGSAME (BIG BIG)= 000000000000000000; VSAME F(ALL) of 1 1 1 1 = 0",
+    "expected": "0 in each case"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/var85-002/var85.cob",
+    "printed": "VZERO VARIANCE(0 0 0)= 0; VARIANCE of the 18-digit maximum twice (VBIGSAME) = 0",
+    "expected": "0"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r01_noargs.cob",
+    "printed": "COBOL1504 FUNCTION VARIANCE takes at least 1 argument(s); 0 given",
+    "expected": "refused: the format requires argument-1"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r07_floatlit.cob",
+    "printed": "COBOL0900 floating-point literal requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.45.4 RV3",
+    "check": "OK  §1989:A.2.45.4 RV3  (cite.py --check with quoted words: \"the returned value is zero\")"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (cite.py --check with quoted words: \"the range of values is determined by the object of the OCCURS DEPENDING ON clause\")"
+   }
+  ],
+  "notes": "TryVariance shifts every argument by the first, so a single value gives a numerator of exactly 0 and the narrowed result is exactly 0; the ODO extent is read at run time by CobolTable.AllArgs through OdoExtent. The emitted code is the same at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.45.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "§1989:A.2.45.4 RV3 read whole: zero for one value, or all variable-occurrence items totalling one occurrence. varx-003: VARIANCE(E(ALL)) with ODO N=1 gives 0; with two ODO tables at N=1, M=1 (total two occurrences) it correctly gives 10.5625, not zero; a zero-occurrence ALL is undefined per A.2.2 last paragraph, not probed as a value. fnnames-001 and reader's VODO1/VZERO agree. cite.py: OK §1989:A.2.45.4 RV3 ('the returned value is zero'); OK §1989:A.2.2 AR4 ('the range of values is determined by the object of the OCCURS DEPENDING ON clause').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

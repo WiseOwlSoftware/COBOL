@@ -1,0 +1,109 @@
+{
+ "rule-id": "1985-SR-XIII.4.5.3-1",
+ "rule-digest": "8c52436d044a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-079",
+  "sources": {
+   "reader": "84ee836935de360f1eecdc37b4694460b2d77bb584e189d7b954072ca0835ad1",
+   "refuter": "624b2ffc5ee40fd3c1abf6988b52e3c963e8fdda830171f94e1ea14e6f070f0a"
+  },
+  "imported": {
+   "reader": "f4fbe7af93c19357601a0cb88b1e93d138fdbf11ac8bf245abd78567777b139d",
+   "refuter": "665b4775f81efd28ba0a6fe01d3b8a57a14d672ac4692f3725ef400e5afdb09d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.5.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse an OPEN statement that opens a report file (an FD with a REPORT clause) under the INPUT phrase (with or without REVERSED or NO REWIND) or the I-O phrase, in any position of a multi-phrase OPEN, and accept OPEN OUTPUT [WITH NO REWIND] and OPEN EXTEND of it, including an OPEN that also opens another file under INPUT.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+    "switches": "Edition.DialectLevel picks only the FORMAT-clause citation text of the I-O screen; the report-file INPUT/I-O arm reads no edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read BindOpen and CheckOpenModeForFile; the report-file arm (file.IsReportFile && mode is Input or IO -> COBOL2371) has no DialectLevel, CobolVersion or ConstructRegistry test. BindOpen resolves with admitsReportFile: true, so ScreenReportFileReference is not asked for OPEN.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb318 covers OPEN INPUT of a report file and pb1171 the legal OUTPUT/CLOSE references; I-O, INPUT REVERSED, a report file in the second phrase of a multi-phrase OPEN, OUTPUT WITH NO REWIND and EXTEND are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/o1.cob",
+    "printed": "COBOL2371 OPEN INPUT 'PRT' - a report file shall not be opened INPUT or I-O",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/o2.cob",
+    "printed": "COBOL2371 OPEN I-O 'PRT'",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/o7.cob",
+    "printed": "COBOL2371 OPEN INPUT 'PRT' (INPUT ... REVERSED, a 1985-only phrase)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/o8.cob",
+    "printed": "COBOL2371 OPEN INPUT 'PRT' (OPEN OUTPUT OTH INPUT PRT)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/o3.cob",
+    "printed": "DONE (OPEN OUTPUT, INITIATE, GENERATE, TERMINATE, CLOSE)",
+    "expected": "accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/o4.cob",
+    "printed": "DONE; the file holds 'D1' twice (OPEN OUTPUT then OPEN EXTEND appends, GR4)",
+    "expected": "accepted; EXTEND adds to the file"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/o5.cob",
+    "printed": "DONE (OPEN OUTPUT PRT WITH NO REWIND)",
+    "expected": "accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/o6.cob",
+    "printed": "DONE (OPEN OUTPUT PRT INPUT OTH)",
+    "expected": "accepted: only the report file's phrase is restricted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.5.3 SR1",
+    "check": "OK  §1985:XIII.4.5.3 SR1  (4.5.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.4.5.4 GR4",
+    "check": "OK  §1985:XIII.4.5.4 GR4  (4.5.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The per-file mode screen runs for every openFileSpec of every mode group, so a report file is refused under INPUT or I-O wherever it is written. The diagnostic cites only §2023:14.9.27.3 SR1 at --std 85 (citation blemish).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.5.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Attack on the reading: SR1 says 'The OPEN statement for a report file must contain only the OUTPUT phrase or the EXTEND phrase', which could be read as the whole statement; but §1985:XIII.4.5.4 GR17 makes a multi-file OPEN equal to a separate OPEN per file, so the per-file reading (reader's o6 accepted) stands. Read StatementValidation.cs#CheckOpenModeForFile: report-file arm reads no edition (DialectLevel there selects only the FORMAT-clause citation). Probes: r12 (OPEN INPUT OTH PRT WITH NO REWIND, report file second in an INPUT phrase with the 1985 NO REWIND form) -> COBOL2371 for PRT; r13 (FD REPORTS ARE R1 R2 and FD REPORT R3: OPEN OUTPUT PRT EXTEND PR2 accepted, then OPEN EXTEND PRT I-O PR2) -> COBOL2371 only for I-O PR2. cite.py: OK §1985:XIII.4.5.3 SR1; OK §1985:XIII.4.5.4 GR17 'as if a separate OPEN statement had been written for each file-name'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

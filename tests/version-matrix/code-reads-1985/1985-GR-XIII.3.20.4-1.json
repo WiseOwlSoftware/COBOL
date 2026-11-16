@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-1",
+ "rule-digest": "2133f024d904",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-148",
+  "sources": {
+   "reader": "cd63eeb9ed9709933e7a904755c89e9c66dcc37e523cc5c55ebba2d2eec5793c",
+   "refuter": "81637a99046fc20383bc9651dbe773c4bc246f732873a7dcede1deb6bd379c64"
+  },
+  "imported": {
+   "reader": "23debf1e738279bc7d246e31f47855223258d2b487af3c96faa67cb75d05de95",
+   "refuter": "22d7e78d096c7829dad10231088efdfa17ec8643a65575dee951e2880fcc8225"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.20.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a detail report group is processed only as the result of a GENERATE naming it (or GENERATE report-name), every other report group type is processed automatically by the report writer, no statement can name a non-detail group in GENERATE, and with no GENERATE nothing is processed.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+    "switches": "DialectLevel < 2002 refuses GENERATE report-name for a report with more than one detail (§1985:XIII.3.20.3 SR6)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate (GROUP INDICATE bookkeeping after the detail), not which groups are processed",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/IsActive in ReportWriterBinder.cs and ReportWriter.cs",
+  "behaviour-differs-by-edition": "no: which groups GENERATE processes and which are automatic is the same code; the edition arms touch only the SR6 refusal and GROUP INDICATE",
+  "witnesses-cover": "part: g85_f29_04 covers the automatic RH/CH/CF/RF processing and detail processing per GENERATE; the GENERATE-of-a-non-detail refusal and the no-GENERATE report are not exercised there",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/b4gencf.cob",
+    "printed": "error COBOL0899: GENERATE CFG: the named report group is not a DETAIL group",
+    "expected": "refused (§1985:XIII.4.3.3 SR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/b5genrn.cob",
+    "printed": "error COBOL6823: ... must include no more than one detail report group (ISO §1985:XIII.3.20.3 SR6)",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/c4nogen.cob",
+    "printed": "report file 0 bytes",
+    "expected": "INITIATE then TERMINATE with no GENERATE processes no group"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/p7pagb.cob",
+    "printed": "PH, CH, CF, CFF, PF and RF all printed with no statement naming them; one DE line per GENERATE DTL (report identical at --std 2023)",
+    "expected": "non-detail groups automatic, details per GENERATE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.4 GR1",
+    "check": "OK  §1985:XIII.3.20.4 GR1  (3.20.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "GenerateCore presents RH/PH/CH on the first GENERATE and CF/CH on a break, AdvancePage presents PF/PH, TerminateCore presents CF/PF/RF only if a GENERATE ran, and only the named or sole detail is presented. BindGenerate refuses a non-detail operand.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.20.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:XIII.3.20.4 GR1-GR8 and XIII.4.3.3 SR1-SR2. Refusal probes at --std 85, compile-only (r5gSUB-002, r5gPH-002, r5gRH-002, r5gRF-002, r5gPF-002, r5gWS-002, r5gSC-002): GENERATE of a subordinate LINE entry of a detail, of a working-storage item and of a sum counter refused COBOL1757; GENERATE of PH, RH, RF and PF groups refused COBOL0899 (the reader tried only CF). The first runs (-001) were refused for PAGE LIMIT 20 with no HEADING/FIRST DETAIL (COBOL2199), a probe fault fixed in -002. Positive r5gok-001 (GENERATE DA, GENERATE RPT, GENERATE DA OF RPT): RH, PH, DA, DA, CF 003, PF at line 19, RF, i.e. every non-detail group processed with no statement naming it, the detail presented only for the two GENERATE data-name, and the summary GENERATE still subtotalled. cite.py: 'OK  §1985:XIII.3.20.4 GR1  (3.20.4 General Rules)  the text is in GR1'; 'OK  §1985:XIII.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1'. The refusal diagnostics cite §2023:14.9.16.3 at --std 85 (cosmetic, already noted by the reader).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

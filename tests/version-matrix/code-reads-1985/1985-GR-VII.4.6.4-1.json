@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-VII.4.6.4-1",
+ "rule-digest": "0af3d17d273e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-125",
+  "sources": {
+   "reader": "bc455473fa2de6f1c4fc150fe11ea0c6256448ddaab13f91ff98d875bd743e30",
+   "refuter": "56a1c9193d22777bd10fa0ae78650e0f8a9a3b26f4ead5cf93fb85dbde45e5b5"
+  },
+  "imported": {
+   "reader": "baf7651ba69885a4c04516cb6a8672043fd91e6cc5a235f1630ec89a450c7f46",
+   "refuter": "cc81906103b1533a2ed5610d4c193cb08977db41b0e4dad45e96336e7cc23173"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.6.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a declarative may appear in any program, contained or containing, and runs when its USE condition occurs during that program's execution; only a declarative within the separately compiled program holding the failing statement is eligible (selected by X.5.5.4 GR1: the statement's own program first, then GLOBAL ones of each containing program outward), and if none qualifies no declarative runs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ChainHasGlobalUse; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 adds the SORT-termination exit filter (2023 14.9.40.4 GR17) around a declarative's run; the 1985 arm is the plain try/finally; selection of the declarative is the same",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition|DialectLevel|DialectBehavior|CobolVersion in DispatchEmitter.cs, ProgramEmitter.cs, UseTierEmitter.cs, ProcedureTableBuilder.cs, EcEmitter.cs: only EmitRunUseBody's DialectLevel test; ProcedureTableBuilder uses ctx.Edition only to report diagnostics.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf10_08 covers each program's own declarative and the separately compiled callee; a non-GLOBAL containing-program USE that must not run for a contained program, USE GLOBAL two levels out, and own-declarative precedence over GLOBAL are not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p6use.cob",
+    "printed": "contained P6IN1 (no declaratives) under a non-GLOBAL USE ON GF and USE ON INPUT: IN1 GF 41, IN1 LF 35 with no declarative run; P6IN3 under P6IN2's USE GLOBAL ON INPUT: IN2-GLOBAL-DECL then IN3 LF3 35; separately compiled P6SEP: SEP SF 35 with no declarative; same output at --std 2023",
+    "expected": "non-GLOBAL containing declaratives never run; GLOBAL ones do (X.5.5.4 GR1 b); none from another separately compiled program"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p6use.cob",
+    "printed": "first form (READ GF with no AT END inside P6IN1): error COBOL6826 no applicable USE AFTER STANDARD EXCEPTION procedure (§1985:VII.4.4.3 SR2)",
+    "expected": "the containing program's non-GLOBAL USE is not applicable in the contained program"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p7use.cob",
+    "printed": "outermost USE GLOBAL ON INPUT reaches the grandchild P7LEAF (OUTER-GLOBAL-DECL, LEAF 35); P7OWN's own USE wins: OWN-DECL 35 only; same at --std 2023",
+    "expected": "X.5.5.4 GR1 a and c: own declarative first, then GLOBAL outward, only the first qualifying runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.6.4 GR1",
+    "check": "OK  §1985:VII.4.6.4 GR1  (4.6.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.5.5.4 GR1",
+    "check": "OK  §1985:X.5.5.4 GR1  (║5.5.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.4.4.3 SR2",
+    "check": "OK  §1985:VII.4.4.3 SR2  (4.4.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Declarative selection is per element (the program's own tiers, then the GLOBAL chain of its containers) and never crosses a separately compiled program; the probes matched the 1985 IPC precedence in every case, including the compile-time view of applicability.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.6.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "q1ext.cob at --std 85: EXTERNAL file EF shared by Q1A (USE ON EF, USE ON I-O) and separately compiled Q1B (no declaratives): Q1B's REWRITE 43 and OPEN 41 run no declarative; Q1A's own REWRITE runs A-DECL-EF only (explicit file-name excludes the I-O one). Contained Q1D's USE GLOBAL ON INPUT does not run for its container Q1C's failed OPEN (35), and does run for Q1D's own. q2use.cob: contained Q2B with its own USE ON OF1 and ON OUTPUT fails OPEN INPUT on GLOBAL file GF and on LF: its own declaratives do not qualify, so Q2A's USE GLOBAL ON GF and USE GLOBAL ON INPUT run respectively; OPEN INPUT OF1 runs Q2B's own B-OWN-OF1. cite.py: OK §1985:VII.4.6.4 GR1 'Only a declarative within the separately compiled program that contains the statement which caused the qualifying condition is invoked'; OK §1985:X.5.5.4 GR1 'only the first qualifying declarative will be selected for execution'; OK §1985:VII.4.6.4 GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

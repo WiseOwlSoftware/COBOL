@@ -1,0 +1,90 @@
+{
+ "rule-id": "1989-RV-A.2.43.4-1",
+ "rule-digest": "aae9e187b859",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-083",
+  "sources": {
+   "reader": "8cddf3defbf6ae2225c30c8eeab4ab2dc0dd44d9a5d0fca3066105d865219485",
+   "refuter": "be400553f381c0f7f3fef8da8a3c3518bebf2f769e51ab8723856fde4a129e2c"
+  },
+  "imported": {
+   "reader": "e3d2071293a3f6140ea5a5104ba68d6e7cb82c4b27b00f7266bb27bcb16c9b72",
+   "refuter": "44c688b0107da6e8f9f5e80a2980250af790729dbd07e8f2431c4721b1694a01"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.43.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION TAN(argument-1) of any class-numeric argument (radians; literal, expression, any usage, up to 18 digits) returns an approximation of its tangent.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Tan; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#TanReduced; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.TwoPi.cs#ReduceQuarterTurns",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 edition window: sig.IntroducedIn (85 for the 1989 module rows, IntrinsicCatalog.cs#Build) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry NumericFunctionIdentifierOperand2002: at 85 a numeric/integer function written where an identifier stands (MOVE sender) is refused (COBOL0900), per §1989:A.2.3 GR2/GR3; never reached inside an arithmetic expression",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+    "switches": "Edition.DigitCapacityExcess: 18-digit cap on items and literals at 85 (31 later); bounds the argument range only",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+    "switches": "num.StandardDecimal (OPTIONS ARITHMETIC, a 2002+ paragraph, so always native at 85): the native dispatch is the one a 2023 program with no ARITHMETIC clause takes",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs, IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs for Edition|DialectLevel|CobolVersion|ArithmeticMode|StandardDecimal; the runtime bodies take no edition input",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers arguments next to pi/2 and 3pi/2; not zero, ordinary negatives, pi/4, an 18-digit integer, COMP-3 or expressions",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/trig1.cob",
+    "printed": "TAN-0=0 TAN-M1=-1.55740772465490 TAN-1.5=14.10141994717172 TAN-Q(0.78539816339744831)=1.00000000000000 TAN-BIG(999999999999999999)=0.82440601619578 TAN-NEG(COMP-3 -123456.789)=19.32678794482907 TAN-H into -9(18)=-300934329906107100 TAN-MH=+300934329906107100 TAN-EXP(TAN(-0.5)*2)=-1.09260497968758 (dir trig1-001)",
+    "expected": "mpmath: -1.5574077246549022, 14.101419947171719, 1.0000000000000000008, 0.82440601619578244, 19.326787944829068, tan(1.57079632679489662)=-1.30093432990611E18 (19 digits, so the 18-digit receiver keeps the low-order digits), -1.0926049796875810"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/deg1.cob",
+    "printed": "TAN(T(I)) on an ODO element -2.5 = 0.7470222972",
+    "expected": "tan(-2.5)=0.7470222972386602"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/ref1.cob",
+    "printed": "COBOL1627 numeric-edited argument; COBOL1504 two arguments",
+    "expected": "refused (§1989:A.2.43.3 AR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.43.4 RV1",
+    "check": "OK  §1989:A.2.43.4 RV1  (2.43.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "Exact-argument quadrant reduction gives the correct sign and magnitude next to pi/2. The TAN-H receiver shows high-order truncation of a 19-digit value into 18 digits, which is the receiver's behaviour, not the function's. Output was identical at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output (at2023-trig1.txt)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.43.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "rtrig1-003 (--std 85), receiver S9(10)V9(8): TAN(0) = 0; TAN(-0.5*3) = -14.10141994 (mpmath -14.1014199471717); TAN(S9(18) COMP -999999999999999999) = -0.82440601 (mpmath -0.82440601619578); next to pi/2: TAN(1.57079632679489661) low digits 9979200620 of 108326849979200620 (mpmath 108326849979200637.25, 17 significant digits right), TAN(1.57079632679489670) -> ...7067143532 (mpmath -12381037067143532.2), TAN(-4.7123889803846) -> ...8707580551.432 (mpmath -11128707580551.4329); TAN(2*1.57079632679489656) -> 0 (exact -3.3E-18); TAN(ACOS(-1)/4) = .99999999 (binary64 pi). Each is an approximation of the tangent. FUNCTION PI refused COBOL1502 and floating literal 2.5E-1 refused COBOL0900 at 85; MULTIPLY FUNCTION TAN(X) BY R refused COBOL0900 (rplace1-001). cite.py: 'OK  §1989:A.2.43.4 RV1  (2.43.4 Returned Values)  the text is in RV1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

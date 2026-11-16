@@ -1,0 +1,1498 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-03 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-03",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-7.2.11.3-5",
+   "2002-SR-7.2.12.2-1",
+   "2002-GR-7.2.12.3-1",
+   "2002-GR-7.2.12.3-2",
+   "2002-GR-7.2.12.3-3",
+   "2002-GR-7.2.12.3-4",
+   "2002-GR-7.2.12.3-5",
+   "2002-GR-7.2.14.3-2",
+   "2002-GR-7.2.14.3-3",
+   "2002-GR-7.2.15.2-1",
+   "2002-SR-7.2.16.2-1",
+   "2002-GR-7.2.17.3-2",
+   "2002-GR-7.2.18.2-1",
+   "2002-SR-7.2.19.2-2",
+   "2002-SR-7.2.19.2-3",
+   "2002-SR-7.2.19.2-4",
+   "2002-GR-7.2.19.3-2",
+   "2002-GR-7.2.19.3-3",
+   "2002-GR-7.2.19.3-4",
+   "2002-GR-7.2.19.3-6",
+   "2002-GR-8.1.2.1-1",
+   "2002-GR-8.1.2.1-3",
+   "2002-GR-8.1.2.1-4",
+   "2002-SR-8.3.1.2.1.2-1",
+   "2002-SR-8.3.1.2.1.2-2"
+  ],
+  "pointers": {
+   "2002-GR-7.2.11.3-5": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-7.2.12.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.12.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.12.3-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.12.3-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.12.3-4": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.12.3-5": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.14.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.3.17.4-2",
+    "similarity": 0.921
+   },
+   "2002-GR-7.2.14.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.3.17.4-3",
+    "similarity": 0.914
+   },
+   "2002-GR-7.2.15.2-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-7.3.18.3-1",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.16.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-7.3.19.3-1",
+    "similarity": 0.979
+   },
+   "2002-GR-7.2.17.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.3.21.4-2",
+    "similarity": 0.952
+   },
+   "2002-GR-7.2.18.2-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-7.3.24.3-1",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.19.2-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-7.3.25.3-2",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.19.2-3": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-7.3.25.3-3",
+    "similarity": 0.805
+   },
+   "2002-SR-7.2.19.2-4": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-7.3.25.3-3",
+    "similarity": 0.606
+   },
+   "2002-GR-7.2.19.3-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-7.3.25.4-2",
+    "similarity": 0.875
+   },
+   "2002-GR-7.2.19.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.3.25.4-3",
+    "similarity": 0.943
+   },
+   "2002-GR-7.2.19.3-4": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-7.3.25.4-6",
+    "similarity": 0.664
+   },
+   "2002-GR-7.2.19.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.3.25.4-8",
+    "similarity": 0.917
+   },
+   "2002-GR-8.1.2.1-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.1.3.2-1",
+    "similarity": 0.992
+   },
+   "2002-GR-8.1.2.1-3": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-8.1.3.2-3",
+    "similarity": 0.852
+   },
+   "2002-GR-8.1.2.1-4": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-8.1.3.2-4",
+    "similarity": 0.782
+   },
+   "2002-SR-8.3.1.2.1.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.3.3.2.3-1",
+    "similarity": 0.916
+   },
+   "2002-SR-8.3.1.2.1.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.3.3.2.3-2",
+    "similarity": 0.999
+   }
+  }
+ },
+ "read": {
+  "slice": "u-03",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-7.2.11.3-5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.11",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.11.3 GR5",
+      "quote": "If the FLAG-85 directive is not specified, the default for all options is off",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.3 GR1",
+      "quote": "The implementor shall provide a warning mechanism that flags the incompatibilities",
+      "check": "OK"
+     }
+    ],
+    "reason": "No pointer: FLAG-85 is a 2002 directive with no 2023 counterpart. GR5 governs a compilation group with no FLAG-85 directive: none of the eleven options (CORRESPONDING ... ZERO-LENGTH) flags. At --std 2002 a program using de-editing MOVE, DIVIDE REMAINDER with an unsigned quotient and signed dividend, NUMVAL and ALPHABET STANDARD-1 compiles with no warning: correct. The witness only discriminates once GR1's warning mechanism exists: today '>>FLAG-85 ALL ON' also draws nothing (flag85-all-on.cob), the known PB5600 defect of GR1, not of this rule.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/flag85-default.cob",
+    "widening": null,
+    "scope-2002": [
+     "compilation group without a FLAG-85 directive: no option flags (all eleven options)"
+    ],
+    "evidence-2002": {
+     "no directive, every option off": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/flag85-default.cob at --std 2002 (no warning)"
+    },
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a group with no FLAG-85 directive is no flagging (probe flag85-default.cob), correct",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/flag85-default.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.12.2-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.12",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.12.2 SR1",
+      "quote": "The FLAG-NATIVE-ARITHMETIC directive may be specified only between clauses in divisions other than the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.14.3 SR1",
+      "quote": "The FLAG-02 directive may be specified only between clauses in divisions other than the procedure division",
+      "check": "OK"
+     }
+    ],
+    "reason": "FLAG-NATIVE-ARITHMETIC exists in 2002 only (2023 has no such directive, so there is no pointer). At --std 2002 the directive WORD is recognized and ignored: the construct row tests/version-matrix/constructs/flag-native-arithmetic-directive-window.json has a Text operand and no processor (kb/Work PB5600). SR1 is a placement rule. At --std 2002 the directive written inside a MOVE statement (fna-in-statement.cob) and inside a VALUE clause (fna-inside-clause.cob) compiles with no diagnostic. The compiler implements this very rule for FLAG-02/FLAG-14 (DirectivePlacementPass, COBOL2344: flag02-in-statement.cob and flag02-inside-clause.cob draw it at --std 2023), but the FLAG-NATIVE-ARITHMETIC and FLAG-85 construct rows carry no directivePlacement, so the pass never judges them. Sibling: §2002:7.2.11.2 SR1 (FLAG-85; flag85-in-statement.cob also silent at 2002). Not PB5600 (trailing text, flagging) nor PB5599 (word table).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-in-statement.cob",
+    "widening": null,
+    "scope-2002": [
+     "directive inside a procedure-division statement (refuse/diagnose)",
+     "directive inside a clause of another division (refuse/diagnose)",
+     "directive between clauses and between statements (accept)"
+    ],
+    "evidence-2002": {
+     "inside a statement": "not shown: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-in-statement.cob compiles silently at --std 2002 (defect)",
+     "inside a clause": "not shown: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-inside-clause.cob compiles silently at --std 2002 (defect)",
+     "between clauses/statements": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-between.cob and fna-between-clauses.cob (accepted at --std 2002)"
+    },
+    "class": "own-text",
+    "needs": "a fix, then its own verdict: at --std 2002 the directive inside a statement or clause is accepted silently today",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-in-statement.cob ('MOVE 5 / >>FLAG-NATIVE-ARITHMETIC ON / TO N') and fna-inside-clause.cob ('VALUE / >>FLAG-NATIVE-ARITHMETIC ON / 3.') compile and run at --std 2002 with no diagnostic; expected the placement diagnostic (COBOL2344, as for FLAG-02) per §2002:7.2.12.2 SR1. Site: tests/version-matrix/constructs/flag-native-arithmetic-directive-window.json and flag-85-directive-window.json (no directivePlacement betweenClauses) read by src/WiseOwl.Cobol.Compiler/Validation/DirectivePlacementPass.cs#Run"
+   },
+   {
+    "rule-id": "2002-GR-7.2.12.3-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.12",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.12.3 GR1",
+      "quote": "The implementor shall provide a warning mechanism that flags the use of native arithmetic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "the techniques used shall be those specified for native arithmetic",
+      "check": "OK"
+     }
+    ],
+    "reason": "FLAG-NATIVE-ARITHMETIC exists in 2002 only (2023 has no such directive, so there is no pointer). At --std 2002 the directive WORD is recognized and ignored: the construct row tests/version-matrix/constructs/flag-native-arithmetic-directive-window.json has a Text operand and no processor (kb/Work PB5600). No warning mechanism exists at --std 2002 (kb/Work PB5600, which claims the operand/text rows; this rule is reached by the same missing processor). PB5648 compounds it: the compiler does not even use native arithmetic for those operands under STANDARD.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-standard-binary.cob",
+    "widening": null,
+    "scope-2002": [
+     "ARITHMETIC IS STANDARD source unit, FLAG-NATIVE-ARITHMETIC ON, operation using native arithmetic: flagged"
+    ],
+    "evidence-2002": {
+     "warning mechanism": "not shown: probe fna-standard-binary.cob (ADD/COMPUTE on BINARY-LONG and FLOAT-LONG, which §2002:8.8.1.3 evaluates by native arithmetic under STANDARD) draws no warning at --std 2002 (defect)"
+    },
+    "class": "own-text",
+    "needs": "a fix (the warning mechanism), then its own verdict",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-standard-binary.cob; expected a warning per §2002:7.2.12.3 GR1/GR2 with §2002:8.8.1.3; observed none (kb/Work PB5600)"
+   },
+   {
+    "rule-id": "2002-GR-7.2.12.3-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.12",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.12.3 GR2",
+      "quote": "flagging is enabled for any operation that uses or has the potential to use native arithmetic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "the techniques used shall be those specified for native arithmetic",
+      "check": "OK"
+     }
+    ],
+    "reason": "FLAG-NATIVE-ARITHMETIC exists in 2002 only (2023 has no such directive, so there is no pointer). At --std 2002 the directive WORD is recognized and ignored: the construct row tests/version-matrix/constructs/flag-native-arithmetic-directive-window.json has a Text operand and no processor (kb/Work PB5600). Same missing mechanism as GR1 (PB5600).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-standard-implied-on.cob",
+    "widening": null,
+    "scope-2002": [
+     "STANDARD arithmetic and ON specified: flagging enabled",
+     "STANDARD arithmetic and ON implied (bare directive): flagging enabled"
+    ],
+    "evidence-2002": {
+     "ON specified": "not shown: probe fna-standard-binary.cob, no warning at --std 2002 (defect)",
+     "ON implied": "not shown: probe fna-standard-implied-on.cob, no warning at --std 2002 (defect)"
+    },
+    "class": "own-text",
+    "needs": "a fix (the warning mechanism), then its own verdict",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-standard-implied-on.cob; expected a warning per §2002:7.2.12.3 GR1/GR2 with §2002:8.8.1.3; observed none (kb/Work PB5600)"
+   },
+   {
+    "rule-id": "2002-GR-7.2.12.3-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.12",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.12.3 GR3",
+      "quote": "If OFF is specified, no flagging for native arithmetic shall occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "the techniques used shall be those specified for native arithmetic",
+      "check": "OK"
+     }
+    ],
+    "reason": "FLAG-NATIVE-ARITHMETIC exists in 2002 only (2023 has no such directive, so there is no pointer). At --std 2002 the directive WORD is recognized and ignored: the construct row tests/version-matrix/constructs/flag-native-arithmetic-directive-window.json has a Text operand and no processor (kb/Work PB5600). Holds today because nothing is ever flagged; the witness discriminates once GR1 is implemented.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-standard-off.cob",
+    "widening": null,
+    "scope-2002": [
+     "OFF specified: no flagging"
+    ],
+    "evidence-2002": {
+     "OFF": "covered by probe fna-standard-off.cob (no warning at --std 2002)"
+    },
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is no flagging (probe fna-standard-off.cob), correct",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-standard-off.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.12.3-4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.12",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.12.3 GR4",
+      "quote": "If native arithmetic is in effect, no flagging of native arithmetic occurs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "the techniques used shall be those specified for native arithmetic",
+      "check": "OK"
+     }
+    ],
+    "reason": "FLAG-NATIVE-ARITHMETIC exists in 2002 only (2023 has no such directive, so there is no pointer). At --std 2002 the directive WORD is recognized and ignored: the construct row tests/version-matrix/constructs/flag-native-arithmetic-directive-window.json has a Text operand and no processor (kb/Work PB5600). Holds today because nothing is ever flagged; the witness discriminates once GR1 is implemented.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-native-on.cob",
+    "widening": null,
+    "scope-2002": [
+     "ARITHMETIC IS NATIVE (or no ARITHMETIC clause) with ON: no flagging"
+    ],
+    "evidence-2002": {
+     "native in effect": "covered by probe fna-native-on.cob (ARITHMETIC IS NATIVE, ON: no warning at --std 2002)"
+    },
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is no flagging (probe fna-native-on.cob), correct",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-native-on.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.12.3-5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.12",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.12.3 GR5",
+      "quote": "If the FLAG-NATIVE-ARITHMETIC directive is not specified, the default is off",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "the techniques used shall be those specified for native arithmetic",
+      "check": "OK"
+     }
+    ],
+    "reason": "FLAG-NATIVE-ARITHMETIC exists in 2002 only (2023 has no such directive, so there is no pointer). At --std 2002 the directive WORD is recognized and ignored: the construct row tests/version-matrix/constructs/flag-native-arithmetic-directive-window.json has a Text operand and no processor (kb/Work PB5600). Holds today because nothing is ever flagged; the witness discriminates once GR1 is implemented.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-standard-default.cob",
+    "widening": null,
+    "scope-2002": [
+     "no directive in the group: no flagging"
+    ],
+    "evidence-2002": {
+     "default off": "covered by probe fna-standard-default.cob (STANDARD, BINARY-LONG operands, no directive: no warning at --std 2002)"
+    },
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is no flagging (probe fna-standard-default.cob), correct",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/fna-standard-default.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.14.3-2",
+    "to": [
+     "GR-7.3.17.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.14",
+    "clause-2023": "7.3.17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.14.3 GR2",
+      "quote": "the implementor defines whether a value greater than 59 may be reported",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.17.4 GR2",
+      "quote": "the implementor defines whether a value greater than 59 may be reported",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in the list: 2023 adds FORMATTED-CURRENT-DATE (a 2014 function, absent from 2002). The 2002 list (ACCEPT ... TIME, CURRENT-DATE, WHEN-COMPILED) is a subset; same format (ON|OFF) and same implementor determination (A.1 item 111: never above 59). The pointer's row carries 2002 runs: LeapSecondReportedSecondsPinTests.*_2002_* (ACCEPT TIME, CURRENT-DATE at dialect 2002) and WhenCompiledStampTests theories with InlineData(2002). Probes with the clock pinned at 2016-12-31T23:59:59.9999999Z (WISEOWL_COBOL_CLOCK) give TIME=23595999 and CURRENT-DATE seconds 59 at --std 2002 under ON, bare directive, OFF and no directive (ON specified / ON implied).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/leap-on.cob",
+    "widening": "2023 also governs FORMATTED-CURRENT-DATE (2014+); the 2002 sources are a subset.",
+    "scope-2002": [
+     "ACCEPT ... FROM TIME",
+     "CURRENT-DATE",
+     "WHEN-COMPILED"
+    ],
+    "evidence-2002": {
+     "ACCEPT TIME": "covered by conformance-test LeapSecondReportedSecondsPinTests (the _2002_ fact, dialect 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/leap-on.cob / leap-implied-on.cob",
+     "CURRENT-DATE": "covered by the same _2002_ fact and the same probes at --std 2002",
+     "WHEN-COMPILED": "covered by unit WhenCompiledStampTests theories with InlineData(2002)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-7.2.14.3-3",
+    "to": [
+     "GR-7.3.17.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.14",
+    "clause-2023": "7.3.17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.14.3 GR3",
+      "quote": "a value greater than 59 shall not be reported in the seconds position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.17.4 GR3",
+      "quote": "a value greater than 59 shall not be reported in the seconds position",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in the list: 2023 adds FORMATTED-CURRENT-DATE (a 2014 function, absent from 2002). The 2002 list (ACCEPT ... TIME, CURRENT-DATE, WHEN-COMPILED) is a subset; same format (ON|OFF) and same implementor determination (A.1 item 111: never above 59). The pointer's row carries 2002 runs: LeapSecondReportedSecondsPinTests.*_2002_* (ACCEPT TIME, CURRENT-DATE at dialect 2002) and WhenCompiledStampTests theories with InlineData(2002). Probes with the clock pinned at 2016-12-31T23:59:59.9999999Z (WISEOWL_COBOL_CLOCK) give TIME=23595999 and CURRENT-DATE seconds 59 at --std 2002 under ON, bare directive, OFF and no directive (OFF specified / OFF implied (GR1)).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/leap-off.cob",
+    "widening": "2023 also governs FORMATTED-CURRENT-DATE (2014+); the 2002 sources are a subset.",
+    "scope-2002": [
+     "ACCEPT ... FROM TIME",
+     "CURRENT-DATE",
+     "WHEN-COMPILED"
+    ],
+    "evidence-2002": {
+     "ACCEPT TIME": "covered by conformance-test LeapSecondReportedSecondsPinTests (the _2002_ fact, dialect 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/leap-off.cob / leap-default.cob",
+     "CURRENT-DATE": "covered by the same _2002_ fact and the same probes at --std 2002",
+     "WHEN-COMPILED": "covered by unit WhenCompiledStampTests theories with InlineData(2002)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-7.2.15.2-1",
+    "to": [
+     "GR-7.3.18.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.15",
+    "clause-2023": "7.3.18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.15.2 GR1",
+      "quote": "If the compiler does not produce a source listing, the LISTING directive shall be ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.18.3 GR1",
+      "quote": "If the compiler does not produce a source listing, the LISTING directive shall be ignored",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but for 'implementor defined' / 'implementor-defined'. Same format (ON|OFF). The compiler produces no listing at any edition, so the directive is ignored. The pointer's witness pb725_directive_facility runs at --std 2002 and matches its golden.",
+    "probe": "E:/COBOL/conformance-suite/cases/7.3.18-LISTING/pb725_directive_facility.cob",
+    "widening": null,
+    "scope-2002": [
+     "no listing produced: LISTING ON/OFF ignored"
+    ],
+    "evidence-2002": {
+     "ignored": "covered by E:/COBOL/conformance-suite/cases/7.3.18-LISTING/pb725_directive_facility.cob at --std 2002 (MATCH, run by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/cases.py)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-7.2.16.2-1",
+    "to": [
+     "SR-7.3.19.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.16",
+    "clause-2023": "7.3.19",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.16.2 SR1",
+      "quote": "Comment-text-1 may contain any character in the compile-time computer's coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.19.3 SR1",
+      "quote": "Comment-text-1 may contain any character in the compile-time computer's coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6",
+      "quote": "The implementor shall specify any control characters that terminate a free-form line",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only '6' vs 'Clause 6'. The referenced rule 3b is word-identical in both editions (2002 clause 6 rule 3b, 2023 6.1 rule 3b). Same format (>>PAGE [comment-text-1]). The pointer's witness l1c21_page_directive_comment_text (accept: [2002]) runs at --std 2002 and matches.",
+    "probe": "E:/COBOL/conformance-suite/cases/7.3.19-PAGE/l1c21_page_directive_comment_text.cob",
+    "widening": null,
+    "scope-2002": [
+     "any character except free-form line terminators in comment-text-1"
+    ],
+    "evidence-2002": {
+     "comment-text characters": "covered by E:/COBOL/conformance-suite/cases/7.3.19-PAGE/l1c21_page_directive_comment_text.cob at --std 2002 (MATCH)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-7.2.18.2-1",
+    "to": [
+     "GR-7.3.24.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.18",
+    "clause-2023": "7.3.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.18.2 GR1",
+      "quote": "shall be treated as fixed form if FIXED is specified, or as free form if FREE is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.24.3 GR1",
+      "quote": "shall be treated as fixed form if FIXED is specified, or as free form if FREE is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the clause numbers of the two reference formats differ (2002 6.2/6.3, 2023 6.3/6.4); what fixed and free form are is their own rows. Same format (SOURCE FORMAT IS FIXED|FREE). The pointer's witness pb1067_library_text_source_format (accept: [2002]) runs at --std 2002 and matches.",
+    "probe": "E:/COBOL/conformance-suite/cases/6.5-Logical-conversion/pb1067_library_text_source_format.cob",
+    "widening": null,
+    "scope-2002": [
+     "source text after the directive",
+     "library text after the directive"
+    ],
+    "evidence-2002": {
+     "source text": "covered by E:/COBOL/conformance-suite/cases/6.5-Logical-conversion/pb1067_library_text_source_format.cob at --std 2002 (MATCH)",
+     "library text": "covered by the same case ([LIB-*]/[CPY-*] legs) at --std 2002"
+    }
+   },
+   {
+    "rule-id": "2002-GR-7.2.17.3-2",
+    "to": [
+     "GR-7.3.21.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.17",
+    "clause-2023": "7.3.21",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.17.3 GR2",
+      "quote": "not handled by either an exception phrase or a declarative in that runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.21.4 GR2",
+      "quote": "not handled by either an exception phrase or exception processing procedures in that runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.70",
+      "quote": "procedures within WHEN phrases within an exception-checking PERFORM statement or within a USE declarative",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 says 'a declarative' where 2023 says 'exception processing procedures' (a USE declarative or a WHEN phrase of the 2023 exception-checking PERFORM): the 2002 rule is the declarative subset, so the requirement is not wider. But the pointer's evidence at 2002 (w73d2_pb1119_propagate_on, MATCH at --std 2002) shows only the unhandled arm (a fatal condition propagated to the activator); neither exclusion is shown in an element under PROPAGATE ON at 2002. Probe prop-handled.cob at --std 2002: under PROPAGATE ON, a condition handled by the element's own declarative (RESUME) and one handled by ON SIZE ERROR are not propagated, an unhandled one is: correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/prop-handled.cob",
+    "widening": "2023 also excludes a WHEN phrase of an exception-checking PERFORM (not in 2002).",
+    "scope-2002": [
+     "unhandled condition propagated as GOBACK RAISING LAST",
+     "condition handled by an exception phrase: not propagated",
+     "condition handled by a declarative: not propagated",
+     "functions, methods and programs alike"
+    ],
+    "evidence-2002": {
+     "unhandled": "covered by E:/COBOL/conformance-suite/cases/7.3.21-PROPAGATE/w73d2_pb1119_propagate_on.cob at --std 2002 (MATCH)",
+     "exception phrase": "not shown by the pointer at 2002; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/prop-handled.cob (PHC: ON SIZE ERROR, no propagation)",
+     "declarative": "not shown by the pointer at 2002; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/prop-handled.cob (PHB: own declarative, no propagation)",
+     "functions/methods": "probes prop-func.cob / prop-meth.cob of slice q-03 at --std 2002"
+    },
+    "class": "own-text",
+    "needs": "a 2002 witness for the two handled arms under PROPAGATE ON (probe prop-handled.cob)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/prop-handled.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.19.2-2",
+    "to": [
+     "SR-7.3.25.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.19",
+    "clause-2023": "7.3.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.2 SR2",
+      "quote": "Exception-name-1 shall be one of the exception names listed in 14.5.12.1, Exception conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.3 SR2",
+      "quote": "Exception-name-1 shall be one of the exception names listed in 14.6.13.1, Exception conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "Exception-names are organized into a hierarchy of three levels",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words but a different list: 2002 14.5.12.1 has 123 names, 2023 14.6.13.1 has every one of them plus 35 more (EC-CONTINUE, EC-EXTERNAL, EC-FUNCTION, EC-MCS families, EC-I-O-WARNING, EC-BOUND-SET ...). The compiler keys names by edition (COBOL0878) but marks several 2014/2023 names as present at 2002: at --std 2002 '>>TURN <name> CHECKING ON' is ACCEPTED for EC-BOUND-FUNC-RET-VALUE (2023), EC-BOUND-SET, EC-BOUND-TABLE-LIMIT, EC-DATA-NOT-FINITE, EC-DATA-OVERFLOW, EC-FLOW-SEARCH, EC-FUNCTION, EC-FUNCTION-ARG-OMITTED, EC-FUNCTION-NOT-FOUND, EC-FUNCTION-PTR-INVALID, EC-FUNCTION-PTR-NULL and EC-OO-ARG-OMITTED, none of which occurs anywhere in the 2002 text (grep count 0); EC-BOUND-OVERFLOW, EC-CONTINUE*, EC-EXTERNAL*, EC-MCS, EC-I-O-WARNING and the EC-FLOW commit names are refused correctly. Separately, the 2002 names EC-VALIDATE-* are refused (COBOL1710, the documented VALIDATE non-support): 2002 makes only the communications facility optional, so that refusal is the known VALIDATE owner-decision row family, not a new finding.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/names",
+    "widening": null,
+    "scope-2002": [
+     "every 2002 14.5.12.1 name accepted",
+     "a name not in the 2002 list refused (2014/2023 names included)",
+     "EC-USER-/EC-IMP- suffix names"
+    ],
+    "evidence-2002": {
+     "2002 names accepted": "covered for EC-SIZE, EC-PROGRAM-ARG-OMITTED by probes turn-name-*.cob at --std 2002; EC-VALIDATE-* refused (known VALIDATE decline)",
+     "non-2002 names refused": "not shown: 12 names accepted at --std 2002 (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/names/t-*.cob)",
+     "EC-USER-": "covered by probe turn-ecall.cob (RAISE EC-USER-X under EC-ALL at --std 2002)"
+    },
+    "class": "other",
+    "needs": "a fix, then its own verdict: the edition window of 12 exception-names is wrong at --std 2002 (the cross-referenced list differs between editions)",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/names/t-EC-FUNCTION.cob ('>>TURN EC-FUNCTION CHECKING ON') compiles and runs at --std 2002 (and 11 siblings in names/), expected a refusal per §2002:7.2.19.2 SR2 (EC-FUNCTION is not in §2002:14.5.12.1). Site: src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs (L3/level-2 entries with no introducing edition, e.g. EC-BOUND-FUNC-RET-VALUE, EC-BOUND-SET, EC-FUNCTION) read by src/WiseOwl.Cobol.Editions/ExceptionNameRule.cs (IntroducedIn > dialectLevel). Reaches every 2002 site that names an exception (RAISE, USE, RAISING)."
+   },
+   {
+    "rule-id": "2002-SR-7.2.19.2-3",
+    "to": [
+     "SR-7.3.25.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.19",
+    "clause-2023": "7.3.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.2 SR3",
+      "quote": "No exception-name shall be specified more than once in one TURN directive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.3 SR3",
+      "quote": "No exception-name-1 and file-name-1 combination shall be specified more than once in a TURN directive",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 forbids naming an exception-name twice in one directive whatever file-names follow it; 2023 (which merged 2002 SR3 and SR4) forbids only a repeated name/file combination. So '>>TURN EC-I-O F1 EC-I-O F2 CHECKING ON' violates 2002 SR3 and is legal in 2023. At --std 2002 the compiler accepts it (turn-dupname-files.cob): it applies the 2023 combination key at every edition. 'EC-SIZE EC-SIZE' and 'EC-I-O F1 EC-I-O F1' are refused (COBOL0718) at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-dupname-files.cob",
+    "widening": null,
+    "scope-2002": [
+     "same exception-name twice, no file-names (refuse)",
+     "same exception-name twice with different file-names (refuse)",
+     "same exception-name twice with the same file-name (refuse)"
+    ],
+    "evidence-2002": {
+     "no file-names": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-dupname.cob (COBOL0718 at --std 2002); the pointer's Turn_DuplicateName_Diagnosed runs at 2023 only",
+     "different file-names": "not shown: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-dupname-files.cob accepted at --std 2002 (defect)",
+     "same file-name": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-dupname-samefile.cob (COBOL0718 at --std 2002)"
+    },
+    "class": "own-text",
+    "needs": "a fix, then its own verdict at --std 2002",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-dupname-files.cob ('>>TURN EC-I-O F1 EC-I-O F2 CHECKING ON' with F1, F2 declared) compiles and runs at --std 2002; expected COBOL0718 per §2002:7.2.19.2 SR3. Site: src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn (duplicate key is the 2023 name/file combination at every edition)"
+   },
+   {
+    "rule-id": "2002-SR-7.2.19.2-4",
+    "to": [
+     "SR-7.3.25.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.19",
+    "clause-2023": "7.3.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.2 SR4",
+      "quote": "No file-name shall be specified more than once for one exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.3 SR3",
+      "quote": "No exception-name-1 and file-name-1 combination shall be specified more than once in a TURN directive",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 SR4 governs a file-name repeated in the list after one exception-name ('EC-I-O F1 F1'); with 2002 SR3 forbidding a repeated name, that is its only case, and 2023 SR3 forbids it too. The compiler refuses it at --std 2002 (turn-dupfile.cob, COBOL0718) and accepts two distinct files (turn-twofiles.cob). The pointer's only witness, Turn_DuplicateName_Diagnosed, is 'EC-SIZE EC-SIZE' at 2023: it shows neither a file-name nor 2002. Reading note: 'EC-I-O F1 EC-I-O-AT-END F1' names F1 under two different exception-names; it is accepted at both editions, and SR4 read on the names as written does not reach it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-dupfile.cob",
+    "widening": null,
+    "scope-2002": [
+     "file-name repeated after one exception-name (refuse)",
+     "distinct file-names (accept)"
+    ],
+    "evidence-2002": {
+     "repeated file": "not shown by the pointer; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-dupfile.cob (COBOL0718 at --std 2002)",
+     "distinct files": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-twofiles.cob (accepted at --std 2002)"
+    },
+    "class": "own-text",
+    "needs": "a 2002 witness for a repeated file-name (probe turn-dupfile.cob)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-dupfile.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.19.3-2",
+    "to": [
+     "GR-7.3.25.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.19",
+    "clause-2023": "7.3.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.3 GR2",
+      "quote": "If exception-name-1 EC-ALL is specified, the effect is as if the same TURN directive were specified containing all exception-names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR2",
+      "quote": "With the exception of EC-I-O-WARNING, if exception-name-1 EC-ALL is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023's carve-out is for EC-I-O-WARNING, a 2023 name that 2002 lacks (refused at --std 2002, COBOL0878), so the 2002 requirement equals 2023's over the 2002 names. But the pointer's evidence (Turn_EcAll_CoversEveryName, AssertSpec at the default edition 2023; unit TurnStateTests, edition-free) does not run at 2002. Probe turn-ecall.cob at --std 2002: under '>>TURN EC-ALL CHECKING ON' EC-SIZE-TRUNCATION, EC-USER-X and EC-BOUND-SUBSCRIPT are all raised: correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-ecall.cob",
+    "widening": null,
+    "scope-2002": [
+     "EC-ALL enables every 2002 exception-name"
+    ],
+    "evidence-2002": {
+     "EC-ALL": "not shown by the pointer at 2002; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-ecall.cob (SIZE, USER, BOUND raised at --std 2002)"
+    },
+    "class": "own-text",
+    "needs": "a 2002 witness for EC-ALL (probe turn-ecall.cob)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-ecall.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.19.3-3",
+    "to": [
+     "GR-7.3.25.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.19",
+    "clause-2023": "7.3.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.3 GR3",
+      "quote": "the effect is as if that TURN directive were specified containing all exception-names that are subordinate to that level-2 exception-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR3",
+      "quote": "With the exception of EC-I-O-WARNING, if exception-name-1 is one of the level-2 exception-names",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only 2023's EC-I-O-WARNING carve-out differs, and EC-I-O-WARNING does not exist in 2002, so EC-I-O at 2002 covers every 2002 EC-I-O child. The pointer's witnesses l1c33_turn_level2_file_name and pb963_turn_file_name_arms (accept: [2002]) run at --std 2002 and match (level-2 name with and without file-name-1); probe turn-level2.cob (EC-SIZE, EC-BOUND enable their children, EC-USER stays off) agrees.",
+    "probe": "E:/COBOL/conformance-suite/cases/7.3.25-TURN/l1c33_turn_level2_file_name.cob",
+    "widening": null,
+    "scope-2002": [
+     "level-2 name enables its subordinates",
+     "level-2 name with file-name-1 applies the file to each subordinate"
+    ],
+    "evidence-2002": {
+     "level-2": "covered by E:/COBOL/conformance-suite/cases/7.3.25-TURN/l1c33_turn_level2_file_name.cob at --std 2002 (MATCH)",
+     "with file-name": "covered by the same and E:/COBOL/conformance-suite/cases/7.3.25-TURN/pb963_turn_file_name_arms.cob at --std 2002 (MATCH)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-7.2.19.3-4",
+    "to": [
+     "GR-7.3.25.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.19",
+    "clause-2023": "7.3.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.3 GR4",
+      "quote": "If specified within a statement, the TURN directive does not apply to that statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR6",
+      "quote": "checking for the exception condition associated with exception-name-1 is enabled for the procedure division statements and procedure division headers that follow",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR5",
+      "quote": "If specified within a statement, the TURN directive does not apply to any phrase of that statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR4 holds the within-statement sentence that 2023 moved to GR5 (and GR6 added the unchecked-condition sentence, which does not touch 2002 programs). The pointer GR-7.3.25.4-6's witnesses run at 2002 (pb1381, pb963, l1c33_turn_level2_file_name, and the pb1365 implied-ON cases all MATCH at --std 2002) but none has a directive inside a statement; that part is GR-7.3.25.4-5's witness l1c33_turn_within_statement (accept: [2002], MATCH at 2002). Reading note: 2002 says the directive 'does not apply to that statement' and does not say whether a statement nested in a phrase of that statement is part of it; the compiler checks the nested statement (2023 GR5's explicit reading). The own 2002 verdict has to decide that reading.",
+    "probe": "E:/COBOL/conformance-suite/cases/7.3.25-TURN/l1c33_turn_within_statement.cob",
+    "widening": null,
+    "scope-2002": [
+     "ON specified or implied enables checking for following statements and headers",
+     "file-name-1 restricts to that file",
+     "within a statement: not that statement",
+     "remains enabled until a TURN OFF"
+    ],
+    "evidence-2002": {
+     "enable / implied ON / headers": "covered by pb1381_turn_at_procedure_header and pb1365_turn_checking_implied_on at --std 2002 (MATCH)",
+     "file-name-1": "covered by pb963_turn_file_name_arms at --std 2002 (MATCH)",
+     "within a statement": "covered through GR-7.3.25.4-5: E:/COBOL/conformance-suite/cases/7.3.25-TURN/l1c33_turn_within_statement.cob at --std 2002 (MATCH)",
+     "until OFF": "covered by pb963_turn_file_name_arms at --std 2002 (MATCH)"
+    },
+    "class": "split-rule",
+    "second-targets": [
+     "GR-7.3.25.4-5"
+    ],
+    "needs": "KEPT to both targets (GR-7.3.25.4-6 and GR-7.3.25.4-5), with the nested-statement reading of 'that statement' signed",
+    "compiler-at-2002": "correct: E:/COBOL/conformance-suite/cases/7.3.25-TURN/l1c33_turn_within_statement.cob at --std 2002"
+   },
+   {
+    "rule-id": "2002-GR-7.2.19.3-6",
+    "to": [
+     "GR-7.3.25.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.19",
+    "clause-2023": "7.3.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.3 GR6",
+      "quote": "If specified within a statement, checking for that statement is not turned off",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR8",
+      "quote": "checking for the exception condition associated with exception-name-1 is disabled for all procedure division statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR5",
+      "quote": "If specified within a statement, the TURN directive does not apply to any phrase of that statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR6 adds 'If specified within a statement, checking for that statement is not turned off', which 2023 dropped from GR8 and covers in GR5. The pointer GR-7.3.25.4-8's witnesses (pb1381, pb963: MATCH at --std 2002) have no OFF inside a statement, nor does GR5's witness (an ON inside a statement). Probe turn-off-within.cob at --std 2002: '>>TURN EC-SIZE CHECKING OFF' inside an ADD leaves that ADD checked (P1 shows EC-SIZE-TRUNCATION), a statement nested in its phrase and the next statement are unchecked: correct, with the same nested-statement reading note as GR4.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-off-within.cob",
+    "widening": null,
+    "scope-2002": [
+     "OFF disables for following statements and headers until ON",
+     "file-name-1 restricts to that file",
+     "within a statement: that statement stays checked"
+    ],
+    "evidence-2002": {
+     "disable until ON": "covered by pb1381_turn_at_procedure_header and pb963_turn_file_name_arms at --std 2002 (MATCH)",
+     "file-name-1": "covered by pb963_turn_file_name_arms at --std 2002 (MATCH)",
+     "within a statement": "not shown by either 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-off-within.cob at --std 2002"
+    },
+    "class": "split-rule",
+    "second-targets": [
+     "GR-7.3.25.4-5"
+    ],
+    "needs": "a 2002 witness for OFF inside a statement (probe turn-off-within.cob), then KEPT to both targets",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/turn-off-within.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.1.2.1-1",
+    "to": [
+     "GR-8.1.3.2-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.1.2.1",
+    "clause-2023": "8.1.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.1.2.1 GR1",
+      "quote": "The implementor shall define a mapping of the basic letters, basic digits, basic special characters, and extended letters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR1",
+      "quote": "The implementor shall define a mapping of each basic letter, basic digit, basic special character, and extended letter",
+      "check": "OK"
+     }
+    ],
+    "reason": "Wording only ('the basic letters' vs 'each basic letter'; NOTES 'may' vs 'can'; ISO/IEC 10646-1 vs 10646). The same implementor mapping (UTF-8/BOM/Latin-1 source decoding) is edition-free. The pointer's witnesses l1_encoding_unmarked_non_utf8_is_latin1, l1_encoding_per_file_bom and pb1402_extended_letters run at --std 2002 and match.",
+    "probe": "E:/COBOL/conformance-suite/cases/A.1-Implementor-defined-language-element-list/l1_encoding_per_file_bom.cob",
+    "widening": null,
+    "scope-2002": [
+     "mapping of the repertoire to the source coded character set(s)"
+    ],
+    "evidence-2002": {
+     "mapping": "covered by l1_encoding_unmarked_non_utf8_is_latin1, l1_encoding_per_file_bom and pb1402_extended_letters at --std 2002 (MATCH)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-8.1.2.1-3",
+    "to": [
+     "GR-8.1.3.2-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.1.2.1",
+    "clause-2023": "8.1.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.1.2.1 GR3",
+      "quote": "Except when used in the non-hexadecimal formats of alphanumeric and national literals, each uppercase COBOL basic letter is equivalent to its corresponding lowercase COBOL basic letter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR3",
+      "quote": "are treated in a case-sensitive manner, unless specific rules require otherwise",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:D.2.1",
+      "quote": "General case mappings are defined such that the length of an identifier is unchanged",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 a) states the same partition as 2023 a): case-insensitive outside the non-hexadecimal literal formats, case-preserved inside them; 2023's 'unless specific rules require otherwise' only admits exceptions 2002 does not have. b) is identical; Annex D (2002) vs Annex C (2023) is a renumbering for the basic letters this rule folds. Witnesses at --std 2002: pb1402_extended_letters MATCH; probe case-fold.cob (CUSTOMER-NAME = Customer-Name, 'MiXeD' kept, X\"4a\" = X\"4A\", national literal case kept).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/case-fold.cob",
+    "widening": null,
+    "scope-2002": [
+     "basic letters case-equivalent in words",
+     "case kept in non-hex alphanumeric/national literals",
+     "hex literal digits case-insensitive",
+     "alphanumeric/national representation equivalence"
+    ],
+    "evidence-2002": {
+     "words": "covered by pb1402_extended_letters at --std 2002 (MATCH) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/case-fold.cob",
+     "literals": "probe case-fold.cob (LIT-CS) at --std 2002",
+     "hex": "probe case-fold.cob (HEX-CI) at --std 2002",
+     "alnum/national": "edition-free fold (unit CobolNameFoldDriftTests)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-8.1.2.1-4",
+    "to": [
+     "GR-8.1.3.2-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.1.2.1",
+    "clause-2023": "8.1.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.1.2.1 GR4",
+      "quote": "Characters identified as special characters in Annex C shall not be written as the first or last character of a user-defined word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR4",
+      "quote": "A character in Annex B is included in the set of extended letters if it exists in the implementor-defined compile-time coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:C.2.1",
+      "quote": "presents the characters identified in Annex A of TR 10176:2001",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR4 b) forbids an Annex C special character (C.2.1 'Special characters' 00B5, 02B0-02B8, 2160-2182 ..., C.2.2 00B7) or a TR 10176 combining character as the FIRST OR LAST character of a user-defined word; 2023 has no such rule (its Annex B.3 only bars non-start characters from the first position). The compiler builds its 2002 table by reversing 2023 Annex E, which restores only the first-position bar: at --std 2002 'µX', '·X', 'ⅠX', 'िक' are refused (COBOL2773) but 'Xµ', 'X·', 'XⅠ', 'कि' (U+093F last) and 'אְ' (U+05B0 last) are accepted. Folding (c) and combining-length (d) match 2023's b) and c); pb1402_extended_letters runs at --std 2002 and matches.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/ext-micro-last.cob",
+    "widening": null,
+    "scope-2002": [
+     "extended letters = Annex C less basic characters, if in the compile-time set",
+     "special character / combining character not first",
+     "special character / combining character not last",
+     "uppercase extended letter folds per Annex D",
+     "combining characters counted separately in word length"
+    ],
+    "evidence-2002": {
+     "repertoire": "covered by pb1402_extended_letters at --std 2002 (MATCH)",
+     "not first": "probes ext-micro-first, ext-middot-first, ext-roman-first, ext-deva-combining-first (COBOL2773 at --std 2002)",
+     "not last": "not shown: probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/ext-micro-last.cob, ext-middot-last.cob, ext-roman-last.cob, ext-deva-combining-last.cob, ext-hebrew-point-last.cob accepted at --std 2002 (defect)",
+     "fold": "covered by pb1402_extended_letters at --std 2002 (CAFÉ/café)",
+     "length": "unit CobolNameFoldDriftTests.WordLength_CountsCharacters_NotUtf16Units (edition-free)"
+    },
+    "class": "own-text",
+    "needs": "a fix (the last-position bar at 2002), then its own verdict",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/ext-micro-last.cob ('01 Xµ PIC X(3) VALUE \"OK\".' then DISPLAY Xµ) compiles and runs at --std 2002, expected a refusal (COBOL2773) per §2002:8.1.2.1 GR4 b); likewise ext-middot-last.cob (U+00B7), ext-roman-last.cob (U+2160), ext-deva-combining-last.cob (U+093F), ext-hebrew-point-last.cob (U+05B0). Site: src/WiseOwl.Cobol.Editions/CobolCharacterRepertoire.cs#Violation and the Edition2014 table (2023 Annex B with Annex E reversed, used for 2002)"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-1",
+    "to": [
+     "SR-8.3.3.2.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.1",
+    "clause-2023": "8.3.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR1",
+      "quote": "shall be less than or equal to 8,191 alphanumeric character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 bounds the length on both sides: at least 1, at most 160. The pointer's row covers the upper bound per edition (pb1615_literal_160_positions MATCH at --std 2002; pb1615_literal_over_160_positions refused COBOL0814 at 2002; LiteralLength_BoundIsTheEditions), but has nothing for the lower bound, since 2023 permits a zero-length literal. Probes at --std 2002: \"\" and '' refused (COBOL0900, the zero-length literal construct gate); 160 positions accepted, 161 refused (COBOL0814): correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/lit-zero.cob",
+    "widening": null,
+    "scope-2002": [
+     "length 0 (refuse)",
+     "length 1..160 (accept)",
+     "length above 160 (refuse)"
+    ],
+    "evidence-2002": {
+     "length 0": "not shown by the pointer; probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/lit-zero.cob and lit-zero-apos.cob (COBOL0900 at --std 2002)",
+     "1..160": "covered by E:/COBOL/conformance-suite/cases/8.3.3.2-Alphanumeric-literals/pb1615_literal_160_positions.cob at --std 2002 (MATCH); probe lit-160.cob",
+     "above 160": "covered by pb1615_literal_over_160_positions (COBOL0814 at --std 2002) and probe lit-161.cob"
+    },
+    "class": "own-text",
+    "needs": "a 2002 witness for the zero-length refusal (probe lit-zero.cob; the zero-length literal construct row's below-2014 leg)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-03/lit-zero.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-2",
+    "to": [
+     "SR-8.3.3.2.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.1",
+    "clause-2023": "8.3.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR2",
+      "quote": "Character-1 may be any character in the coded character set that the implementor has chosen for source code representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR2",
+      "quote": "Character-1 may be any character in the coded character set that the implementor has chosen for source code representation",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but 'NOTE' vs 'NOTE 1'. Format 1 differs only by 2023 making character-1 optional (zero-length), which this rule does not reach. The pointer's witness l1c01_alnum_literal_characters (accept: [85, 2002]) runs at --std 2002 and matches.",
+    "probe": "E:/COBOL/conformance-suite/cases/8.3.3.2-Alphanumeric-literals/l1c01_alnum_literal_characters.cob",
+    "widening": null,
+    "scope-2002": [
+     "any compile-time alphanumeric character in character-1"
+    ],
+    "evidence-2002": {
+     "characters": "covered by E:/COBOL/conformance-suite/cases/8.3.3.2-Alphanumeric-literals/l1c01_alnum_literal_characters.cob at --std 2002 (MATCH)"
+    }
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-03",
+  "cases": [
+   {
+    "rule-id": "2002-GR-7.2.14.3-2",
+    "verdict": "UPHELD",
+    "reason": "General format identical (>>LEAP-SECOND ON|OFF, ON not underlined in either). The 2002 list (ACCEPT TIME, CURRENT-DATE, WHEN-COMPILED) is a strict subset of 2023's (adds FORMATTED-CURRENT-DATE); no 2002 form, CD operand or obsolete element reaches the rule; the implementor determination is edition-free. The pointer's LeapSecondReportedSecondsPinTests carries _2002_ facts (ReportedSeconds_On_2002_..., dialectLevel: 2002), checked in tests/WiseOwl.Cobol.Tests.Conformance/LeapSecondReportedSecondsPinTests.cs:111-128.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.14.3 GR2",
+      "quote": "the implementor defines whether a value greater than 59 may be reported",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.17.4 GR2",
+      "quote": "the implementor defines whether a value greater than 59 may be reported",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.14.3-3",
+    "verdict": "UPHELD",
+    "reason": "Same as GR2: identical format, 2002 sources a subset of 2023's, _2002_ fact ReportedSeconds_SpecifiedOff_2002_... exists. Nothing in 2002 (CD, debugging line, removed form) reaches the seconds value of these three sources.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.14.3 GR3",
+      "quote": "a value greater than 59 shall not be reported in the seconds position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.17.4 GR3",
+      "quote": "a value greater than 59 shall not be reported in the seconds position",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.15.2-1",
+    "verdict": "UPHELD",
+    "reason": "Word-identical but for the hyphen in implementor-defined; same ON|OFF format. The pinned compiler has no listing option at all (cobol.exe --help lists none), so the directive is ignored at every edition; the antecedent of the rule is edition-free.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.15.2 GR1",
+      "quote": "If the compiler does not produce a source listing, the LISTING directive shall be ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.18.3 GR1",
+      "quote": "If the compiler does not produce a source listing, the LISTING directive shall be ignored",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.16.2-1",
+    "verdict": "UPHELD",
+    "reason": "Same format (>>PAGE [comment-text-1]); the referenced clause 6 rule 3b is identical in both editions (2023 only adds the word 'in' before 'the content'). Witness l1c21_page_directive_comment_text has accept: [2002].",
+    "citations": [
+     {
+      "cite": "§2002:7.2.16.2 SR1",
+      "quote": "Comment-text-1 may contain any character in the compile-time computer's coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.19.3 SR1",
+      "quote": "Comment-text-1 may contain any character in the compile-time computer's coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6",
+      "quote": "The implementor shall specify any control characters that terminate a free-form line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.1",
+      "quote": "The implementor shall specify any control characters that terminate a free-form line",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.18.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "The rule defers by name to 6.2 and 6.3, and 'treated as fixed form / free form' in 2002 includes the 2002 debugging lines: the fixed debugging indicator D/d in the indicator area (2002 6.2.7) and the floating debugging indicator >>D in free form (2002 6.3.4). 2023's fixed and free forms (6.3/6.4) have no debugging line at all. So the 2002 rule's scope includes 'after >>SOURCE FORMAT FREE a >>D line is a debugging line; after >>SOURCE FORMAT FIXED a D-indicator line is one', which the 2023 row's witness (pb1067_library_text_source_format) cannot show. Probe srcfmt-debug.cob (fixed D line, switch to FREE, >>D and indented >>D lines, switch back to FIXED, D line, WITH DEBUGGING MODE): at --std 2002 all five debugging lines run (obsolete warnings COBOL0903 only); at --std 2023 the D and >>D lines are refused COBOL0902. srcfmt-nodebug.cob (no DEBUGGING MODE) at 2002 treats them as comments. Compiler at 2002: correct. Needs: a 2002 witness for debugging lines across a SOURCE FORMAT switch (this probe, or pb4298_floating_debugging_free in conformance-suite/cases/_unassigned which starts with >>SOURCE FORMAT FREE).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.18.2 GR1",
+      "quote": "shall be treated as fixed form if FIXED is specified, or as free form if FREE is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "A debugging line is identified by either a fixed debugging indicator or a floating debugging indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "A debugging line may be written as any line in a source unit after the SOURCE-COMPUTER paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.24.3 GR1",
+      "quote": "(See 6.3, Fixed-form reference format, and 6.4, Free-form reference format.)",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-03/srcfmt-debug.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.19.3-3",
+    "verdict": "OVERTURNED",
+    "reason": "The rule defers to the hierarchy of 2002 table 14 (14.5.12.1): the subordinates of a level-2 name are 2002's. 2002 EC-DATA has exactly EC-DATA-CONVERSION, -IMP, -INCOMPATIBLE, -PTR-NULL; 2023's EC-DATA adds EC-DATA-NOT-FINITE and EC-DATA-OVERFLOW (and EC-BOUND, EC-FLOW, EC-OO gain subordinates too). The compiler expands a level-2 name with its 2023 catalog at every edition, so the 2023 verdict does not show the 2002 expansion. Probe turn-data-float.cob: '>>TURN EC-DATA CHECKING ON', FLOAT-LONG 1.0E300 moved to FLOAT-SHORT; at --std 2002 the run unit terminates 'EC-DATA-OVERFLOW (fatal)' citing §2023:14.9.25.4, a condition that does not exist in 2002 and is not subordinate to EC-DATA there; control turn-control-float.cob (TURN EC-SIZE instead) prints [SURVIVED]. Compiler at 2002: wrong (also: 2023 defines EC-DATA-OVERFLOW only for standard floating-point usages, which FLOAT-SHORT is not). Same root as the reader's SR-7.2.19.2-2 finding (ExceptionCatalog entries with no introducing edition).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.3 GR3",
+      "quote": "the effect is as if that TURN directive were specified containing all exception-names that are subordinate to that level-2 exception-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "Based item data-pointer is set to NULL when referenced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR3",
+      "quote": "the effect is as if that TURN directive were specified containing all exception-names that are subordinate to that level-2 exception-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.6",
+      "quote": "Exponent overflow during MOVE to a receiving data item described with a standard floating-point usage",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-03/turn-data-float.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.1.2.1-1",
+    "verdict": "UPHELD",
+    "reason": "Wording only. A mapping requirement on the implementor; the compiler's source decoding (UTF-8/BOM/Latin-1) is edition-free and maps every character. Which characters ARE extended letters in 2002 (Annex C, TR 10176:2001) is GR4's question, which the reader already found DIFFERENT; it does not change what GR1 requires. Extended letters being optional in 2023 (NOTE 3) is moot since the compiler supports them.",
+    "citations": [
+     {
+      "cite": "§2002:8.1.2.1 GR1",
+      "quote": "The implementor shall define a mapping of the basic letters, basic digits, basic special characters, and extended letters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR1",
+      "quote": "The implementor shall define a mapping of each basic letter, basic digit, basic special character, and extended letter",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.1.2.1-3",
+    "verdict": "UPHELD",
+    "reason": "Searched for a 2023 'specific rule' making a non-hex literal case-insensitive that 2002 lacks, and for a 2002 context outside literals that 2023 treats case-sensitively. 2023's exceptions are the COBOL-WORDS directive (2023 only) and the currency symbol, which 2002 already folds by its own rule (12.2.6.3 GR13); 2023 12.3.7 SR20 sends the same equivalence back to 8.1.3 GR3. Picture strings fold in both. No CD-specific or obsolete form reaches the rule.",
+    "citations": [
+     {
+      "cite": "§2002:8.1.2.1 GR3",
+      "quote": "Except when used in the non-hexadecimal formats of alphanumeric and national literals, each uppercase COBOL basic letter is equivalent to its corresponding lowercase COBOL basic letter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR3",
+      "quote": "are treated in a case-sensitive manner, unless specific rules require otherwise",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR13",
+      "quote": "If the currency symbol is a lowercase letter, it is treated as its uppercase equivalent",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-2",
+    "verdict": "UPHELD",
+    "reason": "Rule text and its NOTE are identical; Format 1 differs only by 2023 making character-1 optional (a zero-length literal, which is SR1's matter and the reader's DIFFERENT row). The literal lexer is context-free, so CD or debugging-line context adds nothing. Witness l1c01_alnum_literal_characters has accept: [85, 2002].",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR2",
+      "quote": "Character-1 may be any character in the coded character set that the implementor has chosen for source code representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR2",
+      "quote": "Character-1 may be any character in the coded character set that the implementor has chosen for source code representation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "d1c7fcdf28fa6e28eedcbd7dcb57b5a5436fea41c361e6a22b12c8166593b5d4",
+  "read": "22b2c385a101105a464a690d376062597e528d783075e9651f70c1f26ae6a725",
+  "refute": "07be68c895bbf86811cfabd670c2ba7136cb730c4e9d689cf2a1cd6ad43ac8b9"
+ }
+}

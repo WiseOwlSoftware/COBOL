@@ -105,7 +105,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + "list in parentheses — '(' ')' for none (ISO §2023:8.4.3.2.3 SR5)");
             return BoundExprError.Refused(ctx.Edition, display);
         }
-        return FinishIntrinsic(fc, BindIntrinsicCore(functionWord, ArgsOf(fc.functionArgList())), display);
+        return ArgumentsOf(fc.functionArgList()?.functionArgument() ?? []) is { } written
+            ? FinishIntrinsic(fc, BindIntrinsicCore(functionWord, written), display)
+            : BoundExprError.Refused(ctx.Edition, $"{display} arguments");
     }
 
     /// <summary>ISO §2023:8.4.3.2.3 SR6 — "If a function's definition permits arguments and a left parenthesis
@@ -215,9 +217,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             _ => BoundExprError.Refused(ctx.Edition, $"reference modification of {display}"),
         };
     }
-
-    private static IReadOnlyList<Core.FunctionArgumentContext> ArgsOf(Core.FunctionArgListContext? list) =>
-        list?.functionArgument() ?? [];
 
     /// <summary>FUNCTION call as a MOVE sending operand (the <c>BindMove</c> hook) — and the operand shape every
     /// general-operand channel shares: the bound expression wrapped as a <see cref="BoundComputedOperand"/> (a
@@ -576,8 +575,50 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + "none of them (ISO §2023:8.4.3.2.3 SR8)");
             return null;
         }
-        return args;
+        return ArgumentsOf(args);
     }
+
+    /// <summary>⛔ THE ARGUMENTS AS THE DECLARATIONS READ THEM (kb/Work PB5781), for both function-identifier forms: the
+    /// parse's items, with each '(' that a name which cannot be subscripted could not own given to the NEXT argument by the
+    /// ONE list reader the subscript list uses (<see cref="SubscriptBinder.GiveAwayClosingList"/>, kb/Work PB136). An
+    /// argument list separates its arguments by a space (§2023:8.3.5 SR1), so the parse hung the paren of
+    /// <c>FUNCTION MIN (A (- B))</c> on <c>A</c> as a subscript; A is no table, so the paren begins the second argument,
+    /// the reading §1985:VI.6.2.3 SR4 prescribes ("it must be immediately preceded by a left parenthesis if that
+    /// arithmetic expression immediately follows an identifier"). The first argument is then read without the list
+    /// (<c>ReferenceResolver.ReadWritten</c>), and the second is the list's expression. A list given away that holds no
+    /// expression — none, several, a literal in parentheses — is no argument (§2023:8.4.3.2.3 SR8): null after the
+    /// diagnostic. With nothing given away the parse's own list is returned, allocating nothing.</summary>
+    private IReadOnlyList<Core.FunctionArgumentContext>? ArgumentsOf(IReadOnlyList<Core.FunctionArgumentContext> written)
+    {
+        List<Core.FunctionArgumentContext>? read = null;
+        for (int i = 0; i < written.Count; i++)
+        {
+            var arg = written[i];
+            if (SubscriptBinder.GiveAwayClosingList(arg, ctx.Refs.Subscripts.CannotBeSubscripted, out var given)
+                is not SubscriptBinder.ListCut.GivenAway)
+            {
+                read?.Add(arg);
+                continue;
+            }
+            read ??= [.. written.Take(i)];
+            read.Add(arg);
+            if (SubscriptBinder.GivenAwayOperand(given!) is not { } next)
+            {
+                using var _ = ctx.Edition.At(given!);
+                ctx.Edition.Error(DiagnosticCatalog.FunctionKeywordOrArgumentListForm,
+                    $"'{DataBinder.WrittenText(given!)}' follows '{WrittenBefore(arg, given!)}', "
+                    + "on which no subscript may be written (ISO §2023:8.4.2.3.3 SR2), so it begins the next argument — and an "
+                    + "argument written in parentheses is an arithmetic or a boolean expression, which this is not (ISO §2023:8.4.3.2.3 SR8)");
+                return null;
+            }
+            read.Add(next);
+        }
+        return read ?? written;
+    }
+
+    /// <summary>The source text of <paramref name="arg"/> written before <paramref name="list"/>, the list given away.</summary>
+    private static string WrittenBefore(Core.FunctionArgumentContext arg, Core.SubscriptPartContext list) =>
+        arg.Start.InputStream.GetText(new Antlr4.Runtime.Misc.Interval(arg.Start.StartIndex, list.Start.StartIndex - 1)).Trim();
 
     /// <summary>Bind one FUNCTION reference from its name + argument parse trees (shared by the FUNCTION-keyword
     /// entry, the keyword-omitted re-parse, and — through <c>BindExpr</c>'s <c>BindPrimary</c> — every nested
@@ -1634,6 +1675,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // §2023:8.4.3.3 — a ref-mod view with a LITERAL length has that static width, and so has one whose length is omitted
         // over an identifier-1 of static length with a literal leftmost position (the positions from the leftmost to the end,
         // §2023:8.4.3.3.4 GR5 c; kb/Work PB5425); a computed position is genuinely runtime.
+        // A table(ALL) argument is its element as a static classifier sees it (TableAllPlace's own contract; kb/Work PB5833), so
+        // `N-EL (ALL) (1:1)` has the reference-modified element's width, not the numeric element's.
+        BoundFieldOperand { Place: TableAllPlace all } => KnownWidth(new BoundFieldOperand(all.Element)),
         BoundFieldOperand { Place: RefModPlace rm } => rm.StaticLength(rm.StaticInnerPositions),
         // A function-identifier whose definition fixes its returned value's length (IntrinsicSig.Length; kb/Work PB5425).
         BoundComputedOperand { Expr: BoundIntrinsicCall call } => ResultWidth(call),

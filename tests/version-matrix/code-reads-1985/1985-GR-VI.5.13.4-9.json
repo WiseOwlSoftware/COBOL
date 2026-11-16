@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.5.13.4-9",
+ "rule-digest": "f0d6252d12e8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-104",
+  "sources": {
+   "reader": "38386c3b3a5afa062d572540c91c70d6783456cf167724d067ed6ba2b5cf36b4",
+   "refuter": "542afc9d803bd3729493fa432f509edf47182342e2d842e9e573eab2d9152cec"
+  },
+  "imported": {
+   "reader": "be7bcf2c51222b5825669dc17a9ac949433e075865823476905b883aa5943d75",
+   "refuter": "250d0f61e7155749ec4a7ad91f7d0ef9fe672e5d1f63b78ba2e75cbab8839f55"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.13.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the implementor may choose automatic alignment for internal (non-DISPLAY) formats, but must never auto-align a DISPLAY item within a record. The record itself may be synchronized. So a DISPLAY item in a record, whether in WORKING-STORAGE or a file record, sits at the next character position. WiseOwl takes no automatic alignment for any usage (DOC-A.1-195).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; docs/conformance/7/DOC-A.1-195.md",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "SYNCHRONIZED written on a group entry: refused COBOL0900 below 2023 (Constructs.SyncOnGroup2023), accepted at 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of every read of DataItem.Synchronized ('.Synchronized', 'Synchronized is', 'Synchronized ==') across src/: only binder screens, StrongTypeModel type-equivalence, RepositoryCodec/Reader and RepositoryAttributeRenderer read it; no layout, emitter or runtime member does. grep of DialectLevel|Edition.|CobolVersion|ConstructRegistry|DialectBehavior in Model/PicInfo.cs and Model/DataItem.cs: none on SignKindFor, ByteForm, StorageWidth, Truncation, ElementaryByteWidth or ByteWidth. The record width computation has no alignment step at any edition.",
+  "behaviour-differs-by-edition": "no: identical layout and file bytes at 85 and 2023 (gr9a stdout identical)",
+  "witnesses-cover": "part: g85_bf04_02 covers WORKING-STORAGE DISPLAY and BINARY groups; it does not cover a file record (external media), packed-decimal neighbours, or an elementary 01 record with SYNC",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr9a.cob",
+    "printed": "R1LEN=0010 D1LEN=0007 S1=-00007 S1LEN=0002 RB=-00300 RC=042 RE=q RD=-12345 K4=042 K1=p K10=q; gr9a.dat bytes 70 fe d4 30 34 32 12 34 5d 71",
+    "expected": "DISPLAY items are not aligned within a record: the sequential file record is X(1)+COMP(2)+9(3)+PACKED S9(5)(3)+X(1) = 10 bytes with no padding, and the DISPLAY-only group is 7. An elementary 01 SYNC record is accepted (the record itself may be synchronized)."
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr6c.cob",
+    "printed": "error COBOL0900: SYNCHRONIZED on a group item requires COBOL-2023",
+    "expected": "a group-level SYNC record is refused at 85 (§1985:VI.5.13.3 SR1); only an elementary record may carry SYNC"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.4 GR9",
+    "check": "OK  §1985:VI.5.13.4 GR9  (5.13.4 General Rules)  the text is in GR9"
+   }
+  ],
+  "notes": "GR9 forbids one thing, automatic alignment of DISPLAY items within a record, and the implementation aligns nothing at all. The written sequential record proves there is no padding on the external media. A failed OPEN or READ is not reachable by this rule, so class e was probed only through a successful WRITE and READ.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "gr9a prints identical output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.13.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "GR9 forbids only automatic alignment of DISPLAY items within a record; the width ladder (PicInfo.StorageWidth, DataItem.ByteWidth) has no alignment step at any edition. Probe r6.cob: the FD record (elementary 01 PIC S9(5) SYNC, 'the record itself may be synchronized') is accepted and written as 5 unpadded bytes; WORKING-STORAGE DISPLAY items after an X(1) sit at the next position (A1 image). cite.py: OK  §1985:VI.5.13.4 GR9  (5.13.4 General Rules)  the text is in GR9.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

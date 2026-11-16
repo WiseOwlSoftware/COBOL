@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-7",
+ "rule-digest": "87cccc38bced",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#OperandUnresolved; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call08_operand_sections; conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call12_returning_report_refused",
+ "notes": "§2002:14.8.4.2 SR7: a RETURNING identifier-3 in each of the file, working-storage, local-storage, linkage and communication (CD record) sections receives the result (§2002:14.8.4.3 GR4) across Formats 1-3; --std 2002 run matched all 16 derived lines. RETURNING a report-section sum counter refused COBOL1677 at the CALL line."
+}

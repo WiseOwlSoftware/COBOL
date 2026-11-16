@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-2",
+ "rule-digest": "646a12dc1caa",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-115",
+  "sources": {
+   "reader": "69c771359a168cf7d7cc8744a6c562d623513d60aa5edacc3cf3ab03cbabd784",
+   "refuter": "03f03007c1fc0a432010088b88914ea4e7c24ae81d905af2465248e3baa89d09"
+  },
+  "imported": {
+   "reader": "897e28af631ee6516a33fb6c5a08d2152573c64ec511ce3e90eb736580a1b7ef",
+   "refuter": "931109091fc5a987434c0d9c71830b3d4fcf4d9bed372994c3fd808d37d9f83e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.27.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the item referenced by identifier-1 (an elementary alphanumeric item, a group item of any shape including one with an OCCURS DEPENDING ON table, a subscripted item, or an alphanumeric function under Amendment 1) is the area examined and split; its whole current image is the sending area, and its examination size is its current size.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrSender; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#UnstringSenderCategory; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#strUnstrSender; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#SenderText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#IdentifyOperands; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
+    "switches": "a reference-modified sending operand (data-name, function or inline invocation) is the construct unstring-sender-reference-modified-2002: refused COBOL0900 below 2002 (§1985:VI.6.27.3 SR7), accepted at 2002+",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Beyond the reference-modification gate: grep -i 'edition|version|dialect|DialectLevel' over StringUnstringBinder.cs, StringEmitter.cs, CobolStringOps.cs, OperandText.cs, FigurativeConstants.cs; grep -i 'unstring|delimit' over ConstructRegistry.g.cs and VersionConformancePass.cs. The binder's ctx.Edition uses are BoundRejected.Report/BoundOperandError.Report (the diagnostic channel, fixed EditionSeverity.Error) and ctx.Edition.At (the diagnostic cursor); neither switches behaviour. The only UNSTRING construct gate is unstring-sender-reference-modified-2002 (the sender, not this rule).",
+  "behaviour-differs-by-edition": "yes: only the admissible spelling of identifier-1 differs (reference modification refused at 85, legal from 2002); the sending-area semantics are the one emitter path at every edition",
+  "witnesses-cover": "part: da4 covers only a function sender; a group sender, an ODO group sender at two extents, a subscripted sender whose subscript the statement stores into, and POINTER at the last position and past the end are not exercised",
+  "probes": [
+   {
+    "class": "a,d,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/gr2a.cob",
+    "printed": "E1 [AB  ][CD  ][EF  ] / G1 [PQ12][RS  ] / V3 [a   ][bc  ][d   ] 03 / V2 [a   ][bc  ][    ] 02 / S1 I=3 [44  ] / N1 [ABCD] 0042 P=09 / NOVF / P11 [H   ] P=12 / OVF12 / P12 [zzzz] P=12 (MATCH)",
+    "expected": "GR2: a group's whole image (numeric leaf included), an ODO group at its current extent (6 then 4 characters), TE(I) identified once so the second field comes from TE(2) after I was stored; GR13a and GR17a pointer bounds"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/rf_num.cob; rf_alpha.cob; rf_edit.cob; rf_fnnum.cob",
+    "printed": "COBOL1651 sender 'SN' is category numeric; 'SA' category alphabetic; 'SE' category alphanumeric-edited; FUNCTION ORD category Numeric (plus COBOL1627)",
+    "expected": "§1985:VI.6.27.3 SR2: identifier-1 must be category alphanumeric; §1985:IV.4.3.8.3.3 SR3: only an alphanumeric function"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/rf_refmod.cob; rf_lit.cob",
+    "printed": "COBOL0900 a reference-modified UNSTRING sending operand requires COBOL-2002 (targeting COBOL-85); literal sender: COBOL5506 no literal is expected at this position",
+    "expected": "§1985:VI.6.27.3 SR7 refuses reference modification of identifier-1; the format admits an identifier only"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/ok_fn.cob",
+    "printed": "[ DC ][BA  ]",
+    "expected": "FUNCTION REVERSE(\"AB,CD \") = \" DC,BA\" is the sending area (Amendment 1 alphanumeric function)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR2",
+    "check": "OK  §1985:VI.6.27.4 GR2  the text is in GR2 (quoted: \"represents the sending area\")"
+   },
+   {
+    "cite": "§1985:VI.6.27.3 SR2",
+    "check": "OK  §1985:VI.6.27.3 SR2  the text is in SR2 (quoted: \"must reference data items described, implicitly or explicitly, as category alphanumeric\")"
+   },
+   {
+    "cite": "§1985:VI.6.27.3 SR7",
+    "check": "OK  §1985:VI.6.27.3 SR7  the text is in SR7 (quoted: \"Identifier-1 must not be reference modified\")"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR3",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR3  the text is in SR3 (quoted: \"may be specified anywhere in the general formats that an identifier is permitted\")"
+   }
+  ],
+  "notes": "StringEmitter.SenderText reads the sender's image after IdentifyOperands has frozen its subscripts, and an ODO group renders at its current extent. At --std 85 the diagnostics quote the §2023 wording ('or national'), which affects only the message text. GR21 leaves overlap of identifier-1 with a receiver undefined, so the emitter's in-place re-read (LiveReads) is not judged here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-115/src, run with run_case.py --std 85. u2.cob: group senders whose image holds a PACKED-DECIMAL S999 (2 bytes), a BINARY S9(4) (2 bytes) and a SIGN TRAILING SEPARATE S99 (3 chars) leaf, DELIMITED BY \"C\": COUNT IN 04 / 04 / 05 and R1 [AB05-], so the sending area is the storage image, not a rendering of the leaf's value (LEN 06 06 07). u4.cob: a 66 RENAMES RA THRU RB sender gives [AB] 02. k_1: PIC N sender refused COBOL0900 (national requires 2002); k_2: FUNCTION TRIM sender refused COBOL1502; k_5: FUNCTION CURRENT-DATE sender (Amendment 1 alphanumeric function) DELIMITED BY \"1\" gives [2026]. The reader's ODO, subscript and refmod probes stand. cite.py: OK §1985:VI.6.27.4 GR2 (\"represents the sending area\"); OK §1985:VI.6.27.3 SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

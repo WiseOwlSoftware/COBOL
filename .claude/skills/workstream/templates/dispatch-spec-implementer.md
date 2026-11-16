@@ -34,7 +34,8 @@ LSP DIAGNOSTICS (P13, owner 2026-10-01): act on every diagnostic the language se
 {body}
 
 ⛔ RE-PROBE FIRST, EVERY NOTE, on YOUR build (`dotnet build WiseOwl.Cobol.sln -c Debug`, expect 0/0): the note's repro path when it carries one, else a
-`cobol` program you write, run with your own `src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe`; paste the output. A note was written against an older tree and its
+`cobol` program you write, run on your own build through `python scripts/orchestrator/run_probe.py --root <your Scratch directory>\runs --std <edition> --tree <your worktree> <program.cob>`
+(MANDATORY-PRACTICES P17: each run a new directory outside every git tree; never a recursive delete of a path that holds a variable); paste the output. A note was written against an older tree and its
 word is not evidence: do not re-derive what it measured, but DO re-run every probe. A note that no longer reproduces is re-verdicted and
 reported DISCHARGED with the evidence (find the landing that fixed it with `git log -S`) — a real outcome, not a failure.
 

@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-X.4.5.4-4",
+ "rule-digest": "a6fcb16296e8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-140",
+  "sources": {
+   "reader": "6b022913011a7954552e476d1ae0c92653e5f48c9f52fe81a4aeeede9db9996b",
+   "refuter": "935017612894b9e3812a77af1bb77f4690a6005610d5a6c20117a4126c77cf1d"
+  },
+  "imported": {
+   "reader": "9268b2fd89177c32e79358ccb6157cf0b8a0de5ebec5d262b58e3a4bda8ac3bf",
+   "refuter": "b7888e8ba92bc421e02e494b3f810eab83aa8a99949c8da449c88f5b7aca0b1a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.4.5.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an FD with the EXTERNAL clause must denote the one external file connector of the run unit, shared by every program that describes the file EXTERNAL, for sequential, relative and indexed organizations, unaffected by CALL, exit and CANCEL of a describing program, while a non-EXTERNAL file of the same assignment stays a separate internal connector.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#ShareAdvancing; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "is2023 (FILE STATUS and LINAGE items must be external, 2023 only); DialectLevel < 2002 runs CheckFileDescriptions, otherwise CheckFormat; cited clause chosen per edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register",
+    "switches": "the connector records the edition (for status-code rules); the ::EXT:: sharing branch does not consult it",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: only the compile-time agreement checks differ (2023 also requires an external FILE STATUS item); the single shared connector is the same at every edition",
+  "witnesses-cover": "part: g85_bf24_05 covers a sequential file between a program and its contained program; not exercised there: separately compiled describers, relative and indexed files, a CANCEL of a describer, a failed OPEN seen from another describer, an internal file of the same assignment",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-140/p6c_extfile.cob",
+    "printed": "MAIN OPEN 00 00 00 / OPEN MISSING 35 / SEP1 WRITE EF 00, RLF 00, XF 00, READ MISSING 47, WRITE INTERNAL 48 / CANCEL P6SEP / SEP1 WRITE EF 00, RLF 22, XF 22, READ MISSING 47, INTERNAL 48 / MAIN CLOSE 00 00 00 / R1 SEP-01 R2 SEP-01 / XK2 23",
+    "expected": "connectors opened in P6MAIN are open in separately compiled P6SEP (00) and stay open across its CANCEL (X.5.2.4 GR8, X.2.4.1 GR2 covers only internal connectors); duplicate key 22 on the shared relative and indexed connectors; the failed OPEN leaves the shared connector closed (47); the internal IF1 is a separate unopened connector (48)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/X.4.5@1985-EXTERNAL-CLAUSE/g85_bf24_05.cob",
+    "printed": "EXPECT: MATCH (... SUB-R2=SUB-WRT-02 / MAIN-CLOSE=00)",
+    "expected": "one connector between program and contained program"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.5.4 GR4",
+    "check": "OK  §1985:X.4.5.4 GR4  (║4.5.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:X.5.2.4 GR8",
+    "check": "OK  §1985:X.5.2.4 GR8  (5.2.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "FileRegistry.Register keeps an existing ::EXT:: connector for every later describer, so all describers share one; CancelNode's CloseFiles closes only internal connectors. All probes matched. The first probe draft used RF, a 1985 reserved word (Report Writer), and was refused correctly.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.4.5.4-4",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Aimed at an external FD described in a program contained in an INITIAL program, which the INITIAL call resets each time (X.2.4.2 GR4) while the external connector must stay open (X.2.4.1 (2) covers only internal connectors; X.5.2.4 GR8). r3_extfileinit.cob at --std 85: 'IN OPEN 00 / IN WRITE 00 CNT=1' x3 (only the first call opens; the internal state is initial each time; WRITE succeeds on the still-open external connector), 'MAIN CLOSE 00' in the separately compiled describer, then 'MAIN READ 00 WRT-01' x3 and 'EOF ... 10'. r12_ext_later.cob: FD EXTERNAL AS refused at 85 (COBOL0900). cite.py: 'OK  §1985:X.4.5.4 GR4 ... the text is in GR4'; 'OK  §1985:X.5.2.4 GR8 ... the text is in GR8'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

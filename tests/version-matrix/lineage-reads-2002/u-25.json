@@ -1,0 +1,1581 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-25 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-25",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.24.3-2",
+   "2002-GR-14.8.24.3-6",
+   "2002-SR-14.8.25.2-4",
+   "2002-GR-14.8.25.3-3",
+   "2002-GR-14.8.25.3-4",
+   "2002-SR-14.8.26.2-7",
+   "2002-GR-14.8.26.3-10",
+   "2002-GR-14.8.26.3-11",
+   "2002-GR-14.8.26.3-14",
+   "2002-GR-14.8.26.3-15",
+   "2002-GR-14.8.26.3-16",
+   "2002-GR-14.8.26.3-18",
+   "2002-GR-14.8.26.3-2",
+   "2002-GR-14.8.26.3-21",
+   "2002-GR-14.8.26.3-23",
+   "2002-GR-14.8.26.3-3",
+   "2002-GR-14.8.26.3-8",
+   "2002-GR-14.8.26.3-9",
+   "2002-GR-14.8.27.3-10",
+   "2002-GR-14.8.27.3-11",
+   "2002-GR-14.8.27.3-3",
+   "2002-GR-14.8.27.3-4",
+   "2002-GR-14.8.27.3-7",
+   "2002-GR-14.8.27.3-8",
+   "2002-SR-14.8.28.2-1"
+  ],
+  "pointers": {
+   "2002-GR-14.8.24.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.25.4-4",
+    "similarity": 0.964
+   },
+   "2002-GR-14.8.24.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.25.4-11",
+    "similarity": 0.998
+   },
+   "2002-SR-14.8.25.2-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.26.3-4",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.25.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.26.4-3",
+    "similarity": 0.951
+   },
+   "2002-GR-14.8.25.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.26.4-4",
+    "similarity": 0.92
+   },
+   "2002-SR-14.8.26.2-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.27.3-9",
+    "similarity": 0.996
+   },
+   "2002-GR-14.8.26.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.27.4-12",
+    "similarity": 0.96
+   },
+   "2002-GR-14.8.26.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.27.4-13",
+    "similarity": 0.985
+   },
+   "2002-GR-14.8.26.3-14": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.27.4-16",
+    "similarity": 0.977
+   },
+   "2002-GR-14.8.26.3-15": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.27.4-17",
+    "similarity": 0.916
+   },
+   "2002-GR-14.8.26.3-16": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.27.4-18",
+    "similarity": 0.971
+   },
+   "2002-GR-14.8.26.3-18": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.27.4-1",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.26.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.27.4-4",
+    "similarity": 0.969
+   },
+   "2002-GR-14.8.26.3-21": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.27.4-22",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.26.3-23": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.27.4-24",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.26.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.27.4-5",
+    "similarity": 0.996
+   },
+   "2002-GR-14.8.26.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.27.4-10",
+    "similarity": 0.981
+   },
+   "2002-GR-14.8.26.3-9": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.27.4-11",
+    "similarity": 0.981
+   },
+   "2002-GR-14.8.27.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.28.4-1",
+    "similarity": 0.984
+   },
+   "2002-GR-14.8.27.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.28.4-2",
+    "similarity": 0.933
+   },
+   "2002-GR-14.8.27.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.28.4-5",
+    "similarity": 0.993
+   },
+   "2002-GR-14.8.27.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.28.4-6",
+    "similarity": 0.994
+   },
+   "2002-GR-14.8.27.3-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.28.4-9",
+    "similarity": 0.999
+   },
+   "2002-GR-14.8.27.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.28.4-10",
+    "similarity": 0.989
+   },
+   "2002-SR-14.8.28.2-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.29.3-1",
+    "similarity": 1.0
+   }
+  }
+ },
+ "read": {
+  "slice": "u-25",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.24.3-2",
+    "to": [
+     "GR-14.9.25.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24.3 GR2 (MOVE)",
+    "clause-2023": "14.9.25.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "elementary vs non-elementary move classification; bit/national groups as elementary; group move as alphanumeric with no conversion, in file, WS, LS, linkage",
+     "group moves whose sending or receiving group is a record under a CD (communication section)"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb430_gr4_no_conversion, move_group_overpunch, pb943_group_sender_conversions, pb3512_group_sender_national_bit_slice, pb3563_renames_thru_numeric_leaf_characters: all MATCH at --std 2002 (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))",
+     "CD": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob at --std 2002: G1=ABC123XY (literal to CD record), G2=ABC123XY  | (CD group to X(10)), G3=042| (CD group to WS group, no conversion)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.3 GR2",
+      "quote": "Any move that is not an elementary move is treated exactly as if it were an alphanumeric to alphanumeric elementary move",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.4 GR4",
+      "quote": "Any move that is not an elementary move, and does not reference a variable-length group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats identical. 2023 only adds variable-length groups and message-tag subordinates (2023-only data). The referenced OCCURS GR8 is the same rule (2002 'variable-length data item', 2023 'occurs-depending group item'). In 2002 a group operand may be a record under a CD, which the 2023 row cannot witness; the probe shows the compiler handles it as the rule says.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob",
+    "widening": "variable-length groups and message-tag items (2023-only) are additions",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a group MOVE whose operand is a CD record (cdgrp.cob G1-G3)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.24.3-6",
+    "to": [
+     "GR-14.9.25.4-11"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24.3 GR6 (MOVE CORRESPONDING), with 14.6.5",
+    "clause-2023": "14.9.25.4 GR11, with 14.7.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "MOVE CORR between alphanumeric, bit, national and strongly-typed groups, pairs selected per 14.6.5, subscripts evaluated once",
+     "identifier-3 / identifier-4 that are records under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb391_corresponding_rule2_rule4_categories, pb391_corresponding_rule2_table16_85, pb391_corresponding_rule2_sr8_binary: MATCH at --std 2002; pb391_corresponding_rule2_sr9_varlen is refused at 2002 (DYNAMIC LENGTH, 2014+) and covers only a 2014+ case (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))",
+     "CD": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob at --std 2002: C1=XY00123Q (CD record to WS), C2=ABC077PQ (WS to CD record)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.3 GR6",
+      "quote": "Data items within identifier-3 are selected to be moved to selected data items within identifier-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.4 GR11",
+      "quote": "Data items within identifier-3 are selected to be moved to selected data items within identifier-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "Neither data item contains an OCCURS, REDEFINES, or RENAMES clause or is of class index, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 identical; 2002 14.6.5 and 2023 14.7.6 have the same six correspondence rules apart from 2023's variable-length groups and message-tag (2023-only). A CD record is a legal D1/D2 in 2002 and is outside the 2023 row's reach; the probe shows correct pairing both ways.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob",
+    "widening": "2023 14.7.6 adds variable-length groups and message-tag (2023-only)",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for MOVE CORR with a CD record operand (cdgrp.cob C1, C2)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.25.2-4",
+    "to": [
+     "SR-14.9.26.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.25.2 SR4 (MULTIPLY), deferring to 14.6.6 rule 2",
+    "clause-2023": "14.9.26.3 SR4, deferring to 14.7.7 rule 2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "native-arithmetic MULTIPLY: composite of ALL operands <= 31 digits, excluding only intrinsic functions and binary-char..double / float-short/long/extended items (2002 14.6.6 rule 2)",
+     "a floating-point numeric literal operand COUNTS in the 2002 composite (2002 has floating-point literals, 8.3.1.2.2.2; 14.6.6 does not exclude them)",
+     "operands that are communication-section items"
+    ],
+    "evidence-2002": {
+     "fixed-point operands": "covered by l1c19-multiply-composite-giving-counted (refusal, COBOL0805 at --std 2002 as at 2023)",
+     "floating-point literal operand": "NOT conforming: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/float-comp.cob is accepted at --std 2002 (W=00002.00000); the 2002 composite is 5 + 28 = 33 digits",
+     "CD operand": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/neg-comp-cd.cob refused COBOL0805 at 2002 (32 digits); E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob M1 (30 digits) accepted"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.25.2 SR4",
+      "quote": "the composite of operands described in 14.6.6, Arithmetic statements, is determined by using all of the operands in the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.26.3 SR4",
+      "quote": "the composite of operands described in 14.7.7, Arithmetic statements, is determined by using all of the operands in the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "When none of the operands is an intrinsic function or a data item described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, the composite of operands shall not contain more than 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.7",
+      "quote": "or of a standard floating-point usage; or a floating-point literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.2.2",
+      "quote": "The significand shall be 1 through 31 digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "a warning mechanism that optionally can be invoked by the user at compile time to indicate violations of the general formats and the explicit syntax rules",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words, but the deferral target changed: 2023 14.7.7 rule 2 (and 2014's) excludes floating-point literals and standard floating-point usages from the composite; 2002 14.6.6 rule 2 excludes neither literal. StatementValidation.CheckComposite excludes a floating-point literal unconditionally (cites §2023), so at --std 2002 an over-31 composite through a float literal is silently accepted.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/float-comp.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 the composite shall count a floating-point literal; the compiler accepts float-comp.cob (defect), and handles CD operands correctly",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/float-comp.cob): program MULTIPLY 1.0000000000000000000000000001E0 BY W, W PIC 9(5)V9(5); expected a diagnostic (composite 33 > 31, §2002:14.6.6 rule 2a with §2002:14.8.25.2 SR4; §2002:3.1.1 requires the warning mechanism); observed: compiles and runs, W=00002.00000, exit 0. Site: src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite (BoundNumLiteral arm, IsFloatingPointForm exclusion not edition-gated). Siblings: ADD, SUBTRACT, DIVIDE share CheckComposite."
+   },
+   {
+    "rule-id": "2002-GR-14.8.25.3-3",
+    "to": [
+     "GR-14.9.26.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.25.3 GR3 (MULTIPLY, standard arithmetic)",
+    "clause-2023": "14.9.26.4 GR3 (standard-decimal / standard-binary)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "MULTIPLY formats 1 and 2 under ARITHMETIC IS STANDARD: product per 8.8.1.3.4, exact product truncated to 32 significant digits",
+     "operands that are communication-section items"
+    ],
+    "evidence-2002": {
+     "standard arithmetic": "not shown by the 2023 row: its witness l1c19_multiply_standard_decimal is refused at --std 2002 (COBOL0900, STANDARD-DECIMAL is 2014+). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/std-mult.cob at 2002: X=0006.000, Y=0010 Z=0008 (basic values right); the 32-digit truncation is kb/Work PB5575's, not re-derived here",
+     "CD operands": "not separately probed under STANDARD; native CD MULTIPLY shown by probes-q-28/cd-move-mult.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.25.3 GR3",
+      "quote": "When format 1 or 2 is used and standard arithmetic is in effect, the product equals the result of the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.26.4 GR3",
+      "quote": "When format 1 or 2 is used and standard-decimal, or standard-binary arithmetic is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.4",
+      "quote": "The result shall be the exact product truncated to 32 significant digits",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words differ: 2002 has one standard arithmetic (the 32-digit model of 8.8.1.3), 2023 names standard-decimal and standard-binary. The pointer's witness cannot run at 2002, so nothing in the row shows the 2002 rule. Known defect PB5575 (2002 standard arithmetic on the 34-digit model) reaches this rule: its run-time arm (bb0c8648e1) is on main but not in the pinned tree (24372b7b17), and its witness pb5575-rt-std-arith-32-digit-truncation has no MULTIPLY.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/std-mult.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for MULTIPLY under ARITHMETIC IS STANDARD showing the 32-digit truncation (after PB5575)",
+    "compiler-at-2002": "wrong per known kb/Work PB5575 on the pinned compiler (34-digit model); basic values right (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/std-mult.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.25.3-4",
+    "to": [
+     "GR-14.9.26.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.25.3 GR4 (MULTIPLY, references)",
+    "clause-2023": "14.9.26.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "MULTIPLY under 14.5.12.2 incompatible data, 14.6.3 ROUNDED, 14.6.4 SIZE ERROR, 14.6.6 arithmetic statements (2002: composite counts float literals; single 32-digit standard arithmetic) and 14.5.9 overlapping operands"
+    ],
+    "evidence-2002": {
+     "ROUNDED, SIZE ERROR, multiple receivers (native)": "covered by phrase_order_arithmetic (MATCH at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/mult-phrases.cob at 2002 (R1=0004 R2=0003, S1=SIZE A=0099, S2=NOT, G=0006 0006); pb1143 is refused at 2002 (ROUNDED MODE, 2014+)",
+     "14.6.6 at 2002": "composite through a float literal NOT conforming (float-comp.cob); standard arithmetic per PB5575",
+     "14.5.9": "no evidence needed: 2002 leaves same-entry overlap undefined where no statement rule speaks, which a defined result satisfies"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.25.3 GR4",
+      "quote": "14.6.6, Arithmetic statements; and 14.5.9, Overlapping operands",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.26.4 GR4",
+      "quote": "14.7.5, SIZE ERROR phrase and size error condition; and 14.7.7, Arithmetic statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.9",
+      "quote": "If there are no specific rules addressing such overlapping operands, the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.10",
+      "quote": "the result of the statement is the same as if the data items shared no part of their respective storage areas",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule defers to clauses whose 2002 text differs: 2002 14.6.6 (one standard arithmetic; composite without the float-literal exclusion) and 2002 14.5.9 (same-entry overlap undefined, 2023 14.6.10 defines it; the 2002 case is weaker, so not a gap). The 2023 row's run witness pb1143 does not compile at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/mult-phrases.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 ROUNDED/SIZE ERROR correct (mult-phrases.cob); 14.6.6 arms wrong via the SR4 float-literal defect and PB5575",
+    "compiler-at-2002": "wrong through the deferred 14.6.6 (float-comp.cob defect; PB5575); the phrase references correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/mult-phrases.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-7",
+    "to": [
+     "SR-14.9.27.3-9"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "14.8.26.2 SR7 (OPEN)",
+    "clause-2023": "14.9.27.3 SR9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN I-O of a file whose FD has a FORMAT clause is refused (FORMAT is a required 2002 element; only Annex A is optional in 2002)"
+    ],
+    "evidence-2002": {
+     "OPEN I-O of a FORMAT file": "pinned compiler refuses the program for another reason: COBOL1705 declines the FORMAT clause itself at every edition (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/p/format_file_opened_i_o.cob, exit 65 at 2002 and 2023). Main (fdf24ec5bc, kb/Work PB5578, not in the pinned 24372b7b17) implements FORMAT and its witness conformance-suite/wiseowl/cases/14.9.27-OPEN-STATEMENT/format_file_opened_i_o (rules list the 2002 id) expects COBOL7342 with refuse-at [2002, 2014, 2023]: not observed by me"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR7",
+      "quote": "The I-O phase shall not be specified if the FORMAT clause is specified in the file description entry for file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR9",
+      "quote": "The I-O phrase shall not be specified if the FORMAT clause is specified in the file description entry for file-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement ('phase' is 2002's typo for phrase) over the same OPEN format. Whether the evidence holds at --std 2002 cannot be seen with the pinned compiler, which predates PB5578 and refuses with COBOL1705 instead of the rule's own diagnostic.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/p/format_file_opened_i_o.cob",
+    "widening": null,
+    "needs": "run conformance-suite/wiseowl/cases/14.9.27-OPEN-STATEMENT/format_file_opened_i_o at --std 2002 with a compiler built at or after fdf24ec5bc and see COBOL7342; then SAME",
+    "compiler-at-2002": "not probed at a build that has FORMAT (pinned predates PB5578)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-10",
+    "to": [
+     "GR-14.9.27.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR10",
+    "clause-2023": "14.9.27.4 GR12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN positioning on a medium that permits rewinding (with/without NO REWIND)"
+    ],
+    "evidence-2002": {
+     "rewindable medium": "the row is a recorded derivation (antecedent false: every medium here is non-reel/unit, GR9 governs), editions 85,2002,2014,2023; the same partition holds in 2002 (GR9 + 9.1.12.1 item 5); pb317_open_no_rewind and pb317_open_no_rewind_85 MATCH at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR10",
+      "quote": "If the storage medium for the physical file permits rewinding, the following rules apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR12",
+      "quote": "If the storage medium for the file permits rewinding, the following rules apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "for an OPEN statement with the NO REWIND phrase references a physical file on a non-reel/unit medium",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only 'physical file' versus 'file' differs (same meaning). The 2023 row is recorded as a derivation whose premises are word-identical in 2002, so it carries.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-11",
+    "to": [
+     "GR-14.9.27.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR11",
+    "clause-2023": "14.9.27.4 GR13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN INPUT of an absent OPTIONAL file sets the file position indicator to optional-file-not-present"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1_open_optional_input_absent, MATCH at --std 2002 (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR11",
+      "quote": "the file position indicator in the file connector referenced by file-name-1 is set to indicate that an optional input file is not present",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR13",
+      "quote": "the file position indicator in the file connector referenced by file-name-1 is set to indicate that an optional input file is not present",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in 'physical file'/'file'; operands are file-names (no CD reach).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-14",
+    "to": [
+     "GR-14.9.27.4-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR14",
+    "clause-2023": "14.9.27.4 GR16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN I-O of a physical file not supporting the I-O-mode statements: status 37, open unsuccessful; success sets I-O open mode"
+    ],
+    "evidence-2002": {
+     "37 / I-O mode": "the row witnesses are unit tests (not run per edition); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/open-io-ro.cob at --std 2002 with u25ro.dat read-only: IO=37, IN=00, REC=HELLO, CL=00 (identical at 2023)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR14",
+      "quote": "If the physical file does not support those statements, the I-O status value for file-name-1 is set to '37'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR16",
+      "quote": "If the file does not support those statements, the I-O status value for file-name-1 is set to '37'",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement ('physical file' vs 'file'). 2023 adds a separate GR3 (insufficient authority, also 37); the 2002 rule alone covers the read-only case, and the probe shows it at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/open-io-ro.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-15",
+    "to": [
+     "GR-14.9.27.4-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR15",
+    "clause-2023": "14.9.27.4 GR17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN EXTEND / I-O of an absent OPTIONAL file creates it (status 05 via 9.1.12.1)"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1_open_optional_create, MATCH at --std 2002 (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR15",
+      "quote": "the OPTIONAL clause is specified in the file control entry for file-name-1, the OPEN statement creates the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR17",
+      "quote": "the I-O status value associated with file-name-1 is set to '05'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "If the open mode is I-O or extend, the physical file has been created",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 states the '05' inside the rule; 2002 states the same 05 in 9.1.12.1 item 4 for the same case, so the requirement is the same.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-16",
+    "to": [
+     "GR-14.9.27.4-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR16",
+    "clause-2023": "14.9.27.4 GR18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN OUTPUT creates the file with no records; page positioning implementor-defined"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb322_default_sharing_by_open_mode and pb523_linage_margins_on_the_medium_85, MATCH at --std 2002; pb523_linage_margins_on_the_medium is refused at 2002 (LINE SEQUENTIAL) and is not needed (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR16",
+      "quote": "If the OUTPUT phrase is specified, the successful execution of the OPEN statement creates the physical file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR18",
+      "quote": "If the OUTPUT phrase is specified, the successful execution of the OPEN statement creates the file",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only 'physical file'/'file' differs.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-18",
+    "to": [
+     "GR-14.9.27.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.26.3 GR18 (OPEN), referring to 9.1.12",
+    "clause-2023": "14.9.27.4 GR1, referring to 9.1.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every OPEN outcome updates the I-O status to a 9.1.12 value, including 38 (OPEN of a connector locked by CLOSE WITH LOCK, GR24), a value 2023 removed"
+    ],
+    "evidence-2002": {
+     "00/41/35/05 outcomes": "covered by l1_open_status_updated, MATCH at --std 2002",
+     "38": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/open_after_close_lock.cob at --std 2002: OPEN-OUT=00, CLOSE-LOCK=00, REOPEN=38"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR18",
+      "quote": "to be updated to one of the values in 9.1.12, I-O status",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR1",
+      "quote": "to be updated to one of the values in 9.1.13, I-O status",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR24",
+      "quote": "the execution of the OPEN statement is unsuccessful and the I-O status associated with that file connector is set to '38'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "The WITH LOCK phrase of the CLOSE statement and the related File Status of 38",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words, but the value list the rule points at differs: 2002 9.1.12 carries 38 for an OPEN after CLOSE WITH LOCK, which 2023 removed (E.2). The 2023 row cannot show that outcome.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/open_after_close_lock.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for the status-38 OPEN outcome (open_after_close_lock.cob, as already found for GR24 by t-changed)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/open_after_close_lock.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-2",
+    "to": [
+     "GR-14.9.27.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR2 (Tables 19, 20, 21)",
+    "clause-2023": "14.9.27.4 GR4 (Tables 18, 19, 20)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "open mode set by INPUT/OUTPUT/I-O/EXTEND; availability; Table 19 (unshared) and Table 20 (shared) outcomes"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb321_table19_open_arbitration, pb321_default_sharing_arbitration, pb740_clauseless_share_2023, pb740_clauseless_share_2002, pb322_default_sharing_by_open_mode: all MATCH at --std 2002 (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR2",
+      "quote": "Table 20, Opening available shared files that are currently open by another file connector",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR4",
+      "quote": "Table 19, Opening available shared files that are currently open by another file connector",
+      "check": "OK"
+     }
+    ],
+    "reason": "Tables have the same cells (renumbered); Table 21/20 differ only in 2023 writing DELETE RECORD (DELETE FILE is 2023-only).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-21",
+    "to": [
+     "GR-14.9.27.4-22"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR21 with 9.1.14",
+    "clause-2023": "14.9.27.4 GR22 with 9.1.15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SHARING phrase level and permitted operations per 9.1.14"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb316_open_group_scope, file_sharing, pb321_table19_open_arbitration: MATCH at --std 2002 (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR21",
+      "quote": "as indicated in 9.1.14, Sharing mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR22",
+      "quote": "as indicated in 9.1.15, Sharing mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.14",
+      "quote": "The sharing with no other mode specifies exclusive access to a physical file",
+      "check": "OK"
+     }
+    ],
+    "reason": "9.1.14 (2002) and 9.1.15 (2023) state the same three modes; 2002's extra sentence (the new OPEN's mode shall permit existing ones) is Table 20's content; 2023's additions concern APPLY COMMIT (2023-only).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-23",
+    "to": [
+     "GR-14.9.27.4-24"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR23 with 14.6.8",
+    "clause-2023": "14.9.27.4 GR24 with 14.7.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RETRY on OPEN when open/sharing mode conflicts; status per 14.6.8"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb142_retry_open_sharing, pb316_open_group_scope: MATCH at --std 2002; pb142_retry_conflict_class_ec is refused at 2002 (DELETE FILE, 2023-only) and not needed (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR23",
+      "quote": "The I-O status is set in accordance with the rules in 14.6.8, RETRY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR24",
+      "quote": "The I-O status is set in accordance with the rules in 14.7.9, RETRY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.8.2 GR4",
+      "quote": "If the RETRY phrase is not specified or the result of the evaluation of arithmetic-expression-1 or arithmetic-expression-2 is negative or zero",
+      "check": "OK"
+     }
+    ],
+    "reason": "RETRY clauses identical (2023 spells out MSCS and adds 'according to the rules for 9.1.13').",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-3",
+    "to": [
+     "GR-14.9.27.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR3",
+    "clause-2023": "14.9.27.4 GR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "record area made available; one record area for an external file connector"
+    ],
+    "evidence-2002": {
+     "all": "covered by oo_external_file_shared, pb327_national_fd_record: MATCH at --std 2002 (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR3",
+      "quote": "If the file connector associated with file-name is an external file connector, there is only one record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR5",
+      "quote": "If the file connector associated with file-name-1 is an external file connector, there is only one record area",
+      "check": "OK"
+     }
+    ],
+    "reason": "'file-name' vs 'file-name-1' only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-8",
+    "to": [
+     "GR-14.9.27.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR8",
+    "clause-2023": "14.9.27.4 GR10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "fixed-file-attribute conflict on OPEN: status 39"
+    ],
+    "evidence-2002": {
+     "all": "covered by open_fixed_attribute_conflict, open_fixed_attribute_conflict_ix: MATCH at --std 2002 (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR8",
+      "quote": "a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR10",
+      "quote": "a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful",
+      "check": "OK"
+     }
+    ],
+    "reason": "'physical file'/'file' only; 9.1.6 is the same reference.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-9",
+    "to": [
+     "GR-14.9.27.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26.3 GR9",
+    "clause-2023": "14.9.27.4 GR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "NO REWIND ignored on a non-rewindable medium: successful, status 07"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb317_open_no_rewind, pb317_open_no_rewind_85: MATCH at --std 2002 (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR9",
+      "quote": "If the NO REWIND phrase is ignored, the OPEN statement is successful and the I-O status associated with file-name-1 is set to '07'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR11",
+      "quote": "If the NO REWIND phrase is ignored, the OPEN statement is successful and the I-O status associated with file-name-1 is set to '07'",
+      "check": "OK"
+     }
+    ],
+    "reason": "'physical file'/'file' only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-10",
+    "to": [
+     "GR-14.9.28.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.27.3 GR10 (PERFORM range)",
+    "clause-2023": "14.9.28.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "range of a PERFORM, excluding statements reached by EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM or GOBACK in the same instance; declaratives included"
+    ],
+    "evidence-2002": {
+     "EXIT PROGRAM / GOBACK / GO TO / declaratives": "covered by pb3491_go_to_depending_out_of_perform_range, pb3511_implicit_goback_go_to_out_of_perform, pb3511_implicit_goback_two_performs_deep: MATCH at --std 2002; pb442_f3_when_activation_scope refused at 2002 (format 3, 2023-only)",
+     "EXIT FUNCTION / EXIT METHOD": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/perf-exit-fm.cob at --std 2002: F1=P1EXIT F2=P2 M1=P1EXIT M2=P2 END"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR10",
+      "quote": "except for statements executed as the result of a transfer of control by an EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, or GOBACK statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR1",
+      "quote": "except for statements executed as the result of a transfer of control by an EXIT PROGRAM or GOBACK statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "EXIT METHOD statement EXIT FUNCTION statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 removed EXIT METHOD and EXIT FUNCTION (E.2) and drops them from the range rule; in 2002 they are two of the four exits the rule names.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/perf-exit-fm.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for EXIT FUNCTION and EXIT METHOD inside a PERFORM range (perf-exit-fm.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/perf-exit-fm.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-11",
+    "to": [
+     "GR-14.9.28.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.27.3 GR11",
+    "clause-2023": "14.9.28.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "overlapping PERFORM exits: undefined result, no exception condition set"
+    ],
+    "evidence-2002": {
+     "no EC": "the row records a measured probe (no witness); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/perf-overlap-ec.cob at --std 2002 with >>TURN EC-ALL CHECKING ON: PB, PX EX=(spaces)| (no EC)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR11",
+      "quote": "are undefined and no exception condition is set to exist when the sequence is executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR2",
+      "quote": "are undefined and no exception condition is set to exist when the sequence is executed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same rule; NOTE wording only. The one testable part (no EC) holds at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/perf-overlap-ec.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-3",
+    "to": [
+     "GR-14.9.28.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.27.3 GR3 (exceptions: GR7 times, GR8 until, GR9 varying)",
+    "clause-2023": "14.9.28.4 GR5 (exceptions: GR9 times, GR10 until, GR11 UNTIL EXIT)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "transfer to the specified set and return mechanism a)/b), except no transfer per times (zero/negative), until (true at entry, TEST BEFORE) and varying (condition-1 true at once)"
+    ],
+    "evidence-2002": {
+     "transfer and return a)/b)": "covered by pb440_perform_range_composition, pb440_perform_empty_range_2023/_85, pb3511_implicit_goback_perform_thru_inverted: MATCH at --std 2002",
+     "times/until/varying exceptions": "not shown by the 2023 row for VARYING; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/perf-gr3.cob at --std 2002: T0=0 U0=0 V0=0 I=5 V1=2 I=3 B=10"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR3",
+      "quote": "control is transferred to the first statement of the specified set of statements except as indicated in general rules 7, 8, and 9",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR5",
+      "quote": "control is transferred to the first statement of the specified set of statements except as indicated in General rules 9, 10, and 11",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.27.3 GR9",
+      "quote": "If varying-phrase is specified, the execution of the PERFORM statement augments the data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR11",
+      "quote": "If the until-phrase with the EXIT reserved word is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words except the rule numbers it defers to: 2002's GR9 is the varying-phrase rule, 2023's GR11 is UNTIL EXIT (2023-only), and 2023's varying rules are GR12-13. So the 2002 exception list includes the varying case the 2023 rule does not name.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/perf-gr3.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "a 2002 witness for the no-transfer cases, the VARYING one in particular (perf-gr3.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/perf-gr3.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-4",
+    "to": [
+     "GR-14.9.28.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.27.3 GR4",
+    "clause-2023": "14.9.28.4 GR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "THRU range: consecutive operations from procedure-name-1 to the end of procedure-name-2"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb440_perform_range_composition, pb440_sort_procedure_range, pb440_perform_empty_range_2023, pb3511_implicit_goback_perform_thru_inverted: MATCH at --std 2002 (witness runs at --std 2002 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/runwit.py (results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/witness-runs.json))"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR4",
+      "quote": "There is no necessary relationship between procedure-name-1 and procedure-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR6",
+      "quote": "There is no necessary relationship between procedure-name-1 and procedure-name-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; NOTE 'may'/'can' only. Operands are procedure-names (no CD reach).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-7",
+    "to": [
+     "GR-14.9.28.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.27.3 GR7 (times-phrase)",
+    "clause-2023": "14.9.28.4 GR9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "times-phrase with integer-1 or identifier-1 (value fixed at start; zero/negative: no execution)",
+     "identifier-1 a communication-section item (e.g. CD MESSAGE COUNT)"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb440_perform_empty_range_2002/_2014/_85/_2023, pb440_perform_range_composition: MATCH at --std 2002",
+     "CD": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob at --std 2002: T=0003 (MC = 3, changed to 9 inside; then MC = 0 runs none); also probes-p-15/cd-ops.cob N=0003"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR7",
+      "quote": "the value of the data item referenced by identifier-1 at the start of the execution of the PERFORM statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR9",
+      "quote": "the value of the data item referenced by identifier-1 at the start of the execution of the PERFORM statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.27.2 SR2",
+      "quote": "Each identifier shall reference a numeric elementary item described in the data division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical words and times-phrase. In 2002 identifier-1 may reference a CD field or a CD record item (SR2: any numeric elementary item of the data division), outside the 2023 row's reach; handled correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for PERFORM identifier-1 TIMES with a CD item (cdgrp.cob T)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-8",
+    "to": [
+     "GR-14.9.28.4-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.27.3 GR8 (until-phrase)",
+    "clause-2023": "14.9.28.4 GR10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "until-phrase with TEST BEFORE/AFTER; condition-1 operands identified at each test",
+     "condition-1 operands that are communication-section items"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by l1_perform_until_semantics, MATCH at --std 2002",
+     "CD": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob at --std 2002: U1=0003, U2=0001 (CD TEXT LENGTH as the tested operand)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR8",
+      "quote": "Item identification associated with the operands specified in condition-1 is done each time the condition is tested",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR10",
+      "quote": "If until-phrase with condition-1 is specified, the specified set of statements is performed until the condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds 'with condition-1' only to set its UNTIL EXIT aside; every 2002 until-phrase has condition-1. The rule identifies condition-1's operands, which in 2002 may be CD items; handled correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob",
+    "widening": "UNTIL EXIT (2023-only) is outside the 2002 scope",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for PERFORM UNTIL with a CD operand (cdgrp.cob U1, U2)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/cdgrp.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.28.2-1",
+    "to": [
+     "SR-14.9.29.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.28.2 SR1 (RAISE) with the 14.5.12.1.5 table",
+    "clause-2023": "14.9.29.3 SR1 with the 14.6.13.1.6 table",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RAISE EXCEPTION exception-name-1: a level-3 name of the 2002 table (124 names, all also in 2023; 2023 adds 36)"
+    ],
+    "evidence-2002": {
+     "level-2 refused, 2002 level-3 accepted": "probes raise-ec-size.cob (COBOL0710 at 2002), raise-ec-size-overflow.cob, raise-ec-user-u25.cob (accepted at 2002)",
+     "names absent from the 2002 table refused": "NOT conforming: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/raise-2023-only.cob at --std 2002 refuses 17 of 28 (COBOL0878) but ACCEPTS EC-BOUND-FUNC-RET-VALUE, EC-BOUND-SET, EC-BOUND-TABLE-LIMIT, EC-DATA-NOT-FINITE, EC-DATA-OVERFLOW, EC-FLOW-SEARCH, EC-FUNCTION-ARG-OMITTED, EC-FUNCTION-NOT-FOUND, EC-FUNCTION-PTR-INVALID, EC-FUNCTION-PTR-NULL, EC-OO-ARG-OMITTED; raise-sib.cob: EC-FUNCTION-IMP and >>TURN EC-FLOW-SEARCH also accepted"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.28.2 SR1",
+      "quote": "Exception-name-1 shall be a level-3 exception-name as specified in 14.5.12.1, Exception conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.29.3 SR1",
+      "quote": "Exception-name-1 shall be a level-3 exception-name as specified in 14.6.13.1, Exception conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-FLOW-USE | Fatal | A USE statement caused another to be executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.6",
+      "quote": "EC-FLOW-SEARCH | Fatal | Invalid use of SET to change capacity of dynamic-capacity table during SEARCH of same table",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words, but the referenced exception-name table changed: 2023's has 36 names 2002's lacks. The 2023 row (one level-2 conformance-test) cannot show the 2002 restriction. The compiler's ExceptionCatalog defaults IntroducedIn to 2002 for 11 level-3 names that first appear in 2014 or 2023, so COBOL0878 never fires for them at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/raise-2023-only.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 a RAISE of a name absent from the 2002 table must be refused; the compiler accepts 11 (defect)",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/raise-2023-only.cob): RAISE EXCEPTION EC-DATA-NOT-FINITE (and 10 more) compiles clean at --std 2002; expected refusal, not a level-3 name of §2002:14.5.12.1.5 (§2002:14.8.28.2 SR1). Site: src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#Build (L3 default introduced = 2002; EC-BOUND-SET noted unaudited). Siblings: the shared EcNameResolution (TURN directive, USE, RAISING) and level-2 EC-FUNCTION, level-3 EC-FUNCTION-IMP (raise-sib.cob)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-25",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.26.3-10",
+    "verdict": "UPHELD",
+    "reason": "Same OPEN general format; nothing in it is 2002-only. Only 'physical file' vs 'file' differs. No obsolete 2002 element reaches rewinding: MULTIPLE FILE TAPE is not in 2002, and the only obsolete elements 2002 marks are debugging lines, DEBUGGING MODE, PADDING CHARACTER and the communication facility. The row's derivation (no rewindable medium, so GR9 governs) holds on the same 2002 premises (9.1.12.1 item 5).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR10",
+      "quote": "If the storage medium for the physical file permits rewinding",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-11",
+    "verdict": "UPHELD",
+    "reason": "Operand is a file-name, so the rule cannot reach a CD. The 2002 9.1.11 lists the same 'optional file is not present' state. The witness l1_open_optional_input_absent runs at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR11",
+      "quote": "the OPTIONAL clause is specified in the file control entry for file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-14",
+    "verdict": "UPHELD",
+    "reason": "The 2002 9.1.12.5 '37' item b is the same I-O case as the 2023 9.1.13.6 item 6a.2. The 2023 text adds authority ('37' 6b, and GR3), which is wider in 2023. The 2023 row's tests are unit tests that do not run per edition, but the reader's probe open-io-ro.cob shows '37' at --std 2002. This is an evidence note, not a text difference.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR14",
+      "quote": "If the physical file does not support those statements, the I-O status value for file-name-1 is set to '37'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.5",
+      "quote": "the I-O phrase is specified but the file will not support the input and output operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.6",
+      "quote": "insufficient authority exists to access the file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-25/open-io-ro.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-15",
+    "verdict": "UPHELD",
+    "reason": "Creation as if by OPEN OUTPUT and CLOSE is the same in both. The 2002 text puts the '05' in 9.1.12.1 item 4 rather than in the rule. No 2002-only form is involved.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR15",
+      "quote": "the OPTIONAL clause is specified in the file control entry for file-name-1, the OPEN statement creates the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.1",
+      "quote": "If the open mode is I-O or extend, the physical file has been created",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-16",
+    "verdict": "UPHELD",
+    "reason": "Same in both; LINAGE exists in both editions. pb322 and pb523_85 run at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR16",
+      "quote": "After the creation of the physical file, the file contains no records",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-2",
+    "verdict": "UPHELD",
+    "reason": "The 2002 Tables 19 and 20 have the same cells as the 2023 Tables 18 and 19. The 2002 Table 21 differs from the 2023 Table 20 only in 'DELETE' vs 'DELETE RECORD'. The CLOSE WITH LOCK '38' case is GR24's, not this rule's.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR2",
+      "quote": "Table 19, Opening available and unavailable files",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-21",
+    "verdict": "UPHELD",
+    "reason": "The three sharing modes in 2002 9.1.14 are word-identical to those in 2023 9.1.15. The extra 2002 'Additionally' sentence repeats Table 20 and the 9.1.12.8 '61' cases, which are the same in 2023. The 2002 atomic file-lock sentence has no observable counterpart that differs.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR21",
+      "quote": "as indicated in 9.1.14, Sharing mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.14",
+      "quote": "Additionally, the sharing mode for the current OPEN statement shall permit all of the sharing modes and open modes",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-23",
+    "verdict": "UPHELD",
+    "reason": "The 2002 RETRY clause 14.6.8 has the same format and four rules as the 2023 14.7.9 ('MSCS' spelled out; 2023 adds 'according to the rules for 9.1.13'). One reach was considered: arithmetic-expression-1 and -2 under 2002 ARITHMETIC IS STANDARD could feel PB5575's 34-digit model. It changes at most the retry count, never the final I-O status, so it is not decisive for this rule.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR23",
+      "quote": "The I-O status is set in accordance with the rules in 14.6.8, RETRY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.8.2 GR4",
+      "quote": "the appropriate value is placed in the I-O status associated with the file connector",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.9.3 GR4",
+      "quote": "according to the rules for 9.1.13, I-O status",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-3",
+    "verdict": "UPHELD",
+    "reason": "Same rule ('file-name' vs 'file-name-1'). It reaches only file connectors, never a CD.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR3",
+      "quote": "there is only one record area associated with the file connector for the run unit",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-8",
+    "verdict": "OVERTURNED",
+    "reason": "GR8 compares the connector's file-control attributes with the fixed file attributes and points at 9.1.6 for them. The 2002 9.1.6 list includes 'the padding character', which the 2002 file control entry can set with PADDING CHARACTER (12.3.4.10, an obsolete element in 2002). The 2023 9.1.6 list has no padding character, and the 2023 text has no PADDING CHARACTER clause at all. So in 2002 GR8 also covers a file whose entries specify PADDING CHARACTER, and the implementor must say whether OPEN validates it. The 2023 row (open_fixed_attribute_conflict, _ix) cannot show that case: the probe's program is refused at --std 2023 (COBOL0902). At --std 2002 the compiler accepts it with COBOL0903, and an OPEN INPUT through an entry with a different padding character returns '00'. That matches the documented implementor choice in docs/conformance/3.6 ('a fixed file attribute ... that OPEN does not validate'). That determination cites §1985:VII.4.3.4 GR8, not the 2002 rule.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.6",
+      "quote": "the minimum and maximum physical record size in bytes, the padding character, and the record delimiter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.6",
+      "quote": "the minimum and maximum physical record size in bytes, and the record delimiter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR8",
+      "quote": "The implementor defines which of the fixed-file attributes are validated during the execution of the OPEN statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR10",
+      "quote": "The implementor defines which of the fixed-file attributes are validated during the execution of the OPEN statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10",
+      "quote": "The PADDING CHARACTER clause is an obsolete element in this International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "a 2002 witness for OPEN of a file whose entries specify PADDING CHARACTER (pad-open.cob: S2=00), plus the docs/conformance/3.6 padding determination re-cited to §2002:14.8.26.3 GR8 and §2002:9.1.6",
+    "compiler-at-2002": "correct per the documented implementor choice (pad-open.cob at --std 2002: COBOL0903 warnings, S1-OPEN=00 S2=00 REC=HELLO RS=00; at --std 2023 refused COBOL0902)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-25/pad-open.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-9",
+    "verdict": "UPHELD",
+    "reason": "The 2002 9.1.12.1 item 5 and the 2023 9.1.13.2 item 6 give the same '07' case for OPEN NO REWIND. pb317 and pb317_85 run at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR9",
+      "quote": "If the NO REWIND phrase is ignored, the OPEN statement is successful",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-11",
+    "verdict": "OVERTURNED",
+    "reason": "GR11 decides which PERFORM sequences are undefined by the words 'within the range of that PERFORM statement'. It does not name the rule that defines that range, which is GR10. The 2002 GR10 range ends at an EXIT FUNCTION or EXIT METHOD transfer, and the 2023 GR1 range does not, because 2023 has neither statement (the reader marked GR10 DIFFERENT, removed-form). So in 2002, GR11's scope (an overlap is undefined, and no EC is set; outside the range a sequence is defined) reaches function and method source elements whose range boundary is EXIT FUNCTION or EXIT METHOD. The 2023 row has no test at all (a measured probe), and the reader's probe (perf-overlap-ec.cob) is a plain program. Class (d): a rule that defers to an unnamed rule that changed.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR11",
+      "quote": "within the range of that PERFORM statement another PERFORM statement is executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR2",
+      "quote": "within the range of that PERFORM statement another PERFORM statement is executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.27.3 GR10",
+      "quote": "by an EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, or GOBACK statement specified in the same instance",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR1",
+      "quote": "by an EXIT PROGRAM or GOBACK statement specified in the same instance",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "a 2002 witness for an overlapping PERFORM in a function ended by EXIT FUNCTION (perf-overlap-fn.cob: no EC; the next activation is outside the range and falls through, C2=PX), alongside GR10's perf-exit-fm.cob",
+    "compiler-at-2002": "correct (perf-overlap-fn.cob at --std 2002: C1=PB-EXIT EX=(spaces)| C2=PX EX=(spaces)|; at --std 2023 refused COBOL0902, EXIT FUNCTION removed)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-25/perf-overlap-fn.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-4",
+    "verdict": "UPHELD",
+    "reason": "The THRU range is built from procedure-names (no CD reach) and does not lean on GR10's range. The NOTE differs only in 'may' vs 'can'.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR4",
+      "quote": "There is no necessary relationship between procedure-name-1 and procedure-name-2",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "c5d127ce31e1613572a68721aec01c792ef1322251abe5d06d28afb178c9e68f",
+  "read": "83fda5f1ec847e06e1307b198ff523537dc980392b9900b138ac73311ba7c9eb",
+  "refute": "5d408fd0f59d4bb3231ecdf3fb88520d3024bda0da3fe883590e2a983a34f3e7"
+ }
+}

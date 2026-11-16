@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.10.3-3",
+ "rule-digest": "91d8a9e9f5de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateBoolean; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_boolean_operands",
+ "notes": "Own verdict from the read lineage-reads-2002/u-02.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-7.3.13.4-3, witnessed at 2002 by the cases test-ref names. The read: Only the clause number differs; 7.2.6.2 GR1 and 7.3.7.3 GR1 are word-identical and the 2002 operators' precedence is unchanged in 2023 (2023 adds shifts, refused at 2002). Cited: §2002:7.2.10.3 GR3; §2002:8.8.2."
+}

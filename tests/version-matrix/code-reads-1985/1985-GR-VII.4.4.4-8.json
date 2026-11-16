@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-8",
+ "rule-digest": "f6e9c4ed236a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-124",
+  "sources": {
+   "reader": "1b2c7e83b49f8f430d6815a52c16da392fe89f68c56feb8dac7f732c3645b0b0",
+   "refuter": "061b37d3747cc55b61dd205c30467c93ca1ae687341aad6c80f84af078151f1f"
+  },
+  "imported": {
+   "reader": "33f99736d1d3500eadf52cabdf938ed1c93044a5e4d4eb1e50df0d5623dacda9",
+   "refuter": "91426a9a09ff22894ee34ffe1c7af037f691adbfac144050fb07344e96f9b114"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.4.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 READ ... INTO is the READ followed, only when it succeeds, by a MOVE of the current record to identifier-1 under the MOVE rules (alphanumeric to numeric, editing, truncation, JUSTIFIED, reference-modified receivers, a group record as a group move), its size from the RECORD clause (§1985:VII.3.8.4 GR12), a group move for RECORD IS VARYING, subscripts of identifier-1 evaluated after the read; the record stays in the record area too.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindIntoPhrase; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundCurrentRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#CurrentRecordImage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#IntoPhraseRules",
+    "switches": "PhraseAt(DialectLevel) picks the MOVE-rule citation and the GR7 (1985) versus SR1 (2023) admissibility wording; diagnostics only",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindIntoPhrase",
+    "switches": "nothing in the move construction: BoundCurrentRecord and its group-move flag are edition-free",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "BindIntoPhrase and IntoPhraseRules read; grep DialectLevel|Edition in MoveBinder.cs and SequentialIoEmitter.cs",
+  "behaviour-differs-by-edition": "no: only diagnostic citations differ",
+  "witnesses-cover": "part: g85_bf25_07 covers JUSTIFIED, VARYING DEPENDING group move, subscript after read, no move at end; not exercised: alphanumeric to numeric, a group record into numeric-edited, reference-modified and shorter receivers, VARYING without DEPENDING (GR12 b), no move on a 47",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p5gr8b.cob",
+    "printed": "U 47 [KEEP] / A1 00 [000123] / A2 00 [..4567....] / A3 00 [89] / V1 00 [ABC  ] / G1 00 [XY123 ]",
+    "expected": "no move on the unsuccessful READ; X(4) 0123 into 9(6) = 000123; into T10(3:4); truncation into X(2); VARYING without DEPENDING sends the 3 characters read as a group move into 9(5); group record into ZZ9.99 is a group move, no editing"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VII.4.4@1985-READ-STATEMENT/g85_bf25_07.cob",
+    "printed": "MATCH",
+    "expected": "the witness's .out"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p2gr13.cob",
+    "printed": "R1 [AAA         ] / R3 [CCCCCCCCCC  ]",
+    "expected": "INTO sends the DEPENDING length 3 and the truncated 10 (§1985:VII.3.8.4 GR12 a)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.4.4 GR8",
+    "check": "OK  §1985:VII.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR12",
+    "check": "OK  §1985:VII.3.8.4 GR12  (3.8.4 General Rules)  the text is in GR12"
+   }
+  ],
+  "notes": "The INTO move is bound once as a MOVE from BoundCurrentRecord (VARYING) or the record area (fixed), and emitted inside the success branch, with identifier-1 resolved at store time. At 2023 p5gr8b stops at compile because MOVE ALL '*' TO a numeric-edited item was removed (COBOL0902), a probe-setup line, not this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "the probe does not compile at 2023 (COBOL0902 on the setup MOVE ALL); the witness's legs are edition-free code",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.4.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "r5gr8.cob (refute-1985-124/r5gr8-001, --std 85), GR7 a forms the reader did not try: a lone elementary numeric record 9(3)V99 holding 123.45 READ INTO 9(5)V9(3) gives the numeric move (value 00123.450), INTO -ZZ9.99 gives [ 123.45] (numeric to numeric-edited, not a group move), a SIGN LEADING SEPARATE S9(3) record -42 INTO S9(5) SIGN TRAILING SEPARATE gives [00042-]; a RECORD IS VARYING 2 TO 6 file without DEPENDING ON whose record has OCCURS 1 TO 5 DEPENDING ON O-N, written with O-N 2 (3 characters), READ INTO X(8) prefilled with * gives [2AB     ]: a group move of the 3 characters read (§1985:VII.3.8.4 GR12 b), padded with spaces. r3gr5-002: READ F INTO T(F-N) evaluates the subscript from the record just read. (DISPLAY of a 9(5)V9(3) item prints its point, [00123.450], also from WORKING-STORAGE in r5disp-001: a DISPLAY matter, not this rule.) The only INTO divergence seen, in r2gr13-001 (DEPENDING item 15 but 10 characters sent), follows from the GR13 defect recorded on 1985-GR-VII.4.4.4-13, not from the INTO move. cite.py: OK  §1985:VII.4.4.4 GR8 (4.4.4 General Rules) the text is in GR8; OK  §1985:VII.3.8.4 GR12 (3.8.4 General Rules) the text is in GR12.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

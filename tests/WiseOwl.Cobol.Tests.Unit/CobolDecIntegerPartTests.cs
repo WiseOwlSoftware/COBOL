@@ -77,12 +77,12 @@ public sealed class CobolDecIntegerPartTests
     [InlineData("-1", 40)]
     [InlineData("1234567890123456789012345678901234", 7)]
     public void FractionPart_OfAnIntegerBeyondTheCarrier_IsZero(string sig, int exp) =>
-        Assert.Equal(0, CobolDec.Compare(CobolIntrinsics.FractionPartDec(CobolRounding.NearestEven, new CobolDec((Int128)BigInteger.Parse(sig), exp)), new CobolDec(0, 0)));
+        Assert.Equal(0, CobolDec.Compare(CobolIntrinsics.FractionPartDec(DecArithmetic.Sdidi(CobolRounding.NearestEven), new CobolDec((Int128)BigInteger.Parse(sig), exp)), new CobolDec(0, 0)));
 
     [Fact]
     public void FractionPart_KeepsTheSignedFraction()
     {
-        CobolDec r = CobolIntrinsics.FractionPartDec(CobolRounding.NearestEven, new CobolDec(-275, -2));
+        CobolDec r = CobolIntrinsics.FractionPartDec(DecArithmetic.Sdidi(CobolRounding.NearestEven), new CobolDec(-275, -2));
         Assert.Equal(0, CobolDec.Compare(r, new CobolDec(-75, -2)));
     }
 
@@ -95,8 +95,8 @@ public sealed class CobolDecIntegerPartTests
         var ten40 = new CobolDec(1, 40);
         var three = new CobolDec(3, 0);
         var million = new CobolDec(1, 6);
-        Assert.Equal(0, CobolDec.Compare(CobolIntrinsics.ModDec(CobolRounding.NearestEven, ten40, three), million));
-        Assert.Equal(0, CobolDec.Compare(CobolIntrinsics.RemDec(CobolRounding.NearestEven, ten40, three), million));
+        Assert.Equal(0, CobolDec.Compare(CobolIntrinsics.ModDec(DecArithmetic.Sdidi(CobolRounding.NearestEven), ten40, three), million));
+        Assert.Equal(0, CobolDec.Compare(CobolIntrinsics.RemDec(DecArithmetic.Sdidi(CobolRounding.NearestEven), ten40, three), million));
     }
 
     /// <summary>The compile-time §2023:7.3.6.3 GR3 truncation reads this same method (it was a second copy of the rule).</summary>

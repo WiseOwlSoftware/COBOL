@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VIII.4.7.4-5",
+ "rule-digest": "01840d19a738",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-137",
+  "sources": {
+   "reader": "b99b010f47ceb4440d62a5ab9fbf74465d78a21f303966be37d6f768c8a357d1",
+   "refuter": "9cb22ce9e05df163cfda1695ded91135c4aeed657fb215ed49ca529a7b2f3f3a"
+  },
+  "imported": {
+   "reader": "bd1dc190cb5e95f17b65c7b01bac2bb308b887fb6b072a2a65470a3d6e9e31db",
+   "refuter": "fc45dc05f32a6373425d17347a6dc75207d53b096aba22e2d743f18c5655222e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.7.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every execution of START on a relative file shall update the file's I-O status (and its FILE STATUS item): 00 on success, 23 for the invalid key (no record satisfies, or an absent optional input file), 47 when the file is not open in input or I-O mode.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Unsuccessful; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartPositioned",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): the 1985 mandatory INVALID KEY phrase",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EmitStoreFileStatus and the connector's status assignments contain no edition test (read in full); grep Edition|Dialect in RelativeConnector.cs hits only WRITE.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f20_06 covers 00 and 23; 47 (never opened, open OUTPUT) is probed here.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p3ctl.cob",
+    "printed": "status item preset to 99: T1 never opened -> 47; T2 open OUTPUT -> 47; T3 -> 23; T4 -> 00; T6 absent optional -> 23; T8 optional created by OPEN I-O (05), empty -> 23",
+    "expected": "§1985:VIII.1.3.4 values 00, 23, 47"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p1key.cob",
+    "printed": "00 / 23 for each comparison, zero and 9999 keys included",
+    "expected": "updated on every START"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.4 GR5",
+    "check": "OK  §1985:VIII.4.7.4 GR5  (║4.7.4 General Rules║)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3b.2"
+   }
+  ],
+  "notes": "Every START entry returns through Unsuccessful or StartPositioned, which assign Status; EmitStart calls EmitStoreFileStatus right after the call. A permanent error (30) was not provoked (needs a torn store); the replay path is PermanentErrorReplay in StartOpenModeGuard.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.7.4-5",
+  "refutation": "UPHELD",
+  "classes": "e,f",
+  "evidence": "Probes at --std 85 aimed at statuses the reader did not try: q1ext.cob relative file (sequential access) OPEN EXTEND then START -> 47 (status preset 99); START after CLOSE -> 47; OPEN INPUT START GREATER 9 -> 23; GREATER 1 -> 00; q3big.cob 9(18) largest key -> 23; absent OPTIONAL dynamic file opened INPUT (05) START GREATER 0 -> 23. cite.py: 'OK  §1985:VIII.4.7.4 GR5 ... the text is in GR5'; 'OK  §1985:VIII.4.7.4 GR1 ... the text is in GR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

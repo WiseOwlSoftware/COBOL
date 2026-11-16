@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-3",
+ "rule-digest": "2a88da154f8c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-012",
+  "sources": {
+   "reader": "772d04de36b8dcb0c7a9bad79fbde06fa7f4b1574a81c0b1293adb73ea60c2da",
+   "refuter": "685481e42a190f590cc0945a0736c04a0507fdcc67d71c0f44c2c8b6494c9eec"
+  },
+  "imported": {
+   "reader": "0d6c791c12056bc0c569cf9a5d652054145f1bf6908a1789f0ffb752ae0fea96",
+   "refuter": "3f838593567ef20a8e37ae30562a1a4763ef305d04196fa7216af492c9e46b99"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.5.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a format 3 SET statement whose operand is the mnemonic-name of an external switch alters that switch's status so that its condition-names then reflect the ON or OFF phrase (§1985:VI.6.23.4 GR6), for every mnemonic-name-1 of each {mnemonic-name-1}... TO {ON|OFF} phrase and every repetition of the phrase; the implementor defines which switches SET may reference, and a mnemonic not associated with such a switch is refused (§1985:VI.6.23.3 SR5).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setSwitchStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setSwitchPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitSetSwitches; src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#Set; src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#Names; docs/conformance/7/DOC-A.1-191.md",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition/CobolVersion/Construct/DialectLevel/VersionConformance over SetAlterBinder.cs SwitchBindSet, AlterSwitchEmitter.cs EmitSetSwitches, ExternalSwitches.cs, SwitchStore.cs and the grammar rules setSwitchStatement/setSwitchPhrase; VersionConformancePass.cs has no arm for BoundSetSwitches; ctx.Edition is used only to report a rejected node. The path consults the edition nowhere.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness sets one switch TO ON; not exercised: TO OFF, several mnemonics in one phrase, several phrases, a switch whose external status starts ON, a switch with no condition-names, and the SR5 refusals",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/sw1.cob",
+    "printed": "SET SW1 SW2 TO OFF SW5 TO ON then IF S1-OFF AND S2-OFF -> BOTH-OFF (also with COBOL_SWITCH_1=ON and COBOL_SWITCH_2=on in the environment); SET SW1 TO ON then PERFORM UNTIL S1-OFF with SET SW1 TO OFF at I=3 -> I=3",
+    "expected": "each named switch takes the phrase's status and its condition-names reflect it (§1985:VI.6.23.4 GR6)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r5.cob",
+    "printed": "COBOL1757: SET 'OUT-DEV' TO ON - ... 'OUT-DEV' is the mnemonic-name of the device-name 'SYSOUT'",
+    "expected": "refused: SR5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r6.cob",
+    "printed": "COBOL1757: SET 'SWITCH-1' TO ON - ... 'SWITCH-1' is itself a switch-name, an implementor-name",
+    "expected": "refused: the operand is the mnemonic-name, not the implementor-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r11.cob",
+    "printed": "COBOL1639: SET 'SW1' TO TRUE - 'SW1' is not a condition-name",
+    "expected": "refused: TO TRUE takes condition-names (format 4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r7.cob",
+    "printed": "COBOL0817: DISPLAY UPON 'SW1': 'SW1' is the mnemonic-name of the switch-name 'SWITCH-1', not of a device-name",
+    "expected": "refused: §1985:VI.4.5.3 SR1, a switch's mnemonic only in SET"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.4 GR3",
+    "check": "OK  §1985:VI.4.5.4 GR3  (4.5.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.23.4 GR6",
+    "check": "OK  §1985:VI.6.23.4 GR6  (6.23.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VI.6.23.3 SR5",
+    "check": "OK  §1985:VI.6.23.3 SR5  (6.23.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "SET format 3 binds each mnemonic through the one mnemonic registry and emits ExternalSwitches.Set per switch; every table switch is settable, the implementor's choice documented in DOC-A.1-191. No edition branch on the path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.5.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:VI.6.23.2 format 3, VI.6.23.3 SR5, VI.6.23.4 GR6. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c9.cob: SET in a contained program (via GR1) and in a separately compiled program through a different mnemonic for the same SWITCH-3 alter the status the caller then tests; SET SW3 TO ON SW3 TO OFF in one statement leaves OFF (M3 OFF); E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c13.cob two mnemonics on one switch both alter it; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c15.cob SET RAISE TO ON/OFF (a word reserved only later) works at 85. Grep of SetAlterBinder.cs: ctx.Edition only at lines 131/157/251 as the BoundRejected diagnostic sink; no edition arm. cite.py: OK §1985:VI.4.5.4 GR3 (the text is in GR3).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

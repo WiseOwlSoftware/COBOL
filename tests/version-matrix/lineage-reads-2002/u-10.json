@@ -1,0 +1,1707 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-10 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-10",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-12.2.6.3-2",
+   "2002-GR-12.2.6.3-4",
+   "2002-GR-12.2.6.3-7",
+   "2002-SR-12.2.7.2-1",
+   "2002-SR-12.2.7.2-10",
+   "2002-SR-12.2.7.2-14",
+   "2002-SR-12.2.7.2-16",
+   "2002-SR-12.2.7.2-2",
+   "2002-SR-12.2.7.2-3",
+   "2002-SR-12.2.7.2-4",
+   "2002-SR-12.2.7.2-5",
+   "2002-SR-12.2.7.2-6",
+   "2002-SR-12.2.7.2-7",
+   "2002-GR-12.2.7.3-1",
+   "2002-GR-12.2.7.3-10",
+   "2002-GR-12.2.7.3-11",
+   "2002-GR-12.2.7.3-13",
+   "2002-GR-12.2.7.3-14",
+   "2002-GR-12.2.7.3-2",
+   "2002-GR-12.2.7.3-3",
+   "2002-GR-12.2.7.3-4",
+   "2002-GR-12.2.7.3-5",
+   "2002-GR-12.2.7.3-6",
+   "2002-GR-12.2.7.3-7",
+   "2002-GR-12.2.7.3-8"
+  ],
+  "pointers": {
+   "2002-GR-12.2.6.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.7.4-2",
+    "similarity": 0.981
+   },
+   "2002-GR-12.2.6.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.7.4-4",
+    "similarity": 0.998
+   },
+   "2002-GR-12.2.6.3-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.7.4-7",
+    "similarity": 0.966
+   },
+   "2002-SR-12.2.7.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.3.8.3-1",
+    "similarity": 0.986
+   },
+   "2002-SR-12.2.7.2-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.3.8.3-10",
+    "similarity": 0.994
+   },
+   "2002-SR-12.2.7.2-14": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.3.8.3-14",
+    "similarity": 0.994
+   },
+   "2002-SR-12.2.7.2-16": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.3.8.3-16",
+    "similarity": 0.996
+   },
+   "2002-SR-12.2.7.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-12.3.8.3-2",
+    "similarity": 0.883
+   },
+   "2002-SR-12.2.7.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.3.8.3-3",
+    "similarity": 0.974
+   },
+   "2002-SR-12.2.7.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.3.8.3-4",
+    "similarity": 0.923
+   },
+   "2002-SR-12.2.7.2-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.3.8.3-5",
+    "similarity": 0.967
+   },
+   "2002-SR-12.2.7.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.3.8.3-6",
+    "similarity": 0.922
+   },
+   "2002-SR-12.2.7.2-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-12.3.8.3-7",
+    "similarity": 0.975
+   },
+   "2002-GR-12.2.7.3-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-12.3.8.4-15",
+    "similarity": 0.866
+   },
+   "2002-GR-12.2.7.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.8.4-10",
+    "similarity": 0.998
+   },
+   "2002-GR-12.2.7.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.8.4-11",
+    "similarity": 0.998
+   },
+   "2002-GR-12.2.7.3-13": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-12.3.8.4-13",
+    "similarity": 0.827
+   },
+   "2002-GR-12.2.7.3-14": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-12.3.8.4-12",
+    "similarity": 0.485
+   },
+   "2002-GR-12.2.7.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.8.4-2",
+    "similarity": 0.997
+   },
+   "2002-GR-12.2.7.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.8.4-3",
+    "similarity": 0.94
+   },
+   "2002-GR-12.2.7.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.8.4-4",
+    "similarity": 0.971
+   },
+   "2002-GR-12.2.7.3-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.8.4-5",
+    "similarity": 0.96
+   },
+   "2002-GR-12.2.7.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-12.3.8.4-6",
+    "similarity": 0.988
+   },
+   "2002-GR-12.2.7.3-7": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-12.3.8.4-15",
+    "similarity": 0.866
+   },
+   "2002-GR-12.2.7.3-8": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-12.3.8.4-8",
+    "similarity": 1.0
+   }
+  }
+ },
+ "read": {
+  "slice": "u-10",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-12.2.6.3-2",
+    "to": [
+     "GR-12.3.7.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.6.3",
+    "clause-2023": "§2023:12.3.7.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR2",
+      "quote": "Switch-name-1 identifies an implementor-defined external switch. The on status and",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR2",
+      "quote": "Switch-name-1 identifies an implementor-defined external switch. The on status and",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.5.2",
+      "quote": "The result of the test is true if the switch is set to the specified position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.6.3 GR1",
+      "quote": "The result of the test is true if the switch is set to the specified position",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SPECIAL-NAMES switch-name-1 entry with ON/OFF STATUS condition-names",
+     "interrogation of the switch status through those condition-names (8.8.4.1.5)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names (accept [85, 2002]; PASS at --std 2002, runner E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/run_cases.py; results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-a.txt..runs-e.txt)",
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/switch/sw.cob (2002: SET ON/OFF flips both condition-names; same output at 2023)"
+    ],
+    "reason": "Words differ only in 'can be'/'may be' and the cross-reference number: §2002:8.8.4.1.5 Switch-status condition and §2023:8.8.4.6 Simple switch-status condition carry the same format (condition-name-1) and the same rule. The SPECIAL-NAMES switch-name format (ON/OFF STATUS choice indicators, with or without mnemonic-name-1) is the same in both editions. No CD or debugging reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/switch/sw.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-4",
+    "to": [
+     "GR-12.3.7.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.6.3",
+    "clause-2023": "§2023:12.3.7.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR4",
+      "quote": "The implementor defines the scope (program, run unit, etc.) of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR4",
+      "quote": "The implementor defines the scope (program, run unit, etc.) of",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the implementor-defined scope of each external switch",
+     "the external facility that modifies a switch's status"
+    ],
+    "evidence-2002": [
+     "covered by DOC-A.1-191 (documentation, edition-blind) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/switch/sw.cob run with COBOL_SWITCH_34=ON at --std 2002 (E INIT ON; unset: E INIT OFF), result.txt beside it; the twin's conformance-test AlterSwitchesDifferentialTests.Switch_EnvironmentVariableSuppliesInitialState is not edition-parameterized"
+    ],
+    "reason": "Identical requirement (NOTE numbering only). The implementor's scope is run-unit and the external facility is the COBOL_<SWITCH-NAME> environment variable (docs/conformance DOC-A.1-191); the probe shows the facility working at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/switch/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-7",
+    "to": [
+     "GR-12.3.7.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.6.3",
+    "clause-2023": "§2023:12.3.7.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR7",
+      "quote": "The ALPHABET clause provides a means of relating a name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7",
+      "quote": "The ALPHABET clause provides a means of relating a name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR7",
+      "quote": "The implementor shall specify the correspondence between the characters of ISO/IEC 10646-1 UTF-16 and the characters of the native national character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7",
+      "quote": "The association is the same as the association for the UTF-32 character from which the UTF-16 character was transformed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ALPHABET clause, ALPHANUMERIC branch: LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase (THROUGH/ALSO)",
+     "ALPHABET clause, NATIONAL branch: LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase",
+     "implementor specification of the UCS-4 and UTF-16 correspondence (2002 f, h)"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 by alphabet_national, ca26_char_unicode_pcs, l1_alphabet_ucs4_utf8_utf16_correspondence, l1_char_national_also_positions, l1c30_alphabet_named_locale_format_order, pb101_alphabet_locale_pcs, pb1095_class_in_also_group, pb59_char_representative, pb770_alphabet_ordinal_above_latin1, pb793_code_name_alphabets, da1_alphabet_hex_thru, pb110_symbolic_and_class_in: all PASS (runner E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/run_cases.py; results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-a.txt..runs-e.txt)",
+     "implementor items: DOC-A.1-183/184/186/188 (edition-blind documentation)"
+    ],
+    "reason": "Same alphabet-name-clause format and operands in both editions (Table 7 = Table 6). Differing words: c) 'is defined in' vs 'shall be as specified in' (no behavioural change); f) UCS-4 = ISO/IEC 10646-1 and 10646-2 as UCS-4, collating order 10646-1 then 10646-2, vs 10646 UTF-32 in code-point order: the same repertoire and order; h) 2002 has the implementor SPECIFY the UTF-16 correspondence where 2023 fixes it as the UTF-32 association: the compiler documents it (DOC-A.1-188, the UCS-4/UTF-8/UTF-16 correspondence) and l1_alphabet_ucs4_utf8_utf16_correspondence passes at --std 2002. The NOTE lists of where an alphabet-name is a collating sequence or a coded character set are identical.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-c.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-1",
+    "to": [
+     "SR-12.3.8.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR1",
+      "quote": "If any class-name-1, interface-name-2, program-prototype-name-1, function-prototype-name-1, intrinsic-function-name-1 or property-name-1 is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR1",
+      "quote": "If any object-class-name-1, interface-name-2, program-prototype-name-1, function-prototype-name-1, intrinsic-function-name-1 or property-name-1 is",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "repeated class, interface, program, function (user-defined and intrinsic) and property specifiers of one REPOSITORY paragraph"
+    ],
+    "evidence-2002": [
+     "covered by pb1017_repository_identical_repeats (PASS at --std 2002) and pb1017-repository-specification-not-identical (refused COBOL1761 at --std 2002), runner E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/run_cases.py; results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-a.txt..runs-e.txt"
+    ],
+    "reason": "2023 renamed class-name-1 to object-class-name-1; the REPOSITORY general format has the same five specifier kinds (2023 splits the function-specifier's two formats into intrinsic-function-specifier and user-defined-function-specifier, the same operands). Same requirement.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-10",
+    "to": [
+     "SR-12.3.8.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR10",
+      "quote": "Literal-3, if specified, or function-prototype-name-1, if literal-3 is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR10",
+      "quote": "Literal-5, if specified, or function-prototype-name-1, if literal-5 is not specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the user-defined function-specifier's literal-3 / function-prototype-name-1 resolution against prototypes, previous definitions and the external repository"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 by udf_prototype, pb989_function_prototype_externalized_name, pb989_function_externalized_name_wins, pb2103_function_prototype_ignores_entry (PASS) and pb989-function-definition-follows-the-specifier (refused COBOL5962), runner E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/run_cases.py; results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-a.txt..runs-e.txt"
+    ],
+    "reason": "The AS literal of the function-specifier is literal-3 in 2002 and literal-5 in 2023 (renumbered: §2002:12.2.7.1 FUNCTION ... AS literal-3; 2023 user-defined-function-specifier AS literal-5). Same three alternatives.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-14",
+    "to": [
+     "SR-12.3.8.3-14"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR14",
+      "quote": "Literal-4, if specified, or program-prototype-name-1, if literal-4 is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR14",
+      "quote": "Literal-3, if specified, or program-prototype-name-1, if literal-3 is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.1",
+      "quote": "PROGRAM program-prototype-name-1 AS literal-4",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the program-specifier's literal-4 / program-prototype-name-1 resolution"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 by pb237_program_prototype, pb894_program_prototype_2002, pb2103_prototype_group_split_across_units (PASS) and pb1086-program-specifier-no-information (refused COBOL5962), runner E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/run_cases.py; results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-a.txt..runs-e.txt"
+    ],
+    "reason": "The program-specifier's AS literal is literal-4 in 2002 and literal-3 in 2023 (renumbering only). Same three alternatives.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-16",
+    "to": [
+     "SR-12.3.8.3-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR16",
+      "quote": "If the PROPERTY phrase is specified, a) If literal-5 is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR16",
+      "quote": "If the PROPERTY phrase is specified, a) If literal-4 is",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "PROPERTY specifier with and without AS literal-5: an accessor in a class or interface declared in the same paragraph or in the external repository"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 by pb2104_import_interface_and_property and pb974_repository_as_phrase (PROPERTY AMOUNT AS \"BAL\") PASS, and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr16_noprop.cob (refused COBOL5962 at 2002 and 2023)"
+    ],
+    "reason": "2002's property-specifier literal is literal-5 throughout this rule; 2023's text says literal-4 in the condition and literal-5 in the consequence (a 2023 numbering slip). The compiler applies the property specifier's own AS literal, which is the 2002 reading.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr16_noprop.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-2",
+    "to": [
+     "SR-12.3.8.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR2",
+      "quote": "Literal-1, literal-2, literal-3, literal-4, and literal-5 shall be alphanumeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR2",
+      "quote": "Literal-1, literal-2, literal-3, literal-4, and literal-5 shall be alphanumeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 alphanumeric character positions",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "AS literal-1..literal-5 of every specifier: alphanumeric or national literal accepted",
+     "numeric literal refused",
+     "figurative constant refused"
+    ],
+    "evidence-2002": [
+     "figurative: pb237-repository-program-literal-class refused COBOL1761 at --std 2002 (runner E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/run_cases.py; results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-a.txt..runs-e.txt)",
+     "numeric: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr2_numeric.cob refused COBOL1761 at 2002",
+     "national: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr2_national.cob accepted and runs at 2002 (prints 42)",
+     "alphanumeric: pb974_repository_as_phrase PASS at 2002"
+    ],
+    "reason": "2023 adds 'nor zero-length literals'. A 2002 alphanumeric literal has length greater than zero (§2002:8.3.1.2.1.2 SR1), so the 2002 rule is the 2023 rule without a case 2002 cannot write. 2002 scope: AS literal shall be alphanumeric or national, not figurative.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr2_national.cob",
+    "widening": "2023 also forbids zero-length literals, which do not exist in 2002 (§2002:8.3.1.2.1.2 SR1). Cosmetic: at --std 2002 the COBOL1761 text names the function AS literal 'literal-5' (2023 numbering; 2002 calls it literal-3)."
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-3",
+    "to": [
+     "SR-12.3.8.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR3",
+      "quote": "The EXPANDS phrase shall not be specified in the REPOSITORY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR3",
+      "quote": "The EXPANDS phrase shall not be specified in the REPOSITORY",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "EXPANDS in the REPOSITORY of a parameterized class or interface definition"
+    ],
+    "evidence-2002": [
+     "covered by conformance-test ParameterizedClassTests.ExpandsInsideParameterizedDefinition_2239 (its ErrorsOf defaults to edition 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr3_neg.cob (COBOL2239 at --std 2002)"
+    ],
+    "reason": "'USING phrase' (2002) vs 'USING clause' (2023) names the same CLASS-ID / INTERFACE-ID element. Same requirement.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr3_neg.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-4",
+    "to": [
+     "SR-12.3.8.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR4",
+      "quote": "Class-name-2, class-name-3, and interface-name-1 shall be defined in the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR4",
+      "quote": "Object-class-name-2, object-class-name-3, and interface-name-1 shall be defined in the same",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class-specifier EXPANDS: class-name-2 and every actual declared in the same REPOSITORY paragraph"
+    ],
+    "evidence-2002": [
+     "covered by ParameterizedClassTests.ActualNotDeclaredInSameParagraph_2240 (edition 2002 default), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr4_neg.cob (COBOL2240 at 2002), positive pb759_parameterized_class PASS at 2002"
+    ],
+    "reason": "class-name-n renamed object-class-name-n in 2023; same requirement.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr4_neg.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-5",
+    "to": [
+     "SR-12.3.8.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR5",
+      "quote": "If the specified class-name-1 is the name of the class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR5",
+      "quote": "If the specified object-class-name-1 is the name of the class",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class-specifier naming the containing class definition"
+    ],
+    "evidence-2002": [
+     "covered by l1c24_repository_self_class_specifier PASS at --std 2002 (runner E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/run_cases.py; results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-a.txt..runs-e.txt)"
+    ],
+    "reason": "Rename only (class-name-1 / object-class-name-1).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-6",
+    "to": [
+     "SR-12.3.8.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR6",
+      "quote": "If the CLASS phrase is specified without the EXPANDS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR6",
+      "quote": "If the CLASS phrase is specified without the EXPANDS phrase",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class-specifier without EXPANDS, with and without AS literal-1: information in the external repository"
+    ],
+    "evidence-2002": [
+     "covered by pb2104_import_class_under_another_word PASS at 2002 and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr6_noclass.cob (COBOL5962 at 2002 and 2023)"
+    ],
+    "reason": "Rename only; same a)/b) split on literal-1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/sr6_noclass.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-7",
+    "to": [
+     "SR-12.3.8.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.2",
+    "clause-2023": "§2023:12.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR7",
+      "quote": "Interface-name-3, class-name-4, and interface-name-4 shall be defined in the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR7",
+      "quote": "Interface-name-3, object-class-name-4, and interface-name-4 shall be defined in the same",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "interface-specifier EXPANDS: interface-name-3 and every actual declared in the same paragraph"
+    ],
+    "evidence-2002": [
+     "covered by pb759_parameterized_class PASS at --std 2002 (the pointer row's own witness)"
+    ],
+    "reason": "Rename only (class-name-4 / object-class-name-4).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-1",
+    "to": [
+     "GR-12.3.8.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR1",
+      "quote": "Class-name-1 is the name of a class that may be",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR1",
+      "quote": "Object-class-name-1 is the name of a class that may be",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.3 GR1",
+      "quote": "Class-name-1 is the name of a class that may be used throughout the scope of the containing environment division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR1",
+      "quote": "object-class-name-1 may be specified only in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:12.3.7.3 GR1",
+      "quote": "may be specified only in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.3",
+      "quote": "The class-name of a class referenced within a source element shall be either the name of the containing class definition or declared in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class-name-1 of every class-specifier, INCLUDING a parameterized (USING) class, usable throughout the containing environment division's scope"
+    ],
+    "evidence-2002": [
+     "non-parameterized and expansion names: covered by pb759_parameterized_class PASS at 2002",
+     "a parameterized class name outside the REPOSITORY: NOT shown; probe refuses it (COBOL0813) at 2002"
+    ],
+    "reason": "Pointer corrected: the slice's GR-12.3.8.4-15 is the PROPERTY rule; this rule's twin is GR-12.3.8.4-1. The 2002 rule says only that class-name-1 may be used throughout the scope. 2023 (from 2014) adds 'If object-class-name-1 is a class described with the USING phrase, object-class-name-1 may be specified only in the REPOSITORY paragraph'; 2002 has no such confinement anywhere (§2002:9.3.12, 11.3, 12.2.7, 13.16.58 checked), and a USAGE OBJECT REFERENCE class-name needs only to be declared in the REPOSITORY (§2002:8.4.5.3). The compiler applies the 2014+ confinement at --std 2002 (OoNameResolution.Resolve line 81, edition-blind).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/gr1_skeleton_ref.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a parameterized class name used outside the REPOSITORY (01 R USAGE OBJECT REFERENCE PCHOLD) is COBOL0813 citing §2023:12.3.8.4 GR1, a confinement 2002 does not have",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/gr1_skeleton_ref.cob at --std 2002 -> error COBOL0813 '...is a parameterized class or interface ... which may be specified only in the REPOSITORY paragraph'; expected per §2002:12.2.7.3 GR1 + §2002:8.4.5.3: compiles (R is NULL). Code: src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve (IsParameterized arm, no edition test). Same at 2014/2023 (correct there).",
+    "second-targets": []
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-10",
+    "to": [
+     "GR-12.3.8.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR10",
+      "quote": "Program-prototype-name-1 is the name of a program prototype that may",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR10",
+      "quote": "Program-prototype-name-1 is the name of a program prototype that may",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "program prototype details: a) previous definition, b) prototype definition, c) external repository"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 by pb237_program_prototype, pb894_program_prototype_2002, pb2103_prototype_group_split_across_units PASS and pb989-call-previous-definition-argument-count refused COBOL1684 (runner E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/run_cases.py; results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-a.txt..runs-e.txt); RepositoryDetailsOrderTests compile at edition 2002"
+    ],
+    "reason": "NOTE renumbers the program literal (2002 literal-4, 2023 literal-3); the a)/b)/c) order is identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-11",
+    "to": [
+     "GR-12.3.8.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR11",
+      "quote": "Function-prototype-name-1 is the name of a function prototype that may",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR11",
+      "quote": "Function-prototype-name-1 is the name of a function prototype that may",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "function prototype details: a) previous definition, b) prototype definition, c) external repository"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 by pb989_function_prototype_externalized_name, pb989_function_externalized_name_wins, udf_prototype, pb974_repository_as_phrase, pb2103_function_prototype_ignores_entry PASS (runner E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/run_cases.py; results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/runs-a.txt..runs-e.txt)"
+    ],
+    "reason": "NOTE renumbers the function literal (2002 literal-3, 2023 literal-5); identical a)/b)/c).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-13",
+    "to": [
+     "GR-12.3.8.4-13"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR13",
+      "quote": "Within the scope of the containing environment division, intrinsic-function-name-1 may",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR13",
+      "quote": "Within the scope of the containing environment division, intrinsic-function-name-1 may",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR13",
+      "quote": "unless specific rules require the use of the keyword FUNCTION",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.54.3 SR9",
+      "quote": "Otherwise, SUM refers to the report writer SUM clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR2",
+      "quote": "the word FUNCTION may be omitted from the function-identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.51.2 SR4",
+      "quote": "Identifier-1 specifies a data item defined in any section of the data division",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "keyword-omitted intrinsic call in the procedure division and data division",
+     "keyword-omitted intrinsic call in a REPORT SECTION entry (e.g. a SOURCE operand), including SUM"
+    ],
+    "evidence-2002": [
+     "procedure division: covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/gr13/bare_all.cob and bare_named.cob at 2002 (ABC zyx / 0012 / 145732; ABC zyx def)",
+     "report section SOURCE SUM(...) without FUNCTION: NOT shown; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/gr13/sumsrc.cob refused at 2002; the twin's pb924_sum_function_arms_beside_report is accept [2023] only"
+    ],
+    "reason": "2023 adds 'unless specific rules require the use of the keyword FUNCTION'; the rule it defers to is §2023:13.18.54.3 SR9 (in a report description entry a bare SUM is always the SUM clause). 2002 has no such rule: §2002:8.4.2.2.2 SR2 lets FUNCTION be omitted wherever the name is in the REPOSITORY, and a SOURCE operand (§2002:13.16.51.2 SR4) can only be an identifier or expression, so 'SOURCE SUM(1 2 3)' under FUNCTION SUM INTRINSIC is a legal 2002 function-identifier. The compiler's lexer applies the 2023 report-region rule at every edition and refuses it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/gr13/sumsrc.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 a keyword-omitted SUM(...) in a report SOURCE clause is refused (COBOL5506), where §2002:12.2.7.3 GR13 makes it the SUM function",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/gr13/sumsrc.cob (REPOSITORY FUNCTION SUM INTRINSIC; 03 COLUMN 1 PIC 9999 SOURCE SUM(1 2 3).) at --std 2002 -> error COBOL5506 'cannot parse construct near 2 ... expected **, +, -, *, / or :'; expected: compiles and prints 0006 on the report line (control sumctl.cob with FUNCTION SUM(1 2 3) prints N = 09 / 0006 at 2002). Code: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4 IsReportSumClauseKeyword (kb/Work PB924), edition-blind.",
+    "second-targets": []
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-14",
+    "to": [
+     "GR-12.3.8.4-14"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR14",
+      "quote": "If ALL is specified in the intrinsic format of the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR14",
+      "quote": "If ALL is specified in the intrinsic format of the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.3 GR14",
+      "quote": "it is as if each of the intrinsic-function-names defined in 8.11, Intrinsic function names, were specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR14",
+      "quote": "except for those that may have been undefined by the COBOL-WORDS directive",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FUNCTION ALL INTRINSIC = each of the 76 §2002:8.11 names specified: usable without FUNCTION, not usable as user-defined words",
+     "names outside §2002:8.11 unaffected (remain user-defined words)"
+    ],
+    "evidence-2002": [
+     "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/gr14 (manifest.tsv, result.txt): at --std 2002 all 76 §2002:8.11 names are refused as data-names under ALL (COBOL1649), all 18 post-2002 catalog names are accepted; probe gr13/bare_all.cob calls 2002 names without FUNCTION",
+     "pb1083_all_intrinsic_edition_names PASS at 2002 (2023 names are data-names)"
+    ],
+    "reason": "Pointer corrected: the slice's GR-12.3.8.4-12 is the user-function-shadows-intrinsic rule; the twin is GR-12.3.8.4-14, which adds COBOL-WORDS UNDEFINE/SUBSTITUTE/EQUATE (no such directive in 2002). The 2002 rule's list is §2002:8.11 (76 names; no TRIM, FORMATTED-*, SECONDS-PAST-MIDNIGHT, CONCAT, ...). The pointer row's witnesses are 2014/2023 programs and do not show the 2002 list; the probe does, and the compiler is correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/gr14/result.txt",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for the ALL list = §2002:8.11 (candidate: probes-u-10/gr14)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/gr14/result.txt",
+    "second-targets": []
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-2",
+    "to": [
+     "GR-12.3.8.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR2",
+      "quote": "If the AS phrase is specified, literal-1, literal-2, literal-3, or",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR2",
+      "quote": "If the AS phrase is specified, literal-1, literal-2, literal-3, or",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "AS literal of each of the five specifier kinds as the externalized name"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 by pb974_repository_as_phrase (class, interface, property, function AS literals), pb237_program_prototype, probe repo/sr2_national.cob (function AS N literal) - PASS"
+    ],
+    "reason": "2002 numbers the literals class 1, interface 2, function 3, program 4, property 5, and the rule's 'respectively' list is consistent. 2023's list 'literal-1, literal-2, literal-3, or literal-5 ... class, interface, function, or program' does not match its own renumbered format; the compiler applies the kind-by-kind mapping, which is the 2002 reading. 'When the AS phrase is required': DOC-A.1-163 (never).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-3",
+    "to": [
+     "GR-12.3.8.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR3",
+      "quote": "Class-name-3 and interface-name-1 are actual parameters for the parameterized class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR3",
+      "quote": "Object-class-name-3 and interface-name-1 are actual parameters for the parameterized class",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class-specifier EXPANDS actual parameters"
+    ],
+    "evidence-2002": [
+     "covered by pb759_parameterized_class PASS at --std 2002"
+    ],
+    "reason": "Rename only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-4",
+    "to": [
+     "GR-12.3.8.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR4",
+      "quote": "Class-name-4 and interface-name-4 are actual parameters for the parameterized interface",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR4",
+      "quote": "Object-class-name-4 and interface-name-4 are actual parameters for the parameterized interface",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "interface-specifier EXPANDS actual parameters"
+    ],
+    "evidence-2002": [
+     "covered by pb759_parameterized_class PASS at --std 2002"
+    ],
+    "reason": "Rename only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-5",
+    "to": [
+     "GR-12.3.8.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR5",
+      "quote": "If the EXPANDS phrase is specified in a class-specifier, a",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR5",
+      "quote": "If the EXPANDS phrase is specified in a class-specifier, a",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class creation from a parameterized class; parameter count; substitution"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 by pb759_parameterized_class, pb2104_expand_skeleton_from_repository PASS and pb759-expands-parameter-count refused COBOL2240; ParameterizedClassTests default edition 2002"
+    ],
+    "reason": "Renames and 'USING phrase'/'USING clause' of CLASS-ID only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-6",
+    "to": [
+     "GR-12.3.8.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR6",
+      "quote": "The compiler shall use the information specified for class-name-1 together",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR6",
+      "quote": "The compiler shall use the information specified for object-class-name-1 together",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class details from the class-specifier and the external repository"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 by pb974_repository_as_phrase, pb2104_import_class_under_another_word, pb2104_expansion_is_one_class_across_groups PASS"
+    ],
+    "reason": "Rename only; same implementor-defined latitude.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-7",
+    "to": [
+     "GR-12.3.8.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR7",
+      "quote": "Interface-name-2 is the name of an interface that may be",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR7",
+      "quote": "Interface-name-2 is the name of an interface that may be",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.3 GR7",
+      "quote": "Interface-name-2 is the name of an interface that may be used throughout the scope of the containing environment division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR7",
+      "quote": "interface-name-1 may be specified only in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "interface-name-2 of every interface-specifier, including a parameterized interface, usable throughout the scope"
+    ],
+    "evidence-2002": [
+     "non-parameterized and expansion names: covered by pb759_parameterized_class PASS at 2002",
+     "a parameterized interface name outside the REPOSITORY: NOT shown; probe refuses it (COBOL0813) at 2002"
+    ],
+    "reason": "Pointer corrected: the slice's GR-12.3.8.4-15 is the PROPERTY rule; the twin is GR-12.3.8.4-7, which (from 2014) adds 'If interface-name-1 is an interface described with the USING phrase, interface-name-1 may be specified only in the REPOSITORY paragraph'. 2002 has no such confinement; the compiler applies it at --std 2002 (same arm as GR1).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/gr7_skeleton_ref.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 a parameterized interface name in USAGE OBJECT REFERENCE is refused COBOL0813 under the 2014+ confinement",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-10/repo/gr7_skeleton_ref.cob at --std 2002 -> COBOL0813; expected per §2002:12.2.7.3 GR7: compiles. Same mechanism as 2002-GR-12.2.7.3-1 (OoNameResolution.Resolve).",
+    "second-targets": []
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-8",
+    "to": [
+     "GR-12.3.8.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "§2002:12.2.7.3",
+    "clause-2023": "§2023:12.3.8.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR8",
+      "quote": "If the EXPANDS phrase is specified in an interface-specifier, an",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR8",
+      "quote": "If the EXPANDS phrase is specified in an interface-specifier, an",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "interface creation from a parameterized interface"
+    ],
+    "evidence-2002": [
+     "covered by pb759_parameterized_class PASS at --std 2002; ParameterizedClassTests.InterfaceSpecifierExpandsAClass_2240 at edition 2002"
+    ],
+    "reason": "Identical text.",
+    "probe": null,
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-10",
+  "cases": [
+   {
+    "rule-id": "2002-GR-12.2.6.3-2",
+    "verdict": "UPHELD",
+    "reason": "Switch-name format (switch-name-1 with or without IS mnemonic-name-1, ON/OFF STATUS choice indicators) is the same in §2002:12.2.6.1 and §2023:12.3.7.2. The referenced condition is the same: §2002:8.8.4.1.5 (format condition-name-1, one rule) = §2023:8.8.4.6. Wording 'can be'/'may be' only. 2023's 8.3 text adds a SET use of the condition-name (widening only). No CD, debugging-line or removed-form reach. Reader's evidence pb862_implementor_names PASS at 2002 confirmed in runs-a..e. Citation precision: the reader's '§2002:8.8.4.1.5' fails cite.py; the right designator is §2002:8.8.4.1.5.2 GR1.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR2",
+      "quote": "The status of that switch can be interrogated by referencing the condition-names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR2",
+      "quote": "The status of that switch may be interrogated by referencing the condition-names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.5.2 GR1",
+      "quote": "The result of the test is true if the switch is set to the specified position corresponding to condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.6.3 GR1",
+      "quote": "The result of the test is true if the switch is set to the specified position corresponding to condition-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-4",
+    "verdict": "UPHELD",
+    "reason": "Identical sentence and NOTE; implementor-defined scope and external facility, documented edition-blind (DOC-A.1-191) and the reader's env-var probe at 2002. Nothing in the 2002 format or lists changes it.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR4",
+      "quote": "The implementor defines the scope (program, run unit, etc.) of each external switch",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR4",
+      "quote": "The implementor defines the scope (program, run unit, etc.) of each external switch",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.6.3-7",
+    "verdict": "UPHELD",
+    "reason": "alphabet-name-clause and literal-phrase formats identical (§2002:12.2.6.1 vs §2023:12.3.7.2); Table 7 = Table 6 row for row; NOTE's referencing contexts identical, and every 2002 alphabet-name context (class condition, OBJECT-COMPUTER PCS, file-control COLLATING SEQUENCE, CODE-SET, SORT/MERGE, CLASS clause, SYMBOLIC, VALUE/EVALUATE THRU IN) exists in 2023; no CD reach. f) 2002 UCS-4 = 10646-1 and -2, order 10646-1 then 10646-2: same code-point order as 2023 UTF-32 for every assigned character. h) 2002 leaves the UTF-16 correspondence to the implementor; DOC-A.1-188 specifies it (BMP identity) and l1_alphabet_ucs4_utf8_utf16_correspondence PASS at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR7",
+      "quote": "The implementor shall specify the correspondence between the characters of ISO/IEC 10646-1 UTF-16",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR7",
+      "quote": "followed by the order in which characters appear in ISO/IEC 10646-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7",
+      "quote": "The collating sequence referenced by the UCS-4 phrase shall be defined by the order in which characters appear in ISO/IEC 10646",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-1",
+    "verdict": "UPHELD",
+    "reason": "Same six name kinds; 2002 function-specifier Formats 1/2 = 2023 user-defined- and intrinsic-function-specifier. 2002's smaller intrinsic list only narrows the cases. PASS/REFUSED at 2002 confirmed in runs files.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR1",
+      "quote": "all the specifications for that name shall be identical",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR1",
+      "quote": "all the specifications for that name shall be identical",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-10",
+    "verdict": "UPHELD",
+    "reason": "Renumbering only: 2002 function AS literal is literal-3 (§2002:12.2.7.1 Format 1), 2023 literal-5. Same three alternatives; witnesses PASS/REFUSED at 2002 in runs files.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR10",
+      "quote": "Literal-3, if specified, or function-prototype-name-1, if literal-3 is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR10",
+      "quote": "Literal-5, if specified, or function-prototype-name-1, if literal-5 is not specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-14",
+    "verdict": "UPHELD",
+    "reason": "Renumbering only (program AS literal-4 in 2002, literal-3 in 2023). Witnesses PASS/REFUSED at 2002 in runs files.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR14",
+      "quote": "Literal-4, if specified, or program-prototype-name-1, if literal-4 is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR14",
+      "quote": "Literal-3, if specified, or program-prototype-name-1, if literal-3 is not specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-16",
+    "verdict": "UPHELD",
+    "reason": "2002 is consistent (literal-5 in condition and consequence); 2023 says literal-4 then literal-5 (a slip). The compiler applies the property specifier's own AS literal. Attacked the a) arm the reader did not probe negatively: PROPERTY AMOUNT AS \"NOPE\" (pb974 with the literal changed) is refused COBOL5962 citing SR16 at --std 2002 and 2023; b) arm refused per reader's sr16_noprop; positive pb974 and pb2104_import_interface_and_property PASS at 2002 (the latter's runs-b/c FAIL lines show output equal to the .out modulo trailing blanks; runs-d PASS).",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR16",
+      "quote": "If literal-5 is specified, there shall be information in the external repository for the property literal-5",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR16",
+      "quote": "If literal-4 is specified, there shall be information in the external repository for the property literal-5",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-10/sr16a_neg.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-2",
+    "verdict": "UPHELD",
+    "reason": "2023 adds 'nor zero-length literals'; 2002 cannot write one: both alphanumeric (incl. hexadecimal) and national (incl. NX) literals have length greater than zero in 2002. So the 2002 rule is the 2023 rule over the cases 2002 can express.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR2",
+      "quote": "shall be alphanumeric literals or national literals and shall not be figurative constants",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR2",
+      "quote": "shall be neither figurative constants nor zero-length literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 national character positions",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-3",
+    "verdict": "UPHELD",
+    "reason": "'USING phrase' (2002) vs 'USING clause' (2023) name the same CLASS-ID/INTERFACE-ID element. Where a REPOSITORY may appear is the same (§2002:12.2.2 SR3: not in factory/instance; not in a method). Reader's sr3_neg COBOL2239 at 2002 confirmed in result-oo.txt.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR3",
+      "quote": "contains a USING phrase in its CLASS-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR3",
+      "quote": "contains a USING clause in its CLASS-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.2 SR3",
+      "quote": "REPOSITORY paragraphs shall not be specified in a factory definition or an instance definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-4",
+    "verdict": "UPHELD",
+    "reason": "Rename class-name-n -> object-class-name-n only; class-specifier format otherwise identical. sr4_neg COBOL2240 at 2002 confirmed.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR4",
+      "quote": "Class-name-2, class-name-3, and interface-name-1 shall be defined in the same REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR4",
+      "quote": "Object-class-name-2, object-class-name-3, and interface-name-1 shall be defined in the same REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-5",
+    "verdict": "UPHELD",
+    "reason": "Rename only; l1c24_repository_self_class_specifier PASS at 2002 confirmed.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR5",
+      "quote": "references to class-name-1 are to that class definition and this class-specifier is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR5",
+      "quote": "references to object-class-name-1 are to that class definition and this class-specifier is ignored",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-6",
+    "verdict": "UPHELD",
+    "reason": "Rename only; same a)/b) split on literal-1.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR6",
+      "quote": "there shall be information in the external repository for the class class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR6",
+      "quote": "there shall be information in the external repository for the class object-class-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-7",
+    "verdict": "UPHELD",
+    "reason": "Rename only (class-name-4 -> object-class-name-4); interface-specifier format otherwise identical.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR7",
+      "quote": "Interface-name-3, class-name-4, and interface-name-4 shall be defined in the same REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR7",
+      "quote": "Interface-name-3, object-class-name-4, and interface-name-4 shall be defined in the same REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-10",
+    "verdict": "UPHELD",
+    "reason": "Identical a)/b)/c); NOTE renumbers the program literal (2002 literal-4, 2023 literal-3) consistently with each edition's format. Witnesses PASS/REFUSED at 2002 confirmed.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR10",
+      "quote": "Literal-4, if specified, is the externalized name of the program prototype",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR10",
+      "quote": "Literal-3, if specified, is the externalized name of the program prototype",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-11",
+    "verdict": "UPHELD",
+    "reason": "Identical a)/b)/c); NOTE renumbers the function literal consistently. Witnesses PASS at 2002 confirmed.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR11",
+      "quote": "Literal-3, if specified, is the externalized name of the function prototype",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR11",
+      "quote": "Literal-5, if specified, is the externalized name of the function prototype",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-2",
+    "verdict": "UPHELD",
+    "reason": "2002's 'respectively' list (1 class, 2 interface, 3 function, 4 program) matches its format; 2023's list (literal-5 for program) contradicts its own format, and the compiler maps by specifier kind, which is the 2002 reading (inventory note on GR-12.3.8.4-2). pb974 and pb237 PASS at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR2",
+      "quote": "literal-1, literal-2, literal-3, or literal-4 is the externalized name by which the class, interface, function, or program, respectively",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR2",
+      "quote": "literal-1, literal-2, literal-3, or literal-5 is the externalized name by which the class, interface, function, or program, respectively",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-3",
+    "verdict": "UPHELD",
+    "reason": "Rename only. Attacked the edge the GR1 finding opens (an unexpanded parameterized class as actual parameter, legal under 2002 GR1): the compiler refuses it COBOL2240 at both 2002 and 2023 citing 9.3.12, whose 'generic or skeleton class' text is the same in §2002:9.3.12; so no edition difference in this rule (whether the refusal is right is a question for both editions, not this pairing).",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR3",
+      "quote": "Class-name-3 and interface-name-1 are actual parameters for the parameterized class referenced by class-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR3",
+      "quote": "Object-class-name-3 and interface-name-1 are actual parameters for the parameterized class referenced by object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-10/gr3_param_actual.cob"
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-4",
+    "verdict": "UPHELD",
+    "reason": "Rename only.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR4",
+      "quote": "Class-name-4 and interface-name-4 are actual parameters for the parameterized interface referenced by interface-name-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR4",
+      "quote": "Object-class-name-4 and interface-name-4 are actual parameters for the parameterized interface referenced by interface-name-3",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-5",
+    "verdict": "UPHELD",
+    "reason": "Renames and USING phrase/clause only; parameter-count sentence word-identical. pb759 PASS and pb759-expands-parameter-count REFUSED at 2002 confirmed. Same edge as GR3 probed (same behaviour at both editions).",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR5",
+      "quote": "The number of parameters in the USING phrase of the EXPANDS phrase of the class-specifier shall be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR5",
+      "quote": "The number of parameters in the USING phrase of the EXPANDS phrase of the class-specifier shall be the same",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-10/gr3_param_actual.cob"
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-6",
+    "verdict": "UPHELD",
+    "reason": "Rename only; same implementor-defined latitude.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR6",
+      "quote": "It is implementor-defined how the information in the class specifier and the external repository are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR6",
+      "quote": "It is implementor-defined how the information in the class specifier and the external repository are used",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.7.3-8",
+    "verdict": "UPHELD",
+    "reason": "Word-identical rule; interface-specifier format identical apart from the class-name rename.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.3 GR8",
+      "quote": "The number of parameters in the USING phrase of the EXPANDS phrase of the interface-specifier shall be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR8",
+      "quote": "The number of parameters in the USING phrase of the EXPANDS phrase of the interface-specifier shall be the same",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "bdef0bb6fcb7690f7c6c34449e18ccdd96207aba0b4690787e0ed1b3bbf4b64a",
+  "read": "3ca907fde2ed90014a0351ffbe27f83c966eeaf7f3dd10d275ee5cba898b5ed0",
+  "refute": "1c18d8148dd452c0fc50748bfd910baf8b542994489595b414ed25a8b3fcc700"
+ }
+}

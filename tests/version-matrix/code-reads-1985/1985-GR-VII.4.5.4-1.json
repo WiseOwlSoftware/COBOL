@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-1",
+ "rule-digest": "713dcf706870",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-124",
+  "sources": {
+   "reader": "1b2c7e83b49f8f430d6815a52c16da392fe89f68c56feb8dac7f732c3645b0b0",
+   "refuter": "061b37d3747cc55b61dd205c30467c93ca1ae687341aad6c80f84af078151f1f"
+  },
+  "imported": {
+   "reader": "6f5c49469e3660c05644bcd81b2345ff0c7a2dd53cfac7d70cf11ed8f8f72e4a",
+   "refuter": "308b88276dfe9cde9c49487562f658d69f2fae28778248c5512b4b0836bd85dd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a REWRITE of a sequential file executes only while the file is open in the I-O mode (opening I-O requires mass storage); never opened, closed, failed OPEN, INPUT, OUTPUT or EXTEND gives I-O status 49 (§1985:VII.1.3.5) with the record not replaced, the FROM move still made (GR4 a), and an applicable USE procedure run.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordLockPhrase",
+    "switches": "refuses REWRITE WITH LOCK / WITH NO LOCK at 85 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility off at 85 for OPEN arbitration and locking; the 49 test does not consult it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard",
+    "switches": "nothing: the 49 test is edition-free",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep CobolVersion|DialectBehavior|Edition in src/WiseOwl.Cobol.Runtime/IO; RewriteShared, RewriteRecord, MutationOpenModeGuard read; grep mass storage in src",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f20_02 covers I-O success and INPUT 49; not exercised: never opened, OUTPUT, EXTEND, after CLOSE, after a failed OPEN I-O, REWRITE FROM in a non-I-O mode, the USE procedure on 49; the mass-storage half has no non-mass-storage medium to probe (every sequential file is a disk file; a non-seekable stream answers through NotRewritableInPlace)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p6rw1.cob",
+    "printed": "NOTOPEN=49 / OUTPUT=49 / CLOSED=49 / EXTEND=49 / INPUT-FROM=49 AREA=FROM / IO-FROM=00 / BACK=00 FROM / USE-G 35 OPENIO-G=35 / USE-G 49 REWRITE-G=49",
+    "expected": "49 in every non-I-O state including after a failed OPEN I-O, USE runs; FROM move happens before the refused REWRITE; I-O REWRITE FROM replaces the record"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p1c.cob",
+    "printed": "COBOL0900 on REWRITE F-REC WITH NO LOCK (targeting COBOL-85)",
+    "expected": "the 2002 lock phrase is not in the 1985 REWRITE format"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VII.4.5@1985-REWRITE-STATEMENT/g85_f20_02.cob",
+    "printed": "MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.4 GR1",
+    "check": "OK  §1985:VII.4.5.4 GR1  (4.5.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4h"
+   }
+  ],
+  "notes": "MutationOpenModeGuard is the one edition-free 49 test for REWRITE and DELETE of every organization, asked before the 43 gate, so a REWRITE in OUTPUT mode after a WRITE answers 49 (1985 lets the implementor choose when 43 and 49 both apply). The mass-storage requirement cannot be violated by a reachable file in this implementation.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "r6rw.cob (refute-1985-124/r6rw-001, --std 85): OPEN I-O on a file open INPUT gives 41 and leaves it INPUT; REWRITE FROM then 49, the FROM move made (AREA=FROM), USE run; OPEN INPUT on a file open I-O gives 41 and leaves it I-O; REWRITE then 43 (the file IS open I-O, and the failed OPEN was the last input-output statement, §1985:VII.4.5.4 GR2), not 49; after the 1985-only CLOSE WITH LOCK REWRITE 49, OPEN I-O 38, REWRITE 49; an EXTERNAL connector opened I-O and READ in the caller is REWRITTEN 00 by another program describing it (read back SUBR), and 49 after CLOSE; a device file (ASSIGN TO NUL) answers OPEN I-O 35, so no non-mass-storage file reaches I-O mode and its REWRITE is 49. cite.py: OK  §1985:VII.4.5.4 GR1 (4.5.4 General Rules) the text is in GR1; OK  §1985:VII.1.3.5 ... GRL2.4h (49).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

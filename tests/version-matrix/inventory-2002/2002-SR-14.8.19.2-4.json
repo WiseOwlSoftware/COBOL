@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.19.2-4",
+ "rule-digest": "b5e6bfaa13fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeTargetRenames",
+ "test-ref": "conformance:cases/14.8.19@2002-INITIALIZE-STATEMENT/g2ini02_cd_renames_target",
+ "notes": "SR4 (catalog kind SR, prohibiting, grants no form): 'The data description entry for the data item referenced by identifier-1 shall not contain a RENAMES clause.' AB is a 66 entry renaming items of an output CD record, a legal entry (§2002:13.16.43.2 SR3 names CD among its qualifiers); INITIALIZE AB violates SR4, so a conforming compiler refuses that statement at line 23 and accepts the control INITIALIZE CDREC at line 24. Run at --std 2002 on the pinned dc1f2dcce8 build matched."
+}

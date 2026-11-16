@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.3.1.2.5.1",
+ "rule-digest": "7d13ec556965",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb71_all_national_boolean_figurative",
+ "notes": "Own verdict from the read lineage-reads-2002/u-45.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.3.3.6.2, witnessed at 2002 by the cases test-ref names. The read: The seven formats are identical in both editions (2023 adds only figure notes). Pointer witness and probes hold at 2002. Cited: §2002:8.3.1.2.5.2 SR2; §2002:8.3.1.2.5.2 SR1a."
+}

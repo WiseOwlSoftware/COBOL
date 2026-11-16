@@ -52,11 +52,14 @@
       "run or the adjudication that decided it). Its evidence is the citation of the row and of each `to` rule, read from",
       "their catalogs and never stored. Each kind states whether it names rules of the next edition (`to`), whether it",
       "must state its `reason`, and whether its verdict is its CHAIN's (`chained`: held once, on the chain's newest row,",
-      "so the row carries none of the `verdict-fields`) or its own. A chained row still closes only on EVIDENCE AT ITS OWN",
-      "EDITION (kb/Work PB5675; owner 2026-11-14 and 2026-11-15: each edition's rules stand on their own text): its own",
-      "`test-ref`, conformance-suite cases that run at the row's edition and are of the kind its rule needs, which the",
-      "writer finds through the `to` rules' cases and the LINEAGE READS audit checks against the suite; a chained row",
-      "without one is a GAP (lineage.state_of). A rule of the next edition no record's `to` names is",
+      "so the row carries none of the `verdict-fields`, its verdict and the code read behind it) or its own. A chained row",
+      "still closes only on EVIDENCE AT ITS OWN EDITION (kb/Work PB5675; owner 2026-11-14 and 2026-11-15: each edition's",
+      "rules stand on their own text), ONE of two things (kb/Work PB5822): its own `test-ref`, conformance-suite cases",
+      "that run at the row's edition and are of the kind its rule needs, which the writer finds through the `to` rules'",
+      "cases and the LINEAGE READS audit checks against the suite; or, for a rule no program can witness, a `derivation`",
+      "of its own (DESIGN-spec-conformance-review.md section 1.1: keyed by its own rule-id, checked against its own",
+      "edition's catalog, never inherited from a `to` rule), which stands only while its chain is closed",
+      "(lineage.derivation_refusals). A chained row with neither is a GAP (lineage.state_of). A rule of the next edition no record's `to` names is",
       "NEW: derived, never written. lineage.py (`next_errors`, `state_of`) reads this through inventory_schema.ChangeRecord;",
       "no code spells a kind. `digests` (kb/Work PB5256, branch review R1-4) maps each `to` rule to the `rule-digest` of",
       "the text the record was decided against; the writer stamps it, and a target whose text has since changed under its",
@@ -68,7 +71,7 @@
       "anew is owed a re-read (lineage_screen.owed_records)."
     ],
     "keys": ["kind", "edition", "to", "digests", "bridge", "reason", "answers", "source"],
-    "verdict-fields": ["verdict", "code-location", "derivation"],
+    "verdict-fields": ["verdict", "code-location"],
     "kinds": {
       "KEPT": {"meaning": "the next edition states the same requirement", "to": true, "reason": false, "chained": true},
       "CHANGED": {"meaning": "the same subject, a different requirement", "to": true, "reason": true, "chained": false},
@@ -1150,14 +1153,16 @@
       "owner: 2026-10-08": "kb/Work PB1636 — the owner signed the 32 drafted derivations as one batch (answer 'Sign all 32')",
       "owner: 2026-10-23": "kb/Work PB3539 — the owner chose option (i), document a violation of §12.4.6.4.4 GR3 as undefined (answer 'Document as undefined'); kb/Work PB1636 — the owner signed the last drafted derivation, DRV-GR-12.4.5.9.4-2 (answer 'Sign it')",
       "claude: 2026-11-12": "kb/Work PB5373 — how a 1985 rule with no reachable witness closes: the rows of its classes 1 and 2",
-      "claude: 2026-11-14": "kb/Work PB5373 — its class 2 rows read after the orchestrator's cobol-refuter pass (tests/version-matrix/derivation-refutations/pb5373-class2.jsonl), signed by the operator session (Claude Mythos 5.2): DRV-1985-GR-XIV.3.6.4-16 and DRV-1985-GR-VI.3.4.4-1, each on an UPHELD record; and DRV-1985-GR-XIV.3.6.4-17 and -18, restated on GR2 by the 2026-11-14 held-row adjudication and signed by the records-85-held registrar session (Claude Opus 5.5), each on the UPHELD record of its own cobol-refuter pass (tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl)"
+      "claude: 2026-11-14": "kb/Work PB5373 — its class 2 rows read after the orchestrator's cobol-refuter pass (tests/version-matrix/derivation-refutations/pb5373-class2.jsonl), signed by the operator session (Claude Mythos 5.2): DRV-1985-GR-XIV.3.6.4-16 and DRV-1985-GR-VI.3.4.4-1, each on an UPHELD record; and DRV-1985-GR-XIV.3.6.4-17 and -18, restated on GR2 by the 2026-11-14 held-row adjudication and signed by the records-85-held registrar session (Claude Opus 5.5), each on the UPHELD record of its own cobol-refuter pass (tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl)",
+      "claude: 2026-11-16": "kb/Work PB5822 — the first derivations on chained rows: the 1985 rows a registrar recorded under PB5822, each argued one on the UPHELD record of an independent cobol-refuter pass (tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl), signed by the Mythos lane session (Claude Mythos 5.2)"
     },
     "undefined-list": "tests/version-matrix/annex-a2-undefined.json",
     "$refusals": [
       "The bounds the owner set, encoded rather than described (record_verdicts.validate reports each by name):",
       "1) a derivation on a row that ALREADY carries a spec-derived test-ref — that row demonstrably has an",
       "   observable obligation, so the premise is false for it;",
-      "2) a derivation on a row whose verdict does not RESOLVE;",
+      "2) a derivation on a row whose verdict does not RESOLVE (on a chained KEPT row of an older edition, which holds",
+  "   no verdict of its own, one whose chain is not closed: kb/Work PB5822, lineage.derivation_refusals);",
       "3) a derivation on a row of a kind that obliges a register determination docs/CONFORMANCE.md does not",
       "   carry — the documentation obligation is not yet STATED, so there is nothing to derive about;",
       "4) an `undefined-A.2` arm naming an item that does not resolve to this row;",
@@ -1165,7 +1170,8 @@
       "6) a `derivation` value that is not the COMPUTED anchor, or one docs/CONFORMANCE.md §8 has no row for;",
       "7) an `undefined-in-rule` arm whose quotation is not in the row's own catalog text, or on a row an Annex A.2",
       "   item resolves to (one fact, one arm: that row keeps `undefined-A.2`);",
-      "8) an ARGUED arm signed by a signer whose `refuter` is true, with no UPHELD refuter record of the row."
+      "8) an ARGUED arm signed by a signer whose `refuter` is true, with no UPHELD refuter record of the row;",
+      "9) an `unfalsifiable-under-determination` arm naming a key that is not a row of the conformance register (kb/Work PB5831)."
     ],
     "arms": {
       "$comment": [
@@ -1203,6 +1209,12 @@
         "check": "quoted-in-rule",
         "argued": false,
         "meaning": "kb/Work PB5373 class 1, PB5374: the rule's OWN text declares the result undefined or unpredictable, which is how an edition with no Annex A.2 (1985) says it. MECHANICAL: the Names cell is a quotation, in double quotes, of four or more words that contains 'undefined' or 'unpredictable'; it must lie inside the row's own catalog text in its edition (each whitespace run compared as one space), and a row an Annex A.2 item resolves to is refused here, as it keeps `undefined-A.2`."
+      },
+      "unfalsifiable-under-determination": {
+        "names-pattern": "^(DOC-A\\.1-[0-9]+[a-z]?|D-[A-Z0-9]+(?:-[A-Z0-9]+)*)$",
+        "check": "register-key",
+        "argued": true,
+        "meaning": "kb/Work PB5831: a term of the rule is the implementor's to settle (the standard says so), this implementation's determination of that term is documented in the conformance register, and under that meaning of the term alone the rule's requirement is true of every state a compiler could produce, a defective one included, so no program can fail on it. The Names cell is the register key of the determination, alone: a section 7 item (DOC-A.1-<n>) or a section 3 determination (D-<NAME>); it must be a row of the register's extract (`Schema.register_items` or `Schema.determination_keys`). The argument cites the words that leave the term to the implementor, quotes the determination of the term, says why every behaviour satisfies the rule under that meaning alone (never the behaviour a register entry promises beside it), and that the derivation is CONTINGENT on it."
       }
     }
   }

@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-VIII.4.8.3-6",
+ "rule-digest": "e7f40e3136fa",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-163",
+  "sources": {
+   "reader": "4b088dead2719e1fc593abf6e485ec7a48bf6bcc65261226c2ca26427d8bbf3e",
+   "refuter": "c21732898f741fa02834aa321ab3abb1732b605ad488443c012cc311b90ba757"
+  },
+  "imported": {
+   "reader": "d335871589b26793709045d3798b2eef64c558e62214b727e22cab50da2718d3",
+   "refuter": "286289d75cf0ad1f3cc9fa5bd457735575be0a7990e6f77b4a25d65ee21dcf1d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.8.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 each of the INPUT, OUTPUT, I-O and EXTEND phrases may appear in at most one USE statement of the declaratives of a given Procedure Division (whichever of ERROR or EXCEPTION is written), a second one being refused, while a contained program's own Procedure Division may repeat a phrase its container uses.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "the 1985 required words AFTER and PROCEDURE; the SR6 duplicate check itself has no edition test",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "DeclBindUse's mode arm (_useModes.Register, ConstructOperand.Duplicate, COBOL0897) has no Edition/DialectLevel test; EXTEND is a level-2 boxed phrase the 1985 format admits and the grammar accepts at every edition",
+  "behaviour-differs-by-edition": "no: p4dupmix is refused with COBOL0897 at 85 and at 2023",
+  "witnesses-cover": "part: g85_bf28_02 shows the four phrases each once (the acceptance half); the refusal half and the per-Procedure-Division scope in a nested program are probe-only",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4dupout.cob",
+    "printed": "error COBOL0897: declarative section 'DB': this open mode already has a USE procedure in this procedure division",
+    "expected": "OUTPUT twice refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4dupio.cob",
+    "printed": "error COBOL0897 (I-O twice)",
+    "expected": "I-O twice refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4dupext.cob",
+    "printed": "error COBOL0897 (EXTEND twice, EXCEPTION then ERROR)",
+    "expected": "EXTEND twice refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4dupmix.cob",
+    "printed": "error COBOL0897 (INPUT twice, ERROR then EXCEPTION); the same at --std 2023",
+    "expected": "INPUT twice refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4fourok.cob",
+    "printed": "compiles; DA / ST1=35",
+    "expected": "INPUT once and OUTPUT once is legal and the INPUT USE fires on the failed OPEN INPUT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4nest.cob",
+    "printed": "compiles; OUTER-INPUT STO=35 / INNER-INPUT STI=35",
+    "expected": "the container and a contained program each have their own Procedure Division, so each may specify INPUT once"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.3 SR6",
+    "check": "OK  §1985:VIII.4.8.3 SR6  (4.8.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "DeclBindUse registers each mode operand in a per-Procedure-Division registry and reports COBOL0897 on a duplicate; ERROR and EXCEPTION share it. The diagnostic cites the 2023 rule number (SR7), a message-text matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.8.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Beyond the reader's same-form duplicates: r5glob2-001 puts USE GLOBAL AFTER STANDARD ERROR ON INPUT and USE AFTER STANDARD EXCEPTION ON INPUT in one Procedure Division: refused COBOL0897 'this open mode already has a USE procedure in this procedure division' (the GLOBAL phrase of §1985:X.5.5.2 does not create a second scope). r5nestg-001: the container's GLOBAL INPUT USE and a contained program's own INPUT USE compile and the inner one wins (INNER-INPUT STI=35), so the scope is per Procedure Division. Grep of ProcedureTableBuilder.cs for Edition/DialectLevel shows only ctx.Edition.At/Error reporting. Diagnostic cites §2023:14.9.49.3 SR7 at 85 (message text only). cite.py: OK §1985:VIII.4.8.3 SR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-GR-VIII.2.4.4-4",
+ "rule-digest": "aacc763f8e2f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-130",
+  "sources": {
+   "reader": "82310cf41338ae9e7c482c179d67010eaf9e7e6d944aefbc8817fd8fb807316d",
+   "refuter": "3d556626bd58f455ba5b06e4a7e057b06372450d68af16a584207b701c1e7e2f"
+  },
+  "imported": {
+   "reader": "92868f2d759ec9e556c1b1f032e9965e1a28b098dba26cf8fa2ad658f7b4348f",
+   "refuter": "7c63234ef1b375e2a4c4fcfb79b459bc9f1634547ee015b7b01d02c9cdc5f898"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.4.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a relative file with ACCESS MODE IS DYNAMIC must allow both sequential retrieval (format 1 READ, which must write NEXT, START, sequential REWRITE/DELETE) and random retrieval (format 2 READ by the relative key, random WRITE, REWRITE and DELETE) on one open, the sequential reads continuing from the position the random statements set.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadRandomAccessPhrases; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadNext; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "below 2002 a dynamic READ that writes AT END / NOT AT END without NEXT is refused (COBOL7144, §1985:VIII.4.5.3 SR3); 2002+ implies NEXT",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "READ PREVIOUS refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError: an out-of-range random/dynamic WRITE key is '24' below 2014, '34' from 2014",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|DialectBehavior|Year over KeyedIoBinder.cs, KeyedIoEmitter.cs, RelativeConnector.cs, KeyedConnector.cs, FileRegistry.cs; the access-mode branch itself (KeyedIoBinder.BindRead's kind switch, RelativeConnector's Access tests) is edition-free.",
+  "behaviour-differs-by-edition": "yes: at 85 a sequential READ of a dynamic file must write NEXT (2002+ implies it from AT END), READ PREVIOUS is refused, and an out-of-range write key is status 24 (34 at 2023); the access-mode dispatch is the same code at every edition",
+  "witnesses-cover": "part: the witness exercises random READ and READ NEXT on a dynamic relative file; it does not exercise START, REWRITE, DELETE or WRITE in I-O mode under dynamic access, variable-length records, or the 1985 NEXT requirement",
+  "probes": [
+   {
+    "class": "a,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/pdyn.cob",
+    "printed": "W2DUP IK 22 / R5=00 R5 05 AB / N1=00 R9 009 08 VWXYZ / N2 END 10 / N3=00 R2 002 / RW=00 / DL=00 / DL2 IK 23 / W7=00 / S:R2 002 03 / S:R7 007 03 / S:Q9 009 04 / END 10",
+    "expected": "random WRITE/READ/REWRITE/DELETE and START + READ NEXT on one dynamic open (ODO record, RECORD VARYING DEPENDING ON), READ NEXT continuing after the random READ (§1985:VIII.4.5.4 GR4d), duplicate write 22, missing delete 23: matches"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/pref_b1.cob",
+    "printed": "error COBOL7144: READ of relative file 'RFL' (ACCESS MODE IS DYNAMIC) retrieves sequentially but specifies no NEXT phrase (§1985:VIII.4.5.3 SR3 ...)",
+    "expected": "refused at 85 (SR3); at --std 2023 the same source compiles (EXIT 0), SR9 implies NEXT"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/pref_b2.cob",
+    "printed": "error COBOL0900: READ PREVIOUS requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: the 1985 format 1 READ has only NEXT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/pref_b5.cob",
+    "printed": "error COBOL1720: the AT END / NEXT phrase shall not be specified for a READ ... ACCESS MODE RANDOM",
+    "expected": "refused: random access takes format 2 only (§1985:VIII.4.5.3 SR2, SR4)"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/12.4.5-File-control/l1c12_access_mode_random_dynamic.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "its .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.4.4 GR4",
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.2.4.4 GR4\" \"records in the file may be accessed sequentially and/or randomly\" -> OK  §1985:VIII.2.4.4 GR4  (2.4.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VIII.4.5.3 SR3",
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.4.5.3 SR3\" \"The NEXT phrase must be specified for files in dynamic access mode\" -> OK  §1985:VIII.4.5.3 SR3  (4.5.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VIII.4.5.4 GR15",
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.4.5.4 GR15\" \"sets the file position indicator to the value contained in the data item referenced by the RELATIVE KEY phrase\" -> OK  §1985:VIII.4.5.4 GR15  (4.5.4 General Rules)  the text is in GR15"
+   }
+  ],
+  "notes": "Dynamic access is one runtime connector whose every branch is drawn on the access mode; at 85 the binder adds the 1985-only NEXT requirement and the edition gate on PREVIOUS. All probe lines match the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.4.4-4",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,e,f",
+  "evidence": "refute-1985-130/src/dyn2.cob (--std 85, USE AFTER STANDARD ERROR declarative): format 2 READ with no phrase read by key (A1 00 RR05 005); random WRITE of 6 then READ NEXT after the READ of 5 gives 6 (A3 00 RR06 006: FPI unaffected by WRITE, §1985:VIII.4.9.4 GR5); DELETE by key of 6 then READ NEXT gives 8 (A5: §1985:VIII.4.3.4 GR6); unsuccessful random READ (23) then READ NEXT gives 46 (A7: §1985:VIII.4.5.4 GR12); REWRITE by key with no prior READ 00; START = 9 invalid (23) then READ NEXT 46; START = 2 then NEXT gives 2; at end 10 then NEXT 46; random READ 2 then NEXT gives 5. dyn14c.cob: dynamic READ NEXT onto RRN 12 with a PIC 9 key gives 14 then 46 (same at 2023); PIC 9(18) key 999999999999999999 gives 23. ext_dyn.cob / ext_rnd.cob: OPEN EXTEND on a DYNAMIC or RANDOM relative file refused COBOL2372 (§1985:VIII.4.4.3 SR1). Class c: st_lt (START LESS THAN), st_first (START FIRST), rd_lock/rd_nolock (lock phrases) refused COBOL0900; rd_key (READ KEY on relative) refused COBOL0864; START KEY IS >= compiles, correct since the amended 1985 relative START format lists 'IS >=' (spec line 18190). cite.py: OK §1985:VIII.4.4.3 SR1; OK §1985:VIII.4.5.4 GR12; OK §1985:VIII.4.3.4 GR6; OK §1985:VIII.4.9.4 GR5; OK §1985:VIII.4.5.4 GR13.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

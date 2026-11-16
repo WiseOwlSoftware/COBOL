@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.4.4.4-4",
  "rule-digest": "42f996ce9713",
+ "test-ref": "conformance:cases/14.9.30-READ/pb810_read_46_takes_no_at_end; conformance:cases/9.1.11-File-position-indicator/pb336_optional_absent_read_46; conformance:cases/9.1.13.4-At-end-condition-with-unsuccessful-completion/pb336_optional_absent_read_46_85; conformance:cases/9.1.13.2-Successful-completion/l1_open_optional_create",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -2,8 +2,8 @@
  "rule-id": "SR-14.9.43.3-7",
  "rule-digest": "0bcd347987fa",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
- "test-ref": "conformance:cases/14.9.43-STRING/pb88-string-pointer-not-integer",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#PointerTooSmall",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb88-string-pointer-not-integer; conformance:cases/14.9.43-STRING/pb5734-string-pointer-refmod; conformance:cases/14.9.43-STRING/pb5607-string-pointer-too-small; conformance:cases/14.9.43-STRING/pb5607-string-unstring-pointer-fits",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-4 shall be an elementary numeric integer data item without the symbol P (StrUnstrIsInteger)."
+ "notes": "kb/Work PB5734 and PB5607 landed: identifier-4 is asked as an operand as bound (StrUnstrIsInteger asks IntrinsicResultType.IsIntegerOperand, which refuses a reference-modified item, §2023:8.4.3.3.4 GR6) and, for a size known at compile time, for 1 plus the size of identifier-3 (PointerTooSmall, PicInfo.CanHoldUnscaledValue): COBOL1651 at 85, 2002, 2014 and 2023. The boundary (PIC 9 against an 8-character receiver) is accepted. Prior record (CONFORMS), kb/Work PB88: a bind-time rejection of a non-integer or P-scaled pointer through the one Reject helper."
 }

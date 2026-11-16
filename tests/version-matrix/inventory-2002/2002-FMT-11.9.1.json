@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-11.9.1",
+ "rule-digest": "a04be9944eff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#prototypePhrase; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/10.6-COBOL-compilation-group/pb894_program_prototype_2002; conformance:cases/13.5-Working-storage-section/recursive_ws",
+ "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-11.10.2, witnessed at 2002 by the cases test-ref names. The read: Token-identical formats (2023 adds figure notes only). The row's witnesses run at 2002. Cited: §2002:11.9.2 SR2."
+}

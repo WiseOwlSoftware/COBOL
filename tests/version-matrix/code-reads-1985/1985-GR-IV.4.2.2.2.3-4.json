@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-4",
+ "rule-digest": "1c82a9a62644",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-086",
+  "sources": {
+   "reader": "6a96a82bff65079e8e01d9c2900e21b9ccf2e439b3182b3151de0caa9ffc2dd9",
+   "refuter": "84eead25e060f896dd9a49671c4967dbabf36eb95ce5e2b18c300c9c60583088"
+  },
+  "imported": {
+   "reader": "786291c07b700d58609c14e6eed27e88f241b88f3d469dc95320e2a4f189a31e",
+   "refuter": "668b37a975a6e08299e377b1bed62690f84c9c45da49d7249aff25fc0e17e710"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, outside SPECIAL-NAMES, [ALL] LOW-VALUE(S) is one or more of the character at the lowest ordinal position of the PROGRAM collating sequence (native lowest when none is named; under an ALPHABET literal phrase the first character specified, which also wins an ALSO tie, §1985:VI.4.5.4 GR6), sized by the associated item; inside SPECIAL-NAMES it is the native lowest character (GR7).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Extremes; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#AlphabetDef; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetFigurative; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#NativeCollatingSequence; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#LowValue; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (LOW-VALUE, LOW-VALUES rows)",
+    "switches": "reserved at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Constructs over CollatingModel.cs, FigurativeConstants.cs, SpecialNamesBinder.Alphabets.cs (only the LOCALE arm's DialectLevel<2002 return and the RangeInAlphabet2002 gate, neither on a 1985 literal-phrase path) and the ResolveProgramCollating block of SpecialNamesBinder.cs (no edition switch); the figurativeConstant grammar rule carries no version predicate",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises the program sequence's first specified character; the native default, the ALSO tie, an ordinal-specified first character, ALL LOW-VALUES, group MOVE, INSPECT and the SPECIAL-NAMES exception are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/g85_bf03_01.cob",
+    "printed": "MATCH (witness)",
+    "expected": "LOW-VALUE \"M\""
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/h1.cob",
+    "printed": "ORD-LV 00001; C3 LT (LOW-VALUE < SPACE item); C4 EQ (VALUE ALL LOW-VALUES); C6 EQ (group MOVE LOW-VALUE); INSPECT REPLACING BY LOW-VALUE -> ORD 00001",
+    "expected": "native lowest character U+0000"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/h2.cob",
+    "printed": "Y3 [BBB] (VALUE and MOVE LOW-VALUES); C1 EQ (\"C\" ALSO-tied with \"B\"); C2 LT",
+    "expected": "ALPHABET \"B\" ALSO \"C\" \"A\": LOW-VALUE the first specified character \"B\""
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/h3.cob",
+    "printed": "ORD-LV 00001; LV IS U+FFFF",
+    "expected": "ALPHABET 65536 \"A\": LOW-VALUE is the character of native ordinal 65536"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/l1.cob",
+    "printed": "L1 [Z]; ORD-LV 00001; ORD-NUL 00002; C1 GT",
+    "expected": "ALPHABET \"Z\" LOW-VALUE ...: inside SPECIAL-NAMES LOW-VALUE is native U+0000 (position 2), the program's LOW-VALUE is \"Z\""
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GR4",
+    "check": "OK  §1985:IV.4.2.2.2.3 GR4  (4.2.2.2.3 Figurative Constant Values)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR6",
+    "check": "OK  §1985:VI.4.5.4 GR6  (4.5.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR7",
+    "check": "OK  §1985:VI.4.5.4 GR7  (4.5.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "CollatingTable.Extremes takes specOrder[0] as LOW-VALUE (position 0, GR6's first-specified tie); AlphabetDef.LowValue is U+0000 for an identity sequence. The SPECIAL-NAMES operand LOW-VALUE reads the native constant through AlphabetFigurative. Classes a, e, f do not bear on the character chosen.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-4",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "src/hl_nest.cob at 85: descending THROUGH \"Z\" THRU \"W\" first -> outer LOW-VALUE [Z]; contained program (no Configuration Section, 1985 VI.4.2) LOW-VALUE [Z], VALUE LOW-VALUES PIC X(3) [ZZZ], \"W\" > LOW-VALUE GT, \"A\" > \"W\" GT: the first specified character of the container's sequence. src/hl_class.cob: CLASS LVC IS LOW-VALUE in SPECIAL-NAMES is the native U+0000 (program LOW-VALUE U+FFFF is OUT of LVC, \"A\" OUT), while the program's LOW-VALUE is U+FFFF (IN HVC, the native-highest class). src/hl_std1.cob STANDARD-1 -> ORD-LV 00001. cite.py: OK §1985:VI.4.5.4 GR6 'the first character specified is associated with the figurative constant LOW-VALUE'; OK §1985:VI.4.5.4 GR7; OK §1985:VI.4.4.4 GR2; OK §1985:VI.4.5.4 GR10.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

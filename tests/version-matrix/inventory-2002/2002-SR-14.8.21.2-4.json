@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.21.2-4",
+ "rule-digest": "1a0f356bce65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Sr4Entry; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsElementaryOrBitNationalGroupReference",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/pb5646-inspect-national-group-literal-2002",
+ "notes": "§2002:14.8.21.2 SR4: a national group is treated as an elementary item of class national (§2002:13.16.27.3 GR2b), so it triggers the all-national rule; an alphanumeric literal beside a national-group identifier-1 is refused (COBOL2306). The legal neighbour (a national literal) is accepted (conformance:cases/14.9.22-INSPECT/pb5646-inspect-national-group-national-literal). kb/Work PB5646."
+}

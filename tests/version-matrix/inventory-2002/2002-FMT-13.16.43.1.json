@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.43.1",
+ "rule-digest": "0f44a51d2421",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#EntryNameObligation",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-fmt-cd-record-data-clauses",
+ "notes": "66 RN1 RENAMES J1 THRU J2 is an alphanumeric group over J1..J2, \"   ABZABCD\" (§2002:13.16.43.3 GR2); 66 RN2 RENAMES R1 takes R1's attributes and storage, 1235 (GR1); 66 RN3 RENAMES P1 THROUGH P2 gives \"125XYZ\" (SR8, THROUGH = THRU); all follow a record under a CD (SR3 names the CD as a qualifier). Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}

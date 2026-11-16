@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-IX.3.2.4-1",
+ "rule-digest": "f5573691ab4a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-092",
+  "sources": {
+   "reader": "802346bf7c4f3075dd9e8af4a425b7a7f938f3455695110c87108b360860151f",
+   "refuter": "1db6eb72e0544f501bce746da16bb23083a2a78ea1f776434ccf6be424af4050"
+  },
+  "imported": {
+   "reader": "11deff92d7d87a43d2104abf371d7c4975654d18f3e03ad4342b97f10fcabd7d",
+   "refuter": "88ccd543c05e2f2cf575273a64be7589e42755e2042b2997ece771387eff2db2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.3.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each indexed FD associates its file-name with a file connector of its own, so two file-names (even ASSIGNed to one physical file) open, position and fail independently.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+    "switches": "passes the edition to the connector it registers; one connector per FD at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel in SequentialIoEmitter.cs#EmitFileRegistration (only the report-file registration passes it) and KeyedIoEmitter.cs",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f17_08 covers two FDs on different physical files; not covered: two FDs on one physical file open at once, a failed OPEN on one connector beside open ones",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/g85_f17_08-001",
+    "printed": "MATCH",
+    "expected": "g85_f17_08.out"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/fd12-001",
+    "printed": "XC OPEN 35; OPEN 00 00; XB 00 K002DATA-2; XA 00 K004DATA-4; XB 00 K003DATA-3; XA 00 K005DATA-5; XB 00 K004DATA-4 (after CLOSE XA)",
+    "expected": "XA (dynamic) and XB (sequential) on one physical file keep separate file position indicators; closing XA does not disturb XB; XC's failed OPEN affects neither"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.3.2.4 GR1",
+    "check": "OK  §1985:IX.3.2.4 GR1  (3.2.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Each FD registers its own connector keyed by its file-name; the probe interleaves two connectors over one physical file and each keeps its own position.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.3.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Attacked the file connector through the 1985 EXTERNAL and GLOBAL file forms (Inter-Program Communication), not tried by the reader. Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-092/fdx-001 (src/fdx.cob): outer FD XF IS EXTERNAL and FD XG IS GLOBAL (indexed), nested INNER declares its own FD XF IS EXTERNAL and uses XG unqualified. Printed: INNER SEES K001OUT1 (shared record area), W2 00 (inner WRITE without OPEN: one open connector), G2 00 (GLOBAL), BACK 00 00, W3 IK 22 (outer sees inner's K002), read-back F K001OUT1, K002INN2, G G001GOU1, G002GIN2. Each file-name is associated with exactly one connector, shared where EXTERNAL says so. cite.py: 'OK  §1985:IX.3.2.4 GR1  (3.2.4 General Rules)  the text is in GR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

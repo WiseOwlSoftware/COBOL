@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.6.2-4",
+ "rule-digest": "3b1883099a1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ScreenLinkageReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionOf; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ScreenLinkageIndex; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#SealLinkageRules",
+ "test-ref": "conformance:cases/13.7-Linkage-section/pb1249_linkage_based_item_referenceable",
+ "notes": "Own verdict from the read lineage-reads-2002/u-12.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.7.3-4, witnessed at 2002 by the cases test-ref names. The read: Words identical but the BASED clause number. Procedure-division-header USING/RETURNING forms are the same; no CD reach. Every pointer witness holds at 2002. Cited: §2002:13.6.2 SR4."
+}

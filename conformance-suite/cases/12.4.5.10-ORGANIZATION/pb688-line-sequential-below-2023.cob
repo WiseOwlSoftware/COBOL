@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb688-line-sequential-below-2023
-*> rules: [GR-12.4.5.10.3-2, FMT-12.4.5.10.2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb688-line-sequential-below-2023
+      *> rules: [GR-12.4.5.10.3-2, FMT-12.4.5.10.2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 12.4.5.10.3 GR2: "The LINE SEQUENTIAL phrase specifies that the file organization is line
       *> sequential."  The phrase is a COBOL-2023 INTRODUCTION: the Foreword's list of the main changes this
       *> third edition makes over ISO/IEC 1989:2014 names "Line Sequential file organization", and 9.1.6 /

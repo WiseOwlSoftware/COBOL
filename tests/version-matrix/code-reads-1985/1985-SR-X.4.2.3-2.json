@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-SR-X.4.2.3-2",
+ "rule-digest": "4eb7e8985a6e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-068",
+  "sources": {
+   "reader": "e9614878ba96246d48d75121106d940b2f8b1fb0065e0ab6f5367233bd01bcce",
+   "refuter": "a70639c62e4b57bd4d67f8fc8c54f17a668fbe354e47e21f6cbb21e91d9b02c5"
+  },
+  "imported": {
+   "reader": "9ef4b6704e810563737cd4474fc72df00514457b0d7fbcb63217053643f892a5",
+   "refuter": "7b7b21f2ce9ddcffe9492f680207f13a53eb2c98c06c61f59330f177af97e624"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.4.2.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an FD for a relative or indexed file must admit exactly the Format 2 clauses (IS EXTERNAL, IS GLOBAL, BLOCK CONTAINS, RECORD in all forms, LABEL RECORDS, VALUE OF, DATA RECORDS) and refuse LINAGE, CODE-SET and REPORT, which Format 2 does not print.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause / #VisitValueOfClause / #VisitDataRecordsClause",
+    "switches": "removal gates of the '85-only FD clauses (deleted at 2002): admitted at --std 85, refused from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFormatClause",
+    "switches": "FORMAT clause (a 2002 addition) refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCodeSetClause",
+    "switches": "CODE-SET national phrases (alphabet-name-2 / FOR) refused below 2002; the single-name '85 form is admitted at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize (RECORD CONTAINS m TO n bounds a WRITE only from 2002); not part of format admission",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "FileDescriptionFormats.Rows/Of and FileControlBinder.FileSection#FileDescriptionClauseAdmitted consult no edition (grep CobolVersion|IsAtLeast|ConstructRegistry|DialectBehavior over FileDescriptionFormats.cs and FileControlBinder.FileSection.cs: one hit, line 406, the RECORD CONTAINS range bound); the format table is the same at every --std. The edition enters only through VersionConformancePass's clause gates.",
+  "behaviour-differs-by-edition": "yes: LABEL RECORDS, VALUE OF, DATA RECORDS admitted at 85 only; the Format 2 admission table is edition-independent",
+  "witnesses-cover": "part: the witness's relative FD has IS GLOBAL, LABEL, BLOCK, RECORD CONTAINS; indexed organization, IS EXTERNAL, RECORD VARYING / CONTAINS m TO n, VALUE OF, DATA RECORDS and the refusals are not in it (probed here)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f2idxb.cob",
+    "printed": "K001DATA01 / REL2 (exit 0): indexed FD IS EXTERNAL BLOCK CONTAINS 100 CHARACTERS RECORD CONTAINS 4 TO 10 LABEL VALUE OF DATA RECORDS; relative FD IS GLOBAL RECORD IS VARYING LABEL OMITTED",
+    "expected": "every Format 2 clause admitted; records written and read back"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f2linage.cob",
+    "printed": "COBOL2604 LINAGE on INDEXED; COBOL2604 CODE-SET on RELATIVE",
+    "expected": "refused: not in Format 2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f3rel.cob",
+    "printed": "COBOL2604 the REPORT clause is not a clause of Format 2 (RPF RELATIVE) (+ consequential COBOL1837, COBOL2714)",
+    "expected": "refused: REPORT not in Format 2; a report file may only be sequential (XIII.3.2.3 SR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f2idx.cob",
+    "printed": "COBOL1624 external file 'RL': the RELATIVE KEY data item 'RK' shall be an external data item (§1985:VIII.2.4.4 GR8)",
+    "expected": "a separate rule refusing the program; shows EXTERNAL on a Format 2 FD reaches the external-connector rules"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/fedarm.cob",
+    "printed": "COBOL0900 the AS externalized-name phrase requires COBOL-2002; COBOL0900 the FORMAT clause requires COBOL-2002 (plus COBOL7342 on the FORMAT clause)",
+    "expected": "neither the AS phrase of EXTERNAL nor the FORMAT clause is in any 1985 FD format (X.4.2.2): both refused at --std 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.2.3 SR2",
+    "check": "OK  §1985:X.4.2.3 SR2  (4.2.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XIII.3.2.3 SR3",
+    "check": "OK  §1985:XIII.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "FileDescriptionFormats.Of makes any relative or indexed file Format 2 whatever else the FD says, so LINAGE, CODE-SET and REPORT are refused by the one table (COBOL2604) and not bound. The diagnostic quotes the 2023 clause list (it omits LABEL/VALUE OF/DATA RECORDS by design), which is only wording at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same COBOL2604 refusals",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.4.2.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,e",
+  "evidence": "Read §1985:X.4.2.2 Format 2 (no LINAGE, CODE-SET, REPORT). Probes at --std 85: g2ord.cob (indexed FD with DATA RECORD first, RECORD IS VARYING FROM 4 TO 10 DEPENDING ON WLEN, VALUE OF FILE-ID IS data-name, IS GLOBAL, LABEL, BLOCK 2 TO 4 RECORDS; relative FD LABEL/RECORD/BLOCK in a different order) compiled and ran '[K001DAT   ] 07 / DONE' (7-character varying record written and read back, WLEN set to 7); g2bad.cob refused CODE-SET on INDEXED (COBOL2604, the reader probed it only on RELATIVE), LINAGE on RELATIVE (COBOL2604, the reader probed it only on INDEXED), and FORMAT CHARACTER DATA on INDEXED (COBOL2604 plus COBOL0900). The repeat screen (COBOL2423) and integer-operand screen shown under SR1 run on the same FD clause loop for every organization. cite.py: 'OK  §1985:X.4.2.3 SR2  (4.2.3 Syntax Rules)  the text is in SR2'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause: the RECORD clause BYTES phrase refused below 2023 (COBOL0900)"
+  ],
+  "corrected": ""
+ }
+}

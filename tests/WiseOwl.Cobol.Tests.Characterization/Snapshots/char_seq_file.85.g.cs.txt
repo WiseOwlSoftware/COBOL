@@ -25,7 +25,18 @@ internal sealed class _PRG_CHAR_SEQ_FILE : ICobolProgram
     void ICobolProgram.Activate() => __Activate();
     public void CloseFiles()
     {
-        CobolFile.CloseIfOpen("CHAR-SEQ-FILE::OUT-FILE");
+        if (CobolFile.IsOpen("CHAR-SEQ-FILE::OUT-FILE"))
+        {
+            CobolFile.BeginClose("CHAR-SEQ-FILE::OUT-FILE");
+            try
+            {
+                CobolFile.Close("CHAR-SEQ-FILE::OUT-FILE");
+            }
+            finally
+            {
+                CobolFile.EndModeScope("CHAR-SEQ-FILE::OUT-FILE");
+            }
+        }
     }
 
 

@@ -22,22 +22,22 @@ public sealed class FactorialDecTests
         // 34! = 295232799039604140847618609643520000000 (39 digits, 7 trailing zeros): the per-multiply
         // Round34 only ever drops trailing zeros, landing the 34-digit significand at 10^5 — exact in any mode.
         var expected = D("2952327990396041408476186096435200", 5);
-        Assert.Equal(expected, CobolIntrinsics.FactorialDec(CobolRounding.NearestAwayFromZero, 34));
-        Assert.Equal(expected, CobolIntrinsics.FactorialDec(CobolRounding.Truncation, 34));
+        Assert.Equal(expected, CobolIntrinsics.FactorialDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), 34));
+        Assert.Equal(expected, CobolIntrinsics.FactorialDec(DecArithmetic.Sdidi(CobolRounding.Truncation), 34));
     }
 
     [Fact]
     public void Factorial_ZeroAndOne_AreOne()
     {
-        Assert.Equal(D("1", 0), CobolIntrinsics.FactorialDec(CobolRounding.NearestAwayFromZero, 0));
-        Assert.Equal(D("1", 0), CobolIntrinsics.FactorialDec(CobolRounding.NearestAwayFromZero, 1));
+        Assert.Equal(D("1", 0), CobolIntrinsics.FactorialDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), 0));
+        Assert.Equal(D("1", 0), CobolIntrinsics.FactorialDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), 1));
     }
 
     [Fact]
     public void Factorial_Negative_IsTheArgumentErrorDefault()
     {
         // §2023:15.36.3 r1 via EC-ARGUMENT-FUNCTION → the §2023:15.3 default 0 (checking disabled in-process).
-        Assert.Equal(D("0", 0), CobolIntrinsics.FactorialDec(CobolRounding.NearestAwayFromZero, -1));
+        Assert.Equal(D("0", 0), CobolIntrinsics.FactorialDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), -1));
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public sealed class FactorialDecTests
         // The product exceeds 9.999…E+6144 near n ≈ 1755; the raise comes from CobolDec.Mul's range check
         // (§2023:8.8.1.5.2 r2), never from an iteration cap.
         Assert.Throws<CobolSizeError>(() =>
-            CobolIntrinsics.FactorialDec(CobolRounding.NearestAwayFromZero, 9999));
+            CobolIntrinsics.FactorialDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), 9999));
     }
 
     [Fact]

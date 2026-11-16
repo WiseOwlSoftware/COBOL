@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-SR-VII.3.2.3-1",
+ "rule-digest": "7c13660df623",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-062",
+  "sources": {
+   "reader": "bcae14ed2cb9ef4fd129801d9934183cf9e56f22e5d496d086e444f68e37e988",
+   "refuter": "f6d2740f0365363e53468248473fec428211b7eb2cfc4ebe62ec90d36a92a187"
+  },
+  "imported": {
+   "reader": "d34cd0f54288519a16717e8d5a272cbc5297a9e7ef59f18ca574186466028e02",
+   "refuter": "db237f4913b614e78080df2176dd6ac4d1008ad4fc4e7878e2e740b61728012f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.3.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every file description entry must open with the level indicator FD followed directly by file-name-1: a file-name before FD, an FD with no file-name, a clause between FD and the file-name, and an entry with no FD are refused, while FD file-name-1 followed by any 1985 FD clause is accepted; the witness covers only the legal form.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#LevelIndicator",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/AreaPlacementPass.cs#Run",
+    "switches": "below 2002 the FD level indicator must begin in area A of a fixed-form line (COBOL3734); from 2002 there are no areas; a reference-format rule beside SR1, not SR1 itself",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
+    "switches": "the AS phrase of FD IS EXTERNAL (2002) is COBOL0900 at 85; a clause after file-name-1, not SR1",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read fileSection/fileDescriptionEntry (FD fileName fixed, clauses after); grep 'Edition|DialectLevel|Year' over Binding/FileDescriptionFormats.cs (none) and AreaPlacementPass.cs (ConstructRegistry FixedFormAreaAItemOutsideAreaA2002); the token order itself is the grammar's at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the legal FD form with 2023-era clauses is exercised; the refusal half (file-name before FD, no file-name, a clause before the file-name, no FD) and the 1985-only FD clauses are not",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r6_name_before_fd-001/r6_name_before_fd.cob",
+    "printed": "error COBOL0001: unexpected 'F1'",
+    "expected": "refused: FD must precede file-name-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r6_fd_no_name-001/r6_fd_no_name.cob",
+    "printed": "error COBOL0001: unexpected '.'",
+    "expected": "refused: degenerate FD with no file-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r6_clause_before_name-001/r6_clause_before_name.cob",
+    "printed": "error COBOL0901: 'LABEL' is a reserved word in COBOL-85 and cannot be used as a user-defined word",
+    "expected": "refused: the word after FD must be file-name-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r6_no_level_indicator-001/r6_no_level_indicator.cob",
+    "printed": "error COBOL0001: unexpected 'F1'",
+    "expected": "refused: entry with no level indicator"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r6_fd_legal85-001/r6_fd_legal85.cob",
+    "printed": "R1=[ABC   ] LEN=3 / R2=K1D1 (exit 0)",
+    "expected": "FD F1 with the 1985 LABEL RECORDS, BLOCK CONTAINS 1 TO 4, RECORD VARYING DEPENDING ON, VALUE OF FILE-ID, DATA RECORD clauses and an indexed FD with LABEL RECORD OMITTED compile and run"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r6_fd_external_as-001/r6_fd_external_as.cob",
+    "printed": "error COBOL0900: the AS externalized-name phrase requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "a later-edition phrase after file-name-1 refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r6_fd_area_b-001/r6_fd_area_b.cob",
+    "printed": "error COBOL3734: ... the level indicator FD begins in area B (ANSI X3.23-1985 reference format, area A ...)",
+    "expected": "the 1985 reference format puts the level indicator in area A"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.2.3 SR1",
+    "check": "OK  §1985:VII.3.2.3 SR1  (3.2.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The order FD file-name-1 is fixed by the grammar rule fileDescriptionEntry at every edition; every misordered or incomplete form fails to parse. The adjacent 1985 arms (area A placement, the AS phrase) behave per the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.3.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-062/p6_fd_words-001 (--std 85): FD TYPEDEF, FD VALIDATE and FD NULL (words a later edition reserves, user-defined at 85) as file-name-1 directly after FD, with matching SELECTs, OPEN/WRITE/CLOSE: compiles and runs, exit 0, DONE. The reader's refusal probes (name before FD, FD with no name, clause before the name, no FD) stand. cite.py: OK §1985:VII.3.2.3 SR1 the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

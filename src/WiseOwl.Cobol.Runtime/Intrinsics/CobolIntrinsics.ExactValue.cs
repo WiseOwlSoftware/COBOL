@@ -263,7 +263,7 @@ public static partial class CobolIntrinsics
         RequireArguments(xs.Length, "STANDARD-DEVIATION");
         return TryBinary64Body(xs, StandardDeviation, out CobolExact real, floatFamily: true)
             ? real
-            : CobolExact.FromDec(SqrtDec(mode, VarianceOfExact(xs, mode)));
+            : CobolExact.FromDec(SqrtDec(DecArithmetic.Sdidi(mode), VarianceOfExact(xs, mode)));
     }
 
     /// <summary>⛔ PRESENT-VALUE (§2023:15.74.4 1) OF THE EXACT ARGUMENTS, DIVIDED ONCE (kb/Work PB4111): <c>Σ aₖ / (1 + rate)^k</c>, k = 1…n,
@@ -293,7 +293,7 @@ public static partial class CobolIntrinsics
     /// <paramref name="periods"/> as the unbounded SDIDI integer the §2023:15.3 type-6 position intake left (kb/Work PB637).</summary>
     public static CobolExact AnnuityExact(CobolRounding mode, CobolExact rate, CobolDec periods)
     {
-        if (!rate.TryBinary64(out double binaryRate)) return CobolExact.FromDec(AnnuityDec(mode, rate.Image, periods));
+        if (!rate.TryBinary64(out double binaryRate)) return CobolExact.FromDec(AnnuityDec(DecArithmetic.Sdidi(mode), rate.Image, periods));
         double n = periods.ToDouble();
         return binaryRate < 0 || periods.Sig <= 0
             ? CobolExact.From(AnnuityDomain(binaryRate, n), 0)

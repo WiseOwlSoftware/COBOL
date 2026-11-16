@@ -53,9 +53,9 @@ public sealed class CobolDecDivisionTests
         // MOD/REM over two exact integers that fit Int128 take the exact remainder (kb/Work PB69) — a 30-digit
         // native power reaches ModDec as an exact SDIDI, and the SDIDI EAE would round the 30-digit product.
         var a2 = CobolExact.Pow(CobolExact.FromDec(CobolDec.From(999999999999999, 0)), 2).Image;   // 999999999999998000000000000001
-        var m = CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, a2, CobolDec.From(1000000007, 0));
+        var m = CobolIntrinsics.ModDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), a2, CobolDec.From(1000000007, 0));
         Assert.Equal("13657001E0", $"{m.Sig}E{m.Exp}");
-        var r = CobolIntrinsics.RemDec(CobolRounding.NearestAwayFromZero, new CobolDec(-11, 0), CobolDec.From(5, 0));
+        var r = CobolIntrinsics.RemDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), new CobolDec(-11, 0), CobolDec.From(5, 0));
         Assert.Equal("-1E0", $"{r.Sig}E{r.Exp}");                        // §2023:15.77.4 — the sign follows the dividend
     }
 
@@ -126,7 +126,7 @@ public sealed class CobolDecDivisionTests
     [InlineData(new[] { 1L, 2L, 4L }, "2333333333333333333333333333333333E-33")]
     public void TheMean_IsHeldAtThePreferredExponentWhenExact(long[] values, string expected)
     {
-        var m = CobolIntrinsics.MeanDec(CobolRounding.NearestAwayFromZero, values.Select(v => CobolDec.From(v, 0)).ToArray());
+        var m = CobolIntrinsics.MeanDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), values.Select(v => CobolDec.From(v, 0)).ToArray());
         Assert.Equal(expected, $"{m.Sig}E{m.Exp}");
     }
 

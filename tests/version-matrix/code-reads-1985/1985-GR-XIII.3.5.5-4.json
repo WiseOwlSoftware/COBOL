@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.5-4",
+ "rule-digest": "36ccea83e012",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-150",
+  "sources": {
+   "reader": "7697c568dbb2a3c85cecd17e51af211a6f653d5e6cb0624595d46d53a5bde9a3",
+   "refuter": "1cf85c8f5c2ce69b9820c2199aa1ac9137fc69e3e23d294d2de8dae79b62d502"
+  },
+  "imported": {
+   "reader": "7bbd432c48056fb4c03e987f3fb181088849530a3d6a6549df07cc54a7e85803",
+   "refuter": "508cfb71b13e3341e78061f4ce7327707163852ebb5b398863b77d38979b112c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.5.5-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each execution of INITIATE (one or several report-names, a first INITIATE or one after TERMINATE) sets that report's PAGE-COUNTER to one, whatever value the program had moved into it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageCounter; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SetPageCounter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitInitiate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "stamps ReportWriter.Edition = DialectLevel; Initiate never reads it",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "read ReportWriter.Initiate whole: PageCounter = 1 unconditionally after the GR10/GR2/GR3 guards; no DialectBehaviors.IsActive or Edition read in Initiate; grep of Edition in ReportWriter.cs shows uses only in SUM size error, GROUP INDICATE, TERMINATE NEXT GROUP save and control-footing page groups.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf35_07 covers INITIATE of two reports and a re-INITIATE after MOVE 7; a MOVE before the first INITIATE and the INITIATE after a failed OPEN are probe-only",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pc1.cob",
+    "printed": "MOVE 55 TO PAGE-COUNTER; INITIATE -> PC 00000001 LC 00; after TERMINATE PC 2 the second INITIATE -> PC 00000001",
+    "expected": "one after each INITIATE"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pce.cob",
+    "printed": "OPEN EXTEND (OPTIONAL) then INITIATE -> PC 00000001 LC 00, same trace as OUTPUT",
+    "expected": "one"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pcf.cob",
+    "printed": "OPEN STATUS 30; AFTER INITIATE PC 00000009 LC 00",
+    "expected": "undefined at 85: §1985:XIII.4.4.4 GR2 requires the OPEN first; the engine takes no action"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pc1.cob",
+    "printed": "--std 2023: identical trace",
+    "expected": "same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.5 GR4",
+    "check": "OK  §1985:XIII.3.5.5 GR4  (3.5.5 PAGE-COUNTER Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "Witness g85_bf35_07 MATCHes at 85. After a failed OPEN the INITIATE leaves PAGE-COUNTER at the moved 9 (the 2023 EC-REPORT-FILE-MODE no-action arm); 1985 makes that program non-conforming (INITIATE GR2), so the outcome is not judged.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.5.5-4",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "Probe refute-1985-150/ini2.cob at --std 85 tests one INITIATE naming two reports on one file (REPORTS ARE R1 R2, CODE clauses). On the first run (runs/ini2-001) CODE \"A\" was refused with COBOL2713, citing §1985:XIII.3.6.3 SR1. cite.py: OK, 'Literal-1 must be a two-character nonnumeric literal.' That is this edition's own arm working. With CODE \"AA\"/\"BB\" (runs/ini2-002): MOVE 7/8 TO PAGE-COUNTER OF R1/R2, then INITIATE R1 R2, printed P1 000001 P2 000001. After TERMINATE, MOVE 9 and ADD 3 printed P1 000009 P2 000004. INITIATE R2 R1 (reverse order) then printed P1 000001 P2 000001. The SOURCE PAGE-COUNTER lines in the file read AA000001 and BB000001. ReportWriter.Initiate sets PageCounter = 1 with no edition read (I read the member). cite.py: OK  §1985:XIII.3.5.5 GR4  (3.5.5 PAGE-COUNTER Rules)  the text is in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

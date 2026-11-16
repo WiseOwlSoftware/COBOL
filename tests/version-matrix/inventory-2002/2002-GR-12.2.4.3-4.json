@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.4.3-4",
+ "rule-digest": "d7cabd4fce9a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite; src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit",
+ "test-ref": "conformance:cases/12.2.4@2002-SOURCE-COMPUTER-PARAGRAPH/g2dbg01_debugging_mode_lines",
+ "notes": "§2002:12.2.4.3 GR4: with DEBUGGING MODE every debugging line (D, d, >>D; §2002:6.1.1, 6.1.2) is compiled as if its indicator were spaces, in any division and in copied library text (§2002:7.1.2.3 GR13). The --std 2002 run printed the derived 9 lines, including a D line that continues a statement (SPLIT-DEBUG) and an executed D-line ADD (CNT 2)."
+}

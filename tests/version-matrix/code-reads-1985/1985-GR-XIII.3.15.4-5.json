@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-XIII.3.15.4-5",
+ "rule-digest": "082324a429b8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-146",
+  "sources": {
+   "reader": "56366494aea5ec4e06ce1598d7ce21691365b3bac4e45db00a320a0e89505f44",
+   "refuter": "db4bfb5fe13af4f720492392954309b2223394c15d7a072b8045b8ef690e7e5b"
+  },
+  "imported": {
+   "reader": "a22eaf61f0ab82cee400ff10ab88f6cc013b4f2e5777554779bb29586ef9cfd9",
+   "refuter": "01ab5c0254e6b8e7ae71447b20126e9b0b7ce7ee920a11919ac3d6b3e6807696"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.15.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 LINE integer-1 ON NEXT PAGE (allowed only in body groups and the report footing) presents the group from line integer-1 of a new page: a body group advances the page when a body group is already on the current page (or after a saved next-group integer), and is presented on the current page when it is the first body group there; a report footing goes on a page holding no other report group.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineOperand",
+    "switches": "a bare LINE ON NEXT PAGE with no integer is a 2002 construct, refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "PresentBody's NextPage branch, PresentHeadingFooting's ownPage branch and PageFeed have no edition test (grep of ReportWriter.cs for Edition|Dialect); ScreenReportLineClauses' SR7/SR8 NEXT PAGE checks are edition-independent.",
+  "behaviour-differs-by-edition": "no for integer-1 ON NEXT PAGE (same runtime arm); yes for syntax: the bare ON NEXT PAGE operand is accepted only from 2002.",
+  "witnesses-cover": "part: g85_bf36_07 covers a body group with a body group already on the page and a report footing NEXT PAGE; the first body group of a page with NEXT PAGE (presented on the current page) and the bare-operand refusal are not exercised",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/npfirst.cob",
+    "printed": "PAGE 1 LINE 01 [RH] / LINE 02 [PH1] / LINE 05 [N505] / LINE 06 [R+06] / PAGE 2 LINE 02 [PH2] / LINE 05 [N505] / PAGE 3 LINE 03 [RF3]",
+    "expected": "first DE-N on page 1 at 5 (3.10.8 GR3c: no body group yet on the page), second DE-N on a new page at 5, RF on its own page at 3 with no PH (3.10.10 GR3c)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/nprh.cob",
+    "printed": "RH alone on page 1; PAGE 2 PH at 1, N5 at 5, n+ at 6, PF at 13; PAGE 3 same",
+    "expected": "after RH NEXT GROUP NEXT PAGE the first NEXT PAGE detail is on page 2 at 5; the next one advances to page 3"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/c_bare_np.cob",
+    "printed": "error COBOL0900: a LINE operand of NEXT PAGE with no integer ... requires COBOL-2002 (accepted at 2023)",
+    "expected": "refused at 85: §1985:XIII.3.15.2 requires integer-1 before ON NEXT PAGE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.15.4 GR5",
+    "check": "OK  §1985:XIII.3.15.4 GR5  (3.15.4 General Rules)  the text is in GR5 (\"presented beginning on the indicated line number on a new page\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.8 GR3c",
+    "check": "OK  §1985:XIII.3.10.8 GR3c  the text is in GR3c (\"If saved next group integer was not so set, the body group shall be presented on the page to which the report is currently positioned\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.10 GR3c",
+    "check": "OK  §1985:XIII.3.10.10 GR3c  the text is in GR3c (\"presented on a page on which no other report group has been presented\")"
+   }
+  ],
+  "notes": "NEXT PAGE follows fit test rule 3c, including the case where the group is the first body group on a page and stays there. A report footing NEXT PAGE goes alone on a new page with no page heading. g85_bf36_07 matches its golden. The code skips the 3c page advance only for the first body group since INITIATE, and no other first-on-page state arises at 85 without a page advance by that same group.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.15.4-5",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "npdummy (--std 85): a nonprintable DE-D (no LINE) generated first, then DE-N LINE 5 ON NEXT PAGE, printed PAGE 1 LINE 05. The dummy is not a presented body group, so 3c's 'no body group yet presented' holds. The second DE-N advanced to PAGE 2 LINE 05, and LC stayed 05 across the dummy (6e). npsave: a CH presented first, so DE-N LINE 7 NEXT PAGE advanced to page 2 line 7. With saved 9 (DE-A NEXT GROUP 9 at line 10), DE-N advanced, LC 9 >= 7 forced a second advance (page 3 holds only PH), and DE-N printed on page 4 line 7. DE-M LINE 10 NEXT PAGE with saved 9 < 10 printed on page 5 line 10 after one advance. All match 3c's second paragraph. cite.py: OK §1985:XIII.3.15.4 GR5 (\"presented beginning on the indicated line number on a new page\"); OK §1985:XIII.3.10.8 GR3c (\"If a body group has been presented on the page to which the report is currently positioned\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

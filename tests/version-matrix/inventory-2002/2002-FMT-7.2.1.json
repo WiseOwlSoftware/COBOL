@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-7.2.1",
+ "rule-digest": "258b9ab7f3d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveLine.cs#TryParse; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#Find; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.2@2002-COMPILER-DIRECTIVES/g2dir01_every_directive_spacing",
+ "notes": "§2002:7.2.1 >>compiler-instruction ranges over the 2002 directives (§2002:7.2.2 SR6: as specified in the syntax of each directive, 7.2.8-7.2.19); g2dir01 writes all twelve, FLAG-85 and FLAG-NATIVE-ARITHMETIC included, and at --std 2002 prints A/IF1-TRUE/IF2-FALSE/EV1-TWO/EV2-OTHER/2 as derived; >>FLAG-02 (g2dir02) is refused COBOL0900."
+}

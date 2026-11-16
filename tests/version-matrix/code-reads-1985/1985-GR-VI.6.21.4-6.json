@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-6",
+ "rule-digest": "275a5b7fcfac",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-017",
+  "sources": {
+   "reader": "dcfa501a8d9e23682a253699446f0667fcf40e93f91e44956b8b3ed15dfa9cac",
+   "refuter": "00822282c49cf16a5507b1a2fc5c8b46f547a3ffbbb9acf8f0cab6159066940a"
+  },
+  "imported": {
+   "reader": "02c6358dafb64dd761e8e91563e449eaa568dce8c531f54d6b2157d4d56932c9",
+   "refuter": "0c410a69704dbf04abe4b90a800de3cbcee763af093a58667e358d8191a71d57"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.21.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an in-line PERFORM of formats 1 to 4 must behave exactly as the otherwise identical out-of-line PERFORM (same TIMES count, UNTIL test timing, TEST BEFORE/AFTER, VARYING initialization, augment and final values), with its contained statements in place of the range.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerformControl; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitInlinePerform; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVaryingAfter",
+    "switches": "in-line AFTER refused at 85 (the one form where 1985 in-line and out-of-line differ, SR2)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform",
+    "switches": "dispatch.SegmentEntry / dispatch.DebugActive (1985 independent segments and USE FOR DEBUGGING) add out-of-line-only scaffolding; absent in a program without them",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Both forms bind the control phrase through the one BindPerformControl and emit through the one EmitPerform scaffold (inline: true/false); no edition test in either.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb440 compares the empty out-of-line range with in-line; TIMES/UNTIL/TEST AFTER pairs are not in the listed witnesses",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/p1.cbl",
+    "printed": "INLINE N=004 T=006 / OOL N=004 T=006; INLINE TA T=006 / OOL TA T=006; INLINE TIMES T=003; PB 0 TIMES: no execution",
+    "expected": "identical results for in-line and out-of-line; zero TIMES executes nothing"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/c3.cbl",
+    "printed": "85: in-line AFTER refused COBOL0900, out-of-line AFTER legal",
+    "expected": "§1985:VI.6.21.3 SR2"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.4 GR6",
+    "check": "OK  §1985:VI.6.21.4 GR6  (6.21.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VI.6.21.3 SR2",
+    "check": "OK  §1985:VI.6.21.3 SR2  (6.21.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "One control binder and one loop scaffold serve both forms, so the equivalence holds by construction and the probes show the same values. Identical at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p1 identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.21.4-6",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "Probes E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/p1.cbl and E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/p4.cbl, each pairing an in-line PERFORM with its out-of-line twin at --std 85. All pairs print the same results: TIMES with identifier-1 changed inside the range (T=+003 both); negative identifier-1 (NEG T=+000); VARYING of a subscripted identifier-2 V(J) whose subscript changes in the body (TBL=126000000 J=+003 both, which agrees with GR10d: subscripts are evaluated at each set and augment); TEST AFTER VARYING (N=+004 T=+010 both); a negative BY (N=-001 T=+009 both); a BY identifier changed in the body (T=+003 J=+010 both). cite.py: 'OK  §1985:VI.6.21.4 GR6 ... the text is in GR6'; 'OK  §1985:VI.6.21.4 GR10d ... the text is in GR10d'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying: DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter switches the AFTER-level augment order at 1985. Only an out-of-line PERFORM can reach it at 85 (SR2 forbids an in-line AFTER), so it cannot make the two forms diverge"
+  ],
+  "corrected": ""
+ }
+}

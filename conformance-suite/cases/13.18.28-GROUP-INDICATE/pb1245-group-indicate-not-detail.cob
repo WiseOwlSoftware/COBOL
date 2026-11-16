@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1245-group-indicate-not-detail
-*> rules: [SR-13.18.28.3-1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1245-group-indicate-not-detail
+      *> rules: [SR-13.18.28.3-1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> GROUP INDICATE OUTSIDE A DETAIL REPORT GROUP (kb/Work PB1245 -- COBOL2519).
       *> ISO/IEC 1989:2023 §2023:13.18.28.3 SR1: "The GROUP INDICATE clause may be specified only within a
       *> detail report group description, in an elementary entry that also contains a COLUMN clause and a

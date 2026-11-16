@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.8.3-6",
+ "rule-digest": "303de05a2cd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReleasePriorRecordLocks; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteShared; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapLockMode",
+ "test-ref": "conformance:cases/12.4.5.9-LOCK-MODE/pb338_read_releases_prior_lock",
+ "notes": "Own verdict from the read lineage-reads-2002/u-11.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.4.5.9.4-6, witnessed at 2002 by the cases test-ref names. The read: Identical except the cross-reference number. 2002 9.1.15 is word-for-word the first paragraphs of 2023 9.1.16; 2023 only adds the commit/rollback carve-outs (a widening). The I-O statements of 2002 that can release a lock are a subset of 2023's. Cited: §2002:12.3.4.8.3 GR6; §2002:9.1.15."
+}

@@ -1,0 +1,124 @@
+{
+ "rule-id": "1985-GR-XIII.2.3.4-4",
+ "rule-digest": "3abe6168149f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-035",
+  "sources": {
+   "reader": "bd7eed66aebdc546ae845b67f23f0ee080e2d60df4ccadf33495768b8aca753e",
+   "refuter": "6bd50bc9f68399c732b68e4db6a56e29eec3f3c5a38de9d729df0ee82c561943"
+  },
+  "imported": {
+   "reader": "1acc6e340208c6d4c243563a36af8ff6609444c9fded4db5b9d8ecd01db06a35",
+   "refuter": "2e591f9f8a4bb486642d926a8ca92ea000349697b23f25d165743e1ae1bb9a3f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.2.3.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a report file (an FD with a REPORT clause) must have sequential organization, so its file control entry admits exactly the 1985 report-file clauses as the Sequential I-O module defines them (OPTIONAL, ASSIGN, RESERVE, [ORGANIZATION IS] SEQUENTIAL, PADDING CHARACTER, RECORD DELIMITER, ACCESS MODE IS SEQUENTIAL, FILE STATUS), and an indexed, relative, random/dynamic-access or later-edition organization or clause must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLockModeClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSharingClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
+    "switches": "ConstructRegistry FileOrganizationLineSequential2023: LINE SEQUENTIAL refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLockModeClause",
+    "switches": "ConstructRegistry LockModeClause2002: refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSharingClause",
+    "switches": "ConstructRegistry FileSharingClause2002: refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of",
+    "switches": "nothing: an INDEXED or RELATIVE file is Format 2 and its REPORT clause is refused at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep IsReportFile across Binding/; read FileDescriptionFormats.Of and FileControlBinder.MapOrganization; VersionConformancePass visitors for the file control clauses",
+  "behaviour-differs-by-edition": "yes: the 2002 LOCK MODE and SHARING clauses and the 2023 LINE SEQUENTIAL organization are refused on a report file at 85 and admitted later; the sequential-organization requirement itself is enforced the same way at every edition",
+  "witnesses-cover": "part: pb773 and pb742 describe no report file; the report-file entry is not exercised by them",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf1.cob",
+    "printed": "OPEN 00 / CLOSE 00 / D 002; MATCH (COBOL1778 warning: RECORD DELIMITER STANDARD-1 accepted with no effect)",
+    "expected": "every clause of the 1985 report-file entry accepted, the report written sequentially and read back"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf8.cob",
+    "printed": "OPEN 05 / CLOSE 00 / D 002",
+    "expected": "OPEN EXTEND of an absent OPTIONAL report file succeeds with status 05 (§1985:XIII.2.3.4 GR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf2.cob",
+    "printed": "COBOL2604 the REPORT clause is not a clause of Format 2: file 'PRT' is INDEXED",
+    "expected": "an indexed report file refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf3.cob",
+    "printed": "COBOL2604 ... file 'PRT' is RELATIVE",
+    "expected": "a relative report file refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4.cob",
+    "printed": "COBOL1858 ACCESS MODE IS RANDOM may not be specified for a sequential file",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf5.cob",
+    "printed": "COBOL1858 ACCESS MODE IS DYNAMIC may not be specified for a sequential file",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf6.cob",
+    "printed": "COBOL0900 ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf7.cob",
+    "printed": "COBOL0900 the LOCK MODE clause requires COBOL-2002; COBOL0900 the SHARING clause requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.2.3.4 GR4",
+    "check": "OK  §1985:XIII.2.3.4 GR4  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XIII.2.3.3 SR4",
+    "check": "OK  §1985:XIII.2.3.3 SR4  the text is in SR4"
+   }
+  ],
+  "notes": "A report file is bound as record sequential (MapOrganization defaults to Sequential). An INDEXED or RELATIVE one makes its FD Format 2, so the REPORT clause is refused (COBOL2604), and random/dynamic access is refused for a sequential file (COBOL1858). The full 1985 clause set runs, the later-edition organizations and clauses are refused at 85, and since the witnesses carry no report file these probes are the evidence.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.2.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85 via run_case.py on a report file (FD PRT REPORT IS R1, no ORGANIZATION clause): z1 RECORD KEY, z3 ALTERNATE RECORD KEY refused COBOL0863 (indexed-only clause on a sequential file); z2 RELATIVE KEY refused COBOL0863 + COBOL0900; z4 2002 ASSIGN USING data-name refused (COBOL5506); z5 COLLATING SEQUENCE in the file control entry refused (COBOL5506); z6 ORGANIZATION RECORD BINARY SEQUENTIAL refused; z7 every optional word dropped and clauses reordered (ACCESS SEQUENTIAL ORGANIZATION SEQUENTIAL RESERVE 1 AREA RECORD DELIMITER STANDARD-1 STATUS FS, SR1 any order) compiles and runs; z8 RECORD DELIMITER implementor-name-2 accepted with the COBOL1778 no-effect warning; z9 PADDING CHARACTER a 4-char data-name refused COBOL6848 (VII.2.7.3 SR3); z10 OPEN OUTPUT then OPEN EXTEND of an existing report file appends sequentially: EXT 00, three D1 records read back. Together with the reader's INDEXED/RELATIVE (COBOL2604), RANDOM/DYNAMIC (COBOL1858), LINE SEQUENTIAL/LOCK MODE/SHARING (COBOL0900) refusals, no non-sequential form is admitted. cite.py: OK §1985:XIII.2.3.4 GR4; OK §1985:XIII.2.3.3 SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

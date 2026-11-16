@@ -1,0 +1,9 @@
+## pb509_blank_when_zero_relation: its 85 band could not be withdrawn by emptying `accept:`; the generator refuses a case accepted nowhere
+
+The registrar's brief (records-1985-open-rows, section 2) called for removing 85 from the `accept:` list of `conformance-suite/cases/8.5.2.13-Numeric-edited-category/pb509_blank_when_zero_relation.cob` and adding a comment line. The list holds only `[85]` (it did since the conversion, commit 369468ccc6), so removing 85 leaves `accept: []`, and `python conformance-suite/harness/generate.py --check` then refuses:
+
+- `REFUSED cases/8.5.2.13-Numeric-edited-category/pb509_blank_when_zero_relation.cob:1: the test is neither accepted nor flagged anywhere, and wiseowl/diagnostics/ has no file for it`
+- `REFUSED ...pb509_blank_when_zero_relation.cob:5: unknown field '85 withdrawn 2026-11-15' (the fields are ... : id, rules, accept, flag, control, requires, ...)` (the comment line sat inside the header block; a comment belongs after the closing `*>---`)
+- `REFUSED ...pb509_blank_when_zero_relation.out:1: an expected output no accepted edition (or A.1 value) of its test uses`
+
+The case file is therefore unchanged, and it still pins at 85 the 2023 rule's output (`EQ-NUMITEM-TRUE`, `EQ-EDITED-TRUE`, `GT-NEG-TRUE`). What was done: the reference to it was retired from `1985-GR-VI.5.4.4-2`, the only 1985 row that names it, so no 1985 row cites it as a witness. What is left for this note: the case needs an accept band that is not 85. Its expected output is the 2023 rule's (`§2023:13.18.8.4 GR3`), so the evident band is 2023, but PB5771 says that whether GR3 reaches a relation condition at 2023 is 2023's question and is not decided; the registrar did not decide it. The two 2023 rows that name the case (`GR-8.5.2.13-2`, `GR-13.18.8.4-3`) keep it as a witness that runs at no edition until the band is set.

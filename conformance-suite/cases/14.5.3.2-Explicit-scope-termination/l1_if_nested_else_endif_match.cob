@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_if_nested_else_endif_match
       *> rules: [GR-14.5.3.2-1, GR-14.5.3.3-2, SR-14.9.19.3-2]
-      *> accept: [2023]
+      *> accept: [85, 2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

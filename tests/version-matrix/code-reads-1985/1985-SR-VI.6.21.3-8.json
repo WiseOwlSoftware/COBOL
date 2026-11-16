@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-8",
+ "rule-digest": "41367a6bc1d0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-059",
+  "sources": {
+   "reader": "d0e508c6c70216ef170048c56706a92c0835308986446eeda25f17d27b4e19fc",
+   "refuter": "937cdec4799302a68ccfd698c0ba313a6f5f7548f75861fada0e84ee54943480"
+  },
+  "imported": {
+   "reader": "8f3e7220174888b630656063c969cab31ee6d73618ee5965e92bff559b772171",
+   "refuter": "5e112c86f7b897b298869a8bffd8fc65934c245d99edc6a57285eb7b6bbf688b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when an index-name is the FROM operand of a PERFORM Format 4 VARYING or AFTER phrase, the compiler must refuse a varied identifier that is not an integer data item (a), a BY identifier that is not an integer data item (b), and a BY literal that is not an integer (c), at every VARYING and AFTER level.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckVaryingOperandRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingLevel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandPositions; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#Screen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying",
+    "switches": "DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter: the run-time order of augmenting the outer variable and setting the inner one (1985 GR10 d); not the operand screen",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVarying",
+    "switches": "construct perform-varying-by-omitted-2002: an omitted BY phrase is refused below 2002; the SR8 screen only runs on a present BY",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Std|DialectBehavior in ControlFlowBinder.PerformVarying.cs and OperandClassScreen.cs; grep PerformVarying in WiseOwl.Cobol.Editions and VersionConformancePass. CheckVaryingOperandRules and OperandClassScreen.Screen consult no edition: the SR8 arm is the same code at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises the brace group with accepted operands; the a/b/c refusals, the AFTER level and signed or scaled BY identifiers are exercised only by the probes here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/p8ok.cob",
+    "printed": "EXIT 0; VARYING N FROM IX BY 2 / BY B (PIC 9) printed N=02 N=04 N=06 twice; AFTER M FROM IX BY 3 printed N=01 M=02, N=01 M=05, N=02 M=02, N=02 M=05",
+    "expected": "legal: integer varied item, integer BY identifier and integer BY literal with an index-name FROM"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/p8a.cob",
+    "printed": "COBOL2120 at lines 12 and 13: the varied identifier 'D' (PIC 99V9) shall reference an integer data item (VARYING level and AFTER level)",
+    "expected": "refused per SR8a"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/p8b.cob",
+    "printed": "COBOL2120 at lines 13 and 14: BY operand 'D' (PIC 9V9) and 'S' (PIC S9V99) must reference an integer data item",
+    "expected": "refused per SR8b"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/p8c.cob",
+    "printed": "COBOL2120: BY operand '1.5' violates ... 'The literal in the associated BY phrase shall be an integer'",
+    "expected": "refused per SR8c"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR8a",
+    "check": "OK  §1985:VI.6.21.3 SR8a  (6.21.3 Syntax Rules)  the text is in SR8a"
+   },
+   {
+    "cite": "§1985:VI.6.21.3 SR8b",
+    "check": "OK  §1985:VI.6.21.3 SR8b  (6.21.3 Syntax Rules)  the text is in SR8b"
+   },
+   {
+    "cite": "§1985:VI.6.21.3 SR8c",
+    "check": "OK  §1985:VI.6.21.3 SR8c  (6.21.3 Syntax Rules)  the text is in SR8c"
+   }
+  ],
+  "notes": "The three lettered items map one-to-one onto the fromIsIndexName arm of CheckVaryingOperandRules (SR5 a/b/c of 2023, same wording). The 1985 text and its arm are the same code as 2023; the diagnostics cite §2023:14.9.28.3 SR5 rather than the 1985 rule, which does not change the verdict.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p8a refused the same way at --std 2023 (2 errors)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-8",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attacked the 1985 definition of integer (glossary: 'A numeric data item ... that does not include any digit positions to the right of the decimal point'; a numeric literal likewise) against the screen. refute-1985-059/src/r8ok.cob (run r8ok-001, EXIT 0): VARYING NP (99PP) FROM IX BY 100 printed NP=0000 0100 0200 0300; BY BP (9PP) printed N4=0002 0102 0202; BY BS (S99), BY BC (S9(4) COMP), BY +2 each printed N=02 04 06: P-scaled and signed integers admitted. src/r8bad.cob (r8bad-001): COBOL2120 for BY 2.0 (SR5 c), varied NQ PIC PP9 at VARYING and AFTER (SR5 a), BY BQ PIC PP9 (SR5 b), AFTER BY +1.0 (SR5 c). src/r8comma.cob with DECIMAL-POINT IS COMMA (r8comma-001): COBOL2120 for BY 1,5 and BY 2,0 (not integers). Every lettered item and its degenerate forms refused, legal forms run. CheckVaryingOperandRules and OperandClassScreen consult the edition only as the diagnostic sink. cite.py: 'OK  §1985:VI.6.21.3 SR8a  (6.21.3 Syntax Rules)  the text is in SR8a'; 'OK  §1985:VI.6.21.3 SR8c  (6.21.3 Syntax Rules)  the text is in SR8c'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

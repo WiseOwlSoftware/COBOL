@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-SR-VII.4.7.3-5",
+ "rule-digest": "b1f157bba1d9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-064",
+  "sources": {
+   "reader": "48b002003a3c2ef3cb7a7d1862c2bfec9faf954dfb6195f7b3e599d8a9f95474",
+   "refuter": "9bc47292e6c90111ca481f4753bcfbb8d97487629c58dc018abb14f77a8ebd41"
+  },
+  "imported": {
+   "reader": "b9dce3a484c1ec8265fba834c31714cdd71e92933e49d1338b3ddeaf9b5f15b7",
+   "refuter": "cfd9f08aae2cb9723c25afde33ce022f5892d09edb909b29ab541c56860888cf"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.7.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the ADVANCING integer-1 is an integer numeric literal whose value may be positive or zero (zero being explicitly allowed against the glossary's nonzero default) and never negative; a negative, decimal or nonnumeric literal is refused and a zero count advances no line.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ScreenAdvancingCount",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitWriteBeforeAfter",
+    "switches": "BEFORE and AFTER together refused below 2023 (not the count)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of SequentialIoBinder.cs for DialectLevel/CobolVersion/ConstructRegistry/Permissive: ScreenAdvancingCount consults no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers a zero literal accepted; negative, decimal and nonnumeric literals are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/w5a.cob",
+    "printed": "ZERO LC=001 / THREE LC=004 / ONE LC=005 / ZERO2 LC=005 (EXPECT: MATCH)",
+    "expected": "0, 3, 1 and 00 accepted; a zero count advances nothing (§1985:VII.4.7.4 GR17 b)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/w5b.cob",
+    "printed": "COBOL2365 for -1, 1.5, \"2\", -0 and 2.0",
+    "expected": "a negative literal (SR5) and a literal that is not an integer (glossary Integer (1)) are refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/w5c.cob",
+    "printed": "PLUS LC=003 / FIGZERO LC=003",
+    "expected": "+2 is positive (SR5 speaks of the sign, so it is read as the format's explicit allowance); ZERO is the value zero"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.3 SR5",
+    "check": "OK  §1985:VII.4.7.3 SR5  (4.7.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "ScreenAdvancingCount admits an integer literal not written with '-' and figurative ZERO, refusing every other literal (COBOL2365). Two readings left open, not counted against the rule: the amended 1985 glossary says integer 'must be neither signed nor zero unless explicitly allowed', so a strict reader could refuse +2; and figurative ZERO is admitted as integer-1 although 1985 permits a figurative constant where 'literal' appears in a format. Both are the same code at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.7.3-5",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,d,f",
+  "evidence": "r6a.cob (r6a-001): ADVANCING ZEROES LINES, ADVANCING ZEROS, ADVANCING +0 LINES and ADVANCING +3 LINES all compile and run (LC=004); reader's w5b shows -0 refused (COBOL2365). Code: SequentialIoBinder.ScreenAdvancingCount admits any integer literal not starting with '-' and BoundFigurative Kind 'Z', citing §2023 text only, no 1985 arm. The 1985 text: cite.py OK §1985:III.2 \"Where the term 'integer' appears in the general formats, integer must be a numeric literal which is an integer, and it must be neither signed nor zero unless explicitly allowed by the rules for that format.\"; OK §1985:IV.4.2.2.2.3 \"A figurative constant may be used whenever 'literal' appears in a format\"; OK §1985:VII.4.7.3 SR5 \"may be positive or zero, but must not be negative\". Readings: (1) ZERO/ZEROS/ZEROES: integer-1 is the format term 'integer', not 'literal', and no 1985 rule licenses a figurative constant where 'integer' appears, so a strict reading refuses it (under-rejects); the other reading treats 'integer' as a numeric literal and applies the figurative rule's exception (1) (only ZERO). (2) Signs: SR5 explicitly allows zero but does not explicitly allow a sign; under the strict reading +3 and +0 must be refused (under-rejects); under the permissive reading (SR5's 'must not be negative' contemplates a sign) the value decides, and -0 (value zero, §1985:IV numeric literal value is the algebraic quantity) is legal and its COBOL2365 refusal rejects legal source. No single reading of the 1985 text makes both '+3 accepted' and '-0 refused' right. The verdict rests on a reading the text does not settle.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ScreenAdvancingCount: no edition test; the 1985 glossary's 'neither signed nor zero unless explicitly allowed' and the 'literal'-only figurative license have no arm"
+  ],
+  "corrected": "DOUBTFUL: strict 1985 reading would make it NONCONFORMING (under-rejects +n and figurative ZERO as integer-1); permissive reading makes -0's refusal rejects-legal-source. Needs an adjudication of the 1985 reading."
+ },
+ "work": "PB5805"
+}

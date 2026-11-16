@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-X.3.1.4-2",
+ "rule-digest": "2ef6c6c884bd",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-04",
+  "sources": {
+   "reader": "be50138e22430c137194b3f2f7f1a377dea341308564b9fff83f02392d22c913",
+   "refuter": "ad6e92f9e4d13e42c5e99b7b2fb70a7ba31f653b0e440e19c502cb8f119c6201"
+  },
+  "imported": {
+   "reader": "9d53bfae257d884ba63d4a2998b39fb09c32dd40647c69366d67b5de9a6c6b10",
+   "refuter": "2b4301beb63d5fa59692cd8453e293e96eb70fb3cc6d7c6b6a1a98f6e80b4236"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.3.1.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a program with the COMMON clause, directly contained in program P, may be called by P and by any program directly or indirectly contained in P, except the common program itself and programs contained within it (§1985:X.1.3.8.1 SR2); a program outside P cannot reach it; RECURSIVE does not exist at 85 so the exception always applies.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Runtime/Control/ProgramNameScope.cs#CommonProgramReferable; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#NestedCallablesOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramIdAttributes",
+    "switches": "PROGRAM-ID ... RECURSIVE refused below 2002 (ProgramIdRecursive2002), so CommonProgramReferable's commonIsRecursive escape is unreachable at 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|IsActive|DialectLevel in ProgramTable.ResolveVisible, ProgramNameScope, BinderDriver.NestedCallablesOf: none; the scope walk is the same code at every edition.",
+  "behaviour-differs-by-edition": "no: same resolver; at 85 only the RECURSIVE attribute (2002) is unavailable",
+  "witnesses-cover": "part: the witness covers a sibling and an indirectly contained caller; not exercised: the exception (the common program itself and its own containees), a caller outside the containing program, two common siblings",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c3/p3.cob",
+    "printed": "C RUNS / K: C NOT VISIBLE / K: D NOT VISIBLE / B RUNS / D RUNS / C RUNS ... / E: C CALLED / D: B NOT VISIBLE / X RUNS / X: C NOT VISIBLE",
+    "expected": "C reachable from A and from E (inside B/D); not from K (inside C) nor from separately compiled X; non-common B not from its containee D (§1985:X.1.3.8.1 SR1, SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c3/p3b.cob",
+    "printed": "QC2 RUNS / QC RUNS 1 / QC: SELF NOT VISIBLE (same at --std 2023)",
+    "expected": "a common sibling calls another common program; the common program cannot reference its own name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c3/p3c.cob",
+    "printed": "error COBOL0887: program 'RA': COMMON may be specified only in a CONTAINED program",
+    "expected": "§1985:X.3.1.3 SR3 refusal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c3/p3d.cob",
+    "printed": "error COBOL0885: PROGRAM-ID RECURSIVE requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "the 2002 RECURSIVE attribute refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.3.1.4 GR2",
+    "check": "OK  §1985:X.3.1.4 GR2  (cite.py --check \"may be called from programs other than that containing it\")"
+   },
+   {
+    "cite": "§1985:X.1.3.8.1 SR2",
+    "check": "OK  §1985:X.1.3.8.1 SR2  (cite.py --check \"except that program possessing the common attribute and any programs contained within it\")"
+   }
+  ],
+  "notes": "ResolveVisible walks the caller's ancestors and admits a COMMON child of each unless ProgramNameScope says the caller is (in) the common program; BinderDriver.NestedCallablesOf uses the same predicate at bind time. COBOL0887 cites §2023:11.10.3 SR4 at --std 85 (label only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.3.1.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85 aimed where the reader's did not go. refute-1985-04/c3/r3.cob: CALL identifier (value 'QC') from sibling QB reaches common QC (B: QC BY ID CALLED); CANCEL 'QC' and CANCEL identifier from the sibling reach it too (CNT back to 1 after each, X.1.3.8.1 names CANCEL as a program-name reference); 'IS INITIAL COMMON PROGRAM' gives CNT=1 on every call; a common program QG directly contained in QB is reachable from QD inside QB but NOT from QB's sibling QF (literal and identifier) nor from the outer QA (SR2: only the program that directly contains it and that program's containees). refute-1985-04/c3/r3b.cob: every form of the 1985 format's {COMMON|INITIAL} choice (bare 'COMMON', 'IS COMMON INITIAL PROGRAM', 'INITIAL COMMON', 'COMMON PROGRAM') is accepted and the program is common. r3c.cob: the 2002 AS phrase on a common program is refused at 85 (COBOL0900). cite.py: OK §1985:X.3.1.4 GR2 ('may be called from programs other than that containing it'); OK §1985:X.1.3.8.1 SR2 ('except that program possessing the common attribute and any programs contained within it'); OK §1985:X.1.3.8.1 ('A program-name may be referenced only by the CALL statement, the CANCEL statement'). Not probed, the text being silent: a common program and a separately compiled program of the same name (1985 states no precedence). Label-only: COBOL1795/COBOL0900 cite §2023 clauses at --std 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

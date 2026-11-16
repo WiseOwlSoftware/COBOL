@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-2",
+ "rule-digest": "031c038ee19a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-136",
+  "sources": {
+   "reader": "15c79324ed68ea6516287bb8931f5cef958eef5caa3ef38dad69d7c84f11ce98",
+   "refuter": "3286e614e427bf24fa93b65f249932df9023a44048f20bfc136422ad00f027b2"
+  },
+  "imported": {
+   "reader": "d0adfd95e6306e75edd2617646d6cb3dda840c070421e88ba484d972389e3e6a",
+   "refuter": "f4a278fe7c5784f7aba08059482f2146734ae8b47b7c547c7eb501513e3eb526"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.6.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "For a relative file in sequential access mode, REWRITE must succeed only when the last I-O statement executed for THAT file was a successful READ (otherwise status 43 and no update: no READ since OPEN, after another REWRITE, after a START, after an unsuccessful READ or a failed REWRITE), and then it replaces the record that READ accessed, whatever the RELATIVE KEY now holds; I-O on other files does not intervene.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadSucceeded; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PrevOpWasSuccessfulRead; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+    "switches": "passes the dialect level to the connector's Edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "FileSharingFacility off at 85 (no sharing arbitration); the 43 gate is the same code",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior over RelativeConnector.cs and FileConnector.cs: the 43 gate (PrevOpWasSuccessfulRead, set only by ReadSucceeded and dropped by every Status assignment) consults no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f24_03 covers the successful replace of the record read; not the 43 refusal half (no READ, after REWRITE, after START, after an at-end READ, after a failed REWRITE)",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/rw2a.cob",
+    "printed": "USE 43 / A-NOREAD 43 / A-READ 00 0001 / B-AFTER-OTHER-FILE 00 / USE 43 / C-TWICE 43 / D-START 00 / USE 43 / D-AFTER-START 43 / E-READ 00 0003 REC-03 / E-REWRITE 00 / F-EOF 10 / USE 43 / F-AFTER-EOF 43 / R0001 NEW-01 R0002 REC-02 R0003 NEW-03 R0004 REC-04 R0005 REC-05",
+    "expected": "43 with no update for no READ, a second REWRITE, a REWRITE after START, after an at-end READ; success after a WRITE on another file with the key moved to 4 still replaces record 1 (the record read); record 3 replaced after START+READ"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/rw8a.cob",
+    "printed": "READ1 00 06 / USE 44 / SHORT 44 / USE 43 / AFTER-FAIL 43 / READ2 00 08 / MAXLEN 00 / R0002 10 0123456789",
+    "expected": "RECORD VARYING with ODO record: after a failed (44) REWRITE the next REWRITE is 43; READ then a longer record replaces record 2 (level 2, GR3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.6.4 GR2",
+    "check": "OK  §1985:VIII.4.6.4 GR2  (4.6.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5c"
+   }
+  ],
+  "notes": "Sequential access targets _lastSlot (the record the READ accessed), never the RELATIVE KEY. The same probe at --std 2023 prints the identical lines, consistent with no edition arm.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.6.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "Probe refute-1985-136/g2b.cob at --std 85 (runs/g2b-001), SEQUENTIAL access, PIC 9(4) COMP key, two 01 records: READ 1, DELETE, REWRITE -> 'USE 43 / A-AFTER-DELETE 43'; READ (skips deleted 1) gets 2, REWRITE through the second 01 record-name -> 'B-REWRITE-REC2 00', record 2 = 'NEW022'; READ 3, failed START (23), REWRITE -> 'C-AFTER-BADSTART 43'; START NOT LESS 4 + READ 4, key moved to 1, REWRITE -> 'D-REWRITE 00' replaces record 4 (the record read, not the key's); CLOSE + reopen I-O, REWRITE -> 'E-AFTER-REOPEN 43'; READ, READ, REWRITE -> 00. Final file R2 NEW022, R3 NEW-03, R4 NEW-04, R5, R6, then EOF and 46 (VIII.1.3.4 5e3). The gate in RelativeConnector#Rewrite (sequential && !PrevOpWasSuccessfulRead -> 43, slot=_lastSlot) consults no edition. cite.py: 'OK  §1985:VIII.4.6.4 GR2  (4.6.4 General Rules)  the text is in GR2'; 'OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5c'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

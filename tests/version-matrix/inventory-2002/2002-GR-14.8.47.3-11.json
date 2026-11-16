@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-11",
+ "rule-digest": "c54ad5ea6a21",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#TakeFileLock; src/WiseOwl.Cobol.Runtime/IO/Sharing/FileLockPosture.cs#AdmitsAnotherRunUnit",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb739_shared_extend_write_2002; conformance:cases/14.9.51-WRITE/pb1587_write_released_to_input_reader; conformance:cases/14.9.51-WRITE/pb1587_write_released_keyed_organizations",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.51.4-12, witnessed at 2002 by the cases test-ref names. The read: The rule sentence is identical; only the NOTE changes ('may'/'shall' to 'can'/'will'), and a NOTE is informative in both editions. Same format and organizations (2023 adds line sequential, which 2002 lacks). Cited: §2002:14.8.47.3 GR11."
+}

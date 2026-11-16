@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-VIII.4.7.4-1",
+ "rule-digest": "5bd05e91d854",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-136",
+  "sources": {
+   "reader": "15c79324ed68ea6516287bb8931f5cef958eef5caa3ef38dad69d7c84f11ce98",
+   "refuter": "3286e614e427bf24fa93b65f249932df9023a44048f20bfc136422ad00f027b2"
+  },
+  "imported": {
+   "reader": "1387e619ca59e9f01416939cedbeb75e0b3d4d86a8fb796800f371ef1432987f",
+   "refuter": "efcc4072dd2611077cc3cb40831dd27116459e02117bcfcb7329ed6167429032"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.7.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "A START on a relative file must succeed only when the file is open in the input or I-O mode; when it is not open (never opened, closed, after a failed OPEN) or open OUTPUT or EXTEND, the START is unsuccessful with I-O status 47 (VIII.1.3.4), which is not the invalid key condition, so the INVALID KEY phrase does not run and the USE procedure does.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Unsuccessful; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#StartRelative; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+    "switches": "ConstructRegistry StartFirstLast2002 and StartReverseOperators2002: START FIRST/LAST and LESS/<= operators refused at 85 with COBOL0900; the KEY = > NOT< >= form passes",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "FileSharingFacility off at 85; the open-mode guard is the same code",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior over RelativeConnector.cs#Start, FileConnector.cs#StartOpenModeGuard, FileRegistry.cs#StartRelative and KeyedIoEmitter.cs#EmitStart: none at runtime; compile-time gates in VersionConformancePass only.",
+  "behaviour-differs-by-edition": "yes: only the phrases a later edition added (FIRST/LAST, reverse operators) are refused at 85; the open-mode rule and its 47 are identical",
+  "witnesses-cover": "part: g85_bf26_04 covers OUTPUT, closed, INPUT and I-O in dynamic access; not EXTEND (sequential access only in 85), never opened, after a failed OPEN, or that INVALID KEY does not run on 47",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/st1a.cob",
+    "printed": "USE 47 NEVER 47 / USE 47 OUT 47 / OPEN-EXT 00 / USE 47 EXT 47 / EXT-WRITE 00 0003 / USE 47 CLOSED 47 / USE-N 35 OPEN-N 35 / USE-N 47 AFTER-FAILED-OPEN 47 / IN OK 00 / IN-NEXT 0002 REC-02 / IO INV 23 / IO3 OK 00 / IO-NEXT 0003 REC-03",
+    "expected": "47 with the USE procedure and neither INVALID KEY nor NOT INVALID KEY phrase for never-open, OUTPUT, EXTEND (implied EQUAL, no KEY phrase), closed, after a failed OPEN; the EXTEND WRITE after the failed START still appends record 3; INPUT and I-O succeed and position"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/st1c.cob",
+    "printed": "COBOL0900 START FIRST/LAST requires COBOL-2002; COBOL0900 a reverse-search START KEY operator (LESS ...) requires COBOL-2002 (twice: LESS THAN, <=)",
+    "expected": "later-edition START phrases refused at --std 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.4 GR1",
+    "check": "OK  §1985:VIII.4.7.4 GR1  (║4.7.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5f"
+   }
+  ],
+  "notes": "StartOpenModeGuard answers 47 for not open or OUTPUT/EXTEND, and Start returns it through Unsuccessful (position invalidated). st1a at --std 2023 prints the identical lines.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.7.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe refute-1985-136/s1b.cob at --std 85 (runs/s1b-001): the boundary the reader did not try, a file that IS open INPUT but is an absent OPTIONAL file -> 'OPEN-OA 05', START is the invalid key 23 of GR6 ('OA INV 23'), not 47; OPTIONAL absent opened I-O (created, 05), START >= -> 'OB INV 23'; CLOSE WITH LOCK then START -> 'USE 47 / AFTER-LOCK 47' with neither INVALID KEY nor NOT INVALID KEY run. Class c compile-only s1c.cob (runs/s1c-001): START on a RANDOM-access relative file -> COBOL0862 'the access mode shall be sequential or dynamic'; KEY data-name not the RELATIVE KEY -> COBOL0862 (both SR refusals hold at 85, though the messages cite §2023:14.9.41.3 rather than §1985:VIII.4.7.3, outside GR1). cite.py: 'OK  §1985:VIII.4.7.4 GR1  (║4.7.4 General Rules║)  the text is in GR1'; 'OK  §1985:VIII.4.7.4 GR6  (║4.7.4 General Rules║)  the text is in GR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

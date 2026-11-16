@@ -96,6 +96,7 @@ from inventory_store import REPO, inventory_dir, read_store, record_of, write_st
 import inventory_view  # noqa: E402  (THE view: the rows a batch is validated against and written from; kb/Work PB4992)
 import lineage  # noqa: E402  (THE definition of an older edition's change record and its state; kb/Work PB4993)
 import lineage_screen  # noqa: E402  (the flags a change record answers before it is written; kb/Work PB5597)
+import lineage_reads  # noqa: E402  (the one predicate of a witness's reference format; kb/Work PB5754)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -232,6 +233,28 @@ def _reference_errors(rec: dict, where: str, schema) -> list[str]:
             if (err := witness_shape_error(field, ref, schema))]
 
 
+def _statement_loss_errors(row: dict, after: dict, schema, where: str, chain_closed: bool | None = None) -> list[str]:
+    """Each statement the row says something in that the record would write empty (`statement_losses`, kb/Work PB3795);
+    `chain_closed` is a chained row's chain (`lineage.chain_of`, kb/Work PB5822), None for a row with its own verdict."""
+    return [f"{where}: '{loss.field}' would go from {loss.chars} characters to empty — the record writes it empty over "
+            f"what the row says; leave the field out to keep it, or restate it"
+            for loss in statement_losses(row, after, schema, chain_closed)]
+
+
+def _derivation_errors(refusals: list, rec: dict, where: str, schema) -> list[str]:
+    """The derivation predicate's refusals (`Derivation.refusals`, or `lineage.derivation_refusals` for an older
+    edition's chained row), each with its stable code; a non-resolving verdict, or an open chain, names the way out when
+    the record keeps the row's derivation by omitting the field."""
+    out = []
+    for refusal in refusals:
+        hint = ""
+        if refusal.code == "verdict-does-not-resolve" and schema.derivation.field not in rec:
+            hint = (f"; the record omits '{schema.derivation.field}', which keeps the row's: write it "
+                    f"empty to withdraw the derivation this verdict can no longer stand on")
+        out.append(f"{where}: [{refusal.code}] {refusal.message}{hint}")
+    return out
+
+
 def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dict[str, str],
              by_id: dict[str, dict], ed: Edition = NEWEST,
              targets: dict[str, dict] | None = None) -> list[str]:
@@ -281,16 +304,26 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         row = by_id.get(rid, {})
         verdict = rec.get("verdict", "")
         # ⛔ AN OLDER EDITION'S CHANGE RECORD (kb/Work PB4993, lineage.py). A chained (KEPT) rule's verdict is its chain's,
-        # so its record carries none (its own-edition witness, `test-ref`, aside: kb/Work PB5675); every other check of an older row is the change record's own (`next_errors`, the
-        # schema's `next`), asked of the row as it will be written.
+        # so its record carries none of the schema's `next.verdict-fields` (its own-edition evidence, a `test-ref` or a
+        # `derivation` of its own, aside: kb/Work PB5675, PB5822); every other check of an older row is the change
+        # record's own (`next_errors`, the schema's `next`), asked of the row as it will be written.
         if "next" in fields:
+            # ⛔ A WITNESS AT AN OLDER EDITION IS SOURCE TEXT OF THAT EDITION (kb/Work PB5754): each conformance-suite case
+            # the record names is written in a reference format the edition defines, asked of the one predicate the
+            # LINEAGE READS audit asks (lineage_reads.format_problem)
+            bad += [f"{where}: {why}" for ref in schema.split(rec.get("test-ref", ""), schema.test_ref_sep)
+                    if (why := lineage_reads.ref_format_problem(ref, ed))]
             after = {**row, **merged(row, rec, schema, ed)}
             for err in lineage.next_errors(after, ed, schema, targets or {}):
                 bad.append(f"{where}: {err}")
             if lineage.chained(after, schema):
-                # its own-edition witness (kb/Work PB5675) is the one verdict field it carries: each reference it names
-                # is shape-checked as any witness is; the LINEAGE READS audit checks it runs at the edition
+                # its own-edition evidence is a witness (kb/Work PB5675), each reference it names shape-checked as any
+                # witness is (the LINEAGE READS audit checks it runs at the edition), or a derivation of its own (kb/Work
+                # PB5822), judged by the one predicate the state rule asks, its chain standing for its verdict. A
+                # statement it carried is never erased, by the same rule as any row's (`statement_losses`).
                 bad += _reference_errors(rec, where, schema)
+                bad += _statement_loss_errors(row, after, schema, where, lineage.chain_of(after, ed, schema, targets or {}))
+                bad += _derivation_errors(lineage.derivation_refusals(after, ed, schema, targets or {}), rec, where, schema)
                 continue
             if not verdict and not row.get("verdict"):
                 if set(rec) <= {"rule-id", "next", "notes"}:
@@ -327,9 +360,7 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # diff as well. And a record that CHANGES the verdict while keeping `notes` would leave the old verdict's
         # reasoning standing under the new one (a PARTIAL row's defect prose under the CONFORMS that closes it), so
         # it must restate the prose, as it must re-site the code-location (`resites`).
-        for loss in statement_losses(row, {**row, **after}, schema):
-            bad.append(f"{where}: '{loss.field}' would go from {loss.chars} characters to empty — the record writes it "
-                       f"empty over what the row says; leave the field out to keep it, or restate it")
+        bad += _statement_loss_errors(row, {**row, **after}, schema, where)
         if (row.get("verdict") and verdict != row["verdict"] and "notes" not in rec
                 and prose_of(row.get("notes", ""))):
             bad.append(f"{where}: verdict {row['verdict']} → {verdict} keeps the row's notes, which argue the old "
@@ -390,12 +421,7 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # stands for". The bounds live in ONE predicate (`Derivation.refusals`) that `Schema.state_for` also
         # asks, so the writer and the drift gate cannot come to read one rule differently (kb/Work PB315).
         if schema.derivation is not None:
-            for refusal in schema.derivation.refusals(probe, schema):
-                hint = ""
-                if refusal.code == "verdict-does-not-resolve" and schema.derivation.field not in rec:
-                    hint = (f"; the record omits '{schema.derivation.field}', which keeps the row's: write it "
-                            f"empty to withdraw the derivation this verdict can no longer stand on")
-                bad.append(f"{where}: [{refusal.code}] {refusal.message}{hint}")
+            bad += _derivation_errors(schema.derivation.refusals(probe, schema), rec, where, schema)
 
     return bad
 

@@ -1,0 +1,85 @@
+{
+ "rule-id": "1989-AR-A.2.40.3-2",
+ "rule-digest": "d94dded26481",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-172",
+  "sources": {
+   "reader": "84d0113a32c3b8fb3c49ab99c300f3444f2d3302a70d38fd45e8dc74a96cf591",
+   "refuter": "09e383fce0d4367fa35e04683e772491663c171a175bc0fe5479f69627acfcff"
+  },
+  "imported": {
+   "reader": "b25986d4b0dc47a7b9238c1723d9912eaa949d3df5998be606b9a9d65e647dee",
+   "refuter": "b2ac660859ff5acc05393b677a57066cb49571b0142327ec00c87043f31cdd3c"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.40.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a FUNCTION SQRT reference whose argument-1 is negative at the time of reference has an undefined result (§1989:A.2.2 AR4); zero and positive values (item, literal, ZERO, expression, 18-digit) must give the absolute value of the square-root approximation.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SqrtDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Sqrt; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntroducedIn 85 against DialectLevel: SQRT admitted",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectLevel over src/WiseOwl.Cobol.Runtime/Intrinsics: 0 hits; SqrtDec's negative arm calls ExceptionState.ArgumentError, gated only by the EC-ARGUMENT-FUNCTION checking switch (off by default) and returning 0.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf42_05 covers nonnegative values; no witness takes a negative value (undefined, so none can pin a result)",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_sqrt.cob",
+    "printed": "BEFORE-NEG / S6=0000000000.000000 for SQRT(NG) with NG = -4, exit 0; S2 SQRT(0)=0",
+    "expected": "negative: undefined (any value, no crash); zero: 0"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_sqrt_neglit.cob",
+    "printed": "SQRT(-4) Q1=+0000.0000; SQRT(-0.0001) into COMP Q2=+0000.0000; SQRT(0.0001) Q3=+0000.0100",
+    "expected": "negative literal: undefined; 0.0001 -> 0.01"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_sqrt.cob",
+    "printed": "S3 SQRT(ZERO)=0, S5 SQRT(NG * NG)=4",
+    "expected": "0; 4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_sqrt.cob",
+    "printed": "at --std 2023 identical output, S6=0000000000.000000",
+    "expected": "same arm at every edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.40.3 AR2",
+    "check": "OK  §1989:A.2.40.3 AR2  (2.40.3 Arguments)  the text is in AR2"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   }
+  ],
+  "notes": "A negative argument is undefined at 1985, so the 0 substitute (no diagnostic, no crash) conforms; nonnegative values give correct approximations, including the 18-digit maximum.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.40.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "A negative value is outside the permitted range, so the result is undefined (§1989:A.2.2 AR4, Amendment 2 wording). Probe q_sqrt_neg_arms.cob at --std 85 (runs/q_sqrt_neg_arms-001, exit 0, DONE printed): SQRT(COMP -9) C1=0, SQRT(COMP-3 -2.25) C2=0, SQRT(S9(18) -999999999999999999) C3=0, SQRT(SV9(9) -0.000000001) C4=0, SQRT(- P4) with ON SIZE ERROR C5=0 NOT ON SIZE ERROR, SQRT(SQRT(-1)) C6=0, IF SQRT(NC) < 1 TRUE, SUM(SQRT(NC) 1) C8=1, SQRT(0 - 0.5) + SQRT(4) C9=2; zero-valued forms SQRT(-0) C10=0 and SQRT(P4 - P4) C11=0 are the permitted zero and give 0. No arm crashes; permitted values are exact. cite.py: 'OK §1989:A.2.40.3 AR2 (2.40.3 Arguments) the text is in AR2' (quoted 'must be zero or positive'); 'OK §1989:A.2.2 AR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

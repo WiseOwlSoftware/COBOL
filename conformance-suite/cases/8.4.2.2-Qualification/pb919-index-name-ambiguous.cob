@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb919-index-name-ambiguous
-*> rules: [SR-8.4.2.2.1-1, SR-8.4.2.2.3-1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb919-index-name-ambiguous
+      *> rules: [SR-8.4.2.2.1-1, SR-8.4.2.2.3-1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO/IEC 1989:2023 §2023:8.4.2.2.3 SR1: "For each non unique user-defined name that is explicitly referenced,
       *> uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity of
       *> reference." TA and TB each declare INDEXED BY IX; the bare SET IX names neither uniquely, so it is

@@ -26,6 +26,12 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
                             `b` in the CALLER's directory; a landing audit written that way reported a false OK into
                             the queue on 2026-10-11. Use absolute paths or `git -C <dir>`.
 
+  a recursive delete of a   `rm -r|-rf|--recursive`, `rmdir|rd /s`, `Remove-Item -Recurse` whose target the shell expands
+  variable path             (`"$rd"`, `$R/$id`, `$(…)`, `$env:X`, `%X%`): an empty variable makes it the filesystem root,
+                            and the harness warned the owner for each one (owner 2026-11-15, kb/Work PB5764,
+                            MANDATORY-PRACTICES P17). A probe runs through `scripts/orchestrator/run_probe.py` in a new
+                            directory, so nothing needs deleting; a file that must go is removed by its literal path.
+
   WSL lifecycle commands    `wsl --terminate/--shutdown/--update/--export/--import/--unregister/--install` (owner
                             2026-10-04): they can end the owner's open session or burn tens of GB, so only the owner runs
                             them. Commands inside a distro (`wsl -d Ubuntu -e ...`) stay allowed. This is the guard that
@@ -314,5 +320,82 @@ for _after in STEPS:
               "(2026-10-11: a landing audit written this way reported a false OK). Use absolute paths or `git -C <dir>` "
               "instead of `cd` (MANDATORY-PRACTICES P14(b), kb/Work PB3095); independent commands go as parallel tool "
               "calls in one turn.")
+
+# 7. a RECURSIVE DELETE whose target the shell EXPANDS at run time (owner 2026-11-15, kb/Work PB5764, MANDATORY-PRACTICES
+# P17): `rd=$R/$id; rm -rf "$rd"` is `rm -rf /` when a variable in it is empty, and the harness raised a warning to the
+# owner for every one the probing agents wrote. A target is judged by the shared model's `Step.expands` (`_scan`): a `$`
+# inside single quotes is literal, and a variable in ANOTHER command of the line is no target of this one. Each shell's
+# recursive delete: Bash `rm` with a recursive flag in any spelling (`-r`, `-R`, `-rf`, `-fr`, `--recursive`, before a
+# `--`), cmd.exe `rmdir|rd /s`, PowerShell `Remove-Item` and its aliases with `-Recurse` (any prefix of it). NOT refused:
+# a literal target, and a delete that is not recursive (`rm "$f"`, one file). The command word is the step's first, past
+# assignments and the leaders that run the rest of the words as the command (`sudo`, a `do` of a loop, `&`); a delete
+# whose target arrives through a pipe (`xargs rm -rf`, `find … -exec rm -rf {}`, `… | Remove-Item -Recurse`) names no
+# target in the line, and a recursive flag that is itself a variable (`rm $opts "$d"`) cannot be told: neither is judged.
+_LEADERS = {"sudo", "doas", "command", "builtin", "exec", "nohup", "time", "&", "!",
+            "if", "then", "else", "elif", "while", "until", "do"}
+_BASH_RECURSIVE = re.compile(r"^(?:-[A-Za-z]*[rR][A-Za-z]*|--recursive)$")
+_PS_DELETE = {"remove-item", "rm", "ri", "del", "rd", "rmdir", "erase"}
+_PS_RECURSE = re.compile(r"^-r(?:e(?:c(?:u(?:r(?:s(?:e)?)?)?)?)?)?(?::\S*)?$", re.I)
+_PS_PATH = re.compile(r"^-(?:path|literalpath|lp|pspath)(?::(.*))?$", re.I)
+_PS_VALUED = {"-filter", "-include", "-exclude", "-credential", "-stream"}   # their value is no target
+
+
+def _command_word(words: tuple[str, ...]) -> int | None:
+    """The index of the step's command word: past `NAME=value` assignments and the leaders (`_LEADERS`)."""
+    for k, w in enumerate(words):
+        if w.lower() not in _LEADERS and not re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", w):
+            return k
+    return None
+
+
+def _recursive_delete_targets(st, shell: str) -> list[int]:
+    """The word indexes of the targets of the step's recursive delete; [] when the step is none."""
+    w = st.words
+    k = _command_word(w)
+    if k is None:
+        return []
+    name, rest = shell_location.program(w[k]), range(k + 1, len(w))
+    if shell == shell_location.BASH and name == "rm":
+        recursive, targets, operands = False, [], False
+        for i in rest:
+            if not operands and w[i] == "--":
+                operands = True
+            elif not operands and w[i].startswith("-") and w[i] != "-":
+                recursive = recursive or bool(_BASH_RECURSIVE.match(w[i]))
+            else:
+                targets.append(i)
+        return targets if recursive else []
+    if shell == shell_location.CMD and name in ("rmdir", "rd"):
+        return [i for i in rest if not w[i].startswith("/")] if any(w[i].lower().startswith("/s") for i in rest) else []
+    if shell == shell_location.POWERSHELL and name in _PS_DELETE:
+        recursive, targets, i = False, [], k + 1
+        while i < len(w):
+            a = w[i]
+            if (m := _PS_PATH.match(a)) is not None:
+                if m.group(1) is None:
+                    targets.append(i + 1)
+                    i += 1
+                else:
+                    targets.append(i)
+            elif _PS_RECURSE.match(a):
+                recursive = recursive or not a.lower().endswith(":$false")
+            elif a.lower() in _PS_VALUED:
+                i += 1
+            elif not a.startswith("-"):
+                targets.append(i)
+            i += 1
+        return [t for t in targets if t < len(w)] if recursive else []
+    return []
+
+
+for _st in STEPS:   # every simple command, in the shell that runs it (`Step.shell`: a `cmd /c` payload is cmd.exe's)
+    _hit = [_st.words[i] for i in _recursive_delete_targets(_st, _st.shell) if _st.expands[i]]
+    if _hit:
+        block(f"a recursive delete of `{_hit[0][:60]}`, a path the shell expands at run time (`{_st.text[:60]}`): "
+              "when a variable in it is empty the target is the filesystem root, and the owner is warned for every "
+              "one (owner 2026-11-15, kb/Work PB5764, MANDATORY-PRACTICES P17). Run a probe program through "
+              "`python scripts/orchestrator/run_probe.py --root <your scratch directory, written literally> ...`, "
+              "which gives each run a NEW directory, so nothing needs deleting; a file that must go is removed by "
+              "its one literal path.")
 
 sys.exit(0)

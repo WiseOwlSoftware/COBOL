@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.25.1",
+ "rule-digest": "1d1723bbabcf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#multiplyStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticOperandRole.cs#FirstNonReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticPhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand",
+ "test-ref": "conformance:cases/14.8.25@2002-MULTIPLY-STATEMENT/g2mul03_rounded_each_format",
+ "notes": "§2002:14.8.25.1 prints the bare ROUNDED word in both formats; with §2002:14.8.25.3 GR1/GR2 and §2002:14.6.3/14.6.4 the case derives M1 OK 11 13, M2 OK 08 07, M2R SE 9, M1S SE 9; the --std 2002 run matched."
+}

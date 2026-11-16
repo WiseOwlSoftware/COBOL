@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c17_linkage_index_separate
       *> rules: [GR-13.7.4-2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

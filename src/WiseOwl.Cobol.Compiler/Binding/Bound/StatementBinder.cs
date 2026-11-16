@@ -586,13 +586,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// A nested statement drained its own before this one is asked.</summary>
     private bool ReferencesDebugItem(BoundStatement statement, int preOpMark, int identificationMark)
     {
-        if (BoundReferences.Of(statement).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
+        if (BoundReferences.Of(statement).Places.Any(place => Ctx.Table.IsDebugRegister(place.NamedItem))) return true;
         foreach (var preOp in data.Procedure.PendingPreOps.Since(preOpMark))
-            if (BoundReferences.Of(preOp).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
+            if (BoundReferences.Of(preOp).Places.Any(place => Ctx.Table.IsDebugRegister(place.NamedItem))) return true;
         // A receiver's identification is the same evaluation, taken off the pre-op queue to run at the receiver's store (PB5386).
         foreach (var identification in data.Procedure.ReceiverIdentifications.Since(identificationMark))
             foreach (var step in identification.Open)
-                if (BoundReferences.Of(step).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
+                if (BoundReferences.Of(step).Places.Any(place => Ctx.Table.IsDebugRegister(place.NamedItem))) return true;
         return false;
     }
 
@@ -695,11 +695,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>ENTER language-name-1 [routine-name-1] (§1985:VI.6.12.2): not provided (kb/Work PB5308). §1985:I.1.5.2.5.5 lets
     /// an implementation "include the ENTER statement or not", ISO 2023 has no ENTER and GnuCOBOL refuses it (CLAUDE.md
     /// rule 1), and no language-name is "specified by the implementor" (§1985:VI.6.12.3 SR1), so every ENTER is refused by
-    /// name rather than compiled to nothing, which ran a program as if the other-language routine had run.</summary>
-    private BoundRejected BindEnter(Core.EnterStatementContext enter) =>
-        BoundRejected.Report(data.Edition, DiagnosticCatalog.EnterStatementNotProvided,
-            $"ENTER {enter.enterOperand().GetText().ToUpperInvariant()}: this implementation does not provide the ENTER "
-            + "statement (§1985:I.1.5.2.5.5 leaves it to the implementor; no language-name is specified, §1985:VI.6.12.3 SR1)");
+    /// name rather than compiled to nothing, which ran a program as if the other-language routine had run.
+    /// <para>The ENTER statement's edition gate is asked HERE (the construct <c>enter-removed-2002</c>, kb/Work PB5538): the
+    /// statement is deleted from COBOL-2002 and the gate's error is the one report, so from 2002 the binder adds no COBOL7240
+    /// to it. Under <c>--permissive</c> the gate only warns, and the statement, which is not provided at any edition, still
+    /// draws the refusal.</para></summary>
+    private BoundRejected BindEnter(Core.EnterStatementContext enter)
+    {
+        const string where = "the ENTER statement";
+        bool gateRefuses = ConstructRegistry.GateErrorCodeAt(data.Edition.Edition, Constructs.EnterRemoved2002) is not null;
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition.Sink, Constructs.EnterRemoved2002, where);
+        return gateRefuses
+            ? BoundRejected.Reported(data.Edition)
+            : BoundRejected.Report(data.Edition, DiagnosticCatalog.EnterStatementNotProvided,
+                $"ENTER {enter.enterOperand().GetText().ToUpperInvariant()}: this implementation does not provide the ENTER "
+                + "statement (§1985:I.1.5.2.5.5 leaves it to the implementor; no language-name is specified, §1985:VI.6.12.3 SR1)");
+    }
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {

@@ -1,0 +1,110 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-7",
+ "rule-digest": "541db822d4a5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-018",
+  "sources": {
+   "reader": "fb33f080892f9b0330999556cb236abc088c04afd25aacf24a6ceb4e70e4079b",
+   "refuter": "cc99f6375fac48dc88063ba7d578b3199aa2f6d4d9b44f5b4283f3334ebbd2e6"
+  },
+  "imported": {
+   "reader": "e0f02cfd6ebd6eece2279456cd2d59932143e65fdb040ce45a279a74f4e60787",
+   "refuter": "db829f6af8bc0caa74475142f0d3614bfa3635289d2036417317b8c580e93038"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, STRING must move characters one at a time into identifier-3 at the position the pointer designates, increase the pointer by one after each character actually moved (never when the pointer is already outside 1..size), and change identifier-4 by nothing else: after an overflow before any move it keeps its exact value, after a completed or truncated transfer it equals the start value plus the characters moved.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#stringStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#IdentifyOperands",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStringStatement",
+    "switches": "refuses a STRING whose last sending phrase omits DELIMITED (Constructs.StringDelimitedOmitted2002) at --std 85; a syntax arm, it does not touch the pointer or the transfer",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString",
+    "switches": "nothing behavioural: BoundRejected.Report/BoundOperandError.Report(ctx.Edition, ...) only carry the edition context for SR diagnostics",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition|CobolVersion|Dialect|Construct in StringEmitter.cs and StringUnstringBinder.cs; grep of String|Unstring in Validation/VersionConformancePass.cs. EmitString and CobolStringOps.StringTransfer take no edition input: the implicit pointer of 1 and the per-character increment are one code path for every --std.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb664 leg 1 checks the pointer after one in-range STRING; not exercised: pointer at size+1, 0, negative, the largest PIC 9(18) value, overflow mid-sender, a pointer that subscripts a sending item",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str1.cob",
+    "printed": "3 [..XYZ.....] P=06",
+    "expected": "P=3, 3 characters moved -> P=6"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str1.cob",
+    "printed": "4 OVF / 4 [.......123] P=11",
+    "expected": "P=8, positions 8-10 receive 123, P becomes 11, the 4th character finds P>10: overflow, P not increased further"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str1.cob",
+    "printed": "5 OVF / 5 [..........] P=00",
+    "expected": "P=0 < 1: overflow, no move, P unchanged (GR7 last sentence, GR9)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str1.cob",
+    "printed": "6 OVF / 6 [..........] P=11; 7 OVF / SP=-01",
+    "expected": "P beyond size or negative: overflow, P unchanged"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str1.cob",
+    "printed": "10 [ABCDEFGHIJ] P=11",
+    "expected": "exactly fills 10 positions: P=11, no overflow"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str2.cob",
+    "printed": "2 OVF / BP=999999999999999999",
+    "expected": "largest 18-digit pointer: overflow, unchanged"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str2.cob",
+    "printed": "1 [.BBBBBB...] I=08",
+    "expected": "TE (I) with I=2 as both senders and I as POINTER: the pointer changes only by the increments (2 -> 8); the subscript value is the one at the start of the statement"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str1.cob",
+    "printed": "11 [-MN--] I=4",
+    "expected": "group receiver T with OCCURS, POINTER I=2: positions 2-3, I=4"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR7",
+    "check": "OK  §1985:VI.6.25.4 GR7  (║6.25.4 General Rules║)  the text is in GR7"
+   }
+  ],
+  "notes": "StringTransfer checks the pointer before each character, writes at pointer-1 and increments after; the emitter stores the POINTER item back only when it moved (ptr != ptr0), so an out-of-range start leaves it exact. The subscripts of sending items are frozen once (IdentifyOperands), so the pointer's own changes do not re-target a sender.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same (identical code path)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-7",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "CobolStringOps.StringTransfer checks 1<=pointer<=size before each move and increments after it; EmitString stores the pointer back only when it moved, and does so BEFORE EmitOverflow. Probes (run_case.py, --std 85), t1-001: A: P=8 with '12345' prints 'A OVF P=11' from INSIDE ON OVERFLOW (the value is visible to imperative-statement-1), and [.......123]. B: a COMP S9(4) pointer goes 3 to +0006. C: a PIC 9 pointer, 8 characters into X(8), gives 9 with no overflow. D: receiver TE (I) with POINTER I, I=2: TBL [----QQ---------], I=4, so the receiver subscript stays frozen while the pointer changes. E: sender SRC (I:3) with POINTER I, I=2: [.BCD......], I=5 (the reference modifier is frozen). F: P=9 with 'AB' 'CD': overflow on the second sender, P=11. cite: OK  §1985:VI.6.25.4 GR7  (║6.25.4 General Rules║)  the text is in GR7",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

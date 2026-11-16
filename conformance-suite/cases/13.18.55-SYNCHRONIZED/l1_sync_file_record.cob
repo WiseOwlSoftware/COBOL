@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_sync_file_record
 *> rules: [GR-13.18.55.4-11]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

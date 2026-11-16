@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-18",
+ "rule-digest": "b8fce584c65f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-095",
+  "sources": {
+   "reader": "9a2ce2b731564d79fdb18fed5634bd5b41a2329f4f9a6f0d1eaeafa5176eaa61",
+   "refuter": "c1b6810ed6330f619b4728026e7f448015f803896c57f72d4a002cb599b888ab"
+  },
+  "imported": {
+   "reader": "ebfc372d5afdb0c61d5f6f58f1b1aec2d3c7f4af2ec67e5d78d5fa70d2ac893c",
+   "refuter": "53e879d6d25dd27ae84c5cf6315999ac0b98e45a02f8e15335bc9ee7f616445b"
+  }
+ },
+ "reader": {
+  "verdict": "CONFORMS",
+  "edition-search": "grep -n 'Edition|IsActive|DialectBehavior' in FixedFileAttributes.cs, KeyedConnector.FixedAttributeConflict and MetaPage: none; the GR8 comparison and the meta page written at creation are edition-free",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.4.4.4-18",
+  "requirement": "At --std 85 an indexed file's minimum and maximum record sizes are fixed when the file is created (OPEN OUTPUT or optional creation) and are not changed by a later OPEN through a description of other sizes; such an OPEN is refused with the file attribute conflict '39' (GR8, the implementor's validated set per DOC-A.1-129), the file unaffected, while a new OPEN OUTPUT re-creates the file with the new sizes.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+  "edition-consulted": [],
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf25_03 covers fixed-length records (RECORD CONTAINS 20 against 30); variable-length minimum and maximum (RECORD IS VARYING with OCCURS DEPENDING ON) are not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-095/src/p18.cob",
+    "printed": "CREATE 00; WRITES 00; MAX30 39; MIN6 39; SAME 00; READ 00 07 03; RECREATE 00; OLD-DESC 39; NEW-DESC 00",
+    "expected": "created VARYING 4 TO 20: a description 4 TO 30 or 6 TO 20 conflicts (39); the same description opens and reads the 7-character record; OPEN OUTPUT through 4 TO 30 re-creates, after which the old description conflicts"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-095/src/p16.cob",
+    "printed": "B-CONFLICT 39, then A-IO 00 (file unaffected)",
+    "expected": "39, the file not affected (GR19)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR18",
+    "check": "OK  §1985:IX.4.4.4 GR18  (4.4.4 General Rules)  the text is in GR18"
+   },
+   {
+    "cite": "§1985:IX.4.4.4 GR8",
+    "check": "OK  §1985:IX.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "The keyed store's meta page records the minimum and maximum record size at creation; FileConnector.OpenOnceEntered asks KeyedConnector.FixedAttributeConflict (MetaPage plus FixedFileAttributes.Conflicts) before OpenCore for every non-OUTPUT mode on a present file, so a description of other sizes is 39 and the file is untouched; OUTPUT is a creation and establishes new sizes."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-18",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "Probe r18.cob (class c/a, the 1985 RECORD CONTAINS 4 TO 20 form, which the reader did not try): created 00, wrote 4- and 20-character records; reopened through RECORD IS VARYING 4 TO 20: 00 and READ gave length 04; through RECORD CONTAINS 20 (fixed): 39; through no RECORD clause with 01s of 4 and 20: 39; through the creating description: 00. The no-RECORD-clause 39 is within latitude: the record type (fixed or variable) is a fixed file attribute (§1985 definitions), which attributes are validated is the implementor's (GR8), format 3 fixed-or-variable is implementor defined (VII.3.8.4 GR13), and docs/conformance/7/DOC-A.1-129.md documents that the keyed meta page validates record type and minimum/maximum size. cite.py: OK §1985:IX.4.4.4 GR18 'established at the time the file is created'; OK §1985:IX.4.4.4 GR8 'The implementor defines which of the fixed file attributes are validated'; OK §1985:VII.3.8.4 GR13 'implementor defined whether format 3 of the RECORD clause produces fixed length records'; OK §1985:VII.3.8.4 GR1 'the size of each data record is completely defined'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

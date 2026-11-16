@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.9.3-3",
+ "rule-digest": "8ce28fc740e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete",
+ "test-ref": "conformance:cases/14.9.10-DELETE/pb144_indexed_delete_record",
+ "notes": "Own verdict from the read lineage-reads-2002/u-22.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.10.4-3, witnessed at 2002 by the cases test-ref names. The read: Same requirement; differs only by '(MSCS)' and the pointer 9.1.13 vs 9.1.14 to the same invalid key condition. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only. Cited: §2002:14.8.9.3 GR3."
+}

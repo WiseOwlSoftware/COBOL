@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-11.2.3-6",
+ "rule-digest": "59322f36c42f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#AddSkeleton; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#SubstitutedTokens; src/WiseOwl.Cobol.Compiler/Binding/Model/ObjectRefDescriptor.cs#FormalParameter; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#SetOperands",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class; conformance:cases/11.3-CLASS-ID/pb2937_skeleton_bodies_bind_as_themselves",
+ "notes": "Own verdict from the read lineage-reads-2002/u-08.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-11.3.4-6, witnessed at 2002 by the cases test-ref names. The read: 2002 has two user-word kinds both called class-name (8.3.1.1.1.3 for object orientation, 8.3.1.1.1.4 for truth value proposition). In this OO clause, and per 9.3.12 (formal parameters are replaced by class-names or interface-names to make a class), the OO sense is meant, which is 2023's object-class-name. No program differs. Cited: §2002:11.2.3 GR6; §2002:8.3.1.1.1.3."
+}

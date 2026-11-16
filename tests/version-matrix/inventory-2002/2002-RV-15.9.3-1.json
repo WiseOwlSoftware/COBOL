@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.9.3-1",
+ "rule-digest": "f61ce510cae2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Asin; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble",
+ "test-ref": "conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument; conformance:cases/15.10.4-Returned-value-rule/pb65_bounded_returned_value_landing",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.10.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical; the 2023 transcription's 'p' is the pi of the printed text. Cited: §2002:15.9.3 RV1."
+}

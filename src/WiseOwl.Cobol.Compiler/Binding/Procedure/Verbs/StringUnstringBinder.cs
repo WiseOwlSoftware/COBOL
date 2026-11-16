@@ -144,6 +144,9 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if (!StrUnstrIsInteger(pp))
                 return Reject($"STRING WITH POINTER '{DataBinder.WrittenText(pd)}': identifier-4 shall be an elementary numeric integer "
                     + "data item without the symbol P (ISO §2023:14.9.43.3 SR7)");
+            if (PointerTooSmall(pp, into))
+                return Reject($"STRING WITH POINTER '{DataBinder.WrittenText(pd)}': identifier-4 is too small to contain 1 plus the size of "
+                    + $"identifier-3 '{intoText}' (ISO §2023:14.9.43.3 SR7)");
             pointer = pp;
         }
 
@@ -328,6 +331,9 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if (!StrUnstrIsInteger(pp))
                 return Reject($"UNSTRING WITH POINTER '{DataBinder.WrittenText(pd)}': identifier-7 shall be an elementary numeric integer "
                     + "data item without the symbol P (ISO §2023:14.9.48.3 SR6)");
+            if (source is BoundFieldOperand { Place: var sizedSender } && PointerTooSmall(pp, sizedSender))
+                return Reject($"UNSTRING WITH POINTER '{DataBinder.WrittenText(pd)}': identifier-7 is too small to contain 1 plus the size of "
+                    + $"identifier-1 '{senderText}' (ISO §2023:14.9.48.3 SR6)");
             pointer = pp;
         }
         Place? tallying = null;
@@ -600,9 +606,27 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
 
     /// <summary>True for an elementary fixed-point INTEGER item with no P scaling — the shape STRING SR7 /
     /// UNSTRING SR5–SR6 require of the POINTER / COUNT IN / TALLYING items (a V or P picture yields a non-zero
-    /// scale; P is the signed-scale encoding, §2023:13.18.40).</summary>
+    /// scale; P is the signed-scale encoding, §2023:13.18.40).
+    /// <para>⛔ ASKED OF THE OPERAND AS BOUND, NOT OF THE ITEM AS DECLARED (kb/Work PB5734): a reference modification of a numeric item
+    /// is alphanumeric (§2023:8.4.3.3.4 GR6), so <c>PT (2:1)</c> is no integer data item whatever the base item's PICTURE says —
+    /// the ONE integer classifier refuses it (<see cref="IntrinsicResultType.IsIntegerOperand(BoundOperand)"/>), and the binder
+    /// that read <c>Item.Pic</c> alone let the statement through to a C# compile error.</para></summary>
     private static bool StrUnstrIsInteger(Place p) =>
-        p.Item.Pic is { IsUnscaledInteger: true };
+        IntrinsicResultType.IsIntegerOperand(new BoundFieldOperand(p)) && p.Item.Pic is { IsUnscaledInteger: true };
+
+    /// <summary>⛔ THE POINTER'S SIZE RULE (kb/Work PB5607): "Identifier-4 shall be described as an elementary numeric integer data
+    /// item of sufficient size to contain a value equal to 1 plus the size of the data item referenced by identifier-3"
+    /// (§2023:14.9.43.3 SR7; UNSTRING identifier-7 against identifier-1, §2023:14.9.48.3 SR6; §1985:VI.6.25.3 SR5 and
+    /// §1985:VI.6.27.3 SR5 say the same). True when the size of <paramref name="sized"/> is a COMPILE-TIME quantity and the
+    /// pointer cannot hold 1 plus it; the size of an ANY LENGTH / DYNAMIC LENGTH item or of a run-time slice is a run-time
+    /// value, so the rule is not decidable here and nothing is refused.</summary>
+    private static bool PointerTooSmall(Place pointer, Place sized)
+    {
+        int? size = sized is RefModPlace slice
+            ? slice.StaticLength(slice.StaticInnerPositions)
+            : sized.Item is { IsAnyLength: false, IsDynamicLength: false } fixedItem ? RefModPlace.PositionCount(fixedItem) : null;
+        return size is { } n && pointer.Item.Pic is { } pic && !pic.CanHoldUnscaledValue(1L + n);
+    }
 
     /// <summary>ISO §2023:14.9.43.3 SR2 / §2023:14.9.48.3 SR1 — "a figurative constant that begins with the word ALL", read off the
     /// WRITTEN operand: the ALL-literal node says so (<see cref="BoundAllLiteral.BeginsWithAll"/>, a bare symbolic

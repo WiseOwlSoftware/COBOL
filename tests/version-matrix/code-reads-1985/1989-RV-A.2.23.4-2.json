@@ -1,0 +1,108 @@
+{
+ "rule-id": "1989-RV-A.2.23.4-2",
+ "rule-digest": "38670285732b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-180",
+  "sources": {
+   "reader": "b5874b3639f0d78b2869cfd0326da0530db24cab4e135f6db89df4567e71ba0b",
+   "refuter": "bbae1edda13178c47e7bf070f2019b28f1f8b3a3c1be48f6bd6c487443c94d19"
+  },
+  "imported": {
+   "reader": "f18064cad93c00deb2bc39db381f41a2118be2f8afd879f5a98d5bfc064a9493",
+   "refuter": "51dd40f73a318d349ea3f576570c5fcac426727e7cbe2feea4464e44688b3261"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.23.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "When several argument-1 of FUNCTION MAX share the greatest value under the simple-condition comparison (including equal-after-space-padding alphanumeric operands and characters an ALPHABET ALSO makes equal in the program collating sequence), the content returned is that of the leftmost such argument-1, with ALL-subscript arguments expanded in their left-to-right order.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MaxString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MaxScaled; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the function's IntroducedIn (85 for MAX, MEAN, MEDIAN) against DialectLevel: COBOL1502 before it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) selects which argument predicates are asked; the class screen, not the returned-value path",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands is refused (COBOL0900); inside an arithmetic expression it is not consulted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StandardDecimal",
+    "switches": "OPTIONS ARITHMETIC mode; at 85 no ARITHMETIC clause exists so Options.Arithmetic is Native, the latest edition's default arm",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior over IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs, CobolIntrinsics.Exact.cs, CobolIntrinsics.Dec.cs, CobolIntrinsics.ExactValue.cs and CobolTable.cs found none on the MAX/MEAN/MEDIAN arms; the edition is read only in IntrinsicBinder (availability window, identifier-placement screen, argument predicates) and through the arithmetic mode",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf39_03 covers alphanumeric literal and item ties of unequal size; not exercised there are ties under a PROGRAM COLLATING SEQUENCE with ALSO, ALL-subscript and ODO arguments, group and alphabetic/alphanumeric mixed ties, and reference-modified arguments (probed here)",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxtie.cob",
+    "printed": "A3=[AB ] A4=[AB   ] A5=[AB] A6=[AB   ] A9=[AB ] AA=[AB   ] AB=[AB] AC=[ ] L1=03 L2=05 N1=+999999999999999999 N2=-999999999999999999 N3=+000000000000000000 N4=SIZE N5=5",
+    "expected": "each tie returns the leftmost argument at its own size (A3 W-A size 3, A4 W-X size 5, A5 G size 2, A9 ODO group size 3, AA ODO group size 5, AB/AC leftmost ref-mod); numeric extremes and size error correct"
+   },
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxpcs.cob",
+    "printed": "EQ P1=[B] P2=[A] P3=[C ] P4=[D]",
+    "expected": "ALPHABET ALPH IS \"A\" ALSO \"B\" ALSO \"C\": A=B=C, so MAX(B A)=B, MAX(A B)=A, MAX(C(2) B A)=\"C \", MAX(A D C)=D"
+   },
+   {
+    "class": "a,c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxpcs2.cob",
+    "printed": "Q1=[B] Q2=[C] Q3=[B  ] Q4=[ ] Q5=[A]",
+    "expected": "ALL with ref-mod per element B,A,C all equal -> B; ODO table N=2 C,B -> C; W-M first -> \"B  \"; SPACE above A in ALPH -> \" \"; ALL \"B\" equal to A -> leftmost A"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxlater.cob",
+    "printed": "COBOL0900 floating-point numeric literal 1.5E1 requires COBOL-2002 (lines 9, 11, 12); COBOL0900 national literal N\"AB\" requires COBOL-2002 plus COBOL1627 class mismatch (line 10)",
+    "expected": "a later edition's floating-point and national literals are refused at --std 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.23.4 RV2",
+    "check": "OK  §1989:A.2.23.4 RV2  (2.23.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1989:A.2.23.4 RV1",
+    "check": "OK  §1989:A.2.23.4 RV1  (2.23.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.2 GRL2.2",
+    "check": "OK  §1985:VI.6.3.1.1.2 GRL2.2  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in GRL2.2"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   }
+  ],
+  "notes": "ExtremeIndex keeps the first index and replaces it only on a strictly greater compare, through CobolString.Compare or the PCS collation, so ties keep the leftmost; MaxScaled's numeric ties are value-identical. The same programs print identically at --std 2023 (diff of the run outputs).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.23.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-180/runs: maxsz-001 J3 MOVE FUNCTION MAX (\"AB\" W-X) TO a JUSTIFIED RIGHT X(5) gives [   AB] (the leftmost tied argument, the size-2 literal); S2 STRING MAX (\"AB\" W-A W-X) DELIMITED BY SIZE gives [AB|]; E5 MAX (AE2 \"A \") tie of an alphanumeric-edited item and a literal returns AE2; E6 MAX (NE1 \"  5\") tie of a numeric-edited item and a literal returns NE1. maxnest-001 N1 MAX (W-A FUNCTION MAX (W-X W-A)) returns W-A (size 3) and N2 MAX (FUNCTION MAX (W-X W-A) W-A) returns the inner W-X (size 5): ties keep the leftmost through nesting. degen-001 G1/G2 a single argument and an ODO ALL of one element. The tie is kept by SelectExact/ExtremeIndex replacing only on a strictly greater compare. cite.py: OK §1989:A.2.23.4 RV2 'the content of the argument-1 returned is the leftmost argument-1 having that value'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

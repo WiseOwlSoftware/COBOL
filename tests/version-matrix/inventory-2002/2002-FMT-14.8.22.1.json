@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.22.1",
+ "rule-digest": "39528ae0ab30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OfInvokeArgument",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv41-fmt-every-argument-form",
+ "notes": "§2002:14.8.22.1 (checked on the rendered page 490): every operand form and BY phrase of the format is written once and accepted, with values derived from §2002:14.1.3 GR8/GR9 and §2002:14.8.22.3 GR8/GR9. --std 2002 on the pinned tree matched the 9 derived lines. Each optional BY keyword is written both present and absent, including keywordless literal-2, arithmetic-expression-1 and boolean-expression-1."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-15",
+ "rule-digest": "7849dac7dc11",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#TransfersPastRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#SentRecordImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/pb1907_keyed_rewrite_past_record",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.35.4-15, witnessed at 2002 by the cases test-ref names. The read: Only 'beyond' vs 'outside' differs; both name the bytes past the end of record-name-1, so nothing a program can show changes. The general format is the same in both editions. The 2023 row's second witness (pb1907_past_record_whole_record) is LINE SEQUENTIAL, which 2002 does not have (refused at 2002, COBOL0900); the 2002 scope is fully covered by the first witness, which passes at 2002. Cited: §2002:14.8.33.3 GR15."
+}

@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-GR-VII.3.7.4-11",
+ "rule-digest": "72a5c1831489",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-120",
+  "sources": {
+   "reader": "cbbdf8586ff28793043e60f6cd114c8c15b2ea3cdca8f232204cf7e71c2724dc",
+   "refuter": "3b701de0aff4f477041120fc005c7101301723cd7e9a3477268fb9f521bf9346"
+  },
+  "imported": {
+   "reader": "ea3d81bfeb89564d09885df62307f8989f9647ee62c7ee375f64e6a0698b53ef"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.7.4-11",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85, every file description entry of the run unit that describes one external file connector must (a) have a LINAGE clause if any of them has one, (b) give the same integer-1 to integer-4 where specified, and (c) reference with data-name-1 to data-name-4 the same corresponding external data items; a run unit that obeys this must work with one shared page and LINAGE-COUNTER (§1985:X.4.2.4 GR1), and since the compiler enforces the rule across a compilation group, it must refuse each lettered violation there.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#CheckFileDescriptions; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionIdentity.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionIdentity.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionIdentity.cs#LinageValue; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionIdentity.cs#OperandsAgree; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "edition.DialectLevel < 2002 runs CheckFileDescriptions (the 1985 FD agreement rows, LINAGE among them); 2002 on runs CheckFormat instead",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "is2023 (DialectLevel >= 2023) gates the NotExternal check that a LINAGE data-name operand of an external file references an external data item (COBOL1624); at 85 it is skipped",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe",
+    "switches": "the run-time EC-EXTERNAL-DATA-MISMATCH comparison of LinageRef runs only under an enabled ExternalChecks gate (the 2002+ exception-checking mechanism); 85 has none",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 the LINAGE integers of an external connector's entries are compared (COBOL6847), at 2002 and later not; at 2023 a non-external LINAGE data item is refused (COBOL1624), at 85 not, although §1985:VII.3.7.4 GR11c already speaks of external data items",
+  "witnesses-cover": "part: g85_bf22_05 covers an obeying run unit (same external data-name-1, same integers 8/1/1) and pb5300-external-linage-differs covers b (5 against 6); nothing covers a (one entry without LINAGE) or c (different or non-external data items)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/w_bf22_05.cob",
+    "printed": "SUB LC=0003 / MAIN LC=0004, EXPECT: MATCH",
+    "expected": "an obeying run unit shares one connector and LINAGE-COUNTER"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/l11b.cob",
+    "printed": "COBOL6847 differ in what they specify (\"10||3|\" against \"10||2|\") (§1985:VII.3.7.4 GR11)",
+    "expected": "refused: GR11b, LINES AT TOP 2 against 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/l11a.cob",
+    "printed": "exit 0, DONE (main FD LINAGE IS 10 LINES, sub FD of the same EXTERNAL connector has no LINAGE clause)",
+    "expected": "refused: GR11a, all entries must have a LINAGE clause if any has one"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/l11c.cob",
+    "printed": "exit 0, DONE (LINAGE IS PG-A LINES against LINAGE IS PG-B LINES, two different EXTERNAL items)",
+    "expected": "refused: GR11c, the same corresponding external data items"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/l11d.cob",
+    "printed": "exit 0, DONE at 85 (LINAGE IS PG-A LINES, PG-A not EXTERNAL in either program); at --std 2023 COBOL1624 twice",
+    "expected": "refused at 85: GR11c requires external data items"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/l11e.cob",
+    "printed": "exit 0, DONE (data-name-1 PG-A in one entry, integer-1 10 in the other)",
+    "expected": "doubtful: one entry specifies integer-1 and the other data-name-1, so neither the same integer nor the same external item"
+   },
+   {
+    "class": "a,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/l11f.cob",
+    "printed": "exit 0, DONE (same external PG-A, same FOOTING 8)",
+    "expected": "accepted and runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.4 GR11a",
+    "check": "OK  §1985:VII.3.7.4 GR11a  (║3.7.4 General Rules║)  the text is in GR11a"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR11b",
+    "check": "OK  §1985:VII.3.7.4 GR11b  (║3.7.4 General Rules║)  the text is in GR11b"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR11c",
+    "check": "OK  §1985:VII.3.7.4 GR11c  (║3.7.4 General Rules║)  the text is in GR11c"
+   },
+   {
+    "cite": "§1985:X.4.2.4 GR1",
+    "check": "OK  §1985:X.4.2.4 GR1  (4.2.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The 85 arm compares LINAGE operands as a string where a data-name is a wildcard and an entry without the clause is skipped, so only GR11b is enforced: GR11a's entry without a LINAGE clause and GR11c's different or non-external data items compile and run silently, while the external-item check exists but is gated to 2023. An obeying run unit works (the shared page and counter are right). If the reading that GR11 binds only the program (as the g85_bf22_05 header states) were taken, the verdict would be CONFORMS; it is PARTIAL because the compiler enforces GR11 in a compilation group and leaves out two of its three lettered items.",
+  "seeded": true,
+  "harm": "under-rejects",
+  "cause": "a",
+  "at-2023": "l11a and l11c compile clean at --std 2023 (2023 has no FD LINAGE agreement rule); l11d is refused at 2023 with COBOL1624 twice",
+  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/l11a.cob (main: FD LF IS EXTERNAL LINAGE IS 10 LINES; sub: FD LF IS EXTERNAL with no LINAGE clause) and l11c.cob (main LINAGE IS PG-A LINES, sub LINAGE IS PG-B LINES, PG-A and PG-B both PIC 99 EXTERNAL), compiled together at --std 85",
+  "expected": "§1985:VII.3.7.4 GR11: all file description entries associated with the external connector \"must have: a. A LINAGE clause, if any file description entry has a LINAGE clause ... c. The same corresponding external data items referenced by data-name-1\"; the compiler, which refuses a GR11b violation with COBOL6847, should refuse these too",
+  "observed": "both compile with no diagnostic and run (DONE); only the integer disagreement (l11b) draws COBOL6847",
+  "known_note": "none: kb/Work PB5300 (landed) added the LINAGE integer comparison and does not mention GR11a or GR11c"
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "GR11 binds the run unit; 1985 requires no detection of a violation. That the compiler checks one of its three parts is an extra, and the two it does not check are no defect.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ }
+}

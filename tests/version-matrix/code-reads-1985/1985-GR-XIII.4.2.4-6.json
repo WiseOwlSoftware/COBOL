@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-XIII.4.2.4-6",
+ "rule-digest": "251e8f756985",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-040",
+  "sources": {
+   "reader": "87a159dee40eebd9c5854a4555e55289b63f2d4fa4c328aa80f6d931aac6b60a",
+   "refuter": "1c401387c5da048a01f363a9bf8dd3fcdd5928c8d4d488fbd8f689d73c835ed2"
+  },
+  "imported": {
+   "reader": "42b7915550ef4f4a5b27f328bbfac53a4a588f9379394fc99e961fdeabc89090",
+   "refuter": "d16859040114bdf19bd4cb7ef97a32ad463a1c812c0bf7b96dc7fb4459c9ef93"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.2.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after a successful CLOSE of a report file without the REEL or UNIT phrase (plain, WITH NO REWIND, WITH LOCK), the file is out of the open mode and no longer associated with its file connector: a further CLOSE answers 42 and an OPEN may associate it again (except after LOCK, which answers 38). A REEL/UNIT close leaves it open.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: from 2002 the file CONNECTOR is locked (_locked set); at 85 the PHYSICAL FILE is (PhysicalFileTable.State.ClosedWithLock), per §1985:IX.1.3.4/II.2",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "the same behavior read back by the next OPEN (SharedOpenAttempt): 38 for the connector from 2002, for the physical file at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the removal from the open mode (FileConnector.Close `_openMode = false`, SharedClose deregistration) is edition-independent; only WHAT a LOCK close locks differs, which is GR3 symbol E, not this rule",
+  "witnesses-cover": "part: both witnesses use ordinary sequential files; the report-file case and its LOCK and NO REWIND forms are covered by the probe",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-040/p1close.cob",
+    "printed": "CLOSE1=00 CLOSE2=42 REOPEN-EXT=00 NOREW=07 AFTER-NOREW=42 LOCK=00 LOCK-AGAIN=42 REOPEN-LOCKED=38; report file holds DE\\r\\nDE\\r\\n (the EXTEND reopen appended)",
+    "expected": "after plain, NO REWIND and LOCK closes the report file is not open (42 on the next CLOSE); it reopens after a plain close (00) and appends; after LOCK the reopen is 38"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-040/p1close.cob",
+    "printed": "REEL=07 UNITREM=07 then CLOSE1=00",
+    "expected": "a CLOSE with REEL/UNIT is outside the rule and leaves the file open, so the next plain CLOSE succeeds"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.2.4 GR6",
+    "check": "OK  §1985:XIII.4.2.4 GR6  (4.2.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "FileConnector.Close clears the open mode in a finally block and SharedClose removes the connector from the physical file's open set, so the file is disassociated on every non-REEL/UNIT close. The 85-only arm for LOCK locks the physical file, as the 1985 text requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.2.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe r1decl.cob: after a successful CLOSE WITH LOCK every following CLOSE form (NO REWIND, REEL, UNIT FOR REMOVAL) found the file out of the open mode and raised the error declarative (DECL-RAN 2..4), so LOCK removes it from the open mode like a plain close; the reader's p1close shows REEL/UNIT leaving it open (CLOSE1=00 after REEL and UNIT FOR REMOVAL) and the reopen after a plain close appending. Probe r5idx.cob: after the failed OPEN the CLOSE is 42 and the indexed file the report file named still reads K001BRAVO, so a failed open left no association. cite.py: OK §1985:XIII.4.2.4 GR6 (the text is in GR6).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

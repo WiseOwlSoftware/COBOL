@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.78.3-3",
+ "rule-digest": "c9fbf6799723",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#UpperCase; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#TextInfo",
+ "test-ref": "conformance:cases/8.8.4.4-Simple-class-condition/pb64t5_character_classification",
+ "notes": "Own verdict from the read lineage-reads-2002/u-33.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.97.4-5, witnessed at 2002 by the cases test-ref names. The read: 'the locale specification' (2002) vs 'the correspondence rules that are in effect' (2023): in 2002 the only correspondence rules are the default and the classification locale, so the permission is the same. Cited: §2002:15.78.3 RV3."
+}

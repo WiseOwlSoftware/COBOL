@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.69.2-2",
+ "rule-digest": "467cd96b2a14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindStandardCompare",
+ "test-ref": "conformance:cases/15.69@2002-STANDARD-COMPARE-FUNCTION/g2-stdcmp-argument-classes",
+ "notes": "Default ordering table (§2002:15.69.2 AR4), highest level (RV1); every comparison is of identical strings ('=' under any ISO/IEC 14651 table) or differs only in a final base letter C/D ('<'/'>' at level 1), so RV5/RV6 fix each result. AR2 accepts argument-2 of class alphabetic (A2ALPHA -> >), alphanumeric (A2ALNUM -> <, A2NE numeric-edited -> =) and national (A2NAT -> >, R3LIT national literal -> =). Refused: a PIC S9(3) USAGE NATIONAL argument-2, class numeric at 2002 (§2002:8.5.2.9 item 1, kb/Work PB5625 reading B), not class national (g2-stdcmp-national-numeric-argument-2). Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}

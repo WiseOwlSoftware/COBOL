@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb177-control-occurs-depending
-*> rules: [SR-13.18.16.3-5]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb177-control-occurs-depending
+      *> rules: [SR-13.18.16.3-5]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 13.18.16.3 SR5: "The entry specified by data-name-1 shall not have an occurs-depending table
       *> subordinate to it." Unscreened until kb/Work PB177 arm C - measured: it compiled and ran silently.
       *> NOTE THE PREMISE CHECK (feedback_validate_the_premise_not_only_the_rule): CG is NOT a variable-length

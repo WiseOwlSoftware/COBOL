@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XIII.4.8.4-3",
+ "rule-digest": "bd301715e55f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-041",
+  "sources": {
+   "reader": "8f8ff6373000b0f36ea3f91bbcab7f8744420ff46c192f3a47cd073357236deb",
+   "refuter": "1d45fcf28d956af3fb69e1847bec77be3990ac14d93a294a27e2bfcd9a225549"
+  },
+  "imported": {
+   "reader": "a2820ee6979ef880afea788ec304bf591db0624e33c34aeae2692faad58c462a",
+   "refuter": "cba91ac0a47f2367933d8c34588b57e03e00917fb7d3ec81e21c1f6c304c063e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.8.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a paragraph or section of a USE AFTER STANDARD EXCEPTION/ERROR declarative section may be referenced from a different declarative section or from the nondeclarative portion only by PERFORM; GO TO, GO TO DEPENDING, ALTER and SORT/MERGE INPUT/OUTPUT PROCEDURE references from there are refused; references within the same section are free.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary",
+  "edition-consulted": [],
+  "edition-search": "Grepped DialectLevel|Edition.Has|IsActive(|CobolVersion|Constructs. in StatementValidation.cs (hits at 599, 944, 993, 1235, 1849, none inside CheckDeclarativesBoundary 434-472), ProcedureTableBuilder.cs and EnclosingContext.cs (none). The debugging-section arm that precedes the check is keyed on SectionInfo.IsDebugging, not an edition comparison.",
+  "behaviour-differs-by-edition": "no for the PERFORM-only rule; later editions add the RESUME exemption, and RESUME is refused at 85 (COBOL0876)",
+  "witnesses-cover": "part: pb362 covers GO TO into a declarative; ALTER, GO TO DEPENDING, SORT INPUT/OUTPUT PROCEDURE and a section-name target are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/n1_goto_main_to_err.cob",
+    "printed": "error COBOL2376: GO TO 'U-ERR-P': ... in the nondeclarative portion",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/n3_goto_rpt_to_err.cob",
+    "printed": "error COBOL2376: GO TO 'U-ERR-P': ... in a different declarative section, 'U-DE'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/n5_sort_input_err.cob",
+    "printed": "error COBOL2376: SORT INPUT PROCEDURE 'U-ERR'",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/usepos.cob",
+    "printed": "PERFORM U-ERR / U-ERR-P THRU U-ERR-Q from main and PERFORM U-ERR-Q from U-DE run; GO TO within U-ERR legal; after failed OPEN INPUT the declarative runs (FS=35)",
+    "expected": "PERFORM from anywhere and same-section GO TO accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/nres.cob",
+    "printed": "error COBOL0876: the RESUME statement requires COBOL-2002",
+    "expected": "the later edition's RESUME exemption has no 1985 form"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.8.4 GR3",
+    "check": "OK  §1985:XIII.4.8.4 GR3  (4.8.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "Every statement's procedure-name operand passes through ResolveProcedureOperand, which runs CheckDeclarativesBoundary by section identity, PERFORM being the only exempt kind besides RESUME. Same code at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.8.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read StatementValidation.cs#CheckDeclarativesBoundary (no edition read; debugging arm keyed on IsDebugging). Probes at --std 85: r2_alter_altered_in_decl.cob (ALTER from main whose ALTERED paragraph is in the USE AFTER ERROR section) -> COBOL2376; r3_merge_output_err.cob (MERGE OUTPUT PROCEDURE naming the USE section) -> COBOL2376; r4_goto_from_dbg.cob (GO TO from a debugging section to the USE AFTER ERROR paragraph) -> COBOL2376 'in a different declarative section, U-DBG'; r1_debug_on_err.cob (class c, 1985 Debug module: USE FOR DEBUGGING ON a USE AFTER ERROR paragraph, which §1985:XV.3.2.3 SR4 exempts) -> compiles and runs: 'DBG U-ERR-P' then 'U-ERR FS=35' after the failed OPEN INPUT, then 'AFTER OPEN FS=35'; the exemption is honoured, no over-rejection. cite.py: OK §1985:XIII.4.8.4 GR3; OK §1985:XV.3.2.3 SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

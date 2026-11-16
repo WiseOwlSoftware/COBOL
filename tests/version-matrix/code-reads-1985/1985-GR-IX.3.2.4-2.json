@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-GR-IX.3.2.4-2",
+ "rule-digest": "fcc244ef169f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-092",
+  "sources": {
+   "reader": "802346bf7c4f3075dd9e8af4a425b7a7f938f3455695110c87108b360860151f",
+   "refuter": "1db6eb72e0544f501bce746da16bb23083a2a78ea1f776434ccf6be424af4050"
+  },
+  "imported": {
+   "reader": "282638e8ac3a73ac7a5ee6d00ed75174d3eafd3648ab38fee561660206221452",
+   "refuter": "ecfe319ed353c18cc2e0c573a27fc0f39bffe57b102031612265634a7bb55465"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.3.2.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an indexed FD admits the Sequential I-O BLOCK CONTAINS clause: [integer-1 TO] integer-2 with RECORDS or the optional word CHARACTERS (CONTAINS optional), integers nonzero (§1985:III.2), the physical-record size it states having no effect on logical records; the 1985 clause has no syntax rule ordering the two integers.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause",
+    "switches": "the integer-2 > integer-1 rule (§2023:13.18.10.3 SR1) only at DialectLevel >= 2002; at 85 equal or inverted bounds translate",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral",
+    "switches": "IntegerOperandRules.Classify by edition; BLOCK CONTAINS is Nonzero at every edition, the message cites §1985:III.2 at 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel in FileControlBinder.FileSection.cs, FileDescriptionFormats.cs (none), IntegerOperandPass.cs",
+  "behaviour-differs-by-edition": "yes: at 2023 'BLOCK CONTAINS 20 TO 20' and '100 TO 30' are refused (COBOL2009, §2023:13.18.10.3 SR1); at 85 they compile, as the 1985 clause has no syntax rules",
+  "witnesses-cover": "part: g85_f17_08 covers '2 RECORDS' and '20 TO 400 CHARACTERS'; not covered: the omitted CONTAINS and CHARACTERS words, equal and inverted bounds, a zero integer",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/g85_f17_08-001",
+    "printed": "MATCH",
+    "expected": "g85_f17_08.out"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/fd12-001",
+    "printed": "compiles at 85 with 'BLOCK 3 RECORDS', 'BLOCK CONTAINS 40', '20 TO 20 CHARACTERS', '100 TO 30 CHARACTERS'; five records written and read back unchanged; XD 00 D001DDDDDD",
+    "expected": "§1985:VII.3.3.2 (rendered page 486: RECORDS underlined, CHARACTERS and CONTAINS not) admits all four; no 1985 syntax rule orders the integers; logical I-O unaffected"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/fd2z-001",
+    "printed": "COBOL2386: BLOCK CONTAINS 0 CHARACTERS: the integer operand 0 shall be nonzero — §1985:III.2",
+    "expected": "§1985:III.2: an integer must be neither signed nor zero unless the format allows it: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/fd12-002",
+    "printed": "at --std 2023: COBOL2009 for 20 TO 20 and 100 TO 30, COBOL0902 for LABEL RECORDS",
+    "expected": "the 2023 arm differs, confirming the 85 arm is its own"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.3.2.4 GR2",
+    "check": "OK  §1985:IX.3.2.4 GR2  (3.2.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.3.3.3 GR4",
+    "check": "OK  §1985:VII.3.3.3 GR4  (3.3.3 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VII.3.3.3 GR2",
+    "check": "OK  §1985:VII.3.3.3 GR2  (3.3.3 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   }
+  ],
+  "notes": "The clause is admitted on every FD format and models nothing at run time, which the 1985 text permits (the physical record is the implementor's). The rendered PDF page 486 shows CHARACTERS not underlined, so the grammar's optional phrase matches the 1985 format.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.3.2.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Probes blk_*.cob under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-092/ at --std 85 on an indexed FD: blk_z1-001 'BLOCK CONTAINS 0 TO 40 CHARACTERS' COBOL2386 (integer-1 zero, §1985:III.2); blk_z2-001 'BLOCK 0 RECORDS' COBOL2386; blk_sg-001 '+40' COBOL0001/COBOL1970 (signed integer refused); blk_sn-001 '1 TO -4' refused; blk_dc-001 '40.0' COBOL5506 (not an integer); blk_rr-001 '2 TO 4 RECORDS' compiles and runs R 00 K001DAT1. GR5 of the Sequential clause the rule imports: fdxb2-001, two EXTERNAL FDs for XF with BLOCK CONTAINS 2 RECORDS and 5 RECORDS: COBOL6847 '(ISO §1985:VII.3.3.3 GR5)'. Minor, not an overturn: the parse refusals of '+40' and '40.0' at --std 85 cite §2023:13.4.5.2 and §2023:5.2.1 in their message text. cite.py: 'OK  §1985:IX.3.2.4 GR2  (3.2.4 General Rules)  the text is in GR2'; 'OK  §1985:VII.3.3.3 GR5  (3.3.3 General Rules)  the text is in GR5'; 'OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

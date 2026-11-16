@@ -24,6 +24,7 @@ public sealed class IntrinsicCarrierRuleKeyDriftTests
         (nameof(IntrinsicCarrierRules.CrossAligningFunctions), IntrinsicCarrierRules.CrossAligningFunctions),
         (nameof(IntrinsicCarrierRules.SdidiQuotientFunctions), IntrinsicCarrierRules.SdidiQuotientFunctions),
         (nameof(IntrinsicCarrierRules.ExactParseFunctions), IntrinsicCarrierRules.ExactParseFunctions),
+        (nameof(IntrinsicCarrierRules.StandardArgumentKeepsAllDigits), IntrinsicCarrierRules.StandardArgumentKeepsAllDigits),
     ];
 
     /// <summary>The runtime body the catalog row of <paramref name="functionName"/> names: the Roslyn renderer's spelling of

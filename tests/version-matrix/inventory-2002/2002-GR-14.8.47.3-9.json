@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-9",
+ "rule-digest": "f9eda5730f43",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_indexed_write_rewrite_keys_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.47.3 GR9: after READ of key 01, a WRITE of key 00 leaves the file position indicator on 01, so READ NEXT gives 03 (F0 to F2)."
+}

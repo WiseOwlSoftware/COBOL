@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-DOC-B.1-109",
+ "rule-digest": "735c578179c3",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramRegistry.cs#EntryOfOperand",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/w59h_non_cobol_names_not_found",
+ "notes": "Own verdict from the read lineage-reads-2002/u-34.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer DOC-A.1-142, witnessed at 2002 by the cases test-ref names. The read: Format (identifier-1 / literal-1 / program-prototype-name-1) and GR2 identical; conditional in both, condition absent, the same DOCUMENTED-NON-SUPPORT licence (the B.1 preamble's conditionally-required definition is word-identical). Witness runs at 2002. Cited: §2002:B.1; §2002:8.4.2.12.3 GR2."
+}

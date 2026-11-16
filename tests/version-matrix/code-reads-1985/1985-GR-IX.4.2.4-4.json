@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-IX.4.2.4-4",
+ "rule-digest": "37ed63b0ca80",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-007",
+  "sources": {
+   "reader": "1290c16924a69b66758bfada8555bbb4fea7f9d51b7f458e54c7ce5b78fd4a05",
+   "refuter": "613c822c869be30f20ba72b6ba07bce073a9faceeb08eb1d86231c89e7f04a4f"
+  },
+  "imported": {
+   "reader": "1f7a27b7634461b88147998884dd63cc81221fa066196037e042249a1eb41904",
+   "refuter": "3005d237129d99e8dad71e945428ed0f8443612e652e81a3bc902895320795b1"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.4.2.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 (level 2) a CLOSE or CLOSE WITH LOCK of an OPTIONAL indexed input file that was not present performs no end-of-file processing (no file is created or written), leaves the file position indicator unchanged and completes successfully ('00').",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#IsOpen; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#CloseCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseReelUnit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "Constructs.CloseWithLockRemoved2023: CLOSE WITH LOCK accepted at 85/2002/2014, refused COBOL0902 at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (from 2002): at 85 the lock is set on the physical file's state, from 2002 on the connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "the same behavior, the OPEN-side test of that lock ('38')",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehaviors./Edition/CobolVersion in FileRegistry.cs, FileConnector.cs, KeyedConnector.cs, IndexedConnector.cs, SequentialIoEmitter.cs#EmitClose and VersionConformancePass.cs: the plain CLOSE path (SequentialIoEmitter#EmitClose -> FileRegistry#CloseByFormat/#CloseCell -> FileConnector#Close -> KeyedConnector#CloseCore) consults no edition; only the WITH LOCK arm does.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb140_close_status's OPTIONAL file is sequential; no witness closes an absent optional INDEXED file",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/close2.cob",
+    "printed": "OPT-OPEN=05 OPT-EOF OPT-READ=10 OPT-CLOSE=00 OPT-REOPEN=05 OPT-START=23 OPT-LOCK=00 OPT-AFTERLOCK=38; no close2-absent.dat exists after the run",
+    "expected": "'00' on CLOSE; the file stays absent (no end-of-file processing creates it); a reopen is again '05'"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.2.4 GR4",
+    "check": "OK  §1985:IX.4.2.4 GR4  (4.2.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "KeyedConnector#CloseCore skips the store promotion when OptionalAbsent and leaves that FPI state untouched. After the CLOSE the FPI is not observable, so the probe witnesses the absence of end-of-file processing and the successful status."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.2.4-4",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "cite.py OK §1985:IX.4.2.4 GR4. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-007/cls1.cob --std 85: SELECT OPTIONAL ... ACCESS SEQUENTIAL over an absent file: IO-OPEN=05, IO-CLOSE-LOCK=00, and no cls1-absent.dat exists after the run (ls shows only cls1-i.dat): no end-of-file processing created the file; the WITH LOCK lock still applies (IP-OPEN-OTHER-NAME=38), consistent with GR2's table where CLOSE WITH LOCK is A,B. FPI after CLOSE is unobservable.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

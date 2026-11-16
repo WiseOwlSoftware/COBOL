@@ -1515,6 +1515,16 @@ public static class DiagnosticCatalog
         + "variable-length group, or a dynamic-length elementary item (SR2); and if the CODE clause is specified for "
         + "any report it shall be specified for each report associated with the same report file (SR3).",
         "ISO §2023:13.18.12.3 SR1–SR3");
+    /// <summary>COBOL7441 — a report file whose RECORD clause gives a record shorter than the RD's CODE characters (kb/Work PB5788).
+    /// The CODE characters are placed in the first positions of each logical record (§1985:XIII.3.6.4 GR1; §2023:13.18.12.4 GR1) and count in
+    /// the logical record size (§2023:13.18.12.4 GR2), so a record that cannot hold them has no structure the rule describes; the program is
+    /// refused rather than written with a record longer than the clause says.</summary>
+    public static readonly DiagnosticDescriptor ReportRecordShorterThanCode = new(
+        "COBOL7441", "report-record-shorter-than-code", EditionSeverity.Error,
+        "The RECORD clause of a report file gives a record shorter than the CODE clause's characters of one of its reports: the CODE "
+        + "characters are placed in the first positions of every logical record and are included in the logical record size, so the "
+        + "record cannot hold them.",
+        "ISO §2023:13.18.12.4 GR1, GR2; ISO §1985:XIII.3.6.4 GR1, GR2");
     // ⛔ `ReportLineNextPage` (`report-line-next-page`) LIVED HERE AND IS GONE (kb/Work PB1001), and this comment
     // stands where it did so it is not re-added. It refused the LINE clause's NEXT PAGE phrase (§2023:13.18.35.2 Format
     // 1 — `integer-1 ON NEXT PAGE` and the bare `ON NEXT PAGE` operand) at every edition, and orphaned the
@@ -3400,8 +3410,10 @@ public static class DiagnosticCatalog
     /// description entry (kb/Work PB5541; reported by <c>FileControlBinder.DescriptionRepeated</c>, the SELECT half being
     /// COBOL2634). §2023:8.4.2.1: "In order to use a resource, a statement shall contain a
     /// reference that uniquely identifies that resource" — and none of these has a qualifier to identify one of two.
-    /// Decided at the ONE declaration funnel (<c>DataBinder.DeclareUserWord</c>, <c>UserWordKinds.DeclaredUnqualifiable</c>),
-    /// so every declaring clause, and the next one added, is covered. The first declaration stands.</summary>
+    /// Every name but a file-name is decided at the ONE declaration funnel (<c>DataBinder.DeclareUserWord</c>,
+    /// <c>UserWordKinds.DeclaredUnqualifiable</c>), so every declaring clause, and the next one added, is covered; a
+    /// file-name's description entries are not declarations through it and are decided by
+    /// <c>FileControlBinder.DescriptionRepeated</c> (kb/Work PB5631). The first declaration in source stands.</summary>
     public static readonly DiagnosticDescriptor SpecialNameDeclaredTwice = new(
         "COBOL4250", "special-name-declared-twice", EditionSeverity.Error,
         "A name that cannot be qualified — an alphabet-name, class-name, locale-name, ordering-name, "
@@ -9443,6 +9455,17 @@ public static class DiagnosticCatalog
         + "decimal point, is not an unsigned integer.",
         "X3.23-1985 STOP statement syntax rules 1 and 3 (§1985:VI.6.24.3)");
 
+    /// <summary>COBOL7558 — STOP followed by a word that names no symbolic-character (kb/Work PB5809): literal-1 of the
+    /// X3.23-1985 STOP literal statement may be written as a word only when the word is a symbolic-character, a figurative
+    /// constant (§1985:IV.4.2.2.2.3 GR7, GRL2.3).</summary>
+    public static readonly DiagnosticDescriptor StopLiteralWordNotLiteral = new(
+        "COBOL7558", "stop-literal-word-not-literal", EditionSeverity.Error,
+        "STOP is followed by a word that is not RUN and names no symbolic-character. The X3.23-1985 STOP statement is "
+        + "STOP RUN or STOP literal-1 (its general format), and a word stands for a literal only as a symbolic-character, which "
+        + "is a figurative constant (§1985:IV.4.2.2.2.3 GR7), and by §1985:IV.4.2.2.2.3 GRL2.3 a figurative constant \"may be "
+        + "used whenever 'literal' appears in a format\". A data-name, a mnemonic-name or an undeclared word is none.",
+        "X3.23-1985 STOP statement general format; §1985:IV.4.2.2.2.3 GR7, GRL2.3");
+
     /// <summary>COBOL6818 — an X3.23-1985 target-less GO TO (no procedure-name-1) that is not the whole of a single statement
     /// paragraph (kb/Work PB5087). Emitted by PlacementRules.RefusedOutOfSequence (the BareGoToAlone row) where the statement
     /// exists (COBOL-85; from 2002 it is COBOL0902, removed).</summary>
@@ -9709,10 +9732,22 @@ public static class DiagnosticCatalog
         + "(COBOL-2002 and later let an index-name be qualified, so two tables may each declare one spelling.)",
         "ISO §1985:VI.5.8.3 SR14");
 
+    /// <summary>COBOL7369 - at COBOL-2002 a Format-2 table SORT whose subject is subject to more than one level of OCCURS
+    /// writes ALL as its rightmost subscript (kb/Work PB5641). §2002:14.8.36.2 SR13: "subscripts shall be specified for all
+    /// levels with the exception that the rightmost subscript shall be the word ALL". COBOL-2014 and 2023 let the subject
+    /// omit its own level's subscript (§2023:8.4.2.3.3 SR5 e). Emitted by <c>SubscriptBinder.ScreenTableSubjectRightmostAll</c>.</summary>
+    public static readonly DiagnosticDescriptor TableSortSubjectRightmostAll = new(
+        "COBOL7369", "table-sort-subject-rightmost-all", EditionSeverity.Error,
+        "At COBOL-2002 a table SORT whose data-name-2 is subject to more than one level of OCCURS clauses writes subscripts "
+        + "for all levels, the rightmost being the word ALL. §2002:14.8.36.2 SR13: \"subscripts shall be specified for all "
+        + "levels with the exception that the rightmost subscript shall be the word ALL\". Write SORT E (2, ALL).",
+        "ISO §2002:14.8.36.2 SR13");
+
     /// <summary>COBOL7240 - the X3.23-1985 ENTER statement, which this implementation does not provide (kb/Work PB5308).
     /// §1985:I.1.5.2.5.5 leaves it to the implementor; ISO 2023 has no ENTER, so GnuCOBOL decides and it refuses the statement
     /// (CLAUDE.md rule 1; docs/conformance/3.7.1). Emitted by <c>StatementBinder.BindEnter</c> at COBOL-85, where the statement
-    /// parses (from 2002 it is COBOL0902, removed).</summary>
+    /// parses; from 2002 the edition gate refuses it as removed (COBOL0902) and the binder adds nothing, except under
+    /// <c>--permissive</c>, where that refusal is a warning (kb/Work PB5538).</summary>
     public static readonly DiagnosticDescriptor EnterStatementNotProvided = new(
         "COBOL7240", "enter-statement-not-provided", EditionSeverity.Error,
         "This implementation does not provide the ENTER statement. §1985:I.1.5.2.5.5: \"An implementation of Standard COBOL "

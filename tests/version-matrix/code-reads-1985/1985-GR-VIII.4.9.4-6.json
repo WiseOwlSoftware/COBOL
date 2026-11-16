@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-6",
+ "rule-digest": "8bf7ede3beec",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-030",
+  "sources": {
+   "reader": "6a54b92703dd89d91d8c2c8249243252dc12c32561af6395a54c23c9404933b8",
+   "refuter": "7153369b207d74fd7316f2cab1a1f5813e4a99b184d1b7973a87bc2b7478b0dc"
+  },
+  "imported": {
+   "reader": "f14054b779711ab0e1a89897d95f785d124dd9ac1abaad45048295aeb16d1858",
+   "refuter": "5fcc3fb442d85df25af845658fb3c8bc2d40329becf1878d279a370c175d87b7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.9.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "Every execution of a relative WRITE (successful or not, any access mode and open mode) must update the file's I-O status with the value VIII.1.3.4 defines: 00, 22, 24, 44, 48.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteAnyOrg; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "RelativeWriteKeyOutOfRangeIsPermanentError: 24 at 85, 34 from 2014 for a key below 1",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "every return of RelativeConnector.Write assigns Status; KeyedIoEmitter.EmitWrite stores it through SeqIo.EmitStoreFileStatus unconditionally.",
+  "behaviour-differs-by-edition": "yes: the status value for an out-of-range key (24 at 85, 34 at 2023)",
+  "witnesses-cover": "part: the witness covers a WRITE on a file not open; INPUT mode, after a failed OPEN, 22/24/44 and the update back to 00 after a failure are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/p6stat.cob",
+    "printed": "A 00 / USE 48 / B 48 / USE 00 35 / OPEN 35 / USE 00 48 / C 48 / Q INV 10 / D 24 9",
+    "expected": "OUTPUT 00; WRITE on INPUT -> 48; WRITE after a failed OPEN I-O (35) -> 48; sequential RRN 10 into a PIC 9 key -> 24 invalid key"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/p13rand.cob",
+    "printed": "W0 48, WD 22, WZ 24, W9 00",
+    "expected": "48, 22, 24, 00"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/p8vary.cob",
+    "printed": "W2 44 then W3 00",
+    "expected": "the status is updated from 44 back to 00"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.9.4 GR6",
+    "check": "OK  §1985:VIII.4.9.4 GR6  (4.9.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5g"
+   }
+  ],
+  "notes": "Each failing leg returns its own status (48 open mode, 44 size, 22 duplicate, 24 boundary or RRN digits) and the emitter always stores the connector status into the FILE STATUS item.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.9.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "rseq.cob at --std 85 (SEQUENTIAL access): OUTPUT WRITEs 00 with key 1, 2 moved; OPEN EXTEND 00, WRITEs 3..9 each 00 with the key moved, the 10th (RRN 10 into PIC 9) INVALID KEY 24 key 9, nothing written (read back ends at 9, then 10); OPEN I-O then WRITE (no X in §1985:VIII.4.4.4 Table 2 for sequential WRITE in I-O) -> 48 with the USE procedure run. rbig.cob: 00 / 24 / 00 for in-range, beyond-range and a later WRITE. Reading noted, not a refutation: the 1985 text of 48 (VIII.1.3.4 GRL2.5g) covers a file 'not open in the I-O, output, or extend mode', so a sequential-access WRITE on a file open I-O has no status value of its own in 1985; GR6 asks only that the status be updated, which it is, and 48 is the nearest defined value. cite.py: OK §1985:VIII.4.9.4 GR6; OK §1985:VIII.4.4.4 GR4; OK §1985:VIII.1.3.4 (GRL2.3c).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

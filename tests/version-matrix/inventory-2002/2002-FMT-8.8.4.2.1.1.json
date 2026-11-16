@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.8.4.2.1.1",
+ "rule-digest": "6072160143d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryLogicalExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/l1_perform_until_condition_forms",
+ "notes": "Own verdict from the read lineage-reads-2002/u-48.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.8.4.10.2, witnessed at 2002 by the cases test-ref names. The read: Word-identical format; pointer chosen (renumbered clause); witness runs green at 2002. Cited: §2002:8.8.4.2.1."
+}

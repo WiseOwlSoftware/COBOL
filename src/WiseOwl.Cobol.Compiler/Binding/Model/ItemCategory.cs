@@ -283,6 +283,15 @@ public static class ItemCategory
     /// group. Every other reference is as elementary as the item it names.</summary>
     public static bool IsElementaryReference(Place place) => place is RefModPlace || !IsGroupItem(place.Item);
 
+    /// <summary>⛔ "AN ELEMENTARY DATA ITEM", AS A RULE THAT ALSO COVERS A BIT OR NATIONAL GROUP ASKS IT (kb/Work PB5646):
+    /// <see cref="IsElementaryReference"/> plus the two groups the standard treats as elementary — "a bit group is treated as
+    /// though it were an elementary data item of usage bit" (§2023:13.18.29.4 GR1b) and "a national group is treated as though
+    /// it were an elementary data item of usage national and class and category national" (§2023:13.18.29.4 GR2b;
+    /// §2002:13.16.27.3 GR2b), each "unless stated otherwise". INSPECT §2023:14.9.22.3 SR4 states nothing otherwise, so a national
+    /// group as identifier-1 triggers its all-national rule as an elementary national item does.</summary>
+    public static bool IsElementaryOrBitNationalGroupReference(Place place) =>
+        IsElementaryReference(place) || GroupKindsOf(place.Item) is GroupKinds.Bit or GroupKinds.National;
+
     private static bool Admits(Table16Operand operand, DataItem item, bool national, bool alphabeticAsAlphanumeric) => operand switch
     {
         // §2023:13.18.29.4 GR3's group arm, in its ONE spelling — never `item.IsGroup` alone (see IsAlphanumericGroup).

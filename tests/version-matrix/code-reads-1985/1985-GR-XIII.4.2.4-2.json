@@ -1,0 +1,66 @@
+{
+ "rule-id": "1985-GR-XIII.4.2.4-2",
+ "rule-digest": "a0d4ae8ae842",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-040",
+  "sources": {
+   "reader": "87a159dee40eebd9c5854a4555e55289b63f2d4fa4c328aa80f6d931aac6b60a",
+   "refuter": "1c401387c5da048a01f363a9bf8dd3fcdd5928c8d4d488fbd8f689d73c835ed2"
+  },
+  "imported": {
+   "reader": "e6430eb94243ec1322eb869be017553a876d06ace797fd2d22bbf0e9a3586803",
+   "refuter": "fdd1436bc6da07258e4361da38c4704dd423105ca71102f1b9a53b6515169865"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.2.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every report file is placed in one of the three categories (non-reel/unit, sequential single-reel/unit, sequential multi-reel/unit), and each CLOSE format then has that category's Table 1 effect (GR3). WiseOwl COBOL puts every report file in (a) non-reel/unit, so CLOSE = C, CLOSE WITH LOCK = C,E, CLOSE WITH NO REWIND = C,H (closed, phrase ignored), CLOSE REEL/UNIT [FOR REMOVAL] = F non-reel (successful, file stays open, nothing else happens), with status 07 for the phrase forms (VII.1.3.5 1d).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory; src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#Cell; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Category; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Category; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterReport",
+  "edition-consulted": [],
+  "edition-search": "Grepped Edition|DialectBehavior|CobolVersion in CloseTable14.cs, SequentialConnector.Category, FileConnector.Category and FileRegistry.CloseCell: the category is a fixed property of the connector type (SequentialConnector => NonUnit) and Table14.Cell is keyed only on (format, category). Nothing reads the edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb141_close_forms exercises the non-reel column on an ordinary sequential file, not a report file; categories (b) and (c) have no supported medium, so their cells are unreachable (CloseCell throws on a unit-structured symbol by design)",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-040/p1close.cob",
+    "printed": "REEL=07 UNITREM=07 CLOSE1=00 NOREW=07 AFTER-NOREW=42 LOCK=00 REOPEN-LOCKED=38; report file holds DE\\r\\nDE\\r\\n",
+    "expected": "1985 Table 1 non-reel column: REEL and UNIT FOR REMOVAL = F (successful, file remains open, 07); NO REWIND = C,H (closed as if no phrase, 07); LOCK = C,E (closed, cannot be opened again: 38); CLOSE = C"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.2.4 GR2",
+    "check": "OK  §1985:XIII.4.2.4 GR2  (4.2.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.1d (\"the referenced file is on a non-reel/unit medium\")"
+   }
+  ],
+  "notes": "The 1985 Report Writer table has three columns and the 2023 Table 14 four; the code keys on the 2023 table, but its non-unit column is cell for cell the same as 1985's non-reel column (C; C,E; C,H; F; F), and report files are only ever sequential, so the fourth column never applies. The categorization is the implementor's medium choice and is documented (A.1 item 24).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.2.4-2",
+  "refutation": "DOUBTFUL",
+  "classes": "c",
+  "evidence": "The 1985 CLOSE general rules open with a sentence the later editions dropped, which the reader's requirement and notes do not mention: 'Treatment of sequential mass storage files is logically equivalent to the treatment of a file on tape or analogous sequential media.' (cite.py: OK §1985:XIII.4.2.4, the text is in the clause; the 2002, 2014 and 2023 texts carry only the reel/unit-multiple-device sentence, grep of specs/ISO_COBOL_20xx.md). A report file the compiler writes to a host path is a sequential mass storage file (§1985 definitions 'Mass Storage File', 'Mass Storage'). Read literally, at --std 85 such a file belongs in GR2 category b (sequential single-reel/unit), not a (non-reel/unit), and then Table 1 gives CLOSE WITH NO REWIND = B,C and CLOSE REEL/UNIT [FOR REMOVAL] = F,G / D,F,G with status 00, while 07 (§1985:VII.1.3.5 GRL2.1d, 'the referenced file is on a non-reel/unit medium') would be owed only on a unit-record medium. The compiler answers 07 for all three (reader's p1close: REEL=07 UNITREM=07 NOREW=07; my r5 probe OPEN OUTPUT PRT WITH NO REWIND = 07). The placement doc the reader leans on, docs/conformance/7/DOC-A.1-24.md, derives category (a) from the 2023 text alone and calls it 'FORCED' by 2023's 07 definition; that argument does not carry to 1985, where 07 has a home (a printer or terminal) and the preamble sends mass storage to the tape columns, and docs/conformance/3/D-IO-STATUS-07-OPEN-CLOSE.md itself records that its determination 'has not yet been read against' the 1985 text (kb/Work PB5256). Against the literal reading: GR2a defines category a by the medium on which 'the concepts of rewind and reels/units have no meaning', which a host file meets in fact, and the 1985 NIST suite (tests/nist/programs/SQ123A.cob, X-14 'SEQUENTIAL NON-UNIT MASS STORAGE FILE') treats a sequential mass storage file as non-unit and expects 07 from CLOSE REEL. The verdict therefore rests on reading 'logically equivalent' as not fixing the GR2 category; the text does not settle it.",
+  "edition-sites-missed": [],
+  "corrected": "If the preamble governs the category: NON-CONFORMING (wrong-answer, cause c: the 1985 text covers more than the 2023-derived placement accounts for) - a disk-resident report file is category b at --std 85, so CLOSE WITH NO REWIND, CLOSE REEL/UNIT and CLOSE REEL/UNIT FOR REMOVAL should succeed with 00 (B,C; F,G; D,F,G), not 07; at 2023 the 07 is right. Needs a ruling (and a re-read of DOC-A.1-24 / D-IO-STATUS-07 against §1985:XIII.4.2.4 and VII.4.2.4, kb/Work PB5256)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The CLOSE twin of kb/Work PB5779. See below.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
+ }
+}

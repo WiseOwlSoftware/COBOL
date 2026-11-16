@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-SR-X.4.2.3-1",
+ "rule-digest": "b1c2ed87b903",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-068",
+  "sources": {
+   "reader": "e9614878ba96246d48d75121106d940b2f8b1fb0065e0ab6f5367233bd01bcce",
+   "refuter": "a70639c62e4b57bd4d67f8fc8c54f17a668fbe354e47e21f6cbb21e91d9b02c5"
+  },
+  "imported": {
+   "reader": "adba551c542efb32892b6ce5b88bbccfed74265efb8b88edfb175a79a51a525f",
+   "refuter": "069dde6b6086dc79389c55952e1c3c3fd812f727986fdc3913556c4de0631d8a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.4.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an FD for a sequential file must admit every Format 1 clause of X.4.2.2 (IS EXTERNAL, IS GLOBAL, BLOCK CONTAINS, RECORD in all three forms incl. VARYING DEPENDING, LABEL RECORDS, VALUE OF, DATA RECORDS, LINAGE with FOOTING/TOP/BOTTOM, CODE-SET) and nothing outside it (a REPORT clause makes it Format 3; no 2002-only clause).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause / #VisitValueOfClause / #VisitDataRecordsClause",
+    "switches": "removal gates of the '85-only FD clauses (deleted at 2002): admitted at --std 85, refused from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFormatClause",
+    "switches": "FORMAT clause (a 2002 addition) refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCodeSetClause",
+    "switches": "CODE-SET national phrases (alphabet-name-2 / FOR) refused below 2002; the single-name '85 form is admitted at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize (RECORD CONTAINS m TO n bounds a WRITE only from 2002); not part of format admission",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "FileDescriptionFormats.Rows/Of and FileControlBinder.FileSection#FileDescriptionClauseAdmitted consult no edition (grep CobolVersion|IsAtLeast|ConstructRegistry|DialectBehavior over FileDescriptionFormats.cs and FileControlBinder.FileSection.cs: one hit, line 406, the RECORD CONTAINS range bound); the format table is the same at every --std. The edition enters only through VersionConformancePass's clause gates.",
+  "behaviour-differs-by-edition": "yes: LABEL RECORDS, VALUE OF and DATA RECORDS are admitted at 85 and refused from 2002; FORMAT and EXTERNAL AS are refused at 85; the per-format table itself is edition-independent",
+  "witnesses-cover": "part: the witness's sequential FD carries IS GLOBAL, LABEL, BLOCK, RECORD CONTAINS, LINAGE, CODE-SET; EXTERNAL, RECORD VARYING DEPENDING, VALUE OF, DATA RECORDS, LINAGE FOOTING/TOP/BOTTOM are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f1novar.cob",
+    "printed": "compiled; ran '[<CRLF><CRLF>ABCDEF] 05' (exit 0) with EXTERNAL and VARYING dropped and every other Format 1 clause incl. LINAGE FOOTING/TOP/BOTTOM, VALUE OF, DATA RECORD, CODE-SET",
+    "expected": "every Format 1 clause admitted (compiles)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f1nolin.cob",
+    "printed": "compiled; ran '[ABCDE     ] 05' (RECORD VARYING DEPENDING ON, BLOCK, LABEL, VALUE OF, DATA RECORD, CODE-SET; no LINAGE)",
+    "expected": "admitted; the 5-character record reads back"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f1seq.cob",
+    "printed": "compiled (all Format 1 clauses incl. IS EXTERNAL, RECORD VARYING and LINAGE together); run: I-O status 39 on the OPEN INPUT after the write",
+    "expected": "compiles (format admission); the run-time 39 is a LINAGE/VARYING read-back matter outside this syntax rule (lead in notes)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f2linage.cob",
+    "printed": "COBOL2604 LINAGE not a clause of Format 2 (IX INDEXED); COBOL2604 CODE-SET not a clause of Format 2 (RL RELATIVE)",
+    "expected": "the sequential-only clauses are refused on relative/indexed FDs"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/fedarm.cob",
+    "printed": "COBOL0900 the AS externalized-name phrase requires COBOL-2002; COBOL0900 the FORMAT clause requires COBOL-2002 (plus COBOL7342 on the FORMAT clause)",
+    "expected": "neither the AS phrase of EXTERNAL nor the FORMAT clause is in any 1985 FD format (X.4.2.2): both refused at --std 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.2.3 SR1",
+    "check": "OK  §1985:X.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "Format is decided once from ORGANIZATION and the presence of a REPORT clause; the Sequential row set equals 1985 Format 1 plus the 2002 FORMAT clause, which VersionConformancePass refuses at 85. LEAD (outside this rule, not searched to a note): a sequential file written with LINAGE reads back with the page's line ends inside the record (CR LF CR LF ABCDEF for ABCDEFGHIJ, f1novar.cob), and with RECORD VARYING added the OPEN INPUT fails with status 39 (f1which.cob: the written file is print text without the varying-length framing).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same format table; LABEL/VALUE OF/DATA RECORDS refused by the removal gates",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.4.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:X.4.2.2 Format 1 and VII.3.2.2/VII.3.2.3 (SR2 any order). Probes at --std 85: ford.cob (every Format 1 clause in a shuffled order: CODE-SET first, LINAGE with data-name operands for all four phrases, IS GLOBAL, VALUE OF FILE-ID IS data-name, DATA RECORDS, RECORD 10 without CONTAINS, LABEL RECORD IS OMITTED, BLOCK 1 TO 4 RECORDS, IS EXTERNAL last) compiled and ran 'OK'; fdup.cob/fdupg.cob/fdupr.cob (BLOCK, IS GLOBAL, LABEL, RECORD each written twice) refused COBOL2423 'written 2 times ... at most once'; fbyt.cob RECORD CONTAINS 10 BYTES refused COBOL0900 (2023 phrase); fcs2.cob CODE-SET IS AL1 AL2 refused COBOL0900 (2002 national form); fldn.cob LABEL RECORDS ARE data-name (pre-1985 form, not in Format 1) refused COBOL5506; frm.cob RECORDING MODE IS F refused COBOL1970; fblkv.cob BLOCK CONTAINS data-name refused COBOL1547. cite.py: 'OK  §1985:X.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:VII.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause: the RECORD clause BYTES phrase refused below 2023 (COBOL0900)",
+   "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ConstantNamesExist: ConstructRegistry.IsAvailable(ConstantEntry2002) chooses the integer-operand refusal wording at 85 (no constant-name in an integer position)"
+  ],
+  "corrected": ""
+ }
+}

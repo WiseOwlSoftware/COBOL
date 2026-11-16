@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: float_intrinsic
-*> rules: [RV-15.84.4-4]
-*> accept: [2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: float_intrinsic
+      *> rules: [RV-15.84.4-4]
+      *> accept: [85, 2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. FLTINT.
       *> a transcendental intrinsic into a FLOAT receiver keeps full

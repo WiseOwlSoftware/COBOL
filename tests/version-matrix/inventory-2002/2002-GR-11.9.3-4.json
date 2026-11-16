@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-11.9.3-4",
+ "rule-digest": "cc081ffc7e8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible",
+ "test-ref": "conformance:cases/11.9@2002-PROGRAM-ID-PARAGRAPH/g2rcr01_recursive_attribute",
+ "notes": "§2002:11.9.3 GR4: a RECURSIVE program (and every program contained in it) may be called while active; any other program shall not be, and its CALL takes ON EXCEPTION or the 2002 ON OVERFLOW (§2002:14.8.4.3 GR3e, GR3g1). The --std 2002 run printed the derived 16 lines: self-recursion to depth 3, implied recursion of the containee, and both refusal routes for the non-recursive re-entry."
+}

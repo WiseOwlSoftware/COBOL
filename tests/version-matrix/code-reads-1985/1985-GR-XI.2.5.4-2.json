@@ -1,0 +1,96 @@
+{
+ "rule-id": "1985-GR-XI.2.5.4-2",
+ "rule-digest": "2e4d75313c25",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-141",
+  "sources": {
+   "reader": "b3a70455ab72b9cd9ad09033b97f0699d7892ffe22da370e5ce307b0a6400e7f",
+   "refuter": "2ed23be80230dee69edd5468629de243b17111a84f51fa39061c9cd233fb6ee3"
+  },
+  "imported": {
+   "reader": "8a46a9e3f147b51a03c5f281dda6e4cc767648694c0206fb64cf5989d6d00ec1",
+   "refuter": "b9d38bc22a706ac5c4122aa7f8725f4f6c2d93fca42859a33d0ccb35ede1b484"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.2.5.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "A SAME SORT AREA or SAME SORT-MERGE AREA clause must name at least one sort or merge file (refused otherwise); it may let the named sort and merge files reuse one sort memory area and may lend the named plain files' storage to sorting (extent implementor-specified), but the named plain files must keep distinct record areas from each other (c), every SORT and MERGE must still give its correct result, and the program must not have a named plain file open during a SORT or MERGE of a named sort file (d, a constraint on the program with no stated outcome).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenSameClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "report-file row only (below 2002 a report file may appear in SAME SORT/SORT-MERGE AREA clauses); sort-merge and plain rows identical",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenSameClauses",
+    "switches": "held1985: two SORT GIVING files in one SAME RECORD AREA clause refused below 2002 (XI.4.4.3 SR9); the SAME SORT/SORT-MERGE AREA pair rule is the same arm at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for GR2's storage semantics: the sort-merge-area format creates no storage sharing at any edition (the documented extent is none, docs/conformance/7/DOC-A.1-169.md); the edition arms on the path touch report files and SORT GIVING files only",
+  "witnesses-cover": "part: g85_f26_03 covers both spellings with sort files and two plain files whose records stay distinct, plain files closed during each SORT; not covered: a merge file, plain files of different record sizes and USAGE in I-O mode, the clause with no sort or merge file, a SORT naming a plain file of the same clause, a plain file left open during the SORT",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XI.2.5@1985-SAME-RECORD-SORT-SORT-MERGE-AREA/g85_f26_03.cob",
+    "printed": "... S3 Z / R F3-ONE F4-ONE, EXPECT MATCH",
+    "expected": "as the witness derives"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p2a.cob",
+    "printed": "C1 -12345 XYZ 9876 / C2 -12345 XYZ 0001 / M 1AAA / M 2BBB / M 3CCC / S -999 / S +000 / S +999, EXPECT MATCH",
+    "expected": "SAME SORT-MERGE AREA FOR MF SF A B: A (S9(5) COMP-3) and B (group X(3) 9(4)) keep separate records open together and after REWRITE in I-O (c); the MERGE and the signed COMP-3 SORT give correct order (a, b)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p2b.cob",
+    "printed": "error COBOL2738 SAME SORT AREA names no sort or merge file",
+    "expected": "GR2: at least one of the file-names must represent a sort or merge file"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p2d.cob",
+    "printed": "error COBOL1757 SORT files 'SF', 'A' are named in one SAME clause (plus COBOL7081 cascades on the refused SORT's procedures)",
+    "expected": "XI.4.4.3 SR9: no pair of file-names in one SORT statement in the same SAME SORT AREA or SAME SORT-MERGE AREA clause, the static half of GR2d"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p2c.cob",
+    "printed": "85 and 2023 alike: the SORT with plain file A open OUTPUT runs and sorts correctly, END printed",
+    "expected": "GR2d is a must-not on the program with no outcome stated, so running correctly conforms"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.2.5.4 GR2",
+    "check": "OK  §1985:XI.2.5.4 GR2  (2.5.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR9",
+    "check": "OK  §1985:XI.4.4.3 SR9  (4.4.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "The sort-merge-area format records membership only (FileModel.SameClauses) and links no storage; LinkSameRecordArea runs only for SAME RECORD AREA, so plain files named together never alias, and SORT/MERGE work storage is the runtime's own. Side observation, not this rule: when a SORT is refused (COBOL1757), the RELEASE/RETURN in its procedures get COBOL7081 cascades (p2d, p2e), which may mislead a reader into a second fault.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.2.5.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Read XI.2.5.4 GR2 a-d, XI.4.4.3 SR9 and the MERGE SR8 (line 21413: no pair of file-names in a MERGE in the same SAME AREA, SAME SORT AREA or SAME SORT-MERGE AREA clause), which the reader did not probe. r6a SAME SORT-MERGE AREA FOR MF A with MERGE MF USING A B -> COBOL1757 MERGE files 'MF','A' named in one SAME clause (correct refusal). r6c SAME SORT AREA FOR MF SF W: MERGE then two SORTs reusing the shared area all correct (MERGE=EDCA, SORT=ACDE, SORT2=EDCA), GR2a. (r6b was my own probe error: MERGE inputs not in key order.) cite.py: OK §1985:XI.2.5.4 GR2 'at least one of the file-names must represent a sort or merge file'. GR2b extent is implementor-specified (none), GR2d is a constraint on the program with no outcome.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

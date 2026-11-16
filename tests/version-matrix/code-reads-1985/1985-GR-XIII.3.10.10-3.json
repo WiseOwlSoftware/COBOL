@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.10-3",
+ "rule-digest": "c5260d105a4c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-144",
+  "sources": {
+   "reader": "72264e88926b78dc3b8e0e2892ca0fd3d164afe74e3222cf08a546e41fb1f8d5",
+   "refuter": "152cfc7a214db13ef4263492ec5fde59da5bf728b175ca0fe9b29372aa999b5e"
+  },
+  "imported": {
+   "reader": "9836b0adcbcfadaac8cd4ef6fa704ac1944b1b1d32bdd12140c280c326d36586",
+   "refuter": "a67a787a8dcb0f75026fb556d5f3d1fbb40045e7d5bdacee641fdd758b30851f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.10-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the report footing's first print line is placed by Table 5: (a) an absolute first LINE on its integer; (b) a relative first LINE, paged, on the page footing's final LINE-COUNTER plus the integer when a page footing was presented on the current page, otherwise on FOOTING integer-5 plus the integer; (c) LINE n ON NEXT PAGE on line n of a page holding no other group; (d) unpaged, on LINE-COUNTER plus the integer; (e) with no LINE clause, not presented; and the combinations the table calls illegal (absolute LINE without PAGE) and LINE ON NEXT PAGE with no integer are refused.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup: at 85 a saved absolute NEXT GROUP integer is kept for the control footings TERMINATE produces; it does not enter the report footing's placement (b uses the page footing's LINE-COUNTER or FOOTING, d is unpaged where no save arises)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues: control values the last page footing sees (content, not position)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineOperand",
+    "switches": "ReportLineNextPage2002: LINE NEXT PAGE with no integer refused at 85 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehaviors.IsActive|Edition in ReportWriter.cs: four switches (lines 734, 964, 1080, 1490), none in FirstLineTarget, PresentHeadingFooting or PresentLine; the placement arms are one code path for every edition.",
+  "behaviour-differs-by-edition": "no for placement: the 2023 GR5b5/GR5a/GR5c arms FirstLineTarget implements give the same lines; 85 refuses the 2002 bare LINE NEXT PAGE form",
+  "witnesses-cover": "part: g85_bf35_06 covers a, b (both arms), c, d, e with single-line footings; not exercised: multi-line footings (A R, NP R), the illegal combinations, the bare NEXT PAGE form",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c4rhrf.cob",
+    "printed": "R-H RF LINE 18, LINE PLUS 1 (no PF) -> page 2 lines 18, 19; R-I PF LINE 18 then RF LINE PLUS 1, LINE PLUS 1 -> 19, 20; R-J PF 18 page 1, RF LINE 3 ON NEXT PAGE, LINE PLUS 1 -> page 2 lines 3, 4; R-K unpaged RF LINE PLUS 2 after detail on 4 -> 6 (MATCH at 85 and 2023)",
+    "expected": "3a: 18; 3b first sentence: 18+1; 3c: line 3 of a new page; 3d: 4+2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf35_06.cob",
+    "printed": "MATCH (RFA L08, RFB L10, RFC L10, RFN P2 L02, RFD L04, RE not presented, RFE USE)",
+    "expected": "as derived in the witness"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c4illegal.cob",
+    "printed": "COBOL2199 unpaged report: LINE 5 is absolute (RF) and LINE 2 (RH); COBOL2284 NEXT GROUP not allowed in a report footing",
+    "expected": "Table 5 'Illegal Combination' for A R / NP R without PAGE (§1985 LINE NUMBER SR5), NEXT GROUP barred in a report footing (§1985 NEXT GROUP SR5)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c4bareNP.cob",
+    "printed": "COBOL0900 a LINE operand of NEXT PAGE with no integer requires COBOL-2002",
+    "expected": "refused at 85: the 1985 LINE format is integer-1 [ON NEXT PAGE] | PLUS integer-2"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.10 GR3",
+    "check": "OK  §1985:XIII.3.10.10 GR3  (3.10.10 Report Footing Presentation Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:XIII.3.10.9 GR1",
+    "check": "OK  §1985:XIII.3.10.9 GR1  (3.10.9 Page Footing Presentation Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "FirstLineTarget's ReportFooting arm is _pfOnThisPage ? LineCounter + relative : _footing + relative, absolute lines return their integer and an unpaged report LineCounter + relative; PresentHeadingFooting takes the bare page feed for a first line with NEXT PAGE (no page footing or heading on that page). A first probe putting a PF on FOOTING (17) was refused by COBOL2199, correctly: §1985:XIII.3.10.9 GR1 puts the PF's upper limit at integer-5 + 1.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output (MATCH)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.10-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attacked the 1985 rule that the page footing's NEXT GROUP moves the report footing (§1985:XIII.3.16.4 GR4 with Table 4 rules 5a/5b): r4pfng.cob (runs/r4pfng-001) PF LINE 15 NEXT GROUP 17 then RF LINE PLUS 1 -> line 18; PF NEXT GROUP PLUS 2 then RF PLUS 1, PLUS 1 -> 18, 19. r4rw.cob (runs/r4rw-001): RF relative with no PF and FOOTING omitted (LAST DETAIL 12 gives integer-5, §1985:XIII.3.8.4 GR2e) -> 12+3 = 15; a NONPRINTABLE PF (no LINE) does not count as presented, RF PLUS 2 -> FOOTING 14 + 2 = 16; multi-page report, RF after the page-2 PF -> 16, 18; RF LINE 3 ON NEXT PAGE with a PH defined -> page 2 holds only RF lines 3 and 5 (no PH, no PF). r4save.cob (runs/r4save-001, same at --std 2023 r4save-002): a saved CF FINAL absolute NEXT GROUP does not move the RF (NP RF page 2 lines 3,4; relative RF FOOTING+2 = 16). r4ref.cob: RF 'LINE 16 18' (2002 multiple-integer form) refused COBOL0900. cite.py: OK §1985:XIII.3.10.10 GR3 the text is in GR3; OK §1985:XIII.3.8.4 GR2 (the text is in GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

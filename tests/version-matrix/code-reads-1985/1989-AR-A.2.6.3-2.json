@@ -1,0 +1,81 @@
+{
+ "rule-id": "1989-AR-A.2.6.3-2",
+ "rule-digest": "c21dd1fa3e4f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-173",
+  "sources": {
+   "reader": "6da29e9e8e38e6dd437da9f99f86e2d251cb93917b356e38b5eebe727b16433e",
+   "refuter": "464bbe68abc3e1e2743bb08ddb4c7b086076c4d21839d6a9a68b4b272f52e151"
+  },
+  "imported": {
+   "reader": "5ae43ff91be29875a2d3eef703795bcd54cf414b6b66bb7b127164044cb6bec5",
+   "refuter": "bf8e4caae3175da20e1ae4856f6c9e66e3a279ac0b800bd5940f1c0f3e96d99a"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.6.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every argument-1 value of ANNUITY that is zero or positive must give the A.2.6.4 value (zero takes RV1, 1 / argument-2); a negative value is a constraint violation whose result A.2.2 AR4 and A.1.2.2 leave undefined, so any outcome (including a compile-time refusal of a negative literal) is permitted. The witness covers the zero boundary (literal and item) and one positive rate.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#ExactArg; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#AnnuityDomain; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Annuity; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#AnnuityDec",
+  "edition-consulted": [],
+  "edition-search": "grep -E 'Edition|CobolVersion|DialectBehavior|ConstructRegistry|DialectLevel' over IntrinsicRenderer.cs, CobolIntrinsics.Float.cs, CobolIntrinsics.Dec.cs: 0 hits. The domain (IntrinsicDomain.NonNegative on the catalog row) is applied by the renderer and the runtime raise site ExceptionState.ArgumentError, with no edition input.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f34_05 covers zero (literal and item) and rate 0.1; not ZERO figurative, a tiny positive rate, rate 1, nor the negative (undefined) side",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/annok.cob",
+    "printed": "ANNUITY (ZERO W-N) 0.333333333; ANNUITY (0 W-EL (3)) 0.100000000; ANNUITY (1 1) 2.000000000; ANNUITY (0.000001 12) 0.083333875; ANNUITY (0 999999999999999999) .000000000000000001",
+    "expected": "RV1 1/argument-2 at zero; RV2 for a positive rate"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/domain2.cob",
+    "printed": "ANNUITY (W-NEG 2) with W-NEG = -0.01: 0.000000000, run continues, EXIT 0",
+    "expected": "undefined (A.2.2 AR4: 'the result of such a reference is undefined'); any result is conforming"
+   },
+   {
+    "class": "witness",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.6@1985-ANNUITY-FUNCTION/g85_f34_05.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.6.3 AR2",
+    "check": "OK  §1989:A.2.6.3 AR2  (2.6.3 Arguments)  the text is in AR2"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4 (quote: then the result of such a reference is undefined)"
+   },
+   {
+    "cite": "§1989:A.1.2.2",
+    "check": "OK  §1989:A.1.2.2  (1.2.2 Value Returned by a Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.6.4 RV1",
+    "check": "OK  §1989:A.2.6.4 RV1  (2.6.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "Values at and above zero are exact (SDIDI/exact carrier) and match the returned-value rules; a negative rate returns 0 through the one ArgumentError raise site, which at 1985 is an undefined result and so permitted. No edition arm exists or is needed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.6.3-2",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "Attack: a domain screen keyed on the sign rather than the value would treat a negative zero as negative and return 0 through ArgumentError. rzero.cob (rzero-002, EXIT 0): ANNUITY (-0 2), (-0.0 W-N), (- W-Z 2) over PIC S9V9 display, COMP-3 and COMP, (W-Z * -1 2) and (- ZERO 2) each print 0.500000000 = 1/2, the RV1 value for argument-1 zero. ANNUITY (0 W-P2) with PIC 9PP = 100 prints 0.010000000. Negative values remain undefined (A.2.2 AR4), as the reader said. cite.py: OK §1989:A.2.2 AR4 (reader's line); OK §1985:I.1.6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

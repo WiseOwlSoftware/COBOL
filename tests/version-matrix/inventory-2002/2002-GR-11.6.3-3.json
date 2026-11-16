@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-11.6.3-3",
+ "rule-digest": "196cee7dd02b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ResolveOverrides; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#MarkRoster",
+ "test-ref": "conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2002-gr-11-6-3-3-final-method-inherited",
+ "notes": "§2002:11.6.3 GR3 forbids only the override of a FINAL method: at --std 2002 a subclass inherits the FINAL M1 and overrides the non-FINAL M2 (A-M1, B-M2 as derived), and an override of a FINAL method is refused (COBOL0839, §2002:11.6.2 SR3; g2002-gr-11-6-3-3-final-method-overridden). Multiple-inheritance subclasses are refused wholesale by COBOL0849 (defect D1, counted at 2002-SR-11.2.2-6)."
+}

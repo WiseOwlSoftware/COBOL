@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.58.2-2",
+ "rule-digest": "9a229b27c2c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock",
+ "test-ref": "conformance:cases/15.58@2002-ORD-MAX-FUNCTION/g2-ord-max-class-and-position",
+ "notes": "§2002:15.58.2 AR2: all arguments of one class, except that alphabetic and alphanumeric may mix. Accepted legs: all numeric (NUM, NEG, SCALE, TIE, NATNUM - PIC 9 USAGE NATIONAL items with a display item, all class numeric at 2002 by §2002:8.5.2.9 item 1 and kb/Work PB5625 reading B), all alphanumeric (ALNUM, PADTIE), all national (NAT, NATTIE), and the allowed mix PIC A with PIC X (MIX), each returning the position RV1/RV3 give. Refused: numeric with alphanumeric (g2-ord-max-numeric-with-alphanumeric) and a numeric USAGE NATIONAL item with a PIC N item, class numeric with class national (g2-... Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}

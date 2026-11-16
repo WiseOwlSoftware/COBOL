@@ -1,0 +1,110 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-13",
+ "rule-digest": "b5d49cfabc37",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-157",
+  "sources": {
+   "reader": "2ff8d2f1138eea94abb9b7f7beac3f5bc21b839f2d17c35019ce6ee477bfb139",
+   "refuter": "6b4c1b03b601b4d5c358f550aa78c8f30a0a2f7ab20786771312ab94572497c0"
+  },
+  "imported": {
+   "reader": "f74ebcb56f4569b737573f188888ffb7bc4692cf659d87449035b1d3081aaef2",
+   "refuter": "7e0114d11f6dfe35bf04321db4d9a1bbaa5db61b0a6aa916c7a9ee373ab7d6ba"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.8.3-13",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a table element (the OCCURS subject or an item subordinate to it) may be referenced by indexing only through an index-name declared in an INDEXED BY phrase of an OCCURS clause in that item's own hierarchy (with §1985:IV.4.4.2 and IV.4.3.8.2.3 SR3); a table with no INDEXED BY cannot be indexed or SEARCHed, and the index-name has no other data description.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#occursClause; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenIndexNameAssociation; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#DeclaredInHierarchy; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenCobol85SubscriptDataNames",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSubscriptPart",
+    "switches": "the 1985 subscript SHAPE (index-name optionally +/- integer; refuses a 2002 arithmetic-expression subscript such as I1 + N with COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenCobol85SubscriptDataNames",
+    "switches": "ConstructRegistry subscript-arithmetic-expression-2002: a non-integer subscript data-name is refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The association screen itself (ScreenIndexNameAssociation, DeclaredInHierarchy) has no edition test; grep of SubscriptBinder.cs for DialectLevel/CobolVersion/ConstructRegistry/EditionContext finds only ScreenCobol85SubscriptDataNames (lines 143, 151). The 1985-only arms on the path govern subscript shape, a sibling rule, and do not change the association answer.",
+  "behaviour-differs-by-edition": "no: the association rule is the same at every edition; the subscript shape around an index-name is narrower at 1985 (no data-name increment), which is SR5/SR6 of IV.4.3.8.2.3, not this rule",
+  "witnesses-cover": "part: g85_bf11_01 (legal indexing) and g85_bf11_02 (another table's index-name refused); not exercised: SEARCH of a table with no INDEXED BY, subordinate-item indexing in two dimensions, an index-name also declared as data, an index data item as a subscript",
+  "probes": [
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c3ok.cob",
+    "printed": "B 6 C / D 7 / Z / FOUND Y AT 2 (exit 0)",
+    "expected": "subordinate F1(I1), two-dimension H1(I1,J1), I1+1, second index-name I1B, I1B-1/J1-2, ODO table F2(K2), SEARCH with its own index all accepted and correct"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c3bad1.cob",
+    "printed": "error COBOL1961: 'E2' subscripted by the index-name 'I1', which is not in the INDEXED BY phrase of any OCCURS clause in this item's hierarchy",
+    "expected": "refused: E2 has no INDEXED BY"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c3bad4.cob",
+    "printed": "two COBOL1961 errors: E1 by I2, F2 by I1",
+    "expected": "refused: index-names crossed between tables, including a subordinate item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c3bad2.cob",
+    "printed": "error COBOL2075: SEARCH E1: the OCCURS clause of 'E1' has no INDEXED phrase",
+    "expected": "refused: SEARCH references the table by indexing, so INDEXED BY is required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c3bad5.cob",
+    "printed": "error COBOL2692: 'I1' names two types of user-defined word (index-name and data-name)",
+    "expected": "refused: the index-name is not defined elsewhere"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c3bad3.cob",
+    "printed": "error COBOL0844: item 'X1', an index data item ... is not a numeric operand",
+    "expected": "refused: an index data item is not an index-name and cannot index (1985 subscripts are integer, integer data-name or index-name)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c3ed.cob",
+    "printed": "--std 85: error COBOL0900 ... the arithmetic-expression subscript I1 + N; --std 2023: prints C",
+    "expected": "1985 refuses an index-name incremented by a data-name; 2023 admits it"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.5.8@1985-OCCURS-CLAUSE/g85_bf11_01.cob",
+    "printed": "EXIT 0, EXPECT: MATCH",
+    "expected": "the witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.3 SR13",
+    "check": "OK  §1985:VI.5.8.3 SR13  (5.8.3 Syntax Rules)  the text is in SR13"
+   }
+  ],
+  "notes": "The rule is enforced by the one association screen on every subscripted reference (by declaration identity, walking the item's parents) plus SEARCH's own INDEXED check and the user-word kind screen. Diagnostics cite §2023 rules, not the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.8.3-13",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes --std 85: r3mix (outer INDEXED BY I1, inner OCCURS with no INDEXED BY, H1 (I1, 3) and H1 (3, 2)) exit 0 '6 8' (correct: mixed index/literal subscripts, the inner level is subscripted, not indexed); r3mixbad H1 (I1, J2) with J2 of another table refused COBOL1961; r3qual F1 (I1 OF T1) refused COBOL0900 (an index-name 'cannot be associated with any data hierarchy', so not qualifiable at 1985); r3dup two tables INDEXED BY I1 refused COBOL6863 citing §1985:VI.5.8.3 SR14; r3move MOVE I1 TO N refused COBOL1637 (index-name is not data). cite.py: 'OK  §1985:VI.5.8.3 SR13  (5.8.3 Syntax Rules)  the text is in SR13'; 'OK  §1985:VI.5.8.3 SR14  (5.8.3 Syntax Rules)  the text is in SR14'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

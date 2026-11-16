@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-11.8.1",
+ "rule-digest": "a6d13508feeb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#optionsParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#optionsClause; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ByClauseContext; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#BindParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOptionsParagraph",
+ "test-ref": "conformance:cases/11.8.1@2002-OPTIONS-PARAGRAPH/g2opt01-options-arithmetic-standard",
+ "notes": "§2002:11.8.1, with the arithmetic-clause of §2002:11.8.4.1: 'OPTIONS. ARITHMETIC IS STANDARD.', a contained 'ARITHMETIC IS NATIVE.' and a contained bare 'OPTIONS.' (§2002:11.8.2 SR1) are all accepted and run ('S=25', 'N=07', 'E=3') at --std 2002 on build dc1f2dcce8. ENTRY-CONVENTION has no implementor-defined name at 2002, and §2002:B.1 item 44 makes that item optional. The related case conformance:cases/11.9-OPTIONS/pb1508_options_period_bracket is not a 2002 witness: its PB1508R leg expects 'R: W=0.2', the DISPLAY image of a PIC 9V9 item, which §2002:14.8.10.3 GR1 leaves to the implementor, and it argues from the 2023 format."
+}

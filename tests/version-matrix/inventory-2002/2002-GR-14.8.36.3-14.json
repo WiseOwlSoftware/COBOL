@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-14",
+ "rule-digest": "3e7ae18b5f4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitDisposition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelativeKeyStore; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#Rewind",
+ "test-ref": "conformance:cases/14.6.13.1.3-Fatal-exception-conditions/pb993_sort_merge_transfer_termination",
+ "notes": "Own verdict from the read lineage-reads-2002/u-28.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.40.4-15, witnessed at 2002 by the cases test-ref names. The read: Same words apart from \"beyond\"/\"outside\", \"non-fatal\"/\"nonfatal\" and the internal cross-reference (14c / 15c, the same item). Which USE procedures the implicit WRITE can run is decided by the I-O status clause: in 2002 only unsuccessful completions carry an exception, and the probe shows the compiler at 2002 runs no declarative on status 02. Every pointer witness that is a 2002 program passes at --std 2002. Cited: §2002:14.8.36.3 GR14; §2002:9.1.12."
+}

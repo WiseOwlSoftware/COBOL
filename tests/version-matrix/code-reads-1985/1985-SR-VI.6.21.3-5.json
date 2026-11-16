@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-5",
+ "rule-digest": "2b319819897b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-058",
+  "sources": {
+   "reader": "17c9a50c0599b55c526ec793a2d8245cb2c8f0691c3a03cba568a17c9962d3a5",
+   "refuter": "ae091fd372e0f5d6c34cb408fab426558f4ac6e99628334a1503734ae59c85a0"
+  },
+  "imported": {
+   "reader": "f405b9ca893d0e6a4194593ac1d030bdee009f6c4c7d3e6698275e13f24f26f4",
+   "refuter": "cfcb80e8ed8f73d2d04f98fb6c18d946765d2a6cc36709abac4ef15525a1241d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every literal of a Format 4 PERFORM (literal-1/-3 in FROM, literal-2/-4 in BY, VARYING and AFTER levels) must be a numeric literal; a nonnumeric literal or a figurative constant other than ZERO (with or without ALL at 85) is refused, and signed and decimal numeric literals and ZERO are accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindIndexNameWindowOperandExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ZeroOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performVarying",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric",
+    "switches": "construct figurative-all-zero-numeric-removed-2002: FROM ALL ZERO admitted at 85, COBOL0902 from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVarying",
+    "switches": "an omitted BY phrase refused at 85 (perform-varying-by-omitted-2002); not this rule's literal class",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read BindVaryingOperand -> BindIndexNameWindowOperandExpr -> BindOperandExprCore -> NumLiteral/NonNumericInNumericContext; grepped for edition consults; only the ALL ZERO construct gate is on the literal path.",
+  "behaviour-differs-by-edition": "yes: FROM ALL ZERO is legal at 85 and refused from 2002; the 85 arm admits it, as §1985:IV.4.2.2.2.3 SRL3.1 permits ZERO where a literal is restricted to numeric",
+  "witnesses-cover": "part: the witness covers the brace group shape; not exercised are alphanumeric literals in FROM and BY, figurative constants other than ZERO, ALL literals, AFTER-level literals and FROM ALL ZERO",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf5ref.cob",
+    "printed": "COBOL0844 for FROM \"1\", BY \"1\", FROM SPACE, BY HIGH-VALUE, FROM ALL \"1\", AFTER FROM \"1\" and BY QUOTE, FROM LOW-VALUE (8 diagnostics, 8 literals)",
+    "expected": "every nonnumeric literal and non-ZERO figurative refused"
+   },
+   {
+    "class": "c,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf5pos.cob",
+    "printed": "A +00 A +01 / B +00 / C +03 C +01 / D 1.5 D 2.0 / E 01 +00 E 01 +02 (exit 0)",
+    "expected": "FROM ZERO, FROM ALL ZERO (legal at 85), FROM +3 BY -2, FROM 1.5 BY 0.5 and an AFTER level FROM ZERO BY 2 accepted and iterate correctly"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR5",
+    "check": "OK  §1985:VI.6.21.3 SR5  (6.21.3 Syntax Rules)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3 SRL3.1",
+    "check": "OK  §1985:IV.4.2.2.2.3 SRL3.1  (4.2.2.2.3 Figurative Constant Values)  the text is in SRL3.1"
+   }
+  ],
+  "notes": "FROM and BY parse as valueOperand and pass through the one nonnumeric-literal reading every arithmetic operand takes, so every nonnumeric literal is refused at either level and ZERO/ALL ZERO is admitted at 85. Value rules on these literals (BY not zero, index-name FROM positive) are SR7/SR9 and not judged here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-5",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "At --std 85: rp5lit refused symbolic-character SYM-ONE as FROM, ALL SYM-ONE as BY, ALL SPACES as AFTER-level FROM, ALL LOW-VALUES as AFTER-level BY (COBOL0844 each), and the 2002 literal forms 1.0E0, \"1\" & \"2\" and B\"1\" (COBOL0900 plus COBOL0844). rp5pos: out-of-line PERFORM PA VARYING N FROM ZEROES BY 1 AFTER M FROM ALL ZEROS BY .25 UNTIL M > .5 printed A +00 0.00/0.25/0.50, A +01 0.00/0.25/0.50; VARYING IX FROM 2 BY 1 UNTIL IX > 3 ran twice (B B); FROM -1 BY +1 printed C -01 C +00. cite.py: OK §1985:VI.6.21.3 SR5 the text is in SR5; OK §1985:IV.4.2.2.2.3 SRL3.1 the text is in SRL3.1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

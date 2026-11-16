@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.4.2.11.1",
+ "rule-digest": "ef27496912a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataAddressIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addressIdentifier; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveForAddressOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#AddressOfText; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setToSender",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/address_of_qualified; conformance:cases/8.4.3.1-Identifier/pb1407_address_of_reference_modified",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.4.3.11.2, witnessed at 2002 by the cases test-ref names. The read: Identical format. The SRs differ (2023 adds CONSTANT RECORD and dynamic-length exclusions; 2002 SR4 on STRONG types) but those are separate rules; the format admits the same identifier-1. Cited: §2002:8.4.2.11."
+}

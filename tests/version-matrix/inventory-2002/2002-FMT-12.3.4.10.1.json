@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.3.4.10.1",
+ "rule-digest": "0f22ea9215c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#paddingCharacterClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#CapturePadding; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPaddingCharacterClause",
+ "test-ref": "conformance:cases/12.3.4@2002-FILE-CONTROL-ENTRY/g2fc01_four_formats_every_clause",
+ "notes": "§2002:12.3.4.10.1 grants PADDING CHARACTER IS literal-1 or data-name-1; g2fc01 writes both (literal \"*\" on SQ, PIC X data-name PAD-CH on SQ2), accepted at --std 2002 with the obsolete warning COBOL0903 (§2002:12.3.4.10), and the records read back unchanged (SQ ALPHA/BETA/END 10, SQ2 00 GAMMA) as the derivation requires. (Corrected: the case no longer writes RECORD DELIMITER on the fixed-length SQ.)"
+}

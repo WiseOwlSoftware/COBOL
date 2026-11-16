@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.9.2-4",
+ "rule-digest": "1a86664389b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#IsDescriptionOpen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#IsBeingDescribed; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#BindLaterRecords; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#BindLaterEntriesOfOpenRecord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#CompletePreboundGroup; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#LengthOperandItem; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ReportConstantCycle",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2con02-cd-constant-length-cycle; conformance:cases/13.9@2002-CONSTANT-ENTRY/g2con01_cd_constant_entries",
+ "notes": "§2002:13.9.2 SR4: a CD record item sized PIC X(KL), with KL AS LENGTH OF that item, must be refused. g2con02 is refused with COBOL1547 at --std 2002. In g2con01, LENGTH OF over independent CD items gave KL=05 and KR=09 (§2002:13.9.3 GR6), as derived."
+}

@@ -1,0 +1,119 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-6",
+ "rule-digest": "f0fa1fce02e4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-102",
+  "sources": {
+   "reader": "0aca3eed776d10077df1ada3f233644bd2d0ebb07e39741ed7b1f57803851a1a",
+   "refuter": "8820ad5928eff40479d7638c4a2f01dc02a28a619de196373de9498143191521"
+  },
+  "imported": {
+   "reader": "818f8dfef671f6eb5f0a49462b050d4cf54f4ad936867486497ca496a8b8ad46",
+   "refuter": "0b9456205994f7ca8bbcac9f33f104c195287662e91746be3ed44713b73ec044"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-VI.4.5.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, outside the SPECIAL-NAMES paragraph LOW-VALUE is the character at the lowest position of the program collating sequence (native lowest with no PCS or an identity alphabet; otherwise the first character the alphabet specifies, so a tie at position 1 by ALSO, a descending THRU or a multi-character first literal goes to the first character specified), in every use and in contained programs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Extremes; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#LowValue; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/Binding/LiteralEnvironment.cs#LowValue; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlphabetClause",
+    "switches": "the 2002 FOR ALPHANUMERIC/NATIONAL phrase, UCS-4/UTF-8/UTF-16 and LOCALE alphabets: refused at 85 (COBOL0900), admitted at 2023; the 1985 literal/STANDARD/NATIVE forms pass",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramCollatingSequenceClause",
+    "switches": "the 2002 national surface of PROGRAM COLLATING SEQUENCE refused at 85; the single alphabet-name-1 form passes",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBind",
+    "switches": "the LOCALE alphabet arm returns below 2002 (already refused by the pass)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/CobolVersion/Construct/IsAtLeast in CodeGen/Roslyn/FigurativeConstants.cs, Binding/LiteralEnvironment.cs, Binding/CollatingModel.cs, Binding/SpecialNamesBinder*.cs (hits only the LOCALE arm and the range-IN gate); read VersionConformancePass VisitAlphabetClause / VisitProgramCollatingSequenceClause / VisitSymbolicCharactersClause. The extreme computation and the figurative fill are edition-neutral.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf03_02 covers a two-way ALSO tie at position 1 through MOVE and DISPLAY; not a three-way tie, a descending THRU or multi-character first literal, VALUE/88/STRING/relation uses, NATIVE/STANDARD-1 PCS, or contained programs (probed here).",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3hv.cob",
+    "printed": "VAL-LV-FF GRP-LV-FF 88-LO STR-LV FF-LOWEST LV-LT-A",
+    "expected": "PCS 65536 \"A\" \"B\": LOW-VALUE is U+FFFF (the first specified) in VALUE, group MOVE, 88 VALUE, STRING and relations"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3tie.cob",
+    "printed": "LV=BB A-EQ-C",
+    "expected": "\"B\" ALSO \"A\" ALSO \"C\" at position 1: LOW-VALUE is the first specified, B"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3desc.cob",
+    "printed": "LV=ZZ",
+    "expected": "\"Z\" THRU \"A\" first: LOW-VALUE Z"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3multi.cob",
+    "printed": "LV=zz",
+    "expected": "multi-character literal \"zyx\" first: its leftmost character z (GR4d 1b)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3std.cob",
+    "printed": "LV=NUL",
+    "expected": "STANDARD-1 PCS: native lowest"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3nat.cob",
+    "printed": "LV=NUL",
+    "expected": "NATIVE PCS: native lowest"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p4nest.cob",
+    "printed": "IN-LV=Q",
+    "expected": "a contained program's VALUE LOW-VALUE follows the containing PCS: Q"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/g85_bf03_02.cob",
+    "printed": "MATCH",
+    "expected": "LV=BB HV=ZZ LV1=B HV1=Z"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.4 GR6",
+    "check": "OK  §1985:VI.4.5.4 GR6  (4.5.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR4d",
+    "check": "OK  §1985:VI.4.5.4 GR4d  (4.5.4 General Rules)  the text is in GR4d"
+   }
+  ],
+  "notes": "Extremes takes specOrder[0], the first character the definition specifies, which is at position 0 by construction and is the GR6 tie winner. An identity alphabet (NATIVE, STANDARD-1) leaves Configuration.Collating null and FillChar falls to the native U+0000."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.5.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "r4low-001: PCS by the optional-word form 'SEQUENCE IS AL', ALPHABET AL IS 66 ALSO 1 ALSO 67 \"Q\" (numeric literals, a three-way tie at position 1 with U+0000 not first): VALUE LOW-VALUE = A, MOVE LOW-VALUES = AA, 88 VALUE LOW-VALUE true for A, \"B\" = LOW-VALUE true (same position), contained program's VALUE LOW-VALUE = A. r3rev-001: 65536 THRU 1 gives LOW-VALUE U+FFFF. r5sn-002: LOW-VALUES THRU \"@\" first in the PCS gives procedure LOW-VALUE U+0000. cite.py: 'OK  §1985:VI.4.5.4 GR6  (4.5.4 General Rules)  the text is in GR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

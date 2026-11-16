@@ -30,6 +30,13 @@ public sealed class FileControlKeyRuleSpecTests
     {
         ["§2023:12.4.5.12.3 SR2"] = "§1985:IX.2.7.3 SR2",
         ["§2023:12.4.5.6.3 SR2"] = "§1985:IX.2.5.3 SR2",
+        // kb/Work PB5627: the OCCURS ban of each key clause is §1985:IV.4.3.8.2.3 SR4 (a table element is named subscripted), and the
+        // RELATIVE KEY's SR2 and SR3 are §1985:VIII.2.4.3 SR2 and SR3.
+        ["§2023:12.4.5.12.3 SR1"] = "§1985:IV.4.3.8.2.3 SR4",
+        ["§2023:12.4.5.6.3 SR1"] = "§1985:IV.4.3.8.2.3 SR4",
+        ["§2023:12.4.5.13.3 SR1"] = "§1985:IV.4.3.8.2.3 SR4",
+        ["§2023:12.4.5.13.3 SR2"] = "§1985:VIII.2.4.3 SR2",
+        ["§2023:12.4.5.13.3 SR3"] = "§1985:VIII.2.4.3 SR3",
         ["category alphanumeric or category national"] = "the category alphanumeric (ANSI §1985:IX.2.7.3 SR2)",
         ["category alphanumeric or national"] = "the category alphanumeric (ANSI §1985:IX.2.5.3 SR2)",
     };
@@ -295,7 +302,7 @@ public sealed class FileControlKeyRuleSpecTests
             // COBOL-2002 prints no OCCURS ban on the relative key (§2002:12.3.4.13.2 SR1 says only "may be qualified"), and its operand
             // names a table element by its subscripts (§2002:5.1.3): the unsubscripted element is §2002:8.4.1.2.2 SR5's omitted
             // subscript (kb/Work PB5602).
-            string expected = edition == 2002 && citation.EndsWith("SR1", StringComparison.Ordinal) ? "§2002:8.4.1.2.2 SR3, SR5" : citation;
+            string expected = edition == 2002 && citation.EndsWith("SR1", StringComparison.Ordinal) ? "§2002:8.4.1.2.2 SR3, SR5" : CitationAt(citation, edition);
             Assert.Contains(entryOnly, e => e.Contains(expected, StringComparison.Ordinal));
             Assert.DoesNotContain(entryOnly, e => e.Contains("§2023:12.4.5.13 SR", StringComparison.Ordinal));
         }
@@ -824,7 +831,7 @@ public sealed class FileControlKeyRuleSpecTests
             if (refused)
                 Assert.True(d.Count(e => e.Contains("does not uniquely identify a record key or data item", StringComparison.Ordinal)
                     && e.Contains($"{matches} declarations match", StringComparison.Ordinal)
-                    && e.Contains("ISO §2023:8.4.2.2.3 SR1", StringComparison.Ordinal)) == 1,
+                    && e.Contains(edition < 2002 ? "ISO §1985:IV.4.3.8.1 SR3" : "ISO §2023:8.4.2.2.3 SR1", StringComparison.Ordinal)) == 1,
                     $"[{shape}: {statement}] @ {edition}: {string.Join(" | ", d)}");
             else
                 Assert.True(d.Count == 0, $"[{shape}: {statement}] @ {edition}: {string.Join(" | ", d)}");

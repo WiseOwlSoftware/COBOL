@@ -1019,11 +1019,18 @@ one — what the evaluate-once identification asks before it hoists).
   bound check once, on the result.
 
 The PB136 declaration-informed cut (Annex D.3.5.3 `DOG (XCOUNTER (- YCOUNTER))`: a name that cannot be subscripted
-gives its paren to a NEW subscript) is applied to the tree (`CollectCuts`): the resolver records the cut
-`dataReference` nodes, reads a cut reference without its subscript list, and the cut list's items become the
-following subscripts, each a `PositionGroup` of its item. A cut list that does not close its subscript item
-(`T (A + X (- Y) + 1)`, where the tree joins `+ 1` to `X (- Y)`) has no subscript reading the tree can give; it is
-refused by name (COBOL2363).
+gives its paren to a NEW subscript) is applied to the tree by ONE list reader, `SubscriptBinder.GiveAwayClosingList`,
+which every list whose items a space separates asks (§2023:8.3.5 SR1): the subscript list (`SegmentsOf`) and, since
+kb/Work PB5781, the argument list of both function-identifier forms (`IntrinsicBinder.ArgumentsOf`; `FUNCTION MIN (A
+(- B))` with A no table is two arguments, the §1985:VI.6.2.3 SR4 reading). A list it gives away is MARKED on the parse
+node (`SubscriptPartOwnership.GiveToNextItem`), so every reader of the written reference (`ReferenceResolver.ReadWritten`)
+reads the reference without it — the direct position walk, the expression binder behind a materialized position (`T
+(X / 1 (B - 1))` binds), an argument's bind and the edition gates (`VersionConformancePass` asks a given-away list no
+subscript form) — and the list's single item is the next subscript or argument; a list given away that holds no
+expression is refused by name (COBOL2363 for a subscript, COBOL1543 for an argument). A cut list that does not close
+its item (`T (A + X (- Y) + 1)`, where the tree joins `+ 1` to `X (- Y)`) has no reading the tree can give; nothing is
+given away, and the subscript arm refuses it by name (COBOL2363). The operand lists outside parentheses (CALL and
+INVOKE USING, an inline invocation's argument list) do not yet ask the reader (kb/Work PB5781's report).
 
 The place model's producers build the offsets as nodes: `PlaceBuilder.WindowScopeOf` (the ONE walk of a Tier-B
 reference's levels, its byte, bit and ordinal terms side by side), the ADDRESS OF displacement, the `ViewCursor` that

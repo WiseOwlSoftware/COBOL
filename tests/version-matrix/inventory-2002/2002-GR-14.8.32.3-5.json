@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.32.3-5",
+ "rule-digest": "3218937d0042",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindIntoPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#StrongGroupRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceiverBracketEmitter.cs#Receive",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2023; conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_2023; conformance:cases/14.9.34-RETURN/pb722_return_into_unsuccessful; conformance:cases/14.9.34-RETURN/pb5386_return_into_subscript_after_return",
+ "notes": "Own verdict from the read lineage-reads-2002/u-26.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.34.4-5, witnessed at 2002 by the cases test-ref names. The read: The normative text is identical; 2023 adds only an informative NOTE on overlapping operands. The pointer's tests already run at 2002 and pass. Cited: §2002:14.8.32.3 GR5."
+}

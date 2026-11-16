@@ -98,7 +98,12 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Reported(ctx.Edition);
         }
         if (RecordLessSd(file)) return new BoundNop();
+        return MarkRefusedSortMerge(SortBindFileOf(s, file), file);
+    }
 
+    /// <summary>The rest of <see cref="SortBindFile"/>, once the SD is resolved (the refusal marking is <see cref="MarkRefusedSortMerge"/>'s).</summary>
+    private BoundStatement SortBindFileOf(Core.SortStatementContext s, FileModel file)
+    {
         // Format 1 prints the KEY phrase in BRACES with an ellipsis (§2023:14.9.40.2) — at least one is required, and
         // its data-name-1 is required too (braces, not the Format-2 brackets). The grammar's `sortKeyPhrase*` is
         // shared with Format 2, whose phrase MAY be omitted (§2023:14.9.40.3 SR15, kb/Work PB846), so the Format-1
@@ -397,7 +402,19 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Reported(ctx.Edition);
         }
         if (RecordLessSd(file)) return new BoundNop();
+        return MarkRefusedSortMerge(BindMergeOf(m, file), file);
+    }
 
+    /// <summary>⛔ A REFUSED SORT/MERGE TAKES ITS PROCEDURE RANGES WITH IT, SO THE STATEMENT IS TOLD APART FROM ITS CASCADE (kb/Work PB5496): a
+    /// statement the binder refused after its sort-merge file was resolved is never a <see cref="BoundSort"/>/<see cref="BoundMerge"/>, so the
+    /// ranges of its INPUT/OUTPUT PROCEDURE phrases are lost, and the legal RELEASE/RETURN written in them would be reported by
+    /// <c>VersionConformancePass.GateReleaseReturnRange</c> as outside every procedure. The refusal records the file instead.</summary>
+    private static BoundStatement MarkRefusedSortMerge(BoundStatement bound, FileModel file) =>
+        bound is BoundRejected refused ? refused.RefusingSortMergeFile(file) : bound;
+
+    /// <summary>The rest of <see cref="BindMerge"/>, once the SD is resolved.</summary>
+    private BoundStatement BindMergeOf(Core.MergeStatementContext m, FileModel file)
+    {
         var keys = new List<BoundSortMergeKey>();
         foreach (var phrase in m.mergeKeyPhrase())
             if (!SortAddFileKeys(phrase.DESCENDING() is not null, phrase.dataReferenceList(), file, keys, SortKeyRules.Merge))
@@ -670,10 +687,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // §2023:14.9.40.3 SR6 g) / §2023:14.9.24.3 SR4 g): with variable-length records every key lies within the first
             // n bytes, n the minimum record size — for ANY record, so a key that follows a variable-length member is
             // measured at its furthest reach (every preceding member at its maximum). ⛔ The minimum is the file's
-            // (§2023:13.18.43.4 GR9 when the RECORD clause states none — FileModel.VaryMin), and the rule applies to
+            // (§2023:13.18.43.4 GR9 when the RECORD clause states none — FileModel.RecordSizeRange, which sizes a format 3 record at its maximum at 85, §1985:VII.3.8.4 GR15), and the rule applies to
             // every file whose records vary, including the implied Format 2 of a variable-length record (D-FRA);
             // it used to fire only when a RECORD clause wrote integer-2.
-            if (file.RecordSizeVaries && file.VaryMin is var min && win.MaxEnd > min)
+            if (file.RecordSizeVaries && file.RecordSizeRange.Min is var min && win.MaxEnd > min)
                 ctx.Edition.Error(DiagnosticCatalog.SortKeyBeyondMinimumRecord, $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
                     + (win.FollowsVariable
                         ? $"follows a variable-length member of record '{root.CobolName}' and can reach byte {win.MaxEnd}"

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-11.5.2-1",
+ "rule-digest": "cc786170db7e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/pb303_as_interface_id_literal",
+ "notes": "Own verdict from the read lineage-reads-2002/u-08.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-11.6.3-1, witnessed at 2002 by the cases test-ref names. The read: As for 11.4.2 SR1: the 2023 addition is the zero-length literal, which no 2002 program can write. Cited: §2002:11.5.2 SR1."
+}

@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-1",
+ "rule-digest": "7dcc32337030",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-124",
+  "sources": {
+   "reader": "1b2c7e83b49f8f430d6815a52c16da392fe89f68c56feb8dac7f732c3645b0b0",
+   "refuter": "061b37d3747cc55b61dd205c30467c93ca1ae687341aad6c80f84af078151f1f"
+  },
+  "imported": {
+   "reader": "593dd559c0fa521a774a6e07012ac1664a1678486691fa6ecdf056cbc81a1677",
+   "refuter": "d54f02828370073d0957cb545cdf30987b4298891a7cb472194975af0aa9380b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a READ of a sequential file executes only while the file is open in the input or I-O mode; a READ on a file never opened, closed (with or without LOCK), left closed by a failed OPEN, or open OUTPUT or EXTEND is unsuccessful with I-O status 47 (§1985:VII.1.3.5), takes no AT END path, and reaches an applicable USE procedure.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadShared; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordLockPhrase",
+    "switches": "refuses the 2002 record-lock phrases on READ at 85 (COBOL0900, construct record-lock-phrase-2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "refuses READ PREVIOUS at 85 (COBOL0900, read-previous-2002); NEXT accepted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "the AT END requirement in force at 85 (SR2, not this rule)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility off at 85: OPEN arbitration and SequentialConnector#EnsureReaderCoherent re-anchoring; not consulted by the open-mode test",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard",
+    "switches": "nothing: the 47 test is edition-free",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep CobolVersion|EditionContext|DialectBehavior|Edition in src/WiseOwl.Cobol.Runtime/IO and SequentialIoBinder/SequentialIoEmitter; FileRegistry#ReadShared read",
+  "behaviour-differs-by-edition": "no: the open-mode check and status 47 are the same code at 85 and 2023; only the accepted phrases (lock, PREVIOUS) and CLOSE WITH LOCK (removed 2023) differ",
+  "witnesses-cover": "part: g85_f20_01 covers never-opened, OUTPUT, EXTEND, INPUT, I-O; not exercised: after CLOSE, after CLOSE WITH LOCK, after a failed OPEN (35), the USE procedure on 47, an absent OPTIONAL file",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p1gr1.cob",
+    "printed": "AFTER-CLOSE=47 / INPUT=00 REC1 / AFTER-LOCK=47 / USE-G 35 OPEN-G=35 / USE-G 47 READ-G=47 / USE-G 35 OPENIO-G=35 / USE-G 47 READ-G2=47 / OPEN-H=05 H-AT-END READ-H=10",
+    "expected": "47 for every READ on a file not open in input or I-O mode (closed, closed with lock, failed OPEN INPUT or I-O), USE procedure runs, no AT END; an open absent OPTIONAL file is the at end condition 10 (GR4b, GR10)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p1c.cob",
+    "printed": "COBOL0900 on READ WITH LOCK, READ PREVIOUS, REWRITE WITH NO LOCK (targeting COBOL-85)",
+    "expected": "the 2002 phrases are not in the 1985 format and are refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VII.4.4@1985-READ-STATEMENT/g85_f20_01.cob",
+    "printed": "MATCH: NOTOPEN 47, OUTPUT 47, INPUT 00, I-O 00, EXTEND 47",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.4.4 GR1",
+    "check": "OK  §1985:VII.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4f"
+   }
+  ],
+  "notes": "The open-mode test is one edition-free guard shared by every organization; at 85 it yields 47 for every non-input/I-O state probed, including after a failed OPEN, and a 47 reaches the USE AFTER ERROR procedure. The run-unit-termination arm for a 4x status without FILE STATUS was not exercised (implementor choice at 85).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same statuses for the non-CLOSE-WITH-LOCK legs (CLOSE WITH LOCK is refused COBOL0902 at 2023)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "r1gr1.cob at --std 85 (refute-1985-124/r1gr1-001): OPEN INPUT on a file open OUTPUT gives 41 and the file stays OUTPUT, READ then 47 with USE run; OPEN OUTPUT on a file open INPUT gives 41, READ 00 REC1; 1985-only OPEN INPUT REVERSED 00, READ 00 REC2 (last record first); OPEN INPUT WITH NO REWIND 07, READ 00; OPEN I-O on a file open EXTEND 41, READ 47; OPEN I-O of an absent OPTIONAL file 05 then READ 10 with AT END. r1ext.cob (r1ext-001): an EXTERNAL file connector opened INPUT in the caller is read 00 by a separately described program, a GLOBAL FD 00 from a contained program; after CLOSE both READs give 47. Every READ executes only on a connector open INPUT or I-O. cite.py: OK  §1985:VII.4.4.4 GR1 (4.4.4 General Rules) the text is in GR1; OK  §1985:VII.1.3.5 (1.3.5 I-O Status) the text is in the clause; it lies in GRL2.4f; OK  §1985:VII.1.3.5 ... it lies in GRL2.4a (41).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

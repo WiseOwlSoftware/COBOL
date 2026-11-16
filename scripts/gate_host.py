@@ -5,6 +5,7 @@ gate slot, the audit processes, the build, the listings, the test hosts and thei
 from __future__ import annotations
 
 import concurrent.futures
+import locale
 import os
 import re
 import shutil
@@ -68,7 +69,9 @@ LOCK_NAME = "cobol-gate.lock"
 #: the verdict: the audits, which read only the tree, beside the build and the test hosts; and, when the change touches tooling,
 #: the post-build self-tests, which read the built assemblies, beside the test hosts. A step that needs nothing the critical
 #: path is still making belongs here, not in a serial valley ahead of it.
-BESIDE = ("audits", "post_build_self_tests")
+BESIDE = ("audits", "post_build_self_tests", "differential_capture")
+#: The oracle's host project (kb/Work PB4333): its built `digests` verb is the program differential's capture.
+ORACLE_HOST = "tests/WiseOwl.Cobol.ArchOracle/"
 
 
 Spawn = Callable[..., dict]
@@ -162,6 +165,12 @@ class Host:
         true withdraws its ticket and raises `QueueAbandoned` (kb/Work PB5322)."""
         return GateSlots.for_repo(self.repo).acquire(label, say=say, abandon=abandon)
 
+    def peak_commit(self) -> int | None:
+        """The peak commit of this gate's slot-held tree so far, in bytes (process_job.bound_peak_bytes, kb/Work PB5697):
+        the build and every test host, what the commit admission's threshold is measured from. None when no slot bound
+        a job (POSIX, or no slot taken)."""
+        return process_job.bound_peak_bytes()
+
     def record_growth(self, run: Path, tests_s: float, conformance: int) -> None:
         """Keep this GREEN code-lane gate's test phase where the growth trigger reads it (scripts/gate_growth.py, kb/Work
         PB4333): the run's verdict.json goes with its worktree, so a week of them is never on disk at once."""
@@ -213,6 +222,62 @@ class Host:
         if refused is not None:
             refused.update({asm: by_name[t.name] for asm, t in graph.by_assembly().items() if t.name in by_name})
         return {asm: got[t.name] for asm, t in graph.by_assembly().items() if t.name in got}
+
+    def tree_entries(self, tree: str) -> list[tuple[bytes, str]]:
+        """Every `git ls-tree -r` entry of the measured `tree` (`buildgraph.tree_entries`)."""
+        return buildgraph.tree_entries(self.repo, tree)
+
+    def oracle_digests(self, out: Path, spawn: Spawn, handed: dict[str, str], only: Path | None = None) -> Path:
+        """THE PROGRAM DIFFERENTIAL'S CAPTURE (kb/Work PB4333; scripts/gate_differential.py): the built oracle host's
+        `digests` verb over this build, in the environment a test host has (`scrubbed_env`), handed the suite the
+        Conformance host is handed, with the compiled-program cache off (the capture observes the compiler); `only`: a
+        file of the oracle ids to compile (one a line), else every compile. Returns `out`; raises OSError naming the
+        failure."""
+        found = sorted((self.repo / ORACLE_HOST).glob(f"bin/{GATE_CONFIGURATION}/*/WiseOwl.Cobol.ArchOracle.dll"))
+        if len(found) != 1:
+            raise OSError(f"expected one built WiseOwl.Cobol.ArchOracle.dll under {ORACLE_HOST}bin/{GATE_CONFIGURATION}, "
+                          f"found {len(found)}")
+        env = {**product_clear_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **handed, "WISEOWL_COBOL_COMPILE_CACHE": "off"}
+        # ⛔ IN THE TEST HOST'S WORKING DIRECTORY (kb/Work PB4333 F2): the default library searches the working directory
+        # first (CopyProcessor), and VSTest starts the Conformance test host in its assembly's output directory, so the
+        # capture compiles from there too, and its absent probes there are checked again at every reuse.
+        with tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace", newline="\n") as fh:
+            with process_job.ProcessJob.start(["dotnet", str(found[0]), "digests", "--out", str(out),
+                                               *(["--only", str(only)] if only is not None else [])],
+                                              cwd=self.test_output_dir("Conformance"),
+                                              stdout=fh, stderr=subprocess.STDOUT, **spawn(env=env)) as p:
+                rc = p.wait()
+            fh.seek(0)
+            tail = fh.read()[-600:]
+        if rc != 0 or not out.is_file():
+            raise OSError(f"`WiseOwl.Cobol.ArchOracle digests` exited {rc}: {tail.strip()}")
+        return out
+
+    def test_output_dir(self, asm: str) -> Path:
+        """The directory of `asm`'s BUILT test assembly (`<project>/bin/<GATE_CONFIGURATION>/<tfm>/<project name>.dll`):
+        the working directory its test host runs in, measured 2026-11-16 by a probe test that wrote
+        `Environment.CurrentDirectory` during a run (kb/Work PB4333 R2-1: `tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net10.0`).
+        Raises OSError unless exactly one such assembly is built."""
+        project = self.repo / GATED_ASSEMBLIES[asm]
+        found = sorted(project.glob(f"bin/{GATE_CONFIGURATION}/*/{project.name}.dll"))
+        if len(found) != 1:
+            raise OSError(f"expected one built {project.name}.dll under {project}/bin/{GATE_CONFIGURATION}, found {len(found)}")
+        return found[0].parent
+    def portable_exists(self, path: str) -> bool:
+        """Whether a path the capture wrote portably (`<repo>/…` is this worktree's root) exists now."""
+        return (self.repo / path[len("<repo>/"):] if path.startswith("<repo>/") else Path(path)).exists()
+
+    def run_facts(self) -> str:
+        """WHAT A CARRIED CASE'S RUN READS THAT NO FILE OF THE TREE STATES (kb/Work PB4333 F3), for the differential's
+        harness key: the .NET runtimes installed (a compiled program's runtimeconfig rolls forward to the newest 10.0
+        patch, so a runtime update changes what every program runs on) and this process's locale. The product's
+        environment variables are not among them: `product_clear_env` clears them from every test host."""
+        try:
+            runtimes = subprocess.run(["dotnet", "--list-runtimes"], capture_output=True, text=True, encoding="utf-8",
+                                      errors="replace", timeout=60).stdout
+        except (OSError, subprocess.SubprocessError) as e:
+            raise OSError(f"`dotnet --list-runtimes` could not be read ({e})") from None
+        return f"runtimes\n{runtimes.strip()}\nlocale {locale.getlocale()}"
 
     def generate(self, tree: str, facets: dict[str, str],
                  stable: Callable[[], bool]) -> dict[str, buildgraph.Generation]:
@@ -480,8 +545,21 @@ def host_env(first: Path | None, observations: Path, only: Path | None = None,
     file every gate on the host appends to (kb/Work PB3108)."""
     order = {FIRST_CLASSES: str(first)} if first is not None else {}
     retry = {ONLY_CASES: str(only)} if only is not None else {}
-    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **order, **retry, **(handed or {}),
+    return {**product_clear_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **order, **retry, **(handed or {}),
             "WISEOWL_COBOL_HARNESS_LOG": str(observations)}
+
+
+#: THE PRODUCT'S OWN ENVIRONMENT VARIABLES (kb/Work PB4333 F3): what the compiler, the runtime and the CLI read
+#: (WISEOWL_COBOL_SORT_MEMORY, _KEYCHECK, _CLOCK, COBOL_COLLATION_DIR, COBOL_CLDR_DIR, …, and the compiled-program cache's
+#: switch). A test that needs one sets it itself; the operator's shell never reaches a test host or the capture.
+PRODUCT_PREFIXES = ("COBOL", "WISEOWL_COBOL_")
+
+
+def product_clear_env() -> dict[str, str]:
+    """THE ONE ENVIRONMENT every test host and the program differential's capture start from (kb/Work PB4333 F3): the
+    scrubbed environment (`scrubbed_env`) less every product variable (PRODUCT_PREFIXES), so a pass, whole or per case,
+    never stands for a run under an environment its key does not name. The gate adds its own channels after it."""
+    return {k: v for k, v in scrubbed_env().items() if not k.upper().startswith(PRODUCT_PREFIXES)}
 
 
 @dataclass

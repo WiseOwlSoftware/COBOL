@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.1.1",
+ "rule-digest": "8435e37d6d0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDivision; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#constantEntry",
+ "test-ref": "conformance:cases/13.1.1@2002-DATA-DIVISION-STRUCTURE/2002-FMT-13_1_1; conformance:cases/13.1.1@2002-DATA-DIVISION-STRUCTURE/2002-FMT-13_1_1-order",
+ "notes": "§2002:13.1.1 orders FILE, WORKING-STORAGE, LOCAL-STORAGE, LINKAGE, COMMUNICATION, REPORT, each optional, with 'COMMUNICATION SECTION. │ communication-description-entry' followed by constant or record entries; the golden writes each form (constants after FD, CD and RD per §2002:13.9.3 GR1) and matched 'FSOK WSOK 5 LSOK CDOK RDOK'/'0003' at --std 2002, and LINKAGE after COMMUNICATION is refused COBOL0001 at --std 2002. SCREEN SECTION is processor-dependent (§2002:B.3 item 1, §2002:3.1.5)."
+}

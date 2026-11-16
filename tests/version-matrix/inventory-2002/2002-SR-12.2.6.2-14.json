@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-14",
+ "rule-digest": "dd30267ae5d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#HostValue; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetOperands; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#LiteralPhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#LiteralPhraseRules.Alphabet; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#OperandLiteralClass; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#OneCharacterOperands; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBindNational",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1c30_national_count_at_native_bound; conformance:cases/12.3.7-SPECIAL-NAMES/l1c30_full_alphabet_in_ordinals",
+ "notes": "Own verdict from the read lineage-reads-2002/u-09.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.3.7.3-14, witnessed at 2002 by the cases test-ref names. The read: The words differ only in 'non-integer' and 'noninteger'. The alphabet-name-clause and literal-phrase are printed the same in both editions. The pointer's conformance cases run at 2002 and match, and probes cover the national sub-arms. Cited: §2002:12.2.6.2 SR14."
+}

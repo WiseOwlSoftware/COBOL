@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.36.1",
+ "rule-digest": "435969d42714",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortKeyPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortCollatingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#collatingForPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortDuplicatesPhrase",
+ "test-ref": "conformance:cases/14.9.40-SORT/pb1175_table_sort_shared_storage; conformance:cases/14.9.24-MERGE/pb1139_sort_collating_word_optional; conformance:cases/14.8.36@2002-SORT-STATEMENT/pb5641_table_sort_nested_subject_all",
+ "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-14.9.40.2, witnessed at 2002 by the cases test-ref names. The read: The 2002 and 2023 diagrams are token-identical (the 2023 transcription only adds figure notes); the 2002 PDF prints the same choice indicators in the COLLATING SEQUENCE brace. The pointer's four witnesses run clean at --std 2002, and the probes add the remaining phrase spellings. Cited: §2002:14.8.36.1. retired-witness: conformance:cases/8.4.2.3-Subscripts/pb1055_table_sort_nested_subject (kb/Work PB5538 made it accept [2014] only (a 2002 table SORT spells ALL as the rightmost subscript, §2002:8.4.1.2.2 SR5); its 2002 twin pb5641_table_sort_nested_subject_all witnesses the row at 2002)"
+}

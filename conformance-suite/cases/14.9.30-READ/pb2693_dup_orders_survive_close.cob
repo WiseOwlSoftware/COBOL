@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb2693_dup_orders_survive_close
       *> rules: [GR-14.9.30.4-26, GR-14.9.35.4-24]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

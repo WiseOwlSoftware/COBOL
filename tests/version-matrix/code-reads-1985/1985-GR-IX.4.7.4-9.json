@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-9",
+ "rule-digest": "ed89951360a6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-010",
+  "sources": {
+   "reader": "d178026b84d5ea74b760e5b13501f0ed5145d2b39f65bfac7a7de503522add24",
+   "refuter": "194f01631a91d0f25693c5c5386c1f6308b0d4c49996d11fea72623679125d2d"
+  },
+  "imported": {
+   "reader": "3b7d32e9ade29490314c1e0fd22af18ae51973534051e2ce24f9a6056881a705",
+   "refuter": "1acbfe1e53f3907793b2c784d57294cc3c43452e5b0fd27f8acef051bfc2ebf2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 END-START must terminate the START begun by the most recently preceding unterminated START (with or without INVALID KEY / NOT INVALID KEY phrases), so that statements after it belong to the enclosing scope, a conditional phrase after an inner END-START associates with the enclosing START, and an END-START with no open START is refused; a separator period or the containing statement's next phrase still terminates an unterminated START implicitly (§1985:IV.6.4.3).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#startStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#ConditionalPhraseAssociation.Associates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#MayAssociate",
+    "switches": "ConstructRegistry.IsAvailable per general format of the owning statement; START's one INVALID KEY pair format carries no construct, so the association is the same at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): a phrase-less START needs a USE procedure at 85 (SR3); unrelated to the terminator",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The terminator itself is the grammar's optional END_START token at the end of startStatement; grep of CobolIO.g4/CobolParserCore.g4 for END_START and of ConditionalPhrases.cs for Edition shows no edition predicate on the terminator.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb333 writes END-START after each START of a flat sequence; it does not exercise nesting (inner END-START returning a NOT INVALID KEY phrase to the outer START), END-START inside IF or inside another verb's imperative, the phrase-less delimited START, or a stray END-START.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/es1.cob",
+    "printed": "E1 INV 23 / E1 AFTER IN IF; E2 ELSE; E3 OUTER INV / E3 STILL OUTER INV / E3 AFTER 00 (NOT INVALID KEY after the inner END-START went to the outer START); E4 OUTER NOTINV; E5 INNER NOTINV / E5 AFTER INNER (OUTER INV) (without an inner terminator the phrase goes to the inner START); E6 INV / E6 AFTER PERIOD",
+    "expected": "§1985:IX.4.7.4 GR9 with §1985:IV.6.4.3: terminator closes the most recent unterminated START; phrases attach to the nearest unterminated START that admits them; the period terminates implicitly"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/es2.cob",
+    "printed": "--std 85 and 2023: COBOL0306 unexpected 'END-START'. END-START appears without a matching START statement.",
+    "expected": "an END-START with no open START is not a START scope terminator: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/es3.cob",
+    "printed": "--std 85 and 2023: COBOL0306 unexpected 'END-READ'",
+    "expected": "another verb's terminator does not close START"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/es4.cob",
+    "printed": "G1 IN READ INV 00 (phrase-less START ... END-START as an imperative inside READ INVALID KEY), G1R 00 BB01; G2: USE 23 then G2 AFTER 23 (failed phrase-less delimited START, control to the next statement)",
+    "expected": "a START with its terminator is a delimited scope (imperative) statement; after a failed START the USE procedure runs and control returns after the statement"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR9",
+    "check": "OK  §1985:IX.4.7.4 GR9  (║4.7.4 General Rules║)  the text is in GR9 [\"The END-START phrase delimits the scope of the START statement\"]"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause [\"each explicit scope terminator terminates the statement begun by the most recently preceding\"]"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  the text is in the clause [\"is considered to be the next phrase of the nearest preceding unterminated statement\"]"
+   }
+  ],
+  "notes": "END-START is the greedy optional token of startStatement, so ANTLR closes the innermost open START; the phrase-association predicate hands NOT INVALID KEY to the enclosing START once the inner one is closed. Every nesting probe matched §1985:IV.6.4.3; no edition arm touches the terminator.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-010/es5.cob at --std 85 printed: 'F1 INV' / 'F1 AFTER IF' (an unterminated START inside IF ... ELSE is ended by ELSE, §1985:IV.6.4.3 implicit termination); 'F2 INNER OK' / 'F2 STILL OUTER INV' / 'F2 AFTER' (START nested in another START's INVALID KEY, inner END-START closes the inner one, the following DISPLAY stays in the outer INVALID KEY, outer END-START closes the outer); 'F3 OK 1' / 'F3 BODY 1' / 'F3 OK 2' / 'F3 BODY 2' (START ... END-START inside an inline PERFORM ... END-PERFORM). With the reader's es1-es4 (inner/outer phrase association, stray END-START and wrong terminator refused) no form diverges. 1985 has no later-edition terminator form to refuse. cite.py: 'OK §1985:IX.4.7.4 GR9 (4.7.4 General Rules) the text is in GR9' [delimits the scope of the START statement].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

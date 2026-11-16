@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VII.2.13.4-2",
+ "rule-digest": "3a8cf856d000",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-118",
+  "sources": {
+   "reader": "96bb92ba553385b02467dab1079c63a5975ffea93eea5ee50d70035c3f8ebae6",
+   "refuter": "939bffc94d17ed56ddb17501859558d5490eb1520bfe2a92f7bf91d6e56ea706"
+  },
+  "imported": {
+   "reader": "302fe3b593791adda16631496d617383452608da2f3647b595934aa6737cd37d",
+   "refuter": "923a407d525469efe21f817a82303e73d4ae2a5649bc9344f395e05626a191c5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.13.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the files named in one SAME RECORD AREA clause share one record area: they may be open together, a record placed in the area is a record of each file open in output mode and of the most recently read file open in input mode, as an implicit redefinition aligned on the leftmost character position, whatever the files' organizations and record lengths (fixed or variable).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#OutOfLineRecordsOfArea; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordAreaStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#ReleasedRecordNeedsAlsoAvailable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReleasedRecordAlsoAvailable",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|DialectBehavior|DialectLevel|Construct' in Binding/FileControlBinder.IoControl.cs (only diagnostic cursors and Edition.Error calls of other rules) and in CodeGen/Verbs/SequentialIoEmitter.cs (only SelectWhenOnlyForFilePhraseStatements, a SELECT WHEN rule 1985 cannot write); LinkSameRecordArea and the area stores consult no edition and are the code every edition takes",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf07_05 uses fixed-length sequential records of equal length; not covered are records of different lengths, a variable-length (ODO) record, and relative and indexed files in the area",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VII.2.13@1985-SAME-CLAUSE/g85_bf07_05.cob",
+    "printed": "not run separately; its content is reproduced and extended by sra.cob",
+    "expected": "W1 [HELLO][ WORLD] ..."
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/sra.cob",
+    "printed": "FA[QWERTY] FR[QWERTYUI] FX[QW|ERTYUI]; FB[4abcd UIOPAS] FVN 4; FV[4abcd]; AFTER FX WRITE FA[K1DATA]; R-FV FB[4abcd UIOPZZ] FA[4abcd ]; R-FA FV-N 4 FV[4abcd] FB[4abcd UIOPZZ]; R-FX FA[K1DATA] FB[K1DATA01OPZZ]; R-FR FA[K1DATA] FX-K K1",
+    "expected": "five files (sequential 6/12/ODO 2..10, relative 8, indexed 8) share one area aligned leftmost; a READ of any input file makes its record the record of the output file FB and of the others; bytes beyond the record read are undefined (§1985:VII.4.4.4 GR6), so FB's ' UIOP' after the 5-character FV read is permitted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/sra.cob",
+    "printed": "relative and indexed files in the area read and write through it (R-FX, R-FR lines)",
+    "expected": "the clause reaches every organization the program names"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.13.4 GR2",
+    "check": "OK  §1985:VII.2.13.4 GR2  (2.13.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.4.4.4 GR6",
+    "check": "OK  §1985:VII.4.4.4 GR6  (4.4.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "The binder links every member's character record as an implicit redefinition of the first member's (RedefinitionKind.SameRecordArea), and out-of-line (variable-length) records are kept in step by the READ store and the released-record store. After a READ of the 5-character ODO record the shared area beyond position 5 held stale bytes rather than the prior content, which the 1985 READ rule leaves undefined. Probe sra.cob needed USE declaratives because 1985 requires AT END/INVALID KEY or a USE procedure (COBOL6826).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.13.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,e",
+  "evidence": "Probe refute-1985-118/sra2.cob at --std 85 (sra2-002): subscripted MOVEs into the ODO record FV-T(1..3) appear in FA and FB at the leftmost positions (FA[3xyz--] FB[3xyz--------]); WRITE FA-REC FROM WS leaves FROMWS in FB (§1985:VII.4.7.4 GR2); a file open I-O read then REWRITE shows the record in FB and FA; READ INTO fills both area and identifier; READ of the ODO file FV gives FB[4abcd ----  ] FA[4abcd ] and a later subscripted MOVE into FV-T(2) changes FB byte 3; a READ of another input file then replaces the whole area. Bytes beyond a shorter record read are undefined by §1985:VII.4.4.4 GR6, so the stale tail is permitted. Refusal half: sra3.cob (SAME RECORD AREA with a GLOBAL FD) refused COBOL2738 at 85 (the message cites §2023 text, a diagnostic-text matter). cite.py: OK §1985:VII.2.13.4 GR2; OK §1985:VII.4.4.4 GR6; OK §1985:VII.4.7.4 GR2. Not probed: sort files in the area (a Sort-Merge module rule, not this one).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

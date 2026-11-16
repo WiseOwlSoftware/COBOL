@@ -1,0 +1,72 @@
+{
+ "rule-id": "1985-GR-VI.6.4.3-5",
+ "rule-digest": "4cc9917c39e0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-116",
+  "sources": {
+   "reader": "801d4846124ac220b1bb6d8fe84b092470ef8cb2a20ab9c98f819dc3fc238061",
+   "refuter": "dfd9f2514c7aac4fd17adc5db6898145f3a8d752b7c419d5c6c57cb550382fda"
+  },
+  "imported": {
+   "reader": "cf569a8edf07a18870262681fdc1e8b695fb2d227bd514a0ceade5c432bcebbf",
+   "refuter": "e0e3bf818f0a4ab54db9de836a6423fc7e7f83a18446e518dd190ef98a654929"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.4.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the pairing of MOVE/ADD/SUBTRACT CORRESPONDING relies on each qualifying item's name being unique once the implied qualifiers (the intermediate group names up to D1/D2) are applied, so same-named items under different qualifiers pair only with their namesake under the same qualifiers. A program whose qualifying names are not unique breaks a 'must', and 1985 requires no particular handling of that.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#NamesakeCounts; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMembers",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel|Edition.|IsActive|CobolVersion in CorrespondingBinder.cs: the only edition reads are perPair in Bind and the error-reporting ctx.Edition sink; CorrMatch/NamesakeCounts consult no edition.",
+  "behaviour-differs-by-edition": "no: 2002/2023 reword it as 'is unique' (a condition); the compiler applies the same exclusion of non-unique names at every edition, which also satisfies 1985's 'must be' because 1985 sets no requirement for a program that violates it.",
+  "witnesses-cover": "part: g85_bf15_03 covers same names separated by intermediate qualifiers (MOVE and ADD). Not exercised by it: a name repeated at one qualification level on the D1 side, on the D2 side, through a FILLER group, or against an ineligible (REDEFINES) twin.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/corr5.cob",
+    "printed": "A AA=101 BB=100 CC1=104 CC2=105 / A G2=101100104105100200100100100 / M G2=001100004005100200100100100",
+    "expected": "AA pairs; CC IN S1 and CC IN S2 each pair with their namesake (unique after implied qualifiers); duplicated BB (D1), DD (D2), EE (FILLER-level twin) and FF (twin under FILLER REDEFINES) have no unique implied reference, so a conforming program cannot contain them; the compiler excludes them silently for ADD and MOVE"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/g85_bf15_03.cob",
+    "printed": "EXPECT: MATCH (MOVE 543210 / ADD 122011)",
+    "expected": "witness golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.4.3 GR5",
+    "check": "OK  §1985:VI.6.4.3 GR5  (║6.4.3 The CORRESPONDING Phrase║)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:I.1.6",
+    "check": "OK  §1985:I.1.6  (1.6 DEFINITION OF A CONFORMING SOURCE PROGRAM)  the text is in the clause"
+   }
+  ],
+  "notes": "The unique-name half (qualified namesakes pair correctly) is implemented and witnessed. For a non-unique name 1985 says only 'must be unique'; 1.5.2/1.6 make that a program-conformance requirement with no detection mandate, so silently excluding the name (the later editions' reading) conforms. A diagnostic would also conform. Doubt: an adjudicator who reads 'must' as needing a compile-time refusal would record under-rejects for corr5's BB/DD/EE/FF.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.4.3-5",
+  "refutation": "DOUBTFUL",
+  "classes": "b,d",
+  "evidence": "rc5.cob (rc5-002) at --std 85, ADD CORRESPONDING G1 TO G2 with G1 holding FF, HH, KK once each and G2 holding each twice: printed 'R G2=100100102100103100' -- FF (twin under FILLER REDEFINES) NOT paired, HH (twin under a NAMED REDEFINES group RX) paired, KK (twin under a named ordinary subgroup SK) paired. Under 1985 qualification ('OK  §1985:IV.4.3.8.1 ... uniqueness must be established through a sequence of qualifiers which precludes any ambiguity of reference') 'FF IN G2', 'HH IN G2' and 'KK IN G2' are each equally ambiguous (1985 has no rule that a complete qualification beats a partial one), so the compiler's FILLER-versus-named distinction (NamesakeCounts counts per qualification level) is a model the 1985 text does not draw. The verdict therefore rests on a reading of GR5 ('OK  §1985:VI.6.4.3 GR5 ... must be unique after application of the implied qualifiers'): (i) uniqueness among ALL data items so named -> all three programs violate GR5, results undefined by §1985:I.1.6 ('OK  §1985:I.1.6 ... The results of violating the formats or rules of Standard COBOL are undefined'), every behaviour conforms; (ii) uniqueness among the items 'which satisfy the above conditions' (the GR4-ignored REDEFINES twins and the non-corresponding SK twin do not) -> all three programs conform and FF must pair, which the compiler does not (wrong-answer). The text does not fix the universe of 'unique'.",
+  "edition-sites-missed": [],
+  "corrected": "CONFORMS under reading (i); under reading (ii) a wrong-answer at CorrespondingBinder.cs#NamesakeCounts, which counts a FILLER-REDEFINES twin (ignored by GR4) against uniqueness while a named-REDEFINES twin is not counted."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The program's `FF`, `HH`, `KK IN G2` are ambiguous references, so it violates GR5 itself and its result is undefined. The checker rates this medium: if \"unique\" meant unique among the items that meet the CORRESPONDING conditions, FF would pair and the row would be a wrong answer. I take the first reading: GR5 says \"each data item which satisfies the above conditions must be unique after application of the implied qualifiers\", and these are not.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ }
+}

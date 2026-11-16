@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.1.3-25",
+ "rule-digest": "fe826b68141f",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf",
+ "test-ref": "conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-positioned",
+ "notes": "Own verdict from the read lineage-reads-2002/u-20.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.1.4-25, witnessed at 2002 by the cases test-ref names. The read: 2023 adds the exception-checking PERFORM WHEN arm (2023-only) and rewords a); 2002 refers to its 14.5.12.1.2 fatal conditions. The rule governs only the screen format (the cause list is screen-specific: function key, EC-SCREEN, the GR21 screen EC-DATA-INCOMPATIBLE), which is processor-dependent in 2002 and declined with diagnostics at 2002. Cited: §2002:14.8.1.3 GR25b; §2002:B.3."
+}

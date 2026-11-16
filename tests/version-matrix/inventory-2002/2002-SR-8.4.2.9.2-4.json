@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.9.2-4",
+ "rule-digest": "f672fa929642",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoWrapPropertyOps",
+ "test-ref": "conformance:cases/8.4.2.9@2002-OBJECT-PROPERTY/g2opr05-factory-property-receiver-no-set",
+ "notes": "§2002:8.4.2.9.2 SR4 requires a set property method for a receiving use, in the object (identifier-1) or the factory object (class-name-1). Run at --std 2002 with the pinned compiler (tree dc1f2dcce8): g2opr05 exit 65, error COBOL0843 at (29,12), the receiving MOVE; g2opr07 exit 65, COBOL0843 at (30,12), the receiving MOVE; g2opr03 at --std 2002: exit 0, FCNT=7 / FRO=3 / IVAL=5 / IRO=4, MATCH .out. All as derived."
+}

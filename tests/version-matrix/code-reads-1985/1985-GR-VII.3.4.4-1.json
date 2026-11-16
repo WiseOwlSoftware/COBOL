@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-VII.3.4.4-1",
+ "rule-digest": "245181c7cc40",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-120",
+  "sources": {
+   "reader": "cbbdf8586ff28793043e60f6cd114c8c15b2ea3cdca8f232204cf7e71c2724dc",
+   "refuter": "3b701de0aff4f477041120fc005c7101301723cd7e9a3477268fb9f521bf9346"
+  },
+  "imported": {
+   "reader": "82b9a4e72785994ea3d5f4ff7be3f1bd436930a1f07c93ab9688daac27add7cd",
+   "refuter": "4460f0978f51594d6d2a13e39ffa55ba8ce3deeec0aaf60f5db68811aaebb084"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when an FD of a sequential (or report) file specifies CODE-SET IS alphabet-name-1 (STANDARD-1, STANDARD-2, NATIVE or an implementor-name; never a literal-phrase alphabet), from a successful OPEN the medium holds the data in that alphabet's character set, and every input and output operation (READ, WRITE, REWRITE, EXTEND, report lines) converts each record character between the medium set and the native set through the alphabet's correspondence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindCodeSetClause; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CodeSetMedium; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitCodeSetRegistration; src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#ToMedium; src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#ToNative; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#CodeSet; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EmitRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NextFrame; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCodeSetClause",
+    "switches": "refuses the 2002 national phrases (alphabet-name-2, FOR ALPHANUMERIC/NATIONAL) below 2002 via Constructs.CodeSetNational2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition.|IsActive( in BindCodeSetClause, CollatingModel.cs, SpecialNamesBinder.Alphabets.cs (only the LOCALE arm, not reachable at 85), SequentialIoEmitter code-set members, CodeSetConversion.cs and SequentialConnector.cs (none): the conversion path itself is edition-free; FileDescriptionFormats rows carry no edition and refuse CODE-SET on relative/indexed at every edition, which matches the 1985 relative and indexed FD formats",
+  "behaviour-differs-by-edition": "no for the conversion; the 2002 national phrases are refused at 85",
+  "witnesses-cover": "part: g85_bf03_05 covers an EBCDIC WRITE and READ against a native twin, 1985-GR-VII_3_4_4-1 a STANDARD-1 round trip; not EXTEND, REWRITE, SIGN SEPARATE signs, variable-length records, figuratives, report files, or the statement after a failed OPEN",
+  "probes": [
+   {
+    "class": "a,d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/cs01.cob",
+    "printed": "WRITE/EXTEND 00; FE1 AZ9 07 05-; REWRITE 00; FE2 00 03+; LOW-VALUE KEPT; medium bytes 129 92 130 240 247 240 245 96 0 0 0 240 (EBCDIC a * b 0 7 0 5 - LOW LOW LOW 0); FV1 3 [XYZ] FV2 5 [QRS] and raw first byte 231 (EBCDIC X); OPEN INPUT of a missing file 35, READ after it 47",
+    "expected": "the record converted to EBCDIC on WRITE, EXTEND and REWRITE and back on READ, separate sign in EBCDIC, the varying length kept, a failed OPEN leaves READ unsuccessful"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/cs02.cob",
+    "printed": "EBCDIC: HIGH-VALUE and CHAR(160) (U+009F) both written FF FF; read back E1 HIGH-VALUE, E2 NOT X9F. STANDARD-1: \"A~\" 00 and medium 41 7E; CHAR(234) WRITE 91 and nothing written; NATIVE alphabet E9 F0 round trip; no CODE-SET E9 F0 round trip",
+    "expected": "each native character replaced by its correspondent and back; a character without a correspondent is implementor territory"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/cs05.cob",
+    "printed": "report file with CODE-SET EBCDIC: medium C1 C2 40 60 F1 F2 0D 0A (AB -12)",
+    "expected": "the report line converted to EBCDIC (1 RPW reach)"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/cs04.cob",
+    "printed": "COBOL0900 the CODE-SET national phrases (alphabet-name-2 / FOR) requires COBOL-2002; COBOL2604 CODE-SET on a RELATIVE file",
+    "expected": "the 2002 FOR phrase refused at 85; the 1985 relative FD format has no CODE-SET clause"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.4.4 GR1",
+    "check": "OK  §1985:VII.3.4.4 GR1  (3.4.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.3.4.3 SR2",
+    "check": "OK  §1985:VII.3.4.3 SR2  (3.4.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The conversion is applied at the one physical framing boundary on every output and input path probed, organization-independent and edition-free. Doubt stated: HIGH-VALUE (native U+FFFF) is written as the set's highest code unit, so the native character the alphabet assigns that unit (U+009F under EBCDIC, DEL under STANDARD-1) reads back as HIGH-VALUE (cs02: E2 NOT X9F); this is the owner's decision kb/Work R51 item 4, documented in docs/conformance/7/DOC-A.1-187.md, and HIGH-VALUE's correspondent is unstated by 1985, so it is not counted as a divergence here. The COBOL2604 message cites §2023 rules at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Attacked the input/output operations the reader did not try, at --std 85 under refute-1985-120/: cssort.cob SORT USING a CODE-SET EBCDIC file GIVING a CODE-SET EBCDIC file, then MERGE USING it and a second EBCDIC file GIVING a third: records sorted BB02 aa01 dd04 and merged BB02 CC03 ZZ09 aa01 dd04, raw medium of both outputs 194 194 240 242 (EBCDIC 'BB02'), so SORT/MERGE I-O converts both ways; csrev.cob OPEN OUTPUT WITH NO REWIND, CLOSE WITH NO REWIND (07), OPEN INPUT REVERSED (a 1985-only obsolete form): REV cd2 / REV AB1 converted back; cssame.cob SAME RECORD AREA with a non-CODE-SET file sees the converted native record (SHARED Ab1$), and a contained program's FD using the containing program's alphabet converts (INNER Ab1$, raw 193); csstd2.cob STANDARD-2 round trips $~a@ with medium 36 126 97 64 (the IRV correspondence is implementor territory per §1985:VI.4.5.4 GR4a); csadv.cob WRITE ADVANCING and LINAGE files under EBCDIC: record characters including interior and trailing spaces are EBCDIC (c1 40 c2 40 40 40; d7 40 d8 40 40 40), only the line-control bytes (0a, 0c, 0d 0a) are native, which is device framing, not data; cslit.cob a literal-phrase alphabet is refused (COBOL1672) and cscomp.cob COMP and unseparated sign refused (COBOL1672, SR1). Edition sites: grep of src/WiseOwl.Cobol.Runtime/IO for DialectLevel/Edition found only RelativeConnector, IndexedConnector, ReportWriter, FileRegistry sharing/lock arms, none in the code-set path; VersionConformancePass#VisitCodeSetClause confirmed. cite.py: 'OK  §1985:VII.3.4.4 GR1b  (3.4.4 General Rules)  the text is in GR1b'; 'OK  §1985:VII.3.4.3 SR1  (3.4.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:VI.4.5.4 GR4a  (4.5.4 General Rules)  the text is in GR4a'. Leads outside this rule: COBOL1672 and COBOL2604 cite only §2023 rules at --std 85, and the literal-alphabet refusal is worded as an implementor non-support rather than §1985:VII.3.4.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

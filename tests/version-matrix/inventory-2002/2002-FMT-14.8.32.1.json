@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.32.1",
+ "rule-digest": "e898e7182449",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional",
+ "test-ref": "conformance:cases/14.8.23@2002-MERGE-STATEMENT/g2mrg-format-arms; conformance:cases/14.8.32@2002-RETURN-STATEMENT/g2ret01_return_into_cd_items_2002; conformance:cases/14.9.32-RELEASE/pb347_record_name_identity",
+ "notes": "The §2002:14.8.32.1 RETURN arms (RECORD INTO with AT END / NOT AT END / END-RETURN, and RECORD AT END ended by a period) run in g2mrg-format-arms' output procedures with the records §2002:14.8.32.3 GR3-GR4 give; it matched at --std 2002 on the pinned build, as did g2ret01_return_into_cd_items_2002 and pb347_record_name_identity."
+}

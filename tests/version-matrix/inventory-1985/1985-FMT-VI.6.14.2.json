@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VI.6.14.2",
  "rule-digest": "8dfb34b8d2fa",
+ "test-ref": "conformance:cases/VI.6.14@1985-EXIT-STATEMENT/g85_f13_02",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

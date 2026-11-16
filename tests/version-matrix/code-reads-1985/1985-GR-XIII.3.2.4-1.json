@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-XIII.3.2.4-1",
+ "rule-digest": "f5573691ab4a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-148",
+  "sources": {
+   "reader": "cd63eeb9ed9709933e7a904755c89e9c66dcc37e523cc5c55ebba2d2eec5793c",
+   "refuter": "81637a99046fc20383bc9651dbe773c4bc246f732873a7dcede1deb6bd379c64"
+  },
+  "imported": {
+   "reader": "b48a370cca526342af3946fb389873a203f54d9e2458271f6287c213ff9a931f",
+   "refuter": "5d7f0c12096d9dad0e23ffc65c5f71400bc7bf7a1a0ddece47b2cce5143fbbf6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each report file's FD gives file-name-1 its own file connector, the one the OPEN, CLOSE and the reports named in its REPORT clause write through (several reports on one FD share it; separate FDs do not).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration",
+    "switches": "passes ctx.Data.DialectLevel into the registered report connector (FileConnector.Edition, which gates DialectBehavior rows such as FileSharingFacility); the association itself is not switched",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord",
+    "switches": "DialectLevel < 2002 record-description requirement; a report file returns before it",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel/IsActive in FileControlBinder.FileSection.cs and SequentialIoEmitter.EmitFileRegistration; the REPORT clause binding and FileRegisterReport path are edition-free",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f17_09 covers two report files with separate connectors; two reports on one FD and OPEN EXTEND are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/p3fd.cob",
+    "printed": "OPEN 00 00, CLOSE 00 00, EXTEND 00; P3FD1.RPT: RA-1 RB-1 RA-1; P3FD2.RPT: RC-1 RC-1",
+    "expected": "F1's two reports share F1's connector, RC goes to F2; OPEN EXTEND appends"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/e3fail.cob",
+    "printed": "ERROR DECL 30, OPEN 30, AFTER GENERATE 30, ERROR DECL 42, CLOSE 42",
+    "expected": "failed OPEN reports through the file's own connector; INITIATE/GENERATE on an unopened file is undefined (§1985:XIII.4.4.4 GR2 'must be executed prior')"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.2.4 GR1",
+    "check": "OK  §1985:XIII.3.2.4 GR1  (3.2.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The REPORT clause names are captured on the FileModel in BindFileSection, EmitFileRegistration registers a connector for the record-less report file keyed by FileKeyExpr, and EmitReportConstruction hands the same key to each CobolReport. The failed-open probe takes a path the 1985 text leaves undefined and is not a conformance requirement.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Read §1985:XIII.3.2.2 format, SR1-SR6 and GR1-GR4. Probe r4fd-001 at --std 85: a report FD carrying every 1985 clause of the format (BLOCK CONTAINS, RECORD CONTAINS 20 TO 80, LABEL RECORDS STANDARD, VALUE OF FILE-ID, CODE-SET STANDARD-1, REPORT IS RA), a second report FD (LABEL RECORD OMITTED, REPORTS ARE RB, FILE STATUS, ORGANIZATION/ACCESS SEQUENTIAL) and a plain sequential FD, opened together: compiled and ran, status 00 throughout; CLOSE of RPT-FILE left RPT-TWO's connector open (GENERATE DB after it landed in R4FD2.RPT: RB-1 RB-1); a second OPEN OUTPUT of RPT-FILE replaced its content (R4FD1.RPT holds the two RA-1 lines of the second INITIATE only); R4FD3.DAT held only the sequential record. Each FD is its own connector, as GR1 says. cite.py: 'OK  §1985:XIII.3.2.4 GR1  (3.2.4 General Rules)  the text is in GR1'; 'OK  §1985:XIII.3.2.3 SR5  (3.2.3 Syntax Rules)  the text is in SR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

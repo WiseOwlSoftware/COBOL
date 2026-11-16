@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.22.3-6",
+ "rule-digest": "7a93d85b8902",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv42-cd-operand-reach",
+ "notes": "§2002:14.8.22.3 GR6: a keywordless CD item goes BY REFERENCE (BR=0042), keywordless instance working-storage OW goes BY CONTENT (RV=0001), and keywordless BV with a BY VALUE formal goes BY VALUE (BV=0005). --std 2002 on the pinned tree matched g2inv42. FO, CO and CP each have their own CD so that no record overlaps another (§2002:A.1.2.2 SR9)."
+}

@@ -2,8 +2,8 @@
  "rule-id": "AR-15.62.3-1",
  "rule-digest": "5e4a69b9f544",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
- "test-ref": "conformance:cases/15.62.3-Argument-rule/stat-midrange-arg-class-numeric",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KnownWidth",
+ "test-ref": "conformance:cases/15.62.3-Argument-rule/stat-midrange-arg-class-numeric; conformance:cases/15.62.3-Argument-rule/pb5833-midrange-all-refmod",
  "editions": "85,2002,2014,2023",
- "notes": "New negative: PIC X(3) at argument-3 of 3 - the LAST position, which proves the variadic tail rule screens every position. 15.62.4 r1's equivalent expression is over MAX/MIN, whose own r1 admits alphanumeric; MIDRANGE's r1 does not, and the EAE states the value, never the admissible arguments."
+ "notes": "CONFORMS (2026-11-16, kb/Work PB5833 landed): a reference-modified element under an ALL subscript (N-EL (ALL) (1:1)) was classed as its numeric element, so MAX and MIN refused legal alphanumeric lists, MEAN, MEDIAN and MIDRANGE computed from digit slices and an illegal numeric/alphanumeric MAX mix compiled and failed at run time. IntrinsicArgumentRules.ClassOfPlace now peels the TableAllPlace decorator to its element (the contract TableAllPlace states and IntrinsicResultType.OperandCategory already kept), so the element is class alphanumeric by §1985:IV.4.3.8.4.4 GR3a and GR5; IntrinsicBinder.KnownWidth peels it too. Witnesses: the PB5833 conformance cases. || New negative: PIC X(3) at argument-3 of 3 - the LAST position, which proves the variadic tail rule screens every position. 15.62.4 r1's equivalent expression is over MAX/MIN, whose own r1 admits alphanumeric; MIDRANGE's r1 does not, and the EAE states the value, never the admissible arguments."
 }

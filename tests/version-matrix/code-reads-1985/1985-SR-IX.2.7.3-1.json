@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-SR-IX.2.7.3-1",
+ "rule-digest": "8de075e4809d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-154",
+  "sources": {
+   "reader": "d6d8b0b0f17a94669df01f8e0e63b46be19f274694e886e4d79820e9005e7cb5",
+   "refuter": "8ebd24c079ba77d212b3d6985ce997d85c8b423c1554ac6f225bf8d122755c1b"
+  },
+  "imported": {
+   "reader": "362d415841268aaf8b9df1833051e67f8a4e24e1ae31edd935718cf186eede0d",
+   "refuter": "28d082b3fe31031fa4cfa64768a872f7487ccfe792377fe7a73b4dc17f568bef"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.2.7.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the RECORD KEY clause's data-name-1 may be written with qualifiers (IN/OF data-names and/or the file-name), must resolve uniquely, and admits no subscript nor the SOURCE phrase.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordKeyClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenClauseOperandOccurrence; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordKeyNameCandidates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#RecordKeyNameOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenClauseOperandOccurrence",
+    "switches": "Edition.SubscriptedClauseOperands (2002 only) admits a subscripted key",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
+    "switches": "ConstructRegistry RecordKeySource2002: SOURCE phrase refused at 1985",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: the SOURCE phrase is refused at 1985 (k7) and accepted at 2023; qualification is the same code",
+  "witnesses-cover": "part: g85_bf21_09 covers OF record-name qualification against a same-named WORKING-STORAGE item; not covered: file-name qualifier, multi-level qualification, the ambiguous unqualified refusal",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/k1.cob",
+    "printed": "RECORD KEY IS K OF REC-F IN IX-F and K OF IX-G: PRI AAA dat1, G 009 gdat FS 0000",
+    "expected": "qualified keys resolve to the file's own record items; random READ by primary key returns record 001"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/k2.cob",
+    "printed": "error COBOL1639 RECORD KEY 'K' does not uniquely identify a data item (3 declarations)",
+    "expected": "refused: unqualified non-unique name, even though one candidate is in the file's record"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/k7.cob",
+    "printed": "--std 85: error COBOL0900 SOURCE phrase requires COBOL-2002; --std 2023: compiles and runs",
+    "expected": "refused at 1985"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.7.3 SR1",
+    "check": "OK  §1985:IX.2.7.3 SR1  (2.7.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.1",
+    "check": "OK  §1985:IV.4.3.8.1  (4.3.8.1 Qualification)  the text is in the clause; it lies in SR3"
+   }
+  ],
+  "notes": "Same resolver as the ALTERNATE RECORD KEY clause (InRecords in ResolveFiles). A name ambiguous across files is refused rather than disambiguated by SR2's in-file constraint, which matches §1985:IV.4.3.8.1's uniqueness requirement.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.2.7.3-1",
+  "refutation": "UPHELD",
+  "classes": "e,b",
+  "evidence": "q1.cob --std 85 (runs/q1-001): RECORD KEY IS K OF IX-F (file-name qualifier, K also present in IX-G's record), RECORD KEY IS KK OF REC-G (a group key qualified by its record), RECORD KEY IS REC-H OF IX-H (the 01 record itself as the key, qualified by its file-name): WRITE/READ by each returned the record (H HHHHH 00, G 009 gdat 00). The reader's k2 covers the ambiguous unqualified refusal and k7 the SOURCE phrase. cite.py: 'OK  §1985:IX.2.7.3 SR1  (2.7.3 Syntax Rules)  the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

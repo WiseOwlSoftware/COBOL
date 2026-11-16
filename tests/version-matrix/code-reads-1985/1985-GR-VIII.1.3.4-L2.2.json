@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-L2.2",
+ "rule-digest": "e5d66394d7f4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-128",
+  "sources": {
+   "reader": "818b2b1736fc0bfea2f57a9812ee858c7d1c6da2b172231e927e971b297c34f2",
+   "refuter": "30a504c9065d09eef0f7511e73ccc3edaffc08d811acf61d17a03809c2c45d48"
+  },
+  "imported": {
+   "reader": "cfbeda0aa75fdc8e2472bb3741eb678a86d110044d92f16f8a181f2672ab9661",
+   "refuter": "0463a3178d78027d9f2543e7f45d7d5f4537877c52f4066910e2c4875d03aacb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.1.3.4-L2.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a sequential READ (sequential access READ, or READ NEXT in dynamic access) of a relative file sets I-O status 10 when the end of file is reached or on the first READ of an absent OPTIONAL input file, and 14 (an at end condition) when the relative record number of the next record has more significant digits than the RELATIVE KEY data item; with no RELATIVE KEY item, 14 never arises.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#SelectSequentialSlot; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RelativeKeyOverflow; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#AtEnd; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "carries --std into the connector's Edition at registration; nothing on the sequential READ path reads it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateStatement",
+    "switches": "refuses READ ... PREVIOUS below 2002 (COBOL0900), so the only sequential direction at 85 is NEXT",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep IsActive( / Edition / CobolVersion in Runtime/IO/RelativeConnector.cs, FileConnector.cs, FileStatus.cs: the only gate in RelativeConnector is the random WRITE key range (line 349); ReadSequential, SelectSequentialSlot and SequentialReadGuard read no edition.",
+  "behaviour-differs-by-edition": "no: the 10/14 statuses are the same code at every edition; only the READ PREVIOUS direction is refused at 85",
+  "witnesses-cover": "part: g85_bf29_01 covers sequential access 10 (end), 10 (absent optional) and 14; not exercised: READ NEXT in dynamic access, a COMP key item, a file with no RELATIVE KEY, an empty file, RECORD VARYING, and the READ after a 14",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p1_atend.cob",
+    "printed": "D1 READ REC09 00 9 / D2 AT END 14 / D3 STATUS 46 / D4 READ REC09 00 (dynamic READ NEXT, key PIC 9, records 9,10,100); C2 AT END 14 (COMP PIC 9 key); N1..N3 READ 00, N4 AT END 10, N5 STATUS 46 (no RELATIVE KEY); E1 AT END 10 (empty file)",
+    "expected": "14 for RRN 10 against a one-digit key, at end taken; the READ after an at end condition 46 (§1985:VIII.1.3.4 GRL2.5 e 3); no RELATIVE KEY: every record then 10"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p1_atend.cob",
+    "printed": "V1 READ 03 00 1 / V2 READ 07 00 2 / V3 AT END 10",
+    "expected": "variable-length records read with their lengths, then 10"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p1_prev.cob",
+    "printed": "COBOL0900: READ PREVIOUS requires COBOL-2002 (targeting COBOL-85); COBOL7144 NEXT phrase must be specified (§1985:VIII.4.5.3 SR3)",
+    "expected": "the 2002 PREVIOUS phrase refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/g85_bf29_01.cob",
+    "printed": "EXPECT: MATCH (S2 AT END 14, A3 AT END 10, O0 OPEN 05, O1 AT END 10)",
+    "expected": "the witness's golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.1.3.4 GRL2.2",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.2  (1.3.4 I-O Status)  the text is in GRL2.2"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4 GRL2.5",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.5  (1.3.4 I-O Status)  the text is in GRL2.5"
+   }
+  ],
+  "notes": "ReadSequential returns '10' when no next slot exists and '14' when the slot number's decimal length exceeds _keyDigits (0 when no RELATIVE KEY is described), and SequentialReadGuard returns '10' for the first READ of an absent optional file. Every probe printed what the 1985 text requires. The source comments cite §2023 clauses, but the behaviour matches the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.1.3.4-L2.2",
+  "refutation": "UPHELD",
+  "classes": "c,e,f",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-128/r1_atend.cob at --std 85 (runs/r1_atend-004) aimed at what the reader did not try. Sequential access absent OPTIONAL file: SA-OPEN 05 / SA-AE1 10 / second READ 46 with no AT END. Dynamic access absent OPTIONAL: DA-OPEN 05 / DA-AE1 10 / then 46. Sequential, RELATIVE KEY PIC 99, records 5,99,100,101: S1 00 05, S2 00 99, S-AE3 14 (record area kept, key 99), S4 46. Dynamic, key PIC 99 COMP: START NOT LESS THAN 6 gives 00, READ NEXT 00 99, READ NEXT 14 (at end taken), then a random READ of 5 gives 00 and READ NEXT re-establishes 99 and then 14 again. Class c: r1_later.cob (runs/r1_later-001) refuses WITH NO LOCK, START KEY LESS THAN and RETRY at 85 with COBOL0900; KEY >= compiled, and the 1985 START format (VIII.4.7.2) does include IS >= (amendment), so that is correct. cite.py: OK §1985:VIII.1.3.4 GRL2.2 the text is in GRL2.2; OK §1985:VIII.1.3.4 GRL2.5 the text is in GRL2.5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

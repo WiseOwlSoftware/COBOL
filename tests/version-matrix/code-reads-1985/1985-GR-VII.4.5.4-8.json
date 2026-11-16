@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-8",
+ "rule-digest": "136af03a1b52",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-125",
+  "sources": {
+   "reader": "bc455473fa2de6f1c4fc150fe11ea0c6256448ddaab13f91ff98d875bd743e30",
+   "refuter": "56a1c9193d22777bd10fa0ae78650e0f8a9a3b26f4ead5cf93fb85dbde45e5b5"
+  },
+  "imported": {
+   "reader": "5d4c2718bf8f41268be2639c9388171a5564baca13104740ffec4f23bce31992",
+   "refuter": "85fd7287b64d672f9c17b6b9acd596360aa06511d90e7041b779923680a318c0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.5.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a successful REWRITE releases the replacing logical record to the operating system: the physical file holds it at once in place of the replaced record, with the record count unchanged, so a later READ through this or another file connector of the same physical file sees it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OverwriteInPlace; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NoteRelease; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EnsureReaderCoherent; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EnsureReaderCoherent",
+    "switches": "SharingFacilityInEffect: from 2002 another run unit may write, so the reader always re-anchors; at 85 it re-anchors only when the physical file's release generation moved (NoteRelease)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the OPEN's default sharing mode; AllOther at 85 lets the second connector open the file beside the I-O one",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition|SharingFacilityInEffect in SequentialConnector.cs; OverwriteInPlace (seek, write, Flush, NoteRelease) is edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf27_01 checks the record after CLOSE and reopen; a second connector reading while the I-O connector is still open, and the variable-length record, are not exercised by it",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p5rel.cob",
+    "printed": "RW 00; F2 (second file-name on the same physical file, opened INPUT while F is open I-O) SEES NEWB 00",
+    "expected": "the record released at the REWRITE is in the physical file"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p2vary.cob",
+    "printed": "variable-length records read back 03XXX / 06BBBBBB / 02ZZ: the rewritten records replaced in place, the count unchanged",
+    "expected": "the released records replace the read ones"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.4 GR8",
+    "check": "OK  §1985:VII.4.5.4 GR8  (4.5.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "The one in-place overwrite flushes the stream before answering 00 and announces the release so sibling connectors re-anchor; at 85 the re-anchor is driven by the release generation, which the probe showed suffices for a second connector in the same run unit.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.5.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "Read SequentialConnector.OverwriteInPlace (Flush then NoteRelease) and the SharingFacilityInEffect arm (line 376). q5stale.cob at --std 85 with BLOCK CONTAINS 4 RECORDS: F2 opened INPUT and READ record 1 BEFORE F (open I-O) rewrote records 3, 4 and 5; F2's later READs show OLD02, NEW03, NEW04, NEW05 (no stale read-ahead). q4sra.cob: a separately compiled program opens the physical file INPUT while FA is still open I-O and sees NEW2. q3rw.cob: variable-length (4 TO 8) blocked records rewritten in place, count unchanged. cite.py: OK §1985:VII.4.5.4 GR8 'releases a logical record to the operating system'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

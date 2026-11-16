@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.23.2-13",
+ "rule-digest": "fcb245581835",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb994-merge-using-random-access",
+ "notes": "Own verdict from the read lineage-reads-2002/u-24.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.24.3-13, witnessed at 2002 by the cases test-ref names. The read: MERGE general format identical in 2002 14.8.23.1 and 2023 14.9.24.2. The words differ only by a comma. The operands are file-names, so no CD record, debugging line or other 2002-only context reaches the rule; the access modes and file organizations are the same in both editions. Cited: §2002:14.8.23.2 SR13."
+}

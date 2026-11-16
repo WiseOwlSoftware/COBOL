@@ -1,0 +1,128 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.1.3-3",
+ "rule-digest": "48970f1a53e2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-086",
+  "sources": {
+   "reader": "6a96a82bff65079e8e01d9c2900e21b9ccf2e439b3182b3151de0caa9ffc2dd9",
+   "refuter": "84eead25e060f896dd9a49671c4967dbabf36eb95ce5e2b18c300c9c60583088"
+  },
+  "imported": {
+   "reader": "29ac3c0095c9aaa2026dec16e261464f499d8a7fbddf645d65bb91356b8c0e56",
+   "refuter": "acdad6f1e2a7129197bc4db7d290b0e82a8d9f572ba5c08bf31c4254ce26758c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.1.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every nonnumeric literal (the only quoted literal form 1985 has: quotation-mark delimited, no X/N/B prefix, no apostrophe) is of category alphanumeric, so it moves as an alphanumeric sender (to numeric as an unsigned integer, §1985:VI.6.19.4 GR4 b 3), compares as a nonnumeric operand against a numeric integer item (§1985:VI.6.3.1.1.2), and is refused wherever a numeric literal is required (arithmetic operands, PERFORM TIMES integer, VALUE of a numeric item).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericLiteralOperand; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundStringLiteral; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+    "switches": "ConstructRegistry gates on the literal forms later editions added (national N\"\", boolean B\"\", hexadecimal X\"\", zero-length, apostrophe delimiter): refused at 85 with COBOL0900, admitted at 2023; a plain quotation-mark literal passes no gate at either edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#SyntaxViolation (called from LiteralScreen#Screen with edition.Year)",
+    "switches": "the literal's length rule per edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the category itself (BoundStringLiteral defaults to Alphanumeric at every edition); the set of literal forms that are alphanumeric differs (85 has only the quotation-mark form; X\"\" and apostrophes are 2002 introductions, refused at 85)",
+  "witnesses-cover": "part: the witness exercises only the nonnumeric comparison against a numeric integer item; MOVE of a nonnumeric literal to numeric, numeric-edited, alphabetic, alphanumeric-edited and group receivers and the refusals in numeric-only positions are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/g85_bf01_01.cob",
+    "printed": "MATCH (witness)",
+    "expected": "nonnumeric comparison legs"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/nn1.cob",
+    "printed": "N4 [0012] S4 [+0012] D21 [23.0] E5 [  42] AL4 [AB1 ] AE6 [A B CD] X3 [ABC] G [12AB] G1 [12] CMP1 EQ CMP2 NE",
+    "expected": "alphanumeric sender: \"123\" to 99V9 moves as integer 123 -> 23.0; \"12\" to 9(4) -> 0012; to alphabetic/alnum-edited/group legal; N3=5 vs \"005\" equal, vs \"5\" (space-extended) not equal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/nnr_add.cob",
+    "printed": "error COBOL0844: an alphanumeric literal is not a numeric operand",
+    "expected": "ADD \"1\" TO N4 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/nnr_compute.cob",
+    "printed": "error COBOL2269: unexpected '+'",
+    "expected": "COMPUTE N4 = \"1\" + 1 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/nnr_perform.cob",
+    "printed": "error COBOL5506: The alphanumeric literal \"2\" is not expected here: only an integer literal",
+    "expected": "PERFORM \"2\" TIMES refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/nnr_value.cob",
+    "printed": "error COBOL1657: the VALUE literal \"12\" is alphanumeric but the item is numeric",
+    "expected": "VALUE \"12\" on PIC 9(4) refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/nnr_nonint.cob",
+    "printed": "error COBOL2532: a numeric operand compared with an operand of class alphanumeric shall be an integer",
+    "expected": "§1985:VI.6.3.1.1.2 (3): noninteger numeric vs nonnumeric refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/nnr_class.cob",
+    "printed": "error COBOL3318: a class condition's subject shall be identifier-1, not a literal",
+    "expected": "IF \"12\" IS NUMERIC refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/nnr_hex.cob",
+    "printed": "error COBOL0900: the hexadecimal alphanumeric literal X\"...\" requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "X\"4142\" is not a 1985 literal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.1.3 GR3",
+    "check": "OK  §1985:IV.4.2.2.2.1.3 GR3  (4.2.2.2.1.3 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3",
+    "check": "OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR4",
+    "check": "OK  §1985:VI.6.19.4 GR4  (6.19.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.2",
+    "check": "OK  §1985:VI.6.3.1.1.2  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in the clause; it lies in GR1"
+   }
+  ],
+  "notes": "One mapping (ExpressionBinder.NonNumericLiteralOperand) binds every quoted literal to BoundStringLiteral, whose Category defaults to Alphanumeric; the 1985 edition differs only in which literal forms exist, gated position-blind by LiteralScreen.GateFormat. Classes a, e, f do not bear on a literal's category. The refusal diagnostics cite §2023 clauses, a wording matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.1.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attack on the 1985-only comparison restriction the reader did not probe ('Numeric and nonnumeric operands may be compared only when their usage is the same'): src/nl_comp.cob IF C2 = \"12\" with C2 PIC 99 COMP -> error COBOL2532 at 85 (and at 2023), refused as 1985 requires. src/nl_misc.cob at 85: S99 VALUE -12 = \"12\" EQ, SIGN LEADING SEPARATE -12 = \"12\" EQ, \"12\" = group EQ, 12 < \"2\" LT (alphanumeric compare, space-extended), doubled quote A\"B, \"1.5\" moved as alphanumeric, \"AB1\" to PIC A legal, continued literal. Class c: src/nl_apos.cob 'AB' -> COBOL0900 (2002 form); src/nl_empty.cob \"\" -> COBOL0900 (2014 form); src/nl_concat.cob \"AB\" & \"CD\" -> COBOL0900 (2002). cite.py: OK §1985:IV.4.2.2.2.1.3 GR3 'All nonnumeric literals are of category alphanumeric'; OK §1985:VI.6.3.1.1.2 (lies in its usage paragraph) 'Numeric and nonnumeric operands may be compared only when their usage is the same'. The 160-character minimum length is an implementor floor, not a ceiling, so no refusal is required above it.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

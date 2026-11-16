@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.9.3-6",
+ "rule-digest": "9fe91ea21474",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand",
+ "test-ref": "conformance:cases/7.2.9@2002-DEFINE-DIRECTIVE/g2def01_arith_operand_value",
+ "notes": "§2002:7.2.9.3 GR6 evaluates the DEFINE expression per 7.2.5 (standard arithmetic, 32-digit truncation, integer part per §2002:7.2.5.2 GR2); g2def01 at --std 2002 prints X1=+00000 X2=+00001 X3=+00099 X4=+00007 X5=-00003 X6=(31 nines) X7=+00016 IF-X1-ZERO EV-X2-ONE, equal to the derivation."
+}

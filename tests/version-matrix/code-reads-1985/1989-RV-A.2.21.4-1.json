@@ -1,0 +1,121 @@
+{
+ "rule-id": "1989-RV-A.2.21.4-1",
+ "rule-digest": "f33e720cba6d",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-10",
+  "sources": {
+   "reader": "3d30a56ccbda16d118316e117b197172c15c128a6ba71ed78f12a663676b0d1d",
+   "refuter": "c9a32fd6314b887eaa2ab65ffdac7428d3df9534ddb6c7fdbbf6f9b26c20edab"
+  },
+  "imported": {
+   "reader": "bb900874932da8af892bc31df3b9b9a0522de6f25f32f671ffbb2c4468508bc7",
+   "refuter": "ca437d152a6d7eb1fac6d8b375ef15a763bb4b7a7f7017fa0899d2ff00c6a25d"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.21.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION LOG10 of a class-numeric argument greater than zero returns a numeric approximation of its base-10 logarithm. The argument can have any usage or scale, or be a literal or an arithmetic expression. The precision and other characteristics of the result are implementor-defined.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloatNative; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: sig.IntroducedIn (85 on the catalog row) > ctx.Edition.DialectLevel raises COBOL1502, RemovedIn raises the removal error; at --std 85 neither fires",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry numeric-function-identifier-operand-2002: below 2002 a numeric/integer function written where an identifier stands (MOVE, DISPLAY) is refused COBOL0900; a function inside an arithmetic expression is not screened",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOptionsParagraph",
+    "switches": "the OPTIONS paragraph (so ARITHMETIC IS STANDARD-*) is refused below 2002, so NumericRenderer#StandardDecimal is false at 85 and the renderer takes its native arm, the same arm 2023 takes with no OPTIONS paragraph",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition/CobolVersion/ConstructRegistry over IntrinsicRenderer.cs and src/WiseOwl.Cobol.Runtime/Intrinsics: no hits. The only switch on the value path is num.StandardDecimal (the ARITHMETIC mode), which 85 cannot reach.",
+  "behaviour-differs-by-edition": "no for the returned value: log1.cob prints the same output at --std 85 and 2023. Use as an identifier operand is refused only at 85, and that is outside this rule.",
+  "witnesses-cover": "part: the witness covers one ill-conditioned argument near 1. Exact powers of ten, fractions, the 18-digit extremes, table elements and COMP-3 arguments are not exercised.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/log1.cob",
+    "printed": "L10-1000 (table element TE(3))=003.000000000000000, L10-1=0, L10-H (COMP-3 0.5)=-000.301029995663981, L10-001 (literal 0.01)=-002.000000000000000, L10-E=000.434294481903251",
+    "expected": "log10 approximations: 3, 0, -0.30102999566398119, -2, 0.43429448190325182"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/log1.cob",
+    "printed": "L10-BIG (999999999999999999)=018.000000000000000; L10-TINY (1E-18)=-018.000000000000000",
+    "expected": "an approximation of 17.99999999999999999957; exactly -18"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/w-pb1041_trig_log_arc_exact_argument.cob",
+    "printed": "matches the golden at --std 85 (L10-L=4.34294481903252E-18 for log10(1.00000000000000001))",
+    "expected": "approximation of log10 of the exact argument"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/logmv.cob",
+    "printed": "COBOL0900: numeric function-identifier (LOG10) where an identifier is written requires COBOL-2002",
+    "expected": "refused at 85 (§1989:A.2.3 GR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/logra.cob",
+    "printed": "COBOL1627: LOG argument-1 is of class alphanumeric",
+    "expected": "refused (AR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/log2a.cob",
+    "printed": "COBOL1504: LOG10 takes 1 argument(s); 2 given",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/log0.cob",
+    "printed": "LOG(0)= 000.000000000000000, LOG10(-1)= 000.000000000000000, and execution continues (AFTER)",
+    "expected": "at 85 the result is undefined (§1989:A.2.2, AR2: a value outside the permissible range), so any value conforms"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.21.4 RV1",
+    "check": "OK  §1989:A.2.21.4 RV1  (2.21.4 Returned Values)  the text is in RV1 ['approximation of the logarithm to the base 10 of argument-1']"
+   },
+   {
+    "cite": "§1989:A.2.3",
+    "check": "OK  §1989:A.2.3  (2.3 TYPES OF FUNCTIONS)  the text is in the clause; it lies in GR2 ['Those characteristics of the returned value not otherwise specified for a given function are defined by the implementor']"
+   },
+   {
+    "cite": "§1989:A.2.21.3 AR2",
+    "check": "OK  §1989:A.2.21.3 AR2  (2.21.3 Arguments)  the text is in AR2 ['The value of argument-1 must be greater than zero']"
+   }
+  ],
+  "notes": "LOG10 runs through a binary64 body, with an exact (wide) intake near the ill-conditioned point. Results carry about 16 significant digits: ln(999999999999999999) prints 41.446531673892820, where the exact value is 41.446531673892822... §1989:A.2.3 leaves that precision of the 'approximation' to the implementor. The value path consults no edition.",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "log1.cob prints the same output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog": "LOG10 row: Numeric, Float, Domain Positive, IntroducedIn 85",
+   "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies": "Wide exact intake"
+  }
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.21.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "LGN.cob at 85 = 2023: LOG10(.999999999999999999)*1E18 = -0.4342944819032518 (true -0.43429448190325182...), LOG10 of COMP 1E17 = 17.0000000000000000 and IF ... = 17 true, LOG10(10) = 1 exactly, LOG10(FUNCTION INTEGER(1000.5)) = 3. LOG10 as a user data-name with FUNCTION LOG10(LOG10) = 1 (FNW.cob). cite.py: OK §1989:A.2.21.4 RV1 'approximation of the logarithm to the base 10'; OK §1989:A.2.3 (GR2) on implementor-defined characteristics.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

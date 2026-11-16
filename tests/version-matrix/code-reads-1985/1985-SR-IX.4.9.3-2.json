@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-SR-IX.4.9.3-2",
+ "rule-digest": "439e82672dd2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-048",
+  "sources": {
+   "reader": "ffda7751b6ffff529d4fbbd967332ed572be084dfa5bf14a6c918b2dab1daeee",
+   "refuter": "799a6246823527f7181c6232e4f09cca0c2db56f4e32c7b7c50886ff80f17f76"
+  },
+  "imported": {
+   "reader": "4a61337977fc583956f18a90913473537b02285215e74904a9f7824c363e0d26",
+   "refuter": "b9c938f5d5ea24004921064aa8630431414ca0352065d16be64c255af2424034"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "edition-search": "",
+  "rule-id": "1985-SR-IX.4.9.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the WRITE operand must resolve to a level-01 logical record of an FD in the File Section, optionally qualified (by file-name), so a working-storage item, a subordinate item, an ambiguous unqualified name, a reference-modified record, a file-name, an SD record and the 2002 WRITE FILE form are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ResolveWriteRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#FileWhoseRecordIs",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitWriteStatement",
+    "switches": "write-rewrite-file-phrase-2002: WRITE FILE file-name-1 refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "behaviour-differs-by-edition": "yes: WRITE FILE file-name-1 is legal at 2023 and refused at 85; the record-name rule itself is the same code at every edition",
+  "witnesses-cover": "part: the witness is RELEASE's record identity at 85; WRITE on an indexed file, qualification by file-name, and subordinate/ambiguous names are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/wlegal.cob",
+    "printed": "W1 ST1=00 / W2 ST1=00 / W3 ST1=00 REC=WWWW9999 / W4 ST2=00 / R ST1=00 REC=BBBB2222 / R ST1=00 REC=WWWW9999",
+    "expected": "REC OF F1, the second record REC-B, REC IN F1 FROM, and REC OF F2 (sequential-access indexed) all written and read back"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/wambig.cob",
+    "printed": "COBOL1639 'REC' does not uniquely identify a data item",
+    "expected": "refused (needs qualification)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/wwsrec.cob",
+    "printed": "COBOL1757 'WS-REC' is not a logical record of any file description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/wsubord.cob",
+    "printed": "COBOL1757 'K1' is subordinate to 'REC', which is the logical record of 'F1'",
+    "expected": "refused (not a logical record)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/wrefmod.cob",
+    "printed": "COBOL1757 record-name-1 ... shall not be reference-modified",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/wfname.cob",
+    "printed": "COBOL1639 'F1' is declared as a file-name",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/wsdrec.cob",
+    "printed": "COBOL1692 WRITE may not name the sort-merge file 'SF'",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/wfile.cob",
+    "printed": "COBOL0900 the FILE phrase of a WRITE or REWRITE statement requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.3 SR2",
+    "check": "OK  §1985:IX.4.9.3 SR2  (4.9.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "ResolveWriteRecord runs ResolveRecordName before the sequential/keyed split, so the indexed arm is under the rule; the identity test is FileModel.Records membership."
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.9.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,e",
+  "evidence": "At --std 85: wglobal.cob (contained program WRITEs REC OF F1 of the containing program's GLOBAL FD, dynamic-access indexed) EXIT 0 'INNER W ST1=00 / R ST1=00 REC=GGGG7777'; wnonglob.cob (same with a non-GLOBAL FD) COBOL1639 not defined; wodo.cob (RECORD VARYING ... DEPENDING ON with an OCCURS DEPENDING ON record on an indexed file) EXIT 0 'W1 ST1=00 / W2 ST1=00 / R1 ST1=00 LEN=08 N=3 REC=AAAA3XYZ / R2 ST1=00 LEN=05 N=0'; w66.cob (66 RENAMES of the record) COBOL1757 refused; wqualbad.cob (REC OF F2 where REC belongs to F1) COBOL1639 refused; wlink.cob (Linkage Section 01) COBOL1757 refused. cite.py: 'OK  §1985:IX.4.9.3 SR2  (4.9.3 Syntax Rules)  the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

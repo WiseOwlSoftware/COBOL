@@ -114,6 +114,71 @@ public sealed class CobolLexerModeDriftTests
         if (expected is "MINUS" or "PLUS") Assert.DoesNotContain(names, n => n.StartsWith("SIGNED_", StringComparison.Ordinal));
     }
 
+    /// <summary>⛔ A LIST SEPARATOR IS KEPT ONLY AT A BOUNDARY BETWEEN TWO ITEMS (kb/Work PB5793). §2023:8.3.5 SR2 makes the
+    /// comma or semicolon followed by a space a separator "anywhere the separator space is used": after an opening
+    /// parenthesis, before a closing one, around an operator, after a qualifier connective, after another separator. There
+    /// it separates no items, so the lexer skips it as it skips the space; between an item that has ended and one that
+    /// begins it stays the boundary token (a '(' or a signed literal after it begins a new item).</summary>
+    [Theory]
+    [InlineData("MOVE T (, I) TO X", "REF_LPAREN IDENTIFIER REF_RPAREN")]
+    [InlineData("MOVE T (I, ) TO X", "REF_LPAREN IDENTIFIER REF_RPAREN")]
+    [InlineData("MOVE T (I; ) TO X", "REF_LPAREN IDENTIFIER REF_RPAREN")]
+    [InlineData("MOVE T (I +, 1) TO X", "REF_LPAREN IDENTIFIER PLUS INTEGERLIT REF_RPAREN")]
+    [InlineData("MOVE T (I, + 1) TO X", "REF_LPAREN IDENTIFIER PLUS INTEGERLIT REF_RPAREN")]
+    [InlineData("MOVE T (I, * 2) TO X", "REF_LPAREN IDENTIFIER STAR INTEGERLIT REF_RPAREN")]
+    [InlineData("MOVE T (I **, 2) TO X", "REF_LPAREN IDENTIFIER POWER INTEGERLIT REF_RPAREN")]
+    [InlineData("MOVE T (I, , J) TO X", "REF_LPAREN IDENTIFIER FNARG_SEPARATOR IDENTIFIER REF_RPAREN")]
+    [InlineData("MOVE T (I, -1) TO X", "REF_LPAREN IDENTIFIER FNARG_SEPARATOR SIGNED_INTEGERLIT REF_RPAREN")]
+    [InlineData("MOVE T (I, (J)) TO X", "REF_LPAREN IDENTIFIER FNARG_SEPARATOR LPAREN IDENTIFIER RPAREN REF_RPAREN")]
+    [InlineData("MOVE T (2:, 2) TO X", "REF_LPAREN INTEGERLIT COLON INTEGERLIT REF_RPAREN")]
+    [InlineData("MOVE T (E OF, G) TO X", "REF_LPAREN IDENTIFIER OF IDENTIFIER REF_RPAREN")]
+    [InlineData("MOVE T (E, OF G) TO X", "REF_LPAREN IDENTIFIER OF IDENTIFIER REF_RPAREN")]
+    [InlineData("MOVE T (E, in G) TO X", "REF_LPAREN IDENTIFIER IN IDENTIFIER REF_RPAREN")]
+    [InlineData("MOVE T (E, OFX) TO X", "REF_LPAREN IDENTIFIER FNARG_SEPARATOR IDENTIFIER REF_RPAREN")]
+    [InlineData("MOVE T (E, INDEX-1) TO X", "REF_LPAREN IDENTIFIER FNARG_SEPARATOR IDENTIFIER REF_RPAREN")]
+    [InlineData("COMPUTE N = FUNCTION MAX (A, B-NOT B)", "FNARG_LPAREN IDENTIFIER FNARG_SEPARATOR B_NOT IDENTIFIER FNARG_RPAREN")]
+    [InlineData("COMPUTE N = FUNCTION MAX (, A B)", "FNARG_LPAREN IDENTIFIER IDENTIFIER FNARG_RPAREN")]
+    [InlineData("COMPUTE N = FUNCTION MAX ((, A) B)", "FNARG_LPAREN LPAREN IDENTIFIER RPAREN IDENTIFIER FNARG_RPAREN")]
+    public void ListSeparator_IsKeptOnlyBetweenTwoItems(string src, string expectedRegion)
+    {
+        string[] names = TokenNames(src);
+        int open = Array.FindIndex(names, n => n is "REF_LPAREN" or "FNARG_LPAREN");
+        int close = Array.FindLastIndex(names, n => n is "REF_RPAREN" or "FNARG_RPAREN");
+        Assert.Equal(expectedRegion, string.Join(' ', names[open..(close + 1)]));
+    }
+
+    /// <summary>Every token after which an operand must follow drops a separator written after it, in a list region —
+    /// the lexer's <c>ListOperandFollows</c>, asked member by member, so a token added to it or dropped from it is seen.</summary>
+    [Theory]
+    [InlineData("+ (", "LPAREN")] [InlineData("+", "PLUS")] [InlineData("-", "MINUS")] [InlineData("*", "STAR")]
+    [InlineData("/", "SLASH")] [InlineData("**", "POWER")] [InlineData("&", "AMPERSAND")] [InlineData(":", "COLON")]
+    [InlineData("OF", "OF")] [InlineData("IN", "IN")] [InlineData("B-AND", "B_AND")] [InlineData("B-OR", "B_OR")]
+    [InlineData("B-XOR", "B_XOR")] [InlineData("B-NOT", "B_NOT")] [InlineData("B-SHIFT-LC", "B_SHIFT_LC")]
+    [InlineData("B-SHIFT-RC", "B_SHIFT_RC")] [InlineData("B-SHIFT-L", "B_SHIFT_L")] [InlineData("B-SHIFT-R", "B_SHIFT_R")]
+    [InlineData(",", "COMMA")]
+    public void ListSeparator_AfterAnOperandOpener_IsSkipped(string written, string token)
+    {
+        string[] names = TokenNames($"MOVE T (I {written}, J) TO X");
+        int at = Array.IndexOf(names, token);
+        Assert.True(at > 0, $"'{written}' did not lex as {token}: {string.Join(' ', names)}");
+        Assert.NotEqual("FNARG_SEPARATOR", names[at + 1]);
+    }
+
+    /// <summary>The twin of the test above, BEFORE the word (review R1-1 of kb/Work PB5793): a separator written before a
+    /// qualifier connective or a binary boolean operator (the lexer's <c>InfixWords</c>, asked member by member) separates
+    /// no items, so it is skipped as the space before the word would be.</summary>
+    [Theory]
+    [InlineData("OF", "OF")] [InlineData("IN", "IN")] [InlineData("B-AND", "B_AND")] [InlineData("B-OR", "B_OR")]
+    [InlineData("B-XOR", "B_XOR")] [InlineData("B-SHIFT-LC", "B_SHIFT_LC")] [InlineData("B-SHIFT-RC", "B_SHIFT_RC")]
+    [InlineData("B-SHIFT-L", "B_SHIFT_L")] [InlineData("B-SHIFT-R", "B_SHIFT_R")]
+    public void ListSeparator_BeforeAnInfixWord_IsSkipped(string written, string token)
+    {
+        string[] names = TokenNames($"MOVE T (I, {written} J) TO X");
+        int at = Array.IndexOf(names, token);
+        Assert.True(at > 0, $"'{written}' did not lex as {token}: {string.Join(' ', names)}");
+        Assert.Equal("IDENTIFIER", names[at - 1]);
+    }
+
     /// <summary>The DECIMAL-POINT IS COMMA fixed-point literal in a list region (kb/Work PB2506): §2023:8.3.3.3.2 2) puts the
     /// sign inside the literal and §2023:8.3.5 2) makes a comma a separator only when a space follows it, so `-1,5`, `+1,5`
     /// and `-,5` are each ONE SIGNED_DECIMALLIT token — never SIGNED_INTEGERLIT(-1) plus a contiguous `,5` that the

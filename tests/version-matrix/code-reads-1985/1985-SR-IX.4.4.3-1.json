@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-SR-IX.4.4.3-1",
+ "rule-digest": "60fa72b84a00",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-047",
+  "sources": {
+   "reader": "9bbef6ebfe1a7236a25f655700364e0d5407afbaf1cf4a4fc918abbc819e04a6",
+   "refuter": "34b1b04dc4a276e66e53ec68437e4bd991457d344507da4065ac88c10feda43f"
+  },
+  "imported": {
+   "reader": "11318276b1cf91eac8a5644995db80a097b89e94eef8e407473aee3d3a0d1167",
+   "refuter": "2562b1bfcef7f13fc21ac34f101a30811f1135d0867bdacc5b09383a26dd8fab"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.4.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 OPEN EXTEND of an indexed file must be refused unless the file's access mode is sequential (explicit or default); EXTEND on a sequential-access indexed file is legal and appends.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+  "edition-consulted": [],
+  "edition-search": "read BindOpen (comments name it edition-agnostic) and CheckOpenModeForFile: the only DialectLevel read there picks the FORMAT clause citation in the I-O arm, not reached by EXTEND; no ConstructRegistry/VersionConformancePass gate on OPEN EXTEND",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb318-open-extend-access-linage covers a non-sequential access refusal; the accepted sequential form and its run-time behaviour are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c3_dyn.cob",
+    "printed": "error COBOL2372: OPEN EXTEND 'IXF' — the file's access mode is DYNAMIC; EXTEND requires sequential access",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c3_rnd.cob",
+    "printed": "error COBOL2372: ... access mode is RANDOM ...",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c3_seq.cob",
+    "printed": "OPEN-MISSING FS=35 / OPEN-EXT FS=00 / SEQERR FS=21 / AAAADATA01 / CCCCDATA03 / EOF",
+    "expected": "accepted; EXTEND of an unavailable file is unsuccessful (table on IX-24), EXTEND appends, a key out of ascending order is a sequence error"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.3 SR1",
+    "check": "OK  §1985:IX.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IX.4.4.4 GR1",
+    "check": "OK  §1985:IX.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "There is one edition-agnostic screen on the file's access mode. The 2023 rule adds a LINAGE conjunct that does not matter for an indexed file, because LINAGE is not in the indexed FD format. The run-time append and failed-open behaviour are correct.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same screen, COBOL2372",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.4.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "--std 85. r3_mixed_dyn.cob: OPEN INPUT SQF EXTEND IXF (IXF dynamic) gives COBOL2372 on IXF. r3_list_rnd.cob: OPEN EXTEND SQF IXF (IXF random, the second of a file list) gives COBOL2372, so each file of the list is screened. r3_default_opt.cob: SELECT OPTIONAL with no ACCESS clause compiles and runs, 'OPEN-EXT FS=05 / AAAA FS=00', so the default sequential access is admitted and an absent optional file is created by EXTEND. cite.py: 'OK  §1985:IX.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

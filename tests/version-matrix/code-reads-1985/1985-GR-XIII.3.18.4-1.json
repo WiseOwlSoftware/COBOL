@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-XIII.3.18.4-1",
+ "rule-digest": "e7e0a474b5d0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-147",
+  "sources": {
+   "reader": "aff0e1385e6225d488e8b2cc3ec3c7c65b700c07c5563f8d9152780be230c482",
+   "refuter": "4339c344b8821e5c914117f89968167c481a2bb1a6773ab21ae3ce0d3e67c9b3"
+  },
+  "imported": {
+   "reader": "3310e94cc049f2075244194caf32ff91f463103f8d31e32707789be43d842d17",
+   "refuter": "01ce44d3d18e8591b1231558cda3a7471f6c2a166a776a33852105d94eb0e552"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.18.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the implicit MOVE of every SOURCE clause must be executed when the report group's print lines are formatted, just before the group is presented and after its USE BEFORE REPORTING procedure and sum processing (§1985:XIII.3.20.4 GR9/GR10/GR11), so the printed value is the operand's content at that moment (subscripts and reference modifiers evaluated then, LINE-COUNTER the line's own number), never a value captured at GENERATE.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenSourceControlData",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues: at 85 a page heading/footing reached during a control footing phase formats its SOURCE moves from the current control values (§1985:XIII.3.20.4 GR13 c), at 2002+ from the priors; the time of the move is the same",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenSourceControlData",
+    "switches": "DialectLevel < 2002: the 1985 refusal of a SOURCE operand that references control data in the groups the rule names; a syntax screen, not the move's timing",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the move is made at compose time at every edition; only which control values a page group sees during a footing phase differs (GR13, another rule)",
+  "witnesses-cover": "part: g85_bf09_08 prints SOURCE values; a change made by the USE procedure, a subscript or reference modifier changed between GENERATEs, and a group operand are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/src1.cob",
+    "printed": "'  95 EF 22 GG01 02' / ' 107 YZ 33 GG02 03' / CF FINAL ' 107    2  GG09'",
+    "expected": "the USE BEFORE REPORTING procedure adds 100 to W-AMT and 1 to the subscript W-I and to W-G2; the SOURCE moves read those values (95, W-TAB(2)=22, GG01), W-TXT(5:2) after MOVE to W-TXT(4:3) reads 'YZ', LINE-COUNTER is the line's own number; the CF formats W-AMT and W-GRP at TERMINATE (107, GG09) while its SUM counter holds the GENERATE-time subtotals -5+7=2"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/src1.cob",
+    "printed": "SOURCE W-TXT (5:2) printed EF then YZ",
+    "expected": "reference modification evaluated when the line is formatted"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/src1.cob",
+    "printed": "group W-GRP to PIC X(4): GG01, GG02, GG09; signed S999 to -ZZ9: 95, 107",
+    "expected": "group and signed operands moved by MOVE rules at formatting time"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.18.4 GR1",
+    "check": "OK  §1985:XIII.3.18.4 GR1  (3.18.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR9",
+    "check": "OK  §1985:XIII.3.20.4 GR9  (3.20.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR11",
+    "check": "OK  §1985:XIII.3.20.4 GR11  (3.20.4 General Rules)  the text is in GR11"
+   }
+  ],
+  "notes": "PresentLine sets LINE-COUNTER and then calls line.Compose(), the generated closure that performs each SOURCE move, so the move happens per line at presentation, after BeginGroup has run the USE procedure. The probe shows changes made in the declarative and between GENERATEs reach the print line.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.18.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-147/src/src2.cob (two-line PH and two-line DET each with SOURCE LINE-COUNTER; DET SOURCE S-MIN, the CF MIN sum counter; CF MAJ SOURCE S-MIN). --std 85 run src2-001: 'PH 01','PH 02','D1 03 03 03','D2 05','D1 06 07 04','D2 08','CN 09 07','CJ 10 00','D1 11 05 05','D2 13','CN 14 05','CJ 15 00'. The DET's SOURCE of the sum counter shows the subtotal including the current GENERATE (XIII.3.20.4 GR11 a before e), and CF MAJ's SOURCE of S-MIN reads 0 because CF MIN's step f reset it before CF MAJ was formatted (GR10 f): the moves happen when each group is formatted. Class c: src5.cob SOURCE FUNCTION UPPER-CASE (MIN-T), an alphanumeric function, which the 1985 function-identifier rule permits wherever an identifier is: compiled and printed 'AB' (src5-001). src3.cob (SOURCE W-A + 1) and src4.cob (SOURCE W-A ROUNDED) were refused with COBOL0900 'requires COBOL-2002', right for the 1985 format 'SOURCE IS identifier-1'. The one place a per-group versus per-line formatting time could show is LINE-COUNTER: the code moves it per line, and XIII.3.5.6 GR6 says 'At the time each print line is presented, the value of LINE-COUNTER represents the line number on which the print line is presented'. Only a SOURCE clause can observe that, so the per-line value is the reading the text supports; the CCVS85 RW103A golden prints the same. cite.py: 'OK  §1985:XIII.3.18.4 GR1  (3.18.4 General Rules)  the text is in GR1'; 'OK  §1985:XIII.3.5.6 GR6  (3.5.6 LINE-COUNTER Rules)  the text is in GR6'; 'OK  §1985:XIII.3.20.4 GR10f  (3.20.4 General Rules)  the text is in GR10f'; 'OK  §1985:XIII.3.20.4 GR11a  (3.20.4 General Rules)  the text is in GR11a'; the function-identifier rule: 'OK  §1985:IV.4.3.8.3.3 SR3  (4.3.8.3.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

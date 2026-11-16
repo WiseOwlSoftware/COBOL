@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-SR-VI.6.25.3-3",
+ "rule-digest": "4f545c327c6c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-060",
+  "sources": {
+   "reader": "560a7f471262d9d49a465e03dd3fdf65ae51432d29285da51636ba587900dbb4",
+   "refuter": "7a46c5415a90da6fb4312da600544c74561a5626aee8f30369c3937043eb576d"
+  },
+  "imported": {
+   "reader": "72f21fccbbcf9c11e848886e9a05c1b03b08d79b2d0dc61af8b45664decbf29a",
+   "refuter": "29b566c514f9a621c37e09f1ac8413cac05b0508f763ebe7ba3c1ea57eb6ca55"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.25.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 STRING must refuse an INTO identifier-3 that is reference modified (any form: (s:l), (s:), on a subscripted item), while a subscripted or plain identifier-3 stays legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving",
+  "edition-consulted": [],
+  "edition-search": "grep of StringUnstringBinder.cs for Edition|CobolVersion|IsAtLeast|Dialect|ConstructRegistry: ctx.Edition appears only as the diagnostic sink (BoundRejected.Report / BoundOperandError.Report -> EditionContext#Error, severity fixed by the descriptor) and as a position scope (EditionContext.At); grammar rules stringStatement/delimitedByPhrase/strUnstrOperand (CobolIO.g4) carry no version predicate; the only edition gate on the statement is src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStringStatement (StringDelimitedOmitted2002, the omitted-DELIMITED form), which is not this rule's predicate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers one constant ref-mod; the open-ended (K:) form and a ref-mod of a subscripted element are not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/str-sr34-neg.cob",
+    "printed": "COBOL1651 'identifier-3 shall not be reference-modified' for OUT1(1:3), OUT1(K:), ELT(K)(2:2)",
+    "expected": "each refused (SR3)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/str-sr34-pos.cob",
+    "printed": "1=[.....AB........] 2=[XY12..] 3=[ABC..] 4=[1221][04]",
+    "expected": "subscripted ELT(K), group, alphabetic and numeric-integer identifier-3 legal; GR8 leaves the rest unchanged"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.3 SR3",
+    "check": "OK  §1985:VI.6.25.3 SR3  (║6.25.3 Syntax Rules║)  the text is in SR3"
+   }
+  ],
+  "notes": "The receiving chokepoint returns a RefModPlace for any reference-modified identifier and BindString refuses it before any other screen; no edition arm.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.25.3-3",
+  "refutation": "UPHELD",
+  "classes": "a,b",
+  "evidence": "Probe src/bwzneg.cob: qualified and reference-modified receiver 'OUT1 OF G1 (2:3)' -> COBOL1651 'identifier-3 shall not be reference-modified'. src/subpos.cob: plain group G1 holding a numeric-edited item as identifier-3 legal, 6=[AB1,5XYZ] (GR8: only the referenced portion changes). cite.py: OK  §1985:VI.6.25.3 SR3  the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-VI.5.15.6-2",
+ "rule-digest": "cd9ee9dfb674",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-013",
+  "sources": {
+   "reader": "f64052ae96c9020ad01804108d1457da1b7b236869a749cad184389bdce06bdf",
+   "refuter": "015806368cfa0f4373336b31370a6209a59cd8786ba576665394502d5e03c616"
+  },
+  "imported": {
+   "reader": "49ccf85572af0eeea6e7563159a7100b2175168440c8b6eef21f7dfe2c5292cc",
+   "refuter": "a1d0fa29daf5287834074782956ab5b34258dc60f927f64174be29e318ea1001"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.15.6-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a VALUE clause (format 1) must be refused in a data description entry that contains a REDEFINES clause or is subordinate to one, in every section that admits item VALUEs (Working-Storage and Communication; File and Linkage refuse item VALUEs anyway), while a condition-name (88) VALUE under such an entry stays legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs#ScreenItemValuePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs#EntryWithClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ValueClausePlacement",
+  "edition-consulted": [],
+  "edition-search": "Read ScreenItemValuePlacement/EntryWithClause and its one call site in DataBinder.BindEntries; grep for DialectLevel, CobolVersion, ConstructRegistry, DialectBehavior, ReservedWords, Edition.Edition in DataBinder.ValuePlacement.cs: none. COBOL2406 is EditionSeverity.Error at every edition; Edition.Error only records it.",
+  "behaviour-differs-by-edition": "no (2023's format 2 table VALUE is an extra carrier the screen also reads; 1985 has no such format)",
+  "witnesses-cover": "part: pb550 covers only the legal neighbours (anchor VALUE, 88 under REDEFINES); the refusal half (VALUE on the redefining entry, on a subordinate of it, on a group REDEFINES, on an 01 REDEFINES, in the Communication Section) is not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/g2a.cob",
+    "printed": "error COBOL2406 at (7,12): data item 'B' ... in a data description entry that contains a REDEFINES clause",
+    "expected": "refused (GR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/g2b.cob",
+    "printed": "COBOL2406 at B1 (subordinate to B REDEFINES A) and at C (subordinate to 01 R2 REDEFINES R)",
+    "expected": "refused (GR2 second arm, both levels)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/g2c.cob",
+    "printed": "COBOL2406 at group B REDEFINES A VALUE \"QQQQ\"; the 88 with VALUE/THRU under it raises nothing",
+    "expected": "group-level VALUE on the redefining entry refused; 88 legal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/g2d.cob",
+    "printed": "B1Z=Y B2A=Y A=AAAA (88 VALUE \"ZZ\" \"AA\" THRU \"AB\" and VALUES ARE under a REDEFINES subtree compile and run)",
+    "expected": "condition-name entries exempt (GR2 last sentence)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/g2e.cob",
+    "printed": "COBOL2406 for 05 Y REDEFINES X PIC X(87) VALUE \"Q\" in a CD record",
+    "expected": "refused in the Communication Section too"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/g2f.cob",
+    "printed": "OK (same CD record without the VALUE on Y)",
+    "expected": "legal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.15.6 GR2",
+    "check": "OK  §1985:VI.5.15.6 GR2  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR2"
+   }
+  ],
+  "notes": "One ancestor walk over the WRITTEN REDEFINES clause, run per attached entry for every section, edition-independent; the 1985 rule and 2023 SR12 coincide. The diagnostic text cites only §2023:13.18.63.3 SR12, a presentation point, not a conformance one.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "g2a: same COBOL2406",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.15.6-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 under refute-1985-013/: r2a (77 B REDEFINES A VALUE, a level-77 form) -> COBOL2406; r2b (VALUE on a FILLER three levels under a REDEFINES group, through an OCCURS) -> COBOL2406; r2d (FILLER VALUE ZERO under REDEFINES) -> COBOL2406; r2c (88 VALUE and VALUE 1 THRU 5 under a REDEFINES subtree compile and B1Q is TRUE; a VALUE on an entry after the REDEFINES but not subordinate to it is admitted, S=[WXYZEE]). DataBinder.ValuePlacement.cs greps for DialectLevel/ConstructRegistry/Edition: only Edition.Error reporting, no arm. cite.py: OK  §1985:VI.5.15.6 GR2  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

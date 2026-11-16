@@ -41,7 +41,10 @@ EXIT_BUSY = 3
 
 
 #: A gate that MEASURED NOTHING about the change prints `NOT RUN [<cause>]`, the cause's TAG naming one row of
-#: NOT_RUN_CAUSES, which classifies it ONCE (kb/Work PB3526; review R2-1 of wave 1150). The landing's merge of main into
+#: NOT_RUN_CAUSES, which classifies it ONCE (kb/Work PB3526; review R2-1 of wave 1150). One cause, `host-exhausted`
+#: (kb/Work PB5697), is a gate whose hosts ran but whose every red is the host running out (scripts/host_resources.py):
+#: what it could not judge it did not measure, so it is a NOT RUN of those cases, never GREEN (nothing unjudged counts as
+#: passed) and never RED (no defect is claimed); a gate with a test red beside them is RED and names them apart. The landing's merge of main into
 #: the branch (git_merge.merge: a clean merge, then the merge commit) is
 #: a step that can measure nothing too, and its failure names its cause by the same two classes through the `merge-*` rows
 #: (kb/Work PB3673): a merge that could not be completed for a cause outside the tree is never reported as a CONFLICT.
@@ -103,6 +106,12 @@ NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
                                               "measuring build met a build output locked by another process (MSB3027, "
                                               "MSB3021: a language server or an antivirus scan), a full disk or no .NET "
                                               "SDK to start, or git refused a write of the merge (kb/Work PB3673)"),
+    NotRunCause("host-exhausted", ENVIRONMENT, "the host ran out of a resource while the test hosts ran (its commit "
+                                               "limit, or memory): every red case or host shows a host-resource "
+                                               "signature (scripts/host_resources.py SIGNATURES, kb/Work PB5697), so "
+                                               "those cases are UNJUDGED, never passed and never a test red; wait for "
+                                               "the host (`python scripts/gate_slot.py status` shows its free commit) "
+                                               "and gate again: the next gate runs only what this one did not pass"),
     NotRunCause("driver", BRANCH, "the gate driver (gate.py, the tree's own) failed"),
     NotRunCause("merge-failed", BRANCH, "the landing's clean merge of main could not be completed because of the "
                                         "merged tree itself: the ABI pin or an owned file the settle writes is "
@@ -239,6 +248,16 @@ class Outcome:
     #: EACH TARGET'S KEY at the measured tree, by assembly (kb/Work PB5218; `Host.target_keys`): what the store and an
     #: earlier run's passes are matched on. Set by a full-lane gate; empty in another lane or when git cannot say.
     keys: dict[str, str] = field(default_factory=dict)
+    #: EACH TARGET'S KEY at the tree measured at the END (`tree_end`), by assembly (kb/Work PB4333; `PassCarry.end_keys`):
+    #: equal to `keys` when the tree did not move. A pass is KEYED TO ITS TARGET'S INPUTS, never to the whole tree: a target
+    #: whose key at the end equals its key at the start had no declared input change while it ran, so its pass stands
+    #: even when an input of no target (a plan file committed mid-gate) moved the tree. A target missing here (its key
+    #: could not be resolved at the end) records nothing.
+    keys_end: dict[str, str] = field(default_factory=dict)
+    #: THE PROGRAM DIFFERENTIAL (kb/Work PB4333; scripts/gate_differential.py): the harness key, whether a pass set stood
+    #: there, how many Conformance cases it carried and how many ran by which rule, and how many it recorded; empty when
+    #: it was not prepared (Conformance up to date, or no suite) and the whole population ran.
+    differential: dict = field(default_factory=dict)
     #: The targets the store showed UP TO DATE, by assembly: the pass that stands (its worktree, run, counts, evidence).
     up_to_date: dict[str, dict] = field(default_factory=dict)
     #: The assemblies whose pass THIS gate recorded in the store.
@@ -246,6 +265,12 @@ class Outcome:
     #: EACH GENERATED TARGET this gate brought up to date (kb/Work PB5231; `Host.generate`), by name: its key, its output
     #: digest, its output directory, whether it ran and why (`buildgraph.Generation.record`).
     generated: dict[str, dict] = field(default_factory=dict)
+    #: THE HOST'S RESOURCES (kb/Work PB5697; scripts/host_resources.py): the resources the run's host-resource signatures
+    #: name (empty: the host did not run out), and per assembly the cases the gate could not judge (`*` for a whole
+    #: host that could not run); and the peak commit of the slot-held tree, in bytes (None: not measured).
+    exhausted: list[str] = field(default_factory=list)
+    unjudged: dict[str, list[str]] = field(default_factory=dict)
+    peak_commit_bytes: int | None = None
 
 
 class Ending(NamedTuple):

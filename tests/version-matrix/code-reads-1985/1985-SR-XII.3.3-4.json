@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-SR-XII.3.3-4",
+ "rule-digest": "b75423703e1c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-073",
+  "sources": {
+   "reader": "1648f90507cba719c3e443f8f0b0e2de6ee890d2a44527f6ff625cbd51f59169",
+   "refuter": "f57489ea91dd4a858b11a93e9901d36bb0c1321db809946d27dc7dc869f597f8"
+  },
+  "imported": {
+   "reader": "0c5e0a59f7d833dc95bc0884f7b0ac6c20be9610c5b17f9b8f5809b683252871",
+   "refuter": "3cc2790d3fb78c0be390f52fbabad7e1fe8b2fc06ece4fbddc28a5f78873c40c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XII.3.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a format 1 REPLACE must accept a pseudo-text-2 of zero text words (====, or only spaces/comment lines), one text word (including a separator comma) or many, and replace each match with exactly that text; the witness pb1353_replacing_operands_legal covers ==== and a one-literal pseudo-text-2.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen.PartialWord",
+    "switches": "partial-word phrase gate (ReplacingPartialWord2002); the Whole-replacement path pseudo-text-2 takes is not gated",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ScreenOperandPair places no count limit on pseudo-text-2 for ReplaceKind.Whole (only partial-word-2 is limited) and reads no edition; grepped CopyProcessor.cs/TextWord.cs for Edition|Year|ConstructRegistry: no consult on the pseudo-text-2 path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pseudo-text-2 of only a separator comma, of several words, and of only a comment line are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p7legal2.cob",
+    "printed": "[] [] [ABC] [] EXPECT: MATCH",
+    "expected": "accepted: ==== deletes, ==,== inserts a separator, three literals concatenate in DISPLAY, a comment-only pseudo-text-2 deletes"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p6legal1.cob",
+    "printed": "[ONE] [TWO] [ALQ] [0] [B   ] [THR] EXPECT: MATCH",
+    "expected": "multi-word pseudo-text-2 (MOVE \"B\" TO W) and numeric literal 0 placed as written"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p10period.cob",
+    "printed": "[NINE / ] EXPECT: MATCH",
+    "expected": "a pseudo-text-2 carrying a separator period ends the sentence where it is placed"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.3.3 SR4",
+    "check": "OK  §1985:XII.3.3 SR4  (║3.3 Syntax Rules║)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:XII.3.4 GR7",
+    "check": "OK  §1985:XII.3.4 GR7  (║3.4 General Rules║)  the text is in GR7"
+   }
+  ],
+  "notes": "A permissive rule: nothing on the Whole path counts pseudo-text-2's words, and every probed form compiled and ran with the expected output. Class a (variable length) does not apply to a source-text rule; the period probe stands in for a boundary form.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XII.3.3-4",
+  "refutation": "OVERTURNED",
+  "classes": "b,c",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-073/q5pt2gt.cob (--std 85, fixed): REPLACE ==NEVERMATCHED== BY == / a line '           >>XYZ' / ==. printed EXIT 65: 'q5pt2gt.cob(9,12): error COBOL2572: REPLACE statement: a compiler directive line is written inside a REPLACING operand - §2023:7.2.4.3 SR10' and COBOL2697. '>>XYZ' is one 1985 text word (OK §1985:III.2 'Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators'), and 'Pseudo-text-2 may contain zero, one, or more text words' (OK §1985:XII.3.3 SR4) admits it; 1985 has no rule against a directive line in pseudo-text because it has no directive lines. Other forms hold: q6pt2semi.cob, a semicolon-only pseudo-text-2 and a multi-word pseudo-text-2 with a nonnumeric literal continued across a fixed-form continuation line, printed '[OK  ]' '[V1          ]' '[B   ][A           ]' as the text requires. At --std 2023 the refusal is right (a directive line). kb/Work: no note names the 1985 case (PB1353/PB1384 are the 2023 rules).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner.DirectiveLineEnd: '>>' line recognized as a directive at 85",
+   "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair: the §2023 SR10 DirectiveLines refusal runs on pseudo-text-2 at 85",
+   "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs: COBOL2697 at 85"
+  ],
+  "corrected": "NON-CONFORMING (rejects-legal-source), cause (a): a pseudo-text-2 whose one text word starts a line with '>>' is refused at --std 85 (COBOL2572 SR10, COBOL2697) though SR4 admits one text word and 1985 has no compiler directive lines. Repro q5pt2gt.cob; expected compiles and prints [OK  ]; observed EXIT 65. Same root as the SR3 case (one edition-blind directive-line recognizer). Known note: none."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "REPLACE and COPY REPLACING pseudo-text that begins a line with `>>` is refused at 85 (COBOL2572, COBOL2697): the scanner looks for compiler directive lines at every edition, and 1985 has none, so `>>XYZ` is an ordinary text word there.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5803"
+}

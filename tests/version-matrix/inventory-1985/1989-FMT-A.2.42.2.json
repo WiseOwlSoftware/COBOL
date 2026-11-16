@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.42.2",
  "rule-digest": "1e39a42f2294",
+ "test-ref": "conformance:cases/A.2.42@1985-SUM-FUNCTION/g85_bf05_09",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

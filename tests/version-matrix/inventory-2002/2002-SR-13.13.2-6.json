@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.13.2-6",
+ "rule-digest": "01d978588353",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+ "test-ref": "conformance:cases/13.13@2002-REPORT-GROUP-DESCRIPTION-ENTRY/g2-rgd-next-group-level-1",
+ "notes": "§2002:13.13.2 SR6 grants NEXT GROUP in a level 1 entry: G2RGD02 at --std 2002 prints LC 05 / LC 09 / LC 10, the LINE-COUNTER values §2002:13.16.35.3 GR4 b and GR4 a derive."
+}

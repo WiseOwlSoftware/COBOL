@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VI.6.20.4-1",
+ "rule-digest": "0674ff816120",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-110",
+  "sources": {
+   "reader": "625c9371e87b3c1389c455dd0ce4d0fe904442b477ea8ac29eeaad5e8a96a2a6",
+   "refuter": "e04e97de1b8432b5ba295a3e282f626455f88c6a954316d0b82361efb3932bc3"
+  },
+  "imported": {
+   "reader": "6931137898c93f52548cf60396ed09edad0891cbf4050273cfff4e01342f079f",
+   "refuter": "6791d44e97c0f74d6dfd4c0b46bc00c09e668d6b26ec5debc7d21bee753b2825"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.20.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, MULTIPLY format 1 must hold literal-1 / identifier-1's value in a temporary (identified once), multiply each identifier-2 by it in left-to-right order and store each product into that identifier-2, so an identifier-2 that is identifier-1, or whose subscript an earlier identifier-2 changes, sees the temporary and the stored subscript value (§1985:VI.6.4.6).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Multiply",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 an unphrased size error is caught per receiver and the statement completes (catchesEveryCondition); from 2002 it is a fatal exception condition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+    "switches": "CompositeMembers.ReceivingItems85 with Edition.Year < 2002: the composite is the receiving items only (§1985:VI.6.20.3 SR3), capped at Edition.MaxDigits = 18 at 85 (all operands, 31, from 2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of ArithmeticEmitter.cs, NumericRenderer.cs, ArithmeticBinder.cs, StatementValidation.cs for DialectBehavior/Edition/DialectLevel; the temporary (Fold + Snapshot when MaterializesInitialEvaluation) and the per-receiver store loop take no edition input",
+  "behaviour-differs-by-edition": "no for the temporary and the left-to-right products; the unphrased size-error disposition and the composite cap differ (GR3's paragraphs), not this rule",
+  "witnesses-cover": "part: g85_bf14_05 L1 covers identifier-1 also an identifier-2; not exercised: a subscripted identifier-1 whose subscript an identifier-2 changes, signed/scaled/P operands, ROUNDED per receiver",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1.cob",
+    "printed": "M1=6 000300000009000000 M2=21 M3=18 1.7 M4=600 M5 SIZE M6=20 180 9 M7 SIZE 3 M8=3 M9=[-  7.50] [***7] 008 M10=[   0.00] M11=+500000000000000000 M12 SIZE +500000000000000000 M13 SIZE 123456789.500000000 M14=000000000.000000000",
+    "expected": "M1: temp = T (2) = 3, I = 6, then T (6) = 9; M2: 7 * -3 stored unsigned 21; M3: C 17.5 ROUNDED 18, D 1.75 truncated 1.7; M4: P-scaled 3 * 200 = 600. All match."
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1b.cob",
+    "printed": "COBOL1675 numeric-edited BY receiver; COBOL0844 alphanumeric item and alphanumeric literal operands; COBOL1689 literal after BY without GIVING; COBOL1675 alphanumeric GIVING receiver",
+    "expected": "§1985:VI.6.20.3 SR1/SR2 refusals; a literal cannot be a format 1 receiver"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1c.cob",
+    "printed": "COBOL0803: ROUNDED MODE IS requires COBOL-2014 (targeting COBOL-85)",
+    "expected": "a later edition's phrase refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.20.4 GR1",
+    "check": "OK  §1985:VI.6.20.4 GR1  (6.20.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.4.6 GR1",
+    "check": "OK  §1985:VI.6.4.6  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in the clause; it lies in GR1"
+   }
+  ],
+  "notes": "EmitInPlace folds the multiplicand once and snapshots it when there are several receivers; StoreInPlace then forms receiver * value per receiver left to right, each receiver identified at its own store. No edition arm on this rule's path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.20.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "rmul1.cob at --std 85 (rmul1-001): MULTIPLY A BY A A with A=3 gives N1=27 (temporary 3: 3*3=9, then 3*9=27, as GR1 and §1985:VI.6.4.6 give); a phrased size error in format 1 BINARY BN2 PIC 99 5 BY 20 leaves 20 (N5 SIZE 20); explicit GO TO out of ON SIZE ERROR N9 50; NOT ON SIZE ERROR alone ignored on a size error N10 DONE. rmul2.cob --compile-only: MULTIPLY A BY EV EW with 9(17)V9 and V99 receivers refused COBOL0805 composite 19 digits. Grep of ArithmeticBinder.cs, ArithmeticEmitter.cs, NumericRenderer.cs: the only other edition test (ArithmeticEmitter.cs#UnsignedSubsidiary, DialectLevel >= 2002) is DIVIDE REMAINDER's, off this path. cite.py: OK §1985:VI.6.20.4 GR1 'the temporary data item is multiplied by each successive occurrence of identifier-2'; OK §1985:VI.6.20.3 SR3 'superimposition of all receiving data items'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

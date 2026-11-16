@@ -209,9 +209,22 @@ internal sealed record GateOnly(IReadOnlySet<string> Names)
             : throw new GateOnlyException($"{Variable} names the file '{path}', which names no case");
     }
 
-    /// <summary>The cases of <paramref name="cases"/> the retry names, in their order.</summary>
-    public List<T> CasesOf<T>(IEnumerable<T> cases) where T : ITestCase =>
-        cases.Where(c => Names.Contains(c.DisplayName)).ToList();
+    /// <summary>The cases of <paramref name="cases"/> the retry names, in their order: by the display name the host runs
+    /// under, or by its LISTED form. A listing (<c>--list-tests</c>, and the trx's test definitions) names a long theory
+    /// row by its display name cut short and ended with <see cref="Truncation"/> (a 474-character
+    /// <c>UniversalCrossingShapeDriftTests</c> row is listed in 447), while the host's case keeps the whole name, so a
+    /// retry written from the listing named eight such rows that never ran (kb/Work PB4333, run
+    /// 000004-20261116T085419Z). A listed name ending in the mark names every case whose display name it begins; a row's
+    /// own argument cut short (<c>"abc"···)</c>) ends in a parenthesis, never in the mark.</summary>
+    public List<T> CasesOf<T>(IEnumerable<T> cases) where T : ITestCase
+    {
+        string[] stems = [.. Names.Where(n => n.EndsWith(Truncation, StringComparison.Ordinal)).Select(n => n[..^Truncation.Length])];
+        return cases.Where(c => Names.Contains(c.DisplayName)
+            || stems.Any(s => c.DisplayName.StartsWith(s, StringComparison.Ordinal))).ToList();
+    }
+
+    /// <summary>The mark a listing ends a display name it cut short with (three U+00B7 MIDDLE DOTs, xunit's).</summary>
+    public const string Truncation = "···";
 }
 
 /// <summary>A retry file no host can run.</summary>

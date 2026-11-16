@@ -746,10 +746,10 @@ internal static class FileControlKeyRules
 
     /// <summary>The key's window when it reaches past the file's minimum record size (§2023:12.4.5.12.3 SR4 /
     /// §2023:12.4.5.6.3 SR5 — "contained within the first n bytes of the record, where n equals the minimum record size
-    /// specified for the file"; §2023:13.18.43.4 GR9 supplies the minimum a RECORD clause leaves unstated), else null.
+    /// specified for the file"; §2023:13.18.43.4 GR9 supplies the minimum a RECORD clause leaves unstated; at --std 85 a format 3 record is sized at its maximum, FileModel.RecordSizeRange, §1985:VII.3.8.4 GR15), else null.
     /// A key outside this file's records is SR2's to report, and is not measured here.</summary>
     private static RecordLayout.KeyWindow? BeyondMinimum(FileModel f, DataItem? key, IReadOnlyList<int> occurrence) =>
-        RecordLayout.KeyWindowInFile(f, key, occurrence) is { } w && w.MaxEnd > f.VaryMin ? w : null;
+        RecordLayout.KeyWindowInFile(f, key, occurrence) is { } w && w.MaxEnd > f.RecordSizeRange.Min ? w : null;
 
     /// <summary>The key — the prime record key, or ANOTHER alternate record key clause — whose leftmost byte
     /// position is the position of <paramref name="op"/>'s item (§2023:12.4.5.6.3 SR4), rendered for the message, else
@@ -781,7 +781,7 @@ internal static class FileControlKeyRules
             null => "is not contained within the minimum record size",
         };
         return $"{op.ClauseFace} {op.Written} {where}, but indexed file '{f.CobolName}' contains variable-length "
-            + $"records with minimum size {f.VaryMin}; the key shall be contained within the first {n} bytes of the "
+            + $"records with minimum size {f.RecordSizeRange.Min}; the key shall be contained within the first {n} bytes of the "
             + $"record, where {n} equals the minimum record size ({citation})";
     }
 
@@ -854,7 +854,54 @@ internal static class FileControlKeyRules
             (_, op) => op.Item is { IsGroup: true } g && DataItem.HasOdoBeneath(g),
             (_, op) => $"{op.ClauseFace} {op.Written} is a group item that contains a variable occurrence data item "
                 + "(a table with OCCURS DEPENDING ON); it must not be (ANSI §1985:IX.2.5.3 SR3)"),
+
+        // ⛔ THE OCCURS BAN OF THE THREE KEY CLAUSES, THE 1985 PRINTING (kb/Work PB5627). COBOL-85 has no rule that an operand "shall not
+        // be subject to any OCCURS clauses"; it has §1985:IV.4.3.8.2.3 SR4, "Each table element reference must be subscripted except
+        // when such reference appears" in four contexts that are none of these clauses, and the clauses' formats write no subscript. One
+        // rule, so one designation (ClauseOperandRules1985.TableElementSubscripted) and three rows, each REPLACING its 2023 row below
+        // COBOL-2002.
+        Of1985(ClauseOperandRules1985.TableElementSubscripted, FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            _ => true,
+            (_, op) => op.Item is { } i && RecordLayout.IsSubjectToOccurs(i),
+            (_, op) => $"{op.ClauseFace} {op.Written} is subject to an OCCURS clause, so naming it is a table element reference, which must be "
+                + $"subscripted, and {op.OperandFace} is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
+            "SR-12.4.5.12.3-1"),
+        Of1985(ClauseOperandRules1985.TableElementSubscripted, FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            _ => true,
+            (_, op) => op.Item is { } i && RecordLayout.IsSubjectToOccurs(i),
+            (_, op) => $"{op.ClauseFace} {op.Written} is subject to an OCCURS clause, so naming it is a table element reference, which must be "
+                + $"subscripted, and {op.OperandFace} is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
+            "SR-12.4.5.6.3-1"),
+        Of1985(ClauseOperandRules1985.TableElementSubscripted, FileKinds.Relative, FileKeyRole.RelativeKey,
+            _ => true,
+            (_, op) => op.Item is { } i && RecordLayout.IsSubjectToOccurs(i),
+            (_, op) => $"{op.ClauseFace} '{op.Name}' is subject to an OCCURS clause, so naming it is a table element reference, which must be "
+                + $"subscripted, and data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
+            "SR-12.4.5.13.3-1"),
+
+        // The RELATIVE KEY item's own rules (§1985:VIII.2.4.3 SR2 and SR3), which §2023:12.4.5.13.3 SR2 and SR3 re-number.
+        Of1985(ClauseOperandRules1985.RelativeKeyUnsignedInteger, FileKinds.Relative, FileKeyRole.RelativeKey,
+            _ => true,
+            (_, op) => op.Item is { } i && i.Pic is not { Category: PicCategory.Numeric, Scale: 0, Signed: false },
+            (_, op) => $"{op.ClauseFace} '{op.Name}' must reference an unsigned integer data item whose description does not contain the "
+                + $"PICTURE symbol 'P' ({ClauseOperandRules1985.RelativeKeyUnsignedInteger.Citation})",
+            "SR-12.4.5.13.3-2"),
+        Of1985(ClauseOperandRules1985.RelativeKeyNotInRecord, FileKinds.Relative, FileKeyRole.RelativeKey,
+            _ => true,
+            (f, op) => op.Item is { } i && RecordLayout.IsInRecordOfFile(f, i),
+            (f, op) => $"{op.ClauseFace} '{op.Name}' must not be defined within a record description of file '{f.CobolName}' "
+                + $"({ClauseOperandRules1985.RelativeKeyNotInRecord.Citation})",
+            "SR-12.4.5.13.3-3"),
     ];
+
+    /// <summary>One <see cref="Rules1985"/> row from its <see cref="Rule1985"/> designation: the id, clause, citation and quoted text are
+    /// the designation's, so a row cannot cite a clause its text is not in, and it REPLACES the 2023 row
+    /// <paramref name="supersedes"/> below COBOL-2002.</summary>
+    private static FileControlKeyRule Of1985(
+        Rule1985 rule, FileKinds screenedOn, FileKeyRole role, Func<FileModel, bool> applies,
+        Func<FileModel, FileKeyOperand, bool> violated, Func<FileModel, FileKeyOperand, string> message, string supersedes) =>
+        new($"1985-SR-{rule.Clause}-{rule.Ordinal}", rule.Clause, rule.Citation, rule.RuleText, screenedOn, role, applies, violated, message)
+        { Supersedes = supersedes };
 
     /// <summary>⛔ THE 2002 READING OF THE SAME RULE (kb/Work PB5445, review R1-1). COBOL-2002 words the rule as the 2023 text does
     /// — "Data-name-1 and data-name-2 shall not reference a variable-length data item" (§2002:12.3.4.12.2 SR3 for the RECORD KEY,

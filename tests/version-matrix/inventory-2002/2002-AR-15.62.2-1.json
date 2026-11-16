@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.62.2-1",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.62@2002-RANDOM-FUNCTION/g2rnd02-random-seed-class-and-domain",
+ "notes": "§2002:15.62.2 AR1 requires class numeric (Table 22 of §2002:15.5 types it Int1, §2002:15.2 AR5). Six class-numeric integer seeds of value 7 (literal, binary item, packed item, arithmetic expression 3 + 4, PIC 9(3) USAGE NATIONAL item - class numeric at 2002 by kb/Work PB5625 reading B - and an input-CD MESSAGE COUNT item) must be accepted; AR3 starts a new sequence at each reference with an argument and §2002:15.62.3 RV2 makes a seed's sequence always the same, so each first value equals RANDOM(7)'s, and RV1 puts it in [0,1): lines LIT..CD = 'SAME N'. The refusal g2rnd03 passes a PIC X(3) i... Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}

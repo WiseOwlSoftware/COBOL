@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-VIII.2.3.4-7",
+ "rule-digest": "0304fd3d03af",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-129",
+  "sources": {
+   "reader": "b3071f7b6436600a50ce0da5153ddc103ba8737cb68a57ef384e86e7577a20da",
+   "refuter": "b96e05144740c9f8385ccfef50ac159ad5d6ab142c44ae60b5d3f8a3c15bc20a"
+  },
+  "imported": {
+   "reader": "e99a8e4a3c4145094194ba2fb619a52be9b347c1bb481ccdb7090e0a3eded596",
+   "refuter": "fc2f9045ed993ae421abeda2ab597b5b1ba91cbdfd823444397fe157db39eb1c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.3.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relative file control entry takes the ACCESS MODE clause and the ORGANIZATION IS RELATIVE clause in the forms §1985:VIII.2.3.2 and VIII.2.4.2 print (ORGANIZATION IS optional words; ACCESS with MODE and IS optional; RELATIVE KEY only as a phrase of ACCESS MODE, required after RANDOM and DYNAMIC, optional after SEQUENTIAL), and refuses later-edition forms such as a stand-alone RELATIVE KEY clause or a LOCK MODE clause.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#accessModeClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#relativeKeyClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRelativeKeyClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRelativeKeyClause",
+    "switches": "Constructs.RelativeKeyClauseAlone2002: below 2002 a RELATIVE KEY clause not directly after the ACCESS MODE clause is refused (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
+    "switches": "LINE SEQUENTIAL and RECORD SEQUENTIAL gated to 2023; RELATIVE passes at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#ConstructRegistry",
+    "switches": "the LOCK MODE clause construct (2002 introduction) is refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 RELATIVE KEY must be the phrase of ACCESS MODE (refused before it, after FILE STATUS, or with no ACCESS clause); from 2002 it is a clause of its own.",
+  "witnesses-cover": "part: g85_bf21_05 covers the accepted spellings and their runtime meaning; not the refusal half (stand-alone RELATIVE KEY, RANDOM/DYNAMIC without RELATIVE KEY, LOCK MODE, RANDOM without ORGANIZATION RELATIVE), probed here.",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p4e1-001; p4e4-001; p4e12-001",
+    "printed": "COBOL0900: a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: the 1985 format prints RELATIVE KEY only inside the ACCESS MODE clause"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p4e5-001",
+    "printed": "COBOL0900: the LOCK MODE clause requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: no LOCK MODE in the 1985 format"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p4e2-001; p4e3-001",
+    "printed": "COBOL0863: relative file 'RFL' is ACCESS RANDOM (DYNAMIC) but has no RELATIVE KEY clause",
+    "expected": "refused: RELATIVE KEY is not bracketed after RANDOM/DYNAMIC in §1985:VIII.2.4.2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p4e6-001",
+    "printed": "COBOL1858 ACCESS MODE IS RANDOM for a sequential file (ORGANIZATION omitted) and COBOL0863 RELATIVE KEY on a non-relative file",
+    "expected": "refused: without ORGANIZATION RELATIVE the entry is not a relative file control entry"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/g85_bf21_05-001; l1c12_access_mode_random_dynamic-001",
+    "printed": "EXPECT: MATCH for both",
+    "expected": "the witnesses' .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.3.4 GR7",
+    "check": "OK  §1985:VIII.2.3.4 GR7  (2.3.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "The grammar parses RELATIVE KEY as a clause at every edition (superset), and VersionConformancePass refuses the 2002 placement at 85 by checking that the clause directly follows an ACCESS MODE clause. The diagnostics cite 2023 clause numbers, but each refusal is one the 1985 format requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.3.4-7",
+  "refutation": "UPHELD",
+  "classes": "c,b",
+  "evidence": "Rendered PDF page 440 (folio VIII-10, specs-private of the main checkout, render-spec-page.py --edition 1985): in the 1985 ACCESS MODE format only ACCESS, SEQUENTIAL, RANDOM, DYNAMIC and RELATIVE are underlined, so MODE, IS and KEY are optional words. Probes the reader did not try (--std 85): r7a-002 'RELATIVE' alone as the organization, 'ACCESS RANDOM RELATIVE RKA' (no MODE, no KEY), 'STATUS SA' (no FILE): WRITE/READ RRN 5 -> 00 AAAA; ACCESS clause before ASSIGN and ORGANIZATION last ('ACCESS MODE DYNAMIC RELATIVE KEY RKB ... ASSIGN ... ORGANIZATION RELATIVE'): 00 03 BBBB; 'ACCESS IS SEQUENTIAL RELATIVE IS RKC': two WRITEs set the key to 02. r7B-001 'ACCESS SEQUENTIAL RELATIVE' + 'STATUS FS', r7C-001 '... RELATIVE RESERVE 2 AREAS', r7G-001 'ACCESS SEQUENTIAL RELATIVE K RELATIVE': all admitted and run (§1985:VIII.2.3.3 SR1 any order). Refusals: r7D-001 a second RELATIVE KEY after the phrase -> COBOL0900 + COBOL2423; r7F-001 ACCESS written twice -> COBOL2423; r7E-001 SHARING WITH NO OTHER -> COBOL0900 (2002). VersionConformancePass.VisitRelativeKeyClause checks the preceding fileControlClauses is an accessModeClause, which matches the 1985 phrase placement. cite.py: 'OK  §1985:VIII.2.4.2  (2.4.2 General Format)  the text is in the clause'; 'OK  §1985:VIII.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:VIII.2.3.4 GR7  (2.3.4 General Rules)  the text is in GR7'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

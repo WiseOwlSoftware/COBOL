@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.6.3-8",
+ "rule-digest": "f894d588cc19",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo08_lock_status_open_mode",
+ "notes": "§2002:14.8.6.3 GR8: after a successful CLOSE without UNIT (NO REWIND, WITH LOCK, plain) the connector is not in an open mode, so a second CLOSE is 42 (§2002:14.8.6.3 GR1); after CLOSE UNIT it stays open (next CLOSE 00). The --std 2002 run matched."
+}

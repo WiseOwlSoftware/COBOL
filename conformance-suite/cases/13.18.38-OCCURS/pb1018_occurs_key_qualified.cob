@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1018_occurs_key_qualified
       *> rules: [SR-13.18.38.3-3, SR-14.9.37.3-8]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

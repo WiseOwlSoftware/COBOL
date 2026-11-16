@@ -1,0 +1,1644 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-19 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-19",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-13.16.61.2-2",
+   "2002-SR-13.16.61.2-24",
+   "2002-SR-13.16.61.2-28",
+   "2002-SR-13.16.61.2-3",
+   "2002-SR-13.16.61.2-4",
+   "2002-SR-13.16.61.2-5",
+   "2002-SR-13.16.61.2-6",
+   "2002-SR-13.16.61.2-8",
+   "2002-SR-13.16.61.2-9",
+   "2002-GR-13.16.61.3-10",
+   "2002-GR-13.16.61.3-12",
+   "2002-GR-13.16.61.3-13",
+   "2002-GR-13.16.61.3-14",
+   "2002-GR-13.16.61.3-17",
+   "2002-GR-13.16.61.3-4",
+   "2002-GR-13.16.61.3-6",
+   "2002-GR-13.16.61.3-7",
+   "2002-GR-13.16.61.3-8",
+   "2002-GR-13.16.62.3-5",
+   "2002-GR-13.16.62.3-6",
+   "2002-SR-14.1.2-1",
+   "2002-SR-14.1.2-2",
+   "2002-SR-14.1.2-5",
+   "2002-SR-14.1.2-8",
+   "2002-GR-14.1.3-12"
+  ],
+  "pointers": {
+   "2002-SR-13.16.61.2-2": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-13.18.63.3-10",
+    "similarity": 0.527
+   },
+   "2002-SR-13.16.61.2-24": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-13.18.63.3-32",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.61.2-28": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.63.3-38",
+    "similarity": 0.996
+   },
+   "2002-SR-13.16.61.2-3": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.63.3-3",
+    "similarity": 0.745
+   },
+   "2002-SR-13.16.61.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.63.3-4",
+    "similarity": 0.961
+   },
+   "2002-SR-13.16.61.2-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.63.3-5",
+    "similarity": 0.958
+   },
+   "2002-SR-13.16.61.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.63.3-10",
+    "similarity": 0.999
+   },
+   "2002-SR-13.16.61.2-8": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.63.3-11",
+    "similarity": 0.735
+   },
+   "2002-SR-13.16.61.2-9": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-13.18.63.3-37",
+    "similarity": 0.57
+   },
+   "2002-GR-13.16.61.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.63.4-18",
+    "similarity": 0.996
+   },
+   "2002-GR-13.16.61.3-12": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.63.4-12",
+    "similarity": 0.943
+   },
+   "2002-GR-13.16.61.3-13": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.63.4-13",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.61.3-14": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-13.18.63.4-14",
+    "similarity": 0.832
+   },
+   "2002-GR-13.16.61.3-17": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.63.4-20",
+    "similarity": 0.998
+   },
+   "2002-GR-13.16.61.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.63.4-4",
+    "similarity": 0.915
+   },
+   "2002-GR-13.16.61.3-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-13.18.63.4-6",
+    "similarity": 0.803
+   },
+   "2002-GR-13.16.61.3-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.63.4-7",
+    "similarity": 0.954
+   },
+   "2002-GR-13.16.61.3-8": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-13.18.63.4-7",
+    "similarity": 0.341
+   },
+   "2002-GR-13.16.62.3-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.64.4-5",
+    "similarity": 0.966
+   },
+   "2002-GR-13.16.62.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.64.4-6",
+    "similarity": 0.999
+   },
+   "2002-SR-14.1.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.2.2-1",
+    "similarity": 0.989
+   },
+   "2002-SR-14.1.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.2.2-2",
+    "similarity": 0.95
+   },
+   "2002-SR-14.1.2-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.2.2-5",
+    "similarity": 0.983
+   },
+   "2002-SR-14.1.2-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.2.2-8",
+    "similarity": 0.958
+   },
+   "2002-GR-14.1.3-12": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.2.3-12",
+    "similarity": 0.916
+   }
+  }
+ },
+ "read": {
+  "slice": "u-19",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.61.2-2",
+    "to": [
+     "SR-13.18.63.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.2 SR2 (ALL FORMATS)",
+    "clause-2023": "13.18.63.3 SR10 (pointer; the boolean rule) / SR2 (the numeric rule, different words)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR2",
+      "quote": "all literals in the VALUE clause shall be numeric and have a value that is within the range of values indicated by the PICTURE clause or the USAGE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.2 SR2",
+      "quote": "This value shall have the digit zero in each position that corresponds to a picture character symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR2",
+      "quote": "the implementor defines whether truncation of any nonzero leading or trailing digits may occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR10",
+      "quote": "If the category of the subject of the entry is boolean, literals in the VALUE clause shall be boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "numeric subject, formats 1 and 2: literals numeric, within the PICTURE / USAGE range",
+     "no truncation of non-zero digits unless float-short/long/extended",
+     "digit zero in each P position",
+     "format 3 condition-names of a numeric conditional variable",
+     "format 4 report items",
+     "format 5 content-validation entries",
+     "entries of a CD record (communication section)"
+    ],
+    "evidence-2002": {
+     "range": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-range-ws.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-binchar-ws.cob (COBOL1625 at 2002)",
+     "truncation": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-trunc-ws.cob (COBOL1625); float-long admitted with 34 digits: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob",
+     "P positions": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-p-ws.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-pv-ws.cob (COBOL1625); legal 99PP/VPP99 run in E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob",
+     "non-numeric literal": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-alnum-ws.cob (COBOL1657)",
+     "format 2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-tbl-ws.cob (COBOL1625)",
+     "format 3": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-88-ws.cob (COBOL1625)",
+     "format 4": "not shown (pointer row has no report witness; not probed)",
+     "format 5": "not shown: declined at 2002 (D1/PB5577)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-range-cd.cob (COBOL1625) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob"
+    },
+    "reason": "The pointer is the boolean rule (SR10) and its evidence says nothing about numeric literals; the 2023 numeric rule SR2 has other words (an implementor-defined truncation licence for float usages, a standard-binary-float leg, and no P-position sentence). The 2002 rule is its own text. In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case. The probes show the 2002 rule applied at --std 2002 for formats 1-3, WS and CD.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr2-range-cd.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: the compiler at --std 2002 refuses out-of-range, truncating and non-zero-P numeric VALUE literals (formats 1-3, WS and CD record) and admits the legal ones; a 2002 witness for format 4 and for format 5 (blocked by D1)",
+    "compiler-at-2002": "correct for formats 1-3 incl. CD (probes above); wrong for the format 5 (content-validation) part only: the compiler declines the VALIDATE facility at --std 2002 under the 2023 licence (COBOL1708 citing §2023 Annex A.4.14), see E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob (refused COBOL1708 at --std 2002). Known defect D1 / kb/Work PB5577; in 2002 only Annex A is optional (§2002:3.1), so format 5 is required."
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-24",
+    "to": [
+     "SR-13.18.63.3-32"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.2 SR24 (FORMATS 3 AND 5)",
+    "clause-2023": "13.18.63.3 SR32 (FORMAT 3; SR36 does not list it for format 5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR24",
+      "quote": "The manner of determining the range of values specified by the THROUGH phrase is described in 14.6.7, THROUGH phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR32",
+      "quote": "The manner of determining the range of values specified by the THROUGH phrase is described in 14.7.8, THROUGH phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR36",
+      "quote": "Syntax rules 10, 11, 13, 17, 26, 27, 28, 29, 30, and 31 above apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 3 THROUGH ranges (14.6.7, identical to 2023 14.7.8)",
+     "format 5 THROUGH ranges (VALIDATE)",
+     "condition-names under CD record items"
+    ],
+    "evidence-2002": {
+     "format 3": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb555_value_false_phrase, pb555_typedef_condition_clone (PASS at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "format 5": "not shown: declined at 2002 (D1/PB5577)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (88 A1-R VALUE \"AA\" THRU \"AZ\" IN ALPH true for \"AB\")"
+    },
+    "reason": "The referenced clause is word-identical (2002 14.6.7 = 2023 14.7.8). But 2002 bands the rule FORMATS 3 AND 5, while 2023 bands SR32 under FORMAT 3 and SR36 does not carry it to format 5; format 5 belongs to VALIDATE, optional in 2023 and required in 2002. In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (pos-cd.cob is the candidate) and for format 5 (blocked by D1)",
+    "compiler-at-2002": "correct for format 3 (WS and CD); wrong for the format 5 (content-validation) part only: the compiler declines the VALIDATE facility at --std 2002 under the 2023 licence (COBOL1708 citing §2023 Annex A.4.14), see E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob (refused COBOL1708 at --std 2002). Known defect D1 / kb/Work PB5577; in 2002 only Annex A is optional (§2002:3.1), so format 5 is required.",
+    "licence-2002": "none (for format 5)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-28",
+    "to": [
+     "SR-13.18.63.3-38"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.2 SR28 (FORMAT 5)",
+    "clause-2023": "13.18.63.3 SR38 (FORMAT 5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR28",
+      "quote": "when literal-6 is of a class other than alphanumeric or national, the value of literal-5 shall be less than the value of literal-6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR38",
+      "quote": "when literal-6 is of a class other than alphanumeric or national, the value of literal-5 shall be less than the value of literal-6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 5 content-validation entries with THROUGH: literal-5 < literal-6"
+    ],
+    "evidence-2002": {
+     "format 5": "not shown: every format 5 entry is refused at --std 2002 (COBOL1708), so neither the legal nor the illegal range is distinguished"
+    },
+    "reason": "Same words, but the 2023 row is DOCUMENTED-NON-SUPPORT under the 2023 optional-element licence (Annex A.4.14). In 2002 the only optional element is Annex A (communication), so VALIDATE and its format 5 are required and no 2002 text licenses declining them.",
+    "probe": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires the VALIDATE content-validation entry; the compiler declines it",
+    "compiler-at-2002": "wrong for the format 5 (content-validation) part only: the compiler declines the VALIDATE facility at --std 2002 under the 2023 licence (COBOL1708 citing §2023 Annex A.4.14), see E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob (refused COBOL1708 at --std 2002). Known defect D1 / kb/Work PB5577; in 2002 only Annex A is optional (§2002:3.1), so format 5 is required.",
+    "licence-2002": "none"
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-3",
+    "to": [
+     "SR-13.18.63.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.2 SR3 (ALL FORMATS)",
+    "clause-2023": "13.18.63.3 SR3 (ALL FORMATS)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR3",
+      "quote": "If a signed numeric literal is specified, the subject of the entry shall be a signed numeric data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR3",
+      "quote": "either a signed numeric data item or a numeric-edited data item with a representation of a sign",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "signed literal on unsigned numeric: formats 1, 2, 3, 4, 5",
+     "signed literal on a numeric-edited item (refused in 2002)",
+     "CD record entries"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb3567-value-plus-literal-unsigned-subject (COBOL1625 at 2002) and pb3567_value_signed_literal_signed_subject (PASS) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "format 2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr3-tbl-ws.cob (COBOL1625)",
+     "format 3": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr3-88-ws.cob (COBOL1625)",
+     "numeric-edited": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr3-ne-ws.cob (COBOL0900 at 2002: refused)",
+     "format 4": "not shown",
+     "format 5": "not shown: declined (D1/PB5577)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr3-sign-cd.cob (COBOL1625)"
+    },
+    "reason": "2023 widens the rule to sign-bearing numeric-edited items (a 2023 addition, not a 2002 case: 2002 refuses it, as the compiler does). In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case. Format 5 is also in the 2002 scope and is declined.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr3-sign-cd.cob",
+    "widening": "2023 admits a signed literal on a numeric-edited item with a sign",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (sr3-sign-cd.cob is the candidate); format 5 blocked by D1",
+    "compiler-at-2002": "correct (WS, table, 88, CD); wrong for the format 5 (content-validation) part only: the compiler declines the VALIDATE facility at --std 2002 under the 2023 licence (COBOL1708 citing §2023 Annex A.4.14), see E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob (refused COBOL1708 at --std 2002). Known defect D1 / kb/Work PB5577; in 2002 only Annex A is optional (§2002:3.1), so format 5 is required."
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-4",
+    "to": [
+     "SR-13.18.63.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.2 SR4 (ALL FORMATS)",
+    "clause-2023": "13.18.63.3 SR4 (ALL FORMATS)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR4",
+      "quote": "If the item is of class alphabetic or alphanumeric, literals in the VALUE clause shall be alphanumeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR4",
+      "quote": "If the item is of category alphabetic, alphanumeric, or alphanumeric-edited literals in the VALUE clause shall be alphanumeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "Use of the name of a data class or data category in the rules of COBOL refers to the category unless class is specifically indicated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR6",
+      "quote": "literals in formats 1, 2, and 4 of the VALUE clause may be numeric when they shall be converted to their numeric-edited forms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class alphabetic / alphanumeric = categories alphabetic, alphanumeric, alphanumeric-edited AND numeric-edited of usage display (2002 Table 3)",
+     "elementary size limit, alphanumeric group size limit",
+     "CD record entries",
+     "format 5"
+    ],
+    "evidence-2002": {
+     "alphanumeric / alphabetic": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb206-value-oversize-elementary, pb206-group-value-oversize (COBOL1740), pb94-value-numeric-on-alphanumeric (COBOL1657), pb206_value_size_alphanumeric (PASS) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "numeric-edited display": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb4610-value-oversize-numeric-edited (COBOL1570 at 2002) and probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr4-ne-num-ws.cob (numeric literal refused COBOL0900), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr4-ne-nat-ws.cob (national literal refused COBOL5984), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob (E1 PIC ZZ9.99 VALUE \"001.50\" admitted)",
+     "alphanumeric-edited": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr4-ae-num-ws.cob (COBOL1657)",
+     "CD record": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr4-over-cd.cob (COBOL1740), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr4-nat-cd.cob (COBOL0898)",
+     "format 5": "not shown: declined (D1/PB5577)"
+    },
+    "reason": "The words differ: 2002 says CLASS alphabetic or alphanumeric, which by 2002 Table 3 includes numeric-edited items of usage display; 2023 says CATEGORY alphabetic, alphanumeric or alphanumeric-edited and governs numeric-edited items by SR6/SR7 instead (where a numeric literal is legal). So the 2002 rule's numeric-edited case is covered in 2023 by other rules. In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr4-over-cd.cob",
+    "widening": null,
+    "class": "split-rule",
+    "second-targets": [
+     "SR-13.18.63.3-6",
+     "SR-13.18.63.3-7"
+    ],
+    "needs": "a 2002 witness for the numeric-edited case (pb4610 + sr4-ne-*.cob) and the CD case (sr4-over-cd.cob); format 5 blocked by D1",
+    "compiler-at-2002": "correct (WS incl. numeric-edited, CD); wrong for the format 5 (content-validation) part only: the compiler declines the VALIDATE facility at --std 2002 under the 2023 licence (COBOL1708 citing §2023 Annex A.4.14), see E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob (refused COBOL1708 at --std 2002). Known defect D1 / kb/Work PB5577; in 2002 only Annex A is optional (§2002:3.1), so format 5 is required."
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-5",
+    "to": [
+     "SR-13.18.63.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.2 SR5 (ALL FORMATS)",
+    "clause-2023": "13.18.63.3 SR5 (ALL FORMATS)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR5",
+      "quote": "If the item is of class national, literals in the VALUE clause shall be national literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR5",
+      "quote": "If the item is of category national or national-edited, literals in the VALUE clause shall be national literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "Use of the name of a data class or data category in the rules of COBOL refers to the category unless class is specifically indicated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class national = national, national-edited AND numeric-edited of usage national (2002 Table 3)",
+     "elementary and national-group size limits",
+     "CD record entries",
+     "format 5"
+    ],
+    "evidence-2002": {
+     "national / national-edited": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb206-national-group-value-oversize, pb4610-value-oversize-national-edited (COBOL0898), pb4610_value_size_national_edited (PASS) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "numeric-edited national": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr5-nne-alnum-ws.cob (COBOL5984), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr5-nne-num-ws.cob (COBOL0900), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr5-nne-over-ws.cob (COBOL0898), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob (E2 PIC 9.99 USAGE NATIONAL VALUE N\"1.00\" admitted)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr5-over-cd.cob (COBOL0898)",
+     "format 5": "not shown: declined (D1/PB5577)"
+    },
+    "reason": "Same cause as SR4: 2002 CLASS national includes numeric-edited items of usage national; 2023 SR5 names only categories national and national-edited and governs numeric-edited items by SR6/SR7. In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr5-nne-alnum-ws.cob",
+    "widening": null,
+    "class": "split-rule",
+    "second-targets": [
+     "SR-13.18.63.3-6",
+     "SR-13.18.63.3-7"
+    ],
+    "needs": "a 2002 witness for the national numeric-edited case (sr5-nne-*.cob) and the CD case (sr5-over-cd.cob); format 5 blocked by D1",
+    "compiler-at-2002": "correct (WS incl. national numeric-edited, CD); wrong for the format 5 (content-validation) part only: the compiler declines the VALIDATE facility at --std 2002 under the 2023 licence (COBOL1708 citing §2023 Annex A.4.14), see E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob (refused COBOL1708 at --std 2002). Known defect D1 / kb/Work PB5577; in 2002 only Annex A is optional (§2002:3.1), so format 5 is required."
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-6",
+    "to": [
+     "SR-13.18.63.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.2 SR6 (FORMATS 1, 2, 3, AND 5)",
+    "clause-2023": "13.18.63.3 SR10 (FORMAT 1; reached by SR16 format 2, SR24 format 3, SR36 format 5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR6",
+      "quote": "Boolean literals in the VALUE clause of an elementary item shall not exceed the size indicated by an explicit PICTURE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR10",
+      "quote": "If the category of the subject of the entry is boolean, literals in the VALUE clause shall be boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR16",
+      "quote": "Syntax rules 10, 11,12,13,14,and 15 above apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR24",
+      "quote": "Syntax rules 10 and 17 above apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR36",
+      "quote": "Syntax rules 10, 11, 13, 17, 26, 27, 28, 29, 30, and 31 above apply",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "boolean subject formats 1, 2, 3, 5: boolean literals only; elementary and bit-group size limits",
+     "CD record entries"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb206-bit-group-value-oversize, level88-alnum-value-boolean (COBOL5982 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "format 2": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr6-tbl-over-ws.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr6-tbl-cls-ws.cob (COBOL5982)",
+     "format 3": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr6-88-ws.cob (COBOL5982) and pb598_condition_name_value_size_national_bit (PASS)",
+     "format 5": "not shown: declined (D1/PB5577)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr6-over-cd.cob (COBOL5982); legal B\"10\" in E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob"
+    },
+    "reason": "Identical words, different band: 2002 heads it FORMATS 1, 2, 3, AND 5; 2023 heads SR10 FORMAT 1 and reaches the other formats only through SR16, SR24 and SR36 (cause c). In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case. Format 5 is declined at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr6-tbl-over-ws.cob",
+    "widening": null,
+    "class": "split-rule",
+    "second-targets": [
+     "SR-13.18.63.3-16",
+     "SR-13.18.63.3-24",
+     "SR-13.18.63.3-36"
+    ],
+    "needs": "KEPT to SR-13.18.63.3-10 plus SR-16/SR-24, a 2002 witness for the CD case (sr6-over-cd.cob); format 5 blocked by D1",
+    "compiler-at-2002": "correct (formats 1-3, CD); wrong for the format 5 (content-validation) part only: the compiler declines the VALIDATE facility at --std 2002 under the 2023 licence (COBOL1708 citing §2023 Annex A.4.14), see E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob (refused COBOL1708 at --std 2002). Known defect D1 / kb/Work PB5577; in 2002 only Annex A is optional (§2002:3.1), so format 5 is required."
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-8",
+    "to": [
+     "SR-13.18.63.3-11"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.2 SR8 (FORMATS 1, 2, AND 3)",
+    "clause-2023": "13.18.63.3 SR11 (FORMAT 1; SR16 format 2; NOT listed by SR24 for format 3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR8",
+      "quote": "Editing characters in a picture character-string are included in determining the size of the data item, but do not cause editing of the initial value when the data item is initialized",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR11",
+      "quote": "Editing characters in a picture character-string for a numeric-edited data item are used in editing of the initial value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR16",
+      "quote": "Syntax rules 10, 11,12,13,14,and 15 above apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR24",
+      "quote": "Syntax rules 10 and 17 above apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "edited items (alphanumeric-, numeric-, national-edited) formats 1, 2: editing characters count in the size, no editing at initialization",
+     "format 3: size counts editing characters",
+     "CD record entries"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob (E3 PIC XX/XX VALUE \"ABCD\" -> [ABCD ], E4 PIC ZZ9 VALUE \"007\" -> [007], E1 -> [001.50]) and E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.40-PICTURE/pb492_national_edited_2002 (PASS) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "format 2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob (T2 PIC XX/XX OCCURS 2 VALUE \"ABCD\" FROM (1) -> ABCD ABCD )",
+     "format 3": "not shown directly (size check for 88 literals is SR4/SR5 territory)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (E1, E3 unedited)"
+    },
+    "reason": "The words differ: 2002 says editing characters never edit the initial value (no edited category excepted); 2023 SR11 edits a numeric literal into a numeric-edited item (a 2023 addition; at 2002 that literal is refused). The bands differ too: 2002 FORMATS 1, 2, AND 3; 2023 SR11 FORMAT 1, format 2 via SR16, and format 3 not at all. In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob",
+    "widening": null,
+    "class": "own-text",
+    "second-targets": [
+     "SR-13.18.63.3-16"
+    ],
+    "needs": "its own verdict: at --std 2002 edited items take their VALUE unedited (pos-ws.cob, pos-cd.cob); a 2002 witness for the CD case",
+    "compiler-at-2002": "correct (probes pos-ws.cob, pos-cd.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-9",
+    "to": [
+     "SR-13.18.63.3-37"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.2 SR9 (FORMATS 1 AND 2)",
+    "clause-2023": "none (pointer SR37 is the VALID/INVALID rule, unrelated)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR9",
+      "quote": "Formats 1 and 2 shall not be specified in a condition-name entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR37",
+      "quote": "The VALID phrase and the INVALID phrase shall not both be specified for the same conditional variable",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.1",
+      "quote": "where value-clause is described in 13.16.61, VALUE clause (condition-name format)",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a condition-name (level 88) entry with a format 2 (FROM/TO) VALUE: refuse",
+     "with a format 1 VALUE: indistinguishable from a one-literal format 3",
+     "condition-names under CD record items"
+    ],
+    "evidence-2002": {
+     "format 2 in 88 (WS)": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr9-88-from-ws.cob: ACCEPTED at 2002, no diagnostic (WRONG)",
+     "format 2 in 88 (CD)": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/sr9-cd.cob: ACCEPTED at 2002 (WRONG)",
+     "behaviour": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-sr9b.cob: compiles and runs, the condition is never true (A-ONE(1) false with A(1)=1, B-TWO false with B=2); E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-sr9.cob: SET A-ONE(3) TO TRUE crashes the compiler (ArgumentOutOfRangeException in SetEmitter.EmitSet, SetEmitter.cs:391), at 2002 and 2023"
+    },
+    "reason": "No 2023 rule has these words; the pointer is unrelated. The 2002 rule forbids formats 1 and 2 under level 88 (the 88 entry's value-clause is the condition-name format, §2002:13.14.1). The compiler accepts 88 ... VALUE 1 FROM (1) at --std 2002 (and 2023) silently: DataBinder.BindCondition reads only value.valueItem() and ignores valueClauseTablePhrase, so the condition gets no values. A defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-sr9.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict after a fix: the compiler at --std 2002 shall refuse a format 2 VALUE on a level-88 entry",
+    "compiler-at-2002": "wrong: NEW DEFECT. Program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-sr9.cob (05 A PIC 9 OCCURS 3. 88 A-ONE VALUE 1 FROM (1). / 01 B PIC 9 VALUE 2. 88 B-TWO VALUES 2 FROM (1) TO (1).). Expected per §2002:13.16.61.2 SR9 \"Formats 1 and 2 shall not be specified in a condition-name entry\": a compile-time diagnostic. Observed: no diagnostic; without the SET the program runs and both conditions test false (pos-sr9b.cob prints only G=123); with SET A-ONE(3) TO TRUE the compiler crashes rc=1 (System.ArgumentOutOfRangeException at SetEmitter.EmitSet line 391). Same at --std 2023 (format 3 has no FROM phrase). Site: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition (no valueClauseTablePhrase screen; the non-88 arm at ~line 3892 has the SR33 mirror)."
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-10",
+    "to": [
+     "GR-13.18.63.4-18"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.3 GR10 (FORMATS 3 AND 5)",
+    "clause-2023": "13.18.63.4 GR18 (FORMAT 3; format 5 via GR24)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR10",
+      "quote": "The manner of determining the range of values specified by the THROUGH phrase is described in 14.6.7, THROUGH phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR18",
+      "quote": "The manner of determining the range of values specified by the THROUGH phrase is described in 14.7.8, THROUGH phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 3 THROUGH range evaluation",
+     "format 5 THROUGH range evaluation (VALIDATE)",
+     "CD record condition-names"
+    ],
+    "evidence-2002": {
+     "format 3": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb502_value_range_in_alphabet, pb398_range_in_alphabet (PASS at 2002); pb502 negatives refused at 2002 (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "format 5": "not shown: declined (D1/PB5577)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (A1-R THRU IN ALPH; C1-LOW 1 THRU 3)"
+    },
+    "reason": "Referenced clause identical. 2002 bands FORMATS 3 AND 5; 2023 GR18 FORMAT 3, GR24 carries it to format 5 inside the optional VALIDATE facility. In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "second-targets": [
+     "GR-13.18.63.4-24"
+    ],
+    "needs": "a 2002 witness for the CD case (pos-cd.cob); format 5 blocked by D1",
+    "compiler-at-2002": "correct for format 3 (WS, CD); wrong for the format 5 (content-validation) part only: the compiler declines the VALIDATE facility at --std 2002 under the 2023 licence (COBOL1708 citing §2023 Annex A.4.14), see E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob (refused COBOL1708 at --std 2002). Known defect D1 / kb/Work PB5577; in 2002 only Annex A is optional (§2002:3.1), so format 5 is required.",
+    "licence-2002": "none (for format 5)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-12",
+    "to": [
+     "GR-13.18.63.4-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.3 GR12 (FORMAT 2)",
+    "clause-2023": "13.18.63.4 GR12 (FORMAT 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR12",
+      "quote": "A format 2 VALUE clause initializes a table element to the value of literal-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR12",
+      "quote": "in the case of a dynamic-capacity table, the expected number of occurrences, specified by its corresponding OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 2 odometer fill from subscript-1, multi-dimension carry",
+     "CD record tables"
+    ],
+    "evidence-2002": {
+     "WS": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb505_table_value_subordinate_odometer, pb208_table_value_image_seed, pb1722_table_value_runs, 13.18.52-SIGN/pb188_table_value_image_width (PASS at 2002; pb505_table_value_geometry and pb1716 need OCCURS DYNAMIC and do not run at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (T1=PPQ, T4=ABA)"
+    },
+    "reason": "Format 2 is the same diagram in both editions and both band the rule FORMAT 2. 2023 adds the dynamic-capacity table (widening). In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case. (Same finding as p-04 for GR15.)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob",
+    "widening": "dynamic-capacity tables",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record table (pos-cd.cob is the candidate)",
+    "compiler-at-2002": "correct (pinned witnesses at 2002; probe pos-cd.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-13",
+    "to": [
+     "GR-13.18.63.4-13"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.3 GR13 (FORMAT 2)",
+    "clause-2023": "13.18.63.4 GR13 (FORMAT 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR13",
+      "quote": "If the TO phrase is specified, all occurrences of literal-1 are reused, in the order specified, as a source during the initialization described in general rule 12",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR13",
+      "quote": "If the TO phrase is specified, all occurrences of literal-1 are reused, in the order specified, as a source during the initialization described in General rule 12",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "TO phrase: literals reused cyclically up to subscript-2",
+     "CD record tables"
+    ],
+    "evidence-2002": {
+     "WS": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb505_table_value_subordinate_odometer, pb208_table_value_image_seed, pb1722_table_value_runs (PASS at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (T4 VALUE \"A\" \"B\" FROM (1) TO (3) -> A B A, T4(4) untouched)"
+    },
+    "reason": "Format 2 is the same diagram in both editions and both band the rule FORMAT 2. Words identical up to the case of \"general rule\". In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case. (Same finding as p-04 for GR15.)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record table (pos-cd.cob is the candidate)",
+    "compiler-at-2002": "correct (pinned witnesses at 2002; probe pos-cd.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-14",
+    "to": [
+     "GR-13.18.63.4-14"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.3 GR14 (FORMAT 2)",
+    "clause-2023": "13.18.63.4 GR14 (FORMAT 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR14",
+      "quote": "it is as if the TO phrase were specified with each subscript-2 as the maximum number of occurrences of the table associated with each corresponding subscript-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR14",
+      "quote": "or, in the case of a dynamic-capacity table, the expected number of occurrences, of the table associated with each corresponding subscript-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "no TO phrase: as if TO the maximum occurrences",
+     "CD record tables"
+    ],
+    "evidence-2002": {
+     "WS": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb505_table_value_subordinate_odometer, pb208_table_value_image_seed (PASS at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob (T2 FROM (1) fills both) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (\"Q\" FROM (3) -> T1(3)=Q)"
+    },
+    "reason": "Format 2 is the same diagram in both editions and both band the rule FORMAT 2. 2023 adds the dynamic-capacity expected occurrences (widening). In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case. (Same finding as p-04 for GR15.)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob",
+    "widening": "dynamic-capacity tables",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record table (pos-cd.cob is the candidate)",
+    "compiler-at-2002": "correct (pinned witnesses at 2002; probe pos-cd.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-17",
+    "to": [
+     "GR-13.18.63.4-20"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.3 GR17 (FORMAT 3)",
+    "clause-2023": "13.18.63.4 GR20 (FORMAT 3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR17",
+      "quote": "the value of literal-4 from the FALSE phrase is placed in the associated conditional-variable",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR20",
+      "quote": "the value of literal-4 from the FALSE phrase is placed in the associated conditional-variable",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SET condition-name TO FALSE moves literal-4",
+     "condition-names under CD record items"
+    ],
+    "evidence-2002": {
+     "WS": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb555_value_false_phrase, pb455_set_false_group_length, pb555_typedef_condition_clone (PASS at 2002); pb555-set-false-no-phrase refused COBOL2049 (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (C1 FALSE=50)"
+    },
+    "reason": "Identical words and format 3. In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case. (p-04 found the same for GR16.)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD case (pos-cd.cob)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-4",
+    "to": [
+     "GR-13.18.63.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.3 GR4 (FORMATS 1 AND 2)",
+    "clause-2023": "13.18.63.4 GR4 (FORMAT 1; format 2 via GR11)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "VALUE clauses in the working-storage, local-storage, and communication sections take effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR4",
+      "quote": "VALUE clauses in the working-storage and local-storage sections take effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR11",
+      "quote": "General rules 1, 2, 3, 4, 5, 6, 7, 8, and 10 above apply",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "WS, LS and COMMUNICATION section VALUEs: external at INITIALIZE, based at ALLOCATE/INITIALIZE, others at initial state and INITIALIZE",
+     "object and pointer items initialized to null",
+     "formats 1 and 2"
+    ],
+    "evidence-2002": {
+     "WS/LS/external/based": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.7-Linkage-section/pb499_table_value_by_section_2002 (PASS at 2002; message-tag-usage does not run at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "communication section": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (initial values shown, INITIALIZE CR ... TO VALUE restores A1, E3, T1)",
+     "format 2": "covered by pb499_table_value_by_section_2002 (table VALUE in every population)"
+    },
+    "reason": "The words differ exactly where 2002 names the communication section (\"working-storage, local-storage, and communication sections\"); 2023 drops it and adds message-tag (a widening). The band also differs: 2002 FORMATS 1 AND 2, 2023 FORMAT 1 with GR11 for format 2.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob",
+    "widening": "message-tag items initialized to null",
+    "class": "communication-reach",
+    "second-targets": [
+     "GR-13.18.63.4-11"
+    ],
+    "needs": "a 2002 witness for communication-section initialization (pos-cd.cob)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-6",
+    "to": [
+     "GR-13.18.63.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.3 GR6 (FORMATS 1 AND 2)",
+    "clause-2023": "13.18.63.4 GR6 (FORMAT 1; format 2 via GR11)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR6",
+      "quote": "If a VALUE clause is specified in a data description entry of a data item that is associated with a variable-occurrence data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR6",
+      "quote": "If a VALUE clause is specified in a data description that also contains an OCCURS clause with the DEPENDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR11",
+      "quote": "General rules 1, 2, 3, 4, 5, 6, 7, 8, and 10 above apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "VALUE on a group containing, on, or subordinate to a variable-occurrence item: initialize at maximum occurrences",
+     "DEPENDING ON object VALUE placed afterwards",
+     "formats 1 and 2",
+     "CD record entries"
+    ],
+    "evidence-2002": {
+     "WS": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb577_odo_value_initial_state, pb577_odo_value_initialize (PASS at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (OD OCCURS 1 TO 5 DEPENDING ON IX VALUE \"Z\", IX VALUE 3: after MOVE 5 TO IX all five are Z)"
+    },
+    "reason": "The trigger is worded differently: 2002 \"a data item that is associated with a variable-occurrence data item\" (group containing, the item itself, subordinate items), 2023 \"a data description that also contains an OCCURS clause with the DEPENDING phrase\" followed by the same three cases. The band differs (2023 FORMAT 1 + GR11). In 2002 the VALUE clause governs communication-section items (§2002:13.16.61 opening paragraph); the record description entries after a CD are ordinary data description entries, so this rule reaches them. 2023 has no communication section (§2023:13.18.63.1), so the 2023 row says nothing about that case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "second-targets": [
+     "GR-13.18.63.4-11"
+    ],
+    "needs": "a 2002 witness for the CD case (pos-cd.cob)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-7",
+    "to": [
+     "GR-13.18.63.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.3 GR7 (FORMATS 1, 2, AND 4)",
+    "clause-2023": "13.18.63.4 GR7 (FORMAT 1; GR11 format 2; GR21 format 4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR7",
+      "quote": "Each literal is aligned in the associated data item in accordance with 14.5.8, Alignment of data within data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR7",
+      "quote": "Each literal is aligned in the associated data item in accordance with 14.6.8, Alignment and transfer of data into data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR11",
+      "quote": "General rules 1, 2, 3, 4, 5, 6, 7, 8, and 10 above apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR21",
+      "quote": "General rules 1, 7, 8, and 9 above apply",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "alignment per 14.5.8, JUSTIFIED ignored, no editing: format 1, format 2, format 4",
+     "CD record entries"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.63-VALUE/pb876_national_value_no_editing_bwz_inert (PASS at 2002; pb876_national_value_bwz_zero_contrast does not run at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob (J1 JUSTIFIED RIGHT VALUE \"AB\" -> [AB   ]) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "format 2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-rw.cob (WJ JUSTIFIED RIGHT OCCURS 2 -> [AB  AB  ])",
+     "format 4": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-rw.cob (report column JUSTIFIED RIGHT VALUE \"AB\" prints AB left; XXBXX VALUE \"ABCDE\" prints ABCDE)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (J1 [AB   ])"
+    },
+    "reason": "Same words up to the referenced clause's title; 2002 14.5.8 and 2023 14.6.8 agree on the cases a VALUE reaches. The band differs: 2002 FORMATS 1, 2, AND 4; 2023 GR7 FORMAT 1 with GR11 and GR21 (cause c). Plus the CD case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-rw.cob",
+    "widening": null,
+    "class": "split-rule",
+    "second-targets": [
+     "GR-13.18.63.4-11",
+     "GR-13.18.63.4-21"
+    ],
+    "needs": "KEPT to GR-13.18.63.4-7, -11, -21 plus a 2002 witness for formats 2 and 4 and the CD case (pos-rw.cob, pos-cd.cob)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-8",
+    "to": [
+     "GR-13.18.63.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61.3 GR8 (FORMATS 1, 2, AND 4)",
+    "clause-2023": "13.18.63.4 GR8 (FORMAT 1, different words; pointer GR7 is the alignment rule)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR8",
+      "quote": "Initialization is not affected by any BLANK WHEN ZERO clause that may be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR8",
+      "quote": "the BLANK WHEN ZERO clause has no effect on initialization",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "BLANK WHEN ZERO has no effect on initialization, whatever the literal (incl. figurative ZERO): formats 1, 2, 4",
+     "CD record entries"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob (B1 PIC ZZ9.99 BWZ VALUE ZERO -> [000000]; B2 VALUE \"000.00\" -> [000.00])",
+     "format 2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-rw.cob (WB VALUE \"000\", WZ VALUE ZERO -> 000000 each pair)",
+     "format 4": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-rw.cob (report ZZZ9 BWZ VALUE \"0000\" prints 0000)",
+     "CD record": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-cd.cob (B1 [000000], B2 [000.00])"
+    },
+    "reason": "Different requirement: 2002 says BWZ never affects initialization; 2023 GR8 says it has no effect only for an alphanumeric or national literal and its NOTE says a numeric zero IS blanked. The pointer (GR7) does not cover BWZ, and its BWZ witness pb876_national_value_bwz_zero_contrast does not compile at 2002. The 2002 reading for VALUE ZERO (a string of zeros, unblanked) is what the compiler does at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pos-ws.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 BWZ items keep their VALUE image unblanked in formats 1, 2, 4 and CD records (probes pos-ws.cob, pos-rw.cob, pos-cd.cob)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-13.16.62.3-5",
+    "to": [
+     "GR-13.18.64.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.62.3 GR5",
+    "clause-2023": "13.18.64.4 GR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.62.3 GR5",
+      "quote": "the EC-REPORT-VARYING exception condition is set to exist, the execution of the GENERATE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.64.4 GR5",
+      "quote": "the execution of the INITIATE, GENERATE, or TERMINATE statement is unsuccessful",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report VARYING FROM/BY non-integer during GENERATE: EC-REPORT-VARYING (fatal in both tables), GENERATE unsuccessful"
+    ],
+    "evidence-2002": {
+     "GENERATE": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.64-VARYING/pb1305_report_varying_expression (accept [2002], PASS at 2002: RAISED EC-REPORT-VARYING on DET-D) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)"
+    },
+    "reason": "The VARYING format is identical; report-section only (no CD or debugging reach). EC-REPORT-VARYING is Fatal in both tables. 2023 also names INITIATE and TERMINATE; the 2002 case (GENERATE) is a subset and the twin's witness shows it at --std 2002.",
+    "probe": null,
+    "widening": "INITIATE and TERMINATE named as unsuccessful in 2023"
+   },
+   {
+    "rule-id": "2002-GR-13.16.62.3-6",
+    "to": [
+     "GR-13.18.64.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.62.3 GR6",
+    "clause-2023": "13.18.64.4 GR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.62.3 GR6",
+      "quote": "the EC-VALIDATE-VARYING exception condition is set to exist, the execution of the VALIDATE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.64.4 GR6",
+      "quote": "the EC-VALIDATE-VARYING exception condition is set to exist, the execution of the VALIDATE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "non-report VARYING (VALIDATE leg): non-integer -> EC-VALIDATE-VARYING, VALIDATE unsuccessful"
+    ],
+    "evidence-2002": {
+     "VALIDATE leg": "not shown: E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.64-VARYING/declined-validate-varying.cob refused COBOL1708 at --std 2002"
+    },
+    "reason": "Same words; the 2023 row is DOCUMENTED-NON-SUPPORT under the 2023 optional VALIDATE licence. VALIDATE is required in 2002 (only Annex A is optional).",
+    "probe": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.64-VARYING/declined-validate-varying.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires the VALIDATE VARYING leg; the compiler declines it",
+    "compiler-at-2002": "wrong for the format 5 (content-validation) part only: the compiler declines the VALIDATE facility at --std 2002 under the 2023 licence (COBOL1708 citing §2023 Annex A.4.14), see E:/COBOL-wt/coderead85-tree-d/conformance-suite/wiseowl/cases/13.18.63-VALUE/declined-validate-value-format5.cob (refused COBOL1708 at --std 2002). Known defect D1 / kb/Work PB5577; in 2002 only Annex A is optional (§2002:3.1), so format 5 is required.",
+    "licence-2002": "none"
+   },
+   {
+    "rule-id": "2002-SR-14.1.2-1",
+    "to": [
+     "SR-14.2.2-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.1.2 SR1 (FORMATS 1 AND 2)",
+    "clause-2023": "14.2.2 SR1 (FORMATS 1 AND 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.2 SR1",
+      "quote": "Data-name-1 shall be defined as a level 01 entry or a level 77 entry in the linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR1",
+      "quote": "Data-name-1 shall be defined as a level 01 entry or a level 77 entry in the linkage section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "USING formal: level 01/77 linkage item",
+     "no repetition",
+     "no BASED, no REDEFINES on the formal"
+    ],
+    "evidence-2002": {
+     "repetition": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.2-Procedure-division-structure/pb1145-procedure-header-formal-repeated (COBOL2648 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "REDEFINES": "covered by pb1145-method-header-redefines-formal (COBOL2648 at 2002)",
+     "BASED": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-use-based.cob (COBOL2648)",
+     "level/section": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-use-ws.cob (COBOL0888); legal 01/77 with a later REDEFINES: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-use-ok.cob"
+    },
+    "reason": "Identical rule (only the NOTE numbering and \"may\"/\"can\" differ); header and using-phrase formats identical; linkage only, no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-use-based.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.1.2-2",
+    "to": [
+     "SR-14.2.2-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.1.2 SR2",
+    "clause-2023": "14.2.2 SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.2 SR2",
+      "quote": "Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR2",
+      "quote": "Each data-name-1 specified in a BY VALUE phrase shall be defined as a data item of class numeric, message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "BY VALUE formal of class numeric, object or pointer (data-pointer, program-pointer)"
+    ],
+    "evidence-2002": {
+     "refusal": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.2-Procedure-division-structure/by-value-formal-class, pb1051-method-by-value-formal-alphanumeric (COBOL1553 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)",
+     "legal classes": "covered by 8.4.3.4-Inline-method-invocation/pb1051_method_by_value (PASS at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-byval-ok.cob (binary, POINTER, PROGRAM-POINTER, OBJECT REFERENCE accepted)"
+    },
+    "reason": "2023 adds class message-tag (a widening: no 2002 data item has it). The COBOL1553 text at 2002 lists \"message-tag\" among the permitted classes, a 2023 term (diagnostic wording only).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-byval-alnum.cob",
+    "widening": "class message-tag"
+   },
+   {
+    "rule-id": "2002-SR-14.1.2-5",
+    "to": [
+     "SR-14.2.2-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.1.2 SR5",
+    "clause-2023": "14.2.2 SR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.2 SR5",
+      "quote": "The data description entry for data-name-2 shall not contain a BASED clause or a REDEFINES clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR5",
+      "quote": "The data description entry for data-name-2 shall not contain a BASED clause or a REDEFINES clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RETURNING item: level 01/77 linkage, no BASED, no REDEFINES"
+    ],
+    "evidence-2002": {
+     "REDEFINES": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-ret-redef.cob (COBOL2648) and pb1145-method-header-redefines-formal",
+     "BASED": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-ret-based.cob (COBOL2648)",
+     "level/section": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-ret-level.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-ret-ws.cob (COBOL0888); legal E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-ret-ok.cob"
+    },
+    "reason": "Identical rule (NOTE numbering only).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-ret-redef.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.1.2-8",
+    "to": [
+     "SR-14.2.2-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.1.2 SR8",
+    "clause-2023": "14.2.2 SR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.2 SR8",
+      "quote": "Class-name-1 shall be the name of a class specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR8",
+      "quote": "Object-class-name-1 shall be the name of a class specified in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RAISING [FACTORY OF] class-name-1: a class in the REPOSITORY paragraph"
+    ],
+    "evidence-2002": {
+     "undeclared": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-raise-undecl.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-raise-fac-undecl.cob (COBOL0858)",
+     "declared": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.2-Procedure-division-structure/pb815_raising_factory_interface (PASS at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)"
+    },
+    "reason": "class-name-1 renamed object-class-name-1 in 2023; same meaning (a class name; the RAISING diagram is the same).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/pd-raise-undecl.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-12",
+    "to": [
+     "GR-14.2.3-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.1.3 GR12",
+    "clause-2023": "14.2.3 GR12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR12",
+      "quote": "Exception-name-1 specifies an exception that this runtime element may raise in an EXIT or GOBACK statement, in addition to the exception-names defined in table 14",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR12",
+      "quote": "Exception-names defined in Table 13, Exception-names and exception conditions and user-defined exception-names may be raised",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "EXIT/GOBACK RAISING of a declared exception-name, of the standard exception-names, of an object of class-name-1 or subclass, of an interface-1 implementor"
+    ],
+    "evidence-2002": {
+     "all": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.2-Procedure-division-structure/oo_ec_goback_raising and pb815_raising_factory_interface (PASS at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-19/cases-2002.log)"
+    },
+    "reason": "Reworded, same permission: the standard exception-names plus the declared ones. The 2002 table 14 names are a subset of the 2023 table 13 names (mechanical diff: no EC name is 2002-only), so the 2023 set is a widening.",
+    "probe": null,
+    "widening": "exception-names added to the 2023 table"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-19",
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.62.3-5",
+    "verdict": "UPHELD",
+    "reason": "VARYING format and SR1-3 identical; report description entries only (no CD or debugging reach); EC-REPORT-VARYING Fatal in both tables (2002 table 14 / 2023 Table 13). The reader omitted one 2002 scope item: the condition is not restricted to GENERATE, so it also reaches a report group printed at TERMINATE (2002 TERMINATE prints control footings 'as defined for the GENERATE statement', 14.8.42.3 GR3). 2002's consequence names only GENERATE; 2023 names INITIATE, GENERATE or TERMINATE. No program can see a difference: the EC is required in both, and the refuter's probe shows it raised at TERMINATE identically at --std 2002 and 2023 (RAISED EC-REPORT-VARYING, then AFTER TERMINATE). The pointer row's witness pb1305 covers only GENERATE; the probe is a candidate witness for the TERMINATE-time case in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.62.3 GR5",
+      "quote": "the EC-REPORT-VARYING exception condition is set to exist, the execution of the GENERATE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.64.4 GR5",
+      "quote": "the execution of the INITIATE, GENERATE, or TERMINATE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.42.3 GR3",
+      "quote": "Each control footing is printed, if defined, beginning with the minor control footing",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-19/gr5-terminate-varying.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.1.2-1",
+    "verdict": "UPHELD",
+    "reason": "Word-identical sentence; procedure-division-header and using-phrase formats identical (2002 14.1.1 vs 2023 14.2.1, every phrase and operand); same FORMATS 1 AND 2 band; linkage-section items only, so no CD or communication reach; differences are NOTE numbering and 'may'/'can' in non-normative notes. No 2002-only form reaches a USING formal.",
+    "citations": [
+     {
+      "cite": "§2002:14.1.2 SR1",
+      "quote": "Data-name-1 shall be defined as a level 01 entry or a level 77 entry in the linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR1",
+      "quote": "Data-name-1 shall be defined as a level 01 entry or a level 77 entry in the linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.1.2-2",
+    "verdict": "UPHELD",
+    "reason": "2002 classes numeric (category numeric), object (object-reference) and pointer (data-pointer, program-pointer) per the 2002 class/category table are all admitted by the 2023 rule; 2023 only adds message-tag (a widening; no 2002 item has it). BY VALUE alternative of the using-phrase identical in both formats.",
+    "citations": [
+     {
+      "cite": "§2002:14.1.2 SR2",
+      "quote": "shall be defined as a data item of class numeric, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR2",
+      "quote": "class numeric, message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.1.2-5",
+    "verdict": "UPHELD",
+    "reason": "Word-identical; RETURNING data-name-2 phrase identical in both headers; linkage-section only; no removed form reaches it.",
+    "citations": [
+     {
+      "cite": "§2002:14.1.2 SR5",
+      "quote": "The data description entry for data-name-2 shall not contain a BASED clause or a REDEFINES clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR5",
+      "quote": "The data description entry for data-name-2 shall not contain a BASED clause or a REDEFINES clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.1.2-8",
+    "verdict": "UPHELD",
+    "reason": "Only the metavariable is renamed (class-name-1 -> object-class-name-1); the RAISING diagram's alternative [FACTORY OF] class-name is the same position in both headers and the sentence itself pins it to a REPOSITORY class, so the 2002 class-name for class tests cannot be meant. The rule governs the header only (EXIT METHOD RAISING identifier constraints are 14.8.13.2 SR5's, not this rule's).",
+    "citations": [
+     {
+      "cite": "§2002:14.1.2 SR8",
+      "quote": "Class-name-1 shall be the name of a class specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.2 SR8",
+      "quote": "Object-class-name-1 shall be the name of a class specified in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-12",
+    "verdict": "OVERTURNED",
+    "reason": "The rule governs what 'this runtime element may raise in an EXIT or GOBACK statement'. In 2002 the EXIT statement has Format 3 EXIT METHOD and Format 4 EXIT FUNCTION, each with RAISING (exception-name-1 / identifier-1 / LAST EXCEPTION); 2023 removed both (Annex E.2 item 1) and keeps only EXIT PROGRAM RAISING. So the 2002 rule reaches EXIT METHOD RAISING and EXIT FUNCTION RAISING, forms the 2023 rule cannot reach, and the pointer row's witnesses (oo_ec_goback_raising, pb815_raising_factory_interface) use only GOBACK RAISING. Probe: oo_ec_goback_raising with GOBACK replaced by EXIT METHOD RAISING W-E compiles and runs at --std 2002 (HANDLED R=0077 / AFTER-INVOKE R=0077: the declared class's object is raised and handled, compiler-at-2002 correct for the method arm) and is refused at --std 2023 (COBOL0902 EXIT METHOD removed). Needs: a 2002 witness for EXIT METHOD RAISING (the probe) and for EXIT FUNCTION RAISING (not probed).",
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR12",
+      "quote": "Exception-name-1 specifies an exception that this runtime element may raise in an EXIT or GOBACK statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR12",
+      "quote": "Exception-name-1 specifies an exception that this runtime element may raise in an EXIT or GOBACK statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13",
+      "quote": "The EXIT METHOD statement marks the logical end of an invoked method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.2 SR8",
+      "quote": "An EXIT METHOD statement may be specified only in a method procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.3 GR3",
+      "quote": "If the RAISING phrase is specified, an exception condition is raised in the activating runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.14.1",
+      "quote": "The EXIT PROGRAM statement marks the logical end of a called program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "Removal of items not previously identified as obsolete",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-19/gr12-exit-method-raising.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "95056e9e670722013520c65d8801700c74db0547945b6f9f8252e27340bb169f",
+  "read": "b9791fbd14ce596376db8e4297a6192301b64008fc26f3b76d966c426197abbe",
+  "refute": "6fed6f8312876e73b9b635b9d059baa4429e83ce06eefcf411e74c0d0d0fbbd8"
+ }
+}

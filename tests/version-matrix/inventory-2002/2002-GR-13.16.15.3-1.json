@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.15.3-1",
+ "rule-digest": "c55026a8e3c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddControl; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.16.15@2002-CONTROL-CLAUSE/g2ctl01_hierarchy_order_cd_control",
+ "notes": "§2002:13.16.15.3 GR1: operand order sets the hierarchy, so for the same data R-1 (CONTROLS WS-A CD-B, groups declared against that order) and R-2 (CONTROLS CD-B WS-A) print their headings, footings and breaks in opposite level order (§2002:13.16.55.3 GR6c/GR6e). The --std 2002 run matched all 28 derived lines."
+}

@@ -487,6 +487,13 @@ internal static class IntrinsicArgumentRules
         // always", on the authority of a clause number that DOES NOT EXIST (the old text cited "8.4.2.4";
         // cite.py --check reports no such clause). The rule now lives in ONE
         // place; a ref-modified boolean item is class BOOLEAN and a ref-modified national item class NATIONAL.
+        // ⛔ A table(ALL) ARGUMENT IS ITS ELEMENT AS A STATIC CLASSIFIER SEES IT (TableAllPlace's own contract; kb/Work PB5833):
+        // `N-EL (ALL) (1:1)` is a TableAllPlace OVER the reference-modified element, and testing only `p is RefModPlace`
+        // fell to the decorator's Item, the numeric element, where §1985:IV.4.3.8.4.4 GR3a applies the reference-modifier
+        // to each implicitly specified element and GR5 makes each class and category alphanumeric (§2023:8.4.3.3.4 GR6
+        // the same). IntrinsicResultType.OperandCategory already peels it, so the two readers of one class now agree.
+        if (p is TableAllPlace all)
+            return ClassOfPlace(all.Element);
         if (p is RefModPlace rmp)
             return ClassOfCategory(rmp.Category);   // a ref-modded GROUP is an elementary alphanumeric item (GR6; kb/Work PB70)
         return ClassOfItem(p.Item);
@@ -540,6 +547,25 @@ internal static class IntrinsicArgumentRules
             ({ } ga, { } gb) => StrongTypeModel.SameType(ga, gb),
             _ => false,
         };
+
+    /// <summary>⛔ "OF THE SAME CLASS" WHEN AN END CAN PRESENT MORE THAN ONE CLASS — a figurative constant
+    /// (§2023:14.9.13.3 SR4; §1985:VI.6.13.3 SR4). <see cref="ClassOf"/> abstains for such an operand, and a screen that
+    /// skips its same-class test on an abstention lets <c>SPACE THRU 9</c> through though no class SPACE can present is
+    /// numeric: SPACE, QUOTE, HIGH-VALUE and LOW-VALUE represent character values, alphanumeric (national in a national
+    /// context), never numeric (§2023:8.3.3.6.4 GR1; §1985:IV.4.2.2.2.3 and IV.4.2.2.2.1.3 GR3 make them nonnumeric
+    /// literals, of category alphanumeric), while ZERO alone also stands for the numeric value 0 and so pairs with any class (§2023:8.3.3.6.4 GR1).
+    /// Two operands can be of the same class exactly when their <see cref="CandidateClasses"/>, projected through
+    /// <see cref="TableTwoClass"/>, intersect; an empty set is "not statically decidable" and fails open, like every
+    /// screen here. For two single-class operands this IS <see cref="SameClass"/>'s equality.</summary>
+    internal static bool CanShareClass(BoundOperand a, BoundOperand b)
+    {
+        var ca = CandidateClasses(a);
+        var cb = CandidateClasses(b);
+        return ca.Length == 0 || cb.Length == 0 || ca.Any(x => cb.Any(y => TableTwoClass(x) == TableTwoClass(y)));
+    }
+
+    /// <summary>The classes an operand can present, spelled for a diagnostic (<see cref="CandidateClasses"/>).</summary>
+    internal static string DescribeClasses(BoundOperand op) => Describe(CandidateClasses(op));
 
     /// <summary>The strongly-typed group an operand denotes, or null — a whole data item (a reference-modified view
     /// denotes none, §2023:8.4.3.3.4 GR6: it is an elementary alphanumeric item).</summary>

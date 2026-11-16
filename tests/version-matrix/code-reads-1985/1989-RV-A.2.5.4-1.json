@@ -1,0 +1,104 @@
+{
+ "rule-id": "1989-RV-A.2.5.4-1",
+ "rule-digest": "43a48359a921",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-084",
+  "sources": {
+   "reader": "d76922e7053ef1d27c6000be16dd9e134f4a1aae704e2597c600d7d4d09c7a16",
+   "refuter": "848dd86ce04d1a205cf1eaf2249f22ed29255b8c08462ae840eef6ff3df92b73"
+  },
+  "imported": {
+   "reader": "791e55e264ccb631e21a42c53ae9d7a78c9a3b4ab1a629a4ccc20d1b138d5e1b",
+   "refuter": "d65d58c1201077c2f2686da9e3fcd8e271e597b759df86e2108da9a3272de329"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, FUNCTION ACOS (argument-1), for a numeric argument in [-1, +1] (a literal, an item of any numeric usage or scale, or an arithmetic expression), must return an approximation of the arccosine in radians that lies in [0, pi].",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Acos; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#AcosOfMagnitude; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainDecAdmitted; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.FloatWide.cs#AcosWide",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: sig.IntroducedIn (85 for the 1989 Intrinsic Function module rows) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands (DISPLAY/MOVE operand) is refused (COBOL0900), per 1985 IV.4.3.8.3.3 SR4; 2002+ accepts it. Not consulted inside COMPUTE",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 a COMPUTE with no SIZE ERROR phrase catches every size condition and continues (1985 VI.6.4.2 GR3); 2002+ takes the fatal-EC shape. Statement-level, around the function value, not inside it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
+    "switches": "num.StandardDecimal (arithmetic mode): the ARITHMETIC clause does not exist at 85, so 85 always takes the native arms, the same arms the latest edition takes by default",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicRenderer.cs and the runtime CobolIntrinsics.*.cs for Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior: the renderer's function dispatch and every runtime body consult no edition (the runtime Intrinsics folder has none); the generated C# at --std 85 and --std 2023 differs only in the assembly Edition attribute and the COMPUTE size-error wrapper (diff of var85-002/var85.g.cs vs var85-003, trig85-001 vs trig85-002)",
+  "behaviour-differs-by-edition": "no: the same emitted call (Acos(DomainDecAdmitted(...))) at 85 and 2023; the out-of-domain screen applies the 2023 EC-ARGUMENT-FUNCTION default at every edition, which at 85 lies within an undefined result",
+  "witnesses-cover": "part: the witness covers ill-conditioned arguments near +-1 only; the bounds -1, 0 and +1, scaled and expression arguments and the range bound are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/trig85-001/trig85.cob",
+    "printed": "ACOS(-1)= 3.1415926535897930; ACOS(1)= 0.0000000000000000; ACOS(0)= 1.5707963267948966; ACOS(.5)= 1.0471975511965979; ACOS(-.5)= 2.0943951023931957; ACOS(1-2)= 3.1415926535897930; ACOS(-.999999999)= 3.1415479322302393",
+    "expected": "pi = 3.14159265358979323...; 0; 1.57079632679489661...; 1.04719755119659774...; 2.09439510239319549...; pi; 3.14154793223023951... (mpmath oracle)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/trig85-001/trig85.cob",
+    "printed": "ACOS(-1) NOT ABOVE PI (IF ACOS(M1) > 3.14159265358979324); ACOS(1) NOT BELOW ZERO; ACOS(-1) ROUNDED into S9V9(17) = +3.14159265358979300",
+    "expected": "0 <= value <= pi"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r04_acos2.cob, r12_asinalnum.cob, r11_acosall.cob, dom85-001/dom85.cob",
+    "printed": "COBOL1504 ACOS takes 1 argument; COBOL1627 class alphanumeric; ACOS(T(ALL)) COBOL1645; ACOS(2) prints 0 at run time and the program continues",
+    "expected": "refused; refused; refused (no repeated argument); an out-of-range argument has an undefined result (A.1.2.2), so any value is acceptable"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r06_dispacos.cob",
+    "printed": "COBOL0900: a numeric or integer function-identifier where an identifier is written requires COBOL-2002 (DISPLAY FUNCTION ACOS(0))",
+    "expected": "refused at 85 (IV.4.3.8.3.3 SR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.5.4 RV1",
+    "check": "OK  §1989:A.2.5.4 RV1  (cite.py --check with quoted words: \"greater than or equal to zero and less than or equal to pi\")"
+   },
+   {
+    "cite": "§1989:A.1.2.2",
+    "check": "OK  §1989:A.1.2.2  (cite.py --check with quoted words: \"then the result of such a reference is undefined\")"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (cite.py --check with quoted words: \"may be used only in an arithmetic expression\")"
+   }
+  ],
+  "notes": "Past |x| = 0.5 the exact-argument body uses the half-angle identity over the exact 1-|x|, and a negative x returns (PiHi - r) + PiLo, which narrows to binary64 pi, below the true pi, so the upper bound holds; ACOS(1) is +0.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output (trig85-002)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "trigx-001 at --std 85: ACOS(SV9(18) -.999999999999999999)=3.1415926521755795 and ACOS(.999999999999999999)=0.0000000014142135 (pi - sqrt(2E-18), sqrt(2E-18): 18-digit arguments keep their precision); SIGN LEADING SEPARATE -1 and COMP-3 -1 give 3.1415926535897930 (binary64 pi, below true pi); scaled SVPP9 .005 gives 1.5657963059613290; ACOS(FUNCTION ASIN(1) - 1)=0.9633209590730629; ACOS(0) into S9V9(4) truncates 1.5707, ROUNDED 1.5708. Every value lies in [0, pi]. rndmode-001: ROUNDED MODE refused at 85 (COBOL0803). lit19-001: 19-digit literal argument refused (COBOL0802). cite.py: OK §1989:A.2.5.4 RV1 ('greater than or equal to zero and less than or equal to pi').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

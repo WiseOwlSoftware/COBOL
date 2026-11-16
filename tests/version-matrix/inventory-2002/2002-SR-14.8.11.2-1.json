@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.11.2-1",
+ "rule-digest": "2155520b68ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericOperandKind",
+ "test-ref": "conformance:cases/14.8.11@2002-DIVIDE-STATEMENT/g2div04_cd_operand_categories",
+ "notes": "§2002:14.8.11.2 SR1 admits only elementary numeric identifier-1/identifier-2: the CD integers DC and TL (§2002:A.1.2.3 GR16a/b) are accepted with derived values D1-D3, and STATUS KEY, SYMBOLIC DESTINATION and a CD record group are refused (g2div05-07); the --std 2002 runs matched."
+}

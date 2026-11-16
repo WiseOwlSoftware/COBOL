@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.1.2-12",
+ "rule-digest": "08a1bd093f13",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference",
+ "test-ref": "conformance:cases/8.4.2.14@2002-REPORT-COUNTERS/g2rct01_report_counters_in_integer_contexts",
+ "notes": "§2002:8.4.2.1.2 SR12 defines Format 11 by 8.4.2.14, whose format is {PAGE-COUNTER|LINE-COUNTER} [{IN|OF} report-name-1]. Run at --std 2002 with the pinned compiler (tree dc1f2dcce8): exit 0, PC 01 / LC ZERO / SUB A / ADD 02 / SET 03 / SENT (COBOL0903 obsolete warnings only), MATCH .out, equal to the 2002 derivation."
+}

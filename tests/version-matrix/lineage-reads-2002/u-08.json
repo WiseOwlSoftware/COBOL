@@ -1,0 +1,1561 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-08 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-08",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-8.8.4.2.4.2-3",
+   "2002-GR-8.8.4.2.4.3-1",
+   "2002-GR-8.8.4.2.4.3-2",
+   "2002-SR-10.5.2-4",
+   "2002-SR-10.5.2-5",
+   "2002-SR-10.5.2-6",
+   "2002-SR-10.6.2-4",
+   "2002-SR-11.2.2-2",
+   "2002-SR-11.2.2-3",
+   "2002-SR-11.2.2-4",
+   "2002-SR-11.2.2-5",
+   "2002-SR-11.2.2-7",
+   "2002-GR-11.2.3-1",
+   "2002-GR-11.2.3-2",
+   "2002-GR-11.2.3-4",
+   "2002-GR-11.2.3-6",
+   "2002-SR-11.4.2-1",
+   "2002-SR-11.5.2-1",
+   "2002-GR-11.5.3-4",
+   "2002-SR-11.6.2-1",
+   "2002-SR-11.6.2-3",
+   "2002-SR-11.6.2-4",
+   "2002-SR-11.6.2-6",
+   "2002-SR-11.6.2-7",
+   "2002-SR-11.6.2-9"
+  ],
+  "pointers": {
+   "2002-SR-8.8.4.2.4.2-3": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-8.8.4.12.3-1",
+    "similarity": 0.403
+   },
+   "2002-GR-8.8.4.2.4.3-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-8.8.4.12.4-1",
+    "similarity": 0.468
+   },
+   "2002-GR-8.8.4.2.4.3-2": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-8.8.4.12.4-1",
+    "similarity": 0.574
+   },
+   "2002-SR-10.5.2-4": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-10.6.2-5",
+    "similarity": 0.349
+   },
+   "2002-SR-10.5.2-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-10.6.2-4",
+    "similarity": 0.946
+   },
+   "2002-SR-10.5.2-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-10.6.2-5",
+    "similarity": 1.0
+   },
+   "2002-SR-10.6.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-10.7.3-4",
+    "similarity": 0.933
+   },
+   "2002-SR-11.2.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-11.3.3-2",
+    "similarity": 0.967
+   },
+   "2002-SR-11.2.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-11.3.3-3",
+    "similarity": 0.959
+   },
+   "2002-SR-11.2.2-4": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-11.3.3-4",
+    "similarity": 0.566
+   },
+   "2002-SR-11.2.2-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-11.3.3-5",
+    "similarity": 0.955
+   },
+   "2002-SR-11.2.2-7": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-11.3.3-6",
+    "similarity": 0.168
+   },
+   "2002-GR-11.2.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-11.3.4-1",
+    "similarity": 0.98
+   },
+   "2002-GR-11.2.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-11.3.4-2",
+    "similarity": 0.971
+   },
+   "2002-GR-11.2.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-11.3.4-4",
+    "similarity": 0.961
+   },
+   "2002-GR-11.2.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-11.3.4-6",
+    "similarity": 0.968
+   },
+   "2002-SR-11.4.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-11.5.3-1",
+    "similarity": 0.839
+   },
+   "2002-SR-11.5.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-11.6.3-1",
+    "similarity": 0.839
+   },
+   "2002-GR-11.5.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-11.6.4-4",
+    "similarity": 0.969
+   },
+   "2002-SR-11.6.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-11.7.3-1",
+    "similarity": 0.839
+   },
+   "2002-SR-11.6.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-11.7.3-3",
+    "similarity": 0.947
+   },
+   "2002-SR-11.6.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-11.7.3-4",
+    "similarity": 0.938
+   },
+   "2002-SR-11.6.2-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-11.7.3-6",
+    "similarity": 0.787
+   },
+   "2002-SR-11.6.2-7": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-11.7.3-7",
+    "similarity": 0.764
+   },
+   "2002-SR-11.6.2-9": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-11.7.3-9",
+    "similarity": 1.0
+   }
+  }
+ },
+ "read": {
+  "slice": "u-08",
+  "seed": null,
+  "compiler": "E:/COBOL-wt/coderead85-tree-d (HEAD 24372b7b17, merge of #1704); PB5598 (e6c0fcaabd) is in origin/main but NOT in this build",
+  "probe-runner": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/runcase.sh (outputs under probes-u-08/out/<name>-<std>.out)",
+  "cases": [
+   {
+    "rule-id": "2002-SR-8.8.4.2.4.2-3",
+    "to": [
+     "SR-8.8.4.12.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "8.8.4.2.4.2 SR3 (Abbreviated combined relation conditions)",
+    "clause-2023": "8.8.4.12.3 SR1 (pointer only; 2023 has no rule of these words)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "an abbreviated tail whose NOT is followed by NOT (A > B AND NOT NOT < C; A = B AND NOT NOT C)",
+     "an abbreviated tail whose NOT is followed by IS NOT (A > B AND NOT IS NOT < C; NOT IS NOT EQUAL)"
+    ],
+    "evidence-2002": {
+     "NOT NOT": "covered by conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/l1-abbrev-relation-insertion-not-not (refuse-at includes 2002; COBOL0001 at 2002 re-run) and probe probes-u-08/abnotnot.cob (COBOL0001 at 2002)",
+     "NOT IS NOT": "covered by conformance:cases/8.8.4.2.4@2002-ABBREVIATED-COMBINED-RELATION-CONDITIONS/pb5123-not-is-not-operator-2002 (COBOL0902 at 2002 re-run) and probes abnotisnot.cob, abnotisnoteq.cob (COBOL0902 at 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.2 SR3",
+      "quote": "The word NOT shall not be followed immediately by the word NOT or the words IS NOT",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.12.3 SR1",
+      "quote": "Relation-condition-1 shall not be a boolean relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.7.5.2 SR1",
+      "quote": "When specified, NOT creates one relational operator",
+      "check": "OK"
+     }
+    ],
+    "reason": "The pointer (boolean relation-condition-1) is a different requirement; 2023 dropped this sentence because its format admits no NOT before an IS-led operator at all. In 2002 the format prints '[ NOT ] simple-relational-operator' and simple-relational-operator is 'IS [ NOT ] ...' (8.7.5.1 Format 1), so SR3 is the only thing that refuses NOT NOT / NOT IS NOT. The pointer's evidence shows none of it; the 2002 witnesses above do, and the compiler refuses all four forms at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/abnotisnot.cob",
+    "widening": null,
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for NOT NOT and NOT IS NOT tails is refusal (COBOL0001 / COBOL0902), witnessed by pb5123-not-is-not-operator-2002 and l1-abbrev-relation-insertion-not-not",
+    "compiler-at-2002": "correct (probes-u-08/abnotnot.cob, abnotisnot.cob, abnotisnoteq.cob)"
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.2.4.3-1",
+    "to": [
+     "GR-8.8.4.12.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "8.8.4.2.4.3 GR1",
+    "clause-2023": "8.8.4.12.4 GR1 (same two sentences; the 2023 catalog text adds the NOTE)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "subject insertion and operator insertion over AND/OR tails with the operators of 8.7.5 (simple and extended)",
+     "carrying a stated operator written as NOT IS <op> / NOT <op> (2002 format '[ NOT ] simple-relational-operator'), e.g. A > B AND NOT IS < C OR D",
+     "termination of insertion at a complete simple condition"
+    ],
+    "evidence-2002": {
+     "common forms": "covered by conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or (accept [85]) MATCH at 2002, and probe abrules.cob R1 R3-R8 RA at 2002",
+     "NOT IS <op> carried": "not shown by the 2023 row (the form is refused at 2023: COBOL0902 'removed in COBOL-2014'); covered by conformance:cases/8.8.4.2.4@2002-ABBREVIATED-COMBINED-RELATION-CONDITIONS/pb5123_not_is_simple_operator_2002 MATCH at 2002 and probe abrules.cob R2 (F) and R9 (T) at 2002",
+     "termination": "covered by probe abrules.cob R7 (A > B AND C = D OR B -> F, i.e. C = B)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR1",
+      "quote": "the last stated relational operator were inserted in place of the omitted relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.12.4 GR1",
+      "quote": "the last stated relational operator were inserted in place of the omitted relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.7.5.2 SR1",
+      "quote": "When specified, NOT creates one relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR4",
+      "quote": "NOT > is an abbreviation for NOT GREATER THAN",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words, but the 2002 general format (rendered PDF p158) admits '[ NOT ] simple-relational-operator' in a tail, and 2002's simple operator is 'IS [ NOT ] ...'; so the 'last stated relational operator' GR1 carries can be NOT IS <op>, a form the 2023 format lacks (2023 moved the NOT forms into extended-relational-operator and prints no NOT before them). Probes at 2002 give every expected value: R1 T, R2 F, R3 T, R4 T, R5 T, R6 T, R7 F, R8 F, R9 T, RA T (A=5 B=3 C=7 D=4).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/abrules.cob",
+    "widening": "2023 adds EXCLUSIVE-OR / XOR connectives and the <> operator to the same insertion",
+    "needs": "a 2002 witness for the NOT IS <op> carried form: pb5123_not_is_simple_operator_2002 (exists, MATCH at 2002); KEPT to GR-8.8.4.12.4-1 for the rest",
+    "compiler-at-2002": "correct (probes-u-08/abrules.cob, out/abrules-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.2.4.3-2",
+    "to": [
+     "GR-8.8.4.12.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "8.8.4.2.4.3 GR2 a)-c) and its NOTE",
+    "clause-2023": "8.8.4.12.4 GR1 NOTE (no normative counterpart in 2023)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) NOT immediately before an extended relational operator (>=, <=, GREATER/LESS THAN OR EQUAL TO) is a logical operator",
+     "b) NOT before a simple relational operator (incl. NOT IS <op>) is part of that operator",
+     "c) otherwise NOT is logical and the insertion yields a negated relation condition (A > B AND NOT C)"
+    ],
+    "evidence-2002": {
+     "a)": "not reachable: the 2002 tail format offers extended-relational-operator without NOT and §2002:F.1 item 22 says NOT is prohibited there; the compiler refuses A > B AND NOT >= C at 2002 (COBOL0902, probe abnotext.cob)",
+     "b)": "covered by pb5123_not_is_simple_operator_2002 (MATCH at 2002) and probe abrules.cob R1, R2, R9",
+     "c)": "covered by probe abrules.cob R3 (T) and RA (T)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2b",
+      "quote": "then the NOT participates as part of the simple relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2c",
+      "quote": "the implied insertion of subject or relational operator results in a negated relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2a",
+      "quote": "If an extended relational operator immediately follows the word NOT, then the NOT is interpreted as a logical operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:F.1",
+      "quote": "The word NOT is prohibited before the relational operators meaning 'greater than or equal to'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.12.4 GR1",
+      "quote": "NOT cannot immediately precede an extended-relational operator",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 has no rule of this content (only a NOTE inside GR1); the pointer's evidence does not address NOT interpretation, least of all the 2002-only NOT IS <op> form. 2002 witnesses exist and the compiler matches b) and c). GR2a describes a form the 2002 format and F.1 item 22 exclude; the refusal is consistent with the format.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/abrules.cob",
+    "widening": null,
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for b) and c) is correct (pb5123_not_is_simple_operator_2002; probe abrules.cob); a) is refused at 2002 as the format requires (abnotext.cob)",
+    "compiler-at-2002": "correct (probes-u-08/abrules.cob, abnotext.cob)"
+   },
+   {
+    "rule-id": "2002-SR-10.5.2-4",
+    "to": [
+     "SR-10.6.2-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "10.5.2 SR4 (COBOL compilation group)",
+    "clause-2023": "10.6.2 SR5 (pointer only; 2023 has no communication section)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a method definition in an instance (OBJECT) definition whose data division has a COMMUNICATION SECTION: refused",
+     "a method definition in a factory definition with a COMMUNICATION SECTION: refused"
+    ],
+    "evidence-2002": {
+     "instance method": "covered by probe cdmeth.cob: refused at 2002 (COBOL1519), control cdprog.cob (program with an 87-character input CD record) compiles and runs at 2002",
+     "factory method": "covered by probe cdfmeth.cob: refused at 2002 (COBOL1519)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.5.2 SR4",
+      "quote": "The data division of a method in a class definition shall not contain a communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility may be used only in a program definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The pointer (compiler directives) is unrelated; the rule governs only the 2002 communication facility, which this compiler provides at 2002 (cdprog runs). The refusal is right, but the COBOL1519 message is wrong: it says 'a method definition shall not contain a SCREEN SECTION — it may appear only in a factory or instance definition'. OoDefinitionRules.SectionName and AdmittedIn have no Communication arm and fall to their defaults (src/WiseOwl.Cobol.Compiler/Binding/OoDefinitionRules.cs), although RefusedBy refuses the section in factory and instance definitions too.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/cdmeth.cob",
+    "widening": null,
+    "needs": "its own verdict: the compiler refuses a communication section in a method at --std 2002 (probes cdmeth.cob, cdfmeth.cob); the diagnostic text defect is a note of its own",
+    "compiler-at-2002": "correct refusal; DIAGNOSTIC DEFECT: program probes-u-08/cdmeth.cob, expected a refusal naming the COMMUNICATION SECTION (§2002:10.5.2 SR4), observed 'cdmeth.cob(13,8): error COBOL1519: method 'M1': a method definition shall not contain a SCREEN SECTION — it may appear only in a factory or instance definition (ISO ISO/IEC 1989:2002 Annex A)'"
+   },
+   {
+    "rule-id": "2002-SR-10.5.2-5",
+    "to": [
+     "SR-10.6.2-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "10.5.2 SR5 a)-f)",
+    "clause-2023": "10.6.2 SR4 a)-f)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) no ARITHMETIC clause; b) no OBJECT-COMPUTER; d) no input-output section; e) linkage section only; f) header only - in program, function and method prototypes",
+     "c) SPECIAL-NAMES of a prototype limited to LOCALE, CURRENCY and DECIMAL-POINT (ALPHABET and SYMBOLIC CHARACTERS are NOT admitted in 2002)"
+    ],
+    "evidence-2002": {
+     "a), b), d)-f)": "not shown at 2002 by the pointer (PrototypeUnitRulesTests run at the default edition); same words in both editions",
+     "c) other clauses": "covered by probe protofuncclass.cob: CLASS clause in a function prototype refused at 2002 (COBOL2272)",
+     "c) ALPHABET / SYMBOLIC CHARACTERS": "probes protoalpha.cob and protosym.cob: ACCEPTED at 2002 (rc 0, 'OK') - wrong"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.5.2 SR5c",
+      "quote": "The only clauses that may be specified in the SPECIAL-NAMES paragraph are the LOCALE clause, the CURRENCY clause, and the DECIMAL-POINT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.2 SR4c",
+      "quote": "the ALPHABET clause, the CURRENCY clause, the DECIMAL-POINT clause, the LOCALE clause, and the SYMBOLIC-CHARACTERS clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Item c) is narrower in 2002 (and in 2014, whose text is the 2002 wording): ALPHABET and SYMBOLIC CHARACTERS are a 2023 addition. PrototypeUnitRules.AdmittedInPrototype admits all five clauses at every edition (src/WiseOwl.Cobol.Compiler/Binding/PrototypeUnitRules.cs lines 58-65, 87-90), so a 2002 prototype with ALPHABET or SYMBOLIC CHARACTERS compiles clean.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/protoalpha.cob",
+    "widening": null,
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for ALPHABET / SYMBOLIC CHARACTERS in a prototype's SPECIAL-NAMES is acceptance, which the 2002 (and 2014) text forbids: a defect to fix (edition-gate item c), then a 2002 refusal witness",
+    "compiler-at-2002": "wrong: program probes-u-08/protoalpha.cob (PROGRAM-ID. PRA IS PROTOTYPE. ... SPECIAL-NAMES. ALPHABET AL IS NATIVE.) and protosym.cob (SYMBOLIC CHARACTERS BEL IS 8) compile and run at --std 2002 with rc 0 and output 'OK'; expected a refusal per §2002:10.5.2 SR5c"
+   },
+   {
+    "rule-id": "2002-SR-10.5.2-6",
+    "to": [
+     "SR-10.6.2-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "10.5.2 SR6 -> 7.2 Compiler directives",
+    "clause-2023": "10.6.2 SR5 -> 7.3 Compiler directives",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every 2002 directive of 7.2 in a structured compilation group (CALL-CONVENTION, DEFINE, EVALUATE, FLAG-85, FLAG-NATIVE-ARITHMETIC, IF, LEAP-SECOND, LISTING, PAGE, PROPAGATE, SOURCE FORMAT, TURN) at the places 7.2.2 SR8 and each directive's rules allow"
+    ],
+    "evidence-2002": {
+     "directives common to both editions": "covered by the pointer's conformance:cases/10.6-COBOL-compilation-group/pb246_sqrt_absolute_value_and_domain (accept [2002], >>TURN) - not re-run here",
+     "FLAG-85, FLAG-NATIVE-ARITHMETIC": "not shown by the 2023 row (refused at 2023, COBOL0902); covered by probe dirflag.cob: a compilation group with a program prototype and a program carrying >>FLAG-85 ALL ON/OFF and >>FLAG-NATIVE-ARITHMETIC ON/OFF between entries and statements compiles and runs at 2002 ('X=1', 'OK')"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.5.2 SR6",
+      "quote": "Compiler directives may appear in a structured compilation group as specified in 7.2, Compiler directives",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.2 SR5",
+      "quote": "Compiler directives may appear in a structured compilation group as specified in 7.3, Compiler directives",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.2 SR1",
+      "quote": "The FLAG-85 directive may be specified only between clauses in divisions other than the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.12.2 SR1",
+      "quote": "The FLAG-NATIVE-ARITHMETIC directive may be specified only between clauses",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical once the clause number is erased, but the referenced clause differs: 2002's 7.2 includes FLAG-85 and FLAG-NATIVE-ARITHMETIC, which 2023's 7.3 does not; 2023 adds COBOL-WORDS, DISPLAY, FLAG-02, FLAG-14, POP, PUSH, REF-MOD-ZERO-LENGTH.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/dirflag.cob",
+    "widening": "2023's 7.3 adds seven directives",
+    "needs": "a 2002 witness for FLAG-85 and FLAG-NATIVE-ARITHMETIC in a structured compilation group (probe dirflag.cob is the candidate); KEPT to SR-10.6.2-5 for the shared directives",
+    "compiler-at-2002": "correct (probes-u-08/dirflag.cob)"
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-4",
+    "to": [
+     "SR-10.7.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6.2 SR4 (End markers)",
+    "clause-2023": "10.7.3 SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "END CLASS class-name-1 shall name the class of the corresponding CLASS-ID (plain and parameterized classes)"
+    ],
+    "evidence-2002": {
+     "match accepted": "covered by conformance:cases/10.7-End-markers/pb988_end_markers (accept [2002]) MATCH at 2002",
+     "mismatch refused": "pointer's OoSpineTests.EndClassNameMismatch_2793 runs at the default edition; shown at 2002 by probe endcls.cob (COBOL2793)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR4",
+      "quote": "Class-name-1 shall be identical to the class-name declared in the corresponding CLASS-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR4",
+      "quote": "Object-class-name-1 shall be identical to the object-class-name declared in the corresponding CLASS-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1.3",
+      "quote": "A class-name identifies a class, the entity that defines common behavior",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.2.2.17",
+      "quote": "An object-class-name identifies an object class",
+      "check": "OK"
+     }
+    ],
+    "reason": "The only difference is the term: 2002's 'class-name (for object orientation)' is defined with the words 2023 uses for object-class-name; the END marker format is identical (END CLASS class-name-1). Nothing a program can show differs.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/endcls.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-2",
+    "to": [
+     "SR-11.3.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.2.2 SR2 (CLASS-ID)",
+    "clause-2023": "11.3.3 SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "each class-name-2 of INHERITS (one or more) shall be in this definition's REPOSITORY paragraph"
+    ],
+    "evidence-2002": {
+     "single base not in REPOSITORY": "covered by conformance:cases/11.3-CLASS-ID/pb1086-inherits-class-not-in-repository (refuse-at includes 2002; COBOL0821 at 2002 re-run)",
+     "second and later class-name-2": "every INHERITS with two or more names is refused at 2002 (COBOL0849, probe multi.cob), so a violating one is refused; the wrongful refusal of legal multiple inheritance is recorded under 2002-GR-11.2.3-2/-4 and kb/Work PB5580"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR2",
+      "quote": "Class-name-2 shall be the name of a class specified in the REPOSITORY paragraph of this source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1.3",
+      "quote": "A class-name identifies a class, the entity that defines common behavior",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in class-name vs object-class-name (same definition); the restriction holds at 2002 for every program it governs.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-3",
+    "to": [
+     "SR-11.3.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.2.2 SR3",
+    "clause-2023": "11.3.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "INHERITS FROM naming the class itself, plain and parameterized (USING) definitions"
+    ],
+    "evidence-2002": {
+     "plain": "covered by conformance:cases/11.3-CLASS-ID/pb1505-class-inherits-itself (COBOL2791 at 2002)",
+     "parameterized": "covered by conformance:cases/11.3-CLASS-ID/pb1505-parameterized-class-inherits-itself (COBOL2791 at 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR3",
+      "quote": "Class-name-2 shall not be the name of the class declared by this class definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "Term rename only; the general format (CLASS-ID ... [IS FINAL] [INHERITS FROM {class-name-2}...] [USING {parameter-name-1}...]) is identical in both editions; the pointer's two cases refuse at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-4",
+    "to": [
+     "SR-11.3.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "11.2.2 SR4 (two sentences)",
+    "clause-2023": "11.3.3 SR4 (first sentence only)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "sentence 1: no direct or indirect inheritance cycle",
+     "sentence 2: class-name-2 shall not be the name of a parameterized class that expands class-name-1 directly or indirectly"
+    ],
+    "evidence-2002": {
+     "sentence 1": "covered by l1-class-id-inherits-cycle-direct, l1-class-id-inherits-cycle-indirect, pb1505-class-inherits-cycle (COBOL2791 at 2002 re-run)",
+     "sentence 2": "not shown by the 2023 row (2023 and 2014 drop the sentence). Probe expcyc.cob (CCYC INHERITS FROM XEXP; CLASS XEXP EXPANDS PGEN USING CCYC; PGEN INHERITS FROM its formal T) refused at 2002 (COBOL2791 cycle); probe expnocyc.cob (CNC INHERITS FROM XEX2; CLASS XEX2 EXPANDS PGN2 USING CNC; PGN2 INHERITS FROM BASE) ACCEPTED at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR4",
+      "quote": "Class-name-2 shall not be the name of a parameterized class that expands class-name-1 directly or indirectly",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.3 SR4",
+      "quote": "Object-class-name-2 shall not inherit from object-class-name-1 directly or indirectly",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.2 SR3",
+      "quote": "The EXPANDS phrase shall not be specified in the REPOSITORY paragraph of a class definition that contains a USING phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "Sentence 2 is 2002 text with no 2023 twin. 12.2.7.2 SR3 rules out the reading where class-name-1 is the parameterized class being expanded inside its own definition, which leaves two readings: (i) the expansion would inherit class-name-1 (a cycle through expansion: expcyc, refused, correct) or (ii) class-name-1 is an actual parameter of the expansion (expnocyc, accepted, a defect under this reading). The text does not settle which.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/expnocyc.cob",
+    "widening": null,
+    "needs": "its own verdict for sentence 2: a signed reading of 'a parameterized class that expands class-name-1' (cycle reading: compiler correct, expcyc.cob; actual-parameter reading: expnocyc.cob accepted = defect); KEPT to SR-11.3.3-4 for sentence 1",
+    "compiler-at-2002": "sentence 1 correct; sentence 2 correct under reading (i) (expcyc.cob refused), wrong under reading (ii) (expnocyc.cob accepted); not settled"
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-5",
+    "to": [
+     "SR-11.3.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.2.2 SR5",
+    "clause-2023": "11.3.3 SR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "INHERITS FROM a FINAL class, from a plain and from a parameterized definition"
+    ],
+    "evidence-2002": {
+     "parameterized": "covered by conformance:cases/11.3-CLASS-ID/pb1505-parameterized-class-inherits-final (COBOL2791 at 2002 re-run)",
+     "plain": "pointer's OoSpineTests.OverrideFinal_0838_0839_FinalBase_2791 runs at the default edition; shown at 2002 by probe clsfinal.cob (COBOL2791)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR5",
+      "quote": "Class-name-2 shall not be the name of a class defined with the FINAL clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Term rename only; FINAL in the same place of the same CLASS-ID format in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/clsfinal.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-7",
+    "to": [
+     "SR-11.3.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "11.2.2 SR7 (+NOTE)",
+    "clause-2023": "none (pointer SR-11.3.3-6 is the twin of 2002 SR6, not SR7)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a class inheriting one method-name from two or more classes with non-conforming prototypes shall redeclare the method (refuse when it does not)",
+     "the redeclared method then satisfies 11.6.2 SR9 (accept when it resolves the conflict)"
+    ],
+    "evidence-2002": {
+     "conflict without redeclaration": "refused at 2002 but for another reason: probe multi.cob gets COBOL0849 (multiple inheritance declined)",
+     "legal multiple inheritance": "refused at 2002: probe multiok.cob (MA INHERITS FROM MB MC with identical M interfaces) COBOL0849"
+    },
+    "licence-2002": "none: §2002:3.1 makes only Annex A (communications) optional; 2023's A.4.10 item 1 is not 2002 text",
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR7",
+      "quote": "then a method with the same method-name shall be declared in this class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "inherits from one or more classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 has no rule of this content; the rule is reachable only through multiple class inheritance, which 2002 requires and which the compiler declines at every edition citing the 2023 optional list (COBOL0849). Known: kb/Work PB5580.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/multiok.cob",
+    "widening": null,
+    "needs": "2002 requires multiple class inheritance (and with it SR7's redeclaration rule); the compiler declines it - PB5580, then a 2002 witness for the conflict refusal and the resolving redeclaration",
+    "compiler-at-2002": "wrong (known, kb/Work PB5580): probes-u-08/multiok.cob at --std 2002 -> 'multiok.cob(38,38): error COBOL0849: class 'MA': INHERITS FROM 2 base classes (MB, MC): Multiple inheritance ... is an OPTIONAL element (§2023:4.2.7; Annex A.4.10 item 1)'"
+   },
+   {
+    "rule-id": "2002-GR-11.2.3-1",
+    "to": [
+     "GR-11.3.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "11.2.3 GR1",
+    "clause-2023": "11.3.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "class-name-1 names the class; literal-1 (alphanumeric or national, non-figurative) is the externalized name while the word keeps naming the class"
+    ],
+    "evidence-2002": {
+     "AS literal-1": "the pointer's only witness, cases/11.3-CLASS-ID/pb303_as_class_id_zero_length_accepted (accept [2023]), uses a zero-length literal, which 2002 does not have: refused at 2002 (COBOL0900). Covered at 2002 by probe clsas.cob (CLASS-ID. CLN AS \"CLNEXT\"; REPOSITORY CLASS CLN, USAGE OBJECT REFERENCE CLN and INVOKE CLN \"NEW\" resolve on the word; output 'HI FROM CLN')"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.2.3 GR1",
+      "quote": "Class-name-1 names the class declared by this class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1.3",
+      "quote": "A class-name identifies a class, the entity that defines common behavior",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement (term rename), but the pointer's evidence cannot run as a 2002 program, so no evidence holds at 2002 through the 2023 row; the probe supplies it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/clsas.cob",
+    "widening": "2023 lets literal-1 reach the zero-length literal context of its witness (a 2014+ literal form)",
+    "needs": "a 2002 witness for CLASS-ID ... AS literal-1 with a non-empty literal (probe clsas.cob is the candidate)",
+    "compiler-at-2002": "correct (probes-u-08/clsas.cob)"
+   },
+   {
+    "rule-id": "2002-GR-11.2.3-2",
+    "to": [
+     "GR-11.3.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "11.2.3 GR2 -> 9.3.9 Class inheritance",
+    "clause-2023": "11.3.4 GR2 -> 9.3.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "single inheritance per 9.3.9 (methods and data inherited, distinct factory data)",
+     "inheritance from two or more classes per 9.3.9 ('one or more classes')"
+    ],
+    "evidence-2002": {
+     "single": "covered by cases/9.3.6-Method-invocation/oo_inherit (MATCH at 2002 but for trailing spaces) and cases/11.3-CLASS-ID/pb1086_inherited_factory_data_is_distinct (MATCH at 2002)",
+     "two or more classes": "refused at 2002: probe multiok.cob COBOL0849"
+    },
+    "licence-2002": "none: §2002:3.1 makes only Annex A optional",
+    "citations": [
+     {
+      "cite": "§2002:11.2.3 GR2",
+      "quote": "The INHERITS clause specifies the names of classes that are inherited by class-name-1 according to 9.3.9, Class inheritance",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "inherits from one or more classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "9.3.9 is substantively identical in both editions (diffed). The 2023 row's CONFORMS rests on single inheritance plus the 2023 licence for declining multiple inheritance; at 2002 there is no licence, so the multiple-inheritance part of this rule's scope fails.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/multiok.cob",
+    "widening": null,
+    "needs": "2002 requires inheritance from two or more classes; the compiler declines it (kb/Work PB5580); KEPT to GR-11.3.4-2 for single inheritance",
+    "compiler-at-2002": "wrong for multiple inheritance (known, PB5580; multiok.cob COBOL0849); correct for single inheritance"
+   },
+   {
+    "rule-id": "2002-GR-11.2.3-4",
+    "to": [
+     "GR-11.3.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "11.2.3 GR4 (+NOTE)",
+    "clause-2023": "11.3.4 GR4 (DOCUMENTED-NON-SUPPORT)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a class inherited more than once (diamond through two inherited classes) contributes one copy of its data"
+    ],
+    "evidence-2002": {
+     "diamond": "not shown: any INHERITS of two classes is refused at 2002 (COBOL0849, probe multiok.cob); the pointer's wiseowl/cases/11.3-CLASS-ID/oo-inherits-diamond is a non-support witness"
+    },
+    "licence-2002": "none: §2002:3.1 makes only Annex A (communications) optional; the 2023 licence (A.4.10 item 1) is not 2002 text",
+    "citations": [
+     {
+      "cite": "§2002:11.2.3 GR4",
+      "quote": "If the same class is inherited more than once, then only one copy of the data for that class is added to class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 row is DOCUMENTED-NON-SUPPORT under a 2023 licence that 2002 does not give.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/multiok.cob",
+    "widening": null,
+    "needs": "2002 requires multiple class inheritance with one copy of a twice-inherited class's data; the compiler declines it (kb/Work PB5580)",
+    "compiler-at-2002": "wrong (known, PB5580): probes-u-08/multiok.cob -> COBOL0849 citing §2023:4.2.7 / Annex A.4.10"
+   },
+   {
+    "rule-id": "2002-GR-11.2.3-6",
+    "to": [
+     "GR-11.3.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.2.3 GR6",
+    "clause-2023": "11.3.4 GR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a parameter-name used where an OO class-name or interface-name is permitted (INHERITS, USAGE OBJECT REFERENCE, INVOKE receiver): accepted",
+     "a parameter-name used elsewhere (e.g. as a data-name): refused"
+    ],
+    "evidence-2002": {
+     "permitted positions": "covered by cases/11.3-CLASS-ID/pb759_parameterized_class (accept [2002]) MATCH at 2002 (incl. PB759LOUD INHERITS B USING B)",
+     "elsewhere": "pointer's ParameterizedClassTests.ParameterNameAsADataName_2239 runs at the default edition; shown at 2002 by probe parmdata.cob (COBOL2239)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.2.3 GR6",
+      "quote": "Parameter-name-1 may be specified within this class definition only where a class-name or an interface-name is permitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1.3",
+      "quote": "A class-name identifies a class, the entity that defines common behavior",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 has two user-word kinds both called class-name (8.3.1.1.1.3 for object orientation, 8.3.1.1.1.4 for truth value proposition). In this OO clause, and per 9.3.12 (formal parameters are replaced by class-names or interface-names to make a class), the OO sense is meant, which is 2023's object-class-name. No program differs.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/parmdata.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.4.2-1",
+    "to": [
+     "SR-11.5.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.4.2 SR1 (FUNCTION-ID)",
+    "clause-2023": "11.5.3 SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "literal-1 of FUNCTION-ID (definition and prototype formats): alphanumeric or national, not a figurative constant"
+    ],
+    "evidence-2002": {
+     "figurative refused": "covered by cases/11.5-FUNCTION-ID/pb303_as_function_id_literal (AS QUOTE; COBOL1794 at 2002 re-run)",
+     "numeric refused / national accepted": "probe litnum.cob (AS 123 -> COBOL1794 at 2002) and litnat.cob (AS N\"LNFEXT\" compiles at 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.4.2 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.5.3 SR1",
+      "quote": "shall be neither a figurative constant nor a zero-length literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds a zero-length-literal ban; 2002 has no zero-length literal (the compiler refuses \"\" at 2002 with COBOL0900), so the 2002 rule is the 2023 rule restricted to 2002 programs and the pointer's witness holds at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/litnum.cob",
+    "widening": "2023 also bans the zero-length literal (a 2014+ literal form)"
+   },
+   {
+    "rule-id": "2002-SR-11.5.2-1",
+    "to": [
+     "SR-11.6.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.5.2 SR1 (INTERFACE-ID)",
+    "clause-2023": "11.6.3 SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "literal-1 of INTERFACE-ID: alphanumeric or national, not a figurative constant"
+    ],
+    "evidence-2002": {
+     "figurative refused": "covered by cases/11.6-INTERFACE-ID/pb303_as_interface_id_literal (AS SPACE; COBOL1794 at 2002 re-run) and probe litnum.cob (AS SPACE -> COBOL1794)",
+     "alphanumeric accepted": "probe litnat.cob (INTERFACE-ID. LNI AS \"LNIEXT\" compiles at 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.5.2 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     }
+    ],
+    "reason": "As for 11.4.2 SR1: the 2023 addition is the zero-length literal, which no 2002 program can write.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/litnat.cob",
+    "widening": "2023 also bans the zero-length literal"
+   },
+   {
+    "rule-id": "2002-GR-11.5.3-4",
+    "to": [
+     "GR-11.6.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.5.3 GR4 (INTERFACE-ID)",
+    "clause-2023": "11.6.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a parameterized interface's parameter-name only where an OO class-name or interface-name is permitted"
+    ],
+    "evidence-2002": {
+     "permitted positions": "covered by cases/11.3-CLASS-ID/pb759_parameterized_class (PB759IPUT USING T, USAGE OBJECT REFERENCE T) MATCH at 2002",
+     "elsewhere": "probe iparmdata.cob (parameter-name as a linkage data-name) refused at 2002 (COBOL2239)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.5.3 GR4",
+      "quote": "Parameter-name-1 shall be specified within this interface definition only where a class-name or an interface-name is permitted",
+      "check": "OK"
+     }
+    ],
+    "reason": "Term rename only (OO class-name = object-class-name); identical INTERFACE-ID format.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/iparmdata.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-1",
+    "to": [
+     "SR-11.7.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "11.6.2 SR1 (METHOD-ID)",
+    "clause-2023": "11.7.3 SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "literal-1 of METHOD-ID (method-name-1 arm): alphanumeric or national, not a figurative constant"
+    ],
+    "evidence-2002": {
+     "figurative refused": "not shown by the pointer: its only witness cases/11.7-METHOD-ID/pb303_as_method_id_literal tests AS \"\" (zero-length, not a 2002 literal; at 2002 it gets COBOL1794 plus COBOL0900). Shown at 2002 by probe methzero.cob (AS ZERO -> COBOL1794)",
+     "national accepted": "probe litnat.cob (METHOD-ID. LNM AS N\"LNMEXT\" compiles at 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.5.3 SR1",
+      "quote": "shall be neither a figurative constant nor a zero-length literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "The requirement is the 2023 one restricted to 2002 literals, but the pointer's evidence exercises only the zero-length half, which 2002 does not have; the 2002 half needs its own witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/methzero.cob",
+    "widening": "2023 also bans the zero-length literal",
+    "needs": "a 2002 witness for METHOD-ID ... AS <figurative constant> refused (probe methzero.cob is the candidate)",
+    "compiler-at-2002": "correct (probes-u-08/methzero.cob, litnat.cob)"
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-3",
+    "to": [
+     "SR-11.7.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "11.6.2 SR3",
+    "clause-2023": "11.7.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OVERRIDE needs a superclass method of the same NAME (no superclass method of that name: refuse)",
+     "the overridden method shall not be FINAL",
+     "OVERRIDE of a same-name method whose interface conforms but differs (e.g. covariant RETURNING per 9.3.7.1.2 rule 5c2): legal under SR3"
+    ],
+    "evidence-2002": {
+     "no such name": "probe ovnobase.cob refused at 2002 (COBOL0838)",
+     "FINAL": "probe ovfinal.cob refused at 2002 (COBOL0839)",
+     "covariant override": "not shown by the 2023 row (2023 asks the same method resolution signature, whose returning-item description includes USAGE); probe covar.cob accepted and dispatches at 2002 ('I AM Y', 'I AM X')",
+     "different parameter count": "probe overridesig.cob refused at 2002 by SR9 (COBOL0829), as 2002 requires"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR3",
+      "quote": "there shall be a method with the same name as the method declared by this method definition defined in a superclass",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR3",
+      "quote": "there shall be a method with the same method resolution signature as the method declared by this method definition defined in a superclass",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.5.3",
+      "quote": "The method resolution signature consists of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7.1.2",
+      "quote": "the returning item in interface-1 shall be described with the same class-name or a subclass of that class-name",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 matches on the name; 2023 on the method resolution signature (2023's parametric polymorphism). The compiler keys on the name (OoClassTable 'the v1 method resolution signature is the method-name'), which is exactly 2002; the pointer's evidence (a unit test at the default edition) does not show the name-only match at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/covar.cob",
+    "widening": null,
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is name-keyed OVERRIDE (ovnobase.cob COBOL0838, ovfinal.cob COBOL0839, covar.cob accepted with correct dispatch)",
+    "compiler-at-2002": "correct (probes-u-08/ovnobase.cob, ovfinal.cob, covar.cob, overridesig.cob)"
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-4",
+    "to": [
+     "SR-11.7.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "11.6.2 SR4 a) b)",
+    "clause-2023": "11.7.3 SR4 a) b)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) in a class: a method with an inherited method's NAME and no OVERRIDE is refused, whatever its parameters",
+     "b) in an interface: a prototype with an inherited prototype's NAME is refused, whatever its parameters"
+    ],
+    "evidence-2002": {
+     "a) same name, different parameters": "not shown by the 2023 row (2023 would admit it as an overload); probe overload.cob refused at 2002 (COBOL0837)",
+     "b) same name, different parameters": "probe ifover.cob refused at 2002 (COBOL2761)",
+     "b) same name, same prototype": "covered by cases/11.7-METHOD-ID/pb1502-interface-prototype-redeclares-inherited and pb1502-interface-prototype-contradicts-inherited (COBOL2761 at 2002 re-run)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR4a",
+      "quote": "no inherited method shall have the same name as the method declared by this method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR4b",
+      "quote": "no inherited method prototype shall have the same name as the method prototype declared by this method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.5.3",
+      "quote": "The method resolution signature consists of",
+      "check": "OK"
+     }
+    ],
+    "reason": "Name versus method resolution signature: 2002 refuses every same-name redeclaration without OVERRIDE; 2023 refuses only a same-signature one. The compiler is name-keyed, which is 2002's rule; the probes show it at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/overload.cob",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 a same-name method or prototype with different parameters and no OVERRIDE is refused (overload.cob COBOL0837, ifover.cob COBOL2761)",
+    "compiler-at-2002": "correct (probes-u-08/overload.cob, ifover.cob)"
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-6",
+    "to": [
+     "SR-11.7.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "11.6.2 SR6",
+    "clause-2023": "11.7.3 SR6 (adds the ACTIVE-CLASS ban)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "GET method: no USING, a single RETURNING (refuse otherwise)",
+     "a GET method returning an ACTIVE-CLASS object reference is NOT restricted by 2002 (accept)"
+    ],
+    "evidence-2002": {
+     "shape": "probe getusing.cob: GET with USING and GET without RETURNING both refused at 2002 (COBOL2790)",
+     "ACTIVE-CLASS returning item": "the pointer's pb1503-get-property-active-class refuses it (refuse-at 2014, 2023 only); on the pinned build it is ALSO refused at 2002, and cases/13.16.40@2002-PROPERTY-CLAUSE/pb5598-active-class-property-2002 FAILS at 2002 (COBOL2790 at line 65). Fixed on main by kb/Work PB5598 (landed; e6c0fcaabd is in origin/main, not in the pinned 24372b7b17); the 2002 inventory row 2002-SR-11.6.2-6 already exists (CONFORMS, pb5598)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR6",
+      "quote": "the method shall have no USING phrase parameters specified in the procedure division header and shall have a single RETURNING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR6",
+      "quote": "The returning item shall not be an object reference described with the ACTIVE-CLASS phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 restricts what 2002 permits, so the 2023 row's refusal evidence must not hold at 2002. The defect this exposes is PB5598, already landed on main after the pinned build.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/getusing.cob",
+    "widening": null,
+    "needs": "its own verdict: exists (inventory-2002/2002-SR-11.6.2-6.json, CONFORMS, pb5598-active-class-property-2002); re-run that case on a build containing PB5598",
+    "compiler-at-2002": "shape correct (getusing.cob); ACTIVE-CLASS acceptance wrong on the pinned build only (pb5598-active-class-property-2002 fails at 2002), fixed by PB5598 on main - not a new defect"
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-7",
+    "to": [
+     "SR-11.7.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "11.6.2 SR7",
+    "clause-2023": "11.7.3 SR7 (adds the ACTIVE-CLASS ban)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SET method: a single USING, no RETURNING (refuse otherwise)",
+     "a SET method whose USING parameter is an ACTIVE-CLASS object reference is NOT restricted by 2002 (accept)"
+    ],
+    "evidence-2002": {
+     "shape": "covered by cases/11.7-METHOD-ID/pb1503-set-property-two-using (COBOL2790 at 2002 re-run) and probe getusing.cob PX (SET with RETURNING and no USING refused)",
+     "ACTIVE-CLASS USING": "pb1503-set-property-active-class (refuse-at 2014, 2023) is also refused at 2002 on the pinned build; pb5598-active-class-property-2002 (SET PROPERTY SELFREF USING an ACTIVE-CLASS item) fails at 2002 on the pinned build (COBOL2790 at line 73). Fixed on main by PB5598"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR7",
+      "quote": "the method shall have a single USING parameter specified in the procedure division header and no RETURNING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR7",
+      "quote": "The USING parameter shall not be an object reference described with the ACTIVE-CLASS phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "As SR6: 2023 adds a ban 2002 does not have. PB5598's case exercises the SET arm too, but its rules list names 2002-SR-11.6.2-6 and not -7, and no 2002 inventory row exists for -7.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/getusing.cob",
+    "widening": null,
+    "needs": "its own verdict: a 2002 row citing pb5598-active-class-property-2002 (SET PROPERTY SELFREF) and pb1503-set-property-two-using, after a re-run on a build containing PB5598",
+    "compiler-at-2002": "shape correct; ACTIVE-CLASS acceptance wrong on the pinned build only, fixed by PB5598 on main - not a new defect"
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-9",
+    "to": [
+     "SR-11.7.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6.2 SR9 -> 9.3.7.1.2",
+    "clause-2023": "11.7.3 SR9 -> 9.3.8.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a same-name inherited or implemented method: parameters (count, BY REFERENCE/VALUE, object-reference rules, ANY LENGTH/BLANK WHEN ZERO/JUSTIFIED/PICTURE/SIGN/USAGE), RETURNING presence and covariance, strong types, OPTIONAL, RAISING, entry convention shall conform"
+    ],
+    "evidence-2002": {
+     "RAISING": "covered by 9.3.8.2.3 cases pb972-raising-override-widens (refused at 2002 re-run) and pb972_raising_conformance (MATCH at 2002)",
+     "parameter count": "probe overridesig.cob refused at 2002 (COBOL0829, rule 1)",
+     "covariant RETURNING": "probe covar.cob accepted and dispatches at 2002",
+     "OPTIONAL": "pointer's MethodOmittedArgumentTests.Override_OptionalPresenceDiffers_0829 at the default edition; same rule text 8) in both"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR9",
+      "quote": "shall obey the rules of conformance according to 9.3.7.1.2, Conformance between interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7.1.2",
+      "quote": "The entry conventions for interface-1 and interface-2 are the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.8.2.3",
+      "quote": "the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses",
+      "check": "OK"
+     }
+    ],
+    "reason": "The referenced clause was diffed line by line: 2023 adds ALIGNED and DYNAMIC LENGTH to rules 3 and 6 and a variable-length-group sentence (all 2014+ features), moves rule 10 (entry conventions) into the lead-in, and renames class-name; every 2002 condition is unchanged. The 2002 requirement is the 2023 one on 2002 programs, and the evidence holds at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/overridesig.cob",
+    "widening": "2023 conformance also compares ALIGNED, DYNAMIC LENGTH and variable-length groups"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-08",
+  "cases": [
+   {
+    "rule-id": "2002-SR-10.6.2-4",
+    "verdict": "UPHELD",
+    "reason": "The END marker format is the same nine alternatives in both editions (END CLASS class-name-1 / object-class-name-1); the only change is the term rename, and 2002's OO class-name (8.3.1.1.1.3) is 2023's object-class-name. The CLASS-ID format the rule points at (class-name-1 [AS literal-1] [IS FINAL] [INHERITS..] [USING..]) is unchanged. No communication-section or debugging-line reach, no removed form, no deferral. The reader's probe endcls.cob refuses the mismatch at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR4",
+      "quote": "Class-name-1 shall be identical to the class-name declared in the corresponding CLASS-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR4",
+      "quote": "Object-class-name-1 shall be identical to the object-class-name declared",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/endcls.cob"
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "The rule governs EVERY class-name-2 of INHERITS FROM {class-name-2}..., including the second and later names of a multiple inheritance, which 2002 requires (no 2002 text makes the repetition optional; kb/Work PB5580). The 2023 row's CONFORMS covers the second-and-later names only through the compiler's refusal of every repeated INHERITS (COBOL0849), a refusal licensed in 2023 by A.4.10 item 1 and not licensed in 2002. Probe inh2norepo.cob (second name MC missing from REPOSITORY): at 2002 and 2023 the compiler never evaluates this rule on MC; it emits only COBOL0849 citing the 2023 optional list. The reader's evidence for this part is that same refusal. So the multi-name part of the 2002 scope has no 2002 evidence through the 2023 row; the same cause as the reader's DIFFERENT for 2002-GR-11.2.3-2 and as PB5580's rows 2002-SR-11.2.2-6/-8, whose violations COBOL0849 also refuses.",
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR2",
+      "quote": "shall be the name of a class specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.3 SR2",
+      "quote": "shall be the name of a class specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.2.3 GR2",
+      "quote": "The INHERITS clause specifies the names of classes that are inherited by class-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other (evidence for the second-and-later class-name-2 rests on the 2023 optional-element licence A.4.10 item 1, which 2002 does not give; PB5580)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-08/inh2norepo.cob"
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-3",
+    "verdict": "OVERTURNED",
+    "reason": "Same cause as SR2. The rule governs every class-name-2, including a second or later INHERITS name; the reader checked only single-name programs (pb1505 plain and parameterized). Probe inh2self.cob (INHERITS FROM BASE MA inside class MA): at 2002 the only diagnostic is COBOL0849 (multiple inheritance declined under the 2023 optional list), so this rule is never evaluated on the second name and the 2023 row's evidence for that part is the licensed non-support that 2002 does not license (no 2002 optional-element list names multiple inheritance; PB5580).",
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR3",
+      "quote": "shall not be the name of the class declared by this class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.3 SR3",
+      "quote": "shall not be the name of the class declared by this class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "class": "other (multi-name part shown only by the 2023-licensed refusal of INHERITS repetition; PB5580)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-08/inh2self.cob"
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-5",
+    "verdict": "OVERTURNED",
+    "reason": "Same cause as SR2. Probe inh2final.cob (MA INHERITS FROM MC FB, FB IS FINAL): at 2002 the compiler emits only COBOL0849 for the repetition; the FINAL check is never applied to the second name. The 2002 rule covers that name and 2002 gives no licence to decline the repetition, so the multi-name part of its scope has no 2002 evidence through the 2023 row.",
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR5",
+      "quote": "shall not be the name of a class defined with the FINAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.3 SR5",
+      "quote": "shall not be the name of a class defined with the FINAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "class": "other (multi-name part shown only by the 2023-licensed refusal of INHERITS repetition; PB5580)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-08/inh2final.cob"
+   },
+   {
+    "rule-id": "2002-GR-11.2.3-6",
+    "verdict": "UPHELD",
+    "reason": "Attacked the 2002 term: 'class-name' has two 2002 definitions (8.3.1.1.1.3 OO, 8.3.1.1.1.4 truth value), and 2002 formats name class-name in the class condition (8.8.4.1.3), SPECIAL-NAMES and the CLASS clause (13.16.11), so the literal words could permit a parameter-name in a class condition. But 9.3.12 says formal parameters are replaced by class-names or interface-names, and 12.2.7.2 SR4 requires the EXPANDS actual class-name-3 / interface-name-1 to be defined in the REPOSITORY (OO), so a parameter in a truth-value position expands to an invalid program; no program can show a difference. Probe parmclscond.cob (IF W IS T, T a parameter-name) is refused at both editions. The OO positions (INHERITS, USAGE OBJECT REFERENCE, object-view, RAISING, class-name OF SUPER, EXPANDS) are the same formats in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:11.2.3 GR6",
+      "quote": "only where a class-name or an interface-name is permitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.4 GR6",
+      "quote": "only where an object-class-name or an interface-name is permitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.12",
+      "quote": "replaced by one or more class-names or interface-names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.2 SR4",
+      "quote": "shall be defined in the same REPOSITORY paragraph where class-name-1 is defined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-08/parmclscond.cob"
+   },
+   {
+    "rule-id": "2002-SR-11.4.2-1",
+    "verdict": "UPHELD",
+    "reason": "FUNCTION-ID formats 1 and 2 are identical in both editions. 2023 adds only the zero-length-literal ban; 2002 has no zero-length literal. 'Alphanumeric literal', 'national literal' and 'figurative constant' admit the same 2002 forms (hex, concatenation, symbolic characters) in both. No CD, debugging-line or removed-form reach.",
+    "citations": [
+     {
+      "cite": "§2002:11.4.2 SR1",
+      "quote": "shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.5.3 SR1",
+      "quote": "shall be neither a figurative constant nor a zero-length literal",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/litnum.cob"
+   },
+   {
+    "rule-id": "2002-SR-11.5.2-1",
+    "verdict": "UPHELD",
+    "reason": "As 11.4.2 SR1: identical INTERFACE-ID format; the only 2023 change is the zero-length-literal ban, which no 2002 program can reach.",
+    "citations": [
+     {
+      "cite": "§2002:11.5.2 SR1",
+      "quote": "shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.6.3 SR1",
+      "quote": "shall be neither a figurative constant nor a zero-length literal",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/litnat.cob"
+   },
+   {
+    "rule-id": "2002-GR-11.5.3-4",
+    "verdict": "UPHELD",
+    "reason": "Same analysis as 2002-GR-11.2.3-6: the truth-value reading of 'class-name' cannot produce a valid program because 9.3.13 replaces the parameters by REPOSITORY class-names or interface-names (12.2.7.2 SR7); INTERFACE-ID format identical.",
+    "citations": [
+     {
+      "cite": "§2002:11.5.3 GR4",
+      "quote": "only where a class-name or an interface-name is permitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.6.4 GR4",
+      "quote": "only where an object-class-name or an interface-name is permitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.13",
+      "quote": "formal parameters that will be replaced by one or more class-names or interface-names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.2 SR7",
+      "quote": "Interface-name-3, class-name-4, and interface-name-4 shall be defined in the same REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/iparmdata.cob"
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-9",
+    "verdict": "UPHELD",
+    "reason": "Diffed 2002 9.3.7.1.2 against 2023 9.3.8.2.3 line by line: rules 1-9 and the alphanumeric-group sentence carry the same 2002 conditions; rule 10 (entry conventions) moves into the 2023 lead-in; 2023 adds ALIGNED, DYNAMIC LENGTH and a variable-length-group sentence, and 8.5.1.12.1 defines a variable-length group by dynamic-length items or dynamic-capacity tables only, so 2002 ODO groups are untouched. 2023's method-resolution-signature (overloading) changes SR3/SR4, not SR9, and the compiler is name-keyed at both editions (probes overridesig.cob, overload.cob). The reach through methods inherited from two superclasses is also reachable through IMPLEMENTS of several interfaces, so the rule's scope is not confined to multiple inheritance.",
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR9",
+      "quote": "shall obey the rules of conformance according to 9.3.7.1.2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR9",
+      "quote": "shall obey the rules of conformance according to 9.3.8.2.3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7.1.2",
+      "quote": "The entry conventions for interface-1 and interface-2 are the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.8.2.3",
+      "quote": "the entry conventions for interface-1 and interface-2 are the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.12.1",
+      "quote": "A variable-length group is a group item whose data description has at least one dynamic-length elementary item",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-08/overridesig.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "25c94139fc7c43cb3ca2243f06e6b612725cd6ac054cd0bad071c36f952c0ef3",
+  "read": "b2d8d074da2b1325e592714662345ec25d19fd2d2de6420efbd9796230dcb828",
+  "refute": "3bced6deb9a3df18a892abf6df2eb9137bef880b7ace97ad806128fb1885d0be"
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.26.2-1",
+ "rule-digest": "d6996b354b57",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#WrittenGroupKind",
+ "test-ref": "conformance:cases/13.16.26@2002-GROUP-INDICATE-CLAUSE/g2-group-indicate-source-value",
+ "notes": "§2002:13.16.26.2 SR1 grants GROUP INDICATE in a detail's elementary entry with COLUMN and SOURCE or VALUE; both forms are accepted at --std 2002 and print only on the first GENERATE after each INITIATE (§2002:13.16.26.3 GR1), matching the 4 derived lines."
+}

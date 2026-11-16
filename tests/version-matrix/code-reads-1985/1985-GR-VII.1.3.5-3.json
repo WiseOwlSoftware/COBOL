@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-GR-VII.1.3.5-3",
+ "rule-digest": "36833954591f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-118",
+  "sources": {
+   "reader": "96bb92ba553385b02467dab1079c63a5975ffea93eea5ee50d70035c3f8ebae6",
+   "refuter": "939bffc94d17ed56ddb17501859558d5490eb1520bfe2a92f7bf91d6e56ea706"
+  },
+  "imported": {
+   "reader": "6041cea718b21fafac0d881f82b96b77ffee306cefdcc5cd372c2b395bfc3a0b",
+   "refuter": "d813c3cd9ae0417ee26bf5d9eb11291e222a264ef9eb202ae75b26d0454233af"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.1.3.5-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an input-output statement on a sequential file that fails with a permanent error (status 30, 34, 35, 37, 38, 39) is unsuccessful, any applicable USE AFTER STANDARD EXCEPTION procedure runs (by file-name or by open-mode phrase), and once the condition arises on a file it stays in effect for every later input-output operation on that file until an implementor-defined correction technique is applied.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PermanentErrorReplay; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PermanentErrorInEffect; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadExceedsRecordMaximum; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#OdoRecordExceedsMaximum; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 85 a CLOSE WITH LOCK locks the PHYSICAL file (any SELECT of it then gets 38), from 2002 only the file connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "the same behavior on the OPEN side: physical-file lock at 85, connector lock from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (from 2002): at 85 an OPEN refused by a sharing conflict reports the permanent error 30 instead of 61",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for DialectBehaviors.IsActive, Edition, CobolVersion and DialectLevel in Runtime/IO/*.cs and in CodeGen DispatchEmitter/EcEmitter/UseTierEmitter/SequentialIoEmitter; the permanent-error record and replay (FileConnector#Status setter, PermanentErrorReplay) consult no edition and are the code every edition takes",
+  "behaviour-differs-by-edition": "yes: at 85 the 38 of a CLOSE WITH LOCK applies to the physical file through every file-name (from 2002, to the connector only), and with no sharing facility at 85 a sharing refusal on OPEN is 30; the persistence and the USE dispatch are the same at every edition",
+  "witnesses-cover": "part: g85_f15_01 exercises 38 and 35 with a USE procedure; it does not witness the persistence sentence on an open connector, nor USE by open-mode phrase (INPUT, I-O, EXTEND), nor the 85 physical-file lock through a second SELECT",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/g85_f15_01.cob",
+    "printed": "USE F1 1 STATUS 38 ... USE F2 2 STATUS 35, EXPECT: MATCH",
+    "expected": "38 after CLOSE WITH LOCK and 35 for a missing non-optional file, each running the USE procedure"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/gr3persist.cob",
+    "printed": "OPEN 00; USE 34 READ1 34; USE 34 READ2 34; USE 34 READ3 34; USE 34 OPEN-AGAIN 34; CLOSE 00; REOPEN 00; USE 34 READ4 34; USES 05",
+    "expected": "after the first permanent error (34 from an ODO record longer than the FD maximum) every later READ and the OPEN of the open file report the same permanent error and run the USE procedure; CLOSE is the documented correction technique (DOC-A.1-105), after which OPEN succeeds"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/gr3modes.cob",
+    "printed": "USE-INPUT 35 / A 35; USE-IO 35 / B 35; USE-EXTEND 35 / C 35; D 00; USE-INPUT 35 38 / E 38",
+    "expected": "35 for OPEN INPUT, I-O and EXTEND of a missing non-optional file, each running the USE declarative of that open mode (§1985:VII.4.6.4 GR5b); 38 for OPEN of the physical file through a second SELECT after CLOSE WITH LOCK through the first"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/gr3modes.cob",
+    "printed": "E 38 (second SELECT FD2 of the file closed WITH LOCK through FD1)",
+    "expected": "the 85 meaning of 'a file previously closed with lock' is the physical file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.1.3.5 GR3",
+    "check": "OK  §1985:VII.1.3.5 GR3  (1.3.5 I-O Status)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.3",
+    "check": "OK  §1985:VII.1.3.5 GRL2.3  (1.3.5 I-O Status)  the text is in GRL2.3"
+   },
+   {
+    "cite": "§1985:VII.4.6.4 GR5b",
+    "check": "OK  §1985:VII.4.6.4 GR5b  (4.6.4 General Rules)  the text is in GR5b"
+   }
+  ],
+  "notes": "The permanent error is recorded at the one Status setter whenever a 3x status lands on an OPEN connector and replayed by every verb's precondition; CLOSE is the documented implementor-defined correction (docs/conformance DOC-A.1-105), so a failed OPEN (connector stays closed) is already corrected and a repeated OPEN meets the condition afresh. The persistence was probed with the deterministic ODO READ 34; host failures 30 and boundary 34 on WRITE share the same setter but cannot be raised deterministically here. Continuing after the USE procedure for a critical status is the implementor's choice (§1985:VII.4.6.4 GR6).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.1.3.5-3",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "Read FileConnector#Status setter (records a 3x on an open connector), #PermanentErrorReplay and docs/conformance/7/DOC-A.1-105.md (CLOSE is the documented implementor-defined correction; a failed OPEN leaves the connector closed = corrected). Probe refute-1985-118/r3a.cob at --std 85 (r3a-001): ODO READ 34 then READ AT END (34, AT END not run), READ INTO (34, INTO target untouched), WRITE on the input file (34 not 48), REWRITE (34 not 49), each running USE ... ON INPUT; CLOSE 00; OPEN I-O 00, READ 34, REWRITE 34, READ 34 each running USE ... ON I-O; USES 08. cite.py: OK §1985:VII.1.3.5 GR3 (the text is in GR3).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.7.2-2",
+ "rule-digest": "374ae342972b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Section; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenFileStatusItem; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#FileStatusShapeFault",
+ "test-ref": "conformance:cases/12.3.4.7@2002-FILE-STATUS-CLAUSE/g2fst01_status_item_sections; conformance:cases/12.3.4.7@2002-FILE-STATUS-CLAUSE/g2fst02-status-item-in-cd-record",
+ "notes": "§2002:12.3.4.7.2 SR2: data-name-1 'shall be a two-character data item of the category alphanumeric, defined in the working-storage, local-storage, or linkage section'. Accepted leg: WS, LS and linkage items each receive 35 from OPEN INPUT of an absent non-optional file (§2002:9.1.12.5 item 4; stored per §2002:12.3.4.7.3 GR1): WS=35, LOCAL=35, CALLER SEES 35. Refused leg: the same shape of item in a record under a CD (communication section, not in the list) shall be refused at the FILE STATUS clause, line 22. g2fst01 at --std 2002: exit 0, output equals the derived 3 lines (MATCH). g2fst02 at --std 2002: exit 65, error COBOL2455 at (22,31) 'FILE STATUS CFS is defined in the communication section', plus the COBOL0903 obsolete warning: equals the derived refusal."
+}

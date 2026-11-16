@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.11.1",
+ "rule-digest": "22faef5d6fc1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#divideIntoPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#divideByPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#arithmeticPhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand",
+ "test-ref": "conformance:cases/14.8.11@2002-DIVIDE-STATEMENT/g2div02_rounded_each_format",
+ "notes": "§2002:14.8.11.1 prints the bare ROUNDED word on each receiver of all five formats; with §2002:14.6.3 and §2002:14.6.4 the case derives F1 OK 04 04 ... F1Z SE 9 (rounding per receiver, GR6c truncated subsidiary quotient, size error judged after rounding, remainder skipped after a quotient size error); the --std 2002 run matched every line."
+}

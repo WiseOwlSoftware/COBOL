@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: l1_sign_signed_item_conversion
-*> rules: [GR-13.18.52.4-7]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_sign_signed_item_conversion
+      *> rules: [GR-13.18.52.4-7]
+      *> accept: [85, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:13.18.52.4 GR7 — a picture containing 'S' makes the item a
       *> SIGNED item, and where a SIGN clause applies, conversion needed for
       *> computation or comparison happens AUTOMATICALLY.

@@ -44,7 +44,7 @@ public sealed class PermanentErrorOutranksLocksDriftTests
     public void TheReadPeeks_AskItThroughNoLockQuestion()
     {
         Assert.Matches(
-            new Regex(@"private static bool NoLockQuestion\([^)]*\)\s*=>\s*PermanentErrorOutranksLocks\(c\) \|\| NoRecordIsLocked\(st, c\);",
+            new Regex(@"private static bool NoLockQuestion\([^)]*\)\s*=>\s*PermanentErrorOutranksLocks\(c\) \|\| \(!readSetsLock && NoRecordIsLocked\(st, c\)\);",
                 RegexOptions.NonBacktracking),
             Code());
     }

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-15",
+ "rule-digest": "f040ccd62555",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-028",
+  "sources": {
+   "reader": "ecc6b3fea65b7e8f346e8afe9c69f717ee3390855a48f4828683119993b37cf6",
+   "refuter": "2e3ef5aa81e9ebe44f10c9b93e0a7c1fb1aae8ad67192c39e7bfeaaf6cc8e905"
+  },
+  "imported": {
+   "reader": "13899d890bfdd33457d57f7ae9715097a501fa69190d7bd3d4494ca5f02956bc",
+   "refuter": "e87fbf09d86ea45f0463bb48c35917c5a1a334df2f63382804a13337407f42e6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-15",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a format 2 (random) READ of a relative file in random or dynamic access mode sets the file position indicator from the RELATIVE KEY item's value and makes available the record with that relative record number; if there is no such record (never written, deleted, beyond the end, key 0) the invalid key condition exists, the READ is unsuccessful ('23'), the INTO move does not happen, the INVALID KEY imperative or (without it) the USE procedure runs, and the next sequential READ finds no valid next record ('46').",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#SetPendingKey; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect' in KeyedIoEmitter.cs (only ctx.Data.DialectLevel passed to the registration call, which sets FileConnector.Edition) and RelativeConnector.cs (only line 349, the WRITE key-out-of-range arm); ReadRandom, SetPendingKey, ReadOpenModeGuard and RandomReadAbsentOptionalGuard have no edition term.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness is DYNAMIC access with a PIC 9(4) DISPLAY key; RANDOM access, a COMP relative key, a DELETEd record, READ INTO on an invalid key, READ NEXT after an invalid-key READ, and an absent OPTIONAL file are covered only by probe p3read",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p3read.cob",
+    "printed": "A3 FOUND / A3 00 REC-3 REC-3 / A2 INVALID / A2 23 ZZZZZ / DEL3 00 / A3D INVALID / A3D 23 / A9999 INVALID / A9999 23 / A6 00 REC-6 / A1-NOPHRASE 00 REC-1 / USE 23 / A4-NOPHRASE 23",
+    "expected": "RANDOM access: RRN 3 found and moved INTO; RRN 2 never written -> invalid key 23 and no INTO move (W-INTO stays ZZZZZ); RRN 3 after DELETE -> 23; RRN 9999 past the end -> 23; without INVALID KEY the USE procedure runs on 23"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p3read.cob",
+    "printed": "Y6 00 REC-6 / Y5 INVALID / Y5 23 / USE 00 46 / YN-AFTER-INVALID 46 / Y1 00 REC-1 / YN2 00 00000006 REC-6",
+    "expected": "DYNAMIC access with a PIC 9(8) COMP key: RRN 6 found; RRN 5 -> 23; GR12 then leaves no valid next record so READ NEXT is 46; random READ of RRN 1 sets the FPI to 1 so READ NEXT delivers RRN 6 (3 was deleted) and moves 6 into the key"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p3read.cob",
+    "printed": "RO-OPEN 05 / RO INVALID / RO-READ 23",
+    "expected": "random READ of an absent OPTIONAL input file is the invalid key condition (§1985:VIII.4.5.4 GR9; status 23 item 2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR15",
+    "check": "OK  §1985:VIII.4.5.4 GR15  (4.5.4 General Rules)  the text is in GR15"
+   }
+  ],
+  "notes": "The emitter stages the typed RELATIVE KEY value with FileSetRelativeKey and RelativeConnector.ReadRandom sets the FPI from it and answers 23 for a missing slot; the INTO move and NOT INVALID KEY are guarded on success. Random and dynamic access, DISPLAY and COMP keys, deleted and past-end slots all behaved as GR15 requires; no edition is consulted.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-15",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probe r15read.cob (run r15read-001, --std 85), RANDOM access, RELATIVE KEY PIC 9(9): key 0 -> INVALID 23; key 999999999 -> INVALID 23; key 8 (never written) -> 23 and RK unchanged; READ INTO TE(R-IX) where R-IX is in the record just read: RRN 7 (R-IX=4) lands in TE(4), RRN 1 (R-IX=3) in TE(3), so the subscript is evaluated after the read (§1985:VIII.4.5.4 GR8 b); found records 00. Class c refusals at 85 (compile-only r15c1..r15c4): READ WITH LOCK and WITH NO LOCK -> COBOL0900 (requires COBOL-2002); READ KEY IS on a relative file -> COBOL0864; NOT INVALID KEY before INVALID KEY -> COBOL0900. cite.py: OK  §1985:VIII.4.5.4 GR15  (4.5.4 General Rules)  the text is in GR15; OK  §1985:VIII.4.5.4 GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

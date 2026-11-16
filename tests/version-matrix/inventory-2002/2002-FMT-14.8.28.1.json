@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.28.1",
+ "rule-digest": "159a5bffceb8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#raiseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindComputedObjectReference",
+ "test-ref": "conformance:cases/14.8.17@2002-GOBACK-STATEMENT/g2-goback-raise-resume-formats",
+ "notes": "Per §2002:14.8.28.1 (rendered p.517) RAISE EXCEPTION exception-name-1 and RAISE identifier-1 are both accepted at --std 2002 and behave per §2002:14.8.28.3 GR1/GR2; the run printed DECL EC/AFTER RAISE EC and DECL OBJ main's/AFTER RAISE OBJ as derived."
+}

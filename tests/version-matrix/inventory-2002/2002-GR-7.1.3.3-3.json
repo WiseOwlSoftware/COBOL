@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.3.3-3",
+ "rule-digest": "b6a20c16e2c0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/replace_partial_pseudo_text",
+ "notes": "§2002:7.1.3.3 GR3 with GR8b/GR8f: LEADING, TRAILING and deleting (empty partial-word-2) replacements give NEW-VAR1, VAR2-NXT and VAR3 (AB, CD, EF). The case (accepted at 2002) matched at --std 2002 --source-format free."
+}

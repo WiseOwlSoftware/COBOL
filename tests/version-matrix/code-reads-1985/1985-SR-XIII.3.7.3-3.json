@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-SR-XIII.3.7.3-3",
+ "rule-digest": "cc18c1bc911f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-078",
+  "sources": {
+   "reader": "b0bd5c2450046e0dd7a170d5666b191062e8062c4935c1bcaccc2bdaea756290",
+   "refuter": "5d47e263f056ccc1b2ad9a07051a4408b8f30631fb90247c56a4af11c777622c"
+  },
+  "imported": {
+   "reader": "893e68bc6735c0ff9985eb8f0423e6cff6d80a37f936bd11b1698d8d4a17bc7e",
+   "refuter": "0775a1e1c2d1b50e72121a14600b604e7a536432bb13540f3dd48e270826035d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.7.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the compiler must refuse a CONTROL operand that has a variable occurrence data item (a table element with OCCURS DEPENDING ON, or one subordinate to it, §1985:III.2) subordinate to it at any depth, and accept an operand with none (including a fixed item beside an ODO table and the ODO object itself).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandShapeViolation; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#LookupQualified",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports (ControlOperandShapeViolation call)",
+    "switches": "occursAdmitted: Edition.SubscriptedClauseOperands (true only at 2002) skips the 'subject to OCCURS' arm; false at 85 as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports (DataBinder.ScreenOperandOccurrence arm)",
+    "switches": "2002-only subscript screen; not taken at 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "the ODO arm itself (OdoModel.TableUnder) carries no edition test; grep DialectLevel/SubscriptedClauseOperands over ReportSectionBinder.cs around the CONTROL resolution loop",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb177-control-occurs-depending covers the ODO table directly under the operand; deeper nesting and the legal neighbours are not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/ctlodonest.cob",
+    "printed": "COBOL1699 CONTROL operand 'SUB' has the occurs-depending table 'CT' subordinate to it, exit 65 (CT two levels below SUB)",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/ctlodorec.cob",
+    "printed": "COBOL1699 CONTROL operand 'RG' has the occurs-depending table 'CT' subordinate to it, exit 65 (CT three levels below the 01)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/ctlodook.cob",
+    "printed": "exit 0, OK (CONTROLS ARE NN K: the ODO object, and a fixed item of the record holding the ODO)",
+    "expected": "accepted: neither has a variable occurrence item subordinate to it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.7.3 SR3",
+    "check": "OK  §1985:XIII.3.7.3 SR3  (3.7.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause (Variable Occurrence Data Item)"
+   }
+  ],
+  "notes": "The ODO arm of ControlOperandShapeViolation finds an occurs-depending table at any depth under the operand and runs at every edition. In 1985, 'variable occurrence data item' means exactly an ODO table element or an item subordinate to one, so this arm covers the whole rule at 85. The message cites §2023:13.18.16.3 SR5 instead of the 1985 rule.",
+  "seeded": true,
+  "at-2023": "same arm",
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.7.3-3",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "The 1985 definition is exactly the ODO table element or an item under it (OK §1985:III.2 'is a table element which is repeated a variable number of times'). OdoModel.TableUnder in ControlOperandShapeViolation runs at every edition, with no edition arm before it except the 'subject to OCCURS' arm (occursAdmitted false at 85). At --std 85, compile-only: ctlodofd (CONTROL IS IREC, the 01 of a FILE SECTION record holding an ODO table) gives COBOL1699 'has the occurs-depending table 'IT' subordinate to it', exit 65. ctlodolk (CONTROL IS LG, a LINKAGE SECTION 01 holding an ODO table, PROCEDURE DIVISION USING LG) gives COBOL1699, exit 65. Together with the reader's WS probes at depths 1 to 3 and the legal neighbours (the ODO object and a fixed sibling accepted), this meets OK §1985:XIII.3.7.3 SR3 'must not have subordinate to it a variable occurrence data item'. An operand that is itself a variable occurrence item needs a subscript, which the 1985 format does not admit (SR1 allows qualification only), and the 'subject to OCCURS' arm refuses it.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb170-refmod-alphanumeric-bound
-*> rules: [SR-8.4.3.3.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb170-refmod-alphanumeric-bound
+      *> rules: [SR-8.4.3.3.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 8.4.3.3.3 syntax rule 4: "Leftmost-position and length shall be
       *> arithmetic expressions" - the reference-modification twin of the
       *> subscript rule, reached through the IDENTICAL ResolveSubscriptName ->

@@ -4,6 +4,7 @@ planting one defect into them. An ordinary module, no case and no expectation: t
 (`scripts/selftests/gate/`) and `scripts/arch/perf_baseline.py`'s self-test both plant `gate.Gate` over it."""
 
 from collections import Counter
+import json
 from gate_slot import QueueAbandoned, Slot
 from pathlib import Path
 from test_population import GATED_ASSEMBLIES, PopulationError, synthetic_listing, synthetic_trx
@@ -13,6 +14,7 @@ import threading
 import time
 
 from gate_host import FIRST_CLASSES, Host, HostTools, ONLY_CASES
+from host_resources import GENUINE_TEXT, OBSERVED
 
 
 class FakeHost(Host):
@@ -66,7 +68,70 @@ class FakeHost(Host):
         self.events: list[str] = []
         self.envs: dict[str, dict[str, str]] = {}
         self.listing_handed: dict[str, dict[str, str]] = {}   # what each listing was handed (`listing`, kb/Work PB5231)
+        self.planted_peak: int | None = 7 << 30   # the slot-held tree's peak commit the host reports (kb/Work PB5697)
         self.growth: list[tuple[str, float, int]] = []   # the growth samples taken: (run name, tests_s, Conformance cases)
+        #: THE PROGRAM DIFFERENTIAL'S PLANTED WORLD (kb/Work PB4333), when the arm plants `differential`: the suite's
+        #: manifest, the measured tree's entries (path -> blob) and the capture's rows (oracle id -> three digests); the
+        #: Conformance population is then the suite's display names (`DIFFERENTIAL_POPULATION`).
+        self.suite_manifest: dict = {}
+        self.blobs: dict[str, str] = {}
+        self.oracle: dict[str, tuple[str, str, str]] = {}
+        self.captures = 0
+        self.compiled: list[str] = []
+        self.run_facts_text = "runtimes Microsoft.NETCore.App 10.0.4"   # what `run_facts` reports
+        self.present: set[str] = set()   # the portable paths `portable_exists` finds
+        if "differential" in plant:
+            self.POPULATION = {**self.POPULATION, "Conformance": list(self.DIFFERENTIAL_POPULATION)}
+
+    #: The planted suite's display names: four accept tests and one refusal of the carried families, and one case of no
+    #: carried family, which always runs.
+    DIFFERENTIAL_POPULATION = (
+        *(f'WiseOwl.Cobol.Tests.Conformance.ConformanceSuiteTests_P{i}.SuiteTest_IsNoWorseThanItsVerdictAllows'
+          f'(edition: "2023", id: "t{i}")' for i in range(1, 5)),
+        'WiseOwl.Cobol.Tests.Conformance.ConformanceSuiteTests_P0.WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic'
+        '(id: "r5", edition: "2023")',
+        "N.Conf.Hand",
+    )
+
+    def generate(self, tree, facets, stable):
+        """The real generations over the planted graph's scratch repository (`graph`, kb/Work PB5231); none without one,
+        once the graph has loaded (a malformed one raises here, as the real host's does). The `differential` arm plants
+        the conformance suite as generated, its manifest `suite_manifest`."""
+        self.graph()
+        if "differential" in self.plant:
+            directory = self.root / "suite"
+            (directory / "wiseowl").mkdir(parents=True, exist_ok=True)
+            (directory / "wiseowl" / "manifest.json").write_text(json.dumps(self.suite_manifest),
+                                                                 encoding="utf-8", newline="\n")
+            return {"conformance-suite": buildgraph.Generation("conformance-suite", "k", "planted-suite", 1, directory,
+                                                               False, None, "planted")}
+        return super().generate(tree, facets, stable) if self.planted_graph is not None else {}
+
+    def output_digest(self, generation):
+        return generation.outputs if "differential" in self.plant else super().output_digest(generation)
+
+    def run_facts(self) -> str:
+        return self.run_facts_text
+
+    def portable_exists(self, path: str) -> bool:
+        return path in self.present
+
+    def tree_entries(self, tree):
+        """The planted measured tree (`blobs`), as `git ls-tree` entries."""
+        return [(f"100644 blob {b}\t{p}".encode(), p) for p, b in sorted(self.blobs.items())]
+
+    def oracle_digests(self, out, spawn, handed, only=None):
+        """The planted capture (`oracle`) of the ids `only` names (every one without it), written as the oracle host
+        writes it; `compiled` records each id compiled; `capture-fails` plants a host that failed."""
+        self.captures += 1
+        if "capture-fails" in self.plant:
+            raise OSError("planted: `WiseOwl.Cobol.ArchOracle digests` exited 4")
+        ids = set(Path(only).read_text(encoding="utf-8").split()) if only is not None else set(self.oracle)
+        self.compiled += sorted(ids & set(self.oracle))
+        out.write_text("".join(f"{i}\tpop\t{c}\t{d}\t{p}\t{a}\n" for i, (c, d, p, a) in
+                               ((i, (*v, "")[:4]) for i, v in sorted(self.oracle.items())) if i in ids),
+                       encoding="utf-8", newline="\n")
+        return out
 
     def lock_path(self) -> Path:
         return self._lock
@@ -130,12 +195,6 @@ class FakeHost(Host):
 
     def graph(self) -> buildgraph.Graph:
         return self.planted_graph if self.planted_graph is not None else super().graph()
-
-    def generate(self, tree, facets, stable):
-        """The real generations over the planted graph's scratch repository (`graph`, kb/Work PB5231); none without one,
-        once the graph has loaded (a malformed one raises here, as the real host's does)."""
-        self.graph()
-        return super().generate(tree, facets, stable) if self.planted_graph is not None else {}
 
     def target_keys(self, tree, facets, outputs=None, refused=None):
         """The planted keys: per assembly, the tree's `keys` value (else the tree itself) with the facets; the real ones
@@ -227,6 +286,25 @@ class FakeHost(Host):
                 if self._hosts_returned == len(GATED_ASSEMBLIES):
                     self.hosts_done.set()
 
+    def peak_commit(self) -> int | None:
+        return self.planted_peak
+
+    def _exhaustion(self, asm: str) -> dict[str, str]:
+        """The failed cases a host-resource arm plants (kb/Work PB5697), by name: their texts as run 000004-20261115T203340Z
+        recorded them (host_resources.OBSERVED)."""
+        conf, unit = self.POPULATION["Conformance"], self.POPULATION["Unit"]
+        for tag in OBSERVED:
+            if f"exhausted-{tag}" in self.plant and asm == "Conformance":
+                return {conf[0]: OBSERVED[tag], conf[1]: OBSERVED["empty-output"]}
+        if "empty-only" in self.plant and asm == "Conformance":
+            return {conf[0]: OBSERVED["empty-output"], conf[1]: OBSERVED["silent-exit"]}
+        if "exhausted-mixed" in self.plant:
+            return ({conf[0]: OBSERVED["pagefile-quota"], conf[1]: OBSERVED["torn-decode"]} if asm == "Conformance"
+                    else {unit[0]: GENUINE_TEXT} if asm == "Unit" else {})
+        if "exhausted-nostart" in self.plant and asm == "Conformance":
+            return {conf[0]: OBSERVED["empty-output"]}
+        return {}
+
     def _planted_host(self, asm, run, env) -> int:
         if "tamper-output" in self.plant:   # a host that writes into the generated output it was handed (kb/Work PB5231)
             for name, directory in env.items():
@@ -244,6 +322,15 @@ class FakeHost(Host):
         red = asm == "Conformance" and "red" in self.plant
         if red:
             cases[0] = (cases[0][0], ["Failed"])
+        messages = self._exhaustion(asm)   # kb/Work PB5697: failed cases whose texts are the host's, or a genuine one
+        if "exhausted-nostart" in self.plant and asm == "Unit":   # a host that could not start: no trx, the host's error
+            (run / f"{asm}.log").write_text("Failed to create CoreCLR, HRESULT: 0x8007000E\n", encoding="utf-8",
+                                            newline="\n")
+            return 1
+        for i, name in enumerate(c for c, _ in cases):
+            if name in messages:
+                cases[i] = (name, ["Failed"])
+        red = red or bool(messages)
         if asm == "Conformance" and "drop" in self.plant:
             cases = cases[1:]
         if asm == "Conformance" and "duplicate" in self.plant:
@@ -253,7 +340,7 @@ class FakeHost(Host):
         if asm == "Conformance" and "skip" in self.plant:
             cases[-1] = (cases[-1][0], ["NotExecuted"])
         if not (asm == "Unit" and "no-trx" in self.plant):
-            synthetic_trx(run / f"{asm}.trx", cases)
+            synthetic_trx(run / f"{asm}.trx", cases, messages=messages)
         passed = sum(o == ["Passed"] for _, o in cases)
         failed = sum(o == ["Failed"] for _, o in cases)
         log = [f"  Failed {cases[0][0]} [1 s]", "  Error Message:", "   PLANTED-RED-MESSAGE"] if red else []

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.1.2-3",
+ "rule-digest": "adebc16a81e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/l1c32-relation-boolean-literal",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.8.4.2.3-3, witnessed at 2002 by the cases test-ref names. The read: Words identical; the set of literal classes is the same in both editions (alphanumeric, boolean, national, numeric). Pointer chosen as the renumbered word-identical rule. Cited: §2002:8.8.4.1.1.2 SR3."
+}

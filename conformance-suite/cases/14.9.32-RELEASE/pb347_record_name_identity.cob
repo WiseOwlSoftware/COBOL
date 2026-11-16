@@ -1,11 +1,11 @@
-*>--- conformance-case
-*> id: pb347_record_name_identity
-*> rules: [SR-14.9.32.3-1, SR-14.9.35.3-1, SR-14.9.51.3-1,
-*>    SR-14.9.51.3-5, FMT-14.9.32.2]
-*> accept: [2002, 2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb347_record_name_identity
+      *> rules: [SR-14.9.32.3-1, SR-14.9.35.3-1, SR-14.9.51.3-1,
+      *>    SR-14.9.51.3-5, FMT-14.9.32.2]
+      *> accept: [85, 2002, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 1989:2023 §2023:14.9.32.3 SR1 / §2023:14.9.51.3 SR5 / §2023:14.9.35.3 SR1 - the ACCEPT side of the
       *> record-name-1 operand rule: the operand IS a logical record of a file description entry, and all
       *> three rules end "and it may be qualified", so the OF form binds. Each RELEASE releases exactly the

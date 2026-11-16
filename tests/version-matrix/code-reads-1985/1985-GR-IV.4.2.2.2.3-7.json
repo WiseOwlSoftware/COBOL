@@ -1,0 +1,109 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-7",
+ "rule-digest": "9b97ec27bb3a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-005",
+  "sources": {
+   "reader": "2b33b3fd84e577d1e3956cfca3f3e1b4ba342aef6633d8fb66faf257e9af3243",
+   "refuter": "e8a51ee43a12a13170182cd213d5e1e2346f8af4c32efc338396ac4b652905f8"
+  },
+  "imported": {
+   "reader": "56680587315195ea8cb3ea11e43474a464854f7da9cc77ee125cab09d2f9cc1b",
+   "refuter": "33b2680a49dbbe16af9bd2b511123d368cd9c8d8b8157fe7aba70d467e304cd6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a symbolic-character (bare or with the redundant ALL) defined in SPECIAL-NAMES SYMBOLIC CHARACTERS stands for one or more of the character at ordinal integer-1 of the native set (or of alphabet-name-2 under IN, §1985:VI.4.5.4 GR8), repeated to the associated item's size in VALUE/MOVE/compare and one character where no item is associated; a word not so defined is not a figurative constant.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SwitchBindSymbolic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#SymbolicOperand; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#FoldAllLiteral; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSymbolicCharactersClause",
+    "switches": "the FOR ALPHANUMERIC/NATIONAL phrase of SYMBOLIC CHARACTERS (Constructs.SpecialNamesForNational2002): COBOL0900 at 85, admitted at 2002+; the base clause is edition-invariant",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "SwitchBindSymbolic uses Edition.At/Edition.Error only for position and reporting (no edition comparison); grepped -i symbolic in VersionConformancePass.cs, LiteralEnvironment.cs and ExpressionBinder.cs; the ordinal-to-character resolution (CollatingTable.Repertoire / inSet.CharAt) and the BoundAllLiteral fill are shared by every edition.",
+  "behaviour-differs-by-edition": "no for the value; yes for the clause syntax: 85 refuses the 2002 FOR ALPHANUMERIC/NATIONAL phrase",
+  "witnesses-cover": "part: the witness covers VALUE SYM and VALUE ALL SYM on PIC X; not exercised: MOVE/compare sizing on X(n), JUSTIFIED and group receivers, DISPLAY/STRING one-character length, INSPECT operands, the IN alphabet-name phrase, multiple names per clause, and the clause refusals",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/s1.cob",
+    "printed": "A=[AAA] B=[BBBB] C=[AAAA] D=[BBBB][BBBB] E=[AB\"] F=Y G=Y H=[RRR] I=[AB ] J=[a\"b\"c] K=02 L=[\"\"\"]",
+    "expected": "SYM-A (66)='A' fills X(3); ALL SYM-B fills JUSTIFIED X(4); group of 4 filled; VALUE bare and ALL both fill X(4); DISPLAY one char each; compare equal; SYM-R IS 2 IN AB ('QRS') = 'R'; STRING one char each; INSPECT BY/FOR one char; ordinal 35 = '\"'; a PROGRAM COLLATING SEQUENCE does not change the native ordinal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/s2.cob",
+    "printed": "COBOL1670: SYM-A IS 0: the ordinal position does not exist in the native character set (65536 characters)",
+    "expected": "ordinal 0 refused (§1985 SPECIAL-NAMES SR10)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/s3.cob",
+    "printed": "COBOL1670: 2 symbolic-character name(s) against 1 integer(s)",
+    "expected": "one-to-one correspondence refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/s4.cob",
+    "printed": "COBOL1670: 'SYM-A' is already defined",
+    "expected": "duplicate symbolic-character refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/s6.cob",
+    "printed": "COBOL1639: the VALUE operand 'SYM-Z' is not a literal",
+    "expected": "an undefined word is not a symbolic-character: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/s5.cob",
+    "printed": "COBOL0900: the FOR ALPHANUMERIC/NATIONAL phrase ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "the 2002 FOR phrase refused at 85"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/s7.cob",
+    "printed": "[ĀĀĀ] (ordinal 257 = U+0100)",
+    "expected": "an ordinal within the implementor's native set (65536) is accepted and gives that character"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/s8.cob",
+    "printed": "[AAA]",
+    "expected": "VALUE ALL SYM-A fills X(3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GR7",
+    "check": "OK  §1985:IV.4.2.2.2.3 GR7  (4.2.2.2.3 Figurative Constant Values)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR8",
+    "check": "OK  §1985:VI.4.5.4 GR8  (4.5.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "SwitchBindSymbolic resolves each name to the character at integer-1 (native, or the IN alphabet's CharAt), and ExpressionBinder.SymbolicOperand turns every use into a one-character BoundAllLiteral, so the GRL2.1/L2.2 sizing is the ALL-literal sizing. Every context probed sizes and values correctly at 85; the only edition switch on the path is the 2002 FOR phrase gate, which 85 correctly refuses. Diagnostics at --std 85 cite §2023 clause numbers (wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "cite.py: OK §1985:IV.4.2.2.2.3 GR7 'specified as the value of this symbolic-character'. Read §1985:VI.4.5.4 GR4d (ALSO: only literal-1 represents the character; unspecified characters follow in native order) and GR8. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/sa.cob at --std 85: SYMBOLIC IN an ALPHABET with ALSO (ordinal 1='Q'), descending THRU (\"Z\" THRU \"X\", ordinal 2='Y'), ordinals past the listed literals (4 = LOW-VALUE, 69='A', 85='T' = native order skipping Q,R,S), IN STANDARD-1 (66='A'), UNSTRING DELIMITED BY a symbolic-character, and a contained program using the containing program's symbolic-characters (§1985 Configuration Section applies to contained programs) printed A=[QRS] B=Y C=[ATYA] D=[ab ][cde] E=[QQQ][YYY], all as the text gives. Refusals: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/sb.cob symbolic-character in CLASS -> COBOL1671, E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/sd.cob in ALPHABET -> COBOL1906 (§1985 SPECIAL-NAMES SR5) and ADD SQ -> COBOL0844, E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/sc.cob CONFIGURATION SECTION in a contained program -> COBOL1643. Side observation outside this rule: IF SA4 = LOW-VALUE (two literals) compiles at 85 with warning COBOL3146, but §1985:VI.6.3.1.1 'must contain at least one reference to a variable' (cite.py OK) makes it a syntax violation: a possible under-reject for the relation-condition rule's own case.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

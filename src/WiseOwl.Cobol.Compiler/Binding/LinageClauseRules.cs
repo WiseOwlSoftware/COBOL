@@ -5,7 +5,8 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>The COBOL-85 designations of the LINAGE clause's syntax rules that <c>FileControlBinder.ResolveLinage</c> screens inline
 /// (kb/Work PB5361): §1985:VII.3.7.3 SR1 is §2023:13.18.34.3 SR2 and §1985:VII.3.7.3 SR3 is §2023:13.18.34.3 SR3, so a refusal at
 /// <c>--std 85</c> cites the rule that edition prints (<see cref="Rule1985.CitationAt"/>). <c>RecordClauseRuleDriftTests</c>
-/// re-derives both from <c>specs/ANSI_COBOL_1985.md</c>. §2023:13.18.34.3 SR1 (no OCCURS) has no 1985 counterpart.</summary>
+/// re-derives both from <c>specs/ANSI_COBOL_1985.md</c>. §2023:13.18.34.3 SR1 (no OCCURS) has no 1985 rule of its own: at COBOL-85 an
+/// operand subject to an OCCURS clause is a table element reference that must be subscripted (<see cref="ClauseOperandRules1985.TableElementSubscripted"/>, kb/Work PB5627).</summary>
 internal static class LinageClauseRules
 {
     /// <summary>§1985:VII.3.7.3 SR1, which §2023:13.18.34.3 SR2 re-numbers.</summary>

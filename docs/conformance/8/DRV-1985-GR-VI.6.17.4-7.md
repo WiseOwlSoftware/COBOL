@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-VI.6.17.4-7", "undefined-in-rule", "\"the result of the execution of this statement is undefined\"", "§1985:VI.6.17.4 GR7 (INITIALIZE, level 2): \"If identifier-1 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined, even if they are defined by the same data description entry.\" The rule declares its own consequence undefined (kb/Work PB5373 class 1), so every behaviour conforms and no expected value exists. 1985 has no Annex A.2, so undefined-A.2 cannot apply and this arm is the one the schema gives the fact. The quotation lies inside the row's catalog text.", "claude: 2026-11-16", "—"]
+---

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.10.3-1",
+ "rule-digest": "6957f3fb1861",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble",
+ "test-ref": "conformance:cases/15.10.4-Returned-value-rule/pb65_bounded_returned_value_landing",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.11.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical. Cited: §2002:15.10.3 RV1."
+}

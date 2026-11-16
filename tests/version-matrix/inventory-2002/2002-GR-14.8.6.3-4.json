@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.6.3-4",
+ "rule-digest": "419930a919fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseNoRewind",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo08_lock_status_open_mode",
+ "notes": "§2002:14.8.6.3 GR4: every CLOSE updates the I-O status; each status is preset to XX and every CLOSE form (plain, REEL FOR REMOVAL, UNIT, NO REWIND, WITH LOCK, not-open 42) printed its §2002:9.1.12 value at --std 2002, as derived."
+}

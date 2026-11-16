@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.7.1",
+ "rule-digest": "dfa5e71866e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#computeStatement",
+ "test-ref": "conformance:cases/14.8.7@2002-COMPUTE-STATEMENT/g2cmp04_format_phrases",
+ "notes": "§2002:14.8.7.1: every form (ROUNDED on one or all of several receivers, ON/NOT ON SIZE ERROR alone, both in either order, neither, END-COMPUTE or a period, format 2 with one and two receivers) is accepted and its values follow §2002:14.6.3/14.6.4/14.6.6 4b/8.8.2; g2cmp04 at --std 2002 matched the derived F1 NSE 04 03 .. F8 0110."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.12.2-4",
+ "rule-digest": "e44b00962461",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenRangeOperands; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass",
+ "test-ref": "conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2evr00_range_same_class_accepted; conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2evr01_range_object_class_refused; conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2evr02_range_pointer_class_refused; conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2evr03_range_boolean_class_refused; conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2evr04_range_mixed_class_refused",
+ "notes": "§2002:14.8.12.2 SR4 forbids range-expression operands of different classes or of class boolean, object or pointer; at --std 2002 g2evr01..04 (object, pointer, boolean, national/alphanumeric mix) each refuse with COBOL2107 at the WHEN, and g2evr00 runs same-class ranges per §2002:14.8.12.3 GR4 (A-IN, N-IN, N-OUT, U-IN) as derived."
+}

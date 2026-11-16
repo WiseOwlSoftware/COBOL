@@ -367,17 +367,21 @@ CLASSIFICATION = Classification(inert={
        "Directory.Build.props": "scripts/abi_pin.py (settling the ABI pin)",
        "LICENSE": "scripts/arch/census.py (read on Linux)",
        "WiseOwl.Cobol.sln": "scripts/arch/census.py, scripts/linux-gate.sh, scripts/orchestrator/test_orchestrate_account.ps1",
-       "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files)",
+       "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files), "
+                                      "scripts/orchestrator/run_probe.py (the WiseOwl adapter's environment)",
        "conformance-suite/fuzz-history.json": "scripts/test_fuzz_history.py (every record of the tracked history carries the "
                                               "night's date, kb/Work PB5371)",
-       "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py and the harness self-tests (the "
+       "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py, orchestrator/run_probe.py (it imports "
+                                     "run.py and config.py) and the harness self-tests (the "
                                      "names of the harness files)",
        "docs/rearchitecture/spec-rule-catalog.json": "scripts/spec/audit_annex_a1.py, audit_code_citations.py",
        "global.json": "scripts/toolchain_audit.py (the SDK pin global.json's version and rollForward must accept)",
        "specs/ISO_COBOL_2023.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "  # spec_pdf: names-the-file
                              "scripts/differential_fuzz.py",
        "src/WiseOwl.Cobol.Cli/WiseOwl.Cobol.Cli.csproj": "scripts/guard-compiler.sh, guard-verify.sh, linux-gate.sh",
-       "src/WiseOwl.Cobol.Frontend/Grammar/": "scripts/spec/grammar_source.py (the grammar files, whole)",
+       "src/WiseOwl.Cobol.Editions/ImplementorNames.cs": "conformance-suite/harness/generate.py --self-test (it holds "
+                                                         "cobol_source.STDIN_DEVICES to the table's input devices)",
+       "src/WiseOwl.Cobol.Frontend/Grammar/":"scripts/spec/grammar_source.py (the grammar files, whole)",
        "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs": "scripts/abi_pin.py (settling the ABI pin)",
        "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin": "scripts/abi_pin.py (settling the ABI pin)",
        "tests/WiseOwl.Cobol.Benchmarks/GeneratedCode/GeneratedProgramBenchmarks.cs": "scripts/arch/perf_baseline.py",

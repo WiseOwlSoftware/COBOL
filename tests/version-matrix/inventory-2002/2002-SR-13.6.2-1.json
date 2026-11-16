@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.6.2-1",
+ "rule-digest": "978463910e71",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDefinitionRules.cs#RefusedBy; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs#BindClassData; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindMethodData",
+ "test-ref": "conformance:cases/13.6@2002-LINKAGE-SECTION/g2-linkage-section-placement",
+ "notes": "§2002:13.6.2 SR1 grants the linkage section in program, function and method definitions and program and function prototypes; all five are accepted at --std 2002 and the by-reference formals (§2002:14.1.3 GR8) give P=21 / F=42 / M=63 as derived."
+}
