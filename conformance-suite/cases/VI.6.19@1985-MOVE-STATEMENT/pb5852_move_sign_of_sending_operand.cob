@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb5852_move_sign_of_sending_operand
       *> rules: [1985-GR-VI.6.19.4-4]
-      *> accept: [85, 2023]
+      *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -12,8 +12,10 @@
       *> sender whose digits all truncate away stores a NEGATIVE zero.
       *> §2023:14.9.25.4 GR6d.2.a (cite.py: OK): "the sign of the
       *> numeric value shall be represented in the receiving operand",
-      *> the value after truncation, zero: at 2023 the zero is positive
-      *> (.out); the 85 lines are .85.out. DERIVATION, line by line:
+      *> the value after truncation, zero: at 2023 the zero is positive,
+      *> which the twin test 14.9.25-MOVE/
+      *> pb5852_move_sign_of_numeric_value_2023 pins. DERIVATION, line by
+      *> line (2023's in parentheses):
       *>  LIT->L, S3->L: -100 into S99 SIGN LEADING SEPARATE keeps the
       *>   digits 00 and, at 85, the sender's minus: -00 (2023: +00).
       *>  S3->T: the trailing separate sign: 00- (2023: 00+).

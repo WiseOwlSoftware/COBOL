@@ -22,4 +22,4 @@
   implementation represents the algebraic sign of those usages as the value's sign (§1985:VI.5.14.4 GR9 leaves "the
   representation of any algebraic sign" to the implementor), so it has no negative zero.
   Witnesses: `conformance:cases/13.18.40.5-Editing-rules/pb3664_edited_sign_stored_value`, `CobolEditStoredSignTests`,
-  `conformance:cases/VI.6.19@1985-MOVE-STATEMENT/pb5852_move_sign_of_sending_operand` (`.85.out` and `.out`).
+  `conformance:cases/VI.6.19@1985-MOVE-STATEMENT/pb5852_move_sign_of_sending_operand` (1985) and `conformance:cases/14.9.25-MOVE/pb5852_move_sign_of_numeric_value_2023` (2023).
