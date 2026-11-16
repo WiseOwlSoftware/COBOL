@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_if_format1_arms
       *> rules: [GR-14.9.19.4-1, GR-14.9.19.4-2]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
