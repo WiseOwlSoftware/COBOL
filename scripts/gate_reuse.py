@@ -119,9 +119,13 @@ class PassCarry:
                 runs.append(p.name)
                 for asm, names in found.items():
                     passed[asm] |= names
-                red_hosts |= {r["asm"] for r in rec.get("runs") or []
-                              if isinstance(r, dict) and r.get("red") and r.get("asm") in found
-                              and not self.red_explained(p, r["asm"])}
+                # every host of the run, its population's (`runs`) and its preflight's (`preflight.runs`, kb/Work PB5872
+                # review R1-1), each read by its own file stem: a red the cases do not explain reruns the whole assembly
+                pre = rec.get("preflight") if isinstance(rec.get("preflight"), dict) else {}
+                hosts = [r for r in [*(rec.get("runs") or []), *(pre.get("runs") or [])] if isinstance(r, dict)]
+                red_hosts |= {r["asm"] for r in hosts
+                              if r.get("red") and r.get("asm") in found
+                              and not self.red_explained(p, str(r.get("name") or r["asm"]))}
         return Carry(runs, passed, red_hosts=red_hosts) if runs else None
 
     def end_keys(self, out: Outcome) -> dict[str, str]:
@@ -377,15 +381,16 @@ class PassCarry:
                                         newline="\n")
 
     @staticmethod
-    def red_explained(run: Path, asm: str) -> bool:
-        """WHETHER A RED HOST'S RED IS THE CASES ITS TRX NAMES (kb/Work PB5099, review R1-1 and R2-1): the host printed a
-        `Failed!` verdict whose Failed count equals the trx's Failed results, and there is at least one. Then a retry of
-        those cases tests everything the red was about. Any other red (no verdict line, a count the trx does not
-        account for, a crash after the last result, a cleanup failure) has a host-level cause no case carries, and the
-        assembly runs whole again."""
+    def red_explained(run: Path, stem: str) -> bool:
+        """WHETHER A RED HOST'S RED IS THE CASES ITS TRX NAMES (kb/Work PB5099, review R1-1 and R2-1): the host whose files
+        in `run` are `<stem>.log` and `<stem>.trx` (an assembly's population host, or `preflight-<assembly>`, kb/Work
+        PB5872) printed a `Failed!` verdict whose Failed count equals the trx's Failed results, and there is at least
+        one. Then a retry of those cases tests everything the red was about. Any other red (no verdict line, a count the
+        trx does not account for, a crash after the last result, a cleanup failure) has a host-level cause no case
+        carries, and the assembly runs whole again."""
         try:
-            verdict = verdict_of((run / f"{asm}.log").read_text(encoding="utf-8", errors="replace").splitlines())
-            failed = failed_results(run / f"{asm}.trx")
+            verdict = verdict_of((run / f"{stem}.log").read_text(encoding="utf-8", errors="replace").splitlines())
+            failed = failed_results(run / f"{stem}.trx")
         except (OSError, UnreadableTrx):
             return False
         m = re.match(r"Failed!\s+-\s+Failed:\s+(\d+)", verdict or "")

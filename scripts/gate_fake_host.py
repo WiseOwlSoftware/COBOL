@@ -362,6 +362,19 @@ class FakeHost(Host):
             if name in messages:
                 cases[i] = (name, ["Failed"])
         red = red or bool(messages)
+        # THE PREFLIGHT HOST'S OWN FAILURES (kb/Work PB5872, review R1-1 and its hunt), planted on Characterization's:
+        # a crash (no trx, no verdict line, exit 1), an exit 0 with no trx, an exit 0 with one case short in its trx, and a
+        # red with every case Passed (a fixture's Dispose that throws: `preflight-cleanup-red`, below).
+        planted_pre = {p for p in self.plant if p.startswith("preflight-")} if stem != asm and asm == "Characterization" else set()
+        if "preflight-crash" in planted_pre:
+            (run / f"{stem}.log").write_text("The active test run was aborted. Reason: Test host process crashed\n",
+                                             encoding="utf-8", newline="\n")
+            return 1
+        if "preflight-no-trx" in planted_pre:
+            (run / f"{stem}.log").write_text("", encoding="utf-8", newline="\n")
+            return 0
+        if "preflight-short" in planted_pre:
+            cases = cases[:-1]
         if asm == "Conformance" and "drop" in self.plant:
             cases = cases[1:]
         if asm == "Conformance" and "duplicate" in self.plant:
@@ -380,4 +393,5 @@ class FakeHost(Host):
         log.append(f"{'Failed!' if red else 'Passed!'}  - Failed:     {failed}, Passed:     {passed}, Skipped:     0, "
                    f"Total:     {len(cases)}, Duration: 1 s - WiseOwl.Cobol.Tests.{asm}.dll (net10.0)")
         (run / f"{stem}.log").write_text("\n".join(log) + "\n", encoding="utf-8", newline="\n")
-        return 1 if red or (asm == "Conformance" and "cleanup-red" in self.plant) else 0   # cleanup-red: all Passed, exit 1
+        return 1 if red or (asm == "Conformance" and "cleanup-red" in self.plant) or "preflight-cleanup-red" in planted_pre \
+            else 0   # cleanup-red: all Passed, exit 1

@@ -234,9 +234,10 @@ class Legs:
         empty when it is GREEN or nothing is declared. Records `out.preflight` and `preflight_s`; a RED audit that stops
         its hosts leaves the caller to see it (`hosts_live.stopped_any`). An assembly an earlier run of this worktree
         passed cases of at its key (`carry`, a RETRY, kb/Work PB5099) has no preflight host: that run ran its preflight,
-        and the retry runs only what it did not pass."""
+        and the retry runs only what it did not pass; unless a host of it was red with no red case to explain it
+        (`carry.red_hosts`, review R1-1): that assembly runs whole again, its preflight first."""
         declared = {asm: classes for asm, classes in self.host.preflight().items()
-                    if asm in todo and not (carry is not None and carry.passed.get(asm))}
+                    if asm in todo and not (carry is not None and carry.passed.get(asm) and asm not in carry.red_hosts)}
         if not declared:
             return []
         plan: dict[str, Path | None] = {}
@@ -249,8 +250,11 @@ class Legs:
         if self.host.hosts_live.stopped_any():
             return []
         reds: list[str] = []
+        # its hosts' runs, each with its file stem, so a later carry reads a red one exactly as a population host's
+        # (`PassCarry.carry`'s red hosts, `red_explained`; review R1-1)
         record: dict = {"classes": {a: list(c) for a, c in declared.items()}, "cases": {},
-                        "hosts_s": {r.asm: r.wall_s for r in runs}, "red": []}
+                        "hosts_s": {r.asm: r.wall_s for r in runs}, "red": [],
+                        "runs": [{**vars(r), "name": f"{PREFLIGHT_PREFIX}{r.asm}"} for r in runs]}
         for asm, classes in declared.items():
             trx = run / f"{PREFLIGHT_PREFIX}{asm}.trx"
             host = next((r for r in runs if r.asm == asm), None)

@@ -124,7 +124,43 @@ def case_05_a_regate_after_a_preflight_red(expect):
            f"{again.line} {same.hosts_run} {fixed.line} {changed.hosts_run}")
 
 
-def case_06_the_real_targets_declare_the_preflight(expect):
+def case_06_a_preflight_host_red_with_no_red_case_is_never_carried_green(expect):
+    root, sink, gate, said = fixtures.world()
+    d = root / "cleanup-red"
+    d.mkdir()
+    first = Gate(FakeHost(d, d / "gate.lock", plant={"preflight-cleanup-red"}), d / "runs", say=sink.append).run()
+    again_host = FakeHost(d, d / "gate.lock", plant={"preflight-cleanup-red"})
+    again = Gate(again_host, d / "runs", say=sink.append).run()
+    rec = json.loads((run_dirs(d / "runs")[0] / VERDICT_FILE).read_text(encoding="utf-8"))
+    expect("a preflight host red with every case Passed (a fixture's Dispose that throws) is RED, and its run is in the "
+           "record by its own file stem; a re-gate at the SAME keys does not carry its passes around it (review R1-1, "
+           "kb/Work PB5099): the preflight runs that assembly again and the gate is RED again",
+           first.verdict == "RED" and "preflight host ended red with no red case" in first.line
+           and [r["name"] for r in rec["preflight"]["runs"] if r["red"]] == ["preflight-Characterization"]
+           and again.verdict == "RED" and "preflight-Characterization" in again_host.hosts_run
+           and "Characterization" not in again.recorded, f"{first.line} | {again.line} {again_host.hosts_run}")
+
+
+def case_07_a_preflight_host_that_breaks_records_nothing(expect):
+    root, sink, gate, said = fixtures.world()
+    crash, _ = gate("crash", plant={"preflight-crash"})
+    none, _ = gate("no-trx", plant={"preflight-no-trx"})
+    short, hs = gate("short", plant={"preflight-short"})
+    expect("a preflight host that CRASHES (no trx, no verdict line, exit 1) is a PREFLIGHT red naming its classes, and no "
+           "population runs",
+           crash.verdict == "RED" and f"{PREFLIGHT} RED" in crash.line and "ran no case" in crash.line and not crash.runs
+           and not crash.recorded, crash.line)
+    expect("a preflight host that exits 0 and writes NO trx is a PREFLIGHT red (its declared class ran no case)",
+           none.verdict == "RED" and f"{PREFLIGHT} RED" in none.line and "N.Char ran no case" in none.line
+           and not none.recorded, none.line)
+    expect("a preflight host that exits 0 with a case SHORT in its trx leaves that case NEVER RAN: Characterization's "
+           "population is NOT EXACT, the gate RED, and no pass of it is recorded",
+           short.verdict == "RED" and "Characterization POPULATION NOT EXACT" in short.line
+           and sum(short.populations["Characterization"].never_ran.values()) == 1
+           and "Characterization" not in short.recorded, short.line)
+
+
+def case_08_the_real_targets_declare_the_preflight(expect):
     from gate_host import Host  # noqa: PLC0415
     import buildgraph  # noqa: PLC0415
     real = Host().preflight()

@@ -1995,11 +1995,27 @@ is shared with its population host (the two run one after the other), so the han
 **A red preflight** (a failed case, a host red with no failed case, or a declared class that ran no case: a stale
 declaration fails loudly) ends the gate at once: `=== BUILD-LOCAL GATE: RED — PREFLIGHT RED: Characterization
 <case> — fail-fast: a derived or pinned file is stale; the whole population did NOT run (preflight 14.9 s; kb/Work
-PB5872) · slot … ===`. The record's `preflight` holds the classes, the cases per assembly, each host's seconds, the
-verdict, the red cases and the reasons; `timings` hold `preflight_s` and `first_red_s`, so a later measurement can count
-what the stage saved. The record also measures its tree and keys at the end, so a re-gate at unchanged keys carries
-the preflight's passes (`PassCarry.carry` reads `preflight-<assembly>.trx` beside the population's trx) and, for an
-assembly with carried passes, runs no preflight host: its red case runs in the retry (kb/Work PB5099).
+PB5872) · slot … ===`. The record's `preflight` holds the classes, the cases per assembly, each host's seconds, each
+host's run (`runs`: its exit code, red, seconds and file stem `preflight-<assembly>`), the verdict, the red cases and the
+reasons; `timings` hold `preflight_s` and `first_red_s`, so a later measurement can count what the stage saved. The
+record also measures its tree and keys at the end, so a re-gate at unchanged keys carries the preflight's passes
+(`PassCarry.carry` reads `preflight-<assembly>.trx` beside the population's trx) and, for an assembly with carried
+passes, runs no preflight host: its red case runs in the retry (kb/Work PB5099). ⛔ A preflight host red with no red
+case to explain it (a fixture's cleanup that throws, a crash after the last result) is one of the carry's RED HOSTS
+exactly as a population host is (`carry` reads `preflight.runs`, and `red_explained` reads a host by its own stem): a
+re-gate at the same keys runs that assembly whole again, its preflight first, and never carries its passes around the
+host's red (review R1-1 of PB5872: before it, such a re-gate was GREEN).
+
+**One line rule for the retry file.** The population's retry file (`only-<assembly>.txt`) is written on every code gate
+whose preflight ran, one listed name a line, and the host selects by exact display name (`GateOnly`, reading the file
+with .NET's `File.ReadAllLines`, which breaks a line at `\n`, `\r` and `\r\n` only). So `test_population.parse_listing`
+breaks a listing at those alone, never `str.splitlines` (which also breaks at U+0085, U+2028, U+2029, `\v`, `\f` and
+U+001C-U+001E and would split one display name into two that never run), and refuses a name holding a carriage return of
+its own, which no line can carry. Every other transformation between a display name and its listed form is the
+listing's truncation mark, which `GateOnly` reads as a stem. Measured on the first gate run with the stage
+(000002-20261116T191610Z): 68,819 names were written to retry files (Conformance 27,634, Unit 41,030, RepoDrift 155),
+among them 8 cut short with the mark, 380 holding non-ASCII text, 31,476 holding quotes and 2,224 holding backslashes;
+every population was EXACT.
 
 **A green preflight changes nothing else, and no case runs twice.** The population's plan (`Legs.plan`) leaves out every
 listed case of a class the preflight ran (an assembly the preflight ran whole, Characterization, starts no population
@@ -2036,8 +2052,11 @@ Debug where no pass stands; the preflight is part of the local gate's one order 
 Characterization whole): a preflight red (no population host started, the record says PREFLIGHT); a green one with a
 whole assembly and part of another (each case once, every population EXACT); a population host that runs a preflight
 case (RAN TWICE); a declared class that runs no case (RED); an audit red before the slot, the inert lane and the tooling
-lane (no preflight); a re-gate after a preflight red, at the same keys and at changed ones; and the real targets file's
-declaration. `buildgraph.py --self-test` plants the drift rule's findings.
+lane (no preflight); a re-gate after a preflight red, at the same keys and at changed ones; a preflight host red with
+every case Passed, whose re-gate at the same keys runs it again and is RED again; a preflight host that crashes, one that
+exits 0 with no trx and one that exits 0 a case short (each RED, nothing recorded); and the real targets file's
+declaration. `buildgraph.py --self-test` plants the drift rule's findings, and `test_population.py --self-test` the one
+line rule.
 
 ### 3.15 THE LINUX REPRODUCTION TOOL — CI's Linux legs under WSL, run by hand (kb/Work PB1732, PB4327)
 
