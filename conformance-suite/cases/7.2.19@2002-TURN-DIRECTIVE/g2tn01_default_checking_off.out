@@ -1,0 +1,6 @@
+DEFAULT W-DST=[ABC] HIT=N
+DEFAULT STATUS=[                               ]
+DEFAULT ON-OVERFLOW
+DEFAULT STATUS2=[                               ]
+DECL [EC-OVERFLOW-STRING             ]
+ENABLED HIT=Y

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.3.3-1",
+ "rule-digest": "43995998c157",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#Walk; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#OperandLiteralClass",
+ "test-ref": "conformance:cases/8.8.3@2002-CONCATENATION-EXPRESSIONS/g2002_concat_class_figurative_pairs",
+ "notes": "§2002:8.8.3.3 GR1: N\"X\" & QUOTE and QUOTE & N\"X\" are national (accepted in a national VALUE, with national BYTE-LENGTH), SPACE & QUOTE is alphanumeric, and pairs of one class keep that class; the run at --std 2002 matched."
+}

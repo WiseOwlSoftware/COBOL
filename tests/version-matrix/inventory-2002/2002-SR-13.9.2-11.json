@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.9.2-11",
+ "rule-digest": "e72f0b7712bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#ReportEntryCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.EntryOrder.cs#DeclareReportEntries; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ReportLengthOperand; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#LengthOperandItem",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-length-report-group; conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-as-if-written",
+ "notes": "§2002:13.9.2 SR11: \"Data-name-1 and data-name-2, if defined in the report section, shall reference elementary report items\". A constant entry under a 2002 CD entry (§2002:13.1.1) that violates it is refused: conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-length-report-group draws COBOL1547 at the entry at --std 2002 (pinned build dc1f2dcce8). Accepted leg: conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-as-if-written takes LENGTH OF the elementary report item EL under the CD and prints KE=05 as derived (§2002:13.9.3 GR6)."
+}

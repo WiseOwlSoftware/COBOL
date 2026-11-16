@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.3.1.2.5.3-8",
+ "rule-digest": "785d453aa756",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#Classify; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs",
+ "test-ref": "conformance:cases/8.3.1.2.5@2002-FIGURATIVE-CONSTANT-VALUES/g2002_figurative_low_all_symbolic_cd",
+ "notes": "§2002:8.3.1.2.5.3 GR8 with GR2b: ALL \"AB\" gives ABABA, ALL N\"XY\" gives XYXYX and ALL \"AB\" & \"C\" gives ABCAB, including a CD record VALUE and MOVE; the run at --std 2002 matched."
+}

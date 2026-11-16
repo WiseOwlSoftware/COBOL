@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.25.3-1",
+ "rule-digest": "e93e0cf67501",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalBridgesOf",
+ "test-ref": "conformance:cases/13.16.25@2002-GLOBAL-CLAUSE/g2-global-cd-constant",
+ "notes": "§2002:13.16.25.3 GR1: the GLOBAL constant in the communication section, the WS group's subordinates and condition-name, the LS item, the global FD's record and the global RD's detail are all referenced from the contained program; the --std 2002 run prints the 8 derived lines."
+}

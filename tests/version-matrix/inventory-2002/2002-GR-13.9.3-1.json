@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.9.3-1",
+ "rule-digest": "621c7d730d41",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#LiteralAliasOf; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ResolveSubscriptName; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantFrom; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantStringLiteral; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ConstantValueRawText",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-as-if-written",
+ "notes": "§2002:13.9.3 GR1: a literal-1 or FROM constant acts as its literal written where the name is written. Constants under a 2002 CD (§2002:13.1.1) move 7 (K1=07), compare equal to 7, size PIC X(K1) as X(7), and move HELLO and the FROM-CV text ABC; conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-as-if-written printed exactly the derived lines at --std 2002 (pinned build dc1f2dcce8)."
+}
