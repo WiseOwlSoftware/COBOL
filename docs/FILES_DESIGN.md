@@ -648,6 +648,27 @@ non-unit branch is “the file remains in the open mode … and no other action 
 rides symbol c (“Close file”), so `CLOSE … UNIT` keeps the file lock and every record lock — pinned by
 `conformance:cases/14.9.6-CLOSE/pb235_close_unit_locks`.
 
+**Every CLOSE the program executes is ONE emitted sequence (kb/Work PB5847).** The standard makes each implicit
+close a CLOSE statement: the CANCEL's *"implicit CLOSE statement without any optional phrases"* (§2023:14.9.5.4 GR9;
+§1985:X.5.3.4 GR10), which an INITIAL program's return also executes (§2023:14.9.18.4 GR2; §1985:X.5.4.4 GR3), and the
+SORT and MERGE USING and GIVING closes (§2023:14.9.40.4 GR12c, GR15c). So `SequentialIoEmitter.EmitCloseStatement`
+renders every one of them: the CLOSE scope (the file stays in its open mode through the CLOSE's own USE procedure,
+§2023:14.9.49.4 GR6), the written form's Table 14 entry, the I-O status store of §2023:14.9.6.4 GR4 (§1985:VII.4.2.4 GR4)
+into the FILE STATUS item, then the reach's own USE hook. The reaches differ only where their rule says so: the
+explicit CLOSE adds GR5's report-active check and its own declaratives; SORT and MERGE pass their transfer hook; a
+program's implicit CLOSE (`EmitImplicitClose`, called from the emitted `CloseFiles()` per internal non-SD file) runs
+only for a connector *"that is open"* (`CobolFile.IsOpen`, so a closed file keeps its status and gets no '42') and
+passes no hook (*"Any USE procedures associated with any of these files are not executed"*). The status store
+matters because the item can outlive the program: a GLOBAL item of its container, an EXTERNAL item, an argument.
+Before PB5847 the CANCEL's close was a second, smaller close (`CobolFile.CloseIfOpen`, no status store) and the item
+kept the last statement's '10' where '00' is due. `CloseSequenceDriftTests` keeps one sequence: no code-generator
+source but `EmitCloseStatement` renders `RuntimeApi.FileClose` or `FileBeginClose`. The emitted store into a
+container's GLOBAL item needs the instance's parent chain whole, so `ProgramTable.InstanceForClose` builds a
+transient container instance where a RECURSIVE container has none (`CancelCascadeOrderTests`). The run unit's own
+implicit CLOSE at STOP RUN stays `FileRegistry.CloseAll` (§2023:14.6.11 2): no program's status item is observable
+after it. The report-active check of the explicit CLOSE (§2023:14.9.6.4 GR5) is not part of the implicit CLOSE
+yet: which checking state governs a close a CANCEL executes in another program is kb/Work PB5685's question.
+
 ### D26. The per-file-name TAPE PHRASE is ONE enum end to end, with a ROW per phrase — never a bool per phrase.
 
 **The rule.** §2023:14.9.27.2 prints ONE optional bracket beside each file-name. In COBOL-2023 it holds a single
@@ -814,7 +835,8 @@ how §2023:14.9.40.4 GR12 a)'s READ ONLY and GR15 a)'s NO OTHER went unrendered 
 path releases, and it does so by being the SAME close: `FileRegistry.CloseByFormat`, the Table-14 CLOSE dispatch,
 runs `SharedClose` (the deregistration and the §2023:9.1.16 record-lock release - except the record locks of a file in an APPLY COMMIT
 clause, which its COMMIT or ROLLBACK releases, §2023:14.9.6.4 GR9, kb/Work PB3480) and is the only member that calls a
-connector's own `Close()`. The explicit CLOSE statement, CANCEL's `CloseIfOpen`, an object's `CloseAndDrop`, a
+connector's own `Close()`. The explicit CLOSE statement, a program's implicit CLOSE (a CANCEL's and an INITIAL
+program's return: the emitted CLOSE behind `CobolFile.IsOpen`, the ONE CLOSE of the paragraph after GR1 above), an object's `CloseAndDrop`, a
 displaced registration's `CloseDisplaced` (which retires a connector still holding what a CLOSE under commit control kept, for the
 next COMMIT or ROLLBACK, kb/Work PB3484) and run-unit termination's `CloseAll` (§2023:14.6.11 2), which `Reset` also
 runs for whatever an earlier run unit left open) are all entries over it, and

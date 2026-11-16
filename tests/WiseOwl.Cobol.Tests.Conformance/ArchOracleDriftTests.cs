@@ -158,4 +158,31 @@ public sealed class ArchOracleDriftTests
         {
             foreach (string d in dirs) ScratchDirectory.Remove(d);
         }
+    }
+
+    /// <summary>AN OBSERVATION IS THE SAME COLD OR WARM (kb/Work PB5862): the oracle observes a compile through the same
+    /// path a case does (staged by <see cref="CompiledProgramCache.StageSource"/>, compiled by
+    /// <see cref="CompiledProgramCache.Compile"/>), twice, of a program no store has seen. With the store on (every local
+    /// gate), the first compile used to MISS and record a read of its staged source under the store (so `ambient`), and
+    /// the second to HIT, whose result carries no recorded inputs (so a digest): gate run 000001-20261116T140220Z of
+    /// agent-a7ef6681efccf46e7. Every observation now compiles for real, and the store's staging directory, named by its
+    /// content, is the compile's own place.</summary>
+    [Fact]
+    public void AnObservation_IsTheSame_WhetherTheStoreIsColdOrWarm()
+    {
+        string unique = Guid.NewGuid().ToString("N")[..12].ToUpperInvariant();
+        string source = "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB5862.\n       PROCEDURE DIVISION.\n"
+            + "           DISPLAY \"" + unique + "\".\n           STOP RUN.\n";
+        var oracle = new ArchOracle.OracleCase("pb5862/" + unique, "pb5862", () => ArchOracle.InScratch(dir =>
+        {
+            string compileDir = Path.Combine(dir, "compile");
+            Directory.CreateDirectory(compileDir);
+            string staged = CompiledProgramCache.StageSource(Path.Combine(compileDir, "pb5862.cob"), source,
+                new Dictionary<string, byte[]>(StringComparer.Ordinal));
+            return CompiledProgramCache.Compile(new CompilerDriver.Options(staged, Path.Combine(dir, "pb5862.dll"), DialectLevel: 2023));
+        }));
+        var cold = oracle.Observe();
+        var warm = oracle.Observe();
+        Assert.Equal(cold, warm);
+        Assert.Matches("^[0-9a-f]{64}$", cold.Program!);
     }}

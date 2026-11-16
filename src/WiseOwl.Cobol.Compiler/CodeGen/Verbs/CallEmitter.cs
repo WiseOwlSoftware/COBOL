@@ -1511,7 +1511,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// form, whose boundary image is its STORAGE (kb/Work PB970). ONE predicate for the read and the write half.
     /// The item whose description the reference has — none for a reference-modified view, the renamed item for a level-66
     /// alias — is <see cref="Place.DescribedItem"/>'s (kb/Work PB602, PB5335).</summary>
-    private static bool IsImageCarriedNumeric(Place p) =>
+    internal static bool IsImageCarriedNumeric(Place p) =>
         p.DescribedItem is { IsGroup: false, Pic.Category: PicCategory.Numeric } item
         && (item.StoreAsImage || p is RedefViewPlace);
 
