@@ -1,7 +1,8 @@
-## At 1985 an UNSTRING with no POINTER phrase from a zero-size sender is not an overflow (PB5858)
+## Entry 3768 — 2026-11-16 08:27 PST — At 1985 an UNSTRING with no POINTER phrase from a zero-size sender is not an overflow (PB5858)
 
 kb/Work PB5816 made a zero-size UNSTRING sender at `--std 85` an overflow because `§1985:VI.6.27.4 GR17a` gives one for a pointer "greater than the size of the data item referenced by identifier-1", and it carried that ruling to a statement with no POINTER phrase by treating the absent pointer as 1. The 1985 text gives UNSTRING no implicit pointer (GR13a: the examination starts "with the leftmost character position"; STRING says so in `§1985:VI.6.25.4 GR6`, UNSTRING does not), so GR17a has no identifier-7 to test, GR17b finds no unexamined character, and GR20 runs NOT ON OVERFLOW. The re-probe of `unsn.cob` at `--std 85` printed `N OVERFLOW` and `X=[QQQ] T=00`.
 
 The fix is at the root: `StringEmitter.EmitUnstring` tests the initiation pointer only when the phrase is written, and `CobolStringOps.UnstringExtract` takes `initiating`, so the first receiving area, which GR13 makes unconditional ("Data is transferred"), is acted upon with zero examined characters when the sender is empty: the receiving item is space filled (numeric: 0), DELIMITER IN is space filled (13d), COUNT IN is 0 (13e) and TALLYING grows by 1 (GR7, GR16). 2002 and 2023 keep their GR2 zero-length guard; no new `DialectBehavior` value. The STRING twin needs no change, because `§1985:VI.6.25.4 GR6` states the implicit pointer of 1.
 
 Leg C of the witness `pb5816_unstring_zero_length_sender_overflow` expected the wrong answer and now expects `C NO OVERFLOW` and `X=[   ]`; legs D (all of point 2) and E (numeric receiver) are new, and a kernel unit test pins the initiating area. VCR row 7.80 states the split. The row `1985-GR-VI.6.27.4-17` closes.
+
