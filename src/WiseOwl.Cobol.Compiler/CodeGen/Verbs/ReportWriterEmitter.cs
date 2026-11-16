@@ -706,7 +706,15 @@ internal sealed class ReportWriterEmitter(
                 // the engine's code-unit compare of two equal-length images IS that comparison.
                 var cat = CollatingSelection.OperandCategory(new BoundFieldOperand(place));
                 string collate = ctx.CollateArgFor(cat, cat);
-                string equal = collate.Length == 0 ? "" : $", static (__a, __b) => {RuntimeApi.StrCompare("__a", "__b", collate)} == 0";
+                // ⛔ A NUMERIC CONTROL IS COMPARED AS TWO NUMERIC OPERANDS (kb/Work PB5782). §1985:XIII.3.7.4 GR3 a): "If
+                // the control data item is a numeric data item, the relation test is for the comparison of two numeric
+                // operands", and zero is "a unique value regardless of the sign" (§1985:VI.6.3.1.1.1; §2023:8.8.4.2.4).
+                // An image-carried numeric item (zoned, packed or a REDEFINES view) can hold -0 and +0 as two different
+                // images, so its break test decodes both images through the item's own profile; every other numeric
+                // item's image is a function of its value, and the engine's equal-length image compare is the test.
+                string equal = CallEmitter.IsImageCarriedNumeric(place)
+                    ? $", static (__a, __b) => {RuntimeApi.ReportNumericControlEqual("__a", "__b", place.Item.ProfileName)}"
+                    : collate.Length == 0 ? "" : $", static (__a, __b) => {RuntimeApi.StrCompare("__a", "__b", collate)} == 0";
                 w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {CallEmitter.CallStringRead(place)}, __v => {{ {set} }}{equal});");
             }
             // SUM counters (§2023:13.18.54): the addend delegate yields the addends' total at the counter's scale

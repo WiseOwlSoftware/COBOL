@@ -374,9 +374,12 @@ public sealed class CobolReport(
         /// CONTROL clause in a report description entry" — among those whose truth value the alphanumeric and
         /// national PROGRAM COLLATING SEQUENCES determine. The compiler supplies the comparison the item's category
         /// takes under the program's sequence (the collated <c>CobolString.Compare</c> a relation condition over
-        /// the same item renders); null where that comparison IS code-unit equality of the two equal-length
-        /// images — no program collating sequence in effect, or a numeric / boolean item (§2023:8.8.4.2.4 / §2023:8.8.4.2.8
-        /// collate neither), whose image is a function of its value.</summary>
+        /// the same item renders); for an image-carried numeric item the comparison of two numeric operands
+        /// (<see cref="NumericControlEqual"/>, kb/Work PB5782: §2023:8.8.4.2.4 "Zero is considered a unique value
+        /// regardless of the sign"; §1985:XIII.3.7.4 GR3 a), since -0 and +0 are two images of one value); null where
+        /// that comparison IS code-unit equality of the two equal-length images — no program collating sequence in
+        /// effect, or a boolean item (§2023:8.8.4.2.8 collates neither) or a numeric one that is not image-carried,
+        /// whose image is a function of its value.</summary>
         public Func<string, string, bool>? Equal { get; } = equal;
 
         public string? Prior { get; set; }   // saved at the first GENERATE (§2023:13.18.16.4 GR3); null until then
@@ -414,6 +417,12 @@ public sealed class CobolReport(
     /// <summary>The binary64 value a <see cref="FloatControlKey(double)"/> key holds — the restore half.</summary>
     public static double FloatControlDouble(string key) =>
         BitConverter.Int64BitsToDouble(long.Parse(key, System.Globalization.NumberStyles.HexNumber));
+
+    /// <summary>The break test of an image-carried NUMERIC control item (§1985:XIII.3.7.4 GR3 a: "the relation test is
+    /// for the comparison of two numeric operands"; §2023:8.8.4.2.4): the two saved character images are decoded through
+    /// the item's profile and compared by value, so a signed zero equals zero (kb/Work PB5782).</summary>
+    public static bool NumericControlEqual(string a, string b, in NumProfile item) =>
+        CobolNum.ParseImage(a, item) == CobolNum.ParseImage(b, item);
 
     /// <summary>§2023:13.18.16.4 GR3's "equality with the corresponding prior control" for two keys of ONE floating-
     /// point control item (both from the same <c>FloatControlKey</c> overload, so of one width): equal bit
