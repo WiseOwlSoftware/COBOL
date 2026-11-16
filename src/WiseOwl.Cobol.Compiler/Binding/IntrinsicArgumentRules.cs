@@ -486,6 +486,13 @@ internal static class IntrinsicArgumentRules
         // always", on the authority of a clause number that DOES NOT EXIST (the old text cited "8.4.2.4";
         // cite.py --check reports no such clause). The rule now lives in ONE
         // place; a ref-modified boolean item is class BOOLEAN and a ref-modified national item class NATIONAL.
+        // ⛔ A table(ALL) ARGUMENT IS ITS ELEMENT AS A STATIC CLASSIFIER SEES IT (TableAllPlace's own contract; kb/Work PB5833):
+        // `N-EL (ALL) (1:1)` is a TableAllPlace OVER the reference-modified element, and testing only `p is RefModPlace`
+        // fell to the decorator's Item, the numeric element, where §1985:IV.4.3.8.4.4 GR3a applies the reference-modifier
+        // to each implicitly specified element and GR5 makes each class and category alphanumeric (§2023:8.4.3.3.4 GR6
+        // the same). IntrinsicResultType.OperandCategory already peels it, so the two readers of one class now agree.
+        if (p is TableAllPlace all)
+            return ClassOfPlace(all.Element);
         if (p is RefModPlace rmp)
             return ClassOfCategory(rmp.Category);   // a ref-modded GROUP is an elementary alphanumeric item (GR6; kb/Work PB70)
         return ClassOfItem(p.Item);
