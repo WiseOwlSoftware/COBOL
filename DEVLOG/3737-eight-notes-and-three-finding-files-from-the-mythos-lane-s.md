@@ -1,4 +1,4 @@
-## Eight notes and three finding files from the Mythos lane's batch-8 rulings of 2026-11-16
+## Entry 3737 — 2026-11-16 00:39 PST — Eight notes and three finding files from the Mythos lane's batch-8 rulings of 2026-11-16
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). Each defect note carries the rule text with its `cite.py --check` line, the repro program in full, expected and observed at `--std 85` and `--std 2023`, and a Where paragraph with its Sites block.
 
@@ -13,3 +13,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 Three dated finding files beside existing notes: `kb/Work/PB5782/2026-11-16-a-second-row.md` (the row `1985-GR-XIII.3.7.4-2`), `kb/Work/PB5821/2026-11-16-the-report-module-row.md` (the row `1985-GR-XIII.4.8.4-4`), and the ruling copied unchanged as `kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md`.
 
 **The rate so far at 1985:** 1,044 rows read; 76 contradicted, about 7.3 %, and one more defect found outside its row. Open readings: PB5789, PB5799, PB5800, PB5805, PB5812 (two rows), PB5817, PB5824, PB5830 and the EXTEND question beside PB5815.
+
