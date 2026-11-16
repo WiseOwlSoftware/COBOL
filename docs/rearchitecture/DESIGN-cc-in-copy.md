@@ -102,7 +102,16 @@ word of its own; `==` is the pseudo-text delimiter. Its three consumers:
   error (`LiteralScreen.ReportUnterminated`, the lexer's own question; kb/Work PB4176). Each operand
   pair is screened by ONE `ScreenOperandPair` against its statement's `OperandRules` row — the §2023:7.2.3.3 / §2023:7.2.4.3
   content rules are word-for-word twins (COBOL2572) — and `ReadOperand` checks the §2023:8.3.5 6) separation of each
-  `==` (COBOL2573) (kb/Work PB1353). A directive line CONSUMED before the operand is read leaves only a blank
+  `==` (COBOL2573) (kb/Work PB1353). The screen is the EDITION'S (`OperandScreen` holds the `EditionInfo`, kb/Work PB5700,
+  PB5608): the longest text-word is `EditionInfo.MaxTextWordLength` (322 at 2002, §2002:7.1.2.2 SR11 / §2002:7.1.3.2 SR9;
+  65,535 from 2014; 1985 only "must allow" 322, §1985:XII.2.3 SR8, and takes 65,535), the characters of EVERY operand are
+  judged by ONE question, `OperandScreen.Characters`, by what the operand's form is made of: a pseudo-text text-word below
+  2014 is a sequence of COBOL characters (`EditionInfo.TextWordsAreCobolCharacters`, `TextWordCharacters`), each word of a
+  word-1 / word-2 or identifier operand is a COBOL word at every edition (§1985:XII.2.3 SR6, §2002:7.1.2.2 SR10,
+  §2014:7.2.2.2 SR10) and asks the one COBOL-word character rule (`WordCharacterScreen.CheckWord`, the token walk's and
+  the text-name's), and a literal is judged by none (kb/Work PB5608), and a COPY REPLACING
+  identifier operand keeps §2002:7.1.2.2 SR9 / §2014:7.2.2.2 SR9's subscript restriction (`OperandScreen.Identifier` over
+  `ReplacingIdentifierSubscripts`), all COBOL2572. A directive line CONSUMED before the operand is read leaves only a blank
   line, so the operand screen cannot see it; §3.2b's driver check does (§2023:7.3.3 SR8 b), and names §2023:7.2.3.3 SR10 /
   §2023:7.2.4.3 SR10 when the open statement stands inside pseudo-text. The LEADING / TRAILING phrases are gated at their
   introducing edition by constructs row `replacing-partial-word-2002` — ONE check, `OperandScreen.PartialWord`, asked

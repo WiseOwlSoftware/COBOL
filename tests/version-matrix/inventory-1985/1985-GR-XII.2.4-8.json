@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-GR-XII.2.4-8",
  "rule-digest": "0b2e58f8a250",
- "test-ref": "conformance:cases/7.2.2.5-Text-words/pb1350_text_words_85",
+ "test-ref": "conformance:cases/7.2.2.5-Text-words/pb1350_text_words_85; conformance:cases/XII.2@1985-COPY-STATEMENT/pb5732-copy-replacing-produces-comment-entry; conformance:cases/XII.2@1985-COPY-STATEMENT/pb5732-copy-replacing-leaves-nested-copy-refused",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

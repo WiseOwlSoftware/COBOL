@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-11",
+ "rule-digest": "d22315236064",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#TextWordTooLong; src/WiseOwl.Cobol.Editions/EditionInfo.cs#MaxTextWordLength",
+ "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/pb5700-copy-pseudo-text-word-322-accepted; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/pb5700-copy-pseudo-text-word-323-refused; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/pb5700-copy-library-text-word-323-refused; unit:TextManipulationStatementTests.TextWordLength_FollowsTheEdition_InPseudoTextAndLibraryText",
+ "notes": "§2002:7.1.2.2 SR11: \"The length of a text-word within pseudo-text and within library text shall be from 1 through 322 character positions\". The one limit is EditionInfo.MaxTextWordLength (322 at 2002, 65,535 from 2014, §2014:7.2.2.2 SR11 and §2023:7.2.3.3 SR9; COBOL-85 only must allow 322, §1985:XII.2.3 SR8, and takes 65,535), asked for library text in CopyProcessor#ResolveOneCopy and for pseudo-text in ScreenOperandPair through OperandScreen.TextWordTooLong (COBOL2572, naming the 2002 rule). Probes at --std 2002: a 322-position text-word (a 320-character literal with its quotation marks) in COPY pseudo-text-1 copies and runs; 323 is COBOL2572 in pseudo-text and in library text; at 2014 and 2023 the 323-position text-word is accepted. kb/Work PB5700."
+}
