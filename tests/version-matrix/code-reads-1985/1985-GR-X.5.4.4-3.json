@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-X.5.4.4-3",
+ "rule-digest": "3c621f2c069f",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-201",
+  "sources": {
+   "reader": "936cada97ec16c97b1455d17cf21dde8a45cc6fb78469daa47404beadd64246d",
+   "refuter": "9abe86d702cdfe03e9f5ffb384226eea6c0cd60316199a366e9b94901e7c4f56"
+  },
+  "imported": {
+   "reader": "794bfd515f7f9c80ef5e172d27d7c47795859d8aac86b6d8c7335de500833019",
+   "refuter": "22647cd66683baee087e7ff5cfc28b357624d3caf893cc495688cb5782e406bc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.4.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "EXIT PROGRAM executed in a CALLED program that has the initial attribute returns as GR2 says and also acts as a CANCEL of that program: its internal open files are implicitly closed (EXTERNAL ones not), its contained programs are cancelled, and it is then 'at present cancelled'; EXIT PROGRAM in a non-called INITIAL program continues (GR1) and cancels nothing.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+  "edition-consulted": [],
+  "edition-search": "grep for DialectBehavior, DialectLevel, Edition, CobolVersion in CallEmitter.EmitExitProgram and ProgramTable.CallProgram/EndInitialActivation/CancelContained: none; CancelContained passes refusesEveryActiveProgram: true at every edition (the 85 and 2002 GR5 tests agree there because no contained program is active). EXIT PROGRAM's only edition contact is the archaic warning at 2023, outside this path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f02_09 covers an internal file and one contained program; not exercised: an EXTERNAL file that must stay open, a later explicit CANCEL being no action, a contained INITIAL program, EXIT PROGRAM in a non-called INITIAL program",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p3a.cob",
+    "printed": "IX O 00 / IY O 00 / EX WRITE 00 / MAIN OPEN 00 / MAIN YYYY / AFTER CANCEL / IX O 00 / IY O 00 / CI1 / CI1 (MATCH)",
+    "expected": "INITIAL P3AIX's EXIT PROGRAM closes its contained program's internal file (caller reads YYYY), leaves the EXTERNAL file open (caller WRITE 00), a later CANCEL is no action, a contained INITIAL program restarts at CI1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p3b.cob",
+    "printed": "CONTINUED N1 / WRITE 00 / CLOSE 00 (MATCH)",
+    "expected": "INITIAL main program not under a caller: EXIT PROGRAM continues (GR1), its file stays open"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.4.4 GR3",
+    "check": "OK  §1985:X.5.4.4 GR3  (5.4.4 General Rules)  the text is in GR3 -- 'is equivalent also to executing a CANCEL statement referencing that program'"
+   },
+   {
+    "cite": "§1985:X.5.4.4 GR1",
+    "check": "OK  §1985:X.5.4.4 GR1  (5.4.4 General Rules)  the text is in GR1 -- 'causes execution of the program to continue with the next executable statement'"
+   }
+  ],
+  "notes": "EXIT PROGRAM is emitted as `if (__asCalled) throw new ProgramReturn()`; CallProgram's finally calls EndInitialActivation for an INITIAL node that returned, which runs CloseFiles (internal only), CancelContained and clears CalledSinceCancel. The main activation never reaches EndInitialActivation, so GR1 holds.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.4.4-3",
+  "refutation": "OVERTURNED",
+  "classes": "c,b,e",
+  "evidence": "Same probe q1.cob (run q1-001, --std 85): INITIAL contained program Q1I declares internal F with FILE STATUS IS GST (the container's GLOBAL item), opens it, reads to AT END (GST=10) and executes EXIT PROGRAM. GR3 makes that EXIT PROGRAM 'equivalent also to executing a CANCEL statement referencing that program', whose implicit CLOSE (§1985:X.5.3.4 GR10) updates the I-O status (§1985:VII.4.2.4 GR4) and thereby the FILE STATUS item (§1985:VII.2.5.4 GR1). Printed 'IN I GST=10 / AFTER INITIAL GST=10'; expected 'AFTER INITIAL GST=00'. Same at --std 2023 (q1-002). Path: ProgramTable.CallProgram finally -> EndInitialActivation -> inst.CloseFiles(), the emitted block with no status store. cite.py: OK §1985:X.5.4.4 GR3 'is equivalent also to executing a CANCEL statement referencing that program'. The rest of the reader's requirement (files closed, EXTERNAL left open, contained programs cancelled, main-program EXIT PROGRAM continues) is not contested.",
+  "edition-sites-missed": [],
+  "corrected": "NONCONFORMING (wrong-answer, cause b): the implicit CANCEL of an INITIAL program's EXIT PROGRAM closes its files without storing the CLOSE's I-O status into their FILE STATUS items; observable through an item that outlives the program (container GLOBAL, LINKAGE, EXTERNAL). Same root as 1985-GR-X.5.3.4-10 (the emitted CloseFiles block)."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The implicit CLOSE of a CANCEL, and of an INITIAL program's EXIT PROGRAM, never stores an I-O status: the FILE STATUS item keeps 10 where 00 is due. I ran it. Sibling of kb/Work PB5685 (the same emitted block).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ },
+ "work": "PB5847"
+}

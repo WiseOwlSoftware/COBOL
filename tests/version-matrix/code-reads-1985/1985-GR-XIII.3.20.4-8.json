@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-8",
+ "rule-digest": "91be89774624",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-222",
+  "sources": {
+   "reader": "2143dc7714c38ed9934ddc089e7bc875aa28895d5b36864710a263978fe42801",
+   "refuter": "babde845945dabf70792e28bd8e798adb2611d3d7ec91859e2f06a9b9cc79643"
+  },
+  "imported": {
+   "reader": "4d8c0de4cabf72213b1aa3a85e474c8896104bf34f8e3bbf326f4717e7b48299",
+   "refuter": "3c63226fb8cfcc25194534ffdd1005020f2c57a77340f487f58ee4f93e7e1962"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.20.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a REPORT FOOTING group is processed once per report, as the last report group (after the final CFs and the last page footing), during TERMINATE, and only when at least one GENERATE was executed for the report since its INITIATE.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (NEXT GROUP save location before the footings; not whether or when RF is processed)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues for the last PF before the RF",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehavior|Edition in ReportWriter.cs: the RF call (if _reportFooting is { } rf) PresentHeadingFooting(rf)) inside the _started arm of TerminateCore is unconditional on edition.",
+  "behaviour-differs-by-edition": "no: the RF is processed at the same point at 85 and 2023 (type1 trace identical)",
+  "witnesses-cover": "part: g85_f01_02 covers RF after CF FINAL and none without GENERATE; RF after a final page footing on a paged report, after GENERATE report-name, and per INITIATE cycle are not exercised",
+  "probes": [
+   {
+    "class": "e,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/type1.cob",
+    "printed": "R1 (paged): ... CFF B2, PF P3, RF P3 (file: PF line 11, RF line 12, last); R2 no GENERATE: no RF; R3 summary: CFF B, RF B",
+    "expected": "RF once, last, at TERMINATE after a GENERATE; none without"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/type2.cob",
+    "printed": "RF once in cycle 1, none in cycle 2 (no GENERATE), once in cycle 3",
+    "expected": "RF only during a TERMINATE whose cycle executed a GENERATE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.4 GR8",
+    "check": "OK  §1985:XIII.3.20.4 GR8  (3.20.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "TerminateCore runs the CFs, the last PF, then the RF, all inside the _started (GENERATE executed) arm; _started is cleared at TERMINATE, so a re-INITIATE without GENERATE produces no RF.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.20.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Attack: an RF on a page by itself (TYPE RF LINE 5 ON NEXT PAGE) in a report with PH and PF, where a PF after the RF or a PH before it would break 'last report group' or GR7a. Probe type4.cob at --std 85: page 2 ends with CFF at line 17 and PF at line 18, then a form feed; page 3 has only the RF, at line 5, with no PH and no PF; nothing follows it. The RF is processed inside TerminateCore's _started arm only. cite.py: OK §1985:XIII.3.20.4 GR8 'only once per report and as the last report group of that report'; OK §1985:XIII.3.20.4 GR7 'is not processed on a page that is to contain only a report heading report group or only a report footing report group'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

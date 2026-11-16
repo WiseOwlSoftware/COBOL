@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-XIII.3.21.3-1",
+ "rule-digest": "76efde98824a",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-212",
+  "sources": {
+   "reader": "1b0405c3a654eaab78e2d8728b87eacd71f77ebde52e4b223ad9638739a13e2e",
+   "refuter": "663010dc24447d49c346b05bd04557fc4f6fc5db83e3c7eaaa3d9d6855ee357e"
+  },
+  "imported": {
+   "reader": "bc1708c8db36f37c00818f834694335d643e1c72fa6959abb2700884b68813c9",
+   "refuter": "8b3738830e58571e849e5f77b3f9daa756cd50fce5c64b10b241c515ae51c051"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.21.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 a USAGE clause ([USAGE IS] DISPLAY) may be written in any report group description entry - format 1 (level 01), format 2 (LINE/group) and format 3 (elementary printable) entries, in every TYPE of group - and must be accepted there (subject only to the separate SR3 and §1985:XIII.3.9.3 SR8 restrictions).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#DescribeReportItem; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportUsage; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+    "switches": "Edition.DialectLevel < 2002 runs ScreenReportEntryFormats, the 1985 entry-format screens incl. SR8 (USAGE only on/above printable items)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateDataItem",
+    "switches": "national data / N picture / national literal refused at 85 (COBOL0900), so only DISPLAY survives in a report entry",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 only DISPLAY exists and the 1985 format/SR8 screens apply; 2002+ also admits NATIONAL; the admission of the clause on every entry is the same grammar alternative",
+  "witnesses-cover": "part: g85_f10_02 covers USAGE on a DE 01 entry, a LINE group entry and COLUMN entries; not PH/CF groups, the bare DISPLAY form without the USAGE keyword, signed SEPARATE or SUM items",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/us_everywhere.cob",
+    "printed": "EXIT 0; [PH] / [XYZ -07 -7 XYZ] / [CF 07-]",
+    "expected": "USAGE (with and without the USAGE IS words) on 01 PH, DE, CF entries, a LINE group entry and elementary items incl. SIGN LEADING/TRAILING SEPARATE, numeric edited and SUM: all accepted and printed as derived"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/us_national_comp.cob",
+    "printed": "COBOL2198 on USAGE COMP; COBOL0900 national data/N literal requires COBOL-2002",
+    "expected": "non-DISPLAY usage refused (SR3) and the 2002 NATIONAL form refused at 85"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/XIII.3.21@1985-USAGE-CLAUSE/g85_f10_02.cob",
+    "printed": "[ABC 042  42 ] / [ OK         ]; EXPECT: MATCH",
+    "expected": "witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.21.3 SR1",
+    "check": "OK  §1985:XIII.3.21.3 SR1  (3.21.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar admits usageClause in every reportGroupClause list; DescribeReportItem captures it on every entry and only SR3 (ScreenReportUsage) and the 1985 SR8 screen refuse. Class e/f probes do not apply to a permissive declaration rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.21.3-1",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Read §1985:XIII.3.21 and §1985:XIII.3.9 (formats 1-3 all carry [[USAGE IS] DISPLAY]; SR6 'A format 2 entry must contain at least one optional clause', so a format 2 entry whose only clause is USAGE is legal). Probe refute-1985-212/src/us_more.cob at --std 85, aimed at forms the reader did not try: RH and RF groups with USAGE on 01; a format 2 entry with USAGE alone ('02 USAGE IS DISPLAY.') and one with a data-name and bare DISPLAY ('02 GRP2 DISPLAY.'); USAGE beside JUST RIGHT, GROUP INDICATE, BLANK WHEN ZERO, SUM+SIGN TRAILING SEPARATE, and a format 3 entry carrying its own LINE. EXIT 0, report printed RH / '  XYZ' / 'XYZ' (BWZ zero blank) / '07-' / RF. The reader's us_national_comp covers the later-edition NATIONAL refusal. cite.py: 'OK  §1985:XIII.3.21.3 SR1  (3.21.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:XIII.3.9.3 SR6  (3.9.3 Syntax Rules)  the text is in SR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

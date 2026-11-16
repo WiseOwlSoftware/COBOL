@@ -1,0 +1,84 @@
+{
+ "rule-id": "1989-AR-A.2.41.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-212",
+  "sources": {
+   "reader": "1b0405c3a654eaab78e2d8728b87eacd71f77ebde52e4b223ad9638739a13e2e",
+   "refuter": "663010dc24447d49c346b05bd04557fc4f6fc5db83e3c7eaaa3d9d6855ee357e"
+  },
+  "imported": {
+   "reader": "f9b8100c151c4b95d4fe78a25ea30485085ac59a8e05dd5b14ad139864124bbc",
+   "refuter": "134d146623ac8573bbcc9f8de7178d628d41900a499538184be5be2847a62702"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.41.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 every argument-1 of FUNCTION STANDARD-DEVIATION (each repetition, including ALL-subscript expansions) must be class numeric; any non-numeric argument must be refused and numeric ones of every kind accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntroducedIn/RemovedIn window; STANDARD-DEVIATION is IntroducedIn 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "predicates gated by p.AppliesAt(year); the Uniform('n') row has none",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f39_04 covers accepted numeric forms; refusals and ALL-subscripted tables are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/sd_refuse.cob",
+    "printed": "6 x COBOL1627: alphanumeric item (argument-2), numeric-edited item, alphanumeric table TX(ALL), nonnumeric literal, group item, HIGH-VALUE",
+    "expected": "every non-numeric argument refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/sd_accept.cob",
+    "printed": "S1=1.41 (ODO table T(ALL), N=4) S2=1.00 (C(ALL ALL) COMP) S3=0.00 (one value) S4=0.00 (ODO N=1) S7=0.00 (S9(18) largest twice) S5=0.94 (integer and numeric functions) S6=3.00 (negative literal)",
+    "expected": "all accepted; values per A.2.41.4 RV2/RV3"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/A.2.41@1985-STANDARD-DEVIATION-FUNCTION/g85_f39_04.cob",
+    "printed": "SD=2.00; EXPECT: MATCH",
+    "expected": "witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.41.3 AR1",
+    "check": "OK  §1989:A.2.41.3 AR1  (2.41.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1"
+   }
+  ],
+  "notes": "The class screen runs per position over the expanded argument list, so an ALL-subscripted alphanumeric table is refused and a numeric ODO table accepted. Diagnostics cite §2023:15.86.3 at --std 85, cosmetic only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.41.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Probe refute-1985-212/src/fn_zero.cob at --std 85: SD(ZERO 2)=1.00, SD(TE(ALL)) over 2,4,4,6 =1.41, SD(TE(ALL) ZERO)=2.03 (sqrt(20.8/5)=2.0396), SD(ZEROS + 1 -1)=1.00: figurative ZERO accepted as an arithmetic expression (§1985:VI.6.2.1) and mixed with an ALL-subscripted table. fn_index.cob: index data item (COBOL6979), index-name (COBOL1637), alphanumeric table element TAE(2), a numeric-only group T1, and QUOTE all refused (COBOL1627). fn_later.cob: FLOAT-LONG argument refused at 85 (COBOL0900). cite.py: 'OK  §1989:A.2.41.3 AR1  (2.41.3 Arguments)  the text is in AR1'; 'OK  §1985:VI.6.2.1 ... the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

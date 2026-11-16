@@ -1,20 +1,17 @@
       *>--- conformance-case
       *> id: pb1047-two-globals-one-element-ambiguous
-      *> rules: [GR-8.4.6.2.1-3, GR-13.18.27.4-1]
+      *> rules: [GR-8.4.6.2.1-3]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB1047 / PB5150: two global X items in ONE source element. §2023:8.4.6.2.1 3) b) 1. narrows a name duplicated
-      *> ACROSS nested source elements to the nearest element that declares it (positive twin:
-      *> 85/pb1047_nearest_declaring_element); it does not make two same-named globals of ONE element legal. §2023:8.4.2.1
-      *> forbids them at the DECLARATION: "The same name shall not be used both as the name of an item possessing the global
-      *> attribute and as the name of any other data item described in the source element that describes that global data
-      *> item", and the subordinates of a GLOBAL record possess the attribute (§2023:13.18.27.4 GR1: "All data-names
-      *> subordinate to a global name are global names"). The refusal is COBOL6862 at the later X, before any reference
-      *> (it was COBOL1639, at the reference, before kb/Work PB5150 adjudicated the screen).
-      *> RULE: cite.py --check "§2023:8.4.2.1" "The same name shall not be used both as the name of an item possessing the
-      *>   global attribute" -> OK; cite.py --check "§2023:13.18.27.4 GR1" "All data-names subordinate to a global name are
-      *>   global names" -> OK.
+      *> kb/Work PB1047 / PB5629: two global X items in ONE source element, each the subordinate of its own GLOBAL record.
+      *> §2023:8.4.6.2.1 3) b) 1. narrows a name duplicated ACROSS nested source elements to the nearest element that declares
+      *> it (positive twin: 85/pb1047_nearest_declaring_element); inside ONE element, qualification alone tells the two apart
+      *> (§2023:8.4.2.2.1), and the unqualified `X` of PB1047B names neither uniquely (§2023:8.4.2.2.3 SR1: "uniqueness shall be
+      *> established through a sequence of qualifiers that precludes any ambiguity of reference", cite.py: OK): the
+      *> reference-time COBOL1639. The declarations themselves are legal (kb/Work PB5629: the subordinates are global names, and only a GLOBAL
+      *> record possesses the global attribute, §2023:13.18.27.4 GR1 and GR3; positive twin:
+      *> pb5629_global_subordinate_names_told_apart_by_qualification).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1047A.
        DATA DIVISION.

@@ -7,7 +7,7 @@ truncated value at every edition, and a native carrier holds a value, which has 
 
 **The edition boundary.** §2002:14.8.24.3 GR4b1 has the 1985 sentence word for word. §2014:14.9.24.3 GR6d2a and
 §2023:14.9.25.4 GR6d.2.a represent "the sign of the numeric value". So the boundary is 2014:
-`DialectBehavior.MoveSignIsTheValuesSign`, VCR Table 7 row 7.84. No 2002 case or record was written (2002 is frozen).
+`DialectBehavior.MoveSignIsTheValuesSign`, VCR Table 7 row 7.85. No 2002 case or record was written (2002 is frozen).
 
 **The design (DESIGN-data-model §2.1.1, committed before the code).** It uses the storage forms the design already has.
 (A) `MoveEmitter.ConvertSource` writes an image-carried signed DISPLAY receiver through `CobolNum.FormatImageSendersSign`.

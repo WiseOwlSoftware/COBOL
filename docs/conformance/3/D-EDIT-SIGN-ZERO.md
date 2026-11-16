@@ -16,7 +16,7 @@
   of the numeric value", so `MOVE -100 TO PIC S9(2)` stores `+00` (GnuCOBOL stores a negative-signed zero there and
   DISPLAYs `+00`, the representation difference documented with the sign-encoding determinations at Annex A.1 items
   177 and 178). At COBOL-85 and COBOL-2002 it does not: §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1 place "the
-  sign of the sending operand", so the same MOVE stores a NEGATIVE zero (`-00`; the edition arm of VCR row 7.84, kb/Work
+  sign of the sending operand", so the same MOVE stores a NEGATIVE zero (`-00`; the edition arm of VCR row 7.85, kb/Work
   PB5852, DESIGN-data-model §2.1.1) in a signed USAGE DISPLAY (or NATIONAL) receiver, whose sign is a character apart
   from its digits. A signed BINARY or PACKED-DECIMAL receiver stores the value's sign at every edition: this
   implementation represents the algebraic sign of those usages as the value's sign (§1985:VI.5.14.4 GR9 leaves "the

@@ -1,0 +1,12 @@
+## Entry 3780 — 2026-11-16 11:13 PST — PB5845: at --std 85 an OPEN refused with status 90 (a LINAGE value that breaks the rules) leaves the file not open
+
+**Re-probe.** The note's program (five OPEN, WRITE, CLOSE lines on a file whose LINAGE data-name holds 0) answered `OPEN-2 41`, `WRITE 90`, `CLOSE-1 00` at every edition: after the refused OPEN the connector stayed open, because `SequentialConnector.BeginLinagePage` keeps it open for the 2002 and 2023 continuation (the LINAGE-COUNTER at 0 until the CLOSE, every later WRITE raising EC-I-O-LINAGE) and nothing on the path asked the edition.
+
+**Fix.** One `DialectBehavior`, `LinageViolatingOpenLeavesFileOpen` (from 2002, VCR row 7.84; the 2002 text `§2002:13.16.32.3 GR6` has the same continuation as 2023, so only 85 changes). At 85 the 90 is an unsuccessful statement (`§1985:VII.1.3.5 GR5`) and only a successful OPEN puts a file in an open mode (`§1985:VII.4.3.4 GR1`), so `FileRegistry.SharedOpenAttempt` asks `SequentialConnector.RefuseOpenForLinage` before the connector's OPEN body: nothing is opened, created or truncated; a second OPEN meets the same violation (90, never 41), a WRITE answers 48, a CLOSE 42. `LinageValuesConform` is now the one statement of the two value rules, shared with `EvaluateLinage`. A file that is open still answers 41 first (`RefusedAsAlreadyOpen`).
+
+**Sweep.** The only 9x an OPEN answers is this 90 (a sequential or line sequential OPEN OUTPUT with a LINAGE clause); the 91 is a WRITE or REWRITE status, and the message-store 91 to 93 are not file OPENs. No relative or indexed connector answers a 9x to an OPEN.
+
+**Witnesses.** New `VII.4.3@1985-OPEN-STATEMENT/pb5845_linage_open_refused_85` (rows `1985-GR-VII.1.3.5-5` and `-L2.5`; the USE procedure, the second OPEN, the WRITE, the CLOSE, an OPEN while open (41), an OPEN INPUT with the zero (00), the footing rule at 0 and 6). The 85 twin of kb/Work PB526 pinned the 2002 continuation at 85 (B-OPEN 90, then B-CLOSE 00); it now expects the 85 answers and pins only what the 1985 text gives, so its WRITE-time legs, which have no 1985 rule, left it. The 2002 and 2023 expectations stay in `pb526_linage_ec_condition` (accept narrowed to 2002 and 2023). `LinageConformanceTests` pins the two 85 arms beside the 2023 ones; `SharedExtendOpenDriftTests` follows the renamed open line.
+
+**Records.** Both 1985 rows carry the new witness (a `record_verdicts` witness-only batch, GAP 61 unchanged). No stored code read names a moved member.
+

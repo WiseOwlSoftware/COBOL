@@ -126,11 +126,11 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         return new BoundCommunicationStatement(verb, cd, CommunicationAreaOf(cd)) { Path = path, Key = keyOperand };
     }
 
-    /// <summary>SR4's "defined as alphanumeric": a reference of category alphanumeric (<see cref="IsCommunicationAlphanumericArea(Place)"/>), a nonnumeric literal
+    /// <summary>SR4's "defined as alphanumeric": a reference of category alphanumeric (<see cref="IsCommunicationAlphanumericArea(Place, EditionInfo)"/>), a nonnumeric literal
     /// or an alphanumeric function. A figurative constant whose class only its receiver decides, and an operand already refused, are not asked again.</summary>
-    private static bool IsAlphanumericKey(BoundOperand key) => key switch
+    private bool IsAlphanumericKey(BoundOperand key) => key switch
     {
-        BoundFieldOperand { Place: var place } => IsCommunicationAlphanumericArea(place),
+        BoundFieldOperand { Place: var place } => IsCommunicationAlphanumericArea(place, ctx.Edition.Edition),
         BoundOperandError => true,
         _ => IntrinsicArgumentRules.ClassOf(key) is null or CobolClass.Alphanumeric,
     };
@@ -142,12 +142,12 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             : BoundRejected.Reported(ctx.Edition);
 
     /// <summary>A.2.5: the RECEIVE statement. SR2: "Identifier-1 shall reference a data item of category alphanumeric", asked of the reference
-    /// (<see cref="IsCommunicationAlphanumericArea(Place)"/>).</summary>
+    /// (<see cref="IsCommunicationAlphanumericArea(Place, EditionInfo)"/>).</summary>
     internal BoundStatement BindReceive(Core.CommunicationReceiveStatementContext s)
     {
         var cd = ResolveCommunicationCd(s.cobolWord(), ReceiveRule);
         if (host.Expr.ResolveReceiving(s.receivingIdentifier()) is not { } into) return BoundRejected.Reported(ctx.Edition);
-        if (Prints2002 && !IsCommunicationAlphanumericArea(into))
+        if (Prints2002 && !IsCommunicationAlphanumericArea(into, ctx.Edition.Edition))
             using (ctx.Edition.At(s.receivingIdentifier()))
                 ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"RECEIVE INTO {DataBinder.WrittenText(s.receivingIdentifier())}: the item is not of category alphanumeric; "
                     + "§2002:A.2.5.2 SR2: \"Identifier-1 shall reference a data item of category alphanumeric.\"");
@@ -166,20 +166,24 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     /// <summary>Whether a reference is alphanumeric for RECEIVE's identifier-1 and the KEY operand, asked of the REFERENCE (kb/Work PB5384): a reference-modified
     /// operand is the unique data item it creates, whose category a numeric or numeric edited base rewrites to alphanumeric ("the categories numeric, numeric
     /// edited, and alphanumeric edited are considered class and category alphanumeric", §1985:IV.4.3.8.4.4 GR5; §2023:8.4.3.3.4 GR6), read by the one reader of
-    /// that rule (<see cref="Table16Operand.Of(Place)"/>, whose rider keeps an alphabetic slice alphabetic). Any other reference is its item.</summary>
-    private static bool IsCommunicationAlphanumericArea(Place place) => place is RefModPlace
-        ? Table16Operand.Of(place) is { Category: PicCategory.Alphanumeric, IsAlphabetic: false }
-        : IsCommunicationAlphanumericArea(place.Item);
+    /// that rule (<see cref="Table16Operand.Of(Place)"/>, whose rider keeps an alphabetic slice alphabetic). Any other reference is its item.
+    /// <para>At COBOL-2002 an alphabetic item stands as an alphanumeric one (<see cref="EditionInfo.AlphabeticIsAlphanumeric"/>,
+    /// §2002:8.5.2.1; kb/Work PB5615), so RECEIVE's identifier-1 may be PIC A there.</para></summary>
+    private static bool IsCommunicationAlphanumericArea(Place place, EditionInfo edition) => place is RefModPlace
+        ? Table16Operand.Of(place) is { Category: PicCategory.Alphanumeric } v && (!v.IsAlphabetic || edition.AlphabeticIsAlphanumeric)
+        : IsCommunicationAlphanumericArea(place.Item, edition);
 
-    private static bool IsCommunicationAlphanumericArea(DataItem item) =>
-        item.IsGroup ? item.GroupUsage is GroupUsage.None : item.Pic is { Category: PicCategory.Alphanumeric, IsAlphabetic: false };
+    private static bool IsCommunicationAlphanumericArea(DataItem item, EditionInfo edition) =>
+        item.IsGroup ? item.GroupUsage is GroupUsage.None
+        : item.Pic is { Category: PicCategory.Alphanumeric } pic && (!pic.IsAlphabetic || edition.AlphabeticIsAlphanumeric);
 
     /// <summary>A.2.6: the SEND statement.</summary>
     internal BoundStatement BindSend(Core.CommunicationSendStatementContext s)
     {
         var cd = ResolveCommunicationCd(s.cobolWord(), SendRule);
         BoundOperand? text = s.sendIdentifier() is { } written ? BindSendIdentifier(written) : null;
-        if (text is not null && IntrinsicArgumentRules.ClassOf(text) is not (null or CobolClass.Alphanumeric))
+        if (text is not null && IntrinsicArgumentRules.ClassOf(text) is not (null or CobolClass.Alphanumeric)
+            && !(ctx.Edition.Edition.AlphabeticIsAlphanumeric && IntrinsicArgumentRules.ClassOf(text) is CobolClass.Alphabetic))
         {
             using var at = ctx.Edition.At(s.sendIdentifier());
             if (Prints2002)

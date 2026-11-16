@@ -1,0 +1,3 @@
+**2026-11-15, wave 20262045 group G (PB5593's landing): the SetBinder member item 3 names is renamed, and its wording half is fixed.**
+
+`SetBinder.IsCobol85IndexAmount` is now `SetBinder.Cobol85AmountRefusal` (it answers the construct row that names the fault, not a bool, kb/Work PB5593); the Sites line of this note names the new member. In the same change the summary and the inline comment of that member were rewritten and no longer say Format 1's identifier-2 admits an index-name: they say Format 1's sender admits an index-name (the index-name-2 brace) and an index data item (identifier-2, §1985:VI.6.23.3 SR2). The remaining half of item 3 (the golden `pb5421-set-up-by-index-amount-2002.cob`'s rule tags GR-14.9.39.4-3 and -4) is untouched.

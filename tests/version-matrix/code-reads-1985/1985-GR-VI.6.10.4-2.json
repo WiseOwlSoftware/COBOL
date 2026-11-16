@@ -1,0 +1,57 @@
+{
+ "rule-id": "1985-GR-VI.6.10.4-2",
+ "rule-digest": "16f8de0a059a",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-192",
+  "sources": {
+   "reader": "4a68cbe3cd84f7a9f354cf2aac4d07323512c1bd9a9d19b41240fdbdee6b837d",
+   "refuter": "2bdd3e2fb0ab1d610efc20ebec801f6e002b4401a1ee80c6c14965b5f0fd1ee6"
+  },
+  "imported": {
+   "reader": "7aa09a515b6b1592950b1c279961f506d108806cf374061668ed9c7b3de47d5b",
+   "refuter": "0eea63eaa89f5b38787c1158ff25b1c24ded4090d6e57bba593743c1a24cf1cb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.10.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "The implementor defines, for each hardware device a DISPLAY can reach (the standard display device and each implementor-name associated with a mnemonic-name in SPECIAL-NAMES), the size of a data transfer.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
+  "edition-consulted": [],
+  "edition-search": "grep for Dialect|Edition|Version|DialectBehavior in AcceptDisplayEmitter.cs: none; EmitDisplay joins all operands into one string and writes it with one Console.Write/WriteLine (stdout or stderr) at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_display_transfer_size covers the standard device; the probe added CONSOLE and SYSOUT through 1985 mnemonic-names",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/dspxfr.cob",
+    "printed": "DISPLAY BIG (1500) UPON CONSOLE-mnemonic: one line of 1500 chars; DISPLAY GRP (605) UPON SYSOUT-mnemonic: one line of 605 chars",
+    "expected": "the documented determination (docs/conformance/7/DOC-A.1-58.md): unbounded for every output device, so no split"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.10.4 GR2",
+    "check": "OK  §1985:VI.6.10.4 GR2  (6.10.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The determination is recorded in docs/conformance/7/DOC-A.1-58.md (unbounded for the standard device, CONSOLE, SYSOUT and SYSERR) and the code matches it at --std 85. The entry cites only §2023:14.9.11 GR2; the 1985 implementor-defined list (item 36 of the 1985 summary) points at the same rule, but no 1985 citation names it there.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same emitter",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.10.4-2",
+  "refutation": "UPHELD",
+  "classes": "c",
+  "evidence": "cite.py: OK  §1985:VI.6.10.4 GR2. The devices a DISPLAY can reach are the rows of src/WiseOwl.Cobol.Editions/ImplementorNames.cs#Build with Output capability: CONSOLE, SYSOUT, SYSERR (SYSIN is input only), plus the standard device; docs/conformance/7/DOC-A.1-58.md defines the transfer size for exactly these four (unbounded), so no reachable device lacks a definition at --std 85. AcceptDisplayEmitter#EmitDisplay joins the operands and writes one Console.Write/WriteLine (Console.Error for SYSERR), no edition arm. refute-1985-192/src/dspxfr2.cob at --std 85: DISPLAY of 302 characters UPON a SYSERR mnemonic is one stderr line; DISPLAY of 921 characters (three X(300) plus an S9(18)) UPON a SYSOUT mnemonic is one stdout line. Reading: an 'unbounded' size is a definition the implementor may give; the entry cites only §2023:14.9.11 GR2, which is wording, not a missing definition.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

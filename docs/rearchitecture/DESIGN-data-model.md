@@ -190,7 +190,7 @@ OPERAND, so `MOVE -100 TO S99` stores a NEGATIVE zero (`-00` under SIGN LEADING 
 over-punch of a plain `S99`): the digits truncate, the sign does not. §2014:14.9.24.3 GR6d2a and §2023:14.9.25.4 GR6d.2.a
 say instead that "the sign of the numeric value shall be represented in the receiving operand", and the value after
 alignment and truncation is zero, which has no negative form (D-EDIT-SIGN-ZERO). The boundary is therefore 2014, and it is
-one `DialectBehavior` row (`MoveSignIsTheValuesSign`, VCR Table 7 row 7.84): from 2014 nothing here applies and nothing
+one `DialectBehavior` row (`MoveSignIsTheValuesSign`, VCR Table 7 row 7.85): from 2014 nothing here applies and nothing
 here is emitted.
 
 **What can hold it.** A native carrier holds a VALUE and a value has no negative zero; an image carrier

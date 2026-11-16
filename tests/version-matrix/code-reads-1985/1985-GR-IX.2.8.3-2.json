@@ -1,0 +1,121 @@
+{
+ "rule-id": "1985-GR-IX.2.8.3-2",
+ "rule-digest": "d88ed3f1ffc9",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-220",
+  "sources": {
+   "reader": "50a8f3d68f3d437a001985558ba4659dc474823cff7dca3474cc911605a78541",
+   "refuter": "3db9c99631f73777b37640bd411ef66839539b74e8f6ef69e0309533a50ff9aa"
+  },
+  "imported": {
+   "reader": "b49029cf2ffa6c482594d92a760f1ef4ba91c3d0750a07f64af54a86b1afd51b",
+   "refuter": "69d8b48d22749c86893e868f9eceb87bc30091aa98c53e26083f1a9b3277cf07"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.8.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "For indexed files the SAME [RECORD] AREA clause obeys the Sequential I-O SAME clause (§1985:VII.2.13): operands are files of this program's FILE-CONTROL (SR1), not EXTERNAL (SR2), a file in at most one SAME AREA and one SAME RECORD AREA clause with SR3c's subset rule (SR3), organizations may be mixed (SR4); SAME RECORD AREA files share the current logical record as an implicit leftmost-aligned redefinition, all may be open together (GR2); SAME AREA files may not be open together (GR1, a constraint on the program).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "Edition.Edition.Year < 2002 changes only the REPORT-file row (§1985:XIII.2.4.3 SR2); an indexed file takes the SameFileKind.Other row, the same words and limits at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of VersionConformancePass.cs for sameClause/SameClause found nothing; FileControlBinder.IoControl.cs read in full: the only edition test on the SAME path is SameOccurrenceRule's report-file row; the grammar rule sameClause is ungated",
+  "behaviour-differs-by-edition": "no for indexed files: 1985's SR1-SR4 and GR1-GR2 correspond to §2023:12.4.6.4 SR2, SR3, SR7, SR9 and GR1-GR2 for a non-report, non-sort file; only the report-file row differs and that is gated",
+  "witnesses-cover": "part: the witnesses cover mixed-organization legality, SAME RECORD AREA after CLOSE and legal clause combinations; the per-rule refusals (SR1, SR2, SR3a/b/c, single-operand clause) and a record-area round trip through two indexed files of unequal record length are not exercised at 85 for indexed files",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/sm1.cob",
+    "printed": "RB/RC show the record moved to RA; WRITE IXA 00 RC=K001ALPHA1; WRITE IXB 00 RA=K002123456; WRITE SQC 00; READ IXB 00 RA=K002123456 RC=K002123456; READ IXA 00 RB=K001ALPHA1; SAME AREA IXD/IXE opened in turn: WRITE IXD 00, WRITE IXE 00, READ IXD 00 D001DDDDDD; EXPECT MATCH",
+    "expected": "indexed dynamic + indexed sequential + sequential share one record area (GR2, SR4), the record stays available after WRITE and is the record of the most recently read file; SAME AREA files used one at a time work"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/sm2.cob",
+    "printed": "W 0000 KA=K009 / R IXA 00 KB=AAAA RA=AAAABBBBCCCC / R IXB 00 NB=-042 KA=K009 / RW IXA 00 KB=AAAA / R2 IXA 00 RA=AAAAZZZZZZZZ; EXPECT MATCH",
+    "expected": "records of unequal length (12 and 6 bytes, a signed COMP field) aligned leftmost in one area (GR2); OPEN I-O, READ, REWRITE through the shared area"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/same_sr3a.cob",
+    "printed": "error COBOL2738: SAME AREA: file 'IXA' is named in more than one file-area format clause",
+    "expected": "SR3a refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/same_sr3b.cob",
+    "printed": "error COBOL2738: SAME RECORD AREA: file 'IXA' is named in more than one record-area format clause",
+    "expected": "SR3b refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/same_sr3c.cob",
+    "printed": "error COBOL2738: SAME RECORD AREA shares files with SAME AREA but omits 'IXB' (same_sr3cok.cob, the superset form, compiles: EXIT 0)",
+    "expected": "SR3c refused; its legal superset form accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/same_sr1.cob",
+    "printed": "error COBOL2738: SAME RECORD AREA: 'NOTAFILE' is not a file specified in the FILE-CONTROL paragraph",
+    "expected": "SR1 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/same_sr2.cob",
+    "printed": "error COBOL2738: SAME RECORD AREA: file 'IXA' references an external file connector",
+    "expected": "SR2 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/same_one.cob",
+    "printed": "error COBOL2738: SAME AREA names only one file",
+    "expected": "the format requires file-name-1 { file-name-2 } ...; one operand refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.8.3 GR2",
+    "check": "OK  §1985:IX.2.8.3 GR2  (2.8.3 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.2.13.3 SR2",
+    "check": "OK  §1985:VII.2.13.3 SR2  (2.13.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VII.2.13.3 SR3",
+    "check": "OK  §1985:VII.2.13.3 SR3  (2.13.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VII.2.13.3 SR4",
+    "check": "OK  §1985:VII.2.13.3 SR4  (2.13.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VII.2.13.4 GR2",
+    "check": "OK  §1985:VII.2.13.4 GR2  (2.13.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "Indexed files go through the one SAME binder with every other organization; the record area is linked as a synthesized REDEFINES of the first member's record. GR1's 'not valid to have more than one open' is a constraint on the program with no defined outcome, so no runtime check is required. Every refusal at --std 85 cites the §2023:12.4.6.4 rule rather than §1985:VII.2.13.3 (the words agree); this is cosmetic, not a conformance failure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.8.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "Probes at --std 85. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/s1.cob: a contained program's SAME RECORD AREA naming the container's GLOBAL indexed file is refused (COBOL2738 'not a file specified in the FILE-CONTROL paragraph of this source element'), the SR1 'of the same program' half the reader's probes did not try. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/s2.cob (EXPECT MATCH): an indexed random file whose record has OCCURS DEPENDING ON shares a SAME RECORD AREA with a relative random file (SR4, organizations mixed); after WRITE of the indexed record the relative record shows it leftmost-aligned, after WRITE/READ of the relative record the ODO object and table read through it, and READ of the indexed file restores its record (GR2: record of each file open OUTPUT and of the most recently read INPUT file; implicit redefinition aligned leftmost). No later-edition SAME form exists for 1985 to refuse (the format is unchanged in shape). cite.py: OK §1985:IX.2.8.3 GR2; OK §1985:VII.2.13.3 SR1; OK §1985:VII.2.13.3 SR4; OK §1985:VII.2.13.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

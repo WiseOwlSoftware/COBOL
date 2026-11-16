@@ -5,7 +5,7 @@
 85 prints `-00`, `-00`, `00-`, `0}` and `-01`, and 2023 is unchanged.
 
 **Boundary.** §2002:14.8.24.3 GR4b1 has the 1985 sentence. The value's sign arrives with §2014:14.9.24.3 GR6d2a, so the
-change is in 2014 (`DialectBehavior.MoveSignIsTheValuesSign`, VCR row 7.84).
+change is in 2014 (`DialectBehavior.MoveSignIsTheValuesSign`, VCR row 7.85).
 
 **Sites.** `src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs` (`ConvertSource`, `SendersSign`),
 `src/WiseOwl.Cobol.Compiler/Binding/Bound/SendersSignStore.cs` (`MayHandNegativeZero`, `KeepsSendersSign`),

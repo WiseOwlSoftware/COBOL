@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-VI.5.9.3-1",
+ "rule-digest": "b1eb93ead148",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-209",
+  "sources": {
+   "reader": "e67efa97fa7def09f93fca295ec3bf1442696d40155671442223522267174241",
+   "refuter": "58b9949a14dc09c0541af37b1d1f61f7860ecb6c16fd51836ed173e8be5ac5b6"
+  },
+  "imported": {
+   "reader": "a56c09f975acd880b9c20251efc9f8bc7891bd0429737b5f5badd7505dc59261",
+   "refuter": "709cf7a0788831c35918625cbc2117b4e3270935b6451f1f2b371844d7b3d5d8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.9.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the compiler must refuse a PICTURE clause on any data description entry that has subordinate entries (a group) in every section (working-storage, file, linkage, report), and accept it on every elementary item of any category (alphanumeric, numeric, signed, scaled, edited, table element).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#CheckElementaryOnlyClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.PictureRequired.cs#HasNoSubordinates; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+  "edition-consulted": [],
+  "edition-search": "grep Edition/Version/Dialect/1985/2002 in CheckPictureRequiredPass.cs (none), DataBinder.ClausePlacement.cs (only an index-usage rule at line 350, off this path: §1985:VI.5.14.3 SR6), DataBinder.PictureRequired.cs (none); the ElementaryOnly PICTURE row is unconditional.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f07_04 is acceptance only (PICTURE on elementary items); the refusal half (PICTURE on a group) is not exercised by a witness",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/p1.cob",
+    "printed": "error COBOL2191: data item 'WS-G': the PICTURE clause may be specified only at the elementary level",
+    "expected": "refused: 01 group with PIC X(4) and two subordinates"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/p2.cob",
+    "printed": "error COBOL2191 on 05 WS-S PIC S9(3)V9 with subordinates",
+    "expected": "refused: signed scaled PICTURE on a subgroup"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/p5.cob",
+    "printed": "error COBOL2191 for FD record F-REC and LINKAGE group L-G",
+    "expected": "refused in the file and linkage sections"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/p7.cob",
+    "printed": "error COBOL2247: report group entry is a group entry and writes PICTURE",
+    "expected": "refused: a report group entry with subordinates and PICTURE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/p3.cob",
+    "printed": "error COBOL1747: level 88 entry not a value clause alone",
+    "expected": "refused: level 88 format has no PICTURE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/p4.cob",
+    "printed": "error COBOL0001: unexpected 'PIC' after RENAMES",
+    "expected": "refused: level 66 format has no PICTURE"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/p6.cob",
+    "printed": "[ 12.50-0073AB]3004",
+    "expected": "accepted: edited ZZ9.99, signed separate, scaled 9PP, OCCURS element and 77 item each with PICTURE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.9.3 SR1",
+    "check": "OK  §1985:VI.5.9.3 SR1  (5.9.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The ElementaryOnly PICTURE row of ClausePlacementRules is asked of every entry with subordinates over the finished forest at every edition (COBOL2191); report groups take the report binder's own presence screen (COBOL2247). Diagnostics cite §2023 text at --std 85 (wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.9.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,e",
+  "evidence": "cite.py: OK  §1985:VI.5.9.3 SR1  the text is in SR1. Probes at --std 85: q3 COMMUNICATION SECTION (85-only, dropped later) CD record 01 CREC PIC X(87) with two subordinates refused COBOL2191, and q4 the same record elementary accepted and ran (CDOK); q2 SD sort record group with PIC refused COBOL2191; q5 level-49 FILLER subordinates under a PIC group refused COBOL2191; q6 an ODO table entry PIC X(3) OCCURS 1 TO 3 DEPENDING with subordinates refused COBOL2191; q1 an elementary item followed by an 88 condition-name and a record followed by a 66 RENAMES (not subordinate entries) accepted and ran (88OK / 12). Every section of the 1985 Data Division takes the same unconditional check.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-5",
+ "rule-digest": "3dde81f2f649",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-217",
+  "sources": {
+   "reader": "3d8d8fecb598225035e5e6749b0c7173f8d1dcd382d76160b8315c7de9be5edf",
+   "refuter": "fb0c4b4dc25370e003c23c6e442ad683a8ed15c0b7ef4f3fab4062d8e4dbe37c"
+  },
+  "imported": {
+   "reader": "c732d2ee3eaeb9bc0c80d911e9fac2d79de9747f1493774324aab0d067edef8f",
+   "refuter": "29e1a243af95fb62c7b7509454ea6ab7b9246008882756df825164bfca2ce3d3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.5.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "An ACCEPT format 1 with no FROM phrase reads from the implementor's standard device, which this implementation documents as standard input (DOC-A.1-2), the same stream CONSOLE and SYSIN name.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Device; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#Build",
+  "edition-consulted": [],
+  "edition-search": "BindAccept returns BoundAccept(target, AcceptKind.Device) when acceptSource() is null with no edition test; grep 'Edition|CobolVersion|Dialect|Construct' in AcceptDisplayEmitter.cs, AcceptSource.cs, ImplementorNames.cs: no hit; VersionConformancePass.VisitAcceptStatement gates only END-ACCEPT and YYYYMMDD/YYYYDDD.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "all of the rule's range at this edition",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p2dflt-001/p2dflt.cob",
+    "printed": "A[FIRST     ] B[SECOND    ] C[THIRD     ] (ACCEPT, ACCEPT FROM CONSOLE mnemonic, ACCEPT, one input stream in order); with empty input all three space-filled",
+    "expected": "the implementor's standard device (standard input, DOC-A.1-2) is used when FROM is omitted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p2out-001/p2out.cob",
+    "printed": "error COBOL0817: ACCEPT FROM 'OUTD': device 'SYSOUT' is not capable of input",
+    "expected": "§1985:VI.6.5.3 SR1: the mnemonic must be associated with a (input) hardware device; GR5 itself has no refusal half"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.5.4 GR5",
+    "check": "OK  §1985:VI.6.5.4 GR5  (6.5.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The default device is standard input, documented as DOC-A.1-2 and read by the same AcceptSource.Device as the CONSOLE/SYSIN mnemonics, so omitted-FROM and FROM-mnemonic ACCEPTs share one stream. The COBOL0817 message cites §2023 clause numbers at --std 85 (a diagnostic-text matter, not GR5). Input runs: compiled with run_probe.py --compile-only, the dll run in that fresh directory with the input redirected.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.5.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "r2sysin-001 at --std 85 (SPECIAL-NAMES SYSIN IS IN-DEV; ACCEPT A1 FROM IN-DEV, ACCEPT B1 with no FROM, ACCEPT C1 FROM IN-DEV; input ONE/TWO/THREE): 'A[ONE   ] B[TWO   ] C[THREE ]': the omitted-FROM ACCEPT reads the same standard-input stream, in order, as the SYSIN mnemonic (the reader tried CONSOLE). DOC-A.1-2 names standard input as the implementor's standard device and AcceptDisplayBinder.BindAccept yields AcceptKind.Device with no edition test. Class c r2nosn-001: 'ACCEPT A1 FROM CONSOLE' with no SPECIAL-NAMES entry is refused at 85 (COBOL0817), so the 1985 path does not take an implementor-name as a FROM operand (§1985:VI.6.5.3 SR1: cite.py 'OK  §1985:VI.6.5.3 SR1 ... the text is in SR1'). cite.py 'OK  §1985:VI.6.5.4 GR5  (6.5.4 General Rules)  the text is in GR5' for 'the device that the implementor specifies as standard is used'. GR5 itself has no refusal half and no edition arm; the size defect found under GR4 (binary receivers) is GR4's, not GR5's. COBOL0817's text cites §2023 clause numbers at --std 85, a message matter.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

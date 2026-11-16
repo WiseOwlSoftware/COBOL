@@ -81,4 +81,16 @@
   `conformance:cases/7.3.10-COBOL-WORDS/pb4281_unrelated_cobol_words_directive_keeps_remarks_paragraph_in_the_stages`,
   `conformance:cases/6.5-Logical-conversion/pb4487_paragraph_a_program_text_candidate_copies_in_is_a_comment_entry`,
   `conformance:cases/6.5-Logical-conversion/pb4487_library_text_copied_twice_is_decided_per_inclusion`,
+  **The header word itself, in library text a REPLACING phrase changes (kb/Work PB5732):** §1985:XII.2.3 SR10 ("If the word
+  COPY appears in a comment-entry … it is considered part of the comment-entry") and §1985:XII.2.4 GR12 judge the text a
+  COPY statement PRODUCES, so a library-text line `PLACEHOLDER. COPY ZZZ.` under `COPY … REPLACING ==PLACEHOLDER== BY
+  ==AUTHOR==` is the AUTHOR paragraph with the word COPY in its entry, not a nested COPY statement. The converter of the
+  library text is therefore handed the spelling the phrase gives a word (`CopyProcessor.ParagraphWordAsReplaced`, the one
+  replacing action run on the word alone) and asks `IsCommentEntryParagraph` of THAT spelling, in the certain and the
+  not-known division alike; the header is written as the library text spells it (`PLACEHOLDER. .`) and the replacing
+  action then writes `AUTHOR. .`. A `REPLACE` statement of the SOURCE text that writes the header word makes no
+  comment-entry of a COPY the header precedes, and must not: REPLACE is processed after every COPY (§1985:XII.3.4 GR4), so
+  when that COPY is processed its header is not yet a comment-entry paragraph.
+  Pinned by `conformance:cases/XII.2@1985-COPY-STATEMENT/pb5732-copy-replacing-produces-comment-entry` and its twin
+  `pb5732-copy-replacing-leaves-nested-copy-refused`.
   `unit:DivisionCursorTests`, `unit:CommentEntryResolverTests` and `unit:CommentEntryResolutionOrderDriftTests`.

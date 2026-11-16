@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-X.2.4.2-3",
+ "rule-digest": "4bc6802aaf5e",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-198",
+  "sources": {
+   "reader": "caef838ac74e1bcf53cc909e4d02aab906b025894cf6c92ea174675b764d9872",
+   "refuter": "063949351f81cf3514569fd27cba225f4684a82ba71145513e7580139eb4aafe"
+  },
+  "imported": {
+   "reader": "c20e2b0aa3ce3aa6b5a3af25aacd3717fb98fb2bed08f04a019d42ece5c5bb79",
+   "refuter": "416640fa7be6e5210edc363d3dd48933cf1740771c6e1ebd05d427349aa46cae"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.2.4.2-3",
+  "verdict": "CONFORMS",
+  "requirement": "A program with the initial attribute (PROGRAM-ID ... IS INITIAL) must be in its initial state every time it is called: Working-Storage reset to its VALUEs, its files closed by the implied CANCEL of EXIT PROGRAM (X.5.4.4 GR3) and not open on entry, PERFORM control and ALTERed GO TOs initial, and the programs it contains initial too (X.3.1.4 GR3), while EXTERNAL data, not internal, keeps its value.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UnitStaticWs",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlterStatement",
+    "switches": "ALTER accepted at 85, refused from 2002; its reset on each call of an initial program is the 1985 form of X.2.4.1 GR4",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ProgramTable.CallProgram decides freshInstance = n.Initial || n.Recursive and EndInitialActivation closes files and cascades with no Edition reference; BinderDriver's UnitStaticWs = unit.Recursive && !unit.Initial has none either",
+  "behaviour-differs-by-edition": "yes: only in which forms exist (ALTER at 85 only); the fresh-instance-per-call path is the same at every edition",
+  "witnesses-cover": "part: g85_f02_02 covers WS reset on repeated calls; not exercised there: files closed between calls, the ALTERed GO TO and an interrupted PERFORM range reset, a contained program of the initial program reset, EXTERNAL data kept, and a separately compiled initial program called by identifier",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p5init.cob",
+    "printed": "call 1: INI CNT=1 EXT=1 CMP=-0012 ALLX=**** IST=** / INI OPEN 00 / INN CNT=1 / INI A1 / INI PX ; calls 2 and 3: INI CNT=1 EXT=2|3 CMP=-0012 ALLX=**** IST=** / INI OPEN 00 / INN CNT=1 / INI A1 / INI PX / INI PY / INI PZ ; MAIN EXT=3",
+    "expected": "every call: VALUEs back (CNT 1, CMP -12, ALLX ****, IST **), OPEN OUTPUT 00 because the file left open was closed by the implied CANCEL, the contained P5INN at CNT=1, GO TO to A1 not the ALTERed A2, the PERFORM range left active by EXIT PROGRAM in call 1 not returning in call 2 (PY once); the EXTERNAL counter keeps counting"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p5sep.cob",
+    "printed": "INI CNT=101 TXT=FRESH (twice)",
+    "expected": "a separately compiled initial program called by identifier is initial on every call"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.4.2 GR3",
+    "check": "OK  §1985:X.2.4.2 GR3  (2.4.2 Programs in the Initial State)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.3.1.4 GR3",
+    "check": "OK  §1985:X.3.1.4 GR3  (║3.1.4 General Rules║)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.5.4.4 GR3",
+    "check": "OK  §1985:X.5.4.4 GR3  (5.4.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.2.4.1 GR3",
+    "check": "OK  §1985:X.2.4.1 GR3  (2.4.1 Characteristics of a Program)  the text is in GR3"
+   }
+  ],
+  "notes": "An INITIAL program gets a fresh instance per activation (its WS, connectors, ALTER switches and PERFORM state are instance fields), CancelContained re-initializes what it contains, and EndInitialActivation closes its files on return. Probed both contained and separately compiled initial programs; all as the 1985 text requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.2.4.2-3",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "Probe r5ini.cob at --std 85 (runs/r5ini-001): an INITIAL program's EXTERNAL file stays open across its exits (the implied CANCEL closes only internal connectors, X.5.3.4 GR10): second call WRITE 00, MAIN CLOSE 00, file holds SUB1INI1INI1; its contained program's internal file left open in call 1 is closed and its WS reset by call 2 (INN NST=** and OPEN 00 both times); a COMMON INITIAL contained program called twice by a sibling resets (CIX CNT=1 twice); IS INITIAL COMMON order accepted. r6val.cob: every VALUE class (scaled, separate/trailing sign, COMP, figurative, 88) restored on the second call after being changed. cites: OK  §1985:X.2.4.2 GR3  (2.4.2 Programs in the Initial State)  the text is in GR3; OK  §1985:X.5.3.4 GR10  (║5.3.4 General Rules║)  the text is in GR10; OK  §1985:X.3.1.4 GR3  (║3.1.4 General Rules║)  the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-VII.2.4.3-3",
+ "rule-digest": "2624a13c5c6a",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-217",
+  "sources": {
+   "reader": "3d8d8fecb598225035e5e6749b0c7173f8d1dcd382d76160b8315c7de9be5edf",
+   "refuter": "fb0c4b4dc25370e003c23c6e442ad683a8ed15c0b7ef4f3fab4062d8e4dbe37c"
+  },
+  "imported": {
+   "reader": "089d2dc07d71ce568d9f95176db74226e6484bc39ac900b032cce8057a4dc2a9",
+   "refuter": "2ce574052d5303e1d9dfabcd206dd0611eed9afea49c37fddf707add76c0a04b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.4.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "For an external file connector of the Sequential I-O module, every file control entry in the run unit that describes it must specify the same access mode; since this module's only mode is SEQUENTIAL (written or assumed by GR1), an entry can disagree only by describing the connector as a relative or indexed file in another mode, and such a run unit must not be accepted as consistent.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Segments; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Of; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#ExternalTable",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "is2023 (FILE STATUS and LINAGE externality, new in 2023), DialectLevel<2002 runs CheckFileDescriptions instead of CheckFormat; the segment comparison that carries the ACC (access mode) segment is the same code at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Cite",
+    "switches": "the citation printed in COBOL6847/COBOL1575 (§1985 below 2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb5069_external_entries_agree is a relative RANDOM pair that agrees; the sequential module's own case (an omitted ACCESS MODE against an explicit SEQUENTIAL, and an entry describing the same connector under another organization and mode) is not exercised by it",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p3agree-001/p3agree.cob",
+    "printed": "B[RECORD-ONE] (program A omits ACCESS MODE, program B writes ORGANIZATION SEQUENTIAL ACCESS MODE SEQUENTIAL; the external connector is shared)",
+    "expected": "§1985:VII.2.4.3 GR1: an omitted clause is sequential access, the same mode, so the run unit is consistent"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p3differ-001/p3differ.cob",
+    "printed": "error COBOL6847: ... differ in the organization (and COBOL1575 for the RELATIVE KEY item); exit 65",
+    "expected": "GR3: the second entry (RELATIVE, ACCESS DYNAMIC) does not specify the same access mode as the sequential describer"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p3random-001/p3random.cob",
+    "printed": "error COBOL1858: ACCESS MODE IS RANDOM may not be specified for a sequential file",
+    "expected": "§1985:VII.2.4.2 prints only ACCESS MODE IS SEQUENTIAL for the sequential module"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.4.3 GR3",
+    "check": "OK  §1985:VII.2.4.3 GR3  (2.4.3 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VII.2.4.3 GR1",
+    "check": "OK  §1985:VII.2.4.3 GR1  (2.4.3 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.2.4.2",
+    "check": "OK  §1985:VII.2.4.2  (2.4.2 General Format)  the text is in the clause"
+   }
+  ],
+  "notes": "The access mode is the ACC segment of FileEntryIdentity.Segments, compared between the describers of one compilation group (COBOL6847) and carried in the SelectFingerprint the run time compares between separately compiled elements (EC-EXTERNAL-FILE-MISMATCH); an omitted ACCESS MODE reads as SEQUENTIAL. The disagreeing probe is reported at the organization segment because the comparison reports the first differing segment per entry; the entry is refused either way. A separately compiled pair was not probed (one source holds both programs).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.4.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read ExternalFileConnectorRules.Check: the ACC segment of FileEntryIdentity.Segments is compared between describers at every edition (only FILE STATUS/LINAGE externality and FORMAT vs the 1985 FD rules switch on DialectLevel), and an omitted ACCESS MODE binds as Sequential, matching §1985:VII.2.4.3 GR1 (cite.py 'OK  §1985:VII.2.4.3 GR1 ... the text is in GR1'). In the 1985 Sequential I-O module the only access mode is SEQUENTIAL, so entries can disagree only by describing the connector under another organization (refused, COBOL6847, reader's p3differ). Class c/e r3dyn-001 at --std 85: 'ORGANIZATION IS SEQUENTIAL ACCESS MODE IS DYNAMIC' on an EXTERNAL FD refused, COBOL1858, so no second mode can enter through the sequential format. cite.py 'OK  §1985:VII.2.4.3 GR3  (2.4.3 General Rules)  the text is in GR3' for 'every file control entry in the run unit which is associated with that file connector must specify the same access mode'. A separately compiled pair was not probed by either side; GR3 binds the program and does not oblige the implementation to detect a breach, and the run-time SelectFingerprint carries ACC anyway.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

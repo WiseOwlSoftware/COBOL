@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-VI.2.3.3-2",
+ "rule-digest": "0e350e6bebf9",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-189",
+  "sources": {
+   "reader": "3af5318bf9ff3976f66ce74c54ffe674c4f422852c670fb921cfe8c4c13b3f15",
+   "refuter": "f1088f9ce80fd8fc6afebba27599237dfdb6a4bf42fb275ba450e4cef10d73c3"
+  },
+  "imported": {
+   "reader": "8946aef64059682ec02a5859dfbe43c72a976012bbfb7abcef0966bd6892b60d",
+   "refuter": "1c710d85c4cb8191233c65d1bd3e74c3eec84d5c0562229238b8920d930dad97"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.2.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every separately compiled program in a sequence of programs submitted together must end with an END PROGRAM header except the last, so the compiler must refuse a program that precedes another without one and accept the last program with or without one.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#Run; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#ContainedFollowProcedureDivision",
+    "switches": "where a CONTAINED program may stand (after the procedure division from 2002); not the separately-compiled sequence this rule governs",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EndMarkerPass consults the EditionContext only to report; grep Edition|Version|Construct in EndMarkerPass.cs and SourceUnitShape.cs: the SR1 positional check (precedesAnother) is the same code at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f05_01 is one well-formed sequence; the refusal of a non-last program without END PROGRAM and a three-program sequence are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/seq1.cob",
+    "printed": "error COBOL2793: PROGRAM-ID 'PROGA' precedes another source unit, so its end marker END PROGRAM PROGA shall be present (ISO §2023:10.7.3 SR1)",
+    "expected": "refused: PROGA is not the last program and has no end program header"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/seq2.cob",
+    "printed": "IN PROGA / IN PROGB",
+    "expected": "accepted: the last program may omit the end program header"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/seq3.cob",
+    "printed": "IN PROGA / IN PROGB",
+    "expected": "accepted: the last program may also carry one (the format brackets it)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/seq4.cob",
+    "printed": "error COBOL2793: PROGRAM-ID 'PROGB' precedes another source unit ...",
+    "expected": "refused: the middle program of three lacks its end program header"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.2.3.3 GR2",
+    "check": "OK  §1985:VI.2.3.3 GR2  (2.3.3 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "EndMarkerPass.ScreenProgram's SR1 arm reports a program definition that precedes another unit of the compilation group without an end marker; at 85 it fires exactly where the 1985 rule requires. The diagnostic cites §2023:10.7.3 SR1 rather than the 1985 rule even at --std 85, a message-text matter, not a conformance failure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.2.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "refute-1985-189/seq5.cob: PROGA with END PROGRAM, a comment line, then PROGB containing PROGC (both END PROGRAM), then a last PROGD with none -> compiles and prints IN PROGA / IN PROGB / IN PROGC / IN PROGD. seq6.cob: PROGA with no END PROGRAM followed by PROGN and PROGZ (each with END PROGRAM) -> refused COBOL2793 at (2,8); both readings (PROGA a non-last separately compiled program, or a container) require its header. With the reader's seq1..seq4 the positional rule fires exactly on every program but the last. The diagnostic cites §2023:10.7.3 SR1 at --std 85, a message-text matter, not the behaviour. cite.py: OK  §1985:VI.2.3.3 GR2  (2.3.3 General Rules)  the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

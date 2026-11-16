@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.2.3.3-3",
+ "rule-digest": "06668a8b96c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitProgramClass",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-X.2.3.3-3",
+ "notes": "CONFORMS on a derivation of its own (2026-11-16, kb/Work PB5792). KEPT in substance by the 2023 text (10.4), no `next` recorded: the 2023 side has no catalog row until kb/Work PB5451 and a new 1985 KEPT record is refused (DESIGN-spec-conformance-review.md 10.6)."
+}

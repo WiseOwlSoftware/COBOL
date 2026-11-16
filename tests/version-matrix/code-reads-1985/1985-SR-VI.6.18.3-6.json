@@ -2,85 +2,43 @@
  "rule-id": "1985-SR-VI.6.18.3-6",
  "rule-digest": "d62427be0143",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-057",
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-218",
   "sources": {
-   "reader": "ab7040499af21b07388b4fd170124a5fcefbfe1114402ba069cdc3d2ffd4c1d2",
-   "refuter": "fc56b3be0adc1c3bef0322333f30b164577bedae94d51baee9a12ab897c9ad15"
+   "reader": "cfe4d5c943059164c740b95b8c7610ab3083cbb9e458314248fa3d7317c57a2d",
+   "refuter": "446d7608587e1a37923ce3eb4eed10b4b95d56ffc03c222c898da3bf2ae5103a"
   },
   "imported": {
-   "reader": "3f60b227e82baa3ea66cea3800f5579de4bc266ad08771e5e03fa8ad10527d1a"
+   "reader": "2a0fe40dbd53b23a8db7cc7c88af53b0ef0c7c2c2ce9f75dea9317568cbaf878"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.6.18.3-6",
   "verdict": "PARTIAL",
-  "requirement": "At --std 85, in Formats 1 and 3, each TALLYING identifier-2 must reference an elementary numeric data item (DISPLAY or COMPUTATIONAL, signed, scaled or with a fraction, subscripted), and anything else (alphanumeric, alphabetic, numeric-edited, a group, an index data item, and a reference modification, which §1985:IV.4.3.8.4.4 GR5 makes category alphanumeric) must be refused at compile time.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectTallyCounter",
+  "requirement": "At 1985, in INSPECT formats 1 and 3 the TALLYING counter identifier-2 must reference an elementary numeric data item, so the compiler refuses an alphanumeric, alphabetic, numeric-edited, group or index-data-item counter and a reference-modified numeric counter (which is class and category alphanumeric by IV.4.3.8.4.4 GR5), and accepts any numeric item (display, COMP, signed, scaled, subscripted).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectTallyCounter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
   "edition-consulted": [],
-  "edition-search": "CheckInspectTallyCounter reads counter.Item.Pic only; grep of StatementValidation's INSPECT block and InspectBinder.BindPhraseOperands for DialectLevel|Edition.Year|ConstructRegistry|DialectBehavior finds the size-rule predicate InspectSizeRulesCoverDataItems (SR7-SR9, not this rule) and nothing on the counter path; ResolveReceiving (the counter's resolver) does not gate it by edition either",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness exercises only the USAGE INDEX counter; the alphanumeric, edited, alphabetic, group and reference-modified counters were not exercised by it",
+  "edition-search": "grep -n 'DialectLevel|Edition' over StatementValidation.cs#CheckInspectTallyCounter and InspectBinder.cs#BindPhraseOperands' counter arm: the check reads only counter.Item.Pic (Category Numeric, Usage not Index); the edition appears only in the sibling size rules (InspectSizeRulesCoverDataItems), not on the SR6 path",
+  "behaviour-differs-by-edition": "no: the same check, and the same failure, at 85 and 2023",
+  "witnesses-cover": "part: pb1127-inspect-index-item-tally-counter covers the USAGE INDEX counter only; the other categories and the reference-modified numeric counter are not witnessed",
   "probes": [
    {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4ok.cob",
-    "printed": "CN=0004 CC=+0014 CV=005.5 TC=04 F3 CN=0005 S=ZBZCZDZE",
-    "expected": "DISPLAY, signed COMP (from 10), 9(3)V9 (from 1.5), subscripted and Format 3 counters admitted and incremented"
-   },
-   {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4p.cob",
-    "printed": "CP=00",
-    "expected": "PIC 9P counter admitted (an elementary numeric item)"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c6_tally_legal.cob",
+    "printed": "005 +0007 +02 1.0 05 3 AAXAAZA",
+    "expected": "display, COMP, leading separate sign, scaled, subscripted counters accepted and tallied; PIC 9 counter 8+5 keeps 3"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4x.cob",
-    "printed": "COBOL0847 counter 'CX' shall be an elementary numeric data item",
-    "expected": "refused (alphanumeric)"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4e.cob",
-    "printed": "COBOL0847 'CE'",
-    "expected": "refused (numeric-edited)"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4a.cob",
-    "printed": "COBOL0847 'CA'",
-    "expected": "refused (alphabetic)"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4g.cob",
-    "printed": "COBOL0847 'CG'",
-    "expected": "refused (group)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c6_tally_refuse.cob",
+    "printed": "COBOL0847 at lines 15 (PIC X), 16 (ZZ9), 17 (group), 18 (USAGE INDEX), 20 (PIC A); nothing at line 19 (N1(1:2))",
+    "expected": "each of the six counters refused under SR6"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4ix.cob",
-    "printed": "COBOL0847 'IX'",
-    "expected": "refused (index data item)"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4f3.cob",
-    "printed": "COBOL0847 'CX' (Format 3)",
-    "expected": "refused"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4rm.cob",
-    "printed": "EXIT 70: error: backend compilation failed (generated C# at i4rm.g.cs): (89,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?'",
-    "expected": "refused with a diagnostic: CN (1:2) is a unique data item of class and category alphanumeric (§1985:IV.4.3.8.4.4 GR5), not an elementary numeric data item"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i4sib.cob",
-    "printed": "COBOL1675 the arithmetic resultant 'CN(1:2)' is a reference-modified slice",
-    "expected": "sibling control: ADD's resultant screen refuses the same shape"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c6_tally_refmod.cob",
+    "printed": "error: backend compilation failed (generated C# at c6_tally_refmod.g.cs): (51,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?' (exit 70); the same at --std 2023",
+    "expected": "a COBOL diagnostic: N1(1:2) is class and category alphanumeric (§1985:IV.4.3.8.4.4 GR5), not an elementary numeric data item (SR6)"
    }
   ],
   "citations": [
@@ -93,15 +51,15 @@
     "check": "OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5"
    }
   ],
-  "notes": "CheckInspectTallyCounter asks counter.Item.Pic, the BASE item's picture, so a reference-modified numeric counter passes as numeric although GR5 makes the slice alphanumeric; the emitter then generates C# that Roslyn refuses (CS1503), so illegal source reaches the user as a backend crash. ExpressionBinder.ScreenResultant asks p.DenotedItem and refuses the same shape for ADD (COBOL1675); the INSPECT counter screen should ask the same identity question.",
+  "notes": "CheckInspectTallyCounter asks the BASE item's PICTURE, so a reference-modified numeric counter passes as numeric and the emitter then produces C# that Roslyn refuses; every other category is refused correctly. Same mechanism as kb/Work PB5734 (StrUnstrIsInteger), whose 2026-11-15 addendum names this row; PB5734 is status landed but the INSPECT arm still fails in this tree (d92742fe62).",
   "seeded": true,
-  "harm": "crashes; under-rejects",
+  "harm": "under-rejects; misleads-diagnosis (the user sees a C# CS1503 backend error, exit 70, instead of the COBOL rule)",
   "cause": "b",
-  "at-2023": "the same: EXIT 70, backend compilation failed, CS1503 Argument 4: cannot convert from 'long' to 'string?' (§2023:8.4.3.3.4 GR6 also makes the slice alphanumeric)",
-  "repro": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. P47.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 S PIC X(8) VALUE \"ABACADAE\".\n       01 CN PIC 9(4) VALUE 0.\n       PROCEDURE DIVISION.\n       MAIN-PARA.\n           INSPECT S TALLYING CN (1:2) FOR ALL \"A\".\n           STOP RUN.",
-  "expected": "a compile-time diagnostic: \"Identifier-2 must reference an elementary numeric data item\" (§1985:VI.6.18.3 SR6), and CN (1:2) \"has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric\" (§1985:IV.4.3.8.4.4 GR5)",
-  "observed": "error: backend compilation failed (generated C# at i4rm.g.cs): (89,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?' (exit 70)",
-  "known_note": "none found (searched kb/Work for CheckInspectTallyCounter, TALLYING counter with reference-modif / (n:, COBOL0847; PB1127 and PB1830 are the USAGE INDEX counter and its SUM sibling, both landed)"
+  "at-2023": "the same: backend compilation failed, CS1503, exit 70 (2023 SR5 with 8.4.3.3.4 GR6c makes the same counter illegal)",
+  "repro": "       01 X PIC X(7) VALUE \"AAXAAYA\".\n       01 N1 PIC 9(4) VALUE 1234.\n       PROCEDURE DIVISION.\n       P1.\n           INSPECT X TALLYING N1(1:2) FOR ALL \"A\".",
+  "expected": "a compile-time diagnostic: \"Identifier-2 must reference an elementary numeric data item\" (§1985:VI.6.18.3 SR6); the reference-modified item is \"class and category alphanumeric\" (§1985:IV.4.3.8.4.4 GR5)",
+  "observed": "error: backend compilation failed (generated C# at c6_tally_refmod.g.cs): (51,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?'",
+  "known_note": "PB5734 (addendum kb/Work/PB5734/2026-11-15-inspect-tallying-counter.md names this row and mechanism; the note's status is landed while the INSPECT arm still fails at d92742fe62)"
  },
- "work": "PB5734"
+ "work": "PB5859"
 }

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XI.4.2.4-2",
+ "rule-digest": "3d09f176f892",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-201",
+  "sources": {
+   "reader": "936cada97ec16c97b1455d17cf21dde8a45cc6fb78469daa47404beadd64246d",
+   "refuter": "9abe86d702cdfe03e9f5ffb384226eea6c0cd60316199a366e9b94901e7c4f56"
+  },
+  "imported": {
+   "reader": "949ff0a2f6b74b0f2dc5de41a7df4564e2fc5e06f00bbcd36239662059a19708",
+   "refuter": "aadf6b32668d7206fbfc3ade258d40ec220e8bfae61e41ed0e7b302800cd9da2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.2.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "After RELEASE the released record is no longer available in the record area (contents undefined) unless the SD is named in a SAME RECORD AREA clause; then the record stays in the area and is also available as a record of every other file in that clause (an implicit redefinition aligned leftmost, §1985:XI.2.5.4 GR1), for every record description of the SD, fixed or variable, and for RELEASE with or without FROM.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#BeginReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReleasedRecordAlsoAvailable; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+    "switches": "rangeFailsStatement = DialectLevel < 2002: at 85 a varying record outside the record range makes the RELEASE unsuccessful (§1985:VII.3.8.4 GR10); later editions release it. The 'also available' store is gated on that success",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for Edition/DialectLevel/DialectBehavior in SortEmitter.EmitRelease, SequentialIoEmitter's released-record helpers and FileControlBinder.IoControl's SAME RECORD AREA link: none; the only edition test on the RELEASE path is SortBinder.BindRelease's rangeFailsStatement, which governs an out-of-range varying release, not this rule.",
+  "behaviour-differs-by-edition": "no: the shared area is one redefinition (LinkSameRecordArea) at every edition; the store for out-of-line records cannot arise at 85 (no DYNAMIC LENGTH or pointer records)",
+  "witnesses-cover": "part: l1_release_same_record_area covers one fixed record and one open sequential peer; not exercised: a variable-length (ODO) SD record, a second record description of the SD, a relative peer, a peer not open, RELEASE FROM under the clause",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/r2a.cob",
+    "printed": "R1-SRT=[CCC3xxx] R1-OUT=[CCC3xxx] R1-IN=[CCC][3xxx] R2-SH=[AAA0125-] R2-OUT=[AAA0125-] R3-SRT=[BBB2yy] R3-OUT=[BBB2yy] R3-WS=[BBB2yy    ] SORTED=[AAA0] [BBB2] [CCC3] WS=[BBB2yy    ] DONE",
+    "expected": "SAME RECORD AREA FOR SRTF OUTF INF (OUTF relative and open, INF closed): an ODO record, a second signed-separate record description and a RELEASE FROM each stay in the SD area and read the same bytes through OUT-REC and IN-REC; all three reach the sort"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/wsra.cob",
+    "printed": "witness l1_release_same_record_area at --std 85: MATCH",
+    "expected": "R1/R2 SRT and OUT lines equal, sorted AAA then BBB"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.2.4 GR2",
+    "check": "OK  §1985:XI.4.2.4 GR2  (4.2.4 General Rules)  the text is in GR2 -- 'is no longer available in the record area unless'"
+   }
+  ],
+  "notes": "LinkSameRecordArea makes each peer's record area a redefinition of the anchor's, so character-window records share one backing and the released bytes are visible through every peer with no emitted store; BeginReleasedRecord/EmitReleasedRecordAlsoAvailable add a store only for out-of-line records, which 85 cannot declare. The 'no longer available' half leaves content undefined, so keeping the bytes conforms.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.2.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-201/src/r1.cob (run r1-002, --std 85): SAME RECORD AREA FOR S1 S2 IXF OUTF (two SDs, an INDEXED file and a sequential file, both open OUTPUT). After RELEASE S1-REC the second SD's record shows the bytes ('S2=[KKKABCD0123]'); the indexed record's COMP field equals a WORKING-STORAGE REDEFINES of the same four bytes ('BIN SAME'), its display numeric computes from them ('IX-NUM+1=00124'), and WRITE IX-REC / WRITE OUT-REC with no MOVE write the released record (read back: 'IX READ 00 NUM=0123', 'OUTF REC1=[JJJWXYZ0007]'); RELEASE FROM a WS item shows in OUT-REC ('FROM S2 -> OUT=[AAA2-------]', REC2). All three reach the sort in order. A first run (r1-001) showed 1985's AT END / INVALID KEY syntax rules enforced. LinkSameRecordArea's single redefinition holds for typed native fields too. cite.py: OK §1985:XI.4.2.4 GR2 'is no longer available in the record area unless'; OK §1985:XI.2.5.4 GR1 'The SAME RECORD AREA clause specifies that two or more files'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

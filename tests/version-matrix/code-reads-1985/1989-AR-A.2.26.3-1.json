@@ -2,44 +2,61 @@
  "rule-id": "1989-AR-A.2.26.3-1",
  "rule-digest": "26bcf8aadcad",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-169",
+  "pin": "e14987286bd9c554f1472215a32fb73e4acdccbe",
+  "slice": "1985-227",
   "sources": {
-   "reader": "9fd75e16d10fc29e767e79a49edb29f1519e3110fb617740517d0b314c238e6b",
-   "refuter": "c5169ecc1732ffc0f21595e3e7ae4ca5b7d3348850cb56ff2acb8f54880fbd0e"
+   "reader": "b5bca5c1a45856cc9b194daee49c9dc397461dd4edf21c4b94124ae14351cfc0",
+   "refuter": "53ee790252bee66d9070ea1b2579d9f3a461d5a872cba2633fb1f5aaddcd4e2c"
   },
   "imported": {
-   "reader": "117aab18069d9a193cce48326c93a966b2ebad8539238b95312b4c647fd8f500",
-   "refuter": "17418a3351b08ae807cf54530200e935817b7da190d34e4e7ba5c72a27d959ef"
+   "reader": "88a5b20f9c80a28e49e342b3432ea89f677c7883469871ae2af7f462fa76d5f3",
+   "refuter": "0424950bdb033f10635e155c3fd904db91ea7bdde1fe1054c33db9e9f121b830"
   }
  },
  "reader": {
   "rule-id": "1989-AR-A.2.26.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At 1985 every argument-1 of FUNCTION MIDRANGE must be class numeric, so the compiler must refuse alphabetic, alphanumeric, nonnumeric-literal, group, numeric-edited and alphanumeric-function arguments and accept numeric items, literals, expressions and ALL-subscripted numeric tables.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible",
+  "requirement": "At --std 85 every argument-1 of FUNCTION MIDRANGE must be class numeric, i.e. an arithmetic expression (§1989:A.2.2 AR1): numeric items, literals, expressions, numeric/integer function-identifiers and table(ALL) are accepted, and alphabetic, alphanumeric (edited, group, ref-modified), nonnumeric-literal and alphanumeric-function arguments are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
-    "switches": "D8 window: IntroducedIn 85 against DialectLevel; MIDRANGE available at 85 and 2023",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year); the MIDRANGE row carries no predicate, so nothing switches",
     "same-arm-as-latest": true
-   }
-  ],
-  "edition-search": "grep of IntrinsicArgumentRules.cs for CobolVersion|EditionContext|Edition|IsAtLeast|ConstructRegistry|DialectBehavior found nothing; the 'n' row has no predicates.",
-  "behaviour-differs-by-edition": "no: same refusals at 85 and 2023",
-  "witnesses-cover": "part: g85_f37_04 runs only legal numeric lists; no refusal case, ALL subscript or 18-digit extreme",
-  "probes": [
-   {
-    "class": "b,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/statbad.cob",
-    "printed": "COBOL1627 '... MIDRANGE argument-N is of class alphanumeric|alphabetic|alphanumeric (numeric-edited) ... (§2023:15.62.3 r1)' for X item, A item in second position, \"7\", group, numeric-edited, UPPER-CASE(X)",
-    "expected": "each refused"
    },
    {
-    "class": "a,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/statok.cob",
-    "printed": "MIDBIG[ 000000000000000000] MIDODO[-0000.750000]",
-    "expected": "(999999999999999999 + -999999999999999999)/2 = 0; (7.5 + -9)/2 = -0.75 over ODO range plus -0.00001"
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef",
+    "switches": "IndexDataItemAdmittedAt(DialectLevel): USAGE INDEX argument refused COBOL6979 at 85, COBOL1627 at 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "same greps as MEDIAN: the MIDRANGE Verified row (Uniform 'n') and Admissible/Violation are edition-blind.",
+  "behaviour-differs-by-edition": "no: identical class screen at 85 and 2023; only the index-data-item diagnostic code differs",
+  "witnesses-cover": "part: g85_f37_04 covers accepted numeric arguments; the refusal half, expressions, function-identifiers, table(ALL)/ODO and extreme values are not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-227/mid_ok.cob",
+    "printed": "B[   3.0000] (TE(ALL), ODO 4: -3..9) C[   3.0000] (ODO 3: 5 -3 9)",
+    "expected": "(9 + -3)/2 = 3 both (§1989:A.2.26.4 RV1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-227/mid_bad.cob",
+    "printed": "COBOL1627 at X item, \"123\", ZZ9 item, A item, group, (N1 X1) argument-2, FUNCTION CHAR(66), N1(1:1), SPACE; COBOL1637 index-name; COBOL6979 USAGE INDEX item",
+    "expected": "all refused (§1989:A.2.26.3 AR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-227/mid_ok.cob",
+    "printed": "A[   3.3750] (N1+1=8, 6, -1.25) D[   2.5000] E[ 140.0000] (9PP 300, COMP -20, COMP-3 11) H[-  1.0000]",
+    "expected": "3.375, 2.5, 140, -1"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-227/mid_ok.cob",
+    "printed": "F[ 000000000000000000] (max, -max, max) G[   0.0000]",
+    "expected": "0 and 0"
    }
   ],
   "citations": [
@@ -48,15 +65,23 @@
     "check": "OK  §1989:A.2.26.3 AR1  (2.26.3 Arguments)  the text is in AR1"
    },
    {
-    "cite": "§1989:A.2.2",
-    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1 [quotation: An arithmetic expression must be specified]"
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.26.4 RV1",
+    "check": "OK  §1989:A.2.26.4 RV1  (2.26.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1985:IV.4.3.3",
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
    }
   ],
-  "notes": "Same 'n' Uniform screen as MEAN and MEDIAN. Diagnostics cite 2023 clauses at --std 85.",
+  "notes": "Same mechanism as MEDIAN (Verified Uniform 'n' through CheckArgumentClasses). Every refusal class fired and every accept probe printed the RV1 value. The diagnostic cites §2023 clause numbers and names 'national' for SPACE at 85, a wording nit only.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "same refusals and results",
+  "at-2023": "same refusals at --std 2023",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -64,16 +89,10 @@
  },
  "refuter": {
   "rule-id": "1989-AR-A.2.26.3-1",
-  "refutation": "OVERTURNED",
+  "refutation": "UPHELD",
   "classes": "a,b,c,d",
-  "evidence": "Probe src/allrmstat.cob at --std 85 (runs/allrmstat-001): COMPUTE R = FUNCTION MIDRANGE (N-EL (ALL) (1:1)) over 11 72 33 compiles and prints MIDRANGE[0004.0000] = (1+7)/2; the arguments are class alphanumeric (§1985:IV.4.3.8.4.4 GR3a, GR5), so §1989:A.2.26.3 AR1 requires a refusal. Same at --std 2023 (runs/allrmstat-002). Non-ALL control MIDRANGE (N-ITEM (2:2)) is refused COBOL1627 (runs/rmstat-001). cite.py: 'OK  §1989:A.2.26.3 AR1  (2.26.3 Arguments)  the text is in AR1'.",
+  "evidence": "Same attack as MEDIAN. zero_mid.cob at --std 85: MIDRANGE(ZERO 4 6) printed 3.0000 and MIDRANGE(ZEROS - 3, 8) printed 2.5000, accepted and correct per §1989:A.2.26.4 RV1. tab2.cob: MIDRANGE(C(2 ALL) C(ALL 1)) mixing two ALL forms printed -2.0000 ((-8+4)/2). bad_tbl.cob: MIDRANGE(XE(ALL)) with an alphanumeric table element refused COBOL1627. later_lit.cob: MIDRANGE(1.0E1 2) refused COBOL0900. No edition site the reader missed. cite.py: OK §1989:A.2.26.3 AR1 (the text is in AR1); OK §1989:A.2.2 AR1; OK §1985:VI.6.2.1.",
   "edition-sites-missed": [],
-  "corrected": "NON-CONFORMING (under-rejects), cause (c): same mechanism as MEAN and MEDIAN in src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace. Same at --std 2023."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "A reference-modified element under an ALL subscript (`N-EL (ALL) (1:1)`) is class alphanumeric by the 1985 text, and the argument-class screen classes it as its numeric element. MAX and MIN refuse legal lists; MEAN, MEDIAN and MIDRANGE compute from digit slices; an illegal MAX mix compiles and fails at run time. Not the mechanism of PB5780 or PB5813.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
- },
- "work": "PB5833"
+  "corrected": ""
+ }
 }

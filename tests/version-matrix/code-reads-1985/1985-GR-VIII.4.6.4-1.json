@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-1",
+ "rule-digest": "efaea9d94438",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-198",
+  "sources": {
+   "reader": "caef838ac74e1bcf53cc909e4d02aab906b025894cf6c92ea174675b764d9872",
+   "refuter": "063949351f81cf3514569fd27cba225f4684a82ba71145513e7580139eb4aafe"
+  },
+  "imported": {
+   "reader": "578a28813feb3d4dbf934bf6e77c0d566da08a6e3477641fc99dd88ab7adccbc",
+   "refuter": "0cf55df8cad8414986a955e6e6ff269c9a06290548a43bd02cf1afb7863be8fb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.6.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "A REWRITE of a relative file (always mass storage) executed while the file is not open in the I-O mode (never opened, open INPUT or OUTPUT, closed, or after a failed OPEN I-O) must be unsuccessful with I-O status 49 (VIII.1.3.4 (5)h), leave the file unchanged, run neither the INVALID KEY nor the NOT INVALID KEY phrase (49 is a logic error, not an invalid key) and run any applicable USE procedure, in every access mode; open I-O it proceeds.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationTargetRecordId; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#InForce",
+    "switches": "below 2002 a random/dynamic-access REWRITE with no INVALID KEY and no applicable USE is refused (VIII.4.6.3 SR4); compile time only, not the open-mode rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "runtime path: grep of DialectBehaviors.IsActive in src/WiseOwl.Cobol.Runtime/IO finds none on RelativeConnector.Rewrite or MutationOpenModeGuard (the one relative consult is WRITE's RelativeWriteKeyOutOfRangeIsPermanentError); SequentialIoBinder.BindRewrite's only edition use is ctx.Edition for refusal reports",
+  "behaviour-differs-by-edition": "no: the 49 open-mode guard is one member for every edition; the run at --std 2023 prints the same lines",
+  "witnesses-cover": "part: l1_open_not_open_statements covers statements on a file not open; not exercised there for a relative REWRITE: open INPUT and OUTPUT, after CLOSE, after a failed OPEN I-O, the phrases not running on 49, and the USE procedure",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p3rw.cob",
+    "printed": "C0 49 / C1 49 / C2 49 / C3 49 / DECL-S 49 / C4 49 / DECL-X 35 / OPENX 35 / DECL-X 49 / C5 49 / C6 NOT INVALID 00 / T1 AAAA / T2 FROM",
+    "expected": "49 never opened (C0), open OUTPUT with FROM (C1), open INPUT after a READ in random (C2) and sequential access with USE (C4), after CLOSE (C3), after a failed OPEN I-O 35 (C5); neither INVALID KEY nor NOT INVALID KEY runs; record 1 unchanged (T1); open I-O the REWRITE succeeds (C6, T2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p3rw.cob (--std 2023)",
+    "printed": "identical to the --std 85 output",
+    "expected": "same behaviour (§2023 gives the same 49)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.6.4 GR1",
+    "check": "OK  §1985:VIII.4.6.4 GR1  (4.6.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5h"
+   }
+  ],
+  "notes": "RelativeConnector.Rewrite asks MutationOpenModeGuard first (after a permanent-error replay), which answers 49 unless the connector is open I-O, and MutationTargetRecordId identifies no record so the lock check cannot pre-empt it. With no USE procedure the program continues after the 4x status, which VIII.1.3.4 leaves to the implementor.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.6.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe r3ext.cob at --std 85 (runs/r3ext-001) aimed at the open mode the reader did not try: a sequential-access relative file opened EXTEND (1985 VIII.4.4.4 GR11 allows EXTEND for relative) gives 49 on REWRITE before and after a WRITE (E1, E2) through the USE, file unchanged (T reads QQQQ/BBBB/CCCC); open I-O with no prior READ gives 43 not 49 (GR2's arm, I1), then READ+REWRITE 00; an absent OPTIONAL file opened INPUT gives 49 with neither INVALID KEY nor NOT INVALID KEY run, USE runs. RelativeConnector.Rewrite calls MutationOpenModeGuard first; the only runtime edition consult nearby (FileConnector.SharingFacilityInEffect, DialectBehavior.FileSharingFacility) gates lock admission, not the 49. cites: OK  §1985:VIII.4.6.4 GR1  (4.6.4 General Rules)  the text is in GR1; OK  §1985:VIII.4.4.4 GR11  (4.4.4 General Rules)  the text is in GR11.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

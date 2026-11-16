@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.5.15.6-4",
+ "rule-digest": "f960d53efc38",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-192",
+  "sources": {
+   "reader": "4a68cbe3cd84f7a9f354cf2aac4d07323512c1bd9a9d19b41240fdbdee6b837d",
+   "refuter": "2bdd3e2fb0ab1d610efc20ebec801f6e002b4401a1ee80c6c14965b5f0fd1ee6"
+  },
+  "imported": {
+   "reader": "160c373e4d431b6127b8277b397b1e47d988cb3e691a271baff52cc26dac9432",
+   "refuter": "b9321f092493188ca62498a4207ee9786dc7a01c40510bbb439194e67fb1bd44"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.15.6-4",
+  "verdict": "CONFORMS",
+  "requirement": "A VALUE clause on a group item is refused when any item subordinate to it (at any depth) is described with JUSTIFIED, SYNCHRONIZED, or a USAGE other than DISPLAY (1985 usages BINARY, COMPUTATIONAL, INDEX, PACKED-DECIMAL, written or inherited from a subordinate group's USAGE).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGroupValueDeclarationsPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGroupValueDeclarationsPass.cs#SubordinateUsageOf; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGroupValueDeclarationsPass.cs#Subordinates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.GroupValue.cs#HasGroupValue",
+  "edition-consulted": [],
+  "edition-search": "grep for Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior in CheckGroupValueDeclarationsPass.cs and DataBinder.GroupValue.cs: only binder.Edition.At/Error (the diagnostic sink, EditionContext#Error, which records the error with no edition switch); the pass's doc states it is not dialect-gated.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f11_01 is one VALUE case; JUSTIFIED, SYNCHRONIZED LEFT, each non-DISPLAY usage, inherited group USAGE and a grandchild were exercised only by these probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/grpval.cob",
+    "printed": "COBOL1702 for J1 (JUSTIFIED), S1 (SYNCHRONIZED), SL1 (SYNC LEFT), C1 (COMP), B1 (BINARY), P1 (PACKED-DECIMAL), I1 (INDEX), N2 (COMPUTATIONAL two levels down), U1 (COMP inherited from group GU1)",
+    "expected": "each group VALUE refused (§1985:VI.5.15.6 GR4)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/grpvalok.cob",
+    "printed": "G1=AB1234 A2=1234 / G2=****** / G3=000000",
+    "expected": "groups whose subordinates are all DISPLAY (explicit USAGE IS DISPLAY, nested group, OCCURS) accept the VALUE (nonnumeric literal, ALL literal, figurative ZEROS) and initialize the area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.15.6 GR4",
+    "check": "OK  §1985:VI.5.15.6 GR4  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR4"
+   }
+  ],
+  "notes": "Every subordinate violation is refused with COBOL1702, inherited usage included (the pass runs after usage inheritance). The message names COMP as 'usage BINARY' and cites only §2023:13.18.63.3 SR14 at --std 85; that is diagnostic wording, not a failure of the rule. The groups declared with COMP also drew COBOL1740 (literal longer than the group) because the probe's literals were sized for display.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same pass, no edition arm",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.15.6-4",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "cite.py: OK  §1985:VI.5.15.6 GR4. Read CheckGroupValueDeclarationsPass#Run/#Subordinates/#SubordinateUsageOf: whole-subtree walk after usage inheritance, no edition arm. Probes at --std 85: grpv2bad.cob refuses COBOL1702 for a REDEFINES subordinate with COMP (R2), a FILLER COMP, SYNCHRONIZED RIGHT and JUST RIGHT under an OCCURS group; grpv2.cob/grpv3.cob accept a group VALUE over SIGN LEADING SEPARATE, BLANK WHEN ZERO, numeric-edited, a level-88 and a REDEFINES subordinate (none of which GR4 forbids). SEPARATE FINDING (not this rule): grpv3.cob/grpv4.cob show the group VALUE SILENTLY DROPPED whenever a subordinate has REDEFINES: `01 G3 VALUE \"ABCD\". 05 A3 PIC X(4). 05 A4 REDEFINES A3 PIC X(4).` displays G3=[    ] (expected ABCD); `01 G5 VALUE \"1234\". 05 C3 PIC 9(4). 05 C4 REDEFINES C3 PIC X(4).` displays [0000]; same at --std 2023. That violates §1985:VI.5.15.6 GR3 (cite.py: OK  §1985:VI.5.15.6 GR3 'the group area is initialized without consideration for the individual elementary or group items'); the VALUE is legal since GR2 bars VALUE only in the REDEFINES entry and its subordinates. No kb/Work note found (grep for group VALUE with REDEFINES).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

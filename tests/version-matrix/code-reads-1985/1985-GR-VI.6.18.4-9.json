@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-9",
+ "rule-digest": "13931c1abc28",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-194",
+  "sources": {
+   "reader": "bdd3863e8ec76aad6f11f7e0e65a0c8963616a15ae67e48a809b4a2c0a6f76df",
+   "refuter": "10340cc44f038713176d94e3e5c8e9ab7219d8557dae7045825a145a7d1ded96"
+  },
+  "imported": {
+   "reader": "f5cf6a046c2dbe7329c3a1b08b0ff3ecd010544296bffb5109a864dfe8ed6766",
+   "refuter": "99104369f468bf03eb3e9d1f7b791e7ecda8e38cd28fc2cfd7ce06b70bd463b5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.18.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "In a Format 1 (TALLYING-only) INSPECT, identifier-1 is a sending data item: the statement never stores into it, its length (including an OCCURS DEPENDING ON group) is taken as a sender's, and so an alphanumeric function-identifier is admitted there while a Format 2/3/4 (REPLACING/CONVERTING) with a function-identifier identifier-1 is refused as a receiving operand (§1985:IV.4.3.8.3.3 SR3a).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhrases; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectIdentifier1FunctionUsage; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: a numeric/integer function as identifier-1 is refused at 85 (COBOL0900), admitted from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind",
+    "switches": "DialectBehavior.InspectFormat3LengthIdentifiedOnce: Format 3 ODO length re-read for the REPLACING half at 85 (not on the Format 1 path)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhrases",
+    "switches": "DialectBehavior.InspectBeforeFromFirstEligiblePosition: BEFORE measured from leftmost at 85 (matching rule, not the sending/receiving partition)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Version|Year in InspectBinder.cs; the sending/receiving partition itself (`modifies` = REPLACING or CONVERTING present; ResolveSending vs ResolveReceiving; FunctionIdentifierReceiving COBOL1632) consults no edition and is the same arm at 85 and 2023.",
+  "behaviour-differs-by-edition": "no: for THIS rule the Format 1 sending treatment is edition-invariant; only the operand-class admission of numeric functions (an SR4 matter) differs.",
+  "witnesses-cover": "part: g85_f13_03 covers unchanged identifier-1 and alphanumeric function-identifiers; not exercised: ODO group identifier-1 length, reference-modified identifier-1, numeric-edited identifier-1, and the refusal of a function-identifier in Formats 2/3/4.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ins1.cob",
+    "printed": "ODO=0003 / ODOC=0003 G=AAA / REF=0002 / NE=0001  10.50 / FN=0000 banana",
+    "expected": "ODO group G at N=3 is inspected over 3 characters (GR1); ref-mod (2:3) of banana has two a's; numeric edited ' 10.50' inspected as alphanumeric (GR3b) with one space; FUNCTION UPPER-CASE(W2) BEFORE INITIAL 'A' counts 0 N's and W2 unchanged"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ins2.cob",
+    "printed": "error COBOL1632: INSPECT identifier-1 is the function-identifier ... REPLACES characters in it ... a receiving operand",
+    "expected": "refused: a function-identifier may not be a receiving operand (§1985:IV.4.3.8.3.3 SR3a); identifier-1 is sending only in Format 1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ins3.cob",
+    "printed": "error COBOL1632 (Format 3 TALLYING+REPLACING over FUNCTION UPPER-CASE)",
+    "expected": "refused (Format 3 replaces into identifier-1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ins4.cob",
+    "printed": "error COBOL1632: ... CONVERTS it ...",
+    "expected": "refused (Format 4 modifies identifier-1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ins5.cob",
+    "printed": "error COBOL0900 numeric function-identifier where an identifier is written requires COBOL-2002; error COBOL1626 not usage display",
+    "expected": "refused: §1985:IV.4.3.8.3.3 SR4 numeric function only in an arithmetic expression; SR1 usage display"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/g85_f13_03.cob",
+    "printed": "T1=0004 W1=ABRACADA / T2=0003 W2=banana / T3=0001 W1=ABRACADA / T4=0002 / S1=UNCHANGED; EXPECT: MATCH",
+    "expected": "identifier-1 unchanged including signed S1; function-identifier admitted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.4 GR9",
+    "check": "OK  §1985:VI.6.18.4 GR9  (6.18.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VI.6.18.4 GR1",
+    "check": "OK  §1985:VI.6.18.4 GR1  (6.18.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.18.4 GR5",
+    "check": "OK  §1985:VI.6.18.4 GR5  (6.18.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR3a",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR3a  (4.3.8.3.3 Syntax Rules)  the text is in SR3a"
+   }
+  ],
+  "notes": "InspectBinder.Bind partitions identifier-1 on the phrases present: TALLYING-only resolves it through ResolveSending and admits a function-identifier; REPLACING/CONVERTING resolve it as receiving and refuse a function with COBOL1632. Every probe class that applies matched the 1985 text; the partition consults no edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.18.4-9",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "Attacked the case the reader's ins1 missed: the ODO object INSIDE identifier-1, where sending (current length) and receiving (maximum length, §1985:VI.5.8.4 GR3b) differ. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/ri1.cob at --std 85 (runs/ri1-001): G = N PIC 9 + E OCCURS 1 TO 6 DEPENDING ON N, N=3, E(4..6)='A': Format 1 TALLYING CHARACTERS = 0004 (1+3, current length), ALL 'A' = 0003; Format 3 on the same shape tallied 3 and replaced only E(1..3) (H=6CCCBBB), per GR1 'treated as if it were a sending data item'; S9(4) SIGN LEADING SEPARATE TALLYING CHARACTERS = 0004 and ALL '-' = 0000 (GR3c excludes the separate sign); signed S2 unchanged after Format 1. Class c: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/ri2.cob INSPECT ... BACKWARD refused at 85 (COBOL5506). cite.py: OK §1985:VI.6.18.4 GR9 the text is in GR9; OK §1985:VI.6.18.4 GR1 the text is in GR1; OK §1985:VI.6.18.4 GR3c the text is in GR3c; OK §1985:VI.5.8.4 GR3b the text is in GR3b.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInspectStatement: INSPECT BACKWARD (2023) refused before binding; not a GR9 switch"
+  ],
+  "corrected": ""
+ }
+}

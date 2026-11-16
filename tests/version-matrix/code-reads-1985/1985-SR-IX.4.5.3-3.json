@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-SR-IX.4.5.3-3",
+ "rule-digest": "7fd21581dbe8",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-206",
+  "sources": {
+   "reader": "783ab9b762905f3058755480e17743e02ef4d6a5ba711bead08d72577d30a7ea",
+   "refuter": "a2a52398a6cd21fc62926923bec9f43b7621149266c7b166ddbaa70b5badd306"
+  },
+  "imported": {
+   "reader": "3667de0afe7f4102a7145efa2deedeea6d995bf26eba36003db4454c8f80e43a",
+   "refuter": "e660ad61f24475556379bcdf05f4245ff61485e49e0156c97fc7b36bcb7539c3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.5.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the KEY IS data-name-1 of an indexed READ may be qualified (by data-names and by the file-name, at any depth) to name the prime or an alternate record key of the file; an ambiguous name or a qualified non-key is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Resolve",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "Year < 2002: a dynamic READ with AT END must write NEXT (SR5); not on the KEY path",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "Year < 2002: AT END or INVALID KEY required (SR7); not on the KEY path",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The KEY operand resolves through host.Expr.ResolveSending and RecordLayout.KeyIndexOfKeyItem with no edition test; grepped KeyedIoBinder.cs for DialectLevel/Year/ConstructRegistry: only the two READ-wide 85 arms listed.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f21_05 covers one-level data-name qualification of the alternate key; not file-name qualification, multi-level qualification, the prime key, or the refusals",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-qual-ok2.cob",
+    "printed": "Q1 K2 BBB / Q2 ZZZ AAA / Q3 K1 AAA",
+    "expected": "KEY IS AK OF KG OF IXR OF IXF, PK IN IXF and AK IN KG IN IXF each select by that key (random access)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-qual-ok.cob",
+    "printed": "COBOL1639 'AK IN KG' does not uniquely identify a data item",
+    "expected": "refused: WORKING-STORAGE also holds KG.AK, so that qualification is not unique"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-ambig.cob",
+    "printed": "COBOL1639 'AK' does not uniquely identify a data item",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-nonkey.cob",
+    "printed": "COBOL0864 READ KEY IS DTOFIXR on 'IXF': the operand shall be the RECORD KEY or an ALTERNATE RECORD KEY",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-otherkey.cob",
+    "printed": "COBOL0864 READ KEY IS AKOFDUP on 'IXF': the operand shall be the RECORD KEY or an ALTERNATE RECORD KEY",
+    "expected": "refused: the qualification names an item that is not the file's key"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.3 SR3",
+    "check": "OK  §1985:IX.4.5.3 SR3  the text is in SR3"
+   }
+  ],
+  "notes": "Qualification of the KEY operand goes through the ordinary resolver, then the identity check against the file's keys. COBOL0864 prints the operand as glued token text (DTOFIXR), a wording defect also noted on the function-identifier record.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.5.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Attack: §1985:IX.2.7.4 GR3 makes the identical character positions of the key in ANOTHER record description of the file a key too, so a qualification naming the second record's item must be admitted; RecordLayout.KeyIndexOfKeyItem implements it (same window, same width, operand in a record of this file). rd-twokeys2.cob (RECORD KEY IS PK OF R1; 01 R2 also has PK): READ IXF KEY IS PK OF R2 selects K2 (T1 BBB) and KEY IS PK OF R1 OF IXF selects K1 (T2 AAA), random access. The reader's probes cover the refusals (ambiguous, WS duplicate, non-key). cite.py: OK §1985:IX.4.5.3 SR3 the text is in SR3; OK §1985:IX.2.7.4 GR3 the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

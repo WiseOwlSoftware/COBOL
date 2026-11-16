@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-1",
+ "rule-digest": "4a943c255d9f",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-191",
+  "sources": {
+   "reader": "f79c1e53f16169309b98fd73d01548ddf5f1f52d20ab5c3a6a7ca32929d753ca",
+   "refuter": "4b6629f737dbf9518ef40f154e29ec9ddfd9c17bca9e454bde0f0f2fec9296d5"
+  },
+  "imported": {
+   "reader": "945c956ce6088378859767d1ad035e12450b647b64d1f63f7cc6c22276a3c83b",
+   "refuter": "c9164800ce6f867e6fa1ae2f33c259efeaa48d9aec044f14b1c5a654c627c2a9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.14.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a USAGE clause (BINARY, COMPUTATIONAL/COMP, DISPLAY, INDEX, PACKED-DECIMAL) written on a group applies to every elementary item subordinate to it, at every nesting depth, including pictureless INDEX subordinates and OCCURS subordinates.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageInheritancePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage",
+    "switches": "passes Edition to PictureAnalyzer.Analyze when re-analysing the picture under the inherited usage (picture rules by edition), not the inheritance itself",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Constructs.|ReservedWords in UsageInheritancePass.cs (none) and in UsageInheritanceWalk/UsageInheritanceElementary/ApplyEffectiveUsage (only Edition.Error/Muted sinks and the Analyze call): inheritance takes the same code at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f10_01 covers group INDEX, group COMP/COMPUTATIONAL and DISPLAY; not group BINARY or PACKED-DECIMAL, nested groups without their own clause, OCCURS under a group usage, or a file record with group usage",
+  "probes": [
+   {
+    "class": "a,d,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p6usage.cob",
+    "printed": "PK=-000000000000013344 PEX=E BN=-999999999999999999 BEX=F BN2= 000000000999990000 CP=-000000000000000007 CEX=G IX=E DSP=ZONED FPK=-000000000000000001 002 (file 5 bytes)",
+    "expected": "PACKED-DECIMAL group: S9(5)+9(3) = 3+2 bytes; BINARY group with nested group: 2+4+8 bytes; COMP OCCURS 3 of S9(4) = 6 bytes; INDEX group OCCURS item holds occurrence numbers; DISPLAY group zoned; packed file record 5 bytes"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p6ref.cob",
+    "printed": "COBOL0881 on PIC X(3) under group COMP and on 99.99 under group PACKED-DECIMAL; COBOL1927 on subordinate PACKED-DECIMAL under group BINARY; COBOL0881 on PIC under group INDEX",
+    "expected": "the inherited usage is screened as though written on the elementary item (§1985:VI.5.14.3 SR2, SR3, SR6)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p6c5.cob",
+    "printed": "group USAGE COMP-5 and COMP-3 compile and run at --std 85 (00012)",
+    "expected": "not a 1985 usage; a claimed nonstandard extension that compiles silently at every --std (kb/Work PB1525, landed) - outside this rule"
+   },
+   {
+    "class": "witness",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/VI.5.14@1985-USAGE-CLAUSE/g85_f10_01.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.4 GR1",
+    "check": "OK  §1985:VI.5.14.4 GR1  (5.14.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Group usage reaches every elementary item at every depth for all five 1985 usages, in WORKING-STORAGE and in a file record, and the inherited usage is screened against SR2/SR3/SR6. Vendor usages COMP-3/COMP-5 are accepted silently at --std 85 as documented extensions (PB1525); that concerns the general format, not GR1.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.14.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probe refute-1985-191/r6usage.cob at --std 85 (runs/r6usage-002): group USAGE COMP reaches an elementary item, a REDEFINES of it, an unnamed FILLER and an OCCURS item inside a nested group with no clause of its own (A1+G1R+G1T(1)+G1T(2) = 300+300+9+8 = W=+00617); group PACKED-DECIMAL items hold -12 and 34; group COMPUTATIONAL with subordinates writing COMP and USAGE IS COMPUTATIONAL compiles (same usage) and adds to 10; a 66 RENAMES of an item under a group BINARY moves -3 correctly. Refusal half r6ref.cob: group DISPLAY over a subordinate COMP and group COMP over a subordinate group DISPLAY are refused (COBOL1927). Reading noted: group USAGE BINARY over a subordinate USAGE COMP (and the reverse) compiles at --std 85; DataBinder.cs#UsageInheritanceWalk compares the resolved Usage member and documents BINARY == COMPUTATIONAL as this implementation's §1985:VI.5.14.4 GR4 choice. That bears on §1985:VI.5.14.3 SR2 ('the same usage must be specified in both entries', cite OK), not on GR1, and either way the subordinate item ends with the group's representation. The COBOL1927 text names the group's COMP as 'BINARY' (misleading wording only). cite.py: OK §1985:VI.5.14.4 GR1 (the text is in GR1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

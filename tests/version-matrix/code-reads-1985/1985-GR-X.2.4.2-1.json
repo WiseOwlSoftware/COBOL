@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-X.2.4.2-1",
+ "rule-digest": "93ce19e30660",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-198",
+  "sources": {
+   "reader": "caef838ac74e1bcf53cc909e4d02aab906b025894cf6c92ea174675b764d9872",
+   "refuter": "063949351f81cf3514569fd27cba225f4684a82ba71145513e7580139eb4aafe"
+  },
+  "imported": {
+   "reader": "d58591bbac5f2bfda387fda5aef464e772e578ad0c5223c000ba10f4a4285b39",
+   "refuter": "8f1d08204f2f847bd17b28eaacb9d4c0f3b92d195775f748d14e6482460126ae"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.2.4.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "The first time a program is called in a run unit (contained or separately compiled, by literal or identifier) it must be in its initial state (X.2.4.1): Working-Storage items with VALUE hold their values (every class: numeric display and COMP, edited, group, ALL literal, figurative constants, condition-names true per VALUE), its internal files are not open, PERFORM control is initial and every ALTERed GO TO goes to its written target.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Create; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#InitialStateBackground; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFor; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitFields",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlterStatement",
+    "switches": "ALTER accepted at 85, refused from 2002 (REMOVED); the 1985 arm accepts the form whose initial state GR1 governs",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ProgramTable.cs has no Edition reference on the activation path; BinderDriver sets UnitStaticWs = unit.Recursive && !unit.Initial with no edition test (RECURSIVE does not exist at 85, so every 85 program takes the cached-instance arm the latest edition takes for a non-recursive program)",
+  "behaviour-differs-by-edition": "yes: only in which forms exist; the ALTERed GO TO initial state is a 1985 form (ALTER is refused at 2023), the rest of the initial state is the same path",
+  "witnesses-cover": "part: g85_f02_02 covers WS VALUE initialization on the first call; not exercised there: COMP, edited, ALL, figurative and condition-name values, the internal file not open (47 on READ), the ALTERed GO TO's written target, and a CALL by identifier of a separately compiled program",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p5init.cob",
+    "printed": "SUB FIRST-TIME / SUB CNT=1 CMP=-0012 ED= 12.50 GRP=ABCD ALLX=**** ZER=000 SP=[   ] / SUB READ-NOT-OPEN 47 / SUB OPEN 00 / SUB SA1 / SUB CNT=2 CMP=+0077 ... GRP=WXYZ ALLX=---- / SUB READ-NOT-OPEN 47 / SUB OPEN 41 / SUB SA2",
+    "expected": "first call: VALUEs in place, 88 true, file not open (READ 47, OPEN 00), GO TO to its written target SA1; second call (not initial) keeps the changed values, the open file (41) and the ALTER (SA2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p5sep.cob",
+    "printed": "NON CNT=101 TXT=FRESH / NON CNT=102 TXT=USED  / INI CNT=101 TXT=FRESH / INI CNT=101 TXT=FRESH",
+    "expected": "separately compiled program called by identifier: initial on the first call, last-used on the second"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p5init.cob (--std 2023)",
+    "printed": "error COBOL0810: the ALTER statement was removed in COBOL-2002",
+    "expected": "ALTER is not 2023 syntax; the ALTER part of the initial state is the 1985 edition's own"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.4.2 GR1",
+    "check": "OK  §1985:X.2.4.2 GR1  (2.4.2 Programs in the Initial State)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.2.4.1 GR1",
+    "check": "OK  §1985:X.2.4.1 GR1  (2.4.1 Characteristics of a Program)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.2.4.1 GR2",
+    "check": "OK  §1985:X.2.4.1  (2.4.1 Characteristics of a Program)  the text is in the clause; it lies in GR2"
+   },
+   {
+    "cite": "§1985:X.2.4.1 GR4",
+    "check": "OK  §1985:X.2.4.1 GR4  (2.4.1 Characteristics of a Program)  the text is in GR4"
+   }
+  ],
+  "notes": "A non-initial program's instance is created on its first CALL (ProgramTable.CallProgram, n.Instance ??= Create) and its WS, connectors and ALTER switches are instance fields initialized by the emitted initial-state code, so the first call is the initial state. PERFORM control on a first call is trivially initial and not separately observable; the Communication Section was not probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.2.4.2-1",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "Probe r5ini.cob at --std 85 (runs/r5ini-001): X.2.4.1 GR2 limits not-open to INTERNAL connectors; an EXTERNAL file opened by the main program is open at the first call of R5SUB (WRITE 00, record SUB1 in R5EF.DAT), as it must be. r6val.cob (runs/r6val-002) initial values on first call of scaled P (9PP=300, SVPP9=-.004), SIGN LEADING SEPARATE, SIGN TRAILING, 9V99, QUOTES, HIGH-VALUE, group of display/COMP, 88 with THRU all in place. ProgramTable.CallProgram creates the instance on first CALL with no edition consult. cites: OK  §1985:X.2.4.2 GR1  (2.4.2 Programs in the Initial State)  the text is in GR1; OK  §1985:X.2.4.1 GR2  (2.4.1 Characteristics of a Program)  the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

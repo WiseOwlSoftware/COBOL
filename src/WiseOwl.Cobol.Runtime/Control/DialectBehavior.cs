@@ -316,14 +316,22 @@ public enum DialectBehavior
     /// is raised when the entry is presented (kb/Work PB5643; VCR row 7.83). Both editions are QUOTED; 1985 has no
     /// exception conditions. The consumer is <c>CobolReport.Accumulate</c>.</summary>
     SumSizeErrorRaisedAtAddition = 27,
+    /// <summary>§2002:13.16.32.3 GR6 and §2023:13.18.34.4 GR6 — a LINAGE value that violates the two value rules sets EC-I-O-LINAGE, and "the
+    /// LINAGE-COUNTER is set to 0 and remains at that value until the file is closed; and all subsequent WRITE statements referencing the file
+    /// cause the EC-I-O-LINAGE exception condition to continue to exist until the file is closed", so the OPEN OUTPUT that found the violation
+    /// leaves the file open, with a broken page. §1985:VII.3.7.4 GR2 says only "The value must be greater than zero"; the implementor's status
+    /// for the violation, '90', is a 9x of §1985:VII.1.3.5 GR5 (an unsuccessfully executed statement), and §1985:VII.4.3.4 GR1 makes only a
+    /// successful OPEN put the file in an open mode. So at <c>--std 85</c> the OPEN is refused, the file is not open, and a WRITE answers
+    /// '48', a CLOSE '42' (kb/Work PB5845; VCR row 7.84). Both editions are QUOTED. The consumer is <c>FileRegistry.SharedOpenAttempt</c>.</summary>
+    LinageViolatingOpenLeavesFileOpen = 28,
     /// <summary>§2014:14.9.24.3 GR6d2a and §2023:14.9.25.4 GR6d.2.a — "When a signed numeric item is the receiving item, the sign of
     /// the numeric value shall be represented in the receiving operand": the value after alignment and truncation, so a sender
     /// whose digits all truncate away stores a positive zero. §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1 say instead that "the
     /// sign of the sending operand is placed in the receiving item", so at <c>--std 85</c> and <c>--std 2002</c> <c>MOVE -100 TO
-    /// S99</c> stores a NEGATIVE zero (kb/Work PB5852; VCR row 7.84; DESIGN-data-model §2.1.1). Both editions are QUOTED. The
+    /// S99</c> stores a NEGATIVE zero (kb/Work PB5852; VCR row 7.85; DESIGN-data-model §2.1.1). Both editions are QUOTED. The
     /// consumers are <c>SendersSignStore.Applies</c>, which <c>StorageFormPass</c>'s promotion of the receivers that can be handed a
     /// negative zero and <c>MoveEmitter.ConvertSource</c>'s numeric store both ask.</summary>
-    MoveSignIsTheValuesSign = 28,
+    MoveSignIsTheValuesSign = 29,
 }
 
 /// <summary>
@@ -476,8 +484,13 @@ public static class DialectBehaviors
             "7.83", "§2014:13.18.54.3 GR3", "§2002:13.16.52.3 GR3",
             "a size error in an addition into a SUM counter raises EC-REPORT-SUM-SIZE at the addition only from COBOL-2014; "
             + "COBOL-2002 only sets the size error indicator there and raises the condition when the entry is presented"),
+        new(DialectBehavior.LinageViolatingOpenLeavesFileOpen, "linage-violating-open-leaves-file-open", 2002,
+            "7.84", "§2002:13.16.32.3 GR6", "§1985:VII.4.3.4 GR1",
+            "an OPEN OUTPUT whose LINAGE values violate the value rules answers '90' and leaves the file open, its LINAGE-COUNTER "
+            + "at 0 until the CLOSE, only from COBOL-2002; at COBOL-85 the '90' is an unsuccessful statement, the file is not "
+            + "open afterwards, and a WRITE answers '48' and a CLOSE '42'"),
         new(DialectBehavior.MoveSignIsTheValuesSign, "move-sign-is-the-values-sign", 2014,
-            "7.84", "§2014:14.9.24.3 GR6d2a", "§2002:14.8.24.3 GR4b1",
+            "7.85", "§2014:14.9.24.3 GR6d2a", "§2002:14.8.24.3 GR4b1",
             "a signed numeric receiving item of a MOVE takes the sign of the value it stores, so a sender truncated to zero stores a "
             + "positive zero, only from COBOL-2014; COBOL-85 and COBOL-2002 place the sign of the sending operand, so MOVE -100 TO S99 "
             + "stores a negative zero"),

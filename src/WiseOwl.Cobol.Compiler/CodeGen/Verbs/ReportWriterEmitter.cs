@@ -564,7 +564,10 @@ internal sealed class ReportWriterEmitter(
                 return (LoudValue("string",
                     $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §2023:13.18.53.3 SR4)"), rounding, false);
         }
-        return (move.ConvertSource(source, f.PrintItem, rounding: rounding), rounding, false);
+        // §1985:VI.6.19.4 GR5 / §2023:14.9.25.4 GR4: a GROUP sender's implicit MOVE converts nothing (kb/Work PB5807).
+        return (MoveClassifier.IsGroupSender(source)
+            ? move.GroupSenderImage(source, f.PrintItem)
+            : move.ConvertSource(source, f.PrintItem, rounding: rounding), rounding, false);
     }
 
     // ⛔ `ValueOperand(string raw)` IS GONE (kb/Work PB506), and this comment stands where it was so it is not
