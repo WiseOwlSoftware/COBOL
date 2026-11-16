@@ -574,8 +574,11 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         if (ctx.Edition.DialectLevel >= 2002 || ctx.Enclosing.Declarative is not { ReportGroup: { } group } use) return false;
         var report = ctx.Data.State.Reports.Visible.FirstOrDefault(r => r.Groups.Contains(group));
         if (report is null) return false;
+        // The rule is about the data-name the statement REFERENCES, under any decoration, so it asks Place.NamedItem: Place.Item
+        // read a reference to the alias RX, itself the control data item, as one to the item RX renames, and Place.DenotedItem
+        // (null for a reference-modified slice) let DISPLAY WS-KEY (1:1) escape the rule (kb/Work PB5801, review R1-1).
         foreach (var place in BoundReferences.Of(core).Places)
-            if (place.Item is { } item && ReportSectionBinder.ControlDataReferenceOf(report, group.Kind, item) is { } hit)
+            if (place.NamedItem is var item && ReportSectionBinder.ControlDataReferenceOf(report, group.Kind, item) is { } hit)
             {
                 ctx.Edition.Error(DiagnosticCatalog.ReportSourceControlData, "this statement of USE BEFORE REPORTING declarative "
                     + $"section '{use.SectionName}', which names the "

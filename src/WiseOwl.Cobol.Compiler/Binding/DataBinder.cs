@@ -5847,9 +5847,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Every data item a consumer may ask a <see cref="Place"/> of by item (<c>PlaceTablePass</c>, kb/Work PB2375): the
     /// forest, and the LINKAGE formals and the RETURNING item with their subordinates - a formal a method declares can sit
-    /// outside <see cref="ForestSlice.Roots"/>. Each item once.</summary>
-    internal IEnumerable<DataItem> PlaceableItems() => AllItems()
-        .Concat(Linkage.Formals.Select(f => f.Item).Concat(Linkage.Returning is { } ret ? [ret] : []).SelectMany(DataItem.SelfAndDescendantsOf))
+    /// outside <see cref="ForestSlice.Roots"/>. Each item once, and each with its level-66 entries
+    /// (<see cref="DataItem.SelfDescendantsAndAliasesOf"/>): a FILE STATUS, RELATIVE KEY, LINAGE, RECORD DEPENDING ON or
+    /// CONTROL operand may name one, and its place is asked by item (kb/Work PB5801).</summary>
+    internal IEnumerable<DataItem> PlaceableItems() => State.Forest.Roots
+        .Concat(Linkage.Formals.Select(f => f.Item).Concat(Linkage.Returning is { } ret ? [ret] : []))
+        .SelectMany(DataItem.SelfDescendantsAndAliasesOf)
         .Distinct(ReferenceEqualityComparer.Instance).Cast<DataItem>();
 
     /// <summary>The roots (a level-01 entry with no data-name too: ISO §2023:13.18.20.3 SR2 assumes FILLER, and its named

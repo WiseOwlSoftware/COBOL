@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: rewrite-invalid-key-relative-sequential
-      *> rules: [SR-14.9.35.3-2]
+      *> rules: [SR-14.9.35.3-2, 2002-SR-14.8.33.2-3]
       *> source-format: fixed
       *> portable: unverified
       *>---
