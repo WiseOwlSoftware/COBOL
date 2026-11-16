@@ -71,5 +71,11 @@
    "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PICMODE: the mode pushed after PIC/PICTURE (and PIC_IS) is the separator path for the character-string's leading delimiter; it skips only spaces and line ends, no edition arm, and the reader's code-location does not name it"
   ],
   "corrected": "REJECTS-LEGAL-SOURCE (cause b, the same at every edition): a comma or semicolon separator between PICTURE/PIC [IS] and the character-string (PICTURE; 9(3), PIC, 999, PICTURE IS, X(2)) is refused at --std 85 and --std 2023; SR2 admits it wherever the separator space stands. No kb/Work note found."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A comma or a semicolon separator between PICTURE (or PIC, or PICTURE IS) and the character-string is refused (PICTURE; 9(3), PIC, 999), where the rule lets either stand anywhere the separator space is used (every edition).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-15.md"
+ },
+ "work": "PB5867"
 }

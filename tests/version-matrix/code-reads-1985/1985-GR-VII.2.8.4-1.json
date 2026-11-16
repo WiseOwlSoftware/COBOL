@@ -77,5 +77,10 @@
    "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause: DialectBehavior.RecordContainsRangeBindsRecordSize (2002 on) decides whether a Format 3 range bounds a WRITE; at 85 Format 3 still frames as variable-length, so the length method applies to it with unenforced bounds"
   ],
   "corrected": ""
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The rule speaks of what a successful READ shows of the method, and every successful read conforms; the failure the refuter found is that no read succeeds, which is another rule (kb/Work PB5860).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10r.md"
  }
 }

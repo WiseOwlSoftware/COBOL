@@ -123,5 +123,11 @@
   "evidence": "Probes at --std 85: cfinal (CONTROLS ARE FINAL B A B OF G) COBOL1699, so FINAL and an intervening operand do not hide the repeat; ctwo (RD RPT CONTROLS B C with C REDEFINES G, plus a second RD CONTROL IS B) compiles and runs, so the screen is per report and overlapping-but-different items pass. Read ReportSectionBinder.cs#ScreenControlItemsDistinct: ReferenceEquals on the resolved items, below 2002 only. cite.py --check \"§1985:XIII.3.7.3 SR2\" \"Each recurrence of data-name-1 must identify a different data item\" -> OK. The reader's c08 (CONTROLS ARE B R66, R66 RENAMES B) compiles. The 1985 glossary defines Data Item as 'A unit of data (excluding literals) defined by a COBOL program' and RENAMES as 'alternative, possibly overlapping, groupings of elementary items' (§1985:VI.5.11): under the reading that 66 R66 RENAMES B names the same unit of data as B, the two recurrences identify one data item and c08 must be refused (under-rejects); under the reader's reading (a separate entry is a different data item) it conforms. The text does not decide it.",
   "edition-sites-missed": [],
   "corrected": ""
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "At --std 85 CONTROLS ARE B R66, where 66 R66 RENAMES B, compiles: the two names identify one data item and the rule requires each recurrence to identify a different one.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-14.md"
+ },
+ "work": "PB5866"
 }
