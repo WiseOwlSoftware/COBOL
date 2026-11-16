@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2.1.1-4",
+ "rule-digest": "0ce95dcbeaaa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+ "test-ref": "conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x16; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x17; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x18; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x19; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x20; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x21; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x39",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter at --std 85. §1985:IV.6.4.2.1.1 GR4: \"A DELETE, REWRITE, or START statement that specifies the INVALID KEY or NOT INVALID KEY phrase\". KEPT in substance by the 2023 text, no `next` recorded: the 2023 side has no catalog row until PB5451 and a new 1985 KEPT record is refused (DESIGN-spec-conformance-review.md 10.6). Witnesses: g85_x16, g85_x17, g85_x18, g85_x19, g85_x20, g85_x21, g85_x39."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2.1.1.1-3",
+ "rule-digest": "4f55dd9a3e2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+ "test-ref": "conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x14; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x15; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x38",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter at --std 85. §1985:IV.6.4.2.1.1.1 GR3: \"END-OF-PAGE or NOT END-OF-PAGE phrase when specified within a WRITE statement\". KEPT in substance by the 2023 text, no `next` recorded: the 2023 side has no catalog row until PB5451 and a new 1985 KEPT record is refused (DESIGN-spec-conformance-review.md 10.6). Witnesses: g85_x14, g85_x15, g85_x38."
+}

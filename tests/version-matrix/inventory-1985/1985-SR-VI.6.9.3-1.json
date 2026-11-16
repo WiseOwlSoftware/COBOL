@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-SR-VI.6.9.3-1",
  "rule-digest": "988a746788fc",
- "test-ref": "conformance:cases/_unassigned/wavef_dbg_proc",
+ "test-ref": "conformance:cases/VI.6.9@1985-CONTINUE-STATEMENT/g85_y91",
+ "notes": "retired-witness: conformance:cases/_unassigned/wavef_dbg_proc (its one CONTINUE is the filler sentence of a USE FOR DEBUGGING test, a single position of a rule about every position; g85_y91 puts CONTINUE in nine)",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

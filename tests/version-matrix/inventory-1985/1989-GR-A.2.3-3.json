@@ -1,6 +1,10 @@
 {
  "rule-id": "1989-GR-A.2.3-3",
  "rule-digest": "d30c91be0f6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindArithmeticStatementOperand",
+ "test-ref": "conformance:cases/A.2@1985-GENERAL-DESCRIPTION/g85_x43",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter, with the CHAR leg removed from g85_x43 (its value rests on an implementor-determined collating sequence without an ALPHABET clause). §1989:A.2.3 GR3: an integer function can be referenced where an integer operand is required and where a signed operand is allowed. g85_x43 passes FUNCTION INTEGER (-2.5) and FUNCTION MOD (FUNCTION INTEGER (-2.5) 2) through arithmetic and prints -03 and 01 (output equal to its .out at --std 85). The CHANGED relation to the 2023 rows stands.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

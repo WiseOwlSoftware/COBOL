@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: l1c24_relative_record_numbering
-      *> rules: []
+      *> rules: [GR-12.4.5.13.4-1]
       *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified

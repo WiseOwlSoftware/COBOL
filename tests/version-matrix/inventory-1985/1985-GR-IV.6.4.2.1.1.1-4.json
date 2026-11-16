@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2.1.1.1-4",
+ "rule-digest": "ff5d69c2876f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+ "test-ref": "conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x22; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x23; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x24; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x25; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x26; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x27; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x28; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x29; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x30; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x31; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x40",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter at --std 85. §1985:IV.6.4.2.1.1.1 GR4: \"SIZE ERROR or NOT ON SIZE ERROR phrase when specified within an ADD, COMPUTE, DIVIDE, MULTIPLY, or SUBTRACT statement\". KEPT in substance by the 2023 text, no `next` recorded: the 2023 side has no catalog row until PB5451 and a new 1985 KEPT record is refused (DESIGN-spec-conformance-review.md 10.6). Witnesses: g85_x22, g85_x23, g85_x24, g85_x25, g85_x26, g85_x27, g85_x28, g85_x29, g85_x30, g85_x31, g85_x40."
+}
