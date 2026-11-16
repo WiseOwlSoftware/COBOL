@@ -1,0 +1,12 @@
+{
+ "id": "set-up-down-index-amount-2002",
+ "description": "A SET Format 2 (index-arithmetic) amount that is an index-name or an index data item. §1985:VI.6.23.2 prints Format 2's amount as {identifier-3 | integer-2} and §1985:VI.6.23.3 SR3 requires \"Identifier-3 must reference an elementary numeric integer\"; an index-name and an index data item are neither, so the amount is refused at COBOL-85 (kb/Work PB5421). ISO/IEC 1989:2002 (14.8.35.1) prints arithmetic-expression-2 in that position, which admits them (the SET sending operands of VCR row 7.52 (c), the row set-arithmetic-expression-2002 for the other operands). The row exists so the refusal names the operand it refuses, an index, where set-arithmetic-expression-2002's words (an expression, a non-integer, a zero or negative integer) name three forms the operand is not (kb/Work PB5593). Gated in ONE place, SetBinder.GateCobol85IndexAmount, once per statement after the format is selected.",
+ "display": "a SET UP BY or DOWN BY amount that is an index-name or an index data item (the 1985 amount is an elementary numeric integer)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39.2 Format 2; ISO/IEC 1989:2002 14.8.35.1; §1985:VI.6.23.2; §1985:VI.6.23.3 SR3",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.52 (c) - the SET sending operands, a COBOL-85 restriction read from the printed formats (kb/Work PB5421, PB5593)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSIA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T.\n    05 E PIC X OCCURS 4 INDEXED BY IX IY.\nPROCEDURE DIVISION.\nMAIN.\n    SET IX TO 1.\n    SET IY TO 2.\n    SET IX UP BY IY.\n    STOP RUN.\n"
+}
