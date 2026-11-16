@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5825. §2023:14.9.49.4 GR6c applies the OUTPUT procedure "for any
       *>   file open in the output mode or in the process of being opened in the
-      *>   output mode"; the next sub-rule does the same for the extend mode. A
+      *>   output mode"; GR6e does the same for the extend mode. A
       *>   file open OUTPUT is such a file when an OPEN INPUT of it fails '41'
       *>   (§2023:9.1.13.7 1)), and with only OUTPUT and EXTEND procedures
       *>   declared nothing competes.
