@@ -734,17 +734,18 @@ public sealed class CopyProcessor(
             return new OneCopyResult(CopyOutcome.NotFound, $"{NotePrefix}{libraryName} — library text malformed for its byte-order mark", null);
         }
 
-        var normalizedMapped = NormalizeCopybookMapped(libraryText, copybookPath, copyFixed, standsInIdentificationDivision);
+        var edition = EditionInfo.Of(dialectLevel, permissive);
+        var normalizedMapped = NormalizeCopybookMapped(libraryText, copybookPath, copyFixed, standsInIdentificationDivision,
+            ParagraphWordAsReplaced(statement.Replacements, edition));
         string normalized = normalizedMapped.Text;
         // §2023:7.2.3.3 SR9: "The length of a text-word within pseudo-text and within library text shall be from 1 through
-        // 65,535 character positions" — the library-text half (the pseudo-text half is ScreenOperandPair's).
+        // 65,535 character positions" (§2002:7.1.2.2 SR11: 322) — the library-text half (the pseudo-text half is
+        // ScreenOperandPair's).
         for (int scan = 0; TextWordScanner.TryNext(normalized, ref scan, out var libraryWord);)
-            if (libraryWord.Kind != TextWordKind.DirectiveLine && libraryWord.End - libraryWord.Start > MaxTextWordLength)
+            if (libraryWord.Kind != TextWordKind.DirectiveLine && libraryWord.End - libraryWord.Start > edition.MaxTextWordLength)
             {
-                new OperandScreen(CopyOperandRules, _diagnostics, normalizedMapped).Content(libraryWord.Start,
-                    CopyOperandRules.Length, "The length of a text-word within pseudo-text and within library text",
-                    $"a text-word of {libraryWord.End - libraryWord.Start} characters is written in library text "
-                    + $"{libraryName}; the limit is 65,535");
+                new OperandScreen(CopyOperandRules, _diagnostics, normalizedMapped, edition).TextWordTooLong(libraryWord.Start,
+                    libraryWord.End - libraryWord.Start, $"library text {libraryName}");
                 break;
             }
         // §2023:7.2.3.4 GR10 (kb/Work R34): "If the REPLACING phrase is specified, the library text shall not
@@ -758,8 +759,11 @@ public sealed class CopyProcessor(
         bool libraryHoldsCopy = FindStatementKeyword(normalized, 0, "COPY") >= 0;
         // Before 2002 the combination is not the only violation: §1985:XII.2.4 GR12 forbids ANY COPY statement in the
         // text a COPY statement produces, so the edition's own introduction gate speaks for both arms (kb/Work PB5126),
-        // at the OUTER statement the library text belongs to.
-        var edition = EditionInfo.Of(dialectLevel, permissive);
+        // at the OUTER statement the library text belongs to. The text it judges IS the produced text in the one respect a
+        // replacing action could change: the REPLACING phrase can neither write nor remove a COPY word (ForbiddenIn;
+        // COPY is no text-word to match), but it can make a word the head of a comment-entry paragraph, whose COPY is part
+        // of the comment-entry (§1985:XII.2.3 SR10), and the conversion above read the entries of the replaced text
+        // (ParagraphWordAsReplaced; kb/Work PB5732).
         if (libraryHoldsCopy && !edition.Has(2002))
         {
             if (_diagnostics is not null)
@@ -778,6 +782,14 @@ public sealed class CopyProcessor(
             IsDebuggingLineAt(normalized, 0), _diagnostics, _referenceFormats);
         return new OneCopyResult(CopyOutcome.Found, copybookMapped.Text, copybookPath, copybookMapped);
     }
+
+    /// <summary>The spelling the REPLACING phrase of a COPY statement gives a word of its library text, for the reader of that text to
+    /// ask whether the word, once replaced, heads a comment-entry paragraph (<see cref="ReferenceFormatProcessor.NormalizeToFreeFormMapped(string, ReferenceFormatDiagnostics?, string, bool?, out ReferenceFormatMap, bool, IReadOnlyList{DirectiveStackOp}?, bool?, CommentEntryPins?, int, Func{string, string}?)"/>;
+    /// kb/Work PB5732): the one replacing action of <see cref="ApplyReplacements"/> run on that word alone, reporting nothing —
+    /// the statement's own replacing action reports. Null for a COPY statement with no REPLACING phrase.</summary>
+    private static Func<string, string>? ParagraphWordAsReplaced(IReadOnlyList<Replacement> replacements, EditionInfo edition)
+        => replacements.Count == 0 ? null
+            : word => ApplyReplacements(MappedText.Identity(word, ""), replacements, CopyResultRule, edition, false, null, null).Text;
 
     /// <summary>The first library other than the default one that a COPY statement of this compilation group named and a
     /// library place holds (null while there is none), and the unqualified COPY statements met before it — each with the
@@ -1122,7 +1134,8 @@ public sealed class CopyProcessor(
     /// when that is unknown, and then detected as the compilation group's is). The text's own &gt;&gt;SOURCE FORMAT
     /// directives switch it (1), 5)); the resulting map is registered so a COPY inside this library text starts its
     /// library text in the format in effect THERE. Per line: the copybook's path and physical line.</summary>
-    private MappedText NormalizeCopybookMapped(string text, string copybookPath, bool? copyFixed, bool? inIdentificationDivision)
+    private MappedText NormalizeCopybookMapped(string text, string copybookPath, bool? copyFixed, bool? inIdentificationDivision,
+        Func<string, string>? paragraphWordAsReplaced)
     {
         // Library text is read by the same §2023:6.5 walker WITH the compilation's reference-format diagnostics (§2023:6.5: the rules
         // of logical conversion apply to lines "of source text and library text"), sited at the copybook's own file and
@@ -1132,7 +1145,8 @@ public sealed class CopyProcessor(
             implicitOps: implicitFormatOps?.For(copybookPath),   // GR14's implicit ops written IN this library text
             startsInIdentificationDivision: inIdentificationDivision,
             pins: commentEntryPins,   // a candidate of this library text a previous run proved to be program text (kb/Work PB4281)
-            inclusion: ++_inclusions);   // … in THIS inclusion of it (kb/Work PB4487)
+            inclusion: ++_inclusions,   // … in THIS inclusion of it (kb/Work PB4487)
+            paragraphWordAsReplaced: paragraphWordAsReplaced);
         _referenceFormats[copybookPath] = formats;
         return mapped;
     }
@@ -1303,23 +1317,27 @@ public sealed class CopyProcessor(
     /// (COPY) and §2023:7.2.4.3 (REPLACE), numbered differently — and checked by ONE screen,
     /// <see cref="ScreenOperandPair"/> (kb/Work PB1353); a row holds one statement's rule numbers.</summary>
     private sealed record OperandRules(string Statement, string Clause, int PseudoText1, int PartialWord1,
-        int PartialWord2, int Literal, int Length, int DirectiveLines, ResultRule Result);
+        int PartialWord2, int Literal, int Length, int DirectiveLines, ResultRule Result, string LengthQuote,
+        string Length2002, string LengthQuote2002);
 
-    /// <summary>§2023:7.2.3.3 SR6, SR11, SR12, SR13, SR9, SR10.</summary>
-    private static readonly OperandRules CopyOperandRules = new("COPY", "§2023:7.2.3.3", 6, 11, 12, 13, 9, 10, CopyResultRule);
+    /// <summary>§2023:7.2.3.3 SR6, SR11, SR12, SR13, SR9, SR10; the length rule of 2002 is §2002:7.1.2.2 SR11.</summary>
+    private static readonly OperandRules CopyOperandRules = new("COPY", "§2023:7.2.3.3", 6, 11, 12, 13, 9, 10, CopyResultRule,
+        "The length of a text-word within pseudo-text and within library text shall be from 1 through 65,535 character positions",
+        "§2002:7.1.2.2 SR11",
+        "The length of a text-word within pseudo-text and within library text shall be from 1 through 322 character positions");
 
-    /// <summary>§2023:7.2.4.3 SR3, SR5, SR6, SR7, SR9, SR10.</summary>
-    private static readonly OperandRules ReplaceOperandRules = new("REPLACE", "§2023:7.2.4.3", 3, 5, 6, 7, 9, 10, ReplaceResultRule);
-
-    /// <summary>The longest text-word pseudo-text (and COPY library text) may hold (§2023:7.2.3.3 SR9 / §2023:7.2.4.3 SR9).</summary>
-    private const int MaxTextWordLength = 65_535;
+    /// <summary>§2023:7.2.4.3 SR3, SR5, SR6, SR7, SR9, SR10; the length rule of 2002 is §2002:7.1.3.2 SR9.</summary>
+    private static readonly OperandRules ReplaceOperandRules = new("REPLACE", "§2023:7.2.4.3", 3, 5, 6, 7, 9, 10, ReplaceResultRule,
+        "The length of a text-word within pseudo-text shall be from 1 through 65,535 characters",
+        "§2002:7.1.3.2 SR9",
+        "The length of a text-word within pseudo-text shall be from 1 through 322 characters");
 
     /// <summary>Where a REPLACING phrase reports: its statement's operand rules and the statement's diagnostics, at
     /// SOURCE origins (kb/Work PB82). One instance per statement, so the edition gate of the LEADING / TRAILING phrases
-    /// reports once per statement. <paramref name="edition"/> is null where no edition gate applies (the line-map replay
-    /// of REPLACE, and the library-text length check that only reports content).</summary>
-    private sealed class OperandScreen(OperandRules rules, DiagnosticBag? diagnostics, MappedText mapped,
-        EditionInfo? edition = null)
+    /// reports once per statement. <paramref name="edition"/> is the edition the operands are judged at: the limit of a
+    /// text-word (<see cref="EditionInfo.MaxTextWordLength"/>), what a text-word is made of
+    /// (<see cref="EditionInfo.TextWordsAreCobolCharacters"/>) and the identifier operand's subscript rule.</summary>
+    private sealed class OperandScreen(OperandRules rules, DiagnosticBag? diagnostics, MappedText mapped, EditionInfo edition)
     {
         private bool _partialWordGated;
 
@@ -1331,9 +1349,9 @@ public sealed class CopyProcessor(
         /// REPLACE share the one parser of their operands, so this is the ONE place the gate is asked.</summary>
         public void PartialWord(in TextWord phrase)
         {
-            if (edition is not { } e || diagnostics is null || _partialWordGated) return;
+            if (diagnostics is null || _partialWordGated) return;
             _partialWordGated = true;
-            ConstructRegistry.Check(e, new BagSink(diagnostics, mapped.LocateAt(phrase.Start)),
+            ConstructRegistry.Check(edition, new BagSink(diagnostics, mapped.LocateAt(phrase.Start)),
                 Constructs.ReplacingPartialWord2002, $"{Rules.Statement} REPLACING {phrase.Value.ToUpperInvariant()}");
         }
 
@@ -1347,19 +1365,18 @@ public sealed class CopyProcessor(
         /// operand at any edition (COBOL1641).</summary>
         public void CopyWord(in TextWord word)
         {
-            if (edition is not { } e || diagnostics is null || Rules.Statement != "COPY"
-                || (e.Year == 2023 && !e.Permissive)) return;
+            if (diagnostics is null || Rules.Statement != "COPY" || (edition.Year == 2023 && !edition.Permissive)) return;
             bool isCopy = word.IsWord("COPY");
-            bool isDirective = e.Year >= 2002 && word.Span.Equals(">>", StringComparison.Ordinal);
-            bool isDebug = e.Year == 2002 && CobolKeywords.Same(word.Span, ">>D");
+            bool isDirective = edition.Year >= 2002 && word.Span.Equals(">>", StringComparison.Ordinal);
+            bool isDebug = edition.Year == 2002 && CobolKeywords.Same(word.Span, ">>D");
             if (!isCopy && !isDirective && !isDebug) return;
             string clause, quoted;
-            if (e.Year == 85)
+            if (edition.Year == 85)
             {
                 clause = "§1985:XII.2.3 SR6";
                 quoted = "Word-1 or word-2 may be any single COBOL word except 'COPY'";
             }
-            else if (e.Year == 2002)
+            else if (edition.Year == 2002)
             {
                 clause = "§2002:7.1.2.2 SR10";
                 quoted = "Word-1 or word-2 may be any single COBOL word except 'COPY', the compiler directive indicator, "
@@ -1377,10 +1394,58 @@ public sealed class CopyProcessor(
         }
 
         /// <summary>COBOL2572 — an operand whose content breaks one of <see cref="Rules"/>.</summary>
-        public void Content(int at, int rule, string quoted, string what)
+        public void Content(int at, int rule, string quoted, string what) => Content(at, $"{Rules.Clause} SR{rule}", quoted, what);
+
+        private void Content(int at, string citation, string quoted, string what)
             => diagnostics?.ReportError(Editions.Diagnostics.DiagnosticCatalog.ReplacingOperandContent.Code,
-                $"{Rules.Statement} statement: {what} — {Rules.Clause} SR{rule}: \"{quoted}\"",
-                mapped.LocateAt(at), default);
+                $"{Rules.Statement} statement: {what} — {citation}: \"{quoted}\"", mapped.LocateAt(at), default);
+
+        /// <summary>The longest text-word the edition allows (<see cref="EditionInfo.MaxTextWordLength"/>).</summary>
+        public int MaxTextWordLength => edition.MaxTextWordLength;
+
+        /// <summary>COBOL2572 — a text-word longer than the edition allows: 65,535 character positions (§2023:7.2.3.3 SR9,
+        /// §2023:7.2.4.3 SR9), 322 at COBOL-2002 (§2002:7.1.2.2 SR11, §2002:7.1.3.2 SR9; kb/Work PB5700).
+        /// <paramref name="place"/> names where the text-word is written.</summary>
+        public void TextWordTooLong(int at, int length, string place)
+        {
+            bool is2002 = edition.Year == 2002;
+            Content(at, is2002 ? Rules.Length2002 : $"{Rules.Clause} SR{Rules.Length}",
+                is2002 ? Rules.LengthQuote2002 : Rules.LengthQuote,
+                $"a text-word of {length} characters is written in {place}; the limit is {edition.MaxTextWordLength:N0}");
+        }
+
+        /// <summary>COBOL2572 — a text-word made of a character outside the COBOL character repertoire, below COBOL-2014: a
+        /// text-word is "any other sequence of contiguous COBOL characters bounded by separators" (§2002:7.1.1.4 item 3; §1985:III.2 item 3),
+        /// so such characters form no text-word and no operand holds one (kb/Work PB5608). From 2014 a text-word is a sequence of
+        /// characters "from the compile-time coded character set" (§2014:7.2.1.4 item 3), which the screen does not judge.</summary>
+        public void TextWordCharacters(in TextWord word)
+        {
+            if (!edition.TextWordsAreCobolCharacters || diagnostics is null || word.Kind != TextWordKind.CharacterString) return;
+            foreach (var rune in word.Span.EnumerateRunes())
+            {
+                int codePoint = rune.Value;
+                if (!CobolCharacterRepertoire.IsOutsideRepertoire(codePoint, edition.Year)) continue;
+                bool is1985 = edition.Year == 85;
+                Content(word.Start, is1985 ? "§1985:III.2" : "§2002:7.1.1.4",
+                    is1985 ? "Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators"
+                           : "any other sequence of contiguous COBOL characters bounded by separators, except for: comments and the word 'COPY'",
+                    $"the text-word '{word.Value}' holds U+{codePoint:X4}, which is no character of the COBOL character repertoire");
+                return;
+            }
+        }
+
+        /// <summary>COBOL2572 — a subscript of a text-1 or text-2 identifier that is an arithmetic expression: "If subscripting is
+        /// specified, it shall not include any arithmetic expressions as subscripts with the exception of a single literal or identifier,
+        /// or an identifier plus or minus an integer" (§2002:7.1.2.2 SR9; §2014:7.2.2.2 SR9; kb/Work PB5700).</summary>
+        public void Identifier(IReadOnlyList<TextWord> words)
+        {
+            if (diagnostics is null || Rules.Statement != "COPY" || !edition.ReplacingIdentifierSubscriptsRestricted) return;
+            if (ReplacingIdentifierSubscripts.FirstArithmeticSubscript(words) is not var (start, end)) return;
+            Content(start, edition.Year == 2002 ? "§2002:7.1.2.2 SR9" : "§2014:7.2.2.2 SR9",
+                "If subscripting is specified, it shall not include any arithmetic expressions as subscripts with the exception of a "
+                + "single literal or identifier, or an identifier plus or minus an integer",
+                $"the subscript '{words[0].Source[start..end].Trim()}' is an arithmetic expression");
+        }
 
         /// <summary>COBOL2573 — a pseudo-text delimiter not separated as §2023:8.3.5 6) requires.</summary>
         public void Delimiter(int at, string what)
@@ -1405,9 +1470,9 @@ public sealed class CopyProcessor(
                     screen.Content(e.Start, r.DirectiveLines, "Compiler directive lines shall not be specified within "
                         + "pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2",
                         "a compiler directive line is written inside a REPLACING operand");
-                else if (e.End - e.Start > MaxTextWordLength)
-                    screen.Content(e.Start, r.Length, "The length of a text-word within pseudo-text",
-                        $"a text-word of {e.End - e.Start} characters is written in pseudo-text; the limit is 65,535");
+                else if (e.End - e.Start > screen.MaxTextWordLength)
+                    screen.TextWordTooLong(e.Start, e.End - e.Start, "pseudo-text");
+                screen.TextWordCharacters(e);
             }
         }
         if (kind == ReplaceKind.Whole)
@@ -1608,6 +1673,7 @@ public sealed class CopyProcessor(
             }
             if (depth != 0) break;   // the text ended inside the group: the statement's own end reports it
         }
+        screen.Identifier(words);
         return new Operand(c.Slice(start, c.Pos), words, start, IsPseudoText: false);
     }
 

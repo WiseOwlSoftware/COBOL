@@ -39,6 +39,26 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// ONE predicate, asked by every clause that admits the subscript (docs/conformance/3/D-CLAUSE-SUBSCRIPT.md).</summary>
     public bool SubscriptedClauseOperands => Year == 2002;
 
+    /// <summary>⛔ THE LONGEST TEXT-WORD A COPY LIBRARY TEXT, A COPY REPLACING PSEUDO-TEXT OR A REPLACE PSEUDO-TEXT MAY HOLD
+    /// (kb/Work PB5700): 322 character positions at COBOL-2002 (§2002:7.1.2.2 SR11 "shall be from 1 through 322 character
+    /// positions"; §2002:7.1.3.2 SR9), 65,535 from 2014 (§2014:7.2.2.2 SR11; §2023:7.2.3.3 SR9). COBOL-85 only says "The implementor
+    /// must allow a length from 1 through 322 characters" (§1985:XII.2.3 SR8), a floor that leaves the ceiling to the implementor,
+    /// and WiseOwl COBOL allows the later editions' 65,535 there (inventory row 1985-SR-XII.2.3-8).</summary>
+    public int MaxTextWordLength => Year == 2002 ? 322 : 65_535;
+
+    /// <summary>Whether a text-word is a sequence of contiguous COBOL CHARACTERS (§1985:III.2 item 3 "Any other sequence of contiguous COBOL
+    /// characters"; §2002:7.1.1.4 item 3 "any other sequence of contiguous COBOL characters bounded by separators") rather than, from 2014,
+    /// "any other character or sequence of contiguous characters from the compile-time coded character set" (§2014:7.2.1.4 item 3): below
+    /// 2014 a character outside the edition's COBOL character repertoire is in no text-word (kb/Work PB5608).</summary>
+    public bool TextWordsAreCobolCharacters => Year < 2014;
+
+    /// <summary>Whether the identifier operands of a COPY REPLACING phrase (text-1 and text-2) keep the subscript restriction of
+    /// §2002:7.1.2.2 SR9 / §2014:7.2.2.2 SR9: "If subscripting is specified, it shall not include any arithmetic expressions as
+    /// subscripts with the exception of a single literal or identifier, or an identifier plus or minus an integer". COBOL-2023 removed the
+    /// operand form (Annex E.2), so its text holds no such rule; <c>--permissive</c> keeps accepting the removed form under the
+    /// 2014 rule, as the word operand's SR10 does (kb/Work PB5085, PB5700).</summary>
+    public bool ReplacingIdentifierSubscriptsRestricted => Year is 2002 or 2014 || (Year == 2023 && Permissive);
+
     /// <summary>⛔ THE ONE HOME OF THE EXCESS ARM OF THE DIGIT CAPACITY (kb/Work PB5529): the descriptor a count of
     /// <paramref name="digits"/> digit positions earns when it passes <see cref="MaxDigits"/> — more than 31 is
     /// <see cref="Diagnostics.DiagnosticCatalog.DigitCapacityOver31"/> at every edition, 19–31 at COBOL-85 is
