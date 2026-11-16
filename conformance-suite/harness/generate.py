@@ -1400,19 +1400,21 @@ def repository_inputs() -> tuple[Inputs, list[Problem]]:
             register = schema.register_items()
         return schema.anchor_for(row) is not None and row.get("rule-id") in register
 
+    catalog_text: dict[str, dict[str, str]] = {}
+
     def device_accept_rule(rule_id: str) -> bool:
         """An ACCEPT statement's general rule whose text speaks of its device and not of a screen: the rules of the
         transfer of data from the input device (§1985:VI.6.5.4 GR1-GR5, §2023:14.9.1.4 GR1-GR5), read from the rule
-        catalog of the edition that states the rule, so a rule the next edition adds is covered with no list to edit."""
+        catalog of the edition that states the rule (an input of the target, like the inventory view's), so a rule the
+        next edition adds is covered with no list to edit."""
         row = rows[rule_id]
         if row.get("kind") != "GR" or "ACCEPT STATEMENT" not in str(row.get("subject", "")).upper():
             return False
-        edition = older[rule_id].year if rule_id in older else schema.newest.year
-        import cite  # noqa: PLC0415  (scripts/spec: the rule catalogs' reader; loaded only when a test needs the answer)
-        book = cite.rule_book(edition)
-        rule = next((r for r in book.rules.get(row["section"], ())
-                     if (r.kind, r.ordinal, r.sublist) == (row["kind"], row["ordinal"], row["sublist"])), None)
-        text = rule.text.lower() if rule is not None else ""
+        catalog = (older[rule_id] if rule_id in older else schema.newest).catalog
+        if catalog not in catalog_text:
+            catalog_text[catalog] = {r["id"]: r["text"] for r in
+                                     json.loads((REPO / catalog).read_text(encoding="utf-8"))["rules"]}
+        text = catalog_text[catalog].get(rule_id, "").lower()
         return bool(re.search(r"\bdevice\b", text)) and "screen" not in text
 
     spec = SPEC_PATH.read_text(encoding="utf-8")

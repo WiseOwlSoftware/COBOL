@@ -70,6 +70,8 @@
         "conformance-suite/harness/generate.py|Reader.read_tree|folder.is_dir()": "each entry the traced listing of a tree under conformance-suite/ returned",
         "conformance-suite/harness/generate.py|Reader._read_folder|f.is_dir()": "each entry the traced listing of a clause folder under conformance-suite/ returned (both calls)",
         "conformance-suite/harness/generate.py|Reader._read_folder|(folder / name).is_file()": "a test's declared file, in its clause folder under conformance-suite/",
+        "conformance-suite/harness/generate.py|Reader._check_run_files|path.is_file()": "a test's declared standard input (`stdin`), in its clause folder under conformance-suite/",
+        "conformance-suite/harness/generate.py|Reader._check_run_files|(folder / case.output_file[1]).is_file()": "a test's declared output file's expected content (`output-file`), in its clause folder under conformance-suite/",
         "conformance-suite/harness/generate.py|load_sidecars|directory.is_dir()": "DIAGNOSTICS_DIR and OPTIONS_DIR: conformance-suite/wiseowl/diagnostics and conformance-suite/wiseowl/options",
         "conformance-suite/harness/generate.py|load_sidecars|f.is_file()": "each entry the traced listing of those two directories returned",
         "conformance-suite/harness/generate.py|load_implementor_defined|path.is_file()": "IMPLEMENTOR_DEFINED_PATH: conformance-suite/implementor-defined.json",
