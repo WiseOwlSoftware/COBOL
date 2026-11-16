@@ -40,3 +40,5 @@ abnormal termination). Four 2002 goldens witness them (`14.8.23@2002-MERGE-STATE
 `pb5612_merge_giving_open_fatal_2002`, `pb5612_merge_in_output_procedure_fatal_2002`,
 `14.8.36@2002-SORT-STATEMENT/pb5612_nested_sort_in_input_procedure_fatal_2002`), and the four rows are recorded CONFORMS and
 closed (2002 GAP 1897 to 1893 on the merged tree).
+The merge also brought a KEPT 2002 record (2002-GR-14.8.23.3-1) whose own witness named pb993 at its old folder; it is
+re-cited at `14.9.40-SORT/` with the old path retired (`lineage_reads.py --check` GREEN).

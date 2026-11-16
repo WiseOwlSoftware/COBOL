@@ -11,3 +11,8 @@ Witnesses (accept [2002]): `14.8.23@2002-MERGE-STATEMENT/pb5612_merge_using_open
 `pb5612_merge_in_output_procedure_fatal_2002`, `14.8.36@2002-SORT-STATEMENT/pb5612_nested_sort_in_input_procedure_fatal_2002`.
 Recorded CONFORMS through `record_verdicts.py --edition 2002` (2002-GR-14.8.36.3-9 DIVERGES to CONFORMS); the six rows are this
 note's `closes_rows`.
+
+**The merge's one red (LINEAGE READS).** Main's KEPT record `2002-GR-14.8.23.3-1` (PB5675) named pb993 at its old folder,
+`14.6.13.1.3-Fatal-exception-conditions/`, which this branch moved to `14.9.40-SORT/`. It was re-cited through
+`record_verdicts.py --edition 2002` with a `retire-witnesses` of the old path; `lineage_reads.py --check` is GREEN. No other
+record names the old path (grep outside the retired-witness marks and the DEVLOG: nothing).
