@@ -1,4 +1,4 @@
-## The 1985 golden lane, first landing: 124 KEPT rows gain a 1985 case of their own, 1985 GAP 844 to 720
+## The 1985 golden lane, first landing: 124 KEPT rows gain a 1985 case of their own, 1985 GAP 780 to 656
 
 The gl1985 lane writes a new conformance case, accepted at 85 only and citing the row's own 1985 catalog id, for each
 KEPT 1985 row that kb/Work PB5675 left without an own-edition witness and that PB5730's widening cannot reach. This
@@ -23,8 +23,11 @@ Each was run on this branch's build at `--std 85` with stdin closed:
 - The one refusal-only witness, 1985-SR-VI.4.5.3-5, is for a diagnosable row.
 
 **Records.** `record_verdicts.py --edition 1985` took 124 witness-only `{"rule-id","test-ref"}` records:
-`rows changed: 124`, `witnesses: +130 test-ref`, `GAP: 844 → 720`. `lineage_reads.py --check 1985` is GREEN, with 694
-KEPT rows holding a witness of their own. `witness-batch --edition 1985` wrote 0 records before and after.
+`rows changed: 124`, `witnesses: +130 test-ref`, `GAP: 844 → 720` on the branch's base. kb/Work PB5730's widening
+landed while this branch gated, and it closed 64 other rows. After merging it, `inventory_view.py --summary` reads
+`1985 2274 rules · 656 GAP (614 inherited, no own-edition witness · 14 never adjudicated · 28 open)`, against main's
+780. `lineage_reads.py --check 1985` is GREEN, with 758 KEPT rows holding a witness of their own. `witness-batch
+--edition 1985` wrote 0 records before and after each merge. No name collided with PB5730's cases.
 
 **Not closed (12 rows).**
 - 1985-GR-VI.6.5.4-1 to -5 (ACCEPT GR1-GR5): the harness runs every case with stdin closed, so no case can transfer
