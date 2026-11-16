@@ -331,9 +331,10 @@ the usage-keyed arm in `ClassOfItem` beside `Usage.Index`'s.
 
 `IntegerViolation` decides §2023:15.3 type 6 — "an arithmetic expression that will always result in an
 integer value **or** an integer data item" — for four operand shapes: a DATA ITEM, a nested numeric function
-(§2023:8.4.3.2.3 SR11), a numeric LITERAL, and the three provably-not-always-integral EXPRESSION shapes (a bare-item/literal
-quotient at the root; a non-integral item appearing purely as additive leaves with an uncancelled net
-coefficient; and — kb/Work PB617 — an additive spine whose literal-only terms fold EXACTLY to a non-integer constant
+(§2023:8.4.3.2.3 SR11), a numeric LITERAL, and the provably-not-always-integral EXPRESSION shapes (an item appearing purely as
+additive leaves, under any product or quotient by a literal, with an uncancelled net coefficient — kb/Work PB5832, which replaced
+the root-only bare-item/literal quotient arm; a quotient of two independent items; a numeric function over a bare item; and
+— kb/Work PB617 — an additive spine whose literal-only terms fold EXACTLY to a non-integer constant
 while every other term is provably integral, so `CHAR(1.5 + 1)` and `CHAR(W-I + 0.5)` are refused on VALUE and
 `CHAR(1.5 + 0.5)` is admitted; the fold is the algebraic value, never an arithmetic mode's rounded intermediate);
 every other expression fails open, because "always results in an integer value" is not generally
@@ -956,13 +957,26 @@ said 24:00:00, §2023:15.54.4 r2). Goldens `pb1379_time_form_floor_float_carrier
 `NumericRenderer.DeU` first — the bounded intake had no arm for it and a COMP-5 PIC 9(19+) operand reached Roslyn as a
 CS1503). Each landing asks `CobolNum.HasFraction` / `CobolDec.HasFraction` / the binary64 truncation test of the EXACT value
 and raises EC-ARGUMENT-FUNCTION (§2023:15.3's closing paragraph) before the truncating narrowing; `IntrinsicArgumentRules`'s
-compile-time screen stays fail-open (it can only refuse the provably non-integral), so `FACTORIAL(X / 2 + 1)` with X = 5 is a
-run-time condition. `IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers` walks `NumXCarrier`.
+compile-time screen stays fail-open (it can only refuse the provably non-integral), so `FACTORIAL(X * Y / Z)` with X = 5, Y = 1 and
+Z = 2 is a run-time condition. `IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers` walks `NumXCarrier`.
 Goldens `pb1526_integer_argument_has_integral_value`, `pb638_unsigned_wide_item_as_integer_argument`.
 
-The compile-time screen's witness shapes are three, each with a valuation that is not an integer
-(`IntrinsicArgumentRules.NotAlwaysIntegral`): a quotient of a bare item by a literal, an additive spine with an uncancelled
-scaled item (or a non-integral constant), and a POWER with a witness (`PowerWitness`, kb/Work PB5208, PB5345). A power is read
+The compile-time screen's witness shapes are four, each with a valuation that is not an integer
+(`IntrinsicArgumentRules.NotAlwaysIntegral`): an additive spine with an uncancelled item (or a non-integral constant), a POWER
+with a witness (`PowerWitness`, kb/Work PB5208, PB5345), a quotient of two independent items and a numeric function over a bare
+item (`WitnessOf`, kb/Work PB5832). **A product or quotient by a literal is a SCALING of the spine, not a shape of its own**
+(PB5832): `CollectAdditive` reads `E * c`, `c * E` and `E / c` (c an exact literal fold) as E under a rational factor, so an item's net
+coefficient is a rational and `ItemWitness` asks one question of every such shape: does `coefficient × 10^(−scale)` make a whole number?
+`WN * 0.5`, `WN / 2 + 1` and `W-S * 2 + 65.5` are refused, `WN * 0.5 * 2`, `WN / 2 * 2` and `W-S / 0.1` admitted. This is the
+COBOL-85 arm too: §1989:A.2.2 AR4 requires "an arithmetic expression which will always result in an integer value", and 85 has no
+run-time EC-ARGUMENT-FUNCTION net, so the screen carries no edition switch (it refuses at 2023, where "shall be specified" allows it).
+A quotient of two numeric items that are not the same item and cannot share storage (`StorageOverlap`) is 10^(sb−sa) / 3 or / 7 at
+A = one least value and B = 3 or 7 times its own, so `MOD (A / B, 3)` is refused; a REDEFINES pair, a table's two subscripts and `A / A`
+fail open. A call of SQRT, LOG, LOG10, EXP, SIN, COS, TAN or ATAN over a bare item of scale >= 0 is irrational or transcendental at two
+granules (the proof is on `NonIntegerAtTwoGranules`), so `CHAR (FUNCTION SQRT (N) + 64)` is refused; every other numeric function
+(MEAN, MEDIAN, RANDOM, ANNUITY ...) stays opaque. A witness term (power, quotient or function) counts only as the ONE such term of a sum
+whose other terms are integral for every valuation; a power or quotient under a coefficient other than 1 (`(N ** -1) * 2520`) fails open.
+A power is read
 wherever `CollectAdditive` meets it: at the root, under a negation, or as the ONE power term of a sum whose other terms are
 integral for every valuation. Its base is a bare numeric item (it can hold 3 × 10^(−s), whose negative integer power is
 10^(sk) / 3^k and whose non-integral power is irrational) or an integer literal c with |c| >= 2 (c ** −m is 1 / c^m, and
@@ -974,8 +988,10 @@ recorded and pinned: an expression base, a power under a product, a literal base
 base over a fraction exponent item, a sum of two powers or of a power and a non-integral constant, and a power sharing its item
 with another term of the sum. `IntrinsicTypeSixPowerShapesDriftTests` holds the table (each shape refused or admitted, with its
 reason) and forces a verdict for every `BoundExpr` node type, so a new node cannot fail open unchosen.
-Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`, `pb5345-power-literal-base`;
-complements `pb5208_power_integral_exponents`, `pb5345_power_failopen_shapes`.
+Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`, `pb5345-power-literal-base`,
+`pb5832-product-by-literal`, `-quotient-in-sum`, `-item-quotient`, `-numeric-function-term`, `-date-of-integer-function-term`,
+`-day-of-integer-function-term`; complements `pb5208_power_integral_exponents`, `pb5345_power_failopen_shapes`,
+`pb5832_scaled_integral_shapes`.
 
 ### An argument rule that differs by edition is one edition arm, never a second copy (PB5130, PB5161, PB5162).
 
