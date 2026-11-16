@@ -1029,6 +1029,21 @@ public sealed class DataItem
         foreach (var d in DescendantsOf(item)) yield return d;
     }
 
+    /// <summary>⛔ EVERY DATA ITEM OF <paramref name="item"/>'S TREE A DATA-NAME CAN REFERENCE: <see cref="SelfAndDescendantsOf"/>
+    /// with each item's level-66 entries after it (kb/Work PB5801). A level-66 entry is a data item of its own — "all of the
+    /// data attributes of data-name-2 become the data attributes for data-name-1" (§1985:VI.5.11.4 GR2; §2002:13.16.43.3 GR1 and
+    /// §2023:13.18.45.4 GR1 add its storage) — so a clause that may name a data item may name it, but it rides <see cref="Renames66"/>, not
+    /// <see cref="Children"/>, and a walk of the storage tree never meets it. A set of items a reference can resolve to is
+    /// this walk, never the storage walk.</summary>
+    public static IEnumerable<DataItem> SelfDescendantsAndAliasesOf(DataItem item)
+    {
+        foreach (var d in SelfAndDescendantsOf(item))
+        {
+            yield return d;
+            foreach (var alias in d.Renames66) yield return alias;
+        }
+    }
+
     private static void PushChildren(Stack<DataItem> pending, DataItem item)
     {
         for (int i = item.Children.Count - 1; i >= 0; i--) pending.Push(item.Children[i]);

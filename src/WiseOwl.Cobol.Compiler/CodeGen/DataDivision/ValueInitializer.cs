@@ -468,7 +468,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// (ISO §2023:8.3.3.6.2) — or null when it is not one of those (a Format-6 <c>ALL literal-1</c> is the literal
     /// path below). The ONE detector shared by <see cref="FigurativeInitializer"/>, the VCR 35 numeric-edited
     /// figurative-ZERO branch, and the §2023:13.18.63.4 GR5 group-area rule
-    /// (<see cref="GroupValueSlicer.AreaTextOf"/> — internal for that third rider, kb/Work PB184); it reads the
+    /// (<see cref="GroupValueSlicer.AreaOf"/> — internal for that third rider, kb/Work PB184); it reads the
     /// operand through <see cref="FigurativeConstants.Classify"/>, THE one classifier the SET store and the
     /// condition test read it through as well (kb/Work PB461).</summary>
     internal static char? FigurativeKind(string raw) => FigurativeConstants.Classify(raw).Kind;

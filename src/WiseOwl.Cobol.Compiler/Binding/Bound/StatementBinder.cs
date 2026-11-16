@@ -586,13 +586,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// A nested statement drained its own before this one is asked.</summary>
     private bool ReferencesDebugItem(BoundStatement statement, int preOpMark, int identificationMark)
     {
-        if (BoundReferences.Of(statement).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
+        if (BoundReferences.Of(statement).Places.Any(place => Ctx.Table.IsDebugRegister(place.NamedItem))) return true;
         foreach (var preOp in data.Procedure.PendingPreOps.Since(preOpMark))
-            if (BoundReferences.Of(preOp).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
+            if (BoundReferences.Of(preOp).Places.Any(place => Ctx.Table.IsDebugRegister(place.NamedItem))) return true;
         // A receiver's identification is the same evaluation, taken off the pre-op queue to run at the receiver's store (PB5386).
         foreach (var identification in data.Procedure.ReceiverIdentifications.Since(identificationMark))
             foreach (var step in identification.Open)
-                if (BoundReferences.Of(step).Places.Any(place => Ctx.Table.IsDebugRegister(place.Item))) return true;
+                if (BoundReferences.Of(step).Places.Any(place => Ctx.Table.IsDebugRegister(place.NamedItem))) return true;
         return false;
     }
 
