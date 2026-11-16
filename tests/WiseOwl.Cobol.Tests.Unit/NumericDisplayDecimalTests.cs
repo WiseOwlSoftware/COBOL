@@ -144,7 +144,7 @@ public sealed class NumericDisplayDecimalTests
     // Every expected value is GnuCOBOL 3.2.0's own result for the same declaration and the same typed text
     // (cobc -x -std=default, measured 2026-10-23 over 1,300 receiver and text pairs; the survey is in DOC-A.1-1), as
     // an UNSCALED value: the PICTURE's digits with the scale implied. A character-form item is handed its own
-    // window (its digit count plus a SIGN SEPARATE position), a binary or packed one the whole record.
+    // window (its digit count plus a SIGN SEPARATE position), whatever its usage (kb/Work PB5856): ParseDeviceDecimal is handed that window.
 
     private static void Reads(Int128 unscaled, string text, NumProfile p, bool comma = false) =>
         Assert.Equal(unscaled, CobolNum.ParseDeviceDecimal(text, p, comma));
@@ -187,7 +187,7 @@ public sealed class NumericDisplayDecimalTests
     }
 
     /// <summary>A character-form item stops reading when its last digit position is filled, so what follows is never
-    /// examined; a binary or packed item reads the whole text, so the same trailing text is invalid there.</summary>
+    /// examined; a binary or packed item is read to the end of its window, so the same trailing text inside the window is invalid there.</summary>
     [Fact]
     public void Accept_stops_a_character_item_at_its_last_position_and_reads_a_binary_item_whole()
     {
@@ -197,7 +197,7 @@ public sealed class NumericDisplayDecimalTests
         Reads(12, "12x", Zoned(3, 0, true));            // PIC S9(3) window 3: "12x" fills two digits and the zero fill is the third
         Reads(0, "1x2", Zoned(3, 0, true));
         Reads(125, "12.5CR", Zoned(7, 1));              // PIC 9(6)V9: one fraction position, filled by the 5
-        Reads(0, "12.50CR", Binary(5, 2, false, NumericTruncation.DigitCount, 4));   // PIC 9(3)V99 COMP reads the whole record
+        Reads(0, "12.50CR", Binary(5, 2, false, NumericTruncation.DigitCount, 4));   // PIC 9(3)V99 COMP: the window is the text itself
         Reads(0, "12x", Packed(7, 2, true));
         Reads(1250, "12.50", Binary(5, 2, false, NumericTruncation.DigitCount, 4));
         Reads(-1250, "-00012.50", Binary(5, 2, true, NumericTruncation.DigitCount, 4));   // not cut at 5 characters

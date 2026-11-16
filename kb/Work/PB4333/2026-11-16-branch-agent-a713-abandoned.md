@@ -1,0 +1,5 @@
+# Branch worktree-agent-a713aa01938b811ad recorded ABANDONED (superseded)
+
+Decision by: the operator session, 2026-11-16, under the owner's rule of 2026-10-08 (kb/Work PB2600: land it or abandon it in its note, then delete).
+
+Branch `worktree-agent-a713aa01938b811ad` (hand-dispatched w20262059a): ABANDONED. It is superseded: its PB4333 work landed as pull request 1782, and its one later commit, 596718698e ("PB5862: an architecture-oracle observation compiles for real and owns the store's staging directory, so it is the same cold or warm"), landed by cherry-pick through branch `pb5862-arch-oracle-flake` (pull request 1793). `git cherry origin/main worktree-agent-a713aa01938b811ad` printed `- 596718698ed686fdf7f4612486e0f3c435361e6f`; `git diff --stat origin/main...worktree-agent-a713aa01938b811ad` read 6 files changed, 137 insertions, 10 deletions. The one file main lacks by name is `DEVLOG/pending-pb5862-oracle-cold-or-warm.md`; the stamped entry on main that replaced it is `DEVLOG/3763-pb5862-an-architecture-oracle-observation-no-longer-depends.md`.
