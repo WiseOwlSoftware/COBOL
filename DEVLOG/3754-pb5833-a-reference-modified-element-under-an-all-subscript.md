@@ -1,4 +1,4 @@
-## PB5833: a reference-modified element under an ALL subscript is class alphanumeric to the argument-class screen
+## Entry 3754 — 2026-11-16 05:07 PST — PB5833: a reference-modified element under an ALL subscript is class alphanumeric to the argument-class screen
 
 **Mechanism.** `FUNCTION f (N-EL (ALL) (1:1))` binds a `TableAllPlace` decorator over the reference-modified element. `IntrinsicArgumentRules.ClassOfPlace` tested only `p is RefModPlace` and otherwise read the decorator's `Item`, the numeric element, so the screen saw class numeric where `§1985:IV.4.3.8.4.4 GR3a` applies the reference-modifier to each implicitly specified element and `GR5` makes each class and category alphanumeric. `IntrinsicResultType.OperandCategory` already peeled the decorator, so the two readers of one class disagreed.
 
@@ -9,3 +9,4 @@
 **Goldens.** `15.59.3-Argument-rules/pb5833-all-refmod-alphanumeric-max-min` (2002 to 2023) and its 1985 twin in `A.2.23@1985-MAX-FUNCTION`; refusals `pb5833-mean-all-refmod`, `pb5833-median-all-refmod`, `pb5833-midrange-all-refmod` and `pb5833-max-all-refmod-numeric-mix`, each refused at 85, 2002, 2014 and 2023 with COBOL1627.
 
 **Rows.** `AR-15.59.3-2`, `AR-15.60.3-1`, `AR-15.61.3-1`, `AR-15.62.3-1` and `AR-15.63.3-2` re-verdicted PARTIAL to CONFORMS (GAP 55 to 50). The five 1985 rows the ruling named (`1989-AR-A.2.23.3-1` to `1989-AR-A.2.27.3-1`) are left to the 1985 code reads.
+
