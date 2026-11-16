@@ -1444,7 +1444,7 @@ public sealed class CopyProcessor(
             Content(start, edition.Year == 2002 ? "§2002:7.1.2.2 SR9" : "§2014:7.2.2.2 SR9",
                 "If subscripting is specified, it shall not include any arithmetic expressions as subscripts with the exception of a "
                 + "single literal or identifier, or an identifier plus or minus an integer",
-                $"the subscript '{words[0].Source[start..end].Trim()}' is an arithmetic expression");
+                $"the subscript '{words[0].Source[start..end].TrimSpaces()}' is an arithmetic expression");
         }
 
         /// <summary>COBOL2573 — a pseudo-text delimiter not separated as §2023:8.3.5 6) requires.</summary>
