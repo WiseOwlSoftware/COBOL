@@ -1224,9 +1224,9 @@ public abstract class FileConnector
             // raises UnauthorizedAccessException and the catch below returns the same '37'.
             if (presence is FilePresence.Unauthorized && mode is not FileOpenMode.Output)
                 return Status = FileStatusCode.PermissionDenied;   // '37' §2023:14.9.27.4 GR3 / §2023:9.1.13.6 item 6 b)
-            // §2023:9.1.13.6 item 6 a) 3. and GR16: a file that will not support read operations is not opened INPUT or I-O, whether or
+            // §2023:9.1.13.6 item 6 a) 3. and §2023:14.9.27.4 GR16: a file that will not support read operations is not opened INPUT or I-O, whether or
             // not it is present (an absent OPTIONAL file opened I-O would be created as the same file). Before every other question,
-            // so the file is unaffected (GR25 a) and no file lock is taken (kb/Work PB5815).
+            // so the file is unaffected (§2023:14.9.27.4 GR25 a) and no file lock is taken (kb/Work PB5815).
             if (mode is FileOpenMode.Input or FileOpenMode.IO && !SupportsReadOperations)
                 return Status = FileStatusCode.PermissionDenied;   // '37' §2023:9.1.13.6 item 6 a) 3. / §2023:14.9.27.4 GR16
             // ⛔ WHAT A CLOSE KEPT OF A FILE THE PATH NO LONGER NAMES LEAVES THIS CONNECTOR HERE, before anything of this OPEN reads
