@@ -450,7 +450,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// relation, the figurative relation and the EVALUATE range): the operand's sending image, except at --std 85 where the
     /// numeric operand is "treated as though it were moved to an elementary alphanumeric data item of the same size as the
     /// numeric data item (in terms of standard data format characters)" (§1985:VI.6.3.1.1.2 GR1), which has no room for a
-    /// scaling position (<see cref="OperandText.AsItemCharacters"/>, kb/Work PB5187). From 2002 the temporary is the number
+    /// scaling position (kb/Work PB5187) and has one for a SIGN SEPARATE position (kb/Work PB5569):
+    /// <see cref="OperandText.AsComparisonTemporary1985"/>. From 2002 the temporary is the number
     /// of digits in the integer long (§2023:8.8.4.2.5), the sending image whole.
     /// <para>⛔ A NUMERIC LITERAL IS ITS DIGITS WHATEVER <paramref name="deSign"/> SAYS (kb/Work PB5419): <paramref name="deSign"/> keeps an
     /// ITEM's own sign character opposite a 1985 group (<see cref="DropsOperationalSign"/>), but a literal has no stored image to
@@ -460,7 +461,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     private string ComparisonText(BoundOperand op, bool deSign)
     {
         deSign |= op is BoundNumericLiteral;
-        return ctx.Data.DialectLevel < 2002 ? OperandText.AsItemCharacters(op, num, deSign) : OperandText.AsString(op, num, deSign);
+        return ctx.Data.DialectLevel < 2002 ? OperandText.AsComparisonTemporary1985(op, num, deSign) : OperandText.AsString(op, num, deSign);
     }
 
     /// <summary>⛔ WHETHER A CHARACTER COMPARISON OF THE PAIR (<paramref name="a"/>, <paramref name="b"/>) READS A SIGNED
