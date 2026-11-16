@@ -19,7 +19,7 @@ public sealed class UnstringKernelTests
     {
         long pointer = 1;
         // GR10: the earliest match wins, a tie goes to the first listed; GR13: the pointer passes ONE occurrence.
-        int count = CobolStringOps.UnstringExtract("ab;;cd", [",", ";"], 0, ref pointer, out string field, out string delimiter, out int matched);
+        int count = CobolStringOps.UnstringExtract("ab;;cd", [",", ";"], 0, ref pointer, out string field, out string delimiter, out int matched, initiating: true);
         Assert.Equal(2, count);
         Assert.Equal("ab", field);
         Assert.Equal(";", delimiter);
@@ -31,7 +31,7 @@ public sealed class UnstringKernelTests
     public void Extract_EndOfSender_MatchesNothing()
     {
         long pointer = 1;
-        int count = CobolStringOps.UnstringExtract("abc", [";"], 0, ref pointer, out string field, out string delimiter, out int matched);
+        int count = CobolStringOps.UnstringExtract("abc", [";"], 0, ref pointer, out string field, out string delimiter, out int matched, initiating: true);
         Assert.Equal(3, count);
         Assert.Equal("abc", field);
         Assert.Equal("", delimiter);
@@ -43,7 +43,7 @@ public sealed class UnstringKernelTests
     public void Extract_ExhaustedSender_IsNotActedUpon_AndLeavesNothingMatched()
     {
         long pointer = 4;
-        int count = CobolStringOps.UnstringExtract("abc", [";"], 0, ref pointer, out _, out string delimiter, out int matched);
+        int count = CobolStringOps.UnstringExtract("abc", [";"], 0, ref pointer, out _, out string delimiter, out int matched, initiating: false);
         Assert.Equal(-1, count);
         Assert.Equal("", delimiter);
         Assert.Equal(-1, matched);
@@ -51,10 +51,25 @@ public sealed class UnstringKernelTests
     }
 
     [Fact]
+    public void Extract_InitiatingAreaOfAnEmptySender_IsActedUponWithZeroCharacters()
+    {
+        // §1985:VI.6.27.4 GR13: the transfer at initiation happens; the end of the sender ends the examination at once (13b),
+        // so zero characters are examined and nothing is matched (kb/Work PB5858). The second area finds the sender exhausted.
+        long pointer = 1;
+        int count = CobolStringOps.UnstringExtract("", [","], 0, ref pointer, out string field, out string delimiter, out int matched, initiating: true);
+        Assert.Equal(0, count);
+        Assert.Equal("", field);
+        Assert.Equal("", delimiter);
+        Assert.Equal(-1, matched);
+        Assert.Equal(1, pointer);
+        Assert.Equal(-1, CobolStringOps.UnstringExtract("", [","], 0, ref pointer, out _, out _, out _, initiating: false));
+    }
+
+    [Fact]
     public void Extract_ZeroLengthDelimiterIsIgnored_AndTheMatchIndexIsTheListedPosition()
     {
         long pointer = 1;
-        CobolStringOps.UnstringExtract("a,b", ["", ","], 0, ref pointer, out _, out _, out int matched);
+        CobolStringOps.UnstringExtract("a,b", ["", ","], 0, ref pointer, out _, out _, out int matched, initiating: true);
         Assert.Equal(1, matched);
     }
 

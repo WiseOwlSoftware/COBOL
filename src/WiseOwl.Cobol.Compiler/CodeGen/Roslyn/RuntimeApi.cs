@@ -1433,11 +1433,11 @@ internal static class RuntimeApi
 
     /// <summary>One receiving area's extraction — <c>CobolStringOps.UnstringExtract</c> (out-vars for the examined
     /// field, the matched delimiter's content and its position in the DELIMITED list, −1 for none; the call's value
-    /// is −1 = not acted upon).</summary>
+    /// is −1 = not acted upon; <paramref name="initiating"/> is the first receiving area's).</summary>
     public static string UnstringExtract(string src, string dels, string noDelimSize,
-        string ptrVar, string fldVar, string dlmVar, string matchedVar) =>
+        string ptrVar, string fldVar, string dlmVar, string matchedVar, bool initiating) =>
         $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.UnstringExtract)}({src}, {dels}, {noDelimSize}, " +
-        $"ref {ptrVar}, out var {fldVar}, out var {dlmVar}, out var {matchedVar})";
+        $"ref {ptrVar}, out var {fldVar}, out var {dlmVar}, out var {matchedVar}, {(initiating ? "true" : "false")})";
 
     /// <summary>The contiguous repeats of a matched ALL delimiter — <c>CobolStringOps.UnstringSkipRun</c>, run after the
     /// receiving area's INTO store (D-UNS2).</summary>
@@ -2236,6 +2236,15 @@ internal static class RuntimeApi
     /// <summary>The open-mode ordinal of a connector (the USE mode-scope switch) — <c>CobolFile.OpenModeOf</c>.</summary>
     public static string FileOpenModeOf(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenModeOf)}({name})";
+
+    /// <summary>The one open mode a USE open-mode switch selects on, from the set of modes (a bit mask of ordinals) the unit
+    /// declares a procedure for — <c>CobolFile.UseModeOf</c>.</summary>
+    public static string FileUseModeOf(string name, int declaredModes) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.UseModeOf)}({name}, {declaredModes})";
+
+    /// <summary>The mode a connector IS open in, −1 when not open — <c>CobolFile.OpenedModeOf</c>.</summary>
+    public static string FileOpenedModeOf(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenedModeOf)}({name})";
 
     /// <summary>The just-read record's frame length — <c>CobolFile.LastReadLength</c>.</summary>
     public static string FileLastReadLength(string name) =>
