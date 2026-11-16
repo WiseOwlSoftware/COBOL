@@ -1,4 +1,4 @@
-## Four notes and two finding files from the Mythos lane's batch-5 rulings of 2026-11-15
+## Entry 3728 — 2026-11-15 23:08 PST — Four notes and two finding files from the Mythos lane's batch-5 rulings of 2026-11-15
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). Each defect note carries the rule text with its `cite.py --check` line, the repro program in full, expected and observed at `--std 85` (and `--std 2023`), and the leads.
 
@@ -12,3 +12,4 @@ Two dated finding files beside existing notes: `kb/Work/PB5780/2026-11-15-a-seco
 Mechanism 5 of the batch (`1985-GR-IX.2.3.4-2`, `1985-GR-IX.4.9.4-14`, `1985-GR-IX.4.9.4-17`) is REJECTED by the ruling: the behaviour is fixed by the owner's decisions R47 and R52 and documented in `docs/conformance/7/DOC-A.1-31.md`, so no note is filed for it; its lead (the key consequence that entry does not state) lives in the ruling copied under PB5683.
 
 **The rate so far at 1985:** 56 of 684 rows read are contradicted (the sample 60, the first population 504, this batch 120), about 8 %; 5 undecided on open readings (PB5789, PB5799, PB5800, PB5805, PB5812).
+
