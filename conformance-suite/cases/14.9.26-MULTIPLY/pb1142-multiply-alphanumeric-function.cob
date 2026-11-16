@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1142-multiply-alphanumeric-function
-*> rules: [SR-14.9.26.3-1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1142-multiply-alphanumeric-function
+      *> rules: [SR-14.9.26.3-1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1142 - ISO 14.9.26.3 SR1: "Identifier-1 and identifier-2 shall reference a data item
       *> of category numeric." A function-identifier references a temporary whose class and category are
       *> the function's type (15.2), and UPPER-CASE's is alphanumeric, so it is not a MULTIPLY operand

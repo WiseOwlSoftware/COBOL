@@ -1,12 +1,12 @@
-*>--- conformance-case
-*> id: pb339_into_current_record_2023
-*> rules: [GR-13.18.32.4-1, GR-13.18.32.4-2, GR-13.18.43.4-13,
-*>    GR-13.18.43.4-15, GR-13.18.43.4-16, GR-14.9.30.4-4,
-*>    GR-14.9.34.4-5]
-*> accept: [2002, 2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb339_into_current_record_2023
+      *> rules: [GR-13.18.32.4-1, GR-13.18.32.4-2, GR-13.18.43.4-13,
+      *>    GR-13.18.43.4-15, GR-13.18.43.4-16, GR-14.9.30.4-4,
+      *>    GR-14.9.34.4-5]
+      *> accept: [85, 2002, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB339 — the sending operand of a READ … INTO / RETURN … INTO
       *> implicit MOVE is THE CURRENT RECORD, not the padded record area.
       *> The 2023 leg.

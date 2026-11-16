@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb428-inline-method-invocation-below-2002
-*> rules: [SR-8.4.3.1.3-5, SR-14.9.25.3-3]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb428-inline-method-invocation-below-2002
+      *> rules: [SR-8.4.3.1.3-5, SR-14.9.25.3-3]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> The REJECT half of conformance:cases/8.4.3.1-Identifier/pb428_inline_method_invocation.
       *> An inline method invocation (ISO §2023:8.4.3.4 — the §2023:8.4.3.1.2 Format 4
       *> identifier) belongs to the object-orientation facility, which this
@@ -50,7 +50,7 @@
        IDENTIFICATION DIVISION.
        OBJECT.
        PROCEDURE DIVISION.
-       METHOD-ID. GETNAME.
+           METHOD-ID. GETNAME.
        DATA DIVISION.
        LINKAGE SECTION.
        01 LK-NAME PIC X(8).

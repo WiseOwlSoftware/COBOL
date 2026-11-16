@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: l1_release_from_sender_available
-*> rules: [SR-14.9.32.3-1, GR-14.9.32.4-5]
-*> accept: [2002, 2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_release_from_sender_available
+      *> rules: [SR-14.9.32.3-1, GR-14.9.32.4-5]
+      *> accept: [85, 2002, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:14.9.32.4 GR5 — RELEASE … FROM identifier-1: "After the execution of the RELEASE
       *> statement is complete, the information in the area referenced by identifier-1 is
       *> available". The sending area is read back AFTER each RELEASE and again after the SORT.

@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb332-use-format1-needs-exception-or-error
-*> rules: [FMT-14.9.49.2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb332-use-format1-needs-exception-or-error
+      *> rules: [FMT-14.9.49.2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 14.9.49.2 Format 1 prints `{ EXCEPTION | ERROR }` inside BRACES, both words UNDERLINED.
       *> 5.2.6.3: braces mean "one of the options contained within the braces shall be selected";
       *> 5.2.2 makes each underlined word required. PB332 made AFTER, STANDARD, PROCEDURE and ON

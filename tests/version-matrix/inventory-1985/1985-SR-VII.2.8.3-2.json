@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VII.2.8.3-2",
  "rule-digest": "c31cb1e80b8c",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

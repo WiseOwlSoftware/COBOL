@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb5481_literal_subject_literal_object_2002
-*> rules: [SR-14.9.13.3-10]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb5481_literal_subject_literal_object_2002
+      *> rules: [SR-14.9.13.3-10]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB5481. §2002:14.8.12.2 SR9 and §2023:14.9.13.3 SR10: "The
       *> permissible combinations of selection subject and selection object
       *> operands are indicated in Table 15", and the [NOT] literal row is blank

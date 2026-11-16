@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1285-report-clause-undefined-name
-*> rules: [SR-13.18.46.3-1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1285-report-clause-undefined-name
+      *> rules: [SR-13.18.46.3-1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1285. ISO/IEC 1989:2023 13.18.46.3 SR1: "Each report-name-1 shall be the subject of a report
       *> description entry in the report section of the same source element." (cite.py OK). The REPORT clause
       *> names R-NONE, which no RD defines (COBOL2714); before PB1285 it compiled clean.

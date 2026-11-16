@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: move-index-name
-*> rules: [SR-14.9.25.3-1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: move-index-name
+      *> rules: [SR-14.9.25.3-1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work R16 - MOVE is none of 13.18.38.3 r7's five index-name contexts; the numeric-receiver
       *> form SILENTLY computed before (the same judgment COBOL0809 applies to class-index DATA items).
        IDENTIFICATION DIVISION.

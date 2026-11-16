@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1285-report-in-two-clauses
-*> rules: [SR-13.14.3-1, SR-13.18.46.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1285-report-in-two-clauses
+      *> rules: [SR-13.14.3-1, SR-13.18.46.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1285. ISO/IEC 1989:2023 13.18.46.3 SR2: "Each report-name-1 may appear in only one REPORT
       *> clause." (cite.py OK), and 13.14.3 SR1: "There shall be one and only one REPORT clause specifying
       *> report-name-1 in a given file description entry." Both FDs name R-A (COBOL2714); before PB1285 the

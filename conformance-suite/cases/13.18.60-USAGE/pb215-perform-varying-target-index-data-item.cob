@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb215-perform-varying-target-index-data-item
-*> rules: [SR-13.18.60.3-10, SR-14.9.28.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb215-perform-varying-target-index-data-item
+      *> rules: [SR-13.18.60.3-10, SR-14.9.28.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB215, the other arm of the FROM/BY fix. The induction variable
       *> was resolved through SET's receiver, which admits an index data item
       *> because 13.18.60.3 SR10 lists "a SEARCH or SET statement". PERFORM is not

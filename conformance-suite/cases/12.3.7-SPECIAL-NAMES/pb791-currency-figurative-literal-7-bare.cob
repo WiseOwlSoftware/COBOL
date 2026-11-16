@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb791-currency-figurative-literal-7-bare
-*> rules: [SR-12.3.7.3-18]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb791-currency-figurative-literal-7-bare
+      *> rules: [SR-12.3.7.3-18]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB791 - ISO 12.3.7.3 SR18: "Literal-7 shall be an alphanumeric or national literal that is not a
       *> figurative constant" (cite.py --check 12.3.7.3 "Literal-7 shall be an alphanumeric or national literal that
       *> is not a figurative constant"). SPACE is a figurative constant, so the clause is refused UNDER SR18. It used

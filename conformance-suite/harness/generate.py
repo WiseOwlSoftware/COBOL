@@ -459,14 +459,13 @@ class Reader:
         if not TEST_ID.match(test_id):
             self.refuse(rel, h.lines["id"], f"id {test_id!r} is letters, digits, '-' and '_' (an expected output "
                                             f"is named <id>.<...>.out, so an id holds no '.')")
-        fmt = self._shaped(rel, h, "source-format", "scalar")
-        if fmt is None:
+        declared = self._shaped(rel, h, "source-format", "scalar")
+        fmt = source_format_of(h)
+        if declared is None:
             self.refuse(rel, 1, "no source-format: every test states it, because compilers differ in their default "
                                 "(§3.1)")
-            fmt = h.source_format_seen
-        elif fmt not in SOURCE_FORMATS:
-            self.refuse(rel, h.lines["source-format"], f"source-format is fixed or free, not {fmt!r}")
-            fmt = h.source_format_seen
+        elif declared not in SOURCE_FORMATS:
+            self.refuse(rel, h.lines["source-format"], f"source-format is fixed or free, not {declared!r}")
         elif fmt != h.source_format_seen:
             self.refuse(rel, h.lines["source-format"], f"source-format is {fmt} but the metadata block is written in "
                                                        f"{h.source_format_seen} form")
@@ -910,6 +909,22 @@ def check_cases(reader: Reader) -> None:
                                         "which WiseOwl COBOL refuses it and what it reports (§4, §9)")
 
 
+def format_defined_at(source_format: str, edition: str, order: list[str]) -> bool:
+    """Does `edition` define the reference format `source_format`? Fixed form at every edition; free form from
+    FIRST_FREE_FORM on (§2023:6.4). THE one statement of the fact: `check_editions` refuses a `cases/` test placed where
+    its format is not defined, and the traceability inventory's evidence rule counts no case as a witness there
+    (scripts/spec/lineage_reads.py `format_problem`, kb/Work PB5754)."""
+    return source_format != "free" or order.index(edition) >= order.index(FIRST_FREE_FORM)
+
+
+def source_format_of(header: Header) -> str:
+    """A case's source format as its header states it (`source-format`, one of SOURCE_FORMATS), else the form its
+    metadata block is written in: the value `Reader.read_case` gives `Case.source_format` (it refuses the header that
+    needs the fallback), and the one a reader of a single case's header takes."""
+    declared = header.fields.get("source-format")
+    return declared if isinstance(declared, str) and declared in SOURCE_FORMATS else header.source_format_seen
+
+
 def check_editions(reader: Reader, case: Case) -> None:
     """The refusals that depend only on the editions a test is placed at and on what its text was read to hold
     (`Case.observes_at`, `Case.format_line`), so a band widened in memory (lineage_reads.Witnesses.entries) is refused
@@ -923,10 +938,9 @@ def check_editions(reader: Reader, case: Case) -> None:
                           f"{', '.join(early)}: run-time violations are judged only from {FIRST_RUN_TIME} on (§3.2)")
     # Free form before it existed. A WiseOwl test may use it at 85: `--source-format free` at every edition is
     # WiseOwl's extension (docs/CONFORMANCE.md §7, DOC-A.1-158), and its own regression tests exercise it.
-    if case.source_format == "free" and case.tree != "wiseowl":
-        first = order.index(FIRST_FREE_FORM)
-        early = sorted({e for e in case.accept + (case.flag.at if case.flag else ()) if order.index(e) < first},
-                       key=order.index)
+    if case.tree != "wiseowl":
+        early = sorted({e for e in case.accept + (case.flag.at if case.flag else ())
+                        if not format_defined_at(case.source_format, e, order)}, key=order.index)
         if early:
             reader.refuse(case.path, case.format_line, f"free form at {', '.join(early)}: the free-form "
                                                        f"reference format is a {FIRST_FREE_FORM} feature")

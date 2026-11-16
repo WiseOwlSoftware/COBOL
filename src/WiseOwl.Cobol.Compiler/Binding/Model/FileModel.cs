@@ -792,8 +792,16 @@ public sealed class FileModel
     /// <see cref="VaryMin"/>..<see cref="VaryMax"/> (the clause's integers, else GR9 / GR10's smallest and largest
     /// record description); a fixed-length file describes the ONE record <see cref="RecordWidth"/> — integer-1 of an
     /// explicit Format 1 clause, else the largest record description entry (§2023:13.18.43.4 GR5 a), GR6), so the rules'
-    /// "the record described for file-name-n" is that size. (kb/Work PB995.)</summary>
-    public (int Min, int Max) RecordSizeRange => RecordSizeVaries ? (VaryMin, VaryMax) : (RecordWidth, RecordWidth);
+    /// "the record described for file-name-n" is that size. (kb/Work PB995.)
+    /// <para>⛔ A FORMAT 3 CLAUSE WHOSE INTEGERS DO NOT BOUND THE RECORDS (<see cref="VaryingRecordInfo.BoundsEnforced"/> false, --std 85,
+    /// kb/Work PB5731) DESCRIBES EACH RECORD AT ITS MAXIMUM: §1985:VII.3.8.4 GR15 makes the size of a format 3 record "the sum of the
+    /// maximum number of characters in any variable length item subordinate to the record", so an OCCURS DEPENDING ON table counts at its
+    /// maximum occurrences (<see cref="MaxRecordSize"/>), not at the minimum GR5a gives a Format 2 record (<see cref="MinRecordSize"/>).
+    /// That is the size the SORT/MERGE rules compare. <see cref="VaryMin"/> stays the descriptions' own minimum: it is the bound of
+    /// the connector, which §1985:VII.3.8.4 GR13 lets carry variable length records, so a WRITE of a shorter ODO record stays legal.</para></summary>
+    public (int Min, int Max) RecordSizeRange => !RecordSizeVaries ? (RecordWidth, RecordWidth)
+        : Varying is { BoundsEnforced: false } ? (Records.Count == 0 ? 1 : Records.Min(MaxRecordSize), VaryMax)
+        : (VaryMin, VaryMax);
 
     /// <summary>⛔ DETERMINATION D-FRA (docs/CONFORMANCE.md §3, kb/Work PB981) — ISO §2023:13.18.43.4 GR5: "If the
     /// RECORD clause is not specified, an implicit format 1 or format 2 RECORD clause is assumed to be

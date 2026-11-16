@@ -1870,7 +1870,8 @@ witnesses at every target, which `witness-batch` writes). A `needs-own-witness` 
 helps, from a closed set named once (`REASON_OF`, one reason per case by its status): `no-case` (no suite case at all),
 `band` (its cases cite a rule the edition does not have), `not-evidence` (a refusal or flag, which is no evidence for
 the rule's kind), `diagnosis-only` (a case runs at the edition already, as a diagnosis, for a rule whose kind takes
-none), `no-edition` and `uncommitted`. The plan counts rows by state and by reason and cases by status; the
+none), `no-edition`, `uncommitted` and `reference-format` (the case status `format`: its text is in a reference format
+the edition does not define, below). The plan counts rows by state and by reason and cases by status; the
 `needs-own-witness` rows with their reasons and the cases that ran are the input of the edition's witness lane, which
 writes each row's own program. With `--apply --compiler EXE --scratch DIR` it adds the
 edition to each widenable case's header (`accept` and the flag's `at`, a flagged case's control with it; the method of the
@@ -1908,13 +1909,37 @@ licence where the record came from one), one witness-only record per row it find
 by `record_verdicts.py --edition YEAR`; a second run writes nothing. The audit of a STORED record asks no pairing: the
 pairing is word-identical text, and it is the writer's test of a NEW record only.
 
+**A witness at an edition is source text of that edition (kb/Work PB5754, decision of 2026-11-15).** A conformance-suite
+case witnesses a row at an edition only when its text is written in a reference format that edition defines. Before
+2002 that is fixed form alone: the 1985 text defines one reference format and "each compiler accepts source programs
+written in reference format" (§1985:IV.7.1). The rule has no exception: accepted or refused, `cases/` or `wiseowl/`, a
+KEPT row's own witness or the witness of a verdict of the row's own. A free-form case still runs at 85 where it is placed
+(a regression test of WiseOwl's `--source-format free` extension, docs/CONFORMANCE.md DOC-A.1-158, and of the edition
+gates), but it witnesses no 1985 row. ONE predicate holds it, `lineage_reads.format_problem`, over the one fact
+`generate.format_defined_at` (fixed form at every edition, free form from `generate.FIRST_FREE_FORM`), which
+`generate.check_editions` also asks; it reads the case's `source-format` as the generator does (`Case.source_format`,
+and for one case's header `generate.source_format_of`). Its askers: the AUDIT (`Witnesses.own_problems` for a KEPT row's
+references, `Witnesses.format_problems` from `stored_errors` for every other row's), the WRITER (`ref_format_problem`,
+asked by `record_verdicts.validate` of each conformance-suite reference a record of an older edition names, before
+anything is written; a case it cannot read fails the record) and the PLANNER (`Witnesses.at` and `accepted_at`, so the
+candidate search of `kept_witnesses`, `witness-batch` and `widen` never counts such a case, and `case_status` gives it the
+status `format`, whose reason is `reference-format`). The stronger evidence is cheap: fixed form is valid at every
+edition, so a free-form case a 1985 row needs is converted to fixed form IN PLACE by
+`conformance-suite/harness/reformat.py` (DESIGN-conformance-suite.md section 3.6) and keeps its expected output or
+diagnostic at every edition it is placed at; a case the converter refuses leaves the 1985 rows that name it (a
+`retire-witnesses` record). Measured on 2026-11-15 (main 30b21e7d87): 1985 rows named 134 free-form refusal tests of
+`cases/` (182 references) and 4 free-form accepted tests of `wiseowl/` (15 references), the strongest evidence of 107
+rows; 137 were converted and 1 refused (`pb485-level-number-missing`), and the 33 cases refused at 85 for free form
+alone were converted and widened (DEVLOG of kb/Work PB5754).
+
 **The audit.** `python scripts/spec/lineage_reads.py --check` (the gate's LINEAGE READS, and a step of CI's audits job),
 over every older held edition, one reading of the suite shared by all: every read record interprets and still matches
 the digests it was imported with; every stored change record whose source names a read record is that read's decision
 (the record holds a read of the rule, the read is a SAME its refuter UPHELD, the record is KEPT into the read's rules);
 and every stored KEPT row's own witnesses are each a conformance-suite case that runs at the row's edition, ACCEPTED
 there, or only diagnosed there for a diagnosable rule or a read whose licence passes `licence_problem`
-(`Witnesses.own_problems`, which reads the row's references and its rule, never a target). A later change that narrows
+(`Witnesses.own_problems`, which reads the row's references and its rule, never a target); and every row's own suite
+witnesses are in a reference format the row's edition defines (`format_problem`, above). A later change that narrows
 a witness's band, moves or deletes its case, or rewrites a read under a stored record, turns it red, naming the row and
 the case: an evidence loss is never one more GAP. The WITNESS LOSS audit (`audit_witness_loss.py --check`) compares
 every held edition's rows with the merge base's, so a witness erased from a chained row is red as a newest row's is.
