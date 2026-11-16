@@ -1201,6 +1201,7 @@ static WiseOwl.Cobol.Runtime.IO.CobolFile.WriteShared(string! name, string! imag
 static WiseOwl.Cobol.Runtime.IO.CobolReport.NumericControlEqual(string! a, string! b, in WiseOwl.Cobol.Runtime.NumProfile item) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterActivationReturn() -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterUseProcedure(object! useScope, int action) -> int
+static WiseOwl.Cobol.Runtime.IO.CobolSort.LastReturnedImage(string! name) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolSort.RegisterFormat1Sort(string! name, object? useScope) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, WiseOwl.Cobol.Runtime.RecordExtents? extents = null, object?[]? slots = null) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.TakeActivationReturnTermination() -> string?
