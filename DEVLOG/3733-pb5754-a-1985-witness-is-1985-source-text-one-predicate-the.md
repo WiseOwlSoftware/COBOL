@@ -1,4 +1,4 @@
-## PB5754: a 1985 witness is 1985 source text; one predicate, the free-form converter, and 45 rows closed (1985 GAP 780 to 736)
+## Entry 3733 — 2026-11-15 23:52 PST — PB5754: a 1985 witness is 1985 source text; one predicate, the free-form converter, and 45 rows closed (1985 GAP 780 to 736)
 
 **The decision** (kb/Work PB5754, Mythos lane 2026-11-15). A conformance-suite case witnesses a row at an edition only
 when its text is in a reference format that edition defines. Before 2002 that is fixed form alone ("each compiler
@@ -51,3 +51,4 @@ On the merged tree no 1985 row names a free-form case, and `lineage_reads.py --c
 **What it does not do.** The free-form refusal tests no 1985 row names (about 1,250) stay free form; `check_editions`
 still refuses a free-form `cases/` case accepted or flagged before 2002; the "witness is about the row" predicate is a
 separate decision.
+
