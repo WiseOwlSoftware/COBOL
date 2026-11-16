@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.6.3-2",
  "rule-digest": "c21dd1fa3e4f",
+ "test-ref": "conformance:cases/A.2.6@1985-ANNUITY-FUNCTION/g85_f34_05",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

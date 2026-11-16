@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.3.3.3-2",
  "rule-digest": "af31b9aa6ffc",
+ "test-ref": "conformance:cases/VII.3.3@1985-BLOCK-CONTAINS-CLAUSE/g85_f17_03",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
