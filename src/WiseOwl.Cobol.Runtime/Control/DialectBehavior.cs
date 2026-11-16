@@ -316,6 +316,14 @@ public enum DialectBehavior
     /// is raised when the entry is presented (kb/Work PB5643; VCR row 7.83). Both editions are QUOTED; 1985 has no
     /// exception conditions. The consumer is <c>CobolReport.Accumulate</c>.</summary>
     SumSizeErrorRaisedAtAddition = 27,
+    /// <summary>§2014:14.9.24.3 GR6d2a and §2023:14.9.25.4 GR6d.2.a — "When a signed numeric item is the receiving item, the sign of
+    /// the numeric value shall be represented in the receiving operand": the value after alignment and truncation, so a sender
+    /// whose digits all truncate away stores a positive zero. §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1 say instead that "the
+    /// sign of the sending operand is placed in the receiving item", so at <c>--std 85</c> and <c>--std 2002</c> <c>MOVE -100 TO
+    /// S99</c> stores a NEGATIVE zero (kb/Work PB5852; VCR row 7.84; DESIGN-data-model §2.1.1). Both editions are QUOTED. The
+    /// consumers are <c>SendersSignStore.Applies</c>, which <c>StorageFormPass</c>'s promotion of the receivers that can be handed a
+    /// negative zero and <c>MoveEmitter.ConvertSource</c>'s numeric store both ask.</summary>
+    MoveSignIsTheValuesSign = 28,
 }
 
 /// <summary>
@@ -468,6 +476,11 @@ public static class DialectBehaviors
             "7.83", "§2014:13.18.54.3 GR3", "§2002:13.16.52.3 GR3",
             "a size error in an addition into a SUM counter raises EC-REPORT-SUM-SIZE at the addition only from COBOL-2014; "
             + "COBOL-2002 only sets the size error indicator there and raises the condition when the entry is presented"),
+        new(DialectBehavior.MoveSignIsTheValuesSign, "move-sign-is-the-values-sign", 2014,
+            "7.84", "§2014:14.9.24.3 GR6d2a", "§2002:14.8.24.3 GR4b1",
+            "a signed numeric receiving item of a MOVE takes the sign of the value it stores, so a sender truncated to zero stores a "
+            + "positive zero, only from COBOL-2014; COBOL-85 and COBOL-2002 place the sign of the sending operand, so MOVE -100 TO S99 "
+            + "stores a negative zero"),
     ];
 
     static DialectBehaviors()

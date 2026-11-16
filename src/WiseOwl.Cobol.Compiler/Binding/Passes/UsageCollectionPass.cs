@@ -82,6 +82,7 @@ internal static class UsageCollectionPass
     {
         IAppends<DataItem> set = data.State.WholeGroupReferenced;
         IAppends<DataItem> channels = data.State.CharacterChannelItems;
+        IAppends<NumericStore> numericStores = data.State.NumericStores;
 
         // Boundary-copied program formals — a group formal crosses as its character image (§2023:14.2.3 GR8).
         foreach (var lf in data.Linkage.Formals)
@@ -110,7 +111,7 @@ internal static class UsageCollectionPass
             foreach (var g in extraFormalGroups)
                 if (g.IsGroup) set.Add(g);
 
-        var v = new Visitor(set, channels);
+        var v = new Visitor(set, channels, numericStores);
         foreach (var prog in programs)
             if (prog is not null)
                 foreach (var para in prog.Paragraphs)
@@ -123,7 +124,8 @@ internal static class UsageCollectionPass
     /// <see cref="BoundStatementTree.StatementChildren"/>. The per-leaf <c>Visit</c> collects ONLY the node's direct
     /// operands/conditions/init-actions — nested statements are the recursion's job, so containers whose only
     /// group-bearing content is nested statements have an empty <c>Visit</c>.</summary>
-    private sealed class Visitor(IAppends<DataItem> set, IAppends<DataItem> channels) : IBoundStatementVisitor<bool>
+    private sealed class Visitor(IAppends<DataItem> set, IAppends<DataItem> channels, IAppends<NumericStore> numericStores)
+        : IBoundStatementVisitor<bool>
     {
         public void Walk(BoundStatement s)
         {
@@ -142,6 +144,7 @@ internal static class UsageCollectionPass
             // receiver takes the sending CHARACTERS (kb/Work PB992). The node's own kind decides, per receiver.
             for (int i = 0; i < n.Targets.Count; i++)
                 if (n.Stores[i].Kind is MoveKind.GroupToElementary) Channel(n.Targets[i]);
+            SignStores(n);
             return false;
         }
         public bool Visit(BoundExceptionPerform n) => false;   // no direct data operands; imp-1..5 walked via StatementChildren
@@ -369,7 +372,7 @@ internal static class UsageCollectionPass
         {
             switch (a)
             {
-                case InitializeStore x: P(x.Target); Op(x.Source); break;
+                case InitializeStore x: P(x.Target); Op(x.Source); SignStores(x.Move); break;
                 case InitializeStoreValue x: P(x.Target); break;
                 case InitializeSetNull x: P(x.Target); break;
                 // §2023:14.9.20.4 GR4/GR6b's implicit SET — BOTH operands are data references (the receiver and
@@ -388,6 +391,20 @@ internal static class UsageCollectionPass
                     break;
                 default: break;
             }
+        }
+
+        /// <summary>Record each elementary numeric store of <paramref name="move"/> whose receiver is a SIGN HOLDER and whose
+        /// sender may be negative (<see cref="SendersSignStore"/>; kb/Work PB5852): the stores through the rules of the MOVE
+        /// statement that can place a negative sign over a zero result at 1985 and 2002 (§1985:VI.6.19.4 GR4b1), the input
+        /// of <c>StorageFormPass</c>'s computed promotion. Every statement whose text stores by those rules is bound to a
+        /// <see cref="BoundMove"/> (the explicit MOVE, MOVE CORRESPONDING's pairs, READ and RETURN INTO, WRITE, REWRITE and
+        /// RELEASE FROM, INITIALIZE's REPLACING moves), so this one visit sees them all.</summary>
+        private void SignStores(BoundMove move)
+        {
+            for (int i = 0; i < move.Targets.Count; i++)
+                if (move.Stores[i] is { Kind: MoveKind.Convert, Sender: var sender }
+                    && SendersSignStore.IsSignHolder(move.Targets[i].Item) && SendersSignStore.SenderMayBeNegative(sender))
+                    numericStores.Add(new NumericStore(sender, move.Targets[i].Item));
         }
 
         private void Cond(BoundCondition? c)
