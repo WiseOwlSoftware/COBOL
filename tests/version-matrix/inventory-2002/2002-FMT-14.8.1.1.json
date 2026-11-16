@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.1.1",
+ "rule-digest": "ac582c0b5342",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#acceptSource; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAcceptFromMnemonic; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#MnemonicSuffixMessage; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#ConditionalPhraseAssociation",
+ "test-ref": "conformance:cases/14.8.1.1@2002-ACCEPT-STATEMENT/g2002_accept_formats_1_2",
+ "notes": "§2002:14.8.1.1 grants Format 1 (with and without FROM mnemonic-name-1 and END-ACCEPT) and Format 2 (DATE [YYYYMMDD], DAY [YYYYDDD], DAY-OF-WEEK, TIME, [END-ACCEPT]). All translate, and each Format 2 value has the shape §2002:14.8.1.3 GR7-GR12 give. The --std 2002 run of g2002_accept_formats_1_2 matched the 6 derived lines; Format 3 is declined under §2002:B.3 item 1 with §2002:3.1.5."
+}

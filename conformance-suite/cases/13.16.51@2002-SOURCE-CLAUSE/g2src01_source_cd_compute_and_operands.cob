@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: g2src01_source_cd_compute_and_operands
-      *> rules: [2002-GR-13.16.51.3-2]
+      *> rules: [2002-GR-13.16.51.3-2, 2002-FMT-13.16.51.1]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
@@ -10,6 +10,12 @@
       *>   operands are items of a record under a CD (SR4: "Identifier-1
       *>   specifies a data item defined in any section of the data
       *>   division"), executed again at every print.
+      *> §2002:13.16.51.1 - the general format writes IS and ARE as
+      *>   optional words ({SOURCE IS | SOURCES ARE}, neither
+      *>   underlined; PDF page 347 rendered). COLUMN 5 of DET writes
+      *>   SOURCE CFR without IS and the first DMULTI line writes
+      *>   SOURCES CA CB without ARE; every other entry writes the
+      *>   optional word, so both spellings of both keywords occur.
       *> §2002:13.16.51.3 GR4 (first two sentences only; the row stays
       *>   open on its third sentence, a suppressed item ahead of a
       *>   printed one, whose shape the compiler refuses at 2002) -
@@ -96,13 +102,13 @@
        RD  R1.
        01  DET TYPE DE LINE PLUS 1.
            03  COLUMN 1  PIC 9(3) SOURCE IS CFR ROUNDED.
-           03  COLUMN 5  PIC 9(3) SOURCE IS CFR.
+           03  COLUMN 5  PIC 9(3) SOURCE CFR.
            03  COLUMN 9  PIC 9(3) SOURCE IS CN * 2 + CFR ROUNDED.
            03  COLUMN 13 PIC 9(3) SOURCE IS CN * 2 + CFR.
            03  COLUMN 17 PIC 9(3).99 SOURCE IS CN * 2 + CFR.
        01  DMULTI TYPE DE.
            02  LINE PLUS 1.
-               03  COLUMNS 1 5 PIC X(3) SOURCES ARE CA CB.
+               03  COLUMNS 1 5 PIC X(3) SOURCES CA CB.
            02  LINE PLUS 1 OCCURS 2 TIMES.
                03  COLUMN 1 PIC X(3) OCCURS 2 TIMES STEP 4
                    SOURCES ARE CA CB CC CE.

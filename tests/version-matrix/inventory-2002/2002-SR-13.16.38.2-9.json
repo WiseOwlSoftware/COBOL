@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-9",
+ "rule-digest": "8855f2d76b1f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sign-currency-forms; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr9-no-required-symbol",
+ "notes": "'++', '--', '$$' hold none of A N X Z 1 9 * but two occurrences of one of + - cs, so they are legal; each is a floating string with one digit position (§2002:13.16.38.4 GR6, Table 10): 5 gives '+5', ' 5', '$5'; -5 gives '-5', '-5'. (§2002:13.16.38.2 SR9, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out and refused the violating form with COBOL1934)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-23",
+ "rule-digest": "1993239dc450",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sign-currency-forms; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr23-currency-in-middle",
+ "notes": "The NOTE's six valid strings $999+ +999$ +$999 999$+ +$$99 $$99+ plus 999$CR and -$999 are accepted; floating $$ (§2002:13.16.38.4 GR6a): the second '$' is the leftmost digit limit, so 12 (digits 012) puts one '$' just left of the first non-zero digit with a space before it: '+ $12', ' $12+', and for -12 '- $12', ' $12-'. (§2002:13.16.38.2 SR23, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out and refused the violating form with COBOL1935)."
+}

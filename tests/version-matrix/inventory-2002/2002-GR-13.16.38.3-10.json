@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-10",
+ "rule-digest": "9059835391b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#IsEditedCategorySymbol; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsCharacterEdited",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-symbols-categories",
+ "notes": "NNBNN/N0N holds 'N' and B / 0, so it is national-edited and takes simple insertion: N\"ABCDEF\" edits to N\"AB CD/E0F\", 9 national positions (each N B / 0 counted, GR13). (§2002:13.16.38.3 GR10, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out)."
+}

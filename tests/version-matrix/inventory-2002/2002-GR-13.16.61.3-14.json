@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-14",
+ "rule-digest": "1f28130903a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#DefaultTo; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Resolve",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-initial-image; conformance:cases/13.18.63-VALUE/pb505_table_value_subordinate_odometer",
+ "notes": "§2002:13.16.61.3 GR14: without TO the fill runs to the maximum occurrence: \"M\" \"N\" FROM (2) in OCCURS 4 gives MNM in elements 2-4 of a CD record table. PASS at --std 2002 on the pinned build."
+}

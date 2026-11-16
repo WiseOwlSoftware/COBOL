@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.55.3-8",
+ "rule-digest": "ae3e5dd98aca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#LowerLimit; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-group-lower-limits",
+ "notes": "§2002:13.16.55.3 GR8 a-g with the §2002:13.16.33.3 GR4 page fit: detail advances past LAST DETAIL, CH past LAST CONTROL HEADING, CF prints below LAST DETAIL within FOOTING, PH ends at FIRST DETAIL-1, PF at the page limit, an RH alone on its page reaches the page limit; read back from the report files, matched at --std 2002."
+}

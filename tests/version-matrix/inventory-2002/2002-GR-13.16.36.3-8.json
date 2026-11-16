@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-8",
+ "rule-digest": "87d25541b6e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs#WrapGroup; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#SendingImage; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#ReceiveInto; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#GroupImage; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#PhysicalOccurrenceWidth; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#UsesCurrentExtent; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#SpliceBase; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#WrapIfOdoGroup",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2002u-occ-cd-odo-group-length",
+ "notes": "§2002:13.16.36.3 GR8 a) and b) over alphanumeric, national and bit groups in CD records and a strongly-typed group: current length when sending (and for FUNCTION LENGTH, §2002:15.39.3 RV4 b), maximum length when receiving with data-name-1 inside, zero-length at 0; the --std 2002 run's 11 lines equal the derived .out."
+}

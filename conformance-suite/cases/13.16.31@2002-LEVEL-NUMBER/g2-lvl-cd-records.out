@@ -1,0 +1,4 @@
+LEN R1 23 R2 03 R3 04
+R2=[ABC] F1=[ABCDE] R3=[ABCD]
+R1=[XY DEFGHIJ             ]
+R3=[XY D]

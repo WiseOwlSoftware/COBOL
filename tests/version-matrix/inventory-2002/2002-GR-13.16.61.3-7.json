@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-7",
+ "rule-digest": "067f05bb89a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-initial-image; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-ws-report-no-editing",
+ "notes": "§2002:13.16.61.3 GR7 with §2002:14.5.8: JUSTIFIED RIGHT VALUE \"AB\" stays left aligned, 1.5 in 9(3)V99 aligns by decimal point, XXBXX VALUE \"ABCDE\" is unedited, in formats 1, 2 (WS, CD) and 4 (report line [AB     0000  ABCDE  007]). Both cases PASS at --std 2002 on the pinned build."
+}

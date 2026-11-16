@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-1",
+ "rule-digest": "67910e1e478c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGroupValueDeclarationsPass.cs#Sr1SubjectShape; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGroupValueDeclarationsPass.cs#ScreenAssumedGroupValueSubject; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr1-f2-strong; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr1-cd-strong; conformance:cases/13.18.63-VALUE/pb184-group-value-strong-subject",
+ "notes": "§2002:13.16.61.2 SR1 forbids a VALUE clause on a strongly-typed group item (§2002:8.5.3, first bullet). At --std 2002 the compiler refuses one with COBOL1703 in three places: format 1 in working storage (pb184-group-value-strong-subject), format 2 on a strong table element inside a STRONG typedef (g2-value-sr1-f2-strong, line 31), and a strongly-typed record under an output CD (g2-value-sr1-cd-strong, line 28). Each literal also fails §2002:13.16.61.2 SR11 (§2002:8.5.2); the cases pin SR1 by its own code."
+}

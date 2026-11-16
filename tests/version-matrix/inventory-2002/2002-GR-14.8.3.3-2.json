@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.3.3-2",
+ "rule-digest": "52785734dd6c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Allocate; src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#AllocateReal",
+ "test-ref": "conformance:cases/14.8.3@2002-ALLOCATE-STATEMENT/g2-allocate-nonpositive-null",
+ "notes": "§2002:14.8.3.3 GR2: an amount that evaluates to 0 or a negative value sets data-name-2 to NULL; each leg (0, -5, 0*7, -3, -0.5, and a POINTER record under an output CD) first points the pointer at W and prints NULL after the ALLOCATE, the positive control prints NOT NULL; matched at --std 2002 with the pinned build of dc1f2dcce8."
+}

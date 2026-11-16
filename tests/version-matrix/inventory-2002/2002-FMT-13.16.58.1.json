@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.58.1",
+ "rule-digest": "81d73717ec14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#usageClause; src/WiseOwl.Cobol.Compiler/Binding/Model/UsagePhrase.cs#UsagePhraseRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsagePhrases.cs#ScreenUsagePhrases; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#DescribeReportItem; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataPointerUsage; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#pointerOperandHere",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2-usage-every-2002-form",
+ "notes": "§2002:13.16.58.1: every 2002 USAGE form (BINARY-* SIGNED/UNSIGNED, BIT, COMP, DISPLAY, FLOAT-*, INDEX, NATIONAL, every OBJECT REFERENCE form, PACKED-DECIMAL, POINTER [TO], PROGRAM-POINTER [TO]) is accepted and used, values pinned by comparison; matched at --std 2002."
+}

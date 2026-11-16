@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.51.2-4",
+ "rule-digest": "ed57c52f72dc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#SumCounterFamilyFor",
+ "test-ref": "conformance:cases/13.16.51@2002-SOURCE-CLAUSE/g2src04_source_operands_file_local_linkage; conformance:cases/13.16.51@2002-SOURCE-CLAUSE/g2src01_source_cd_compute_and_operands; conformance:cases/13.18.53-SOURCE/pb1292_source_forms_85",
+ "notes": "§2002:13.16.51.2 SR4: g2src04 takes SOURCE operands, as identifiers and inside expressions, from the file, local-storage and linkage sections; g2src01 from the communication section; pb1292 from working-storage and a sum counter. All --std 2002 runs on the pinned build matched."
+}

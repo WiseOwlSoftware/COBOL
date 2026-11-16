@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-21",
+ "rule-digest": "b3db48e681b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sign-currency-forms; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr21-plus-in-middle",
+ "notes": "'+' leftmost and '-' rightmost are accepted: +99 and 99- edit -5 to '-05' '05-' and 5 to '+05' '05 ' (Table 9). (§2002:13.16.38.2 SR21, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out and refused the violating form with COBOL1935)."
+}

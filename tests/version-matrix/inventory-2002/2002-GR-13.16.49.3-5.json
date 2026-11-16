@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.49.3-5",
+ "rule-digest": "1475fbfad0d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordFormatRegistration",
+ "test-ref": "conformance:wiseowl/cases/13.18.51-SELECT-WHEN-clause/select_when_without_code_set_or_format_has_no_effect",
+ "notes": "§2002:13.16.49.3 GR5 is answered by docs/conformance/7/DOC-A.1-173.md as amended in this batch: at --std 2002 a SELECT WHEN clause takes effect only for the processing of the CODE-SET and FORMAT clauses. Without CODE-SET or FORMAT, an unselected record writes and reads with status 00. The --std 2002 run on the pinned build matched. Closes when the amended entry lands."
+}

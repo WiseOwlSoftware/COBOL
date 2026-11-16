@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-7",
+ "rule-digest": "f8ab9fbb554c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#TryExpandRepeats; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#TryRepetitionFactor; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ExpandPicConstants",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-symbols-categories; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr7-zero-repeat",
+ "notes": "A(3) gives 3 consecutive 'A's (size 3); X(K) and 9(K)V99 with 01 K CONSTANT AS 4 give 4 and 4+2 = 6 (V not counted, GR13); RLONG writes a 30-character constant-name inside a 52-character string, and because 'the length of the integer, not the length of the constant-name, is counted' toward the 50-character limit (SR4) it is legal with size 4+19 = 23. (§2002:13.16.38.2 SR7, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out and refused the violating form with COBOL2147)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-13",
+ "rule-digest": "7efb4da97ad8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.UsageDeclaration.cs; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckUsageDeclarationsPass.cs#Sr14PhraseOf; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckUsageDeclarationsPass.cs#ScreenSr14ElementaryPlacement; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_pointer_level_1; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-pointer-in-group; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-program-pointer-in-group; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-object-reference-in-group",
+ "notes": "§2002:13.16.58.2 SR13 permits OBJECT REFERENCE, POINTER and PROGRAM-POINTER only at level 1 or under a STRONG type declaration; the accepted case uses level-1 CD records of each phrase and a pointer under a WS TYPEDEF STRONG (the STRONG branch cannot stand under a CD, §2002:13.16.55.2 SR4 with §2002:A.1.2.2 SR9) and matched at --std 2002, and the level-05 CD-group forms are refused with COBOL1724."
+}

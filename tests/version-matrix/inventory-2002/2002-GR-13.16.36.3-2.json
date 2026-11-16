@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-2",
+ "rule-digest": "dd1e270426ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2002u-occ-cd-index-range",
+ "notes": "§2002:13.16.36.3 GR2: for OCCURS 5 in a CD record, PERFORM VARYING reaches occurrence numbers -4 and 10 with no EC, and an augment past the signed 64-bit range (DOC-A.1-128) sets EC-RANGE-INDEX; the --std 2002 run printed LOW BODIES=3 AT-4 EC=N / HIGH BODIES=3 AT10 EC=N / RANGE=EC-RANGE-INDEX / OUT BODIES=2 EC=Y, equal to the derivation."
+}

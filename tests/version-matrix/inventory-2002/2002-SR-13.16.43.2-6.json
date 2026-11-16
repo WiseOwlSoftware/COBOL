@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.43.2-6",
+ "rule-digest": "d7136ceca055",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataName",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-qualified-operands",
+ "notes": "§2002:13.16.43.2 SR6 permits qualified data-name-2/3; with A and B declared twice, A OF G2 THRU B OF G2, B OF G1 THRU A IN G2 and A OF G1 OF R1 print X1=A2B2 X2=B1A2 X3=A1 (§2002:13.16.43.3 GR1/GR2) at --std 2002, equal to the .out."
+}

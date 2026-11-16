@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.3.2-5",
+ "rule-digest": "a736bb72b3ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindAllocate; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#StrongGroupType",
+ "test-ref": "conformance:cases/14.8.3@2002-ALLOCATE-STATEMENT/g2-allocate-strong-group-cd-unrestricted; conformance:cases/13.18.60-USAGE/pb153_restricted_pointer",
+ "notes": "§2002:14.8.3.2 SR5: with a strongly-typed group data-name-1, data-name-2 shall be restricted to its type; ALLOCATE V RETURNING CP (CP an unrestricted POINTER record under an output CD) is refused COBOL0869 at --std 2002, and the restricted form runs in pb153_restricted_pointer at 2002."
+}

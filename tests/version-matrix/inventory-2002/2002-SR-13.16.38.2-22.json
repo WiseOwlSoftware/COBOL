@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-22",
+ "rule-digest": "703b4494ed7c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ValidateEditing",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sign-currency-forms; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr22-cr-not-rightmost",
+ "notes": "CR and DB as the rightmost symbol are accepted: 99CR, 99DB, 999$CR edit -5/-12 to '05CR' '05DB' '012$CR' and 12 to '012$  '. (§2002:13.16.38.2 SR22, in a record under an OUTPUT CD; --std 2002 on the pinned build dc1f2dcce8 printed the derived .out and refused the violating form with COBOL1935)."
+}

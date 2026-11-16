@@ -1,0 +1,7 @@
+C=1
+C=7
+3 LOW
+7 NOT LOW
+D=5
+5 NOT ONE
+6 ONE

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.31.2-2",
+ "rule-digest": "f23d23f97284",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Classify",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-lvl-cd-level-77",
+ "notes": "A level-77 entry among the record entries of an OUTPUT CD violates §2002:13.16.31.2 SR2 (CD, FD or SD subordinates are 66, 88 or 1-49) and is refused at --std 2002 with COBOL1746 at the 77 line; the FD/SD branch is refused by pb485-level-77-file-section."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-25",
+ "rule-digest": "a825ba634776",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-case-length-currency; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002u-pic-cd-sr25-two-currency",
+ "notes": "§2002:13.16.38.2 SR25: in a CD record the floating strings uuU9 and $$$9 (one currency symbol each) edit 12 to ' EUR12' and ' $12', and UU$9, which breaks only SR25, is refused COBOL0808 at --std 2002."
+}

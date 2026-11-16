@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.2.3-4",
+ "rule-digest": "425cae37c61c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#LiteralNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineAdditive",
+ "test-ref": "conformance:cases/14.8.2@2002-ADD-STATEMENT/g2-add-native-no-digit-loss",
+ "notes": "§2002:14.8.2.3 GR4 under default native arithmetic (§2002:11.8.4.2 GR3) with DISPLAY operands only: 19-digit sum, 27-digit 18+9 sum, a cancelling 18-digit sum plus 0.5, and input-CD field operands keep every digit; matched at --std 2002."
+}

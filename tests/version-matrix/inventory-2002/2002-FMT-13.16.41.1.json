@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.41.1",
+ "rule-digest": "00015ecc16c6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
+ "test-ref": "conformance:cases/13.16.41@2002-RECORD-CLAUSE/g2002-record-formats-accepted",
+ "notes": "§2002:13.16.41.1 grants three RECORD formats with no BYTES (the PDF page was rendered). At --std 2002, each format is accepted with and without its optional words in FD and SD entries, and records written and read back match the derivation (§2002:13.16.41.3 GR9, GR13a and GR15: '03 [CCC]', '05 [FFFFF]', 'AA 02', 'BBBB 04')."
+}

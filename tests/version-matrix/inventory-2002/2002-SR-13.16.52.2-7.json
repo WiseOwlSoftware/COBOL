@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.52.2-7",
+ "rule-digest": "855ca9f98d17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlLevelOf; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum04_reset_type_qualified_refmod",
+ "notes": "§2002:13.16.52.2 SR7: RESET ON CX OF GRP(3:2), qualified and reference-modified, names the intermediate of three CONTROL operands on one base item; by §2002:13.16.52.3 GR2 RUN resets after the intermediate footing (G5 RUN=012, not 042). The --std 2002 run on the pinned build matched the 21 derived lines."
+}

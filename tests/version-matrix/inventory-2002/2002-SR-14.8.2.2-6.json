@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.2.2-6",
+ "rule-digest": "a912e5061456",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
+ "test-ref": "conformance:cases/14.8.2@2002-ADD-STATEMENT/g2-add-sr6-cd-elementary; conformance:cases/14.8.2@2002-ADD-STATEMENT/g2-add-sr6-cd-level66; conformance:cases/14.8.2@2002-ADD-STATEMENT/g2-add-sr6-elementary-id4",
+ "notes": "§2002:14.8.2.2 SR6: ADD CORRESPONDING operands shall be groups and not level 66; an elementary CD item as identifier-5, an elementary WS item as identifier-4 and a level-66 RENAMES over a CD record are each refused COBOL1757 at --std 2002."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.2.2-2",
+ "rule-digest": "7b80a4f8a59b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/14.8.2@2002-ADD-STATEMENT/g2-add-sr2-cd-numeric; conformance:cases/14.8.2@2002-ADD-STATEMENT/g2-add-sr2-cd-alnum-addend; conformance:cases/14.8.2@2002-ADD-STATEMENT/g2-add-sr2-cd-alnum-receiver",
+ "notes": "§2002:14.8.2.2 SR2: ADD operands shall be numeric; alphanumeric CD-record operands are refused (COBOL0844 for the addend, COBOL1675 for the receiver) at --std 2002, and numeric CD operands add as derived (F1 0018, F2 0028, §2002:14.8.2.3 GR1/GR2)."
+}

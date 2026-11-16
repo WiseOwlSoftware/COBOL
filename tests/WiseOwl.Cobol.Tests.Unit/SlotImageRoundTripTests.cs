@@ -45,6 +45,10 @@ public sealed class SlotImageRoundTripTests
         {
             var written = ManagedPointer.At(a, offset);
             string image = PointerImage.Of(written);
+            // kb/Work PB5820: a collection between the WRITE that images the pointer and the READ that decodes it (another test's, or the
+            // program's own allocation) must not lose the far base: the token names live storage until that storage's life ends.
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
             var read = PointerImage.DataPointerOf(image);
             var cell = Assert.IsType<CellPointer>(read);
             Assert.Same(a, cell.Cell);
@@ -192,6 +196,7 @@ public sealed class SlotImageRoundTripTests
     {
         var cell = new StorageCell { Ref = "ABCD" };
         _ = PointerImage.Of(ManagedPointer.At(cell, 0));
+        _ = PointerImage.Of(ManagedPointer.At(cell, 1L << 32));   // a far pointer's entry is held strongly too (kb/Work PB5820), and dropped when the life ends
         cell.End(StorageEnd.Freed);
         return new WeakReference(cell);
     }

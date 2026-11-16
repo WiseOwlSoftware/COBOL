@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-24",
+ "rule-digest": "998d8de13e42",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#MarkFloating",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-sr24-one-float-or-suppress; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-sr24a-plus-and-currency; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-sr24b-currency-and-z; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-sr24c-minus-and-star",
+ "notes": "§2002:13.16.38.2 SR24 allows at most one floating-insertion or zero-suppression string (its NOTE: +$$$ valid, +++$$$ invalid). In OUTPUT-CD records at --std 2002, six one-string pictures (+$$$, $$$9, +++9, ---9, ***9, $ZZ9) are accepted and edit as §2002:13.16.38.4 GR5-GR7 derive ('+ $5', ' $12', ' -12', '  12', '**12', '$ 12'), and +++$$$9, $$$ZZ9 and --**9 are each refused with COBOL1935."
+}

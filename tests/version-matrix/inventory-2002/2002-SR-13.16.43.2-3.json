@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.43.2-3",
+ "rule-digest": "7abbce5c81c5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-qualified-by-record",
+ "notes": "§2002:13.16.43.2 SR3 admits qualifying data-name-1 by its 01, FD, CD or SD name: four 66 RX entries resolve through each at --std 2002 (CD=AAABBB C1=AAABBB WS=WWW FD=05 F1=05 SD=07 S1=07, by GR1/GR2, equal to the .out); its prohibitions are refused beside it (g2-renames-dn1-qualifier COBOL1639, g2-renames-cd-occurs-operand and g2-renames-occurs-ancestor COBOL2740)."
+}

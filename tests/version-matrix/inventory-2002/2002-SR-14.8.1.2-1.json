@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.1.2-1",
+ "rule-digest": "da6caa4f7046",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept",
+ "test-ref": "conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr1-cd-index; conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr1-strong-group; conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr1-object; conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2-accept-sr1-pointer",
+ "notes": "§2002:14.8.1.2 SR1: a format 1 ACCEPT receiver shall be neither a strongly-typed group nor of class index, object or pointer; a CD-record index item and WS strong-group, object-reference and pointer items are each refused COBOL0818 at the ACCEPT line at --std 2002."
+}

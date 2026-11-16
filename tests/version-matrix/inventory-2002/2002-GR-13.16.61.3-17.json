@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-17",
+ "rule-digest": "aa7fb61ae025",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFalsePhraseOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSet",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-initial-image; conformance:cases/13.18.63-VALUE/pb555_value_false_phrase",
+ "notes": "§2002:13.16.61.3 GR17: SET C1-LOW TO FALSE places the WHEN SET TO FALSE literal 50 in the CD record conditional variable, and the initial 5 also tests false (GR17 NOTE). PASS at --std 2002 on the pinned build."
+}

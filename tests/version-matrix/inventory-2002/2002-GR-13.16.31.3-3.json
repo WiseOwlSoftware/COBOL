@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.31.3-3",
+ "rule-digest": "d85b6ef1f255",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#SetRedefinition; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-lvl-cd-records; conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-lvl-rd-groups-own-area; conformance:cases/13.18.33-Level-number/pb836_implicit_record_redefinition; conformance:cases/13.18.33-Level-number/pb981_fd_pointer_record",
+ "notes": "Multiple 01 records under an OUTPUT CD share one area and RD report groups do not (§2002:13.16.31.3 GR3; §2002:A.1.2.2 SR9): after MOVE to R1 and to R2 the other records show the shared bytes, and GENERATE DA, DB, DA prints AAAAA, BBB, AAAAA at --std 2002 (MATCH); FD/SD by pb836 and pb981_fd_pointer_record at 2002."
+}

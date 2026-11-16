@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-18",
+ "rule-digest": "4846577695ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckRangesAscending; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ValueThroughNotAscending",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr18-sr19-cd-legal; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr18-thru-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr18-thru-nat",
+ "notes": "§2002:13.16.61.2 SR18a/SR18b: a THROUGH range shall ascend; 5 THRU 1 in a CD record and N\"B\" THRU N\"A\" are refused COBOL2961 at --std 2002, and the legal CD range 1 THRU 3 runs as derived (C=1 after SET TRUE, 3 LOW, 7 NOT LOW)."
+}

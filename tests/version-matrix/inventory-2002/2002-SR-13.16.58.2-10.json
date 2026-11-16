@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-10",
+ "rule-digest": "dd65cf31ab77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsIndexMessageTagObjectOrPointer; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckConditionNameAssociationsPass.cs#CheckConditionNameAssociationsPass; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-condvar-program-pointer; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-condvar-index; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-condvar-pointer; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-condvar-object-reference; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-condvar-program-pointer",
+ "notes": "§2002:13.16.58.2 SR10 forbids a conditional variable of class index, object or pointer; each case writes one 88 entry under such an item (WS program-pointer; CD-record index, pointer, object reference, program-pointer, each the CD's first record so A.1.2.2 SR9 allows its VALUE) and the pinned compiler at --std 2002 refuses each with COBOL1976 at the 88 line alone."
+}

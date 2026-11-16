@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.47.2-3",
+ "rule-digest": "e3d51bc958e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAsEntry",
+ "test-ref": "conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-cycle-ancestor",
+ "notes": "§2002:13.16.47.2 SR3 bars a SAME AS in data-name-1's description that references the subject or a group containing it; g2-same-as-cycle-subject (A1/B1) and g2-same-as-cycle-ancestor (G.A SAME AS B, B.C SAME AS G) are refused COBOL1557 at --std 2002, as derived."
+}
