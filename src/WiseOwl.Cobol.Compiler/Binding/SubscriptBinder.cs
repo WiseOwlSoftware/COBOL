@@ -987,7 +987,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // redefinition, renaming or BASED item of one) is refused as `DISPLAY L-ITEM` is — the SAME screen
         // (NameResolution.ScreenLinkageReference) the identification step asks, queued with the class screen so an
         // abandoned walk (the D18 route screens the operand through Identify) reports once.
-        if (data.Linkage.UnreferenceableLinkageRecord(item) is not null) (pending ??= []).Add(new PendingScreen(item, name, LinkageRef: dref));
+        if (refs.Names.IsUnreferenceableLinkage(item)) (pending ??= []).Add(new PendingScreen(item, name, LinkageRef: dref));
         // ⛔ A NO-THROUGH level-66 ALIAS IS READ AS THE ITEM IT RENAMES (kb/Work PB5477). §1985:VI.5.11.4 GR2 and
         // §2023:13.18.45.4 GR1: "all of the data attributes of data-name-2" become data-name-1's and its storage is data-name-2's,
         // so `66 RN RENAMES GA` (GA PIC 9) is a numeric integer item and a legal subscript. The alias owns no field: naming it
