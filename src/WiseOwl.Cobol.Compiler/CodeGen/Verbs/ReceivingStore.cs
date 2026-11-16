@@ -221,7 +221,8 @@ internal static class ReceivingStore
     /// <list type="bullet">
     /// <item>a reference-modified receiver — §2023:8.4.3.3.4 GR6's unique data item, the evaluated slice's length;</item>
     /// <item>an occurs-depending group whose data-name-1 lies outside it — its CURRENT extent in characters
-    ///   (<see cref="PlaceRenderer.CharLengthExpr"/>, §2023:13.18.38.4 GR8a; kb/Work PB5777);</item>
+    ///   (<see cref="PlaceRenderer.CurrentPositionsExpr"/>: characters, national or bit positions by channel,
+    ///   §2023:13.18.38.4 GR8a; kb/Work PB5777);</item>
     /// <item>any other group — its character positions (a bit / national group's as-if positions, D20/PB79);</item>
     /// <item>a dynamic-length item — <see cref="DynamicReceivingSize"/> (DETERMINATION D-DL2);</item>
     /// <item>an ANY LENGTH item — <see cref="AnyLengthWidth"/>;</item>
@@ -233,8 +234,9 @@ internal static class ReceivingStore
         RefModPlace => $"{PlaceRenderer.Read(target)}.Length",
         // §2023:13.18.38.4 GR8a (§1985:VI.5.8.4 GR3a): an occurs-depending group whose data-name-1 lies OUTSIDE it is used only
         // to its CURRENT extent, so "the size of the current receiving area" (UNSTRING GR11b) is that extent, the one
-        // PlaceRenderer.CharLengthExpr also slices the receiving store at; data-name-1 inside takes the maximum (GR8b).
-        OdoGroupPlace odo when PlaceRenderer.UsesCurrentExtent(odo, AccessDir.Receiving) => PlaceRenderer.CharLengthExpr(odo),
+        // PlaceRenderer.CurrentPositionsExpr measures, in the positions of the group's own channel (character, national
+        // or bit, as the store is read and written); data-name-1 inside takes the maximum (GR8b).
+        OdoGroupPlace odo when PlaceRenderer.UsesCurrentExtent(odo, AccessDir.Receiving) => PlaceRenderer.CurrentPositionsExpr(odo),
         _ when target.Item.IsGroup => $"{target.Item.AsIfPic?.Length ?? target.Item.ImageWidth}",
         _ when target.Item.IsDynamicLength => $"{DynamicReceivingSize(target.Item)}",
         _ when target.Item.IsAnyLength => AnyLengthWidth(target),

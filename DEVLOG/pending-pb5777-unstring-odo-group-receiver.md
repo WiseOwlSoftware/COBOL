@@ -19,3 +19,5 @@ current extent.
 value computed from the rules above). No refused-below program: the rule exists in the oldest edition.
 
 **Rows.** `GR-14.9.48.4-11` re-recorded PARTIAL to CONFORMS (GAP 10 to 9); the 1985 row is kept by its bridge.
+
+Review round 1 (R1-1): the arm sized every occurs-depending group in storage-image bytes, so a GROUP-USAGE NATIONAL group got its byte extent. It now reads `PlaceRenderer.CurrentPositionsExpr`, the one reader that picks character, national or bit positions by channel. Golden `pb5777_unstring_odo_national_group_receiver_current_extent` (2002) pins NG=[AB] R1=[CDE] P=06.
