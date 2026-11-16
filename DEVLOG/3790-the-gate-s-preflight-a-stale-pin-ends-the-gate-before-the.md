@@ -1,4 +1,4 @@
-## The gate's preflight: a stale pin ends the gate before the whole population runs
+## Entry 3790 — 2026-11-16 13:17 PST — The gate's preflight: a stale pin ends the gate before the whole population runs
 
 The owner ordered it on 2026-11-16, ahead of the remaining 1985 fixes (kb/Work PB5872): "why ... are we waiting for a known red to appear, then handle the error?". That day five of six fix branches of one lane needed a second or third gate, and four of those reds were visible in seconds. One run's only red was an emitted-C# snapshot the Characterization host finished 22.1 s after it started, in a run whose test phase took 981.6 s more.
 
@@ -9,3 +9,4 @@ The owner ordered it on 2026-11-16, ahead of the remaining 1985 fixes (kb/Work P
 **One point of the decided shape changed.** The note put the stage before the slot wait. Its cases need the build, and the slot rations the build, so the stage runs inside the slot, after the build. It saves the population's test phase, never the slot wait: about 925 s of the snapshot run above and about 423 s of the ABI-pin run. The two runs stopped by the public API baselines were already fail-fast as an audit.
 
 `scripts/selftests/gate/test_preflight.py` covers a red, a green with one whole assembly and part of another, a case run twice, a declared class with no case, the audits and the other lanes unchanged, and re-gates. Its arms were seen to fail with the early return disabled and with the plan's exclusion disabled.
+
