@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-SR-IX.4.4.3-2",
+ "rule-digest": "09e3ec603188",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-155",
+  "sources": {
+   "reader": "0de8f709c2b4ee3ffec721fd32c4bd152a11c5331bcb981f9d433bcb8682d5a8",
+   "refuter": "61677f953081c0603a4306d57d35c598bc4ebcb6f35cb94ba979f66aba39782c"
+  },
+  "imported": {
+   "reader": "9207c0aedaa4cc7900fbc10b7f9b7b91174fae345db3a960613d4bf5a7f87c8e",
+   "refuter": "4d24c11d7a4bc751209c409688336a3325abf92982c86b58379e72fece2e24eb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.4.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 one OPEN statement may name files of any mix of organization and access mode, across its INPUT, OUTPUT, I-O and EXTEND groups, and must compile and open each as a separate OPEN in written order (EXTEND still only for sequential access, SR1).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpenScope",
+  "edition-consulted": [],
+  "edition-search": "Read BindOpen, CheckOpenModeForFile and EmitOpen; grepped them for Edition/Year/CobolVersion/DialectBehavior. VersionConformancePass#VisitOpenStatement visits every OPEN but consults the edition only when a SHARING phrase is written (FileSharingClause2002), which a 1985 mixed-organization OPEN does not carry; CheckOpenModeForFile reads DialectLevel only to word a FORMAT-clause message.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf23_04 covers sequential/relative dynamic/indexed sequential in one OPEN OUTPUT and one OPEN INPUT; it does not mix several open-mode groups (I-O, EXTEND) in one statement, a random-access file, or a failed open inside the list",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/runs/g85_bf23_04-001",
+    "printed": "EXPECT: MATCH (g85_bf23_04.out)",
+    "expected": "the witness .out"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/src/p2open.cob",
+    "printed": "OPEN-1 00 00 00 00 / USE-MS 35 XD=00 RR=99 XS=00 / OPEN-2 00 00 00 00 35 / XS 00 K001XXXX / XD 00 K001AAAA / SQ1 SSSSSSSS / SQ2 TTTTTTTT",
+    "expected": "OPEN I-O XD INPUT XS MS OUTPUT RR EXTEND SQ: each file opened in written order; missing MS gets 35 and its USE runs before RR is opened; the others 00 and usable; EXTEND appends to SQ (§1985:IX.4.4.4 GR17)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/src/p3openext.cob",
+    "printed": "error COBOL2372: OPEN EXTEND 'MS' - the file's access mode is RANDOM; EXTEND requires sequential access",
+    "expected": "refused by §1985:IX.4.4.3 SR1 inside a mixed list (SR2 does not lift SR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.3 SR2",
+    "check": "OK  §1985:IX.4.4.3 SR2  (4.4.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Permissive rule; BindOpen binds each file-name to its own BoundOpen and the emitter opens each with its own status store and USE hook, so organization and access never interact across files. The refusal probe shows the per-file SR1 screen still fires inside a mixed list. The SR1 message cites the 2023 rule number rather than the 1985 one (cosmetic, not this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.4.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe r2open-001 at --std 85: OPEN OUTPUT XS RS SQ WITH NO REWIND SQ2 XR then OPEN EXTEND XS RS I-O XR INPUT SQ WITH NO REWIND EXTEND SQ2 (indexed and relative sequential access opened EXTEND in one list with a sequential INPUT NO REWIND and an indexed random I-O): OPEN-2 00 00 07 00 00 (07 for NO REWIND, §1985:VII.1.3.5), the EXTEND writes appended (XS2 K002BBBB, RS2 R2R2R2R2, SQ22 UUUUUUUU), XR readable. Probe r2crev-002: OPEN I-O XD INPUT SQ REVERSED RR (REVERSED is a 1985-only phrase) compiled; SQ read BBBBBBBB then AAAAAAAA (§1985:VII.4.3.4 GR12). Probe r2dshr-001 (class c refusal): OPEN I-O SHARING WITH NO OTHER XD INPUT SQ RR refused COBOL0900 requires COBOL-2002. Standalone r2bnorew-001 confirmed 07 for OPEN OUTPUT/INPUT NO REWIND (an apparent 00 in r2open was my probe displaying after a WRITE). cite.py: OK §1985:IX.4.4.3 SR2 the text is in SR2; OK §1985:VII.4.3.4 GR12 the text is in GR12.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOpenFileSpec: OPEN REVERSED removed 2002 (Constructs.OpenReversedRemoved2002); 85 admits it, a different arm from 2023, right at 85"
+  ],
+  "corrected": ""
+ }
+}

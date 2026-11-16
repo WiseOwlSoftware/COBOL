@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-IX.2.3.4-4",
+ "rule-digest": "8eb936e053fd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-090",
+  "sources": {
+   "reader": "6ab038ea6035d8f9ae4367c0d745ed9e52de3169af37c155f45817b22effaac4",
+   "refuter": "dc715fbd8dfc0a125afb51673dcf17c36c19afbfa88e462ab1fae41831d4fcd7"
+  },
+  "imported": {
+   "reader": "6e3ff61a5a8441c1bc6f8f643cbdc362bb5eac270f2d9c777309c88d5c5d08bf",
+   "refuter": "2c6530d7e4179b082b1e79585944d30fc5a9c4c56b6bd2708f37f2c1f1cc78d1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.3.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the OPTIONAL phrase of an indexed file's SELECT has effect only for OPEN INPUT, I-O and EXTEND: an absent OPTIONAL file opens successfully (05; I-O and EXTEND create it; INPUT leaves it not present, so a random READ or START is an invalid key 23 and a sequential READ an at end 10), OUTPUT is unaffected, and an absent file without OPTIONAL fails OPEN INPUT, I-O or EXTEND with 35.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+  "edition-consulted": [],
+  "edition-search": "grep CobolVersion|Edition|DialectBehavior over KeyedConnector.cs and IndexedConnector.cs (only IndexedReadPreviousAfterOpenAtEnd and IndexedDuplicateKeyStatusSequentialOnly, neither on OPTIONAL); FileControlBinder sets FileModel.Optional from grp.OPTIONAL() with no edition test; the edition number passed to FileRegisterIndexed reaches only those DialectBehavior gates.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf19_03 covers sequential access in all four open modes and the non-optional INPUT 35; not covered: random and dynamic access (READ by key, START on an absent optional file), OPEN I-O / EXTEND of an absent non-optional file, the statement after the failed OPEN, an OPTIONAL file that is present",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p4_optional.cob",
+    "printed": "ORN OPEN 05 / ORN READ INVALID 23 (random) / ODY OPEN 05 / ODY START INVALID 23 (dynamic)",
+    "expected": "05 on OPEN INPUT of an absent optional file; 23 for a random READ or START (§1985:IX.1.3.4 GRL2.3 c 2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p4_optional.cob",
+    "printed": "RIO OPEN I-O 35 / RIO READ AFTER FAILED OPEN 47 / REX OPEN EXTEND 35",
+    "expected": "a non-optional absent file: 35 for I-O and EXTEND; READ after the failed OPEN: 47"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p4_optional.cob",
+    "printed": "OPR OPEN PRESENT 00 / OPR READ 00 P001 / OPR OPEN EXTEND PRESENT 00",
+    "expected": "an OPTIONAL file that is present opens normally (00)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.3.4 GR4",
+    "check": "OK  §1985:IX.2.3.4 GR4  (2.3.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "KeyedConnector.OpenCore takes IsOptional only on the INPUT and I-O/EXTEND arms, and OUTPUT creates the file whatever the phrase says. The witness and the probe match the 1985 text in every access mode.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r4b_opt.cob at --std 85: OPTIONAL absent file OPEN INPUT then sequential READ -> OX FIRST READ AT END 10; OPEN INPUT 05, START -> 23, READ after the failed START -> 46 (§1985 I-O status 46 case 1); CLOSE 00; then a NON-optional SELECT of the same ASSIGN name OPEN INPUT -> 35 (OPEN INPUT of an absent optional file did not create it); OPTIONAL file OPEN OUTPUT while absent -> 00 (not 05: OPTIONAL has no effect on OUTPUT), then present on reopen -> 00; OPTIONAL OPEN EXTEND absent -> 05, WRITE 00, reopen INPUT 00 and READ 00 E001 (file created per GR15); OPTIONAL OPEN I-O absent (dynamic) -> 05, READ by key 23, READ NEXT after it 46, WRITE 00, reopen and READ 00 I001. cite.py: OK §1985:IX.2.3.4 GR4; OK §1985:IX.4.4.4 GR15 (EXTEND or I-O creates the file); OK §1985:IX.4.4.4 GR9.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

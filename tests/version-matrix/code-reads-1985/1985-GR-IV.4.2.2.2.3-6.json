@@ -1,0 +1,160 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-6",
+ "rule-digest": "a93b0fedec35",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-086",
+  "sources": {
+   "reader": "6a96a82bff65079e8e01d9c2900e21b9ccf2e439b3182b3151de0caa9ffc2dd9",
+   "refuter": "84eead25e060f896dd9a49671c4967dbabf36eb95ce5e2b18c300c9c60583088"
+  },
+  "imported": {
+   "reader": "3566021bed760e72c0a0f6324e211eb9c0c797e16a6f5a97bfa7582eb00bf0a1",
+   "refuter": "dbb6a7ab6c610a1c1e32e73f1087c5f3c3451ddff1045ab503e24748b1161fa6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 ALL literal represents the literal's characters repeated (and truncated) to the associated item's size, before and independent of JUSTIFIED (GRL2.1), or the literal's own length when unassociated (GRL2.3); the literal must be a nonnumeric literal (a numeric literal after ALL is refused) and must not itself be a figurative constant; 1985's only nonnumeric literal is the quotation-mark form, so ALL X\"..\" / ALL N\"..\" are refused; a multi-character ALL literal associated with a numeric or numeric-edited item is legal (obsolete) at 85.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#allLiteral; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#FoldAllLiteral; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#Of; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr3; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+    "switches": "ALL X\"..\" / ALL N\"..\" / ALL B\"..\" literal forms refused at 85 (COBOL0900), admitted at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr3",
+    "switches": "Constructs.AllLiteralMulticharNumericRemoved2002: a multi-character ALL literal moved to a numeric item is admitted at 85 and refused (COBOL0902) from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr5",
+    "switches": "Constructs.MoveAllDigitIntegerObsolete2023: digit-only ALL literal to an integer item silent at 85, COBOL0903 warning at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#FoldAllLiteral",
+    "switches": "takes the EditionContext for reporting the literal-1 rules; no edition branch on a plain quoted literal",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: the multi-character ALL literal associated with a numeric item is legal at 85 and removed from 2002; the hexadecimal/national/boolean ALL forms exist only from 2002",
+  "witnesses-cover": "part: the witness exercises ALL literal against alphanumeric items; JUSTIFIED, numeric/numeric-edited/alphabetic/alphanumeric-edited receivers, ODO and reference-modified receivers, the unassociated length and the refusals are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/g85_bf03_09.cob",
+    "printed": "MATCH (witness)",
+    "expected": "witness output"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/a1.cob",
+    "printed": "X5 [ABABA] (VALUE); J5 [ABABA] (JUST RIGHT); X2 [AB] (ALL \"ABCD\" truncated); N4 [1212]; E5 [3333]; A5 [XYXYX]; AE [P Q P]; OG [KLK   ] (ODO at 3 then 6); Y6 [.#*#..] (ref-mod 2:3); D [XYZ]; C1 EQ C2 EQ C3 GT C4 EQ",
+    "expected": "repetition sized to the associated item, independent of JUSTIFIED; literal length when unassociated"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/a2.cob",
+    "printed": "85: N4 [ABAB] N3 [777], exit 0; 2023: COBOL0902 on MOVE ALL \"AB\" TO N4, COBOL0903 warning on MOVE ALL \"7\" TO N3",
+    "expected": "multi-character ALL literal to numeric legal (obsolete) at 85 only"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/ar_num.cob",
+    "printed": "error COBOL5506: The integer literal 12 is not expected here",
+    "expected": "ALL 12 refused (literal must be nonnumeric)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/ar_dec.cob",
+    "printed": "error COBOL5506: The fixed-point numeric literal 1.5 is not expected here",
+    "expected": "ALL 1.5 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/ar_neg.cob",
+    "printed": "error COBOL0001: cannot parse construct near '-'",
+    "expected": "ALL -1 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/ar_allall.cob",
+    "printed": "error COBOL5506: cannot parse construct near 'TO'. expected '&'",
+    "expected": "ALL ALL \"A\" refused (literal must not be a figurative constant)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/ar_valnum.cob",
+    "printed": "error COBOL5506: The integer literal 7 is not expected here",
+    "expected": "VALUE ALL 7 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/ar_cmpnum.cob",
+    "printed": "error COBOL5506: The integer literal 1 is not expected here",
+    "expected": "IF X4 = ALL 1 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/a3.cob",
+    "printed": "error COBOL1657 (VALUE ALL \"12\" on PIC 99); error COBOL0844 (ADD ALL \"1\")",
+    "expected": "numeric-restricted positions admit only ZERO (§1985:IV.4.2.2.2.3 SRL3.1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/ar_hex.cob",
+    "printed": "error COBOL0900: the hexadecimal alphanumeric literal X\"...\" requires COBOL-2002",
+    "expected": "ALL X\"41\" refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/ar_nat.cob",
+    "printed": "error COBOL0900: the national literal N\"...\" requires COBOL-2002 (and COBOL0819)",
+    "expected": "ALL N\"A\" refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GR6",
+    "check": "OK  §1985:IV.4.2.2.2.3 GR6  (4.2.2.2.3 Figurative Constant Values)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GRL2.1",
+    "check": "OK  §1985:IV.4.2.2.2.3 GRL2.1  (4.2.2.2.3 Figurative Constant Values)  the text is in GRL2.1"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3",
+    "check": "OK  §1985:IV.4.2.2.2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in the clause; it lies in GRL2.3"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3",
+    "check": "OK  §1985:IV.4.2.2.2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in the clause; it lies in SRL3.1"
+   },
+   {
+    "cite": "§1985:VI.6.25.3 SR1",
+    "check": "OK  §1985:VI.6.25.3 SR1  (6.25.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar admits only a nonnumeric literal kind after ALL (allLiteral), so numeric literals are syntax errors; BoundAllLiteral carries the repeat-to-size semantics. STRING ALL \"AB\" is refused with COBOL1757, which §1985:VI.6.25.3 SR1 requires. The ALL ALL \"A\" refusal's message ('expected &') names the concatenation operator, a 2002 construct, a wording matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-6",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "Attack on the 85-only obsolete arm beyond MOVE (the reader probed MOVE only): src/al_cmp.cob at 85 -> exit 0: IF N4(1212) = ALL \"12\" EQ and ALL \"1\" = N4 NE (comparison of a numeric integer with a multi-character ALL literal admitted at 85, numeric moved to alphanumeric of its size); VALUE ALL \"12\" on ZZZ9 -> [1212] (VALUE on a numeric-edited item, admitted and unedited); VALUE ALL \"AB\" on XBXB [ABAB]; X(7) VALUE ALL \"ABC\" [ABCABCA]; MOVE ALL \"XY\" to a group with a COMP child -> G1 [XY]; X7(2:3) = ALL \"BC\" NE ('BCA' vs 'BCB', sized to the reference-modified operand). cite.py: OK §1985:IV.4.2.2.2.3 GR6 'The literal must be a nonnumeric literal'; OK §1985:IV.4.2.2.2.3 (SRL3.2) 'is an obsolete feature in Standard COBOL'; OK §1985:VI.5.15.4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

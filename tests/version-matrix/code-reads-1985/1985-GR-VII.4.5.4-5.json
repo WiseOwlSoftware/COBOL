@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-5",
+ "rule-digest": "a91bb36ce6a2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-125",
+  "sources": {
+   "reader": "bc455473fa2de6f1c4fc150fe11ea0c6256448ddaab13f91ff98d875bd743e30",
+   "refuter": "56a1c9193d22777bd10fa0ae78650e0f8a9a3b26f4ead5cf93fb85dbde45e5b5"
+  },
+  "imported": {
+   "reader": "cfc503a253edd16aba33423651e50fae0b18f38c933bc673f1aebe55e4b9774d",
+   "refuter": "c51b3276dc77cb104fb1be50784a0929d5c9d80528a46060bbcf4042efd733e0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.5.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after REWRITE record-name-1 FROM identifier-1 completes, identifier-1 (which in 1985 may only be an identifier, not a literal) still holds its content, whatever its class, usage or subscripting, while record-name-1's content is available only under SAME RECORD AREA.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+    "switches": "construct from-literal-2002 (ConstructRegistry.g.cs): FROM literal-1 refused COBOL0871 at 85, accepted from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the OPEN's default sharing mode read by the REWRITE's lock step; inert for this rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition|DialectLevel in SequentialIoEmitter.cs and SequentialIoBinder.cs: the FROM move is the bound MOVE, emitted the same at every edition.",
+  "behaviour-differs-by-edition": "yes: identifier-1 only at 1985; 2002 and later add FROM literal-1 (refused at 85 with COBOL0871, accepted at 2023)",
+  "witnesses-cover": "part: g85_bf07_06 covers an alphanumeric FROM item; a group FROM with COMP-3, a subscripted FROM whose subscript lies in the record area, and the literal refusal are not exercised by it",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p3sra.cob",
+    "printed": "FRM=2 -12345 NEWT after REWRITE A-REC FROM WS-NEW (group with COMP-3)",
+    "expected": "identifier-1 still available"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p3sra.cob",
+    "printed": "REWRITE C-REC FROM T(C-I) with C-I inside C-REC: SC=00 T1=2ABCDEFG T2=3XYZWXYZ, file FILC=2ABCDEFG",
+    "expected": "T(1) moved (subscript evaluated before the move), T unchanged"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p4clit.cob",
+    "printed": "--std 85: error COBOL0871 FROM literal-1 requires COBOL-2002; --std 2023: EXIT 0",
+    "expected": "1985 format allows only identifier-1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.4 GR5",
+    "check": "OK  §1985:VII.4.5.4 GR5  (4.5.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The FROM phrase is the bound implicit MOVE of GR4 followed by the REWRITE; nothing writes identifier-1 afterwards. Probes covered a mixed-usage group, a subscript changed by the move itself, and the 1985 refusal of a literal.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.5.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "q3rw.cob at --std 85: REWRITE R8 FROM WS-LONG (X(9)) -> WS-LONG still 123456789; REWRITE R4 FROM WS-SHORT -> still abc; T7 REWRITE H-REC FROM FUNCTION UPPER-CASE(WS-LOW) (Amendment 1 alphanumeric function) 00, record LOWER1, WS-LOW still lower1. q4sra.cob: REWRITE FC-NUM FROM WS-NUM (COMP-3) -> WS-NUM still -7654321. q6RFROMFUNCTION.cob: FROM FUNCTION LENGTH(WS) refused COBOL1914 citing §1985:VII.4.5.3 SR1; FROM FUNCTION REVERSE(WS) accepted, 00. cite.py: OK §1985:VII.4.5.4 GR5 'the information in the area referenced by identifier-1 is available'; OK §1985:VII.4.5.3 SR1 'If identifier-1 is a function-identifier, it must reference an alphanumeric function'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-XI.4.2.3-1",
+ "rule-digest": "b3e2ba543a1d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-071",
+  "sources": {
+   "reader": "90a7f18d255b545bee9f7532c2b43d3174e2468167bc66f03ff0fb60ab7004ef",
+   "refuter": "5ff05a7002ed3d0fe9d4c6c14bb6d40fe2625a6767b6221c63700a72659e7bdb"
+  },
+  "imported": {
+   "reader": "5a23f70fc2328650396445c239d290e02a41c143079dcac6d416cec1c1417e88",
+   "refuter": "c1d16103aa488c421c56a69abb6fead11d3c8f8ccdbab6a97e6694a192113b8d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 RELEASE record-name-1 must be a level-01 logical record of an SD (any of its record descriptions), optionally qualified; an FD record, a working-storage item, a subordinate item, a reference-modified record or a file-name is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReleaseRecord",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition.Edition / DialectLevel / ConstructRegistry / DialectBehaviors in SortBinder.cs and StatementValidation.cs: BindRelease's only consults are DialectLevel < 2002 (rangeFailsStatement, a general-rule outcome for out-of-range record sizes) and the FROM-literal gate; neither is on the SR1 path; ResolveRecordName and CheckReleaseRecord consult no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the 85 witness is the qualified acceptance; the refusals (FD record, WS item, subordinate item, refmod) are witnessed only by cases not run at 85",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/r1ok.cob",
+    "printed": "EXIT 0: R OF S1, RB (second 01), R IN S1 released; output AA111 BB222 CC333",
+    "expected": "accepted: qualified and secondary records are both legal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/r1fd.cob",
+    "printed": "COBOL1757: FR is a record of F1, which is described by an FD",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/r1ws.cob",
+    "printed": "COBOL1757: WR is not a logical record of any file description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/r1sub.cob",
+    "printed": "COBOL1757: K OF R OF S1 is subordinate to R",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/r1rm.cob",
+    "printed": "COBOL1757: reference-modified record-name refused",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/r1amb.cob",
+    "printed": "COBOL1639: R is not unique without qualification",
+    "expected": "refused (qualification needed)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/r1fn.cob",
+    "printed": "COBOL1639: S1 is a file-name, not a data item",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.2.3 SR1",
+    "check": "OK  §1985:XI.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1 [Record-name-1 must be the name of a logical record in a sort-merge file description entry and it may be qualified]"
+   }
+  ],
+  "notes": "Both halves of SR1 are checked at bind time, with no edition fork. The diagnostics cite §2023:14.9.32.3 SR1 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,d",
+  "evidence": "Probes at --std 85: x3f (66 RR RENAMES K THRU D under the SD, RELEASE RR) refused COBOL1757 (subordinate to R); x3g (RELEASE of an 88 condition-name under the SD record) refused COBOL1639; x3h (SD RECORD IS VARYING 3 TO 6 DEPENDING ON L, record with OCCURS 1 TO 4 DEPENDING ON N, RELEASE R and RELEASE R OF S1) compiles and returns R AA L=3 / R BB L=4. Reader covered FD record, WS item, subordinate, refmod, file-name, ambiguity. (A first probe x3/x3d that used the ODO count as the RECORD DEPENDING length released out-of-range sizes, which at 85 fail the statement: my program's error, a general-rule outcome, not SR1.) cite.py: OK  §1985:XI.4.2.3 SR1 [Record-name-1 must be the name of a logical record in a sort-merge file description entry].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

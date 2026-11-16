@@ -1,0 +1,106 @@
+{
+ "rule-id": "1985-GR-XIII.3.9.4-2",
+ "rule-digest": "0a05259ab2ae",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-039",
+  "sources": {
+   "reader": "7a4457796b771bc74879f8bf7120fb8fc9c0556a64cdcccfa7b290aef2c357e3",
+   "refuter": "5b5e7dacf5d6d220560d67c9a706beed8e27c9d357e0559d6b013433940dd628"
+  },
+  "imported": {
+   "reader": "178151d264a4880e1ded3f1d01b40e04d53a5dd0c711c1e55d97e7ec023d4986",
+   "refuter": "4ac39984b098904c5e0b703702d75392de88b3f29bf05e588428f729dcba86ba"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.9.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, BLANK WHEN ZERO, JUSTIFIED and PICTURE in a report group description entry obey the 1985 Nucleus rules (§1985:VI.5.4, VI.5.6, VI.5.9): the same editing results as the same clause on a working-storage item, and the same refusals. That includes 1985's own arms: BLANK WHEN ZERO on any numeric picture including S, and only the asterisk barred beside it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#BlankWhenZeroViolation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#JustifiedViolation; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportUsage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+    "switches": "edition.DialectLevel >= 2002 bars 'S' beside BLANK WHEN ZERO; below 2002 only '*' is barred (§1985:VI.5.9.3 SR7), with the 1985 message; the precedence chart message names §1985:VI.5.9.6 at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "BindReportEntry calls the data division's own predicates (BlankWhenZeroViolation, JustifiedViolation) and the one PictureComposition validator, so the edition arm is the shared one, the same in both sections.",
+  "behaviour-differs-by-edition": "yes: PIC S999 BLANK WHEN ZERO compiles at 85 and is refused (COBOL1934) at 2023, in the report section and working-storage alike",
+  "witnesses-cover": "part: pb1288 covers entry placement; editing results and the clause refusals were not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r6pic.cob",
+    "printed": "WS: ' 12.50-|   |    AB| $1,234.50|12|***5|-007|042CR|12/34'; RPT: ' 12.50-|   |    AB| $1,234.50|12  |***5|-007|042CR|12/34'",
+    "expected": "identical editing (the extra blanks after 12 are columns 33-34 of the report layout): ZZ9.99-, BWZ zero, JUST RIGHT, floating $, scaled 99PP, check-protect, +999, CR, insertion '/'"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r6justa.cob",
+    "printed": "same line as r6pic; PIC A(6) JUSTIFIED RIGHT accepted in both sections, '    AB'",
+    "expected": "JUSTIFIED on alphabetic is legal (§1985:VI.5.6)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r6bwzs2.cob",
+    "printed": "EXIT 0; WS '   |005|', RPT '   |005 |'; the same source (r6bwzs.cob) at --std 2023 is refused COBOL1934 for both items",
+    "expected": "PIC S999 BLANK WHEN ZERO is legal at 85 (§1985:VI.5.4.3 SR1), the same in both sections"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r6justnum.cob",
+    "printed": "error COBOL2405: the JUSTIFIED clause may be specified only for ... this item is of category numeric",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r6bwzx.cob",
+    "printed": "error COBOL2405: the BLANK WHEN ZERO clause ... this item is of category alphanumeric",
+    "expected": "refused (§1985:VI.5.4.3 SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r6bwzstar.cob",
+    "printed": "error COBOL1934: the symbol '*' is specified beside a BLANK WHEN ZERO clause ... (ISO §1985:VI.5.9.3 SR7)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r6badpic.cob",
+    "printed": "error COBOL1935: invalid PICTURE 9Z9 ... (at COBOL-85 the chart of §1985:VI.5.9.6 ...)",
+    "expected": "refused by the 1985 precedence chart"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.9.4 GR2",
+    "check": "OK  §1985:XIII.3.9.4 GR2  (3.9.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The report section reuses the data division's predicates and the single picture validator, so behaviour is identical by construction, and the probes confirm it. Aside, outside this rule: at 85 PIC S999 SIGN LEADING SEPARATE BLANK WHEN ZERO is refused (COBOL2422, 'category numericedited') in both sections. 1985 BWZ GR2 makes the item numeric edited, so that reading is defensible but untested against the 1985 SIGN SRs.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.9.4-2",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85 (refute-1985-039), all in a report group: class c refusals of later-edition PICTURE forms hold: p6n PIC N(3) -> COBOL0900, p6e PIC +9.9E+99 -> COBOL0900, p6one PIC 1(3) -> COBOL0900, p6d19 PIC 9(19) and p6len30 (23 digit positions, numeric edited) -> COBOL0802 (18-digit limit, §1985:VI.5.9.4 GR3a/GR6a), p6len31 (31-character string) -> COBOL2146 (cite OK §1985:VI.5.9.3 SR4); p6justed PIC XXBXX JUST RIGHT -> COBOL2405 (cite OK §1985:VI.5.6.3 SR3); p6jtrunc prints 'CDE ABC  1,234.50CR       $1234.50DB 123456789012345678' (JUST RIGHT truncates on the left, lowercase zz,zz9.99cr and $$$$9.99db per SR3, BWZ zero blank, 18 digits). THE ATTACK: p6sbwz, '02 COLUMN 1 PIC S9(5) SIGN LEADING SEPARATE BLANK WHEN ZERO SOURCE WS-Z.' -> refused COBOL2422 ('this entry is of category numericedited'); the WS twin p6sbwzws is refused the same way. The printed page (rendered PDF p.605, folio XIII-23) of §1985:XIII.3.9.3 SR11 Table 1 marks SIGN 'P' beside BLANK WHEN ZERO 'P' in rows 2 (SUM) and 4 (SOURCE), so 1985 admits this entry (cite OK §1985:XIII.3.9.3 SR11; §1985:XIII.3.17.3 SR3 makes SEPARATE mandatory, which it is). The refusal comes from the compiler applying §1985:VI.5.4.4 GR2 ('the category of the item is considered to be numeric edited', cite OK) before the SIGN check. Known only as an unfiled lead in kb/Work/PB5191/2026-11-13-landing.md ('an open reading'); SR11's printed table settles it for the Report Section.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler (the COBOL2422 SIGN-subject check, reached from ReportSectionBinder.cs#BindReportEntry): reads the post-BWZ category numeric-edited at 85, where the 1985 Report Writer table admits SIGN with BLANK WHEN ZERO; no 85 arm"
+  ],
+  "corrected": "Reading: GR2 says only that BWZ/JUST/PICTURE in a report entry are the Nucleus clauses; the compiler does that identically in both sections, so the GR2 equivalence itself holds (UPHELD on that reading). But the BWZ clause's category promotion is what makes a report entry the 1985 table explicitly permits (PIC S9(5) SIGN LEADING SEPARATE BLANK WHEN ZERO SOURCE x) fail: rejects-legal-source, cause (a), an 85-only combination (at 2023 S beside BWZ is refused before SIGN arises). If the BWZ effect belongs to GR2, OVERTURNED to PARTIAL; if it belongs to §1985:XIII.3.17.3 SR1 / XIII.3.9.3 SR11, GR2 stands and that rule carries the defect. Either way the defect is real and needs a kb/Work note (today only a lead in PB5191)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The compiler treats the report entry and the Working-Storage entry alike, as the row requires. Lead, not ruled: the printed Table 1 (page 605) permits SIGN SEPARATE with BLANK WHEN ZERO, which the compiler refuses at 85 (COBOL2422); rows `1985-SR-XIII.3.17.3-1`, `1985-SR-XIII.3.9.3-11`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
+ }
+}

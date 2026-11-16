@@ -1,0 +1,68 @@
+{
+ "rule-id": "1985-GR-XIII.3.2.4-2",
+ "rule-digest": "b8dcd054bc84",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-037",
+  "sources": {
+   "reader": "b62b5a29f334b4cc7737cb6d24ba106b59ab3c44c67679e762a0c676560b5a88",
+   "refuter": "272dd08d3af3f39cc0aad5dc2dba225ff9d01969a506827e1881cb8e459e276d"
+  },
+  "imported": {
+   "reader": "759b3b356c8c9dc866c1acba0035dd07f436c61b2cde8204881ed83ebb136e36",
+   "refuter": "174b50cbf7a4076293395a73d7fdb21ae0791f82a61cf3c6e2ca7d95ed1cf071"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.2.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the logical record structure of a report file is implementor-defined and must be the documented determination (DOC-A.1-159): one print line per record, CODE characters then the line, cut at the FD record size, host newline after each line and a form feed in place of it before a new page.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterReport; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FlushPendingLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed",
+  "edition-consulted": [],
+  "edition-search": "RegisterReport takes an edition and stores it on the connector, where it is read only by DialectBehaviors CloseWithLockLocksFileConnector and the sharing default (FileRegistry.cs:542/554/2000); grep DialectLevel/DialectBehavior in ReportWriter.FlushPendingLine/PageFeed: none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb690 covers the byte image of a line; the CODE prefix, the RECORD CONTAINS cut and the page-advance form feed are not exercised at 85 (probed here)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/rptrec.cob",
+    "printed": "<CR>[A-PH] <CR>[A-AAA 1 TA] <FF> [A-AAA 2 TAA-PH] <CR>[A-AAA 3 TA] BYTES=047",
+    "expected": "DOC-A.1-159: CODE 'A-' leads every record, RECORD CONTAINS 10 cuts the line at 10 bytes, CR LF after each line, a form feed instead before the new page; 4+2+10+2+10+1+4+2+10+2 = 47 bytes"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep.cob",
+    "printed": "[AAA 1 ] [BBB 1 ] [BBB 2 ] [AAA 2 ] (RECORD CONTAINS 12, BLOCK CONTAINS 2 RECORDS, no CODE)",
+    "expected": "one record per print line, the widest group's columns"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.2.4 GR2",
+    "check": "OK  §1985:XIII.3.2.4 GR2  (3.2.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The report file's record structure is produced by one edition-independent writer and matches the documented determination at --std 85 byte for byte. rptrec-002 ended EC-BOUND-REF-MOD from the probe's own (1:0) reference modification; rptrec-003 is the guarded rerun.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.2.4-2",
+  "refutation": "DOUBTFUL",
+  "classes": "e",
+  "evidence": "rptblank-001 (--std 85, RD CODE \"A-\", PAGE LIMIT 8, DE LINE PLUS 2): the file bytes are 'A-PH\\r\\n\\r\\nA-AAA 1 TA\\r\\n\\r\\nA-AAA 2 TA\\r\\n\\r\\nA-AAA 3 TA\\r\\n': every unoccupied line is a bare host newline with NO CODE characters. ReportWriter.FlushPendingLine writes a line through CobolFile.WriteAdvancing(image, advance), so the blank lines are the advance, not records. DOC-A.1-159 says 'One print line is one record', 'Each line is followed by the HOST newline' and 'A report record is the CODE characters ... followed by the line'; it never says how an unoccupied line (a multi-line advance) is represented. Read as a newline-delimited file, each bare CRLF is an empty record that lacks the code, which §1985:XIII.3.6.4 GR1 forbids ('literal-1 is automatically placed in the first two character positions of each report writer logical record'), and in a multi-report file (multi_code) those lines cannot be attributed to a report. Read as print-device advance control, the bytes are not records and the structure is conforming but undocumented. The verdict rests on that second reading, which the documented determination does not state. cite.py: 'OK  §1985:XIII.3.2.4 GR2  (3.2.4 General Rules)  the text is in GR2'; 'OK  §1985:XIII.3.6.4 GR1  (3.6.4 General Rules)  the text is in GR1'.",
+  "edition-sites-missed": [],
+  "corrected": "DOUBTFUL: either DOC-A.1-159 must state that an unoccupied line is a bare host newline (advance control, not a logical record, so it carries no CODE), or the writer must prefix the CODE characters on each blank line it emits. The same bytes occur at every edition (no edition switch on the path)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The compiler conforms: 1985's report writer logical record includes its vertical positioning, so the lines that only space the page need no CODE characters. Lead: the conformance entry `DOC-A.1-159` does not say how unoccupied lines are written.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
+ }
+}

@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-15",
+ "rule-digest": "4beb3da3c0a4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-095",
+  "sources": {
+   "reader": "9a2ce2b731564d79fdb18fed5634bd5b41a2329f4f9a6f0d1eaeafa5176eaa61",
+   "refuter": "c1b6810ed6330f619b4728026e7f448015f803896c57f72d4a002cb599b888ab"
+  },
+  "imported": {
+   "reader": "25e42596db3e7c3ad3f036420702d24e24587f3db6003ecebfbbebb6f0951ed9",
+   "refuter": "69214e0961c3c0642b7e4b22cb999717d6c5baa89b4ffc65679483122049c62a"
+  }
+ },
+ "reader": {
+  "verdict": "CONFORMS",
+  "edition-search": "grep -rn 'Edition|CobolVersion|DialectBehavior|IsActive' over src/WiseOwl.Cobol.Runtime/IO/{FileConnector,FileRegistry,KeyedConnector,IndexedConnector,FixedFileAttributes}.cs and SequentialIoBinder/SequentialIoEmitter/StatementValidation: the keyed OPEN body (KeyedConnector.OpenCore), the presence/authority/attribute/write-capability steps of FileConnector.OpenOnceEntered and the emitter take no edition; only the sharing and lock sites listed do",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.4.4.4-15",
+  "requirement": "At --std 85 an OPEN I-O or EXTEND of an absent OPTIONAL indexed file creates it as if OPEN OUTPUT and CLOSE preceded the OPEN (status 05, the file empty, then the stated mode), and OPEN OUTPUT creates a file that contains no data records, also replacing one that held records.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#OptionalFileNotFound; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (2002+): at 85 a host share-mode refusal of the OPEN answers '30' instead of '61' (catch in FileConnector.OpenOnceEntered)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "Table 19 arbitration runs only where the sharing facility is in effect; at 85 every same-run-unit OPEN is a normal open",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "default sharing mode: AllOther at 85 (no facility), mode-dependent from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 85 CLOSE WITH LOCK locks the physical file ('38' through any file-name), from 2002 the file connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "carries --std into CobolFile.RegisterIndexed so FileConnector.Edition is 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+    "switches": "EXTEND requires sequential access (COBOL2372) at every edition; DialectLevel read only for the FORMAT-clause message",
+    "same-arm-as-latest": true
+   }
+  ],
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f19_04 covers creation by EXTEND (sequential access) and by I-O (dynamic access) and OUTPUT re-creation; random access I-O creation, the created file standing for a later non-optional OPEN, and the SR1 refusal of EXTEND in random access are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-095/src/p15.cob",
+    "printed": "NR-BEFORE 35; OQ-IO 05; OQ-READ 23; NR-AFTER 00; NR-READ 10; OQ-IO2 00; OE-EXT 05; OE-WRITE 00; OE-EXT2 00; INV6 21; NE-IN 00, NE 07GGGG, NE 08HHHH, NE 10; NE-OUT 00; NE-EMPTY 10",
+    "expected": "absent optional random-access I-O creates the file (05), a random READ is 23 on the empty file, a non-optional OPEN INPUT then finds it (00) empty (10); EXTEND creates (05) and a later EXTEND positions after the last record (21 for a lower key); OUTPUT re-creation empties the file"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-095/src/p15c.cob",
+    "printed": "error COBOL2372: OPEN EXTEND 'OQ' - the file's access mode is RANDOM; EXTEND requires sequential access",
+    "expected": "refused: §1985:IX.4.4.3 SR1, EXTEND only for files in sequential access mode (the 2002+ SHARING phrase is also refused at 85, by a parse error)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR15",
+    "check": "OK  §1985:IX.4.4.4 GR15  (4.4.4 General Rules)  the text is in GR15"
+   }
+  ],
+  "notes": "KeyedConnector.OpenCore's IO/Extend arm on an absent optional file takes the creating lock, attaches an empty store and answers '05'; OUTPUT attaches with create:true. No edition is consulted on these arms. The compile-time EXTEND/access screen cites §2023 SR2 even at 85 (message citation only, not this rule)."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-15",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read GR15 and Table 1. Probe r15d.cob (class b/c, SELECT OPTIONAL, ACCESS DYNAMIC, OPEN EXTEND, an access mode the reader did not try): refused COBOL2372 'the file's access mode is DYNAMIC; EXTEND requires sequential access', as §1985:IX.4.4.3 SR1 requires. Reader's p15 creation probes (random I-O 05, EXTEND 05, OUTPUT empties) stand; 05 is defined at 85 (IX.1.3.4 (1)d). cite.py: OK §1985:IX.4.4.4 GR15 'This creation takes place as if the following statements were executed'; OK §1985:IX.4.4.3 SR1 'must only be used for files in the sequential access mode'; OK §1985:IX.1.3.4 (GRL2.1d) 'the referenced optional file is not present at the time the OPEN statement is executed'. The COBOL2372 message cites §2023:14.9.27.3 SR2 at --std 85 (message text only).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-XIII.4.8.4-4",
+ "rule-digest": "c458ad37989c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-153",
+  "sources": {
+   "reader": "c43b35e0287ee98296382ce4f6cc13740e771d83a95de5b79fc0778c3c50c6a5",
+   "refuter": "2565a1de6da999ed777ecb2ab8accfcfeb5143e208fd90ab065788bd5240fc99"
+  },
+  "imported": {
+   "reader": "cef5842ce3463d6c95a80d10aeb7aaa6b087e24fb350bd1f0727791b95307fab",
+   "refuter": "dbfc39506428f31a5eddf6f1a375aff67428e888132aa9c89de97087894a516f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.8.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a USE statement names file-name-1 explicitly, no other USE statement (OUTPUT or EXTEND mode-scoped) may apply to that file. Its exceptions, on a report file or any other organization, in output or extend mode, select only the file-name declarative, including when it is reached as a container's GLOBAL declarative.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002: the SORT GR17 exit filter on __RunUse only; selection is unaffected",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped the same emitters and ProcedureTableBuilder for DialectBehavior, DialectLevel, CobolVersion and .Edition. EmitScopeTiers always emits the file-name switch before the open-mode switch, and each case returns, so a file-name match ends the selection at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_04 covers a report file and an indexed file named in one USE alongside OUTPUT and EXTEND USEs in the same program. It does not cover an EXTEND-mode failure of a named report file, or the nested-program and GLOBAL cases",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/g85_bf28_04-001",
+    "printed": "identical to .out (COUNTS FILES 2 OUTPUT 1 EXTEND 1)",
+    "expected": "the witness's .out"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/p84nest.cob",
+    "printed": "1 OUTER OPEN EXTEND F / OUTER-F 35 / 2 OUTER OPEN EXTEND RR / OUTER-RR 35 / 3 CALL PI1 / OUTER-F 35 / PI1 35 / 4 CALL PI2 / INNER-EXTEND 35 / PI2 35 / 5 END",
+    "expected": "outer F and report file RR (EXTEND, 35) select only their file-name declaratives, never USE GLOBAL ON EXTEND; nested PI1 (no declaratives) reaches the container's GLOBAL file-name declarative, not its GLOBAL EXTEND one; nested PI2's own USE ON EXTEND is selected first (§1985:X.5.5.4 GR1a)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.8.4 GR4",
+    "check": "OK  §1985:XIII.4.8.4 GR4  (4.8.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XIII.4.8.4 GR5c",
+    "check": "OK  §1985:XIII.4.8.4 GR5c  (4.8.4 General Rules)  the text is in GR5c"
+   },
+   {
+    "cite": "§1985:X.5.5.4 GR1a",
+    "check": "OK  §1985:X.5.5.4 GR1a  (║5.5.4 General Rules║)  the text is in GR1a"
+   },
+   {
+    "cite": "§2023:14.9.49.4 GR5",
+    "check": "OK  §2023:14.9.49.4 GR5  (General rules)  the text is in GR5"
+   }
+  ],
+  "notes": "Within one Procedure Division and on the outward GLOBAL walk, the file-name tier always wins. One doubt: in PI2 the nested program's own USE ON EXTEND runs for the GLOBAL file F that the container names in a USE GLOBAL. That follows the IPC precedence (§1985:X.5.5.4 GR1a) and the reading that GR4 and GR5c are scoped to one Procedure Division (2023 says so explicitly in GR5). A literal run-unit-wide reading of GR4 would instead select OUTER-F.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.8.4-4",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-153/src/r4globr2.cob (run runs/r4globr2-001, --std 85): container PO declares report file RFL GLOBAL, a non-GLOBAL USE AFTER ERROR ON RFL and a USE GLOBAL AFTER ERROR ON EXTEND; nested PI1 runs OPEN EXTEND RFL (absent, 35). Printed: '1 OUTER OPEN EXTEND RFL / OUTER-RF-LOCAL 35 / 2 CALL PI1 / OUTER-GLOBAL-EXTEND 35 / PI1 RFL 35'. The container's EXTEND declarative ran for RFL although the same Procedure Division names RFL explicitly in a USE. Same with a sequential GLOBAL file (r4glob.cob, runs/r4glob-001; a never-named file G correctly reaches OUTER-GLOBAL-EXTEND). Same output at --std 2023 (r4globr2-002, r4glob-002). Cause in code: UseTierEmitter.EmitScopeTiers with globalOnly:true filters the non-GLOBAL file-name declaratives out BEFORE the file-name tier, so the mode tier no longer excludes the files those USEs name. cite.py: 'OK  §1985:XIII.4.8.4 GR4 ... the text is in GR4' (\"When file-name-1 is specified explicitly, no other USE statement applies to file-name-1.\"); 'OK  §1985:XIII.4.8.4 GR5c ... the text is in GR5c' (\"except those files referenced by file-name-1 in another USE statement specifying the same condition\"); 'OK  §1985:X.5.5.4 GR1 ... the text is in GR1' (\"The declarative which is selected for execution must satisfy the rules for execution of that declarative\"). The reader's probes never combined a non-GLOBAL file-name USE with a GLOBAL mode USE in one container. kb/Work: no note found (grep of 'no other USE', 'XIII.4.8.4', 'globalOnly').",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers: globalOnly drops non-GLOBAL file-name USEs before the file-name exclusion is applied (not an edition switch, but the arm the outward walk takes)",
+   "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse: calls EmitScopeTiers with globalOnly:true"
+  ],
+  "corrected": "NON-CONFORMING (wrong-answer, cause b: the same at --std 2023). At 85 a file named explicitly in any USE of a Procedure Division is excluded from that Procedure Division's OUTPUT/EXTEND declaratives (GR4, GR5b/c), and X.5.5.4 GR1 selects only a declarative that satisfies its own execution rules; so for PI1's failing OPEN EXTEND RFL the container's USE GLOBAL ON EXTEND does not apply and, with no other qualifying GLOBAL declarative, none is executed. The compiler runs OUTER-GLOBAL-EXTEND. Reading stated: GR4/GR5c are scoped at least to the Procedure Division holding both USE statements (the narrowest reading of the text); the non-GLOBAL USE's invisibility to PI1 does not lift the exclusion, because the exclusion is a property of the EXTEND USE statement, not of the file-name declarative's reach."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5821 in the report module: a container's USE GLOBAL ... ON OUTPUT runs for a file its own non-GLOBAL USE names.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md"
+ },
+ "work": "PB5821"
+}

@@ -1,0 +1,98 @@
+{
+ "rule-id": "1989-RV-A.2.44.4-1",
+ "rule-digest": "4085d4d07f20",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-184",
+  "sources": {
+   "reader": "9ad5c76e82afaef6d8a4318c9d4047db7db4ba11414c994318df67ff9cc21079",
+   "refuter": "b2e091ffd24ce7eded4da62b06193a0d73d22d9c66d2d8e95bb5041e26bbecb1"
+  },
+  "imported": {
+   "reader": "fad8a0af4cfa68d55ae776a058c1cd99d33fa1dd3c4c98d2503b71f3a387d45a",
+   "refuter": "19741904b697a6e5f51a0ba355a2a339057efa2c387f5d1939c467f1b35f9f06"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.44.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 FUNCTION UPPER-CASE returns argument-1's character string with each lowercase letter replaced by its corresponding uppercase letter and every other character unchanged, for alphabetic and alphanumeric items (groups included, ODO length at run time), reference-modified items and nonnumeric literals.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#UpperCase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 edition window: sig.IntroducedIn (85) > DialectLevel refuses COBOL1502; the 1989 module rows are admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale",
+    "switches": "construct CaseFunctionLocalePhrase2014: the LOCALE phrase is refused below 2014 (COBOL0900 at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "greps for Edition|DialectLevel|CobolVersion|DialectBehavior in IntrinsicRenderer.cs#RenderStringValue and Runtime/Intrinsics/CobolIntrinsics.Text.cs, CobolLocale.cs: none; the no-locale arm (ToUpperInvariant) is the same at every edition",
+  "behaviour-differs-by-edition": "no for the value (upc1 identical at 85 and 2023); the 2014 LOCALE phrase is refused at 85",
+  "witnesses-cover": "part: g85_f37_01 does not exercise alphabetic items, groups with ODO, reference modification, or characters outside a-z",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/upc1.cob",
+    "printed": "[ABC XYZ 1-Z ] (X(12)); [HELLO ] (PIC A(6)); [MIXED CASE!@#] (literal); [ABCDEFGHIJKLMN] (26-letter literal into X(14)); CMP OK",
+    "expected": "lowercase a-z replaced, digits/space/punctuation unchanged, length kept"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/upc1.cob",
+    "printed": "group with ODO N=3: [ABQRS], N=5: [ABQRSTU], LENGTH 05 at N=3; X(2:3) [BC ]; X(12:1) [ ]; LEN 12",
+    "expected": "the group's current length governs; reference modification at both bounds"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/upc2.cob",
+    "printed": "[A{Z}~ ] and [`AZ`]",
+    "expected": "characters adjacent to a-z in ASCII ({ } ~ `) unchanged"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/upc3.cob",
+    "printed": "e-acute->E-acute, y-diaeresis->U+0178, micro sign->U+039C, LEN 03",
+    "expected": "beyond a-z the correspondence is the implementor's (computer's character set); docs/conformance/3/D-CASE-MAPPING.md records the .NET invariant mapping"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/upcref.cob",
+    "printed": "COBOL1627: FUNCTION UPPER-CASE argument-1 is of class numeric",
+    "expected": "refused (§1989:A.2.44.3 AR1, alphabetic or alphanumeric)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/edarm2.cob",
+    "printed": "at 85: COBOL0900 for the UPPER-CASE LOCALE phrase (requires 2014) and for SPECIAL-NAMES LOCALE (requires 2002); at 2014 compiles",
+    "expected": "85 refuses the later edition's LOCALE phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.44.4 RV1",
+    "check": "python scripts/spec/cite.py --check \"§1989:A.2.44.4 RV1\" \"each lowercase letter is replaced by the corresponding uppercase letter\" -> OK"
+   }
+  ],
+  "notes": "With no LOCALE phrase and no CHARACTER CLASSIFICATION (neither exists at 85) RenderStringValue emits CobolIntrinsics.UpperCase = ToUpperInvariant, the same body at every edition. The mapping of letters outside a-z (y-diaeresis to U+0178, micro sign to Greek capital mu) is implementor latitude; D-CASE-MAPPING documents it for 2002/2023 but states no 1985 reading. Witness g85_f37_01 MATCHes at 85.",
+  "seeded": true,
+  "at-2023": "upc1 output identical",
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.44.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "rf2 (rf2-002) at 85: the 1985 class alphanumeric covers numeric-edited, alphanumeric-edited and group items (§1989:A.2.2 AR3), all admitted: UPPER-CASE(ZZ9.99 ' 12.50') -> ' 12.50', UPPER-CASE(XXBXX 'abcd') -> 'ABCD', UPPER-CASE(group 'ab'+99) -> 'AB12'; reference-modified result UPPER-CASE(X)(2:3) -> 'ELL' (§1985:IV.4.3.8.3.3 SR2); nested UPPER-CASE(LOWER-CASE('AbC')) -> 'ABC'; comparison in IF works. Refusals: rf6 '' refused (zero-length literal requires 2014), rf7 N\"ab\" refused (national literal requires 2002), rf10 numeric literal refused COBOL1627. The reader's beyond-a-z mapping (y-diaeresis -> U+0178, micro -> U+039C, length 3 kept) rests on the computer character set being implementor's; the 1985 text does not define 'lowercase letter' beyond that, so not decisive against. Diagnostics at 85 cite §2023 clauses (presentation only). cite.py: OK §1989:A.2.44.4 RV1 'each lowercase letter is replaced by the corresponding uppercase letter'. cite.py: OK §1989:A.2.2 AR3 'A data item of the class alphabetic or alphanumeric or a nonnumeric literal must be specified'; OK §1989:A.2.3 'A numeric function may not be referenced where an integer operand is required'; OK §1985:IV.4.3.8.3.3 SR2 'A reference-modifier may be specified only for functions of the category alphanumeric'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

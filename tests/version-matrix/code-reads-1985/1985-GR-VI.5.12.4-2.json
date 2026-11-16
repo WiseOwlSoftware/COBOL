@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.5.12.4-2",
+ "rule-digest": "695c01719bec",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-103",
+  "sources": {
+   "reader": "df135a2141f6f595b27df3702753a0de19e3c71aa32277a637b05d67d2fcff8f",
+   "refuter": "8e04a85a2f8d90bdb85d2233a95119a128117f326a1233f3e2dfea55f04d6285"
+  },
+  "imported": {
+   "reader": "4a75e4cdd1b86d5926c99ad8d3b47316b5cf5bb57cef612db6e5132a01525dbe",
+   "refuter": "8fe1524791b8ffa2cec8175759f160c57f36d960dabc883d70533c5fd84dbf70"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.12.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, for any depth of nesting, a SIGN clause written on a subordinate group overrides an enclosing group's SIGN clause for every signed DISPLAY numeric item of that subordinate group (LEADING/TRAILING, with or without SEPARATE), which fixes those items' storage image and size.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritSignWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#WithInheritedSign; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveSign; src/WiseOwl.Cobol.Compiler/Binding/Passes/InheritSignClausesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#SignedSubordinatesTheClauseReaches",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#GateGroupSignSubordinates",
+    "switches": "below 2002 (DialectLevel < 2002) refuses a group SIGN clause with no signed subordinate or one reaching a non-DISPLAY signed item (constructs SignGroupUnsignedSubordinates2002 / SignGroupNondisplaySubordinate2002); it walks only the subordinates the group's clause reaches, honouring a nearer clause (GR2/GR3)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Dialect|Version in InheritSignClausesPass.cs and DataBinder.cs#InheritSignWalk/WithInheritedSign: none; the precedence walk (item.OwnSign ?? inherited) is edition-blind. CheckSignClausesPass#GateGroupSignSubordinates is the only edition switch near the rule.",
+  "behaviour-differs-by-edition": "no: precedence is the same code at 85 and 2023; only the 1985 SR1/SR2 group-subject refusals differ (2002 relaxations)",
+  "witnesses-cover": "part: g85_bf11_06 covers one subordinate group level with SEPARATE on every clause, Working-Storage only; not an embedded (non-SEPARATE) override, a three-level nest, or a file record",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/sgn1.cob",
+    "printed": "S1=[01K] S5=[-012] S6=[034+] S2=[-012] S3=[-012] S4=[00G] / S1-VAL-OK / after moves S1=[00G] S5=[+007] S2=[+041] ARITH-OK",
+    "expected": "G LEADING SEPARATE > SUB TRAILING (embedded) > SUB2 LEADING SEPARATE: S1 takes SUB's embedded trailing (-12 -> 01K), S5 takes SUB2's (-012), S6/S2/S4 their own clauses (034+, -012, 00G), S3 G's (-012); values preserved through MOVE/ADD"
+   },
+   {
+    "class": "e,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/sgn1.cob",
+    "printed": "FR=[-010K03-] FILE-OK",
+    "expected": "FD record FR TRAILING SEPARATE > FS LEADING SEPARATE: FA '-01', FB own TRAILING embedded '0K', FC FR's '03-'; read back equal"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/sgn2.cob",
+    "printed": "COBOL2422 for C (COMP with own SIGN); COBOL0900 for HS over HC (USAGE BINARY) requires COBOL-2002; no diagnostic charged to H for HC",
+    "expected": "1985 SR2: the entries a SIGN clause applies to must be DISPLAY; the clause that applies to HC is HS's (GR2), so HS is refused and H is not"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.12.4 GR2",
+    "check": "OK  §1985:VI.5.12.4 GR2  (5.12.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "InheritSignWalk hands each item the nearest enclosing written clause (item.OwnSign ?? inherited) and applies it only to signed DISPLAY numerics, so a subordinate group's clause wins for its subtree. Probes over embedded/separate mixes, three levels and an FD record print the expected images.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.12.4-2",
+  "refutation": "UPHELD",
+  "classes": "d,a,e,b",
+  "evidence": "Probe sg1.cob (sg1-002) put a group with SIGN TRAILING SEPARATE over a subgroup with SIGN LEADING (embedded) under OCCURS 2. The subgroup was redefined by a group with SIGN LEADING SEPARATE, and a 66 alias renamed an item of the outer group. It printed G1=[12-L45OG80R07]: each table occurrence takes the subgroup's embedded leading sign (L4, G8), and the REDEFINES subgroup's own clause wins over the outer one (G3=[11--04+210R07]). Probes sg2 and sg3 used an FD with CODE-SET (STANDARD-1) whose record has SIGN LEADING (embedded). sg2, where the subgroup's TRAILING SEPARATE takes precedence for FA, compiled and wrote FR=[05-+06]. sg3 added an item that only the record's embedded clause reaches and was refused with COBOL1672 (§1985:VI.5.12.3 SR3). So precedence decides which entries SR3 reaches. cite.py: OK §1985:VI.5.12.4 GR2; OK §1985:VI.5.12.3 SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

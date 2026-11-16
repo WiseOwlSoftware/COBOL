@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VI.5.6.3-4",
+ "rule-digest": "684d0af88b92",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-054",
+  "sources": {
+   "reader": "0f0ae4c03aa58b621b5ba4321f4c1751bd86b6ba3c382a01f776663c6c243b74",
+   "refuter": "458332e030bfb7769667b22dd56a463858831b45feac7ce98112aee7bce55989"
+  },
+  "imported": {
+   "reader": "6403ea69d63beb8ce6eb411e5906fe4dc2a9e1fb8ba07589f1564feeb0bd629b",
+   "refuter": "8f43f33b70ce17b9aabd39aec20382416156f725b370d5811ab8903bf9f76adf"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.6.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse JUSTIFIED written on any index data item (USAGE IS INDEX, written on the item or inherited from a group USAGE INDEX, at any level including 77) and must keep admitting index data items without the clause.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckClauseSubjectsPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#JustifiedViolation",
+  "edition-consulted": [],
+  "edition-search": "Read CheckClauseSubjectsPass.Run and DataBinder.JustifiedViolation whole: JustifiedViolation is a static test of PicInfo.Category (Alphanumeric/National/Boolean) and EditMask with no edition parameter; Run consults binder.Edition only to position and report the diagnostic (Edition.At / Edition.Error), and passes DialectLevel only to the SYNCHRONIZED arm. Grep of the pass for Edition|Version|Std found nothing else.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb518_clause_placement_legal is a legal-placement case; the refusal on an index data item (written, 77, inherited from a group USAGE INDEX) is not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/jus2.cob",
+    "printed": "COBOL2405 data item 'IX': the JUSTIFIED clause may be specified only for ... category is ... index (05 IX INDEX JUST); COBOL2405 for 77 IY JUSTIFIED USAGE IS INDEX",
+    "expected": "refused: SR4 'must not be specified for an index data item'"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/jus3.cob",
+    "printed": "COBOL2405 on 05 IX JUSTIFIED under 01 G USAGE INDEX (inherited usage)",
+    "expected": "refused: the subordinate is an index data item by the group USAGE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/jus5.cob",
+    "printed": "COBOL2403 JUSTIFIED only at the elementary level (on the group G USAGE INDEX JUSTIFIED)",
+    "expected": "refused by SR1 (elementary level only)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/jus4.cob",
+    "printed": "compiled and ran: [   AB][   Z ] (index items without JUSTIFIED, JUST RIGHT on PIC X(5), SET between index-name and index data items)",
+    "expected": "legal source compiles; JUSTIFIED right-aligns 'AB' in X(5)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.6.3 SR4",
+    "check": "OK  §1985:VI.5.6.3 SR4  (5.6.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "The index data item carries a PicInfo whose category is index, so the category test in JustifiedViolation refuses it on the same code at every edition; the 1985 SR4 is the 2023 SR3 category test's consequence. The diagnostic cites §2023:13.18.32.3 SR3 rather than the 1985 rule, a wording point only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.6.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "rj1.cob (--std 85): COBOL2405 'this item is of category index' on JUSTIFIED RIGHT index item in an FD record (FX), on HX two levels under 01 G USAGE INDEX (inherited through an intermediate group), on TX INDEX OCCURS 3 JUST, on LX INDEX JUSTIFIED in Linkage. rj2.cob: COBOL2405 on AX REDEFINES A INDEX JUSTIFIED (plus an unrelated COBOL1539 size fault). Code: DataBinder.ClausePlacement.cs#JustifiedViolation (line 356) is category-only, called by CheckClauseSubjectsPass.Run with no edition arm. cite.py: OK  §1985:VI.5.6.3 SR4  (5.6.3 Syntax Rules)  the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-7",
+ "rule-digest": "07aaecd1025b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-125",
+  "sources": {
+   "reader": "bc455473fa2de6f1c4fc150fe11ea0c6256448ddaab13f91ff98d875bd743e30",
+   "refuter": "56a1c9193d22777bd10fa0ae78650e0f8a9a3b26f4ead5cf93fb85dbde45e5b5"
+  },
+  "imported": {
+   "reader": "b3ed4c5bc5ad5443e26c24235a2a019ff0b7e0b3d5159e43569bb059ffc2cd4d",
+   "refuter": "8dc8ebd9f0aa49edbac92d82abfc42ef9f9fc1d2fb1bcb4543f99d550457187b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.5.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every execution of REWRITE, successful or not, updates the I-O status of its file (00, 43, 44, 49 as VII.1.3.5 lists), before any applicable USE procedure, and the FILE STATUS item receives it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the OPEN's default sharing mode read by the REWRITE's lock step; inert at 85 (no LOCK MODE, no '51'/'61' reachable)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition|Dialect over src/WiseOwl.Cobol.Runtime/IO and SequentialIoEmitter.cs#EmitRewrite: the status assignment and EmitStoreFileStatus/EmitUseHook are edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf26_01 covers 43, 00 over a planted 99, and 49 on an INPUT file; 44 (size), 49 on a closed or EXTEND file are not exercised by it",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p1gate.cob",
+    "printed": "closed file: USE-F 49 / L0 49; EXTEND file: USE-F 49 / L7 49; 43 and 00 legs as expected, USE ran after the status was set",
+    "expected": "49 for a file not open I-O (VII.1.3.5 h), status set before the USE procedure"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p2vary.cob",
+    "printed": "USE-F 44 / L2 44 AREA 08YYYYYYYY",
+    "expected": "44 for a size change (VII.1.3.5 d 2), record area unaffected (GR10)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.4 GR7",
+    "check": "OK  §1985:VII.4.5.4 GR7  (4.5.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4h"
+   }
+  ],
+  "notes": "Every exit of RewriteRecord assigns Status (the IOException arm too), and the emitted code stores the FILE STATUS item before the USE hook. Every probed outcome set the status the 1985 list requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.5.4-7",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "q3rw.cob at --std 85 with USE ON F H displaying the status: 44 (size) and 43 shown inside the declarative before the statement after REWRITE; file open INPUT -> USE 49 / T5I 49; file open OUTPUT -> USE H=49 / T5O 49; absent OPTIONAL file -> 43 with FILE STATUS updated; successful REWRITEs 00. q1ext.cob: status of a REWRITE in a separately compiled program on an EXTERNAL connector lands in the EXTERNAL status item (43). cite.py: OK §1985:VII.4.5.4 GR7 'causes the value of the I-O status of the file-name associated with record-name-1 to be updated'; OK §1985:VII.1.3.5 (GRL2.4h) 'The execution of a REWRITE statement is attempted on a file not open in the I-O mode'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,79 @@
+{
+ "rule-id": "1989-AR-A.2.25.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-169",
+  "sources": {
+   "reader": "9fd75e16d10fc29e767e79a49edb29f1519e3110fb617740517d0b314c238e6b",
+   "refuter": "c5169ecc1732ffc0f21595e3e7ae4ca5b7d3348850cb56ff2acb8f54880fbd0e"
+  },
+  "imported": {
+   "reader": "dfd2f0f391a448b3542ad5f6cea874c04972f09db68c74f50235e874cd4ffe39",
+   "refuter": "2164ecc8473f82ccab6034e0a198fcea47d6c274aa7f87272642b47fe0dd9cae"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.25.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 every argument-1 of FUNCTION MEDIAN must be class numeric, so the compiler must refuse alphabetic, alphanumeric, nonnumeric-literal, group, numeric-edited, alphanumeric-table ALL and alphanumeric-function arguments and accept numeric items, literals, expressions, nested numeric functions and ALL-subscripted numeric tables.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: IntroducedIn 85 against DialectLevel; MEDIAN available at 85 and 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicArgumentRules.cs for CobolVersion|EditionContext|Edition|IsAtLeast|ConstructRegistry|DialectBehavior found nothing; MEDIAN is not in DeliberatelyUnscreened (it has a Verified row), so the TryGetValue guard does not skip it.",
+  "behaviour-differs-by-edition": "no: same refusals at 85 and 2023",
+  "witnesses-cover": "part: g85_f37_03 runs only legal numeric lists; no refusal case, ALL subscript or 18-digit extreme",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/statbad.cob",
+    "printed": "COBOL1627 '... MEDIAN argument-N is of class alphanumeric|alphabetic|alphanumeric (numeric-edited) ... (§2023:15.61.3 r1)' for X item, A item, \"7\", group, numeric-edited, A-EL (ALL) of a PIC X table",
+    "expected": "each refused"
+   },
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/statok.cob",
+    "printed": "MEDBIG[ 999999999999999999] MEDODO[ 0003.000000] MEDFN[ 0003.000000]",
+    "expected": "middle of (X, -X, X) = X; even count over ODO range (-9, 1, 5, 7.5) gives (1 + 5)/2 = 3; MEDIAN(MEAN(2 4) 1 9) = 3"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.25.3 AR1",
+    "check": "OK  §1989:A.2.25.3 AR1  (2.25.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1 [quotation: An arithmetic expression must be specified]"
+   }
+  ],
+  "notes": "Same 'n' Uniform screen as MEAN; the seed DeliberatelyUnscreened is not on MEDIAN's path. Diagnostics cite 2023 clauses at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusals and results",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.25.3-1",
+  "refutation": "OVERTURNED",
+  "classes": "a,b,c,d",
+  "evidence": "Probe src/allrmstat.cob at --std 85 (runs/allrmstat-001): COMPUTE R = FUNCTION MEDIAN (N-EL (ALL) (2:1)) over 11 72 33 compiles and prints MEDIAN[0002.0000] (median of the second digits 1,2,3); the arguments are class alphanumeric (§1985:IV.4.3.8.4.4 GR3a, GR5), so §1989:A.2.25.3 AR1 requires a refusal. Same at --std 2023 (runs/allrmstat-002). Non-ALL control MEDIAN (3 N-ITEM (3:2)) is refused COBOL1627 (runs/rmstat-001). cite.py: 'OK  §1989:A.2.25.3 AR1  (2.25.3 Arguments)  the text is in AR1'.",
+  "edition-sites-missed": [],
+  "corrected": "NON-CONFORMING (under-rejects), cause (c): same mechanism as MEAN, src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace does not see the RefModPlace inside a TableAllPlace. Same at --std 2023."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A reference-modified element under an ALL subscript (`N-EL (ALL) (1:1)`) is class alphanumeric by the 1985 text, and the argument-class screen classes it as its numeric element. MAX and MIN refuse legal lists; MEAN, MEDIAN and MIDRANGE compute from digit slices; an illegal MAX mix compiles and fails at run time. Not the mechanism of PB5780 or PB5813.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
+ },
+ "work": "PB5833"
+}

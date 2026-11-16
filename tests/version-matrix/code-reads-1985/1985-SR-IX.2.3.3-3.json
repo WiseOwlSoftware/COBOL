@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-SR-IX.2.3.3-3",
+ "rule-digest": "f86530250e99",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-046",
+  "sources": {
+   "reader": "6a7549fbd4d57f686dea1cc5be349852eadfd6130b5348654b454c5ee83af605",
+   "refuter": "a01d34c378e6889baef00ddf26ad4565679549337ef74068668c568978c99cac"
+  },
+  "imported": {
+   "reader": "2034c60c9c307c975d927036b5d0ad049430604542e30c69627860b250953079",
+   "refuter": "255f232d12489daa4ee3bb95ffb600e3d46ae76e60a3124e58283c01acc4e05a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.2.3.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 literal-1 of an indexed file's ASSIGN clause must be a nonnumeric literal and not a figurative constant (any figurative, including ALL literal); implementor-name-1 and the literal's value are implementor-defined (here: the host file name, optionally led by a DISK/PRINTER device class).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignTarget; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Text; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen",
+    "switches": "sortMerge1985 = kind == SortMerge && DialectLevel < 2002 suppresses the deferred EntryShapeFindings (numeric literal, figurative constant, list shape) for a 1985 SORT-MERGE file only",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: for an indexed file the deferred findings are reported at every edition; only a 1985 sort-merge (SD) file takes the other arm, which this rule does not reach.",
+  "witnesses-cover": "part: pb1078 covers zero-length and SPACE on sequential files; pb829 the device-class list. Numeric, other figuratives and ALL literal on an INDEXED file at 85 probed here.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2num.cob",
+    "printed": "error COBOL2645: ASSIGN TO 12345: literal-1 shall be an alphanumeric literal",
+    "expected": "refused: literal-1 must be nonnumeric"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2neg.cob",
+    "printed": "error COBOL2645: ASSIGN TO -5: literal-1 shall be an alphanumeric literal",
+    "expected": "refused: signed numeric literal"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2space.cob",
+    "printed": "error COBOL2645: ASSIGN TO SPACE: literal-1 shall not be a figurative constant",
+    "expected": "refused: figurative constant"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2zero.cob",
+    "printed": "error COBOL2645 (ZEROS) figurative constant",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2hv.cob",
+    "printed": "error COBOL2645 (HIGH-VALUE) figurative constant",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2quote.cob",
+    "printed": "error COBOL2645 (QUOTE) figurative constant",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2all.cob",
+    "printed": "error COBOL2645: ASSIGN TO ALL\"AB\": literal-1 shall not be a figurative constant",
+    "expected": "refused: ALL literal is a figurative constant"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2lit.cob",
+    "printed": "READ=AAAA111111",
+    "expected": "nonnumeric literal accepted, file written and read"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2impl.cob",
+    "printed": "READ=AAAA111111",
+    "expected": "implementor-name-1 accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c2dev.cob",
+    "printed": "READ=AAAA111111",
+    "expected": "implementor list DISK literal accepted per DOC-A.1-71"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.3.3 SR3",
+    "check": "OK  §1985:IX.2.3.3 SR3  (2.3.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The grammar admits any literal and AssignTargetRule screens it by name; the numeric and figurative arms are deferred to FileControlKeyRules.Screen so that only the 1985 sort-merge entry (which has no such rule) escapes them. Indexed files at 85 take the same reporting arm as 2023. Messages cite §2023:12.4.5.2 SR4.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.2.3.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Class c (later forms 85 must refuse): r2nat ASSIGN TO N\"r2nat.dat\" -> COBOL2645 'shall be an alphanumeric literal' + COBOL0900 national literal requires COBOL-2002; r2hex X\"...\" -> COBOL0900 hex literal requires 2002; r2cat \"r2\" & \"cat.dat\" -> COBOL0900 concatenation requires 2002; r2using ASSIGN TO DISK USING WS-NAME -> COBOL0900 USING phrase requires 2002. Class d: r2lowv LOW-VALUES, r2allz ALL ZERO, r2spaces SPACES -> COBOL2645 'shall not be a figurative constant'. r2dataname ASSIGN TO WS-NAME (a WORKING-STORAGE name) compiles and runs at 85, but the generated code registers it as the implementor-name \"WS-NAME\" (RegisterIndexed(\"R2::IX\", \"WS-NAME\", ...); the file created is ws-name.txt, not the item's value r2-ws.dat), the 1985 implementor-name-1 reading SR3 leaves to the implementor. cite.py: OK  §1985:IX.2.3.3 SR3  (2.3.3 Syntax Rules)  the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

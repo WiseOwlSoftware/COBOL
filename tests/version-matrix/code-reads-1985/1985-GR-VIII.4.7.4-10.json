@@ -1,0 +1,106 @@
+{
+ "rule-id": "1985-GR-VIII.4.7.4-10",
+ "rule-digest": "769661030ebd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-137",
+  "sources": {
+   "reader": "b99b010f47ceb4440d62a5ab9fbf74465d78a21f303966be37d6f768c8a357d1",
+   "refuter": "9cb22ce9e05df163cfda1695ded91135c4aeed657fb215ed49ca529a7b2f3f3a"
+  },
+  "imported": {
+   "reader": "80df43dfe7e42f139daae056e1c19e9ffe539429ab9bd988b539ac5a8a3bc59d",
+   "refuter": "cc198d2087b34b29f22f1de277435e705cf11c926cad6d536b634f3f09341970"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.7.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the START comparison of GR4 on a relative file (sequential or dynamic access) shall use the value of the data item named in the RELATIVE KEY phrase of the file's ACCESS MODE clause (a numeric comparison against relative record numbers), never the record area or another item; a START on a relative file without a RELATIVE KEY phrase is refused (§1985:VIII.2.4.3 SR5).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): the 1985 mandatory INVALID KEY phrase (SR3) for START",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartKeyPhrase",
+    "switches": "LESS / NOT GREATER / LESS OR EQUAL refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+    "switches": "START FIRST/LAST refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+    "switches": "ctx.Edition.SubscriptedClauseOperands (true only at 2002) for the OCCURS operand screen",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Dialect in KeyedIoEmitter.cs (only DialectLevel passed at file registration) and RelativeConnector.cs (only the WRITE out-of-range DialectBehavior); VersionConformancePass VisitStart*; ExceptionPhraseRequirement.",
+  "behaviour-differs-by-edition": "no for the comparison operand itself: the binder substitutes or checks RelativeKeyItem and the emitter reads it at every edition; 1985 differs only in the refused reverse operators and FIRST/LAST and the mandatory INVALID KEY.",
+  "witnesses-cover": "part: g85_bf31_03 covers dynamic access with an unqualified DISPLAY key; not exercised there: sequential access with a RELATIVE KEY, a qualified COMP key, record area differing from the key, zero and the largest key value, and the SR5 refusal.",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p1key.cob",
+    "printed": "records 3,5,7; RK=5 implied -> 00 READ 0005; RK=4 implied -> 23; >5 -> 7; NOT LESS 4 -> 5; >=7 -> 7; >7 -> 23; >0 -> 3; =0 -> 23; NOT < 9999 -> 23; GREATER OR EQUAL 6 -> 7 (record area R-NUM set to 1 before START ignored)",
+    "expected": "comparison against RK value per GR4/GR10"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p4seq.cob",
+    "printed": "ACCESS SEQUENTIAL RELATIVE KEY IS SK OF KEYS (PIC 9(6) COMP), another SK OF OTHER-KEYS = 1: implied START SK=3 -> 00 READ 03; > 2 -> 00 READ 03; NOT LESS 999999 -> C-INV 23",
+    "expected": "the qualified RELATIVE KEY item is used, not the other SK"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p2ref.cob",
+    "printed": "KEY = OTHER-K and KEY = R-NUM -> COBOL0862 data-name-1 shall be the RELATIVE KEY item",
+    "expected": "refused (§1985:VIII.4.7.3 SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p5nokey.cob",
+    "printed": "COBOL0862: KEY phrase omitted ... no RELATIVE KEY clause, so there is no key to compare",
+    "expected": "refused: §1985:VIII.2.4.3 SR5"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p2ref.cob",
+    "printed": "KEY IS LESS THAN / KEY IS <= -> COBOL0900 requires COBOL-2002; START FIRST -> COBOL0900; KEY IS NOT EQUAL TO -> COBOL0862",
+    "expected": "not in the 1985 general format: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.4 GR10",
+    "check": "OK  §1985:VIII.4.7.4 GR10  (║4.7.4 General Rules║)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VIII.2.4.3 SR5",
+    "check": "OK  §1985:VIII.2.4.3 SR5  (2.4.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "The relative arm of BindStart resolves the operand or substitutes file.RelativeKeyItem, and EmitStart passes that item's numeric value to RelativeConnector.Start, whose seek is over record numbers. The SR5 refusal is correct at 1985, though its message cites §2023:14.9.41.4 GR8 and calls the program syntactically legal, which is not true of the 1985 text (diagnostic wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.7.4-10",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Read §1985:VIII.4.7.4 GR4/GR10, VIII.4.7.3 SR4, VIII.2.4.3 SR2/SR3; RelativeConnector.Start (long operand, numeric seek over record numbers); KeyedIoEmitter.EmitStart relative arm (HostInt64 of the RELATIVE KEY item). Probes at --std 85: q2ref.cob KEY = RK-ALIAS (REDEFINES of RK) and KEY = RK2 (another file's RELATIVE KEY) -> both COBOL0862 (refused, SR4); q3big.cob RK PIC 9(18) = 999999999999999999 NOT LESS -> 23, 999999999999999998 GREATER -> 23; RK shared by two files R and R2, START R2 KEY > RK=1 -> 00, READ NEXT R2-6 (R2's records, not R's); q4c.cob later forms (WITH LENGTH, NOT GREATER, LESS OR EQUAL, NOT >, LAST) -> COBOL0900/COBOL0862. cite.py: 'OK  §1985:VIII.4.7.4 GR10 ... the text is in GR10'; 'OK  §1985:VIII.4.7.3 SR4 ... the text is in SR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

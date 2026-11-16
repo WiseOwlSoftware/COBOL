@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-SR-XIII.3.5.5-3",
+ "rule-digest": "798909d5e20c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-077",
+  "sources": {
+   "reader": "3cb4542b61ada33c0173cefd725f25af623649e53faecddd82ffc6696695755c",
+   "refuter": "eab952bdb839d2f59ee994b3b51c0e6e5679aebd111e5f68b7579ced52a74a5a"
+  },
+  "imported": {
+   "reader": "f91f19f2149351d13f692fb6f56733d1ababcc79ae9a8b3c0a399890a33e86e6",
+   "refuter": "5573dfd29df9a2e3dc3dde947cc90386f6f52c7883b1f52419b4f04fa83cc850"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.5.5-3",
+  "verdict": "CONFORMS",
+  "requirement": "With more than one report in the program, an unqualified PAGE-COUNTER in the Procedure Division (declaratives included, sending or receiving) is refused; in the Report Section an unqualified PAGE-COUNTER means the enclosing RD's counter, and another report's counter is reached by explicit report-name qualification.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#ReportOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindReportClauses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterPlace; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/CobolVersion in CounterResolver.cs (ReportOf, its NearestInScope use) and ReportWriterBinder.cs lines 55-100 and 599-640: none.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1456 covers Report Section implicit and explicit qualification; the Procedure Division refusal of an unqualified reference with two reports is not exercised (probed here)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_two_unq_pd.cob",
+    "printed": "COBOL2729 unqualified PAGE-COUNTER with more than one report description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_two_unq_recv.cob",
+    "printed": "COBOL2729 (ADD 1 TO PAGE-COUNTER)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_two_unq_decl.cob",
+    "printed": "COBOL2729 (unqualified in a USE BEFORE REPORTING declarative)",
+    "expected": "refused: declaratives are in the Procedure Division"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_two_ok.cob",
+    "printed": "DECL-A=0040 DECL-B=0007 A=0040 B=0007; report line '0040 0007' (DET-A of R-A: unqualified = R-A's 40, OF R-B = 7)",
+    "expected": "implicit qualification by the enclosing RD; explicit for the other report"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_nested_global_unq.cob",
+    "printed": "INNER-O=0041 INNER-I=0007 OUTER=0041 (a contained program's unqualified PAGE-COUNTER is its own report's; the container's GLOBAL report is reached as PAGE-COUNTER OF R-O)",
+    "expected": "each program has one PAGE-COUNTER of its own report; the global one is reachable qualified (§1985:X.4.4.4 GR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.5 SR3",
+    "check": "OK  §1985:XIII.3.5.5 SR3  (3.5.5 PAGE-COUNTER Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:X.4.4.4 GR1",
+    "check": "OK  §1985:X.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "ReportOf answers a qualifier by report-name, an unqualified Report Section reference by the enclosing RD (set by BindReportClauses), and an unqualified Procedure Division reference only when one report is nearest in scope. Residual reading: a contained program with its own RD that also sees a container's GLOBAL RD resolves an unqualified PAGE-COUNTER to its own; I read 'more than one PAGE-COUNTER exists in a program' as the program's own reports, so this is taken as conforming.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.5.5-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "IPC cases: X.4.4.4 GR1 makes a GLOBAL RD's PAGE-COUNTER a global name. n_two_global_unq (container with two GLOBAL RDs; a contained program with no RD writes an unqualified MOVE PAGE-COUNTER) is refused with COBOL2729 at the contained program's line 37: two PAGE-COUNTERs exist there. n_one_global_unq (container with one GLOBAL RD and one local RD; the contained program sees only the global one) accepts it, and it resolves to the global counter: INNER-UNQ=0040, and the contained program's ADD 1 makes OUTER-A=0041. n_pc_container_unq (container and contained program each with one RD of the same name, unqualified in both) accepts both: OUTER-UNQ=5, INNER-UNQ=3. The reader's residual reading (a contained program's own RD hides a container's GLOBAL one) agrees with §1985:X.1.3.8.2 GR3a: 'If the name is declared in program B, the object in program B is the referenced object' ('OK  §1985:X.1.3.8.2 GR3a ... the text is in GR3a'). cite.py: 'OK  §1985:XIII.3.5.5 SR3 ...'; 'OK  §1985:X.4.4.4 GR1 ...'. CounterResolver.cs: grep DialectLevel/CobolVersion/ConstructRegistry finds no match.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

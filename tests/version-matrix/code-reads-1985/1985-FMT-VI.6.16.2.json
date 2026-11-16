@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-FMT-VI.6.16.2",
+ "rule-digest": "f8032a15b182",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-002",
+  "sources": {
+   "reader": "b0e6d8ba59e5e93a5a02cf4c1257b21348190cb94cafef1c08994c368f793594",
+   "refuter": "1b8643170d13b1e11aaae7e09151deeab16da3bcb67e4f2b7fcb310ee921d082"
+  },
+  "imported": {
+   "reader": "b611563402b3b7393904a962653e6275fc121a8068748ed599cf1c1a4aef148c",
+   "refuter": "5aa3885ec5f6488e04727cf287fcdfb1ce63ce0090d642a393db1bfe7fa99c2d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VI.6.16.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept IF condition-1 [THEN] {statement-1 | NEXT SENTENCE} followed by ELSE statement-2 [END-IF], ELSE NEXT SENTENCE, or END-IF (or nothing before the terminal period, SR2), with statement-1/statement-2 each REQUIRED (Amendment 2 removed the ellipsis, statement being an imperative or a conditional optionally preceded by an imperative per SR1), and must refuse a form with an empty consequent or an empty ELSE; the witness covers only the empty-consequent refusal.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindIf; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#IsNextSentenceArm; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement",
+    "switches": "Constructs.NextSentenceArchaic2023: COBOL0903 archaic warning on NEXT SENTENCE at 2023 only; silent at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of ifStatement grammar (no edition predicate), ControlFlowBinder.BindIf (none), StatementBinder.IsNextSentenceArm (none), VersionConformancePass for IfStatement/NextSentence (only VisitNextSentenceStatement).",
+  "behaviour-differs-by-edition": "yes: at 2023 NEXT SENTENCE draws the COBOL0903 archaic warning; at 85 it is silent. The format shape itself is parsed by one edition-free rule.",
+  "witnesses-cover": "part: the witness exercises only the empty-consequent refusal; the THEN/ELSE/END-IF/NEXT SENTENCE arms, the SR2 omission and nesting are not exercised at 85 by it",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/if_arms.cob",
+    "printed": "A1 B2 C-NEXT D2 E-NEXT F1 G1 H-AFTER I1 J-NEXT K 4 L2 M1 M2 (no diagnostics; N arm correctly prints nothing)",
+    "expected": "every arm of the format (THEN optional, ELSE stmt END-IF, NEXT SENTENCE ELSE stmt, stmt ELSE NEXT SENTENCE, bare stmt before period, stmt END-IF, NEXT SENTENCE ELSE NEXT SENTENCE, imperative followed by conditional, nested IF matching per GR3) compiles and runs per GR2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/if_r_empty.cob",
+    "printed": "error COBOL2072: unexpected 'END-IF' ... at least one statement shall be specified",
+    "expected": "refused: statement-1 is unbracketed"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/if_r_emptythen_else.cob",
+    "printed": "error COBOL2072: unexpected 'ELSE'",
+    "expected": "refused: empty statement-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/if_r_emptyelse.cob",
+    "printed": "error COBOL2072: unexpected 'END-IF'",
+    "expected": "refused: ELSE without statement-2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/if_r_then_only.cob",
+    "printed": "error COBOL2072: unexpected '.'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/if_r_nocond.cob",
+    "printed": "error COBOL0001: unexpected 'DISPLAY'",
+    "expected": "refused: condition-1 required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/if_r_ns_plus.cob",
+    "printed": "error COBOL2269: NEXT SENTENCE ... never beside another statement",
+    "expected": "refused: NEXT SENTENCE is a whole brace alternative"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/if_ns_endif_run.cob",
+    "printed": "85: NEXT-SENTENCE, no diagnostic; 2002 same; 2023: COBOL0903 warning then NEXT-SENTENCE",
+    "expected": "format-legal (third alternative END-IF after NEXT SENTENCE) but refused by SR3, a separate rule: 'If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified'"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.16.2",
+    "check": "OK  §1985:VI.6.16.2  (6.16.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.16.3 SR1",
+    "check": "OK  §1985:VI.6.16.3 SR1  (6.16.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.16.3 SR2",
+    "check": "OK  §1985:VI.6.16.3 SR2  (6.16.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.16.3 SR3",
+    "check": "OK  §1985:VI.6.16.3 SR3  (6.16.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The format's shape is implemented by one edition-free grammar rule with statementBlock = statement+, and every arm and refusal probed behaves per the 1985 format and GR2/GR3. LEAD for the separate rule §1985:VI.6.16.3 SR3: IF c NEXT SENTENCE END-IF and IF c NEXT SENTENCE ELSE s END-IF compile silently at 85 (and 2002); the grammar comment on ifStatement records this as the PB396 'DETERMINATION' to accept, which contradicts 1985 SR3's explicit prohibition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VI.6.16.2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:VI.6.16.2-4 and the scope rules §1985:IV.4.4.4, §1985:IV.6.4.2.3.1, §1985:IV.6.4.3. Attack: an IF with neither ELSE nor END-IF that does NOT immediately precede the terminal period (SR2 only excuses that position). Probes at --std 85: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/if_perf.cob (IF c DISPLAY inside inline PERFORM ... END-PERFORM) and E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/if_eval.cob (unterminated IF inside EVALUATE WHEN) are both refused COBOL2796; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/if_read.cob (a conditional READ AT END / ADD ON SIZE ERROR as statement-1 implicitly terminated by the IF's ELSE, multi-statement imperative statement-1 and statement-2) printed EOF1 ELSE2 SE Q1 Q2 R1 R2 as GR2 requires; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/if_ns2.cob (IF c THEN NEXT SENTENCE., IF c NEXT SENTENCE., ELSE IF ... NEXT SENTENCE ELSE, stmt ELSE NEXT SENTENCE.) printed A B C D E F; a stray second END-IF is refused COBOL0306. cite.py: OK §1985:VI.6.16.2 'IF condition-1 THEN NEXT SENTENCE'; OK §1985:VI.6.16.3 SR2; OK §1985:IV.6.4.3; OK §1985:IV.6.4.2.3.1. Side note (not this rule): the COBOL2796 text at --std 85 cites §2023:14.5.1 instead of the 1985 definition (message only).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

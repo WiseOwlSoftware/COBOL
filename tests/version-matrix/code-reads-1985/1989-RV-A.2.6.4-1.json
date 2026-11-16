@@ -1,0 +1,100 @@
+{
+ "rule-id": "1989-RV-A.2.6.4-1",
+ "rule-digest": "a194e0333ff1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-084",
+  "sources": {
+   "reader": "d76922e7053ef1d27c6000be16dd9e134f4a1aae704e2597c600d7d4d09c7a16",
+   "refuter": "848dd86ce04d1a205cf1eaf2249f22ed29255b8c08462ae840eef6ff3df92b73"
+  },
+  "imported": {
+   "reader": "b22b99625f5cd00839abdf16ea4fce457b3dadbd4f975efd08445f244d5ed4fc",
+   "refuter": "0beafb1708744737d956e08b609bfd3c7acb478dbf43311c133cddf98041b455"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.6.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, FUNCTION ANNUITY (argument-1 argument-2) with argument-1 equal to zero (in any written form: literal 0 or 0.000, a zero item of any usage, an expression evaluating to zero) must return an approximation of 1 / argument-2.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Annuity; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainDecAdmitted",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: sig.IntroducedIn (85 for the 1989 Intrinsic Function module rows) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands (DISPLAY/MOVE operand) is refused (COBOL0900), per 1985 IV.4.3.8.3.3 SR4; 2002+ accepts it. Not consulted inside COMPUTE",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 a COMPUTE with no SIZE ERROR phrase catches every size condition and continues (1985 VI.6.4.2 GR3); 2002+ takes the fatal-EC shape. Statement-level, around the function value, not inside it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
+    "switches": "num.StandardDecimal (arithmetic mode): the ARITHMETIC clause does not exist at 85, so 85 always takes the native arms, the same arms the latest edition takes by default",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicRenderer.cs and the runtime CobolIntrinsics.*.cs for Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior: the renderer's function dispatch and every runtime body consult no edition (the runtime Intrinsics folder has none); the generated C# at --std 85 and --std 2023 differs only in the assembly Edition attribute and the COMPUTE size-error wrapper (diff of var85-002/var85.g.cs vs var85-003, trig85-001 vs trig85-002)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness's only ANNUITY is ANNUITY(1E-17 12), the nonzero arm; no witness exercises the zero arm (RV1)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/trig85-001/trig85.cob",
+    "printed": "ANN(0 4)= 000.25000000000000; ANN(Z 3) with Z S9V9(3) zero = 000.33333333333333; ANN(ZP 1) with ZP COMP-3 zero = 001.00000000000000; ANN(R10 - R10, N4 COMP)= 000.25000000000000; ANN(0.000 7)= 000.14285714285714",
+    "expected": "1/argument-2: 0.25; 0.333...; 1; 0.25; 0.142857..."
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/trig85-001/trig85.cob",
+    "printed": "ANN(0 999999999999999999) * 1E15 = 000.00100000000000",
+    "expected": "1/(1E18 - 1) * 1E15 = 0.001000..."
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r05_ann1.cob, r09_annfrac.cob, r18_annitem2frac.cob, r13_annalnum.cob",
+    "printed": "COBOL1504 ANNUITY takes 2 arguments; COBOL1627 argument-2 2.5 not an integer; COBOL1627 argument-2 item with decimal places; COBOL1627 argument-1 alphanumeric",
+    "expected": "refused (A.2.6.3 AR1, AR3)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r07_floatlit.cob",
+    "printed": "COBOL0900 floating-point literal requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.6.4 RV1",
+    "check": "OK  §1989:A.2.6.4 RV1  (cite.py --check with quoted words: \"When the value of argument-1 is zero\")"
+   },
+   {
+    "cite": "§1989:A.2.3 GR2",
+    "check": "OK  §1989:A.2.3 GR2  (cite.py --check with quoted words: \"Those characteristics of the returned value not otherwise specified for a given function are defined by the implementor\")"
+   }
+  ],
+  "notes": "Annuity(rate, periods) tests rate == 0 on the value after the exact domain screen and returns 1d/periods, so every written zero takes the RV1 arm; the emitted call is the same at 85 and 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.6.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "ann12-001: ANNUITY(0 4.00)=.25 (a literal with decimal places that always results in an integer is admitted per A.2.2 AR4 and takes the RV1 arm); annint-001: ANNUITY(0 FUNCTION MOD(7 4))=.3333333333 (integer function as argument-2), ANNUITY(0 N ** 2) N=3 = .1111111111; fnnames-001: ANNUITY(0 ANNUITY) with data item named ANNUITY = 2 gives .5. annmean-001: ANNUITY(.1 FUNCTION MEAN(2 4)) refused COBOL1627 (a numeric function where an integer is required, A.2.3 GR2). cite.py: OK §1989:A.2.6.4 RV1 ('When the value of argument-1 is zero'); OK §1989:A.2.2 AR4 ('An arithmetic expression which will always result in an integer value'); OK §1989:A.2.3 GR2 ('A numeric function may not be referenced where an integer operand is required').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

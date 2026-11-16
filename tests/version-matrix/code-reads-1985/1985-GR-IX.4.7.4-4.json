@@ -1,0 +1,116 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-4",
+ "rule-digest": "327cadcf8bf2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-010",
+  "sources": {
+   "reader": "d178026b84d5ea74b760e5b13501f0ed5145d2b39f65bfac7a7de503522add24",
+   "refuter": "194f01631a91d0f25693c5c5386c1f6308b0d4c49996d11fea72623679125d2d"
+  },
+  "imported": {
+   "reader": "35385f8653fc39445b4457a782b56c9b1636236a42ce5c512880a42458495e4f",
+   "refuter": "6f623e2ad7f7ed2e28ea59152bf7ecfe49d599b84ae1b0352c5240a23e09e76c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a START with KEY phrase (EQUAL/=, GREATER/>, NOT LESS/NOT <, GREATER OR EQUAL/>=, the only 1985 operators) must compare, in the file's (native) collating sequence on the ascending key of reference, each record's key against data-name-1 (or the prime RECORD KEY item when the phrase is omitted), truncating the longer operand on the right to the shorter (generic alphanumeric key), set the file position indicator to the key-of-reference value of the first record satisfying it, and raise the invalid key condition (status 23) when no record satisfies it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#GenericKeyIndex; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartSucceeded; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartFail; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveKeyCollating",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartKeyPhrase",
+    "switches": "refuses the reverse-search operators (LESS, <, NOT GREATER, LESS OR EQUAL) below COBOL-2002 (COBOL0900); the 1985 forward set passes",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartWithLength",
+    "switches": "refuses WITH LENGTH below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Edition.Year < 2002): the 1985 mandatory INVALID KEY / USE requirement (SR3), not GR4",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+    "switches": "ctx.Edition.SubscriptedClauseOperands gates the OCCURS screen on data-name-1 (operand shape, not the comparison)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read BindStart, EmitStart, IndexedConnector.Start/KeyOf/StartSucceeded and ResolveKeyCollating; the comparison itself (Seek with prefix over compareLength = data-name-1's width, native order absent a 2002+ file COLLATING SEQUENCE clause) consults no edition: the 85 arm is the 2023 arm.",
+  "behaviour-differs-by-edition": "yes: only the admitted operator set (1985 has no LESS / NOT GREATER / LESS OR EQUAL, and no WITH LENGTH or FIRST/LAST); the comparison, truncation and invalid-key outcome are one code path.",
+  "witnesses-cover": "part: the witness pb358 exercises the omitted KEY phrase (implied EQUAL on the prime key) and explicit >=; it does not exercise >, NOT LESS, the generic (shorter) operand's truncation, alternate keys with duplicates, or a record description other than the key's.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/st1.cob",
+    "printed": "P1 00 AB02 (EQUAL TO); P2/P3 00 CD03 (GREATER THAN, >); P4 00 CD03 (NOT LESS THAN AB03); P5 00 AB02 (NOT < AB02); P6 00 CD03 (GREATER THAN OR EQUAL TO); P8 00 CD03 (generic IX-K2='CD'); P9 00 CD03 (generic > 'AB', AB01/AB02 equal under truncation); P10 00 AB01 (generic X(3) from a second 01 record); P11 02 CD03 then 00 AB02 (alternate WITH DUPLICATES, arrival order); P12 00 AB01 (alt > MMM)",
+    "expected": "GR4 + GR4a: first record whose key satisfies the comparison, longer operand truncated to the shorter"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/st1.cob",
+    "printed": "P7 INV 23 (>= ZZ99); P13 INV 23 (= AB99); P14 INV 23 (generic = 'A '); after the failed P7 a READ NEXT gives status 46 to the USE procedure",
+    "expected": "GR4b: no record satisfies the comparison -> invalid key, START unsuccessful (23); GR8: no valid next record"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/st2.cob",
+    "printed": "--std 85: COBOL0900 for LESS THAN, <, NOT GREATER THAN, LESS THAN OR EQUAL TO; COBOL0862 for NOT EQUAL TO and for a numeric PIC 9(2) generic operand. --std 2023: only the NOT EQUAL and the numeric operand refused",
+    "expected": "§1985:IX.4.7.2 prints only the four forward operators; SR4b admits only an alphanumeric generic operand"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/st3.cob",
+    "printed": "V1 00 RLEN=42 then READ KK10QQ6ABCDEF (prime > KK06 on RECORD VARYING DEPENDING ON with an OCCURS DEPENDING table); V2 02 KK05PP0 / V2N 00 KK20PP2XY (alt NOT < PP); V3 00 KK10 (alt > PQ)",
+    "expected": "same comparison on a variable-length record; GR3 leaves the DEPENDING ON item (42) unchanged"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/st4.cob",
+    "printed": "C1 00, READ gives AA01 under PROGRAM COLLATING SEQUENCE IS EBCDIC (START > '1111')",
+    "expected": "the comparison is in the collating sequence of the file (native in 1985); the program collating sequence governs relation and condition-name conditions only (§1985:VI.4.4.4 GR7)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR4",
+    "check": "OK  §1985:IX.4.7.4 GR4  (║4.7.4 General Rules║)  the text is in GR4 [\"If the operands are of unequal size, comparison proceeds as though the longer one was truncated on the right\"]"
+   },
+   {
+    "cite": "§1985:IX.4.7.4 GR4",
+    "check": "OK  §1985:IX.4.7.4 GR4  the text is in GR4 [\"the invalid key condition exists and the execution of the START statement is unsuccessful\"]"
+   },
+   {
+    "cite": "§1985:IX.4.7.2",
+    "check": "OK  §1985:IX.4.7.2  (║4.7.2 General Format║)  the text is in the clause [\"IS NOT LESS THAN\"]"
+   },
+   {
+    "cite": "§1985:IX.4.7.4 GR11",
+    "check": "OK  §1985:IX.4.7.4 GR11  the text is in GR11 [\"uses the data item referenced by data-name-1\"]"
+   }
+  ],
+  "notes": "The runtime slices the key of reference out of the record area for data-name-1's width (the 2023 GR17a model); at 1985 data-name-1 is required (SR4) to lie in a record of the file at the key's leftmost position, so the area bytes are data-name-1's bytes and the two models agree. All probed operators, generic truncation, alternate duplicate keys and the no-match invalid key behave as GR4 states.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:IX.4.7.2-4.7.4 whole and KeyedIoBinder.cs#BindStart (lines 311-480). Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-010/: st5.cob (SYMBOLIC CHARACTERS 129/255, keys of byte 0x80, 0xFE, HIGH-VALUES, 'ZZZZ'): START > 'ZZZZ' then READ NEXT x3 gives 080, 0FE, 0FF = native byte order above 0x7F; generic NOT < 'B' on an ALTERNATE WITH DUPLICATES key through a second 01 record gives BBAA then BBXX; = 'BB' gives BBAA; > 'BB' gives CCZZ. st7.cob: data-name-1 a GROUP (category alphanumeric in 1985) over PIC 9(2) at the key's position, START = 34 -> 'two' (admitted, SR4b). st6/st8/st9.cob refusals (COBOL0862/COBOL2270): operand longer than key, not at key's leftmost position, WORKING-STORAGE item, non-key field, PIC A(2), alphanumeric-edited X0X, subscripted table element, bare table element, reference-modified key. cite.py: 'OK §1985:IX.4.7.4 GR4 ... the text is in GR4' [according to the collating sequence of the file]; 'OK §1985:IX.4.7.3 SR4 ... the text is in SR4' [Any data item of category alphanumeric whose leftmost character position]. Diagnostic texts cite §2023:14.9.41.3 at --std 85 (cosmetic).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart: RecordKeyNameOf (record-key-name SOURCE form, §2023 SR7) consulted before the operand resolves; not reachable at 85 since SOURCE keys are not admitted, no effect on GR4"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-11",
+ "rule-digest": "1e6217f5b048",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-094",
+  "sources": {
+   "reader": "df7c0d371c5b7143ebc895fabc831a27059f827dcef51c7cfeebd8156d9dd1cc",
+   "refuter": "d6931f8479f7e0fb86dd72baac85ce6e669cc541f0918fe55a7cc29c6b365672"
+  },
+  "imported": {
+   "reader": "1054546c3d1c6a41ea97261844a99716e1a5c2ec8c725224f0315f57b23411cb",
+   "refuter": "db00a1245e5b02d00e05cabcc0862862e8014eaa0b66ece61065ec17c5705af4"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-IX.4.4.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "OPEN EXTEND of an indexed file (sequential access only) must position after the currently existing record with the highest prime key, so the next WRITE must exceed that key; an empty or emptied file accepts any key, and an absent OPTIONAL file is created.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Opened; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ResetPosition",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility by FileConnector.Edition (set from ctx.Data.DialectLevel at FileRegisterIndexed): whether another run unit may lock the file, so whether FileRegistry#MutationTarget/ConflictOnLockedRecord govern the DELETE by record locks; at 85 the facility is absent",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Opened(Extend) seeds _lastWrittenPrime from the prime tree's last existing entry (_st.Edge last:true) with no edition test; grepped IndexedConnector.cs/KeyedConnector.cs for Edition|DialectBehavior (none on OPEN EXTEND).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf21_06 covers a deleted highest record; not an empty file, a file emptied by DELETE, an absent OPTIONAL file, or the random-access refusal",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/IX.4.4@1985-OPEN-STATEMENT/g85_bf21_06",
+    "printed": "EXPECT: MATCH",
+    "expected": "the case's .out"
+   },
+   {
+    "class": "e,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-094/p4ext.cob (run p4ext-001)",
+    "printed": "E0=00 | W0=00 | U=21/ | W1=21 | W2=00 | U=21/ | W3=21 | U=21/ | W4=21 | W5=00 | W6=00 | R1=00 A00 | U=10/ | R2=10 | OX=05 | OW=00",
+    "expected": "OPEN EXTEND of an empty file accepts any first key; after reopen the highest existing key K60 bounds: equal or lower is 21, higher 00 (IX.4.9.4 GR14/GR17a); after every record is deleted EXTEND accepts A00; optional absent file: OPEN EXTEND 05 and creates it"
+   },
+   {
+    "class": "c,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-094/p5refuse.cob (run p5refuse-001, --compile-only)",
+    "printed": "COBOL2372 OPEN EXTEND 'IX' random access refused; COBOL1720 INVALID KEY on sequential-access DELETE refused; COBOL0900 the file COLLATING SEQUENCE clause requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "EXTEND only in sequential access (§1985:IX.4.4.3 SR1); no INVALID KEY in sequential access (§1985:IX.4.3.3 SR1); the SELECT COLLATING SEQUENCE clause is not 1985 syntax"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR11",
+    "check": "OK  §1985:IX.4.4.4 GR11  (4.4.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:IX.4.9.4 GR14",
+    "check": "OK  §1985:IX.4.9.4 GR14  (4.9.4 General Rules)  the text is in GR14"
+   },
+   {
+    "cite": "§1985:IX.4.4.3 SR1",
+    "check": "OK  §1985:IX.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The highest key is read from the store at OPEN time, so deleted records do not count. Probe p4: empty file accepts K50, equal key 21, reopen bounds at K60, emptied file accepts A00, absent OPTIONAL file opens 05; p5 refuses EXTEND under random access (COBOL2372). Same output at --std 2023."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-11",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "r3coll2-001, SEQUENTIAL view of the same file: OPEN EXTEND with '~' highest: 'b' (below '~' in ASCII though above 'Z') is 21; HIGH-VALUES is 00; after CLOSE and OPEN EXTEND again, '~~~' is 21 (the highest existing key is now HIGH-VALUES); sequential READ lists L S 1 A Z a T H then 10. OK §1985:IX.4.4.4 GR11.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

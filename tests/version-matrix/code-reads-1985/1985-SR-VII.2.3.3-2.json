@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-VII.2.3.3-2",
+ "rule-digest": "ba65e0a4ec52",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-062",
+  "sources": {
+   "reader": "bcae14ed2cb9ef4fd129801d9934183cf9e56f22e5d496d086e444f68e37e988",
+   "refuter": "f6d2740f0365363e53468248473fec428211b7eb2cfc4ebe62ec90d36a92a187"
+  },
+  "imported": {
+   "reader": "4398dafa2287eeaae51e74f62e90085c47f229b4f7eecd0a6ee273feba3cc46c",
+   "refuter": "9d7fb81f31f3bfe0cc2ff00a8da75e11c979671a9003e10bdce37400c62583b0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a file-name may head only one SELECT clause of the FILE-CONTROL paragraph of a program, and every file-name a SELECT clause names must have a file description entry (FD, or SD for a sort-merge file) in the Data Division of that same program, not of a containing or contained program; the witness covers only the legal pairing per program in a nested pair.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#ScreenSelectsHaveDescriptions; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
+  "edition-consulted": [],
+  "edition-search": "Read BindFileControl's SelectedFiles duplicate check (COBOL2634) and ScreenSelectsHaveDescriptions (COBOL2635); neither reads Edition.Edition, DialectLevel, ConstructRegistry or a version table (the only gate is the class-definition 'screened' flag, not an edition); grep 'FileNameSelectedTwice|SelectWithoutFileDescription' over src finds no edition test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the per-program legal pairing is exercised; the refusals (a second SELECT, a SELECT with no FD, no FILE SECTION at all, the FD only in a contained program) are not",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r3_select_twice-001/r3_select_twice.cob",
+    "printed": "error COBOL2634: file-name 'F1' is specified in a second SELECT clause",
+    "expected": "refused: F1 specified twice in FILE-CONTROL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r3_select_no_fd-001/r3_select_no_fd.cob",
+    "printed": "error COBOL2635: file 'F2' is specified in a SELECT clause but has no file description entry (FD) or sort-merge file description entry (SD)",
+    "expected": "refused: F2 has no FD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r3_no_file_section-001/r3_no_file_section.cob",
+    "printed": "error COBOL2635: file 'F1' ... has no file description entry",
+    "expected": "refused: degenerate form, no FILE SECTION"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r3_fd_in_other_program-001/r3_fd_in_other_program.cob",
+    "printed": "COBOL2635 at the outer SELECT F1; COBOL2636 at the contained program's FD F1",
+    "expected": "refused: the FD is not in the Data Division of the same program"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r3_fd_twice-001/r3_fd_twice.cob",
+    "printed": "COBOL4250 the file-name 'F1' is described a second time ... ; COBOL4250 for SD S1",
+    "expected": "refused: one file-name described twice"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r3_global_inner_select-001/r3_global_inner_select.cob",
+    "printed": "INNER SEES OUTER (exit 0)",
+    "expected": "a contained program with its own SELECT G1/FD G1 uses the containing program's GLOBAL F1 with no SELECT of its own: legal, compiles and runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.3.3 SR2",
+    "check": "OK  §1985:VII.2.3.3 SR2  (2.3.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Both halves are enforced per program at every edition through one code path. The messages cite the 2023 clause (§2023:12.4.5.2 SR2/SR3) at --std 85, a citation-wording point rather than a behaviour fault.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probes (--std 85): E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-062/p2_inner_select_global-001: outer FD F1 IS GLOBAL, contained program writes SELECT F1 with no FD of its own -> COBOL2635 (refused: the FD is not in the same program); E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-062/p2_both_select-001: outer and contained program each SELECT F1 with their own FD -> compiles, each program reads its own file (INNER READ INNER / OUTER READ OUTER); E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-062/p2_sd_twice-001: an SD file named in two SELECT clauses -> COBOL2634. cite.py: OK §1985:VII.2.3.3 SR2 the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

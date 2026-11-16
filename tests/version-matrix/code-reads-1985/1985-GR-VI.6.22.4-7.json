@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.6.22.4-7",
+ "rule-digest": "1efeaa06cbb8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-112",
+  "sources": {
+   "reader": "8f802580a88c911ec6d56f6023b7c440e54bde1edb428b3440113771717f7829",
+   "refuter": "1b03a63a95ca9f894a10cb97c9351fdb30a86649ceb1f21d45d6872f18d746d0"
+  },
+  "imported": {
+   "reader": "4b8d6eacf6c30ad8a34fcf33d9241ebe4905de825d620aae0a2de0e949b0aa5e",
+   "refuter": "c5018d250dc567c425bfe1aa39ea4750a10f4c32ff21da2c91fa7cf275d7d18d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.22.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "In a format 1 SEARCH without VARYING, the compiler must scan with the first (or only) index-name of identifier-1's INDEXED BY phrase and leave every other index-name of identifier-1 unchanged, on a successful and an unsuccessful (AT END) search, for fixed and occurs-depending tables.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSerialScan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSearchScan",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch",
+    "switches": "DialectBehavior.SearchIndexBelowTableUnsuccessful: whether the start test also refuses an index below 1 (2002 on); not which index is the search index",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read BindSearch and EmitSerialScan; grepped SearchBinder.cs and ControlFlowEmitter.cs for Edition/CobolVersion/DialectBehavior/Std: the only edition switch on this path is the start-test lower bound; the choice searchIx = table.Indexes[0].Cell is edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover a successful search on a fixed table; not exercised: an unsuccessful (AT END) search leaving the other index-names unchanged, and an occurs-depending table",
+  "probes": [
+   {
+    "class": "a,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/srchvar.cob (P1, P8)",
+    "printed": "P1 AT END / P1 IA=06 IB=04 IC=02; P8 AT END / P8 OX=05 OY=04",
+    "expected": "IA (first index-name) used and left past the end; IB, IC unchanged (GR7); ODO bound respected"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/srchvar-002 (same program at --std 2023)",
+    "printed": "EXPECT: MATCH against the --std 85 output",
+    "expected": "no edition difference for this rule"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.22.4 GR7",
+    "check": "OK  §1985:VI.6.22.4 GR7  (║6.22.4 General Rules║)  the text is in GR7"
+   }
+  ],
+  "notes": "searchIx is the table's own first index declaration unless VARYING names another index of the same table; the emitted scan increments only that field, so other index-names are untouched. Probed successful and AT END paths on fixed and ODO tables at 85 and 2023 with identical output.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.22.4-7",
+  "refutation": "UPHELD",
+  "classes": "a,b,c",
+  "evidence": "refute-1985-112/src/srch2d.cob at --std 85 (srch2d-002) and --std 2023 (identical): P1 SEARCH C3 (inner dimension of a 2-D table, INDEXED BY CX CY) found 'g' at CX=3 with RX=2 RY=1 CY=4 unchanged; P2 SEARCH R3 (outer dimension, INDEXED BY RX RY) RX=2, RY=2 and CX=3 unchanged; P3 ODO table (CNT=3, max 5) started at OX=4: immediate AT END (GR2a's highest permissible is the DEPENDING ON value), OX=4 OY=2 unchanged. cite.py: OK  §1985:VI.6.22.4 GR7  (║6.22.4 General Rules║)  the text is in GR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

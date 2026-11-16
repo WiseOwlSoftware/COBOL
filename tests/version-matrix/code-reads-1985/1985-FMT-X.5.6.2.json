@@ -1,0 +1,147 @@
+{
+ "rule-id": "1985-FMT-X.5.6.2",
+ "rule-digest": "ba1aef36fa06",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-003",
+  "sources": {
+   "reader": "73584da0799ab42f3edfc4b3993b3fa5a0a666c6471569a40b01e7bf727d4a7f",
+   "refuter": "4b70dd01aa64b402015783da02daecdc5f13dd314ec9021380b25f8599d5fe05"
+  },
+  "imported": {
+   "reader": "9c34d5cd22acd4c846debb117d806bc59f6bafe410dc87747386510db0e1c2b8",
+   "refuter": "cc9a64837ba682d9b10a37100c6bd1e04884460f3753ab62c6e372f609c04e7f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-X.5.6.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a declarative section may begin USE [GLOBAL] BEFORE REPORTING identifier-1 (identifier-1 a report group, optionally qualified by its report-name); both the GLOBAL and the plain form must be accepted and run with the X.5.6.4 GR1 precedence (the declarative of the program that issued the GENERATE first, then a GLOBAL one of each containing program), and forms outside the format (missing BEFORE/REPORTING/identifier, GLOBAL misplaced, AFTER REPORTING, two operands, a non-group operand) must be refused. The single witness covers only USE Format 1.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+  "edition-consulted": [],
+  "edition-search": "VersionConformancePass#VisitUseStatement read whole: it switches only USE FOR DEBUGGING, the EC/EO formats and Format 1's AFTER/PROCEDURE omissions, nothing on REPORTING/GLOBAL; DeclBindUse's REPORTING arm uses ctx.Edition only for diagnostics and cursors; grep REPORTING in VersionConformancePass.cs and ProcedureTableBuilder.cs found no edition comparison",
+  "behaviour-differs-by-edition": "no: the same grammar alternative, binder arm and emitted precedence walk at 85 and 2023 (p3d prints the same at both)",
+  "witnesses-cover": "part: the witness exercises USE Format 1 only; no witness exercises BEFORE REPORTING, GLOBAL or nested-program precedence",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3a.cob",
+    "printed": "BEFORE DL N=001 M=010 / BEFORE DL N=002 M=020; report file lines '001  010', '002  020'",
+    "expected": "procedure runs just before each DETAIL group is produced and may alter SOURCE items (XIII.4.9.4 GR4)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3b.cob",
+    "printed": "OUTER DECL N=001 / OUTER DECL N=002",
+    "expected": "USE GLOBAL in the outer program fires also for a GENERATE in the contained program (X.5.6.4 GR1b)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3c.cob",
+    "printed": "OUTER DECL N=001",
+    "expected": "without GLOBAL the outer declarative does not fire for the contained program's GENERATE"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3d.cob",
+    "printed": "OUTER DECL N=001 / INNER DECL N=002",
+    "expected": "the contained program's own declarative takes precedence over the outer GLOBAL one (GR1a, only the first qualifying declarative runs)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3e.cob",
+    "printed": "OUTER DECL N=001 / OUTER DECL N=002",
+    "expected": "identifier-1 qualified IN report-name accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3r1.cob",
+    "printed": "COBOL5506 near 'REPORTING' (USE GLOBAL REPORTING DL)",
+    "expected": "BEFORE is required: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3r2.cob",
+    "printed": "COBOL5506 expected REPORTING (USE BEFORE DL)",
+    "expected": "REPORTING is required: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3r3.cob",
+    "printed": "COBOL0001 unexpected '.' (USE BEFORE REPORTING.)",
+    "expected": "identifier-1 required: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3r4.cob",
+    "printed": "COBOL5506 unexpected 'GLOBAL' (USE BEFORE GLOBAL REPORTING DL)",
+    "expected": "GLOBAL only before BEFORE: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3r6.cob",
+    "printed": "COBOL5506 near 'REPORTING' (USE AFTER REPORTING DL)",
+    "expected": "not a format: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3r7.cob",
+    "printed": "COBOL0307 unexpected 'DL2' (two operands)",
+    "expected": "one identifier-1, no ellipsis: refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3r5.cob",
+    "printed": "COBOL0897 USE BEFORE REPORTING 'N' does not name a report group",
+    "expected": "a working-storage elementary item is not a report group (XIII.4.9.3 SR2): refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3r8.cob",
+    "printed": "COBOL0897 USE BEFORE REPORTING 'RPT' does not name a report group",
+    "expected": "a report-name is not a report group: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p3d.cob",
+    "printed": "at --std 2023: OUTER DECL N=001 / INNER DECL N=002",
+    "expected": "same at the latest edition (the format is unchanged in later editions)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.6.1",
+    "check": "OK  §1985:X.5.6.1  (║5.6.1 Function║)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:X.5.6.4 GR1",
+    "check": "OK  §1985:X.5.6.4 GR1  (║5.6.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.4.9.3 SR2",
+    "check": "OK  §1985:XIII.4.9.3 SR2  (4.9.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XIII.4.9.4 GR4",
+    "check": "OK  §1985:XIII.4.9.4 GR4  (4.9.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "One grammar alternative USE GLOBAL? BEFORE REPORTING reportGroupReference, bound through ReportGroupResolution in DeclBindUse, with GLOBAL carried into the DeclScope that drives the containment walk. Every spelling and the nested precedence behave as X.5.6 says at 85; no edition arm on the path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p3d prints the same at 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-X.5.6.2",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "At --std 85. GR1c three-level precedence the reader did not try: u5 outer USE GLOBAL, middle USE GLOBAL, GENERATE in outer/middle/inner -> 'OUTER N=001 / MIDDLE N=002 / MIDDLE N=003' (first qualifying, b); u6 middle declarative WITHOUT GLOBAL -> 'OUTER 001 / MIDDLE 002 / OUTER 003' (the non-GLOBAL middle one is skipped for the inner GENERATE, rule b then c). Class d other group types: u7 USE BEFORE REPORTING on a PAGE HEADING and a CONTROL FOOTING with SUM -> 'BEFORE PHG / BEFORE CFG S1=+0003 G=1 / BEFORE CFG S1=+0003 G=2', report HEAD/001/002/CF 0003/003/CF 0003 (sum counter is signed per the 1985 Sum Counter definition, so +0003 is right). Refusals of the XIII.4.9.3 SRs the format leans on: u1 same identifier-1 in two USE -> COBOL0897 (SR2 as amended); u3 GENERATE in the procedure -> COBOL2378 (SR3); u8 MOVE to control item G -> COBOL2378 (SR4); u4 USE not alone in its sentence -> COBOL0897 (SR1). cite.py: OK §1985:X.5.6.4 GR1; OK §1985:XIII.4.9.3 SR1, SR2, SR3, SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

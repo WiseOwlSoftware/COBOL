@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-X.1.3.8.2-2",
+ "rule-digest": "948f709f3a0c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-139",
+  "sources": {
+   "reader": "8b7eb4b4f4c233fc9bfb0a7a1fdbe7fe8a3325f9bd89535c63f50860cc39bd1f",
+   "refuter": "f4df25706caf73949493e1a6a03355d84423508379155471e02b2451d758c4dc"
+  },
+  "imported": {
+   "reader": "02711ba2637962b809f33e56f7a25a6dcdcfe613b053eaa71c973b9e863099c4",
+   "refuter": "d476717d3df6b004ef4b033fad58314e058286fc60e17622b4818174c8801713"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.1.3.8.2-2",
+  "verdict": "CONFORMS",
+  "requirement": "When a contained program B references a condition-name, data-name, file-name, record-name or report-name and the GR1 set (B's own names plus the global names of every containing program) with qualification identifies exactly one object, that object is the one referenced, at any containment depth; a name in no such set (a container's non-global name, a contained program's name) identifies nothing and is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritContainerGlobalData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolveCondition; src/WiseOwl.Cobol.Compiler/Binding/ReportScope.cs#NearestInScope",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|CobolVersion|Dialect|Constructs over SymbolTable.cs (0 hits), ReportScope.cs (0 hits), DataBinder InheritContainerGlobalData/InheritGlobalSubtree and BinderDriver BindUnitData; the only edition read nearby is the --permissive UndefinedReference downgrade in DataBinder, which is not an edition switch; GLOBAL has no ConstructRegistry row (1985-continuous)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf32_02 resolves data-names one containment level deep; not condition-names, file-names, record-names, report-names, qualification through two group levels, a depth of two, or the refusal of a name outside the set",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x5scope.cob",
+    "printed": "C GC-THREE TRUE / C LEAF=LA / A GC=4 LEAF=LC / A READ CWROT",
+    "expected": "program C, two levels inside A, resolves A's global condition-names (IF, SET TO TRUE), a doubly qualified global leaf, and A's GLOBAL FD file-name and record-name, each the one object identified; stores reach A's items and file"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x5rpt3.cob",
+    "printed": "B GENERATED / A DONE; report file holds HELLO",
+    "expected": "contained B's INITIATE/GENERATE/TERMINATE resolve A's GLOBAL RD report-name and detail group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x5bad.cob",
+    "printed": "COBOL1639 'B-ONLY' is not defined (container referencing contained program's global); COBOL1639 'A-PRIV' is not defined (contained referencing container's non-global)",
+    "expected": "zero objects identified: X.1.3.8.2 forbids a reference to a name declared in a contained program, and A-PRIV is not in GR1's set"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.1.3.8.2 GR2",
+    "check": "OK  §1985:X.1.3.8.2 GR2  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:X.1.3.8.2 GR1",
+    "check": "OK  §1985:X.1.3.8.2 GR1  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in GR1"
+   }
+  ],
+  "notes": "Each container's global roots are inherited, with their depth, after the unit's own names are declared, so resolution sees exactly GR1's set and a single match is taken. All five name classes the rule ranges over resolved to the one object at --std 85. Probe x5rpt needed a relative LINE (COBOL2199 at LINE 1 without PAGE), which is a separate rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.1.3.8.2-2",
+  "refutation": "UPHELD",
+  "classes": "d,e",
+  "evidence": "Read §1985:X.1.3.8 and X.1.3.8.2 GR1-GR3, X.1.3.8.3, X.4.2.4 GR1. The reader probed names that exist only in the container; the sharper GR2 case is a name present in BOTH B and A's global set where qualification leaves exactly one. p5.cob at --std 85 (runs/p5-002; runs/p5-001 was my margin-R line overrun): B, with its own R-B.X/FLG/88 ON-F, resolves 'X OF R-A' and 'X OF R-B' to their own objects ('B X OF R-A AAX X OF R-B BBX'), the qualified condition-names 'ON-F OF FLG OF R-A' and 'ON-F OF R-B' to A's and B's ('B A-ON TRUE', 'B B-ON FALSE'), and stores 'MOVE QQQ TO X OF R-A' / 'SET OFF-F OF R-A TO TRUE' reach A ('A X QQQ FLG 0'); unqualified X goes to B's own (GR3a, 'B UNQUAL X BBX'); 'LINAGE-COUNTER OF GA' (A's GLOBAL LINAGE file, a global special register by X.4.2.4 GR1) beside B's own LINAGE file: 'B LC GA 02 LC LB 01'; the index-name of a GLOBAL table set in A and stepped in contained P5C: 'A TB aZc' (X.1.3.8.3). cite.py: 'OK  §1985:X.1.3.8.2 GR2 ... the text is in GR2'; 'OK  §1985:X.1.3.8.2 GR1 ... the text is in GR1'; 'OK  §1985:X.1.3.8.2 GR3a ... the text is in GR3a'; 'OK  §1985:X.1.3.8.3 ... the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

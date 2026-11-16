@@ -1,0 +1,145 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-4",
+ "rule-digest": "766d55dfd727",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-024",
+  "sources": {
+   "reader": "9709f841cac846cdc016cdfe1907176364fbbbeed2d15d9b4eb5f12004413809",
+   "refuter": "943b1a501348cb0f5cbcd3d292328f4fa0dffa4783931b13d7dcea5e8fd9c35f"
+  },
+  "imported": {
+   "reader": "cd9c144fc7c258745b4af7142754f8da1c2446eadc3c72b4cf63b060f58dcf83",
+   "refuter": "558323cb80cfc8302e87cf30a29ea582a2df03d208b349f7ace1dcce33f2feb6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.8.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a Format 2 RECORD IS VARYING clause makes the file's records variable length, with integer-2 the smallest and integer-3 the largest record any output statement may write (each defaulting to the least/greatest record description, GR6/GR7), so a WRITE/REWRITE outside the range fails with status 44 and a record inside it is stored at its own length, with or without DEPENDING ON, for every organization.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "VaryingRecordInfo.BoundsEnforced: DialectBehavior.RecordContainsRangeBindsRecordSize, but the clause is ORed with varyingClause, so a Format 2 clause enforces its bounds at every edition (the switch governs Format 3 only)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt",
+    "switches": "Since column: SR2 (both arms), SR3, SR4 rows are 85, screened as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#CitationAt",
+    "switches": "diagnostics cite §1985:VII.3.8.3 SR2/SR3 below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#ZeroMessage",
+    "switches": "FROM 0 is refused at 85 (§1985:III.2 has no allowance) while 2023's SR7 admits it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
+    "switches": "BYTES word refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped DialectLevel|DialectBehavior|Edition in FileModel.cs (none in VaryMin/VaryMax/RecordSizeVaries), RecordClauseRules.cs, FileConnector.cs#Stored (none).",
+  "behaviour-differs-by-edition": "no for Format 2's bounds; integer-2 = 0 is refused at 85 and admitted later (a 1985 text difference, correctly taken)",
+  "witnesses-cover": "part: l1c23 covers explicit FROM 5 TO 20 with DEPENDING on sequential, indexed and SD files at the bounds; not omitted FROM or TO (GR6/GR7 defaults), a clause with neither, a Format 2 file without DEPENDING whose record holds an ODO table, a relative file, or length zero",
+  "probes": [
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/p2_gr4_vary.cob",
+    "printed": "TO 20 only (records 8,20): A7=44 A8=00 A20=00 A21=44 A0=44; FROM 5 only: B4=44 B5=00 B20=00 B21=44; neither: C7=44 C8=00 C20=00 C21=44; no DEPENDING + ODO 3..18: D3=00 D18=00 RD1=00 ND=03 RD2=00 ND=18; read back LA=08, LA=20, then 10; relative FROM 5 TO 20: E4=44 E5=00 E21=44 E20=00 RE1 LE=05 RE2 LE=20",
+    "expected": "44 below integer-2 (or the least description) and above integer-3 (or the greatest), 00 inside; records stored at their own length (GR4, GR6, GR7, GR10)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/b2_vary_inverted.cob",
+    "printed": "error COBOL2009 ... FROM 20 TO 5; integer-3 shall be greater than integer-2 (ANSI §1985:VII.3.8.3 SR3) + COBOL2010 (SR2)",
+    "expected": "refused (SR3, SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/b3_vary_equal.cob",
+    "printed": "error COBOL2009 FROM 10 TO 10 (§1985:VII.3.8.3 SR3)",
+    "expected": "refused: integer-3 must be greater"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/b4_vary_rec_over.cob",
+    "printed": "error COBOL2010 record 'R' describes 12 bytes, more than integer-3 = 10 (§1985:VII.3.8.3 SR2)",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/b5_vary_rec_under.cob",
+    "printed": "error COBOL2010 record 'R' describes 3 bytes, fewer than integer-2 = 5 (§1985:VII.3.8.3 SR2)",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/b7_vary_from_zero.cob",
+    "printed": "error COBOL2386 ... the integer operand 0 shall be nonzero — §1985:III.2",
+    "expected": "refused at 85: no rule of the 1985 format allows integer-2 zero"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/c2_vary_bytes.cob",
+    "printed": "error COBOL0900: the RECORD clause BYTES phrase requires COBOL-2023",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/l1c23_record_varying_bounds_depending.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.4 GR4",
+    "check": "OK  §1985:VII.3.8.4 GR4  (3.8.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR6",
+    "check": "OK  §1985:VII.3.8.4 GR6  (3.8.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR7",
+    "check": "OK  §1985:VII.3.8.4 GR7  (3.8.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR10",
+    "check": "OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4d.1"
+   },
+   {
+    "cite": "§1985:VII.3.8.3 SR3",
+    "check": "OK  §1985:VII.3.8.3 SR3  (3.8.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "VaryMin/VaryMax take the stated integers (BoundsEnforced is always true for Format 2) or the least/greatest record description, and FileConnector.Stored returns null (status 44) outside them. All four phrase combinations and the no-DEPENDING ODO form behave as GR4/GR6/GR7 state on sequential and relative files.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not run for the passing probe; Format 2 path has no edition branch",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.8.4-4",
+  "refutation": "UPHELD",
+  "classes": "a,d,e,f",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-024/r2_gr4_vary.cob (--std 85, run dir r2_gr4_vary-002) aimed at what the reader's p2 did not try: (1) integer-3 (30) larger than the only record description (20), which SR2 permits: T25=00 T30=00 T31=44 T20=00 and READ back LT=25, 30, 20 then 10, so integer-3, not the description, is the maximum (GR4); (2) no DEPENDING with two fixed descriptions 8 and 20 (GR10b/GR12b): NR1 W=[AAAAAAAA            ], NR2 W=[BBBB...B] (each record at its own length, INTO a group move); (3) an INDEXED file FROM 5 TO 20 DEPENDING: WRITE I4=44 I21=44 I5=00 I20=00, READ LI=05, REWRITE IRW21=44 IRW4=44 IRW12=00, READ back LI=12. All match GR4/GR10. The class c forms (BYTES refused, FROM 0 refused under §1985:III.2) were already probed by the reader; 1985 has no constant-name to stand for integer-2/3. cite.py: 'OK  §1985:VII.3.8.4 GR4  (3.8.4 General Rules)  the text is in GR4'; 'OK  §1985:VII.3.8.3 SR2  (3.8.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10'; 'OK  §1985:VII.3.8.4 GR12  (3.8.4 General Rules)  the text is in GR12'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

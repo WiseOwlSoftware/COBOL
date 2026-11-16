@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-SR-VI.6.26.3-4",
+ "rule-digest": "cf21659b98fd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-159",
+  "sources": {
+   "reader": "c2acb29deedbe786d1a7cfbf28014a4566b1f9d5fbab9b2095e2b9c1666dfbaf",
+   "refuter": "bf06085bd46da9670c40a16d8407146a1155863d6a0389247df09c0556e12861"
+  },
+  "imported": {
+   "reader": "8a01592abb3f1a71955522bf162ed4032ac3502dadf9a22004c03a2bbc920638",
+   "refuter": "4a55ecaef892a5986efd34596591d0d29aec03209559e90dd3911c359625d442"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.26.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, SUBTRACT format 3 must accept CORR and CORRESPONDING interchangeably with identical results, including ROUNDED and the SIZE ERROR phrases, while a word that is neither (CORRES) does not select format 3.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#CORR; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#CORRESPONDING; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#subtractStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindSubtractCorresponding; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "CORR and CORRESPONDING reserved; both rows true at all four editions",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RoundingOf",
+    "switches": "ROUNDED MODE IS refused below 2014 (a phrase of the statement, not of this rule)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep CORR/CORRESPONDING over the grammar (one alternative '(CORRESPONDING | CORR)'), CorrespondingBinder (sub.CORRESPONDING() is not null || sub.CORR() is not null) and ReservedWords.Table.cs",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers the word equivalence; this run adds ROUNDED, ON SIZE ERROR / NOT ON SIZE ERROR, subordinate group, OCCURS and FILLER exclusion, and ADD CORR in the same program",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/sub-corr.cob",
+    "printed": "CORR 0H05zzz5579 NSE1; CORRESPONDING 0H05zzz5579 NSE1; ADD CORR 0I15zzz5599; ADD CORRESP 0I15zzz5599",
+    "expected": "identical lines: A = 10 - 1.6 rounded = +8 (0H, trailing overpunch), B = |5 - 10| = 05, C, OCCURS T and FILLER untouched, SUBG.D = 7; NOT ON SIZE ERROR taken"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/sub-corr-bad.cob",
+    "printed": "error COBOL0844 (group SRC not a numeric operand) and COBOL1675 (resultant DST is a group)",
+    "expected": "CORRES is not the abbreviation: read as format 1 with group operands, refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/sub-corr-mode.cob",
+    "printed": "error COBOL0803: ROUNDED MODE IS requires COBOL-2014 (targeting COBOL-85)",
+    "expected": "ROUNDED MODE is not a 1985 phrase: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.26.3 SR4",
+    "check": "OK  §1985:VI.6.26.3 SR4  (6.26.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VI.6.6.3 SR4",
+    "check": "OK  §1985:VI.6.6.3 SR4  (6.6.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "CORR and CORRESPONDING are separate tokens joined in one grammar alternative and tested together in the binder, so both spellings reach the same Bind(CorrVerb.Subtract, ...). The probe outputs are byte-identical between the spellings and match the 1985 general rules.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.26.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "refute-1985-159/sub1.cob at --std 85 (runs/sub1-001): lowercase 'subtract corr' and mixed-case 'Subtract Corresponding' give identical 'LOW 09501}008 09501}008' (A 100-5=95, signed B 10-20=-10 overpunched, nested SG.C 9-1=8, per GR3); with SIZE ERROR phrases both spellings take NOT ON SIZE ERROR and give '00201}' (unsigned A=|3-5|=2). Refusals at --std 85: CORR with two receivers (format 3 has one identifier-2 at 1985) COBOL0307 (sub-bad1); CORRESPONDING ... GIVING COBOL2269 (sub-bad2); two sending groups COBOL5506 (sub-bad3); a literal after CORR COBOL5506 (sub-bad4). cite.py: OK §1985:VI.6.26.3 SR4 'CORR is an abbreviation for CORRESPONDING'; OK §1985:VI.6.26.4 GR3. No 1985-only spelling exists, and no later-edition form of the CORR keyword to refuse beyond the reader's ROUNDED MODE probe.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

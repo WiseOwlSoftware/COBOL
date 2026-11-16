@@ -1,0 +1,100 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.9-2",
+ "rule-digest": "34b59df6839e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-036",
+  "sources": {
+   "reader": "a8cd36742693e897f4ab17c78d39d8e2b59bc1a271a69b1141dc57a86556cb87",
+   "refuter": "3eb1ee443fcc50694c7ce72e44016ac954866b635f8bd2cf935cc173b0b2cb78"
+  },
+  "imported": {
+   "reader": "fc06a8ab0154f3b28a0c8f459278d5327faeeaf49b5f0644b6513b9c9d14a817",
+   "refuter": "e201f46a2cde047e9a784b7ad29a75bc8d0720baf44d0ab233000bccab753678"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.9-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 no line of a page footing report group may be presented below integer-1 of the PAGE clause; the PF's first line is absolute (XIII.3.15.3 SR9), so every placement is static and a PF line past the page limit (absolute, or a relative tail) is refused, while a PF ending on integer-1 is legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+    "switches": "year changes only the report footing's upper limit; the PF arm (Footing+1, PageLimit) is edition-blind",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses",
+    "switches": "Edition.DialectLevel < 2002 refuses a relative first LINE clause in a page footing (XIII.3.15.3 SR9)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel in ReportSectionBinder.cs and Edition in ReportWriter.cs",
+  "behaviour-differs-by-edition": "yes: at 1985 a PF's first LINE clause must be absolute (refused otherwise), which makes the lower limit fully static; 2002 and later admit a relative first line placed from FOOTING",
+  "witnesses-cover": "part: pb1270 puts the PF on its upper limit, not on the page limit, and no refused PF past the limit",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/p1_ph_lc.cob",
+    "printed": "PF on LINE 11 and LINE 12 (= PAGE LIMIT 12)",
+    "expected": "legal boundary"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/r4_pf_abs_past_limit.cob",
+    "printed": "COBOL2199 integer-1 13 exceeds the page limit 12; absolute LINE 13 of page footing lies below the lower limit 12",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/r5_pf_rel_past_limit.cob",
+    "printed": "COBOL2199 relative lines at the end of page footing 'PF1' carry its last line to line 13, past the lower limit 12",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/r6_pf_rel_first.cob",
+    "printed": "COBOL2199 first LINE clause of a page footing is relative ... (ISO §1985:XIII.3.15.3 SR9)",
+    "expected": "refused at 1985"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/u2_pf_unpaged.cob",
+    "printed": "COBOL0899 TYPE PageFooting requires a PAGE clause",
+    "expected": "refused (Table 4 footnote ****)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.9 GR2",
+    "check": "OK  §1985:XIII.3.10.9 GR2  (3.10.9 Page Footing Presentation Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XIII.3.8.3 SR8e",
+    "check": "OK  §1985:XIII.3.8.3 SR8e  (3.8.3 Syntax Rules)  the text is in SR8e"
+   },
+   {
+    "cite": "§1985:XIII.3.15.3 SR9",
+    "check": "OK  §1985:XIII.3.15.3 SR9  (3.15.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "GroupLimits gives the page footing the page limit as its lower limit and ScreenReportGroupLines refuses an absolute line or a relative tail past it; the boundary itself prints. With the 1985 absolute-first rule no run-time placement of a PF can differ from the static one.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.9-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attacked the PAGE clause's implicit values (1985 XIII.3.8.4 GR2), which the reader did not probe: e1_pf_nofooting_past (PAGE 12 ... LAST DETAIL 9, no FOOTING, PF LINE 12 + PLUS 1) refused: 'relative lines at the end of page footing report group PF1 carry its last line to line 13, past the group's lower limit 12'; e2_pf_nofooting_ok (PF 11, PLUS 1) prints FA 11, FB 12; e3_pf_page_only (PAGE 12 alone: integer-4 = integer-5 = 12, so the PF region is 13..12, empty) refuses LINE 12 as 'above the upper limit 13' and the tail as past 12; g2_pf_two_abs (LINE 10, LINE 12, LINE PLUS 0 on the page limit) prints FB FZ on 12. c4 'LINE PLUS 2 ON NEXT PAGE' refused. cite.py: 'OK  §1985:XIII.3.10.9 GR2 ... the text is in GR2'; 'OK  §1985:XIII.3.8.4 GR2c ... the text is in GR2c'; 'OK  §1985:XIII.3.8.4 GR2e ... the text is in GR2e'. Side observation (not this rule's verdict): the 1985 refusals cite §2023:13.18.35.3 SR6 d) and §2023:13.18.57.4 rather than the 1985 clause.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,65 @@
+{
+ "rule-id": "1985-GR-VII.4.6.4-5",
+ "rule-digest": "f516f6d02c75",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-026",
+  "sources": {
+   "reader": "a5dafe8cbf6657655f0147d0fac639f370dc4e2a76f6d0aaf2d89580888b6086",
+   "refuter": "c530e3e3d49cbc1fad9c047f19614425ee8fc3e797bca7ec429af4e4c7e9c7cc"
+  },
+  "imported": {
+   "reader": "3e0d21511efccbfbabbb5f0d189d3a5b28e15bb47aba8a33942b35873032f9d3",
+   "refuter": "b20434821079bc2d45dbe5dad8cfc09e35e48439d0393999b1573c7797155a2b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.6.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "After an unsuccessful I-O operation (not covered by an AT END phrase) the compiler must run exactly one USE procedure: the one naming the file explicitly if any, otherwise the INPUT/OUTPUT/I-O/EXTEND procedure matching the mode the file is open in or is being opened in, excluding files named explicitly in another USE for the same condition.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenModeView",
+  "edition-consulted": [],
+  "edition-search": "Grep 'Edition|CobolVersion|DialectBehavior|IsCobol85' over UseTierEmitter.cs, DispatchEmitter.cs, EcEmitter.cs: only a doc-comment cref in UseTierEmitter (line 35) naming an unrelated READ PREVIOUS behaviour. Grep of src/WiseOwl.Cobol.Runtime/IO for the same: FileConnector.Edition feeds sharing, CLOSE LOCK, relative/indexed status choices, none on the declarative selection path (OpenModeView, the file-name/mode switch). The selection tiers are edition-invariant by a recorded determination on UseTierEmitter (kb/Work PB344).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers INPUT and OUTPUT tiers only (indexed READ 47/10/46 and a failed OPEN INPUT); the explicit file-name tier, its exclusion from the mode tiers, I-O, EXTEND, failed OPEN I-O/EXTEND and the AT END precedence are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-026/use5-001 (use5.cob)",
+    "printed": "T1 READ on OUTPUT file: DECL-OUT 47; T2 FA (explicit USE) at end, no phrase: DECL-FA 10 (not DECL-IN); T3 AT END phrase: 'T3 AT END 10', no declarative; T4 READ after at end: DECL-IN 46; T5 REWRITE without READ in I-O: DECL-IO 43; T6 READ on EXTEND file: DECL-EX 47; T7/T8/T9 failed OPEN INPUT/I-O/EXTEND of an absent file: DECL-IN/DECL-IO/DECL-EX with 35; T10 CLOSE of a file not open: 42, no declarative; T11 FA open OUTPUT, READ: DECL-FA 47 (not DECL-OUT); control returns to the next statement each time",
+    "expected": "GR5 a)-e): file-name procedure for FA; mode procedure by open or being-opened mode for others, excluding FA; AT END phrase takes precedence; GR6 return to next statement"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-026/use5-001 (use5.cob)",
+    "printed": "USE ... ON EXTEND (the 1985 level-2 boxed item e) compiles and runs at --std 85 (DECL-EX lines above)",
+    "expected": "GR5 e) EXTEND procedure for a file open or being opened in extend mode"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.6.4 GR5",
+    "check": "OK  §1985:VII.4.6.4 GR5  (4.6.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "All five lettered items and the AT END precedence behave as the 1985 text says at --std 85 on sequential files; the witness adds indexed coverage. The selection is generated once by UseTierEmitter and consults no edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.6.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "ruse1-002 (--std 85): USE ON FA FB (multi-name list, second name) at end -> DECL-AB 10 only; READ AT END then READ AT END at status 46 -> AT END phrase skipped, DECL-IN 46 (phrase takes precedence only for at-end); failed OPEN OUTPUT to a missing directory -> DECL-OUT 30 (being-opened output tier, not exercised by reader); OPEN INPUT of a file open OUTPUT -> DECL-IN 41 (being-opened mode chosen; text lets both b and c read on it, a defensible choice); reopen I-O after close -> DECL-IO 10/46; READ/WRITE on never-opened or closed file -> 47/48 and no declarative (no mode applies). ruse2-002: nested program with USE ON FH and containing GLOBAL USE ON INPUT -> FG fails in inner: OUTER-GLOBAL-IN; FH: INNER-FH only. cite.py: OK §1985:VII.4.6.4 GR5 'in the process of being opened in the input mode'; OK §1985:X.5.5.4 GR1.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody (line 523, ctx.Data.DialectLevel >= 2002): below 2002 the declarative call omits the SORT-termination exit filter (GR17 of the later EC model); invocation wrapper only, not the GR5 selection"
+  ],
+  "corrected": ""
+ }
+}

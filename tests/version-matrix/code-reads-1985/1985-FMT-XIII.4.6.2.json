@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-FMT-XIII.4.6.2",
+ "rule-digest": "90d901192bcb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-086",
+  "sources": {
+   "reader": "6a96a82bff65079e8e01d9c2900e21b9ccf2e439b3182b3151de0caa9ffc2dd9",
+   "refuter": "84eead25e060f896dd9a49671c4967dbabf36eb95ce5e2b18c300c9c60583088"
+  },
+  "imported": {
+   "reader": "51659921ce3f23aa07406997e2813c5c608296754b3d08db3d5b4a870b68ab67",
+   "refuter": "cfe775c08aa42a40618f72e41cbfa0e1c9a9b8c73a4d943f8eeb4538a633cf3c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-XIII.4.6.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept the SUPPRESS statement written as SUPPRESS with the optional word PRINTING (PDF page 652: SUPPRESS underlined, PRINTING not), and refuse any other form (an operand, a group name); the placement rule SR1 (only in a USE BEFORE REPORTING procedure) is the format's companion rule.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#suppressStatement; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindSuppress; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitSuppress",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (SUPPRESS row)",
+    "switches": "whether SUPPRESS is reserved at the edition; true for 1985, 2002, 2014 and 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindSuppress",
+    "switches": "BoundRejected.Report(ctx.Edition, COBOL1581) resolves the SR1 refusal's severity through the edition; EditionSeverity.Error at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataReferences",
+    "switches": "DialectLevel < 2002 checks every statement of a 1985 USE BEFORE REPORTING procedure for references to control data (§1985:XIII.3.20.3 SR5); SUPPRESS writes no reference so the 85 arm is inert for this statement",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -i suppress over src/WiseOwl.Cobol.Editions (no ConstructRegistry row for the statement; only copy-suppress-2002 and alternate-key-suppress-when-2023, which are other constructs), grep Edition|DialectLevel in ReportWriterBinder.cs, grammar has no version predicate on suppressStatement",
+  "behaviour-differs-by-edition": "no: the format SUPPRESS [PRINTING] is the same at 1985 and 2023 and the grammar and binder take one path",
+  "witnesses-cover": "part: the witness writes SUPPRESS PRINTING in a USE BEFORE REPORTING procedure; the bare SUPPRESS (PRINTING omitted) and the refusals of an operand are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/w1.cob",
+    "printed": "MATCH: GENERATE 2 LINE-COUNTER 01; S P1 L01 DE 1 / S P1 L02 DE 3",
+    "expected": "SUPPRESS PRINTING accepted; detail 2 not presented"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/s1bare.cob",
+    "printed": "exit 0, MATCH of the same output",
+    "expected": "bare SUPPRESS accepted (PRINTING is an optional word, not underlined on page 652)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/s2oper.cob",
+    "printed": "error COBOL2269: unexpected 'DTL'. The SUPPRESS statement ends before this token",
+    "expected": "SUPPRESS PRINTING DTL refused: no operand in the format"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/s4name.cob",
+    "printed": "error COBOL2269: unexpected 'DTL'",
+    "expected": "SUPPRESS DTL refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/s3outside.cob",
+    "printed": "error COBOL1581: SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure",
+    "expected": "refused by §1985:XIII.4.6.3 SR1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.6.1",
+    "check": "OK  §1985:XIII.4.6.1  (4.6.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XIII.4.6.3 SR1",
+    "check": "OK  §1985:XIII.4.6.3 SR1  (4.6.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.4.6.4 GR3",
+    "check": "OK  §1985:XIII.4.6.4 GR3  (4.6.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The format itself (§1985:XIII.4.6.2) has only two words, too short for cite.py's quotation check; the rendered PDF page 652 shows SUPPRESS underlined and PRINTING not, matching the grammar's SUPPRESS PRINTING?. Classes a, c-f do not apply to an operandless statement; 2023's format is the same, so there is no later phrase to refuse.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-XIII.4.6.2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read ReportWriterBinder.BindSuppress: SR1 resolved by ctx.Enclosing.Declarative?.ReportGroup (lexical containment, no edition arm). Probes at --std 85: refute-1985-086/src/sp_err.cob (SUPPRESS PRINTING in a USE AFTER STANDARD ERROR declarative) -> error COBOL1581, refused as SR1 requires; src/sp_para2.cob (bare SUPPRESS in the SECOND paragraph of a USE BEFORE REPORTING section, reached by GO TO) -> exit 0, 'N 1 LC 00 / N 2 LC 01 / N 3 LC 02': the group is suppressed and LINE-COUNTER not advanced. LINE SEQUENTIAL refused at 85 (COBOL0900), an incidental edition gate. cite.py: OK §1985:XIII.4.6.3 SR1 'may only appear in a USE BEFORE REPORTING procedure'; OK §1985:XIII.4.6.4 GR1 'inhibits presentation only for the report group named in the USE procedure'. Optional-word convention: line 6563 of the 1985 text (uppercase not underlined = optional). The format is the same at 2023; no later phrase to refuse.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

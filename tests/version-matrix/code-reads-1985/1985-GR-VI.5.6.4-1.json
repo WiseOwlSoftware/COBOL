@@ -1,0 +1,101 @@
+{
+ "rule-id": "1985-GR-VI.5.6.4-1",
+ "rule-digest": "40db0fe760f0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-014",
+  "sources": {
+   "reader": "033c718f66fa8327f6c6097812f1d6775bf39f1061001634aaebd3db3ff0ac86",
+   "refuter": "4e2defe6b916e6fb79a025d09c8420aa472c43d66af8d98ecc224e3e85cee037"
+  },
+  "imported": {
+   "reader": "8f7bdb05a96001df263c2aecf0df5171217c0ecd7191e59a50aa75f263494eb4",
+   "refuter": "67535fd79ad5bb1de1fd28ae9899317a071f2a7ce51e646bc56f6b5b5a99e669"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.6.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every store into an elementary alphabetic or alphanumeric receiving item described with JUSTIFIED (MOVE, the implicit MOVE of READ/RETURN INTO, UNSTRING, INITIALIZE REPLACING, a group or numeric sender) truncates the sender's leftmost characters when the sender is larger and right-aligns with left space fill when the receiver is larger; a reference-modified receiver is an item without JUSTIFIED (IV.4.3.8.4.4 GR5) and VALUE initialization is unaffected (VI.5.15.4 GR1c).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#CharacterStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#Characters; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreAligned; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreJustified; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Store",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#JUSTIFIED row",
+    "switches": "whether JUSTIFIED is a reserved word: true at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped MoveEmitter.cs, ReceivingStore.cs, the RuntimeApi Str* members, CobolString.Store and DataBinder's justifiedClause arm for EditionContext|CobolVersion|ConstructRegistry|DialectBehavior|DialectLevel: none. The grammar rule justifiedClause (CobolData.g4) has no edition predicate; Validation/ has no Justified reference.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb339_into_current_record_85 covers READ/RETURN INTO a JUSTIFIED receiver only; MOVE of literals, groups, numeric and signed senders, ODO group senders, subscripted and multiple receivers, UNSTRING, INITIALIZE and the reference-modified receiver are not exercised there.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/jus1.cob",
+    "printed": "M17[  QQQ] M18[    Q] (ODO group CNT=3, CNT=1 into X(5) JUST); M11[   AB] M12[    H] M13[DEFGH] (ref-mod senders at bounds)",
+    "expected": "right-aligned current-length sender, leftmost truncation"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/jus1.cob",
+    "printed": "M1[DEFGH] M2[   AB] M3[ABCDE] M4[Z] M5[    PQ] M6[DEFGHI] M7[ABC12] M8[2] M9[  047] M10[  047] M14[     ] M15[ABABA] M16[00000] M19[   ANGER  XY] M20[   HI][I][  HI] U[  AB][EFGH]",
+    "expected": "GR1: leftmost truncation / right alignment with left space fill, for alphanumeric and alphabetic, group, numeric (sign not moved) senders, OCCURS entries, UNSTRING receivers; figurative and ALL literal fill the receiver"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/jus2.cob",
+    "printed": "V[AB   ] R1[ZA  Z] R2[   A  ] I1[      ] I2[    XY]",
+    "expected": "VALUE not affected by JUSTIFIED (§1985:VI.5.15.4 GR1c); ref-modified receiver has no JUSTIFIED (§1985:IV.4.3.8.4.4 GR5); INITIALIZE REPLACING is an implicit MOVE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/jus3.cob",
+    "printed": "COBOL2403 (group), COBOL2405 (numeric, alphanumeric-edited, index, numeric-edited), COBOL1651 (STRING INTO a JUSTIFIED item)",
+    "expected": "VI.5.6.3 SR1/SR3/SR4 and STRING SR4 refusals"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/jus4.cob",
+    "printed": "COBOL0900 national data / boolean data requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "1985 has no national or boolean category, so a later edition's JUSTIFIED operand class is refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/jus1.cob",
+    "printed": "identical output at --std 85 and --std 2023 (Compare-Object empty)",
+    "expected": "same rule at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.6.4 GR1",
+    "check": "OK  §1985:VI.5.6.4 GR1  (5.6.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.15.4 GR1c",
+    "check": "OK  §1985:VI.5.15.4 GR1c  (5.15.4 General Rules)  the text is in GR1c"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.4.4 GR5",
+    "check": "OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "One alignment dispatch (StrStoreAligned) serves MOVE, READ/RETURN INTO, UNSTRING and INITIALIZE; nothing on the path reads the edition and the 1985 range (alphabetic and alphanumeric only) is a subset of what the code handles. Diagnostics on the refusal half cite §2023 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.6.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "rj1.cob at --std 85: P1[  300] (9PP sender, P positions counted), P3[  047] (SIGN LEADING SEPARATE, sign not moved), P5[   12.50] (numeric-edited sender, no de-editing), P6[  007] (COMP), P7[   AB CD] (alphanumeric-edited sender), P8[\"\"\"] (QUOTE), D1[  261115] D2[3312] D3[  7] D4[   26319] (ACCEPT FROM DATE/TIME/DAY-OF-WEEK/DAY into JUST items: right-aligned, leftmost truncated), U1 DELIMITER IN J3 -> [  ,], end-of-data delimiter -> [    ] (space filled), MOVE CORRESPONDING into JUST members C1[PQ  ON]. rj2.cob (Report Writer, a 1985 RPW use of JUSTIFIED): SOURCE W1 (3) into X(6) JUST -> '   ABC', SOURCE W2 (9) into X(4) JUST -> 'FGHI', VALUE \"AB\" in a JUST X(5) -> 'AB   ' (not justified). All match. cite.py: OK §1985:VI.5.6.4 GR1; OK §1985:VI.6.5.4 GR6 (ACCEPT per MOVE rules); OK §1985:XIII.3.22.4 GR1c (RW VALUE unaffected by JUSTIFIED).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.10-4",
+ "rule-digest": "d3224b384c5a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-144",
+  "sources": {
+   "reader": "72264e88926b78dc3b8e0e2892ca0fd3d164afe74e3222cf08a546e41fb1f8d5",
+   "refuter": "152cfc7a214db13ef4263492ec5fde59da5bf728b175ca0fe9b29372aa999b5e"
+  },
+  "imported": {
+   "reader": "cef7dba1ca31186b504785ab4884efc35ac8ea6de6ecb85f47d1873a350ca712",
+   "refuter": "ff0643463ccbfbbf9ac42553e57cb27f415f6654175f727a2c652890cc212411"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.10-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after a report footing is presented LINE-COUNTER holds the line number of its final print line (paged or unpaged, single or multi-line, on its own page or not), and a nonprintable report footing leaves LINE-COUNTER unchanged.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#LineCounter",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (LINE-COUNTER restore of a discarded save, latest editions only); the RF's own LINE-COUNTER setting in PresentLine is edition-free",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehaviors.IsActive|Edition in ReportWriter.cs; PresentLine sets LineCounter = target for every printed line with no edition test, and BeginGroup's nonprintable return path touches no counter.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f29_03 covers an unpaged two-line footing (LC 4) and a nonprintable one (LC 2); not exercised: paged footings, a footing on its own page, a nonprintable footing after a page footing",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c4rhrf.cob",
+    "printed": "AFTER TERMINATE LC: R-H 19, R-I 20, R-J 04, R-K 06, R-L 18 (MATCH at 85 and 2023)",
+    "expected": "4a: final print line 19, 20, 4 (on the new page), 6; 4b: nonprintable RF leaves the page footing's final setting 18"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_f29_03.cob",
+    "printed": "R1 LC 04 / RF2 USE LC 02 / R2 LC 02 / LINE 01 [D1] / LINE 03 [RF-A] / LINE 04 [RF-B] (MATCH)",
+    "expected": "as derived in the witness"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.10 GR4",
+    "check": "OK  §1985:XIII.3.10.10 GR4  (3.10.10 Report Footing Presentation Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "PresentLine sets LineCounter to each line's target before composing it, so after the last line LINE-COUNTER is the final print line; TerminateCore does not reset it and the value is read after TERMINATE. A report footing with no LINE clause makes BeginGroup return false after its USE procedure, so nothing moves LINE-COUNTER.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output (MATCH)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.10-4",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "LINE-COUNTER after TERMINATE: RF whose last line is LINE PLUS 0 (overprint, §1985:XIII.3.15.4 GR4) -> 15, the shared final line (r4rw R-A); RF after a nonprintable PF -> 16; RF on page 2 of a multi-page report -> 18; NP RF on its own page -> 5 (r4rw R-B, R-C, R-F); RF after a PF NEXT GROUP -> 18 and 19 (r4pfng R-M, R-N); a NONPRINTABLE RF after a PF with NEXT GROUP 17 leaves 17, the PF's final setting (r4pfng R-O, rule 4b); NP RF after a saved CF FINAL NEXT GROUP -> 04 (r4save R-S). cite.py: OK §1985:XIII.3.10.10 GR4 the text is in GR4; OK §1985:XIII.3.15.4 GR4 the text is in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

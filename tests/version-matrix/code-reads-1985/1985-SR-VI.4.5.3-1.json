@@ -1,0 +1,131 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-1",
+ "rule-digest": "4c8a880ef50c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-156",
+  "sources": {
+   "reader": "d3a192e5a182c984e33a437bb5370e7bcfa14ed5e1c29d8e97b6e85eeb749287",
+   "refuter": "2735327ab3b3e8268bd5a8aeeb8e43c4a1272a1c9ffca8b5f267655dd18cd4b8"
+  },
+  "imported": {
+   "reader": "41d26e672aa2cdddaf935e623a29e30c1272d73945b6c946aa0c785f403a2947",
+   "refuter": "51bd80cde77676d5ddf5a86442119f6812fc12cd1f627615171f934c694b6e14"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.4.5.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the mnemonic-name of a SPECIAL-NAMES entry whose implementor-name is an external switch is legal only as the operand of a format 3 SET statement; its use in ACCEPT, DISPLAY, WRITE ADVANCING, SEND ADVANCING or as a data reference or condition must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#BindImplementorNameEntry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ScreenSendAdvancing",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#Cite",
+    "switches": "Prints2002 (Edition.Year >= 2002) picks which edition's rule text the COBOL6171 message quotes; the switch-mnemonic refusal itself is the same test at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read SwitchBindSet, MnemonicDevice, FeatureAdvancing, ScreenSendAdvancing and BindImplementorNameEntry and grepped them and ImplementorNames.cs for Edition/Year/DialectLevel: the only edition consultation is the SEND message's quoted text; the mnemonic-kind tests are edition-blind, as the rule is the same in 1985 and later editions.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness proves only the legal SET half (format 3, ON/OFF, two receivers); none of the refusal half (ACCEPT, DISPLAY, WRITE, SEND, data reference) is exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_setok.cob",
+    "printed": "ON / RAN",
+    "expected": "accepted: SET SW3 TO ON then SW3-ON is true (GR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_display.cob",
+    "printed": "error COBOL0817: DISPLAY UPON 'SW3': 'SW3' is the mnemonic-name of the switch-name 'SWITCH-3', not of a device-name",
+    "expected": "refused: switch mnemonic only in SET"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_accept.cob",
+    "printed": "error COBOL0817: ACCEPT FROM 'SW3': ... not of a device-name",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_write.cob",
+    "printed": "error COBOL2243: WRITE ADVANCING 'SW3': 'SW3' is the mnemonic-name of the switch-name 'SWITCH-3'",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_send2_r.cob",
+    "printed": "error COBOL6171: SEND ADVANCING AFTER ADVANCING SW3: §1985:XIV.3.6.3 SR4 ...",
+    "expected": "refused (SEND is a 1985 communication statement)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_send_ok_r.cob",
+    "printed": "exit 0 (SEND ... AFTER ADVANCING 1 LINE compiles)",
+    "expected": "accepted: control for the SEND probe"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_move.cob",
+    "printed": "error COBOL1639: 'SW3' is not defined",
+    "expected": "refused: a mnemonic-name is not a data item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_if.cob",
+    "printed": "error COBOL2318: 'SW3' is used as a condition, but it is the mnemonic-name 'SW3' of a switch",
+    "expected": "refused: status is tested via condition-names"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_call.cob",
+    "printed": "error COBOL1639: 'SW3' is not defined",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_setcon.cob",
+    "printed": "error COBOL1757: SET 'CON' TO ON ... 'CON' is the mnemonic-name of the device-name 'CONSOLE'",
+    "expected": "refused (SR2 dual: a device mnemonic is not a SET operand)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p2_dispcon.cob",
+    "printed": "ABCD / RAN",
+    "expected": "accepted: control, device mnemonic in DISPLAY"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.3 SR1",
+    "check": "OK  §1985:VI.4.5.3 SR1  (4.5.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR3",
+    "check": "OK  §1985:VI.4.5.4 GR3  (4.5.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.4.5.3 SR2",
+    "check": "OK  §1985:VI.4.5.3 SR2  (4.5.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Every statement that takes a mnemonic-name (ACCEPT, DISPLAY, WRITE, SEND) checks the mnemonic's system-name kind and refuses a switch's; SET format 3 accepts it and works. A switch mnemonic used as a data name or a condition is also refused. The diagnostics other than SEND's quote §2023 clause numbers even at --std 85 (wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.4.5.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85 aimed at what the reader did not try: class c (1985 IPC nesting, §1985:VI.4.5.4 GR1) c2_nested_set: a contained program SETs the containing program's SW3 TO ON and tests SW3-ON, the outer then sees it: printed 'INNER ON / OUTER SEES ON' (accepted, as GR1 requires); c2_nested_disp: DISPLAY UPON SW3 in the contained program refused COBOL0817. Other SET forms with the switch mnemonic: SET SW3 TO TRUE refused COBOL1639, SET SW3 UP BY 1 refused COBOL1639, SET IX TO SW3 refused COBOL1639, SET N TO SW3 refused COBOL2326, SET SW3-ON TO TRUE refused COBOL1757; SET SW3 SW3 TO OFF (format 3, repeated operand) RAN. STRING ... INTO SW3 and INSPECT SW3 refused COBOL1639. Grepped SetAlterBinder.cs and SpecialNamesBinder.cs for Edition/DialectLevel/ConstructRegistry: no edition arm on the switch-mnemonic path. Cite: OK §1985:VI.4.5.3 SR1; OK §1985:VI.4.5.4 GR1 'All clauses specified in the SPECIAL-NAMES paragraph for a program also apply to programs contained within that program'. Wording only: SET N TO SW3 is refused with an index-name message (SR4) rather than naming SW3 as a switch mnemonic.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

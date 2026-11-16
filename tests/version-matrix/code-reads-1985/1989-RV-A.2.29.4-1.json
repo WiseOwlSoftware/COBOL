@@ -1,0 +1,100 @@
+{
+ "rule-id": "1989-RV-A.2.29.4-1",
+ "rule-digest": "b9ce1d908672",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-182",
+  "sources": {
+   "reader": "773c070de287ebd159d3f15ec902758163d0fe8397e7c19041c094fffbadff16",
+   "refuter": "406e8c77483c8e6ae995c907e73a7f3bd2c7588b96deccdf1a9ec955eb164813"
+  },
+  "imported": {
+   "reader": "863f72f80816766c0bc6629f6940a5352a6a75f5e3f3286a588734f754b1082f",
+   "refuter": "af87025408ce13534f68c36ca50086d3fd2e746dc7042e1c55be1d1de58bd843"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.29.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION NUMVAL must return the numeric value its nonnumeric-literal or alphanumeric-data-item argument represents in either AR1 format (leading +/- or trailing +/-/CR/DB, spaces around each part, digits with an optional point or a leading point, at most 18 digits), with DECIMAL-POINT IS COMMA swapping the decimal character.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: introduction gate",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt for NUMVAL's CharacterCategory predicate (Since 85): the same argument screen at both editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "IntrinsicRenderer.cs has no Edition/Version reference; the digit cap passed to NumvalDec is keyed on the arithmetic mode (ArithmeticModes.NumvalDigitCap, 31 native), not on the edition; FlagConformancePass.Flag85.cs#FlagFunctionCall85 flags NUMVAL only under a >>FLAG-85 directive and does not change the value.",
+  "behaviour-differs-by-edition": "no for conforming arguments: p2numval prints the same 19 lines at 85 and 2023. The digit cap is 31 at both editions, so an argument of 19-31 digits (outside 1985 AR2, whose result §1989:A.2.2 leaves undefined) is still evaluated at 85.",
+  "witnesses-cover": "part: g85_f38_04 covers a few literal forms; leading and trailing CR/DB, a leading point, a trailing point, the 18-digit extremes, a group argument, reference modification, an OCCURS DEPENDING ON record and DECIMAL-POINT IS COMMA are exercised only by these probes.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p2numval.cob",
+    "printed": "N1=-123.45 (\"  -  123.45  \") N2=-1234.5 (\"1234.5 CR\") N3=-0.5 (\".5DB\") N6=0 (\"+ 0\") N7=78 (\"78.\") N8=-12 (\"12-\") N9=12 (\" 12 + \") G1=-42 (group 42 + \"-\") L1=-3.25 L2=-4 (\"4 DB\") L3=4",
+    "expected": "the numeric value each string represents"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p2numval.cob",
+    "printed": "N4=999999999999999999 NA=-999999999999999999 N5=-.000000000000000001",
+    "expected": "the 18-digit extremes and an 18-digit fraction exactly"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p2numval.cob",
+    "printed": "O1=7.5 (REC(2:CNT) over an ODO record holding \"7.5\") R1=12 (S1(5:3) = \" 12\") R2=9 (S4(18:1))",
+    "expected": "7.5, 12, 9"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p4comma.cob",
+    "printed": "D1=-12,75 (\" -12,75 \") D3=0,5 (\",5\") under DECIMAL-POINT IS COMMA",
+    "expected": "§1989:A.2.29.3 AR3: the comma is the decimal point"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/r7.cob",
+    "printed": "COBOL1627 for NUMVAL(N1) with N1 PIC 9(3); r6: COBOL1504 for two arguments; PIC A argument: COBOL1627 (class alphabetic)",
+    "expected": "refused: §1989:A.2.29.3 AR1 nonnumeric literal or alphanumeric data item"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p2numval.cob",
+    "printed": "--std 2023: identical output",
+    "expected": "no 1985-only form of NUMVAL"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.29.4 RV1",
+    "check": "OK  §1989:A.2.29.4 RV1  (2.29.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "NUMVAL routes to the exact parse (NumvalDec over NvScan) in every arithmetic mode, so the value is the parsed significand at its parsed scale and no receiver or working scale can alter it. Every AR1 format variant probed returns the represented value. The refusal diagnostics cite §2023 clause numbers at --std 85, a citation-form issue outside this RV rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.29.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "q4numval.cob at --std 85 (runs/q4numval-002): '  +  .5' -> 0.5; '123456789.123456789' (18 digits split) -> exact; '0012 CR' -> -12; PIC X(4) '7' -> 7; group ' -045' -> -45; NUMVAL(REVERSE(\"-21\")) -> -12; NUMVAL(\"1.5\")*2+0.25 -> 3.25; '-.000000001' -> -0.000000001; '5 DB' -> -5; '5 ' -> 5; IF NUMVAL(\"2.50\") = 2.5 true. qanat.cob: NUMVAL(N\"12\") refused COBOL0900 at 85. q8nved.cob: NUMVAL of a numeric-edited item is refused COBOL1627 at 85; §1985 uses 'alphanumeric data item' as a category (VI-30, and IV reference modification 'numeric edited, alphabetic, or alphanumeric edited ... as if it were redefined as an alphanumeric data item'), so the category reading of AR1 holds and this is in any case the argument rule, not RV1. cite.py: 'OK  §1989:A.2.29.4 RV1  (2.29.4 Returned Values)  the text is in RV1'; 'OK  §1989:A.2.29.3 AR1 ... the text is in AR1'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement: NumericFunctionIdentifierOperand2002 bars a numeric function written as an identifier operand at 85 (not on the COMPUTE/relation path of the rule's value)"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "rule-id": "1985-GR-VIII.4.8.4-6",
+ "rule-digest": "c9b29e3beb51",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-029",
+  "sources": {
+   "reader": "01f0efcad59093e3a149a53e2835d8a55ee8b9e0b626facf5041f6eda942e2c9",
+   "refuter": "ff762090fa0f23654fdd2955e44fb6bea161861a175a259dab48014f7f4b0f6e"
+  },
+  "imported": {
+   "reader": "c65d6a446f05a6cc825298a4e55b0582140277b7ac415ed0eb3c0f3d808be946",
+   "refuter": "2c94af440fe6534e6a36b70fc18f55f3a1c5e627a2f84fafdae7d8d63b9bdc43"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.8.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "When a USE procedure (the whole remainder of its declarative section) finishes, control must return to the next executable statement after the relative-file I-O statement that caused it, wherever that statement sits (same sentence, an IF branch, nested IF, a performed paragraph's last statement); after a critical status the action is the implementor's, which WiseOwl COBOL documents as continuing with the next executable statement (docs/conformance/3.5).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#RunUseCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUncoveredFatalTermination; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#TerminateOnUncoveredFatalStatus",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "EC-free group: ctx.Data.DialectLevel >= 2002 adds the SORT GR17 return-signal exit filter; at 85 the bare try { dispatch } finally { clear active flag } form; both fall through to the statement after the hook",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+    "switches": "ecState.Active (EC model, reachable only through 2002+ constructs) chooses the DispatchResult-returning invoker; at 85 the void form",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition over DispatchEmitter.cs, EmitterState.cs, SequentialIoEmitter.cs (EmitUseHook) and CobolFile.cs: only the two DispatchEmitter arms above; neither changes where control returns.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb367_use_procedure_is_the_section_85 covers a sequential file's AT END status 10 returning to the statement after a READ; relative-file invalid key, critical statuses (35, 41, 42), returns into IF branches and performed paragraphs are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-029/u6a.cob",
+    "printed": "A1 after dup WRITE ST=22; USE INPUT MODE then A2 after OPEN missing (35, critical, no FILE STATUS); A3 same sentence ST=23 (READ, no INVALID KEY); A4 in IF after REWRITE ST=23 then A4 after IF; A5 after PERFORM (DELETE last in P-READ, P-NEXT not run); A6 after OPEN open ST=41; A7 after inner IF ST=23 (START in nested IF); A8 after CLOSE closed ST=42; USE ran its PERFORM and GO TO inside the section each time; END CNT=07",
+    "expected": "after each USE procedure control resumes at the next executable statement after the failing statement; critical statuses continue per the documented implementor choice"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.4 GR6",
+    "check": "OK  §1985:VIII.4.8.4 GR6  (4.8.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "The I-O statement's hook calls __RunUse and then falls through, so control lands on the next emitted statement in whatever construct holds the I-O statement; abnormal termination is emitted only when no USE procedure ran and the file has no FILE STATUS. The 85 arm of EmitRunUseBody differs from 2002+ only by the SORT GR17 filter. Probe output is identical at --std 85 and 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "u6a at --std 2023 prints the same lines",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.8.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Attacked the return point where it could go wrong: a READ / REWRITE carrying only NOT INVALID KEY (the NOT phrase must not run after the USE procedure), a DELETE inside an inline PERFORM UNTIL (each iteration must continue), a READ NEXT at end with only NOT AT END, a WRITE duplicate (22), a USE section of two paragraphs left by GO TO to its last paragraph, and a second declarative section that must not be fallen into. rf6a.cob at --std 85: 'D1-Z ST=23 CNT=01 / B1 AFTER ST=23', 'D1-Z ST=23 CNT=02 / B2 SAME-SENTENCE ST=23', 'B3 ITER 1..3' each after its D1-Z, 'D1-A NON23 ST=10 / D1-Z ST=10 / B4 AFTER ST=10', 'D1-A NON23 ST=22 / D1-Z ST=22 / B5 AFTER ST=22', 'D2 RAN ST=35 / B6 AFTER OPEN ST=35 CNT=07' (D1 did not run for Q-FILE). No WRONG line printed; control always resumed at the next executable statement. cite.py: 'OK  §1985:VIII.4.8.4 GR6  (4.8.4 General Rules)  the text is in GR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

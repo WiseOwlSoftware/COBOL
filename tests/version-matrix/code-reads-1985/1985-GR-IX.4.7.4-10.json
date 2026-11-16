@@ -1,0 +1,102 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-10",
+ "rule-digest": "fe7cc5c05f24",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-009",
+  "sources": {
+   "reader": "1a012f0aed24ca5e6d66c0c04f49408b810c3ad3becebf4565cfd90cc3a5a923",
+   "refuter": "b778b93dd4ded60f559b61f58a28f4485780af94c155ead154f099e4b7ed3adf"
+  },
+  "imported": {
+   "reader": "1ba47f7a90db236430f3046802d937fcd4b6e9412cdb70ec72d01bf4e6ead7d9",
+   "refuter": "066e660ed314df3a59d35e8b8f14156cb646ed6d0f1550436b34376d7da03d8f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "START sets the key of reference to (a) the prime key when the KEY phrase is omitted, (b) the named record key, or (c) the record key that shares the operand's leftmost position (any alphanumeric item in a record of the file, no longer than the key). It uses that key for the comparison and, on success, for later sequential READs; on failure there is no valid next record.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#GenericKeyIndex; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartSucceeded; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "COBOL-85-only mandatory INVALID KEY on START (COBOL6826); not the rule's behaviour",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+    "switches": "refuses START FIRST/LAST at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartKeyPhrase",
+    "switches": "refuses reverse operators (<, <=, NOT GREATER) at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartWithLength",
+    "switches": "refuses WITH LENGTH at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+    "switches": "ctx.Edition.SubscriptedClauseOperands (true only at 2002) selects the SR4 OCCURS screen; 85 takes the same arm as 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep 'Edition|CobolVersion|DialectBehavior' over src/WiseOwl.Cobol.Runtime/IO/*.cs: the only indexed-connector edition reads are IndexedConnector#SelectSequentialRecord (IndexedReadPreviousAfterOpenAtEnd, READ PREVIOUS only) and #ReadRandom (IndexedDuplicateKeyStatusSequentialOnly, random READ '02' only); neither is on this rule's path. KeyedIoEmitter has no edition read.",
+  "behaviour-differs-by-edition": "no for the rule; 85 refuses the 2002 START forms (FIRST/LAST, WITH LENGTH, reverse operators)",
+  "witnesses-cover": "part: the witnesses cover (a) and the prime key; (b) on an alternate, (c) generic keys and the failure path are not exercised",
+  "probes": [
+   {
+    "class": "a,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/p4_start_kor.cob",
+    "printed": "B-ALT 02 01; A-NOKEY 02 03 04; C-SUB(R-ALT-1>=BB) 03 02 01; C-OTHER01(other 01, X(3)) 02 01; C-PRIME(R-KEY-1) 01 02 03 04; failed START 23 then READ 46 (identical at --std 2023)",
+    "expected": "walks follow the key the rule selects; GR8 no valid next record"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/r12_group.cob",
+    "printed": "group operand at the prime position: G-PRIME 00 AB1ZZ9, then AB2YY8",
+    "expected": "a group (alphanumeric) generic key selects the prime key"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/r1_numeric.cob .. r11_notequal.cob",
+    "printed": "numeric, longer, not-leftmost, WS item, edited -> COBOL0862; LESS/FIRST/WITH LENGTH -> COBOL0900; no operator -> COBOL5506; NOT EQUAL -> COBOL0862; no INVALID KEY -> COBOL6826",
+    "expected": "SR4 and the 1985 format refuse each"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR10",
+    "check": "OK  §1985:IX.4.7.4 GR10  (║4.7.4 General Rules║)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:IX.4.7.3 SR4b",
+    "check": "OK  §1985:IX.4.7.3 SR4b  (║4.7.3 Syntax Rules║)  the text is in SR4b"
+   },
+   {
+    "cite": "§1985:IX.4.7.4 GR8",
+    "check": "OK  §1985:IX.4.7.4 GR8  (║4.7.4 General Rules║)  the text is in GR8"
+   }
+  ],
+  "notes": "BindStart picks keyIndex from KeyIndexOfKeyItem or GenericKeyIndex, or the prime key when KEY is omitted. Start/StartSucceeded make it _refKey for later READ NEXT. The SR6 message cites 2023's 'same class, category and usage'; at 1985 every key is alphanumeric DISPLAY, so it accepts and refuses the same operands as SR4b.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-10",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "q6_start_ops.cob (--std 85, sequential access, READ without NEXT) used a group alternate key (99 + X) holding a numeric subordinate. All seven spellings of the 1985 format were accepted and walked by the alternate key: = 10D -> 04,03,01; GREATER/> 10D -> 03,01; NOT LESS/NOT </GREATER OR EQUAL/>= 20C -> 03,01. A one-character generic key in a second 01 (FILLER redefinition at the alternate's leftmost position) behaved under GR10c: =2 -> 03,01; =3 -> 01; =1 -> 02,04,03,01; =4 -> 23, then READ -> 46 (GR8). q4_pcs.cob: the comparisons use the native collating sequence under a reversed PROGRAM COLLATING SEQUENCE (§1985:B.2.2). §1985:IX.2.5.3 SR4 forbids two keys sharing a leftmost position, so GR10c always picks one key. cite.py: OK §1985:IX.4.7.4 GR10; OK §1985:IX.2.5.3 SR4; OK §1985:IX.4.7.4 GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

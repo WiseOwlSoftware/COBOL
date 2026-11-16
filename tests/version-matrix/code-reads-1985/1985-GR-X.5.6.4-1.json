@@ -1,0 +1,76 @@
+{
+ "rule-id": "1985-GR-X.5.6.4-1",
+ "rule-digest": "d021f0dc0cd4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-033",
+  "sources": {
+   "reader": "13cc6799f88b464f1d7f9af78e1b13de577101149a37847b7088ad9a74c77d45",
+   "refuter": "455f82c1e6756a1de7d09787d8625dccbb72271f5f57eeb9af65a282f18bd6ae"
+  },
+  "imported": {
+   "reader": "c3775d402486d68da65b4156af0622b19dedbed4289996b37619d72a7a3d2c3c",
+   "refuter": "29b527250678d1cfebff2a3deea83e5098cf13ee3b91aa6059553ad9c9de30e8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.6.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a GENERATE or TERMINATE in a contained program presents a report group, exactly one USE BEFORE REPORTING declarative runs: the one in the program containing the statement, else a GLOBAL one in the directly containing program, repeated outward to the outermost program; a non-GLOBAL declarative of a container, or any declarative of a contained program, is never selected, and if none qualifies none runs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#ChainSelects; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitBeforeReportingSelectors; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitSelectors; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#InheritGlobalReport",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "ctx.Data.DialectLevel >= 2002: the shape of a USE procedure's completion filter (the 2002 SORT GR17 exit filter); not the selection of which declarative runs",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs (engine construction, line 593)",
+    "switches": "passes DialectLevel as ReportWriter.Edition for the engine's DialectBehavior questions (SUM size error, GROUP INDICATE, TERMINATE save, CF prior values); none reaches the selector chain",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect|ConstructRegistry' over ReportWriterEmitter.cs, DispatchEmitter.cs, Runtime/IO/ReportWriter.cs, ReportSectionBinder.cs; ChainSelects / EmitBeforeReportingSelectors / EmitSelectors contain no edition read, so the precedence walk is the same code at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb369_global_report_use_selection covers a) own-beats-container, a non-GLOBAL container declarative skipped, and an outward walk two levels to the declaring program; it does not exercise an intermediate container's GLOBAL declarative winning over the outermost's GLOBAL one (only the first is run), nor a statement in the outer program ignoring a contained program's GLOBAL declarative.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/u1prec.cob",
+    "printed": "A-GLOBAL DET-1 N=1 / B-GLOBAL DET-1 N=2 / A-GLOBAL CFK N=3 / B-GLOBAL DET-1 N=3 / A-GLOBAL DET-1 N=4 / A-GLOBAL CFK N=4 / A DONE",
+    "expected": "A's GENERATE runs A's own (1a); B's runs B's own (1a); C's GENERATE: the control break CF WS-K finds none in C or B and A's GLOBAL one (1c), the DETAIL finds B's GLOBAL one and A's is NOT also run (only the first qualifying); A's later GENERATE ignores contained B's GLOBAL declarative; TERMINATE's CF from A runs A's"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.6.4 GR1",
+    "check": "OK  §1985:X.5.6.4 GR1  (║5.6.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.5.6.4 GR1b",
+    "check": "OK  §1985:X.5.6.4 GR1b  (║5.6.4 General Rules║)  the text is in GR1b"
+   },
+   {
+    "cite": "§1985:X.5.6.4 GR1c",
+    "check": "OK  §1985:X.5.6.4 GR1c  (║5.6.4 General Rules║)  the text is in GR1c"
+   }
+  ],
+  "notes": "Each unit emits a per-report selector that tries its own declaratives (any for its own statements, GLOBAL only when reached from a contained program) and otherwise delegates to __outer, stopping at the declaring program; the probe shows the intermediate GLOBAL declarative wins and the outer one is not run in addition. The only edition reads near the path govern a USE body's exit filter and engine behaviours, not the selection.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.6.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "r4sib.cob at --std 85 (refute-1985-033/r4sib-001), aimed at what u1prec did not try: precedence follows CONTAINMENT, not the call chain. A (declares GLOBAL RD R-1; non-GLOBAL USE for DET-1, GLOBAL USE for DET-2) directly contains COMMON siblings B (GLOBAL USE for DET-1 and CF FINAL) and C (non-GLOBAL own USE for DET-2); A calls B, B calls C. Printed 'A-NG DET-1 N=1 / B-G DET-1 N=2 / C GEN DET-1 / C GEN DET-2 / C-NG DET-2 N=3 / C TERMINATE / C END / A DONE': C's GENERATE DET-1 ran no declarative (A's non-GLOBAL skipped by 1b, the calling sibling B's GLOBAL one never examined, 1c none executed); C's own non-GLOBAL declarative is selected by 1a and A's GLOBAL DET-2 is not also run; C's TERMINATE ran no CF FINAL declarative (sibling B's GLOBAL one not selected). cite.py: OK §1985:X.5.6.4 GR1, GR1b, GR1c (each 'the text is in').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VI.6.26.4-3",
+ "rule-digest": "512f87538196",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-114",
+  "sources": {
+   "reader": "32db31cf70df4d7ef171121d99fc690dc0e1d97df0cddda97380269810bbef58",
+   "refuter": "aa64710d97213766196ce98602e344723f873c20e8a0d1c2c55173f6ebd4c986"
+  },
+  "imported": {
+   "reader": "281e6d040bb70afe2d0523256074082a7949675916120b70bbc979a0e3bf9985",
+   "refuter": "2dac1410b3f9732e6a1d79040b6a1198a96026169ef5ae797858578b43ee699e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.26.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, SUBTRACT CORRESPONDING subtracts each elementary numeric item of identifier-1 from the corresponding (same name and qualifiers, §1985:VI.6.4.3) elementary numeric item of identifier-2 and stores it there, as separate subtractions, skipping FILLER, REDEFINES, OCCURS and non-numeric (including numeric-edited) items, with ROUNDED applying to every pair and the ON SIZE ERROR imperative run only after all pairs are done.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindSubtractCorresponding; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CorrespondingEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
+    "switches": "perPair = DialectLevel < 2002: at 85 a group operand's subscripts are identified afresh for each pair (docs/CONFORMANCE.md D-CORR85, kb/Work PB5185); from 2002 once at the start",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: 85 continues after an unphrased size error",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of DialectLevel|DialectBehaviors|Edition.Year over CorrespondingBinder.cs, CorrespondingEmitter.cs, ArithmeticEmitter.cs: the two hits above.",
+  "behaviour-differs-by-edition": "yes: per-pair identification of a subscripted group operand at 85 (start-of-statement from 2002) and the unphrased size-error continuation; pair selection and the per-pair subtraction are the same arm.",
+  "witnesses-cover": "part: g85_f14_02 and pb5185 cover matching and per-pair subscripts; not exercised here: FILLER/REDEFINES/OCCURS/edited exclusions together, ROUNDED, and the size error imperative running after every pair.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subgr3.cob",
+    "printed": "C1 NOSIZE / C1 A=-007 B=-2 C=100 D=4 E2=02 F=0606 K=02 M=  9 ZZ=-50",
+    "expected": "A 3-10=-7; B 0-1.6 ROUNDED -2; C (alphanumeric), E (REDEFINES), F (OCCURS), M (numeric edited) and FILLER unchanged; nested K 6-4=2; ZZ 0-50=-50"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subgr3b.cob",
+    "printed": "S1 SIZE A=-007 D=9 E=04 / S2 A=-017 D=1 E=03",
+    "expected": "D (PIC 9) overflows: unchanged, E after it still stored before the imperative runs (§1985:VI.6.4.2 last paragraph); unphrased: execution continues, D undefined"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subref.cob",
+    "printed": "COBOL1757: SUBTRACT CORRESPONDING operand 'WS-A' is an elementary item",
+    "expected": "refused (§1985:VI.6.26.3 SR1b)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.26.4 GR3",
+    "check": "OK  §1985:VI.6.26.4 GR3  (6.26.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.4.3",
+    "check": "OK  §1985:VI.6.4.3  (║6.4.3 The CORRESPONDING Phrase║)  the text is in the clause; it lies in GR2"
+   }
+  ],
+  "notes": "CorrMatch selects the pairs by the 1985 corresponding rules and CorrespondingEmitter#Emit stores each through StoreInPlace with its own size-error guard, the phrase dispatched after the last pair. Probe output agrees with the 1985 text in every pair; at 2023 subgr3b printed the same.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.26.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probe at --std 85 (rsub3-001) aimed at §1985:VI.6.4.3 items the reader did not try: G1.X.A vs G2.A (qualifiers differ) not paired, A=50; G1.X.Q vs G2.X.Q paired, Q=49; item under OCCURS group T ignored, B=50; G1.R1.C vs G2.C not paired, C=50; item under REDEFINES group ignored, D=50; USAGE INDEX item ignored, IX=50; numeric-edited item on the identifier-1 side ignored, E=50; group K vs elementary K ignored, K=50; pairs N1 9(10) and N2 V9(10) (union 20 digits, each pair 10) compile and give 0000000049 and .2500000000 (§1985:VI.6.26.3 SR3c per pair); RR 0-0.5 ROUNDED -> -1. SUBTRACT CORR H1 FROM H1 -> P=00 W=+0. A single pair spanning 20 digits is refused (rc4-001, COBOL0805). cite.py: OK §1985:VI.6.4.3 (it lies in GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

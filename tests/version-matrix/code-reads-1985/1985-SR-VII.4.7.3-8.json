@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VII.4.7.3-8",
+ "rule-digest": "8483d3ca0ea6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-162",
+  "sources": {
+   "reader": "c3e815222f3db3c4f9a246f9cc40540a60c0bad3872ec9834fa92e4d8d58d304",
+   "refuter": "8da29fb07a35a84701a4ba36c5c1c5551c642f72bdbe73707ca9679d0e7dbfee"
+  },
+  "imported": {
+   "reader": "50e334b57f4697ad31a78d9708b86c3193ea16f8674898533bd784c41d5a92d0",
+   "refuter": "f8d0cc8d78b768f92be78a9105754982411291ee2bc1a192dc3147bf42c3db85"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.7.3-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a WRITE carrying AT END-OF-PAGE / AT EOP or NOT AT END-OF-PAGE / NOT EOP (alone or together, with or without ADVANCING) must be refused when the file's FD has no LINAGE clause, and accepted and executed when it has one.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckWriteEopLinage; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindWrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitWriteStatement",
+    "switches": "WRITE FILE phrase and the place of the retry/lock pair relative to END-OF-PAGE (2002 vs 2014+); not the SR8 check",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read SequentialIoBinder#BindWrite (HasFamily EndOfPage -> CheckWriteEopLinage) and CheckWriteEopLinage (file.Linage null test, no edition test); grepped VersionConformancePass for EndOfPage/VisitWrite.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f22_04 exercises AT END-OF-PAGE without LINAGE; the NOT phrase alone, the EOP spelling, the phrase beside ADVANCING, and the acceptance half with LINAGE are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/eop1.cob",
+    "printed": "EXIT 65; COBOL0860 at lines 16 (NOT AT END-OF-PAGE alone), 17 (AT EOP), 18 (BEFORE ADVANCING 1 LINE NOT EOP)",
+    "expected": "each refused: no LINAGE in the FD"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/eop2.cob",
+    "printed": "NOT 1 LC=2 / EOP 2 LC=3 / EOP 3 LC=4 / EOP 4 LC=1 / NOT 5 LC=2",
+    "expected": "accepted with LINAGE 4 FOOTING 3 and both phrases bound and executed"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/eop1.cob",
+    "printed": "--std 2023: the same three COBOL0860 plus COBOL0902 for LABEL RECORDS",
+    "expected": "same refusal at 2023 (SR19)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.3 SR8",
+    "check": "OK  §1985:VII.4.7.3 SR8  (4.7.3 Syntax Rules)  the text is in SR8"
+   }
+  ],
+  "notes": "Edition-agnostic check on the sequential WRITE arm; the relative/indexed arm refuses any END-OF-PAGE phrase outright (COBOL1720), matching the 1985 relative/indexed WRITE formats, which have none. The page-overflow semantics shown by eop2 belong to the general rules and were not judged here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusal",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.7.3-8",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read SequentialIoBinder.cs BindWrite (HasFamily EndOfPage -> CheckWriteEopLinage, line 245) and StatementValidation.cs CheckWriteEopLinage (file.Linage null test), no edition test. w1.cob (--std 85): in contained program W1IN, WRITE QREC (GLOBAL FD QF, no LINAGE) AT END-OF-PAGE and NOT EOP -> COBOL0860 at lines 33 and 34; WRITE PREC (GLOBAL FD PFL with LINAGE) AT EOP not refused. w2.cob: the same phrases on the GLOBAL LINAGE file in the contained program, AT/NOT AT together and beside BEFORE 1 LINE, compiled and ran (EOP2 / NOT3 / SP=00 SQ=00); the 2002 freedom of writing NOT END-OF-PAGE before END-OF-PAGE is refused at 85 (COBOL0900, the 1985 printed order). cite.py: OK  §1985:VII.4.7.3 SR8  (4.7.3 Syntax Rules)  the text is in SR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

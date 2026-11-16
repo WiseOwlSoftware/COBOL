@@ -1,0 +1,68 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-11",
+ "rule-digest": "c5aa1e8b77f5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-034",
+  "sources": {
+   "reader": "55ae482fcbf67505d3260e5fbf4749320bc5ece0f8f8fa7cd6fd93be84c07f69",
+   "refuter": "957a2a6d8a425cad511eea6e561c872dc2460431a2616651179853f12c607cad"
+  },
+  "imported": {
+   "reader": "1ddd73d5ca7a7a9831ebb62c465c49682783afeb5f17b48f0df9ce3f5cca41a2",
+   "refuter": "ebdeae8d55346bdad222472b9e7de590111ea3a4368e248bd0092a8ac4fddddd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.4.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a SORT with an OUTPUT PROCEDURE must pass control to it only after the sort file has been sequenced, each RETURN in its range giving the next record in sorted order, and when control passes the procedure's last statement the sort must end and control go to the next executable statement after the SORT - inside an IF, from a PERFORMed paragraph, and whether the procedure returns all, some or none of the records.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#EmitProcedureRange; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#DispatchCall; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Sort; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#EnterProcedure; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReturnStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Close",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#WalkProgram",
+    "switches": "Year < 2002 runs GateReleaseReturnRange: RETURN outside every output procedure's execution range is COBOL7081 (§1985:XI.4.3.3 SR3)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures",
+    "switches": "Year >= 2023 arms for a SORT/MERGE written inside a procedure",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the emitted order Sort -> EnterProcedure(output) -> bounded dispatch -> finally Close is the same at every edition",
+  "witnesses-cover": "part: pb3511 covers a THRU output procedure ending at the program's last paragraph; not exercised: SECTION output procedure with RETURN in a PERFORMed paragraph, SORT inside IF, SORT as the last statement of a PERFORMed paragraph, partial or empty return, an empty input",
+  "probes": [
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/s3proc.cob",
+    "printed": "S1 / IN-1 / IN-3 LAST / OUT-1 / R CCC / R BBB / R AAA / OUT-3 LAST / AFTER-S1 CNT=3 / S2 / EMPTY-IN / OUT-1 / OUT-3 LAST / AFTER-S2 CNT=0 / S3 / IN-1 / IN-3 LAST / FIRST AAA / AFTER-S3 / S4 ... AFTER-PERFORM-S4 CNT=3 / S5 ... (EXPECT: MATCH)",
+    "expected": "output procedure runs after the whole input procedure (sorted order CCC BBB AAA descending), ends at OUT-3 and continues in the same IF branch / after the PERFORM; zero records gives AT END at once; one RETURN then exit terminates the sort and the next SORT on the file works"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.4 GR11",
+    "check": "OK  §1985:XI.4.4.4 GR11  (4.4.4 General Rules)  the text is in GR11"
+   }
+  ],
+  "notes": "SortSort runs the sequence phase before SortEnterProcedure(output) and the bounded dispatch, so the output procedure only starts once every record is sequenced; the statement's finally closes the store whether the procedure drained it or not.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.4.4-11",
+  "refutation": "UPHELD",
+  "classes": "b",
+  "evidence": "p1last.cob (refute-1985-034/p1last-001), SORT-1: the output procedure OUT-1 THRU OUT-3 started only after the whole input procedure had run. In OUT-1, PERFORM OUT-3 (the last paragraph) returned to the PERFORM and did not end the sort. Records came back sorted (R AAA, R BBB, R CCC), and control passed to 'AFTER-SORT-1 CNT=3' only after OUT-3 ran as the last statement. The no-SORT fall-through through the same paragraphs did not trigger a return. cite.py: 'OK  §1985:XI.4.4.4 GR11  (4.4.4 General Rules)  the text is in GR11'. No edition arm on the control-transfer path (SortEmitter.cs grep: none).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

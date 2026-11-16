@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-5",
+ "rule-digest": "f73f654545ea",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-123",
+  "sources": {
+   "reader": "2a038aa4eda79245e44f17a46396a0d07259a19a45f018cc546b0a2da6fe34e4",
+   "refuter": "682fc1281745e66c275b93fc2f52298f7014de67670a15739aebe068fe2e0f23"
+  },
+  "imported": {
+   "reader": "db82c3f3300737b0ae47f85ea4760963a7223b5e47fceb153fde9eb40ef9cb1f",
+   "refuter": "561c4626daba38d0dad07a4251fbadb6ce453b19bf63359cbdee716d327ec5a9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.3.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "One file may be opened INPUT, OUTPUT, EXTEND and I-O in turn in one run unit, each re-OPEN after a plain CLOSE (or CLOSE NO REWIND) succeeding; an OPEN of a file still open (including after CLOSE REEL/UNIT, which leaves it open) is 41, and after CLOSE WITH LOCK is 38.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RefusedAsAlreadyOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseReelUnit; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (2002+): at 85 the physical file is locked ('38' through any file-name), from 2002 the file connector",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehavior in FileRegistry.cs: CloseWithLock and ClosedWithLock are the only edition switches on this path; RefusedAsAlreadyOpen and the CLOSE REEL/UNIT Table 14 cell are edition-free",
+  "behaviour-differs-by-edition": "yes: at 85 a CLOSE WITH LOCK locks the physical file (every file-name gets 38), from 2002 only the file connector",
+  "witnesses-cover": "part: the witness covers the four modes in turn after plain CLOSEs; not exercised: re-OPEN after CLOSE REEL, UNIT, NO REWIND and WITH LOCK, relative files",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p5_reopen.cob",
+    "printed": "CLOSE-REEL=07 OPEN-AFTER-REEL=41 WRITE-STILL-OUTPUT=00 CLOSE-UNIT=07 OPEN-AFTER-UNIT=41 CLOSE-NOREWIND=07 OPEN-AFTER-NOREWIND=00 OPEN-AFTER-LOCK=38 RL-AFTER-LOCK=38",
+    "expected": "CLOSE REEL/UNIT leaves the file open so OPEN is 41 and the file stays OUTPUT; CLOSE NO REWIND closes so EXTEND re-opens 00; CLOSE WITH LOCK gives 38 (VII.1.3.5 3e)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p5_reopen.cob",
+    "printed": "OPEN-IO=00 R1=R001 R2=R002 R3=R003 EOF4 OPEN-INPUT=00 RL-IO=00",
+    "expected": "OUTPUT, EXTEND, I-O, INPUT of one file in one run unit, each after a plain CLOSE, all 00 with the records kept"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p23_status.cob",
+    "printed": "SQ-AFTER-LOCK=38 SQ2-AFTER-LOCK=38",
+    "expected": "85: the file closed with lock is the physical file, so another file-name of it also gets 38"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.4 GR5",
+    "check": "OK  §1985:VII.4.3.4 GR5  (4.3.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4a"
+   }
+  ],
+  "notes": "RefusedAsAlreadyOpen answers 41 before anything touches the connector; the CLOSE REEL/UNIT non-unit cell leaves the file open; ClosedWithLock takes the 85 physical-file arm. All forms probed behave as GR5 and VII.1.3.5 require.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.3.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VII.4.3.4 GR5 (cite.py: OK GR5 'without the REEL, UNIT,'). Probed the forms the reader did not try: CLOSE REEL FOR REMOVAL, CLOSE NO REWIND of an INPUT file, and an EXTERNAL file connector shared by two programs of the run unit (1985 nested program plus EXTERNAL). r5_ext.cob printed MAIN-OUT=00, SUB-OPEN-WHILE-OPEN=41 (the subprogram's OPEN of the run unit's still-open external file), SUB-CLOSE=00, SUB-EXTEND=00, MAIN-REOPEN=00 and MAIN-READ=00 E001. It then printed CLOSE-REEL-REMOVAL=07 with OPEN-AFTER-REMOVAL=41 (the file stays open), and CLOSE-IN-NOREWIND=07 with OPEN-IO-AFTER-NOREWIND=00. Every re-OPEN that GR5 permits succeeds, and every OPEN without a qualifying CLOSE gives 41, or 38 after LOCK (the reader's probe).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

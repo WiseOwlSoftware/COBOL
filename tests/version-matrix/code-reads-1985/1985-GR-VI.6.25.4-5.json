@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-5",
+ "rule-digest": "66a593b5f68d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-113",
+  "sources": {
+   "reader": "9e16c1aa971425a4b8a397cba94309dde729a8b6a0436fab764dd51d99307d99",
+   "refuter": "8cba34c317369f509ca7b93c39d2ca658455da6c1854a7605b3d5c2f7ae4b531"
+  },
+  "imported": {
+   "reader": "6102c3d6ebff6fa3a9f376e3d623f9fd4fd7eb738bc394c59ca25282810ea682",
+   "refuter": "d77fc2f8b66af91da3be192fbe2d9a8d22e2cc243b370c3e708679fa8147e395"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the POINTER item (any usage, elementary integer, no P) is the program's responsibility to set above zero; its value is taken as the first receiving position, and a value below one or beyond the receiver is handled by GR9 (overflow, no transfer, pointer unchanged), never by any other action.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#HostInt64; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|CobolVersion|ConstructRegistry|DialectBehavior over StringEmitter.cs and CobolStringOps.cs: none; StrUnstrIsInteger in BindString has no edition test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f14_01 covers P = 1, 3, 5 and 0; not exercised: a negative signed pointer, a binary pointer, the largest pointer, a subscripted pointer",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr5.cob",
+    "printed": "1 OVF [****A] 06; 2 OVF [*****] 06; 3 OVF [*****] -03; 4 NOOVF [*ABC*] +0005; 5 OVF [*****] 999999999999999999; 6 [**AB*] 0005 (MATCH)",
+    "expected": "pointer = size moves one char then overflows; size+1, negative and 18-digit pointers overflow with no transfer and keep their value; COMP pointer advances; subscripted pointer PT(I) advances"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/refscal.cob",
+    "printed": "COBOL1651 for a scaled operand (the same StrUnstrIsInteger screen guards identifier-4 per SR5)",
+    "expected": "non-integer refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR5",
+    "check": "OK  §1985:VI.6.25.4 GR5  (║6.25.4 General Rules║)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.6.25.4 GR9",
+    "check": "OK  §1985:VI.6.25.4 GR9  (║6.25.4 General Rules║)  the text is in GR9"
+   }
+  ],
+  "notes": "GR5 is a user obligation; the compiler reads the pointer by value (saturating HostInt64), checks it before each move in StringTransfer, and stores it back only when it moved, so a violated precondition yields the GR9 behaviour.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-5",
+  "refutation": "UPHELD",
+  "classes": "f",
+  "evidence": "cite.py 'OK §1985:VI.6.25.4 GR5 the text is in GR5' (a user obligation). subp.cob: POINTER that is also the subscript of a sender and of a delimiter is read once at start and advanced only by moves ('1 ... 05', '2 ... 02'); pointer 3 into X(8) with 7 chars stops at 9 with overflow, pointer not otherwise changed. Reader's below-one/beyond-size probes stand; GR5 imposes nothing beyond GR9's behaviour on the implementation.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

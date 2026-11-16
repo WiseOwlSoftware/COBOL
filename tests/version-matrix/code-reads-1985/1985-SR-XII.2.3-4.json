@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-SR-XII.2.3-4",
+ "rule-digest": "b75423703e1c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-072",
+  "sources": {
+   "reader": "8faa70c91ba153e9fc27714fcad9447dad30c11e0b562ea1fe2b33095d82bb38",
+   "refuter": "374d4dcf956d6db7060749dc5aef8f8b5af8b3397717b588079502f13202a76d"
+  },
+  "imported": {
+   "reader": "e1c7ab20636f62b0603480e4651f5deccb3ff96a0ba39a36d16504d7854de0c5",
+   "refuter": "fbe1f497d13fe63ff7648ba58edc3dd7ab79d698bdd728a58f0d6fe089310a1c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XII.2.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a COPY REPLACING pseudo-text-2 must be accepted with zero text words (empty, spaces only, or only a comment line: the match is deleted), one text word (including a lone separator comma, a text word in 1985), or many text words, and placed into the source as written.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen.PartialWord",
+    "switches": "partial-word phrase gate (2002 construct)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+    "switches": "EditionInfo.ReplacedTextIsLaidOutInFixedForm: the COBOL-85 layout rules of introduced lines",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ScreenOperandPair puts no lower bound on pseudo-text-2 for a Whole replacement at any edition (only partial-word-2's upper bound, a 2002 form); read ApplyReplacements' edition parameter",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness is a REPLACE statement (==XX4== BY ====); no COPY REPLACING pseudo-text-2 case of zero, comment-only or comma-only text",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/c4legal.cob",
+    "printed": "[AAA][BBB][CCCC][DDD][EEE] (exit 0)",
+    "expected": "==XDEL== BY ==== and ==YDEL== BY ==  == delete; many-word pseudo-text-2 makes W-C PIC X(4) VALUE \"CCCC\"; comment-only pseudo-text-2 deletes ZDEL; ==,== replaces QDEL"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/pb1353_replacing_operands_legal-001",
+    "printed": "[A==B] [ZZ] []; EXPECT: MATCH",
+    "expected": "the shared operand parser accepts empty pseudo-text-2 (REPLACE witness)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.2.3 SR4",
+    "check": "OK  §1985:XII.2.3 SR4  (2.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "The one operand parser accepts every arity of pseudo-text-2 for whole replacement and ApplyReplacements inserts it as written; a probe with five pseudo-text-2 forms at --std 85 compiled and printed the derived values. A first variant whose replacement left ',.' glued was correctly refused (comma not followed by a space), which is the program's error, not this rule's.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XII.2.3-4",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Q13slash2-001 pseudo-text-2 only a '/' comment line: accepted, match deleted, [AAA]. Q14blank2-001 pseudo-text-2 only a blank line: accepted, [AAA]. Q15per2-001 ==XEND== BY ==.== (a lone separator period as pseudo-text-2): accepted, [FFF]. Q6debug2-001 pseudo-text-2 only a debugging line with WITH DEBUGGING MODE: accepted and placed, [DDD]. No lower bound on pseudo-text-2 at any edition in ScreenOperandPair. cite.py: OK §1985:XII.2.3 SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

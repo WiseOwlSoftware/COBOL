@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.5.11.4-2",
+ "rule-digest": "4e5eff2349b7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-103",
+  "sources": {
+   "reader": "df135a2141f6f595b27df3702753a0de19e3c71aa32277a637b05d67d2fcff8f",
+   "refuter": "8e04a85a2f8d90bdb85d2233a95119a128117f326a1233f3e2dfea55f04d6285"
+  },
+  "imported": {
+   "reader": "e374d92d1b73e863d3c37ab15e61418743e724c8269395f3d0d78f8946219875",
+   "refuter": "34799b0db41bb4021f81f704ec5777014c5439c3b7c8d199fb008b019907cc8e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.11.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 a 66-level entry RENAMES data-name-2 without THROUGH must carry every data attribute of data-name-2 (class/category, PICTURE including scaling P and V, USAGE COMPUTATIONAL, SIGN LEADING/TRAILING SEPARATE, JUSTIFIED, BLANK WHEN ZERO, group-ness) and occupy its storage, for data-name-2 elementary or group, in Working-Storage or a file record.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#PlaceForRenames; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#PlaceForItem; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveImplCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates",
+    "switches": "ClauseOperandsTakeImplicitQualifiers (Edition.DialectLevel >= 2002): below 2002 data-name-2 is looked up across the whole scope (no implicit qualification) and must be in the record; affects name resolution only, not the attributes forwarded",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|CobolVersion|ConstructRegistry in ResolveRedefinesPass.cs, PlaceBuilder.cs#PlaceForRenames and ReferenceResolver: the only edition switch on this path is RegionClauseCandidates; the attribute forwarding (ren.Pic = From.Pic; PlaceForRenames forwards to data-name-2's place with DenotesAs = alias) is edition-blind.",
+  "behaviour-differs-by-edition": "no: the attribute/storage forwarding is the same code at 85 and 2023; only operand lookup (implicit qualifiers, 2002+) differs",
+  "witnesses-cover": "part: g85_bf11_05 covers PIC 9V9 display, JUSTIFIED, numeric-edited and an alphanumeric group as receiving operands; not COMP usage, SIGN SEPARATE, BLANK WHEN ZERO, scaling P, signed values, size error, class/sign conditions, sending operands, or a file-section record",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/ren1.cob",
+    "printed": "RC= -1233.00 (S9(4) COMP, MOVE -1234 then ADD 1); RP=   -12.34 (S9(3)V99 COMP, COMPUTE -12.345 truncated); RT=    12.30; RSC=   400.00 (PIC 9PP gets 456 -> 400); GX=Z, RG-NOTNUM (group alias alphanumeric move/class test); Q1-ONE; RS-NEG; FR=-005ABC (FD record, SIGN LEADING SEPARATE) RFA=   -10.00",
+    "expected": "each alias behaves as its renamed item: binary signed arithmetic, scaling and truncation per the item's PICTURE, group alias is a group (alphanumeric), sign condition from the item's sign"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/ren2.cob",
+    "printed": "R1=[-007     AB00] R2=[042+] / C=60 / J=[YZWV]",
+    "expected": "SIGN LEADING SEPARATE '-007', BLANK WHEN ZERO spaces, JUSTIFIED RIGHT '  AB' and left truncation 'YZWV', SIGN TRAILING SEPARATE '042+'"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/ren3.cob",
+    "printed": "COBOL2740 data-name-2 'A' is subject to an OCCURS clause; COBOL2740 'R1' level-number 1; COBOL2096 subscript on RA",
+    "expected": "SR3/SR4 refusals (degenerate operands)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.11.4 GR2",
+    "check": "OK  §1985:VI.5.11.4 GR2  (║5.11.4 General Rules║)  the text is in GR2"
+   }
+  ],
+  "notes": "The no-THROUGH alias forwards to data-name-2's place (PlaceForRenames), so every statement sees data-name-2's description and storage; only the identity (DenotesAs) stays the alias's. Probes across COMP, SIGN SEPARATE, BLANK WHEN ZERO, JUSTIFIED, P scaling, groups, FD records all behave as the renamed item.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.11.4-2",
+  "refutation": "UPHELD",
+  "classes": "d,b,c",
+  "evidence": "Read §1985:VI.5.11.3 SR1-SR8 and VI.5.11.4 GR2. Probe rr1.cob (rr1-003) tried operand classes the reader did not: a USAGE INDEX item (SET RIX TO TI, SET TI TO RIX, SET K TO TI gave K=03 and K2=04), an alphabetic item (the class test on 'ab1' gave AL-NOT), a group that contains an OCCURS table (MOVE to the alias, then TE(2)=BB), the subject of a REDEFINES (RDN=12X) and a signed item (NN-NEG, MOVE gave N3=005). rr2.cob and its control rr2b.cob, which uses the original names, drew the same refusals for the alias as for data-name-2: COBOL0819 for MOVE 5 to the alphabetic item and COBOL0809 for MOVE of the index item. So the alias carries the class and category of data-name-2, including the refusals. cite.py: OK §1985:VI.5.11.4 GR2 (the text is in GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

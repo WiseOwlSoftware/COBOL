@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-4",
+ "rule-digest": "88d7f4fc94fc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-115",
+  "sources": {
+   "reader": "69c771359a168cf7d7cc8744a6c562d623513d60aa5edacc3cf3ab03cbabd784",
+   "refuter": "03f03007c1fc0a432010088b88914ea4e7c24ae81d905af2465248e3baa89d09"
+  },
+  "imported": {
+   "reader": "2b0195b990636d25361426a4537192616826d6399a18e54fa14d2aa039f7a7f2",
+   "refuter": "37f7ecd19e47ffd933cd830cc9deb1a441e636c591bf6073733e64596e49f6f2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.27.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each literal-1/literal-2 (a nonnumeric literal or figurative constant) and each identifier-2/identifier-3 (an alphanumeric item, group or alphanumeric function, its full content) in the DELIMITED BY ... OR list is a delimiter the sender is examined against, with subscripts evaluated once before the examination (1985 substantive-change item 34), the earliest match winning and a tie going to the first listed (GR11, GR12).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BeginsWithAllWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#IsZeroLengthLiteral; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#DelimiterText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#IdentifyOperands; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
+  "edition-consulted": [],
+  "edition-search": "grep -i 'edition|version|dialect|DialectLevel' over StringUnstringBinder.cs, StringEmitter.cs, CobolStringOps.cs, OperandText.cs, FigurativeConstants.cs; grep -i 'unstring|delimit' over ConstructRegistry.g.cs and VersionConformancePass.cs. The binder's ctx.Edition uses are BoundRejected.Report/BoundOperandError.Report (the diagnostic channel, fixed EditionSeverity.Error) and ctx.Edition.At (the diagnostic cursor); neither switches behaviour. The only UNSTRING construct gate is unstring-sender-reference-modified-2002 (the sender, not this rule).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: da4 covers only a function delimiter; literal OR lists with a same-position tie, an identifier delimiter with a trailing space, a group delimiter, a subscripted delimiter whose subscript a receiver stores, a figurative delimiter, and the refusals are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/gr4a.cob",
+    "printed": "L1 [A   ][    ][B   ][C   ] / L2 [A   ][,,][B   ][; ][C   ][, ] / I1 [AB  ][CD*E][    ] / G1 [05  ][12  ][99  ] / C1 PTR=05 [XY99XY      ] / F1 [AB* ][CD*E] (MATCH)",
+    "expected": "GR4/GR11/GR12: delimiters applied in the listed order (\",\" before \",,\" at one position, and the reverse); an identifier delimiter is its whole content \"* \"; a group delimiter \"XY\"; C(PTR) is evaluated once, so storing PTR=05 through BB leaves the delimiter \"12\" for E"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/d_numlit.cob; d_numid.cob; d_alpha.cob; d_allall.cob",
+    "printed": "COBOL1651 delimiter '3' is a numeric literal; 'DN' category numeric; 'DA' category alphabetic; 'ALL \",\"' begins with the word ALL",
+    "expected": "§1985:VI.6.27.3 SR1: nonnumeric literals, no ALL figurative; SR2: identifier-2 category alphanumeric"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR4",
+    "check": "OK  §1985:VI.6.27.4 GR4  the text is in GR4 (quoted: \"Literal-1 or the data item referenced by identifier-2 specifies a delimiter\")"
+   },
+   {
+    "cite": "§1985:VI.6.27.4 GR12",
+    "check": "OK  §1985:VI.6.27.4 GR12  the text is in GR12 (quoted: \"No character(s) in the sending field can be considered a part of more than one delimiter\")"
+   },
+   {
+    "cite": "§1985:VI.6.27.3 SR1",
+    "check": "OK  §1985:VI.6.27.3 SR1  the text is in SR1 (quoted: \"must be nonnumeric literals\")"
+   }
+  ],
+  "notes": "DelimiterText renders the delimiter values once at initiation, over the places IdentifyOperands froze, and passes them as a string[] to UnstringExtract. Its earliest-match scan, with ties going to the first listed, follows GR12's order. A value is read again only when a receiver overlaps its storage, which GR21 leaves undefined. No edition arm on this path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "u_92e82b: DELIMITED BY \"\" refused at 85 (COBOL1651 + COBOL0900 zero-length literal requires 2014); u_70e954: X\"2C\" refused COBOL0900 (2002); u_b454a3: N\",\" refused COBOL0900. k_6: USAGE INDEX delimiter refused; k_7: alphanumeric-edited PIC X/X delimiter refused (SR2: category alphanumeric); k_3 FUNCTION TRIM delimiter refused; k_4 FUNCTION LOWER-CASE delimiter \", \" honoured as a two-character delimiter (no match, [AB,C]). u2 D1: a group delimiter \"*7\" with a numeric display leaf splits \"AB*7CD*7EF\" into AB/CD/EF 02 02 02. u3 T4/T5: a delimiter cut by the end of the sender (\",,\" on \"AB,\") and one longer than the sender never match (GR11). u3 T1/T2: ALL \"*\" OR \"**\" vs \"**\" OR ALL \"*\" on \"AB***CD\" give [AB][*][CD] and [AB][**][][*][CD], the listed order of GR12. u4 Q1: DELIMITER IN DT(I) with I stored by the first receiver lands in DT(1) (subscript evaluated once, §1985 substantive change 34). cite.py: OK §1985:VI.6.27.4 GR4 (\"Literal-1 or the data item referenced by identifier-2 specifies a delimiter\"); OK GR11; OK GR12 (\"Each delimiter is applied to the sending field in the sequence specified\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

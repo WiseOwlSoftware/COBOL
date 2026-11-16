@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-GR-VI.5.11.4-1",
+ "rule-digest": "462ee61b0039",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-012",
+  "sources": {
+   "reader": "772d04de36b8dcb0c7a9bad79fbde06fa7f4b1574a81c0b1293adb73ea60c2da",
+   "refuter": "685481e42a190f590cc0945a0736c04a0507fdcc67d71c0f44c2c8b6494c9eec"
+  },
+  "imported": {
+   "reader": "320904d8d83a95db0b6c4fcbca985f3d4b540900368af4f5a698b018d208376d",
+   "refuter": "cc91c9ac616e07a0a4293facd1c9a2d7ca65815be6006adb85b02e76c5a09bdd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.11.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, `66 data-name-1 RENAMES data-name-2 THRU data-name-3` makes data-name-1 a group item spanning every elementary item from data-name-2 (its first elementary item when it is a group) to data-name-3 (its last elementary item when it is a group), including FILLER, intervening fixed tables and items of any usage, so that data-name-1 behaves as a group (no conversion on a move, alphanumeric comparison) in working-storage and file records alike.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Model/RedefinesModel.cs#RenamesSpanPart; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsGroupItem; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#PlaceForRenames; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#SpanLeafPlace; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageCollectionPass.cs#AliasImage; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteRenames",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition./CobolVersion/DialectLevel/Has( over the RENAMES half of ResolveRedefinesPass.cs (lines 136-340: Edition.At and Edition.Error only), RedefinesModel.cs, ItemCategory.cs, VariableLengthCompatibility.cs, PlaceBuilder.cs, UsageCollectionPass.cs, PlaceRenderer.cs; the grammar rule renamesClause carries no edition predicate and VersionConformancePass.cs names no RENAMES node. The path consults the edition nowhere.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses span elementary data-name-2/data-name-3 over DISPLAY, BINARY and PACKED-DECIMAL leaves and a REDEFINES member; not exercised: a GROUP data-name-2 or data-name-3 (first/last elementary item), nested groups, FILLER and a fixed table inside the range, group comparison, qualification of data-name-1, file records, and the SR3/SR6/SR8 refusals",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rn1.cob",
+    "printed": "RGG (G1 THRU G2, both groups)=[abcdef]; RAE (A2 THRU C2, elementary into nested group)=[bcde]; RBG (B1 THRU G3, nested group as data-name-3)=[cdef]; MOVE \"XYZ\" TO RAE -> A1..C3 = a X Y Z ' ' f; MOVE 5 TO RBG -> [5   ]; RBD (G3 THRU D2, over FILLER, COMP-3, COMP) round-trip via X(10) keeps D1=-012 D2=0007; RGG = \"XXXXXX\" -> NE; RGG > 5 -> GT5 (alphanumeric comparison); MOVE ALL \"q\" TO RX -> C3=q E1=q; RGG OF R=[aXz   q]",
+    "expected": "the span runs from the first elementary item of data-name-2 to the last of data-name-3 and behaves as a group (GR1)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rnok.cob",
+    "printed": "RENAMES A2 THRU B1 over a fixed OCCURS 2 table in between: RT=[bttttc]; MOVE \"123456\" TO RT -> T1(2)=45 B1=6",
+    "expected": "intervening table occurrences are inside the span (SR3 bars OCCURS only on data-name-2/3)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rnf.cob",
+    "printed": "FD record with 66 FBC RENAMES FB THRU FC: after READ FBC=123cd; MOVE \"45678\" TO FBC then WRITE/READ -> FBC=45678 FB=456; third READ -> EOF3",
+    "expected": "the alias spans the record area across WRITE and READ"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rnb1.cob",
+    "printed": "COBOL2740: RENAMES G1 THRU A2: the end of data-name-3 does not follow the end of data-name-2 (also rnb4 A1 THRU A1)",
+    "expected": "refused: SR8 data-name-3 subordinate to data-name-2; SR4 not the same data-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rnb2.cob",
+    "printed": "COBOL2740: RENAMES B1 THRU A1: the beginning of data-name-3 precedes the beginning of data-name-2",
+    "expected": "refused: SR8"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rnb3.cob",
+    "printed": "COBOL2740: data-name-3 'T1' is subject to an OCCURS clause",
+    "expected": "refused: SR3"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rnb6.cob",
+    "printed": "COBOL2561: RENAMES A1 THRU GV: 'V1' is an occurs-depending table",
+    "expected": "refused: SR6, a variable occurrence data item within the range"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.11.4 GR1",
+    "check": "OK  §1985:VI.5.11.4 GR1  (║5.11.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.11.3 SR8",
+    "check": "OK  §1985:VI.5.11.3 SR8  (║5.11.3 Syntax Rules║)  the text is in SR8"
+   },
+   {
+    "cite": "§1985:VI.5.11.3 SR6",
+    "check": "OK  §1985:VI.5.11.3 SR6  (║5.11.3 Syntax Rules║)  the text is in SR6"
+   },
+   {
+    "cite": "§1985:VI.5.11.3 SR3",
+    "check": "OK  §1985:VI.5.11.3 SR3  (║5.11.3 Syntax Rules║)  the text is in SR3"
+   }
+  ],
+  "notes": "The span is composed by PlaceForRenames over the leaves between the first elementary item of data-name-2 and the last of data-name-3, numeric leaves through their storage image, so moves are byte deposits and comparisons are alphanumeric. The same code runs at every edition; the 1985 range limits (SR3, SR6, SR8) are refused. INITIALIZE of a 66 entry is refused (COBOL0835), which §1985 INITIALIZE SR6 requires too.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.11.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Read §1985:VI.5.11.3 SR1-SR8 and VI.5.11.4 GR1. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c5.cob: with PROGRAM COLLATING SEQUENCE IS REV (z thru a) the RENAMES alias compares by the program collating sequence exactly as the elementary A1 does; INSPECT TALLYING/REPLACING and STRING INTO the alias reach A1/B1; a 9-position alias over COMP-3/COMP leaves moved through X(7) and back pads spaces into C2/C3 (C2=0032) as a group move. CALL USING a 66 group refused COBOL0900 at 85, correct by §1985:X.5.2.3 SR3 (level 01, 77 or elementary only). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c6.cob: data-name-3 a group whose last entry is a shorter REDEFINES: span 5 (abcde) under either the element or the area reading; RENAMES over a SYNC COMP leaf length 4 = LENGTH of the record. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c15.cob: 66 SOURCES RENAMES OPTIONS THRU RESUME (later-reserved words) works at 85. cite.py: OK §1985:VI.5.11.4 GR1; OK §1985:X.5.2.3 SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

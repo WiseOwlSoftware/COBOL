@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-GR-VI.6.17.4-5",
+ "rule-digest": "434e103a460b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-108",
+  "sources": {
+   "reader": "c4d8ea3f55533cfd9c7fc21d4a5f675ed97b33f34413b57b8c9128bcff9d8b8c",
+   "refuter": "7a42d0b149501cc49f783fe50cd656d1bdc95f450fc95f3cd24d2ca0b6437430"
+  },
+  "imported": {
+   "reader": "c7d531586cdf601d5cf1482a2f2ea8ef36831eb175766df57feb9160aa14e23e",
+   "refuter": "31f4ba64a4422e9e8298c1586c005d0c6fa2efa4573358d4f4912b02615eed84"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.17.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, without REPLACING, every affected elementary item of category alphabetic, alphanumeric or alphanumeric edited receives MOVE SPACES and every numeric or numeric edited item receives MOVE ZEROS (with the receiver's editing), regardless of VALUE clauses, FILLER and index items (GR3) and subordinate REDEFINES (GR4) excepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Qualify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#SenderFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#InitializeItemCategory; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InitializeEmitter.cs#EmitAction",
+  "behaviour-differs-by-edition": "no for the 1985 form; 2002+ adds the VALUE and DEFAULT phrases that change the sender, refused at 85",
+  "witnesses-cover": "part: g85_bf13_04 covers a plain group; JUSTIFIED, BINARY, PACKED-DECIMAL, 18-digit signed, P-scaled, CR/$/BWZ numeric edited, alphanumeric-edited insertion, VALUE-bearing items and the index and FILLER exclusions were added by the probes",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ini5.cob",
+    "printed": "A[   ]X[   ]J[    ]N[000]S[+000]B[+0000]P[+00000] L[+000000000000000000]SC[000]AE[  /  ]AB[   ]NE[  0.00]CR[000  ]DL[ $0.00]BZ[   ] T[000]SUB[40] INDEX-KEPT G[FF]",
+    "expected": "alphabetic, alphanumeric (JUSTIFIED too) and alphanumeric edited to SPACES; numeric (signed, BINARY, PACKED-DECIMAL, 18-digit, P-scaled, table) and numeric edited (ZZ9.99, CR, $$, BWZ) to ZEROS through the editing MOVE; VALUE clauses ignored; FILLER and the index data item untouched (GR3, GR5)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/inic2.cob",
+    "printed": "error COBOL0831: INITIALIZE TO VALUE requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "no VALUE phrase at 1985: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/inic3.cob",
+    "printed": "error COBOL0832: INITIALIZE TO DEFAULT requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "no DEFAULT phrase at 1985: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/inic1.cob",
+    "printed": "error COBOL0830: INITIALIZE WITH FILLER requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "the 1985 format has no WITH FILLER: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.17.4 GR5",
+    "check": "OK  §1985:VI.6.17.4 GR5  (║6.17.4 General Rules║)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.6.17.4 GR3",
+    "check": "OK  §1985:VI.6.17.4 GR3  (║6.17.4 General Rules║)  the text is in GR3"
+   }
+  ],
+  "notes": "Qualify's no-REPLACING, no-VALUE arm returns ViaDefault and SenderFor gives ZERO to numeric and numeric edited and SPACE to the character categories, stored through the MOVE path so editing applies (AE '  /  ', NE '  0.00', BWZ blanks). VALUE clauses cannot leak in at 85 because the VALUE phrase is refused.",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeStatement",
+    "switches": "refuses WITH FILLER (COBOL0830), TO VALUE (COBOL0831), TO DEFAULT (COBOL0832) and THEN REPLACING (COBOL0833) below 2002; the plain REPLACING form passes untouched",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName",
+    "switches": "refuses the eight post-85 category words (NATIONAL, BOOLEAN, the pointer words...) below their edition; the five 1985 words are ungated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem",
+    "switches": "refuses a REPLACING item naming more than one category below 2002 (PB5180)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85VariableOccurrence",
+    "switches": "refuses identifier-1 described with or containing OCCURS DEPENDING ON below 2002 (1985 SR4)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateInitialize",
+    "switches": "the figurative-to-numeric MOVE edition rows per REPLACING NUMERIC/NUMERIC-EDITED sender",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|ConstructRegistry|CobolVersion|Constructs. in InitializeBinder.cs, BoundInitialize.cs and InitializeEmitter.cs: ctx.Edition there is only the diagnostic sink; the expansion, qualification, sender choice and emitter are edition-blind, and the edition is consulted only by VersionConformancePass's post-85 surface gates.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "ini1, ini4, ini5 and ini6 print the same output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.17.4-5",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "rini1.cob at --std 85 (rini1-002): E1[***.**|      |+  0|   0|000  |0 0|00000| 0 |  /|  |000+|  $.00|00/00] = ZERO through check-protect, all-Z, fixed +, floating -, DB, B, 0 insertion, $ floating, slash; SPACES through X0X and 9X/ alphanumeric edited and 9X alphanumeric; SIGN TRAILING SEPARATE 000+. 1985-only form: an unnamed elementary item (FILLER omitted, 5.5 GR1 'treated as though FILLER had been specified') kept F2[u 7]; a FILLER GROUP's named items initialized F1[ 0 ] (GR3 excludes only elementary FILLER). Ref-mod of numeric, numeric edited and group to spaces M4[1 3] M5[  2] M6[   b] (1985 ref-mod GR5 makes them alphanumeric). cite.py: OK  §1985:VI.6.17.4 GR5 (reader's line); OK  §1985:IV.4.3.8.4.4 GR5. The alphabetic ref-mod defect does not change GR5's output (alphabetic and alphanumeric both get SPACES, M3[aQ ]).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

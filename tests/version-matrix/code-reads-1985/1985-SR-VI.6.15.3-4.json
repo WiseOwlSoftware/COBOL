@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-SR-VI.6.15.3-4",
+ "rule-digest": "b8b1767e9869",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-056",
+  "sources": {
+   "reader": "f2dd6fd8e2e40a47ca74a6f7d089ea8c9258f8b656f86bf05a13ce26348ba623",
+   "refuter": "6bd2a26383e715570a1b5dcd4381651eee54858e79ebb475849f6c924646def3"
+  },
+  "imported": {
+   "reader": "291e6b5972ee636ceace90da0f449f169e59ff530d40d588dd259c52888f47a1",
+   "refuter": "b80624a201c6c7758fdecf58952c608fee1f788a41220ccfab729b011cc01450"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.15.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a format 1 GO TO (GO TO procedure-name-1, and the target-less GO TO, which SR3 holds to the stricter single-statement-paragraph rule) written in a consecutive sequence of imperative statements of a sentence (or of an imperative-statement/statement-1/statement-2 phrase) must be the last of that sequence: a following imperative statement (including a delimited-scope statement, which is imperative by §1985:IV.6.4.2.3.1) is refused, while a following conditional statement (IF, EVALUATE, SEARCH, RETURN, or a statement with an unterminated conditional phrase, §1985:IV.6.4.2.1.1) ends the run and is legal. Format 2 is not governed.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#EndsImperativeRun; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#SequenceRuleOf; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Frontend/Parsing/GoToFormat.cs#Of",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence",
+    "switches": "ConstructRegistry.IsAvailable(bare-goto-removed-2002) asks the target-less GO TO's SR3 row only where that statement exists (85); the GoToLast row for GO TO procedure-name-1 carries no construct and is asked at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped StatementPosition.cs, ConditionalStatements.cs and GoToFormat.cs for Edition|CobolVersion|ConstructRegistry|DialectBehavior; the only read is the construct gate on the BareGoToAlone row. IsConditional reads the parse (a statementBlock phrase without the END- terminator), not an edition.",
+  "behaviour-differs-by-edition": "yes: only the target-less format 1 GO TO, which exists at 85 alone and is held to SR3 (whole paragraph) instead; GO TO procedure-name-1 is screened identically at 85 and 2023 (gl_bad gives the same five COBOL2967 at --std 2023)",
+  "witnesses-cover": "part: the three witnesses cover a GO TO before a conditional statement, out of an inline PERFORM and legal sequence placement; not exercised there: IF/SEARCH with NEXT SENTENCE as the following conditional, a following delimited-scope (END-ADD, END-IF) statement refused, GO TO inside statement-1 followed by an imperative, and the target-less GO TO",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gl_bad.cob",
+    "printed": "five COBOL2967 (followed by DISPLAY; inside IF statement-1 followed by DISPLAY; followed by ADD ... END-ADD; followed by IF ... END-IF; inside statement-1 followed by MOVE)",
+    "expected": "each refused: the following statement is imperative (a delimited scope statement is imperative)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gl_ok.cob",
+    "printed": "START / IN-IF / P6 / P7 (exit 0)",
+    "expected": "GO TO followed by unterminated IF, ADD ON SIZE ERROR, EVALUATE is legal; GO TO last in IF statement-1 legal; format 2 followed by DISPLAY not governed (WS-N=1 goes to P6)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gl_ns.cob",
+    "printed": "P4 (exit 0)",
+    "expected": "GO TO followed by IF ... NEXT SENTENCE [ELSE NEXT SENTENCE] (a conditional statement at 85) is legal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gl_srch.cob",
+    "printed": "P2 (exit 0)",
+    "expected": "GO TO followed by SEARCH ... WHEN ... NEXT SENTENCE (conditional) is legal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gl_bare.cob",
+    "printed": "COBOL6818 at 12,12: the target-less GO TO shares its sentence with 1 other statement; the lone 'SW. GO TO.' paragraph accepted",
+    "expected": "the 85-only target-less format 1 GO TO followed by DISPLAY refused (SR3 subsumes SR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.15.3 SR4",
+    "check": "OK  §1985:VI.6.15.3 SR4  (6.15.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VI.6.15.3 SR3",
+    "check": "OK  §1985:VI.6.15.3 SR3  (6.15.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:IV.6.4.2.1.1",
+    "check": "OK  §1985:IV.6.4.2.1.1  (6.4.2.1.1 Definition of Conditional Statement)  the text is in the clause; it lies in GR1"
+   },
+   {
+    "cite": "§1985:IV.6.4.2.3.1",
+    "check": "OK  §1985:IV.6.4.2.3.1  (6.4.2.3.1 Definition of Imperative Statement)  the text is in the clause"
+   }
+  ],
+  "notes": "The funnel asks PlacementRules.RefusedOutOfSequence of every statement; the GoToLast row refuses a format 1 GO TO whose next sibling in its sentence or statement block is not conditional, with conditionality read off the parse (an unterminated conditional phrase). The 1985 conditional-statement list (IF, EVALUATE, SEARCH, RETURN and phrase-bearing I-O, arithmetic, STRING/UNSTRING, CALL) matches that reading, including IF with NEXT SENTENCE.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.15.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "gl_r1.cob (--std 85 --compile-only, exit 65): ten COBOL2967, one per placement the reader did not try: GO TO inside READ AT END followed by DISPLAY; inside ADD ON SIZE ERROR followed by DISPLAY; inside an EVALUATE WHEN body followed by DISPLAY; followed by CONTINUE; followed by STOP RUN; inside an inline PERFORM ... END-PERFORM followed by DISPLAY; followed by SEARCH ... END-SEARCH and by READ ... AT END ... END-READ (delimited scope = imperative); inside SEARCH AT END and inside a SEARCH WHEN, each followed by DISPLAY. gl_r2.cob (--run, exit 0, AFTER-ENDIF / IN-ELSE / P8): IF .. GO TO .. END-IF DISPLAY (GO TO last of statement-1), GO TO before ELSE, GO TO before NOT ON SIZE ERROR (a phrase, not a statement) taken at size error, GO TO before WHEN OTHER, GO TO followed by an unterminated READ AT END (conditional): all admitted. cite.py: OK §1985:VI.6.15.3 SR4 'it must appear as the last statement in that sequence'; OK §1985:IV.6.4.2.3.1 'a conditional statement that is delimited by its explicit scope terminator'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

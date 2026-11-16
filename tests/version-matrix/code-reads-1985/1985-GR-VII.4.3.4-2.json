@@ -1,0 +1,57 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-2",
+ "rule-digest": "f8e901a03688",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-122",
+  "sources": {
+   "reader": "e080077ceb22eb3ac6c92be5015810d857cc8d3cf6a696bc9fa190575cf5ea16",
+   "refuter": "e0d8f312c8a0bd9394cb49e16d45a1cd9d915e81877ed8cb4981c381cd08e34a"
+  },
+  "imported": {
+   "reader": "33bebbd6af23c59c1f673e55829ad222220f6eba8f90379546084af42eb435c4",
+   "refuter": "2b73e7d1cce6fb74b924d92df7fd264d6784d735a54d14d0482d497380f255e8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a successful OPEN must make the file's record area usable. For an EXTERNAL file connector, every program of the run unit that describes the file must share one record area, whether the programs are contained or separately compiled and whether the records are fixed or RECORD VARYING. A non-external file's area must stay private to its program.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsExternal; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Ptr.cs#ForceStringCanonical",
+  "edition-consulted": [],
+  "edition-search": "grep of LinkageBinder.cs for Edition.Is/Version, CobolVersion, ConstructRegistry, DialectBehavior found none (data.Edition there is only the diagnostic sink); the FD-record cell keyed FD::<externalized file name> is built the same way at every edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf24_01 covers a contained program with fixed records; it does not cover separately compiled sibling programs, RECORD VARYING external records whose DEPENDING ON item is external, or a non-external file of the same program keeping its own area",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p02a.cob",
+    "printed": "SUB-SEES=MAINMOVE01 10 / SUB-WRITE=00 / MAIN-SEES=SUB3 04 / MAIN-LOCAL=LOCALMAIN1 / R 12 SUBWRITE02XY / R 04 SUB3",
+    "expected": "the sibling program sees the caller's MAINMOVE01, its WRITE goes to the shared connector, the caller then sees SUB3; the caller's non-external LF area is untouched by the sibling's own LF; the file holds SUBWRITE02XY (12) and SUB3 (4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.4 GR2",
+    "check": "OK  §1985:VII.4.3.4 GR2  (4.3.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The record area of an EXTERNAL FD is a run-unit cell keyed by the file's externalized name. Out-of-line (variable-length) records get a cell of their own under the same key, so describers in different programs alias one area. No edition is consulted on this path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "r02a.cob at --std 85: three separately compiled programs describe one EXTERNAL FD with different record layouts of the same length (A: 01 PIC X(8) plus a second 01 with 9(4)/X(4); B: 01 group X(2)/9(2)/X(4); C: 01 PIC X(8)), as §1985:VII.3.8.4 GR2 requires the same length (cite.py: OK §1985:VII.3.8.4 GR2, the text is in GR2). Printed B-SEES=AB|EFGH (B sees A's MOVE), A-SEES=1234WXYZ NUM=1234 TXT=WXYZ (A's second 01 sees B's numeric MOVE truncated to 9(2)), C-OPEN=00 / C-READ=1234WXYZ (C's READ fills the one area), A-AFTER-C=1234WXYZ (A sees C's READ), A-CLOSE=00 (A closes the connector C opened). One record area per run unit as GR2 says. cite.py: OK §1985:VII.4.3.4 GR2 (the text is in GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

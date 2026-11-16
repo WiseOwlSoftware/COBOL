@@ -1,0 +1,61 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-5",
+ "rule-digest": "dd8599d87dfd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-115",
+  "sources": {
+   "reader": "69c771359a168cf7d7cc8744a6c562d623513d60aa5edacc3cf3ab03cbabd784",
+   "refuter": "03f03007c1fc0a432010088b88914ea4e7c24ae81d905af2465248e3baa89d09"
+  },
+  "imported": {
+   "reader": "ae1c6873d3788857c9eeec905afcc9821fed8337fc89e93a0c48e5701223c785",
+   "refuter": "60563da16ca2820d5ddfedea74ebf6fb43bc4ab358c476ce4f003264a6d846f8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.27.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 identifier-6 (COUNT IN, any integer item without P, of any usage) receives, by an elementary move, the number of sender characters examined for its receiving area from the current pointer position, excluding the delimiter and, under ALL, every repeated occurrence of it; a receiving area not acted upon leaves its COUNT IN item unchanged.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrIsInteger; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringSkipRun",
+  "edition-consulted": [],
+  "edition-search": "grep -i 'edition|version|dialect|DialectLevel' over StringUnstringBinder.cs, StringEmitter.cs, CobolStringOps.cs, OperandText.cs, FigurativeConstants.cs; grep -i 'unstring|delimit' over ConstructRegistry.g.cs and VersionConformancePass.cs. The binder's ctx.Edition uses are BoundRejected.Report/BoundOperandError.Report (the diagnostic channel, fixed EditionSeverity.Error) and ctx.Edition.At (the diagnostic cursor); neither switches behaviour. The only UNSTRING construct gate is unstring-sender-reference-modified-2002 (the sender, not this rule).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f14_04 covers literal and two-character delimiters, end-of-sender and the empty field; ALL repeats, a POINTER start, a count larger than the COUNT IN item (elementary-move truncation), a COMP COUNT IN item, a numeric receiver and a receiver not acted upon are not exercised",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/gr5a.cob",
+    "printed": "U1 [AB] 02 [CDE ] 03 / U2 [AB] 02 P=07 / U3 [ABCD] 12 / U4 [ABCD] 2 / U5 00123 0003 [4567] 004 / U6 02 05 0003",
+    "expected": "GR5 + GR13e: ALL repeats not counted (02, 03); counting from POINTER 4 (02); 12 isolated though 4 moved; 12 into PIC 9 is 2 by the elementary move; \"--\" excluded, into a COMP item (0003); an area not acted upon keeps its COUNT IN (CB stays 0003)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR5",
+    "check": "OK  §1985:VI.6.27.4 GR5  the text is in GR5 (quoted: \"This value does not include a count of the delimiter\")"
+   },
+   {
+    "cite": "§1985:VI.6.27.4 GR13e",
+    "check": "OK  §1985:VI.6.27.4 GR13e  the text is in GR13e (quoted: \"excluding the delimiter character(s), if any\")"
+   }
+  ],
+  "notes": "UnstringExtract returns extractLen, the characters before the match. UnstringSkipRun consumes the ALL run after the INTO store, so the run never enters the count, and the emitter stores the count through StoreArith with truncation, which is the elementary-move rule. My first expected file had U6 wrong: CB kept the 3 stored in U5, as the program says. The compiler's 0003 is correct, and the corrected expectation matches.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-5",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "u3 T3: a leading ALL SPACE run is one delimiter, so the first field is empty with COUNT IN +00 (SIGN LEADING SEPARATE count item), then 02 02. u3 T6/T7: POINTER 0 and POINTER 9 on an 8-char sender raise overflow at initiation and leave COUNT IN at +07 and the receiver unchanged. u3 T8: a delimiter ending the sender leaves the next receiver and its COUNT IN (05) not acted upon (GR13g). u4 Q1: COUNT IN CT(I), I stored by an earlier receiver, lands in CT(1)=03 (subscript evaluated once). Refusals c_1..c_7: COUNT IN or DELIMITER IN without DELIMITED BY refused (SR6); COUNT IN PIC 9V9, 9P, Z9, XX and COMP-1 refused (SR4). cite.py: OK §1985:VI.6.27.4 GR5 (\"This value does not include a count of the delimiter\"); OK §1985:VI.6.27.3 SR4 (\"must reference integer data items\"); OK SR6; OK GR17a (\"less than 1 or greater than the size\"); OK GR13g.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

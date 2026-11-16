@@ -1,0 +1,122 @@
+{
+ "rule-id": "1989-FMT-A.2.9.2",
+ "rule-digest": "200b52431c73",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-178",
+  "sources": {
+   "reader": "466081f88f0ce2d7ede21649851d3be9463b2c67b253bb9ad3f0a72512576a4a",
+   "refuter": "b170afaa372a5943113712612817559a2675311b831254bf83e06c2c5b36ef2f"
+  },
+  "imported": {
+   "reader": "226a29a3350ca6bdcf5f914d10203e28886fff70b474031ccfad836f047bdbef",
+   "refuter": "00b67e3f69590447aab3637fc29dc96bb465d947e50317d1274bc5f5549e257a"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.9.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept FUNCTION CHAR followed by exactly one parenthesised integer argument-1, as an alphanumeric function-identifier wherever an identifier is permitted except as a receiving operand, with an optional reference-modifier, and refuse zero or two arguments, the bare name and an empty '( )'.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgument; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window: sig.IntroducedIn (85 on this row) against ctx.Edition.DialectLevel, COBOL1502 below it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "construct function-empty-argument-list-2002: an empty '( )' after the name draws COBOL0900 below 2002 (the 1985 format braces argument-1 inside the parentheses)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+    "switches": "construct RepositoryFunction2002: below 2002 a name written without FUNCTION is never read as a function (it binds as a data reference, COBOL1639); at 2023 it draws COBOL1543",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "tests/version-matrix/reserved-words.json#FUNCTION",
+    "switches": "FUNCTION is reserved at r85 (true at every edition)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 an empty '( )' argument list is refused by COBOL0900 before the arity check and the keyword-omitted form is not a function reference; CHAR is alphanumeric, so it is an identifier anywhere at every edition and may be reference-modified. The arity check (COBOL1504) is the same code at every edition",
+  "witnesses-cover": "part: g85_f34_02 and the RV witnesses exercise literal, identifier and expression arguments as MOVE senders; reference modification of the result, a relation operand, the receiving-operand refusal and the count refusals are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-178/acc.cob",
+    "printed": "MOVE FUNCTION CHAR (N) N=66 -> [A]; CHAR (N + 1) (1:1) -> [B]; CHAR (67) into PIC XXX -> [B  ]; IF FUNCTION CHAR (66) = \"A\" -> CHARCMP A",
+    "expected": "ordinal 66 of the native sequence is 'A'; a reference-modifier is allowed on an alphanumeric function (§1985:IV.4.3.8.3.3 SR2); one-character result padded"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-178/refuse.cob",
+    "printed": "FUNCTION CHAR (65 66), bare CHAR and CHAR ( ) -> COBOL1504; ( ) also COBOL0900",
+    "expected": "exactly one argument-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-178/arms.cob",
+    "printed": "MOVE C TO FUNCTION CHAR (66) -> COBOL5506 unexpected 'FUNCTION' (at 85 and 2023)",
+    "expected": "§1985:IV.4.3.8.3.3 SR3a: not a receiving operand"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-178/char256.cob",
+    "printed": "CHAR (1) = LOW-VALUE true; ORD (CHAR (256)) = 256; ORD (HIGH-VALUE) = 65536 (5536 in a 9(4)), so CHAR (256) is not HIGH-VALUE; same at --std 2023",
+    "expected": "implementor-defined native sequence (§1989:A.2.9.4 RV2); its size here is 65536 positions"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-178/arms2.cob",
+    "printed": "--std 85: MOVE FUNCTION ACOS (X) TO R and MOVE FUNCTION VARIANCE (1 2) TO R -> COBOL0900 (numeric function-identifier as identifier operand requires COBOL-2002); FUNCTION ANNUITY (0.1 3) (1:2) -> COBOL1629; FUNCTION ATAN (LEADING) -> COBOL1638; ASIN (X) without FUNCTION -> COBOL1639 not defined; MOVE FUNCTION CHAR (66) TO C (1:1) accepted. --std 2023: the two MOVEs accepted, the rest refused (ASIN -> COBOL1543)",
+    "expected": "§1985:IV.4.3.8.3.3 SR4 numeric function only in an arithmetic expression; SR2 reference-modifier only for alphanumeric functions; the 1985 format has no keyword-omitted form; a phrase word is no argument"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.9.1",
+    "check": "OK  §1989:A.2.9.1  (2.9.1 Description)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.9.3 AR1",
+    "check": "OK  §1989:A.2.9.3 AR1  (2.9.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.2",
+    "check": "OK  §1985:IV.4.3.8.3.2  (4.3.8.3.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR1",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR1  (4.3.8.3.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR2",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR2  (4.3.8.3.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR3a",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR3a  (4.3.8.3.3 Syntax Rules)  the text is in SR3a"
+   }
+  ],
+  "notes": "Catalog row CHAR (Alphanumeric, Fixed 1..1, kind 'i', IntroducedIn 85, Length Fixed(1)); as an alphanumeric function it passes ScreenIdentifierPlacement at 85, and its result may be reference-modified. The native program collating sequence has 65536 positions, which is the implementor's choice under RV2 and outside this format row.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.9.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "CHAR (alphanumeric, SR3): accepted where SR3 admits it at 85 - IF FUNCTION CHAR (66) ALPHABETIC, STRING FUNCTION CHAR (67) INTO C (printed B), INSPECT ... BY FUNCTION CHAR (67), TALLYING FOR ALL FUNCTION CHAR (67), UNSTRING FUNCTION CHAR (67) DELIMITED BY FUNCTION CHAR (66), WRITE FROM FUNCTION CHAR (67) (pib.cob, exit 0); refused as a receiving operand INSPECT FUNCTION CHAR (66) REPLACING -> COBOL1632 (SR3a); refused under SR3b ADD FUNCTION CHAR (66) TO R -> COBOL0844 and CHAR = ACOS -> COBOL2532; CHAR (E3 (ALL)) -> COBOL1645. Placement attack on SR4 across doors the reader did not try (all --std 85, compile-only): IF FUNCTION ACOS (X) NUMERIC -> COBOL6918; STRING FUNCTION ASIN (X) ... -> COBOL1626; STRING ... DELIMITED BY FUNCTION ASIN (X) -> COBOL1626; SET IX TO FUNCTION ATAN (X) -> COBOL0900; GO TO ... DEPENDING ON FUNCTION ANNUITY (X 2) -> COBOL0900+COBOL2324; DIVIDE/MULTIPLY/SUBTRACT with a numeric function sender -> COBOL0900; CALL USING BY CONTENT FUNCTION ACOS (X) -> COBOL0900; WRITE FR FROM FUNCTION ACOS (X) -> COBOL0900+COBOL1914; INITIALIZE R REPLACING NUMERIC BY FUNCTION ACOS (X) -> COBOL0900; UNSTRING DELIMITED BY FUNCTION ATAN (X) -> COBOL1651; INSPECT FUNCTION ACOS (X) TALLYING -> COBOL0900. Legal positions run (plegal.cob): relation, sign condition, EVALUATE subject, refmod start FUNCTION VARIANCE (1 3) all accepted and printed G/P/E. Separator and literal splitting: VARIANCE (1 -2) -> 2.25 (two args, -2 a signed literal), VARIANCE (1 - 2) -> 0 (one expression), ANNUITY (0.1 +3) -> 0.40211480; with DECIMAL-POINT IS COMMA (dpc.cob) ANNUITY (0,1 3) and (0,1, 3) -> 0,40211480, VARIANCE (1,5 2,5) -> 0,25, ACOS (0,5) -> 1,04719755. ALL on a fixed-arity function (allfix.cob): ACOS/ASIN/ATAN (E1 (ALL)) with OCCURS 1, ANNUITY (E2 (ALL)) with OCCURS 2, CHAR (E3 (ALL)) -> COBOL1645 each (the count-matching ANNUITY case is not let through). Index-name argument ATAN (IX) -> COBOL1637; ACOS (X) (1:1) -> COBOL1629. cite.py: OK §1985:IV.4.3.8.3.3 SR4 (the text is in SR4); OK §1985:IV.4.3.8.3.3 SR3a; OK §1985:IV.4.3.8.3.3 SR2; OK §1989:A.2.2 (it lies in AR4: 'permits an argument to be repeated a variable number of times'); OK §1985:IV.4.3.8.2.3 SR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

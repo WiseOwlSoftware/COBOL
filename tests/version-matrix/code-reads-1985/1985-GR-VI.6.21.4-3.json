@@ -1,0 +1,124 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-3",
+ "rule-digest": "453681a4439c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-017",
+  "sources": {
+   "reader": "dcfa501a8d9e23682a253699446f0667fcf40e93f91e44956b8b3ed15dfa9cac",
+   "refuter": "00822282c49cf16a5507b1a2fc5c8b46f547a3ffbbb9acf8f0cab6159066940a"
+  },
+  "imported": {
+   "reader": "0c4ad0c02ef87093c5411d5b0df119d7a23d49fb0671dcfbab1f66dcdd6ec727",
+   "refuter": "01ebae28e1efa80acd6d59cf5304db815b63466febee878d09f83689de1e1ad4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.21.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a PERFORM that writes procedure-name-1 (any of formats 1 to 4) is out-of-line and executes the named range; one that omits it is in-line and executes its imperative-statement-1 through END-PERFORM; the binder must split on exactly that, and SR1 forbids mixing the two forms.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckInlineHeadCardinality; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitInlinePerform; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVaryingAfter",
+    "switches": "refuses an AFTER phrase in an in-line PERFORM before 2002 (§1985:VI.6.21.3 SR2)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformUntilTarget",
+    "switches": "UNTIL EXIT is COBOL-2023 only (COBOL0900 at 85)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVarying",
+    "switches": "VARYING with BY omitted refused before 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures",
+    "switches": "1985 segmentation restriction on the out-of-line range",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The in-line/out-of-line split itself (names.Length == 0 in BindPerform) consults no edition; the edition gates are on phrases the 1985 formats do not print.",
+  "behaviour-differs-by-edition": "yes: at 85 an in-line PERFORM may not carry AFTER (2002 adds it), and UNTIL EXIT / EXIT PERFORM / BY-omitted are refused; the in-line vs out-of-line classification itself is the same",
+  "witnesses-cover": "part: pb432 and pb440 exercise the VARYING brace and the empty range; mixed-form refusals (SR1) and the 85-only refusals are not exercised there",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/p1.cbl",
+    "printed": "A..I sections: paragraph, section, THRU paragraph, THRU section, inverted THRU, in-line and out-of-line VARYING (N=004 T=006 both), TEST AFTER (T=006 both), TIMES (3), 0 TIMES, nested in-line, all as expected",
+    "expected": "out-of-line runs the range, in-line runs its contained statements"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/b1.cbl",
+    "printed": "error COBOL0306: unexpected 'END-PERFORM' (PERFORM PA DISPLAY \"X\" END-PERFORM)",
+    "expected": "refused: SR1, procedure-name-1 with imperative-statement-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/b2.cbl",
+    "printed": "error COBOL2269 (in-line PERFORM 2 TIMES with no END-PERFORM)",
+    "expected": "refused: SR1, END-PERFORM required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/b3.cbl",
+    "printed": "error COBOL2072 (PERFORM END-PERFORM, no imperative statement)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/c3.cbl",
+    "printed": "85: error COBOL0900 an AFTER phrase in an inline PERFORM requires COBOL-2002; 2023: runs 001001..002002 and PA 001001..002002",
+    "expected": "85 refuses (§1985:VI.6.21.3 SR2); the out-of-line AFTER is legal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/c1.cbl",
+    "printed": "error COBOL0900: PERFORM UNTIL EXIT requires COBOL-2023",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/c2.cbl",
+    "printed": "error COBOL0900: the EXIT PERFORM statement requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.4 GR3",
+    "check": "OK  §1985:VI.6.21.4 GR3  (6.21.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.21.3 SR1",
+    "check": "OK  §1985:VI.6.21.3 SR1  (6.21.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.21.3 SR2",
+    "check": "OK  §1985:VI.6.21.3 SR2  (6.21.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "GR3 is definitional; BindPerform branches on whether a procedure-name is written, binding BoundInlinePerform or BoundOutOfLinePerform, and the grammar enforces SR1. The 1985-only refusals (in-line AFTER, UNTIL EXIT, EXIT PERFORM, BY omitted) fire at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p1 prints identical output; c3 runs at 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.21.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/r.cbl, run as four variants at --std 85. 'PERFORM PA END-PERFORM', 'PERFORM PA 2 TIMES END-PERFORM', 'PERFORM PA UNTIL T > 1 END-PERFORM' and 'PERFORM PA WITH TEST AFTER UNTIL T > 1 DISPLAY T END-PERFORM' each give error COBOL0306 unexpected END-PERFORM, so SR1 is enforced in every format. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/p2.cbl: an in-line PERFORM holding an IF without END-IF is refused with COBOL2796, which agrees with the 1985 imperative-statement definition (III, a conditional statement counts only when delimited by its scope terminator). The split itself (names.Length==0) consults no edition. cite.py: 'OK  §1985:VI.6.21.4 GR3 ... the text is in GR3'; 'OK  §1985:VI.6.21.3 SR1 ... the text is in SR1'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying: DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter (1985 augments the outer variable before setting the inner one). It is reached only through AFTER levels, which an in-line PERFORM cannot carry at 85, so the in-line/out-of-line split is unaffected"
+  ],
+  "corrected": ""
+ }
+}

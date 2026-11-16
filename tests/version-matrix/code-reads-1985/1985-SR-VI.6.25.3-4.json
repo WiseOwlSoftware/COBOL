@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-SR-VI.6.25.3-4",
+ "rule-digest": "f523b5cc5a6e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-060",
+  "sources": {
+   "reader": "560a7f471262d9d49a465e03dd3fdf65ae51432d29285da51636ba587900dbb4",
+   "refuter": "7a46c5415a90da6fb4312da600544c74561a5626aee8f30369c3937043eb576d"
+  },
+  "imported": {
+   "reader": "e2cd5195c7540489cf8bd636cc13af8a403a440fb42a3706e3d21c2c08de41b5",
+   "refuter": "f635f1b29268bf17c92ea74a24bc4dff25a2beb088ab14d1700bc209b1a6bc5c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.25.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 STRING must refuse an identifier-3 that is an edited item (numeric edited, alphanumeric edited - which in 1985 includes A/X with B, 0 or /, since a 1985 alphabetic picture holds only A) or that carries JUSTIFIED (JUST, RIGHT optional), while unedited alphanumeric, alphabetic, group and numeric DISPLAY receivers stay legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject",
+  "edition-consulted": [],
+  "edition-search": "grep of StringUnstringBinder.cs for Edition|CobolVersion|IsAtLeast|Dialect|ConstructRegistry: ctx.Edition appears only as the diagnostic sink (BoundRejected.Report / BoundOperandError.Report -> EditionContext#Error, severity fixed by the descriptor) and as a position scope (EditionContext.At); grammar rules stringStatement/delimitedByPhrase/strUnstrOperand (CobolIO.g4) carry no version predicate; the only edition gate on the statement is src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStringStatement (StringDelimitedOmitted2002, the omitted-DELIMITED form), which is not this rule's predicate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers one edited receiver; JUSTIFIED, the alphanumeric-edited insertion symbols and the A-with-B picture are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/str-sr34-neg.cob",
+    "printed": "COBOL1651 edited for ZZ9, 9(3).99, XBX, X0X, X/X; COBOL1651 JUSTIFIED for PIC X(5) JUSTIFIED RIGHT and PIC A(5) JUST",
+    "expected": "each refused (SR4)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/str-sr6-neg.cob",
+    "printed": "line 21 INTO ABE (PIC AABA): COBOL1651 edited",
+    "expected": "refused: 1985 alphabetic is only 'A' (VI.5.9.4 GR2a), so AABA is alphanumeric edited"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/str-sr34-pos.cob",
+    "printed": "2=[XY12..] 3=[ABC..] 4=[1221][04]",
+    "expected": "group, PIC A(5) and PIC 9(4) receivers legal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.3 SR4",
+    "check": "OK  §1985:VI.6.25.3 SR4  (║6.25.3 Syntax Rules║)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VI.5.9.4 GR2a",
+    "check": "OK  §1985:VI.5.9.4 GR2a  (5.9.4 General Rules)  the text is in GR2a"
+   }
+  ],
+  "notes": "Both halves of the rule are enforced at bind from the item's PicInfo (category / EditMask) and its Justified flag; nothing switches on the edition, and 1985 forms nothing beyond the latest edition's range here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.25.3-4",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Attack on the 1985 definition of 'edited': §1985:VI.5.4.4 GR2 makes a numeric item with BLANK WHEN ZERO numeric edited. Probe src/bwzneg.cob: STRING INTO RBZ PIC 9(4) BLANK WHEN ZERO -> COBOL1651 'identifier-3 shall not reference an edited data item' (correct). src/misc85.cob: INTO JEL (2), a subscripted element of PIC X(4) JUSTIFIED RIGHT OCCURS 3 -> COBOL1651 JUSTIFIED. src/subpos.cob: group containing an edited item accepted. cite.py: OK  §1985:VI.6.25.3 SR4  the text is in SR4; OK  §1985:VI.5.4.4 GR2  the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

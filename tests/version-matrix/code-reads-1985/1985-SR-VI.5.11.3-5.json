@@ -1,0 +1,133 @@
+{
+ "rule-id": "1985-SR-VI.5.11.3-5",
+ "rule-digest": "6cefc6a8bb69",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-156",
+  "sources": {
+   "reader": "d3a192e5a182c984e33a437bb5370e7bcfa14ed5e1c29d8e97b6e85eeb749287",
+   "refuter": "2735327ab3b3e8268bd5a8aeeb8e43c4a1272a1c9ffca8b5f267655dd18cd4b8"
+  },
+  "imported": {
+   "reader": "98ca12577d38cf0dad9c04eec632c4a18486d9a92a84ef5216a0859f0bad5589",
+   "refuter": "87f8a70f857664c5a2cac4ce51b159d64d76487dae9e0baa5d48322c922c534d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.11.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 data-name-2 and data-name-3 of a RENAMES entry may each be qualified (IN or OF, by one or more higher-level data-names and, outermost, by the file-name of the FD whose record holds them), the qualification selects the item, and because §1985:IV.4.3.8.1 requires qualification of every explicitly referenced non-unique name (redefinition alone excepted) an unqualified or insufficiently qualified operand that is not unique in the program must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierChainMatches; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsWithinRegion",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "Edition.DialectLevel >= 2002: from 2002 the record's subtree is the candidate set (superordinate groups as implicit qualifiers, §2002 F.2 item 67); at 1985 RegionClauseCandidates counts the whole scope's candidates, so a name also declared in another record must be explicitly qualified, then IsWithinRegion confines the survivor to the record",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 1985 an unqualified operand whose name is also declared in another record is ambiguous (COBOL1639); at 2023 the record supplies implicit qualifiers and the same entry compiles (p5_unq_cross prints R=ABCDEF at --std 2023)",
+  "witnesses-cover": "part: the witness qualifies by data-names within one record; qualification by a file-name, the cross-record ambiguity the 1985 arm decides, a wrong or misordered qualifier and an insufficiently qualified data-name-3 are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/w_qual.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "RN1=CDEF RN2=EF RN3=ABCD REC=ABWXYZGH"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_fileq.cob",
+    "printed": "RF2=WXYZ",
+    "expected": "FA OF F2 THRU FB IN FREC IN F2 (file-name qualifier, two FDs with identical record layouts) resolves to F2's record"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_unq_cross.cob",
+    "printed": "error COBOL1639: 'R' RENAMES 'A' does not uniquely identify a data item — 2 declarations match",
+    "expected": "refused at 85: A is declared in G1 and G2 and is referenced without qualification (§1985:IV.4.3.8.1 SR3)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_q_cross.cob",
+    "printed": "R=ABCDEF",
+    "expected": "A OF G2 THRU D accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_q_other.cob",
+    "printed": "error COBOL1655: 'A' does not name an item of the record",
+    "expected": "refused: A OF G1 is in another record (SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_thru_amb.cob",
+    "printed": "error COBOL1639: 'R' RENAMES 'B' does not uniquely identify a data item",
+    "expected": "refused: data-name-3 B is in S and T of the same record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_thru_q.cob",
+    "printed": "R=EFGH",
+    "expected": "D THRU B OF T accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_thru_q2.cob",
+    "printed": "R=ABCDEFGH",
+    "expected": "A IN G2 THRU B IN T IN G2 accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_badorder.cob",
+    "printed": "error COBOL1655: 'B' does not name an item of the record",
+    "expected": "refused: B OF G2 OF T is not in successively more inclusive order"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_nonanc.cob",
+    "printed": "error COBOL1655: 'D' does not name an item of the record",
+    "expected": "refused: D is not subordinate to T"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p5_q_single.cob",
+    "printed": "R=CD",
+    "expected": "qualified elementary data-name-2 without THRU takes its attributes (GR2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.11.3 SR5",
+    "check": "OK  §1985:VI.5.11.3 SR5  (║5.11.3 Syntax Rules║)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.1 SR3",
+    "check": "OK  §1985:IV.4.3.8.1 SR3  (4.3.8.1 Qualification)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VI.5.11.4 GR1",
+    "check": "OK  §1985:VI.5.11.4 GR1  (║5.11.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "Both operands carry their IN/OF qualifiers into the resolve pass, which matches the chain inner to outer with gaps and a file-name outermost. At 85 the candidates are scope-wide (no 2002 implicit qualification), which is what the 1985 qualification rule requires; a misqualified operand that resolves outside the record is refused by SR4's message rather than a qualification message, which is a wording matter.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.11.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85: c4_fd_unq (two FDs, identical record layouts, 'RENAMES FA THRU FB' unqualified after F2's record) refused COBOL1639 for both operands (the 1985 scope-wide arm, IV.4.3.8.1); c4_insuff ('A OF S THRU D' where S.A exists in G1 and G2) refused COBOL1639, c4_suff ('A OF S OF G2 THRU D') printed R=ABCD; c4_link_amb (A in a Working-Storage record and in the Linkage record the entry follows) refused COBOL1639; c4_outer_scope (A in the containing program's GLOBAL record, RENAMES A in the contained program's own record) printed R=ABCD, correct since the contained program's own A is the unique local resource (X.4 scope conventions); c4_sdq (qualification by an SD file-name, 'K IN SF THRU V OF SREC OF SF', a same-layout WS group present) printed SR1=AAYY / SR1=BBXX through SORT; c4_index (index-name A and data-name A) refused COBOL2692, correct at 1985 (index-names are their own disjoint set, IV.4.2.2.1.1). Cite: OK §1985:VI.5.11.3 SR5; OK §1985:IV.4.3.8.1 (SR3) 'Identical user-defined names may appear in a source program'; OK §1985:IV.4.2.2.1.1 '4. condition-names, data-names, and record-names'; OK §1985:IV.4.2.2.1.1 'can belong to one and only one of these disjoint sets'. SIBLING DEFECT FOUND (another rule, not this one's path): c4_cond_nor (88 A under G1's X, 05 A under G2, references 'A OF X' and 'A OF G2', no RENAMES) is refused COBOL2692 'names two types of user-defined word (condition-name and data-name)' at --std 85, though §1985:IV.4.2.2.1.1 puts condition-names, data-names and record-names in ONE disjoint set; c4_cond_q (the same with '66 R RENAMES A OF G2 THRU D') is refused the same way. Harm rejects-legal-source; cause (a): UserWordKind.cs#MayBeOneWord and its MayShareOneName set are the §2023:8.3.2.2 exception 3 list at every edition. At --std 2023 c4_cond_nor is refused the same way (correct there by 2023's list, a pointer only). No kb/Work note found (grep of COBOL2692, MayBeOneWord, 'condition-names, data-names'). The refusal fires at the declaration whether or not a RENAMES exists, so it does not overturn SR5; it does mean SR5's resolver has never been exercised at 85 with a condition-name homonym as a candidate.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/UserWordKind.cs#MayBeOneWord: edition-blind; applies the 2023 sharing set at 1985, refusing a condition-name and data-name of one spelling (sibling rule IV.4.2.2.1.1, not SR5)"
+  ],
+  "corrected": ""
+ }
+}

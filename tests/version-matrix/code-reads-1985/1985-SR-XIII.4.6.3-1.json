@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-SR-XIII.4.6.3-1",
+ "rule-digest": "07e8223b3a1b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-166",
+  "sources": {
+   "reader": "a2ea7dfee8159667eb1727d685d5c1c58e6decfc8b4eb0ed26fd8e225b5e9647",
+   "refuter": "0afc575a59150d57fe5e4134025dce16eff31c0e12ff61716d8af47b2677c881"
+  },
+  "imported": {
+   "reader": "ab2c44629f5f791d375684ebd8d391249f87c624b741ea22b1bf9aaa01786cd7",
+   "refuter": "1ee25fca46b4943ddd71c5d2208813f112cd452e277a0198792b9050a671f3c5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.6.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 SUPPRESS PRINTING must be accepted in any paragraph of a USE BEFORE REPORTING declarative section and refused anywhere else: nondeclarative procedures, a USE AFTER STANDARD EXCEPTION declarative, or a nondeclarative paragraph that a USE BEFORE REPORTING procedure performs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindSuppress; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#Declarative",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/Edition.Has/Edition.Edition over ReportWriterBinder.cs and EnclosingContext.cs; VersionConformancePass.cs has no SUPPRESS visitor; Constructs.g.cs has no SUPPRESS-statement construct (only copy-suppress and alternate-key-suppress-when); SUPPRESS and PRINTING are reserved at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f31_03 places SUPPRESS in the first paragraph of a USE BEFORE REPORTING section; the refusal half and a later paragraph of the section are exercised only by probes p4supp and p4ok.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p4supp.cob",
+    "printed": "COBOL1581 'SUPPRESS PRINTING may appear only in a USE BEFORE REPORTING procedure' at line 25 (USE AFTER EXCEPTION declarative), line 35 (main line), line 41 (nondeclarative paragraph after STOP RUN)",
+    "expected": "each placement outside a USE BEFORE REPORTING procedure refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p4ok.cob",
+    "printed": "report file: D 2, D 4, END (both at --std 85 and --std 2023)",
+    "expected": "SUPPRESS in the second paragraph of the USE BEFORE REPORTING section accepted; it inhibits details 1 and 3 only and not the report footing (§1985:XIII.4.6.4 GR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.6.3 SR1",
+    "check": "OK  §1985:XIII.4.6.3 SR1  (4.6.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.4.6.4 GR1",
+    "check": "OK  §1985:XIII.4.6.4 GR1  (4.6.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "BindSuppress asks the one bind-position probe for the enclosing declarative and refuses unless it carries a report group (a USE BEFORE REPORTING section), so every paragraph of the section qualifies and nothing outside does. No edition switch exists or is needed: the rule is unchanged in later editions. Diagnostic cites §2023:14.9.45.3 SR1 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.6.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "1985-only forms: r4supp.cob (runs/r4supp-001) SUPPRESS in a USE GLOBAL BEFORE REPORTING procedure (§1985:X.5.6.2) compiles at --std 85 and inhibits only detail 2 (R4.TXT holds D 1, D 3, END). r9supdbg.cob (runs/r9supdbg-001) under WITH DEBUGGING MODE: SUPPRESS in a USE FOR DEBUGGING procedure refused COBOL1581, and SUPPRESS in a contained program's nondeclarative code beneath the container's USE GLOBAL BEFORE REPORTING refused COBOL1581. cite.py: OK §1985:XIII.4.6.3 SR1 (the text is in SR1); OK §1985:X.5.6.2 (the text is in the clause).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

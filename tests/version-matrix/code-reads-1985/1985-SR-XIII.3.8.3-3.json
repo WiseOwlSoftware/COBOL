@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-XIII.3.8.3-3",
+ "rule-digest": "0f6236be4da5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-078",
+  "sources": {
+   "reader": "b0bd5c2450046e0dd7a170d5666b191062e8062c4935c1bcaccc2bdaea756290",
+   "refuter": "5d47e263f056ccc1b2ad9a07051a4408b8f30631fb90247c56a4af11c777622c"
+  },
+  "imported": {
+   "reader": "2e4c2658f8366f238feefa0b35732ed45c457f00e2fdd1623c1dc45b492d2e54",
+   "refuter": "09b2a0a7222e709bdff1e7c083ac0d4f20f1981770168220753b3df0f2961fbd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.8.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a PAGE clause's HEADING integer-2 must be at least one: HEADING 0 must be refused, HEADING 1 accepted, and the omitted phrase defaults to one (XIII.3.8.4 GR2a).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers",
+    "switches": "ExceedsThreeSignificantDigits85 (DialectLevel < 2002) adds the 1985 SR2 digit limit; the ascending-order loop runs the same at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral (IntegerOperandRules.Classify(dialectLevel), ZeroMessage)",
+    "switches": "ReportPageSubclauseContext is Nonzero at every edition; ZeroMessage cites §1985:III.2 below 2002 (wording only)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageSubclause",
+    "switches": "LAST CONTROL HEADING, the DE abbreviation and IS before an integer are refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1270_report_page_region_boundaries is the legal side only (HEADING 2); HEADING 0 is not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pgh0.cob",
+    "printed": "COBOL2386 HEADING 0: the integer operand 0 shall be nonzero (§1985:III.2), exit 65",
+    "expected": "refused: integer-2 < 1"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pgh1.cob",
+    "printed": "exit 0, OK (HEADING 1 FIRST DETAIL 1)",
+    "expected": "accepted: equal to one"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.8.3 SR3",
+    "check": "OK  §1985:XIII.3.8.3 SR3  (3.8.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XIII.3.8.4 GR2",
+    "check": "OK  §1985:XIII.3.8.4 GR2  (3.8.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The grammar makes integer-2 an unsigned integer literal, so 'at least one' comes down to 'not zero'. IntegerOperandPass refuses zero in every PAGE phrase at every edition. A negative value cannot be written, and an omitted HEADING defaults to 1.",
+  "seeded": true,
+  "at-2023": "same (nonzero, §2023:13.18.39.3 SR6)",
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.8.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "At --std 85: pghneg (HEADING -1) and pghpos (HEADING +1) give COBOL0001 'unexpected -'/'unexpected +', exit 65. pgh00 (HEADING 000) gives COBOL2386 'shall be nonzero', citing §1985:III.2, exit 65. pghdec (HEADING 1.0) gives COBOL5506 'only an integer literal is expected', exit 65. pgnolim (PAGE HEADING 3 FIRST DETAIL 2, with no integer-1, a 2023 form) gives COBOL5506 'expected ARE, IS, LIMIT, LIMITS or an integer literal', exit 65. So no written integer-2 below one reaches the program, and the omitted phrase defaults to 1 (BindReportDescriptionClauses GR3a, matching OK §1985:XIII.3.8.4 GR2). OK §1985:XIII.3.8.3 SR3 'Integer-2 must be greater than or equal to one'; OK §1985:III.2 'must be neither signed nor zero unless explicitly allowed'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

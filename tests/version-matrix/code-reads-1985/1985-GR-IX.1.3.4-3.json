@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-IX.1.3.4-3",
+ "rule-digest": "be493706dde9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-089",
+  "sources": {
+   "reader": "7beb12d3af4b4cc13253dcfcf5d99df71f5f22e784b35157e4ec7656dfef52f5",
+   "refuter": "194fe694038fc7e73d79f71bc520c5893469ca42b3581e0d0993925b138ca55b"
+  },
+  "imported": {
+   "reader": "77a42f61461e8de504216e7ffecbb23e9dbe865e3cd4a4d8c5e67b1edf459a16",
+   "refuter": "2ce27966b93f577f7eda0c757a66ec209b40a5e6675a2e320abc8cde8beeab0e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.1.3.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an indexed-file DELETE, READ, REWRITE, START or WRITE that meets an invalid key condition (21 sequence, 22 duplicate, 23 not found or absent optional file, 24 boundary) must be unsuccessful, leave the file unchanged, and set an I-O status whose first character is 2. This holds in every access mode and in the OUTPUT, EXTEND and I-O open modes. The witness covers WRITE and REWRITE 21 in sequential access, WRITE 22 on prime and alternate keys, and random READ and START 23; it does not cover EXTEND 21, REWRITE 22, alternate-key READ 23, START GREATER and NOT LESS 23, DELETE 23, random access, variable-length records, or 24.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordWriteFailed; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#SequenceError; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed (Edition = edition handed to the connector; FileConnector.cs#Edition)",
+    "switches": "the edition each DialectBehaviors.IsActive question on this connector is asked with",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+    "switches": "DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly (2002): at 85 a random READ also looks ahead and answers 02 when the next record repeats the key of reference (§1985:IX.1.3.4 GRL2.1). The invalid key arms ('23', '47') come before this switch and are the same at every edition.",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep CobolVersion|Edition|DialectBehavior over src/WiseOwl.Cobol.Runtime/IO and over CodeGen/Verbs/SequentialIoEmitter.cs, KeyedIoEmitter.cs, EcEmitter.cs and UseTierEmitter.cs. In IndexedConnector, only ReadRandom (02) and Read Previous switch on the edition. The 21/22/23/24 producers in Write, Rewrite, Delete and Start consult none.",
+  "behaviour-differs-by-edition": "no for the invalid key class itself. The adjacent successful arm differs: a random READ of a duplicate alternate gives 02 at 85 and 00 at 2023 (probe p1ik vs p1ik23, line RD02).",
+  "witnesses-cover": "part: EXTEND 21, REWRITE 22 on an alternate key, alternate-key random READ 23, START GREATER/NOT LESS 23, DELETE 23, random access, variable-length records and 24 are not exercised by g85_f16_04",
+  "probes": [
+   {
+    "class": "a,b,d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-089/p1ik.cob",
+    "printed": "IN-IK 21 / EXT21 21 IK / EXTEQ 21 IK / EXTOK 00 NIK / W02 02 NIK / RW22A 22 KEY1 2 IK / RW23 23 KEY1 2 IK / W22A-IO 22 KEY1 2 IK / RD23A 23 KEY1 2 IK / RD02 02 NIK / ST23G 23 IK / ST23N 23 IK / DL00 00 NIK / DL23 23 IK / OPEN-RN 35 / RAFTER35 47 NO / RN22 22 IK / VW22 22 IK (RECORD VARYING + ODO) / VR23 23 IK / VR00 00 NIK 08 V0013ABC",
+    "expected": "EXTEND first key not above the highest is 21 (§1985:IX.4.9.4 GR14, GR17a); duplicates are 22; absent keys are 23; a READ after a failed OPEN is 47 and takes neither INVALID KEY nor NOT INVALID KEY; a WITH DUPLICATES alternate is 02, which is successful and not an invalid key"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-089/c1.cob, c3.cob, c4.cob, c0.cob, c2.cob",
+    "printed": "START KEY LESS THAN refused COBOL0900 (requires 2002); START FIRST refused COBOL0900; START WITH LENGTH refused COBOL0900; START KEY NOT < accepted; START KEY >= and GREATER OR EQUAL accepted",
+    "expected": "1985 START has =, >, NOT <, and (level 2) GREATER THAN OR EQUAL TO; reverse operators, FIRST/LAST and WITH LENGTH arrive in 2002"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/IX.1.3@1985-LANGUAGE-CONCEPTS/g85_f16_04.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "g85_f16_04.out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.1.3.4 GR3",
+    "check": "OK  §1985:IX.1.3.4 GR3  (1.3.4 I-O Status)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IX.4.9.4 GR14",
+    "check": "OK  §1985:IX.4.9.4 GR14  (4.9.4 General Rules)  the text is in GR14"
+   },
+   {
+    "cite": "§1985:IX.4.9.4 GR17a",
+    "check": "OK  §1985:IX.4.9.4 GR17a  (4.9.4 General Rules)  the text is in GR17a"
+   }
+  ],
+  "notes": "Every invalid key producer in IndexedConnector returns a '2x' code, and EmitInvalid sends only IoStatusClass.InvalidKey to the INVALID KEY imperative. All probes at 85 set key 1 = 2, and no 4x status reached the INVALID KEY branch. Status 24 is the store's format capacity or the host's file-size limit (documented in DOC-A.1-107) and cannot be reached safely on this host. It was read in KeyedConnector.RecordWriteFailed, not probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p1ik23 at --std 2023 gives the same 2x lines; only RD02 differs (00)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.1.3.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read §1985:IX.1.3.4 (indexed, lines 18465-18605) and §1985:IX.1.3.5 opening paragraph ('the file is not affected'). Attacked the 'unsuccessful and file not affected' half the reader's probes did not check by re-reading the file after each failure. r1.cob at --std 85 (refute-1985-089/r1-002): sequential OUTPUT WRITE K005 00, K003 21, K004 21 (the failed K003 did not move the sequence base), alternate-duplicate WRITE 22, then K006/K007 00; the listing by prime and by alternate key shows only K005/K006/K007, so no failed WRITE stored a record; sequential REWRITE with a duplicate alternate 22 and REWRITE with the prime key changed to an existing K007 21 both leave K005 and K007 unchanged in the second listing; the next READ after a failed REWRITE reads K006 normally. Dynamic and random access WRITE out of order give 00 (no 21 outside sequential access), random I-O WRITE duplicate 22, dynamic REWRITE of an absent key 23. r4.cob (r4-001): with PROGRAM COLLATING SEQUENCE reversed, the file still orders by native sequence (K001,K002 00, K000 21), as §1985:IX.2.3.4 GR3 requires. cite.py: 'OK §1985:IX.1.3.4 GR3 (1.3.4 I-O Status) the text is in GR3'; 'OK §1985:IX.1.3.5 (1.3.5 The Invalid Key Condition) the text is in the clause'; 'OK §1985:IX.2.3.4 GR3 (2.3.4 General Rules) the text is in GR3'. Status 24 (implementor-defined boundary) not probed under host safety; KeyedConnector.RecordWriteFailed maps StoreStatus.Boundary to 24 and PagedFile.TryWrite maps a host size limit to Boundary for indexed files, so no 34 reaches an indexed WRITE.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

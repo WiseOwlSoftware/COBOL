@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-3",
+ "rule-digest": "92b0e05f2b4d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-099",
+  "sources": {
+   "reader": "7fe496d433ccb535591a8ad63fc59e22218ac1415edd20e9c8d8cad3d19976b8",
+   "refuter": "dd885ab0c2cd3867572cc4e1d13f78dd8f826a31e58d05364df34ddcab60c43f"
+  },
+  "imported": {
+   "reader": "81434a7310467cf81dc8e8f2c81aeae8f9abababf354e2c14af48d26e6793e6a",
+   "refuter": "40758b0b064ec0024398ae271f67f005c3f3d533500669b009db95b5803b3f6a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 no START (successful or not; prime key, alternate key, a leading partial-key data item, or no KEY phrase) may change the record area or the RECORD VARYING DEPENDING ON data item of the file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartSucceeded",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement / #VisitStartKeyPhrase / #VisitStartWithLength",
+    "switches": "2002 START forms refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+    "switches": "ctx.Edition.SubscriptedClauseOperands",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EmitStart passes the record area image by value (SeqIo.RecordAreaSendImage) and emits no store back into the area or the DEPENDING ON item; IndexedConnector.Start/StartSucceeded write only _refKey/_fpiKey/FpiValid; no edition read on that path (grep Edition|DialectBehavior)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f20_08 covers prime-key EQUAL success and failure; an alternate key, a leading partial-key item, the implied-EQUAL no-KEY form, and failures by 47 / optional-absent are not exercised",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/st1.cob",
+    "printed": "S1=00 QQQQB2ZZZZ 07 / R1=00 K002B2BBBB 10 / S2=00 J9YYYYYYYY 08 / S3=23 K009WWWWWW 06 / S5=23 K001XXXX / S6=23 K001XXXX",
+    "expected": "alternate key NOT LESS (S1), partial prime key X-K1 GREATER (S2), no KEY phrase failing (S3), optional-absent failures (S5/S6): area and XL unchanged each time; the READ after S1 then delivers K002 length 10"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/st2.cob",
+    "printed": "A=23 QQB2ZZZZZZ 10 / B=23 QQB2ZZZZZZ 07 / C=23 ... / D=23 QQA1ZZZZZZ 07 / RD=46 QQA1ZZZ 07",
+    "expected": "failed STARTs (alternate value ZZ matches no record) leave area and XL as set; the READ after a failed START gives 46 and leaves the area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR3",
+    "check": "OK  §1985:IX.4.7.4 GR3  (║4.7.4 General Rules║)  the text is in GR3"
+   }
+  ],
+  "notes": "The START emission sends the area image as an argument and writes back only the FILE STATUS item. st2 was first written with the alternate value in the prime-key positions; the failures it shows are the right answer for the value actually in X-ALT ('ZZ'), and st5-st8 confirm alternate-key START succeeds when the value is in place.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,e",
+  "evidence": "Probe src/s1.cob (s1-001): DYNAMIC access (the reader probed sequential only) RECORD VARYING DEPENDING ON XL: area 'K001QQZZZZ', XL 7; successful START KEY GREATER THAN X-KEY -> 'D1=00 K001QQZZZZ 07' (area and XL unchanged), the following READ NEXT delivers K002 length 10; failed START on the alternate key value ZZ with no INVALID KEY phrase (USE ON I-O runs) -> 'D2=23 K002ZZBBBB 10' (area and XL as left). KeyedIoEmitter.cs has no edition read except the registration DialectLevel (lines 62/72). cite.py: 'OK  §1985:IX.4.7.4 GR3  (║4.7.4 General Rules║)  the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

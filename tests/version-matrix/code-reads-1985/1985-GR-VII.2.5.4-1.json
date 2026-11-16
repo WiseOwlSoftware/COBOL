@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-VII.2.5.4-1",
+ "rule-digest": "58a66c97cb07",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-119",
+  "sources": {
+   "reader": "668292f5bea64a2ebda04368ea0c5b5116c23839c6b9a80a88be48d56cd05427",
+   "refuter": "263df7f3a8f35d39c4043566d15ccb2692c107760306ba31f7effb07a6212713"
+  },
+  "imported": {
+   "reader": "31e1d2995cf5a792b8dad436427f85739b36b17249dda72b1d4be48ad94dafa7",
+   "refuter": "417a92ad5f4051f93cc77319f0ee593bfa5054dada576248481b40fe50cf2f31"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a sequential file's control entry has a FILE STATUS clause, every OPEN, CLOSE, READ, WRITE and REWRITE of that file (successful, at end, or failed with a permanent or logic error) stores the two-character I-O status into data-name-1 before any AT END imperative or USE AFTER STANDARD EXCEPTION procedure runs (VII.1.3.5); the witness covers only successful OPEN/WRITE/READ/CLOSE and READ at end.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSuccessfulTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration",
+    "switches": "passes ctx.Data.DialectLevel (85) to the runtime FileRegister so the connector's Edition is 85; the status store itself is edition-blind",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 85 the physical file, not the connector, is locked (decides when status 38 arises, a status VALUE, not whether it is stored)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility off at 85 (no 61 status); again the value, not the store",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep CobolVersion|EditionContext|DialectBehavior|DialectLevel over SequentialIoEmitter, SortEmitter, KeyedIoEmitter and DialectBehaviors.IsActive|.Edition over src/WiseOwl.Cobol.Runtime/IO; EmitStoreFileStatus consults no edition",
+  "behaviour-differs-by-edition": "no: the store into data-name-1 is the same code at 85 and 2023 (p1fail.cob prints identically at --std 2023); only which status value some operations produce is edition-gated, which is VII.1.3.5's subject",
+  "witnesses-cover": "part: g85_bf20_01 exercises successful OPEN/WRITE/READ/CLOSE and READ at end; not failed statements (35, 41, 42, 43, 46, 47, 48, 49), REWRITE, OPEN EXTEND/I-O, the store before a USE procedure, a qualified or group status item, or SORT USING/GIVING",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p1fail.cob",
+    "printed": "declarative sees status first, then main line: OPEN-IN-M 35; READ-M 47; CLOSE-M 42; WRITE-M 48; OPEN-AGAIN 41; READ-OUT 47; REWRITE-OUT 49; OPEN-EXT-A 00; REWRITE-NR 43; WRITE-IO 48; READ-IO 00 A1; REWRITE-IO 00; AT END <10>; READ-AFTER 46; qualified FSV OF FSG updated inside <..>",
+    "expected": "VII.1.3.5 values 35/47/42/48/41/47/49/43/48/10/46, each stored before the declarative and the AT END imperative"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p4org.cob",
+    "printed": "GRP-STATUS 0/0 (group FS1 of two PIC X, preset ZZ, after WRITE)",
+    "expected": "group alphanumeric status item updated to 00"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p3sort.cob",
+    "printed": "AFTER-SORT 00 00",
+    "expected": "USING and GIVING files' status items updated by the SORT's implicit OPEN/READ/WRITE/CLOSE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p1fail.cob",
+    "printed": "--std 2023: identical output line for line",
+    "expected": "same store mechanism at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.5.4 GR1",
+    "check": "OK  §1985:VII.2.5.4 GR1  (2.5.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause"
+   }
+  ],
+  "notes": "EmitStoreFileStatus is called after every sequential OPEN/CLOSE/READ/WRITE/REWRITE arm and the SORT transfer arms, before exception dispatch; a declared but unresolvable item is a loud guard. All failure classes probed store the right value before the USE procedure runs.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,e,f",
+  "evidence": "Attacked the status values the reader did not try and the placements it did not: refute-1985-119/src/r1stat.cob at --std 85 printed OPEN-OPT-IN 05 (OPTIONAL file absent), first READ AT-END-IMP 10 inside the AT END imperative, CLOSE-NOREW 07, CLOSE-LOCK 00 then OPEN-LOCKED 38 seen by the USE procedure before the main line, WRITE-SMALL 44 (record below RECORD VARYING minimum) in the declarative, REWRITE-DIFF 44 (size differs), and EOP-IMP 00 inside the END-OF-PAGE imperative of a LINAGE file with the item preset ZZ. src/r1link.cob: data-name-1 in the LINKAGE SECTION (allowed by SR2, which excludes only File, Report and Communication Sections), plain and qualified in a group: SUB-OPEN-MISSING 35, SUB-OPEN-W [00], and the caller's storage saw both. Every store precedes the imperative or USE procedure as VII.1.3.5 requires. cite.py: OK §1985:VII.2.5.4 GR1 the text is in GR1; OK §1985:VII.1.3.5 the text is in the clause ('prior to the execution of any imperative statement associated with that input-output statement'); OK §1985:VII.2.5.3 SR2 the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

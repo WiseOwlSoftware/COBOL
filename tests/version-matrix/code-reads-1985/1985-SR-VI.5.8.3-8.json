@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-8",
+ "rule-digest": "3cdf19dc2df6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-055",
+  "sources": {
+   "reader": "e17011329c83db2a64c309c533ec6164d114805fedbceecf89eb286f7b81ab8f",
+   "refuter": "03a7276e8e8d8c28b115d796f66fd6a7e6d6087cac7da7ec860eb12498b71df9"
+  },
+  "imported": {
+   "reader": "5c3ca0e65fcb9df09d14c7a9bcc92f09f1f6b7ece15ea4c86d6fca30f4c3d681"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.8.3-8",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85, when the OCCURS DEPENDING ON entry is in a record description entry that has the EXTERNAL clause (a Working-Storage 01), data-name-1 must possess the external attribute (it is in an EXTERNAL WS record, or in a record of an EXTERNAL FD, per §1985:II.6.2.2.2.3) AND must be described in the same Data Division as the table.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#DependingAttributeFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsInExternalRecord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#EntryClauseCandidates",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#EntryClauseCandidates",
+    "switches": "ClauseOperandsTakeImplicitQualifiers (DialectLevel >= 2002): at 85 the whole scope's candidates are counted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85",
+    "switches": "DialectLevel < 2002: a report SUM counter may be data-name-1",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Construct in OdoResolvePass.cs#DependingAttributeFault and DataBinder.cs#IsInExternalRecord: neither reads the edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover the external-attribute half (EXTERNAL counter admitted, internal counter refused); the 'described in the same Data Division' half, a counter in an EXTERNAL FD record, and a counter inside the same external record are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o8bad.cob",
+    "printed": "error COBOL2788: ... the table's record 'E' is EXTERNAL and data-name-1 does not possess the external attribute",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o8fdint.cob",
+    "printed": "error COBOL2788 (counter in a record of a non-EXTERNAL FD)",
+    "expected": "refused: records of an internal FD are internal"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o8fdext.cob",
+    "printed": "EXIT 0, OK (counter in a record of an EXTERNAL FD)",
+    "expected": "admitted: those records attain the external attribute (§1985:II.6.2.2.2.3)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o8ok.cob",
+    "printed": "EXIT 0, XY|",
+    "expected": "admitted; 2 occurrences"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o8same.cob",
+    "printed": "EXIT 0, 3XYZ|",
+    "expected": "admitted (counter inside the same external record, before the table)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o8nested.cob",
+    "printed": "EXIT 0, XY| (the inner program's EXTERNAL table depends on the container's EXTERNAL GLOBAL NE)",
+    "expected": "refused: data-name-1 is not described in the same Data Division"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.3 SR8",
+    "check": "OK  §1985:VI.5.8.3 SR8  (5.8.3 Syntax Rules)  the text is in SR8"
+   },
+   {
+    "cite": "§1985:II.6.2.2.2.3",
+    "check": "OK  §1985:II.6.2.2.2.3  (6.2.2.2.3 Record Areas for Files)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:X.4.6.4 GR2",
+    "check": "OK  §1985:X.4.6.4 GR2  (║4.6.4 General Rules║)  the text is in GR2"
+   }
+  ],
+  "notes": "The external-attribute half holds. The 'described in the same Data Division' half is not enforced. OdoResolvePass's comment says it 'holds by construction' because the pass runs before a contained program inherits names. The probe shows that data-name-1 resolves to a container's GLOBAL item, and the program runs on the container's counter.",
+  "seeded": true,
+  "harm": "under-rejects",
+  "cause": "b",
+  "at-2023": "EXIT 0, XY| (accepted the same way; only an EXIT PROGRAM archaic warning)",
+  "repro": "Outer: 01 NREC EXTERNAL GLOBAL. 05 NE PIC 9. ... MOVE 2 TO NE CALL \"INNER\". Contained INNER: 01 E EXTERNAL. 05 T PIC X OCCURS 1 TO 5 TIMES DEPENDING ON NE. MOVE \"XYZ\" TO E DISPLAY E (file o8nested.cob)",
+  "expected": "A compile-time refusal: data-name-1 'must reference a data item possessing the external attribute which is described in the same Data Division' (§1985:VI.5.8.3 SR8); NE is described in the containing program's Data Division",
+  "observed": "Compiles clean; prints XY|",
+  "known_note": "none (kb/Work PB1261, landed, added the GLOBAL/EXTERNAL attribute screen but treated the same-Data-Division half as holding by construction)"
+ },
+ "work": "PB5797"
+}

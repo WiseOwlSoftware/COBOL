@@ -1,0 +1,83 @@
+{
+ "rule-id": "1989-FMT-A.2.21.2",
+ "rule-digest": "b89111e57845",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-081",
+  "sources": {
+   "reader": "10b4aade8e8b99f9bc115cfbcccf36f29e1515815c3527e0342120b2257f790b",
+   "refuter": "353f6aa3fef4fa94d6dcd70227a67a8f22e47d6f6ce07edc9362bbe8db1e1554"
+  },
+  "imported": {
+   "reader": "7fbf54bf5d0c3ac0b8a2c55c6185cb3a19f965681be263b676d218efadd535bc",
+   "refuter": "bc8f298a14c8532f278b3de2056cf94d2184a23217c95632f886236781296cf0"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.21.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION LOG10 ( argument-1 ) must be accepted with exactly one numeric argument (item, signed literal, expression) and refused with two (comma- or space-separated), zero, an empty '( )', or no list; a floating-point literal argument (a 2002 introduction) must be refused at 85.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgsOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FLOATLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FN_SIGNED_DECIMALLIT; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFloatingPoint",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: IntrinsicSig.IntroducedIn (85 for the 1989 module rows) against ctx.Edition.DialectLevel, COBOL1502/COBOL1503",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "Constructs.FunctionEmptyArgumentList2002: an empty '( )' argument list is COBOL0900 below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFloatingPoint",
+    "switches": "Constructs.FloatingPointLiteral2002: a floating-point numeric literal is COBOL0900 below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 an empty '( )' list and a floating-point literal argument are refused by COBOL0900 (2002 introductions); the one-argument arity is the same at every edition",
+  "witnesses-cover": "part: l1-log10-two-arguments covers the two-argument refusal (COBOL1504); the accepted forms, the zero/empty/no-list refusals and the float-literal edition arm are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/fmtok.cob",
+    "printed": "L-H= 3000000 L-LIT= 2000000 L-EXP= 1000000 L-SMALL=-3000000 L-2= 0301029",
+    "expected": "log10(1000)=3, ( 100 )=2, 1000/100+0=1, +0.001=-3, 2=0.301029.. (truncated)"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/fmtbad.cob",
+    "printed": "COBOL1504 LOG10 takes 1 argument(s); 2 given (10, 10) / 0 given ('()' and no list); COBOL0900 an empty function argument list requires COBOL-2002; COBOL0900 a floating-point numeric literal requires COBOL-2002 for LOG10(1.0E2)",
+    "expected": "refuse each: the format admits exactly one argument; 1.0E2 is not a 1985 literal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.21.3 AR1",
+    "check": "OK  §1989:A.2.21.3 AR1  (2.21.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause ('The definition of a function specifies the number of arguments required')"
+   }
+  ],
+  "notes": "The format quotation ('FUNCTION LOG10 ( argument-1 )') is below cite.py's four-word floor; clause A.2.21.2 was read directly in specs/ANSI_COBOL_1985.md. Arity comes from the catalog row LOG10 Fixed 1..1, IntroducedIn 85, and the edition-gated literal and empty-list forms are refused at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.21.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "rfmt1.cob: LOG10(H - 900) -> 2; LOG10(FUNCTION LOG10(H) + 7) -> 1; 'LOG10 (H)' -> 3; LOG10(H ** 2) -> 6. rfmt2.cob: LOG10(H -1) two arguments COBOL1504; LOG10(H; H) COBOL1504; LOG10(H)(1:2) COBOL1629. rfmt3/rfmt4 (class c): no FUNCTION keyword or REPOSITORY form at 85 refused. rfmt5.cob: LOG10(.000000000000000001) -> -18; LOG10(999999999999999999) prints 018.000000000000 where the true value truncated to 12 places is 017.999999999999: an approximation, which §1989:A.2.21.4 RV1 permits (OK 'approximation of the logarithm to the base 10'), and a returned-value matter outside this format rule. cite.py: OK §1985:IV.4.3.8.3.3 SR1/SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

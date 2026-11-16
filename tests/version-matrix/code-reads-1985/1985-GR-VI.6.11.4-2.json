@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-2",
+ "rule-digest": "a0518a54b97c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-107",
+  "sources": {
+   "reader": "01efcfaedc4602347e09b5d2941080b0d15f321cf255864b79af999a90dcbd6d",
+   "refuter": "5205f815a52d506844bf53e67f65136e496de0bcae35f2be9b612921d684782c"
+  },
+  "imported": {
+   "reader": "a6c1b700c4deca62b386ea9ec4bdd635ba3bf22cf8c6a28c5a54623116510421",
+   "refuter": "9beeb293a75dfb7b91160472d1d5525b6fa077bbc4fd74258b52a21370530c62"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.11.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "DIVIDE format 2 (DIVIDE {identifier-1|literal-1} INTO {identifier-2|literal-2} GIVING {identifier-3 [ROUNDED]}...) divides operand 1 into operand 2 and stores that one quotient in each identifier-3, each by its own ROUNDED and truncation, numeric or numeric-edited; the witness covers unsigned integer and one-decimal receivers only.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#divideStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivide; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#FinalQuotient; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal by DialectLevel: at 1985 an unphrased size error (zero divisor included) is caught and the statement continues; 2002+ raises a fatal EC-SIZE",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRoundedPhrase",
+    "switches": "Constructs.RoundedModeIs2014 refuses ROUNDED MODE IS before 2014 (COBOL0803)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|CobolVersion|Edition in ArithmeticBinder.cs (none) and ArithmeticEmitter.cs (lines 264 and 719 only); the quotient formation (EmitDivide, FinalQuotient) is edition-blind.",
+  "behaviour-differs-by-edition": "yes: only the unphrased size-error disposition (1985 continues with the resultant unchanged; 2023 terminates on EC-SIZE-ZERO-DIVIDE) and the refusal of ROUNDED MODE; the quotient itself is the same code",
+  "witnesses-cover": "part: g85_bf14_04 L2/L3 cover unsigned receivers; signed, edited, scaled, aliasing, size error, zero divisor and 18-digit operands are not exercised there (probed here)",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/d23.cob",
+    "printed": "F2 -004.00 -  4.00 4.0 / F2L +003.14    3.14 3.1 / SE2 +011.00 / SE4 0.2 +123.00 / BIG +999999999999999999 / AL +010 +010.00 / SUB 000E00 5",
+    "expected": "30 / -7.5 = -4 into S9(3)V99, -ZZ9.99, unsigned 9V9 (4.0); 22/7 truncated 3.14, rounded 3.14 and 3.1; zero divisor with ON SIZE ERROR leaves R1; a size error at one receiver leaves it and stores the next (GR2 'stored in each')"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/rej3.cob, rej4.cob, rej6.cob, rej10.cob, rej11.cob, rej13.cob",
+    "printed": "COBOL1675 alphanumeric resultant; COBOL0844 alphanumeric literal, group operand, ALL literal; COBOL1689 two INTO operands, ROUNDED on the sending operand",
+    "expected": "refused: SR1/SR2 and format 2 prints one sending operand"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/rej5.cob",
+    "printed": "error COBOL0803: ROUNDED MODE IS requires COBOL-2014 (targeting COBOL-85)",
+    "expected": "refused at 1985: no ROUNDED MODE phrase in format 2"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/dodo.cob; drefm.cob",
+    "printed": "ODO table elements as GIVING receivers stored; A (1:2) refused COBOL0844",
+    "expected": "a reference-modified item is alphanumeric, not a numeric operand"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/dzero.cob",
+    "printed": "AFTER2 11 at --std 85; --std 2023 abnormal termination EC-SIZE-ZERO-DIVIDE",
+    "expected": "§1985:VI.6.4.2 GR3: without the phrase the resultant is undefined and the statement ends"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.11.4 GR2",
+    "check": "OK  §1985:VI.6.11.4 GR2  (6.11.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.4.2 GR3",
+    "check": "OK  §1985:VI.6.4.2 GR3  (6.4.2 The ON SIZE ERROR Phrase)  the text is in GR3"
+   }
+  ],
+  "notes": "The binder routes INTO+GIVING to BoundDivideGiving(dividend=INTO operand, divisor=operand 1) and EmitDivide forms the quotient once per receiver at its scale and ROUNDED mode from senders evaluated once. Every probe matched the 1985 text; the witness g85_bf14_04 matched its .out.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.11.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "refute-1985-107/r23-001 at --std 85: MR 5 000050000 (DIVIDE 2 INTO 10 GIVING I T (I): T (I) identified after I is stored, per §1985:VI.6.4.6 (2) left-to-right sequence); USE +123.00 (unphrased size error on R3 PIC 9V9 leaves the second receiver stored); NR -3 (ROUNDED of -2.5 increases the absolute value); PPR 1300 / PPT 1200 (PIC 99PP rounding and truncation at the rightmost stored integer position); PV .007 (PIC PP9); BSE 01 (PIC 99 COMP size error by PICTURE, unchanged); ED [  2.50CR] [***2.50] [  2.50] and ED0 BLANK WHEN ZERO blank; LZ 09 (literal 0 divisor, phrase taken); X18 .333333333333333333 and X18R .666666666666666667; B18 unchanged on a 19-digit quotient; UN 09 (unsigned receiver takes the magnitude). Class c: fn1.cob/fn2.cob (FUNCTION INTEGER as identifier-1 / identifier-2) refused COBOL0900 citing §1985:IV.4.3.8.3.3 SR4; ix1/ix3 (index data item as operand or GIVING receiver) refused COBOL0844/COBOL1675. All match the 1985 text. cite.py: OK §1985:VI.6.11.4 GR2 the text is in GR2; OK §1985:VI.6.4.6 ... it lies in GR2; OK §1985:IV.4.3.8.3.3 SR4 the text is in SR4; OK §1985:VI.6.4.1 the text is in the clause.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement: ConstructRegistry numeric-function-identifier-operand-2002 refuses a numeric function-identifier as a DIVIDE operand at 1985 (same arm as latest: no)",
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#IndexDataItemAdmittedAt: DialectLevel-keyed admission of an index data item by operand context (arithmetic contexts refuse it at every edition)"
+  ],
+  "corrected": ""
+ }
+}

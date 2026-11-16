@@ -1,0 +1,163 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-1",
+ "rule-digest": "0f89015a8271",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-050",
+  "sources": {
+   "reader": "8e01fa6550172ba1facd2fe4fb98c158da138cb22996003aea9facaa68b1c334",
+   "refuter": "4bf51d44593d59f61dffc405634107d030ebe087e126c032e9cc19b97e1e25dd"
+  },
+  "imported": {
+   "reader": "c4bdc7829ce6a72d8b5375ce0ac7b4e26fbf3c1bea144941b04ffd3b1796917c",
+   "refuter": "1855ec8867c3ed09721621e4c302e8840165c5ae19ae2f93adefb59ab97e5572"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.10.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a REDEFINES clause must come right after data-name-1 or FILLER, or right after the level-number when the subject is omitted (§1985:VI.5.3.3 SR2); after any other clause it must be refused, in every section.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenLeadingClausePosition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#LeadingClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#entryNameHere",
+    "switches": "whether the word after the level-number is read as the entry-name depends on the edition's reservation (ReservedGatedWord)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "ScreenLeadingClausePosition takes the clause list's ordinal (REDEFINES must be clause 0) with no DialectLevel test (grep DialectLevel/Edition. in DataBinder.ClausePlacement.cs around LeadingClauses); the TYPEDEF row of LeadingClauses is unreachable at 85 because VersionConformancePass refuses TYPEDEF.",
+  "behaviour-differs-by-edition": "no: the only edition input is which words are reserved, so a 2002-only word (TYPEDEF, NATIONAL) is a valid 1985 subject",
+  "witnesses-cover": "part: the witnesses cover REDEFINES after PICTURE and after GLOBAL; the other clauses, the omitted-subject and FILLER forms, and the file and linkage sections are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "src/rd_ok_named.cob",
+    "printed": "ABCD CD",
+    "expected": "legal elementary and group redefinition"
+   },
+   {
+    "class": "d",
+    "file": "src/rd_ok_filler.cob",
+    "printed": "CD",
+    "expected": "legal after FILLER"
+   },
+   {
+    "class": "c",
+    "file": "src/rd_ok_nosubject.cob",
+    "printed": "CD",
+    "expected": "legal right after the level-number (VI.5.3.3 SR2)"
+   },
+   {
+    "class": "b",
+    "file": "src/rd_after_usage.cob",
+    "printed": "COBOL2739 the REDEFINES clause follows USAGE",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/rd_after_value.cob",
+    "printed": "COBOL2739 follows PICTURE (+COBOL2406)",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "src/rd_after_occurs.cob",
+    "printed": "COBOL2739 follows OCCURS (+COBOL1701)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "src/rd_after_sign.cob",
+    "printed": "COBOL2739 follows SIGN",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "src/rd_after_just.cob",
+    "printed": "COBOL2739 follows JUSTIFIED",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "src/rd_after_bwz.cob",
+    "printed": "COBOL2739 follows BLANK WHEN ZERO",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "src/rd_after_sync.cob",
+    "printed": "COBOL2739 follows SYNCHRONIZED",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/rd_after_external.cob",
+    "printed": "COBOL2739 follows EXTERNAL (+COBOL2404)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/rd_after_pic_nosubj.cob",
+    "printed": "COBOL2739 'FILLER' follows PICTURE",
+    "expected": "refused: no subject, so it must follow the level-number"
+   },
+   {
+    "class": "b",
+    "file": "src/rd_before_name.cob",
+    "printed": "COBOL1941 'B' is not a clause",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/rd_twice.cob",
+    "printed": "COBOL2739 follows REDEFINES (+COBOL2423)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "src/rd_filesec.cob",
+    "printed": "COBOL2739 for B (file section) and LB (linkage section)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "src/rd_filesec_ok.cob",
+    "printed": "1234 / 1235",
+    "expected": "legal in a file record and in working storage; written, read back and updated through the redefinition"
+   },
+   {
+    "class": "c",
+    "file": "src/rd_85words.cob",
+    "printed": "ABCD CD",
+    "expected": "TYPEDEF and NATIONAL are not reserved in 1985, so they are subjects and REDEFINES follows them"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.3 SR1",
+    "check": "OK  §1985:VI.5.10.3 SR1  (5.10.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.3.3 SR2",
+    "check": "OK  §1985:VI.5.3.3 SR2  (5.3.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The free-order clause list is screened by position: REDEFINES must be the first clause after the optional subject. Every 1985 clause placed before it is refused, and the omitted-subject form is accepted. At --std 2023 rd_after_usage draws the same COBOL2739.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same COBOL2739",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.10.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read §1985:VI.5.10.3 SR1, the definition Subject of Entry (operand or reserved word immediately after the level-number) and §1985:VI.5.3.3 SR2 (REDEFINES follows data-name-1/FILLER, otherwise the level-number). Probes at --std 85: rd_comma (01 B, REDEFINES A; PIC X(4). and 01 C REDEFINES, A PIC XX.) accepted, printed ABCD AB (separators are not clauses); rd_77ok (77 B REDEFINES A) printed AB; rd_77bad (77 B PIC X(2) REDEFINES A) COBOL2739 follows PICTURE; rd_after_global (01 B GLOBAL REDEFINES A) COBOL2739; rd_sub_after_pic (05 B PIC 9(4) REDEFINES A) COBOL2739; rd_after_occurs_group (05 B OCCURS 2 REDEFINES A) COBOL2739; rd_after_usage_nosubj (05 USAGE DISPLAY REDEFINES A) COBOL2739 'FILLER' follows USAGE; rd_sub_nosubj_ok (05 REDEFINES A PIC X(2)) printed ABCDE; rd_85words2 (VALIDATE, PROPERTY, RAISE as 1985 subjects) printed ABCD AB A; rd_commsec (Communication Section 05 B PIC X(4) REDEFINES A) COBOL2739 (plus the CD record-length COBOL6169). DataBinder.ClausePlacement.cs carries no DialectLevel test (grep). cite.py: OK §1985:VI.5.10.3 SR1; OK §1985:VI.5.3.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

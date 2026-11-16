@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-9",
+ "rule-digest": "141422042346",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-026",
+  "sources": {
+   "reader": "a5dafe8cbf6657655f0147d0fac639f370dc4e2a76f6d0aaf2d89580888b6086",
+   "refuter": "c530e3e3d49cbc1fad9c047f19614425ee8fc3e797bca7ec429af4e4c7e9c7cc"
+  },
+  "imported": {
+   "reader": "f79d6b58c30399a654d3ce38b005a6ca42f49e2172105b017f721c0e39989163",
+   "refuter": "b08a75b97bc41877ce92053657633a5a68a03331493321184cded96cd168c1ff"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.7.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "On a LINAGE file, a WRITE with NOT END-OF-PAGE must run imperative-statement-2 after the record is written only when the WRITE succeeds and no end-of-page condition (footing reached, GR18) or page overflow (LINAGE-COUNTER would exceed the page body, including ADVANCING PAGE) occurs; an unsuccessful WRITE runs neither phrase.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write",
+  "edition-consulted": [],
+  "edition-search": "Read EmitWrite's END-OF-PAGE branch (the __wst success snapshot and FileEndOfPage test) and grepped 'Edition|IsActive|DialectBehavior' over SequentialConnector.cs: no edition test; NamedRecordEntry (SequentialIoEmitter) is the only edition site in EmitWrite and is not reached for a file without SELECT WHEN.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers AFTER 1 LINE and ADVANCING PAGE without FOOTING; the footing-area end-of-page, the automatic page overflow of a plain WRITE, BEFORE ADVANCING at the last line, ADVANCING 0, the AT/NOT pair together and an unsuccessful WRITE are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-026/eop1-001 (eop1.cob)",
+    "printed": "LINAGE 5 FOOTING 4, AT EOP + NOT AT EOP: W1 NOT (LC 2), W2 NOT (3), W3 EOP (4), W4 EOP (5), W5 EOP (overflow, LC 1), W6 NOT (2), W7 NOT (3); NOT alone BEFORE ADVANCING 1: N1 (to 4) and N2 (5) silent, N3 overflow silent (LC 1), N4/N5 NOT; ADVANCING 0 LINES at LC 3: Z0 NOT, LC 3",
+    "expected": "GR9: NOT phrase only when GR18's end-of-page (LINAGE-COUNTER equal or exceed integer-2) and the page overflow do not occur; GR16 c zero advance is no repositioning"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-026/eop1-001 (eop1.cob)",
+    "printed": "WRITE with NOT AT END-OF-PAGE on an unopened file: 'DECL 48', no 'U0 NOT-EOP'",
+    "expected": "GR9 (amended) 'during the successful execution' only; GR10 the USE procedure on the unsuccessful WRITE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.4 GR9",
+    "check": "OK  §1985:VII.4.7.4 GR9  (4.7.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VII.4.7.4 GR18",
+    "check": "OK  §1985:VII.4.7.4 GR18  (4.7.4 General Rules)  the text is in GR18"
+   }
+  ],
+  "notes": "The NOT arm is guarded on a status snapshot taken before the FILE STATUS store and on the connector's end-of-page flag read in the if header, so a failed WRITE and both end-of-page shapes suppress it. The behaviour follows the Amendment 2 text of GR9, which the transcription applies in place.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.7.4-9",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,f",
+  "evidence": "reop1-001 (--std 85): LINAGE 3 with NO FOOTING -> A1 NOT (LC2), A2 NOT (LC3, last body line, no footing EOP per §1985:VII.3.7.4 GR1), A3 overflow EOP (LC1), A4 NOT; LINAGE DN1 FOOTING DN2 (DN2 4 at OPEN, set to 2 after) with LINES AT TOP/BOTTOM -> page 1 EOP from LC4 (footing fixed at OPEN), after overflow page 2 EOP from LC2 (DN2 re-read at page change, GR8); NOT-only WRITE AFTER 3 reaching the footing line -> silent; AFTER 0 LINES on the footing line LC5 -> EOP, NOT suppressed; AFTER 3 from LC5 -> overflow EOP; RECORD VARYING violation (44) on a LINAGE file -> DECL 44, neither phrase. reop2-002: WRITE AFTER ADVANCING PAGE NOT AT END-OF-PAGE compiles at 85 (SR7 bars only END-OF-PAGE) and the NOT phrase does NOT run: the compiler treats ADVANCING PAGE as page overflow (SequentialConnector#PositionOnLogicalPage, lines<0 arm). That reading holds in the 1985 text: §1985:VII.3.7.4 GR9c says during the reset 'LINAGE-COUNTER is implicitly incremented to exceed the value specified by integer-1', which is GR18's page overflow ('simultaneously exceed the value of both integer-2 ... and integer-1'), so the end-of-page condition occurs and imperative-statement-2 is not executed; the reader's requirement already names ADVANCING PAGE. cite.py: OK §1985:VII.4.7.4 GR9; OK GR18; OK §1985:VII.3.7.4 GR9c, GR1, GR8; OK §1985:VII.4.7.3 SR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

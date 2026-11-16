@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-SR-IX.2.5.3-4",
+ "rule-digest": "5b4203ecd68e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-046",
+  "sources": {
+   "reader": "6a7549fbd4d57f686dea1cc5be349852eadfd6130b5348654b454c5ee83af605",
+   "refuter": "a01d34c378e6889baef00ddf26ad4565679549337ef74068668c568978c99cac"
+  },
+  "imported": {
+   "reader": "ca8a745b0d41eadcd468a0155200e0fddf4cf17244b110c6d74a92fac430df92",
+   "refuter": "1dc7b81af7cc597955b0cc75e237ecebc3ead37b3c0b18a0ae7fdeb450e3d2dc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.2.5.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the data-name of an ALTERNATE RECORD KEY clause must not reference an item whose leftmost character position is that of the prime record key or of any other alternate record key of the file, including an item in another record description of the file (the keys' positions are implicitly the same character positions in every record, GR4) and a REDEFINES or the same item.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#CoincidingKey; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowInFile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
+    "switches": "DialectLevel < 2002 selects Rules85 = the 2023 rows minus those a Rules1985 row Supersedes, plus Rules1985 (the 1985 SR2/SR3 key rows); 2002 selects Rules02",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen",
+    "switches": "sortMerge1985 (SD file below 2002) skips every row; an indexed FD file is not affected",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the row SR-12.4.5.6.3-4 is not superseded by any Rules1985 row, so 85 runs the 2023 row; its SOURCE-phrase exemption cannot arise at 85 (no SOURCE phrase).",
+  "witnesses-cover": "part: pb773 is a legal-entry witness; no witness at 85 exercises the refusal (same item, REDEFINES at the prime key's position, a key in a second record at offset 0, two alternates at one position).",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c4same.cob",
+    "printed": "error COBOL0863: ALTERNATE RECORD KEY 'IX-KEY' begins at the same byte position as the prime record key 'IX-KEY'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c4redef.cob",
+    "printed": "error COBOL0863: ALTERNATE RECORD KEY 'IX-KEY-R' begins at the same byte position as the prime record key",
+    "expected": "refused: REDEFINES of the prime key starts at its leftmost position"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c4rec2.cob",
+    "printed": "error COBOL0863: ALTERNATE RECORD KEY 'R2-K' begins at the same byte position as the prime record key 'IX-KEY'",
+    "expected": "refused: key in a second 01 at offset 0"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c4twoalt.cob",
+    "printed": "COBOL0863 on IX-GRP and on IX-A1 (group and its first elementary share a leftmost position)",
+    "expected": "refused: two alternate keys at one position"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c4dupname.cob",
+    "printed": "COBOL0863 twice: 'IX-B' begins at the same byte position as another alternate record key 'IX-B'",
+    "expected": "refused: same alternate named twice"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c4ok.cob",
+    "printed": "BYB=CCCC333444DDDD (exit 0)",
+    "expected": "three alternates at distinct positions (one in a second record) legal; READ KEY IS alternate returns the record"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.5.3 SR4",
+    "check": "OK  §1985:IX.2.5.3 SR4  (║2.5.3 Syntax Rules║)  the text is in SR4"
+   }
+  ],
+  "notes": "The 2023 row SR-12.4.5.6.3-4 is in force at 85 and compares each alternate key's record offset with the prime key's and every other alternate's, across record descriptions. The probes cover every coincidence shape; the message cites the 2023 rule and says byte for character position (the same in 1985).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.2.5.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "r4overlap: alternate key R2-K at offset 2 of a second record, overlapping the prime key IX-KEY (offset 0..3) but with a different leftmost position -> admitted and runs (exit 0), as SR4 (leftmost position only) requires; r4sync: AK1 after an X(1) and a COMP SYNC item in record 1 and AK2 at offset 3 in record 2 -> COBOL0863 on both, the coincidence computed on the same layout the record uses (no slack byte at 85, implementor latitude). cite.py: OK  §1985:IX.2.5.3 SR4  (║2.5.3 Syntax Rules║)  the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

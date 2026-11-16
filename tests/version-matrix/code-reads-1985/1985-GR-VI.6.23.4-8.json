@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.6.23.4-8",
+ "rule-digest": "0426e34234d6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-112",
+  "sources": {
+   "reader": "8f802580a88c911ec6d56f6023b7c440e54bde1edb428b3440113771717f7829",
+   "refuter": "1b03a63a95ca9f894a10cb97c9351fdb30a86649ceb1f21d45d6872f18d746d0"
+  },
+  "imported": {
+   "reader": "ef87bb0ae55f0aa383038e68ce8a57444cda35cff4e242ee6ccf3a8cf2936788",
+   "refuter": "a1b62efe1cb709042924eceb0e40ba10ba7f0898e32bc6c878e7e780ccebd748"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.23.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "A format 4 SET with several condition-names TO TRUE must give the result of one SET per condition-name in the written order: a later condition-name of the same conditional variable wins, and a subscript of a later condition-name is evaluated after earlier ones were stored; the 1985 format admits only the one TO TRUE group, so a second group and TO FALSE are refused at --std 85.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetCondition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSet; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSetBooleanStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSetBooleanStatement",
+    "switches": "Constructs.SetConditionFalse2002 (TO FALSE) and Constructs.SetConditionRepeated2002 (second TO phrase): refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: COBOL-85 Format 4 has no outer ellipsis and no FALSE arm; from 2002 several TO TRUE/FALSE groups are admitted. The in-order store of several condition-names is the same at every edition.",
+  "witnesses-cover": "part: g85_bf17_04 covers several condition-names TO TRUE; not exercised: two condition-names of one conditional variable, a later condition-name subscripted by a variable an earlier one sets, an index subscript, and the 85 refusals",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/setcond.cob",
+    "printed": "P1 A=AB; P1B A=EF; P2 S=2 TB=070; P2B S=3 TB=007; P3 TB=707 G1=OK | S=2",
+    "expected": "later wins (first VALUE literal AB of A-X); T-ON (S) uses S as just set (2, then 3 from VALUE 3 THRU 5); several elements and a group member set"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/setcref.cob",
+    "printed": "COBOL0900 a SET statement with more than one condition-name TO TRUE phrase requires COBOL-2002; COBOL0900 SET condition-name TO FALSE requires COBOL-2002 (with COBOL2049); COBOL1757 switch-status condition-name; COBOL1639 'A' is not a condition-name",
+    "expected": "refusals at --std 85 (§1985:VI.6.23.2 Format 4, SR6)"
+   },
+   {
+    "class": "c",
+    "file": "setcond-002 at --std 2023",
+    "printed": "EXPECT: MATCH",
+    "expected": "same in-order result"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.23.4 GR8",
+    "check": "OK  §1985:VI.6.23.4 GR8  (6.23.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "BindSetCondition flattens the condition-names into an ordered list and EmitSet emits one store per entry, each rendering its own subscript at its turn, which is exactly 'a separate SET statement for each'. The edition consultation is the 2002 gate on the format's shape, not on GR8's semantics.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.23.4-8",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "refute-1985-112/src/setc2.cob at 85: SET T-K (1) K-TWO T-ON (K) K-THREE T-ON (K) TO TRUE printed TB=277 K=3 (each subscript read at its own turn: T(2) after K-TWO, T(3) after K-THREE); SET N-NEG N-POS N-NEG TO TRUE on a signed COMP variable printed N=-005 (last wins). The 85 refusal of a second TO phrase and of TO FALSE is the reader's setcref probe (COBOL0900). cite.py: OK  §1985:VI.6.23.4 GR8  the text is in GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

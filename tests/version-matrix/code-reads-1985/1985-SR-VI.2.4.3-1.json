@@ -1,0 +1,131 @@
+{
+ "rule-id": "1985-SR-VI.2.4.3-1",
+ "rule-digest": "f2bc3914dec9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-048",
+  "sources": {
+   "reader": "ffda7751b6ffff529d4fbbd967332ed572be084dfa5bf14a6c918b2dab1daeee",
+   "refuter": "799a6246823527f7181c6232e4f09cca0c2db56f4e32c7b7c50886ff80f17f76"
+  },
+  "imported": {
+   "reader": "02d16be402e1df8fb5a31fb97774e1f467bd1c87525ecadcebd8d0b2aa3e46a2",
+   "refuter": "69986cfd2c4ba206e609bf9b72e413f04584f71dbc8f02e1956fc080195e83c1"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "edition-search": "",
+  "rule-id": "1985-SR-VI.2.4.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the program-name in END PROGRAM must be a 1985 user-defined word: at most 30 characters from A-Z, 0-9 and hyphen, no hyphen first or last, at least one letter, not a 1985 reserved word, no underscore and no literal; lowercase is equivalent to uppercase.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#MaxLength; src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#CheckWord; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#MaxLength",
+    "switches": "word length ceiling 30 at 85, 31 at 2002/2014, 63 at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#CheckWord",
+    "switches": "underscore and extended letters gated to 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#RejectsAt",
+    "switches": "the reserved-word set per edition (MOVE refused; CONSTANT a user word at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "behaviour-differs-by-edition": "yes: a 31- to 63-character name and an underscore are legal at 2023 and refused at 85; words reserved only from 2002 (CONSTANT) are legal names at 85",
+  "witnesses-cover": "part: witnesses cover a name mismatch and END FUNCTION at 85; not length, reserved words, hyphen placement, digits-only names, underscore or literals",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/e30.cob",
+    "printed": "RAN ABCDEFGH (30-character name, END PROGRAM written in lowercase)",
+    "expected": "accepted"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/e31end.cob",
+    "printed": "COBOL1567 31 characters, exceeding the 30-character maximum for COBOL-85; COBOL2793 mismatch",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/e31.cob",
+    "printed": "COBOL1567 (31 characters, reported once for the word)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/eresv.cob",
+    "printed": "COBOL0901 'MOVE' is a reserved word in COBOL-85",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/ehyph.cob",
+    "printed": "COBOL2773 the hyphen as its last character",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/edigit.cob",
+    "printed": "COBOL5506 the integer literal 12345 is not expected here",
+    "expected": "refused (no alphabetic character)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/elit.cob",
+    "printed": "COBOL5506 the alphanumeric literal is not expected here",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/eunder.cob",
+    "printed": "COBOL0900 the underscore in a COBOL word requires COBOL-2002 (+COBOL2793)",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/e85word.cob",
+    "printed": "RAN CONSTANT",
+    "expected": "accepted: CONSTANT is not a 1985 reserved word"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/edig1.cob",
+    "printed": "RAN 1ABC",
+    "expected": "accepted: a digit-first word with a letter"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.2.4.3 SR1",
+    "check": "OK  §1985:VI.2.4.3 SR1  (║2.4.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.1",
+    "check": "OK  §1985:IV.4.2.2.1  (4.2.2.1 COBOL Words)  the text is in the clause"
+   }
+  ],
+  "notes": "endProgramHeader takes programName (cobolWord | reservedGatedWord), so literals and integers fail to parse; the cobolWord funnel applies the 1985 length ceiling, character set and reserved-word set to the end marker's name like any other user word."
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.2.4.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "At --std 85: ealter.cob (ALTER, reserved in 1985 and not in 2002/2023) COBOL0901 'ALTER is a reserved word in COBOL-85'; eevery.cob (END PROGRAM EVERY, a 1985-only reserved word) COBOL0901 at the end marker plus COBOL2793; ehyfirst.cob (END PROGRAM -HYF) COBOL2773 refused; ecase.cob (PROGRAM-ID in mixed case, END PROGRAM in upper case) EXIT 0 'RAN CASE'; econt.cob (end marker's program-name continued across lines with an indicator-area hyphen) EXIT 0 'RAN CONT'. The cobolWord funnel applies the per-edition reserved set (ReservedWords.RejectsAt, already listed by the reader) to the end marker. cite.py: 'OK  §1985:VI.2.4.3 SR1  (║2.4.3 Syntax Rules║)  the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

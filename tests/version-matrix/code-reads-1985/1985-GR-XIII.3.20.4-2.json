@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-2",
+ "rule-digest": "40a2b610bcdc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-149",
+  "sources": {
+   "reader": "ed46fa0c0b72666d3767b4660b6e15018ee067ddab44913e2bda462d8371f739",
+   "refuter": "f03f180a979093537a6da5ab2e53f96581b67495f1a5c03c1e2064781388dd2f"
+  },
+  "imported": {
+   "reader": "219fe50010d197532991af80125ac044d9cd08d5fa4dd2f25c2fe47d76deb3f7",
+   "refuter": "f4ab1295731099e5a8300085e8275144e631f689a182dfbd9e3035786fe905e3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.20.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the report heading group is processed exactly once per report (per INITIATE), as the first report group, during the chronologically first GENERATE of either form (data-name or report-name), never at INITIATE and never by a TERMINATE that follows no GENERATE; with NEXT GROUP NEXT PAGE it stands alone on page 1.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues (2002+): which control values a page heading or footing reached from a footing phase sees; not which groups are processed or where",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (2002+): whether a saved absolute NEXT GROUP is dropped at TERMINATE; the PF then RF ordering in the same method is edition-free",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportGroupType",
+    "switches": "ConstructRegistry report-control-operand-forms-2002: refuses the OR PAGE phrase and an operand-less CH/CF at --std 85 (compile time)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior|CobolVersion|DialectLevel in ReportWriter.cs, ReportWriterEmitter.cs, ReportWriterBinder.cs, ReportSectionBinder.cs: the RH arm of GenerateCore (the !_started branch) and PresentHeadingFooting consult no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf35_05 uses GENERATE data-name only; a GENERATE report-name as the first GENERATE, a suppressed RH with NEXT GROUP NEXT PAGE and a TERMINATE with no GENERATE are exercised by probe ptype1",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-149/runs/g85_bf35_05-001",
+    "printed": "EXPECT: MATCH (witness g85_bf35_05); R1 P1 RH L1, PH L2, DE L3-6, PF L9; P2 PH L1, DE L3-4, PF L9, RF L10; R2 P1 RH alone, P2 PH/DE/PF, P3 RF L2 alone",
+    "expected": "the witness .out, derived from §1985:XIII.3.20.4 GR2/GR3/GR7 and the presentation rules tables"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-149/src/ptype1.cob (run runs/ptype1-002)",
+    "printed": "stdout INITIATED, U-RH1, U-PH1 1, U-CHF1, U-PF1 1, U-PH1 2, R2 SUMMARY, U-RH2, U-D2, R2 DETAIL, U-D2, TERMINATE, U-PF1 2, U-RF1; file 1 page 1: PH 1 on L1, DE 1-3 on L3-5, PF 1 on L9; page 2: no PH, DE 4-5 on L3-4, PF 2 on L9, RF on L10; file 2: RH2 L2, PH2 L3, DE2 L4, PF2 L8, RF2 L9; file 3 empty and U-RH3 never runs",
+    "expected": "RH1 suppressed although it has NEXT GROUP NEXT PAGE: no page advance, PH first at HEADING; nonprintable CH FINAL runs its USE only; suppressed PH on page 2; GENERATE report-name as the first GENERATE processes the RH and the detail's USE but prints no detail (§1985:XIII.4.3.4 GR1); TERMINATE with no GENERATE processes no RH"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-149/src/ptype1.cob first form (run runs/ptype1-001)",
+    "printed": "COBOL0899 GENERATE R2: the report-name form requires a CONTROL clause; COBOL0899 TYPE CH FINAL not an operand of the CONTROL clause",
+    "expected": "§1985:XIII.4.3.3 SR2 a; §1985:XIII.3.20.3 SR2"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.4 GR2",
+    "check": "OK  §1985:XIII.3.20.4 GR2  the text is in GR2 (quoted: \"processed during the execution of the chronologically first GENERATE statement for that report\")"
+   },
+   {
+    "cite": "§1985:XIII.4.3.4 GR5",
+    "check": "OK  §1985:XIII.4.3.4 GR5  the text is in GR5 (quoted: \"The report heading report group is processed\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.6 GR4c",
+    "check": "OK  §1985:XIII.3.10.6 GR4c  the text is in GR4c (quoted: \"presented entirely by itself on the first page of the report\")"
+   }
+  ],
+  "notes": "GenerateCore presents the RH only in its !_started branch, which Initiate resets and TerminateCore never enters when no GENERATE ran; GenerateSummary takes the same path. Classes a, e and f do not apply: the rule has no variable-length, file-organization or numeric operand, and a report file is sequential only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.20.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes run with run_probe.py --std 85 under refute-1985-149/runs. rtype1-001: RH1 LINE 1 NEXT GROUP PLUS 1 printed on L1, U-RH1 ran first (LC=0), and PH (LINE PLUS 1) followed on L3. rtype2-003: RH1 NEXT GROUP 2 (absolute) printed first, U-RH1 before every other USE, PH LINE 3 on L3, and the first GENERATE was a nonprintable detail D0. rtype1 R3: RH NEXT GROUP NEXT PAGE stood alone on page 1. rtype2/rreinit-001: after TERMINATE, a re-INITIATE plus GENERATE processed the RH again, once. rnodet-002: a report with no RH and no detail took GENERATE report-name. Class c: ron-001 and rfor-001 (the 2002 ON/FOR word before a TYPE CH/CF operand) gave COBOL0900 at 85, and rok-001 (TYPE CH FINAL) compiled. cite: OK §1985:XIII.3.20.4 GR2 'processed during the execution of the chronologically first GENERATE statement for that report'; OK §1985:XIII.3.10.6 GR5a 'places the NEXT GROUP integer into LINE-COUNTER'. Side observation, not this rule: after a re-INITIATE the second instance's RH (LINE 1) lands on the next physical line (line 8 of an 8-line page, rreinit-001) with no page eject, and --std 2023 (rreinit-002) does the same. That is a presentation-position question under §1985:XIII.3.10.6 GR3a (OK 'presented on the line number specified by the integer of its LINE NUMBER clause'), downstream of the landed PB1667 arm 2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

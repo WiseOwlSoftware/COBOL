@@ -1,0 +1,82 @@
+{
+ "rule-id": "1985-GR-IX.2.7.4-1",
+ "rule-digest": "ca8b92eca754",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-092",
+  "sources": {
+   "reader": "802346bf7c4f3075dd9e8af4a425b7a7f938f3455695110c87108b360860151f",
+   "refuter": "1db6eb72e0544f501bce746da16bb23083a2a78ea1f776434ccf6be424af4050"
+  },
+  "imported": {
+   "reader": "8ffc1dd6f20d28627847251c5149771446eed5b3a8862006a96ef0e8782e1445",
+   "refuter": "141ac7b016ae64f8f2ececcf60ff5037af946b8ae86f02d7c0a822d0fbe97823"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.7.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the RECORD KEY names the prime key and no two records of the file may hold the same prime key value: a WRITE that would duplicate it fails (22 in random/dynamic access, 21 when a sequential-access WRITE is not ascending), equality being judged in the native collating sequence (§1985:IX.2.3.4 GR3) whatever the program collating sequence.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOrder; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#OrderOf; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveFileCollating",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+    "switches": "the connector's Edition only; prime uniqueness in IndexedConnector#Write tests no edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveFileCollating",
+    "switches": "nothing by edition: no COLLATING SEQUENCE clause means native order at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel|DialectBehaviors|Edition in IndexedConnector.cs (only ReadRandom and SelectSequentialRecord consult it, neither on the WRITE path) and in FileControlBinder.cs#ResolveFileCollating",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f16_05 covers a dynamic-access duplicate WRITE (22); not covered: sequential access (21), OPEN I-O random access, REWRITE of a missing key, a group key with numeric subordinates, and the program collating sequence",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/g85_f16_05-001",
+    "printed": "MATCH",
+    "expected": "g85_f16_05.out"
+   },
+   {
+    "class": "b,d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/rk1b-001",
+    "printed": "W1 00; W2 IK 21 (sequential, equal key); W3 00; W4 00 (C000 after B001); W5 IK 22 (random, I-O); W6 00; R1 00 B001TWO; RW 00; RW2 IK 23; SEQ A001ONE, B001NEW, C000THR, C001FOUR; END 10",
+    "expected": "§1985:IX.1.3.4: 21 for a sequential ascending violation, 22 for a duplicate prime key, 23 for a REWRITE of a missing record; with PROGRAM COLLATING SEQUENCE 'A' ALSO 'B' ALSO 'C', native order still keys the file (§1985:IX.2.3.4 GR3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.7.4 GR1",
+    "check": "OK  §1985:IX.2.7.4 GR1  (2.7.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3a"
+   },
+   {
+    "cite": "§1985:IX.2.3.4 GR3",
+    "check": "OK  §1985:IX.2.3.4 GR3  (2.3.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "IndexedConnector#Write looks the prime key up before releasing and answers 22, after a sequential-access ascending check that answers 21. An ALSO alphabet as program collating sequence does not make distinct keys collide, as §1985:IX.2.3.4 GR3 requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.7.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-092/pku-001 (src/pku.cob): byte-exact uniqueness against normalizing comparisons and OPEN EXTEND (not in the reader's probes). Printed: W1 00 'AB  ', W2 00 'AB'+LOW-VALUE x2, W3 00 'AB'+HIGH-VALUE x2, W4 00 'ab  ', W5 IK 22 (repeat 'AB  '), W6 00 'ZZZZ'; OPEN EXTEND through a second sequential-access FD on the same file: OX 00, X1 IK 21 ('ZZZZ' below the highest key 'ab  '), X2 IK 21, X3 IK 21, X4 IK 21; the read-back R01..R05 is LOW2, SPC1, HIG3, ZZZ6, LOWC, END 10 (native ascending order, the failed writes left the file unaffected). Trailing spaces, low-values and high-values are distinct key values; equality is never padded or case-folded. 21 is §1985:IX.1.3.4's sequence error for successive keys not ascending. cite.py: 'OK  §1985:IX.2.7.4 GR1  (2.7.4 General Rules)  the text is in GR1'; 'OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3a' (quote 'the ascending sequence requirements for successive record key values are violated').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.2-1",
+ "rule-digest": "5fd974b4bc57",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-043",
+  "sources": {
+   "reader": "1667c3b1690208ab290e480852559f3da80d2a6e0d3a25d9d3d42d6d0345d701",
+   "refuter": "a2581782c82960ae1a0b9a0fa098844441970746965c02869b640ffcead6ffa4"
+  },
+  "imported": {
+   "reader": "3c89589a6629d8d4e2b9aa636b9188cfcaeadeb275f6cd1872dd92c56fd1ffb2",
+   "refuter": "0e9b9b102c4453c2d2697a167043ba14f00546edf3aecc036f92954f17136df2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.2.2.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 a numeric literal must contain at least one digit, so a sign alone, a decimal point alone, or a sign with a decimal point and no digit must be refused in every numeric-literal position (VALUE, procedure operand, argument list).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#INT_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#DEC_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#numericLiteralCore; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#signedNumericLiteral",
+  "edition-consulted": [],
+  "edition-search": "The rule is a token/grammar shape: INT_BODY [0-9]+ and DEC_BODY ([0-9]+ '.' [0-9]+ | '.' [0-9]+) both require a digit and numericLiteralCore admits only those tokens. Grepped CobolLexer.g4 and CobolExpressions.g4 for predicates on version/edition (none on these rules); LiteralScreen.ScreenDigitCapacity consults EditionInfo.MaxDigits but that is the 18-digit bound, not this rule.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers a bare sign in an ADD operand; the probes add a VALUE clause (VALUE +.), a sign plus decimal point (MOVE -. TO N) and a bare sign in an intrinsic argument list",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c2a.cob",
+    "printed": "--std 85: c2a.cob(5,30): error COBOL0001: cannot parse construct near '.' (VALUE +.)",
+    "expected": "refused: a literal must contain at least one digit"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c2b.cob",
+    "printed": "--std 85: COBOL5506: unexpected '.'... expected an unsigned numeric literal (MOVE -. TO N)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c2c.cob",
+    "printed": "--std 85 and --std 2023: COBOL5506: unexpected 'TO'... expected an unsigned numeric literal (ADD + TO N)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c2f.cob",
+    "printed": "--std 85: COBOL0001: cannot parse construct near ')' (FUNCTION MAX(N -))",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c2e.cob",
+    "printed": "--std 85 EXIT 0: +0000.0 -0000.5 (VALUE -.5 then ADD .5; VALUE +0 then ADD -.5)",
+    "expected": "leading-point literals with one digit are legal: -0.5+0.5=0, 0-0.5=-0.5"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.2 SR1",
+    "check": "OK  §1985:IV.4.2.2.2.2 SR1  (4.2.2.2.2 Numeric Literals)  the text is in SR1"
+   }
+  ],
+  "notes": "No token or grammar alternative forms a numeric literal without a digit, at any edition; every digitless form probed at --std 85 is refused, and the one-digit leading-point forms compile and compute correctly.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.2.2.2-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Probes at --std 85: r2a (DECIMAL-POINT IS COMMA, VALUE +,) refused COBOL2631/COBOL5506; r2b reference modifier X(+:1) refused COBOL0001; r2c COMPUTE N = . * 2 refused COBOL0001; r2e level-88 VALUE + THRU 5 refused COBOL0001; r2d (class c) 2002 floating-point literal 1.5E3 refused COBOL0900; r2f DECIMAL-POINT IS COMMA one-digit leading-comma literals -,5 / ,5 accepted, ADD gives +0,0 +0,0 (algebraically right). No digitless form found that compiles. Check: 'OK §1985:IV.4.2.2.2.2 SR1 ... the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

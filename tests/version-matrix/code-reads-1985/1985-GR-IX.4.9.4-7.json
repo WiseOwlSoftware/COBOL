@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-7",
+ "rule-digest": "a93f0567cc16",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-101",
+  "sources": {
+   "reader": "bff385565c37f0a818cb1c8a19311ac73a3ae4c2d373490a7ca0b1985f64655b",
+   "refuter": "ae1c822230daf412febd9cb7a37a16dfdc2e079efce11252fad8bddb681f464f"
+  },
+  "imported": {
+   "reader": "19a3105a0cd4d8dacbba6535b1d47531a9e8b1ad07915a06c132e1e2dd26e16a",
+   "refuter": "472ba601df383978efcef35b0c64d781fbefea291c76284be945537f43606bcd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "A successful WRITE releases the logical record (with its record length for a RECORD VARYING file) to the file, so it is retrievable afterwards by its keys.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReleaseOrdinals; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Release; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "DialectBehavior.FileSharingFacility: at 85 a clause-less OPEN gets FileSharing.AllOther (Table 19 not asked); at 2023 NoOther/ReadOnly. Reached at OPEN, not inside WRITE; a single connector's WRITE result is the same either way",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordLockPhrase",
+    "switches": "Constructs.RecordLockPhrase2002: WRITE ... WITH LOCK refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'Edition|DialectBehavior|DialectLevel|CobolVersion' over IndexedConnector.cs, KeyedConnector.cs, KeyedStore.cs, FileRegistry.cs, FileSupport.cs (only READ, CLOSE WITH LOCK and sharing sites; none in IndexedConnector#Write, #Opened, KeyedConnector#RecordWriteFailed); the same grep over KeyedIoEmitter.cs, SequentialIoEmitter.cs, EcEmitter.cs, DispatchEmitter.cs, UseTierEmitter.cs (DialectLevel only passed to registration, SELECT WHEN, EmitRunUseBody); KeyedIoBinder.cs uses ctx.Edition only as the diagnostic sink",
+  "behaviour-differs-by-edition": "no: at 85 no record lock is taken (no LOCK phrase admitted, file sharing not in effect), which is the 1985 surface",
+  "witnesses-cover": "part: g85_f22_07 covers fixed-length records read back by prime and alternate key; not exercised: variable-length records (ODO / RECORD VARYING), dynamic access",
+  "probes": [
+   {
+    "class": "a, b, d, e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-101/p17rnd.cob (run p17rnd-001)",
+    "printed": "OUTPUT dynamic: K050 OK 00; K010 (17 chars, ODO 3) OK 02 (DUPLICATES alternate); K010 dup prime IK 22; K020 dup no-DUPLICATES alternate IK 22; K030 30 chars OK 02; K040 length 11 -> USE 44, neither IK nor NOT IK; length 31 -> USE 44; WRITE without INVALID KEY on a dup prime -> USE 22, area K050A777D009 kept; I-O: K010 dup prime IK 22 (USE not run); K011 dup alternate IK 22; K005 OK 02; INPUT: USE 48; read back REC 12 K005..., REC 17 K010A010D00103XYZ, REC 30 K030A030D001160123456789ABCDEF, REC 12 K050...; USE COUNT 4",
+    "expected": "GR17b 22 in OUTPUT and I-O; GR17c 22 for a no-DUPLICATES alternate; IX-3 status 02 for an allowed duplicate; GR8 44; GR1 48; IX.1.3.5: INVALID KEY given -> USE not run, absent -> USE runs, a non-invalid-key exception -> USE and neither phrase; GR7 records read back with their own lengths"
+   },
+   {
+    "class": "b, c, d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-101/p14seq.cob (run p14seq-002)",
+    "printed": "PCS IN RELATIONS: A > B / W M001 OK 00 (EXTEND on an empty file) / W A001 OK 00 / W B001 OK 00 / W B001 IK 21 AREA B001DUPKEY / W A999 IK 21 AREA A999LOWKEY / W C001 OK 00 / EXTEND: W C001 IK 21 (equal to highest) / W B999 IK 21 / W D001 OK 00 / W C500 IK 21 / FROM OK 00 / FROM IK 21 AREA D002AGAIN0 / read back: A001 B001 C001 D001 D002 only",
+    "expected": "GR14/GR17a: ascending native order (the program collating sequence REV, which puts B before A, does not apply to file keys: VI.4.4.4 GR7/GR8 list only relations, condition-names, CONTROL and SORT/MERGE); a key not greater than the previous one, or under EXTEND not greater than the highest existing key, is refused 21; GR18 record area unchanged; refused records absent"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR7",
+    "check": "OK  §1985:IX.4.9.4 GR7  (4.9.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "Records of 12, 17 and 30 characters (ODO 0, 3, 16) written under RECORD IS VARYING were read back with their own lengths and content; sequential-access records were read back in key order after CLOSE.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-7",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "Reader's p17rnd covered varying lengths; r1alt-001 reads back the released records under OUTPUT and EXTEND with their content. The only content change found is DOC-A.1-31's documented fold (a U+00FF that passes through the record medium returns as HIGH-VALUE), which is the coded-character-set decision, not GR7's release. cite.py: 'OK  §1985:IX.4.9.4 GR7  (4.9.4 General Rules)  the text is in GR7'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

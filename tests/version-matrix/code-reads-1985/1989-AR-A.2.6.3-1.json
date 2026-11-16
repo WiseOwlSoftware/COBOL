@@ -1,0 +1,90 @@
+{
+ "rule-id": "1989-AR-A.2.6.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-173",
+  "sources": {
+   "reader": "6da29e9e8e38e6dd437da9f99f86e2d251cb93917b356e38b5eebe727b16433e",
+   "refuter": "464bbe68abc3e1e2743bb08ddb4c7b086076c4d21839d6a9a68b4b272f52e151"
+  },
+  "imported": {
+   "reader": "b622205213a72632a8ccf51f9954363b8210f41da64fc4f742ee37715175f53b",
+   "refuter": "44078024b9f3832bff76b8e9909dc914465d4b77850493bcd0efc46d68bbd5fd"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.6.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 argument-1 of FUNCTION ANNUITY must be class numeric, i.e. an arithmetic expression (A.2.2 type (1), VI.6.2.1); every such form (item of any numeric usage, literal, ZERO, nested numeric or integer function, expression) must be accepted and used as the interest rate, and non-numeric arguments may be refused. The witness covers item, literal and expression.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Annuity; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#AnnuityDec",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt; the ANNUITY Schema(['n','i']) row carries no predicates",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "same greps as ACOS: no edition reference in IntrinsicArgumentRules.cs, IntrinsicRenderer.cs, CobolIntrinsics.Float.cs or CobolIntrinsics.Dec.cs.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f32_03 covers an unsigned item, a literal and an expression; not ZERO, COMP-3, nested functions, nor the refusal half",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/annok.cob",
+    "printed": "ANN(.05,1) 1.050000000, COMP-3 .10 with COMP 12 0.146763315, ZERO,3 0.333333333, W-RATE * 2 / W-N * 2 0.229607380, SQRT(0.01) with W-EL(W-I + 1) 0.576190476, (1 1) 2.000000000, (0.000001 12) 0.083333875",
+    "expected": "A.2.6.4 RV1/RV2 values (hand-computed: 0.146763, 0.229607, 0.576190, 2, 1/12 + 13/24 * 1E-6)"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/trigbad.cob",
+    "printed": "COBOL1627 FUNCTION ANNUITY argument-1 for \"0.5\", PIC X, PIC A, numeric-edited, group, SPACE, FUNCTION CHAR (49); COBOL1504 for ANNUITY (0.1)",
+    "expected": "not an arithmetic expression; refusal permitted"
+   },
+   {
+    "class": "witness",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.6@1985-ANNUITY-FUNCTION/g85_f32_03.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.6.3 AR1",
+    "check": "OK  §1989:A.2.6.3 AR1  (2.6.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.6.4 RV1",
+    "check": "OK  §1989:A.2.6.4 RV1  (2.6.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "Position 0 of the ANNUITY schema is 'n' (ClassNumeric) screened by the same edition-free CheckArgumentClasses; all numeric forms evaluate to the RV1/RV2 values. Diagnostics cite §2023 clauses at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.6.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "rok.cob (rok-002): ANNUITY (W-C3 W-Q IN G1) with SVP9 COMP-3 .05 and qualified 2 = 0.537804878 (hand: .05/(1-1.05^-2) = 0.5378049); ANNUITY (+ 0.1 2) = 0.576190476. rzero.cob: ANNUITY of -0, -0.0, - W-Z (display, COMP-3, COMP), W-Z * -1 and - ZERO with argument-2 2 all = 0.500000000 (RV1 1/argument-2: a negative-signed zero is still zero). ANNUITY (+ 0.1 + 2) is one argument (binary +), refused COBOL1504 arity: correct parse. Refusals of HIGH-VALUE and boolean class COBOL1627 (rbad-001). cite.py: OK §1985:VI.6.2.1; OK §1985:I.1.6.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef: index data item as an argument refused at 85 by IndexDataItemAdmittedAt"
+  ],
+  "corrected": ""
+ }
+}

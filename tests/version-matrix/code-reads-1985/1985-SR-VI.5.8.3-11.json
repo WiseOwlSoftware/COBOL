@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-11",
+ "rule-digest": "50075d16c64b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-054",
+  "sources": {
+   "reader": "0f0ae4c03aa58b621b5ba4321f4c1751bd86b6ba3c382a01f776663c6c243b74",
+   "refuter": "458332e030bfb7769667b22dd56a463858831b45feac7ce98112aee7bce55989"
+  },
+  "imported": {
+   "reader": "6c2f1d52f7a4068fe4d28f6ba69bae3ca5f192db00cd0a3afece9d22a63d156b",
+   "refuter": "b55f8978c98b7ecd4470d5113e52e42b4fc6422fb15fc4d648e47eb5ef81b6b5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.8.3-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in either OCCURS format, a KEY IS data-name-2 whose own entry carries an OCCURS clause (fixed or DEPENDING ON, elementary or group) must be refused unless data-name-2 names the subject of the entry, and a key that is the subject (an elementary or group table, also one nested inside another table) must be admitted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#OccursKeyItemFault; src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#OccursEntryBetween",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#OccursKeyItemFault",
+    "switches": "dialectLevel < 2002 runs the §1985:VI.5.8.3 SR12 source-order walk (OccursEntryBetween) first and skips the 2002+ hierarchy walk; the SR11 arm itself (`!ReferenceEquals(key, table) && key.IsTable`) is unconditioned",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates",
+    "switches": "ClauseOperandsTakeImplicitQualifiers (Edition.DialectLevel >= 2002): at 85 the key is resolved over the whole scope and then IsWithinRegion is asked, instead of the table's own subtree",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the SR11 test is the same at 85 and 2023; at 85 an SR12 violation (an OCCURS entry written between subject and key) is reported in preference when both apply, and either way the key is refused",
+  "witnesses-cover": "part: pb1263_occurs_key_items_admitted is the admitted half; the refusal half (key with its own fixed OCCURS, with OCCURS DEPENDING ON, a group key with its own OCCURS) is exercised only by the probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/occ1.cob",
+    "printed": "COBOL2787 'K1' (10 K1 PIC 9 OCCURS 2): the key's own entry contains an OCCURS clause; COBOL2787 'K2' (OCCURS 1 TO 2 DEPENDING ON, plus COBOL0854 for the nested ODO); COBOL2787 'G3' (group key with OCCURS 2)",
+    "expected": "each refused by SR11"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/key1b.cob",
+    "printed": "AT 4 / E2 OK / E3 OK (key = the elementary subject E1 PIC 9 OCCURS 5; key = group subject E3 of an OCCURS 1 TO 5 DEPENDING ON table; SEARCH ALL finds each)",
+    "expected": "subject-as-key admitted in both formats"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/occ3.cob",
+    "printed": "AT 2 / K2 OK (subject-as-key and subordinate key of a table nested in an OCCURS 2 group)",
+    "expected": "admitted: the enclosing table is not between the subject and the key"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/occ2.cob",
+    "printed": "85: COBOL2787 citing §1985:VI.5.8.3 SR12 for K2 under 10 G2 OCCURS 2; 2023: COBOL2787 citing §2023:13.18.38.3 SR4. Group key G1 whose subordinate K1 has OCCURS: compiled clean at both",
+    "expected": "K2 refused (SR12 at 85); G1 admitted, since G1's own entry contains no OCCURS clause"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.3 SR11",
+    "check": "OK  §1985:VI.5.8.3 SR11  (5.8.3 Syntax Rules)  the text is in SR11"
+   },
+   {
+    "cite": "§1985:VI.5.8.3 SR12",
+    "check": "OK  §1985:VI.5.8.3 SR12  (5.8.3 Syntax Rules)  the text is in SR12"
+   }
+  ],
+  "notes": "The SR11 arm of OccursKeyItemFault takes the same code at 85 as at 2023 (the 2023 SR6 has the same words). The compiler reads 'the data item ... must not contain an OCCURS clause' as the key's own entry, so a group key whose SUBORDINATE carries OCCURS (occ2 G1) is admitted at every edition; that is the literal reading of the clause wording, which SR1 and SR12 also apply to entries.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.8.3-11",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Attacked the reader's reading that 'data item ... contain an OCCURS clause' means the key's own entry: this edition uses that phrasing for the item's own entry elsewhere (cite.py OK  §1985:VI.5.13.4 GR7  'data description entry of a data item that also contains an OCCURS clause', distinguishing it from 'subordinate to a data description entry that contains an OCCURS clause'), so the reading holds. Probes at --std 85: ro1 E OCCURS 3 KEY IS F where F is itself a nested OCCURS 2 table with its own KEY IS F -> COBOL2787 for E only (F as its own subject admitted); UE key UK inside a group that also holds UO OCCURS 2 admitted; key with a REDEFINES sibling admitted. ro2 format 2 (OCCURS 1 TO 3 DEPENDING ON N) ASCENDING KEY IS E (subject) then DESCENDING KEY IS K where K PIC 9 OCCURS 2 -> COBOL2787 on K. cite.py: OK  §1985:VI.5.8.3 SR11  (5.8.3 Syntax Rules)  the text is in SR11.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

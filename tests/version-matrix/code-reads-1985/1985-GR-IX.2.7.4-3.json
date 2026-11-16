@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-IX.2.7.4-3",
+ "rule-digest": "9de346e54d1f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-092",
+  "sources": {
+   "reader": "802346bf7c4f3075dd9e8af4a425b7a7f938f3455695110c87108b360860151f",
+   "refuter": "1db6eb72e0544f501bce746da16bb23083a2a78ea1f776434ccf6be424af4050"
+  },
+  "imported": {
+   "reader": "ca94639b382045116070174ca101c79c8b4bdd8f6a94559cd2bcd080936a2bb8",
+   "refuter": "43e75ece550338e7e81b3787e2a7696969b7f0634bbbb3aaadd5f6f3cfd2ed13"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.7.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a RECORD KEY data-name-1 described in only one record description must key every record of the file by the same character positions, for WRITE, REWRITE, DELETE, READ and START through any record description of the FD (including one other than the key's own and out-of-line records).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#KeyWindow; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RecordAreaSendImage; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+    "switches": "the connector's Edition only; the prime key window is edition-independent",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
+    "switches": "refuses the post-1985 SOURCE phrase below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|EditionContext|DialectBehaviors in KeyedIoEmitter.cs, RecordLayout.cs, IndexedConnector.cs, FileRegistry.cs",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf21_09 covers WRITE and READ through a second fixed record; not covered: the key described in the SECOND record with writes through the first, REWRITE, DELETE and START through another record's item, out-of-line (ODO, elementary) records",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/g85_bf21_09-001",
+    "printed": "MATCH",
+    "expected": "g85_bf21_09.out"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/rk3-001",
+    "printed": "W1 00, W2 00, W3 00, W4 IK 22; R1 00 BBK001A-1; RW 00; RW2 IK 23; DL 00; S1 00 (START NOT LESS THAN C-ID2, 2 characters); SEQ BBK001NEWTXT, AAK003A-3; END 10; S2 00; R2 00 AAK003A-3",
+    "expected": "key described in REC-B only; REC-A and REC-C carry it at positions 3-6 for every verb; a duplicate is 22, a REWRITE of a missing key 23"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/key3o-001",
+    "printed": "W1 00 (ODO record), W2 00 (elementary 01), W3 IK 22 (elementary repeating K001), W4 00; R1 00 K001AAAA3XXX; R3 00 12GG-005REST",
+    "expected": "out-of-line records keyed by the same positions"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/rk3c-001",
+    "printed": "COBOL0900: the SOURCE phrase of the RECORD KEY or ALTERNATE RECORD KEY clause requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "§1985:IX.2.7.2 prints RECORD KEY IS data-name-1 only: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.7.4 GR3",
+    "check": "OK  §1985:IX.2.7.4 GR3  (2.7.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IX.4.7.3 SR4",
+    "check": "OK  §1985:IX.4.7.3 SR4  (║4.7.3 Syntax Rules║)  the text is in SR4"
+   }
+  ],
+  "notes": "Same mechanism as the alternate key: one byte window in the shared record area. Every verb tried through a record other than the key's own selected the right record.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.7.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Same probe kov-003 (src/kov.cob): REC-C describes the prime key window 1-4 as PIC S9(7) PACKED-DECIMAL while the key is described only in REC-A as X(4). W4 02 (packed +5 written through REC-C), W5 IK 22 (same packed +5 again, a different alternate key: prime duplicate refused), R2 00 +0000005 CCC1 TAILC1 (READ KEY IS KEY-A with the bytes saved from KEY-A after the REC-C write finds it), and the packed-keyed record sorts first in ascending prime order as N2 shows. The reader's rk3 covered REWRITE, DELETE and START through other records. cite.py: 'OK  §1985:IX.2.7.4 GR3  (2.7.4 General Rules)  the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

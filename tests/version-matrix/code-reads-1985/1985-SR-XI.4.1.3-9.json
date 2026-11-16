@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-XI.4.1.3-9",
+ "rule-digest": "65711954e693",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-071",
+  "sources": {
+   "reader": "90a7f18d255b545bee9f7532c2b43d3174e2468167bc66f03ff0fb60ab7004ef",
+   "refuter": "5ff05a7002ed3d0fe9d4c6c14bb6d40fe2625a6767b6221c63700a72659e7bdb"
+  },
+  "imported": {
+   "reader": "935ba68a2d2e2064fbd96368c1785ceb41acfb4835ab87b0777c9df44d70e2ff",
+   "refuter": "65570b6caa00432120aa3b15c6a694cf91523f1e3b677d77681072532417f150"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.1.3-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the MERGE OUTPUT PROCEDURE phrase accepts THRU and THROUGH between procedure-name-1 and procedure-name-2 with identical meaning (the same procedure range).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#mergeOutputProcedurePhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortRange; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#THRU and THROUGH rows",
+    "switches": "reserved-word status per edition: both reserved at 85, 2002, 2014, 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "the grammar alternative (THRU | THROUGH) is unconditional; SortRange never looks at the token; grep of THRU/THROUGH in Validation and VersionConformancePass found no gate",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness l1c18 exercises MERGE key ties, not the THRU/THROUGH spelling",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m9thru.cob",
+    "printed": "P1 / R AA111 / R BB222 / R AA999 / R CC333 / P3 / N=4 (P4 not run)",
+    "expected": "range P1..P3 runs, P4 excluded"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m9through.cob",
+    "printed": "identical output to m9thru",
+    "expected": "identical to THRU"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m9bad.cob",
+    "printed": "COBOL5506 syntax error: THRU with no procedure-name-2",
+    "expected": "refused (the format requires procedure-name-2 after THRU)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.1.3 SR9",
+    "check": "OK  §1985:XI.4.1.3 SR9  (4.1.3 Syntax Rules)  the text is in SR9 [The words THRU and THROUGH are equivalent]"
+   }
+  ],
+  "notes": "One grammar alternative carries both words, and the binder resolves the two procedure-names alike. The two runs print identical output.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.1.3-9",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe x2 (--std 85): MERGE OUTPUT PROCEDURE IS OA THROUGH OC over SECTIONS prints OA / R AA111 / R BB222 / OC / OC-X4 (OD excluded); a second MERGE with qualified paragraph-names X1 OF OA THRU X3 OF OC prints OA / records / OC (X4 excluded): THROUGH and THRU yield the same range composition, sections and qualified paragraphs alike. Reader's m9thru/m9through identical. No edition gate on the token (grammar alternative unconditional). cite.py: OK  §1985:XI.4.1.3 SR9 [The words THRU and THROUGH are equivalent.]",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
