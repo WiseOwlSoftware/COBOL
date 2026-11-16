@@ -88,8 +88,9 @@
   library text is therefore handed the spelling the phrase gives a word (`CopyProcessor.ParagraphWordAsReplaced`, the one
   replacing action run on the word alone) and asks `IsCommentEntryParagraph` of THAT spelling, in the certain and the
   not-known division alike; the header is written as the library text spells it (`PLACEHOLDER. .`) and the replacing
-  action then writes `AUTHOR. .`. A `REPLACE` statement of the SOURCE text that writes the header word is not handled
-  here: the converter has read the line before any REPLACE statement is found.
+  action then writes `AUTHOR. .`. A `REPLACE` statement of the SOURCE text that writes the header word makes no
+  comment-entry of a COPY the header precedes, and must not: REPLACE is processed after every COPY (§1985:XII.3.4 GR4), so
+  when that COPY is processed its header is not yet a comment-entry paragraph.
   Pinned by `conformance:cases/XII.2@1985-COPY-STATEMENT/pb5732-copy-replacing-produces-comment-entry` and its twin
   `pb5732-copy-replacing-leaves-nested-copy-refused`.
   `unit:DivisionCursorTests`, `unit:CommentEntryResolverTests` and `unit:CommentEntryResolutionOrderDriftTests`.

@@ -14,9 +14,9 @@ is met, and nothing is looked up. Witnesses: `pb5732-copy-replacing-produces-com
 `PB5732Z` is a second DATA DIVISION header that would break the program if copied) and its twin
 `pb5732-copy-replacing-leaves-nested-copy-refused` (REPLACING matches nothing, so COBOL0900). The repro as filed still
 draws COBOL3734 at 85: pseudo-text-2 is written in area B on the COPY line, which the area-A rule of the placed text reads
-(a different rule, not touched); written with `==AUTHOR==` on a line of its own it runs. Sibling NOT fixed: a `REPLACE`
-statement of the source text that writes the header word (`REPLACE ==PLACEHOLDER== BY ==AUTHOR==. PLACEHOLDER. COPY ZZZ.`)
-still expands the COPY, because the converter reads a source line before any REPLACE statement is found; reported as a lead.
+(a different rule, not touched); written with `==AUTHOR==` on a line of its own it runs. A `REPLACE` statement of the source text that writes the header word (`REPLACE ==PLACEHOLDER== BY ==AUTHOR==. PLACEHOLDER. COPY ZZZ.`)
+still processes the COPY, and rightly: REPLACE is processed after every COPY (§1985:XII.3.4 GR4), so the header is not yet a
+comment-entry paragraph when the COPY is processed (the implementer's lead, withdrawn by the finisher).
 `docs/conformance/3/D-CE2.md` carries the determination.
 
 **PB5700 (2002).** One constant, `MaxTextWordLength = 65,535`, served every edition. It is now `EditionInfo.MaxTextWordLength`
@@ -40,8 +40,17 @@ Goldens (all in `conformance-suite/cases/`): `pb5700-copy-pseudo-text-word-322-a
 `pb5608-replace-partial-word-2-one-text-word-accepted` / `-non-cobol-character-refused`, and the two PB5732 cases above, each
 refusal with its `wiseowl/diagnostics/<id>.json`. Unit tests: `TextManipulationStatementTests` (length by edition and place,
 subscript shapes, repertoire by edition). Rows: 2002-SR-7.1.2.2-11, 2002-SR-7.1.2.2-9, 2002-SR-7.1.3.2-9, 2002-SR-7.1.3.2-6 and
-1985-GR-XII.2.4-12 recorded CONFORMS (2002 GAP 1805 to 1801, 1985 GAP 780 to 779); 1985-SR-XII.2.3-8 and 1985-SR-XII.3.3-6
+1985-GR-XII.2.4-12 recorded CONFORMS (at base 111a265843: 2002 GAP 1805 to 1801, 1985 GAP 780 to 779); 1985-SR-XII.2.3-8 and 1985-SR-XII.3.3-6
 re-sited to `EditionInfo.cs#MaxTextWordLength`. No diagnostic code was needed (COBOL2572, COBOL0900 reused).
 
-Self-review found nothing further: the 85 text-word character rule was added for COBOL-85 too (same definition) and is covered
-by the unit test, not a golden.
+**The finisher (the first gate, run `000001-20261116T040609Z`, was RED on four tests of two causes).**
+`CobolSpaceDriftTests.NoTextStage_AsksUnicodeWhiteSpace`: the PB5700 subscript message trimmed with `string.Trim`
+(Unicode White_Space); it asks `CobolSpace.TrimSpaces`. The other three (`ConformanceSuiteTests_P26` at 85,
+`HostEntryShapeDriftTests`, `RepositoryRoundTripCorpusTests`) were one case, `pb1543_nbsp_is_a_text_word_character`, accepted
+at 85 on the 2023 definition of a text-word (§2023:7.2.2.5 3)). The 1985 text-word is COBOL characters (§1985:III.2 (3)), so
+PB5608's refusal at 85 is right: the case now runs at 2014 and 2023 (§2014:7.2.1.4 3)), the fixed-form 1985 witness
+`pb5608-replace-text-word-non-cobol-character-refused-85` (U+00A0 in pseudo-text-1, COBOL2572) pins 85, and
+`docs/conformance/7/DOC-A.1-23.md` no longer says "at every edition". Merged main (236 commits, no conflict). A 1985
+batch adds the PB5732 witnesses to `1985-GR-XII.2.4-8` and the new case to `1985-FMT-XII.3.2`, and restates
+`1985-GR-XII.2.4-12`'s notes (why REPLACING cannot touch the word COPY in 1985, and GR4 for the REPLACE case). Against main
+the 1985 view goes from 125 GAP (PARTIAL 12) to 124 (PARTIAL 11), the 2002 view from 1242 GAP to 1238.
