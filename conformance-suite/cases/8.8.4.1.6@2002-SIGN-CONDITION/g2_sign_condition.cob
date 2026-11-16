@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: g2_sign_condition
-      *> rules: [2002-GR-8.8.4.1.6.2-1]
+      *> rules: [2002-GR-8.8.4.1.6.2-1, 2002-FMT-8.8.4.1.6.1]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
