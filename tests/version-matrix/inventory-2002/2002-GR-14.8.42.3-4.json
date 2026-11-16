@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.42.3-4",
  "rule-digest": "075a352448fb",
+ "test-ref": "conformance:cases/14.9.46-TERMINATE/l1c33_terminate_multi_order_no_close; conformance:cases/14.9.46-TERMINATE/l1c33_terminate_resume_next_implicit",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

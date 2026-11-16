@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.4.4-1",
  "rule-digest": "70b771d75a91",
+ "test-ref": "conformance:cases/14.7.7-Arithmetic-statements/l1c04_arith_mixed_descriptions",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

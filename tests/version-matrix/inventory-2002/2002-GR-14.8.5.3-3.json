@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.5.3-3",
+ "rule-digest": "3642b54c648c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs#Reinitialize; src/WiseOwl.Cobol.Compiler/Binding/Passes/RouteStaticUnitStoragePass.cs#RouteStaticRoot",
+ "test-ref": "conformance:cases/14.8.5@2002-CANCEL-STATEMENT/g2-cancel-cd-identifier-initial-state",
+ "notes": "§2002:14.8.5.3 GR3 with 14.5.2.1.2.1: a canceled program called again has its working-storage and communication-section VALUEs restored (C=ORIG 008 1 after CANCEL, C=CHGD 009 2 without); the --std 2002 run on the pinned build dc1f2dcce8 matched."
+}

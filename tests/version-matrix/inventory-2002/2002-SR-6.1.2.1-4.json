@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-6.1.2.1-4",
+ "rule-digest": "f002b9f6303f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ScanProgramText; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFixed; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFloating",
+ "test-ref": "conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2002_fi_debug_lines_on; conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2002_fi_debug_lines_off; conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2002-fi-debug-two-continuation-forms",
+ "notes": "Same text as the 2023 twin, reaching literals begun on 2002 debugging lines. §2002:6.1.2.1 SR4 with §2002:6.4 step 9: alphanumeric, national and boolean literals on D lines continued by one floating form join correctly (ABCD, N-OK, B-OK at --std 2002; MAIN only without DEBUGGING MODE); a D-line literal continued with both forms is refused with COBOL2687 (g2002-fi-debug-two-continuation-forms)."
+}

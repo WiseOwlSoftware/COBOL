@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-14",
+ "rule-digest": "aeac33709bbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveTableValuesPass.cs#ResolveTableValuesPass; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveTableValuesPass.cs#OccursChainOf",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr14-cd; conformance:cases/13.18.63-VALUE/pb505-table-value-no-occurs; conformance:cases/13.18.63-VALUE/pb505_table_value_subordinate_odometer",
+ "notes": "§2002:13.16.61.2 SR14 requires an OCCURS on or above a format 2 VALUE entry, in a CD record too (§2002:A.1.1.2). A format 2 VALUE with no OCCURS in a CD record is refused with COBOL1944 at --std 2002 (the pinned build dc1f2dcce8), as is the WS form; pb505_table_value_subordinate_odometer runs the legal form at 2002."
+}

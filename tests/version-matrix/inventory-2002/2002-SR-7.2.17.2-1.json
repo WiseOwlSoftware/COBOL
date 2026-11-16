@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.17.2-1",
  "rule-digest": "3322e38c434f",
+ "test-ref": "conformance:cases/7.3.21-PROPAGATE/pb1378-propagate-within-unit",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

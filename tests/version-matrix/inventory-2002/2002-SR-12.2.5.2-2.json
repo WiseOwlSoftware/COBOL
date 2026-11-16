@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-12.2.5.2-2",
  "rule-digest": "7af61d2451db",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/alphabet-utf8-collating",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

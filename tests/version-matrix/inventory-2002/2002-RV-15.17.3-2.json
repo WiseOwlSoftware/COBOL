@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.17.3-2",
  "rule-digest": "490073a7d50f",
+ "test-ref": "conformance:cases/15.22.4-Returned-value-rules/l1_date_of_integer_standard_form",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

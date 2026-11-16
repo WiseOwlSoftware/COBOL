@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-4",
+ "rule-digest": "fe8e4e31e716",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Unlock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteFile",
+ "test-ref": "conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_not_open_connector",
+ "notes": "§2002:14.8.26.3 GR4: on a not-open connector CLOSE/UNLOCK give 42, READ/START 47, WRITE 48, REWRITE a logic error (43 or 49, implementor's choice), random DELETE 49 (§2002:9.1.12.6), and the file is left unchanged, while the exempt SORT USING/GIVING and OPEN work on not-open files. Matched at --std 2002."
+}

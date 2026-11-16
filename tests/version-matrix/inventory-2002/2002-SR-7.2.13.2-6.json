@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.13.2-6",
+ "rule-digest": "80bea5a0e341",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Frame",
+ "test-ref": "conformance:cases/7.2.13@2002-IF-DIRECTIVE/g2if06_text_debugging_lines",
+ "notes": "§2002:7.2.13.2 SR6 admits any kind of source line in IF text, which at 2002 includes D, d and >>D debugging lines (§2002:6.1.2, 6.2.7): the included text-1/text-2, mixing them with source lines and a nested >>IF, compiles under WITH DEBUGGING MODE and the omitted text does not; --std 2002 run on the pinned build matched."
+}

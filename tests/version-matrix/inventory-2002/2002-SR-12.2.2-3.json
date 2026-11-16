@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.2-3",
+ "rule-digest": "70150cfa6e5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs",
+ "test-ref": "conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2cfg01_factory_source_computer; conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2cfg02_factory_object_computer; conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2cfg03_factory_repository; conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2cfg04_instance_source_computer; conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2cfg05_instance_object_computer; conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2cfg06_instance_repository",
+ "notes": "Same text as the 2023 twin (see code-location). §2002:12.2.2 SR3 forbids the SOURCE-COMPUTER, OBJECT-COMPUTER and REPOSITORY paragraphs in a factory or instance definition; each of the six pairs is refused at --std 2002 with COBOL2644 at the paragraph's line, and the same paragraphs in the class definition's own configuration section compile clean."
+}

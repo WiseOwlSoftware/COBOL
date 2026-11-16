@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XI.4.4.3-8",
  "rule-digest": "9ed71280003d",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb994_sort_merge_keyed_using_giving",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

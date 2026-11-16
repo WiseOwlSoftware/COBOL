@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.40.3-4",
+ "rule-digest": "6cb79a7cac85",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#LiteralNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineAdditive",
+ "test-ref": "conformance:cases/14.8.40@2002-SUBTRACT-STATEMENT/g2-subtract-native-carries-places",
+ "notes": "Under native arithmetic (no ARITHMETIC clause, §2002:8.8.1.2) with display operands, §2002:14.8.40.3 GR4 requires no significant digit lost: formats 1-3 give 02, 19 (ROUNDED 19.2), 02, 98.2 and 19 11; --std 2002 run on the pinned build matched."
+}

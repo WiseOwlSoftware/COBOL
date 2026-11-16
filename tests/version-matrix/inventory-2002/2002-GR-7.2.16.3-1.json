@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-7.2.16.3-1",
  "rule-digest": "5d62b6f908cf",
+ "test-ref": "conformance:cases/7.2.3-COPY/pb1352_directive_lines_not_replaced",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

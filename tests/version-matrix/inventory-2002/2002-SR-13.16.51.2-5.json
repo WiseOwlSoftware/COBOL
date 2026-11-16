@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.51.2-5",
+ "rule-digest": "4660bc0adee9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSourceClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindSourceOperand",
+ "test-ref": "conformance:cases/13.16.51@2002-SOURCE-CLAUSE/g2src02_source_cd_move_rounded",
+ "notes": "§2002:13.16.51.2 SR5 makes SOURCE CFR ROUNDED an arithmetic expression (GR2 COMPUTE ROUNDED, §2002:14.6.3): CD item 1.55 prints 002 and 1.6 against the MOVE legs 001 and 1.5; --std 2002 output matched the derived .out."
+}

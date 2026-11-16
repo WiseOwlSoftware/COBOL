@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-20",
+ "rule-digest": "bbb4f253948f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-converting-overlap",
+ "notes": "§2002:14.8.21.3 GR20 leaves a CONVERTING operand overlapping identifier-1 undefined (§2002:3.3); the case pins the documented choice D-INS4 with GR19/GR22 for the conversion. Matched at --std 2002 (pinned dc1f2dcce8)."
+}

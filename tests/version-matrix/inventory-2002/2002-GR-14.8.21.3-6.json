@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-6",
+ "rule-digest": "160ba01ed0ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-tally-replace-transitive",
+ "notes": "§2002:14.8.21.3 GR6: each properly matched occurrence is tallied or replaced: ALL \"AB\" over ABCABCAB tallies 3 and replaces to xyCxyCxy, ALL \"AA\" over AAA tallies 1, and the same on CD-record operands (05, AxyAAC). The --std 2002 run of g2-inspect-tally-replace-transitive matched the derived output."
+}

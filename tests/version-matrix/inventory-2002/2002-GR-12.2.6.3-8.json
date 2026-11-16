@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.6.3-8",
  "rule-digest": "51f4dd9f3e04",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb1093_alphabet_high_value_tail",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

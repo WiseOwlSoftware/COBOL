@@ -7,7 +7,7 @@
   `0AAA` gives `3BBB`; before this entry the replacing half wrote back the pre-tally image and the counter was lost,
   `0BBB`), and a replacing operand that is the counter reads the counter's new value. The re-read is the same
   `StorageOverlap` test as D-INS1, applied between the two halves. GnuCOBOL 3.2 emits the two statements separately
-  and gives the same lines. Pinned by `conformance:cases/14.9.22-INSPECT/pb1907_inspect_format3_counter_overlap`.
+  and gives the same lines. Pinned by `conformance:cases/14.9.22-INSPECT/pb1907_inspect_format3_counter_overlap`, and at 2002 by `conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-tally-counter-overlap` (its F3A-F3C lines).
   **The length of an occurs-depending identifier-1 (kb/Work PB5119, VCR row 7.57)** is part of that identification
   (§2023:14.6.4 step 6; the 2002 text words it for a variable-length data item), so from 2002 a TALLYING counter that is
   the DEPENDING ON item does not change the length the REPLACING half works over (`ZZZBA`, pinned by

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-11.2.3-3",
+ "rule-digest": "923274f058fe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build",
+ "test-ref": "conformance:cases/11.2@2002-CLASS-ID-PARAGRAPH/g2002-gr-11-2-3-3-final-class-not-superclass",
+ "notes": "§2002:11.2.3 GR3 forbids a FINAL class only as a superclass: at --std 2002 a FINAL class that inherits from a non-FINAL class runs its inherited and own methods (BASE-HELLO, FINAL-OWN as derived), and a class naming a FINAL class in INHERITS is refused (COBOL2791, §2002:11.2.2 SR5; g2002-gr-11-2-3-3-final-class-as-superclass)."
+}

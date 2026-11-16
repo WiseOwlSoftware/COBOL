@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.2.2.2.2-1",
  "rule-digest": "5fd974b4bc57",
+ "test-ref": "conformance:cases/8.3.3.3.2-Fixed-point-numeric-literals/l1c19-numeric-literal-without-digit",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

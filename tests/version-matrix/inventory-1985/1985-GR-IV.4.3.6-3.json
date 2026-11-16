@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.3.6-3",
  "rule-digest": "509f02bb909d",
+ "test-ref": "conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_85; conformance:cases/13.18.32-JUSTIFIED/l1c16_justified_spellings",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

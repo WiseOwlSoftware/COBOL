@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.32.2-3",
+ "rule-digest": "50c7f20a0bac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckIntoReceiver; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoRecord; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#IntoPhraseRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn",
+ "test-ref": "conformance:cases/14.8.32@2002-RETURN-STATEMENT/g2ret01_return_into_cd_items_2002; conformance:cases/14.8.32@2002-RETURN-STATEMENT/g2ret02-return-into-cd-not-admissible-2002",
+ "notes": "§2002:14.8.32.2 SR3 arms a) and b) reach 2002 CD record items; at --std 2002 G2RET01 accepts INTO a CD group, CD alphanumeric item (arm b) and CD numeric item over a one-record SD (arm a) and prints G BBBB / A DDDD / END1 / N 0042 / END2 as derived, and G2RET02 (two records, CD numeric) is refused COBOL1994."
+}

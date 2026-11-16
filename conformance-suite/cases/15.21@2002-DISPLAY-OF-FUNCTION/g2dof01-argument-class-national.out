@@ -1,0 +1,7 @@
+NAT=[ABC     ]
+NAT-ED=[X Y     ]
+NUM-ED=[ 12.5   ]
+LEN-NUM-ED=05
+NAT-GRP=[GHI     ]
+NAT-LIT=[LIT     ]
+NAT-FN=[FN      ]

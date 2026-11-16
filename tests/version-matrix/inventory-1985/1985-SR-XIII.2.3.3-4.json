@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.2.3.3-4",
  "rule-digest": "b910692f3344",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb773_legal_file_control_entries_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

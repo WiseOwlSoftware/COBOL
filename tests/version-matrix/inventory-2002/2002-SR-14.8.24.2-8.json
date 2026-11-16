@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.24.2-8",
+ "rule-digest": "14c4e67382e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Lenient; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#Table16Refusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Heading; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#MoveViolation",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov15_table17_admitted_cells; conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov16_binary_long_to_alphanumeric; conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov17_alphabetic_to_numeric",
+ "notes": "§2002:14.8.24.2 SR8: every Yes cell of Table 17 is accepted in g2mov15, including the Type-name row (line T: a strongly-typed group moved as alphanumeric to alphanumeric under §2002:14.8.24.3 GR2), and gives the GR2/GR4/14.5.8 values (13 lines matched at --std 2002). Binary-long to X(5) (g2mov16) and Alphabetic to Numeric (g2mov17) are refused with COBOL0819."
+}

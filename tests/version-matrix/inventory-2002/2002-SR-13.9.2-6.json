@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.9.2-6",
+ "rule-digest": "eaf9316301d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalArith; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantStringLiteral",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-figurative",
+ "notes": "§2002:13.9.2 SR6: \"Neither literal-1 nor any of the literals in arithmetic-expression-1 shall be a figurative constant\". A constant entry under a 2002 CD entry (§2002:13.1.1) that violates it is refused: conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-figurative draws COBOL1547 at the entry at --std 2002 (pinned build dc1f2dcce8)."
+}

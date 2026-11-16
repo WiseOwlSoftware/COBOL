@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.18.2-2",
+ "rule-digest": "0fca82284536",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
+ "test-ref": "conformance:cases/14.8.18@2002-IF-STATEMENT/g2_if_statement_operands_and_nesting",
+ "notes": "§2002:14.8.18.2 SR2: five nested IF shapes bind as the rule states, with the inner IF in statement-1 (S1-S4) and in statement-2 (S5), and each shape prints differently under the wrong ELSE/END-IF matching. The golden matched at --std 2002."
+}

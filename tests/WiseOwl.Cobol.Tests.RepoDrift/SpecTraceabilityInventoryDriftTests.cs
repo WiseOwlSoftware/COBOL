@@ -412,20 +412,22 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// A row's state at its OWN edition (DESIGN-spec-conformance-review.md §10.2, kb/Work PB4994): the newest edition's, and
-    /// an older row not of the chained (KEPT) kind, by <see cref="DerivedState"/>; a KEPT row's is its chain's, OK when it
-    /// carries into at least one rule, every rule it carries into is OK at the next held edition, and each one's
-    /// <c>editions</c> band includes this edition, which is what places the chain's test here. Mirrors
-    /// <c>lineage.state_of</c> in Python. <paramref name="next"/> are the next held edition's rows and their states by id.
+    /// A row's state at its OWN edition (DESIGN-spec-conformance-review.md §10.2 and §10.6, kb/Work PB4994, PB5675): the
+    /// newest edition's, and an older row not of the chained (KEPT) kind, by <see cref="DerivedState"/>; a KEPT row's is its
+    /// chain's AND its own witness: OK when it carries into at least one rule, every rule it carries into is OK at the next
+    /// held edition with an <c>editions</c> band that includes this edition, and the row carries a spec-derived test-ref
+    /// of its own (the one own-edition rule of every older edition; the LINEAGE READS audit holds that test-ref to a suite
+    /// case that runs at this edition). Mirrors <c>lineage.state_of</c> in Python. <paramref name="next"/> are the next
+    /// held edition's rows and their states by id.
     /// </summary>
     private static string StateAt(
         TraceabilityInventory.Row r, TraceabilityInventory.Edition edition, Schema s,
         IReadOnlyDictionary<string, (TraceabilityInventory.Row Row, string State)> next)
     {
         if (edition.IsNewest || r.Next?.Kind != s.ChainedKind) return DerivedState(r, s);
-        return r.Next.To.Count > 0 && r.Next.To.All(t => next.TryGetValue(t, out var target) && target.State == "OK"
-            && Split(target.Row.Editions, s.EditionsSeparator).Contains(edition.Spelling, StringComparer.Ordinal))
-            ? "OK" : "GAP";
+        bool chainClosed = r.Next.To.Count > 0 && r.Next.To.All(t => next.TryGetValue(t, out var target) && target.State == "OK"
+            && Split(target.Row.Editions, s.EditionsSeparator).Contains(edition.Spelling, StringComparer.Ordinal));
+        return chainClosed && Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s)) ? "OK" : "GAP";
     }
 
     /// <summary>Every rule of <paramref name="edition"/>'s view and its state at that edition: the newest edition's by
@@ -1787,9 +1789,13 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Empty(BadStates([Covered("X-5e", "nist:IF128A; conformance:cases/15.63.4-Returned-value-rules/da2_function_as_text")], s));
 
         // ⛔ A KEPT rule's state is its CHAIN's, evaluated at its own edition (kb/Work PB4994): OK only when it carries into
-        // a rule, that rule is OK, and its band places the chain's test at the older edition. Each way to fail is a GAP.
+        // a rule, that rule is OK, and its band places the chain's test at the older edition; AND it carries a witness of
+        // its own, a spec-derived test-ref (kb/Work PB5675: one rule for every older edition). Each way to fail is a GAP.
         var older = TraceabilityInventory.Editions[0];
-        var kept = Base("1985-X-1") with { Next = new(s.ChainedKind, ["X-6"]) };
+        var kept = Base("1985-X-1") with
+        {
+            Next = new(s.ChainedKind, ["X-6"]), TestRef = "conformance:cases/15.63.4-Returned-value-rules/da2_function_as_text",
+        };
         TraceabilityInventory.Row Target(string editions, string verdict = "CONFORMS") => Base("X-6") with
         {
             Verdict = verdict, CodeLocation = "scripts/spec/inventory_schema.py", Editions = editions,
@@ -1799,6 +1805,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
             new Dictionary<string, (TraceabilityInventory.Row, string)> { ["X-6"] = (t, DerivedState(t, s)) };
         string older85 = older.Spelling + s.EditionsSeparator + "2023";
         Assert.Equal("OK", StateAt(kept, older, s, At(Target(older85))));
+        Assert.Equal("GAP", StateAt(kept with { TestRef = "" }, older, s, At(Target(older85))));  // no witness of its own at its edition
+        Assert.Equal("GAP", StateAt(kept with { TestRef = "nist:IF128A" }, older, s, At(Target(older85))));  // a differential is none
         Assert.Equal("GAP", StateAt(kept, older, s, At(Target("2023"))));                       // the test is not placed at the older edition
         Assert.Equal("GAP", StateAt(kept, older, s, At(Target(older85, verdict: ""))));          // the chain's newest rule is not OK
         Assert.Equal("GAP", StateAt(kept, older, s, new Dictionary<string, (TraceabilityInventory.Row, string)>()));   // it carries into no rule of the next edition

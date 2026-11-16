@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.23.2-12",
  "rule-digest": "3e3618015781",
+ "test-ref": "conformance:cases/14.9.24-MERGE/pb995-merge-record-size-using-giving",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

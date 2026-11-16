@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XII.3.3-4",
  "rule-digest": "b75423703e1c",
+ "test-ref": "conformance:cases/7.2.3-COPY/pb1353_replacing_operands_legal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

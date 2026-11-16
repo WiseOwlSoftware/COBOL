@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.43.3-1",
+ "rule-digest": "f6a3cc687bd6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PlaceForItem; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-record",
+ "notes": "§2002:13.16.43.3 GR1 (CD allowed by §2002:13.16.43.2 SR3): 66 C2N RENAMES C2 and C4N RENAMES C4 after a CD record take C2's/C4's attributes and storage (C2=XYZ truncated, neighbours untouched, C4=008); --std 2002 run matched the derived .out."
+}

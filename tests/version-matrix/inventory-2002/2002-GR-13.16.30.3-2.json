@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.30.3-2",
+ "rule-digest": "148bbf912e46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreAligned; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreJustified; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreBoolean; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Store; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource",
+ "test-ref": "conformance:cases/13.16.30@2002-JUSTIFIED-CLAUSE/g2-justified-cd-record",
+ "notes": "§2002:13.16.30.3 GR2: JUSTIFIED receivers in a CD record align right with alphanumeric space, national space, national zero (national boolean J8), alphanumeric zero (display boolean) and bit zero fill ([  AB], N\"  XY\", [0011], B\"0001\"); the --std 2002 run matches the derived output."
+}

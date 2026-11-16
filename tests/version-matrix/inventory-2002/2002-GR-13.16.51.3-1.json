@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.51.3-1",
+ "rule-digest": "15e4a58899d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindReportClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#FieldReferenceSource",
+ "test-ref": "conformance:cases/13.16.51@2002-SOURCE-CLAUSE/g2src02_source_cd_move_rounded",
+ "notes": "§2002:13.16.51.3 GR1 implicit MOVE from CD-record items to numeric, numeric-edited and alphanumeric printable items, re-executed per print (GR3); --std 2002 output matched the derived .out."
+}

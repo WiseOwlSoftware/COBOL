@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-10",
+ "rule-digest": "b177a1a7b17f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-value-in-subject; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-value-subordinate; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-record-storage",
+ "notes": "§2002:13.16.42.2 SR10: VALUE on a CD-record REDEFINES subject and on its level-10 subordinate each drew COBOL2406 at --std 2002, and an 88 under a redefinition was accepted and true (C3-CD=TRUE, MATCH)."
+}

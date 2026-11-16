@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-2",
+ "rule-digest": "34d88fd9e93d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortAddFileKeys; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTableSort; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#Compare",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/g2-sort-key-significance",
+ "notes": "§2002:14.8.36.3 GR2: keys rank in the order written, whatever their ASCENDING/DESCENDING phrase. With data that tie on each key, the table SORT gives T1 A2B2A1B1, T2 A2A1B2B1, T3 A1B1A2B2 and T4 A1A2B1B2, and the file SORT gives A2 B2 A1 B1 and A2 A1 B2 B1, as derived. The --std 2002 run matched."
+}

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-12.3.4.2-11",
  "rule-digest": "f2d735f4e5c8",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb699-relative-key-required-entry-only",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

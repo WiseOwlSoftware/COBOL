@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.53.2-2",
+ "rule-digest": "4fd59d7b7e4d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/13.16.53@2002-SYNCHRONIZED-CLAUSE/g2syn01_sync_cd_ws_ls_file_layout",
+ "notes": "§2002:13.16.53.2 SR2: SYNC, SYNC LEFT and SYNC RIGHT in a CD record, WS, a 77 and a file record lay out and hold values as SYNCHRONIZED does (CDPOS=ABCDEF, CDVAL intact). The --std 2002 run of g2syn01 matched."
+}

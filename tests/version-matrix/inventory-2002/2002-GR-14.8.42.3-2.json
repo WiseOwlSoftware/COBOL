@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.42.3-2",
+ "rule-digest": "8b2f5f52e559",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+ "test-ref": "conformance:cases/14.8.42@2002-TERMINATE-STATEMENT/g2-terminate-inactive-and-no-generate",
+ "notes": "§2002:14.8.42.3 GR2: INITIATE then TERMINATE with no GENERATE processes no RH/RF, leaves LC 0 PC 1, and leaves the report inactive (next TERMINATE raises EC-REPORT-INACTIVE, re-INITIATE raises no EC-REPORT-ACTIVE); --std 2002 run matched."
+}

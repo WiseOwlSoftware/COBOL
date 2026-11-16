@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.45.2-3",
+ "rule-digest": "2d8050ca4efa",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.47-REQUIRED/a42-screen-required",
+ "notes": "The screen section is processor-dependent at 2002 (§2002:B.3 item 1) and §2002:3.1.5 lets an implementation not implement processor-dependent elements whose support it does not claim; WiseOwl claims none (docs/CONFORMANCE.md section 5), and a42-screen-required is refused at --std 2002 by name, COBOL1560 'the REQUIRED clause'. Pointer GR-13.18.47.3-3 is DOCUMENTED-NON-SUPPORT; licence (the 2002 read's licence-2002): §2002:3.1.5 with §2002:B.3 item 1. Re-run by the golden-2002-5 integrator on main 20cad156a4 at --std 2002: rc 65, COBOL1560 'the REQUIRED clause'."
+}

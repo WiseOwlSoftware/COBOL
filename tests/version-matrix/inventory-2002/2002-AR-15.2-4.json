@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.2-4",
+ "rule-digest": "720db8e17ebc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIndexOperand",
+ "test-ref": "conformance:cases/15.2@2002-ARGUMENTS/g2-arg-index-pointer",
+ "notes": "§2002:15.2 AR4 admits index data items; ORD-MAX/ORD-MIN/MAX/MIN of two different index items agree with each other independent of the implementor's representation, ties go leftmost, and LENGTH/BYTE-LENGTH are positive (§2002:15.58.3 RV1 RV3, 15.59.3 RV1, 15.47.3 RV1, 13.16.58.3 GR9). The --std 2002 run of g2-arg-index-pointer matched the derived .out."
+}

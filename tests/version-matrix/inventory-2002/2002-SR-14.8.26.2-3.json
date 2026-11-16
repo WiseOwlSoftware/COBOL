@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.26.2-3",
  "rule-digest": "09e3ec603188",
+ "test-ref": "conformance:cases/14.9.27-OPEN/l1_open_mixed_org_access",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

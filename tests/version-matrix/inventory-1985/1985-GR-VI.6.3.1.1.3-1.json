@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.3.1.1.3-1",
  "rule-digest": "e9ec213ba231",
+ "test-ref": "conformance:cases/8.8.4.2.13-Comparisons-involving-index-names-or-index/l1c32_index_name_relation",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

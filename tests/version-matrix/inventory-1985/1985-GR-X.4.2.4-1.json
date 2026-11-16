@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.4.2.4-1",
  "rule-digest": "43e828507868",
+ "test-ref": "conformance:cases/13.4.5-File-description/l1c11_linage_counter_external_global",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

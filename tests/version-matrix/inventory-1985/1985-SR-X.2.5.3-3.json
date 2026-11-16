@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-X.2.5.3-3",
  "rule-digest": "d49355cf800a",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-end-program-order-reversed",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

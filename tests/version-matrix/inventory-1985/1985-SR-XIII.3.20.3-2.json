@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.3.20.3-2",
  "rule-digest": "249a30ce83b7",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb205-type-control-operand-other-slice",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

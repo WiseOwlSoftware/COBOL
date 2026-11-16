@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.4.2-1",
  "rule-digest": "2968502123b9",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_sort_merge_procedure_ends_at_last_paragraph",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

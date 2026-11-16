@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-8",
+ "rule-digest": "cfdcdd4842a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-comparison-cycle",
+ "notes": "§2002:14.8.21.3 GR8: BEFORE/AFTER regions fixed before the first cycle, absent BEFORE delimiter = no phrase (07), absent AFTER delimiter = never eligible (00), zero-length identifier-4 = no phrase (CZ=07 via a BY CONTENT ODO group to an ANY LENGTH formal). Matched at --std 2002 (pinned dc1f2dcce8)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-10",
+ "rule-digest": "39ff50bd6b33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#OrderTableBind",
+ "test-ref": "conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2spn02-locale-literal-numeric; conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2spn03-order-table-literal-numeric; conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2spn01_locale_order_literal_classes",
+ "notes": "§2002:12.2.6.2 SR10 'Literal-4 and literal-9 shall be alphanumeric or national literals': at --std 2002 a numeric literal-4 (LOCALE L1 IS 123) and a numeric literal-9 (ORDER TABLE OT1 IS 5) are each refused COBOL5987 at the clause, and alphanumeric/national literal-4 with an alphanumeric literal-9 compile and run (EQ== / LEN=1 per §2002:15.69.3 RV6, RV7), matching the derivation."
+}

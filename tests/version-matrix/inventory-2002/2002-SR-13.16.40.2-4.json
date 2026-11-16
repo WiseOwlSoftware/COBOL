@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.40.2-4",
+ "rule-digest": "adce2fa12a7a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ScreenInheritedPropertyNames",
+ "test-ref": "conformance:cases/13.16.40@2002-PROPERTY-CLAUSE/g2-property-superclass-names; conformance:cases/13.16.40@2002-PROPERTY-CLAUSE/g2-property-superclass-clause-name-refused; conformance:cases/13.16.40@2002-PROPERTY-CLAUSE/g2-property-superclass-method-name-refused",
+ "notes": "§2002:13.16.40.2 SR4 forbids a PROPERTY subject equal to a superclass property-name defined by clause or by PROPERTY method: at --std 2002 g2-property-superclass-names (distinct name R) prints P=1 Q=2 R=3, and the clause-name and method-name twins are refused COBOL2563."
+}

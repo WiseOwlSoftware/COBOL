@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.23.4-3",
  "rule-digest": "0eb3e64b95ec",
+ "test-ref": "conformance:cases/14.9.39-SET/pb5386_set_receiver_identified_at_store; conformance:cases/14.9.17-GO-TO/pb212_operand_class_screens",
  "next": {
   "kind": "KEPT",
   "to": [

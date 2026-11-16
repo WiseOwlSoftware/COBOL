@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.14.3-3",
  "rule-digest": "2c08f9b83618",
+ "test-ref": "conformance:cases/13.18.60-USAGE/ca35_comp_alpha_picture; conformance:cases/13.18.60-USAGE/ca35_packed_alpha_picture; conformance:cases/13.18.60-USAGE/pb495-sr2-contradicting-group-usage",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

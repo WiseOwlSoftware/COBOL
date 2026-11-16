@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.7.3-1",
+ "rule-digest": "13cd4d31ab4f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Acos",
+ "test-ref": "conformance:cases/15.7@2002-ACOS-FUNCTION/g2-acos-range-both-arithmetic-modes",
+ "notes": "§2002:15.7.3 RV1: ACOS approximates arccos and lies in [0, pi]; with no equivalent arithmetic expression the value is implementor-defined in both modes (§2002:15.3.1). At --std 2002 a native program and a contained ARITHMETIC IS STANDARD program (§2002:11.8.3 GR1) give +3.141593 +2.094395 +1.570796 +1.047198 +0.000000 +2.094395 for -1, -0.5, 0, 0.5, 1 and 0.5-1, each inside [0, pi], matching the derived .out."
+}

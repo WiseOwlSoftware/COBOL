@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.2-1",
+ "rule-digest": "9fc0462a5f6c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses",
+ "test-ref": "conformance:cases/12.3.4@2002-FILE-CONTROL-ENTRY/g2fce01_clauses_any_order_with_padding; conformance:cases/12.3.4@2002-FILE-CONTROL-ENTRY/g2fce02-select-not-first",
+ "notes": "§2002:12.3.4.2 SR1 (SELECT first, the rest in any order) including the 2002 Format 3 PADDING CHARACTER clause: at --std 2002 entries with PADDING first and last after SELECT and reordered indexed/relative entries run to the derived 11 lines (COBOL0903 obsolete warnings only), and PADDING written before SELECT is refused COBOL0001."
+}

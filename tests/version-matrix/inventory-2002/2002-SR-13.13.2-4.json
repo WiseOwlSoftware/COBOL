@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.13.2-4",
  "rule-digest": "b7c750fd3f13",
+ "test-ref": "conformance:cases/13.15-Report-group-description/l1m8-report-first-entry-not-level-1",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

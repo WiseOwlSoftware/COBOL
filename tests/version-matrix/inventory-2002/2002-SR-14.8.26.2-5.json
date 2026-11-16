@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.26.2-5",
+ "rule-digest": "ef930aaa3c06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenTapePhrase; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#OpenTapePhraseRule; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen",
+ "test-ref": "conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_norewind_input_output; conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_norewind_io_refused",
+ "notes": "§2002:14.8.26.2 SR5 grants NO REWIND with INPUT and with OUTPUT: both forms are accepted and give 07 (§2002:14.8.26.3 GR9); OPEN I-O WITH NO REWIND on a sequential file is refused COBOL1803 at the OPEN. Matched at --std 2002."
+}

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.25.3-3",
  "rule-digest": "4f545c327c6c",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb88-string-into-refmod",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

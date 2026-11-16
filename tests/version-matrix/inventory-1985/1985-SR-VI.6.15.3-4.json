@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.15.3-4",
  "rule-digest": "b8b1767e9869",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb397_sequence_placement_legal; conformance:cases/14.9.17-GO-TO/pb413_go_to_out_of_inline_perform; conformance:cases/14.9.17-GO-TO/pb2610_go_to_before_conditional",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

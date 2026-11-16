@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.23.4-6",
  "rule-digest": "2786e2d8d675",
+ "test-ref": "conformance:cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

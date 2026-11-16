@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-9",
+ "rule-digest": "c92c9d86cd21",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandContextRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-index-data-item-contexts",
+ "notes": "§2002:13.16.58.2 SR9 limits explicit references to an index data item to SET, SEARCH, relation and the listed argument contexts; an index data item in a CD record worked in SET, a relation and SEARCH VARYING (§2002:14.8.34.3 GR3b) with derived SET OK, REL OK, FOUND C, VARY OK at --std 2002, and MOVE of it was refused COBOL0809."
+}
