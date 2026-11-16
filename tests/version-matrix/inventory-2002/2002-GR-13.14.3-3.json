@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.14.3-3",
+ "rule-digest": "c1c387785c92",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderCondition88",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-condition-name-values",
+ "notes": "Per §2002:13.14.3 GR3 single-value, multi-value and THRU-range condition-names on an output-CD record item test and SET as derived (five lines, end value CZZ inside the range, SET stores ONE). Pinned build dc1f2dcce8 --std 2002 matched."
+}

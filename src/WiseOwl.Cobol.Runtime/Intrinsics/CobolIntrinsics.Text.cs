@@ -145,19 +145,35 @@ public static partial class CobolIntrinsics
         : collation.Weight(s[0]) + 1L;
 
     /// <summary>UPPER-CASE (§2023:15.97.4): every lowercase letter replaced by its uppercase correspondent; result
-    /// length = argument length (the fixed-width field image in carries the width out).</summary>
-    public static string UpperCase(string s) => s.ToUpperInvariant();
+    /// length = argument length (the fixed-width field image in carries the width out). A zero-length argument
+    /// (an OCCURS DEPENDING ON group at zero occurrences, a zero-length reference modification) violates
+    /// §2023:15.97.3 AR1 and sets EC-ARGUMENT-FUNCTION (§2023:15.3 AR14 / §2002:15.2 AR13).</summary>
+    public static string UpperCase(string s) => s.Length == 0 ? CaseArgumentZeroLength("UPPER-CASE", "15.97.3") : s.ToUpperInvariant();
 
-    /// <summary>LOWER-CASE (§2023:15.57.4): every uppercase letter replaced by its lowercase correspondent.</summary>
-    public static string LowerCase(string s) => s.ToLowerInvariant();
+    /// <summary>LOWER-CASE (§2023:15.57.4): every uppercase letter replaced by its lowercase correspondent. A zero-length
+    /// argument violates §2023:15.57.3 AR1 (<see cref="UpperCase(string)"/>).</summary>
+    public static string LowerCase(string s) => s.Length == 0 ? CaseArgumentZeroLength("LOWER-CASE", "15.57.3") : s.ToLowerInvariant();
 
-    /// <summary>REVERSE (§2023:15.78.4): the argument's characters in reverse order; same length.</summary>
+    /// <summary>REVERSE (§2023:15.78.4): the argument's characters in reverse order; same length. A zero-length
+    /// argument violates §2023:15.78.3 AR1 (<see cref="UpperCase(string)"/>).</summary>
     public static string Reverse(string s)
     {
+        if (s.Length == 0) return CaseArgumentZeroLength("REVERSE", "15.78.3");
         char[] a = s.ToCharArray();
         Array.Reverse(a);
         return new string(a);
     }
+
+    /// <summary>The ONE zero-length-argument guard of the length-preserving text functions UPPER-CASE, LOWER-CASE and
+    /// REVERSE (§2023:15.97.3 / §2023:15.57.3 / §2023:15.78.3 AR1, "shall be at least one character position in length";
+    /// §2002:15.78.2 / §2002:15.65.2 AR1 say the same): the static screen (IntrinsicArgumentRules MinWidth) sees only a
+    /// width known at bind time, so an argument that is empty at run time arrives here. The returned value's length IS the
+    /// argument's, so the checking-off answer is the zero-length class of row DOC-A.1-90 (<see
+    /// cref="Exceptions.ExceptionState.ArgumentErrorZeroLength"/>). <paramref name="rule"/> is the function's
+    /// §2023 argument-rule clause. The locale-bearing forms (<see cref="CobolLocale"/>) call it too, so every carrier agrees.</summary>
+    internal static string CaseArgumentZeroLength(string function, string rule) =>
+        Exceptions.ExceptionState.ArgumentErrorZeroLength(
+            $"{function} argument-1 is of zero length (§2023:{rule} AR1 — at least one character position)");
 
     /// <summary>LENGTH (§2023:15.50.4) — the RUNTIME residue of the bind-time fold (deep-dive D7): the length in
     /// character positions of a value only the backend rendered (a nested string-function result, whose padded
@@ -455,11 +471,11 @@ public static partial class CobolIntrinsics
         }
         int k = froms.Length;
         // ANYCASE (rule 5) folds via LOWER-CASE without the LOCALE argument - the ONE fold every ANYCASE matcher
-        // reads (CobolLocale.LowerCase: the module's CHARACTER CLASSIFICATION when it has one, §2023:15.57.4 r3, else the
+        // reads (CobolLocale.FoldLower: the module's CHARACTER CLASSIFICATION when it has one, §2023:15.57.4 r3, else the
         // implementor's correspondence, r4; kb/Work PB2631). Length-preserving, so positions over the lowered images align.
-        string srcLower = CobolLocale.LowerCase(source, classification);
+        string srcLower = CobolLocale.FoldLower(source, classification);
         var fromsLower = new string[k];
-        for (int p = 0; p < k; p++) fromsLower[p] = CobolLocale.LowerCase(froms[p], classification);
+        for (int p = 0; p < k; p++) fromsLower[p] = CobolLocale.FoldLower(froms[p], classification);
         static bool MatchAt(string s, string sLower, int i, string f, string fLower, bool anycase) =>
             i + f.Length <= s.Length
             && (anycase ? string.CompareOrdinal(sLower, i, fLower, 0, f.Length) == 0
@@ -569,8 +585,8 @@ public static partial class CobolIntrinsics
         if (hay.Length == 0 || needle.Length == 0) return 0;                     // §2023:15.37.4 rule 5
         // rule 4 - the LOWER-CASE-without-LOCALE fold, ONE for every ANYCASE matcher (kb/Work PB2631): the module's
         // CHARACTER CLASSIFICATION when it has one (§2023:15.57.4 r3), else the implementor's correspondence (r4).
-        string h = anycase ? CobolLocale.LowerCase(hay, classification) : hay;
-        string n = anycase ? CobolLocale.LowerCase(needle, classification) : needle;
+        string h = anycase ? CobolLocale.FoldLower(hay, classification) : hay;
+        string n = anycase ? CobolLocale.FoldLower(needle, classification) : needle;
         var positions = new List<int>();
         for (int i = 0; (i = h.IndexOf(n, i, StringComparison.Ordinal)) >= 0; i++)   // every match position (overlapping incl., rule 1)
             positions.Add(i + 1);                                                // 1-based character position

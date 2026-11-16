@@ -90,11 +90,12 @@ public static class ArithmeticModes
     /// beside the table so "which value means omit" cannot drift away from "what the table says native is".</summary>
     public const int DefaultDigitCap = 31;
 
-    /// <summary>⛔ THE ONE SPELLING OF "this mode's arithmetic runs on the SDIDI decimal engine" (kb/Work PB194).
-    /// <see cref="ArithmeticMode.Standard"/> — the 2002 mode, obsolete 2014, removed 2023 — is NOT a third engine:
-    /// its standard intermediate data item for every operand WiseOwl COBOL can carry IS the standard DECIMAL one, so it
-    /// routes to the same <c>CobolDec</c> path as STANDARD-DECIMAL (<c>NumericRenderer.StandardDecimal</c>,
-    /// <c>DataBinder.BindDeclarations</c>, and <see cref="NumvalDigitCap"/>'s 34 above all say so).
+    /// <summary>⛔ THE ONE SPELLING OF "this mode's arithmetic runs on the decimal engine's carrier" (kb/Work PB194).
+    /// <see cref="ArithmeticMode.Standard"/> — the 2002 mode, obsolete 2014, removed 2023 — is NOT a third engine: it
+    /// routes to the same <c>CobolDec</c> carrier as STANDARD-DECIMAL (<c>NumericRenderer.StandardDecimal</c>,
+    /// <c>DataBinder.BindDeclarations</c>), but not to its MODEL: its standard intermediate data item holds 32 digits,
+    /// truncated per operation (§2002:8.8.1.3.1.1, §2002:8.8.1.3.2), which <c>NumericRenderer.StandardIntermediate</c>
+    /// and <c>CobolDec.ToSidi</c> add over the carrier (kb/Work PB5575).
     /// <para>The set used to be written down in four places and TWO of the copies named STANDARD-DECIMAL alone.
     /// Measured 2026-08-31 at <c>--std 2014</c>: <c>01 EA PIC 9(3)E+999.</c> with
     /// <c>OPTIONS. ARITHMETIC IS STANDARD.</c> was REJECTED — "COBOL1660 … outside the native (binary64)

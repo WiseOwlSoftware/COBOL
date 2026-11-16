@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-19",
+ "rule-digest": "d65a807b027c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhraseHead; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#writeStatement",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5620_write_eop_before_lock_2002",
+ "notes": "kb/Work PB5620: END-OF-PAGE and EOP both written in the 2002 place, before RETRY and WITH [NO] LOCK, select the same phrase (WRITE 1 spells END-OF-PAGE, WRITE 2 and 3 EOP; each runs its imperative by GR23/GR24)."
+}

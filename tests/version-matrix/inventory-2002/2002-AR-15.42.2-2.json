@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.42.2-2",
+ "rule-digest": "7b9741a0ae8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Time",
+ "test-ref": "conformance:cases/15.42@2002-LOCALE-TIME-FUNCTION/g2002-locale-time-function",
+ "notes": "§2002:15.42.2 AR2 - AR2: argument-1 is HHMMSS of CURRENT-DATE positions 9-14 and must be valid per that table (§2002:15.16.2 RV1: minutes 00 through 59, numeric digits); \"236000\" (minutes 60) and \"12AB00\" (non-digits) are incorrect argument values, so §2002:15.2 sets EC-ARGUMENT-FUNCTION; with checking on, the declarative prints HANDLED-ARGUMENT-FUNCTION before AFTER-MINUTE-60 and before AFTER-NON-DIGIT; the valid \"130509\" formats (TIME-DE 13:05:09). Expected lines derived from the 2002 text before the run; G2LTM01 at --std 2002 on the pinned build (tree dc1f2dcce8) printed exactly the derived .out."
+}

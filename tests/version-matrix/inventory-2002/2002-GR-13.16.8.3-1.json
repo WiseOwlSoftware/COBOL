@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.8.3-1",
+ "rule-digest": "f6b3becffda9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs",
+ "test-ref": "conformance:cases/13.16.8@2002-BLANK-WHEN-ZERO-CLAUSE/g2-bwz-cd-record",
+ "notes": "§2002:13.16.8.3 GR1 in a CD record: MOVE 0, MOVE ZERO and a COMPUTE storing zero leave all spaces; non-zero values edit as the picture says. Run with the pinned compiler (tree dc1f2dcce8) at --std 2002: output equals the derived golden."
+}

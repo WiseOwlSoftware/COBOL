@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.9.2-8",
+ "rule-digest": "e7fd9d9a5ad8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantFrom",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-from-undefined-variable",
+ "notes": "§2002:13.9.2 SR8: \"Compilation-variable-name-1 shall be a compilation-variable-name for which the defined condition is currently true\". A constant entry under a 2002 CD entry (§2002:13.1.1) that violates it is refused: conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-from-undefined-variable draws COBOL1547 at the entry at --std 2002 (pinned build dc1f2dcce8)."
+}

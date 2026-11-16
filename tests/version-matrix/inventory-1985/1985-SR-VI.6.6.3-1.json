@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.6.3-1",
  "rule-digest": "e54d1eaae33b",
+ "test-ref": "conformance:cases/14.9.2-ADD/da6-alphanumeric-numeric-operand; conformance:cases/14.9.2-ADD/da6-group-numeric-operand; conformance:cases/14.9.2-ADD/da6-refmod-numeric-operand; conformance:cases/14.9.2-ADD/pb236-add-giving-alphanumeric; conformance:cases/14.9.2-ADD/pb236-add-giving-reference-modified; conformance:cases/14.9.2-ADD/pb236-add-corr-elementary; conformance:cases/14.9.2-ADD/pb236-add-corr-level-66; conformance:cases/14.9.2-ADD/pb966-add-corr-level66-alias",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

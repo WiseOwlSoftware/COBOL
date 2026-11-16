@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.31.2-1",
+ "rule-digest": "fee42dedb0a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolScreen.g4#screenDescriptionEntry",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-lvl-cd-entry-without-level",
+ "notes": "Per §2002:13.16.31.2 SR1 a record description entry after an output CD written with no level-number is refused at that entry (COBOL0001), while the same records with level-numbers run (g2-dde-cd-record-levels). Pinned build dc1f2dcce8 --std 2002 matched."
+}

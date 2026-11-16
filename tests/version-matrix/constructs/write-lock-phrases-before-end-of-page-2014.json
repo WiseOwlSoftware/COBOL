@@ -1,0 +1,12 @@
+{
+ "id": "write-lock-phrases-before-end-of-page-2014",
+ "description": "A WRITE that writes its [ retry-phrase ] [ WITH LOCK | WITH NO LOCK ] pair BEFORE its AT END-OF-PAGE / NOT AT END-OF-PAGE phrases, the place the 2014 Format 1 (sequential) prints it (§2014:14.9.47.1) and 2023 keeps (§2023:14.9.51.2). ISO/IEC 1989:2002 Format 1 prints the pair after the END-OF-PAGE phrases (§2002:14.8.47.1, rendered PDF page 580), and the 2014 Annex E.2 item 29 names the move as the correction (§2014:E.2: \"The LOCK and RETRY phrases for the sequential format of the WRITE statement now appear before the conditional phrases\"), so at --std 2002 this place is in no format: COBOL0900. Each edition is read from its own text: the 2014 annex calls the 2002 diagram an editorial error but does not make the 2014 place 2002 syntax. Before INVALID KEY (Format 2) the pair stands in the same place at every edition and this row does not ask. VersionConformancePass.ParseArm.GateRetryLockPlace asks which place was written (kb/Work PB5620).",
+ "display": "the retry or WITH LOCK phrase of a WRITE written before its END-OF-PAGE phrases",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§2002:14.8.47.1 Format 1; §2014:14.9.47.1 Format 1; §2014:E.2 item 29; §2023:14.9.51.2 Format 1",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.79 (§2014:E.2 item 29; kb/Work PB5620)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMWLB14.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT LPF ASSIGN TO \"vmwlb14.prt\" ORGANIZATION SEQUENTIAL\n        LOCK MODE IS MANUAL.\nDATA DIVISION.\nFILE SECTION.\nFD LPF LINAGE IS 2 LINES.\n01 P-REC PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT LPF\n    WRITE P-REC AFTER ADVANCING 1 LINE\n        WITH LOCK\n        AT END-OF-PAGE DISPLAY \"EOP\"\n    END-WRITE\n    CLOSE LPF\n    STOP RUN.\n"
+}

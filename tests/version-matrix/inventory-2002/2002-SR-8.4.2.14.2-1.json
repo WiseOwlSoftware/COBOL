@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.14.2-1",
+ "rule-digest": "7bbcb92a1718",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterPlace; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn",
+ "test-ref": "conformance:cases/8.4.2.14@2002-REPORT-COUNTERS/g2rct01_report_counters_in_integer_contexts",
+ "notes": "§2002:8.4.2.14.2 SR1: PAGE-COUNTER in a SOURCE clause and the counters in procedure-division integer contexts (MOVE, relation, subscript, ADD, PAGE-COUNTER receiver, and at 2002 SEND ADVANCING identifier-3, §2002:A.2.6.2 SR4) are accepted; after INITIATE (PAGE-COUNTER 1, LINE-COUNTER 0, §2002:8.4.2.14.3 GR2/GR3) g2rct01 at --std 2002 printed PC 01, LC ZERO, SUB A, ADD 02, SET 03, SENT as derived."
+}

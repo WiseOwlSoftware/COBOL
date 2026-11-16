@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-6",
+ "rule-digest": "ec2d490af8c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-categories-locale",
+ "notes": "§2002:13.16.38.3 GR6 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): A9X (contains X), A9 and 9XX (two different symbols) are alphanumeric, so a numeric MOVE left-justifies with space fill (§2002:14.5.8): MOVE 12 TO AN -> \"12 \", MOVE 7 TO A9 -> \"7 \", MOVE 12 TO NX -> \"12 \" (a numeric item would give 012 or 07). The --std 2002 run of the pinned build (dc1f2dcce8) matched the derived .out."
+}

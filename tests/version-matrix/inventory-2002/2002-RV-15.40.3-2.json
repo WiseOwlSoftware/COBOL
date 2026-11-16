@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.40.3-2",
+ "rule-digest": "4921ac486a9a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/LocaleCollation.cs#TrimForLocale; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Compare",
+ "test-ref": "conformance:cases/15.40@2002-LOCALE-COMPARE-FUNCTION/g2lc01-locale-compare",
+ "notes": "§2002:15.40.3 RV2 truncates trailing spaces and reduces an all-space operand to one space: 'abc   ' vs 'abc' and 'ab   ' vs 'ab' are '='; SPACES(5) vs X\"01\" under en-US is '>' (one space, not nothing, against an ignorable character). The --std 2002 run matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.12.3-4",
+ "rule-digest": "ee20d25c4c8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ObjectAsCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ClassifyPair; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindValueOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/EvaluateEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindSubjectTruth; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#MaterializeTruth; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindSelectionObject",
+ "test-ref": "conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2eva01_communication_section_operands",
+ "notes": "§2002:14.8.12.3 GR4 a1-a6, b, c over CD operands: ANY, partial, condition, TRUE/FALSE, ranges with CD identifier-3/4 (T8 RANGE-CD) and identifier objects; first satisfied WHEN taken, a false pair ends its WHEN. --std 2002 run matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.1.2-1",
+ "rule-digest": "18516ff67973",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckAlignedClausesPass.cs#CheckAlignedClausesPass",
+ "test-ref": "conformance:cases/13.16.1@2002-ALIGNED-CLAUSE/g2-aligned-cd-record-bit-items",
+ "notes": "§2002:13.16.1.2 SR1 grants ALIGNED for bit items; in a CD record (§2002:A.1.1.2) ALIGNED on elementary bit items and on a bit group is accepted and takes effect (ALIGNED=02, BITGROUP=10), and on an alphanumeric group it is refused (COBOL1942). Run with the pinned compiler (tree dc1f2dcce8) at --std 2002: output equals the derived golden."
+}

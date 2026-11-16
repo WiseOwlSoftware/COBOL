@@ -1,0 +1,17 @@
+valid
+A-TYPE not numeric
+  EC-VALIDATE-FORMAT
+A-NAME not alphabetic
+  EC-VALIDATE-FORMAT
+A-WEEK(2) not numeric
+  EC-VALIDATE-FORMAT
+A-VAR(3) not numeric but past the count
+A-VAR(2) not numeric
+  EC-VALIDATE-FORMAT
+one subscripted occurrence, valid
+two identifiers, both invalid
+  EC-VALIDATE-FORMAT
+  EC-VALIDATE-FORMAT
+content unchanged: 1xABC01020312 x1
+checking off
+done

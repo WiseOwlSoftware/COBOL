@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.2.2.2.3-2",
  "rule-digest": "bbc9afa11d3f",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_space_quote_zero_chars",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

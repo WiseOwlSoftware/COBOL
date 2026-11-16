@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-17",
+ "rule-digest": "6cc7b99fed40",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#writeStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckWriteEopAdvancingPage",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5620-write-2002-order-advancing-page",
+ "notes": "kb/Work PB5620: SR17 in the 2002 Format 1 order (ADVANCING PAGE, AT END-OF-PAGE, then WITH LOCK) is refused by SR17's own check (COBOL0861, StatementValidation.CheckWriteEopAdvancingPage), not by the parser, now that the 2002 order parses."
+}

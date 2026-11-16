@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.55.3-2",
+ "rule-digest": "c5e2b6c73923",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CloneItem; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#SharesByteWith",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-cd-group-hierarchy; conformance:cases/13.18.57-TYPE/l1c34_type_group_hierarchy",
+ "notes": "§2002:13.16.55.3 GR2 gives a TYPE subject the group type's names and hierarchy, re-levelled; for a level-1 record and a level-05 entry under an output CD (§2002:A.1.1) the subordinates resolve and hold AB/CDE/12 and YZ/PQR/34 with LENGTH 7. Ran at --std 2002 (pinned cobol.exe (tree dc1f2dcce8) --std 2002): output matches."
+}

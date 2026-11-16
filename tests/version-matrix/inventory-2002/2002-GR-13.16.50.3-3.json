@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.50.3-3",
+ "rule-digest": "2c7b22fc918b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritSignWalk",
+ "test-ref": "conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-record-precedence",
+ "notes": "§2002:13.16.50.3 GR3 in a CD record: S3 SIGN LEADING wins over the group TRAILING SEPARATE: length 3, trailing \"12\", sign on the leading digit (GR5a), value -12. Run with the pinned compiler (tree dc1f2dcce8) at --std 2002: output equals the derived golden."
+}

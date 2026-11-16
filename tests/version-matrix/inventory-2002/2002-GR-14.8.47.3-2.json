@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-2",
+ "rule-digest": "a3197285de01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_same_record_area",
+ "notes": "§2002:14.8.47.3 GR2: after a WRITE, the released record stays available as the record of every file in its SAME RECORD AREA clause. Shown for a plain WRITE, for FROM identifier and FROM literal (GR3) and for WRITE FILE (GR5) over three peers. The --std 2002 run of the pinned build dc1f2dcce8 matched the derived .out."
+}

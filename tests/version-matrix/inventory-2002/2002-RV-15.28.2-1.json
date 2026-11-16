@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.28.2-1",
  "rule-digest": "5614952a981d",
+ "test-ref": "conformance:cases/14.6.13.1.5-Exception-objects/oo_ec_raise_object",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

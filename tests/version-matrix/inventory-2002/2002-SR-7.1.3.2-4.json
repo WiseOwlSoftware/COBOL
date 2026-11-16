@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.3.2-4",
+ "rule-digest": "b8989be82e79",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.1.3@2002-REPLACE-STATEMENT/g2-replace-debugging-line-mode",
+ "notes": "§2002:7.1.3.2 SR4 with SR10 and §2002:12.2.4.3 GR4: pseudo-text-2 text-words on a D line are inserted, and with DEBUGGING MODE they are compiled (NEW3). The run at --std 2002 matched. The no-mode result is ambiguous under §2002:H.2 1) and is not witnessed."
+}

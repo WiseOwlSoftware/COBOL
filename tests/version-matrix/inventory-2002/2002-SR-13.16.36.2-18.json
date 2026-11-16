@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-18",
+ "rule-digest": "74caea2267de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DependingInsideTableRange; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#FirstOccurrenceOffsetOf",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-record-tables; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-depending-in-other-record",
+ "notes": "§2002:13.16.36.2 SR18: CNT precedes TVG in the CD record, outside the range from the table's first byte to the record end, and is accepted (F1-F3); N, byte 1 of R2, a second record after the same output CD, is byte 1 of T because records after an output CD implicitly redefine one record area (A.1.2.2 SR9), so it lies in the range and is refused. Matched at --std 2002 on the pinned build of dc1f2dcce8 (F1-F3 of the accepted case; g2-occurs-cd-depending-in-other-record refused COBOL0857)."
+}

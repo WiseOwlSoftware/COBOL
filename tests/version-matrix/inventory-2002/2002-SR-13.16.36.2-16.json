@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-16",
+ "rule-digest": "e073574b4feb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#OdoResolvePass",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-record-tables; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-depending-not-integer",
+ "notes": "§2002:13.16.36.2 SR16: DEPENDING ON CNT PIC 9 (an integer) is accepted and its value is the current occurrence count (13.16.36.3 GR7: F1 moves the 2 bytes AB, F3 LENGTH 3 by 15.39.3 RV4); DEPENDING ON WNF PIC 9V9 is refused. Matched at --std 2002 on the pinned build of dc1f2dcce8 (F1-F3 of the accepted case; g2-occurs-cd-depending-not-integer refused COBOL0852)."
+}

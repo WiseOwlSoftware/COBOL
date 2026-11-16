@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.1.3.1.3-1",
+ "rule-digest": "163775144a03",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#SidiRounded; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderNumericRelational; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#ToSidiRounded",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation; unit:StandardIntermediateDataItemTests.ToSidiRounded_RoundsThirtyTwoDigitsToThirtyOneAsTheRoundedPhraseDoes",
+ "notes": "§2002:8.8.1.3.1.3 GR1: a standard intermediate data item that is compared is rounded to 31 digits as the ROUNDED phrase rounds. Under ARITHMETIC IS STANDARD the relation renders each decimal operand through NumericRenderer.SidiRounded (CobolDec.ToSidiRounded, NEAREST-AWAY-FROM-ZERO), and a sign condition the same. The witness IF 2 / 3 * 3 = 2 compares 1.9999999999999999999999999999999 rounded to 2.000000000000000000000000000000: EQUAL. The exception named in the rule, a comparison among the arguments of an intrinsic function, is not rounded and reads all 32 digits: those arguments are not relation operands and take no rounding here (kb/Work PB5575)."
+}

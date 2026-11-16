@@ -398,7 +398,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // The size a reference modifier is range-checked against is the positions of identifier-1's DESCRIPTION; an
         // ANY LENGTH item's is a run-time fact (the lower bound alone is checked then).
         int? positions = item.IsAnyLength ? null : RefModPlace.PositionCount(item);
-        int lead = r.SubscriptedPlace is { } bit && ParameterConformance.BitStartOf(bit).Bits is { } start
+        int lead = r.SubscriptedPlace is { } bit && ParameterConformance.BitStartOf(bit, wholeRefMod: true).Bits is { } start
             ? (int)(start % BitLayout.BitsPerCharacter) : 0;
         return new AddressRefMod(spec, positions, RefModPlace.PositionBits(item), lead, r.CurrentExtent);
     }

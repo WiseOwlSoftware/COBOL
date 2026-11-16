@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-8.4.2.8.3-1",
  "rule-digest": "4ca41aab5dfb",
+ "test-ref": "conformance:cases/8.4.3.8-SELF-and-SUPER/l1c28_self_super_invoking_object",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

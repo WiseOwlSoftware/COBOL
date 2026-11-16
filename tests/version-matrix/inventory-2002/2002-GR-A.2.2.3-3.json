@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.2.2.3-3",
+ "rule-digest": "d2cb63ef10f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Disable; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#SetQueuePaths; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#PathOpen; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#Deliver; src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#FindQueue",
+ "test-ref": "conformance:cases/A.2.2@2002-DISABLE-STATEMENT/g2002-disable-input-queue-paths",
+ "notes": "DISABLE INPUT at --std 2002 closes the source paths of exactly the named queue structure (Q1/S1 closed, Q1/S2 open; Q2 closes Q2/S1), with 15 when already closed and 20 for an unknown queue (§2002:A.2.2.3 GR3, Table A.1). The golden ran at --std 2002 on the pinned build dc1f2dcce8 and matched its derived .out."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-9",
+ "rule-digest": "6fe24b474040",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2pic01_cd_record_picture",
+ "notes": "Per §2002:13.16.38.3 GR9 PIC NN is national: INITIALIZE of the CD record REPLACING NATIONAL BY N\"QZ\" sets N1 to QZ and leaves alphanumeric X1. The --std 2002 run matched."
+}

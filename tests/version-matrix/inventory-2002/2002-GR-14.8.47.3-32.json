@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-32",
+ "rule-digest": "40378f8922bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_indexed_keys",
+ "notes": "§2002:14.8.47.3 GR32: the prime key of a written record shall not equal that of an existing record; GR37b sets I-O status '22' when it does, and GR13 says an unsuccessful WRITE does not take place. Matched at --std 2002 with the pinned build of dc1f2dcce8 (g2_write_indexed_keys)."
+}

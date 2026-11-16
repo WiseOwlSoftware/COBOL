@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.9.3-4",
+ "rule-digest": "410df835d864",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine; src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#GetEnvironmentVariable",
+ "test-ref": "conformance:cases/7.2.9@2002-DEFINE-DIRECTIVE/g2df04_parameter_environment",
+ "notes": "§2002:7.2.9.3 GR4: a PARAMETER value comes from the operating environment (the upper-cased environment variable, DOC-A.1-49) when the directive is processed, and with none the name is not defined; PATH is defined, an absent variable is not, and PARAMETER OVERRIDE with no value undefines an earlier definition; --std 2002 run on the pinned build matched."
+}

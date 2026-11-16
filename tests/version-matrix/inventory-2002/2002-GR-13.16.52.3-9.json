@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.52.3-9",
+ "rule-digest": "c63a6c52a2a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RegisterCrossEngineAdditions",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum01_sum_cd_addends_timing; conformance:cases/13.18.54-SUM/pb482_sum_addend_written_reference_85",
+ "notes": "By §2002:13.16.52.3 GR9, several addends sum as separate totals added together: (CD-N + 1) CD-N WS-B gives 036, and SUM CD-N SUM WS-B UPON DL2 gives 016. g2sum01 at --std 2002 matched."
+}

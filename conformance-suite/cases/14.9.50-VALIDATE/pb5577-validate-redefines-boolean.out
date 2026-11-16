@@ -1,0 +1,8 @@
+121: valid
+AB1: FN invalid
+  EC-VALIDATE-FORMAT
+122: BT invalid
+  EC-VALIDATE-FORMAT
+AB2: both invalid, one condition per statement
+  EC-VALIDATE-FORMAT
+done

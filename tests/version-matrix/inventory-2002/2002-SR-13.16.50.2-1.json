@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.50.2-1",
+ "rule-digest": "0439a5039410",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#CheckSignClausesPass",
+ "test-ref": "conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-record; conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-record-subject; conformance:cases/13.18.52-SIGN/pb3683_report_sign_2002",
+ "notes": "§2002:13.16.50.2 SR1 grants SIGN to S-numeric data entries, S-numeric report entries and alphanumeric/national/strongly-typed groups: those subjects in a CD record (the strong type in working storage, the report leg in pb3683_report_sign_2002) are accepted and run at --std 2002, and PIC 9(3) and PIC X(3) subjects in a CD record are refused COBOL2422, as derived. The national-group subject GNN is in working storage, per §2002:A NOTE \"Support for data of classes boolean and national and exception handling are intentionally omitted from the obsolete communications facility.\" (cite.py OK)."
+}

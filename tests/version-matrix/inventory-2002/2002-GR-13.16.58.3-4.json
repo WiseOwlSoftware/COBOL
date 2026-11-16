@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-4",
+ "rule-digest": "22e17f365966",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs; docs/CONFORMANCE.md#DOC-A.1-205; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_usage_representation",
+ "notes": "An S9(4) BINARY item in an output CD record (§2002:A.1.2.2 SR9) is 2 bytes of radix-2 two's complement, -1234 imaged FB 2E (§2002:13.16.58.3 GR4, DOC-A.1-205). G2USG01 at --std 2002 matched the derived output."
+}

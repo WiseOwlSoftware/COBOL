@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.8.2-1",
+ "rule-digest": "988a746788fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindContinue; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs",
+ "test-ref": "conformance:cases/14.8.8@2002-CONTINUE-STATEMENT/g2con01_every_2002_position",
+ "notes": "§2002:14.8.8.2 SR1 grants CONTINUE every imperative and conditional position and §2002:14.8.8.3 GR1 gives it no effect: g2con01 writes it as a sentence, in CALL ON OVERFLOW and ON EXCEPTION (§2002:14.8.4.3 GR3g), IF/ELSE, EVALUATE WHEN, ON SIZE ERROR / NOT ON SIZE ERROR and the communication RECEIVE NO DATA / WITH DATA (§2002:A.2.5.1), and control flow is unchanged; it matched at --std 2002."
+}

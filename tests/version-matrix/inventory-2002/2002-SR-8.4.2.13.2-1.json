@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.13.2-1",
+ "rule-digest": "2053110716fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ReportLinageCounterOutsideProcedure; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#LinageFileOf; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveImplCore; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveSumAddend",
+ "test-ref": "conformance:cases/8.4.2.13@2002-LINAGE-COUNTER/g2lct01_linage_counter_in_procedure_statements",
+ "notes": "§2002:8.4.2.13.2 SR1 grants LINAGE-COUNTER in procedure division statements, including at 2002 SEND ... AFTER ADVANCING identifier-3 (§2002:A.2.6.2 SR4); with §2002:13.16.32.3 GR7 values 1 after OPEN, 2 after a WRITE, 5 after WRITE AFTER 3, g2lct01 at --std 2002 printed LC1 01, LC2 OK, LC3 20, LC4 05, SENT as derived."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.14.3-2",
+ "rule-digest": "01d6762c6a87",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CopyEntryDescription; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageInheritancePass.cs#UsageInheritancePass",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-implied-national-group",
+ "notes": "Per §2002:13.14.3 GR2 G1 under CDREC GROUP-USAGE NATIONAL in an output-CD record is a national group: MOVE \"AB\" pads N2 with national spaces and FUNCTION LENGTH(G1) is 4 national positions (§2002:15.39.3 RV2), giving N2 SPACES / LEN-G1=04 LEN-N1=02 as derived. Pinned build dc1f2dcce8 --std 2002 matched."
+}

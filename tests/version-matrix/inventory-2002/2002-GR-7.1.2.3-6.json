@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-6",
+ "rule-digest": "b40317ac7f90",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-replacing-word-and-nesting-mode",
+ "notes": "§2002:7.1.2.3 GR6: library text replaces the whole COPY statement through its period; at --std 2002 COPY G2CBW REPLACING AAA BY \"HELLO\". yields DISPLAY \"HELLO\". and prints HELLO."
+}

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.12.2-1",
  "rule-digest": "da4b1e0548c8",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/l1_evaluate_thru_through_equivalent",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

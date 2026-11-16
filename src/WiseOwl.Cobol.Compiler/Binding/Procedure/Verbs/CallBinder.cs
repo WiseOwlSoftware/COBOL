@@ -1641,6 +1641,6 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // proof the function-identifier's §2023:8.4.3.2.3 SR14 asks too, so it lives in ParameterConformance.
         if ((isReturning || mode is CobolPassMode.Reference) && BitLayout.IsBitItem(item))
             host.Params.ScreenBitAlignment(p, DiagnosticCatalog.CallBitAlignment, $"CALL {role}",
-                isReturning ? "§2023:14.9.4.3 SR8" : "§2023:14.9.4.3 SR6");
+                isReturning ? BitAlignmentStatement.CallReturning : BitAlignmentStatement.CallReference);
     }
 }

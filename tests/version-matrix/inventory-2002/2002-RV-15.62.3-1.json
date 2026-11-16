@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.62.3-1",
  "rule-digest": "6284cbd577f8",
+ "test-ref": "conformance:cases/15.75.3-Argument-rules/pb636_random_total_seed",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

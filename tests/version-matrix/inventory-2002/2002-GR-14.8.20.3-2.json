@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.20.3-2",
+ "rule-digest": "1b379aad4c5f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportActiveError",
+ "test-ref": "conformance:cases/14.8.20@2002-INITIATE-STATEMENT/g2_initiate_active_state",
+ "notes": "§2002:14.8.20.3 GR2: INITIATE of an active report raises EC-REPORT-ACTIVE (handled by its USE) with no other effect: the sum counter keeps 4 and becomes 8 at the next GENERATE, and LINE-COUNTER is unchanged. The golden matched at --std 2002."
+}

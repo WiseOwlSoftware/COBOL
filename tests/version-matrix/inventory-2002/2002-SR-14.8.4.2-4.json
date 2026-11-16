@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-4",
+ "rule-digest": "82d66dee59e1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2002-call-on-overflow-operands",
+ "notes": "§2002:14.8.4.2 SR4: a BY CONTENT identifier-2 is a sending operand. At --std 2002, under ON OVERFLOW, BY CONTENT B stays BBBB (alphanumeric and national identifier-1) and a BY CONTENT CD field stays 0005. Output matched the derivation. The address-identifier arm is not witnessed here (the ADDRESS OF legs are a smoke check)."
+}

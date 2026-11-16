@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.6.3-10",
+ "rule-digest": "8def0b9b7e19",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo04_multi_file_with_lock; conformance:cases/14.9.6-CLOSE/pb893_close_report_completes",
+ "notes": "§2002:14.8.6.3 GR10: CLOSE F1 WITH LOCK F2 WITH LOCK F3 WITH LOCK is three CLOSEs; F2 42 runs its declarative whose RESUME AT NEXT STATEMENT continues to F3 (ST3=00, re-OPENs 38), and CLOSE F4 F5 WITH LOCK locks only F5. --std 2002 run matched. §2002:9.1.12: 38 is fatal and the implementor decides whether execution continues; DOC-A.1-103: it continues, because each file has a FILE STATUS clause and EC-I-O checking is not enabled."
+}

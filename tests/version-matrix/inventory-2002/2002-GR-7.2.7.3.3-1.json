@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.7.3.3-1",
+ "rule-digest": "9a4458a44d4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalDefined; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ApplyDefine",
+ "test-ref": "conformance:cases/7.2.7.3@2002-DEFINED-CONDITION/g2dc01_defined_condition",
+ "notes": "§2002:7.2.7.3.3 GR1 'evaluates TRUE if compilation-variable-name-1 is currently defined': TRUE after DEFINE, after a redefinition following OFF (§2002:7.2.9.2 SR2) and for a DEFINE in included IF text-1; FALSE for a never-defined name and after OFF. --std 2002 on the pinned build printed D1..D4 and N2/N4 as derived."
+}

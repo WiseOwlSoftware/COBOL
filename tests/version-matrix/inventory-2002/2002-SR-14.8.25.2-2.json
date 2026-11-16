@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.25.2-2",
+ "rule-digest": "1e4e7aeac870",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/14.8.25@2002-MULTIPLY-STATEMENT/g2mul01_cd_giving; conformance:cases/14.8.25@2002-MULTIPLY-STATEMENT/g2mul02_cd_giving_alphanumeric",
+ "notes": "§2002:14.8.25.2 SR2 with GR2: GIVING CD numeric items (TEXT LENGTH, MESSAGE COUNT, a 9(4) record item) and a ZZZ9 record item store 0042, 0025, 000084 and '  36'/'  25' (g2mul01 matched at --std 2002); GIVING the alphanumeric SYMBOLIC QUEUE is refused COBOL1675 (g2mul02)."
+}

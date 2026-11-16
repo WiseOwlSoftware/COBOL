@@ -326,7 +326,7 @@ public sealed class DeclinedFacilityDriftTests
     }
 
     /// <summary>The declined-facility diagnostics are ERRORS, not warnings — the distinction that makes
-    /// the whole band different from the §2023:4.2.6 processor-dependent band (COBOL1580, Warning).
+    /// the whole band different from the §2023:4.2.6 processor-dependent band (Warning).
     /// Annex A.4.1: an implementation "shall accept the syntax … for an optional element ONLY when support for
     /// that language element is claimed", so accepting a declined element's syntax is itself the
     /// non-conformance. It is also what makes the rows WITNESSABLE: the negative corpus asserts a failing
@@ -338,7 +338,6 @@ public sealed class DeclinedFacilityDriftTests
         foreach (var d in new[]
                  {
                      DiagnosticCatalog.ValidateDataDivisionClauseUnsupported,
-                     DiagnosticCatalog.DeclinedModuleExceptionName,
                  })
         {
             Assert.Equal(Editions.EditionSeverity.Error, d.Severity);
@@ -346,15 +345,15 @@ public sealed class DeclinedFacilityDriftTests
         }
     }
 
-    /// <summary>The band's codes are 1708 and 1710 and nothing else carries them — the allocation this cluster claimed. A
+    /// <summary>The band's code is 1708 and nothing else carries it — the allocation this cluster claimed. A
     /// collision is how the shipped COBOL1573 two-meanings defect happened. COBOL1709 (the declined SEQUENTIAL operand of
     /// APPLY COMMIT) is RETIRED since kb/Work PB3340 provided the sequential transaction journal: no descriptor carries it,
     /// and it is never reallocated.</summary>
     [Fact]
     public void TheDeclinedBand_OwnsItsCodesExclusively()
     {
-        foreach (string code in new[] { "COBOL1708", "COBOL1710" })
-            Assert.Single(DiagnosticCatalog.All, d => d.Code == code);
+        Assert.Single(DiagnosticCatalog.All, d => d.Code == "COBOL1708");
+        Assert.DoesNotContain(DiagnosticCatalog.All, d => d.Code == "COBOL1710");
         Assert.DoesNotContain(DiagnosticCatalog.All, d => d.Code == "COBOL1709");
     }
 }

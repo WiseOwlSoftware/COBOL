@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-17",
+ "rule-digest": "5b9f6b594eba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-locale-sign",
+ "notes": "Per §2002:13.14.2 SR17 (a prohibition) PIC +ZZZ9.99 LOCALE SIZE IS 14 SIGN IS LEADING in a record after an output CD is refused, COBOL1674 at the entry. Pinned build dc1f2dcce8 --std 2002 matched."
+}

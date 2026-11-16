@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.1.3.6-2",
  "rule-digest": "dd06eb26f1ff",
+ "test-ref": "conformance:cases/8.6.7-Sharing-data-items/l1c31_global_indirect_container",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -247,6 +247,65 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return new CobolDec(DivRemPow10(Sig, drop).Q, Exp + drop);
     }
 
+    /// <summary>The precision of a STANDARD INTERMEDIATE DATA ITEM, the intermediate of ARITHMETIC IS STANDARD — "a precision
+    /// of 32 decimal digits" (§2002:8.8.1.3.1.1, §2014:8.8.1.3.1.1; the clause is not in 2023, which removed the mode).</summary>
+    public const int SidiDigits = 32;
+
+    /// <summary>The digits a standard intermediate data item is ROUNDED to where the rounding rules of standard arithmetic apply
+    /// (§2002:8.8.1.3.1.3, §2014:8.8.1.3.1.3.1): "rounded to 31 digits".</summary>
+    public const int SidiRoundedDigits = 31;
+
+    /// <summary>⛔ A VALUE AS THE STANDARD INTERMEDIATE DATA ITEM HOLDS IT, the ONE run-time spelling of the standard arithmetic
+    /// model of ARITHMETIC IS STANDARD (kb/Work PB5575; the compile-time twin is <c>CompileTimeArithmetic</c>'s 2002 mode): the
+    /// exact result of an operation TRUNCATED to <see cref="SidiDigits"/> significant digits (§2002:8.8.1.3.2 addition,
+    /// §2002:8.8.1.3.4 multiplication, §2002:8.8.1.3.5 division; 2014 the same), whose magnitude must lie from 10^-999 through
+    /// 10^1000 - 10^968 (§2002:8.8.1.3.1.1) — "if the value is too large or too small, respectively, to be contained in a
+    /// standard intermediate data item" the size error condition is raised and EC-SIZE-OVERFLOW or EC-SIZE-UNDERFLOW exists
+    /// (§2002:8.8.1.3.1 r2; "Underflow is treated as a SIZE ERROR and is not rounded to zero"). The engine's own operations are
+    /// asked to TRUNCATE to their 34 digits first; truncation composes, so cutting that to 32 is the exact result's 32-digit
+    /// truncation. Zero is the unique in-range value of no magnitude. Under INTERMEDIATE ROUNDING IS PROHIBITED
+    /// (<paramref name="intermediate"/>, §2014:8.8.1.3.1.3.3) a value that "cannot be represented exactly in a standard
+    /// intermediate data item" is EC-SIZE-TRUNCATION.</summary>
+    public CobolDec ToSidi(CobolRounding intermediate = CobolRounding.Truncation)
+    {
+        var cut = TruncateToSignificantDigits(SidiDigits);
+        if (intermediate == CobolRounding.Prohibited && cut.Sig != Sig && Compare(cut, this) != 0)
+            throw CobolSizeError.ProhibitedInexact();
+        if (cut.Sig == 0) return cut;
+        int adjusted = cut.AdjustedExponent;
+        if (adjusted > SidiMaxAdjustedExp)
+            throw new CobolSizeError("standard intermediate data item exceeds its magnitude range "
+                + "(ISO §2002:8.8.1.3.1.1, §2002:8.8.1.3.1 r2)", "EC-SIZE-OVERFLOW");
+        if (adjusted < SidiMinAdjustedExp)
+            throw new CobolSizeError("standard intermediate data item is below its magnitude range "
+                + "(ISO §2002:8.8.1.3.1.1, §2002:8.8.1.3.1 r2)", "EC-SIZE-UNDERFLOW");
+        return cut;
+    }
+
+    /// <summary>A standard intermediate data item ROUNDED to <see cref="SidiRoundedDigits"/> digits under <paramref name="mode"/>
+    /// — "as described for the ROUNDED phrase" (§2002:8.8.1.3.1.3; §2014:8.8.1.3.1.3.1 to .4 name the INTERMEDIATE ROUNDING
+    /// mode in effect), the rule's three situations: a comparison, a function argument with no equivalent arithmetic
+    /// expression, and the move to a resultant without ROUNDED. Rounding "may cause the size error condition to be raised or
+    /// the EC-SIZE-OVERFLOW exception condition to exist": a 32-digit 9.99…E+999 rounds to 10^1000, outside the range.
+    /// PROHIBITED rounds nothing (§2014:8.8.1.3.1.3.3): the value stays as the item holds it.</summary>
+    public CobolDec ToSidiRounded(CobolRounding mode)
+    {
+        // PROHIBITED rounds nothing: §2014:8.8.1.3.1.3.3 lists no 31-digit rounding situation, and a 32-digit value is
+        // represented exactly in a standard intermediate data item (kb/Work PB5575 review finding R2-1).
+        if (mode == CobolRounding.Prohibited) return this;
+        int drop = DigitCount(UAbs(Sig)) - SidiRoundedDigits;
+        if (Sig == 0 || drop <= 0) return this;
+        var (q, rem, den) = DivRemPow10(Sig, drop);
+        var rounded = new CobolDec(RoundFromRemainder(q, rem, den, sticky: false, mode), Exp + drop);
+        if (rounded.AdjustedExponent > SidiMaxAdjustedExp)
+            throw new CobolSizeError("standard intermediate data item exceeds its magnitude range after rounding "
+                + "(ISO §2002:8.8.1.3.1.3 situation 3)", "EC-SIZE-OVERFLOW");
+        return rounded;
+    }
+
+    /// <summary>§2002:8.8.1.3.1.1: the leading digit's exponent runs from -999 (10^-999) through 999 (9.99…E+999).</summary>
+    private const int SidiMinAdjustedExp = -999, SidiMaxAdjustedExp = 999;
+
     /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF DIVIDE ... GIVING ... REMAINDER ON THE SDIDI (ISO §2023:14.9.12.4 6) c), kb/Work
     /// PB3017): "a subsidiary quotient is developed that is signed and derived from the quotient by truncation of digits
     /// at the least significant end and that has the same number of digits and the same decimal point location as the
@@ -291,7 +350,14 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// zero base with a non-positive exponent (§2023:8.8.1.2 r6a), and a negative base with a non-integer exponent
     /// (§2023:8.8.1.2 r6c). Every step is range-checked at the decimal128 bounds (§2023:8.8.1.5.2 r2, via the ONE
     /// <see cref="Round34Wide"/> clamp).</summary>
-    public static CobolDec Pow(CobolDec b, CobolDec e, CobolRounding mode)
+    public static CobolDec Pow(CobolDec b, CobolDec e, CobolRounding mode) => PowDeveloped(b, e, mode, standardIntermediate: false);
+
+    /// <summary><see cref="Pow"/> under ARITHMETIC IS STANDARD: every multiplication of an integer power's development is a
+    /// standard intermediate data item, truncated to 32 digits (§2002:8.8.1.3.6 rules 2c and 2d, each multiplication per
+    /// §2002:8.8.1.3.4; <see cref="MulStep"/>), so <c>B ** 3</c> is <c>(B * B) * B</c> (kb/Work PB5575 review finding R1-1).</summary>
+    public static CobolDec PowStandard(CobolDec b, CobolDec e, CobolRounding mode) => PowDeveloped(b, e, mode, standardIntermediate: true);
+
+    private static CobolDec PowDeveloped(CobolDec b, CobolDec e, CobolRounding mode, bool standardIntermediate)
     {
         bool eInt = TryIntegerValue(e, out long eBoundProbe, out bool eNegative, out bool eEven);
         if (b.Sig == 0)
@@ -324,7 +390,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         // ⚠ r3 is an IDENTITY requirement, not an accuracy one: at 2 ** -0.25 the reciprocal form is 8 ulp
         // from the true value where the old direct form was 3 — honouring r3 costs accuracy and the standard
         // asks for it anyway, which is exactly why the fix is the literal expression and not a tolerance.
-        var magnitude = PowMagnitude(b, Magnitude(e), eInt, eBoundProbe, eEven, mode);
+        var magnitude = PowMagnitude(b, Magnitude(e), eInt, eBoundProbe, eEven, mode, standardIntermediate);
         return eNegative ? Div(One, magnitude, mode) : magnitude;
     }
 
@@ -334,7 +400,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// <see cref="long.MaxValue"/>. It is a LOOP-BOUND PROBE and never a value: past the bound the exponent
     /// is <paramref name="eAbs"/>, the operand itself.</para></summary>
     private static CobolDec PowMagnitude(CobolDec b, CobolDec eAbs, bool eInt, long eBoundProbe, bool eEven,
-        CobolRounding mode)
+        CobolRounding mode, bool standardIntermediate)
     {
         // r2e (non-integer exponent, positive base): the implementor's equivalent arithmetic expression, whose
         // operands "shall be in SDIDI form" and whose every add/sub/mul/div "shall be performed in accordance
@@ -371,11 +437,21 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         bool first = true;
         while (m > 0)
         {
-            if ((m & 1) != 0) { acc = first ? sq : Mul(acc, sq, mode); first = false; }
+            if ((m & 1) != 0) { acc = first ? sq : MulStep(acc, sq, mode, standardIntermediate); first = false; }
             m >>= 1;
-            if (m > 0) sq = Mul(sq, sq, mode);
+            if (m > 0) sq = MulStep(sq, sq, mode, standardIntermediate);
         }
         return acc;
+    }
+
+    /// <summary>One multiplication of an integer power's development. Under ARITHMETIC IS STANDARD each multiplication of the
+    /// equivalent expression is an operation whose result is a standard intermediate data item, TRUNCATED to 32 digits
+    /// (§2002:8.8.1.3.6 r2c/r2d name <c>(operand-1 * operand-1) * operand-1</c>, each multiplication per §2002:8.8.1.3.4), so
+    /// <c>B ** 3</c> and <c>(B * B) * B</c> are the same value (kb/Work PB5575 review finding R1-1).</summary>
+    private static CobolDec MulStep(CobolDec a, CobolDec b, CobolRounding mode, bool standardIntermediate)
+    {
+        var product = Mul(a, b, mode);
+        return standardIntermediate ? product.ToSidi(mode) : product;
     }
 
     /// <summary>|v| — exact: the magnitude of a sign-magnitude carrier is a sign flip, never an operation.</summary>

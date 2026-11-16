@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-12",
+ "rule-digest": "41e2dfaf6305",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#ScreenBitAlignment; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#BitAlignmentRule; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/pb5640-invoke-bit-refmod-literal-length; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/pb5640-invoke-bit-refmod-data-length",
+ "notes": "2002's item a) constrains 'subscripting and reference modification' - the leftmost position AND the length - where the 2023 twin (§2023:14.9.23.3 SR12) narrows it to 'subscripting and the leftmost position in a reference modification'. BitAlignmentRule.For(Invoke, year) is the one table of the edition forms: below 2023 the rule is WholeRefMod, so ParameterConformance.BitStartOf refuses a reference modification whose length is not a literal (COBOL2453, citing §2002:14.8.22.2 SR12; at 2014 §2014:14.9.22.2 SR12, same words), and at 2023 only the leftmost position is asked (pb5640-invoke-bit-refmod-data-length-2023). Item b) byte alignment is unchanged. kb/Work PB5640."
+}

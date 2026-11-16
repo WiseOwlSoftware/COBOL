@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.18.2-1",
+ "rule-digest": "712fdf68d9b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateToYyyymmdd",
+ "test-ref": "conformance:cases/15.18@2002-DATE-TO-YYYYMMDD-FUNCTION/g2-date-to-yyyymmdd-arguments",
+ "notes": "§2002:15.18.2 AR1 'Argument-1 shall be a positive integer less than 1000000': literal, 999999 and 1 (both ends), 9(6) item, expression W-D1 + 1, input-CD MESSAGE DATE item (§2002:A.1.2.3 GR2e) accepted. Values from §2002:15.18.3 RV1 (YEAR-TO-YYYY(YY,arg-2,arg-3)*10000 + mmdd, YY = INTEGER(arg-1/10000)) and §2002:15.81.3 RV1/RV2 (maximum-year = arg-2 + arg-3; MOD(max,100) >= YY gives YY + 100*INTEGER(max/100), else minus one century): A1LIT 19851003 (2002 NOTE 1), A1MAX 99999999, A1MIN 17000001, A1ITEM 19761231, A1EXPR 19761232 (date not checked, AR1 NOTE), A1CD 20250615. Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

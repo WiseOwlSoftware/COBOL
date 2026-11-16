@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.13.2-10",
  "rule-digest": "9c68018d516b",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb853-report-column-no-operand; conformance:cases/13.15-Report-group-description/pb853-report-column-no-operand-no-picture",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

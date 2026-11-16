@@ -1,0 +1,7 @@
+1 SQ=[QUEUE-A     ]
+2 W-A=[QUEUE-A     ] SQ=[QUEUE-A     ]
+3 IA=[ABCDE] W-5=[ABCDE]
+4 TL=0042 IN4=0042
+5 OB=0000 OB2=1111
+6 W-B=1111 OB2=1111
+7 SQ=[XY          ] W-A=[XY          ]

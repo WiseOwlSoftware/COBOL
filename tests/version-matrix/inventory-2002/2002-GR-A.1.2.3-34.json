@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.1.2.3-34",
+ "rule-digest": "69a095abcd97",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-GR-A_1_2_3-34",
+ "notes": "Per §2002:A.1.2.3 GR34 and table A.1 (§2002:A.1.2.4) the I-O CD status key after ENABLE, ENABLE again, RECEIVE, SEND WITH EMI, PURGE, DISABLE, SEND is 00 15 00 00 00 00 10; the --std 2002 run of the pinned build (tree dc1f2dcce8) printed exactly that."
+}

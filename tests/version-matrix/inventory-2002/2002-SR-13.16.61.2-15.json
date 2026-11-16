@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-15",
+ "rule-digest": "76be22568bf2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#signedIntegerLiteral; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueClauseTablePhrase; src/WiseOwl.Cobol.Compiler/Binding/SignedIntegerLiteral.cs",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr15-decimal-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr15-name-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr15-decimal-ws; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-record-table",
+ "notes": "§2002:13.16.61.2 SR15 requires integer literal subscripts: FROM (1.5) and FROM (K) in a CD record and FROM (1.5) in working-storage are refused (COBOL5506, COBOL1547) at --std 2002, while integer subscripts in a CD record run."
+}

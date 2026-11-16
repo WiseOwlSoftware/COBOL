@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-2",
+ "rule-digest": "5757253b12e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeFloatEdited; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsCharacterEdited",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-editing",
+ "notes": "§2002:13.16.38.4 GR2 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): Table 8: alphanumeric-edited AE (XXBXX/X0X) and national-edited NE (NNBNN0N/N) take simple insertion only (\"AB CD/E0F\", \"AB CD0E/F\"); the floating-point edited FP (+9.99E+99) takes fixed \"+\" and special \".\" in the significand and no editing in the exponent: MOVE 123 -> \"+1.23E+02\" (aligned so the leftmost digit is not zero, §2002:14.5.8). The --std 2002 run of the pinned build (dc1f2dcce8) matched the derived .out."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.52.2-6",
+ "rule-digest": "a4b197133d59",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#UponDetailRef; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveUponDetail",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb1294_report_rolled_cross_report; conformance:cases/13.18.54-SUM/pb482_sum_addend_written_reference_85; conformance:cases/13.18.54-SUM/pb482-sum-upon-not-detail; conformance:cases/13.18.54-SUM/pb482-sum-upon-subscripted",
+ "notes": "By §2002:13.16.52.2 SR6, UPON names a detail, optionally qualified by a report-name: UPON DA OF RA prints 0007, and UPON naming a control footing or a subscripted name is refused COBOL2046. The cases ran at --std 2002 and matched."
+}

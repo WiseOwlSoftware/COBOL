@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.55.2-6",
+ "rule-digest": "dcfeed90031b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#StrongPlacementAdmitted; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandTemplate",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-cd-strong-level",
+ "notes": "§2002:13.16.55.2 SR6: a subject of a STRONG type shall be level 1 or subordinate to a STRONG type declaration; CD-S TYPE T (STRONG) is at level 05 of CD record CD-REC, which is no type declaration, so CD-S (line 28) must be refused. Refused at --std 2002 with COBOL1532 at that line, as derived (pinned cobol.exe (tree dc1f2dcce8) --std 2002)."
+}

@@ -433,6 +433,31 @@ internal static class PlaceRenderer
             : $"{nameof(OmittedFormal)}.{nameof(OmittedFormal.Ref)}(ref {rootText}, {tail}";
     }
 
+    /// <summary>The *-ARG-OMITTED guard on the root <paramref name="place"/>'s storage is reached through (kb/Work PB971), or
+    /// null when the place is no part of a formal parameter that the compilation group can check. Asked of the finished
+    /// place's own access paths, so a subitem, a subscripted element and a redefinition view of a formal answer as the
+    /// formal does (§2023:14.9.4.4 GR12 raises at any reference "to" the parameter).</summary>
+    internal static OmittedFormalGuard? RootGuard(Place place) => place switch
+    {
+        PlaceDecorator d => RootGuard(d.Inner),
+        MemberPlace m => RootGuardOf(m.Path),
+        DynTablePlace t => RootGuardOf(t.Path),
+        RedefViewPlace v => RootGuardOf(v.Backing),
+        // A level-66 alias reaches the formal through its leaves, all items of one record (kb/Work PB5623), so the first guarded leaf answers.
+        RenamesPlace n => n.Leaves.Select(RootGuard).FirstOrDefault(g => g is not null),
+        _ => null,
+    };
+
+    private static OmittedFormalGuard? RootGuardOf(AccessPath path) => path.Segments is [RootSegment root, ..] ? root.Guard : null;
+
+    /// <summary>⛔ A REFERENCE THAT HAPPENS WITHOUT AN ACCESS (kb/Work PB5623): the statement that raises <paramref name="guard"/>'s
+    /// condition when its formal's argument was omitted, spelled with the same runtime raise as <see cref="GuardedRoot"/>. A
+    /// CALL's RETURNING item is identified "at the beginning of the execution of the CALL statement" (§2023:14.9.4.4 GR3a),
+    /// which is a reference to it, while the value is stored only when the activated program delivers it, inside an
+    /// activation whose own checking scope the raise would no longer be in.</summary>
+    internal static string OmittedReferenceRaise(OmittedFormalGuard guard) =>
+        $"if ({guard.Presence}) {nameof(OmittedFormal)}.{nameof(OmittedFormal.Raise)}({nameof(ActivatedElementKind)}.{guard.Kind}, \"{guard.FormalName}\");";
+
     /// <summary>⛔ THE ONE SPELLING OF A ROOT MEMBER'S STORAGE, unguarded: the member's name (a containing program's member
     /// is the contained class's own by its bridge, ISO §2023:13.18.27.4 GR2; kb/Work PB4320). The path renderer's root and the
     /// statement-local hoist of a cell root (<c>PlaceIdentification.FreezeView</c>) both read it, so the two cannot reach

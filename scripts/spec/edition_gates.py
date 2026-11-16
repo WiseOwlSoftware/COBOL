@@ -108,6 +108,7 @@ HELD_OPEN: dict[str, str] = {f"constructs/{c}": FORMAT_ONLY for c in (
     "file-control-entry-optional-2002",                      # the brackets of §2023:12.4.2 and §2023:12.4.4.2 (kb/Work PB5167)
     "rewrite-record-word-2002",                              # the optional word RECORD of §2023:14.9.35.2 (kb/Work PB5159)
     "report-code-is-2002",                                   # the optional word IS of §2023:13.18.12.2 (kb/Work PB5242)
+    "write-lock-phrases-before-end-of-page-2014",            # the place of the lock pair in §2023:14.9.51.2 Format 1 (kb/Work PB5620)
 )}
 _COMMENT = "//"
 

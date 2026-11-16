@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.40.3-5",
+ "rule-digest": "1f28a92863d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Compare",
+ "test-ref": "conformance:cases/15.40@2002-LOCALE-COMPARE-FUNCTION/g2lc01-locale-compare",
+ "notes": "§2002:15.40.3 RV5 returns '=', '<' and '>' for equal, less and greater ('abc'/'abc', 'abc'/'abd', 'abd'/'abc'). The --std 2002 run matched."
+}

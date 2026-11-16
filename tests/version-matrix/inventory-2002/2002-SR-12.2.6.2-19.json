@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-19",
+ "rule-digest": "589bcbb40b39",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#SwitchBindCurrency; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#CurrencySymbolExclusion",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb5595-currency-hexadecimal-literal-7-bare-2002; unit:CurrencySymbolExclusionDriftTests.TheCobol2002Row_IsSyntaxRule22",
+ "notes": "§2002:12.2.6.2 SR19: without PICTURE SYMBOL literal-7 is one character outside the digits, the letters A B C D E N P R S V X Z or their lowercase equivalents, the space and the special characters. SwitchBindCurrency asks the length (COBOL0890 otherwise) and the edition's CurrencySymbolExclusion row asks the characters; the row's 2002 form excludes by basic-letter case equivalence only (§2002:8.1.2.1 GR3). kb/Work PB5595 removed the hexadecimal refusal that the 2014 text introduced, so X\"40\" is accepted at 2002."
+}

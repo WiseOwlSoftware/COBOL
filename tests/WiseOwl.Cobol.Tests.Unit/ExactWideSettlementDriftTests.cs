@@ -239,7 +239,8 @@ public sealed class ExactWideSettlementDriftTests
     {
         string src = Renderer();
         // Settle, TransferWide, LowerWide and ExactOperand are expression-bodied: each arm is read from the member's own text.
-        Assert.Contains("NumX Settle(NumX x, in ReceiverContext rcv, bool outermost) =>\n        !x.Wide && !x.Exact ? x", src);
+        // a decimal intermediate passes through Settle, but for the 31-digit rounding of ARITHMETIC IS STANDARD (kb/Work PB5575)
+        Assert.Contains("NumX Settle(NumX x, in ReceiverContext rcv, bool outermost) =>\n        !x.Wide && !x.Exact ? SidiAtTransfer(x, rcv, outermost)", src);
         Assert.Contains(": x.Exact ? new NumX(RuntimeApi.ExactToUnscaled(x.Expr, toScale, mode, checkedTransfer), toScale)", src);
         Assert.Contains(": x.Exact ? new NumX(RuntimeApi.ExactImage(x.Expr), 0, Dec: true, Precision: x.Precision,", src);
         Assert.Contains("internal string ExactOperand(NumX x) =>\n        x.Exact ? x.Expr", src);

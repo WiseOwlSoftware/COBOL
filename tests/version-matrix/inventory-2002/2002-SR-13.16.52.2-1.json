@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-SR-13.16.52.2-1",
+ "rule-digest": "7ab8d9e3cbca",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSumClause",
+ "notes": "kb/Work PB5652: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) an unprefixed REPOSITORY SUM intrinsic inside a SUM clause addend is a parse error COBOL5506 at 2002, which has no 2014/2023 SUM keyword rule."
+}

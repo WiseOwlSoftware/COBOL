@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.6.3-9",
  "rule-digest": "eb1c566f75ff",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/da1_alphabet_hex_thru",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

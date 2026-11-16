@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.13.2-8",
+ "rule-digest": "395721be8781",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindExitMethod",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2_exit_method_ends_method; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2-exit-method-in-program",
+ "notes": "§2002:14.8.13.2 SR8: EXIT METHOD is accepted in a method procedure division and ends the method with its RETURNING value (§2002:14.8.13.3 GR7: R=GOOD, AFTER-INVOKE); in a program it is refused (COBOL0827). Matched at --std 2002 with the pinned build of dc1f2dcce8."
+}

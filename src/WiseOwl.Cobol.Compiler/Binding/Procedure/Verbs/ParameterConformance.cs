@@ -36,6 +36,70 @@ internal readonly record struct StorageSectionRule(string Clause, string Section
         "a data item defined in the file, working-storage, local-storage, or linkage section");
 }
 
+/// <summary>The statements whose syntax rules ask a bit data item to be "aligned on a byte boundary" with literal
+/// subscripting and reference modification (<see cref="BitAlignmentRule.For"/>).</summary>
+internal enum BitAlignmentStatement
+{
+    /// <summary>A CALL USING argument passed BY REFERENCE.</summary>
+    CallReference,
+    /// <summary>A CALL RETURNING item.</summary>
+    CallReturning,
+    /// <summary>An INVOKE USING argument or RETURNING item.</summary>
+    Invoke,
+    /// <summary>A function-identifier argument whose formal is BY REFERENCE.</summary>
+    Function,
+    /// <summary>The identifier of a REWRITE or WRITE FROM with the FILE phrase.</summary>
+    FilePhrase,
+    /// <summary>ADDRESS OF identifier-1.</summary>
+    AddressOf,
+}
+
+/// <summary>⛔ THE ONE TABLE OF THE BIT-ALIGNMENT RULE'S EDITION FORMS (kb/Work PB5640): the clause a message cites, the
+/// clause that states the byte alignment, and how much of a reference modification the rule asks to be literal. The
+/// 2002 and 2014 texts of every one of these rules say "subscripting and reference modification ... consist of only
+/// fixed-point numeric literals ..." — the leftmost position AND the length. The 2023 text of CALL
+/// (§2023:14.9.4.3 SR6, SR8), INVOKE (§2023:14.9.23.3 SR12) and the function-identifier (§2023:8.4.3.2.3 SR14)
+/// narrows it to "subscripting and the leftmost position in a reference modification"; ADDRESS OF (§2023:8.4.3.11.3 SR4)
+/// and the FILE phrase (§2023:14.9.35.3 SR7, §2023:14.9.51.3 SR9) keep the whole of it.</summary>
+/// <param name="Clause">The edition-qualified rule the message cites.</param>
+/// <param name="AlignmentClause">The clause that places a bit item within its record at that edition.</param>
+/// <param name="WholeRefMod">The length of a reference modification shall be a literal too.</param>
+internal readonly record struct BitAlignmentRule(string Clause, string AlignmentClause, bool WholeRefMod)
+{
+    /// <summary>The rule <paramref name="statement"/> states in the edition of <paramref name="year"/> (a bit item exists
+    /// from COBOL 2002; 1985 reads the 2002 form).</summary>
+    internal static BitAlignmentRule For(BitAlignmentStatement statement, int year)
+    {
+        bool is2023 = year >= 2023;
+        string alignment = is2023 ? "§2023:8.5.1.6.3" : year >= 2014 ? "§2014:8.5.1.5.3" : "§2002:8.5.1.5.3";
+        bool narrowed = is2023 && statement is BitAlignmentStatement.CallReference or BitAlignmentStatement.CallReturning
+            or BitAlignmentStatement.Invoke or BitAlignmentStatement.Function;
+        string clause = (statement, is2023 ? 2023 : year >= 2014 ? 2014 : 2002) switch
+        {
+            (BitAlignmentStatement.CallReference, 2023) => "§2023:14.9.4.3 SR6",
+            (BitAlignmentStatement.CallReference, 2014) => "§2014:14.9.4.2 SR6",
+            (BitAlignmentStatement.CallReference, _) => "§2002:14.8.4.2 SR6",
+            (BitAlignmentStatement.CallReturning, 2023) => "§2023:14.9.4.3 SR8",
+            (BitAlignmentStatement.CallReturning, 2014) => "§2014:14.9.4.2 SR8",
+            (BitAlignmentStatement.CallReturning, _) => "§2002:14.8.4.2 SR8",
+            (BitAlignmentStatement.Invoke, 2023) => "§2023:14.9.23.3 SR12",
+            (BitAlignmentStatement.Invoke, 2014) => "§2014:14.9.22.2 SR12",
+            (BitAlignmentStatement.Invoke, _) => "§2002:14.8.22.2 SR12",
+            (BitAlignmentStatement.Function, 2023) => "§2023:8.4.3.2.3 SR14",
+            (BitAlignmentStatement.Function, 2014) => "§2014:8.4.2.2.2 SR14",
+            (BitAlignmentStatement.Function, _) => "§2002:8.4.2.2.2 SR12",
+            (BitAlignmentStatement.FilePhrase, 2023) => "§2023:14.9.51.3 SR9, §2023:14.9.35.3 SR7",
+            (BitAlignmentStatement.FilePhrase, 2014) => "§2014:14.9.47.2 SR9, §2014:14.9.33.2 SR6",
+            (BitAlignmentStatement.FilePhrase, _) => "§2002:14.8.47.2 SR9, §2002:14.8.33.2 SR7",
+            (BitAlignmentStatement.AddressOf, 2023) => "§2023:8.4.3.11.3 SR4",
+            (BitAlignmentStatement.AddressOf, 2014) => "§2014:8.4.2.11.2 SR4",
+            (BitAlignmentStatement.AddressOf, _) => "§2002:8.4.2.11.2 SR3",
+            _ => throw new ArgumentOutOfRangeException(nameof(statement), statement, "a bit-alignment statement the table does not carry"),
+        };
+        return new BitAlignmentRule(clause, alignment, WholeRefMod: !narrowed);
+    }
+}
+
 /// <summary>
 /// ⛔ THE ONE ARGUMENT HALF OF ISO §2023:14.8.2, PARAMETERS — for every activation whose activated element's formal
 /// parameters are known when the activating statement binds (kb/Work PB1418 / PB1115). Two syntax rules import the
@@ -362,27 +426,30 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// <param name="code">The descriptor the violation reports under.</param>
     /// <param name="subject">How the message names the operand — <c>CALL USING argument</c>,
     /// <c>FUNCTION F argument 2</c>.</param>
-    /// <param name="clause">The rule the message cites.</param>
-    internal void ScreenBitAlignment(Place p, DiagnosticDescriptor code, string subject, string clause)
+    /// <param name="statement">Which statement's rule this is; the edition's clause and the reach of the reference-modification
+    /// requirement come from <see cref="BitAlignmentRule.For"/> (kb/Work PB5640).</param>
+    internal void ScreenBitAlignment(Place p, DiagnosticDescriptor code, string subject, BitAlignmentStatement statement)
     {
-        var start = BitStartOf(p);
+        var rule = BitAlignmentRule.For(statement, ctx.Edition.Edition.Year);
+        var start = BitStartOf(p, rule.WholeRefMod);
         switch (start.Fault)
         {
             case BitStartFault.NonLiteralRefMod:
                 ctx.Edition.Error(code,
-                    $"{subject} '{p.Item.CobolName}': a bit item's reference-modification leftmost position "
-                    + $"shall consist of only fixed-point numeric literals (ISO {clause})");
+                    $"{subject} '{p.Item.CobolName}': a bit item's reference-modification "
+                    + (rule.WholeRefMod ? "leftmost position and length" : "leftmost position")
+                    + $" shall consist of only fixed-point numeric literals (ISO {rule.Clause})");
                 return;
             case BitStartFault.NonLiteralSubscript:
                 ctx.Edition.Error(code,
                     $"{subject} '{p.Item.CobolName}': a bit item's subscripts shall consist of only fixed-point numeric "
-                    + $"literals or all-literal arithmetic expressions without exponentiation (ISO {clause})");
+                    + $"literals or all-literal arithmetic expressions without exponentiation (ISO {rule.Clause})");
                 return;
         }
         if (start.Bits is { } bits && bits % BitLayout.BitsPerCharacter != 0)
             ctx.Edition.Error(code,
                 $"{subject} '{p.Item.CobolName}' starts at bit {bits} of its record — a bit item passed by "
-                + $"reference shall be aligned on a byte boundary (ISO {clause} / §2023:8.5.1.6.3)");
+                + $"reference shall be aligned on a byte boundary (ISO {rule.Clause} / {rule.AlignmentClause})");
     }
 
     /// <summary>Why <see cref="BitStartOf"/> could not give a start bit: the operand is not statically placed.</summary>
@@ -406,7 +473,10 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
     /// §2023:14.9.4.3 SR6/SR8, INVOKE §2023:14.9.23.3 SR12, function §2023:8.4.3.2.3 SR14 (through
     /// <see cref="ScreenBitAlignment"/>) and the data-address-identifier §2023:8.4.3.11.3 SR4 (kb/Work PB1407). It reports
     /// nothing; each rule words its own diagnostic.</summary>
-    internal static BitStart BitStartOf(Place p)
+    /// <param name="p">The operand as resolved.</param>
+    /// <param name="wholeRefMod">The rule asks the LENGTH of a reference modification to be a literal too (<see
+    /// cref="BitAlignmentRule.WholeRefMod"/>), not the leftmost position alone.</param>
+    internal static BitStart BitStartOf(Place p, bool wholeRefMod)
     {
         long extra = 0;
         Place core = p;
@@ -414,7 +484,9 @@ internal sealed class ParameterConformance(BinderContext ctx, StatementBinder ho
         {
             if (core is RefModPlace rm)
             {
-                if (rm.Start.ConstantValue is not { } s0) return new BitStart(null, BitStartFault.NonLiteralRefMod);
+                if (rm.Start.ConstantValue is not { } s0
+                    || (wholeRefMod && rm.Length is { ConstantValue: null }))
+                    return new BitStart(null, BitStartFault.NonLiteralRefMod);
                 extra += s0 - 1;
             }
             core = dec.Inner;

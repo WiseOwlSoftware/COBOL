@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.40.2-1",
+ "rule-digest": "b67ac2161fe4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.40@2002-PROPERTY-CLAUSE/g2-property-implicit-accessor-arms; conformance:cases/13.16.40@2002-PROPERTY-CLAUSE/g2-property-cd-record-refused",
+ "notes": "§2002:13.16.40.2 SR1 allows PROPERTY only in factory or instance working-storage: at --std 2002 g2-property-implicit-accessor-arms (factory FP and instance properties) runs to its .out, and g2-property-cd-record-refused (PROPERTY in a CD record, §2002:A.1.1.2) is refused COBOL2563."
+}

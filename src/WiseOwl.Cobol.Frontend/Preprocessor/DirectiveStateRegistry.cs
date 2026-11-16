@@ -79,12 +79,14 @@ public static class DirectiveStateRegistry
             [nameof(DirectiveResults.PropagateEvents)],
             "The automatic-propagation toggles (§2023:7.3.21.4 GR1/GR3), folded per source element by the binder's "
             + "PropagateState (kb/Work PB1119)."),
-        new(Constructs.Flag85DirectiveWindow, [], [],
-            "NONE HELD: removed at 2023 (Annex E.2 item 21) while PUSH/POP exist only at 2023, so no source may "
-            + "contain both."),
-        new(Constructs.FlagNativeArithmeticDirectiveWindow, [], [],
-            "NONE HELD: removed at 2023 (Annex E.2 item 21) while PUSH/POP exist only at 2023, so no source may "
-            + "contain both."),
+        new(Constructs.Flag85DirectiveWindow, [nameof(FlagDirectiveProcessor)], [nameof(DirectiveResults.FlagEvents)],
+            "The FLAG-85 option toggles (§2002:7.2.11.3 GR2, GR3) — folded by FlagState (kb/Work PB5600). The directive was "
+            + "removed at 2023 (Annex E.2 item 21) while PUSH/POP exist only at 2023, so no SOURCE holds both; the "
+            + "behavioural case drives the stack over the stage's events directly."),
+        new(Constructs.FlagNativeArithmeticDirectiveWindow, [nameof(FlagDirectiveProcessor)], [nameof(DirectiveResults.FlagEvents)],
+            "The FLAG-NATIVE-ARITHMETIC ON/OFF toggles (§2002:7.2.12.3 GR2, GR3) — folded by FlagState (kb/Work PB5600). "
+            + "Removed at 2023 with FLAG-85 (Annex E.2 item 21), so no SOURCE holds it with a PUSH; the behavioural case "
+            + "drives the stack over the stage's events directly."),
     ];
 
     /// <summary>The <see cref="DirectiveResults"/> members that are NOT directive state — the position-ruled

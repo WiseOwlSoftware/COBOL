@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.6.3-1",
+ "rule-digest": "2f6e3462543d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation",
+ "notes": "§2002:15.6.3 RV1: ABS is (argument-1) or (- (argument-1)); the argument expression under standard arithmetic is the 32-digit item: FUNCTION ABS(B * 100 + 9 - B * 100) is 0 (34 digits: 9)."
+}

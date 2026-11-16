@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-7",
+ "rule-digest": "bd03f9f6ad54",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped",
+ "test-ref": "conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-replacing-word-and-nesting-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-debugging-line-library-no-mode",
+ "notes": "§2002:7.1.2.3 GR7 includes library text unchanged without REPLACING, so its D line stays a debugging line (§2002:6.2.7); at --std 2002 COPY G2CBDBG prints ALWAYS, DEBUGLINE with debugging mode and ALWAYS alone without."
+}

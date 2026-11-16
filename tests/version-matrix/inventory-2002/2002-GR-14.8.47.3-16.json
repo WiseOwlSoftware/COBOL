@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-16",
+ "rule-digest": "7c5c5986c02d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_sequential_successor",
+ "notes": "§2002:14.8.47.3 GR16: the successor relationship is the order of execution of the WRITE statements that created the file, unchanged except by appending. Matched at --std 2002 with the pinned build of dc1f2dcce8 (g2_write_sequential_successor)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.18.2-2",
+ "rule-digest": "6d84c284566d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.18@2002-DATE-TO-YYYYMMDD-FUNCTION/g2-date-to-yyyymmdd-arguments",
+ "notes": "§2002:15.18.2 AR2 'Argument-2 shall be an integer': negative literal -10, zero, S9(4) item 25 and expression W-A2 + 1 accepted; by §2002:15.81.3 RV2: A2NEG (981002,-10,1994) max 1984, 84 < 98 -> 18981002 (2002 NOTE 1); A2ZERO (500101,0,2050) 50 >= 50 -> 20500101; A2ITEM (250615,25,2000) 25 >= 25 -> 20250615; A2ITM2 (260615,25,2000) 25 < 26 -> 19260615; A2EXPR (260615,26,2000) -> 20260615. ITEM/ITM2/EXPR sit on the >= boundary. Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

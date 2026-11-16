@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.42.3-1",
+ "rule-digest": "cd4f605b83af",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Facts",
+ "test-ref": "conformance:cases/15.42@2002-LOCALE-TIME-FUNCTION/g2002-locale-time-function",
+ "notes": "§2002:15.42.3 RV1 - RV1: named -> TIME-DE 13:05:09, TIME-US 1:05:09 PM, NAMED-OVER-CUR 13:05:09 while the current LC_TIME is USA; omitted -> CUR-US 1:05:09 PM after SET LOCALE LC_TIME TO USA, CUR-KEEP 1:05:09 PM after only LC_COLLATE is switched (§2002:14.5.6 r3, r8); XX unavailable -> EC-LOCALE-MISSING: HANDLED-LOCALE-MISSING then AFTER-MISSING. Expected lines derived from the 2002 text before the run; G2LTM01 at --std 2002 on the pinned build (tree dc1f2dcce8) printed exactly the derived .out."
+}

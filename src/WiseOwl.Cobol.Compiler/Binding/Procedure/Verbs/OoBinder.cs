@@ -562,7 +562,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                         StorageSectionRule.Of2023("§2023:14.9.23.3 SR9"), addressAdmitted: true))
                     return false;
                 if (BitLayout.IsBitItem(place.Item))
-                    host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment, subject, "§2023:14.9.23.3 SR12");
+                    host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment, subject, BitAlignmentStatement.Invoke);
             }
             return ActiveClassSubordinateAdmitted(place, subject)
                 && (!arg.ByValueWritten || ByValueClassAdmitted(new BoundFieldOperand(place), dref.GetText(), subject));
@@ -1090,7 +1090,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 StorageSectionRule.Of2023("§2023:14.9.23.3 SR11"), addressAdmitted: false))
             return false;
         if (BitLayout.IsBitItem(rp.Item))
-            host.Params.ScreenBitAlignment(rp, DiagnosticCatalog.InvokeBitAlignment, subject, "§2023:14.9.23.3 SR12");
+            host.Params.ScreenBitAlignment(rp, DiagnosticCatalog.InvokeBitAlignment, subject, BitAlignmentStatement.Invoke);
         return ActiveClassSubordinateAdmitted(rp, subject);
     }
 
@@ -1442,7 +1442,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     return null;
                 if (BitLayout.IsBitItem(place.Item))
                     host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment,
-                        $"{verb} \"{methodName}\" USING argument", "§2023:14.9.23.3 SR12");
+                        $"{verb} \"{methodName}\" USING argument", BitAlignmentStatement.Invoke);
             }
 
             // §2023:14.9.23.3 SR13 over identifier-3 / identifier-5, before any conformance question (kb/Work PB1116).
@@ -1726,7 +1726,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             if (BitLayout.IsBitItem(p.Item))
                 host.Params.ScreenBitAlignment(p, DiagnosticCatalog.InvokeBitAlignment, "INVOKE USING argument",
-                    "§2023:14.9.23.3 SR12");
+                    BitAlignmentStatement.Invoke);
             if (!ActiveClassSubordinateAdmitted(p, "INVOKE USING argument")) return BoundRejected.Reported(ctx.Edition);
             if (ctx.Data.Oo.IsObjectData(p.Item))
             {

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.24.2-7",
+ "rule-digest": "029196c75cdb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ShapeRefusal",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov01_cd_move_operands; conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov02_cd_space_to_boolean; conformance:cases/14.9.25-MOVE/pb3468_figurative_constant_receivers",
+ "notes": "§2002:14.8.24.2 SR7: SPACE to a boolean item of an output-CD record is refused COBOL0819 at --std 2002 (g2mov02), while ZERO (boolean per GR5 Table 18) and ALL B\"1\" store 0000 and 1111 (g2mov01 line 5 matched)."
+}

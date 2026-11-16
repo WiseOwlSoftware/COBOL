@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.2.2-4",
+ "rule-digest": "e385b2b0e5c9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#DefinitionPermitsArguments; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#Sr6ArgumentListError; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance:cases/8.4.2.2@2002-FUNCTION-IDENTIFIER/g2fni01_paren_after_function_is_its_argument_list",
+ "notes": "§2002:8.4.2.2.2 SR4: a '(' right after an argument-permitting intrinsic is its argument list, so MAX (RANDOM (9) 5) is MAX of RANDOM(9) (<1, §2002:15.62.3 RV1) and 5 = 5, while (RANDOM)(A), RANDOM () A and RANDOM A leave A to MAX = 9; g2fni01 at --std 2002 printed L1 5, L2 9, L3 9, L4 9 as derived."
+}

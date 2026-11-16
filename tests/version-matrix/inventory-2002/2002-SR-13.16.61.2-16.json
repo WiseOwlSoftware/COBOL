@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-16",
+ "rule-digest": "bd4dc782ae3c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveTableValuesPass.cs#ScreenTableValueGeometry; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveTableValuesPass.cs#OccursChainOf",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr16-count-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr16-max-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr16-max-ws; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-record-table; conformance:cases/13.18.63-VALUE/pb505-table-value-subscript-count",
+ "notes": "§2002:13.16.61.2 SR16: a wrong subscript-1 count and a subscript-1 beyond its OCCURS maximum are refused (COBOL1945, COBOL1586) in a CD record and in working-storage at --std 2002; a legal two-dimension FROM in a CD record runs."
+}

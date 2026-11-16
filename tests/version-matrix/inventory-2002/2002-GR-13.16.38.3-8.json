@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-8",
+ "rule-digest": "88ba4f79dd24",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2pic01_cd_record_picture",
+ "notes": "Per §2002:13.16.38.3 GR8 PIC 111 is boolean: INITIALIZE of the CD record REPLACING BOOLEAN BY B\"010\" sets B1 to 010. The --std 2002 run matched."
+}

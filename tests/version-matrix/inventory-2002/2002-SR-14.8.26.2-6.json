@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.26.2-6",
+ "rule-digest": "102ce352a8d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenSharingAllOther; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl",
+ "test-ref": "conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_sharing_all_clause_no_lock_refused; conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_sharing_all_phrase_no_lock_refused; conformance:cases/14.8.26@2002-OPEN-STATEMENT/g2002_open_sharing_all_lock_mode",
+ "notes": "§2002:14.8.26.2 SR6: each disjunct without LOCK MODE is refused COBOL5994 at the OPEN; with LOCK MODE, or with a non-ALL OPEN phrase, the program compiles and the READ ONLY phrase overriding an ALL OTHER clause yields 61 for a conflicting I-O open (§2002:14.8.26.3 GR22, §2002:9.1.12.8 item 1c). Matched at --std 2002."
+}

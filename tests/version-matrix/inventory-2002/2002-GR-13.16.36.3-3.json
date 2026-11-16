@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-3",
+ "rule-digest": "eb3a6c90ddfa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-record-tables",
+ "notes": "§2002:13.16.36.3 GR3: The KEY phrase gives the order a table SORT uses when the SORT names no KEY (14.8.36.3 GR20) and the order SEARCH ALL relies on: SORT TG (DESCENDING GK) of B,D,A,C / R,P,S,Q gives DCBA PQRS; SORT TM (ASCENDING KEY MK1 MK2, MK1 most significant) of 21,19,20 gives 19 20 21; SEARCH ALL then finds 5 at occurrence 3, B with R, (2,1) at occurrence 3, and takes AT END for 4 and E. Matched at --std 2002 on the pinned build of dc1f2dcce8 (A1-A2, B0-B2, C1-C2 of the accepted case)."
+}

@@ -653,12 +653,12 @@ public static partial class CobolIntrinsics
         string cur = currency.Trim();                                 // r2 — argument-2's edge spaces are ignored
         // §2023:15.68.3 r4f: ANYCASE matches the currency "as if all uppercase letters in argument-1 and in the currency
         // string were replaced by their corresponding lowercase letters as specified in the rules for the LOWER-CASE
-        // function without the LOCALE argument" - the ONE fold (CobolLocale.LowerCase, the module's CHARACTER
+        // function without the LOCALE argument" - the ONE fold (CobolLocale.FoldLower, the module's CHARACTER
         // CLASSIFICATION per §2023:15.57.4 r3 when it has one), applied to the comparison images only: it is
         // length-preserving, so every error position stays ordinal in the ORIGINAL text (kb/Work PB2631 - this
         // site compared through OrdinalIgnoreCase, the UPPERCASE fold, and disagreed with FIND-STRING and SUBSTITUTE).
-        string matchText = anycase ? CobolLocale.LowerCase(text, classification) : text;
-        string matchCur = anycase ? CobolLocale.LowerCase(cur, classification) : cur;
+        string matchText = anycase ? CobolLocale.FoldLower(text, classification) : text;
+        string matchCur = anycase ? CobolLocale.FoldLower(cur, classification) : cur;
         int n = text.Length, i = 0, digits = 0, frac = -1;
         Int128 unscaled = 0;
         bool anyDigit = false, sawDot = false, leadSign = false, sawCur = false, neg = false, pendingGroup = false;

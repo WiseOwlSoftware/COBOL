@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.50.3-1",
+ "rule-digest": "d458c55e43e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation",
+ "notes": "§2002:15.50.3 RV1: MIDRANGE is ((FUNCTION MAX (list) + FUNCTION MIN (list)) / 2). FUNCTION MIDRANGE(B * 100 + 9 - B * 100, 10) is (10 + 0) / 2 = 5 (34 digits: 9.5)."
+}

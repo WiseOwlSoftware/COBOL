@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-4",
+ "rule-digest": "aa502bd1d2a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#CharacterPositions; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2pic01_cd_record_picture",
+ "notes": "Per §2002:13.16.38.3 GR4 size counts the symbols that are positions: in a CD record AAA 3, XXX 3, 111 3, NN 2, S9V99 3, 99CR 4, ZZ9.99 6, -9.99E+99 9 (FUNCTION LENGTH, §2002:15.39.3). The --std 2002 run matched."
+}

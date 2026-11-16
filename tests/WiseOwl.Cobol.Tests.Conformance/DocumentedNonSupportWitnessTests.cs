@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// tell those apart.
 ///
 /// <para>⛔ WHY THESE ARE NOT GOLDENS. The facilities left in this class are declined <b>ACCEPT-INERT</b>, so
-/// their named diagnostics are <b>warnings</b> (COBOL1580, COBOL1778, COBOL2424, docs/CONFORMANCE.md §1): the positive corpus
+/// their named diagnostics are <b>warnings</b> (COBOL1778, COBOL2424, docs/CONFORMANCE.md §1): the positive corpus
 /// asserts a program COMPILES and byte-matches its <c>.out</c> and never looks at the warning channel, and the
 /// negative corpus requires the compile to FAIL, which a warning does not. So a corpus golden can pin the
 /// INERTNESS half and only a compile-diagnostic assertion can pin the DECLINE half. Each test below therefore
@@ -36,17 +36,13 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// module may no longer do.</para>
 ///
 /// <para>THE SPEC BASIS, per remaining facility. (Commit and rollback left this class with kb/Work PB3338, which
-/// built it on the keyed store engine.) VALIDATE (Annex A.4.14) is
-/// OPTIONAL and additionally OBSOLETE (§2023:4.2.13; Annex F.2 item 5): §2023:4.2.7 requires only that the decline be
-/// identified in user documentation, so COBOL1580 is this implementation's own stronger posture — and a
-/// posture that is documented but unmeasured is exactly what these rows owe. The OPTIONS FLOAT-DECIMAL clause (A.3
-/// item 13) is processor-dependent too, so its warning (COBOL2424) is a §2023:4.2.6 ¶3
+/// built it on the keyed store engine; VALIDATE with kb/Work PB5577, which builds the facility in stages.) The OPTIONS FLOAT-DECIMAL clause (A.3
+/// item 13) is processor-dependent, so its warning (COBOL2424) is a §2023:4.2.6 ¶3
 /// obligation; kb/Work R43 made the rows conditioned solely on them derived verdicts that these facts witness. (Asynchronous messaging,
 /// Annex A.3 item 4, left this class with kb/Work PB4744, which built the facility.)</para>
 /// </summary>
 public sealed class DocumentedNonSupportWitnessTests
 {
-    private const string ValidateNonSupport = "COBOL1580";   // VALIDATE — A.4.14 / §2023:4.2.7 / F.2 item 5
     private const string RecordDelimiterNonSupport = "COBOL1778";   // RECORD DELIMITER — A.3 item 26 + A.1 item 150
     private const string FloatDecimalClauseNonSupport = "COBOL2424"; // OPTIONS FLOAT-DECIMAL — A.3 items 13, 19
 
@@ -66,18 +62,6 @@ public sealed class DocumentedNonSupportWitnessTests
             EditionHarness.AssertHasDiagnostic(warnings, code);
         }
     }
-
-    /// <summary>VALIDATE → COBOL1580, at the editions the facility exists (2002+; at --std 85 VALIDATE is
-    /// an ordinary user-defined word). §2023:13.18.40.4 GR19's only trigger is the format validation stage of a
-    /// VALIDATE statement, so the decline is what makes the rule unreachable.
-    /// <para>⚠ The golden's <c>.out</c> pins INERTNESS only, never the decline: §2023:14.9.50.4 GR5 ("the execution
-    /// of the VALIDATE statement does not terminate and the content of the invalid data item does not change")
-    /// and §2023:13.18.17.4 GR1 ("The data item itself remains unchanged") make an UNCHANGED subject the conforming
-    /// outcome too, so "SUBJECT UNCHANGED" discriminates nothing. Only this warning does.</para></summary>
-    [Fact]
-    public void ValidateFacility_NamedNonSupportWarning_PinnedToSpec() =>
-        AssertRecognizedAndNamed(Golden("dns_validate_picture_locale_witness"),
-            ValidateNonSupport, 2002, 2014, 2023);
 
     /// <summary>RECORD DELIMITER → COBOL1778, at EVERY edition (the clause is in the '85 file control entry
     /// and every edition since), and — the point of the pair — ONCE PER ARM. §2023:4.2.6 ¶3 compels the warning for
@@ -166,61 +150,12 @@ public sealed class DocumentedNonSupportWitnessTests
         Assert.Empty(warnings);
     }
 
-    /// <summary>A DECLINED OPTIONAL MODULE'S EXCEPTION-NAME UNDER <c>--permissive</c> IS ACCEPTED, AND THEN IT RESOLVES
-    /// (kb/Work PB374 review R1-1). COBOL1710 is an Error descriptor marked <c>PermissiveInert</c>, so
-    /// <c>EditionContext.Declined</c> warns rather than refuses under <c>--permissive</c>; the exception-name funnel
-    /// decided by a local severity test instead, warned the name as accepted, dropped it anyway, and the RAISE that
-    /// wrote it died as COBOL2362, a refusal no diagnostic names. Each source is the strict-mode NEGATIVE that
-    /// pins the refusal (so the two postures read one file), at the three sites that reach the funnel by different
-    /// paths: RAISE, &gt;&gt;TURN and a USE declarative.</summary>
-    [Theory]
-    [InlineData("declined-ec-validate-raise", "EC-VALIDATE-CONTENT")]
-    [InlineData("declined-ec-validate-turn", "EC-VALIDATE")]
-    [InlineData("declined-ec-validate-use", "EC-VALIDATE-FORMAT")]
-    public void DeclinedModuleExceptionName_Permissive_IsAcceptedAndResolves(string negative, string name)
-    {
-        string source = Golden(negative);
-        var (strictOk, _, _) = EditionHarness.CompileFull(source, 2023);
-        Assert.False(strictOk, $"{negative} compiled under the strict posture; the refusal it pins is gone");
-
-        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023, permissive: true);
-        Assert.True(ok, $"a PermissiveInert declined exception-name must compile under --permissive: "
-                        + string.Join("\n", errors));
-        Assert.Contains(warnings, w => w.Contains("COBOL1710", StringComparison.Ordinal)
-                                       && w.Contains(name, StringComparison.Ordinal)
-                                       && w.Contains("is accepted", StringComparison.Ordinal));
-    }
-
-    /// <summary>The accepted name is a REAL operand, not a tolerated one: the reviewer's own scenario, a USE declarative
-    /// for EC-VALIDATE-CONTENT and a RAISE of it under <c>--permissive</c>, with checking enabled by &gt;&gt;TURN, runs
-    /// the declarative (§2023:14.9.29.4 GR1, "If exception-name-1 is specified, the associated exception condition is
-    /// raised") and continues after the RAISE, the condition being NONFATAL in Table 13. The complement keeps the
-    /// rule honest: EC-SCREEN's descriptor is not PermissiveInert (an inert screen statement would move the wrong
-    /// data), so <c>--permissive</c> still refuses its names.</summary>
+    /// <summary>EC-SCREEN is not PermissiveInert (an inert screen statement would move the wrong data), so <c>--permissive</c> still refuses its names: the
+    /// one declined module left in the exception-name funnel (<c>EcNameResolution.DeclinedEcFamilies</c>) keeps its posture. (The EC-VALIDATE family left
+    /// the table when kb/Work PB5577 built the VALIDATE statement, and with it the PermissiveInert exception-name witnesses of kb/Work PB374 review R1-1.)</summary>
     [Fact]
-    public void DeclinedModuleExceptionName_Permissive_RaiseReachesTheDeclarative_ScreenStillRefused()
+    public void DeclinedModuleExceptionName_Permissive_ScreenStillRefused()
     {
-        const string source = """
-                   >>TURN EC-VALIDATE-CONTENT CHECKING ON
-                   IDENTIFICATION DIVISION.
-                   PROGRAM-ID. PB374PV.
-                   PROCEDURE DIVISION.
-                   DECLARATIVES.
-                   D-SEC SECTION.
-                       USE AFTER EXCEPTION CONDITION EC-VALIDATE-CONTENT.
-                   D-PARA.
-                       DISPLAY "HANDLER".
-                   END DECLARATIVES.
-                   MAIN SECTION.
-                   M-PARA.
-                       RAISE EXCEPTION EC-VALIDATE-CONTENT.
-                       DISPLAY "AFTER".
-                       STOP RUN.
-            """;
-        var (ok, stdout, detail) = EditionHarness.CompileAndRun(source, 2023, permissive: true);
-        Assert.True(ok, detail);
-        Assert.Equal("HANDLER\nAFTER", stdout.ReplaceLineEndings("\n").TrimEnd('\n'));
-
         var (screenOk, screenErrors, _) = EditionHarness.CompileFull(Golden("a42-ec-screen-raise"), 2023,
                                                                      permissive: true);
         Assert.False(screenOk, "EC-SCREEN is not PermissiveInert; --permissive must not accept its names");

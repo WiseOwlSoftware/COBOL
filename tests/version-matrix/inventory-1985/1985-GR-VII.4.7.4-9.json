@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.4.7.4-9",
  "rule-digest": "141422042346",
+ "test-ref": "conformance:cases/8.4.3.14-LINAGE-COUNTER/pb578_advancing_page_overflow_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

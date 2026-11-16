@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.4.3-1",
+ "rule-digest": "fc7509ec6703",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AccessMode; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedAccess",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_sequential_default",
+ "notes": "§2002:12.3.4.4.3 GR1: with no ACCESS MODE clause access is sequential, so a relative file reads in ascending RRN despite RK=9 and an indexed file refuses an out-of-order WRITE with 21 (§2002:14.8.47.3 GR34). The case (accept [2002]) run at --std 2002 matched its derived .out."
+}

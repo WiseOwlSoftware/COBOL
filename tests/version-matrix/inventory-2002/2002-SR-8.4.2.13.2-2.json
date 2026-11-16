@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.13.2-2",
+ "rule-digest": "b752d1cb6b06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving",
+ "test-ref": "conformance:cases/8.4.2.13@2002-LINAGE-COUNTER/g2lct02-linage-counter-move-receiving; conformance:cases/8.4.2.13@2002-LINAGE-COUNTER/g2lct03-linage-counter-add-receiving-qualified",
+ "notes": "§2002:8.4.2.13.2 SR2 bars LINAGE-COUNTER as a receiving operand: MOVE 1 TO LINAGE-COUNTER (g2lct02) and ADD 1 TO LINAGE-COUNTER OF LPF (g2lct03) are each refused at --std 2002 with COBOL2026 on that line, while g2lct01 accepts it as a sender."
+}

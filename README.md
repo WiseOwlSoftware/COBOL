@@ -193,8 +193,8 @@ its §2 dispositions every processor-dependent element of Annex A.3, its §5 eve
 §4 the facilities declined whole. Every element those two tables do not claim in full is named below by its Annex
 item, and a documentation audit (`scripts/doc_audits.py`, `scripts/docchecks/register.py`) fails when this list and the tables disagree:
 
-- The VALIDATE statement (A.4.14) compiles with a warning by documented choice under §2023:4.2.7 (COBOL1580); the
-  facility's data-division clauses (COBOL1708) and its EC-VALIDATE exception names (COBOL1710) are refused.
+- The VALIDATE statement (A.4.14) is implemented in stages (format validation and EC-VALIDATE-FORMAT so far); the
+  facility's data-division clauses not yet built (COBOL1708) are refused by name.
 - Screen handling (A.4.2; COBOL1560, COBOL1707) is refused with errors, which is how Annex A.4.1 reads for an
   optional module whose support is not claimed.
 - The FORMAT and SELECT WHEN clauses (A.4.8) are supported for every record shape but two, which are refused by name

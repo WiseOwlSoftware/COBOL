@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-7",
+ "rule-digest": "aab1f93162ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#TrySimpleInsertion",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-editing",
+ "notes": "§2002:13.16.38.4 GR7 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): Zero with all-Z gives all spaces (ZZZ.ZZ: six spaces; ZZ/ZZ: five, the embedded \"/\" included), zero with all-* gives \"***.**\" (decimal separator kept), leading-Z form a keeps the fraction (\"   .00\"); nonzero: \"  1.50\", \"**1.50\", and ZZ/ZZ with 12 suppresses the \"/\" before the first nonzero digit (\"   12\"). The --std 2002 run of the pinned build (dc1f2dcce8) matched the derived .out."
+}

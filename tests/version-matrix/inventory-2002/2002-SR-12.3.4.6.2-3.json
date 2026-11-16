@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.6.2-3",
+ "rule-digest": "b07fa82a1c3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFileCollating",
+ "test-ref": "conformance:cases/12.3.4.6@2002-COLLATING-SEQUENCE-CLAUSE/g2col01_one_file_level_clause; conformance:cases/12.3.4.6@2002-COLLATING-SEQUENCE-CLAUSE/g2col02_two_file_level_clauses",
+ "notes": "§2002:12.3.4.6.2 SR3: one file-level COLLATING SEQUENCE clause is accepted beside a key-level one and orders the prime key by its alphabet (P:ZZ/XX/AA) while the key-level native alphabet orders the alternate key (A:AA/XX/ZZ), per §2002:12.3.4.6.3 GR2 and GR6; a second file-level clause is refused with COBOL1582. Both run at --std 2002 as derived."
+}

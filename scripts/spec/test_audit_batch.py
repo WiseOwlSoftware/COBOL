@@ -17,6 +17,7 @@ citation check; a stamp in a prompt refused before any batch; the key never
 printed or stored, and the account recorded.
 """
 import contextlib
+import dataclasses
 import io
 import json
 import pathlib
@@ -439,6 +440,9 @@ def main() -> int:
               and written[f["rule-id"]]["next"]["answers"] == {
                   n: {"flag": dt, "answer": f"planted: the 2002 rule still states it ({n})"} for n, dt in marks[f["rule-id"]].items()}
               and not lineage_screen.unanswered(written.values(), screen))
+        check("kb/Work PB5675: each KEPT record carries its own-edition witness, the case the candidate search found, as "
+              "the row's own test-ref (the field its state closes on)",
+              all(written[p["rule-id"]].get("test-ref") == f"conformance:cases/X/{p['to'][0]}" for p in (u, f)))
         check("R2-4: a record with a flag unanswered, and one with no witness at its own edition, are each refused ALONE, "
               "with why, and the rest are written; a SAME with no refuter record and a DIFFERENT write nothing",
               set(refused) == {v["rule-id"], g["rule-id"]} and "no own-edition witness" in refused[v["rule-id"]][0]
@@ -684,12 +688,37 @@ def main() -> int:
         answer(fake, fake.created[-1]["id"], {c: json.dumps(upheld_kept) for c in fake.created[-1]["ids"]})
         run(["collect", "--pass", "recheck", *sbase, *key], fake)
         code, out = run(["results", *sbase], fake)
-        sbatch = root / "seeded-change.json"
-        code, out = run(["change-batch", "--edition", "1985", *sbase, "--out", str(sbatch), "--repo", str(root / "repo-seeded")], fake)
-        srec = {r["rule-id"]: r["next"] for r in json.loads(sbatch.read_text(encoding="utf-8"))["records"]}
+        import lineage_reads  # noqa: PLC0415  (the whole test of a new KEPT record, kb/Work PB5675)
+        targets85 = ["GR-14.9.21.4-2", "GR-14.9.21.4-7"]
+        planted85 = lineage_reads.Witnesses(
+            {f"cases/X/{t}": lineage_reads.CaseInfo(f"cases/X/{t}", root, ("85", "2023"), ("85", "2023"), (), (t,), None)
+             for t in targets85}, {t: [f"conformance:cases/X/{t}"] for t in targets85},
+            {t: ["85", "2002", "2014", "2023"] for t in targets85})
+        real_witnesses, real_lineage = A.witnesses_of, lineage_reads.Lineage.of
+        A.witnesses_of = lambda newer: planted85
+        try:
+            refused85 = root / "seeded-refused.json"
+            code, out = run(["change-batch", "--edition", "1985", *sbase, "--out", str(refused85), "--repo",
+                             str(root / "repo-seeded")], fake)
+            why85 = json.loads(refused85.with_name(refused85.stem + ".refused.json").read_text(encoding="utf-8"))["refused"]
+            check("kb/Work PB5675: the writer keeps the whole test of a new KEPT record at 1985: the 1985 pairing is empty, "
+                  "so the KEPT decision is refused there, alone and by name, though its targets are witnessed at 85",
+                  code == 0 and json.loads(refused85.read_text(encoding="utf-8"))["records"] == []
+                  and [x["rule-id"] for x in why85] == [inspect_rule]
+                  and lineage_reads.NOT_THE_PAIRING in why85[0]["reasons"][0])
+            lineage_reads.Lineage.of = classmethod(lambda cls, ed: dataclasses.replace(
+                real_lineage(ed), pairs={inspect_rule: tuple(targets85)}))
+            sbatch = root / "seeded-change.json"
+            code, out = run(["change-batch", "--edition", "1985", *sbase, "--out", str(sbatch), "--repo",
+                             str(root / "repo-seeded")], fake)
+        finally:
+            A.witnesses_of, lineage_reads.Lineage.of = real_witnesses, real_lineage
+        srec = {r["rule-id"]: r for r in json.loads(sbatch.read_text(encoding="utf-8"))["records"]}
         check("a seeded decision its recheck upholds keeps its own source in the change batch, never the run's (review "
-              "wseeddec R1-2)", code == 0 and srec[inspect_rule]["source"] == "adjudicate-712/slice-01"
-              and srec[inspect_rule]["to"] == ["GR-14.9.21.4-2", "GR-14.9.21.4-7"])
+              "wseeddec R1-2), and, with a pairing, carries its own-edition witnesses as its test-ref (kb/Work PB5675)",
+              code == 0 and srec[inspect_rule]["next"]["source"] == "adjudicate-712/slice-01"
+              and srec[inspect_rule]["next"]["to"] == targets85
+              and srec[inspect_rule]["test-ref"] == "; ".join(f"conformance:cases/X/{t}" for t in targets85))
         code, out = run(["plan", "--pass", "route", *sbase], fake)
         check("a pass the run inherits is its upstream run's: planning it in the seeded run is refused",
               code not in (0, None) and "reads its route pass" in str(code))

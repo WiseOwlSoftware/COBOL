@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-1",
+ "rule-digest": "e4e12b509e37",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2002-call-on-overflow-operands; conformance:cases/14.8.4@2002-CALL-STATEMENT/g2002-call-on-overflow-numeric-target",
+ "notes": "§2002:14.8.4.2 SR1 allows an alphanumeric, national or program-pointer identifier-1 under ALL FORMATS, including Format 1 (ON OVERFLOW). At --std 2002 (program-pointer set by SET ... TO ADDRESS OF PROGRAM, §2002:14.8.35.2 SR20) each of the three reaches the callee with ON OVERFLOW ignored, a missing name takes ON OVERFLOW (§2002:14.8.4.3 GR3, GR3g), and a numeric identifier-1 is refused with COBOL1681. Output matched the derivation."
+}

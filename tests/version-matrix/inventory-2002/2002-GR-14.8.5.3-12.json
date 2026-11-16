@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.5.3-12",
+ "rule-digest": "9c2d3432f96b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel",
+ "test-ref": "conformance:cases/14.8.5@2002-CANCEL-STATEMENT/g2can01_zero_length_identifier",
+ "notes": "§2002:14.8.5.3 GR12 with §2002:8.5.4: CANCEL of an ODO group at 0 occurrences (working storage, and in a record under an output CD) has no effect (H=0002, H=0003), while the same operands with content do cancel (H=0001). --std 2002 run matched."
+}

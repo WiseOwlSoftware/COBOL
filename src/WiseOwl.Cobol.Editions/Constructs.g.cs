@@ -73,6 +73,7 @@ public static class Constructs
     public const string DateToYyyymmdd2002 = "date-to-yyyymmdd-2002";
     public const string DebuggingLineRemoved2014 = "debugging-line-removed-2014";
     public const string DebuggingModeRemoved2014 = "debugging-mode-removed-2014";
+    public const string DefineBooleanExpression2023 = "define-boolean-expression-2023";
     public const string DefineDirective2002 = "define-directive-2002";
     public const string DeleteFile2023 = "delete-file-2023";
     public const string DisplayDirective2023 = "display-directive-2023";
@@ -347,6 +348,8 @@ public static class Constructs
     public const string ValueTableFormat2002 = "value-table-format-2002";
     public const string WordLength632023 = "word-length-63-2023";
     public const string WriteBeforeAndAfterAdvancing2023 = "write-before-and-after-advancing-2023";
+    public const string WriteLockPhrasesAfterEndOfPage2002 = "write-lock-phrases-after-end-of-page-2002";
+    public const string WriteLockPhrasesBeforeEndOfPage2014 = "write-lock-phrases-before-end-of-page-2014";
     public const string WriteRewriteFilePhrase2002 = "write-rewrite-file-phrase-2002";
     public const string ZeroLengthLiteral2014 = "zero-length-literal-2014";
 }

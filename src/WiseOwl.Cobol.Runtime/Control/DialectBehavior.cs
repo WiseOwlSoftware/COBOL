@@ -37,13 +37,15 @@ public enum DialectBehavior
 {
     /// <summary>ISO/IEC 1989:2023 §2023:14.9.30.4 GR21 indexed rule d) 3 — "If no such record is found or PREVIOUS
     /// is specified and the previous operation on the file was an OPEN statement, the at end condition exists".
-    /// 2023 CHANGED IT: Annex E.2 item 22, "READ PREVIOUS statement following an OPEN statement. Ensure that an
-    /// at end condition occurs", whose justification records the PRIOR rule — "the rule itself stated that the
-    /// first record would be retrieved" — so at 2002/2014 a READ PREVIOUS immediately after an OPEN makes the
-    /// first existing record available, exactly as NEXT does. (The conflicting NOTE Annex E.2 also mentions is
-    /// informative — this document is drafted to the ISO/IEC Directives Part 2, under which a note states no
-    /// requirement — so the RULE is the prior standard's normative content.) INDEXED ONLY: the relative and
-    /// sequential sub-rule blocks print rule b) unamended.</summary>
+    /// 2023 CHANGED IT (Annex E.2 item 22, "READ PREVIOUS statement following an OPEN statement. Ensure that an
+    /// at end condition occurs"): before 2023 the READ was the ordinary comparison of §2002:14.8.29.3 GR18c2
+    /// (§2014:14.9.29.3 GR19c2) — "the first existing record in the physical file whose record number or key value
+    /// is less than or equal to the file position indicator" — against the position OPEN set, "the characters that
+    /// have the lowest ordinal position in the collating sequence" (§2002:14.8.26.3 GR12), so only a record whose
+    /// key IS that lowest value is made available and the usual outcome is at end (the standard's own NOTE:
+    /// "normally get an at end condition for indexed"); from 2023 the at end condition is unconditional. The
+    /// prior text overturned kb/Work PB344's reading of the annex alone (kb/Work PB5639). INDEXED ONLY: the
+    /// relative and sequential sub-rule blocks print rule b) unamended.</summary>
     IndexedReadPreviousAfterOpenAtEnd = 0,
 
     /// <summary>ISO/IEC 1989:2023 §2023:7.3.6.3 GR2 — "The implementor shall define and document which mode of
@@ -313,7 +315,8 @@ public static class DialectBehaviors
         new(DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, "indexed-read-previous-after-open-at-end", 2023,
             "29", "14.9.30.4 GR21 d) 3", "E.2 item 22",
             "READ ... PREVIOUS immediately after an OPEN on an INDEXED file raises the at end condition; "
-            + "before 2023 the rule made the first existing record available"),
+            + "before 2023 it selects a record whose key is at most the lowest-ordinal position OPEN set, so at end "
+            + "unless a key is that lowest value"),
         new(DialectBehavior.CompileTimeArithmeticImplementorDefined, "compile-time-arithmetic-mode", 2023,
             "12", "7.3.6.3 GR2", "E.2 item 6",
             "compile-time arithmetic expressions are evaluated in the implementor-defined mode; before 2023 the "

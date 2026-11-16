@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-A.2.2.2-3",
+ "rule-digest": "8e2c0a49e9b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#PathRule; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath",
+ "test-ref": "conformance:cases/A.2.2@2002-DISABLE-STATEMENT/2002-SR-A_2_2_2-3",
+ "notes": "Per §2002:A.2.2.2 SR3 DISABLE OUTPUT of CIN (an input CD) is refused; at --std 2002 the pinned build refuses line 26 with COBOL6170 quoting the 2002 rule and accepts the right-kind DISABLE on line 25."
+}

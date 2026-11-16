@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.47.2-6",
  "rule-digest": "1cce0bc633c1",
+ "test-ref": "conformance:cases/13.18.49-SAME-AS/l1c27-same-as-file-objref-elementary; conformance:cases/13.18.49-SAME-AS/l1c27-same-as-file-objref-group",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

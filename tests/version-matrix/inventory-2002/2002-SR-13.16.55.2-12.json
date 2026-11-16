@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.55.2-12",
+ "rule-digest": "a37249bee499",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindGroupType",
+ "test-ref": "conformance:cases/13.16.55@2002-TYPE-CLAUSE/g2-type-page-groups-page-limit",
+ "notes": "§2002:13.16.55.2 SR12 allows PH, PF and OR PAGE when the RD's PAGE clause defines a page limit; with PAGE LIMIT 6 the program is accepted, and PH, CH OR PAGE (reprinted after the page advance, §2002:13.16.55.3 GR6 c) and PF (on each page, GR6 f) print in the order the 2002 rules derive. Ran at --std 2002 (pinned cobol.exe (tree dc1f2dcce8) --std 2002): output matches."
+}

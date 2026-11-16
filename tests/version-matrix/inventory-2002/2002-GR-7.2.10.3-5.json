@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.10.3-5",
+ "rule-digest": "3db83c9988e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.2.10@2002-EVALUATE-DIRECTIVE/g2ev05_other_debugging_lines",
+ "notes": "§2002:7.2.10.3 GR5 includes all WHEN OTHER text-2 lines of a format 1 EVALUATE with no TRUE WHEN, debugging lines among them (§2002:7.2.10.2 SR8, compiled WITH DEBUGGING MODE per §2002:6.2.7), and omits the WHEN text-1 lines; lines 1-2 (F1-OTH-DLINE-REPLACED, F1-OTH-SRC) matched at --std 2002."
+}

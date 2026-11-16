@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.27.3-4",
  "rule-digest": "951610991de8",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb88-unstring-count-without-delimited",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -263,6 +263,9 @@ public static class BoundStores
         // (the debug triggers) stops there: a group reference does not reference or change its subordinates (X3.23-1985 USE FOR DEBUGGING rule 9).
         public StoreKind Visit(BoundInitialize n) => Hit(n.Written) || (!direct && InitStores(n.Actions)) ? StoreKind.Write : StoreKind.None;
 
+        // VALIDATE reads its operand and stores nothing in stage one (§2023:14.9.50.4 GR5: the content of an invalid item does not change); DEFAULT and DESTINATION (stages S2) will.
+        public StoreKind Visit(BoundValidate n) => StoreKind.None;
+
         // ── SET family ──────────────────────────────────────────────────────────────────────────────────
         public StoreKind Visit(BoundSetConditions n) => n.Sets.Any(x => Hit(x.Parent)) ? StoreKind.Write : StoreKind.None;
         public StoreKind Visit(BoundSetTo n) => n.Targets.Any(TargetHit) ? StoreKind.Write : StoreKind.None;

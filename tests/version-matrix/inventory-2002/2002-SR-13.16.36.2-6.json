@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-6",
+ "rule-digest": "aea825ca5dd8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#OccursKeyItemFault",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-record-tables; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-key-is-table",
+ "notes": "§2002:13.16.36.2 SR6: A key item may contain an OCCURS clause only as the subject of the entry: TS PIC 9 OCCURS 4 ASCENDING KEY IS TS is accepted and SEARCH ALL finds 5 at occurrence 3 and misses 4 (A1 3, A2 NONE), while K1 PIC 9 OCCURS 2 as the key of TB is refused. Matched at --std 2002 on the pinned build of dc1f2dcce8 (A1-A2 of the accepted case; g2-occurs-cd-key-is-table refused COBOL2787)."
+}

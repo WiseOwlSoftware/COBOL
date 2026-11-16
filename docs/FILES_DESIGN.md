@@ -1012,7 +1012,22 @@ runtime mirrors it: `FileRecordLock` is the retention bracket alone, `CobolFile.
 `advancingOnLock` and `ignoringLock` as their own arguments, and the Format-2 `ReadKeyedShared` takes
 `ignoringLock` (ADVANCING ON LOCK is not in the Format-2 general format — D17). WRITE and REWRITE reference
 `recordLockPhrase` only, because §2023:14.9.51.2 and §2023:14.9.35.2 print `[ retry-phrase ]` and
-`[ WITH LOCK | WITH NO LOCK ]` and no IGNORING LOCK at all.
+`[ WITH LOCK | WITH NO LOCK ]` and no IGNORING LOCK at all; they reach it through ONE rule for the two adjacent
+brackets, `CobolIO.g4#retryLockPhrases` (`retryPhrase recordLockPhrase? | recordLockPhrase`), so the pair is one
+element of the statement.
+
+**Where WRITE's pair stands is an edition fact (kb/Work PB5620).** The 2002 Format 1 (sequential) prints it AFTER
+the END-OF-PAGE phrases (§2002:14.8.47.1, rendered PDF page 580); the 2014 Format 1 moved it before them, the place
+Format 2, READ and REWRITE print it at every edition (§2014:14.9.47.1, §2023:14.9.51.2), and ISO/IEC 1989:2014
+Annex E.2 item 29 records the move ("Through an editorial error, the LOCK and RETRY phrases were placed in an
+incorrect location in the syntax diagram for the sequential format of the WRITE statement", §2014:E.2).
+`writeStatement` therefore parses `retryLockPhrases` in either place — `retryLockPhrases conditionalPhrases |
+conditionalPhrases retryLockPhrases?` — so a WRITE still writes the pair once and in one place, and splitting it
+around the phrases is a syntax error at every edition. Which place was written is asked once, from the written
+order, by `VersionConformancePass.ParseArm.GateRetryLockPlace`: after an END-OF-PAGE phrase is
+`write-lock-phrases-after-end-of-page-2002` (COBOL0902 from 2014), before one is
+`write-lock-phrases-before-end-of-page-2014` (COBOL0900 at 2002), and after INVALID KEY phrases is no edition's
+format (COBOL2987, §2023:5.2.1). The binders read the pair through `retryLockPhrases()` and never ask its place.
 
 **Why it is written as a decision (kb/Work PB331).** One rule, `recordLockPhrase : IGNORING LOCK | WITH? NO
 LOCK | WITH? LOCK`, reached through three free optionals, inverted BOTH cardinalities at once: what the printed
@@ -2587,7 +2602,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   is less than or equal to the length of the associated key, the I-O status value … is set to '23'"* — and 14.9.41.3
   has no rule confining the expression to an integer, so `WITH LENGTH 2.5` is legal source whose result is '23'.
   `KeyedIoEmitter.EmitStart` therefore renders a `StartKeyLength` (runtime `IO/StartKeyLength.cs`) from the exact
-  lane `SetEmitter.LandAmount` uses — the scaled `Int128` with its scale, or the native `double` — and
+  lane `SetEmitter.LandAmount` uses — the scaled `Int128` with its scale, the SDIDI `CobolDec` (`NumericRenderer.LandedAmount`, kb/Work PB5619), or the native `double` — and
   `IndexedConnector.Start` asks `TryCompareLength(keyLength, …)` exactly once: integrality through THE ONE
   carrier-neutral landing `SetAmount.Land`, then 1 ≤ count ≤ key length, then the GR13 national-position scaling on
   the bounded integer. The former int narrowing of `Align(expr, 0)` truncated 2.5 to 2 and wrapped 4294967297 to 1,
@@ -2737,16 +2752,19 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   carve-out from the legacy engine's `RelativeFileHandler`). The relative golden's SPARSE-file phase is what
   makes rule b) falsifiable: with the lowest record at RRN 5, OPEN's indicator of 1 names an empty slot, so
   PREVIOUS and NEXT can only name the same record if the rule ignores the direction.
-  ⚠ **The INDEXED leg IS gated, and the `<=2014` answer is the first existing record** (kb/Work PB344).
-  `IndexedConnector.SelectSequentialRecord` asks `DialectBehaviors.IsActive(IndexedReadPreviousAfterOpenAtEnd,
-  Edition)`; below 2023 the after-OPEN arm is DIRECTION-BLIND, so a READ PREVIOUS immediately after an OPEN
-  makes the same record NEXT does available. Annex E.2 item 22's justification is what states the prior rule —
-  *"the rule itself stated that the first record would be retrieved. The rule itself has been amended such that
-  an at end condition would occur"* — and the conflicting prior NOTE it also mentions states no requirement
-  (this standard is drafted to the ISO/IEC Directives Part 2), so rule-versus-note is not a normative
-  contradiction and no owner decision was needed. Asserted by
-  `conformance:{2002,2014,2023}/pb344_read_previous_indexed` (P1 differs by edition; P2/P3/P4 are the controls
-  that do not).
+  ⚠ **The INDEXED leg IS gated, and the `<=2014` answer is the ordinary comparison, not the first record**
+  (kb/Work PB344, corrected by kb/Work PB5639). `IndexedConnector.SelectSequentialRecord` asks
+  `DialectBehaviors.IsActive(IndexedReadPreviousAfterOpenAtEnd, Edition)`: at 2023 a PREVIOUS immediately after an
+  OPEN is the at end condition (rule d) 3). Below 2023 the after-OPEN PREVIOUS is §2002:14.8.29.3 GR18c2
+  (§2014:14.9.29.3 GR19c2) — "the first existing record in the physical file whose record number or key value is
+  less than or equal to the file position indicator" — and OPEN's indicator is "the characters that have the lowest
+  ordinal position in the collating sequence" (§2002:14.8.26.3 GR12), so the connector seeks the last key at most
+  that value (`IndexedConnector.LowestKey`: the key sequence's LOW-VALUE character over the key's length): at end
+  unless a record's key IS that lowest value, which the standard's own NOTE records ("normally get an at end
+  condition for indexed"). PB344 had derived the prior rule from Annex E.2 item 22's justification alone, before
+  the 2002 and 2014 text was held, and answered the first existing record. Asserted by
+  `conformance:{2002,2014,2023}/pb344_read_previous_indexed` (P5, the LOW-VALUES key, differs by edition; P1 is
+  at end at all three; P2/P3/P4 are the controls).
 - ⛔ **The OPEN-MODE USE-declarative tier is EDITION-INVARIANT — and that is a DETERMINATION, not an
   omission** (`VERSION_CHANGE_REFERENCE` rows 25 and 26; Annex E.2 item 19 a)/b); kb/Work PB344). §2023:14.9.49.4
   GR6 b)–e) selects a declarative by the file's open mode, and Annex E.2 item 19 records that the previous

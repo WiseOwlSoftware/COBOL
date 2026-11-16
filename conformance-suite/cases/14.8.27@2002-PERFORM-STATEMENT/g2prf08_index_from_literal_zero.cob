@@ -1,0 +1,32 @@
+      *>--- conformance-case
+      *> id: g2prf08_index_from_literal_zero
+      *> rules: [2002-SR-14.8.27.2-5]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §2002:14.8.27.2 SR5 b - with an index-name in VARYING, "The
+      *>   literal in the associated FROM phrase shall be a positive
+      *>   integer." FROM 0 is not positive: refused at the PERFORM
+      *>   line.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. G2PRF08.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 W-N  PIC 9(4) VALUE 0.
+       01 T.
+          05 TE PIC X OCCURS 9 INDEXED BY TX.
+       COMMUNICATION SECTION.
+       CD CDIN FOR INPUT
+           SYMBOLIC QUEUE IS SQ
+           TEXT LENGTH IS TL.
+       01 INREC.
+          05 FILLER PIC X(12).
+          05 IN4    PIC 9(4).
+          05 IN9V   PIC 9V9.
+          05 FILLER PIC X(69).
+       PROCEDURE DIVISION.
+       MAIN.
+           PERFORM VARYING TX FROM 0 BY 1 UNTIL TX > 2
+               ADD 1 TO W-N
+           END-PERFORM.
+           STOP RUN.

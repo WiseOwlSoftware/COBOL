@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-21",
+ "rule-digest": "29af532c5dad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#ScreenLockPhraseAgainstAutomatic",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_sequential_lock_phrase_manual; conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_sequential_lock_phrase_automatic_neg; conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_random_lock_phrase_manual; conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_random_lock_phrase_automatic_neg",
+ "notes": "SR21 forbids WITH LOCK / WITH NO LOCK under automatic locking. With PB5620 landed (the 2002 Format 1 order parses), re-probed at --std 2002 on the merged head of golden-2002-1: the MANUAL Format 1 statement in the 2002 order (END-OF-PAGE phrases, then WITH LOCK) compiles and prints W 00 N=2, its AUTOMATIC twin is refused COBOL5993 at the WITH LOCK; Format 2 (random relative) likewise: MANUAL WITH LOCK and WITH NO LOCK write and read back, AUTOMATIC refused COBOL5993 at each. The DIVERGES that named PB5620 was the parser's refusal, not SR21's."
+}

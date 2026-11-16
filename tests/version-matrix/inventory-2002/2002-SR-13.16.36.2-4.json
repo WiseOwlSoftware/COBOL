@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-4",
+ "rule-digest": "cbed69f76063",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#OccursKeyItemFault",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-record-tables; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-key-under-nested-table",
+ "notes": "§2002:13.16.36.2 SR4: A key subordinate to a group within the table is allowed only when that group has no OCCURS clause: GK under GG (no OCCURS) is accepted and drives SORT and SEARCH ALL of TG (B0 DCBA PQRS, B1 R), while K under G OCCURS 2 is refused. Matched at --std 2002 on the pinned build of dc1f2dcce8 (B0-B2 of the accepted case; g2-occurs-cd-key-under-nested-table refused COBOL2787)."
+}

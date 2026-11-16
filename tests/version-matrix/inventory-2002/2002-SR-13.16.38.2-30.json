@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-30",
+ "rule-digest": "d08e2d136a7f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeLocaleEdited",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-record-legal-forms; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-sr30-locale-plus-right",
+ "notes": "§2002:13.16.38.2 SR30 grants a form: +$Z9.99 LOCALE IS FR SIZE IS 12 in a record after an OUTPUT CD (§2002:A.1.1.2) compiles and runs at --std 2002 (size 12, -12.5 de-edits to -12.50, matching the derived .out of g2002-pic-cd-record-legal-forms); the violating PIC 9.99+ LOCALE IS FR SIZE IS 8 is refused COBOL1673."
+}

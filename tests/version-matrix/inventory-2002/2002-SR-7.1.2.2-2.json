@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-2",
+ "rule-digest": "b85c88e8fe05",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReportPlacement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement",
+ "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-placement-debugging-mode; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-debugging-line-no-space-refused",
+ "notes": "§2002:7.1.2.2 SR2 requires a space before COPY except as the first statement of a compilation group; at --std 2002 a program opening with COPY G2CPHEAD and '( COPY G2CPN. )' compile and run (1), and '(COPY G2CPN. )' on a D line draws COBOL2451."
+}

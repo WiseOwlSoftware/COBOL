@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-10",
+ "rule-digest": "846b7af7b69d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#ICobolProgram; src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#ScreenEntryConvention",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call04_default_entry_convention",
+ "notes": "§2002:14.8.4.3 GR10 with §2002:11.8.5.3 GR2 (default convention implementor-defined; WiseOwl documents COBOL, DOC-A.1-64/68): a Format 3 CALL by prototype name and by lower-case literal AS the prototype reaches G2C4S with its arguments and RETURNING: P1 WN=0006 WR=0060, P2 WN=0007 WR=0070. --std 2002 run matched; a named convention is refused COBOL2385 (pb232-entry-convention-name)."
+}

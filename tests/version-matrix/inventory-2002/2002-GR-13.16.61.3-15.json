@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-15",
+ "rule-digest": "c1a458656ffa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Model/TableValuePlan.cs#LiteralAt",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-record-table; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-file-table-initialize",
+ "notes": "§2002:13.16.61.3 GR15: overlapping FROM phrases resolve to the last one, in a CD record at initial state (TA=[ACCB]) and in the file section at INITIALIZE (ACCCE), at --std 2002."
+}

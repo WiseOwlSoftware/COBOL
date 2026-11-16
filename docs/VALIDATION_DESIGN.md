@@ -114,9 +114,8 @@ semantics).
 - **The DECLINED-OPTIONAL-ELEMENT pass** (`Validation/DeclinedFacilityPass.cs` + the grammar fragment
   `Frontend/Grammar/Core/CobolDeclined.g4`): THE one place an Annex **A.4** optional element whose support
   `docs/CONFORMANCE.md` §5 records as *Not claimed* is **refused by name** — COBOL1708 (the VALIDATE
-  facility's §2023:13.16.2 *validation-clauses* group and the §2023:13.18.63 format-5 content-validation entry),
-  COBOL1710 (a declined module's
-  exception-names, emitted from the `EcNameResolution` funnel rather than from the pass). A **third sibling** to
+  facility's §2023:13.16.2 *validation-clauses* group and the §2023:13.18.63 format-5 content-validation entry, until the stages that build them land).
+  A declined module's exception-names are refused from the `EcNameResolution` funnel rather than from the pass. A **third sibling** to
   `VersionConformancePass` and `FlagConformancePass`, run right after them from `BinderDriver`, over the shared
   `CursorFollowingVisitor`.
   - **Why a separate pass, not an arm of the version pass.** Three orthogonal axes, three passes: edition gating

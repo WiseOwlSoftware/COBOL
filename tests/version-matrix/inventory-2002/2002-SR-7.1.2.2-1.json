@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-1",
+ "rule-digest": "08a458b5094b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReportPlacement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword",
+ "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-placement-debugging-mode; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-debugging-line-no-mode; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-within-copy-refused",
+ "notes": "§2002:7.1.2.2 SR1 permits COPY anywhere a character-string or separator may appear, source and library text, debugging lines included (§2002:6.2.7 processes COPY before a debugging line becomes a comment), and forbids COPY within COPY; at --std 2002 the mid-statement, parenthesised, D-line, >>D-line and nested COPYs expand as derived (MID, 1, FROMLIB, FROMLIT, OUTER-LIB, INNER-LIB; no-mode MAIN, NEW, END) and a COPY inside pseudo-text-2 draws COBOL2451."
+}

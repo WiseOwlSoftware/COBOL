@@ -30,6 +30,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     private readonly AcceptDisplayEmitter _acceptDisplay;
     private readonly EvaluateEmitter _evaluate;
     private readonly InitializeEmitter _initialize;
+    private readonly ValidateEmitter _validate;
     private readonly CorrespondingEmitter _corresponding;
     private readonly InspectEmitter _inspect;
     private readonly StringEmitter _strings;
@@ -62,6 +63,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         _acceptDisplay = u.AcceptDisplay;
         _evaluate = u.Evaluate;
         _initialize = u.Initialize;
+        _validate = u.Validate;
         _corresponding = u.Corresponding;
         _inspect = u.Inspect;
         _strings = u.Strings;
@@ -387,6 +389,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundUnstringStmt n) { _strings.EmitUnstring(n); return false; }
     public bool Visit(BoundAccept n) { _acceptDisplay.EmitAccept(n); return false; }
     public bool Visit(BoundInitialize n) { _initialize.Emit(n); return false; }
+    public bool Visit(BoundValidate n) { _validate.Emit(n); return false; }
 
     // ── Report Writer (ISO §2023:14.9) ────────────────────────────────────────────────────────────────────────────
     public bool Visit(BoundInitiate n) { _reportWriter.EmitInitiate(n); return false; }     // §2023:14.9.21

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-1",
+ "rule-digest": "6b4f32800f35",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#TrySimpleInsertion; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-editing",
+ "notes": "§2002:13.16.38.4 GR1 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): All six editing types in one CD record: simple insertion (CM 9,999 -> \"1,234\"; AE, NE), special insertion (E1 9.99 -> \"1.50\"), fixed insertion (FX $999.99CR, -12.3 -> \"$012.30CR\" per Table 9), floating insertion (PA, CA, MA), zero suppression with spaces (ZA, ZL) and with asterisks (SA). The --std 2002 run of the pinned build (dc1f2dcce8) matched the derived .out."
+}

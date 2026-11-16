@@ -81,40 +81,29 @@ public abstract class CompileTimeArithmetic
 
     private sealed class Standard2002Mode : CompileTimeArithmetic
     {
-        /// <summary>§2002:8.8.1.3.1.1: "a precision of 32 decimal digits".</summary>
-        private const int Digits = 32;
-
-        /// <summary>§2002:8.8.1.3.1.1: magnitude from 10^-999 through 10^1000 - 10^968 (9.99…E+999), the leading digit's
-        /// exponent from -999 through 999.</summary>
-        private const int MinAdjustedExp = -999, MaxAdjustedExp = 999;
-
         public override string RangeDescription =>
             "the standard-arithmetic range (the standard intermediate data item: 32 significant digits, magnitude 10^-999 "
             + "through 10^1000 - 10^968 — ISO §2002:8.8.1.3.1.1, prescribed for compile-time arithmetic by §2002:7.2.5.2 GR1)";
 
         /// <summary>An operand not already in a standard intermediate data item is converted into one
         /// (§2002:8.8.1.3.1 r1); a 2002 fixed-point numeric literal has at most 31 digits, so the truncation only
-        /// serves a value that arrives wider.</summary>
-        public override CobolDec? Enter(CobolDec value) => InRange(value.TruncateToSignificantDigits(Digits));
+        /// serves a value that arrives wider. The item is <see cref="CobolDec.ToSidi"/>, the ONE spelling of the model that
+        /// ARITHMETIC IS STANDARD runs at run time too (kb/Work PB5575).</summary>
+        public override CobolDec? Enter(CobolDec value) => Guard(() => value.ToSidi());
 
         /// <summary>Each sum, product and quotient is the exact result truncated to 32 significant digits
         /// (§2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5) and a subtraction is the sum with the negated second operand
-        /// (§2002:8.8.1.3.3). The
-        /// engine truncates to its own 34 digits first; truncation composes, so cutting that to 32 is the exact result's
-        /// 32-digit truncation.</summary>
-        public override CobolDec? Apply(char op, CobolDec left, CobolDec right) => InRange(Guard(() => op switch
+        /// (§2002:8.8.1.3.3). The engine truncates to its own 34 digits first; truncation composes, so cutting that to 32
+        /// is the exact result's 32-digit truncation. A result outside the range is §2002:8.8.1.3.1 r2's size error
+        /// ("Underflow is treated as a SIZE ERROR and is not rounded to zero"), the caller's range diagnostic here.</summary>
+        public override CobolDec? Apply(char op, CobolDec left, CobolDec right) => Guard(() => (op switch
         {
             '+' => CobolDec.Add(left, right, CobolRounding.Truncation),
             '-' => CobolDec.Sub(left, right, CobolRounding.Truncation),
             '*' => CobolDec.Mul(left, right, CobolRounding.Truncation),
             '/' => CobolDec.Div(left, right, CobolRounding.Truncation),
             _ => throw new ArgumentOutOfRangeException(nameof(op), op, "not a compile-time arithmetic operator"),
-        })?.TruncateToSignificantDigits(Digits));
-
-        /// <summary>§2002:8.8.1.3.1 r2: too large or too small to be contained is a size error — "Underflow is
-        /// treated as a SIZE ERROR and is not rounded to zero". Zero is the unique in-range value of no magnitude.</summary>
-        private static CobolDec? InRange(CobolDec? value) =>
-            value is { } v && v.Sig != 0 && v.AdjustedExponent is < MinAdjustedExp or > MaxAdjustedExp ? null : value;
+        }).ToSidi());
     }
 
     private sealed class StandardDecimalMode : CompileTimeArithmetic

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-19",
+ "rule-digest": "f4d6eb03a5db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2-invoke-cd-receiving-operands; conformance:cases/8.4.3.8-SELF-and-SUPER/pb1551-invoke-universal-self; conformance:cases/8.4.3.5-Object-view/pb1551-invoke-by-reference-view",
+ "notes": "§2002:14.8.22.2 SR19 with SR9: CD record items as identifier-3 are receiving operands changed by the method (A1, A2, A3, A6 = ZZZZ; BY CONTENT control A4 = CCCC); sending-only identifiers are refused by the pb1551 cases at 2002. Matched at --std 2002 (pinned dc1f2dcce8)."
+}

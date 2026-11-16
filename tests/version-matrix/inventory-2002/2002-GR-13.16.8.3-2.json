@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.8.3-2",
+ "rule-digest": "cde28cc30641",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#BlankWhenZeroViolation",
+ "test-ref": "conformance:cases/13.16.8@2002-BLANK-WHEN-ZERO-CLAUSE/g2-bwz-cd-record",
+ "notes": "§2002:13.16.8.3 GR2 in a CD record: PIC 999 BLANK WHEN ZERO is numeric-edited (class alphanumeric), so its 88 VALUE \"   \" is accepted (§2002:13.16.61.2 SR4) and tests true on spaces. Run with the pinned compiler (tree dc1f2dcce8) at --std 2002: output equals the derived golden."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.52.3-1",
+ "rule-digest": "42084ffc20c3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddSum; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SumCounterItem; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#ReportSumModel; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindSumClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterDigits",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum02_sum_counter_digits_sign; conformance:cases/13.8.6.2.3-Report-Items/pb882_report_sum_counter_identity",
+ "notes": "By §2002:13.16.52.3 GR1, each SUM entry has an independent, signed counter whose digits come from its PICTURE without insertion characters: -3+5 into PIC 99 prints 02, PIC 9 and PIC 9,9 overflow to spaces, PIC 9,99 prints 1,00 and PIC 9.9 accumulates 2.4. g2sum02 at --std 2002 matched."
+}

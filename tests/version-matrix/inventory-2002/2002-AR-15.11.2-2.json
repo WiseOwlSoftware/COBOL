@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.11.2-2",
+ "rule-digest": "00b45b1e55fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.11@2002-BOOLEAN-OF-INTEGER-FUNCTION/g2-boolean-of-integer-arguments",
+ "notes": "§2002:15.11.2 AR2 'Argument-2 shall be a positive nonzero integer': arg-2 as literal 8/6/1/8, display item W-L = 10, expression W-L - 5 = 5, input-CD TEXT LENGTH item 4 (§2002:A.1.2.3 GR2h) are accepted, and each result's length equals argument-2 (§2002:15.11.3 RV1 'whose length is specified by argument-2 in terms of boolean positions'): ONE=1 is the 1-position minimum, TRUNC=100000 shows arg-2 shorter than arg-1's 10 binary digits, ITEM=0000001011 the zero-fill. Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

@@ -1,0 +1,12 @@
+CONTENT, N=0
+  LEN=0
+  SENDER [****][****] P=01 T=0
+  DELIM  [AB  ][CD  ] P=06 T=2
+CONTENT, N=3
+  LEN=3
+  SENDER [Q   ][R   ] P=04 T=2
+  DELIM  [AB  ][CD  ] P=06 T=2
+REFERENCE, N=3
+  LEN=5
+  SENDER [Q   ][R   ] P=06 T=2
+  DELIM  [AB  ][CD  ] P=06 T=2

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.5.2-1",
+ "rule-digest": "e8a87016deaa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+ "test-ref": "conformance:cases/14.8.5@2002-CANCEL-STATEMENT/g2can02_alnum_national_targets",
+ "notes": "§2002:14.8.5.2 SR1: identifier-1 alphanumeric or national; g2can02 at --std 2002 CANCELs through a national item, a CD-record alphanumeric item and a WS alphanumeric item, each resetting the callee (C=1, §2002:14.8.5.3 GR3), output matched; g2can03 (numeric WS item and CD MESSAGE COUNT) refused COBOL1696 at each line."
+}

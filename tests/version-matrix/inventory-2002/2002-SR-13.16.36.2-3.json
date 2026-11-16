@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-3",
+ "rule-digest": "a9ea35d34770",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#OccursKeyResolvePass",
+ "test-ref": "conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-record-tables; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-cd-key-sibling",
+ "notes": "§2002:13.16.36.2 SR3: The first KEY data-name names the OCCURS entry itself or an entry subordinate to it, in a record after an output CD as anywhere (A.1.1.2 sends CD records to 13.14): KEY IS TS (the subject) and KEY IS GK (subordinate to TG) are accepted, and KEY IS SIB, a sibling of TB, is refused. Matched at --std 2002 on the pinned build of dc1f2dcce8 (A1-B2 of the accepted case; g2-occurs-cd-key-sibling refused COBOL2353)."
+}

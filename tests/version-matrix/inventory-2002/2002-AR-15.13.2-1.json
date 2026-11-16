@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.13.2-1",
+ "rule-digest": "9f51c82096cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.13@2002-CHAR-FUNCTION/g2-char-integer-argument",
+ "notes": "§2002:15.13.2 AR1 'Argument-1 shall be an integer' with §2002:15.2 type 5: 9(4) display item, S9(4) COMP item, expression W-ORD + 2 - 2, integer function ORD, and the input-CD TEXT LENGTH item (§2002:A.1.2.3 GR2h) are accepted. Ordinals come from ORD (§2002:15.57.3 RV1 'ordinal position of argument-1 in the current alphanumeric program collating sequence') and §2002:15.13.3 RV1 returns the character at that ordinal, so CHAR(ORD(c)) = c: ITEM=Q COMP=k EXPR=Q FUNC=Z CD=7, independent of the native sequence. Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

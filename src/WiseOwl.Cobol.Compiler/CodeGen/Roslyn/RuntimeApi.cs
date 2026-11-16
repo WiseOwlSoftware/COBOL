@@ -872,8 +872,8 @@ internal static class RuntimeApi
 
     /// <summary>SDIDI exponentiation (ISO §2023:8.8.1.5.4; P10 Step 12) — <c>CobolDec.Pow</c>. <paramref name="mode"/>
     /// is the pre-rendered INTERMEDIATE ROUNDING fragment (<c>CobolRounding.X</c>).</summary>
-    public static string DecPow(string baseOperand, string expOperand, string mode) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.Pow)}({baseOperand}, {expOperand}, {mode})";
+    public static string DecPow(string baseOperand, string expOperand, string mode, bool standardIntermediate = false) =>
+        $"{nameof(CobolDec)}.{(standardIntermediate ? nameof(CobolDec.PowStandard) : nameof(CobolDec.Pow))}({baseOperand}, {expOperand}, {mode})";
 
     /// <summary>The FINAL TRANSFER of a native product past the Int128 carrier — <c>CobolDec.MulAtScale</c> (kb/Work PB1143,
     /// review finding N1): the exact product rounded once to <paramref name="resultScale"/> with <paramref name="mode"/>,
@@ -1146,6 +1146,16 @@ internal static class RuntimeApi
     /// <summary>The unsigned-wide twin of <see cref="DecLiftRounded"/> — <c>CobolDec.FromUnsigned</c>.</summary>
     public static string DecLiftRoundedUnsigned(string unsigned, int scale, string modeExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromUnsigned)}({unsigned}, {scale}, {modeExpr})";
+
+    /// <summary>A value as the standard intermediate data item of ARITHMETIC IS STANDARD holds it — <c>CobolDec.ToSidi</c>:
+    /// truncated to 32 significant digits, in the 10^-999 to 10^1000 - 10^968 range (§2002:8.8.1.3.1.1; kb/Work PB5575),
+    /// inexact being a size error under INTERMEDIATE ROUNDING IS PROHIBITED (<paramref name="modeExpr"/>).</summary>
+    public static string DecToSidi(string value, string modeExpr) => $"{value}.{nameof(CobolDec.ToSidi)}({modeExpr})";
+
+    /// <summary>A standard intermediate data item ROUNDED to 31 digits — <c>CobolDec.ToSidiRounded</c> — where the rounding rules
+    /// of standard arithmetic apply (§2002:8.8.1.3.1.3: a comparison, a function argument with no equivalent expression, a move
+    /// to a resultant without ROUNDED).</summary>
+    public static string DecToSidiRounded(string value, string modeExpr) => $"{value}.{nameof(CobolDec.ToSidiRounded)}({modeExpr})";
 
     /// <summary>The §2023:8.8.1.5.1 implementor-defined float→SDIDI conversion of a floating-point DATA ITEM's value -
     /// <c>CobolDec.FromBinary64</c>: the binary64's exact value rounded once to 34 digits under the INTERMEDIATE
@@ -1455,6 +1465,15 @@ internal static class RuntimeApi
     public static string PtrUpByAmount(string ptr, string scaled, string scale, bool down) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByAmount)}({ptr}, {scaled}, {scale}, {(down ? "true" : "false")})";
 
+    /// <summary>The SDIDI lane of <see cref="PtrAllocate"/> — <c>CobolPtr.AllocateDec</c> (kb/Work PB5619): the ceiling and the
+    /// storage-not-available outcomes run on the value's own exponent.</summary>
+    public static string PtrAllocateDec(string decExpr, string fillCharLiteral, string notAvailVar) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.AllocateDec)}({decExpr}, {fillCharLiteral}, out {notAvailVar})";
+
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="PtrUpByAmount"/> — <c>CobolPtr.UpByAmountDec</c> (kb/Work PB5619).</summary>
+    public static string PtrUpByAmountDec(string ptr, string dec, bool down) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByAmountDec)}({ptr}, {dec}, {(down ? "true" : "false")})";
+
     /// <summary>ALLOCATE — <c>CobolPtr.Allocate</c> over the FULL Int128 size (no emitter-side narrowing —
     /// the PB22 wrap family), with the GR6/GR8 fill character and the GR5 not-available out-flag.
     /// <paramref name="nullImageOffsets"/> are the based item's pointer-member positions, seeded with the NULL
@@ -1493,6 +1512,11 @@ internal static class RuntimeApi
     /// integrality test runs on the <c>double</c> itself (the <c>CobolPtr.UpByReal</c> shape, kb/Work PB151).</summary>
     public static string IndexTryAmountReal(string amountDouble, SetAmountRule rule, string detail, string outVar) =>
         $"{nameof(CobolIndex)}.{nameof(CobolIndex.TryAmountReal)}({amountDouble}, "
+        + $"{nameof(SetAmountRule)}.{rule}, {EmitText.CsLiteral(detail)}, out long {outVar})";
+
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="IndexTryAmount"/> — <c>CobolIndex.TryAmountDec</c> (kb/Work PB5619).</summary>
+    public static string IndexTryAmountDec(string dec, SetAmountRule rule, string detail, string outVar) =>
+        $"{nameof(CobolIndex)}.{nameof(CobolIndex.TryAmountDec)}({dec}, "
         + $"{nameof(SetAmountRule)}.{rule}, {EmitText.CsLiteral(detail)}, out long {outVar})";
 
     /// <summary>THE guarded index augment — <c>CobolIndex.Augment</c> (§2023:14.9.39.4 GR4 a): a result outside the
@@ -1956,6 +1980,10 @@ internal static class RuntimeApi
     /// integrality and range test sees the value the source computed.</summary>
     public static string StartKeyLengthScaled(string scaled, string scale, int unitWidth) =>
         $"{nameof(StartKeyLength)}.{nameof(StartKeyLength.OfScaled)}((global::System.Int128)({scaled}), {scale}, {unitWidth})";
+
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="StartKeyLengthScaled"/> — <c>StartKeyLength.OfDec</c> (kb/Work PB5619).</summary>
+    public static string StartKeyLengthDec(string dec, int unitWidth) =>
+        $"{nameof(StartKeyLength)}.{nameof(StartKeyLength.OfDec)}({dec}, {unitWidth})";
 
     /// <summary>The native-float lane of <see cref="StartKeyLengthScaled"/> — <c>StartKeyLength.OfReal</c>.</summary>
     public static string StartKeyLengthReal(string value, int unitWidth) =>

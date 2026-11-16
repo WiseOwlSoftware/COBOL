@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.43.2-4",
+ "rule-digest": "7f7aac1e07d8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesWindowOrder",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-same-name; conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-two-records; conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-ws-same-name; conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-ws-two-records; conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-thru-cd-and-ws",
+ "notes": "§2002:13.16.43.2 SR4 requires data-name-2 and data-name-3 to be different names in the same record: A1 THRU A1 (COBOL2740) and A1 THRU B1 across two records (COBOL1655) are refused at --std 2002 both under a CD and in working storage; different names of one record are accepted (g2-renames-thru-cd-and-ws matched)."
+}

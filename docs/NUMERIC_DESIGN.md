@@ -252,8 +252,16 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 >   2014 introduction edge is the pass's `arithmetic-standard-binary-2014` row (0900 below 2014; pending —
 >   no compiling cell).
 > - **Plain `ARITHMETIC IS STANDARD`** (the 2002 mode — the 2002 OPTIONS paragraph's NATIVE|STANDARD clause):
->   obsolete 2014, dropped by ISO 2023 (Annex E.2 item 21; §2023:8.8.1.2 names only the three). Implemented as the
->   same CobolDec SDIDI engine (the standard intermediate for its reachable operands IS the decimal form); the
+>   obsolete 2014, dropped by ISO 2023 (Annex E.2 item 21; §2023:8.8.1.2 names only the three). Implemented on the
+>   same CobolDec decimal carrier but NOT the SDIDI's model (kb/Work PB5575): its standard intermediate data item
+>   holds 32 digits in the range 10^-999 to 10^1000 - 10^968 (§2002:8.8.1.3.1.1, §2014:8.8.1.3.1.1), so the emitter
+>   runs the engine's operations at TRUNCATION and cuts every operation result with `CobolDec.ToSidi` (32 digits,
+>   EC-SIZE-OVERFLOW / EC-SIZE-UNDERFLOW outside the range; `NumericRenderer.StandardIntermediate`), rounds to 31
+>   digits with `CobolDec.ToSidiRounded` where §2002:8.8.1.3.1.3 says (a comparison and a sign condition, a move to a
+>   resultant without ROUNDED: `NumericRenderer.SidiRounded`, `SidiAtTransfer`) and the compile-time 2002 mode
+>   (`CompileTimeArithmetic.Standard2002`) calls the same `ToSidi`. Open: the rounding of a function argument with
+>   no equivalent arithmetic expression (§2002:8.8.1.3.1.3 situation 2) and the 32-digit limit of a function's returned
+>   value; the
 >   `arithmetic-standard-2002` dual-window row emits 0900 below 2002, the 0903 obsolete flag at 2014, and 0807
 >   at 2023 (error strict / warning permissive).
 > - **Edition gates:** the OPTIONS paragraph is 2002+ (COBOL0804, `options-paragraph-2002` — with ARITHMETIC
@@ -1048,7 +1056,10 @@ arithmetic store and the MOVE store each had the `Dec` arm, these did not. The r
 `NumericRenderer.Landed(x, rcv)` is THE landing of an intermediate into the Int128 lane at the receiver's working
 scale (`WorkingScale(SdidiLandingScaleFloor)`, checked — moved out of `IntrinsicRenderer`, which delegates; the
 constant was called `NumvalScaleFloor` until kb/Work PB251 showed the name was a fiction — §2023:15.67 prescribes no
-working scale, so the floor is an implementor choice for THIS landing and nothing else); the NATIVE DIVIDE … REMAINDER
+working scale, so the floor is an implementor choice for THIS landing and nothing else); a SET-family amount (SET index / pointer / capacity, START … WITH LENGTH) does NOT take this landing: it needs the value's
+fraction and its full magnitude, so `NumericRenderer.LandedAmount` leaves an SDIDI value an SDIDI and each consumer dispatches on
+`NumX.Carrier` into the runtime's `SetAmount.Land(CobolDec, …)` overload (kb/Work PB5619: at scale 6 a 1E-20 fraction vanished and
+`10 ** 40` ended the run with EC-SIZE-OVERFLOW instead of the format's range condition); the NATIVE DIVIDE … REMAINDER
 lane, which once landed a float sender truncated at `FloatWorkingScale` through a `FixedLane` of its own (PB85), now
 divides such a sender as it is (`ArithmeticEmitter.CarriedSubsidiaryQuotient`, kb/Work PB3829); the sign condition
 tests `Int128.Sign(dec.Sig)` (`RuntimeApi.DecSign` — exact at every exponent, never a landing);

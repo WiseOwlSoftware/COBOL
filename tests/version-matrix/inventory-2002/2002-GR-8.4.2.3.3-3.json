@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.3.3-3",
+ "rule-digest": "a8ff42d483bc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#BytesPerPosition; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#PositionBits; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsStorageImage",
+ "test-ref": "conformance:cases/8.4.2.3@2002-REFERENCE-MODIFICATION/g2rfm01_refmod_cd_numeric_display_and_national",
+ "notes": "§2002:8.4.2.3.3 GR3: a PIC 9(3) USAGE NATIONAL item in a record under an output CD (§2002:A.1.2.2 SR9) is reference-modified as national: ONUM(2:2) of 789 = 89 and MOVE N\"Z\" TO ONUM(1:1) gives Z89; g2rfm01 at --std 2002 matched."
+}

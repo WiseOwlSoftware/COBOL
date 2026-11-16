@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.9.2-9",
+ "rule-digest": "2098bd8bc014",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordSequence; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantEntry; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindDeclaredConstant; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#WrittenSpecification",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-duplicate-mismatch; conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-as-if-written",
+ "notes": "§2002:13.9.2 SR9: \"If constant-name-1 duplicates another constant-name, the specification of arithmetic-expression-1\". A constant entry under a 2002 CD entry (§2002:13.1.1) that violates it is refused: conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-duplicate-mismatch draws COBOL1547 at the entry at --std 2002 (pinned build dc1f2dcce8). Accepted leg: conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-as-if-written declares KD AS 4 in working-storage and again under the CD, compiles and prints KD=04 as derived."
+}

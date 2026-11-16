@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.25.2-1",
+ "rule-digest": "fe6994220d8e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.25@2002-GLOBAL-CLAUSE/g2-global-cd-constant",
+ "notes": "§2002:13.16.25.2 SR1 grants GLOBAL on a constant entry (here in the communication section, §2002:A.1.1), level-1 file, WS, LS and linkage entries, an FD and an RD; g2-global-cd-constant is accepted and matches its derived output at --std 2002, and the 'only' refuses a level-1 record under a CD (g2-global-cd-record-refused, COBOL2404 at line 26)."
+}

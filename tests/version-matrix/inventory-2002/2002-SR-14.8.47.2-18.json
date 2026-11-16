@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-18",
+ "rule-digest": "1153403480a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#writeStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckWriteEopLinage",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5620_write_eop_before_lock_2002; conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5620-write-2002-order-no-linage",
+ "notes": "kb/Work PB5620: on a LINAGE file the END-OF-PAGE phrases in the 2002 place (before RETRY / WITH LOCK) compile and run (pb5620_write_eop_before_lock_2002); without LINAGE the same order is refused by SR18's check (COBOL0860, StatementValidation.CheckWriteEopLinage)."
+}

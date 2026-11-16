@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-5",
+ "rule-digest": "e74cb844ff3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call03_overflow_transitivity_returning",
+ "notes": "§2002:14.8.4.3 GR5 (FORMATS 1 AND 2): BY CONTENT/BY REFERENCE carry forward and BY REFERENCE is assumed first: F1 W1=1111 A=AAAA B=BBBB D=4444 under ON OVERFLOW and F2 W1=WWWW QN=2222 A=3333 D=DDDD under ON EXCEPTION. --std 2002 run matched."
+}

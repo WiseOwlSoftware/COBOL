@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.52.3-6",
+ "rule-digest": "879741da53ad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindRolledValues; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#SumAddition",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum01_sum_cd_addends_timing; conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_totals; conformance:cases/13.18.54-SUM/pb1294_report_rolled_repeating",
+ "notes": "By §2002:13.16.52.3 GR6, a rolled data-name-1 adds the SOURCE operand (a CD item: 5+3 = 008), the VALUE operand (2x2 = 004) or the completed sum counter (Z = 015). g2sum01 at --std 2002 matched."
+}

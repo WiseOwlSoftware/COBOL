@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.4.2-2",
+ "rule-digest": "6a40fc691a55",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.3.4.4@2002-ACCESS-MODE-CLAUSE/g2acc02_report_file_random; conformance:cases/12.4.5-File-control/pb692-access-random-organization-sequential; conformance:cases/12.4.5-File-control/pb692-access-dynamic-organization-sequential; conformance:cases/12.4.5-File-control/pb692-access-dynamic-organization-omitted",
+ "notes": "§2002:12.3.4.4.2 SR2 prohibits DYNAMIC and RANDOM for a sequential file, which includes an omitted ORGANIZATION (§2002:12.3.4.9.2 GR5) and a report file (§2002:9.1.19); at --std 2002 each arm is refused with COBOL1858 (g2acc02 report file at line 27, the three pb692 cases), and the SEQUENTIAL control of g2acc02 compiles and runs."
+}

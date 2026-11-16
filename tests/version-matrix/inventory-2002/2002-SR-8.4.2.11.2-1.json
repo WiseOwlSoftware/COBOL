@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.11.2-1",
+ "rule-digest": "897ffb8a6a5b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AddressOfOperandScreen.cs#Admit",
+ "test-ref": "conformance:cases/8.4.2.11@2002-Data-address-identifier/pb5606-address-of-section-list; conformance:cases/8.4.2.11@2002-Data-address-identifier/pb5606-address-of-communication-item",
+ "notes": "Same text as the 2023 twin for the four sections the identifier may be defined in; COBOL 2002 has a fifth data section the 2023 text never meets, the communication section, which the resolver cannot tell from the four (a CD's record items are ordinary data items to it). AddressOfOperandScreen.Admit refuses an operand whose root's DataItem.Section is EntrySection.Communication (COBOL2785, citing §2002:8.4.2.11.2 SR1), for every ADDRESS OF surface (SET, CALL, INVOKE and the relation operand), because they all reach the one screen (kb/Work PB1407); the working-storage operand beside a CD stays legal (pb5606-address-of-section-list). The second sentence (object and factory data) is the same screen's SR1 arm (kb/Work PB1062). kb/Work PB5606."
+}

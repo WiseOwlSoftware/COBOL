@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.8.2-1",
+ "rule-digest": "d2d8daaa6227",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckClauseSubjectsPass.cs#CheckClauseSubjectsPass",
+ "test-ref": "conformance:cases/13.16.8@2002-BLANK-WHEN-ZERO-CLAUSE/g2-bwz-cd-record",
+ "notes": "§2002:13.16.8.2 SR1 in a CD record: PIC 999 and ZZ9.99 BLANK WHEN ZERO are accepted and blank on zero; PIC S999 is refused (COBOL1934) and PIC X(3) is refused (COBOL2405). Run with the pinned compiler (tree dc1f2dcce8) at --std 2002: output equals the derived golden."
+}

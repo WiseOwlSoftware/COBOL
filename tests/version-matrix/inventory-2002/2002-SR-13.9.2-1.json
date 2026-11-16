@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.9.2-1",
+ "rule-digest": "5dc8f01810ff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/SoleOperand.cs#NumericLiteral; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateArithmeticOperand; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantArithmetic",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2con01_cd_constant_entries",
+ "notes": "§2002:13.9.2 SR1: a single numeric literal is a literal, so KC AS 2.5 under a CD keeps 2.5 (KC=2.5, K2=5.0). The expression 2.5 + 0 truncates to 2 (§2002:7.2.5.2 GR2; KE=2.0). The --std 2002 run of g2con01 matched the derived .out."
+}

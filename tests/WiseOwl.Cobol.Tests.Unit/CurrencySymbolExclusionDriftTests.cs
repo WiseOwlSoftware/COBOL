@@ -59,8 +59,24 @@ public sealed class CurrencySymbolExclusionDriftTests
     [InlineData(2002, 'm', false)]
     [InlineData(2023, 'L', false)]
     [InlineData(2023, '=', true)]
+    // LATIN SMALL LETTER LONG S (U+017F), invariant upper case S: no basic letter, so no equivalent of S in the 1985 and 2002
+    // texts (§2002:8.1.2.1 GR3); excluded from 2014, where the implementor specifies the prohibited characters (kb/Work PB5647).
+    [InlineData(85, 'ſ', false)]
+    [InlineData(2002, 'ſ', false)]
+    [InlineData(2014, 'ſ', true)]
+    [InlineData(2023, 'ſ', true)]
+    [InlineData(2002, 'é', false)]
     public void ForTheEdition_ExcludesTheRuleCharacters(int year, char c, bool excluded) =>
         Assert.Equal(excluded, CurrencySymbolExclusion.For(year).Excludes(c));
+
+    [Theory] // the one case equivalence the key, the picture fold and the exclusion test share
+    [InlineData(2002, 's', 'S')]
+    [InlineData(2002, 'ſ', 'ſ')]
+    [InlineData(2014, 'ſ', 'S')]
+    [InlineData(2002, 'é', 'É')]
+    [InlineData(85, 'é', 'É')]
+    public void TheCurrencyEquivalence_FoldsNonCobolLettersFrom2014(int year, char c, char folded) =>
+        Assert.Equal(folded, CurrencySymbolEquivalence.Fold(c, year));
 
     private static SortedSet<char> Set(string chars) => new(chars);
 }

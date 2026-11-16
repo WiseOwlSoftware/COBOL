@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-7",
+ "rule-digest": "a23677df4a22",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#StorageByte.ImageByte; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_usage_representation",
+ "notes": "Implied-DISPLAY items in an output CD record are one byte per character position (§2002:13.16.58.3 GR7, DOC-A.1-209): X(3) and 9(3) are 3 bytes holding XYZ and 123. G2USG01 at --std 2002 matched the derived output."
+}

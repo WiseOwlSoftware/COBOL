@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.18.2-4",
+ "rule-digest": "8717e05debe1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearToYyyyAt",
+ "test-ref": "conformance:cases/15.18@2002-DATE-TO-YYYYMMDD-FUNCTION/g2-date-to-yyyymmdd-arguments",
+ "notes": "§2002:15.18.2 AR4 'Argument-3 shall be an integer greater than 1600 and less than 10000': both ends 1601 and 9999, 9(4) COMP item 2002, expression W-A3*2-1954 = 2050, input-CD TEXT LENGTH item 1994 (§2002:A.1.2.3 GR2h) accepted, each with arg-2 + arg-3 inside AR6: A3LOW (991231,99,1601) max 1700, 0 < 99 -> 16991231; A3HIGH (101,0,9999) YY 0 mmdd 0101 -> 99000101; A3ITEM -> 19851003; A3EXPR (500101,0,2050) -> 20500101; A3CD (981002,-10,1994) -> 18981002. Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

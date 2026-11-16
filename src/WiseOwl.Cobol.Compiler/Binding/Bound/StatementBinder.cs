@@ -46,8 +46,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal ReportWriterBinder Rw => _rwBinder ??= new ReportWriterBinder(Ctx, this);
     private FileLockBinder? _fileLockBinder;
     private FileLockBinder FileLock => _fileLockBinder ??= new FileLockBinder(Ctx, this);
-    private DeclinedFacilityBinder? _declinedFacilityBinder;
-    private DeclinedFacilityBinder DeclinedFacility => _declinedFacilityBinder ??= new DeclinedFacilityBinder(Ctx, this);
+    private ValidateBinder? _validateBinder;
+    private ValidateBinder Validate => _validateBinder ??= new ValidateBinder(Ctx, this);
     private MessagingBinder? _messagingBinder;
     private MessagingBinder Messaging => _messagingBinder ??= new MessagingBinder(Ctx, this);
     private CommunicationBinder? _communicationBinder;
@@ -744,18 +744,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         //    (Constructs.AsyncMessaging2023): below that the statement binds to a no-op and the edition pass's COBOL0900 is the whole answer. ──
         _ when s.messagingReceiveStatement() is { } rcv => BindIntroducedAt(Constructs.AsyncMessaging2023, () => Messaging.BindReceive(rcv)),
         _ when s.messagingSendStatement() is { } snd => BindIntroducedAt(Constructs.AsyncMessaging2023, () => Messaging.BindSend(snd)),
-        // ── Wave H — recognize-and-name the unsupported facilities. ISO §2023:4.2.6 ¶3 makes the compile-time
-        //    warning mechanism MANDATORY for the Annex A.3 halves (COMMIT/ROLLBACK, A.3 items 6-7); the A.4.14
-        //    VALIDATE statement is an OPTIONAL element §2023:4.2.7 requires us only to DOCUMENT, and naming it is
-        //    the choice docs/CONFORMANCE.md §4 item 3 records (kb/Work PB709). Each binds
-        //    to BoundNop: the program compiles, runs, and the facility is inert — never a silent wrong answer,
-        //    and never an EC (licensed off by §2023:14.6.13.1.1). The statement's IDENTIFIERS are still read first
-        //    (VALIDATE by DeclinedFacilityBinder, kb/Work PB3568); BindDeclinedStatement says why below the statement's
-        //    introduction (VALIDATE 2002) it does neither. ──
         _ when s.commitFacilityStatement() is not null || s.rollbackFacilityStatement() is not null
             => BindCommitRollback(s.commitFacilityStatement() is not null),
-        _ when s.validateFacilityStatement() is { } val => BindDeclinedStatement(Constructs.ValidateStatement2002,
-            DiagnosticCatalog.ValidateFacilityUnsupported, DeclinedFacility.BindValidate, val),
+        // ── The VALIDATE facility (ISO/IEC 1989:2002 §14.8.46, §2023:14.9.50; DESIGN-validate-facility.md; kb/Work PB5577). It exists from 2002
+        //    (Constructs.ValidateStatement2002): below that the statement binds to a no-op and the edition pass's COBOL0900 is the whole answer. ──
+        _ when s.validateFacilityStatement() is { } val => BindIntroducedAt(Constructs.ValidateStatement2002, () => Validate.Bind(val)),
         _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
         // NEXT SENTENCE is a PHRASE, not a statement: the grammar parses it as one so `statementBlock` spells the
         // printed `{ statement | NEXT SENTENCE }` braces, and THIS is where its position is decided — admitted only
@@ -863,45 +856,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private static string FirstToken(IParseTree node) =>
         node.ChildCount > 0 ? node.GetChild(0).GetText() : node.GetText();
 
-    /// <summary>Recognize-and-name an ACCEPT-INERT unsupported facility (§2023:4.2.6 ¶3 for an Annex A.3 element,
-    /// §2023:4.2.7 for an Annex A.4 one — the descriptor's own <c>Annex</c> datum says which, and its
-    /// <c>PostureClause</c> derives the §; plus §2023:4.2.13 where the facility is also obsolete): name it once
-    /// per site and bind to <see cref="BoundNop"/>, so the program still compiles and runs with the facility
-    /// inert. The severity decision is NOT here — it is the descriptor's, read by the ONE declined-element
-    /// seam <see cref="EditionContext.Declined"/> (feedback_one_mechanism_per_job); this helper only supplies
-    /// the statement-shaped half (bind to a no-op), which is why it is reachable solely from
-    /// Warning-severity descriptors. A REFUSE-severity decline (COBOL1706) calls
-    /// <c>Declined</c> directly at its own site and yields <see cref="BoundUnsupported"/>, not a no-op.</summary>
-    private BoundStatement BindUnsupportedFacility(DiagnosticDescriptor d)
-    {
-        Ctx.Edition.Declined(d);
-        return new BoundNop();
-    }
-
     /// <summary>A statement of a facility that exists from an edition on (<paramref name="construct"/>): bound by <paramref name="bind"/> where it exists, and below
     /// that edition a no-op, because the statement parses at EVERY edition (the union grammar, kb/Work PB374, PB3148) and the edition pass's COBOL0900 is the whole
     /// answer there, with no second diagnosis of operands the edition does not give a meaning.</summary>
     private BoundStatement BindIntroducedAt(string construct, Func<BoundStatement> bind) =>
         ConstructRegistry.IsAvailable(Ctx.Edition.Edition, construct) ? bind() : new BoundNop();
-
-    /// <summary>A statement of a DECLINED facility — VALIDATE (§2023:14.9.50; COBOL1580). It parses at EVERY edition (the union grammar, kb/Work PB374, PB3148), so below
-    /// the edition that introduced it (<paramref name="construct"/>) the facility is not this edition's to decline: the
-    /// edition pass's COBOL0900 is the whole answer there, and a facility warning beside it would name a later edition's
-    /// facility to a program of an earlier one. Where the statement exists the facility is declined
-    /// (<paramref name="declined"/>) and its operands are still identifiers — <paramref name="bindOperands"/> is the
-    /// <see cref="DeclinedFacilityBinder"/> half for the statement (kb/Work PB3568).</summary>
-    private BoundStatement BindDeclinedStatement<TStatement>(string construct, DiagnosticDescriptor declined,
-        Action<TStatement> bindOperands, TStatement statement)
-    {
-        if (!ConstructRegistry.IsAvailable(Ctx.Edition.Edition, construct))
-            return new BoundNop(); // no-op: the edition pass refuses it (COBOL0900); this edition declines nothing
-        // A DEFERRED reference shape (a legal operand whose place is not built) comes back off the unbuilt-operand ledger: the statement is inert, never
-        // reaches the storage, and the funnel's "reaching this statement aborts the run unit" would be false (kb/Work PB3568).
-        int unbuiltMark = Ctx.Edition.UnbuiltMark;
-        bindOperands(statement);
-        Ctx.Edition.TakeUnbuiltSince(unbuiltMark);
-        return BindUnsupportedFacility(declined);
-    }
 
     /// <summary>COMMIT / ROLLBACK (ISO §2023:14.9.7, §2023:14.9.36; kb/Work PB3338): §2023:14.9.7.3/§2023:14.9.36.3 SR1 rejects the
     /// statement in a RECURSIVE source element at bind (a function and a method are ALWAYS recursive, §2023:8.6.6), and the

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-6",
+ "rule-digest": "46507fd49e62",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-debugging-line-no-mode; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-pseudo-text-1-no-text-word-refused",
+ "notes": "§2002:7.1.2.2 SR6 with SR12 and §2002:7.1.2.3 GR10c6: a pseudo-text-1 whose only text-word is on a D line is a one-word pseudo-text-1 that matches; at --std 2002 COPY G2CPA REPLACING == (D) AAA == BY ==BBB== prints NEW. A pseudo-text-1 whose only content is a separator comma on a D line (no debugging mode) draws COBOL2572."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-1",
+ "rule-digest": "d32ba563bd52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InitializeEmitter.cs#EmitAction; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-record-table; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-ws-float-table",
+ "notes": "§2002:13.16.61.3 GR1 (FORMATS 1, 2, 3, AND 4) gives a float item an approximation of its literal; with exactly representable literals and ROUNDED results, format 1, 2 and 3 float VALUEs in a CD record and in working-storage (FLOAT-SHORT, -LONG, -EXTENDED) print the derived 15.00/25.00/35.00/125.00, FC=HALF and RANGE at --std 2002."
+}

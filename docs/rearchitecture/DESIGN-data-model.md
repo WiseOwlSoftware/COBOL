@@ -516,10 +516,13 @@ address was "unrestricted and legal", the opposite of SR2). `StrongTypeModel.IsS
 only the group's own address is a restricted data-pointer (§2023:8.4.3.11.4 GR2). The operand rules of
 `ADDRESS OF identifier-1` live in ONE screen, `AddressOfOperandScreen`, reached from `PtrBinder.BindDataAddress` —
 therefore from every surface (SET sender, CALL / INVOKE argument, relation operand): SR1 second sentence (object /
-factory working-storage and file section → COBOL2784, kb/Work PB1062), SR2/SR3/SR6 (object reference, leaf of a
+factory working-storage and file section → COBOL2784, kb/Work PB1062; and, at COBOL 2002, an operand in the
+communication section, the fifth data section §2002:8.4.2.11.2 SR1 does not list → COBOL2785, kb/Work PB5606), SR2/SR3/SR6 (object reference, leaf of a
 strong group, CONSTANT RECORD, dynamic-length / dynamic-capacity shapes → COBOL2785) and SR4 (a bit item's literal
 subscripts and byte alignment → COBOL2786, through `ParameterConformance.BitStartOf`, the one static-start walk
-CALL, INVOKE and the function-identifier share). A reference-modified identifier-1 is legal (SR4 a) names it): the
+CALL, INVOKE and the function-identifier share; the edition's clause and how much of a reference modification must be
+literal — leftmost position and length, as ADDRESS OF and every 2002 / 2014 rule ask, or the leftmost position alone, as
+2023 CALL / INVOKE / function do — is the one `BitAlignmentRule.For` table, kb/Work PB5640). A reference-modified identifier-1 is legal (SR4 a) names it): the
 resolver admits it through the same `ReadScreenedRefMod` as an ordinary reference, and the address is that of its
 leftmost position (`BoundAddressOf.RefMod`, emitted through `CobolString.RefModStartOffset`, the same range test as
 a read). The size that range test measures is identifier-1's CURRENT one (§2023:8.4.3.3.4 5)): for a group holding an OCCURS

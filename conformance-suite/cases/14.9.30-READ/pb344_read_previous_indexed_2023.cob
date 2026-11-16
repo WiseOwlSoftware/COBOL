@@ -21,16 +21,11 @@
       *>  14.9.41.4 GR17 / GR9 — START positions the indicator at the first record whose key satisfies the
       *>    comparison; a later READ NEXT makes that record available.                         (P4A, P4B)
       *>
-      *> EDITIONS.  Rule d) 3 IS THE 2023 RULE and 2023 amended it: Annex E.2 item 22, "READ PREVIOUS statement
-      *> following an OPEN statement.  Ensure that an at end condition occurs", whose justification records what
-      *> the PRIOR rule did — "the rule itself stated that the first record would be retrieved.  The rule itself
-      *> has been amended such that an at end condition would occur."  So at 2002 and 2014 P1 makes the FIRST
-      *> EXISTING RECORD under the key of reference available, exactly as NEXT does (P2 is that control), and
-      *> only at 2023 is it the at end condition.  (Annex E.2 also mentions a prior NOTE saying at end normally
-      *> exists; this document is drafted to the ISO/IEC Directives Part 2, under which a note states no
-      *> requirement, so the prior standard's normative content is its RULE.  And were the prior behaviour
-      *> already at end, Annex E.2 — the list of SUBSTANTIVE changes potentially affecting existing programs —
-      *> would carry no item 22 at all.)  VERSION_CHANGE_REFERENCE row 29;
+      *> EDITIONS.  Rule d) 3 IS THE 2023 RULE and 2023 amended it (Annex E.2 item 22): a READ PREVIOUS whose
+      *> previous operation was an OPEN is the at end condition, whatever the file holds, so P1 and P5 are both
+      *> at end here.  Before 2023 the same READ is the ordinary comparison of §2002:14.8.29.3 GR18c2 against the
+      *> lowest-ordinal position OPEN sets (§2002:14.8.26.3 GR12): at end unless a key IS that lowest value (the
+      *> 2002 and 2014 copies of this program, where P5 makes it available).  VERSION_CHANGE_REFERENCE row 29;
       *> WiseOwl.Cobol.Runtime.DialectBehavior.IndexedReadPreviousAfterOpenAtEnd.
       *> INDEXED ONLY: the relative block prints rule b) unamended (kb/Work PB343,
       *> tests/conformance/*/pb343_read_previous_relative.cob).  READ ... PREVIOUS is a 2002 introduction, so
@@ -45,14 +40,24 @@
                ACCESS MODE IS DYNAMIC
                RECORD KEY IS I-K
                FILE STATUS IS I-ST.
+           SELECT LOWX ASSIGN TO "pb344p23l.dat"
+               ORGANIZATION IS INDEXED
+               ACCESS MODE IS DYNAMIC
+               RECORD KEY IS L-K
+               FILE STATUS IS L-ST.
        DATA DIVISION.
        FILE SECTION.
        FD IDX.
        01 I-REC.
           05 I-K PIC X(4).
           05 I-V PIC X(6).
+       FD LOWX.
+       01 L-REC.
+          05 L-K PIC X(4).
+          05 L-V PIC X(6).
        WORKING-STORAGE SECTION.
        01 I-ST PIC XX.
+       01 L-ST PIC XX.
        PROCEDURE DIVISION.
        MAIN.
            OPEN OUTPUT IDX
@@ -60,7 +65,7 @@
            MOVE "K004" TO I-K MOVE "DDDDDD" TO I-V WRITE I-REC
            MOVE "K006" TO I-K MOVE "FFFFFF" TO I-V WRITE I-REC
            CLOSE IDX
-      *> P1 — READ ... PREVIOUS as the FIRST operation after OPEN INPUT (the edition-varying leg).
+      *> P1 — READ ... PREVIOUS as the FIRST operation after OPEN INPUT (2002+: at end unless a key is the lowest value; see P5).
            OPEN INPUT IDX
            READ IDX PREVIOUS RECORD
                AT END DISPLAY "P1=ATEND|" I-ST
@@ -96,4 +101,15 @@
                NOT AT END DISPLAY "P4B=" I-K "|" I-ST
            END-READ
            CLOSE IDX
+      *> P5 — a file whose lowest key IS the lowest-ordinal value OPEN sets the indicator to (LOW-VALUES), beside K002.
+           OPEN OUTPUT LOWX
+           MOVE LOW-VALUES TO L-K MOVE "AAAAAA" TO L-V WRITE L-REC
+           MOVE "K002" TO L-K MOVE "BBBBBB" TO L-V WRITE L-REC
+           CLOSE LOWX
+           OPEN INPUT LOWX
+           READ LOWX PREVIOUS RECORD
+               AT END DISPLAY "P5=ATEND|" L-ST
+               NOT AT END DISPLAY "P5=" L-V "|" L-ST
+           END-READ
+           CLOSE LOWX
            STOP RUN.

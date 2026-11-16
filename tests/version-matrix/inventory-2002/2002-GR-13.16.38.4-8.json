@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-8",
+ "rule-digest": "f2d90ffc1cd0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#FormatFloatCore; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.Float.cs#RenderFloat",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2pic01_cd_record_picture",
+ "notes": "Per §2002:13.16.38.4 GR8 a zero edited into a floating-point item has zero digits and positive signs: 0 into -9.99E+99 is \" 0.00E+00\", -0.0 into +9.9E+999 is \"+0.0E+000\" (CD record items). The --std 2002 run matched."
+}

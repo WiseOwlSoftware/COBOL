@@ -1,0 +1,4 @@
+OPEN=00 00
+LC=000
+CLOSE-C=00 ES=[                               ]
+CLOSE-A=00 ES=[EC-REPORT-NOT-TERMINATED       ]

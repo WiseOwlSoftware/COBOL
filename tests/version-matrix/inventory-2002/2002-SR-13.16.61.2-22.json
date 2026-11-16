@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-22",
+ "rule-digest": "25ad9f661845",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr22-f5-report; conformance:cases/13.18.63-VALUE/pb558-condition-name-in-report-section",
+ "notes": "§2002:13.16.61.2 SR22 forbids formats 3 and 5 in the report section: a format 5 (VALID) entry under a report item is refused COBOL1746 at --std 2002, as pb558 refuses the format 3 entry."
+}

@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-13.3.5.2-3",
  "rule-digest": "a7e3f467a863",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#UnsupportedOrg; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeFile",
- "test-ref": "conformance:cases/14.9.51-WRITE/pb5579-write-file-sort-merge-file",
- "notes": "§2002:13.3.5.2 SR3: a sort-merge file-name in an input-output statement is refused (COBOL1692), here WRITE FILE S (kb/Work PB5579); the other statements are PB140's."
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#UnsupportedOrg; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenSortMergeFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb5579-write-file-sort-merge-file; conformance:cases/13.3.5@2002-SORT-MERGE-FILE-DESCRIPTION-ENTRY/g2-sd-close-lock; conformance:cases/13.3.5@2002-SORT-MERGE-FILE-DESCRIPTION-ENTRY/g2-sd-open; conformance:cases/13.3.5@2002-SORT-MERGE-FILE-DESCRIPTION-ENTRY/g2-sd-read; conformance:cases/13.3.5@2002-SORT-MERGE-FILE-DESCRIPTION-ENTRY/g2-sd-delete; conformance:cases/13.3.5@2002-SORT-MERGE-FILE-DESCRIPTION-ENTRY/g2-sd-start; conformance:cases/13.3.5@2002-SORT-MERGE-FILE-DESCRIPTION-ENTRY/g2-sd-unlock",
+ "notes": "§2002:13.3.5.2 SR3 forbids an SD file-name in an input-output statement (the §2002:9.1.12 list), including the 2002-only CLOSE ... WITH LOCK form: at --std 2002 CLOSE WITH LOCK, OPEN, READ, DELETE, START and UNLOCK naming the SD are each refused COBOL1692 at the statement line. WRITE FILE naming an SD is refused COBOL1692 at --std 2002 too (pb5579-write-file-sort-merge-file, kb/Work PB5579)."
 }

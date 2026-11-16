@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.4.1.3.3-2",
+ "rule-digest": "83a3ec0cdd28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderClass; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloatClass.cs#IsBits; src/WiseOwl.Cobol.Compiler/Binding/AlgebraicRange.cs#AlgebraicRanges; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsInCodedSet; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabetic; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabeticLower; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsAlphabeticUpper; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#IsNumericImage; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsNumericZoned; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloatClass.cs; src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs#IsImagePromotable; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderComputedNumericClass; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#ImageWidth; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsNumeric",
+ "test-ref": "conformance:cases/8.8.4.1.3@2002-CLASS-CONDITION/g2_class_truth_values",
+ "notes": "Each leg follows §2002:8.8.4.1.3.3 GR2 for a non-zero-length operand with no locale in effect (no CHARACTER CLASSIFICATION clause, §2002:12.2.5.3 GR6). Ran g2_class_truth_values.cob --std 2002 --run with the pinned exe (tree dc1f2dcce8) matched the derivation at --std 2002 with the pinned build of tree dc1f2dcce8."
+}

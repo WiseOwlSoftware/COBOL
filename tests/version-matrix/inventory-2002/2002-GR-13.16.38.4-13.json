@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-13.16.38.4-13",
+ "rule-digest": "0fc30f67cb09",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Globalization/MonetaryPlacement.cs#Render",
+ "notes": "kb/Work PB5650: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) a +-edited LOCALE picture with no currency symbol: nl-NL +1234.5 prints [    + 1.234,50] and hr-HR a trailing space, where the 2002 text derives [     +1.234,50]."
+}

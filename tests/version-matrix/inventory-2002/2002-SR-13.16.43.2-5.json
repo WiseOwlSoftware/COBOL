@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.43.2-5",
+ "rule-digest": "631d26ef9c94",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-level-01; conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-level-66; conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-level-88; conformance:cases/13.18.45-RENAMES/pb1283-renames-level-01-record; conformance:cases/13.18.45-RENAMES/pb1283-renames-level-77-item",
+ "notes": "§2002:13.16.43.2 SR5 forbids a RENAMES operand of level 1, 66, 77 or 88: under a CD record, renaming the 01 record (COBOL2740), a 66 entry and an 88 condition-name (COBOL1655) are refused at --std 2002, and the working-storage level-01 and level-77 cases are refused at --std 2002 (COBOL2740)."
+}

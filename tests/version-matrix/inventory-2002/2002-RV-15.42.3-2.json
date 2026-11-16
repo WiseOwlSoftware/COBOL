@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.42.3-2",
+ "rule-digest": "9d7e4aa66fd4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Globalization/TimeFacts.cs#FormatTime; src/WiseOwl.Cobol.Runtime/Globalization/LocaleFacts.cs#TimeFormat",
+ "test-ref": "conformance:cases/15.42@2002-LOCALE-TIME-FUNCTION/g2002-locale-time-function",
+ "notes": "§2002:15.42.3 RV2 - RV2: 130509 rendered by t_fmt: de-DE and fr-FR HH:mm:ss -> 13:05:09, en-US h:mm:ss tt -> 1:05:09 PM; national argument-1 N\"130509\" -> 13:05:09; each carries hours, minutes and seconds. Expected lines derived from the 2002 text before the run; G2LTM01 at --std 2002 on the pinned build (tree dc1f2dcce8) printed exactly the derived .out."
+}

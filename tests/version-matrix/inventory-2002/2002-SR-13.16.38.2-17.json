@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-17",
+ "rule-digest": "f844621fd70c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-record-legal-forms; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-sr17-z-and-star",
+ "notes": "§2002:13.16.38.2 SR17 reaches a record after an OUTPUT CD (§2002:A.1.1.2): PIC Z*9 is refused COBOL1934 at --std 2002 by the pinned dc1f2dcce8 build, and the legal forms in the same CD record (g2002-pic-cd-record-legal-forms) compile and run with output equal to the derived .out."
+}

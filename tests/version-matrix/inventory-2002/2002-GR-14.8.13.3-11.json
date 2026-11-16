@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.13.3-11",
+ "rule-digest": "71781c3b27bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#TransferOut; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+ "test-ref": "conformance:cases/14.9.14-EXIT/pb405_exit_paragraph_section_in_inline_perform",
+ "notes": "§2002:14.8.13.3 GR11: EXIT PARAGRAPH skips the rest of its paragraph, falling through when unperformed (S1-A to S1-B) and returning through the PERFORM when performed (P4 to AFTER-P4); pb405 (accept [2002]) shows both. Its output matched its .out at --std 2002 with the pinned build of dc1f2dcce8."
+}

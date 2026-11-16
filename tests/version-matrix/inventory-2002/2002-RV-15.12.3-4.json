@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.12.3-4",
+ "rule-digest": "21f9b28bb72c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryImageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#Characters; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#Usage",
+ "test-ref": "conformance:cases/15.12@2002-BYTE-LENGTH-FUNCTION/g2-byte-length-argument-kinds",
+ "notes": "§2002:15.12.3 RV4 'When argument-1 does not occupy an integral number of bytes, the returned value is rounded to the next larger integer value'; a level-1 elementary bit item gets no trailing filler (§2002:8.5.1.5.3 NOTE 'No filler is generated ... at the end of a level 1 elementary item'), so PIC 1(12) BIT is 12 bits -> BIT12=2, PIC 1(5) BIT -> BIT5=1, and the integral control PIC 1(8) BIT -> BIT8=1. Run at --std 2002 with the pinned build dc1f2dcce8: output equals the derivation."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-14",
+ "rule-digest": "68595372f2d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen.PartialWord; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-placement-debugging-mode; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-debugging-line-partial-word-1-refused",
+ "notes": "§2002:7.1.2.2 SR14 requires a one-text-word partial-word-1; at --std 2002 a D-line LEADING ==XX== BY ==YY== turns XXITEM into YYITEM (PW1-NEW) and a D-line LEADING ==AA BB== draws COBOL2572 without debugging mode."
+}

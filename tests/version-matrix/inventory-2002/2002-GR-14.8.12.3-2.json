@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.12.3-2",
+ "rule-digest": "f1c4fe0e4773",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#ThroughRangeClass; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#IsCollatedThroughRange; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit",
+ "test-ref": "conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2-evaluate-through-cd-operands",
+ "notes": "§2002:14.8.12.3 GR2 with 14.6.7 rule 1: an EVALUATE THROUGH range with CD-record operands includes both bounds and the values between (EV=MID, EV2 IN IN IN OUT); the --std 2002 run on the pinned build dc1f2dcce8 matched."
+}

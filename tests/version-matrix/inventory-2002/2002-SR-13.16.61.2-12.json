@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.61.2-12",
+ "rule-digest": "4c07c3dde162",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.GroupValue.cs",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr12-f1-sync-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr12-f1-comp-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr12-f2-just-cd; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr12-f2-just-ws; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-sr12-f2-comp-ws; conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-cd-record-table; conformance:cases/13.18.63-VALUE/pb184-group-value-justified; conformance:cases/13.18.63-VALUE/pb184-group-value-non-display",
+ "notes": "§2002:13.16.61.2 SR12 (FORMATS 1 AND 2): five single-violation group-VALUE programs (JUSTIFIED, SYNCHRONIZED, non-DISPLAY; format 1 and 2; CD record and working-storage) are refused COBOL1702 at --std 2002, and the legal format 2 group VALUE in a CD record prints E=[ABAB]."
+}

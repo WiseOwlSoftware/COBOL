@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.42.3-1",
+ "rule-digest": "11dd57160a66",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportInactiveError",
+ "test-ref": "conformance:cases/14.8.42@2002-TERMINATE-STATEMENT/g2-terminate-inactive-and-no-generate",
+ "notes": "§2002:14.8.42.3 GR1: TERMINATE of an already-terminated and of a never-initiated report raises EC-REPORT-INACTIVE and produces no RF; --std 2002 run matched the derived output."
+}

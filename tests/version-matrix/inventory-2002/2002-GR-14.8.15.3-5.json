@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.15.3-5",
+ "rule-digest": "ae6c685cf922",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel",
+ "test-ref": "conformance:cases/14.8.15@2002-GENERATE-STATEMENT/g2-generate-first-and-later",
+ "notes": "§2002:14.8.15.3 GR5 with §2002:13.16.15.3 GR3-GR4a: later GENERATEs print CF (with the prior value) and CH up to the break level, then DE, and no DE for the summary GENERATE R-G ([CFK A] [CHK B] [DE B 3] [CFK B] [CHK C]); the --std 2002 run matched."
+}

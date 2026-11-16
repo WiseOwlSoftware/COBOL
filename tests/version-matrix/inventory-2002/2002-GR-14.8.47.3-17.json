@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-17",
+ "rule-digest": "d5f574690a46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#CountRecords",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_sequential_successor",
+ "notes": "§2002:14.8.47.3 GR17: under OPEN EXTEND the WRITE adds records at the end as though the mode were output, and the first record written after OPEN EXTEND is the successor of the last record already present. Matched at --std 2002 with the pinned build of dc1f2dcce8 (g2_write_sequential_successor)."
+}

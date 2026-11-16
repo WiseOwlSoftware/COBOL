@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-3",
+ "rule-digest": "157f55f1b8bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PicCategory; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Table16Operand",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-categories-locale",
+ "notes": "§2002:13.16.38.3 GR3 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): each of the eight categories behaves as its own category: INITIALIZE REPLACING ALPHABETIC changes the AAA item and not the X(3) item (§2002:14.8.19.3 GR5c2), the 111 item receives B\"1\" as 100 with zero fill (§2002:14.5.8 rule 6), and 99 BLANK WHEN ZERO is numeric-edited (MOVE 0 gives spaces). The --std 2002 run of the pinned build (dc1f2dcce8) matched the corrected .out."
+}

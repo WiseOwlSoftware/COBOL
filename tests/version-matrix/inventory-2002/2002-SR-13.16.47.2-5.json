@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.47.2-5",
+ "rule-digest": "05d537c0144b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "test-ref": "conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-cd-occurs-subordinate; conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-cd-occurs-target",
+ "notes": "§2002:13.16.47.2 SR5 forbids OCCURS on data-name-1 but permits it below. In a CD record (§2002:A.1.1.2), SAME AS a WS group whose subordinate has OCCURS 3 is accepted and copies the table ('[AC] 3', '[ABC-]', §2002:13.16.47.3 GR2), and SAME AS an OCCURS item is refused with COBOL1556, both at --std 2002 (the pinned build dc1f2dcce8)."
+}

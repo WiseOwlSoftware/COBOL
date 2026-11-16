@@ -39,14 +39,6 @@ public sealed class ImplicitStatementSeriesDriftTests
 
     private static readonly Regex ClauseHeading = new(@"^#{3,6}\s+(\d+(?:\.\d+)+)\s", RegexOptions.Compiled);
 
-    /// <summary>⛔ THE ONE EXEMPTION, AND IT IS SELF-INVALIDATING. VALIDATE (ISO §2023:14.9.50) is the OWNER-DECLINED
-    /// Annex A.4.14 facility (docs/CONFORMANCE.md §4 item 3): the grammar recognizes it only to NAME the refusal
-    /// (<c>validateFacilityStatement</c>), it binds to no node, and a statement that never binds has no statement
-    /// site to give its operands. <see cref="EveryVerbTheSpecGivesTheResumptionRule_BindsThroughTheImplicitSeries"/>
-    /// asserts THAT premise rather than assuming it, so the day the facility is implemented and a
-    /// <c>BoundValidate</c> exists, this exemption stops being true and the census fails until the verb joins.</summary>
-    private const string DeclinedVerb = "VALIDATE";
-
     /// <summary>Every (verb, clause) the spec gives the per-implicit-statement resumption rule to.</summary>
     private static Dictionary<string, string> SpecFamily()
     {
@@ -91,16 +83,6 @@ public sealed class ImplicitStatementSeriesDriftTests
             + "Either the transcription changed or the regex stopped matching — re-derive it before trusting a "
             + "green run; a census that matches nothing passes vacuously.");
 
-        Assert.True(family.ContainsKey(DeclinedVerb),
-            $"{DeclinedVerb} no longer carries the resumption rule in the spec — re-derive the exemption.");
-
-        // The premise of the one exemption, asserted rather than assumed (memory: validate_the_premise_not_only
-        // _the_rule). The day VALIDATE binds to a node, this fires and the census below must cover it.
-        string boundNodes = string.Concat(Directory.EnumerateFiles(
-            TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Bound"), "*.cs", SearchOption.AllDirectories)
-            .Select(File.ReadAllText));
-        Assert.DoesNotContain("record BoundValidate", boundNodes, StringComparison.Ordinal);
-
         var seriesBinders = Directory.EnumerateFiles(VerbsDir, "*.cs", SearchOption.AllDirectories)
             .Select(p => (Path: p, Text: File.ReadAllText(p)))
             .Where(f => CodeOf(f.Path).Contains("BoundImplicitSeries.Of(", StringComparison.Ordinal))
@@ -110,11 +92,6 @@ public sealed class ImplicitStatementSeriesDriftTests
 
         foreach (var (verb, clause) in family.OrderBy(kv => kv.Key, StringComparer.Ordinal))
         {
-            if (verb == DeclinedVerb)
-            {
-                continue;
-            }
-
             Assert.True(
                 seriesBinders.Any(f => f.Text.Contains(clause, StringComparison.Ordinal)),
                 $"No verb binder that calls BoundImplicitSeries.Of cites §{clause} — the clause that makes a "

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.6.2-1",
+ "rule-digest": "2c672d333ed6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo05_sequential_phrases_non_unit",
+ "notes": "§2002:14.8.6.2 SR1 grants NO REWIND, REEL and UNIT on sequential files; g2clo05 at --std 2002 executes all three on a Non-unit disk file per Table 15 (§2002:14.8.6.3 GR3: REEL/UNIT leave it open, NO REWIND closes it; 07 per §2002:9.1.12.1 item 5), output matched; g2clo06 refuses them on relative/indexed files with COBOL1693."
+}

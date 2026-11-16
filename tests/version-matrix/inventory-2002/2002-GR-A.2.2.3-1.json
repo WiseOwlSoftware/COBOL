@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.2.2.3-1",
+ "rule-digest": "77c580e8c9ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindDisable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Disable; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPaths; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOne; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput",
+ "test-ref": "conformance:cases/A.2.2@2002-DISABLE-STATEMENT/g2002-disable-output-already-and-path",
+ "notes": "DISABLE OUTPUT at --std 2002 disconnects D1 (00), reports an already-disconnected destination with 15 / error key 5 and no action, and leaves the program-to-MCS path open: a SEND is completed with 10 / 2 and delivered once D1 is enabled (§2002:A.2.2.3 GR1, Tables A.1 and A.2). The golden ran at --std 2002 on the pinned build dc1f2dcce8 and matched its derived .out."
+}

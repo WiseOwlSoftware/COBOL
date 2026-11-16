@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-RV-15.53.3-4",
  "rule-digest": "03f6aa7c8d31",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/national_intrinsics",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

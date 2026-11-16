@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-2",
+ "rule-digest": "f2cd69ac5c0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2-pic38-cd-categories-locale",
+ "notes": "§2002:13.16.38.3 GR2 applied to record entries under an OUTPUT CD (§2002:A.1.2.2 SR9): The B inserted into national-edited NE (PIC NBN USAGE NATIONAL) is the national space: NE(2:1) = N\" \" is true and NE has 3 national positions (6 bytes); the B in alphanumeric-edited XE (PIC XBX) is the alphanumeric space. The --std 2002 run of the pinned build (dc1f2dcce8) matched the derived .out."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.30.3-1",
+ "rule-digest": "cc7dc943f869",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreAligned; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreJustified; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreBoolean; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Store; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource",
+ "test-ref": "conformance:cases/13.16.30@2002-JUSTIFIED-CLAUSE/g2-justified-cd-record",
+ "notes": "§2002:13.16.30.3 GR1: JUSTIFIED receivers in a CD record (alphanumeric, alphabetic, national, bit) drop the sender's leftmost positions ([DEFG], [CDE], N\"YZ\", B\"01\"); the --std 2002 run matches the derived output."
+}

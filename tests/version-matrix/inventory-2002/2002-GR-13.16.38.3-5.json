@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.38.3-5",
+ "rule-digest": "5660976386bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.Analyze; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Table16Operand",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2pic01_cd_record_picture",
+ "notes": "Per §2002:13.16.38.3 GR5 PIC AAA is alphabetic: INITIALIZE of the CD record REPLACING ALPHABETIC (§2002:14.8.19.3 GR5) sets A1 to QQQ and leaves the alphanumeric X1. The --std 2002 run matched."
+}

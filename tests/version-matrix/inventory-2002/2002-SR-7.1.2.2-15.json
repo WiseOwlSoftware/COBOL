@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-15",
+ "rule-digest": "7612c6b90251",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen.PartialWord; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-placement-debugging-mode; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-debugging-line-partial-word-2-refused",
+ "notes": "§2002:7.1.2.2 SR15 allows zero or one text-word in partial-word-2; at --std 2002 D-line LEADING ==ZZ== BY == == deletes ZZ (PW2-NEW), ==XX== BY ==YY== replaces (PW1-NEW), and ==AA== BY ==BB CC== draws COBOL2572."
+}

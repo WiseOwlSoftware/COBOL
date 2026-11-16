@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-11",
+ "rule-digest": "868f775c3b33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
+ "test-ref": "conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-replacing-word-and-nesting-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-replacing-over-nested-copy-refused",
+ "notes": "§2002:7.1.2.3 GR11 forbids a COPY statement in library text copied with REPLACING; at --std 2002 COPY G2CBNEST REPLACING AAA BY \"HELLO\" over a nested COPY draws COBOL1640, while a literal holding the word COPY is copied with REPLACING (COPY G2CBW.-HELLO)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.58.3-8",
+ "rule-digest": "73d7d64402db",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#BytesPerPosition; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#ImageContribution; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#ContentCharacters; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002_cd_record_usage_representation",
+ "notes": "An implied-NATIONAL N(2) item in an output CD record is 4 bytes, two UTF-16BE units 00 51 00 52 for N\"QR\" (§2002:13.16.58.3 GR8, DOC-A.1-213). G2USG01 at --std 2002 matched the derived output."
+}

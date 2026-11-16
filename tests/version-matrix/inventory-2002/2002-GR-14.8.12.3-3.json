@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.12.3-3",
+ "rule-digest": "d455c11da578",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindSubjectValue; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#SubjectUsageOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#Materialize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindSubjectTruth; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#MaterializeTruth; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPartialExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#MaterializeBoolean",
+ "test-ref": "conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2eva01_communication_section_operands",
+ "notes": "§2002:14.8.12.3 GR3 a/b/c/e/f with CD items: TL numeric (T1 NUMERIC-EQ), literal subject vs TL (T9), MC + TL = 10 (T6), TL > 2 truth value and TRUE/FALSE subjects (T5, T7). --std 2002 run matched."
+}

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.4.7.4-9",
  "rule-digest": "ed89951360a6",
+ "test-ref": "conformance:cases/8.7.5-Relational-operators/pb333_start_general_relation_operators",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

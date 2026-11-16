@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.2.6.2-2",
  "rule-digest": "e7dfe8579512",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb922_exception_object_reference",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

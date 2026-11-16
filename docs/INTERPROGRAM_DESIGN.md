@@ -849,6 +849,14 @@ a constant-name, on the literal §2023:13.10.4 GR1/GR2 substitutes.
   loses its omitted state (a group formal's copy-in field always answers `IsNull` false). A SUBITEM, a
   subscripted reference and a reference-modified view are deliberately excluded: GR1c speaks of an argument
   that *is* a formal parameter, and referencing inside an omitted one is exactly the error GR12 states.
+  ⛔ **A CALL's RETURNING item is a reference, raised at the CALL (kb/Work PB5623).** RETURNING identifier-3 is no
+  argument and is identified "at the beginning of the execution of the CALL statement" (§2002:14.8.4.3 GR3 a), §2023:14.9.4.4
+  GR3a), but the result is stored by the ACTIVATED program's delivery, through a lazy carrier over the formal, inside an
+  activation whose own checking scope the raise no longer shares (so the lazy guard never fired). `CallEmitter.EmitCall`
+  therefore asks `PlaceRenderer.RootGuard` of the RETURNING place (the same path-root guard every other reference renders
+  through, so a subordinate of a group formal and a redefinition view answer as the formal does) and emits
+  `PlaceRenderer.OmittedReferenceRaise` right after the identification hoist; INVOKE's RETURNING store runs in the
+  invoking statement, through the guarded path, and needs no early raise.
   ⛔ **The recognition and the presence test span EVERY activation ABI (kb/Work PB757).** The presence fact is
   `Binding/Model/OmittedProbe` — `Carrier` (a program/function formal's null carrier) or `MethodFlag` (a method
   formal's `bool` presence parameter, OO_DESIGN D6) — and `CallUnitState.WholeFormalProbe` recognizes a

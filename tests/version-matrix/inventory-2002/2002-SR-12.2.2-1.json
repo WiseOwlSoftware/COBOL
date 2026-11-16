@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.2-1",
+ "rule-digest": "82dba2fffc61",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ConfigurationSectionInContainedProgram",
+ "test-ref": "conformance:cases/12.2@2002-CONFIGURATION-SECTION/g2-configuration-section-in-contained-program",
+ "notes": "§2002:12.2.2 SR1 forbids a configuration section in a contained program; a bare CONFIGURATION SECTION header in a contained program is refused at --std 2002 with COBOL1643 at the header line."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.9.2-10",
+ "rule-digest": "b00a99c6c1e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantLength",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-length-any-length",
+ "notes": "§2002:13.9.2 SR10: \"Data-name-1 and data-name-2 shall not be described with the ANY LENGTH clause\". A constant entry under a 2002 CD entry (§2002:13.1.1) that violates it is refused: conformance:cases/13.9@2002-CONSTANT-ENTRY/g2-constant-cd-length-any-length draws COBOL1547 at the entry at --std 2002 (pinned build dc1f2dcce8)."
+}

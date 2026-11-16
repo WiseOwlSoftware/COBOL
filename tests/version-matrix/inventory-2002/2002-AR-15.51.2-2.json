@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.51.2-2",
+ "rule-digest": "9a229b27c2c7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#MIN",
+ "test-ref": "conformance:cases/15.51@2002-MIN-FUNCTION/g2min01-argument-same-class",
+ "notes": "§2002:15.51.2 AR2 with §2002:8.5.2 Table 3: alphabetic with alphanumeric (including a CD record item and a usage-display numeric-edited item), PIC 9 with PIC 9 USAGE NATIONAL (both class numeric, PB5625 reading B) and PIC N with numeric-edited USAGE NATIONAL are accepted and return the least (ABC, PQR, ABC length 12, '  7', 125, ' 12'); numeric with alphanumeric and numeric USAGE NATIONAL with national are refused COBOL1627 (g2min02, g2min03). Pinned build at --std 2002 matched."
+}

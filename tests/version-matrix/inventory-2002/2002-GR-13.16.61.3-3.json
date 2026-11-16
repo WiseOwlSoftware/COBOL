@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-3",
+ "rule-digest": "792911bbd870",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs",
+ "test-ref": "conformance:cases/13.16.61@2002-VALUE-CLAUSE/g2-value-linkage-initialize; conformance:cases/13.18.63-VALUE/pb4305_value_in_linkage_2002",
+ "notes": "§2002:13.16.61.3 GR3: a linkage record's format 1 and format 2 VALUEs do not show on entry ([...999...]) and take effect at INITIALIZE ... ALL TO VALUE ([ABC123XYX], seen by the caller too) at --std 2002."
+}

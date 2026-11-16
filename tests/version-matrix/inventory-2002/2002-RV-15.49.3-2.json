@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.49.3-2",
+ "rule-digest": "4a7ef5ed5084",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation",
+ "notes": "§2002:15.49.3 RV2: with an even number of arguments MEDIAN is the mean of the two middle values. FUNCTION MEDIAN(B * 100 + 9 - B * 100, 5, 7, 9) has the values 0, 5, 7, 9, whose middle values 5 and 7 give 6 (34 digits: 9, 5, 7, 9, middle 7 and 9, 8)."
+}

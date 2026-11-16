@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.1.3-11",
  "rule-digest": "c2b59b54a140",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb873_by_value_image_carried_formal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

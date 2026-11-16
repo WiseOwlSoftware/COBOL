@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-5",
+ "rule-digest": "ab754637e277",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-p-scaling-legal-forms",
+ "notes": "§2002:13.16.38.2 SR5: PIC, PICTURE, PIC IS and PICTURE IS in a CD record describe the same items; MOVE 12 gives 012 in both 9(3) items (§2002:14.8.24.3 GR4b) and the group shows 012012ABAB. pinned cobol.exe (tree dc1f2dcce8) --std 2002 --run matched the derived .out."
+}

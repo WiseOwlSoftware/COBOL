@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.24.2-2",
+ "rule-digest": "937448e5c664",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#IsStrongGroup; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameType; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#EquivalentTypeDeclarations; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#TypeAnchor; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#StrongGroupRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov03_cd_record_to_strong_group; conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov04_literal_to_strong_group; conformance:cases/14.9.25-MOVE/typedef_strong_ok",
+ "notes": "§2002:14.8.24.2 SR2 refuses any sender to a strongly-typed group but identifier-1 of the same type: a same-layout output-CD record (§2002:A.1.2.2 SR9) and a literal are each refused COBOL1533 at the MOVE line at --std 2002; the permitted same-type MOVE runs at 2002 in typedef_strong_ok."
+}

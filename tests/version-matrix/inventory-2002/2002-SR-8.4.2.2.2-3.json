@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.2.2-3",
+ "rule-digest": "450e4859c8d4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#DefinitionPermitsArguments; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs",
+ "test-ref": "conformance:cases/8.4.2.2@2002-FUNCTION-IDENTIFIER/g2-function-prototype-name-sources; conformance:cases/8.4.2.2@2002-FUNCTION-IDENTIFIER/g2-function-prototype-not-in-repository",
+ "notes": "§2002:8.4.2.2.2 SR3 both branches: the containing function's own name (recursive G2FACT, §2002:9.4) and a REPOSITORY prototype (G2DBL) print P1 0042 / P2 000120 as derived; a name in neither is refused COBOL1501 at --std 2002."
+}

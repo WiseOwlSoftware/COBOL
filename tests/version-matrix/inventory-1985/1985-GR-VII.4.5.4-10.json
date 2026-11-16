@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.4.5.4-10",
  "rule-digest": "b2457f0cc8ca",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1168_rs_rewrite_size_gr16",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

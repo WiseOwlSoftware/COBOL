@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.6.4-2",
  "rule-digest": "77e63b4a0068",
+ "test-ref": "conformance:cases/13.18.32-JUSTIFIED/l1c16_justified_spellings",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

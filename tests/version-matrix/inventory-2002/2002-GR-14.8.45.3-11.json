@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.45.3-11",
+ "rule-digest": "81a4f40f0aa2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolDec.cs#ToSidi; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Power",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation",
+ "notes": "§2002:14.8.45.3 GR11: the exception condition that selects the USE statement is the first that occurs in the order of evaluation. In COMPUTE X = 10 ** N / Z, N = 1000, 10 ** N exceeds 10^1000 - 10^968 (§2002:8.8.1.3.1.1) and raises EC-SIZE-OVERFLOW (CobolDec.ToSidi) before the division by zero is reached: the EC-SIZE declarative displays EC-SIZE-OVERFLOW (the 34-digit engine had no overflow there and reached EC-SIZE-ZERO-DIVIDE)."
+}

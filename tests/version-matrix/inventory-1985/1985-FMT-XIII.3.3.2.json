@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-XIII.3.3.2",
  "rule-digest": "9c82164a7478",
+ "test-ref": "conformance:cases/13.18.12-CODE/pb1050_reports_share_file",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

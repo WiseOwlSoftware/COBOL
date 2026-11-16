@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.43.2-10",
+ "rule-digest": "5b57063e4f25",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesWindowOrder",
+ "test-ref": "conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-thru-precedes; conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-cd-thru-subordinate; conformance:cases/13.16.43@2002-RENAMES-CLAUSE/g2-renames-thru-cd-and-ws; conformance:cases/13.18.45-RENAMES/pb1283-renames-thru-precedes; conformance:cases/13.18.45-RENAMES/pb1283-renames-thru-subordinate",
+ "notes": "§2002:13.16.43.2 SR10 requires data-name-3 to begin no earlier and end later than data-name-2: B THRU A and G THRU B (B subordinate to G) are refused at --std 2002 under a CD record and in working storage (COBOL2740), and ordered spans are accepted (g2-renames-thru-cd-and-ws matched)."
+}
