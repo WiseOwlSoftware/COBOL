@@ -152,14 +152,15 @@ def _reserved_everywhere(word: str, reserved: dict[str, frozenset[str]], edition
 
 
 def classify(text: str, path: str, reserved: dict[str, frozenset[str]], editions: list[str],
-             division: str | None = None) -> dict[int, str]:
+             division: str | None = None, fmt: str = "free") -> dict[int, str]:
     """Each code line's placement (A, B or ANY) by the 1985 layout (module docstring), keyed by line number, from the
-    free-form text's tokens: a line that begins a sentence or entry (the token before it is a separator period) is
-    placed by what it begins; every other line continues one, in area B. `editions` are those the free-form text is
+    text's tokens (read in `fmt`): a line that begins a sentence or entry (the token before it is a separator period)
+    is placed by what it begins; every other line continues one, in area B. `editions` are those the free-form text is
     written for (where free form exists): a one-word sentence in the Procedure Division is a statement when its word
     is reserved at each, a paragraph-name when at none, and undecidable otherwise. `division` starts a library text in
-    the division it is copied into."""
-    toks = cobol.tokenize(cobol.read_lines(text, "free"))
+    the division it is copied into. The converter asks it of the original, to place each line, and of its own fixed-
+    form result, to prove each placed line (a re-wrapped part among them) is where the layout puts it."""
+    toks = cobol.tokenize(cobol.read_lines(text, fmt))
     out: dict[int, str] = {}
     for i, t in enumerate(toks):
         if i and toks[i - 1].line == t.line:
@@ -208,15 +209,16 @@ def classify(text: str, path: str, reserved: dict[str, frozenset[str]], editions
     return out
 
 
-def _place(code: str, col: int, place: str, offset: int) -> int:
+def _fits(place: str, col: int) -> bool:
+    """Does a line beginning at column `col` satisfy its placement?"""
+    return AREA_A <= col < AREA_B if place == A else col >= AREA_B if place == B else col >= AREA_A
+
+
+def _place(col: int, place: str, offset: int) -> int:
     """The column a line whose program text began at `col` (1-based) begins at in fixed form: its column shifted by
     the text's `offset` when that satisfies its placement, else the first column of its area."""
     at = col + offset
-    if place == A:
-        return at if AREA_A <= at < AREA_B else AREA_A
-    if place == B:
-        return max(at, AREA_B)
-    return max(at, AREA_A)
+    return at if _fits(place, at) else AREA_A if place == A else max(at, AREA_B if place == B else AREA_A)
 
 
 def _wrap(code: str, col: int, path: str, number: int) -> list[tuple[int, int, int]]:
@@ -224,7 +226,7 @@ def _wrap(code: str, col: int, path: str, number: int) -> list[tuple[int, int, i
     margin R: (index in `code` where the part starts, where it ends, the column it begins at). A part after a separator
     period starts a sentence at the line's own column in area B; any other at the continued indent."""
     parts, start, at = [], 0, col
-    while at + (len(code) - start) - 1 > MARGIN_R or len(code[start:].encode("utf-8")) + at - 1 > MARGIN_R:
+    while len(code[start:].encode("utf-8")) + at - 1 > MARGIN_R:     # bytes: never fewer than characters
         room = MARGIN_R - at + 1
         fits = [b for b in _breaks(code) if start < b <= start + room and len(code[start:b].encode("utf-8")) <= room]
         if not fits:
@@ -305,7 +307,7 @@ def convert_text(text: str, path: str, reserved: dict[str, frozenset[str]], edit
         col = len(code) - len(code.lstrip()) + 1
         body = code.strip()
         segs = []
-        for s, e, at in _wrap(body, _place(code, col, place, offset), path, n):
+        for s, e, at in _wrap(body, _place(col, place, offset), path, n):
             line = (seq if not segs else " " * cobol.SEQUENCE_AREA) + " " * (at - cobol.SEQUENCE_AREA - 1) + body[s:e]
             segs.append(Segment(col + s, col + e + 1, len(out) + 1, at))
             out.append(line.rstrip())
@@ -317,6 +319,14 @@ def convert_text(text: str, path: str, reserved: dict[str, frozenset[str]], edit
         raise Refused(ROUND_TRIP, path, 1, "the fixed-form text's tokens are not the original's")
     if bad := cobol.program_text_past_margin(new):
         raise Refused(TOO_LONG, path, bad[0], f"program text past column {MARGIN_R}")
+    new_lines = new.split("\n")
+    for number, place in classify(new, path, reserved, editions, division, "fixed").items():
+        raw = new_lines[number - 1]
+        at = len(raw) - len(raw[AREA_A - 1:].lstrip()) + 1
+        if not _fits(place, at):
+            original = next((n for n, segs in moved.items() if any(s.line == number for s in segs)), number)
+            raise Refused(UNDECIDED, path, original, f"the converted line {number} begins at column {at}, where the "
+                                                     f"layout does not put it (area {place})")
     return Converted(new, moved)
 
 

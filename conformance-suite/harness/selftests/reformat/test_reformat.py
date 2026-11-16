@@ -164,6 +164,9 @@ def case_03_each_refusal_names_its_kind_and_line(expect):
         expect("a fixed-form case is refused as not free form", False)
     except T.Refused as r:
         expect.equal("a fixed-form case is refused as not free form", r.kind, T.NOT_FREE)
+    expect("a re-wrap that would start a paragraph-name in area B is refused (the result is placed again and checked)",
+           _refused(pd + "    MOVE 1 TO N MOVE 2 TO N MOVE 3 TO N MOVE 4 TO N MOVE 5 TO NN. P2. DISPLAY 1.\n",
+                    T.UNDECIDED))
     real = T._breaks
     T._breaks = lambda code: list(range(1, len(code)))       # a re-wrap that would split a word
     try:
