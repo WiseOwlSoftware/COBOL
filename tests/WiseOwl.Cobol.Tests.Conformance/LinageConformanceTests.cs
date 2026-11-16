@@ -37,6 +37,15 @@ public sealed class LinageConformanceTests
         Assert.Equal(expected, stdout);
     }
 
+    /// <summary><see cref="AssertSpec(string, string)"/> at an edition other than the helper's COBOL-85: a behaviour that
+    /// differs by edition is pinned once per edition it states (kb/Work PB5845, VCR row 7.84).</summary>
+    private static void AssertSpec(string source, string expected, int edition)
+    {
+        var (ok, stdout, detail) = new WiseOwlCobolCompiler(edition).CompileAndRun(source);
+        Assert.True(ok, $"WiseOwl COBOL failed at --std {edition}: {detail}");
+        Assert.Equal(expected, stdout);
+    }
+
     /// <summary>A one-LINAGE-file program: <paramref name="fdClauses"/> is the FD clause text (the LINAGE
     /// clause under test), <paramref name="ws"/> extra WORKING-STORAGE, <paramref name="proc"/> the COMPLETE
     /// procedure body (including CLOSE/STOP RUN, so tests may append helper paragraphs).</summary>
@@ -838,7 +847,20 @@ public sealed class LinageConformanceTests
                 CLOSE LPF.
                 DISPLAY "CLOSE FS=" FS.
                 STOP RUN.
-            """), "USE FS=90\nOPEN FS=90 LC=000\nCLOSE FS=00");
+            """), "USE FS=90\nOPEN FS=90 LC=000\nCLOSE FS=00", 2023);
+
+    [Fact]   // The COBOL-85 arm of the same OPEN (kb/Work PB5845, DialectBehavior.LinageViolatingOpenLeavesFileOpen): the
+             // '90' is an unsuccessful statement (§1985:VII.1.3.5 GR5), so no open mode results (§1985:VII.4.3.4 GR1) and the
+             // CLOSE is §1985:VII.1.3.5 GRL2.4 b)'s '42', its USE procedure running. LINAGE-COUNTER of a file that is not
+             // open has no value in 1985, so it is not read.
+    public void Gr6b1_PageSizeZeroAtOpenOutput_At85_RefusesTheOpen_TheFileIsNotOpen()
+        => AssertSpec(ViolationProgram("LINAGE IS WS-SZ LINES", "01 WS-SZ PIC 9(3) VALUE 0.", """
+                OPEN OUTPUT LPF.
+                DISPLAY "OPEN FS=" FS.
+                CLOSE LPF.
+                DISPLAY "CLOSE FS=" FS.
+                STOP RUN.
+            """), "USE FS=90\nOPEN FS=90\nUSE FS=42\nCLOSE FS=42");
 
     [Fact]   // ⛔ THE DISCRIMINATING PAIR for kb/Work PB525 — the SAME page size, the SAME write, the only
              // difference being whether the FOOTING PHRASE IS WRITTEN. With the phrase present and its data item
@@ -858,7 +880,21 @@ public sealed class LinageConformanceTests
                 DISPLAY "W1 FS=" FS " LC=" LC-VAL.
                 CLOSE LPF.
                 STOP RUN.
-            """), "USE FS=90\nUSE FS=90\nW1 FS=90 LC=000");
+            """), "USE FS=90\nUSE FS=90\nW1 FS=90 LC=000", 2023);
+
+    [Fact]   // …and at COBOL-85 the footing 0 (§1985:VII.3.7.4 GR3: "greater than zero") refuses the OPEN with '90', so the WRITE
+             // is on a file that is not open: §1985:VII.1.3.5 GRL2.4 g)'s '48' (GRL2.5: a 9x must not duplicate a 4x condition),
+             // then the CLOSE's '42'. No end-of-page phrase: 1985 as printed and as corrected differ on a NOT phrase of an
+             // unsuccessful WRITE (Errata C262).
+    public void Gr6b2_FootingPhraseHoldingZero_At85_RefusesTheOpen_WriteIs48_CloseIs42()
+        => AssertSpec(ViolationProgram("LINAGE IS 5 LINES WITH FOOTING AT WS-FT", "01 WS-FT PIC 99 VALUE 0.", """
+                OPEN OUTPUT LPF.
+                WRITE P-REC.
+                DISPLAY "W1 FS=" FS.
+                CLOSE LPF.
+                DISPLAY "CLOSE FS=" FS.
+                STOP RUN.
+            """), "USE FS=90\nUSE FS=48\nW1 FS=48\nUSE FS=42\nCLOSE FS=42");
 
     [Fact]   // …the other half of the pair: NO FOOTING phrase, everything else identical. GR1 governs, the write
              // is successful, and §2023:14.9.51.4 GR28's NOT END-OF-PAGE imperative runs on it.
