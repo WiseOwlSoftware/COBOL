@@ -30,6 +30,16 @@ def result_outcomes(path) -> Counter:
 VERDICT = "=== BUILD-LOCAL GATE: "
 
 
+#: THE PREFLIGHT'S WORD (kb/Work PB5872): a code-lane gate whose preflight (the declared classes whose red means a derived
+#: or pinned file is stale, scripts/build_targets.json) has a red case ends `RED — PREFLIGHT RED: <case> …`, and the
+#: whole population does not run; its record's `preflight` says what ran, how long and what was red, so a later
+#: measurement can count what the stage saved.
+PREFLIGHT = "PREFLIGHT"
+#: The preflight's files in a run directory: `preflight-<assembly>.txt` (its retry file: one line per declared class),
+#: `.trx` and `.log`, beside the assembly's own population files.
+PREFLIGHT_PREFIX = "preflight-"
+
+
 #: A gate started while ANOTHER gate holds this worktree's gate lock: nothing about the change was measured and nothing
 #: is wrong with it, so it is neither RED nor a NOT RUN that needs a fix — it is BUSY, with its own exit code, and a
 #: caller waits for the lock or yields (enqueue.py read it as RED on 2026-10-22 12:30 and stopped PB3511's landing for
@@ -271,6 +281,10 @@ class Outcome:
     exhausted: list[str] = field(default_factory=list)
     unjudged: dict[str, list[str]] = field(default_factory=dict)
     peak_commit_bytes: int | None = None
+    #: THE PREFLIGHT (kb/Work PB5872; `Legs.preflight`): per assembly the declared classes it ran and how many cases, its
+    #: hosts' seconds, its verdict (GREEN or RED) and every red case; empty when no preflight ran (another lane, every
+    #: declaring target up to date, or the gate ended before it).
+    preflight: dict = field(default_factory=dict)
 
 
 class Ending(NamedTuple):

@@ -13,7 +13,7 @@ import selftest_cases
 from standard_streams import ensure_utf8
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
-from gate_host import FIRST_CLASSES
+from gate_host import FIRST_CLASSES, ONLY_CASES
 from gate_runs import RECORD_SCHEMA, RUNS_LOCK, RUN_DIR, VERDICT_FILE
 from gate_verdict import VERDICT
 
@@ -24,8 +24,12 @@ def case_00_whole_planted_population_green_every_assembly_exact(expect):
     expect("a whole planted population is GREEN, every assembly EXACT, one slot taken",
         o.verdict == "GREEN" and o.exit_code == 0 and all(p.exact for p in o.populations.values())
         and len(o.populations) == len(GATED_ASSEMBLIES) and h.slots_taken == 1, o.line)
-    expect("every assembly runs its WHOLE population in one host, handed no narrowing and no first classes",
-        sorted(h.envs) == sorted(GATED_ASSEMBLIES) and sorted(r.asm for r in o.runs) == sorted(GATED_ASSEMBLIES)
+    population = [a for a in GATED_ASSEMBLIES if a not in h.planted_preflight_whole()]
+    expect("every assembly runs its WHOLE population in one host, handed no narrowing and no first classes: the "
+        "population's host, or the preflight's for the assembly the planted preflight runs whole (kb/Work PB5872)",
+        sorted(h.envs) == sorted(population + [f"preflight-{a}" for a in h.planted_preflight_whole()])
+        and sorted(r.asm for r in o.runs) == sorted(population) and fixtures.hosted_once(h)
+        and all(ONLY_CASES not in v for n, v in h.envs.items() if not n.startswith("preflight-"))
         and all(FIRST_CLASSES not in v for v in h.envs.values()) and o.first == [], str(h.envs.keys()))
     o2 = [l for l in sink if l.startswith(VERDICT)]
     expect("the verdict line is the last line, and counts every assembly's discovered cases",
@@ -38,11 +42,12 @@ def case_00_whole_planted_population_green_every_assembly_exact(expect):
         len(runs) == 1 and RUN_DIR.fullmatch(runs[0]) is not None and rec["verdict"] == "GREEN"
         and rec["schema"] == RECORD_SCHEMA
         and sorted(p.name for p in (root / "green" / "runs" / runs[0]).glob("*.trx"))
-        == sorted(f"{a}.trx" for a in GATED_ASSEMBLIES)
+        == sorted([f"{a}.trx" for a in population] + [f"preflight-{a}.trx" for a in h.planted_preflight])
         and len(list((root / "green" / "runs" / runs[0]).glob("listing-*.txt"))) == len(GATED_ASSEMBLIES), str(runs))
-    expect("a GREEN code-lane gate leaves ONE growth sample (kb/Work PB4333): its run, the tests_s its record holds and "
-        "the Conformance cases it discovered",
-        h.growth == [(runs[0], rec["timings"]["tests_s"], 6)] and "tests_s" in rec["timings"], str(h.growth))
+    expect("a GREEN code-lane gate leaves ONE growth sample (kb/Work PB4333): its run, its test phase (the preflight's "
+        "seconds and the population's, kb/Work PB5872) and the Conformance cases it discovered",
+        h.growth == [(runs[0], round(rec["timings"]["tests_s"] + rec["timings"]["preflight_s"], 1), 6)]
+        and "tests_s" in rec["timings"], str(h.growth))
 
 
 def case_01_growth_sample_cannot_be_written_said_never(expect):
@@ -94,7 +99,7 @@ def case_07_red_host_makes_gate_red_exit_1(expect):
     root, sink, gate, said = fixtures.world()
     o, h = gate("red", plant={"red"})
     expect("a red host makes the gate RED, exit 1, and every other host still ran its whole population",
-        o.verdict == "RED" and o.exit_code == 1 and "Conformance RED" in o.line and len(o.runs) == len(GATED_ASSEMBLIES)
+        o.verdict == "RED" and o.exit_code == 1 and "Conformance RED" in o.line and fixtures.hosted_once(h)
         and o.populations["Unit"].exact and "first_red_s" in o.timings and h.growth == [], o.line)
     expect("a red host's whole output, its failure message included, reaches the console through test_leg_report.py",
         said("PLANTED-RED-MESSAGE") and said("Conformance: RED"), "\n".join(sink[-20:]))

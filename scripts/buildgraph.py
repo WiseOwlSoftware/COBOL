@@ -268,7 +268,36 @@ class TestTarget(Target):
     project: str
     #: Its classification for the program differential (kb/Work PB4333), when it has one.
     differential: Differential | None = None
+    #: THE GATE'S PREFLIGHT (kb/Work PB5872): its test classes, fully qualified, whose red means a derived or pinned file
+    #: is stale and which run in seconds; the gate runs them after the build and before the whole population.
+    preflight: tuple[str, ...] = ()
     KIND: ClassVar[str] = "test"
+
+
+@dataclass(frozen=True)
+class PreflightBudget:
+    """WHAT THE PREFLIGHT MAY COST (kb/Work PB5872; the targets file's `preflight.budget`), in the committed WEIGHTS (each
+    class's median merge-group seconds, `weights`, written by scripts/shard_weights.py), never in a wall-clock reading:
+    one class may weigh at most `class_weight_s` and every declared class together at most `total_weight_s`
+    (`preflight_findings`)."""
+    weights: str
+    class_weight_s: float
+    total_weight_s: float
+
+
+def _preflight(name: str, project: str, spec: Mapping | None) -> tuple[str, ...]:
+    """A test target's declared preflight classes (`preflight`: fully qualified class -> why), each in its project's
+    namespace (the project directory's name) and each with its reason; raises GraphError otherwise."""
+    if spec is None:
+        return ()
+    namespace = Path(project).name + "."
+    for cls, why in spec.items():
+        if not cls.startswith(namespace) or not cls[len(namespace):]:
+            raise GraphError(f"{name}: preflight class {cls!r} is not a class of its project's namespace {namespace[:-1]}")
+        if not isinstance(why, str) or not why.strip():
+            raise GraphError(f"{name}: preflight class {cls!r} gives no reason (why its red means a stale derived or "
+                             "pinned file)")
+    return tuple(spec)
 
 
 def _differential(name: str, inputs: tuple[str, ...], spec: Mapping | None) -> Differential | None:
@@ -355,9 +384,12 @@ class Graph:
     targets: dict[str, Target]
     facets: tuple[str, ...]
     order: tuple[str, ...]
+    #: What the preflight may cost (kb/Work PB5872); None when no target declares a preflight.
+    preflight_budget: PreflightBudget | None = None
 
     @classmethod
-    def of(cls, targets: Mapping[str, Target], facets: tuple[str, ...]) -> "Graph":
+    def of(cls, targets: Mapping[str, Target], facets: tuple[str, ...],
+           preflight_budget: PreflightBudget | None = None) -> "Graph":
         """The graph of `targets`, checked: each facet is one of `facets`, each dependency names a GENERATED target of
         the graph (a test target makes no output to depend on), a generated target's program is among its own inputs (or
         its own source would not be in its key), its environment variable is one a test host's scrub removes, and there
@@ -392,7 +424,15 @@ class Graph:
                     raise GraphError(f"{t.name}: its variable {t.env} is not one a test host's scrub removes "
                                      "(test_population.is_scrubbed), so a stray one could reach a host the gate did "
                                      "not hand it to")
-        return cls(dict(targets), tuple(facets), _topological(targets))
+        if preflight_budget is None and any(isinstance(t, TestTarget) and t.preflight for t in targets.values()):
+            raise GraphError("a test target declares a preflight, and the targets file declares no preflight budget "
+                             "(`preflight.budget`): a preflight nothing bounds could grow to minutes")
+        return cls(dict(targets), tuple(facets), _topological(targets), preflight_budget)
+
+    def preflight(self) -> dict[str, tuple[str, ...]]:
+        """THE GATE'S PREFLIGHT (kb/Work PB5872): each test target's declared classes, by the assembly it runs; a target
+        that declares none is absent."""
+        return {t.assembly: t.preflight for t in self.tests().values() if t.preflight}
 
     def tests(self) -> dict[str, TestTarget]:
         return {n: t for n, t in self.targets.items() if isinstance(t, TestTarget)}
@@ -466,17 +506,67 @@ def load_targets(path: Path = TARGETS_FILE) -> Graph:
         try:
             if kind == TestTarget.KIND:
                 targets[name] = TestTarget(**common, assembly=t["assembly"], project=t["project"],
-                                           differential=_differential(name, tuple(inputs), t.get("differential")))
+                                           differential=_differential(name, tuple(inputs), t.get("differential")),
+                                           preflight=_preflight(name, t["project"], t.get("preflight")))
             elif kind == GeneratedTarget.KIND:
                 if "differential" in t:
                     raise GraphError(f"{name}: a generated target has no differential (only a test target's cases are carried)")
+                if "preflight" in t:
+                    raise GraphError(f"{name}: a generated target has no preflight (only a test target has test classes)")
                 targets[name] = GeneratedTarget(**common, command=tuple(t["command"]), outputs=tuple(t["outputs"]),
                                                 env=t["env"])
             else:
                 raise GraphError(f"{name}: no such kind {kind!r} (one of {TestTarget.KIND}, {GeneratedTarget.KIND})")
         except KeyError as e:
             raise GraphError(f"{name}: a {kind} target declares {e.args[0]!r}") from None
-    return Graph.of(targets, facets)
+    budget = (data.get("preflight") or {}).get("budget")
+    try:
+        preflight_budget = (PreflightBudget(str(budget["weights"]), float(budget["class_weight_s"]),
+                                            float(budget["total_weight_s"])) if budget is not None else None)
+    except (KeyError, TypeError, ValueError) as e:
+        raise GraphError(f"the preflight budget is malformed ({type(e).__name__}: {e}): it declares `weights`, "
+                         "`class_weight_s` and `total_weight_s`") from None
+    return Graph.of(targets, facets, preflight_budget)
+
+
+def preflight_findings(repo: Path, graph: Graph) -> list[str]:
+    """THE PREFLIGHT'S DRIFT RULE (kb/Work PB5872), part of the BUILD TARGETS audit (`check`): every declared class is
+    declared in a C# source of its target's project and is MEASURED in the committed weights file (a class the merge group
+    never ran has no measurement to admit it by), no class weighs more than the budget's `class_weight_s` and the declared
+    classes weigh no more than its `total_weight_s` together, so a class that takes minutes cannot be declared. Budgets
+    are the weights' recorded medians, never a clock read here."""
+    budget = graph.preflight_budget
+    declared = {t.name: t for t in graph.tests().values() if t.preflight}
+    if budget is None or not declared:
+        return []
+    try:
+        weights = json.loads((repo / budget.weights).read_text(encoding="utf-8"))["assemblies"]
+    except (OSError, ValueError, KeyError) as e:
+        return [f"preflight: the weights file {budget.weights} cannot be read ({type(e).__name__}: {e}), so no declared "
+                "class can be measured against the budget"]
+    findings: list[str] = []
+    total = 0.0
+    for name, t in declared.items():
+        sources = "\n".join(p.read_text(encoding="utf-8", errors="replace") for p in sorted((repo / t.project).rglob("*.cs"))
+                            if not {"bin", "obj"} & set(p.relative_to(repo / t.project).parts))
+        measured = weights.get(t.assembly) or {}
+        for cls in t.preflight:
+            short = cls.rsplit(".", 1)[1]
+            if re.search(rf"\bclass\s+{re.escape(short)}\b", sources) is None:
+                findings.append(f"{name}: preflight class {cls} is declared in no C# source of {t.project}")
+            if cls not in measured:
+                findings.append(f"{name}: preflight class {cls} is not measured in {budget.weights}: a class with no "
+                                "merge-group measurement cannot be admitted (regenerate the weights, or leave it out)")
+                continue
+            weight = float(measured[cls])
+            total += weight
+            if weight > budget.class_weight_s:
+                findings.append(f"{name}: preflight class {cls} weighs {weight:g} s in {budget.weights}, over the class "
+                                f"budget of {budget.class_weight_s:g} s: it does not run in seconds")
+    if total > budget.total_weight_s:
+        findings.append(f"preflight: the declared classes weigh {total:g} s together in {budget.weights}, over the "
+                        f"budget of {budget.total_weight_s:g} s")
+    return findings
 
 
 # ── keys ────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1616,7 +1706,7 @@ def check(repo: Path = REPO) -> int:
                 "its hosts could run a suite its key does not name"
                 for name, t in graph.tests().items() for d in t.depends if graph.targets[d].env not in scans[name].handed]
     statics = [f for t in graph.generated().values() for f in static_check(repo, t, tracked[0])]
-    findings = findings_of(graph.tests(), scans) + unhanded + statics
+    findings = findings_of(graph.tests(), scans) + unhanded + statics + preflight_findings(repo, graph)
     for f in findings:
         print(f"  {f}")
     residue = ", ".join(f"{name} {len(sc.roots)}" for name, sc in scans.items() if graph.targets[name].broad)
@@ -1627,15 +1717,18 @@ def check(repo: Path = REPO) -> int:
               "in a narrowly declared target, a file-system bypass of TestRepo or ScratchDirectory there, a read naming no "
               "tracked path that is neither a build output nor ignored, a climb out of the repository, a stale judgment, "
               "a dependency's output its assembly does not take from "
-              "the gate, or a generated target's import or probe outside its inputs ===")
+              "the gate, a generated target's import or probe outside its inputs, or a preflight class that is not "
+              "declared, not measured or over its budget ===")
         return 1
+    pre = graph.preflight()
     print(f"=== BUILD TARGETS: GREEN — {len(graph.targets)} target(s), {len(graph.generated())} generated, in the order "
           f"{' -> '.join(graph.order)}; every repository read the test sources spell lies in their declared inputs"
           + (f" or is a dependency's program ({through})" if through else "")
           + "; every narrowly declared target resolves every read and reaches the file system only through TestRepo "
           "and ScratchDirectory or a judged statement, and names no untracked path that is not a build output or "
           "ignored; each generated target's import closure and probes "
-          f"lie in its inputs (bare root references of the targets declaring every population input, judged by the "
+          f"lie in its inputs; the preflight's {sum(len(c) for c in pre.values())} class(es) of {len(pre)} target(s) are "
+          f"declared, measured and within their budget (bare root references of the targets declaring every population input, judged by the "
           f"dynamic proof: {residue or 'none'}) ===")
     return 0
 
@@ -2206,6 +2299,39 @@ def self_test() -> int:
         arm("R3-1: code between two verbatim literals ending in an escaped quote is code: its bypass and its bare root "
             "are found", [n for n, _ in vb] == [2] and vr == [(3, "")], f"{vb} {vr}")
         # The lexer's own arms (every literal form, as `kind_at` reports it) are scripts/selftests/csharp_lexer/test_lexer.py.
+
+        # THE PREFLIGHT'S DRIFT RULE (kb/Work PB5872): a planted project, weights file and budget.
+        pre = root / "preflight"
+        (pre / "tests" / "N.Tests.P").mkdir(parents=True)
+        (pre / "tests" / "N.Tests.P" / "Pins.cs").write_text(
+            "namespace N.Tests.P;\npublic class PinTests { }\npublic class SlowTests { }\npublic class HeavyTests { }\n",
+            encoding="utf-8", newline="\n")
+        (pre / "w.json").write_text(json.dumps({"assemblies": {"P": {"N.Tests.P.PinTests": 0.5, "N.Tests.P.SlowTests": 90.0,
+                                                                       "N.Tests.P.HeavyTests": 8.0}}}),
+                                    encoding="utf-8", newline="\n")
+        budget = PreflightBudget("w.json", 10.0, 15.0)
+
+        def pre_graph(*classes: str, b: PreflightBudget | None = budget) -> Graph:
+            t = replace(test("p", "tests/N.Tests.P/", ("src/",)), preflight=classes)
+            return Graph.of({"p": t}, ("platform", "configuration", "toolchain"), b)
+
+        fine = preflight_findings(pre, pre_graph("N.Tests.P.PinTests", "N.Tests.P.HeavyTests"))
+        slow = preflight_findings(pre, pre_graph("N.Tests.P.PinTests", "N.Tests.P.SlowTests"))
+        heavy = preflight_findings(pre, pre_graph("N.Tests.P.HeavyTests", "N.Tests.P.PinTests", "N.Tests.P.HeavyTests"))
+        ghost = preflight_findings(pre, pre_graph("N.Tests.P.GoneTests"))
+        arm("the preflight's drift rule: a declared, measured class within budget passes; a class weighing minutes, a set "
+            "over the total budget, and a class no source declares and no weight measures are each a finding",
+            fine == [] and any("SlowTests weighs 90 s" in f and "over the class budget of 10 s" in f for f in slow)
+            and any("weigh 16.5 s together" in f for f in heavy)
+            and any("declared in no C# source" in f for f in ghost) and any("is not measured" in f for f in ghost),
+            f"{fine} | {slow} | {heavy} | {ghost}")
+        unbounded = refused(lambda: pre_graph("N.Tests.P.PinTests", b=None))
+        foreign = refused(lambda: _preflight("p", "tests/N.Tests.P/", {"Other.PinTests": "a pin"}))
+        silent = refused(lambda: _preflight("p", "tests/N.Tests.P/", {"N.Tests.P.PinTests": ""}))
+        arm("a preflight with no budget, a class outside its project's namespace and a class with no reason are refused "
+            "when the graph is read",
+            "declares no preflight budget" in unbounded and "is not a class of its project's namespace" in foreign
+            and "gives no reason" in silent, f"{unbounded} | {foreign} | {silent}")
     finally:
         remove_tree(root)
     bad = [n for n, ok, _ in results if not ok]
