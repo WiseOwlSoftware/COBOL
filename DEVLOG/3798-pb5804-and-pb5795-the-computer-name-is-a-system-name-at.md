@@ -1,4 +1,4 @@
-## PB5804 and PB5795: the computer-name is a system-name at COBOL-85, in both directions
+## Entry 3798 — 2026-11-16 15:46 PST — PB5804 and PB5795: the computer-name is a system-name at COBOL-85, in both directions
 
 Two 1985 code-read findings on the one slot the SOURCE-COMPUTER and OBJECT-COMPUTER paragraphs share, `computerName`.
 "Computer-name is a system-name." (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1, §1985:XVI.2.2.3 SR1)
@@ -30,3 +30,4 @@ wave report, not part of this fix.
 (accept 2002, 2014, 2023), with `ComputerNameSystemNameTests` taking one implementor-name of each kind. Witnesses were added to
 `1985-SR-VI.4.3.3-1`, `1985-SR-VI.4.4.3-1` and `1985-SR-XVI.2.2.3-1` (KEPT change records, GAP 25 to 25) and to
 `SR-8.3.2.1-1`, `FMT-12.3.5.2` and `FMT-12.3.6.2` (GAP 12 to 12).
+
