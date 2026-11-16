@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.11.4-2",
  "rule-digest": "4e5eff2349b7",
+ "test-ref": "conformance:cases/VI.5.11@1985-RENAMES-CLAUSE/g85_bf11_05",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

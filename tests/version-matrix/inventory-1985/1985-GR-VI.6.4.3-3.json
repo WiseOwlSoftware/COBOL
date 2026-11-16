@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.4.3-3",
  "rule-digest": "4ad8a7d6b2db",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#Level85Forbidden",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_3-3; conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/1985-GR-VI_6_4_3-3-usage-index",
+ "notes": "PARTIAL. §1985:VI.6.4.3 GR3 bars level 66, 77, 88 and USAGE INDEX in the description of D1 and D2 of CORRESPONDING. The compiler refuses a level-66 operand and an operand whose own entry has USAGE INDEX (the two refusal cases conform), but StatementValidation.Level85Forbidden also walks up the parents and refuses a subordinate group of a USAGE INDEX group (COBOL1757, \"inherited from its group\"), which 1985 does not forbid: a group-level USAGE applies to each elementary item (§1985:VI.5.14.4 GR1) and 1985 says \"inherited\" explicitly where it means it (§1985:VI.5.14.3 SR3). Legal 1985 source is refused: kb/Work PB5778. The CHANGED relation to the 2023 rows stands.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

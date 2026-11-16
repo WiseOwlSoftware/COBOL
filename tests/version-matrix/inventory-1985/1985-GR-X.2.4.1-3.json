@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-X.2.4.1-3",
+ "rule-digest": "6b4a850e9ee8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatcher",
+ "test-ref": "conformance:cases/X.2.4@1985-INITIAL-STATE-OF-A-PROGRAM/1985-GR-X_2_4_1-3",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter at --std 85. §1985:X.2.4.1 GR3: \"The control mechanisms for all PERFORM statements contained in the program are set to their initial states\". KEPT in substance by the 2023 text, no `next` recorded: the 2023 side has no catalog row until PB5451 and a new 1985 KEPT record is refused (DESIGN-spec-conformance-review.md 10.6). Witnesses: 1985-GR-X_2_4_1-3."
+}

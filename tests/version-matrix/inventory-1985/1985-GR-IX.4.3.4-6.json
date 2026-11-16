@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.4.3.4-6",
  "rule-digest": "f84fc3eada64",
+ "test-ref": "conformance:cases/IX.4.3@1985-DELETE-STATEMENT/g85_bf30_04",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

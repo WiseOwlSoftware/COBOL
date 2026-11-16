@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.24.2",
  "rule-digest": "68f24a19b72f",
+ "test-ref": "conformance:cases/A.2.24@1985-MEAN-FUNCTION/g85_bf05_05",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.20.4-3",
  "rule-digest": "cf5941430cfb",
+ "test-ref": "conformance:cases/VI.6.20@1985-MULTIPLY-STATEMENT/g85_bf14_05",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
