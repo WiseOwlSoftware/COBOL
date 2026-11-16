@@ -1,4 +1,4 @@
-## PB5851: a group VALUE reaches every member when a REDEFINES lies under the group
+## Entry 3759 — 2026-11-16 06:28 PST — PB5851: a group VALUE reaches every member when a REDEFINES lies under the group
 
 kb/Work PB5851 (wave 20262075 A). A group item's VALUE was dropped at every edition when any entry under the group
 carried REDEFINES: `01 G3 VALUE "ABCD". 05 A3 PIC X(4). 05 A4 REDEFINES A3 PIC X(4).` displayed spaces, and one pair a
@@ -31,3 +31,4 @@ tier rooted at a member in the character, national and bit units, rooted at the 
 gate put back, 12 of its 15 run cases fail. Witnesses `VI.5.15@1985-VALUE-CLAUSE/1985-GR-VI_5_15_6-3` (85) and
 `13.18.63-VALUE/pb5851_group_value_over_redefines` (2023). Rows: `GR-13.18.63.4-5` and `1985-GR-VI.5.15.6-3` take the new
 witnesses (both witness-only records).
+
