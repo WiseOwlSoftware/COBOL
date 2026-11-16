@@ -6,7 +6,7 @@
       *>---
       *> §1985:VI.6.24.2 (THE STOP STATEMENT). A refusal: the rule
       *> forbids line 9 of the program below, and WiseOwl refuses it at
-      *> 85 with COBOL5506 there; a compiler that accepts it fails.
+      *> 85 with COBOL7558 there; a compiler that accepts it fails.
       *> Placed from the audit's draft, confirmed by
       *> scripts/spec/place_witnesses.py (kb/Work PB4995).
        IDENTIFICATION DIVISION.
