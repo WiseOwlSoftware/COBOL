@@ -1,4 +1,4 @@
-## COPY processor: the edition's text-word limit, character repertoire and identifier subscripts; a comment-entry a REPLACING phrase produces
+## Entry 3781 — 2026-11-16 11:33 PST — COPY processor: the edition's text-word limit, character repertoire and identifier subscripts; a comment-entry a REPLACING phrase produces
 
 Three notes of one root, `CopyProcessor.cs`, fixed in harm order (wave 20262057, group D).
 
@@ -70,3 +70,4 @@ and 2014, and only the pseudo-text form is accepted from 2014. New goldens:
 diagnostic without the screen. Each witness is now one COPY whose operand matches and replaces its library word, and the
 identifier form has its own witnesses (`pb5608-copy-replacing-identifier-non-cobol-character-refused`, 2002 and 2014, and
 `-85`). With the screen's word arm disabled all six refusal cases went red; restored, green.
+
