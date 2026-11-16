@@ -1,4 +1,4 @@
-## At --std 85 the SORT and MERGE rules size a format 3 OCCURS DEPENDING ON record at its maximum (PB5731)
+## Entry 3738 — 2026-11-16 00:57 PST — At --std 85 the SORT and MERGE rules size a format 3 OCCURS DEPENDING ON record at its maximum (PB5731)
 
 `§1985:VII.3.8.4 GR15` makes a format 3 record the sum of the maximum of each variable length item, but below 2002 (kb/Work PB5197 left the clause's integers unenforced) `FileModel.VaryMin` answered the record descriptions' minimum, Format 2's rule (GR5a), for the SORT and MERGE rules too. Three probes showed it: a SORT GIVING file of records 8 and 9 accepted a 5-character SD (under-rejection), an SD of 6 to 7 characters was refused against a GIVING file of 3 to 8 (COBOL1757), and a key at positions 3 to 4 of the same SD was refused (COBOL0874).
 
@@ -9,3 +9,4 @@ What did not land: the addendum's WRITE length (4 characters sent where GR15 "ma
 Goldens: `pb5731_sort_sd_format3_odo_sized_at_maximum` (accepts), `pb5731_sort_giving_format3_odo_smaller_than_smallest` (refused at all four editions). No inventory row closed: the rows are KEPT 1985 lineage rows (PB5094, PB5682).
 
 Review round 1 (R1-1): the indexed file's prime and alternate RECORD KEY rules (§1985:IX.2.7.3 SR4, "x equals the minimum record size specified for the file") are the textual twins of SORT's SR4f and still read `FileModel.VaryMin`, so at `--std 85` a format 3 indexed file with an OCCURS DEPENDING ON record refused a key legal under GR15 (`COBOL0863`). `FileControlKeyRules.BeyondMinimum` and its message now read `RecordSizeRange.Min`. Golden `pb5731_indexed_key_format3_odo_minimum_at_maximum` (accepts at 85; writes and reads back by key). Probe `idxkey.cob` at 85: `COBOL0863` before, compiles now. Sweep: the only other `VaryMin` readers are the connector bound, MoveClassifier's zero-length test (a minimum of zero, unaffected) and the 85 zero-length flag; none is a record-size-range rule.
+
