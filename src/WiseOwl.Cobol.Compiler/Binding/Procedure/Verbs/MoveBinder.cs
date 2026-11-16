@@ -600,9 +600,17 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // A FIXED-length file keeps the plain record-area operand: its current record IS the whole area
         // (§2023:13.18.43.4 GR6 — integer-1 bytes in every record), including the short-final-record '04' case of
         // §2023:14.9.30.4 GR14, where the area right of the last valid character is undefined rather than short.
+        // ⛔ EXCEPT where the RECORD clause sizes the record LARGER than every description (FileModel.
+        // RecordClauseExceedsDescriptions, kb/Work PB5785): the area then holds only the leading description-wide part of
+        // the record, and the current record the move sends is the clause's size (§2023:13.18.43.4 GR6; §1985:VII.3.8.4 GR3
+        // with VII.4.4.4 GR8b), so it is the current record, designated an alphanumeric group move because it is no one
+        // data item the descriptions define.
+        bool formatTwo = file.Varying is { VaryingClause: true };
+        BoundOperand sender = file.Varying is not null || file.RecordClauseExceedsDescriptions
+            ? new BoundCurrentRecord(area, file, depending, formatTwo || file.RecordClauseExceedsDescriptions)
+            : new BoundFieldOperand(area);
         return BindMoveOf(
-            file.Varying is { } v ? new BoundCurrentRecord(area, file, depending, v.VaryingClause)
-                                  : new BoundFieldOperand(area),
+            sender,
             [receiver], rules.PhraseAt(ctx.Edition.DialectLevel, file.Organization));
     }
 

@@ -2076,7 +2076,14 @@ public sealed class FileRegistry
         if (!c.SharingFacilityInEffect)
             foreach (var other in st.Open.Keys)
                 if (!CobolNames.Same(other, name) && _files.TryGetValue(other, out var holder)) holder.ReleaseBufferedRecords();
-        string status = c.Open(mode);
+        // ⛔ AT --std 85 A LINAGE VALUE-RULE VIOLATION REFUSES THE OPEN (kb/Work PB5845, DialectBehavior.LinageViolatingOpenLeavesFileOpen):
+        // the '90' it answers is an unsuccessful statement of §1985:VII.1.3.5 GR5, so no open mode results (§1985:VII.4.3.4 GR1) and the
+        // connector is never opened. RefusedAsAlreadyOpen answered '41' above, so the connector is not open here. From 2002 the
+        // OPEN succeeds and the page model below reports the violation with the connector open.
+        string? linageRefusal = mode == FileOpenMode.Output && page is { } linage && c is SequentialConnector refused
+            && !DialectBehaviors.IsActive(DialectBehavior.LinageViolatingOpenLeavesFileOpen, c.Edition)
+            ? refused.RefuseOpenForLinage(linage) : null;
+        string status = linageRefusal ?? c.Open(mode);
         if (status[0] == '0')   // the success family '00'/'05'/'07' — §2023:9.1.13.2
         {
             st.Open[name] = (sharing, mode);   // register only a successful open

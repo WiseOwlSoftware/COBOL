@@ -39,6 +39,15 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// ONE predicate, asked by every clause that admits the subscript (docs/conformance/3/D-CLAUSE-SUBSCRIPT.md).</summary>
     public bool SubscriptedClauseOperands => Year == 2002;
 
+    /// <summary>⛔ WHETHER AN ALPHABETIC ITEM STANDS WHEREVER AN ALPHANUMERIC OPERAND DOES (kb/Work PB5615): COBOL-2002 says "An alphabetic
+    /// data item may be specified wherever an elementary alphanumeric data item is permitted as an operand. Where an alphabetic data
+    /// item is not expressly permitted, the alphabetic data item is treated as though it were an alphanumeric data item" (§2002:8.5.2.1),
+    /// so a rule worded "category alphanumeric" admits a PIC A item at that edition. COBOL-2014 withdrew it ("Data items of class and
+    /// category alphabetic may be used only where rules explicitly allow them", §2014:E.2) and COBOL-2023 has no such sentence; COBOL-85
+    /// has no general rule either. ONE predicate, asked through <c>ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)</c> and
+    /// the intrinsic argument class screen, never a per-site <c>Year == 2002</c>.</summary>
+    public bool AlphabeticIsAlphanumeric => Year == 2002;
+
     /// <summary>⛔ WHETHER A CONTROL OPERAND MAY BE AN INDEX DATA ITEM (kb/Work PB5774): COBOL-85 provides for that control
     /// ("If the control data item is an index data item, the relation test is for the comparison of two index data items",
     /// §1985:XIII.3.7.4 GR3b) and limits explicit references to an index data item to Procedure Division statements

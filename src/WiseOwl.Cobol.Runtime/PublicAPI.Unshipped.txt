@@ -191,6 +191,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.InspectBeforeFromFirstEligiblePosition = 1
 WiseOwl.Cobol.Runtime.DialectBehavior.InspectFormat3LengthIdentifiedOnce = 7 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic = 25 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IntegerDateFormBounded = 11 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.LinageViolatingOpenLeavesFileOpen = 28 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.NegativeBaseRequiresIntegerExponent = 17 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 12 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -1201,6 +1202,7 @@ static WiseOwl.Cobol.Runtime.IO.CobolFile.WriteShared(string! name, string! imag
 static WiseOwl.Cobol.Runtime.IO.CobolReport.NumericControlEqual(string! a, string! b, in WiseOwl.Cobol.Runtime.NumProfile item) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterActivationReturn() -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.AfterUseProcedure(object! useScope, int action) -> int
+static WiseOwl.Cobol.Runtime.IO.CobolSort.LastReturnedImage(string! name) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolSort.RegisterFormat1Sort(string! name, object? useScope) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, WiseOwl.Cobol.Runtime.RecordExtents? extents = null, object?[]? slots = null) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolSort.TakeActivationReturnTermination() -> string?
