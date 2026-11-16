@@ -1750,12 +1750,32 @@ is the failure class that ended the impact map (kb/Work PB2696, PB4228: a hand l
 read escaped). Here the list is the target's own declared inputs, whose completeness the BUILD TARGETS audit already holds,
 and a path is classed by structure, never by a guess about what reads it.
 
-*The capture* (`WiseOwl.Cobol.ArchOracle digests`, through `Host.oracle_digests`): the oracle's population and compiles
+*The capture* (`WiseOwl.Cobol.ArchOracle digests [--only IDS]`, through `Host.oracle_digests`): the oracle's compiles
 (`ArchOracle.Population`, the suites' own option builders), with the compiled-program cache off, in the test host's scrubbed
-environment, handed the suite the Conformance host is handed; about 80 s for 21,574 compiles on the 32-core box under load.
-When a pass set stands at the harness key the capture runs inside the slot BEFORE the hosts and decides the ONLY file of the
-Conformance host (the retry channel of kb/Work PB5099: one `Carry`, one plan, one population check); when none stands it runs
-BESIDE the hosts, the whole population runs, and the pass the gate records writes the set.
+environment, handed the suite the Conformance host is handed. The whole population is 21,574 compiles: 76 to 86 s on the
+32-core box beside other gates, 180 to 210 s beside this gate's own hosts. That is about what running the carried family
+costs, so a capture of every compile on every gate would buy little (measured: a capture of 202.5 s ahead of every host and a
+Conformance host of 387.7 s for the 9,923 cases left, against 514 to 620 s for the whole population). Two rules make it pay:
+- *The capture store* (`CaptureStore`, `<store>/conformance-captures/<compiler key>.tsv`). The COMPILER KEY is the harness key
+  and every `program`-class entry. A compile reads only the compiler, the harness and the case's own inputs (its source and
+  declared files are staged into a scratch directory that is its copy library), so a row stored at this compiler key for a
+  case with the same own inputs is the compile this tree would make, and it is reused. Only the rest are compiled
+  (`--only`): a landing that changes no compiler source compiles only its new and changed cases; one that changes the
+  compiler compiles every case once, and its pass stores them for the next gate at that compiler.
+- *A deferred plan* (`Legs.run_hosts`, kb/Work PB4333). When a pass set stands at the harness key, Unit, RepoDrift and
+  Characterization start at once, and the Conformance host's plan is a callable its own thread runs: the capture, the
+  selection, and the ONLY file of the cases left (the retry channel of kb/Work PB5099: one `Carry`, one plan, one population
+  check; `NO_HOST` when every case is carried). When no set stands, the capture runs BESIDE the hosts, the whole population
+  runs, and the pass the gate records writes the set and the capture.
+
+*Measured* (2026-11-16, the 32-core box with other fleets' gates beside every run, so a figure is a reading, not a bench):
+the whole population (run 000005-20261116T091855Z) had a test phase of 575 s, Conformance 574.5 s and Unit 288.1 s; a
+compiler change (run 000006, a seed altering one program) 314.6 s, its capture of 17,043 compiles 90.4 s, then 9,923
+Conformance cases in 220.4 s, RED on exactly the altered case; a change to one case's source (run 000008) 292 s, its capture
+reusing 17,042 compiles and making 1 in 6.5 s. The floor is the rest of Conformance: its 9,853 cases of no carried family (the hand-written theories, NIST, the version
+matrix, the optional-word sweep) took 387.7 s of the 9,923 the seeded gate ran. Carrying them needs their own digest rule
+(their compiles are the oracle's too: NIST, the matrix and the sweep are enrolled; the hand-written theories compile inline
+source), which is the next lever after Unit.
 
 *The store of passed cases* is the pass store's own directory: `<git common dir>/cobol-build-store/conformance-cases/<harness
 key>.txt`, one case digest per line. A gate whose Conformance pass it records (EXACT, green, at a key that did not move)

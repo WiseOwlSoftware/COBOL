@@ -459,15 +459,16 @@ class Differ:
             f"compiler key {prepared.compiler[:12]}, {len(missing):,} compiled, in {time.monotonic() - t:.1f} s")
         return Captured(rows, len(rows) - len(missing), len(missing))
 
-    def select(self, prepared: Prepared, captured: Captured | None, inputs: Inputs) -> Selection | None:
-        """The selection over the listing whose own inputs are `inputs`; None when the capture failed."""
+    def select(self, prepared: Prepared, captured: Captured | None, inputs: Inputs, say) -> Selection | None:
+        """The selection over the listing whose own inputs are `inputs`, said through `say`; None when the capture
+        failed."""
         if captured is None:
             return None
         oracle = {i: d for i, (_, d) in captured.rows.items()}
         sel = select(prepared.harness, case_digests(inputs, oracle), prepared.passed)
         sel.captured = captured
         sel.compiler = prepared.compiler
-        self.say(f"build-local: {sel.describe()}")
+        say(f"build-local: {sel.describe()}")
         return sel
 
     def record(self, out, selection: Selection | None) -> None:

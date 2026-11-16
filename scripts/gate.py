@@ -501,7 +501,7 @@ class Gate:
                 return None
             inputs = gate_differential.case_inputs(listing, prepared.manifest, prepared.blobs)
             sel = self.differential.select(prepared, self.differential.capture(prepared, inputs, run, spawn, handed, say),
-                                           inputs)
+                                           inputs, say)
             if sel is not None:
                 selection.append(sel)
             return sel
