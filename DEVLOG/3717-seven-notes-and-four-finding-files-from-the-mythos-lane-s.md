@@ -1,4 +1,4 @@
-## Seven notes and four finding files from the Mythos lane's batch-2 rulings of 2026-11-15
+## Entry 3717 — 2026-11-15 19:46 PST — Seven notes and four finding files from the Mythos lane's batch-2 rulings of 2026-11-15
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). Each defect note carries the rule text with its `cite.py --check` line, the repro program in full, expected and observed at `--std 85` (and `--std 2023`), and the leads.
 
@@ -13,3 +13,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 Four dated finding files beside existing notes: `kb/Work/PB5731/2026-11-15-a-run-time-consumer-write.md` (the WRITE record length; `wrong_answer` is owed to PB5731's flags), `kb/Work/PB1003/2026-11-15-report-footing-and-page-heading-at-85.md`, `kb/Work/PB5779/2026-11-15-the-close-twin.md`, and the source copied unchanged as `kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md`.
 
 **The rate so far at 1985:** 25 of 300 rows read are contradicted (the sample 6 of 60, batch 1 9 of 120, batch 2 10 of 120), about 8 %.
+
