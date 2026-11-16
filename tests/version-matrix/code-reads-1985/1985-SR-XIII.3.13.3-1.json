@@ -2,71 +2,97 @@
  "rule-id": "1985-SR-XIII.3.13.3-1",
  "rule-digest": "1f8fa530792f",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-074",
+  "pin": "e14987286bd9c554f1472215a32fb73e4acdccbe",
+  "slice": "1985-225",
   "sources": {
-   "reader": "4e280ecb892567a1a70eba8a53575211af2f49a0afeef6f043c7ee194d7abde9",
-   "refuter": "bb40349bcbb5d0da945c3f118211db9163dddddb6816052f790a6399f6ca9150"
+   "reader": "5a9a5081fd98f525724d661279d2eefc611f7634416a183f7004cb7a2c189f36",
+   "refuter": "d8c799eb0c8c8aa76f708fc95b9beea607641c8906d73f75946ee5ec0e314af0"
   },
   "imported": {
-   "reader": "13099e3f52f2a13eabb03ccfa3bfc836c5c0d75d999e258a05d028136d88dc6a"
+   "reader": "94a4742dfd725a50f9665eba305eae7eebf77523170f4b3c97a6ee1fc07696a0",
+   "refuter": "62ea9f0c2a27f5db3c3be2cdaa82a7c636f1fb824dc09ceb146ef7377afbd47a"
   }
  },
  "reader": {
   "rule-id": "1985-SR-XIII.3.13.3-1",
-  "verdict": "PARTIAL",
-  "requirement": "GROUP INDICATE is refused unless the entry is in a detail report group AND defines a printable item, which 1985 defines as an elementary report entry containing a COLUMN NUMBER clause, a PICTURE clause and a SOURCE, SUM or VALUE clause (§1985:III.2 'Printable Item'). The witnesses cover the detail-group half only.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#WrittenGroupKind; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClauseTable",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 GROUP INDICATE must be refused unless it is written in an entry of a DETAIL report group that defines a printable item, which §1985:III.2 defines as an elementary report entry containing a COLUMN NUMBER clause, a PICTURE clause and a SOURCE, SUM or VALUE clause.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#WrittenGroupKind; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClauseTable; src/WiseOwl.Cobol.Compiler/Binding/ReportEntryClauseTable.cs#Permits",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
-    "switches": "'elementary && Edition.DialectLevel >= 2002 && !column' and the SOURCE-or-VALUE fault: the COLUMN half of the GROUP INDICATE placement screen is skipped below 2002",
+    "switches": "DialectLevel < 2002 runs the 1985 Table 1 screen (PICTURE and SOURCE or VALUE requirements of the GROUP INDICATE rows); DialectLevel >= 2002 asks the SOURCE-or-VALUE half directly; the detail-group and COLUMN halves are common; the message text differs",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClauseTable",
-    "switches": "called only when DialectLevel < 2002: Table 1 refuses GI on the SUM rows; rows 3/4 mark COLUMN 'P' and GI 'P'",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats",
-    "switches": "below 2002: level-01 entry with GROUP INDICATE refused as format 1",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#ImpliedReportPicture",
+    "switches": "VALUE-implied PICTURE refused below 2002 (COBOL0900), seen on the PICTURE-less probe",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "read ScreenReportEntryClausePresence's groupIndicate block and the DialectLevel tests above it.",
-  "behaviour-differs-by-edition": "yes: at 2023 GROUP INDICATE without COLUMN is refused (COBOL2519); at 85 it compiles and runs.",
-  "witnesses-cover": "part: no witness writes GROUP INDICATE on a SOURCE entry with no COLUMN NUMBER clause at 85",
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 PICTURE is part of the printable-item definition (a PICTURE-less VALUE entry is refused), at 2002+ a VALUE may imply the picture",
+  "witnesses-cover": "part: the witnesses cover a non-detail group and a missing COLUMN; the missing SOURCE/VALUE, missing PICTURE, group entry and SUM cases are not exercised",
   "probes": [
    {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi1.cob",
+    "printed": "11 VAL 1 /        2 / 22 VAL 3 /        4",
+    "expected": "accepted in a detail group with COLUMN, PICTURE and SOURCE or VALUE; GR1 shows the items on the first presentation and after the control break, spaces otherwise"
+   },
+   {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_nocol.cob",
-    "printed": "exit 0, DONE; RGP.TXT ' AAA' twice (the indicated SOURCE item has no column and prints nothing)",
-    "expected": "refused: the entry 05 PIC ZZ9 SOURCE WB GROUP INDICATE has no COLUMN NUMBER clause, so it defines no printable item"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi2.cob",
+    "printed": "COBOL2519 ... is in a CONTROL HEADING report group",
+    "expected": "refused: not a detail group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi7.cob",
+    "printed": "COBOL2519 ... is in a CONTROL FOOTING report group",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi8.cob",
+    "printed": "COBOL2519 ... is in a PAGE FOOTING report group (plus unrelated LINE/PAGE errors)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi9.cob",
+    "printed": "COBOL2519 ... is in a REPORT HEADING report group (plus an unrelated LINE error)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi3.cob",
+    "printed": "COBOL2519 ... has no COLUMN clause",
+    "expected": "refused: no COLUMN NUMBER clause, so not a printable item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi4.cob",
+    "printed": "COBOL2247 PICTURE, COLUMN, GROUP INDICATE ... (SOURCE required and missing) (ISO §1985:XIII.3.9.3 SR11)",
+    "expected": "refused: no SOURCE, SUM or VALUE"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_ok.cob",
-    "printed": "exit 0; ' AAA    12' then '        12'",
-    "expected": "accepted; the indicated item prints on the first detail only (GR1)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi6.cob",
+    "printed": "COBOL2247 ... (PICTURE required and missing); COBOL0900 VALUE-implied PICTURE requires COBOL-2002",
+    "expected": "refused: no PICTURE clause"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_ch.cob",
-    "printed": "COBOL2519: specifies GROUP INDICATE but is in a CONTROL HEADING report group",
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi5.cob",
+    "printed": "COBOL2247 ... is a group entry and writes GROUP INDICATE (cites ISO §2023:13.15.3 SR11)",
+    "expected": "refused: a group entry is not an elementary report entry"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gi10.cob",
+    "printed": "COBOL2247 GROUP INDICATE not permitted with SUM; COBOL2519 in a CONTROL FOOTING group",
     "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_group.cob; gi_01.cob",
-    "printed": "COBOL2247: group entry writes GROUP INDICATE (and, at 01, the format 1 refusal)",
-    "expected": "refused"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_nocol23.cob (--std 2023)",
-    "printed": "COBOL2519: specifies GROUP INDICATE but has no COLUMN clause",
-    "expected": "refused at 2023 as well"
    }
   ],
   "citations": [
@@ -76,30 +102,29 @@
    },
    {
     "cite": "§1985:III.2",
-    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause (Printable Item: 'This elementary report entry contains a COLUMN NUMBER clause')"
+    "check": "OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause [quote: This elementary report entry contains a COLUMN NUMBER clause, a PICTURE clause, and a SOURCE, SUM, or VALUE clause]"
    },
    {
-    "cite": "§1985:XIII.3.11.4 GR1",
-    "check": "OK  §1985:XIII.3.11.4 GR1  (3.11.4 General Rules)  the text is in GR1"
-   },
-   {
-    "cite": "§1985:XIII.3.9.3 SR11",
-    "check": "OK  §1985:XIII.3.9.3 SR11  (3.9.3 Syntax Rules)  the text is in SR11"
-   },
-   {
-    "cite": "§1985:XIII.3.9.3 SR8",
-    "check": "OK  §1985:XIII.3.9.3 SR8  (3.9.3 Syntax Rules)  the text is in SR8"
+    "cite": "§1985:XIII.3.13.4 GR1",
+    "check": "OK  §1985:XIII.3.13.4 GR1 [quote: it causes the SOURCE or VALUE clause to be ignored and spaces supplied]"
    }
   ],
-  "notes": "The detail-group and elementary halves are enforced at 85, but the 85 arm drops the COLUMN condition on the strength of Table 1 rows 3 and 4 (COLUMN 'P', GI 'P'). Table 1 lists combinations clause by clause; §1985:XIII.3.13.3 SR1 adds that the entry must define a printable item, and the glossary makes COLUMN NUMBER part of that definition. The binder already reads the same pattern this way for USAGE (SR8 a is applied as stricter than Table 1's USAGE 'P' cells), so GROUP INDICATE has been given a looser reading than its sibling rule.",
+  "notes": "Every part of the 1985 printable-item definition is enforced at 85: the detail-group and COLUMN halves by ScreenReportEntryClausePresence, PICTURE and SOURCE/SUM/VALUE by the 1985 Table 1 screen. The group-entry refusal cites §2023:13.15.3 SR11 at --std 85 (a citation-text blemish only; the verdict is right).",
   "seeded": true,
-  "harm": "under-rejects",
-  "cause": "a",
-  "at-2023": "refused: COBOL2519 'specifies GROUP INDICATE but has no COLUMN clause' (§2023:13.18.28.3 SR1)",
-  "repro": "RD R1. 01 D1 TYPE IS DETAIL. 03 LINE NUMBER IS PLUS 1. 05 COLUMN NUMBER IS 2 PIC X(3) SOURCE WA. 05 PIC ZZ9 SOURCE WB GROUP INDICATE. (E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/gi_nocol.cob; cobol.exe --std 85 --run)",
-  "expected": "§1985:XIII.3.13.3 SR1: \"The GROUP INDICATE clause must only be specified in a detail report group entry that defines a printable item.\" A printable item's entry \"contains a COLUMN NUMBER clause\" (§1985:III.2), so the program is refused.",
-  "observed": "compiles with no diagnostic and runs (exit 0); the GROUP INDICATE clause is accepted and has no effect",
-  "known_note": "none records it as a defect. kb/Work PB5243 (landed) created this 85 arm: it treats 'the legal SOURCE with ... GROUP INDICATE and no COLUMN' as legal on Table 1 alone, and its refusal of that shape was what it removed. A fix would reverse that part of PB5243 for GROUP INDICATE (the JUSTIFIED/BLANK WHEN ZERO half is unaffected)."
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5806"
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.13.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85: ga1 a three-level detail group (01 TYPE DETAIL, 02 LINE PLUS 1 entries, 03 format 3 items) with GROUP alone (INDICATE omitted) and GROUP INDICATE accepted; report 11 1 / VAL 1 / '   2' / '     2' / 22 3 / VAL 3, the indicated items shown first and after the CY break. Refusals: gb1 GROUP INDICATE on a format 2 LINE entry and gb2 on the format 1 01 entry (COBOL2247, the second citing §1985:XIII.3.9.3 SR3, SR4a), gb3 COLUMN + PIC + GROUP INDICATE with no SOURCE/VALUE (COBOL2247, 1985 Table 1). Later-edition forms on the entry: gc3 COLUMN PLUS 2 (COBOL0900 requires COBOL-2002) and gc4 PRESENT WHEN (COBOL0900 plus COBOL1559) are refused. In 1985 a format 1 entry is never elementary (§1985:XIII.3.9.3 SR4), so there is no 01-level printable item to test. cite.py: OK §1985:XIII.3.13.3 SR1 [must only be specified in a detail report group entry that defines a printable item]; OK §1985:XIII.3.9.3 SR4d.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

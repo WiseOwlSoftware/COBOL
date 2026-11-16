@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-SR-VI.5.14.3-2",
+ "rule-digest": "404528413dd8",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-224",
+  "sources": {
+   "reader": "aa6484067af501a770f0cf1e656244237b0a05020b2ebf52ceb9691dc936915e",
+   "refuter": "4cb51058433e09b56135cfce4d3601e3e5dee9d7ed95fd9cf4ef2f3ec627315f"
+  },
+  "imported": {
+   "reader": "6b4d919ed0892fb12eedf7c6b5ef1fe8c40c50c32849c6ce507a7b5f9b7f6ad1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.14.3-2",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85, when a group entry and a subordinate group or elementary entry both write a USAGE clause, the compiler must accept the pair only when the same usage is specified in both (COMP and COMPUTATIONAL being one usage by SR4) and must refuse every other pair among BINARY, COMPUTATIONAL, DISPLAY, INDEX and PACKED-DECIMAL, at any depth of nesting.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#HandDown; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageInheritancePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+  "edition-consulted": [],
+  "edition-search": "Read UsageInheritanceWalk/HandDown/UsageInheritanceGroup and ParseUsage; grepped them and UsageInheritancePass.cs for CobolVersion, IsAtLeast, Edition.Is, ConstructRegistry, DialectBehavior, Std: none. Edition.At and Edition.Muted only position and mute the report; Edition.Error is edition-independent (EditionContext.Error). ParseUsage's edition parameter only flags COMP-n vendor spellings under the extension flag and does not change the Usage member.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f10_01 covers only the accepted half (COMP group with COMPUTATIONAL subgroup and COMP leaf, DISPLAY over DISPLAY); no witness at 85 exercises a contradicting pair, and none exercises BINARY against COMPUTATIONAL",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u2a.cob",
+    "printed": "COBOL1927 x4: A1 DISPLAY under COMP group; S2 PACKED-DECIMAL subgroup under DISPLAY group; A3 COMP under INDEX group; A4 BINARY two levels under PACKED-DECIMAL group (each message names the usages; COMP is printed as BINARY)",
+    "expected": "each pair refused: not the same usage"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u2b.cob",
+    "printed": "exit 0, -0017 +9999 -9999 (01 G1 USAGE BINARY with 05 A1 USAGE COMPUTATIONAL and 05 B1 USAGE COMP; 01 G2 USAGE COMP with 05 A2 USAGE BINARY)",
+    "expected": "refused: BINARY and COMPUTATIONAL are different usages of the format, so the same usage is not specified in both entries"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u1d.cob",
+    "printed": "first form (01 FREC USAGE DISPLAY over COMPUTATIONAL, PACKED-DECIMAL, BINARY leaves in an FD record): COBOL1927 x3; corrected form runs -1234 -12345 +123456 XYZ -999",
+    "expected": "refused in the file section as in working-storage"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u2c.cob",
+    "printed": "SE-A2 / -99998 +000 -007 / +999999999999999999 -.1234 / ABC -012.50 (PACKED-DECIMAL over PACKED-DECIMAL subgroup and leaf with an ODO table; COMPUTATIONAL over COMP over COMPUTATIONAL with S9(18) and SV9(4); DISPLAY over DISPLAY with a numeric-edited leaf)",
+    "expected": "accepted; values and size error per the usages"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u2c.cob",
+    "printed": "ADD 1 TO S9(18) COMPUTATIONAL holding 999999999999999999 takes SIZE ERROR (SE-A2), value kept",
+    "expected": "size error at the largest 18-digit value"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.3 SR2",
+    "check": "OK  §1985:VI.5.14.3 SR2  (5.14.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.5.14.3 SR4",
+    "check": "OK  §1985:VI.5.14.3 SR4  (5.14.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VI.5.14.4 GR3",
+    "check": "OK  §1985:VI.5.14.4 GR3  (5.14.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.5.14.4 GR4",
+    "check": "OK  §1985:VI.5.14.4 GR4  (5.14.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The screen compares the RESOLVED Usage member, and ParseUsage maps COMP, COMPUTATIONAL and BINARY all to Usage.Binary, so a BINARY group over a COMPUTATIONAL (or COMP) entry, and the reverse, is accepted silently; the code comment calls this deliberate (BINARY identified with COMPUTATIONAL as the implementor's representation). The 1985 format lists BINARY and COMPUTATIONAL as separate usages, GR3 and GR4 define them separately, and SR4 equates only COMP with COMPUTATIONAL, so I read the pair as two usages; doubt: a reader who takes 'same usage' to mean same representation would call this CONFORMS. Every other contradicting pair is refused (COBOL1927), though the message names a written COMP as BINARY.",
+  "seeded": true,
+  "harm": "under-rejects",
+  "cause": "b",
+  "at-2023": "u2b.cob at --std 2023 also compiles and runs (exit 0, -0017 +9999 -9999): the same Usage.Binary comparison",
+  "repro": "01 G1 USAGE BINARY. 05 A1 PIC S9(4) USAGE COMPUTATIONAL. (and 01 G2 USAGE COMP. 05 A2 PIC S9(4) USAGE BINARY.) compiled with --std 85",
+  "expected": "a diagnostic: \"the same usage must be specified in both entries\" (§1985:VI.5.14.3 SR2); BINARY and COMPUTATIONAL are distinct usages (§1985:VI.5.14.4 GR3, GR4) and only COMP is an abbreviation for COMPUTATIONAL (SR4)",
+  "observed": "exit 0, no diagnostic; the program runs and prints -0017 +9999 -9999",
+  "known_note": "none (kb/Work PB495 built the SR2 screen; it does not discuss BINARY against COMPUTATIONAL)"
+ }
+}

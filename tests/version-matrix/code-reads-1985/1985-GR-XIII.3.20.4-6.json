@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-6",
+ "rule-digest": "9c5f19e99f0b",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-222",
+  "sources": {
+   "reader": "2143dc7714c38ed9934ddc089e7bc875aa28895d5b36864710a263978fe42801",
+   "refuter": "babde845945dabf70792e28bd8e798adb2611d3d7ec91859e2f06a9b9cc79643"
+  },
+  "imported": {
+   "reader": "9641f6f946cbcf0df118daed588853f8bf684107a6ebec6650fc90e52b4964d3",
+   "refuter": "ea136051d21763665fb897354593364c6ba95f53e1aeccc21fa3c4251e991349"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.20.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 on a GENERATE that detects a control break the CF groups of the break's highest level and every more minor level are presented (minor first); at TERMINATE, if at least one GENERATE ran since INITIATE, all CF groups are presented, CF FINAL once as the last body group; with no GENERATE none is presented.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (whether a saved absolute NEXT GROUP survives into TERMINATE's footings; placement, not which CFs are presented)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues (values a PF/PH sees during a footing phase; not CF selection)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes Edition into CobolReport",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectBehavior|Edition in ReportWriter.cs; ProcessControlFootings (last..breakLevel) and the TERMINATE call ProcessControlFootings(0) under _started consult no edition.",
+  "behaviour-differs-by-edition": "no: the CF selection and order are identical at 85 and 2023 (type1 trace); 85 differs only in NEXT GROUP save handling and the control values page groups see, which are other rules",
+  "witnesses-cover": "part: g85_f01_02 covers a two-level break and TERMINATE with and without GENERATE; a minor-only break in a three-level hierarchy, CF presentation crossing a page advance, GENERATE report-name and a second INITIATE cycle are not exercised",
+  "probes": [
+   {
+    "class": "e,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/type1.cob",
+    "printed": "minor break: CFI A1 only; major break: CFI A2, CFA A2; TERMINATE: CFI B2, CFA B2, PF/PH (page 3), CFF B2, PF, RF; R2 (no GENERATE): nothing; R3 summary: CFA A on break, TERMINATE CFA B, CFF B, RF",
+    "expected": "CFs of the break level and more minor; all CFs at TERMINATE after a GENERATE with CF FINAL the last body group; none without GENERATE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/type2.cob",
+    "printed": "CYCLE 1 TERMINATE: CFI B2, CFF B2, RF; CYCLE 2 (INITIATE, TERMINATE): nothing; CYCLE 3: CFI, CFF, RF",
+    "expected": "footings only in a cycle with a GENERATE, once per TERMINATE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.4 GR6",
+    "check": "OK  §1985:XIII.3.20.4 GR6  (3.20.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "The report file of type1 (type1a.txt) shows CFA, CFF on page 3 followed by blank lines, PF at line 11 and RF at 12, so CF FINAL is the last body group. The CF USE procedures saw the prior control values (A1 at the minor break, A2 at the major), as 1985 GR13 requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.20.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe type4.cob at --std 85 with three control levels: the minor break gave CFI only; the mid break gave CFI, CFD (minor first, nothing above MID); the major break gave CFI, CFD, CFA; TERMINATE gave CFI Z, CFD 2, CFA B, CFF, then PF, then the RF on its own page. CF FINAL appeared once, as the last body group. The CFs SOURCE the prior control values (CFD 1 before CHD 2). Reader's type2 covers the no-GENERATE cycle. cite.py: OK §1985:XIII.3.20.4 GR6 'All control footing report groups are presented during the execution of the TERMINATE statement'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-XIII.3.17.4-4",
+ "rule-digest": "5f676516c2ac",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-222",
+  "sources": {
+   "reader": "2143dc7714c38ed9934ddc089e7bc875aa28895d5b36864710a263978fe42801",
+   "refuter": "babde845945dabf70792e28bd8e798adb2611d3d7ec91859e2f06a9b9cc79643"
+  },
+  "imported": {
+   "reader": "80af8917aeb82b9df33e315451300488ae059468b4afb03d5905caebdcea6997",
+   "refuter": "007b5e648368134388e029cadf79ce75039a79e91bbb84b00476bafa9d368a29"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.17.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every numeric entry whose PICTURE contains 'S' is signed, and where a SIGN clause applies (leading/trailing, separate or not, in working storage or as a report item or sum counter) any conversion needed for computation or comparison happens automatically, so items of different sign layouts and usages compare and combine by value.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SignKindFor; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#DeSignImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel|Edition|CobolVersion|DialectBehavior in PicInfo.cs, CobolNum.cs, CobolNum.Image.cs, NumProfile.cs: none; each signed item is a typed native numeric decoded from its NumericSign profile, so comparison and arithmetic read values, not images, at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_sign_signed_item_conversion covers working-storage LEADING/TRAILING SEPARATE items; mixed overpunch/COMP operands, a scaled operand, a report SOURCE conversion and a sum counter whose entry has a SIGN clause are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/sign4.cob",
+    "printed": "COMPARE EQUAL / SIGNED COMPARE OK / R1=-0043 / B1=024- / SUMCTR=-15",
+    "expected": "-12 in LEADING SEPARATE, TRAILING SEPARATE, LEADING overpunch and COMP compare equal; -12 < 4.5; COMPUTE of the four plus 4.5 = -43.5 truncated to -0043 in S9(4) LEADING SEPARATE; ADD A1 TO B1 = -24 as 024-; sum counter of S9(4) TRAILING SEPARATE entry: -14 then ADD -1 = -15"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/col1.cob",
+    "printed": "SOURCE from COMP-3 -999999999999999999 into S9(18) LEADING SEPARATE printed -999999999999999999",
+    "expected": "automatic conversion from packed to separate-sign display on the implicit MOVE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.17.4 GR4",
+    "check": "OK  §1985:XIII.3.17.4 GR4  (3.17.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The rule is a value-semantics guarantee; the typed-native model stores every numeric as a value with a sign profile for its image, so no edition arm exists or is needed. Probes covered comparisons, COMPUTE, ADD and the report SUM counter across four sign layouts.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.17.4-4",
+  "refutation": "UPHELD",
+  "classes": "d",
+  "evidence": "Attack: comparing a SIGN SEPARATE item with a nonnumeric operand, where §1985:VI.6.3.1.1.2 GR1 moves the numeric to an alphanumeric item and the separate sign is not moved (§1985 MOVE rule: 'the size of the sending operand is considered to be one less'). Probe sign5.cob at --std 85, inside USE BEFORE REPORTING CF FINAL: a SUM counter S9(4) LEADING SEPARATE = -14 compared equal to -14, not equal to WS LEADING SEPARATE -15, not less than TRAILING SEPARATE -15; MOVE to X(5) gave '0014 ' and compared equal to it; WS LEADING and TRAILING SEPARATE -15 each compared equal to literal \"0015 \". All match the 1985 text. cite.py: OK §1985:XIII.3.17.4 GR4 'conversion takes place automatically'; OK §1985:VI.6.3.1.1.2 GR1 'treated as though it were moved to an elementary alphanumeric data item'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

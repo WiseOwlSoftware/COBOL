@@ -2,55 +2,97 @@
  "rule-id": "1989-AR-A.2.23.3-1",
  "rule-digest": "e291d783a8ff",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-169",
+  "pin": "e14987286bd9c554f1472215a32fb73e4acdccbe",
+  "slice": "1985-226",
   "sources": {
-   "reader": "9fd75e16d10fc29e767e79a49edb29f1519e3110fb617740517d0b314c238e6b",
-   "refuter": "c5169ecc1732ffc0f21595e3e7ae4ca5b7d3348850cb56ff2acb8f54880fbd0e"
+   "reader": "3ea24128ece6257870afbb626f5a12a2062043a2fe62843bdf80fee9defc9a2d",
+   "refuter": "72e4a837b9f57d04b8ca2ef0ee37583050ad98fdb6ed32b939ff82a827a9f3a7"
   },
   "imported": {
-   "reader": "c55474a1bcf11efd680bc058a2ef03bf503feecb65cf02e6209027efb7a0d842",
-   "refuter": "54a7a77af8e6273be0506649a0677b214d35589e6ef06fd9b2046c0cd729ad9a"
+   "reader": "a434d4aea582ff92a15cf51ff517873c923ee10e0db06b9d6af097f869861df5",
+   "refuter": "77e9f417e128ad9563c69caf630bc4704e664288b7c1659aad245ebc4497defa"
   }
  },
  "reader": {
   "rule-id": "1989-AR-A.2.23.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At 1985 (Amendment 1 as amended by X3.23b-1993, C314), when FUNCTION MAX has more than one argument-1 all must be of the same class (numeric, alphanumeric, alphabetic, where numeric-edited, alphanumeric-edited and group items are class alphanumeric), except that alphabetic and alphanumeric arguments may be mixed; the compiler must refuse a list that mixes numeric with alphabetic/alphanumeric, and accept every same-class or alphabetic/alphanumeric list, including ALL-subscripted tables, expressions and nested functions.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass",
+  "requirement": "At COBOL-85 with the 1989 Intrinsic Function amendment (as amended in 1993), when FUNCTION MAX has more than one argument every argument (identifier, literal, arithmetic expression, function, table ALL reference) must be of one class of the three 1985 classes (numeric, alphanumeric, alphabetic), with alphabetic and alphanumeric arguments allowed to mix; numeric-edited and group items count as class alphanumeric (§1985:IV.4.3.3) and a numeric argument beside an alphanumeric or alphabetic one is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfItem; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPic",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
-    "switches": "D8 window: IntroducedIn 85 against DialectLevel; MAX available at 85 and 2023",
+    "switches": "sig.IntroducedIn > ctx.Edition.DialectLevel: MAX's catalog row has IntroducedIn 85, so the function is available at --std 85",
     "same-arm-as-latest": true
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-    "switches": "ArgPredicate.AppliesAt(ctx.Edition.Edition.Year) for the row's NotStrongGroup tail predicate (Since 85); applies at both editions, and a strongly-typed group cannot be declared at 85",
+    "switches": "ArgPredicate.AppliesAt(edition year) for MAX's tail predicate NotStrongGroup (Since 85, unreachable at 1985 which has no TYPE clause); the cross-class rule itself is asked unconditionally",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of IntrinsicArgumentRules.cs for CobolVersion|EditionContext|Edition|IsAtLeast|ConstructRegistry|DialectBehavior found nothing: the class projection and the cross-argument rule are edition-free.",
-  "behaviour-differs-by-edition": "no: same refusals (9 COBOL1627 on the refusal probe at 85 and at 2023) and the same alphabetic/alphanumeric merge",
-  "witnesses-cover": "part: g85_f33_02 exercises only legal alphabetic+alphanumeric and numeric lists; 1989-AR-A_2_23_3-1 one numeric+alphanumeric refusal; not exercised: numeric-edited, alphanumeric-edited and group items as class alphanumeric, ALL-subscripted ODO tables, expressions, nested functions, figurative constants, and MIN's mirror",
+  "edition-search": "Read CheckArgumentClasses, the MAX row of IntrinsicArgumentRules.Verified (Uniform 'p' + CrossArgRule.AllSameClass), CrossViolation, CrossBlock and the class readers ClassOf1/ClassOfPlace/ClassOfItem/ClassOfPic; grep for DialectLevel / Edition in IntrinsicArgumentRules.cs finds none on the class or cross path.",
+  "behaviour-differs-by-edition": "no for this rule: the same intersection screen runs at every edition; later editions add classes (national, boolean, index arguments) that a 1985 program cannot declare.",
+  "witnesses-cover": "part: g85_f33_02 exercises the rule's legal mixing; the refusal of numeric with alphanumeric/alphabetic/numeric-edited/ref-modified/function arguments and the group-as-alphanumeric reading are not exercised.",
   "probes": [
    {
-    "class": "a,d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/maxok2.cob",
-    "printed": "1[DOG  ] 3[DOG  ] (numeric-edited + X) 5[MM12] (group + X) 7[-00000000000000004.5] 9[ 00000000000000007.0] (ODO table ALL, element 4 ignored) 11[ZA] (X table ALL + A) 13[ 00000000000000000.0] (expressions + ZERO) 14[DOG  ] (nested UPPER-CASE + A)",
-    "expected": "all compile; each the greatest argument by simple-condition comparison, leftmost on ties, alphanumeric size of the selected argument (§1989:A.2.23.4)"
-   },
-   {
-    "class": "b,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/maxbad2.cob",
-    "printed": "COBOL1627 on every mixed list: MAX(num X), MAX(num \"AB\"), MAX(numeric-edited num), MAX(num+1 A), MAX(X A num) 'argument-3 is of class numeric, which cannot agree with the earlier arguments; ISO §2023:15.59.3 r2 ...' (plus MIN siblings); 9 refusals, same count at --std 2023",
-    "expected": "each list mixes class numeric with alphabetic/alphanumeric (numeric-edited is class alphanumeric), so each is refused"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max1legal.cob",
+    "printed": "A/X ABD; A/LIT ABC; NE/X ABD; G/X ZZ; N +0007.00; EXPR +0014.00; ALL +0009.00; RM/X 6; FN/X abc; FN/N +0007.00; ONE +0007.00",
+    "expected": "legal: alphabetic with alphanumeric item and literal, numeric-edited and group (class alphanumeric) with alphanumeric, numeric items/literals/expressions/table ALL/integer function, ref-modified numeric (class alphanumeric) with alphanumeric literal, alphanumeric function with literal; values are the maximum per A.2.23.4"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/idxarg.cob",
-    "printed": "COBOL6979: the index data item 'W-IX' is an intrinsic function argument ... (ISO §1985:VI.5.14.3 SR5)",
-    "expected": "an index data item is not a numeric, alphabetic or alphanumeric argument at 1985; refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max2numlit.cob",
+    "printed": "error COBOL1627: FUNCTION MAX argument-2 is of class alphanumeric, which cannot agree with the earlier arguments (MAX(1 \"A\"))",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max3numne.cob",
+    "printed": "error COBOL1627: argument-2 is of class alphanumeric (MAX(numeric, numeric-edited))",
+    "expected": "refused: numeric-edited is class alphanumeric at 1985"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max4alpnum.cob",
+    "printed": "error COBOL1627: argument-2 is of class numeric (MAX(alphabetic, numeric))",
+    "expected": "refused: the exception is alphabetic with alphanumeric only"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max5xnum3.cob",
+    "printed": "error COBOL1627: argument-3 is of class numeric (MAX(WX WA WN2))",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max6numrm.cob",
+    "printed": "error COBOL1627: argument-2 is of class alphanumeric (MAX(WN2 WN2(1:2)))",
+    "expected": "refused: a reference-modified item is class alphanumeric"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max7fnmix.cob",
+    "printed": "error COBOL1627: argument-2 is of class numeric (MAX(CURRENT-DATE WN2))",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max8exprx.cob",
+    "printed": "error COBOL1627: argument-2 is of class numeric (MAX(WX WN2 + 1))",
+    "expected": "refused: an arithmetic expression is numeric"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max9idx.cob",
+    "printed": "error COBOL6979: the index data item 'WIX' is an intrinsic function argument (ISO §1985:VI.5.14.3 SR5)",
+    "expected": "refused at 1985 (an index data item may not be an argument)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/max10zero.cob",
+    "printed": "EXIT 0 (MAX(ZERO WN2))",
+    "expected": "no AR1 violation: ZERO takes the numeric class beside a numeric argument"
    }
   ],
   "citations": [
@@ -59,15 +101,15 @@
     "check": "OK  §1989:A.2.23.3 AR1  (2.23.3 Arguments)  the text is in AR1"
    },
    {
-    "cite": "§1989:A.2.2",
-    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR3 [quotation: A data item of the class alphabetic or alphanumeric or a nonnumeric literal]"
+    "cite": "§1985:IV.4.3.3",
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
    }
   ],
-  "notes": "CrossViolation intersects each argument's TableTwoClass projection after CrossBlock merges alphabetic into alphanumeric, which is exactly the amended 1985 rule; numeric-edited and group items project to alphanumeric as 1985 classes them. The diagnostic text cites §2023:15.59.3 r2 rather than the 1985 clause even at --std 85 (wording only, the refusal is correct).",
+  "notes": "Conforms. The cross screen projects numeric-edited to class alphanumeric and merges alphabetic with alphanumeric, which matches §1985:IV.4.3.3's three classes plus the 1993 exception. Message text at --std 85 cites §2023:15.59.3 r2 rather than the 1989 rule. Whether a figurative constant is an admissible MAX argument at all is A.1's question, not this rule's.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "same refusals and results",
+  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -75,16 +117,10 @@
  },
  "refuter": {
   "rule-id": "1989-AR-A.2.23.3-1",
-  "refutation": "OVERTURNED",
+  "refutation": "UPHELD",
   "classes": "a,b,c,d",
-  "evidence": "§1985:IV.4.3.8.4.4 GR3a: 'If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table'; GR5: a ref-modified numeric item is 'considered class and category alphanumeric'. So N-EL (ALL) (2:1) over a PIC 9(2) table is a list of class alphanumeric arguments. Probe src/allrmmix.cob at --std 85 (runs/allrmmix-001): FUNCTION MAX (N-EL (ALL) (2:1) \"1\") is REFUSED with COBOL1627 'argument-2 is of class alphanumeric, which cannot agree with the earlier arguments' although every argument is class alphanumeric (rejects legal source). Probe src/allrmmax.cob (runs/allrmmax-001): DISPLAY FUNCTION MAX (N-EL (ALL) (1:1) N-ITEM) mixes class alphanumeric with class numeric and compiles with NO diagnostic at --std 85 (under-rejects); at --std 2023 (runs/allrmmax-002) it compiles and crashes at run time with NotImplementedCobolFeatureException 'FUNCTION MAX in a string context'. Control: the non-ALL form is right (src/rmmaxok.cob runs/rmmaxok-002: MAX (N-ITEM (1:2) X-ITEM) -> 5A, MAX (A-ITEM N-ITEM (3:2)) -> QZ). Cause: IntrinsicBinder.TryBindTableAll wraps the RefModPlace view in a TableAllPlace, and IntrinsicArgumentRules.ClassOfPlace only recognises a bare RefModPlace, so it falls to ClassOfItem(p.Item) = the numeric element. cite.py: 'OK  §1985:IV.4.3.8.4.4 GR3a  (4.3.8.4.4 General Rules)  the text is in GR3a'; 'OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5'; 'OK  §1989:A.2.23.3 AR1  (2.23.3 Arguments)  the text is in AR1'; 'OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4' (the ALL 'as if each table element ... were specified' sentence).",
+  "evidence": "m1legal.cob at --std 85, EXIT 0: MAX(alphabetic, numeric-edited) 'ABC'; MAX(alphabetic, group) 'ABC'; MAX(alphanumeric-edited PIC XBX, alphabetic, literal) 'ZZ'; MAX(alphanumeric table ALL, alphabetic) 'CC'; MAX(P-scaled, COMP signed, SIGN LEADING SEPARATE) +0300.00; MAX(LENGTH function, numeric) +0003.00; MAX(CHAR function, alphabetic) 'ABC' (all values the maximum by A.2.23.4). Refused COBOL1627: m2aenum.cob MAX(alphanumeric-edited, numeric); m3tabnum.cob MAX(numeric, alphanumeric-table ALL); m4chrnum.cob MAX(numeric, CHAR function). m5nat.cob MAX(WX, N\"AB\") refused (COBOL0900 national literal requires COBOL-2002, plus COBOL1627). cite.py: 'OK  §1989:A.2.23.3 AR1  (2.23.3 Arguments)  the text is in AR1'.",
   "edition-sites-missed": [],
-  "corrected": "NON-CONFORMING (rejects-legal-source and under-rejects), cause (c): the rule's argument classes at 1985 include an ALL-subscripted reference-modified numeric table, which is class alphanumeric by §1985:IV.4.3.8.4.4 GR3a/GR5; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace classes a TableAllPlace over a RefModPlace by its element item (numeric). Same at --std 2023 (refusal identical; the under-rejected mix crashes at run time)."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "A reference-modified element under an ALL subscript (`N-EL (ALL) (1:1)`) is class alphanumeric by the 1985 text, and the argument-class screen classes it as its numeric element. MAX and MIN refuse legal lists; MEAN, MEDIAN and MIDRANGE compute from digit slices; an illegal MAX mix compiles and fails at run time. Not the mechanism of PB5780 or PB5813.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
- },
- "work": "PB5833"
+  "corrected": ""
+ }
 }

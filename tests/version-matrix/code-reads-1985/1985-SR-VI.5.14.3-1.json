@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-VI.5.14.3-1",
+ "rule-digest": "d779b585a5aa",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-224",
+  "sources": {
+   "reader": "aa6484067af501a770f0cf1e656244237b0a05020b2ebf52ceb9691dc936915e",
+   "refuter": "4cb51058433e09b56135cfce4d3601e3e5dee9d7ed95fd9cf4ef2f3ec627315f"
+  },
+  "imported": {
+   "reader": "0faa655f06a06ccf90132d3477a8954e368aa13cae2e6fc0ec9afb768e49f011",
+   "refuter": "8a6f0e69cfd47a21bb305e2ddac80105f3a79869e74a8741a72fb44f0d81cb85"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.14.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a USAGE clause (BINARY, COMPUTATIONAL/COMP, DISPLAY, INDEX, PACKED-DECIMAL) must be accepted in every data description entry of level 01-49 or 77 in every section, and refused in a level-66 (RENAMES) or level-88 (condition-name) entry.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionBody; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#usageClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#BodyForm; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat",
+  "edition-consulted": [],
+  "edition-search": "Read LevelNumberPass (its doc states it is not edition-gated: every level/format set is the same in all editions) and grepped LevelNumberPass.cs, CobolData.g4 dataDescriptionBody/renamesClause/usageClause for CobolVersion, IsAtLeast, Edition.Is, ConstructRegistry, DialectBehavior, semantic predicates: none on this path. The grammar keeps renamesClause an alternative to the clause list, so USAGE cannot be written with RENAMES; an 88 body that is not value-only is refused by CheckEntryFormat at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f10_01 covers USAGE on 77, 01 and 05/10 working-storage entries; it does not exercise the refusal half (66 and 88) nor the file and linkage sections",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u1a.cob",
+    "printed": "COBOL1747 level-number 88 on 'B-OK': ... this entry's body is not a value clause alone (88 B-OK USAGE COMP VALUE 1)",
+    "expected": "refused: USAGE not allowed on level 88"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u1b.cob",
+    "printed": "COBOL1941 unexpected 'RENAMES' ... not a clause of the data description entry for 'R' (66 R USAGE DISPLAY RENAMES A THRU B)",
+    "expected": "refused: USAGE not allowed on level 66"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u1c.cob",
+    "printed": "COBOL0001 unexpected 'USAGE' (66 R RENAMES A THRU B USAGE DISPLAY)",
+    "expected": "refused: USAGE not allowed on level 66"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u1d.cob",
+    "printed": "-1234 -12345 +123456 XYZ -999 / -0012 007 / TX3 (FD record with COMPUTATIONAL, PACKED-DECIMAL, BINARY, DISPLAY and a USAGE COMP subgroup written and read back sequentially; 77 COMP; 01 group USAGE DISPLAY; 01 USAGE INDEX set from an index)",
+    "expected": "accepted in the file and working-storage sections and values preserved through WRITE/READ"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u4b.cob",
+    "printed": "COBOL0900 a fixed-width binary usage (BINARY-CHAR/-SHORT/-LONG/-DOUBLE) requires COBOL-2002 (targeting COBOL-85) for 01 D BINARY-LONG",
+    "expected": "a 2002 usage refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.3 SR1",
+    "check": "OK  §1985:VI.5.14.3 SR1  (5.14.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "USAGE on 88 is refused by LevelNumberPass's format arm (the body is not a value clause alone); USAGE on 66 is a parse refusal because renamesClause is an alternative body, not a clause in the list. Both are edition-invariant. The diagnostics cite §2023 text, but the 1985 requirement is met.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.14.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read §1985:VI.5.14.3 SR1 (cite.py: OK  §1985:VI.5.14.3 SR1  (5.14.3 Syntax Rules)  the text is in SR1) and §1985:VI.5.7.4 GR2b (OK). Probes at --std 85 under refute-1985-224/src: u5a.cob (USAGE on an SD 01 record and a FILLER subordinate, a level-49 COMPUTATIONAL leaf nine groups deep, a 01 REDEFINES with PACKED-DECIMAL, a 01 FILLER USAGE BINARY group, USAGE INDEX at 01 and under OCCURS, linkage 77 COMP and 01 PACKED-DECIMAL group) exit 0, printed -0007 0012 / OK; r5d.cob (CD record entry with USAGE COMP) reached no USAGE diagnostic (only the expected CD-size and ODO errors); u5b.cob (2002 usages NATIONAL, POINTER, FLOAT-LONG, BIT, PROGRAM-POINTER) each refused COBOL0900 at 85. COMP-5 and COMP-1 are accepted at 85 without a diagnostic: that is the general format's closed list of usages under the extension flag, not SR1's level-number placement, so it does not bear on this rule. The reader's 66 and 88 refusals (u1a, u1b, u1c) stand; no edition site on the path (grep of LevelNumberPass.cs for CobolVersion/IsAtLeast/Edition.Is/ConstructRegistry/DialectBehavior/ReservedWords: none).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

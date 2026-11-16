@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-19",
+ "rule-digest": "35cef664079c",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-220",
+  "sources": {
+   "reader": "50a8f3d68f3d437a001985558ba4659dc474823cff7dca3474cc911605a78541",
+   "refuter": "3db9c99631f73777b37640bd411ef66839539b74e8f6ef69e0309533a50ff9aa"
+  },
+  "imported": {
+   "reader": "6146e7faade8b512ca1d592f68d0b5bb69cceb9b5b0c6e9c33d84afffecb4b4c",
+   "refuter": "55077941130c9694486c31662e7f8b36e20a139d372a2929bc95bd84a4cebcc5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.5.4-19",
+  "verdict": "CONFORMS",
+  "requirement": "END-READ ends the scope of the indexed-file READ statement (formats 1 and 2, with AT END / NOT AT END or INVALID KEY / NOT INVALID KEY, or none) per §1985:IV.6.4.3: a READ with END-READ is a delimited scope statement usable inside IF, inside a PERFORM ... END-PERFORM, and inside another READ's INVALID KEY phrase, each END-READ closing the most recently begun unterminated READ; an END-READ with no READ is refused, and 2002 lock phrases on READ are refused at 85.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#UnownedScopeTerminator",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordLockPhrase",
+    "switches": "WITH LOCK / WITH NO LOCK / IGNORING LOCK / ADVANCING ON LOCK on READ refused below 2002 (COBOL0900); END-READ itself is ungated",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grammar rule readStatement carries no edition predicate on END_READ; the 2002 lock phrases parse in brackets 1 and 2 and are refused by the version-conformance pass; the binder reads only the conditional phrases",
+  "behaviour-differs-by-edition": "no for the scope rule; 2002+ add lock phrases and a retry phrase, which 1985 refuses",
+  "witnesses-cover": "part: g85_f21_05 exercises END-READ in a flat sequence; nested READ in READ's INVALID KEY, END-READ inside IF and inline PERFORM with AT END, END-READ with no conditional phrase, END-READ in a SIZE ERROR phrase and the refusals are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/sc1.cob",
+    "printed": "5 OUTER INVALID 23 / 5 INNER READ 0003CCCC / 5 STILL OUTER / 5 AFTER END-READ IN IF / 6 READ S001XXXX / 6 LOOP 00 / 6 READ S002YYYY / 6 LOOP 00 / 6 AT END / 6 LOOP 10 / 7 READ PLAIN 00 S001XXXX / 8 GONE 23 / 8 END SIZE ERROR; EXPECT MATCH",
+    "expected": "inner END-READ closes the inner READ and the outer INVALID KEY branch continues; sequential-access READ NEXT AT END/NOT AT END END-READ inside PERFORM; READ ... END-READ with no phrase (USE applies); keyed READ ... END-READ inside ON SIZE ERROR"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/scr_stray_endread.cob",
+    "printed": "error COBOL0306: unexpected 'END-READ'. END-READ appears without a matching READ statement.",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/scr_delete_endread.cob",
+    "printed": "error COBOL0306: END-READ appears without a matching READ statement (DELETE ... INVALID KEY ... END-READ)",
+    "expected": "END-READ does not terminate a DELETE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/scr_read_withlock.cob",
+    "printed": "error COBOL0900: a record-lock phrase (WITH LOCK / ...) requires COBOL-2002 (targeting COBOL-85); scr_read_ignoring.cob the same",
+    "expected": "the 2002 lock phrases are not in the 1985 READ format; refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.4 GR19",
+    "check": "OK  §1985:IX.4.5.4 GR19  (4.5.4 General Rules)  the text is in GR19"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+   }
+  ],
+  "notes": "READ dispatches through SequentialIoBinder.BindRead to KeyedIoBinder.BindRead for indexed files; the terminator is the grammar's optional END_READ on readStatement, which closes the innermost open READ. Probed at --std 85 across dynamic and sequential access, both READ formats and nesting.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.5.4-19",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "cite.py: OK §1985:IX.4.5.4 GR19. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/d1.cob: an UNTERMINATED READ (or DELETE) inside another READ's (DELETE's) INVALID KEY phrase, and an unterminated IF inside READ's INVALID KEY / NOT INVALID KEY, are refused (COBOL2796): right at 85, since the phrase's operand is imperative-statement-1 and only a conditional statement delimited by its explicit scope terminator is imperative (§1985:IV.6.4.2.3.1), so the IV.6.4.3 'no such phrase has already been associated' case cannot arise inside a key phrase. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/d2.cob (EXPECT MATCH at 85): a delimited inner READ inside the outer READ's INVALID KEY followed by a further statement and the outer NOT INVALID KEY; an unterminated READ and an unterminated DELETE inside IF whose ELSE ends them (IV.4.4.4 item 2); END-DELETE and END-READ each followed by a statement in the same sentence; READ NEXT AT END/NOT AT END END-READ inside an inline PERFORM. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/d3.cob, d4.cob (compile-only): DELETE ... RETRY 3 TIMES ... END-DELETE and READ ... RETRY 3 TIMES ... END-READ refused at 85 (COBOL0900 'the RETRY phrase requires COBOL-2002'); E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/d5.cob: DELETE FILE ... END-DELETE refused (COBOL0900 'DELETE FILE requires COBOL-2023'). (d3-d5 also draw a COBOL0900 for a missing paragraph-name, a probe-writing slip that does not affect the RETRY/DELETE FILE refusal lines.) Refusal messages cite §2023 clauses, cosmetic only. cite.py: OK §1985:IV.6.4.3; OK §1985:IV.6.4.2.3.1; OK §1985:IV.4.4.4 (GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
