@@ -1670,6 +1670,28 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
+    /// Every code read's code-location (<c>tests/version-matrix/code-reads-&lt;year&gt;/&lt;rule-id&gt;.json</c>, its
+    /// <c>reader</c>'s, kb/Work PB5759) still points at code that exists, by the ONE predicate a row's is held to
+    /// (<see cref="SymbolResolves"/>): <c>scripts/spec/code_reads.py</c> checks the record's SHAPE at its import and in
+    /// the CODE READS audit, and this checks the REFERENCE, the inventory's own division of labour.
+    /// </summary>
+    [Fact]
+    public void EveryCodeReadLocation_ResolvesInTheTree()
+    {
+        string matrix = Path.Combine(TestRepo.Root, "tests", "version-matrix");
+        var reads = Directory.EnumerateDirectories(matrix, "code-reads-*")
+            .SelectMany(d => Directory.EnumerateFiles(d, "*.json"))
+            .Select(f =>
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(f));
+                return FixtureRow(doc.RootElement.GetProperty("reader").Clone());
+            })
+            .ToList();
+        var bad = UnresolvedCodeLocations(reads, LoadSchema(), TestRepo.Root);
+        Assert.True(bad.Count == 0, Report("unresolved code-read code-location(s)", bad, reads.Count));
+    }
+
+    /// <summary>
     /// Every <c>path#Symbol</c> spelling in a row's PROSE still resolves (kb/Work PB762). The prose is the field a
     /// reader opens to learn why a row has its verdict, and it was the one adjudicated field no gate ever read, so a
     /// landing that renamed a method re-pointed <c>code-location</c> (a gate makes it) and left the prose narrating

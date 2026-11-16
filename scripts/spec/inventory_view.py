@@ -313,7 +313,10 @@ def lower_bound(ed: Edition, tree: Tree = WORKING_TREE) -> str:
 
 def summary() -> list[str]:
     """The session probe's lines: each held edition's rules and GAP count side by side (the burn-down metric), then each
-    edition's adjudicated verdicts, and the CONFORMS rows a spec-derived test would close."""
+    edition's adjudicated verdicts, the CONFORMS rows a spec-derived test would close, and, for an older edition with a
+    store of code reads, its reads by outcome and the KEPT rows still owed one (`code_reads.view_line`, kb/Work PB5759: a
+    line of its own, which the session probe prints as it prints every line; it changes no row's state)."""
+    import code_reads  # noqa: PLC0415  (it imports this module: the view's rows are what it counts)
     schema = load_schema()
     views = edition_views(schema)
     lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules{lower_bound(schema.edition(year))} · "
@@ -328,6 +331,8 @@ def summary() -> list[str]:
         # *_MatchesLegacy differential, which resolves on disk, and still be open (only a SPEC-DERIVED test closes one).
         if need := sum(1 for r in adjudicated if r["verdict"] == "CONFORMS" and r["state"] == "GAP"):
             lines.append(f"       {year}: {need} CONFORMS still test-needed (each is one spec-derived golden from OK)")
+        if reads := code_reads.view_line(schema.edition(year), schema, rows):
+            lines.append(reads)
     return lines
 
 
