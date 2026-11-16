@@ -85,5 +85,11 @@
   "evidence": "xrem5.cob at --std 85: COMPUTE R = FUNCTION REM (A (- B)) with A PIC S9 VALUE 7, B PIC S9 VALUE 2 (A is not a table) is refused: COBOL2096 'A (- B)': a subscript is written on 'A' ...; COBOL1504 FUNCTION REM takes 2 argument(s); 1 given; COBOL0900 arithmetic-expression subscript - B requires COBOL-2002. The same at --std 2023 (COBOL2096 + COBOL1504). xrem1.cob line 13 FUNCTION REM (A (- 2)) the same. The 1985 text makes (- B) after an identifier the REQUIRED spelling of a second argument that begins with a unary operator: cite.py: OK  §1985:VI.6.2.3 SR4  (6.2.3 Formation and Evaluation Rules)  the text is in SR4 ('If the first operator in an arithmetic expression is a unary operator, it must be immediately preceded by a left parenthesis'); OK  §1985:IV.4.3.8.3.3 SR1 ('Argument-1 must be an identifier, a literal, or an arithmetic expression'); OK  §1989:A.2.37.2 (FUNCTION REM ( argument-1 argument-2 )). A has no OCCURS and '- B' is no 1985 subscript form, so no subscript reading exists. Controls that pass at 85 and 2023: REM (A -2) = 1.00, REM (A - 1 4) = 2.00, REM (A, -2) = 1.00, REM ((A + 10) 4) = 1.00 (xrem1b). Other refusals correct: REM (7 - 2) is one argument, COBOL1504 (xrem2); REM (T (ALL)) COBOL1645 (xrem3); FUNCTION REM (17 5) (1:1) COBOL1629 per §1985:IV.4.3.8.3.3 SR2 (xrem4).",
   "edition-sites-missed": [],
   "corrected": "NON-CONFORMING (rejects-legal-source, cause b: the same refusal at --std 2023). Repro: FUNCTION REM (A (- B)) with A, B elementary numeric non-table items; expected REM(7, -2) = 1 per §1989:A.2.37.2 with argument-2 the arithmetic expression (- B) required by §1985:VI.6.2.3 SR4; observed COBOL2096 + COBOL1504 + COBOL0900. Site: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList (the optional separator lets A's dataReference take the following '(' as its subscriptPart). Known note: kb/Work PB5781 (open; its inventory_rows name only 1985-SR-VI.6.2.3-4, so this format row should be added to it)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "`FUNCTION REM (A (- B))` is refused: the mechanism of the open kb/Work PB5781.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ },
+ "work": "PB5781"
 }

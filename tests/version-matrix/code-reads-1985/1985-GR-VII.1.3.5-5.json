@@ -133,5 +133,11 @@
    "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus: the latch that keeps answering 90 to later WRITEs on that connector"
   ],
   "corrected": "NON-CONFORMING (misleads-diagnosis / wrong-answer; cause a: this edition needs its own arm and has none). At 1985 GR5 defines the 9x class as a statement 'unsuccessfully executed', and only a successful OPEN results in an open mode (§1985:VII.4.3.4 GR1, Table 1). The compiler's 90 OPEN establishes an open mode anyway, so a 1985 program that tests FS = '90' and re-OPENs gets 41, and its CLOSE answers 00 where 42 is the 1985 value. Repro: io6.cob above; expected at 85: second OPEN 90 again (or the OPEN of a file not in open mode), WRITE 48, CLOSE 42; observed 41, 90, 00."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "An OPEN refused with status 90 (LINAGE of zero) leaves the file open: a second OPEN gives 41, a WRITE 90, the CLOSE 00. At 1985 a 9x statement is unsuccessful, so the WRITE is 48 and the CLOSE 42. The 2023 continuation (kb/Work PB526) is applied at every edition. Checker's confidence: medium-high.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ },
+ "work": "PB5845"
 }

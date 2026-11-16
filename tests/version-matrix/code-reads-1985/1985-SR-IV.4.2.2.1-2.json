@@ -161,5 +161,11 @@
    "src/WiseOwl.Cobol.Editions/EditionInfo.cs#CopyNamesAreUserDefinedWords: the 85 switch that makes text-name and library-name user-defined words"
   ],
   "corrected": "UNDER-REJECTS (non-conforming): at --std 85 a COPY text-name LENGTH, RANDOM or SUM (and any other reserved word) is accepted as a user-defined word, and a reserved library-name is reported as a missing copybook instead of a reserved-word refusal. Cause c: the rule covers the text-name and library-name user-defined words of 1985 (made user-defined words by CopyNameCensus's 85 arm, PB5482) which the reader's probes and the COBOL0901 funnel do not reach. Repro: WORKING-STORAGE SECTION. COPY LENGTH. with LENGTH.cpy present; expected a refusal (§1985:IV.4.2.2.1 SR2b), observed compile and run."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "`COPY LENGTH.` and `COPY ADD.` compile: a text-name is never checked against the reserved words. Sibling of kb/Work PB5482. The checker's confidence in the 2023 half is medium.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ },
+ "work": "PB5848"
 }

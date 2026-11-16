@@ -63,5 +63,11 @@
   "evidence": "Same probe q1.cob (run q1-001, --std 85): INITIAL contained program Q1I declares internal F with FILE STATUS IS GST (the container's GLOBAL item), opens it, reads to AT END (GST=10) and executes EXIT PROGRAM. GR3 makes that EXIT PROGRAM 'equivalent also to executing a CANCEL statement referencing that program', whose implicit CLOSE (§1985:X.5.3.4 GR10) updates the I-O status (§1985:VII.4.2.4 GR4) and thereby the FILE STATUS item (§1985:VII.2.5.4 GR1). Printed 'IN I GST=10 / AFTER INITIAL GST=10'; expected 'AFTER INITIAL GST=00'. Same at --std 2023 (q1-002). Path: ProgramTable.CallProgram finally -> EndInitialActivation -> inst.CloseFiles(), the emitted block with no status store. cite.py: OK §1985:X.5.4.4 GR3 'is equivalent also to executing a CANCEL statement referencing that program'. The rest of the reader's requirement (files closed, EXTERNAL left open, contained programs cancelled, main-program EXIT PROGRAM continues) is not contested.",
   "edition-sites-missed": [],
   "corrected": "NONCONFORMING (wrong-answer, cause b): the implicit CANCEL of an INITIAL program's EXIT PROGRAM closes its files without storing the CLOSE's I-O status into their FILE STATUS items; observable through an item that outlives the program (container GLOBAL, LINKAGE, EXTERNAL). Same root as 1985-GR-X.5.3.4-10 (the emitted CloseFiles block)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The implicit CLOSE of a CANCEL, and of an INITIAL program's EXIT PROGRAM, never stores an I-O status: the FILE STATUS item keeps 10 where 00 is due. I ran it. Sibling of kb/Work PB5685 (the same emitted block).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ },
+ "work": "PB5847"
 }

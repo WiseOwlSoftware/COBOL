@@ -130,5 +130,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ResolveSubscriptName: the subscript and ref-mod data-name arm resolves the name without the X.5.1 GR4 linkage screen (no edition switch; the same at every edition)"
   ],
   "corrected": "MISSING-CHECK (under-rejects, silent wrong value). §1985:X.5.1 GR4 allows a linkage item in the Procedure Division 'if, and only if' one of legs a to e holds. A non-USING linkage data-name written as a subscript (L1-T (L2-N)) or as a reference-modification position or length (L1 (L2-N:1), L1 (1:L2-N)) is such a reference, so it must be refused, and the compiler accepts it. Cause (b): it fails the same way at --std 2023 (§2023:13.7.3 SR4). Repro: r5a_subscript_nonusing.cob. Expected: refused (COBOL2746). Observed: EXIT 0, prints 'A'."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A Linkage Section item that is not in the USING phrase is accepted as a subscript or a reference-modification operand. Sibling of the landed kb/Work PB3287.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ },
+ "work": "PB5846"
 }

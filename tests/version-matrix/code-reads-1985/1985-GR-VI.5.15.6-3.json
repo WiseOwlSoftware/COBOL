@@ -70,5 +70,11 @@
   "evidence": "r3a at 85: group VALUE STAR (a SYMBOLIC CHARACTERS figurative constant, 43 = '*') -> G1=[****]; VALUE ZERO over a BWZ PIC 99 and a ZZ9 subordinate -> [00000] (not blanked, not edited); VALUE LOW-VALUE fills; VALUE SPACES over PIC 9(3) -> [   ]; an 88 under a subordinate of a VALUE group compiles and is TRUE (GR3 sits in the section for entries other than condition-names); 05 group VALUE inside an 01 without VALUE seeds only its area. Refusals: R3C literal longer than group -> COBOL1740; R3F VALUE 1.5 -> COBOL1657; R3K ALL 5 -> COBOL5506 parse refusal; later-edition literal forms refused at 85: R3D \"AB\" & \"CD\" -> COBOL0900 (requires 2002), R3E X\"41424344\" -> COBOL0900, R3G N\"AB\" -> COBOL0900, R3L B\"1\" -> COBOL0900. ALL \"AB\" -> [ABAB], ALL ZERO -> [0000], QUOTES -> [\"\"\"\"]. cite.py: OK  §1985:VI.5.15.6 GR3  ... the text is in GR3.",
   "edition-sites-missed": [],
   "corrected": ""
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A group VALUE is silently dropped when a subordinate carries REDEFINES: `01 G3 VALUE \"ABCD\". 05 A3 PIC X(4). 05 A4 REDEFINES A3 PIC X(4).` displays spaces. `§1985:VI.5.15.6 GR3` says \"the group area is initialized without consideration for the individual elementary or group items\" (cite.py OK). I ran it. The row's read in slice 1985-013 agreed without trying it.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ },
+ "work": "PB5851"
 }

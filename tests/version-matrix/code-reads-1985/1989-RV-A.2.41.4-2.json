@@ -73,5 +73,10 @@
   "evidence": "rsd.cob at --std 85 (runs/rsd-002) and identically at --std 2023: SD(-99999999999999999 99999999999999999) into S9(18) = 100000000000000000 (exact 99999999999999999: step b's quotient is a perfect square, so step c's root is exact and 17 digits); SD(0 99999999999999998) = 50000000000000000 (exact 49999999999999999); SD(0 A), A = 1234567890.12345678, into S9(10)V9(8) = 617283945.06172840 (exact 617283945.06172839, which the receiver holds). Cause: CobolIntrinsics.Float.cs#StandardDeviation computes StdDevExact then NarrowResult to binary64 (~16 significant digits). DOC-A.1-123 says the family's value is 'the exact value of the equivalent arithmetic expression ... rounded once' yet the SD body rounds that value to binary64. Correct otherwise: rsdmix.cob SD(TE(ALL) 4 FUNCTION INTEGER-OF-DATE(16010102)) = 1.019803902 (exact 1.0198039027...); rsded/rsdan/rsdlit (numeric-edited, alphanumeric item, nonnumeric literal) refused COBOL1627; rsdnone refused; DISPLAY and MOVE of the function refused COBOL0900 at 85. READING: UPHELD if 'approximation' (RV1) plus 'characteristics of the returned value ... defined by the implementor' (A.2.3 GR2) admit a binary64 returned value; OVERTURNED (wrong-answer, cause b) if the approximation RV1 allows is only that of step c's square root, since RV2 prescribes exact steps a-b and here the root itself is exact. cite.py: OK §1989:A.2.41.4 RV1 the text is in RV1; OK §1989:A.2.41.4 RV2 the text is in RV2; OK §1989:A.2.3 the text is in the clause; it lies in GR2.",
   "edition-sites-missed": [],
   "corrected": "Not overturned on the text alone. If the narrow reading holds: NON-CONFORMING wrong-answer at every edition (cause b); STANDARD-DEVIATION should return StdDevExact's value without narrowing it to binary64 (17- and 18-digit results lose their last digits)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The 1989 text asks for an approximation and leaves its precision to the implementor; the register documents the returned value.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
  }
 }
