@@ -1,4 +1,4 @@
-## A conformance case declares its standard input and an output file the harness compares after the run
+## Entry 3746 — 2026-11-16 03:31 PST — A conformance case declares its standard input and an output file the harness compares after the run
 
 kb/Work PB5755 and PB5765. The suite's harness ran every case with standard input closed and judged it on standard output
 alone, so no case could witness an ACCEPT rule that needs data from the input device (§1985:VI.6.5.4 GR1-GR5), and none
@@ -46,3 +46,4 @@ On the final resume, origin/main had not moved past the branch base (merge: alre
 
 The first gate run (000001-20261116T101141Z) was RED in the BUILD TARGETS audit: the generator imported cite (16 undecided path probes of scripts/spec) and two new is_file probes were not judged. The rule text now comes straight from the rule catalogs, which are inputs of the target, and the two probes are judged in build_targets.json.
 The second gate run was RED in SELF-TESTS only (all four test targets green): the generate.py self-test reads ImplementorNames.cs, now a TOOLING_READS entry in scripts/lane_classification.py.
+
