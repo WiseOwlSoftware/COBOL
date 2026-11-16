@@ -374,9 +374,12 @@ public sealed class CobolReport(
         /// CONTROL clause in a report description entry" — among those whose truth value the alphanumeric and
         /// national PROGRAM COLLATING SEQUENCES determine. The compiler supplies the comparison the item's category
         /// takes under the program's sequence (the collated <c>CobolString.Compare</c> a relation condition over
-        /// the same item renders); null where that comparison IS code-unit equality of the two equal-length
-        /// images — no program collating sequence in effect, or a numeric / boolean item (§2023:8.8.4.2.4 / §2023:8.8.4.2.8
-        /// collate neither), whose image is a function of its value.</summary>
+        /// the same item renders); for an image-carried numeric item the comparison of two numeric operands
+        /// (<see cref="NumericControlEqual"/>, kb/Work PB5782: §2023:8.8.4.2.4 "Zero is considered a unique value
+        /// regardless of the sign"; §1985:XIII.3.7.4 GR3 a), since -0 and +0 are two images of one value); null where
+        /// that comparison IS code-unit equality of the two equal-length images — no program collating sequence in
+        /// effect, or a boolean item (§2023:8.8.4.2.8 collates neither) or a numeric one that is not image-carried,
+        /// whose image is a function of its value.</summary>
         public Func<string, string, bool>? Equal { get; } = equal;
 
         public string? Prior { get; set; }   // saved at the first GENERATE (§2023:13.18.16.4 GR3); null until then
@@ -414,6 +417,12 @@ public sealed class CobolReport(
     /// <summary>The binary64 value a <see cref="FloatControlKey(double)"/> key holds — the restore half.</summary>
     public static double FloatControlDouble(string key) =>
         BitConverter.Int64BitsToDouble(long.Parse(key, System.Globalization.NumberStyles.HexNumber));
+
+    /// <summary>The break test of an image-carried NUMERIC control item (§1985:XIII.3.7.4 GR3 a: "the relation test is
+    /// for the comparison of two numeric operands"; §2023:8.8.4.2.4): the two saved character images are decoded through
+    /// the item's profile and compared by value, so a signed zero equals zero (kb/Work PB5782).</summary>
+    public static bool NumericControlEqual(string a, string b, in NumProfile item) =>
+        CobolNum.ParseImage(a, item) == CobolNum.ParseImage(b, item);
 
     /// <summary>§2023:13.18.16.4 GR3's "equality with the corresponding prior control" for two keys of ONE floating-
     /// point control item (both from the same <c>FloatControlKey</c> overload, so of one width): equal bit
@@ -636,7 +645,10 @@ public sealed class CobolReport(
     /// GENERATE-driven one fail identically.</summary>
     private void Accumulate(int sumId, Func<Int128, Int128> apply)
     {
-        if (!_sums[sumId].Add(apply))
+        // The addition always sets the entry's size error indicator (SumEntry.Add). Raising at the addition is the 2014 and
+        // later rule; §2002:13.16.52.3 GR3 stops at the indicator and GR4 raises when the item is presented (SumPresentable;
+        // kb/Work PB5643, DialectBehavior.SumSizeErrorRaisedAtAddition).
+        if (!_sums[sumId].Add(apply) && DialectBehaviors.IsActive(DialectBehavior.SumSizeErrorRaisedAtAddition, Edition))
             ExceptionState.ReportSumSizeError($"report {Name}: an addition into sum counter {sumId + 1} is a size "
                 + "error (ISO §2023:13.18.54.4 GR3)");
     }
@@ -1184,7 +1196,12 @@ public sealed class CobolReport(
         // (§2023:13.18.37.4 GR4a 3) — the ordinary GR5 placement otherwise.
         long? firstTarget = null;
         bool advanced = false;   // a page advance was processed for THIS group (its §2023:14.9.16.4 GR6 c) evaluated the CODE)
-        if (_nextGroupSave != 0)
+        // From 2002 the save location forces the page advance whatever the page-fit test would say
+        // (DialectBehavior.SavedNextGroupForcesPageAdvance, kb/Work PB5823). §1985:XIII.3.10.8 GR3 consults the saved
+        // integer only AFTER a page advance: while a body group has been presented on the current page (the one whose
+        // NEXT GROUP filled the save) the ordinary fit test 3a/3b/3c decides, and only a group that does not fit takes
+        // the advance and meets the saved integer. An OR PAGE reprint is not a fit-tested group and keeps the save arm.
+        if (_nextGroupSave != 0 && (reprint || DialectBehaviors.IsActive(DialectBehavior.SavedNextGroupForcesPageAdvance, Edition)))
         {
             firstTarget = PlaceAfterSavedNextGroup(group, first, LowerLimit(group));   // always advances first (GR4a)
             advanced = true;
@@ -1216,7 +1233,10 @@ public sealed class CobolReport(
             }
             if (!fit)
             {
-                AdvancePage(group);   // §2023:13.18.35.4 GR4 tail → the §2023:14.9.16.4 GR6 sequence
+                // §2023:13.18.35.4 GR4 tail → the §2023:14.9.16.4 GR6 sequence; at --std 85 with the save location set,
+                // the page advance of rule 3a/3b/3c is followed by the saved-integer arm (PlaceAfterSavedNextGroup).
+                if (_nextGroupSave != 0) firstTarget = PlaceAfterSavedNextGroup(group, first, LowerLimit(group));
+                else AdvancePage(group);
                 advanced = true;
             }
         }
@@ -1242,7 +1262,9 @@ public sealed class CobolReport(
     /// preceding body group's integer-1 was not below LINE-COUNTER, so it went into the save location and
     /// LINE-COUNTER was set to the FOOTING integer, "causing a page advance to take place just before any other
     /// non-dummy body group is printed for the report" — the advance is the GR's stated effect, so it is taken
-    /// here unconditionally rather than re-derived from a page-fit test. Then:
+    /// here unconditionally rather than re-derived from a page-fit test — from 2002. At <c>--std 85</c> this method is reached only after
+    /// a page-fit test failed (§1985:XIII.3.10.8 GR3: the saved integer is read after the page advance; kb/Work PB5823,
+    /// <see cref="DialectBehavior.SavedNextGroupForcesPageAdvance"/>), and the advance it takes IS that test's. Then:
     /// <list type="number">
     /// <item>a first LINE clause that is absolute: "the save location is moved to LINE-COUNTER and the page fit
     /// test is re-applied before the first line of the body group is printed" (GR4a 1; the returned null lets

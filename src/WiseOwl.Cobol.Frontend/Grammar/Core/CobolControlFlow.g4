@@ -562,9 +562,15 @@ exitStatement
 // STOP (§2023:14.9.42)
 // ==========================================
 
+// ⛔ literal-1 MAY BE WRITTEN AS A WORD (kb/Work PB5809). A symbolic-character is a figurative constant (§1985:IV.4.2.2.2.3
+// GR7), and "a figurative constant may be used whenever 'literal' appears in a format" (GRL2.3); §1985:VI.6.24.3 SR1 bars
+// only the figurative constants that begin with ALL. The literal rule spells a word only as a concatenation operand,
+// so `STOP STAR.` was a parse error expecting '&'. The word arm is the superset: the binder decides what the word names
+// (ControlFlowBinder.BindStop) and the edition gate removes the statement from 2002 as it does the literal form.
 stopStatement
     : STOP RUN (statusPhrase)?   // status phrase introduction-gated after binding (VersionConformancePass → Check(StopRunStatus2002))
     | STOP literal                     // STOP literal (Format 2, obsolete)
+    | STOP cobolWord                   // STOP literal-1 written as a symbolic-character (Format 2, obsolete)
     ;
 
 // The shared run-unit-termination status phrase (ISO §2023:14.9.42.2 STOP / §2023:14.9.18.2 GOBACK). ONE rule referenced
