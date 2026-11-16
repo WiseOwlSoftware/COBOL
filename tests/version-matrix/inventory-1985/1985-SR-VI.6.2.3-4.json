@@ -1,6 +1,8 @@
 {
  "rule-id": "1985-SR-VI.6.2.3-4",
  "rule-digest": "618661049d71",
+ "test-ref": "conformance:cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/g85_bf15_01",
+ "notes": "kb/Work PB5781 landed. §1985:VI.6.2.3 SR4: 'If the first operator in an arithmetic expression is a unary operator, it must be immediately preceded by a left parenthesis if that arithmetic expression immediately follows an identifier or another arithmetic expression.' Function arguments are arithmetic expressions that follow one another (§1985:IV.4.3.8.3.3 SR1), so FUNCTION MIN (A (- B)) is two arguments. The '(' after A, which no OCCURS describes, was bound as A's subscript (COBOL2096, and COBOL0900 on '- B'); the argument lists now ask the one declaration-informed list reader the subscript list asks (SubscriptBinder.GiveAwayClosingList, kb/Work PB136), which gives that paren to the next argument and marks it on the parse node so the reference, its bind and the edition gate read A without it. Probed at --std 85: g85_bf15_01 prints E8=-0003 and E9= 0004 and every other line as derived.",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

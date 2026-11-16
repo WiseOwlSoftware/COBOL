@@ -9455,6 +9455,17 @@ public static class DiagnosticCatalog
         + "decimal point, is not an unsigned integer.",
         "X3.23-1985 STOP statement syntax rules 1 and 3 (§1985:VI.6.24.3)");
 
+    /// <summary>COBOL7558 — STOP followed by a word that names no symbolic-character (kb/Work PB5809): literal-1 of the
+    /// X3.23-1985 STOP literal statement may be written as a word only when the word is a symbolic-character, a figurative
+    /// constant (§1985:IV.4.2.2.2.3 GR7, GRL2.3).</summary>
+    public static readonly DiagnosticDescriptor StopLiteralWordNotLiteral = new(
+        "COBOL7558", "stop-literal-word-not-literal", EditionSeverity.Error,
+        "STOP is followed by a word that is not RUN and names no symbolic-character. The X3.23-1985 STOP statement is "
+        + "STOP RUN or STOP literal-1 (its general format), and a word stands for a literal only as a symbolic-character, which "
+        + "is a figurative constant (§1985:IV.4.2.2.2.3 GR7), and by §1985:IV.4.2.2.2.3 GRL2.3 a figurative constant \"may be "
+        + "used whenever 'literal' appears in a format\". A data-name, a mnemonic-name or an undeclared word is none.",
+        "X3.23-1985 STOP statement general format; §1985:IV.4.2.2.2.3 GR7, GRL2.3");
+
     /// <summary>COBOL6818 — an X3.23-1985 target-less GO TO (no procedure-name-1) that is not the whole of a single statement
     /// paragraph (kb/Work PB5087). Emitted by PlacementRules.RefusedOutOfSequence (the BareGoToAlone row) where the statement
     /// exists (COBOL-85; from 2002 it is COBOL0902, removed).</summary>
