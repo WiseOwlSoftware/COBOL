@@ -2458,9 +2458,10 @@ public sealed class FileRegistry
 
     /// <summary>⛔ THE GRANT IS THE CONFLICT TEST, TAKEN BEFORE THE RETRIEVAL (kb/Work PB5770, review R1-1). A READ that sets a
     /// lock on the record a peek named takes that lock HERE, before the position moves, and a refusal is the record operation
-    /// conflict condition of §2023:14.9.30.4 GR9 like any other: its RETRY phrase applies (GR9, <i>"additional attempts may be
-    /// made to read the record as specified in the rules in 14.7.9"</i>) and, the retrieval not having run, GR10a's <i>"The file
-    /// position indicator is unchanged"</i> holds by construction. <see cref="ConflictOnLockedRecord"/> before it is a test
+    /// conflict condition of §2023:14.9.30.4 GR9 like any other, so its RETRY phrase applies (§2023:14.9.30.4 GR9,
+    /// <i>"If the RETRY phrase is specified, additional attempts may be made to read the record"</i>; the attempts are
+    /// §2023:14.7.9.3's). The retrieval not having run, §2023:14.9.30.4 GR10a's <i>"The file position indicator is
+    /// unchanged"</i> holds by construction. <see cref="ConflictOnLockedRecord"/> before it is a test
     /// and this a test-and-set: on a connector with no store statement (a sequential file, <see cref="FileConnector.BeginStatement"/>)
     /// another run unit can take the record between the two, and the host's refusal is the one answer that cannot be stale.
     /// Granting after the retrieval instead made the same '51' keep the position or lose it, and honor RETRY or not, by
