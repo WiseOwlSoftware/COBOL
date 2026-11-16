@@ -1,4 +1,4 @@
-## 1985 open rows recorded: 47 new fixed-form cases, 17 own verdicts, ten witness pairs, GAP 780 to 764
+## Entry 3723 — 2026-11-15 20:31 PST — 1985 open rows recorded: 47 new fixed-form cases, 17 own verdicts, ten witness pairs, GAP 780 to 764
 
 The registrar put on record the decisions of the Mythos lane's 1985 adjudications (each attacked by a refuter), with the repository's own tools.
 
@@ -11,3 +11,4 @@ The registrar put on record the decisions of the Mythos lane's 1985 adjudication
 **Refused or stopped.**
 - `g85_y93` on `1985-GR-X.4.6.4-3`: `lineage_reads.py --check 1985` printed `only a diagnosis at 85, which witnesses no rule that grants a form or states a behaviour` and RED. The reference was retired from the row and the `pb1523` header fix taken back (the refuter forbade that fix alone). The case `g85_y93` stays in the suite. The row remains open.
 - `pb509_blank_when_zero_relation`'s 85 band: emptying `accept:` makes `generate.py --check` refuse ("neither accepted nor flagged anywhere"), so the case is unchanged; the reference to it was retired from the one 1985 row that names it. The band is PB5771's to set.
+
