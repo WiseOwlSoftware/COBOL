@@ -597,16 +597,22 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         return false;
     }
 
-    /// <summary>Does a store into <paramref name="a"/> alter the value of <paramref name="b"/>: is one the other or an ancestor of
-    /// it, or do they share a byte through a REDEFINES or RENAMES (the layout's <see cref="StorageExtent"/>, the same overlap
-    /// <c>ReportSectionBinder.ControlDataReferenceOf</c> asks, §1985:XIII.4.9.3 SR4, kb/Work PB5808)? An extent the compiler
-    /// cannot prove (a variable-length item) is not asked.</summary>
-    private static bool SameStorageLine(DataItem a, DataItem b)
+    /// <summary>Does a store through <paramref name="stored"/> alter the value of <paramref name="b"/>: does the storage the
+    /// store can reach share a byte with it (kb/Work PB5808)? The layout's <see cref="StorageExtent"/> answers, the same overlap
+    /// <c>ReportSectionBinder.ControlDataReferenceOf</c> asks (§1985:XIII.4.9.3 SR4), and it covers the item, a group holding it,
+    /// an item beneath it, a REDEFINES and a RENAMES. The storage is the occurrence and window the store names when both are
+    /// literals (<see cref="StorageExtent.OfStore"/>), so a store into a part of a record or REDEFINES that touches no byte of
+    /// the control data item alters nothing. Where the store's extent is a run-time quantity the whole item stands: the Parent
+    /// chain and every occurrence, since the store may reach any of it. An unprovable control extent (a variable-length item)
+    /// is asked by the Parent chain alone.</summary>
+    private static bool SameStorageLine(Place stored, DataItem b)
     {
+        var bExtent = StorageExtent.OfItem(b);
+        if (bExtent is { } control && StorageExtent.OfStore(stored) is { } exact) return exact.Overlaps(control);
+        var a = stored.Item;
         for (var x = b; x is not null; x = x.Parent) if (ReferenceEquals(x, a)) return true;
         for (var x = a.Parent; x is not null; x = x.Parent) if (ReferenceEquals(x, b)) return true;
-        return StorageExtent.OfEveryOccurrence(a) is { } aExtents && StorageExtent.OfItem(b) is { } bExtent
-            && aExtents.Overlaps(bExtent);
+        return bExtent is { } whole && StorageExtent.OfEveryOccurrence(a) is { } every && every.Overlaps(whole);
     }
 
     /// <summary>Intercept a LINE-COUNTER / PAGE-COUNTER data reference (ISO §2023:8.4.3.15) ahead of normal name

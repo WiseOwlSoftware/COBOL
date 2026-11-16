@@ -15,3 +15,10 @@ Witnesses: conformance case `14.9.49-USE/pb5808-control-item-redefines-altered` 
 tests for a REDEFINES of the record and a RENAMES at every edition, and the accepted control (a redefinition sharing no byte).
 With the overlap line disabled six unit cases go red; restored, 39 of 39 pass. Row `SR-14.9.49.3-11` PARTIAL to CONFORMS.
 `1985-SR-XIII.4.9.3-4` keeps its stored PARTIAL read until the code-read campaign reads this tree again.
+
+Review round 1 (R1-1): the overlap was asked of the stored ITEM, so a reference-modified or literal-subscripted store into a
+REDEFINES that touches no byte of the control item was refused, legal source that compiled before. `BoundStores.StoresInto` now
+hands the checker the Place, and `StorageExtent.OfStore` gives the bytes the store reaches (a literal occurrence of a table, a
+literal reference-modification window, a Tier-B view's constant window); only an extent that is a run-time quantity falls back to
+the whole item. Unit cases: a window or occurrence over the non-control byte is accepted, over a control byte or by variable
+subscript refused.

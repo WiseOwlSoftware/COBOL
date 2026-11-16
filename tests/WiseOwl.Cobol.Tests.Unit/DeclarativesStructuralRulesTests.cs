@@ -232,6 +232,10 @@ public sealed class DeclarativesStructuralRulesTests
     [InlineData("INITIALIZE WS-CTL-REC")]
     [InlineData("IF WS-N = 0 MOVE 9 TO WS-GRP END-IF")]   // nested: one diagnostic, not two
     [InlineData("MOVE \"22\" TO WS-CTL-RED")]            // a REDEFINES of the record holding it: shared bytes (kb/Work PB5808)
+    [InlineData("MOVE \"2\" TO WS-CR (1)")]              // one occurrence of the redefining table, a byte of the control item
+    [InlineData("MOVE \"2\" TO WS-CR (WS-IX)")]          // a run-time subscript may reach it
+    [InlineData("MOVE \"2\" TO WS-CTL-REC (1:1)")]       // a window over the record that covers its byte
+    [InlineData("MOVE \"2\" TO WS-CTL-RED (1:2)")]       // a window of the redefinition that covers it
     [InlineData("MOVE \"22\" TO WS-GRP-REN")]            // a RENAMES covering it
     public void AStoreIntoAControlDataItem_IsRefused(string statement)
     {
@@ -260,6 +264,10 @@ public sealed class DeclarativesStructuralRulesTests
     [InlineData("CALL \"SOMEPROG\" USING BY REFERENCE WS-GRP")]
     [InlineData("DISPLAY WS-GRP")]
     [InlineData("MOVE \"7\" TO WS-N-RED")]                // a redefinition of an item that shares no byte with a control item
+    [InlineData("MOVE \"2\" TO WS-CR (3)")]              // the occurrence over WS-TAIL: no byte of the control item (kb/Work PB5808, review R1-1)
+    [InlineData("MOVE \"2\" TO WS-CTL-RED (3:1)")]       // a window of the redefinition over WS-TAIL
+    [InlineData("MOVE \"2\" TO WS-CTL-REC (3:1)")]       // a window of the record over WS-TAIL
+    [InlineData("MOVE 2 TO WS-TAIL")]
     public void OtherStatementsInABeforeReportingProcedure_AreAccepted(string statement)
     {
         var d = BindDiagnostics(ReportProgram(statement), 2023);
@@ -346,8 +354,11 @@ public sealed class DeclarativesStructuralRulesTests
                       02 WS-GRP.
                          03 WS-GRP-HI PIC 9.
                          03 WS-GRP-LO PIC 9.
+                      02 WS-TAIL PIC 9.
                    66 WS-GRP-REN RENAMES WS-GRP-HI THRU WS-GRP-LO.
-                   01 WS-CTL-RED REDEFINES WS-CTL-REC PIC XX.
+                   01 WS-CTL-RED REDEFINES WS-CTL-REC.
+                      02 WS-CR PIC X OCCURS 3.
+                   01 WS-IX PIC 9 VALUE 1.
                    01 WS-N PIC 9 VALUE 0.
                    01 WS-N-RED REDEFINES WS-N PIC X.
                    REPORT SECTION.

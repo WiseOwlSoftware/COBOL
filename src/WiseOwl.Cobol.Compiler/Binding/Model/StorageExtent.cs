@@ -58,13 +58,51 @@ public readonly record struct StorageExtent(DataItem Area, int Start, int Length
         _ => null,
     };
 
-    private static StorageExtent? OfRefMod(RefModPlace r, Func<DataItem, StorageExtent?> ofItem)
+    private static StorageExtent? OfRefMod(RefModPlace r, Func<DataItem, StorageExtent?> ofItem) =>
+        Of(r.Inner, ofItem) is { } inner ? Narrow(inner, r) : null;
+
+    /// <summary>The window <paramref name="r"/> cuts from <paramref name="inner"/>: positions are CHARACTER positions
+    /// (§2023:8.4.3.3.4 GR5a); they are bytes only for a DISPLAY-usage operand, which is the only kind whose extent this
+    /// answers (USAGE NATIONAL / BIT operands answer null).</summary>
+    private static StorageExtent? Narrow(StorageExtent inner, RefModPlace r)
     {
-        // Positions are CHARACTER positions (§2023:8.4.3.3.4 GR5a); they are bytes only for a DISPLAY-usage operand,
-        // which is the only kind whose extent this answers (USAGE NATIONAL / BIT operands answer null above).
-        if (Of(r.Inner, ofItem) is not { } inner || r.Start.Int32Literal is not { } start || start < 1) return null;
+        if (r.Start.Int32Literal is not { } start || start < 1) return null;
         if (r.StaticLength(inner.Length) is not { } len || len < 1 || start - 1 + len > inner.Length) return null;
         return new StorageExtent(inner.Area, inner.Start + start - 1, len);
+    }
+
+    /// <summary>⛔ THE BYTES A STORE THROUGH <paramref name="place"/> CAN ALTER, for a rule about what a statement writes
+    /// (§2023:14.9.49.3 SR11, kb/Work PB5808): <see cref="OfReference"/>, and also the occurrence a table element names when
+    /// every subscript is a literal inside its OCCURS bound — and a reference modification narrows that by its literal bounds.
+    /// Null when the extent is a run-time quantity (a variable subscript or bound) or not provable: the caller then asks
+    /// the whole item, every occurrence, since the store may reach any of it.</summary>
+    public static StorageExtent? OfStore(Place place) => place switch
+    {
+        MemberPlace { MemberItem.IsTableElement: true } m => OfLiteralOccurrence(m),
+        // A Tier-B view is already a (class offset, width) window: the offset is a constant when every subscript is a literal.
+        RedefViewPlace { Coding: null, Offset.ConstantValue: { } offset } v when offset is >= 0 and <= int.MaxValue && v.Width > 0 =>
+            IsProvable(v.ViewItem) ? new StorageExtent(AreaOf(v.ViewItem), (int)offset, v.Width) : null,
+        NumericImagePlace n => OfStore(n.Inner),
+        GroupImagePlace g => OfStore(g.Inner),
+        RefModPlace r => OfStore(r.Inner) is { } inner ? Narrow(inner, r) : null,
+        _ => OfReference(place),
+    };
+
+    private static StorageExtent? OfLiteralOccurrence(MemberPlace m)
+    {
+        if (OfEveryOccurrence(m.MemberItem) is not { } every) return null;
+        // Each subscript the path evaluates, outermost first, is one OCCURS level of the item; a dynamic or cell table is not.
+        var segments = m.Path.Segments;
+        if (segments.Any(s => s is DynTableSegment or CellTableSegment)) return null;
+        var subscripts = segments.OfType<FixedTableSegment>().ToList();
+        if (subscripts.Count != every.Levels.Count) return null;
+        long start = every.First.Start;
+        for (int k = 0; k < subscripts.Count; k++)
+        {
+            if (subscripts[k].OneBasedIndex.Int32Literal is not { } index || index < 1 || index > every.Levels[k].Count) return null;
+            start += (long)(index - 1) * every.Levels[k].Stride;
+        }
+        return start <= int.MaxValue ? every.First with { Start = (int)start } : null;
     }
 
     /// <summary>The static extent of one data item (its whole occurrence), or null when not provable (see the type's
