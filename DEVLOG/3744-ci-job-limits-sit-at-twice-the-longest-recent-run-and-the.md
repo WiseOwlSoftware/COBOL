@@ -1,4 +1,4 @@
-## CI job limits sit at twice the longest recent run, and the nightly reports a job at half its limit (PB5841)
+## Entry 3744 — 2026-11-16 03:15 PST — CI job limits sit at twice the longest recent run, and the nightly reports a job at half its limit (PB5841)
 
 Merge-group run 43843342653 (pull request 1769, the PB5801 fix, gate green and review clean) was removed from the queue
 because the `audits` job was cancelled at its 10-minute limit. The job was not hung: it ran 354 to 530 s and had grown with
@@ -17,3 +17,4 @@ stops running it. DESIGN-test-build-ci.md sections 1.4 and 1.4a state the rule, 
 
 The slow audits inside `audits` are `Script self-tests` (211 s), `Code citations` (66 s) and `Rendered views` (25 s in CI,
 150 s in the local gate); making them cheaper is left as a lead in the note.
+
