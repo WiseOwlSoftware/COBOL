@@ -677,8 +677,8 @@ internal sealed class ReportWriterEmitter(
                 // invariant culture, and the restore stores the value back the way SET stores one (SetEmitter.StoreSetTarget).
                 if (place.DescribedItem is { Pic.Usage: Usage.Index })
                 {
-                    string indexKey = $"{num.FieldNum(place).Expr}.ToString(System.Globalization.CultureInfo.InvariantCulture)";
-                    string indexValue = "long.Parse(__v, System.Globalization.CultureInfo.InvariantCulture)";
+                    string indexKey = $"{num.FieldNum(place).Expr}.ToString(global::System.Globalization.CultureInfo.InvariantCulture)";
+                    string indexValue = "long.Parse(__v, global::System.Globalization.CultureInfo.InvariantCulture)";
                     string indexStore = place.Item.StoreAsImage ? RuntimeApi.NumFormatImage(indexValue, place.Item.ProfileName) : indexValue;
                     w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {indexKey}, __v => {{ {PlaceRenderer.Write(place, indexStore)} }});"
                         + "   // index data item CONTROL (§1985:XIII.3.7.4 GR3b)");
