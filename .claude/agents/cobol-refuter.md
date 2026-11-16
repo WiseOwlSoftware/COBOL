@@ -30,6 +30,9 @@ names the claims and where your checkpoint lines go.
 - Validate every citation with `python scripts/spec/cite.py --check "§2023:<clause>" "<text>"`. A citation you did not check is
   not evidence, and a real clause can answer a different question — check that it governs THIS construct.
 - Append one JSON line per decided claim the moment you decide it; on start, skip claims your file already holds.
+- A probe program runs through `python scripts/orchestrator/run_probe.py --root <your scratch directory>\runs --std
+  <edition> --tree <the pinned checkout> <program.cob>`: each run is a new directory, so nothing is deleted first; never
+  a recursive delete of a path that holds a variable (MANDATORY-PRACTICES P17, kb/Work PB5764; the guard hook refuses one).
 - Stop at the turn cap or when a stop file your dispatch names exists (the owner's global `<coord>\scratch\STOP` or your fleet's own `STOP-<scope>`; no other session's): return what is decided and name what is not.
 
 Why these settings: effort `medium`, every role's default (owner 2026-11-05: "By default, all model work should be using effort level 'medium' as this session is configured to use"); read-only
