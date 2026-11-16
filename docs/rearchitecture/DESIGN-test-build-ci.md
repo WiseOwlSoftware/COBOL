@@ -58,7 +58,8 @@ Every later section describes one mechanism of it in detail.
    which the finisher's gate runs first, and trusted only when `fetch_bounce_results` answers that they are the failed run's:
    a failed download leaves an older bounce's results there, and the red is then UNCLASSIFIED) are compared with the
    branch's GREEN record. INFRA (no test failed, or the run
-   timed out) and RUNNER (every red case ran GREEN in the record, or the record is the inert or the tooling lane's) are re-queued once
+   timed out, or every red case is the runner's host running out by the gate's own signature table, kb/Work PB5697:
+   §3.14.3; with a test red beside them those cases are set apart and the rest classified) and RUNNER (every red case ran GREEN in the record, or the record is the inert or the tooling lane's) are re-queued once
    with no agent and filed against the pipeline (`landing_measure.py`'s `reds`, the `infrastructure` cause); GENUINE (a
    case the record listed but did not run), MERGE (a case it lacks), UNCLASSIFIED and a second red of a re-queued
    landing go to the enqueue unit's finisher with the class on the BOUNCED line. No flake is retried inside a run: a
@@ -908,9 +909,24 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
 - **A gate that measured nothing ends `NOT RUN [<cause>]`**, never GREEN and never RED. `gate_verdict.NOT_RUN_CAUSES` is the ONE table
   of causes, each with a class: ENVIRONMENT (the host, not the tree: `settings`, `interpreter`, `toolchain`,
   `toolchain-unread`, `disk`, `tree`,
-  `launch`, `run`, `merge-blocked`, `host`, `sdk`) or BRANCH (the tree's own scripts or merged tree: `driver`,
+  `launch`, `run`, `merge-blocked`, `host`, `sdk`, `host-exhausted`) or BRANCH (the tree's own scripts or merged tree: `driver`,
   `merge-failed`, `population`, `arguments`, `verdict`, `unclassified`). The landing judges a NOT RUN by its class (§3.17.2
   step 3), and a NOT RUN verdict naming no known cause is `unclassified`.
+- **THE HOST RUNNING OUT IS NOT A TEST RED (kb/Work PB5697).** `scripts/host_resources.py` `SIGNATURES` is the ONE table of
+  host-resource signatures: PRIMARY rows are the host's own errors as a .NET process or the dotnet host prints them
+  (`Insufficient quota to complete the requested service`, ERROR_PAGEFILE_QUOTA 1454 / ERROR_WORKING_SET_QUOTA 1453;
+  `0x800705AF` or `The paging file is too small…`, ERROR_COMMITMENT_LIMIT 1455; `0x8007000E`, E_OUTOFMEMORY), each naming
+  its resource (`commit`, `memory`); SECONDARY rows are what a test sees after one (an empty output, `exit non-zero:`
+  with nothing said, `Decoder ran into invalid data`) and count ONLY in a run that also shows a primary signature.
+  `host_resources.judge` reads each red host's failed cases' texts (`test_population.failed_texts`: message, stack trace,
+  output), whether its trx explains its red (`PassCarry.red_explained`) and its log. When every red is the host's the
+  verdict is `NOT RUN [host-exhausted]` (exit 2, ENVIRONMENT) with `HOST EXHAUSTED (<resource> exhausted): N case(s)
+  UNJUDGED (…; every one in <run>/unjudged.txt)` and what to do: wait for the host and gate again, which runs only what the
+  gate did not pass (§3.14.12 item 5: the carry is verdict-blind). A test red beside them keeps the gate RED for that red
+  and names the unjudged cases apart. A host that could not start (no trx, a primary signature in its log) is unjudged
+  whole. Nothing is retried inside the gate. The record keeps `exhausted`, `unjudged` and `peak_commit_bytes`. The landing
+  refuses such a record as it refuses any tip no GREEN record covers (exit 14), and the merge-group classifier reads the
+  same table (§3.17.2: a red whose every case is the runner's host running out is INFRA).
 
 #### 3.14.4 Soundness: the population check — ONE tool for every whole-assembly run
 
@@ -1048,6 +1064,25 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   `UseSharedCompilation=false`): a reused MSBuild node or VBCSCompiler started inside the slot is a descendant of the holder
   that OTHER worktrees' builds connect to, so the job would kill it in the middle of another gate's build. Acquisition is
   nested in one fixed order (worktree lock, ticket, slot), so no two gates can wait on each other in a cycle.
+- **The commit admission (kb/Work PB5697).** The cap counts gates; it cannot see what the host can hold. On 2026-11-15
+  three whole-population gates beside two probe fleets ran this host out of COMMIT (24 false reds, run
+  000004-20261115T203340Z). So a waiter at the head of the queue that finds a slot free takes it only when
+  `host_resources.admit` lets it: the host's free commit (the commit limit, RAM plus the paging files, less the commit
+  charge, from GetPerformanceInfo: never free RAM) less each holder's remaining reservation (one gate's peak less what its
+  process tree has committed now, read from the holder's pid in its label; a holder it cannot read is reserved a whole peak)
+  must be at least `host_resources.GATE_NEED_BYTES`, the measured peak `GATE_PEAK_COMMIT_BYTES` plus the margin
+  `ADMISSION_MARGIN_BYTES`, stated there and nowhere else. Otherwise it gives the slot back at once and WAITS first in line,
+  saying `gate-slot: waiting for COMMIT … (reading)` and at every heartbeat; `gate_slot.py status` prints `commit admission
+  OPEN|WAITS — <reading>`. It is not a second cap: with room it never waits. It is right whatever the paging-file size (the
+  owner's machine setting, which sets the limit) and whatever else has committed, because it reads both live. Off Windows
+  there is no reading and it is open by that policy (Linux does not refuse a commit by default). ⚠ What a gate adds to the
+  host's charge is more than its process tree: the kernel's pools grow with every file it touches (on this host about 8 KB
+  of paged and nonpaged pool per cached file on the ReFS Dev Drive, 4.5 million files, about 44 GB of pool at 15:45 PST on
+  2026-11-15, trimmed only under physical pressure), so the tree-based reservation under-counts what a holder has already
+  committed and errs toward waiting. Every gate records its slot-held tree's peak (`peak_commit_bytes`: the job's
+  `PeakJobMemoryUsed`, `process_job.bound_peak_bytes`), so the threshold is re-measured from records. THE MEASUREMENT: see
+  kb/Work/PB5697 and its addenda (the gate of branch pb5697-gate-host-exhaustion, and the two gates sampled read-only beside
+  it).
 - **Long holds are flagged, never killed (kb/Work PB3310).** Every released hold records its duration per kind in
   `holds.json` (the last 50 per kind); `gate_slot.py status` marks a held slot older than 5 times the median of its kind
   (at least 5 recorded) `LONG HOLD`, and the session probe prints it. The flag is advice; the operator verifies the holder's
