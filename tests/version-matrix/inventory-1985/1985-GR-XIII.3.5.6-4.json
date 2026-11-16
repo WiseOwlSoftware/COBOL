@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIII.3.5.6-4",
  "rule-digest": "c50ef2104488",
+ "test-ref": "conformance:cases/XIII.3.5@1985-REPORT-DESCRIPTION-ENTRY/g85_bf36_06",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
