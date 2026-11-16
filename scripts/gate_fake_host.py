@@ -14,6 +14,7 @@ import threading
 import time
 
 from gate_host import FIRST_CLASSES, Host, HostTools, ONLY_CASES
+from gate_legs import TRUNCATION
 from host_resources import GENUINE_TEXT, OBSERVED
 
 
@@ -31,7 +32,8 @@ class FakeHost(Host):
     def __init__(self, root: Path, lock: Path, plant: set[str] = frozenset(),
                  trees: list[str | None] | None = None, base: str = "0" * 40, keys: dict[str, object] | None = None,
                  tools: str = "dotnet-sdk 10.0.403, python 3.15.2", store_dir: Path | None = None,
-                 platform: str = "windows", graph: buildgraph.Graph | None = None, repo: Path | None = None):
+                 platform: str = "windows", graph: buildgraph.Graph | None = None, repo: Path | None = None,
+                 preflight: dict[str, tuple[str, ...]] | None = None):
         """`trees`: the working tree the gate measures, call by call (its start, then its end; the last value
         repeats); `base`: the planted cut point; `keys`: each planted tree's inputs (`target_keys`, kb/Work PB5218): a
         string stands for every target (two trees with one string differ only in paths no target reads), a dict names it
@@ -40,7 +42,9 @@ class FakeHost(Host):
         planted worktree; two hosts handed one directory are two worktrees of one repository). `graph` and `repo`: a
         planted graph over a REAL scratch repository (kb/Work PB5231): the generated targets really run, traced, and the
         keys are the real ones (`Host.generate`, `Host.target_keys`); `trees` then names that repository's real trees.
-        Without them the graph is the real targets file, nothing is generated and the keys are planted."""
+        Without them the graph is the real targets file, nothing is generated and the keys are planted. `preflight`: the
+        planted preflight (kb/Work PB5872), each assembly's declared classes; by default the planted Characterization
+        whole, as the real targets file declares it (`PREFLIGHT`)."""
         super().__init__(root)
         self.planted_graph = graph
         if repo is not None:
@@ -48,6 +52,11 @@ class FakeHost(Host):
         self.root, self._lock, self.plant, self.keys, self.tools = root, lock, set(plant), dict(keys or {}), tools
         self.store_dir, self.platform_name = store_dir or root / "store", platform
         self.trees, self.base_sha = list(trees or ["tree-1"]), base
+        self.planted_preflight = dict(self.PREFLIGHT if preflight is None else preflight)
+        #: Every host the gate started, in order, by its file name (`<assembly>` or `preflight-<assembly>`), and the
+        #: cases each ran (kb/Work PB5872: a case runs once).
+        self.hosts_run: list[str] = []
+        self.cases_run: list[str] = []
         self.committed_tree = self.trees[0]  # HEAD's tree: a gate of a clean working tree measures it
         self.slots_taken = 0
         self.audited = self.built = self.toolchain_checked = False
@@ -56,7 +65,7 @@ class FakeHost(Host):
         #: Set when the gate stops the hosts for a RED audit; and when a test host starts (the "audit-late" arm's order).
         self.stopped_by_audit, self.host_started = threading.Event(), threading.Event()
         #: Set when every planted test host has returned: the "audit-after-hosts" arm's audit turns RED only then.
-        self.hosts_done, self._hosts_returned = threading.Event(), 0
+        self.hosts_done, self._hosts_returned, self._population_returned = threading.Event(), 0, 0
         #: Set by the "slow-host" arm's console once the gate has written a heartbeat line (kb/Work PB5097): its planted
         #: hosts stay in their test phase until then.
         self.beat_seen = threading.Event()
@@ -132,6 +141,13 @@ class FakeHost(Host):
                                ((i, (*v, "")[:4]) for i, v in sorted(self.oracle.items())) if i in ids),
                        encoding="utf-8", newline="\n")
         return out
+
+    #: The planted preflight by default: the planted Characterization whole (its one class), as the real targets file
+    #: declares the real one (kb/Work PB5872).
+    PREFLIGHT = {"Characterization": ("N.Char",)}
+
+    def preflight(self) -> dict[str, tuple[str, ...]]:
+        return dict(self.planted_preflight)
 
     def lock_path(self) -> Path:
         return self._lock
@@ -270,8 +286,10 @@ class FakeHost(Host):
         text = Path(path).read_text(encoding="utf-8")
         return Counter(self.POPULATION[asm]), text
 
-    def run_host(self, asm, run, env, spawn) -> int:
-        self.envs[asm] = dict(env)
+    def run_host(self, asm, run, env, spawn, name=None) -> int:
+        name = name or asm
+        self.envs[name] = dict(env)
+        self.hosts_run.append(name)
         if "audit-late" in self.plant:   # a host that runs until the gate stops it (Host.stop_hosts), writing nothing
             self.host_started.set()
             self.hosts_live.stopping.wait(60)
@@ -279,12 +297,20 @@ class FakeHost(Host):
                 self.hosts_live.stopped.add(-1)   # what `_Live.stop_all` records for a real host it kills
             return 1
         try:
-            return self._planted_host(asm, run, env)
+            return self._planted_host(asm, run, env, name)
         finally:
             with self.hosts_live.lock:
                 self._hosts_returned += 1
-                if self._hosts_returned == len(GATED_ASSEMBLIES):
+                if name == asm:   # the population's hosts (a preflight host is none of them)
+                    self._population_returned += 1
+                if self._population_returned == len(GATED_ASSEMBLIES) - len(self.planted_preflight_whole()):
                     self.hosts_done.set()
+
+    def planted_preflight_whole(self) -> list[str]:
+        """The assemblies the planted preflight runs whole (every planted case is of a declared class): their population
+        host never starts."""
+        return [a for a, cs in self.planted_preflight.items()
+                if all(any(n.startswith(c + ".") for c in cs) for n in self.POPULATION[a])]
 
     def peak_commit(self) -> int | None:
         return self.planted_peak
@@ -305,7 +331,7 @@ class FakeHost(Host):
             return {conf[0]: OBSERVED["empty-output"]}
         return {}
 
-    def _planted_host(self, asm, run, env) -> int:
+    def _planted_host(self, asm, run, env, stem) -> int:
         if "tamper-output" in self.plant:   # a host that writes into the generated output it was handed (kb/Work PB5231)
             for name, directory in env.items():
                 if name.startswith("WISEOWL_COBOL_GATE_") and name not in (ONLY_CASES, FIRST_CLASSES):
@@ -317,14 +343,19 @@ class FakeHost(Host):
         if "slow-host" in self.plant:   # a host in its test phase, silent, until the gate's heartbeat line has been seen
             self.beat_seen.wait(60)
         only = env.get(ONLY_CASES)   # a RETRY (kb/Work PB5099): the host runs exactly the cases its file names
+        if "ignore-only" in self.plant and stem == asm:   # a population host that runs its whole assembly whatever it
+            only = None                                   # is handed (kb/Work PB5872: the preflight's cases run twice)
         names = Path(only).read_text(encoding="utf-8").splitlines() if only else self.POPULATION[asm]
-        cases = [(n, ["Passed"]) for n in self.POPULATION[asm] if n in names]
-        red = asm == "Conformance" and "red" in self.plant
+        stems = [n[:-len(TRUNCATION)] for n in names if n.endswith(TRUNCATION)]   # GateOnly.CasesOf's two forms
+        cases = [(n, ["Passed"]) for n in self.POPULATION[asm] if n in names or any(n.startswith(s) for s in stems)]
+        self.cases_run += [f"{asm}: {n}" for n, _ in cases]
+        red = (asm == "Conformance" and "red" in self.plant) or (
+            stem != asm and "preflight-red" in self.plant and asm == "Characterization")
         if red:
             cases[0] = (cases[0][0], ["Failed"])
         messages = self._exhaustion(asm)   # kb/Work PB5697: failed cases whose texts are the host's, or a genuine one
         if "exhausted-nostart" in self.plant and asm == "Unit":   # a host that could not start: no trx, the host's error
-            (run / f"{asm}.log").write_text("Failed to create CoreCLR, HRESULT: 0x8007000E\n", encoding="utf-8",
+            (run / f"{stem}.log").write_text("Failed to create CoreCLR, HRESULT: 0x8007000E\n", encoding="utf-8",
                                             newline="\n")
             return 1
         for i, name in enumerate(c for c, _ in cases):
@@ -340,7 +371,7 @@ class FakeHost(Host):
         if asm == "Conformance" and "skip" in self.plant:
             cases[-1] = (cases[-1][0], ["NotExecuted"])
         if not (asm == "Unit" and "no-trx" in self.plant):
-            synthetic_trx(run / f"{asm}.trx", cases, messages=messages)
+            synthetic_trx(run / f"{stem}.trx", cases, messages=messages)
         passed = sum(o == ["Passed"] for _, o in cases)
         failed = sum(o == ["Failed"] for _, o in cases)
         log = [f"  Failed {cases[0][0]} [1 s]", "  Error Message:", "   PLANTED-RED-MESSAGE"] if red else []
@@ -348,5 +379,5 @@ class FakeHost(Host):
             failed += 1
         log.append(f"{'Failed!' if red else 'Passed!'}  - Failed:     {failed}, Passed:     {passed}, Skipped:     0, "
                    f"Total:     {len(cases)}, Duration: 1 s - WiseOwl.Cobol.Tests.{asm}.dll (net10.0)")
-        (run / f"{asm}.log").write_text("\n".join(log) + "\n", encoding="utf-8", newline="\n")
+        (run / f"{stem}.log").write_text("\n".join(log) + "\n", encoding="utf-8", newline="\n")
         return 1 if red or (asm == "Conformance" and "cleanup-red" in self.plant) else 0   # cleanup-red: all Passed, exit 1

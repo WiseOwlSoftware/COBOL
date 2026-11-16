@@ -514,15 +514,22 @@ class Host:
             return "build-local: ci bounce: none (no branch is checked out)"
         return "build-local: " + queue_facts.fetch_bounce_results(branch, self.repo / CI_BOUNCE_RESULTS, self.gh).line
 
-    def run_host(self, asm: str, run: Path, env: dict[str, str], spawn: Spawn) -> int:
-        """One assembly's whole population: `dotnet test --no-build` with a trx logger, its trx and its whole output in `run`
-        (the run directory, `TestResults/build-local/<run>`, gate_runs.RUN_ROOT), `<asm>.trx` and `<asm>.log`.
+    def preflight(self) -> dict[str, tuple[str, ...]]:
+        """THE GATE'S PREFLIGHT (kb/Work PB5872; scripts/build_targets.json, `buildgraph.Graph.preflight`): each test
+        assembly's declared classes, by assembly."""
+        return self.graph().preflight()
+
+    def run_host(self, asm: str, run: Path, env: dict[str, str], spawn: Spawn, name: str | None = None) -> int:
+        """One assembly's host: `dotnet test --no-build` with a trx logger, its trx and its whole output in `run` (the run
+        directory, `TestResults/build-local/<run>`, gate_runs.RUN_ROOT), `<name>.trx` and `<name>.log`, `name` being the
+        assembly's own for its population host and `preflight-<asm>` for its preflight host (kb/Work PB5872).
         The host is registered in `hosts_live` while it runs as the root of a ProcessJob, so `stop_hosts` ends its
         whole tree, orphans included (kb/Work PB4326, PB5098); a host that starts after the stop is killed at once and
         exits non-zero."""
+        name = name or asm
         cmd = ["dotnet", "test", str(self.repo / GATED_ASSEMBLIES[asm]), "--no-build", "--results-directory",
-               str(run), "--logger", f"trx;LogFileName={asm}.trx"]
-        with open(run / f"{asm}.log", "wb") as fh:
+               str(run), "--logger", f"trx;LogFileName={name}.trx"]
+        with open(run / f"{name}.log", "wb") as fh:
             with process_job.ProcessJob.start(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT,
                                               **spawn(env=env)) as p:
                 self.hosts_live.add(p)

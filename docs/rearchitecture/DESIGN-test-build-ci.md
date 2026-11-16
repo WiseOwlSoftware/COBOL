@@ -835,7 +835,10 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
 #### 3.14.1 The contract
 
 - **Every gate of a change a test can read runs the WHOLE discovered population** of Conformance, Unit and
-  Characterization, every time (§3.13; owner decision 1 of PB4323). Ordering changes WHEN a test runs, never WHETHER.
+  Characterization, every time (§3.13; owner decision 1 of PB4323). Ordering changes WHEN a test runs, never WHETHER,
+  with one exception: a red PREFLIGHT (the declared classes whose red means a derived or pinned file is stale, run after
+  the build and before the population) ends the gate before the population starts (owner 2026-11-16, kb/Work PB5872;
+  §3.14.15). A green preflight's cases are part of the population, run once.
 - ⛔ **Sound by construction: every discovered test case runs exactly once.** One host per assembly runs all of it; the
   gate CHECKS it on every run by name (§3.14.4) and a drift test proves the check fires.
 - ⛔ **Nothing narrows a gate's host.** The one variable a test host's framework reads from the gate,
@@ -1962,6 +1965,80 @@ recorded passes), the plan covers 15 of the 33 Windows target runs and the whole
 - The nightly as graph targets, with a red shown first by the session probe.
 - CI recording its own passes on the ref, so the Linux leg too would skip a target already passed at its key.
 
+#### 3.14.15 The preflight: the cheap reds first, and the population only after them (kb/Work PB5872)
+
+**The decision.** The owner, 2026-11-16, asked whether a gate should refuse to start a whole-population run until the
+cheap checks that predict a red have passed: "yes I WANT IT", after "why ... are we waiting for a known red to appear,
+then handle the error?". That day five of six fix branches of one lane needed a second or third gate, and four of those
+reds were visible in seconds: an emitted-C# snapshot the Characterization host finished 22.1 s after it started, in a
+run whose test phase then took 981.6 s after 601.7 s in the slot queue; the runtime ABI pin; the public-API baselines
+(already an audit, so already fail-fast). The decision changes the owner's rule of 2026-09-28 ("order, don't skip")
+for this one case: on a preflight red the rest is not run. On a green preflight nothing is skipped.
+
+**The order of a code-lane gate**, the gate's one order (`scripts/gate.py`, §3.17.3): the lock and the run directory; the
+toolchain; the lane; the audits, started BESIDE everything after them; the generated targets and the keys; the corpus
+fetch; the slot; the build; **the preflight**; the population; the population check; the verdict. The preflight
+needs the build (its cases are compiled tests), and the build is what the slot rations, so it runs INSIDE the slot after
+the build, not before the slot wait: the note's first shape (before the slot) would have built outside the cap. What it
+saves is the population's test phase, never the slot wait.
+
+**What it runs.** Each test target of `scripts/build_targets.json` may declare `preflight`, its test classes, fully
+qualified, each with why its red means a DERIVED OR PINNED FILE IS STALE (a snapshot, a pin, a measured file the code must
+equal). For each target the gate runs (not up to date at its key), one host per declaring assembly, all at once
+(`gate_legs.Legs.preflight`, through the hosts' one runner `Legs.run_hosts`), each handed a retry file
+(`<run>/preflight-<assembly>.txt`, `WISEOWL_COBOL_GATE_ONLY`) whose every line is a declared class followed by `.` and
+the listing's truncation mark: the retry hook's own rule for a listed name cut short (`GateOnly.CasesOf`, every case
+whose display name it begins) selects exactly that class's cases, so the preflight starts without waiting for a listing,
+and the listings run beside it. Its trx and log are `preflight-<assembly>.trx` and `.log`; the assembly's observation log
+is shared with its population host (the two run one after the other), so the hand-off check after the hosts reads both.
+
+**A red preflight** (a failed case, a host red with no failed case, or a declared class that ran no case: a stale
+declaration fails loudly) ends the gate at once: `=== BUILD-LOCAL GATE: RED — PREFLIGHT RED: Characterization
+<case> — fail-fast: a derived or pinned file is stale; the whole population did NOT run (preflight 14.9 s; kb/Work
+PB5872) · slot … ===`. The record's `preflight` holds the classes, the cases per assembly, each host's seconds, the
+verdict, the red cases and the reasons; `timings` hold `preflight_s` and `first_red_s`, so a later measurement can count
+what the stage saved. The record also measures its tree and keys at the end, so a re-gate at unchanged keys carries
+the preflight's passes (`PassCarry.carry` reads `preflight-<assembly>.trx` beside the population's trx) and, for an
+assembly with carried passes, runs no preflight host: its red case runs in the retry (kb/Work PB5099).
+
+**A green preflight changes nothing else, and no case runs twice.** The population's plan (`Legs.plan`) leaves out every
+listed case of a class the preflight ran (an assembly the preflight ran whole, Characterization, starts no population
+host), and the population check (`Legs.check_populations`) reads the preflight's trx beside the host's: a case in both is
+RAN TWICE, a declared case in neither NEVER RAN. The preflight's cases are counted as RAN, never as carried. The verdict
+line adds `PREFLIGHT GREEN: n case(s) of k class(es) in s s, before the population`. The growth sample's test phase is
+the preflight's seconds plus the population's. `_verdict` also reads the record's reasons, so no path past an unreturned
+preflight red could count a failed case green.
+
+**What is declared, and why** (the targets file's `preflight.measurement`): chosen 2026-11-16 from this host's 166 gate
+records (53 full-lane RED, 26 with a test red), ranked by how often a class was a run's ONLY red class and by its own
+seconds there. Admitted: Characterization whole (EmittedCSharpSnapshotTests, the only red of 2 runs, 6.6 s; its other
+four classes 3.7 s, so the 37-case target starts no population host); Unit RuntimeAbiPinDriftTests (1 of 2),
+Architecture.BinderMemberReadersDriftTests (2 of 5), DocumentedFactsDriftTests (0 of 5); RepoDrift
+ArchitectureEdgesDriftTests (1 of 3) and Architecture.BackendContractDriftTests (1 of 1); Conformance ArchOracleDriftTests
+(2 of 3, found 463 s and 659 s into the test phase). Left out: SpecTraceabilityInventoryDriftTests (36.2 s, weight 16.9),
+behaviour reds (19 to 570 s) and source-shape drift tests whose red names no stale file.
+
+**Bounded, in cases and weights, never on a clock.** The targets file's `preflight.budget` names the committed weights file
+(each class's median merge-group seconds) and two limits, `class_weight_s` 10 and `total_weight_s` 15 (the eleven
+declared classes weigh 12.4). The BUILD TARGETS audit (`buildgraph.py check`, `preflight_findings`, in every gate and CI's
+`audits` job) refuses a declared class no C# source of its project declares, one the weights file does not measure, one
+over the class limit and a set over the total; reading the graph refuses a preflight with no budget, a class outside its
+project's namespace and a class with no reason. **Measured on this host by hand, 2026-11-16** (the four declaring
+assemblies' preflight hosts at once, after a fresh Debug build): 56.9 s the first time after the build (Conformance 56.9,
+Unit 54.0, Characterization 14.7, RepoDrift 9.0: the first load of freshly built assemblies, which the population's
+hosts would otherwise pay) and 14.9 s warm (Conformance 14.9, Unit 12.6, Characterization 11.0, RepoDrift 7.8). The first
+gate to run it records its own `preflight_s`.
+
+**A local stage.** CI's merge group has no preflight: it runs every target (§3.14.14), Linux in Release and Windows in
+Debug where no pass stands; the preflight is part of the local gate's one order only, with no flag, mode or switch.
+
+**Self-tests** (`scripts/selftests/gate/test_preflight.py`, on the planted machine whose preflight declares the planted
+Characterization whole): a preflight red (no population host started, the record says PREFLIGHT); a green one with a
+whole assembly and part of another (each case once, every population EXACT); a population host that runs a preflight
+case (RAN TWICE); a declared class that runs no case (RED); an audit red before the slot, the inert lane and the tooling
+lane (no preflight); a re-gate after a preflight red, at the same keys and at changed ones; and the real targets file's
+declaration. `buildgraph.py --self-test` plants the drift rule's findings.
+
 ### 3.15 THE LINUX REPRODUCTION TOOL — CI's Linux legs under WSL, run by hand (kb/Work PB1732, PB4327)
 
 > ⛔ **The Linux gate is a HAND-RUN reproduction tool, and no per-change gate runs it (owner 2026-10-31, kb/Work PB4327;
@@ -2304,7 +2381,9 @@ the only run of the merged tree.
 #### 3.17.3 The gate driver's ONE mode (PB3022)
 
 - **One shape.** The gate has no mode and no scope: the whole-population gate of §3.13–3.14 inside a gate slot, for an
-  implementer's commit, a finisher's re-gate and a landing's own-tip gate alike (kb/Work PB3022, PB4328).
+  implementer's commit, a finisher's re-gate and a landing's own-tip gate alike (kb/Work PB3022, PB4328). Its one order
+  in the code lane: the audits beside everything, the slot, the build, the PREFLIGHT (§3.14.15, kb/Work PB5872), the
+  population, the population check, the verdict.
 - **No Linux half.** The Linux half of the targeted leg (kb/Work PB3612) was removed (kb/Work PB4327, §3.15): measured against
   78 gate records it cost 167 s a gate, re-ran the leg Windows had just run and was red once, a false red. `LinuxLeg`,
   `Host.runs_linux_leg`/`linux_leg`/`linux_gate_holder`, `plan_leg`, the `linux` field of `verdict.json` and `linux-gate.sh`'s

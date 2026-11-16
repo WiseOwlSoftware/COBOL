@@ -18,11 +18,22 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 import buildgraph  # noqa: E402  — THE targets, their keys and the one store of their passes (kb/Work PB5207, PB5218)
 from gate_slot import Heartbeat  # noqa: E402
-from test_population import GATED_ASSEMBLIES, LINUX_GATE_RESULTS, PopulationError, UnreadableTrx, check as check_population, not_passed, red_classes  # noqa: E402
-from gate_verdict import HostRun, Outcome  # noqa: E402
+from test_population import GATED_ASSEMBLIES, LINUX_GATE_RESULTS, PopulationError, UnreadableTrx, check as check_population, not_passed, read_trx, red_cases, red_classes  # noqa: E402
+from gate_verdict import PREFLIGHT_PREFIX, HostRun, Outcome  # noqa: E402
 from gate_host import CI_BOUNCE_RESULTS, Host, Spawn, host_env  # noqa: E402
 from gate_reuse import Carry  # noqa: E402
 from gate_generated import Generations  # noqa: E402
+
+#: The mark a listed name cut short ends with (tests/_shared/GateLegs.cs `GateOnly.Truncation`, the same text): a line of a
+#: retry file ending in it names every case whose display name it begins, so `<class>.` and the mark name every case of
+#: that class (a display name is `<namespace>.<class>.<method>(…)`).
+TRUNCATION = "···"
+
+
+def in_classes(name: str, classes: tuple[str, ...] | list[str]) -> bool:
+    """Whether the case `name` (a listed or trx display name, `<namespace>.<class>.<method>(…)`) is a case of one of the
+    fully qualified `classes`."""
+    return any(name.startswith(c + ".") for c in classes)
 
 
 class Legs:
@@ -35,32 +46,42 @@ class Legs:
         self.host, self.say, self.generations = host, say, generations
         self.heartbeat, self.heartbeat_poll_s = heartbeat, heartbeat_poll_s
 
-    def plan(self, out: Outcome, run: Path, listings: dict[str, Counter], carry: Carry,
-             todo: list[str]) -> dict[str, Path | None]:
-        """THE RETRY AT EACH TARGET'S KEY (kb/Work PB5099, PB5218): per assembly of `todo`, the listed cases the carried
-        passes (`carry`) do not cover, written one name per line to `<run>/only-<assembly>.txt` for the host's retry hook
-        (ONLY_CASES). Returns, per assembly that has a case left, its retry file (None: its whole population, when the
-        carried passes cover none of it); an assembly with none left has no host. Records the runs this gate composes
-        with and how many cases it carries."""
-        lefts = {asm: not_passed(listings[asm], carry.passed[asm]) for asm in todo}
-        for asm in carry.red_hosts & set(todo):
+    def plan(self, out: Outcome, run: Path, listings: dict[str, Counter], carry: Carry | None,
+             todo: list[str], preflight: dict[str, tuple[str, ...]] | None = None) -> dict[str, Path | None]:
+        """THE RETRY AT EACH TARGET'S KEY (kb/Work PB5099, PB5218), LESS THE PREFLIGHT (kb/Work PB5872): per assembly of
+        `todo`, the listed cases the carried passes (`carry`) do not cover and that are no case of a class the green
+        preflight ran (`preflight`, by assembly), written one name per line to `<run>/only-<assembly>.txt` for the host's
+        retry hook (ONLY_CASES). Returns, per assembly that has a case left, its retry file (None: its whole population,
+        when neither covers any of it); an assembly with none left has no host. Records the runs this gate composes with
+        and how many cases it carries; the preflight's cases are not carried, they ran in this gate (its own trx, which
+        the population check reads beside the host's)."""
+        preflight = preflight or {}
+        lefts = {asm: not_passed(listings[asm], carry.passed[asm] if carry is not None else Counter()) for asm in todo}
+        for asm in (carry.red_hosts if carry is not None else set()) & set(todo):
             # ⛔ A HOST WHOSE RED THE CASES DO NOT EXPLAIN (`red_explained`: a class or collection cleanup failure, a crash
             # after the last result, no verdict line, a failure count beside a failed case that the trx does not name)
             # has a cause no retry of cases reaches, and composing around it would turn a deterministic host failure
             # GREEN: the host runs the whole assembly again.
             carry.passed[asm] = Counter()
             lefts[asm] = dict(listings[asm])
+        ran = {asm: sum(c for n, c in listings[asm].items() if in_classes(n, preflight.get(asm, ()))) for asm in todo}
+        lefts = {asm: {n: c for n, c in left.items() if not in_classes(n, preflight.get(asm, ()))}
+                 for asm, left in lefts.items()}
         to_run = {asm: sum(left.values()) for asm, left in lefts.items()}
-        carried = {asm: sum(listings[asm].values()) - to_run[asm] for asm in todo}
+        carried = {asm: sum(listings[asm].values()) - to_run[asm] - ran[asm] for asm in todo}
         plan: dict[str, Path | None] = {}
         for asm, left in lefts.items():
             if not left:
                 continue
-            if not carried[asm]:
+            if not carried[asm] and not ran[asm]:
                 plan[asm] = None
                 continue
             plan[asm] = run / f"only-{asm}.txt"
             plan[asm].write_text("".join(f"{n}\n" for n in left), encoding="utf-8", newline="\n")
+        if any(ran.values()):
+            self.say("build-local: the preflight ran " + ", ".join(f"{a} {ran[a]:,}" for a in todo if ran[a])
+                     + " case(s), so the population runs the rest: "
+                     + ", ".join(f"{a} {to_run[a]:,} to run" for a in todo) + " (kb/Work PB5872)")
         if any(carried.values()):
             out.carried, out.composed_from = {a: c for a, c in carried.items() if c}, carry.runs
             whence = (f"earlier runs of this worktree passed cases at these targets' keys (runs {', '.join(carry.runs)})"
@@ -133,18 +154,22 @@ class Legs:
     NO_HOST = object()
 
     def run_hosts(self, out: Outcome, run: Path, first: Path | None, spawn: Spawn, hosts_started: float,
-                  plan: dict[str, "Path | None | Callable[[], Path | None | object]"]) -> None:
+                  plan: dict[str, "Path | None | Callable[[], Path | None | object]"], prefix: str = "") -> list[HostRun]:
         """The planned assemblies CONCURRENTLY, one host each, each printed through the one leg report
         (scripts/test_leg_report.py) in a fixed order whatever order they finished in. `plan` (`plan`, kb/Work PB5099,
         PB5218) names each assembly that runs: None for its whole population, a retry file for its cases not yet passed,
         or a DEFERRED plan (kb/Work PB4333: the program differential's capture), called in that host's own thread once
         the others have started, which returns one of those or NO_HOST; an assembly it does not name (up to date, or every
-        case carried) starts no host."""
+        case carried) starts no host. `prefix`: the hosts' file names in the run directory are `<prefix><assembly>`
+        (PREFLIGHT_PREFIX for the preflight's, kb/Work PB5872). Returns each host's run, in that fixed order; none when a
+        RED audit stopped them (`_audits`)."""
         asms = [a for a in GATED_ASSEMBLIES if a in plan]
 
         def how(p) -> str:
-            return "whole population" if p is None else "after its capture" if callable(p) else "cases not yet passed"
-        self.say("build-local: " + (", ".join(f"{a} ({how(plan[a])})" for a in asms) or "no test host: nothing to run")
+            return ("its preflight classes" if prefix else "whole population" if p is None
+                    else "after its capture" if callable(p) else "cases not yet passed")
+        self.say("build-local: " + ("preflight: " if prefix else "")
+                 + (", ".join(f"{a} ({how(plan[a])})" for a in asms) or "no test host: nothing to run")
                  + (" concurrently" if len(asms) > 1 else ""))
 
         stop_beat, finished = threading.Event(), []   # `finished`: appended by each host thread (list.append is atomic)
@@ -154,9 +179,11 @@ class Legs:
             if only is self.NO_HOST:
                 finished.append(asm)
                 return asm, None, 0.0, time.monotonic() - hosts_started
+            # one observation log per ASSEMBLY (buildgraph.observation_log): its preflight host and its population host
+            # run one after the other and append to it, so the hand-off check after the hosts reads both
             env = host_env(first, buildgraph.observation_log(run, asm), only, self.generations.handed(asm))
             t = time.monotonic()
-            rc = self.host.run_host(asm, run, env, spawn)
+            rc = self.host.run_host(asm, run, env, spawn, f"{prefix}{asm}")
             finished.append(asm)   # at the host's own return, not at pool.map's submission-order yield (R1-2)
             return asm, rc, time.monotonic() - t, time.monotonic() - hosts_started
 
@@ -181,32 +208,87 @@ class Legs:
             stop_beat.set()
             beater.join()
         if self.host.hosts_live.stopped_any():
-            return   # stopped by a RED audit (`_audits`): a killed host's log is no report, `_audit_red` ends the gate
+            return []   # stopped by a RED audit (`_audits`): a killed host's log is no report, `_audit_red` ends the gate
+        runs: list[HostRun] = []
         for asm in asms:
             rc, wall, fin = results[asm]
             if rc is None:   # a deferred plan carried every case: no host ran, and the population check composes it
                 continue
             # THE ONE RULE for what a host prints (kb/Work PB1573): a green host its verdict line, a red one its
             # COMPLETE output. Its exit code is the host's verdict: 0 green, anything else red.
-            rep = subprocess.run([sys.executable, str(REPO / "scripts" / "test_leg_report.py"), "--name", asm,
-                                  "--log", str(run / f"{asm}.log"), "--rc", str(rc)],
+            rep = subprocess.run([sys.executable, str(REPO / "scripts" / "test_leg_report.py"), "--name", f"{prefix}{asm}",
+                                  "--log", str(run / f"{prefix}{asm}.log"), "--rc", str(rc)],
                                  capture_output=True, text=True, encoding="utf-8", errors="backslashreplace")
             for line in (rep.stdout + rep.stderr).splitlines():
                 self.say(line)
-            out.runs.append(HostRun(asm, rc, rep.returncode != 0, round(wall, 1), round(fin, 1)))
+            runs.append(HostRun(asm, rc, rep.returncode != 0, round(wall, 1), round(fin, 1)))
+        return runs
+
+    def preflight(self, out: Outcome, run: Path, spawn: Spawn, todo: list[str], carry: Carry | None) -> list[str]:
+        """THE PREFLIGHT (kb/Work PB5872; owner 2026-11-16: "why ... are we waiting for a known red to appear, then handle
+        the error?"): for each assembly of `todo` that declares preflight classes (scripts/build_targets.json,
+        `Host.preflight`), one host, all CONCURRENTLY, each running exactly its declared classes (its retry file names each
+        as `<class>.` and the truncation mark, so the host's one retry hook selects them without a listing). Returns the
+        RED reasons, each naming its assembly and red cases: a red case, a host red with no red case, or a declared class
+        that ran no case (the declaration names a class the assembly does not run: a stale declaration fails loudly);
+        empty when it is GREEN or nothing is declared. Records `out.preflight` and `preflight_s`; a RED audit that stops
+        its hosts leaves the caller to see it (`hosts_live.stopped_any`). An assembly an earlier run of this worktree
+        passed cases of at its key (`carry`, a RETRY, kb/Work PB5099) has no preflight host: that run ran its preflight,
+        and the retry runs only what it did not pass."""
+        declared = {asm: classes for asm, classes in self.host.preflight().items()
+                    if asm in todo and not (carry is not None and carry.passed.get(asm))}
+        if not declared:
+            return []
+        plan: dict[str, Path | None] = {}
+        for asm, classes in declared.items():
+            plan[asm] = run / f"{PREFLIGHT_PREFIX}{asm}.txt"
+            plan[asm].write_text("".join(f"{c}.{TRUNCATION}\n" for c in classes), encoding="utf-8", newline="\n")
+        started = time.monotonic()
+        runs = self.run_hosts(out, run, None, spawn, started, plan, prefix=PREFLIGHT_PREFIX)
+        out.timings["preflight_s"] = round(time.monotonic() - started, 1)
+        if self.host.hosts_live.stopped_any():
+            return []
+        reds: list[str] = []
+        record: dict = {"classes": {a: list(c) for a, c in declared.items()}, "cases": {},
+                        "hosts_s": {r.asm: r.wall_s for r in runs}, "red": []}
+        for asm, classes in declared.items():
+            trx = run / f"{PREFLIGHT_PREFIX}{asm}.trx"
+            host = next((r for r in runs if r.asm == asm), None)
+            try:
+                ran = read_trx(trx).definitions if trx.is_file() else Counter()
+                failed = sorted(red_cases([trx])) if trx.is_file() else []
+            except UnreadableTrx as e:
+                reds.append(f"{asm}: its preflight trx cannot be read ({e})")
+                continue
+            record["cases"][asm] = sum(ran.values())
+            record["red"] += [f"{asm}: {c}" for c in failed]
+            if failed:
+                reds.append(f"{asm} {', '.join(failed[:3])}" + (f" and {len(failed) - 3} more" if len(failed) > 3 else ""))
+            elif host is None or host.red:
+                reds.append(f"{asm}: its preflight host ended red with no red case ({PREFLIGHT_PREFIX}{asm}.log)")
+            if missing := [c for c in classes if not any(in_classes(n, (c,)) for n in ran)]:
+                reds.append(f"{asm}: declared class(es) {', '.join(missing)} ran no case (scripts/build_targets.json "
+                            "declares a class this assembly does not run)")
+        record["verdict"], record["reasons"] = ("RED" if reds else "GREEN"), reds
+        out.preflight = record
+        if reds:
+            out.timings["first_red_s"] = round(min((r.finished_s for r in runs if r.red), default=out.timings["preflight_s"]), 1)
+        return reds
 
     def check_populations(self, out: Outcome, listings: dict[str, Counter], run: Path, carry: Carry | None,
                           todo: list[str]) -> None:
-        """Ran equals discovered, by name, per assembly of `todo` (scripts/test_population.py `check`): its trx against
-        its listing, with the passes `carry` brings (a RETRY, kb/Work PB5099: an assembly it ran nothing in has no trx and
-        is all carried). A host that ran and wrote no trx is UNMEASURED, a RED. A target up to date is not checked here:
-        its pass was proven exact when it was recorded."""
+        """Ran equals discovered, by name, per assembly of `todo` (scripts/test_population.py `check`): its trx and its
+        preflight's (kb/Work PB5872: the union, so a case both ran is RAN TWICE) against its listing, with the passes
+        `carry` brings (a RETRY, kb/Work PB5099: an assembly it ran nothing in has no trx and is all carried). A host that
+        ran and wrote no trx is UNMEASURED, a RED. A target up to date is not checked here: its pass was proven exact when
+        it was recorded."""
         for asm in todo:
             trx = run / f"{asm}.trx"
+            trxs = [str(p) for p in (trx, run / f"{PREFLIGHT_PREFIX}{asm}.trx") if p.exists()]
             try:
-                if not trx.exists() and (carry is None or any(r.asm == asm for r in out.runs)):
+                if not trx.exists() and (any(r.asm == asm for r in out.runs) or (carry is None and not trxs)):
                     raise PopulationError(f"{asm}: its host wrote no trx")
-                pop = check_population(asm, listings[asm], [str(trx)] if trx.exists() else [],
+                pop = check_population(asm, listings[asm], trxs,
                                        carried=carry.passed[asm] if carry is not None else None)
             except PopulationError as e:
                 out.reasons.append(f"{asm} POPULATION UNMEASURED ({e})")

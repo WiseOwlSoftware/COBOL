@@ -137,8 +137,10 @@ BelowNormal`** (`scripts/gate.py`), run at a branch's head before it lands. It d
   the ISO text, the oracle, and the data files under docs/ that compiler tests read): the tree audits, about 40 s;
 - **tooling** (`scripts/`, `.github/`, `tools/`, `.claude/`, any `*.py`/`*.ps1`/`*.sh`, except the tooling a compiler test
   or the build reads, `CODE_READS`): the audits and the self-tests whose recorded inputs it touches, with no build;
-- **code** (everything else): the build once and, on Windows, the WHOLE population of every test target in
-  `scripts/build_targets.json` (each keyed by its declared inputs: one up to date at its key does not run).
+- **code** (everything else): the build once, then the PREFLIGHT (the classes `scripts/build_targets.json` declares whose
+  red means a stale derived or pinned file; a red one ends the gate RED before the population starts, kb/Work PB5872),
+  then, on Windows, the WHOLE population of every test target in `scripts/build_targets.json` less the cases the
+  preflight ran (each keyed by its declared inputs: one up to date at its key does not run).
 There is no impact map, no tier, no selected leg and no Linux half per change; the inner loop (`dotnet test --filter` by
 hand) claims nothing. **A branch lands through ONE script, `python scripts/orchestrator/enqueue.py land <branch>`**: it
 refuses a tip no GREEN record covers, merges `origin/main` in, stamps the DEVLOG entry, runs the landing checks, publishes
