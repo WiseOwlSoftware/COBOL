@@ -727,6 +727,13 @@ to carry what the run units tell each other. Three pieces do it, and each lives 
   since the holder can only release by executing a statement of its own, and re-enters before its next attempt;
   `RETRY FOREVER` against it is therefore not DOC-A.1-109's deadlock. Two distinct records share a byte with
   probability 2^-60, and the only consequence would be an over-cautious `51` across run units, never a missed one.
+  **A READ that sets a lock takes it BEFORE its retrieval** (`FileRegistry.GrantReadLockBeforeRetrieval`, kb/Work PB5770):
+  the grant is a test-and-set the host arbitrates, so it is the READ's last conflict test, and a refusal is the record
+  operation conflict of §2023:14.9.30.4 GR9 — the RETRY phrase applies and GR10a's unchanged file position indicator holds,
+  because nothing has moved. `HolderOf` before it is a test only: on a connector with no store statement (the sequential
+  organization) another run unit can lock the record between the two. A retrieval that then makes no record available
+  gives the grant back (`ReleaseUnusedReadLockGrant`). Only GR22's ADVANCING ON LOCK skip-scan grants after its retrieval,
+  by its own model, and a refusal there is a locked record it skips.
 
 **The host primitive is the `RegionLocks` endpoint (`IO/Sharing/`), and the byte map in `HostRegionLocks` is its one
 table.** A connector holds one endpoint per handle, made by the host of the process (`IRegionLockHost`,
