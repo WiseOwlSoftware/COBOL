@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.5.1-4",
  "rule-digest": "19aad336fec5",
+ "test-ref": "conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/g85_f21_06",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
