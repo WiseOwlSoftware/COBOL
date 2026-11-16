@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: l1_release_same_record_area
-*> rules: [GR-14.9.32.4-3]
-*> accept: [2002, 2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_release_same_record_area
+      *> rules: [GR-14.9.32.4-3]
+      *> accept: [85, 2002, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:14.9.32.4 GR3 — RELEASE under SAME RECORD AREA: the released logical record STAYS
       *> available in the record area (the "unless … SAME RECORD AREA clause" branch of sentence 1)
       *> and is ALSO available as a record of the other file named in that clause (sentence 2).

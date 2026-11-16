@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb3511_implicit_goback_sort_output_procedure
-*> rules: [GR-14.6.3-3, GR-14.9.40.4-13, GR-14.9.40.4-14]
-*> accept: [2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb3511_implicit_goback_sort_output_procedure
+      *> rules: [GR-14.6.3-3, GR-14.9.40.4-13, GR-14.9.40.4-14]
+      *> accept: [85, 2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> PB3511 - a SORT output procedure whose AT END GO TO leaves the named
       *>   procedure for the source element's last paragraph never reaches the
       *>   return mechanism, and running past that paragraph is the implicit

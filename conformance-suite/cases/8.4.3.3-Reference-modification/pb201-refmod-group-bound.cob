@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb201-refmod-group-bound
-*> rules: [SR-8.4.3.3.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb201-refmod-group-bound
+      *> rules: [SR-8.4.3.3.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> The SIBLING position (kb/Work PB201, and the two-arm law): 8.4.3.3.3
       *> rule 4 - "Leftmost-position and length shall be arithmetic expressions" -
       *> carries 8.8.1.1 to a reference-modification bound exactly as 8.4.2.3.2

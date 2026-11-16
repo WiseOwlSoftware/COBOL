@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1180-string-all-figurative-sender
-*> rules: [SR-14.9.43.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1180-string-all-figurative-sender
+      *> rules: [SR-14.9.43.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 14.9.43.3 SR2 (kb/Work PB1180): "Literal-1 or literal-2 shall not be a figurative constant that begins with
       *> the word ALL." `ALL ZEROES` begins with ALL; the figurative's binder arm dropped the word, so the program
       *> compiled and moved ONE '0' ([0........ ]). The STRING sender, the STRING delimiter and UNSTRING's delimiter

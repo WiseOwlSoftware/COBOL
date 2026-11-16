@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1127-inspect-index-item-tally-counter
-*> rules: [SR-14.9.22.3-5]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1127-inspect-index-item-tally-counter
+      *> rules: [SR-14.9.22.3-5]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1127 - ISO 14.9.22.3 SR5 (cite.py --check 14.9.22.3 "Identifier-2 shall reference an elementary numeric data item" -> OK 5):
       *> a USAGE INDEX item is class INDEX, never numeric (8.5.2.1 Table 2), so it is not an INSPECT TALLYING
       *> counter; its storage PICTURE (category numeric, zero digits) used to pass the screen and the tally

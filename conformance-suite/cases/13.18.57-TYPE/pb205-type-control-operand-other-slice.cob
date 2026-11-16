@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb205-type-control-operand-other-slice
-*> rules: [SR-13.18.57.3-10]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb205-type-control-operand-other-slice
+      *> rules: [SR-13.18.57.3-10]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 13.18.57.3 SR10: "Data-name-1 and data-name-2 may be qualified and
       *> reference-modified. If data-name-1 or data-name-2 is reference-modified,
       *> leftmost-position and length shall be integer literals. Each
