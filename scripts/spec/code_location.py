@@ -38,6 +38,9 @@ import subprocess
 import sys
 from typing import Callable, Iterable
 
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
+
 REPO = pathlib.Path(__file__).resolve().parents[2]
 ANCHOR_KINDS = REPO / "tests" / "doc-facts" / "inventory-anchor-kinds.json"
 PARITY_FIXTURE = REPO / "tests" / "doc-facts" / "code-location-parity-cases.json"
@@ -893,7 +896,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
-    from standard_streams import ensure_utf8  # noqa: E402
     ensure_utf8()
     sys.exit(main())
