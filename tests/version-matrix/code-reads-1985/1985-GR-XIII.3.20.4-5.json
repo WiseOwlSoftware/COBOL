@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-5",
+ "rule-digest": "4064dedbc07b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-149",
+  "sources": {
+   "reader": "ed46fa0c0b72666d3767b4660b6e15018ee067ddab44913e2bda462d8371f739",
+   "refuter": "f03f180a979093537a6da5ab2e53f96581b67495f1a5c03c1e2064781388dd2f"
+  },
+  "imported": {
+   "reader": "25cd8e17ccb8b7d79075f46e4065fec2a0be40e1569664d5e3fd35c00ffb8e70",
+   "refuter": "41612f5aebb6f8b739097d3ca0bc728089648aa8e9541ee4bd93a977c01a1fdc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.20.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a detail report group is processed when a GENERATE naming it executes (each execution, after any control break processing) and by no other statement; a GENERATE report-name processes the sole detail without presenting it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Generate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateSummary; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate (2002+): whether a detail that did not present consumes its GROUP INDICATE occasion; not whether the detail is processed",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+    "switches": "DialectLevel < 2002: GENERATE report-name refused when the report has more than one detail (§1985:XIII.3.20.3 SR6)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes Edition = DialectLevel into the CobolReport that the DialectBehaviors questions read",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|IsActive in ReportWriterBinder.cs, ReportWriterEmitter.cs, ReportWriter.cs",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f29_04 covers one U-DE line per GENERATE, a suppressed detail and a GENERATE report-name; several reports with their own details, and a GENERATE report-name that is the first GENERATE, are exercised by probe ptype1",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-149/runs/g85_f29_04-001",
+    "printed": "EXPECT: MATCH (witness g85_f29_04)",
+    "expected": "the witness .out"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-149/src/ptype1.cob (run runs/ptype1-002)",
+    "printed": "stdout INITIATED, U-RH1, U-PH1 1, U-CHF1, U-PF1 1, U-PH1 2, R2 SUMMARY, U-RH2, U-D2, R2 DETAIL, U-D2, TERMINATE, U-PF1 2, U-RF1; file 1 page 1: PH 1 on L1, DE 1-3 on L3-5, PF 1 on L9; page 2: no PH, DE 4-5 on L3-4, PF 2 on L9, RF on L10; file 2: RH2 L2, PH2 L3, DE2 L4, PF2 L8, RF2 L9; file 3 empty and U-RH3 never runs",
+    "expected": "RH1 suppressed although it has NEXT GROUP NEXT PAGE: no page advance, PH first at HEADING; nonprintable CH FINAL runs its USE only; suppressed PH on page 2; GENERATE report-name as the first GENERATE processes the RH and the detail's USE but prints no detail (§1985:XIII.4.3.4 GR1); TERMINATE with no GENERATE processes no RH"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-149/src/ptype1.cob first form (run runs/ptype1-001)",
+    "printed": "COBOL0899 GENERATE R2: the report-name form requires a CONTROL clause; COBOL0899 TYPE CH FINAL not an operand of the CONTROL clause",
+    "expected": "§1985:XIII.4.3.3 SR2 a; §1985:XIII.3.20.3 SR2"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.4 GR5",
+    "check": "OK  §1985:XIII.3.20.4 GR5  the text is in GR5 (quoted: \"processed by the report writer control system when a corresponding GENERATE statement is executed\")"
+   },
+   {
+    "cite": "§1985:XIII.4.3.4 GR1",
+    "check": "OK  §1985:XIII.4.3.4 GR1  the text is in GR1 (quoted: \"no detail report group is presented\")"
+   }
+  ],
+  "notes": "GenerateCore ends with PresentBody(detail) for GENERATE data-name and BeginGroup(detail, print: false) for GENERATE report-name, so the detail's USE runs (U-D2 in ptype1) and nothing prints; no other entry point presents a detail. The edition switches on this path govern GROUP INDICATE bookkeeping and a compile-time count, not the processing this rule states.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.20.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "rtype2-003: three details in one report; each GENERATE processed only its named detail. GENERATE D0 (a nonprintable detail) ran U-D0 with LC unchanged (5 stays 5, 6 stays 6) and printed nothing; D1 and D9 printed on their own lines. rtype1/rtype2: the detail's USE ran before the page advance that its fit test caused (U-D1 4 then U-PF1 then U-PH1), as GR11b/GR12 order it. rnodet-002: GENERATE report-name on a report with no detail (SR6 allows it) compiled and ran, and its CF SUM printed 010 and 005. rtwo-001: GENERATE report-name with two details gave COBOL6823 (§1985:XIII.3.20.3 SR6). cite: OK §1985:XIII.3.20.4 GR5 'processed by the report writer control system when a corresponding GENERATE statement is executed'; OK §1985:XIII.4.3.3 SR2b 'Not more than one detail report group'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-3",
+ "rule-digest": "712ce506b134",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-159",
+  "sources": {
+   "reader": "c2acb29deedbe786d1a7cfbf28014a4566b1f9d5fbab9b2095e2b9c1666dfbaf",
+   "refuter": "bf06085bd46da9670c40a16d8407146a1155863d6a0389247df09c0556e12861"
+  },
+  "imported": {
+   "reader": "af78fb57bf968ff4a34e7da36b63fbe7fb570d778fed28465ed8fa2d38c1f625",
+   "refuter": "29c2fbd7b70e24e0a3ce57d009bf29960752b94eca6cd76a84ebf950aab53005"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in PERFORM formats 3 and 4 (out-of-line, THRU range, in-line, VARYING with or without AFTER phrases), when neither TEST BEFORE nor TEST AFTER is written the compiler must evaluate the UNTIL condition(s) before each execution of the specified set (GR10c/GR10d 1), so a condition true at entry executes the set zero times.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performUntil; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performVarying; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerformControl; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformLoop; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitVarying",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying",
+    "switches": "DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter: at 1985 the outer variable is augmented before the inner one is reset (GR10d 1); the TEST BEFORE default itself (TestAfter = TEST and AFTER tokens present) is edition-free",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformUntilTarget",
+    "switches": "UNTIL EXIT (a 2023 phrase) refused below 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep TestAfter over src (BoundTree, ControlFlowEmitter only); grep perform in Validation/VersionConformancePass*.cs; no TEST-phrase gate exists, the default is the absence of the TEST AFTER token at every edition",
+  "behaviour-differs-by-edition": "no: the default is TEST BEFORE at every edition; only the nested-VARYING augment/reset order (a separate GR) differs at 1985",
+  "witnesses-cover": "part: the witness covers in-line UNTIL, out-of-line UNTIL and single-level VARYING; not exercised: THRU range with UNTIL, VARYING with AFTER phrases, index-name VARYING, TEST without WITH, subscripted condition re-evaluated",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/pf-default.cob",
+    "printed": "THRU-UNTIL DEF/AFT=01; NOWITH-BEF=00; VARY-AFTER-DEF C4=00 I=03 J=05; VARY-AFTER-AFT C4=03 I=03 J=05; VARY-NEST-DEF C4=06 I=04 J=01; INDEX-DEF T=12345; SUBSCR-DEF C5=03 K=04; OUT-FALSE C6=03",
+    "expected": "default runs 0 times when true at entry (TEST AFTER 1); two-level default with condition-2 true at entry: 0 executions, I=3, J=5 (GR10d 1, termination paragraph); 3x2 nest: 6, I=4, J=1; TEST AFTER two-level: 3, I=3, J=5 (Figure 4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/pf-refuse.cob",
+    "printed": "error COBOL5506: cannot parse construct near '3' ... expected UNTIL or VARYING",
+    "expected": "WITH TEST is not in format 2 (TIMES): refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/pf-untilexit.cob",
+    "printed": "error COBOL2954 (UNTIL EXIT with TEST) and error COBOL0900: PERFORM UNTIL EXIT requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "UNTIL EXIT is not a 1985 form: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR3",
+    "check": "OK  §1985:VI.6.21.3 SR3  (6.21.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VI.6.21.4 GR10c",
+    "check": "OK  §1985:VI.6.21.4 GR10c  (6.21.4 General Rules)  the text is in GR10c"
+   }
+  ],
+  "notes": "The bound PerformUntil/PerformVarying carry TestAfter = (TEST and AFTER tokens written); absent, the emitter opens a test-before while loop for every format and level. All 85 probes match the 1985 GR10c/GR10d text including the 1985 augment-outer-first order. The diagnostics at --std 85 cite §2023 clauses, which is cosmetic for this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-3",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "refute-1985-159/pf1.cob at --std 85 (runs/pf1-001) printed DEP C=06 I=04 J=04; THREE C=08 I=03 J=01 K=01; BYCHG C=03 I=10 B=3; FROMCHG C=04 I=03 J=03; C1TRUE I=07 J=09; EXPL C=06 I=04 J=04; INL C=00; INLV C=00 I=05 -- every value is the implied-TEST-BEFORE result of GR10d 1 (AFTER J FROM I: augment I then reset J to the new I gives 3+2+1=6; body changing BY and FROM variables taken into account; condition-1 true at entry leaves I and J at their FROM values; omitted TEST equals explicit WITH TEST BEFORE). pf2.cob (in-line VARYING with AFTER, a 2002 form) refused COBOL0900 at --std 85 (runs/pf2-001). No edition switch in ControlFlowEmitter.cs (grep Dialect|Edition|CobolVersion: one comment only). cite.py: OK §1985:VI.6.21.3 SR3 'the TEST BEFORE phrase is assumed'; OK §1985:VI.6.21.4 GR10d; OK §1985:VI.6.21.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

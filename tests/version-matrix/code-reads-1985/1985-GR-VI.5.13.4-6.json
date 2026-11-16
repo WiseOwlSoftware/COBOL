@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-VI.5.13.4-6",
+ "rule-digest": "995ba4f93651",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-104",
+  "sources": {
+   "reader": "38386c3b3a5afa062d572540c91c70d6783456cf167724d067ed6ba2b5cf36b4",
+   "refuter": "542afc9d803bd3729493fa432f509edf47182342e2d842e9e573eab2d9152cec"
+  },
+  "imported": {
+   "reader": "1cfd84a33b7065bca39145a859e99c9eed97ae4e16e6312e6653aea299b30f64",
+   "refuter": "9cb89da459d81f19aa123fb1f0f1adec530de08266f848a16e8f2084c3e56065"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.13.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an item with an operational sign and SYNCHRONIZED, SYNC LEFT or SYNC RIGHT must keep its sign in the position its own SIGN clause gives (LEADING/TRAILING, SEPARATE or not), or the one it inherits from a group SIGN clause, or the default trailing embedded sign. SYNC must not move the sign or change the item's size. The witness covers elementary items with separate and embedded signs and group-inherited SIGN; it does not cover tables, ODO or arithmetic on the item.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SignKindFor; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "SYNCHRONIZED written on a group entry: refused COBOL0900 below 2023 (Constructs.SyncOnGroup2023), accepted at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#SynchronizedViolation (read by Passes/CheckClauseSubjectsPass.cs#Run)",
+    "switches": "SYNCHRONIZED on a USAGE INDEX item refused below 2002 (§1985:VI.5.14.3 SR6), admitted at 2002+",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#GateGroupSignSubordinates",
+    "switches": "below 2002 a group SIGN clause must reach a signed DISPLAY numeric subordinate (1985 narrower subject)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of every read of DataItem.Synchronized ('.Synchronized', 'Synchronized is', 'Synchronized ==') across src/: only binder screens, StrongTypeModel type-equivalence, RepositoryCodec/Reader and RepositoryAttributeRenderer read it; no layout, emitter or runtime member does. grep of DialectLevel|Edition.|CobolVersion|ConstructRegistry|DialectBehavior in Model/PicInfo.cs and Model/DataItem.cs: none on SignKindFor, ByteForm, StorageWidth, Truncation, ElementaryByteWidth or ByteWidth. The sign representation (SignKindFor) and widths are edition-free; the only edition reads on the path are the three screens listed.",
+  "behaviour-differs-by-edition": "no: the sign position and image are the same at 85 and 2023 (gr6a stdout identical at --std 2023); only the refusal screens differ (group SYNC refused at 85, accepted at 2023; group SIGN subject narrower at 85)",
+  "witnesses-cover": "part: g85_bf12_01 covers elementary separate/embedded and group-inherited sign; it does not cover SYNC items inside an OCCURS DEPENDING ON table, arithmetic stores and size error on the SYNC item, or the refusal halves",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr6a.cob",
+    "printed": "T1=[ha-001a+999a-999] T1V3=[-999] LAST=[-999] G2=[q-00010002-] EMB=YES Z=[0000+] M=[9999-] SIZE K=[9999-] X1=[q-00010002-...] G2V=[-0002]",
+    "expected": "§1985:VI.5.13.4 GR6 with the 1985 SIGN clause: the sign stays where SIGN puts it under SYNC, in each ODO occurrence (ref-mod at the last occurrence's bounds), inherited from the group (G2V leading), its own clause over the group (G2W trailing), zero +, extreme -9999, size error keeps the value"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr6b.cob",
+    "printed": "error COBOL2422: ... usage of an elementary item for which the SIGN clause is specified shall be display or national ... BINARY",
+    "expected": "SIGN on a COMP SYNC item refused (the 1985 SIGN clause requires USAGE DISPLAY)"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr6c.cob",
+    "printed": "error COBOL0900: SYNCHRONIZED on a group item requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "§1985:VI.5.13.3 SR1 'This clause may only appear with an elementary item' - refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.4 GR6",
+    "check": "OK  §1985:VI.5.13.4 GR6  (5.13.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VI.5.13.3 SR1",
+    "check": "OK  §1985:VI.5.13.3 SR1  (5.13.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "SYNCHRONIZED is recorded on the DataItem and read only by binder screens, type-equivalence and the repository codec. No layout or sign member reads it, so the sign is wherever the SIGN clause (PicInfo.SignKindFor) puts it, with or without SYNC. Every probe matched, and the output was the same at --std 2023. Side note: the COBOL0900 for a group SYNC at 85 cites only the 2023 text, not §1985:VI.5.13.3 SR1. The refusal is still correct.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "gr6a prints identical output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.13.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read 5.13.4 GR1-10 and 5.13.3 SR1-2 in specs/ANSI_COBOL_1985.md. grep -i synchron over src/*.cs: DataItem.Synchronized is read only by binder screens (GateSynchronizedGroup, SynchronizedViolation via CheckClauseSubjectsPass, CheckConditionNameAssociationsPass, CheckGroupValueDeclarationsPass, CheckConstantRecordSubtreesPass), StrongTypeModel and the repository codec; no layout or sign member reads it, matching the reader. Probe refute-1985-104/r6.cob (r6-002) at --std 85: a SYNC group (default trailing embedded S9(4) SYNC, SIGN TRAILING SYNC RIGHT, SIGN LEADING SEPARATE SYNC LEFT) and its non-SYNC twin compare equal, image A1=[x123M000N+0077] (sign where SIGN puts it); a level-77 SIGN LEADING SEPARATE SYNC item equals its non-SYNC twin; an FD elementary 01 S9(5) SYNC record written and read back gives bytes '0004K' (trailing embedded) and -00042. Group SYNC (later edition's form) refused COBOL0900 (reader gr6c). cite.py: OK  §1985:VI.5.13.4 GR6  (5.13.4 General Rules)  the text is in GR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

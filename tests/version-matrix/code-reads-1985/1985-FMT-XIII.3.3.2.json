@@ -1,0 +1,135 @@
+{
+ "rule-id": "1985-FMT-XIII.3.3.2",
+ "rule-digest": "9c82164a7478",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-003",
+  "sources": {
+   "reader": "73584da0799ab42f3edfc4b3993b3fa5a0a666c6471569a40b01e7bf727d4a7f",
+   "refuter": "4b70dd01aa64b402015783da02daecdc5f13dd314ec9021380b25f8599d5fe05"
+  },
+  "imported": {
+   "reader": "20c42ed9191e55eb69e9201cc5528c3bc13e1378af8a898c47a101468201485c",
+   "refuter": "f61a7bef8cb26f704962fc97250a844ac27f9012983da55bfaaaa091495f29fe"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-XIII.3.3.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a file description entry must accept REPORT [IS] or REPORTS [ARE] followed by one or more report-names, in any order (XIII.3.3.3 SR1), and produce each named report on that file (GR1); a mismatched optional word (REPORT ARE, REPORTS IS), an empty name list, a name that is no RD, a report named twice and the clause written twice must be refused. The witness covers two reports sharing one file.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#reportClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
+  "edition-consulted": [],
+  "edition-search": "grep reportClause() across the compiler (two sites, FileControlBinder.FileSection.cs, neither edition-switched); grep Edition.DialectLevel/Edition.Edition.Year/Constructs in ResolveReports (its only edition reads, SubscriptedClauseOperands and DialectLevel>=2002, serve the CONTROL clause, not the REPORT clause); VersionConformancePass has no VisitReportClause",
+  "behaviour-differs-by-edition": "no: the same grammar rule and name resolution at 85 and 2023 (p6b prints the same report at both)",
+  "witnesses-cover": "part: the witness exercises REPORTS sharing a file; the optional-word omissions, the singular keyword with several names, and the refusals are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6a.cob",
+    "printed": "report file: R1 / R2 / R1",
+    "expected": "REPORTS ARE R1 R2: both reports produced on one file (GR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6b.cob",
+    "printed": "report file: R1 / R2 / R1",
+    "expected": "REPORTS R1, R2 (ARE omitted, comma separator): accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6c.cob",
+    "printed": "report file: R1 / R2 / R1",
+    "expected": "REPORT IS with two report-names: the ellipsis applies to either keyword: accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6d.cob",
+    "printed": "report file: R1 / R2 / R1",
+    "expected": "REPORT R2 R1 (IS omitted, order not significant per SR1): accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6e.cob",
+    "printed": "error COBOL5506: unexpected 'ARE' ... expected a user-defined word or IS",
+    "expected": "REPORT pairs with IS only: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6f.cob",
+    "printed": "error COBOL5506: unexpected 'IS' ... expected a user-defined word or ARE",
+    "expected": "REPORTS pairs with ARE only: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6g.cob",
+    "printed": "error COBOL0001: unexpected '.'",
+    "expected": "at least one report-name: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6h.cob",
+    "printed": "error COBOL2714: the REPORT clause names 'R3', which is not the subject of a report description entry",
+    "expected": "SR1: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6i.cob",
+    "printed": "error COBOL2714: the REPORT clause names 'R1', which is already named by the REPORT clause of file 'RFILE' (plus COBOL2578 for the record my probe left under GFILE)",
+    "expected": "SR2: a report-name in two REPORT clauses refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6k.cob",
+    "printed": "error COBOL2714: names 'R1', which is already named ...",
+    "expected": "SR2: same name twice in one clause refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6j.cob",
+    "printed": "error COBOL2423: the clause 'REPORT IS R1' is written 2 times",
+    "expected": "the clause once per FD: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p6b.cob",
+    "printed": "at --std 2023: report file R1 / R2 / R1",
+    "expected": "same at the latest edition (format unchanged)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.3.1",
+    "check": "OK  §1985:XIII.3.3.1  (3.3.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XIII.3.3.3 SR1",
+    "check": "OK  §1985:XIII.3.3.3 SR1  (3.3.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.3.3.3 SR2",
+    "check": "OK  §1985:XIII.3.3.3 SR2  (3.3.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XIII.3.3.4 GR1",
+    "check": "OK  §1985:XIII.3.3.4 GR1  (3.3.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The grammar (REPORT IS? | REPORTS ARE?) reportName+ is exactly the 1985 format, and the FD binder plus ResolveReports bind each name to its RD with SR1/SR2 enforced; no edition is consulted and none needs to be. The FD member is the clause loop inside FileControlBinder.FileSection.cs (the reportClause arm).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p6b identical",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-XIII.3.3.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "At --std 85, against SR3 and the file's open modes the reader did not probe: q1 FD RFILE REPORTS ARE R1 R2, OPEN OUTPUT / INITIATE R1 R2 / GENERATE D1 / TERMINATE / CLOSE, then OPEN EXTEND (legal per SR3) / INITIATE R2 / GENERATE D2 -> 'EXT FS=00', file 'R1 / R2' (extend appended); q2 OPEN INPUT RFILE -> COBOL2371; q3 OPEN I-O RFILE -> COBOL2371; q4 READ RFILE -> COBOL2577 (SR3). Class c: q5 report-name TYPEDEF (not reserved in 1985) in REPORTS ARE TYPEDEF R2 -> runs at 85, refused COBOL0901 at --std 2023. cite.py: OK §1985:XIII.3.3.3 SR3 the text is in SR3 (and the reader's SR1, SR2, GR1 lines stand).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

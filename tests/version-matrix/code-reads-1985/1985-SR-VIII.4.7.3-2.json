@@ -1,0 +1,96 @@
+{
+ "rule-id": "1985-SR-VIII.4.7.3-2",
+ "rule-digest": "7fd21581dbe8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-163",
+  "sources": {
+   "reader": "4b088dead2719e1fc593abf6e485ec7a48bf6bcc65261226c2ca26427d8bbf3e",
+   "refuter": "c21732898f741fa02834aa321ab3abb1732b605ad488443c012cc311b90ba757"
+  },
+  "imported": {
+   "reader": "0a0efff5beadca8c0025107cfcd9eba1aaf5ea626eaf7c7fb3461292915f3f84",
+   "refuter": "56498b4b029fc0cc10fd0de6bc39d5b6c602ad859206546fed1a1b6f4635cb76"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.7.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the KEY phrase operand data-name-1 of a relative-file START may be written qualified (OF or IN, any number of levels, partial qualification while unique), and the qualified reference must resolve to the RELATIVE KEY item (SR4), an ambiguous or unresolvable qualified name being refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#RecordKeyNameOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveSending; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+    "switches": "ctx.Edition.SubscriptedClauseOperands (true only at 2002) decides whether an operand under OCCURS is refused; 85 takes the same refusing arm as 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+    "switches": "ctx.ExceptionPhrases.Require: the 1985 mandatory INVALID KEY (SR3, kb/Work PB5076), not qualification",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition/DialectLevel in KeyedIoBinder.cs; qualification resolution (ResolveSending, QualifierWalk) carries no edition test",
+  "behaviour-differs-by-edition": "no: the qualified operand resolves and is identity-checked against the RELATIVE KEY item by the same code at 85 and 2023 (p2qual prints the same five lines at both)",
+  "witnesses-cover": "part: g85_bf10_09 uses one OF level with a same-named sibling; multi-level, IN, partial qualification and the refusal half (ambiguous, wrong item, unknown qualifier) are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2qual.cob",
+    "printed": "GT 2 -> R3 RK=03 / NLT OK / NLT 1 -> R1 ST=00 / GE 2 -> R2 / EQ 9 -> INVALID ST=23",
+    "expected": "RELATIVE KEY IS RK IN G2 OF TOPG; START KEY written RK OF G2 IN TOPG, RK IN G2 OF TOPG, RK OF G2 OF TOPG all resolve to the relative key and position per §1985:VIII.4.7.4 GR4 a/b"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2ambig.cob",
+    "printed": "error COBOL1639: 'RK OF G2' does not uniquely identify a data item — 2 declarations of 'RK' match",
+    "expected": "qualification insufficient for uniqueness is refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2wrong2.cob",
+    "printed": "error COBOL0862: START on 'RELF': data-name-1 shall be the RELATIVE KEY item 'RK'",
+    "expected": "a uniquely qualified RK OF G2 IN OTHER-TOPG that is not the RELATIVE KEY item violates §1985:VIII.4.7.3 SR4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2g1.cob",
+    "printed": "error COBOL0862: START on 'RELF': data-name-1 shall be the RELATIVE KEY item 'RK'",
+    "expected": "RK OF G1 IN TOPG is another item: refused under SR4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p2none.cob",
+    "printed": "error COBOL1639: 'RK OF NOSUCH' does not uniquely identify a data item — 'RK' is declared, but not under the given qualifier (NOSUCH)",
+    "expected": "an unknown qualifier is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.3 SR2",
+    "check": "OK  §1985:VIII.4.7.3 SR2  (║4.7.3 Syntax Rules║)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VIII.4.7.3 SR4",
+    "check": "OK  §1985:VIII.4.7.3 SR4  (║4.7.3 Syntax Rules║)  the text is in SR4"
+   }
+  ],
+  "notes": "BindStart resolves the KEY operand through ResolveSending (the shared qualified-name resolver), then the relative arm compares the denoted item to file.RelativeKeyItem by identity, so qualification is honoured and a qualified name of another item is refused. RecordKeyNameOf returns None at 85 because no 1985 file declares a SOURCE-form record-key-name. The diagnostics cite 2023 clause numbers, a message-text matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.7.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:VIII.4.7.3 SR2/SR4 and §1985:VIII.2.4.3 SR1/SR3 (RELATIVE KEY may be qualified and must not be in that file's own record, so it may sit in ANOTHER file's record and be qualified by a file-name). r2fq-001: RELATIVE KEY IS RK OF FOTHER (RK also in FTHIRD's record and in WORKING-STORAGE); START KEY > RK OF FOTHER, NOT LESS THAN RK OF O-REC IN FOTHER, EQUAL RK IN O-REC printed GT 2 -> R3 RK=03 / NLT 1 -> R1 ST=00 / EQ 2 -> R2 (file-name qualifier and mixed OF/IN resolve). r2fqw-001: KEY EQUAL RK IN FTHIRD refused COBOL0862 (SR4). r2fqa-001: unqualified RK refused COBOL1639 (3 declarations). Class c: r2fql-001 KEY IS < refused COBOL0900 (reverse operators require 2002); r2fqf-001 START FIRST refused COBOL0900. Grep of KeyedIoBinder.BindStart edition uses: SubscriptedClauseOperands, ExceptionPhrases, error reporting only, as the reader listed. Diagnostics at 85 cite §2023 clause numbers (message text, not acceptance). cite.py: OK §1985:VIII.4.7.3 SR2; OK §1985:VIII.4.7.3 SR4; OK §1985:VIII.2.4.3 SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,107 @@
+{
+ "rule-id": "1985-GR-XIII.3.16.4-2",
+ "rule-digest": "865e6613f710",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-146",
+  "sources": {
+   "reader": "56366494aea5ec4e06ce1598d7ce21691365b3bac4e45db00a320a0e89505f44",
+   "refuter": "db4bfb5fe13af4f720492392954309b2223394c15d7a072b8045b8ef690e7e5b"
+  },
+  "imported": {
+   "reader": "d3599cbd41dad57e7c22d4ab078df338b2e0e3bdb0a1ed252dd6bf87ac934e69",
+   "refuter": "e72658c793f5038b95fe29811a00355f72b3e4b7a165d58c7bfefac851c87337"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.16.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the new LINE-COUNTER after a group with NEXT GROUP follows the final LINE-COUNTER setting rules of its TYPE's table, with and without a PAGE clause: RH 5a/5b/5c (integer, sum, zero after a page of its own), body 6a (integer if the last line is below it, else FOOTING with the integer saved, then reapplied at the next body group's fit test, TERMINATE's footings included), 6b (sum capped at FOOTING), 6c (FOOTING), 6f unpaged sum, a lower-level CF ignored, PF 5a/5b.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup is active from 2002: at 2002+ TERMINATE discards a saved absolute next-group integer and restores LINE-COUNTER; at 85 it stays, so the first control footing meets it in its fit test",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+    "switches": "year < 2002 uses Cobol85FinalLineCounter (§1985:XIII.3.10.9 GR5) for the PF's final LINE-COUNTER when bounding the report footing",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportNextGroupClause",
+    "switches": "WITH RESET refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ApplyNextGroup has no edition test; grep of ReportWriter.cs for Edition|Dialect finds the TerminateCore DialectBehavior as the only NEXT GROUP / LINE-COUNTER arm.",
+  "behaviour-differs-by-edition": "yes: a saved absolute next-group integer that is pending at TERMINATE moves the final control footing to a new page at 85 (3.10.8 GR3b reapplied) and is discarded at 2023 (ngterm printed CF on page 2 line 11 at 85, on page 1 line 12 at 2023); all other settings are identical at both editions (ng_paged identical).",
+  "witnesses-cover": "part: g85_bf36_03 covers relative NEXT GROUP on CFs (incl. a lower-level CF ignored), RH absolute and PF absolute; body absolute (set and saved), NEXT PAGE, RH NEXT PAGE, the unpaged sum and the save at TERMINATE are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/ng_paged.cob",
+    "printed": "LC after each GENERATE 10 16 20 10 20 16 20 06 10 16 20 06; final 23; saved 10 puts D2 on page 3 line 11 and forces a second advance for D4 LINE 6 (page 5 holds only PH and PF, D4 on page 6 line 6)",
+    "expected": "6a (10; 20 with 10 saved), 6b (16; capped at 20), 6c (20), 3a reapplied after the saved integer (10 >= 6 -> second advance), PF 5a 22 then RF 23"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/ngunpg.cob",
+    "printed": "LC 06 07 10, final 13; RH NEXT GROUP PLUS 1 moves DE to 4",
+    "expected": "unpaged: RH 5b 2+1=3, body 6f 4+2=6 and 8+2=10, no FOOTING cap"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/nprh.cob",
+    "printed": "RH NEXT GROUP NEXT PAGE: RH alone on page 1, no PF there, PH on page 2 at HEADING+1-1=1",
+    "expected": "RH 4c/5c: LINE-COUNTER zero, no other group on page 1"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/ngterm.cob",
+    "printed": "--std 85: LC 10, 20, then TERMINATE: PAGE 2 LINE 02 [PH2] / PAGE 2 LINE 11 [CF11], LC 11; --std 2023: CF on PAGE 1 LINE 12, LC 12",
+    "expected": "1985: CF FINAL is a body group; fit test 3b fails at LC 20 -> page advance, saved 10 -> LC 10, line 11 (no 1985 rule discards the save at TERMINATE)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.16.4 GR2",
+    "check": "OK  §1985:XIII.3.16.4 GR2  (3.16.4 General Rules)  the text is in GR2 (\"to determine a new value for LINE-COUNTER\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.8 GR6a",
+    "check": "OK  §1985:XIII.3.10.8 GR6a  the text is in GR6a (\"places the NEXT GROUP integer into the saved next group integer location\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.8 GR6f",
+    "check": "OK  §1985:XIII.3.10.8 GR6f  the text is in GR6f (\"places the sum of the line number on which the final print line was presented and the NEXT GROUP integer\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.8 GR3b",
+    "check": "OK  §1985:XIII.3.10.8 GR3b  the text is in GR3b (\"adding the content of LINE-COUNTER to the integer one and the integers of all but the first LINE NUMBER clause\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.6 GR4c",
+    "check": "OK  §1985:XIII.3.10.6 GR4c  the text is in GR4c (\"processes no other report group while positioned to the first page of the report\")"
+   }
+  ],
+  "notes": "Every final LINE-COUNTER row for RH, body and PF was probed, paged and unpaged, and matched the 1985 tables. That includes the saved next-group integer being reapplied to a relative and to an absolute next group. The one edition arm, keeping the save into TERMINATE at 85 (kb/Work PB5245), gives the 1985 result and differs from 2023 as the texts differ.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.16.4-2",
+  "refutation": "UPHELD",
+  "classes": "e,c,b",
+  "evidence": "ngcf (--std 85) traced against the 1985 tables, and every line matched. CH absolute 6a: line 3 < 8 sets LC 8; line 18 >= 8 sets LC FOOTING 24 and saves 8. The page advance then puts DE on page 2 line 9 = saved+1 (3b with save, 4b). CF-2 relative 6b at the highest break level: 11+3 = 14. On a WS-K1 break, CF-2 is not the highest level, so NEXT GROUP is ignored (6b first paragraph): C2 on 16, C1 on 17. PF 5b: 26+2 = 28, so RF goes on 29 (3.10.10 3b). LC readbacks were 09 10 15 09, final 29. npsave: DE NEXT GROUP 9 gives LC 9 from line 8 and LC 12 (FOOTING) with save 9 from line 10. cite.py: OK §1985:XIII.3.16.4 GR2 (\"to determine a new value for LINE-COUNTER\"); OK §1985:XIII.3.10.8 GR6a; OK §1985:XIII.3.10.9 GR5b. The final LINE-COUNTER settings GR2 governs are right. The sibling defect in how the NEXT presented body group uses the save (fit test 3b skipped, see 1985-GR-XIII.3.15.4-4, cfplus0) is a presentation-rule defect, not a wrong final LINE-COUNTER setting from the NEXT GROUP clause.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

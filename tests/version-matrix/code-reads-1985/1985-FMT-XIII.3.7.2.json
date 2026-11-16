@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-FMT-XIII.3.7.2",
+ "rule-digest": "0d0b9edaab03",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-004",
+  "sources": {
+   "reader": "38de986f3e7aa3b9b5ca6aa5681ad055f0e57fd9b5d594bc876208cb6bdc4f65",
+   "refuter": "9636ab143b82a191c2eb59de99fa2525d08ac35f4ae8fbb872a0e4480197da68"
+  },
+  "imported": {
+   "reader": "4d77e71a2d918ca4b6e22f6d3ca5679aab16168410760abd20c2f7214421ba11",
+   "refuter": "e91d033f40ebfbb0cf97642bcbbb80970d7e8aac9d5a50bd1406f94c9b9dac48"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-XIII.3.7.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the RD's CONTROL clause must be accepted as CONTROL [IS] or CONTROLS [ARE] (IS/ARE optional, each bound to its own keyword) followed by either one or more data-name-1 or FINAL followed by zero or more data-name-1; data-name-1 is a 1985 'data-name' (§1985:III.2), so it may be qualified (SR1) but not subscripted or reference-modified, and FINAL may appear only once and only first.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85ControlName",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85ControlName",
+    "switches": "a reference-modified CONTROL operand is construct report-control-reference-modification-2002 (COBOL0900 below 2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef",
+    "switches": "Edition.SubscriptedClauseOperands (2002 only) admits a literal subscript; at 85 a subscript is COBOL1699",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+    "switches": "DialectLevel>=2002 runs the written-reference uniqueness (SR6 of 2023); 85 instead runs ScreenControlItemsDistinct (SR2, not this FMT row)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/SubscriptedClauseOperands in ReportSectionBinder.cs; grep the COBOL0900 construct for the CONTROL operand in ConstructRegistry.g.cs and VersionConformancePass.cs",
+  "behaviour-differs-by-edition": "yes: a reference-modified data-name-1 is refused at 85 (COBOL0900) and admitted from 2002; the FINAL-placement and IS/ARE word binding are shared",
+  "witnesses-cover": "part: pb483_control_final_first exercises CONTROLS ARE FINAL data-name only; the data-name-only form, the optional IS/ARE, qualification and the refusal half (FINAL misplaced or repeated, ref-mod, subscript, crossed IS/ARE) are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/ctl/c01.cob .. c06.cob, c14.cob",
+    "printed": "CONTROL IS FINAL WS-A WS-B / CONTROLS ARE WS-A WS-B / CONTROL WS-B / CONTROLS FINAL / CONTROL IS FINAL / CONTROLS ARE WS-A OF WS-G WS-B IN WS-G / commas: each RAN",
+    "expected": "each form of the format is legal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/ctl/c07.cob, c08.cob, c15.cob",
+    "printed": "COBOL2421 FINAL is written after the data-name / written more than once",
+    "expected": "FINAL only once and first (FINAL [data-name-1]...)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/ctl/c09.cob, c10.cob, c11.cob",
+    "printed": "CONTROL IS . -> COBOL0001; CONTROL ARE -> COBOL5506; CONTROLS IS -> COBOL5506",
+    "expected": "an operand is required; IS goes with CONTROL, ARE with CONTROLS"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/ctl/c12.cob",
+    "printed": "COBOL0900: a reference-modified control name (report description) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "a 1985 data-name must not be reference-modified (§1985:III.2)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/ctl/c13.cob",
+    "printed": "COBOL1699 subscripted control operand (twice: subscript and OCCURS)",
+    "expected": "a 1985 data-name must not be subscripted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.7.2",
+    "check": "OK  §1985:XIII.3.7.2  (3.7.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XIII.3.7.3 SR1",
+    "check": "OK  §1985:XIII.3.7.3 SR1  (3.7.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XIII.3.7.4 GR1",
+    "check": "OK  §1985:XIII.3.7.4 GR1  (3.7.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The superset grammar (FINAL | dataReference)+ is narrowed by the binder's COBOL2421 screen; the 1985 operand class (data-name: qualified only) is enforced by the COBOL0900 gate for ref-mod and ControlOperandRef for subscripts. Minor: the subscript probe reports COBOL1699 twice for one fault. The COBOL0900 gate's doc comment says a subscripted control name is refused at every edition, which PB5602 made untrue at 2002 (not a 1985 defect).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-XIII.3.7.2",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "refute-1985-004/ctl/k01.cob and k12.cob: RD R-1 CONTROL IS WS-IX with 01 WS-IX USAGE INDEX (and a TYPE CF WS-IX group) at --std 85 -> 'error COBOL1700: RD R-1: CONTROL operand WS-IX is an index data item ... (ISO §2023:13.18.60.3 SR10; a CONTROL clause naming it is an explicit reference, §2023:8.4.5)'; the same at --std 2023. The 1985 CONTROL clause names this operand class itself: cite.py 'OK §1985:XIII.3.7.4 GR3b (3.7.4 General Rules) the text is in GR3b' for 'If the control data item is an index data item, the relation test is for the comparison of two index data items'. The refusal rests on the 2023 definition that a data-division clause is an explicit reference (§2023:8.4.5); 1985 defines explicit reference only for Procedure Division statements: cite.py 'OK §1985:IV.4.4.1 (4.4.1 Explicit and Implicit Procedure Division References) the text is in the clause' for 'An explicit reference occurs when the name of the referenced item is written in a Procedure Division statement', so §1985:VI.5.14.3 SR5 (cite.py OK for 'An index data item can be referenced explicitly only in a SEARCH or SET statement') does not reach a Report Section CONTROL clause at 85. The rest held: k02 WS-A OF WS-G OF WS-TOP RAN; k03 F2-A IN F2-REC IN F2 (file-name qualifier) RAN; k06 F2-A OF F2 RAN; k11 group control RAN; k07 commas RAN; k10 CONTROL FINAL RAN; k04 condition-name and k05 index-name refused COBOL0899 (not data-names); k08 report-section item COBOL1699; k09 repeated WS-A COBOL1699 (§1985 SR2). ReportSectionBinder.cs#ControlOperandShapeViolation line 4824 carries no edition test.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandShapeViolation: the COBOL1700 index-data-item arm runs at every edition on the 2023 explicit-reference reading; 1985 needs an arm that admits an index data item as data-name-1 (GR3b) and compares it as two index data items"
+  ],
+  "corrected": "PARTIAL (rejects-legal-source, cause a: 1985 needs its own arm). Minimal repro: 01 WS-IX USAGE INDEX. ... RD R-1 CONTROL IS WS-IX. with a TYPE CF WS-IX group; expected at --std 85 to compile and break when WS-IX changes value (§1985:XIII.3.7.4 GR3b), observed COBOL1700. Correct at 2023 (no GR3b there; 2023 13.18.16 has no index case). kb/Work: none for CONTROL; PB5188 (landed) applied §1985 SR5 to a report SOURCE operand, a related reading that GR3b's CONTROL-specific text and IV.4.4.1's Procedure-Division-only definition do not support for CONTROL."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "An index data item as a CONTROL is refused at 85 (COBOL1700, citing a 2023 rule); `§1985:XIII.3.7.4 GR3b` provides for exactly that control, and 1985's limit on explicit references (`§1985:VI.5.14.3 SR5`) is about Procedure Division statements (`§1985:IV.4.4.1`). I ran it.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-1.md"
+ },
+ "work": "PB5774"
+}

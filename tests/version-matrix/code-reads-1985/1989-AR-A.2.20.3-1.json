@@ -1,0 +1,89 @@
+{
+ "rule-id": "1989-AR-A.2.20.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-168",
+  "sources": {
+   "reader": "b551ea886eb91325bf0b18c7570bc33dc965181476db010001f2ccf68c73885a",
+   "refuter": "6171d2fefbc665a7fad83b00e577138b5135981f88bda74b1e0eda7ed1d0a637"
+  },
+  "imported": {
+   "reader": "1cd19f68014f846e88aed63c25b5b0ce63b67460ec0a7985a4bab3dbf049a0ec",
+   "refuter": "216f39ea5acd7287711f38048bd18793520533597f7606e5d2809c58a1ca5a80"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.20.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION LOG's argument-1 must be class numeric (a numeric argument: an arithmetic expression, §1989:A.2.2 AR1): every numeric item usage, scale and sign, numeric literal, expression and nested numeric function admitted; alphanumeric, alphabetic, numeric-edited, group, nonnumeric literal and figurative SPACE refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn > ctx.Edition.DialectLevel refuses a function not yet introduced (DiagnosticCatalog.IntrinsicFunctionNotYetIntroduced); the 1989 functions carry IntroducedIn 85 in IntrinsicCatalog, so --std 85 admits them",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(ctx.Edition.Edition.Year) gates each per-position predicate by its Since year; the class screen itself (IntrinsicArgumentRules.Violation over Verified) is edition-blind",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry NumericFunctionIdentifierOperand2002: at --std 85 a numeric/integer function is admitted only inside an arithmetic expression (a nested function argument is one)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep -n 'Edition|CobolVersion|since|Std|1985|1989' over IntrinsicArgumentRules.cs and IntrinsicBinder.cs; the only edition reads on the argument path are ArgPredicate.Since/AppliesAt, sig.IntroducedIn and the 2002 placement construct; ClassOf1/ClassOfPlace/ClassOfItem/ClassOfPic/Admissible/Violation consult no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f36_04 covers literal, DISPLAY, BINARY, PACKED-DECIMAL and an expression; the refusal half, scaled P items, nested functions and subscripted ODO elements are not exercised",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-168/src/num-pos.cob",
+    "printed": "MATCH: INTEGER(-2.5 SIGN LEADING SEPARATE)=-3, INTEGER-PART=-2, LOG(PIC 9PP 300)=5.703782, LOG10(PIC VPP9 .005)=-2.301030, LOG10(S9(18) all 9s)=18.000000, INTEGER(packed -100/3)=-34, LOG(-S2)=4.605170, LOG10(binary -7*-7+51)=2, MEAN(TE(ALL)) over ODO N=3 = -1, INTEGER(-0.5)=-1, LOG(LOG10(100000))=1.609438, LOG10(TE(N-1))=0.301030, LOG(ZERO+1)=0",
+    "expected": "each arithmetic-expression argument evaluated with its operational sign (A.2.2 AR1) and the function value from it"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-168/src/num-ref.cob",
+    "printed": "COBOL1627 on each: LOG(PIC X item), LOG(\"100\"), LOG(PIC Z9.9 numeric-edited), LOG10(group), LOG10(PIC A item), LOG10(SPACE), INTEGER(PIC X item), LOG10(AN(1:2)); exit 65",
+    "expected": "refused: none is an arithmetic expression (§1985:VI.6.2.1: identifier of a numeric elementary item, numeric literal, ZERO)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.20.3 AR1",
+    "check": "OK  §1989:A.2.20.3 AR1  (2.20.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   },
+   {
+    "cite": "§1985:VI.6.2.1",
+    "check": "OK  §1985:VI.6.2.1  (6.2.1 Definition of an Arithmetic Expression)  the text is in the clause"
+   }
+  ],
+  "notes": "Verified['LOG'] = Uniform('n', §2023:15.55.3 r1), with no predicate, so the class screen is the whole check and is edition-blind; every refusal probe got COBOL1627 (error, not a warning, without --permissive).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.20.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Same class screen as AR1 (Verified LOG = Uniform n). nref2-001 refuses LOG(FUNCTION CHAR (50)) and LOG(LOW-VALUE) COBOL1627, LOG(IX) COBOL1637, LOG(IXD) COBOL6979; logext-002 admits LOG(PIC SV9(18) 1E-18)=-41.446531, LOG(S9(18) all 9s)=41.446531, LOG(2.71828182845904523)=1.000000 (a 19-digit literal refused COBOL0802 at 85, logext-001, correct for the 1985 18-digit limit). cite.py: OK §1989:A.2.21.3 AR1 the text is in AR1 (LOG's AR1 carries the same words, reader's check OK §1989:A.2.20.3 AR1).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#IndexDataItemAdmittedAt: index data item argument refused at 85 only"
+  ],
+  "corrected": ""
+ }
+}

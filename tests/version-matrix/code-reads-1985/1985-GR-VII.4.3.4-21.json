@@ -1,0 +1,72 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-21",
+ "rule-digest": "9a370bece073",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-122",
+  "sources": {
+   "reader": "e080077ceb22eb3ac6c92be5015810d857cc8d3cf6a696bc9fa190575cf5ea16",
+   "refuter": "e0d8f312c8a0bd9394cb49e16d45a1cd9d915e81877ed8cb4981c381cd08e34a"
+  },
+  "imported": {
+   "reader": "076c6b8c4ce87dd4e72435f690ca6c556bee7ba1fb004f7249fe3c46313dbfb1",
+   "refuter": "ea7b73322aba407471a854ce685020fed1b8139c7bfbc24ce396b2e5946b4d9a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.3.4-21",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an OPEN EXTEND or OPEN I-O of an absent OPTIONAL sequential file must create it empty, as if by OPEN OUTPUT then CLOSE, and then run the program's own OPEN (status 05, VII.1.3.5 1c). A non-optional absent file must not be created (35). OPEN OUTPUT must create the file, and a successful creation must leave it with no data records, including when the file already held some.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenWriter; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenReader; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#OptionalFileNotFound",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "SharingFacilityInEffect: no Table 19 arbitration at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: what a CLOSE WITH LOCK locks before the OPEN (the physical file at 85, the connector from 2002); not reached by these probes",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the Extend, IO and Output arms of SequentialConnector.OpenCore read no edition; grep for Edition and DialectBehavior in SequentialConnector found only SharingFacilityInEffect",
+  "behaviour-differs-by-edition": "no: creation of an absent optional file and the empty file after OUTPUT are the same code at 85 and 2023",
+  "witnesses-cover": "part: g85_f19_02 covers fixed records with OPTIONAL EXTEND, OPTIONAL I-O and OUTPUT re-creation; it does not cover RECORD VARYING, OUTPUT on an absent OPTIONAL file, a REWRITE on the created I-O file, or a non-optional absent I-O file staying uncreated",
+  "probes": [
+   {
+    "class": "a,b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p21a.cob",
+    "printed": "I-OPEN=05 / I-REWRITE=43 / I-ATEND 10 / I-CLOSE=00 / I-EXTEND=00 / I-INPUT=00 / I R001 / V-EXTEND=05 / V-IO=00 / V 07 SEVENCH / V-ATEND 10 / O-OUTPUT=00 / O-INPUT=00 / O-ATEND 10 / N-IO=35 / N-INPUT=35 / P-OUTPUT=00 / P-ATEND 10",
+    "expected": "an optional absent I-O open is 05 and the file is created empty (REWRITE 43, READ 10, later opens 00); an optional absent EXTEND with RECORD VARYING is 05 and holds only the record written; OUTPUT on an absent optional file is 00 and empty; a non-optional absent I-O file is 35 and is still absent afterwards (35 again); OUTPUT over a file with records leaves it with none"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.4 GR21",
+    "check": "OK  §1985:VII.4.3.4 GR21  (4.3.4 General Rules)  the text is in GR21"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.1c"
+   }
+  ],
+  "notes": "The IO arm creates the absent optional file through an auxiliary CreateNew handle before it opens the ReadWrite reader, which is the 'OPEN OUTPUT, CLOSE, then the program's OPEN' order. The Extend arm opens its writer CreateNew. Both return 05. The Output arm truncates (FileMode.Create) or creates the file. The run directory listing confirmed that no p21an.dat was created.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.3.4-21",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "r21a.cob (OPTIONAL file assigned into a missing directory, so the creation cannot happen): EXT-OPEN=30 and IO-OPEN=30, not 05; the statements after the failed opens give WRITE 48, READ 47, CLOSE 42; OPEN OUTPUT is 30 and its WRITE 48. r21b.cob (read-only physical file with two records, attrib R kept in the run directory): OUT-OPEN=37 / OUT-WRITE=48 / EXT-OPEN=37, then OPEN INPUT reads R1=ROREC1, R2=ROREC2, so a failed OPEN OUTPUT did not empty the file ('After the successful creation'). Matches VII.1.3.5 3a (30) and 3d1 (37). cite.py: OK §1985:VII.4.3.4 GR21 (the text is in GR21); OK §1985:VII.1.3.5 (GRL2.3a); OK §1985:VII.1.3.5 (GRL2.3d.1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

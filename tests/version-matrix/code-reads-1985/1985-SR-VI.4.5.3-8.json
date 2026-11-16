@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-8",
+ "rule-digest": "40b9a98c42d8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-050",
+  "sources": {
+   "reader": "8e01fa6550172ba1facd2fe4fb98c158da138cb22996003aea9facaa68b1c334",
+   "refuter": "4bf51d44593d59f61dffc405634107d030ebe087e126c032e9cc19b97e1e25dd"
+  },
+  "imported": {
+   "reader": "4cf425ed97bed99c0a7f0193d5fc9da6d05bb4e7e5afca2d0de13305fe09c364",
+   "refuter": "91e47bd7aa133ef7694989f541af0387510217c206fc456c2bace47f0186e490"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.4.5.3-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each symbolic-character-1 pairs with integer-1 by position across the whole clause (first with first, and so on), in the native set or, with IN alphabet-name-2, in that alphabet's character set.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SymbolicClauseOperands; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SwitchBindSymbolic; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#CodedCharacterSetOf; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CharAt",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSymbolicCharactersClause",
+    "switches": "FOR phrase refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition. in SpecialNamesBinder.Classes.cs: SwitchBindSymbolic and SymbolicClauseOperands carry no edition test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses test only count mismatch and ordinal overflow, not the values the pairing yields or the IN phrase",
+  "probes": [
+   {
+    "class": "d",
+    "file": "src/sr8_positional.cob",
+    "printed": "ABCD",
+    "expected": "S1..S4 = ordinals 66..69 = A B C D"
+   },
+   {
+    "class": "d",
+    "file": "src/sr8_crossgroup.cob",
+    "printed": "ABC",
+    "expected": "S1 S2 IS 66 S3 ARE 67 68 paired by position in the clause: A B C"
+   },
+   {
+    "class": "e",
+    "file": "src/sr8_in_alpha.cob",
+    "printed": "ZX",
+    "expected": "IN AL (\"Z\" \"Y\" \"X\"): ordinals 1 and 3 = Z, X (GR8)"
+   },
+   {
+    "class": "e",
+    "file": "src/sr7_alsoalpha.cob",
+    "printed": "ZY",
+    "expected": "\"Z\" ALSO \"Q\" at ordinal 1: only literal-1 is used (GR4d 6)"
+   },
+   {
+    "class": "d",
+    "file": "src/sr8_use.cob",
+    "printed": "[ / EQ / ]|[",
+    "expected": "LQ RQ ARE 92 94 = '[' ']'; MOVE, comparison and ALL LQ use the character"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.3 SR8",
+    "check": "OK  §1985:VI.4.5.3 SR8  (4.5.3 Syntax Rules)  the text is in SR8"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR8",
+    "check": "OK  §1985:VI.4.5.4 GR8  (4.5.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "Pairing runs over the whole clause's token stream in source order, which is what the 1985 text says ('by position in the SYMBOLIC CHARACTERS clause'). Values are correct with and without IN.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.4.5.3-8",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "Read §1985:VI.4.5.3 SR8 and §1985:VI.4.5.4 GR8 (IN: integer-1 is the ordinal in the character set named by alphabet-name-2) and GR4d 5)/6) for THRU and ALSO alphabets. Probes at --std 85 on IN alphabets the reader did not try: r8_in_std1 (STANDARD-1, S1 S2 ARE 66 92) printed A[; r8_in_thru (\"A\" THRU \"E\", ordinals 3 5) printed CE; r8_in_also2 (\"Z\" ALSO \"Q\" \"Y\", ordinal 2) printed Y; r8_in_num (68 67, ordinals 1 2) printed CB; r8_in_native (NATIVE, 66 67 68) printed ABC; r8_twoclauses (S1 S2 ARE 1 2 IN AL, then S3 S4 ARE 1 2 without IN) printed ZY/ then NUL SOH, so pairing restarts per clause and IN binds only its own clause. Pairing is SpecialNamesBinder.Classes.cs#SymbolicClauseOperands over the whole clause, no edition test. cite.py: OK §1985:VI.4.5.3 SR8; OK §1985:VI.4.5.4 GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

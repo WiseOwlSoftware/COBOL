@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-VII.4.2.4-8",
+ "rule-digest": "a86ce0c1b4a9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-121",
+  "sources": {
+   "reader": "14765693275ab25651d3d10898dbaa20ad5bbd180380d3200754a48836162545",
+   "refuter": "7dbecbf905be77bcbc1585f4fb85f8005f0070d30a0b0f7c5b0fbc5355f364ab"
+  },
+  "imported": {
+   "reader": "3b7d388e08b9fc721be1a2e90a1c175f4fccc9f613ad93b78a7db88fd1ae1bd0",
+   "refuter": "c39b51afc93bf4b667a4a6125584dc8fe85f4b5e9ef370fcc07a29befd14cef4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.2.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "A CLOSE naming several file-name-1 operands executes exactly as one separate CLOSE per file-name-1 in the written order, each with its own phrase, its own I-O status update and its own exception processing, so a failure on one file neither stops nor reorders the closes of the others.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "close-with-lock-removed-2023 (COBOL0902): the WITH LOCK phrase compiles at 85 through 2014 and is refused at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 1985 the physical file is locked, from 2002 the file connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose",
+    "switches": "ec.Enabled(EC-REPORT-NOT-TERMINATED): the report-file raise after each implicit CLOSE, never enabled at 1985 (no exception checking); the per-file loop is the same",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped SequentialIoBinder.cs#BindClose and SequentialIoEmitter.cs#EmitClose for DialectLevel/DialectBehavior: the split into one BoundClose per file-name (BoundImplicitSeries) and the per-file close, status store and USE hook read no edition; the edition arms on the path are the WITH LOCK phrase's existence and what it locks.",
+  "behaviour-differs-by-edition": "no: the one-close-per-file series is the same at every edition; what differs on the path is only the WITH LOCK phrase (legal at 1985, refused at 2023) and its lock target, which are other rules",
+  "witnesses-cover": "part: g85_bf18_02 covers order across organizations and a USE procedure seeing the earlier closes done and the later not yet; not covered: a failing file in the middle with later files still closed, the same file named twice, mixed per-file phrases (WITH LOCK, REEL) (probe cl1)",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/cl1.cob",
+    "printed": "T1 TRACE=B42 A=00 B=42 C=00 / T2 TRACE=A42 A=42 / T3 A=00 B=07 C=00 / T3 REOPEN TRACE=A38 A=38 / T3 B-CLOSE 00",
+    "expected": "T1 CLOSE FC FB FA with FB not open: FC 00, FB 42 with its USE run, FA still closed 00 (GR8, GR4); T2 CLOSE FA FA: the second is a CLOSE of a file not open, 42 (§1985:VII.1.3.5 4 b); T3 CLOSE FA WITH LOCK FB REEL FC: FA locked (reopen 38, §1985:VII.1.3.5 3 e), FB 07 on a non-reel medium and still open (closed later 00), FC 00"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/cl1.cob",
+    "printed": "at --std 2023: error COBOL0902: the CLOSE WITH LOCK phrase was removed in COBOL-2023",
+    "expected": "WITH LOCK is a phrase this edition has and 2023 deleted; accepted at 85, refused at 2023"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/cl2.cob",
+    "printed": "at --std 85 and --std 2023 (no WITH LOCK): T1 TRACE=B42 A=00 B=42 C=00 / T2 TRACE=A42 A=42 / T3 A=00 B=07 C=00 / T3 REOPEN A=00 / T3 B-CLOSE 00",
+    "expected": "the series semantics are the same at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.2.4 GR8",
+    "check": "OK  §1985:VII.4.2.4 GR8  (4.2.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "BindClose builds one BoundClose per file-name-1 in source order inside a BoundImplicitSeries, and EmitClose closes, stores the FILE STATUS and runs the USE hook per file before the next, which is exactly the separate-statements reading. Probes cl1/cl2 show a failing middle file does not stop later closes and a repeated name behaves as a second CLOSE.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.2.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe refute-1985-121/src/clr1.cob (clr1-002) at --std 85, NO USE procedure anywhere and FILE STATUS on each file: CLOSE FA FB FC FD1 over sequential, sequential-not-open, relative and indexed files gave A=00 B=42 C=00 D=00 and every other file was really closed (reopen 00, records read back AAAA CCCC DDDD); the failing file last (CLOSE FD1 FC FA FB) and the same four as separate CLOSE statements both gave A=00 B=42 C=00 D=00: the multi-file form equals the separate statements also without a USE procedure and across organizations. The first compile (clr1-001) refused WRITE/READ of relative/indexed/sequential files without INVALID KEY/AT END and no USE (COBOL6826, §1985:VIII.4.9.3 SR3 etc.), a correct 1985 refusal unrelated to the rule. cite.py: OK §1985:VII.4.2.4 GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

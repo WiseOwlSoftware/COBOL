@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.5-L2.1",
+ "rule-digest": "aef86b64327c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-128",
+  "sources": {
+   "reader": "818b2b1736fc0bfea2f57a9812ee858c7d1c6da2b172231e927e971b297c34f2",
+   "refuter": "30a504c9065d09eef0f7511e73ccc3edaffc08d811acf61d17a03809c2c45d48"
+  },
+  "imported": {
+   "reader": "00656f65df7a54a0deb05c4dc844ccf091ae8347274b0d733015a6ea7f33544a",
+   "refuter": "8e1487e5e37ed4ccd38901fcc91ea2b2f0879428408ca42834e2c49ee481ed98"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.1.3.5-L2.1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a relative-file I-O statement ends in an exception that is not the invalid key condition (logic errors 41-49 including the 44 record-size violation, permanent errors 3x), the INVALID KEY phrase is ignored, any applicable USE AFTER EXCEPTION procedure (file-name or open-mode) runs, control then passes per the USE rules to the end of the statement, and the NOT INVALID KEY phrase does not run.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitPhrasePair; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#InvalidKey",
+  "edition-consulted": [],
+  "edition-search": "same greps as 1985-GR-VIII.1.3.5-2 over the emitters, plus UseTierEmitter.cs: no edition read; the DispatchEmitter comment records the tiers as edition-invariant (kb/Work PB344).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f16_02 covers 47, 48, 49 with a file-name USE; not exercised: 44 (RECORD VARYING size violation) on WRITE and REWRITE, an open-mode USE (ON OUTPUT / ON I-O), and a statement with no applicable USE procedure",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p4_use.cob",
+    "printed": "USE-OUTPUT 44 / AFTER-V44 44 (WRITE of 3 chars, VARYING 4 TO 10); USE-IO 44 / AFTER-RW44 44 (REWRITE of 2 chars); no IK- or NIK- line",
+    "expected": "44 is not an invalid key: the open-mode USE runs, then the next statement; neither phrase runs"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p2_ik.cob",
+    "printed": "USE-RX 47 / AFTER-47 47; USE-RX 49 / AFTER-49 49; USE-RX 41 / AFTER-41 41 (no IK-47, NIK-47, IK-49, NIK-49)",
+    "expected": "file-name USE runs and control resumes after the statement"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p4_use.cob",
+    "printed": "AFTER-N48 48 (WRITE with INVALID KEY on a file not open, no USE applicable, FILE STATUS present; no IK-N48/NIK-N48)",
+    "expected": "no procedure applies; the phrases do not run; execution goes on (implementor action after a critical 4x, docs/conformance 3.5)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.1.3.5 GRL2.1",
+    "check": "OK  §1985:VIII.1.3.5 GRL2.1  (1.3.5 The Invalid Key Condition)  the text is in GRL2.1"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4 GRL2.5",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.5  (1.3.4 I-O Status)  the text is in GRL2.5"
+   }
+  ],
+  "notes": "The INVALID KEY branch tests only the 2x class and NOT INVALID KEY tests only 0x, so a 4x status skips both. EmitUseHook's __IoCheck call selects the file-name or open-mode declarative before control reaches the next statement. The witness and the probes agree, and no edition is consulted on this path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.1.3.5-L2.1",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "Probe r2_global.cob at --std 85 (runs/r2_global-001). WRITE YREC INVALID KEY ... NOT INVALID KEY on a file not open runs the containing program's GLOBAL USE (GUSE-RY 48), then IN-AFTER-48 48, with neither phrase run. A DELETE with no INVALID KEY on an absent record runs GUSE-RX 23 (the GR3 path). This adds to the reader's file-name and open-mode USE cases the global USE tier of 1985 level-2 IPC. cite.py: OK §1985:VIII.1.3.5 GRL2.1 the text is in GRL2.1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

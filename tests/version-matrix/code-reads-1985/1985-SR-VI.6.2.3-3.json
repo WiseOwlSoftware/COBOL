@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-SR-VI.6.2.3-3",
+ "rule-digest": "ce567c63faae",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-158",
+  "sources": {
+   "reader": "e524ade77929a094b6df368b7c91463a453eb8a7e9b869f3c7a6a5f7f2a04e17",
+   "refuter": "b4e5b5f6a92461ee143f3d37b758a7c315051cd071178f5173ad872aec149ed4"
+  },
+  "imported": {
+   "reader": "ba6feae1955f2efca0b5ea1e7b3ee5a1e18ace9873e170609656837d67b1192a",
+   "refuter": "8528dfdd96b42f012310541a44e4c405ffdba4ad21596681da1653f7df2309ac"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.2.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every arithmetic expression (COMPUTE, conditions, EVALUATE objects, PERFORM UNTIL) must admit exactly the P pairs of Table 1 (binary then unary, '(' then unary, unary then '(' or operand, and so on) and refuse each '-' pair: operand-operand, binary-binary, binary-')', unary-unary, unary-binary, unary-')', '('-binary, '('-')', ')'-operand, ')'-unary, ')'-'('; a sign adjacent to digits is part of the literal, so '- -2' is unary-literal.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#powerExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#primaryExpression; src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#StackedUnarySign; src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#SignIsPartOfLiteral; src/WiseOwl.Cobol.Compiler/Validation/ExpressionFormationPass.cs#VisitUnaryExpression; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind",
+  "edition-consulted": [],
+  "edition-search": "Read ArithmeticFormationRules.cs and ExpressionFormationPass.cs whole (no Edition, CobolVersion or Construct reference; the pass doc states the tables have no introducedIn), the arithmetic tiers of CobolExpressions.g4 (no is2002()/is2023() predicate in additive..primary), and the BinderDriver call site, which runs the pass unconditionally.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pins precedence and three P cells (binary-unary, '('-unary via - (A + B), unary-literal - -2); it exercises none of the eleven invalid cells and no expression outside COMPUTE",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/arxok2.cob",
+    "printed": "P1=+000002 P2=+000002 P3=-000015 P4=-000001 P5=+0000.5000 P6=-000015 P7=-000002 P8=+000008 P9=+000022 P10=+000002 P11=+000005",
+    "expected": "§1985:VI.6.2.3 SR3 P cells compile and evaluate per GR1/GR2 (A=5, B=3; - ZERO is unary-literal)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/arxbad1.cob .. arxbad13.cob",
+    "printed": "each refused, exit 65: A B COBOL0307; A + * B COBOL0001; - - A COBOL1719; - * A COBOL0001; ( ) COBOL0001; ( * A ) COBOL0001; (A) B COBOL0307; (A) (B) COBOL2269; ( A + ) COBOL0001; ( - ) COBOL0001; + + 2 COBOL1719; A ** * B COBOL0001; - + A COBOL1719",
+    "expected": "§1985:VI.6.2.3 SR3b: every '-' cell is an invalid pair"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/arxcond.cob",
+    "printed": "COBOL1719 at IF A = - - B, at EVALUATE A WHEN - + 1 THRU 9, and at PERFORM UNTIL A > - - B",
+    "expected": "the table governs every arithmetic expression, not only COMPUTE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.2.3 SR3",
+    "check": "OK  §1985:VI.6.2.3 SR3  (║6.2.3 Formation and Evaluation Rules║)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VI.6.2.3 SR3b",
+    "check": "OK  §1985:VI.6.2.3 SR3b  (║6.2.3 Formation and Evaluation Rules║)  the text is in SR3b"
+   }
+  ],
+  "notes": "The 1985 Table 1 has the same P and '-' cells as the later table; twelve invalid cells are excluded by the grammar tiers or by subscript reading, and the (unary, unary) cell is screened post-parse by ArithmeticFormationRules.StackedUnarySign with the literal-sign contiguity test. The COBOL1719 message cites §2023:8.8.1.2 Table 3 even at --std 85, which names the later edition's locator but the same rule; SR4 (a leading unary after an identifier needs '(') was not judged here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.2.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read §1985:VI.6.2.2 (operators preceded and followed by a space) and VI.6.2.3 SR3 Table 1, SR4. Attacked the cells the reader did not reach, where a sign touching digits makes the literal: rx1 A -2, rx2 A +2, rx6 3 -2, rx7 -2 -2, rx3 (A) -2 (identifier/literal/')' followed by a signed literal: '-' pairs) each refused COBOL2993 exit 65; rx4 5 (A) (literal then '(') refused COBOL2269; rx5 A (B) on a non-table refused COBOL2096. P cells outside COMPUTE and with function-identifiers and subscripts (rxok.cob): - FUNCTION MOD (A 3) = -2, A * - E (B - 1) = -35, - A ** 2 = +25, IF - A < 0 true, IF A + - B = 2 true, + ( - ( + A ) ) = -5, FUNCTION INTEGER (- A / 2) - - 1 = -2, all correct. cite.py: OK §1985:VI.6.2.3 SR3b; OK §1985:VI.6.2.2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

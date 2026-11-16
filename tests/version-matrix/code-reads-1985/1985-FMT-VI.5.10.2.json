@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-FMT-VI.5.10.2",
+ "rule-digest": "d30a2cc46541",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-085",
+  "sources": {
+   "reader": "d6faec901a0e42d0285c5733f6c3325d07dc9b56ab624d969490ddf57ba4b60c",
+   "refuter": "46be159cb679c9933a706b4e4f544fa242dac6073e36e359341e5cc8ab2e1d4a"
+  },
+  "imported": {
+   "reader": "e93da83e17d92518e7c3d7032ba0cf0b302cd6cef45e6968cf1c55dd165196e1",
+   "refuter": "b406a903343f534b1e703a4b06e98e3c854ad4b1130ac42cc8dce5353a78384a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VI.5.10.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept REDEFINES data-name-2 after data-name-1, after FILLER, or directly after the level-number when neither is written (§1985:VI.5.3.3 SR2), where data-name-2 is a bare data-name (no qualifier, subscript or reference modifier: §1985:III.2 Data-Name, VI.5.10.3 SR5/SR7), refuse the clause without an operand, and overlay the storage from data-name-2 (GR1).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#redefinesClause; src/WiseOwl.Cobol.Frontend/Cst/DataDescriptionCst.cs#RedefinesTarget; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenLeadingClausePosition; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel|.Year|Edition.Edition|SubscriptedClauseOperands over Binding/Passes/*Redefines* (no hits) and DataBinder.ClausePlacement.cs (no hits); RedefinesDataName2 calls ScreenDataNameShape with admitsSubscript2002=false so its edition.SubscriptedClauseOperands test is short-circuited; REDEFINES reserved at all four editions in ReservedWords.Table.cs.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf09_03 exercises the named-subject form; FILLER and omitted-subject forms, the qualified/subscripted/ref-modified operand refusals and the position rule are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/rd1.cob",
+    "printed": "123456 / 123457 / 12/3457 / A/BCD/ZZ / 1235 / -012 (exit 0)",
+    "expected": "01 B REDEFINES A PIC 9(6) shows 123456 then 123457 after ADD 1; FILLER REDEFINES and an omitted subject (05 REDEFINES H) overlay their targets; E2 REDEFINES E1 inside OCCURS 2 updates occurrence 2; signed J REDEFINES H"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/rd2bad.cob",
+    "printed": "COBOL2915 'A OF G' Data-name-2 shall not be qualified; COBOL2024 'E1 (1)' written with a subscript; COBOL2024 'M (1:2)' reference-modified; COBOL2739 REDEFINES follows PICTURE",
+    "expected": "all four refused (VI.5.10.3 SR7, SR5, III.2 Data-Name, SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/rd3bad.cob",
+    "printed": "COBOL5506 unexpected 'PIC' ... expected a user-defined word",
+    "expected": "refused: data-name-2 is required"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.1",
+    "check": "OK  §1985:VI.5.10.1  (5.10.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.5.3.3 SR2",
+    "check": "OK  §1985:VI.5.3.3 SR2  (5.3.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.5.10.3 SR7",
+    "check": "OK  §1985:VI.5.10.3 SR7  (5.10.3 Syntax Rules)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:VI.5.10.3 SR5",
+    "check": "OK  §1985:VI.5.10.3 SR5  (5.10.3 Syntax Rules)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.5.10.4 GR1",
+    "check": "OK  §1985:VI.5.10.4 GR1  (5.10.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The grammar takes a general dataReference and RedefinesDataName2 narrows it to a bare data-name through the one data-name-n screen plus the qualification refusal; the overlay is resolved post-build. The path consults no edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "rd2bad is refused the same way at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VI.5.10.2",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "rx1.cob (d): 77 B77 REDEFINES 77 A77 overlays (ADD 1 gives 1235); 01 GB PIC X(8) REDEFINES a 6-char group (level 01, no size constraint, SR6) shows ABCDEF plus 2 positions; a group redefinition GC with GC1 PIC 99 moves into GA's first two positions (42CDEF); a COMP S9(5) redefining S9(3)V99 COMP -1.25 shows -00125. rx2bad.cob (b): REDEFINES written twice (COBOL2739 + COBOL2423), data-name-2 a condition-name, an undefined name and a later-defined name (COBOL1654 each). rx3bad.cob (b): data-name-2 with an OCCURS clause (COBOL1701, SR5), a larger non-01 redefinition (COBOL1539, SR6), an intervening entry (COBOL2739, SR11). All refusals right at 85; wording of COBOL1539 ('32 bits ... 16') is cosmetic. cite.py: OK §1985:VI.5.10.3 SR1 (the text is in SR1); OK §1985:VI.5.10.4 GR1 (the text is in GR1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

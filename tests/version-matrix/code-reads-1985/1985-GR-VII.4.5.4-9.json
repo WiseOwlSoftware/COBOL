@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-9",
+ "rule-digest": "4508bf0dd429",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-025",
+  "sources": {
+   "reader": "dde92b60efc95ce31baaefeae9939f4084f1f29d58a45aa253e056ad1595f3d9",
+   "refuter": "b321bae242d25139ede9cd256e0b6ef85dd3794fdec3ab640e6c64631d78fbf7"
+  },
+  "imported": {
+   "reader": "cd158f7b6df3cacdd6f7747329e94ae7e5fde17c7263ceb8608445d69b72158b",
+   "refuter": "9e8c4476ee9d8281da51e3b18f4d63d4df0d2263564215b1134470c4a1640661"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.5.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "END-REWRITE ends the REWRITE statement's scope, so 'REWRITE record-name-1 [FROM identifier-1] END-REWRITE' is a delimited-scope statement accepted wherever an imperative statement is (inside IF/ELSE, a NOT AT END phrase, before a period), and an END-REWRITE that matches no REWRITE is refused. The 1985 sequential format has no INVALID KEY, FROM literal, lock, RETRY or FILE phrase, so those must be refused at 85.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rewriteStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindFileFormat",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "gates the FILE file-name-1 alternative and the RECORD word (2002 constructs): refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+    "switches": "gates FROM literal-1 (COBOL0871 at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the grammar's END_REWRITE? is unconditional; the version gates on the statement are the visitors above plus the record-lock and RETRY construct gates (COBOL0900). None of them touches END-REWRITE itself, which is a 1985 word.",
+  "behaviour-differs-by-edition": "no for END-REWRITE's scope; yes for the phrases inside the scope: FROM literal, LOCK, RETRY and FILE are refused at 85 and accepted later",
+  "witnesses-cover": "part: l1m8_rewrite_format_85 uses END-REWRITE on an INDEXED file, which is the Indexed I-O module's REWRITE, not the Sequential one; not exercised: END-REWRITE on a sequential file inside IF/ELSE and NOT AT END, a stray or doubled END-REWRITE, the later-edition phrases at 85",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/rw9scope.cob",
+    "printed": "IN-IF-AFTER-END-REWRITE 00 IN-NOT-AT-END 00 IN-ELSE 00 PERIOD-AFTER 43 FINAL=FROMWS0001 FINAL=NOTATEND02 FINAL=ELSEPATH03",
+    "expected": "each END-REWRITE closes the REWRITE and the following statement stays in the enclosing IF branch / NOT AT END phrase; all three rewrites land"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/rw9r_stray.cob",
+    "printed": "error COBOL0306: unexpected 'END-REWRITE'. END-REWRITE appears without a matching REWRITE statement. (rw9r_double.cob: the same at the second END-REWRITE)",
+    "expected": "refused: a scope terminator with no REWRITE to end"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/rw9r_lit.cob",
+    "printed": "rw9r_lit: COBOL0871 FROM literal-1 requires COBOL-2002; rw9r_lock: COBOL0900 record-lock phrase requires COBOL-2002; rw9r_file: COBOL0900 FILE phrase requires COBOL-2002; rw9r_retry: COBOL0900 RETRY requires COBOL-2002; rw9r_invkey: COBOL1720 INVALID KEY shall not be specified for a sequential REWRITE",
+    "expected": "each refused at 85: §1985:VII.4.5.2 prints REWRITE record-name-1 [FROM identifier-1] [END-REWRITE] only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.4 GR9",
+    "check": "OK  §1985:VII.4.5.4 GR9  (4.5.4 General Rules)  the text is in GR9"
+   }
+  ],
+  "notes": "The rewriteStatement rule ends with END_REWRITE?, and the error strategy reports a terminator with no open REWRITE. The scope probes and the refusal of every later-edition phrase at 85 all match.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.5.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "The 1985 sequential REWRITE (§1985:VII.4.5.2) has no conditional phrase, so END-REWRITE only closes an imperative REWRITE. Probes beyond the reader's (refute-1985-025/src/rw9b.cob, --std 85): REWRITE R1, END-REWRITE (comma separator before the terminator) inside an inline PERFORM 2 TIMES -> 00 twice; REWRITE R1 FROM W END-REWRITE inside EVALUATE WHEN, the DISPLAY after it stays in the WHEN; REWRITE R1 END-REWRITE inside the AT END imperative of a READ of another file -> 43 (the last F statement was a REWRITE, GR2) and control continues after END-READ; the file holds LOOP01, LOOP01, FROMWS. The reader's probes already cover the stray/doubled terminator and the later-edition phrases refused at 85. cite.py: OK §1985:VII.4.5.4 GR9; OK §1985:VII.4.5.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

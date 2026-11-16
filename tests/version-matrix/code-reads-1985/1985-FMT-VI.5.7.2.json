@@ -1,0 +1,151 @@
+{
+ "rule-id": "1985-FMT-VI.5.7.2",
+ "rule-digest": "7450378d05c8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-001",
+  "sources": {
+   "reader": "0c9a101a853299950da8ce65771ad4138dfc395bfc0d780926bc926c1571ee99",
+   "refuter": "89a5772153a1525e6bece1230b6ae73722ec02060ca3c355cceb464de2407340"
+  },
+  "imported": {
+   "reader": "7a7ae6c96f5b57e671fd06860b8d063371f05b6207488b4d814633e55651023f",
+   "refuter": "a7336919a0f2f4fc4af601b0577549e100f3b06c33f449b30fdc2fadc07b3c94"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VI.5.7.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every data description entry must begin with a level-number written as a one- or two-digit number (1-9 also as 01-09), from 01-49, 66 or 88 under an FD, SD or CD and from 01-49, 66, 77 or 88 in working-storage and linkage, and anything else (a three-digit spelling, 00, 50-65, 78, 99, a signed or decimal number, a missing level) must be refused; the witness covers only the legal hierarchy.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#levelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Classify",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|CobolVersion|DialectLevel|IsActive over LevelNumberPass.cs: none (the class doc states the sets are the same at 85/2002/2014/2023); the CD arm is selected by parse ancestry (CommunicationDescriptionEntryContext), not by edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the legal hierarchy only; the one-digit spellings, the section sets (FD vs working-storage vs CD) and the refusal half are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lv1.cob",
+    "printed": "194 19 7 / K7 / FB-Y QY",
+    "expected": "levels 1, 2, 5, 9, 09, 49, 66, 77, 88 accepted in FD, working-storage and linkage"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvc1.cob",
+    "printed": "COMPILED (66 under a CD)",
+    "expected": "legal (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvc2.cob",
+    "printed": "COBOL1746 level-number 77 ... subordinate to a CD entry",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr1.cob",
+    "printed": "COBOL1746 level-number 001 ... one-digit or two-digit number",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr2.cob",
+    "printed": "COBOL1746 level-number 50",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr3.cob",
+    "printed": "COBOL1746 level-number 78",
+    "expected": "refused (not a 1985 level-number)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr4.cob",
+    "printed": "COBOL1746 level-number 77 ... subordinate to a FD or SD",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr5.cob",
+    "printed": "COBOL1746 level-number 00",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr6.cob",
+    "printed": "COBOL0001 unexpected 'X'",
+    "expected": "missing level-number refused (SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr7.cob",
+    "printed": "COBOL1746 level-number 65",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr8.cob",
+    "printed": "COBOL1746 level-number 99",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr9.cob",
+    "printed": "COBOL0001 unexpected '+'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/lvr10.cob",
+    "printed": "COBOL0001 unexpected '5.0'",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:p.III-13",
+    "check": "OK  §1985:p.III-13  ()  the text is in the clause (Level-Number: a one or two digit number)"
+   },
+   {
+    "cite": "§1985:VI.5.7.3 SR1",
+    "check": "OK  §1985:VI.5.7.3 SR1  (5.7.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.7.3 SR2",
+    "check": "OK  §1985:VI.5.7.3 SR2  (5.7.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.5.7.3 SR3",
+    "check": "OK  §1985:VI.5.7.3 SR3  (5.7.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VI.5.7.4 GR2b",
+    "check": "OK  §1985:VI.5.7.4 GR2b  (5.7.4 General Rules)  the text is in GR2b"
+   },
+   {
+    "cite": "§1985:IV.4.3.2.1",
+    "check": "OK  §1985:IV.4.3.2.1  (4.3.2.1 Level-Numbers)  the text is in the clause"
+   }
+  ],
+  "notes": "LevelNumberPass is edition-invariant and its sets match the 1985 SR2/SR3, including the CD arm. The diagnostics cite 2023 rules (and mention local-storage) at 85, which is cosmetic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VI.5.7.2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "At --std 85 vs 2023 (lv_a..lv_e.cob in E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-001/): 01 and 77 written in area B (column 12): 85 COBOL3734 'level-number 01/77 begins in area B', 2023 compiles and prints X (1985 reference format; an edition site the reader did not list, taking a correct 85 arm). lv_c.cob 01 G with 05 and one-digit 5 children in area A and a 77 after an 01 compiles and prints XYZW (cite.py OK  §1985:VI.5.7.3 SR3). Under an RD, 88 and 77 are refused COBOL1746 at both editions. Reader's refusals of 00, 001, 50, 65, 78, 99, signed/decimal and missing levels stand.",
+  "edition-sites-missed": [
+   "reference-format area-A screen (COBOL3734): at 85 levels 01/77 must begin in area A; from 2002 accepted in area B"
+  ],
+  "corrected": ""
+ }
+}

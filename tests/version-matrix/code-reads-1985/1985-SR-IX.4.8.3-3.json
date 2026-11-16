@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-IX.4.8.3-3",
+ "rule-digest": "8e3ed3369b37",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-048",
+  "sources": {
+   "reader": "ffda7751b6ffff529d4fbbd967332ed572be084dfa5bf14a6c918b2dab1daeee",
+   "refuter": "799a6246823527f7181c6232e4f09cca0c2db56f4e32c7b7c50886ff80f17f76"
+  },
+  "imported": {
+   "reader": "21f2541f9a40c0528912c88644201d21d9b5fae6d657bc181f5c4ffd8737bc3e",
+   "refuter": "d2cca1caa2f21da2d16d148b63ff6a33ecd2b21f99cb15715c3b00d8bb45db11"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "edition-search": "",
+  "rule-id": "1985-SR-IX.4.8.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 (Amendment 2 text) a file-name written in more than one USE AFTER EXCEPTION/ERROR statement of one Procedure Division is refused, while one statement naming the file twice, a file plus a mode phrase, and the same file in the USE of a contained program's own Procedure Division are accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclEndUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectMethodDeclaratives; src/WiseOwl.Cobol.Compiler/Binding/ConstructOperandRegister.cs",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "Format 1 without PROCEDURE/AFTER and Format 3/4 gated to 2002; the SR3 register itself is edition-blind",
+    "same-arm-as-latest": false
+   }
+  ],
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers one statement naming the file twice (accept); not two statements (refuse), ERROR/EXCEPTION mixing, file plus mode, or nested programs",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u3twice.cob",
+    "printed": "COBOL0897 declarative section 'S2': file 'F1' already has a USE procedure in this procedure division",
+    "expected": "refused (ERROR and EXCEPTION are synonymous, SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u3onestmt.cob",
+    "printed": "RAN",
+    "expected": "accepted (one statement)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u3filemode.cob",
+    "printed": "RAN",
+    "expected": "accepted (a file-name and the I-O mode are different operands)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u3nested.cob",
+    "printed": "OUTER-DECL ST1=35 / INNER-DECL ST1=35 / INNER AFTER OPEN",
+    "expected": "accepted: two Procedure Divisions; each failed OPEN on the GLOBAL indexed file runs its own program's declarative"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/uc_ec.cob",
+    "printed": "COBOL0877/COBOL0878 USE AFTER EXCEPTION CONDITION requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.8.3 SR3",
+    "check": "OK  §1985:IX.4.8.3 SR3  (4.8.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The _useFiles register distinguishes Repeated (same statement, silent) from Duplicate (a later statement, COBOL0897); DeclEndUseStatement closes each statement. Each program's procedure division gets its own register."
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.8.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "At --std 85: r3glob.cob (USE GLOBAL AFTER ERROR ON F1 plus USE AFTER EXCEPTION ON F1 in one Procedure Division, the 1985 IPC GLOBAL form) refused COBOL0897 'file F1 already has a USE procedure in this procedure division'; r3globnest.cob (outer USE GLOBAL ON F1, contained program's own USE ON F1) EXIT 0 'INNER ST1=35 / INNER AFTER OPEN' (the contained program's own declarative governs, separate Procedure Division); r3modefile.cob (USE ON F1 and USE ON INPUT, the file-name appearing once) EXIT 0 'F1-DECL ST1=35 / INPUT-DECL ST1=35 ST2=35 / DONE'; r3debug2.cob (WITH DEBUGGING MODE, USE FOR DEBUGGING ON F1 plus USE AFTER ERROR ON F1: the debugging USE is not a USE AFTER EXCEPTION statement) EXIT 0 'ERR ST1=35 / DBG F1 / AFTER OPEN ST1=35', so the register does not wrongly count the Debug-module USE. cite.py: 'OK  §1985:IX.4.8.3 SR3  (4.8.3 Syntax Rules)  the text is in SR3'; 'OK  §1985:XV.3.2.3 SR6  (3.2.3 Syntax Rules)  the text is in SR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

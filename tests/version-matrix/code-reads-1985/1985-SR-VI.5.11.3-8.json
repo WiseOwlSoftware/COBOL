@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-VI.5.11.3-8",
+ "rule-digest": "7389cbcd3bed",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-052",
+  "sources": {
+   "reader": "3be98b2cba5ceaaa0b1595abfeba4c0b68a42e1005a6a26da4080046d04dbc8d",
+   "refuter": "7aea4d4b87dda59a79d45f2f6b6870c745f49ba47e57992df35852d9d7a7f9fd"
+  },
+  "imported": {
+   "reader": "a254fc1804692035891171a46c49567f1088b61483dd0b288f1c3ce98b8f4b8f",
+   "refuter": "32f10d4b9c52788e0f6bb09c1b4c59649f69484136f059c8fe7d8e5a9fd8ab13"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.11.3-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a RENAMES ... THRU entry must be refused when the area of data-name-3 begins to the left of the area of data-name-2 or does not end to the right of data-name-2's end (so data-name-3 subordinate to, or coinciding with, data-name-2 is refused), measured on storage positions including redefining items, while a data-name-3 that begins at data-name-2's start and ends after it is legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesWindowOrder",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "how data-name-2/-3 are resolved before the window screen (whole-scope candidates filtered to the record below 2002, the record's subtree from 2002); ScreenRenamesWindowOrder and the Offset/ExtentOf locals do not consult the edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for DialectLevel/CobolVersion/ConstructRegistry/Std in ResolveRedefinesPass.cs found none; the window measure (Offset, ExtentOf, BitLayout for bit records) takes no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb1283_renames_legal covers only legal THRU windows; data-name-3 to the left, subordinate to data-name-2, data-name-2 subordinate to data-name-3, and redefining operands are not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r8a.cob",
+    "printed": "error COBOL2740: 'X' RENAMES C THRU A: the beginning of data-name-3 precedes the beginning of data-name-2",
+    "expected": "refusal: data-name-3 begins to the left"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r8b.cob",
+    "printed": "error COBOL2740: 'X' RENAMES G THRU B: the end of data-name-3 does not follow the end of data-name-2",
+    "expected": "refusal: data-name-3 (B) subordinate to data-name-2 (G), ends at G's end"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r8e.cob",
+    "printed": "error COBOL2740: 'X' RENAMES G THRU A: the end of data-name-3 does not follow the end of data-name-2",
+    "expected": "refusal: data-name-3 (A) subordinate to data-name-2, ending before it"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r8c.cob",
+    "printed": "exit 0: [ABCD|CDEF]",
+    "expected": "legal: A THRU G (G begins where A begins and ends after it) = ABCD; B THRU C = CDEF"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r8g.cob",
+    "printed": "error COBOL2740 for 66 X RENAMES B THRU C (C REDEFINES A, left of B); 66 Y RENAMES C THRU B accepted",
+    "expected": "refusal only for the window whose data-name-3 begins left of data-name-2, measured on the redefining item's storage"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r8f.cob",
+    "printed": "exit 0: [BCD12]",
+    "expected": "legal: A22 (a subordinate of a redefining group, positions 2-4) THRU B (positions 5-6) = BCD12"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.11.3 SR8",
+    "check": "OK  §1985:VI.5.11.3 SR8  (║5.11.3 Syntax Rules║)  the text is in SR8"
+   }
+  ],
+  "notes": "ScreenRenamesWindowOrder requires start3 >= start2 and end3 > end2 on the one storage-offset function, where a redefiner sits at its target's offset; both halves of the rule and its consequence (data-name-3 not subordinate to data-name-2) hold at --std 85. Diagnostics quote the 2023 wording (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.11.3-8",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Probes at --std 85: x1 (C REDEFINES A, same size: A THRU C and C THRU A, coincident areas) -> two COBOL2740 'the end of data-name-3 does not follow the end of data-name-2', right by the text ('must be to the right'); x2 (H REDEFINES G: H1 positions 1-2 THRU G2 positions 2-4, data-name-3 earlier in entry order but its area begins right of and ends after data-name-2's) -> exit 0 [ABCD], measured on areas as the rule says, not on entry order; x3 (U THRU S, signed SEPARATE items, S left of U) -> COBOL2740 'beginning of data-name-3 precedes'; x4 (S PIC S9(3) LEADING SEPARATE THRU U PIC S99 TRAILING SEPARATE across an OCCURS 2 group, and U THRU V) -> exit 0 [-012TT07+|07+V], the separate sign characters counted in each area. cite.py: OK §1985:VI.5.11.3 SR8 the text is in SR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-6",
+ "rule-digest": "f3a12cbe174c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-105",
+  "sources": {
+   "reader": "7a9965027fa8ac03da8da86a8e7e0dd4c809bb62cb704b42b9c66abe53006c8c",
+   "refuter": "730415957dd54d1805f677ff57a61db418ac6f2c3e310491da1b75365a6dcd2a"
+  },
+  "imported": {
+   "reader": "6de3afcbe1cafd4c72bbf31964732dad0e7b733939ae0e9780e5c53c46443006",
+   "refuter": "922a63ca21164fa7d09bb4cd9426b15fb47028833d30f04549830c16c5c79684"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.14.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "An elementary item with no USAGE clause on itself or on any group containing it takes usage DISPLAY, while an item under a group that writes a usage takes that usage (GR1), at every nesting depth; the witness covers only the no-clause-anywhere case against an explicit DISPLAY.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#HandDown; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#UsageConstructId",
+    "switches": "refuses PICTURE N and USAGE NATIONAL below 2002, so the 2002+ implied NATIONAL for an N picture cannot arise at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateDataItem",
+    "switches": "applies the usage introduction gate to each resolved item",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of CobolVersion|ConstructRegistry|DialectLevel in DataBinder.cs usage walk and PictureAnalyzer.ScreenUsageAgainstPicture: the implicit-DISPLAY default (UsageInheritanceElementary: OwnUsage ?? group ?? Usage.Display) reads no edition; ScreenUsageAgainstPicture takes the EditionContext only to report.",
+  "behaviour-differs-by-edition": "yes: from 2002 an item whose picture has N and no usage is implicitly NATIONAL; at 85 PIC N is refused (COBOL0900) so DISPLAY is the only implicit usage",
+  "witnesses-cover": "part: inheritance from a group USAGE COMP or PACKED-DECIMAL at depth two, a sibling outside the usage group, and the SR2 contradiction are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p06a.cob",
+    "printed": "LR2=0004 (01 USAGE COMP, two 9(4) leaves, one under a nested group); LR3=0008 (no usage anywhere); LG6=0002 (group PACKED-DECIMAL S9(3)); LP2=0003 (sibling of that group, no usage); R3=00010001|",
+    "expected": "inherited COMP/PACKED widths under the group, DISPLAY (one byte per digit) where no usage is written at any level"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p06b.cob",
+    "printed": "COBOL1927 E5: USAGE DISPLAY contradicts the USAGE BINARY written for the group item G5",
+    "expected": "§1985:VI.5.14.3 SR2 refusal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p06b.cob",
+    "printed": "COBOL0900 national data (PICTURE symbol N / USAGE NATIONAL) requires COBOL-2002 for N1 PIC N(3)",
+    "expected": "PIC N is not 1985 syntax"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.4 GR6",
+    "check": "OK  §1985:VI.5.14.4 GR6  (5.14.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "One derivation gives the effective usage: own clause, else nearest enclosing group's, else DISPLAY. FUNCTION LENGTH, legal at 85 only inside an arithmetic expression (COMPUTE), measured the widths. COMP-5 is accepted at --std 85 as an extension, which this rule does not reach.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.14.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "refute-1985-105/src/g6a.cob at --std 85 (g6a-001): 01 RG REDEFINES a USAGE COMP group gives LRG=0004 and LR1=0002, so the redefining X(2) leaves are DISPLAY and do not inherit COMP. 66 RENAMES over PACKED leaves gives LPR=0004. An explicit USAGE DISPLAY group with a nested leaf gives LDG=0008. A BINARY subgroup beside a no-usage sibling gives LCGB=0006 and CGB2=-0012. Records of an EXTERNAL FD share one area: EB=WX EC=YZ. In g6c and g6d, PIC 1(8), whose usage is implicitly BIT from 2002, is refused at 85 with COBOL0900, and so is GROUP-USAGE NATIONAL. cite.py: OK  §1985:VI.5.14.4 GR6  (5.14.4 General Rules)  the text is in GR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-1",
+ "rule-digest": "1b3a1749f4a7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-018",
+  "sources": {
+   "reader": "fb33f080892f9b0330999556cb236abc088c04afd25aacf24a6ceb4e70e4079b",
+   "refuter": "cc99f6375fac48dc88063ba7d578b3199aa2f6d4d9b44f5b4283f3334ebbd2e6"
+  },
+  "imported": {
+   "reader": "cd49b46e0e6cc2b72f9a5ec76c86e47f3c3f5baf0d2092f16d3059e15d70b8c4",
+   "refuter": "51e7accd83d75b573a67d9d64f0f6a8980b0d0d9cd8a17ccdb581a0b59c939f9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.27.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every rule stated for identifier-2/literal-1 (the first DELIMITED BY operand) must hold identically for every OR identifier-3/literal-2: the ALL phrase, a figurative constant as one character, multi-character and identifier delimiters, DELIMITER IN receiving it, and the syntax refusals (SR1 nonnumeric literal, no figurative beginning with ALL; SR2 category alphanumeric).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringSkipRun",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
+    "switches": "refuses a reference-modified identifier-1 at --std 85 (Constructs.UnstringSenderReferenceModified2002, §1985:VI.6.27.3 SR7); a sender syntax arm, it does not touch delimiter matching",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+    "switches": "nothing behavioural: BoundRejected.Report(ctx.Edition, ...) only carries the edition context for SR diagnostics",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition|CobolVersion|Dialect|Construct in StringEmitter.cs, StringUnstringBinder.cs, CobolStringOps.cs; grep of Unstring in Validation/VersionConformancePass.cs (only VisitUnstringStatement, the refmod-sender gate). The delimiter loop of BindUnstring and the UnstringExtract kernel take no edition input. Edition-gated lexemes (N\"..\", the zero-length literal) are refused at 85 by their own literal gates.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c35_unstring_or_operands_equal runs literal, ALL literal, identifier and figurative in OR positions; not exercised: the refusal half at the OR position, a reference-modified or ODO-group identifier-3, an ALL figurative in an OR position",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un1.cob",
+    "printed": "1 A  |, 1    |, 0 B  |; 1 C  |-+1 D  |   E  |   T=06",
+    "expected": "OR ALL ';' collapses ';;', OR W2 '-+', OR SPACE one char; the empty field between ',,' space-filled; TALLYING 6"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un1.cob",
+    "printed": "2 A  |,     |,  B  |;  C  |-+ D  |   E  |   T=06",
+    "expected": "same split with ALL in the first position and the others as OR operands"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un1.cob",
+    "printed": "3 A  |,  B  |;     |;  C  |-+ ; 4 A  |,     |,  B;;|",
+    "expected": "OR W4 (1:2) a reference-modified identifier-3; OR G an ODO group of current length 2 ('1;') used whole"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/q1.cob .. q10.cob",
+    "printed": "COBOL1651 identically at the first and at the OR position for: numeric literal 5, numeric NUM, ALL ALL \"X\", a PIC A item, a PIC Z9 item",
+    "expected": "SR1/SR2 apply equally to literal-2/identifier-3 (GR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/q11.cob; q14.cob",
+    "printed": "A  |B   for \",\" OR ALL ZERO and for ALL ZEROS OR \",\" on A00B,C",
+    "expected": "the ALL figurative ZERO is one '0', contiguous ones collapse, in either position"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/q13.cob",
+    "printed": "COBOL0900 the national literal N\"...\" requires COBOL-2002",
+    "expected": "1985 has no national literal (a literal is nonnumeric or numeric)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR1",
+    "check": "OK  §1985:VI.6.27.4 GR1  (║6.27.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "The grammar's unstringDelimiterPhrase is a list of unstringDelimiterItem and BindUnstring screens every item in one loop, so the first operand and each OR operand are the same code; the emitter passes them as one ordered array to the one kernel. The SR diagnostics cite §2023 clause numbers at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same results (identical code path)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:VI.6.27.3 SR1/SR2, VI.6.27.4 GR1/GR8. Probes (run_case.py, --std 85) at the OR position: v1-001: X\"3B\" refused, COBOL0900 'hexadecimal alphanumeric literal requires COBOL-2002' (class c). v3-001: a USAGE NATIONAL item refused, COBOL0900 national data requires COBOL-2002 (class c). v2-001: a PIC XBX alphanumeric-edited item refused, COBOL1651 (SR2, which the reader's probes did not try). v7-001: OR ALL HIGH-VALUE is accepted and matches nothing. u1-001 4: QUOTE OR HIGH-VALUE split K|Z|ZZZZ, with DELIMITER IN receiving the OR operand '\"'. u1-001 2: ALL SPACE in the OR position collapses two spaces; u1-001 3: subscripted OR operand TD (K). v4-001: OR FUNCTION UPPER-CASE (W) is accepted and splits AB|CD|EF. That is a legal 1985 form under the 1989 amendment (alphanumeric function-identifier wherever an identifier is permitted). cite: OK  §1985:VI.6.27.4 GR1 (the text is in GR1); OK  §1985:VI.6.27.3 SR2  (║6.27.3 Syntax Rules║)  the text is in SR2; OK  §1985:IV.4.3.8.3.3 SR3  (4.3.8.3.3 Syntax Rules)  the text is in SR3; OK  §1985:VI.6.27.4 GR8 the text is in GR8",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

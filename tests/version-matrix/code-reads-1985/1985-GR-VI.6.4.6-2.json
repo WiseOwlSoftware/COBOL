@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-VI.6.4.6-2",
+ "rule-digest": "ef0ce39d159d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-022",
+  "sources": {
+   "reader": "b4dc09eedfbd7b49c984491593390a3668618bbd6b562ba2120a0b2476979d7a",
+   "refuter": "0195d2811228bbe91c9c39dfacd1cf762db94dc3f53580199a91ba4b46c11e51"
+  },
+  "imported": {
+   "reader": "58b97e9be635b82539f5c2d8c29e4214c40fc020d63a6f957af12983e8be664e",
+   "refuter": "a7a5fa369e81ddb5ae69a5753d6335e86c0dd0bb20bdf670e522d27db18503e6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.4.6-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the temporary is then combined with or transferred to each resultant in the left-to-right order written, each resultant identified (subscripts evaluated) when it is reached, so ADD a, b, c TO c, d (c), e uses the updated c to subscript d and MULTIPLY a (i) BY i, a (i) uses the updated i; the witnesses cover ADD TO, COMPUTE and DIVIDE REMAINDER with a subscript changed by an earlier receiver but not the clause's own MULTIPLY a (i) BY i, a (i) example or an ODO object as an earlier receiver.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitGiving; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceiverBracketEmitter.cs#Receive; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 1985 a receiver whose store fails without a phrase keeps its content and the next receiver is still stored (GuardedStore per receiver in either arm)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|DialectBehaviors|EditionContext|CobolVersion over ArithmeticEmitter.cs, ReceiverBracketEmitter.cs, ExpressionBinder.cs, PlaceIdentification.cs: the receiver loop order and the identified-at-store resolution consult no edition",
+  "behaviour-differs-by-edition": "no: identical output at --std 85 and --std 2023 for the clause's two examples",
+  "witnesses-cover": "part: the clause's MULTIPLY a (i) BY i, a (i) example and an ODO object updated by an earlier receiver are not in the witnesses",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p2multi.cob",
+    "printed": "1 C=4 D=1010101310 E=23 | 2 I=2 A=020604",
+    "expected": "the clause's examples: a=b=c=1 -> temp 3, c=4, d(4)=13, e=23; a=(2,3,4), i=1 -> temp 2, i=2, a(2)=6"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p2multi.cob",
+    "printed": "10 N=3 O=010102",
+    "expected": "OE (N) identified after N is stored: OE(3) = 1 + 1"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p2multi.cob",
+    "printed": "11 S2=12 S3=6",
+    "expected": "the receivers to the right of an overflowing one are still stored in order"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p2ref.cob",
+    "printed": "COBOL1689 (literal as a receiver), COBOL0803 (ROUNDED MODE on one of several receivers requires COBOL-2014)",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.4.6 GR2",
+    "check": "OK  §1985:VI.6.4.6 GR2  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in GR2"
+   }
+  ],
+  "notes": "The receiver loop stores left to right and each receiver's Place is identified at store (ResolveReceivingAtStore / debug.IdentifiedAtStore), so a subscript or ODO object changed by an earlier resultant selects the element the clause's equivalent sequence selects. Both examples printed in the clause give the equivalent-sequence result at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.4.6-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,f",
+  "evidence": "refute-1985-022/r2multb-001 at --std 85 with ON SIZE ERROR (the two-phase shape the reader flagged as the 1985 arm): ADD 5 TO I, T (I) with I=7 overflowing -> I=7 unchanged and T(7)=6 (T identified with I's kept value); ADD 1 TO I, T (I) with T(3)=99 overflowing -> I=3 stored first, T(3)=99 unchanged; SUBTRACT 1 FROM 9 GIVING I, T (I) -> I=8, T(8)=8 (GIVING receivers left to right, each identified when reached); DIVIDE 2 INTO J GIVING I REMAINDER T (I) -> I=3, T(3)=1 (§1985:VI.6.11.4 GR4 subscript evaluated immediately before the remainder is stored); r2mfix2-001 ADD I K TO K, T (K), I -> T(4) selected by the updated K. All equal the clause's equivalent sequence. cite.py: OK  §1985:VI.6.4.6 GR2  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in GR2",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

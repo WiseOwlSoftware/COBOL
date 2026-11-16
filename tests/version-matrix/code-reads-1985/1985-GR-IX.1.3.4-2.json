@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-IX.1.3.4-2",
+ "rule-digest": "9066b13af819",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-088",
+  "sources": {
+   "reader": "39110929ecfc0dd99ae45321e31f75511cd828c0db0cb06751c3ae1f00ff5afc",
+   "refuter": "aef7968fb202f68c58a66835384d08e702f15bfa628f711628a49ef1fd10d2ae"
+  },
+  "imported": {
+   "reader": "3033ce79e5283eec5ee820c579672bd3ef264304bfb95200f9368ce4a504fccc",
+   "refuter": "9e59493032ed72bcbaaa020108180b3a80516547a12840c93e2e959cfa9c5622"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.1.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a sequential READ of an indexed file (sequential access, or READ NEXT in dynamic access, by the prime or an alternate key of reference) that finds no next logical record, or the first sequential READ of an absent optional input file, must be unsuccessful with the at end condition (status 10), executing the AT END imperative statement when written and otherwise the applicable USE procedure, and the next sequential READ after it is no longer an at end condition (46).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#AtEnd; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#IoStatusClass; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+    "switches": "DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (2023) governs only READ PREVIOUS, which the 85 path never reaches (refused COBOL0900 at 85)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateStatement",
+    "switches": "refuses READ PREVIOUS below 2002 (COBOL0900), so the 1985 sequential READ is NEXT only",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no (for the 1985 forms; READ PREVIOUS, a 2002 phrase, is refused at 85)",
+  "witnesses-cover": "part: g85_bf29_03 is one at end case; not exercised: dynamic READ NEXT at end without an AT END phrase (USE path), at end along an alternate key's duplicate chain, the absent optional file's first and second READ, an empty file's first READ, and the 46 after an at end",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-088/ae1.cob",
+    "printed": "S-R1 00, S-R2 00, S-AE3 10, S-USE 0, USE 00 46, S-R4 46 USE 1, D-R1 00 002BB, USE 10 00, D-R2 10 USE 1, A-R1 00, A-R2 00, A-AE 10, O-OPEN 05, O-AE 10, USE 00 00 46, O-R2 46 USE 1, E-AE 10",
+    "expected": "10 with the AT END branch taken and no USE; 10 through the USE procedure when no AT END is written; 10 at the end of an alternate key chain; 10 on the first READ of an absent optional file and of an empty file; the following sequential READ 46 (a logic error, not at end)"
+   },
+   {
+    "class": "c,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-088/ae2.cob",
+    "printed": "error COBOL7144: ... specifies no NEXT phrase (§1985:IX.4.5.3 SR5); error COBOL0900: READ PREVIOUS requires COBOL-2002",
+    "expected": "refused at 85: PREVIOUS is a later edition's phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.1.3.4 GR2",
+    "check": "OK  §1985:IX.1.3.4 GR2  (1.3.4 I-O Status)  the text is in GR2"
+   }
+  ],
+  "notes": "The at end arm is SequentialReadGuard (absent optional, first time only) and ReadSequential's no-selected-record return, both edition-free and taken the same at 85 and 2023; the emitter routes 10 to AT END or to the USE procedure. The 46 that follows is set by the same guard's LastReadUnsuccessful arm.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.1.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "e,c",
+  "evidence": "Probe refute-1985-088/src/p6.cob at --std 85 (run p6-001). In dynamic access, a random READ of the last record and then READ NEXT took AT END with 10 (no NOT AT END). A START after the at end gave 00 and READ NEXT recovered (00 001). A failed START (23, USE ran) followed by READ NEXT gave 46, not 10, which is the 46 item 1) distinction. In sequential I-O mode, DELETE of the last record and then READ took AT END with 10. On an absent OPTIONAL file in dynamic access, OPEN gave 05, the first READ NEXT gave 10 through AT END, and the second gave 46 through the USE procedure. The reader's ae2 already showed READ PREVIOUS refused at 85 (class c). cite.py: OK §1985:IX.1.3.4 GR2 the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.7-4",
+ "rule-digest": "667dde8a8f86",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-036",
+  "sources": {
+   "reader": "a8cd36742693e897f4ab17c78d39d8e2b59bc1a271a69b1141dc57a86556cb87",
+   "refuter": "3eb1ee443fcc50694c7ce72e44016ac954866b635f8bd2cf935cc173b0b2cb78"
+  },
+  "imported": {
+   "reader": "b1ab71b9063559364a4ce158b28a6ca6dc05bf80b52b3046e908ecb1f15ba641",
+   "refuter": "0f263d86450621b3f118e5bdf729721f8fcea7ee0683a04da4cedd2f13afb5db"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.7-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after a page heading is presented LINE-COUNTER holds the line of its final print line (absolute or relative, with or without a report heading before it), and a nonprintable page heading leaves LINE-COUNTER unchanged.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues: which control values a page heading sees during a control-footing page advance (XIII.3.20.4 GR13); not LINE-COUNTER",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectBehavior in ReportWriter.cs; PresentLine sets LineCounter = target for every line with no edition test; BeginGroup returns before any line for a group with no present line",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1m8 covers a dummy body group, pb1247 an unpaged report; no witness reads LINE-COUNTER after a page heading",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/p1_ph_lc.cob",
+    "printed": "LC BEFORE D1 = 004 (PH relative lines on 2 and 4)",
+    "expected": "4 (GR4a)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/l3_rh_then_rel_ph_ok.cob",
+    "printed": "LC BEFORE D1 = 004 (RH 2-3, PH on 4)",
+    "expected": "4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/p9_next_page_position.cob",
+    "printed": "LC BEFORE D1 = 001 (absolute PH LINE 1); after the NEXT PAGE advance PH again on 1",
+    "expected": "1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/l8_nonprintable_ph_pf.cob",
+    "printed": "LC BEFORE D1 = 003 (RH on 3, PH with no LINE clause)",
+    "expected": "3: LINE-COUNTER unaffected by a nonprintable PH (GR4b)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.7 GR4a",
+    "check": "OK  §1985:XIII.3.10.7 GR4a  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR4a [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+   },
+   {
+    "cite": "§1985:XIII.3.10.7 GR4b",
+    "check": "OK  §1985:XIII.3.10.7 GR4b  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR4b [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+   },
+   {
+    "cite": "§1985:XIII.3.5.6 GR6",
+    "check": "OK  §1985:XIII.3.5.6 GR6  (3.5.6 LINE-COUNTER Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "PresentLine sets LINE-COUNTER to each line's number before composing it and nothing resets it after the page heading, so the final setting is the last print line. A page heading with no LINE clause is ended in BeginGroup before any line, leaving LINE-COUNTER alone. The 3.10.7 text is reconstructed (PB4952); the printed LINE-COUNTER rules XIII.3.5.6 GR5/GR6 agree.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.7-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-036/: a1_ph_suppress (RH on 3, relative PH whose printing is suppressed by SUPPRESS PRINTING in USE BEFORE REPORTING PH1): 'LC BEFORE D1 = 003', only RA on 3 and the detail on FD 6 printed, so a suppressed PH leaves LINE-COUNTER alone; b1_ph_plus0_overflow (PH LINE 2, PLUS 2, PLUS 0 as last line, four details across two pages): LC before the first detail = 004 (final print line is the PLUS 0 line on 4), PH repeated on page 2 at 2 and 4; b2_ph_line_on_01 (LINE PLUS 2 on the 01 entry, no RH): PH on 3 (= 2 + HEADING-1) on both pages, LC 003; c1 'LINE + 2' and c2 'LINE NUMBERS ARE 2 3' in a PH refused with COBOL0900 (2002 forms). ReportWriter.cs edition consults re-grepped (IsActive at 734, 964, 1080, 1490): none on the LINE-COUNTER path. cite.py: 'OK  §1985:XIII.3.10.7 GR4a ... [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]'; 'OK  §1985:XIII.3.5.6 GR5  (3.5.6 LINE-COUNTER Rules)  the text is in GR5'. The rule's own text is reconstructed (PB4952); the verdict also stands on the printed XIII.3.5.6 GR5, which the suppress probe exercises.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

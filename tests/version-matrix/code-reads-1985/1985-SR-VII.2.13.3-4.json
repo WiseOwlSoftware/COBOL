@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-VII.2.13.3-4",
+ "rule-digest": "65d6450d23ce",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-062",
+  "sources": {
+   "reader": "bcae14ed2cb9ef4fd129801d9934183cf9e56f22e5d496d086e444f68e37e988",
+   "refuter": "f6d2740f0365363e53468248473fec428211b7eb2cfc4ebe62ec90d36a92a187"
+  },
+  "imported": {
+   "reader": "6e7fc520ab4c887988e03de2af35b9c76d80180b63e3d6924bf8b0ed96ca04af",
+   "refuter": "c110c540516e70aa048c6d818b7fb920a25b3557bdc0730717be88fd7a3516e3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.13.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept a SAME AREA or SAME RECORD AREA clause whose files differ in organization (sequential, relative, indexed; a sort file in SAME RECORD AREA per the Sort-Merge module) and in access mode (sequential, random, dynamic), and must not refuse the clause on that ground; the witness covers SAME AREA over three organizations only, not SAME RECORD AREA, two SAME clauses, or a sort file.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "below 2002 only the report-file row of the per-file occurrence limits (SAME SORT AREA unlimited for a report file); the organization/access question is asked at no edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
+    "switches": "LINE SEQUENTIAL (a 2023 phrase) on a SAME member's own SELECT is COBOL0900 at 85; not a SAME check",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read BindIoControl, ScreenSameOperands, ScreenSameClauses, LinkSameRecordArea whole; grep 'Organization|Access|Edition|Version' over FileControlBinder.IoControl.cs: no screen compares members' organization or access mode at any edition; grep 'Same' in WiseOwl.Cobol.Editions Constructs: only SAME AS (unrelated).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: SAME AREA over three organizations is exercised; SAME RECORD AREA across organizations/access modes with files open together, two SAME clauses, and a sort file member are not",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r1_same_mixed-002/r1_same_mixed.cob",
+    "printed": "FR-REC=K1SHARED FI-K=K1 FI-D=SHARED / W 00 00 00 / FR2=R2AA 00 / FI2=K2BB 00 / FR READ FS-REC=K1SHARED 00 / FI READ FS-REC=K1SHARED 00 (exit 0)",
+    "expected": "SAME RECORD AREA over sequential/sequential, relative/random, indexed/dynamic and SAME AREA over relative/sequential + indexed/random both compile (SR4) and the record area is shared (GR2): every line as printed"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r1_same_sortmix-001/r1_same_sortmix.cob",
+    "printed": "FI=ABCD SRT=ABCD (exit 0)",
+    "expected": "SAME RECORD AREA over a sequential file, an indexed/sequential file and a sort file compiles; MOVE to FS-REC is visible in the other two records"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r1_same_linesq-001/r1_same_linesq.cob",
+    "printed": "error COBOL0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "LINE SEQUENTIAL is not a 1985 organization (§1985:VII.2.3.2 prints only SEQUENTIAL), refused at the SELECT, not at the SAME clause"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.13.3 SR4",
+    "check": "OK  §1985:VII.2.13.3 SR4  (2.13.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "SR4 is a permission; the binder carries no organization or access test for SAME members at any edition, and the record-area link (LinkSameRecordArea) works across organizations with all members open. The refusal half of the rule is empty, so the probes are the acceptance half across every organization and access mode plus a sort file.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.13.3-4",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-062/p5_same-001 (--std 85): SAME RECORD AREA FOR a sequential LINAGE file with RECORD VARYING DEPENDING ON, an indexed/dynamic file and a relative/random file, plus SAME AREA FOR the indexed and relative files opened in turn: compiles, exit 0, record area shared across all three (RL=RRRRRR RI=RRRRRR RR=RRRRRR), keyed READ after the shared writes returns K1DATA. Permission rule with no refusal half; no organization/access screen on the SAME path at any edition. cite.py: OK §1985:VII.2.13.3 SR4 the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

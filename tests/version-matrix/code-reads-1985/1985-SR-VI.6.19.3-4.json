@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-SR-VI.6.19.3-4",
+ "rule-digest": "b6576d7172e9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-057",
+  "sources": {
+   "reader": "ab7040499af21b07388b4fd170124a5fcefbfe1114402ba069cdc3d2ffd4c1d2",
+   "refuter": "fc56b3be0adc1c3bef0322333f30b164577bedae94d51baee9a12ab897c9ad15"
+  },
+  "imported": {
+   "reader": "d89c1f05d796238f53cda149695bdfe3110fdc3774e8947cc83b53f14b905519",
+   "refuter": "ef3e485774a90dbd065e9efc25406b62e159ad315c1eeb24e17bc8f583eb0a54"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.19.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a MOVE whose identifier-1 or any identifier-2 is an index data item (USAGE INDEX, standalone, subscripted table element, or a group member named directly) must be refused at compile time, as sender and as receiver, with every literal or figurative sender, while a group that merely contains an index item (MOVE, MOVE CORRESPONDING, reference modification) is not an index data item operand and is admitted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveOperandClassChecks; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#SenderClassRefusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ReceiverClassRefusal",
+  "edition-consulted": [],
+  "edition-search": "MoveOperandClassChecks is commented and coded version-invariant; grep of MoveTable16.cs for DialectLevel|Edition.Year|ConstructRegistry|DialectBehavior: no match; the edition-banded MOVE rules (§2023:14.9.25.3 SR5 figurative rows) live in VersionConformancePass and do not touch the index class",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers the index-name operand; index data items as sender and receiver, subscripted index items, a second receiver and the group-containing-an-index admission were not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4s.cob",
+    "printed": "COBOL0809 a MOVE operand shall not be of class index ... — MOVE IX",
+    "expected": "refused (sender)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4r.cob",
+    "printed": "COBOL0809 ... — MOVE TO IX",
+    "expected": "refused (receiver)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4ii.cob",
+    "printed": "COBOL0809 twice (MOVE IX and MOVE TO IY)",
+    "expected": "refused, both operands"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4x.cob",
+    "printed": "COBOL0809 — MOVE IX (to alphanumeric)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4z.cob",
+    "printed": "COBOL0809 — MOVE TO IX (ZERO sender)",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4sub.cob",
+    "printed": "COBOL0809 — MOVE IE (subscripted)",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4subr.cob",
+    "printed": "COBOL0809 — MOVE TO IE",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4second.cob",
+    "printed": "COBOL0809 — MOVE TO IY (second receiver)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4iname.cob",
+    "printed": "COBOL1637 a MOVE sending operand references the index-name 'TI', which is not an identifier",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4ok.cob",
+    "printed": "EXIT 0, [007][hi] [007][hi] [003]",
+    "expected": "group MOVE and MOVE CORRESPONDING over groups holding an index item admitted (the index item ignored by CORRESPONDING); SET round trip via index-name"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m4rm.cob",
+    "printed": "EXIT 0, [        ]",
+    "expected": "G1 (4:4) over the index item's storage admitted: the operand is a reference modification of a group, not an index data item (content implementor-defined)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.19.3 SR4",
+    "check": "OK  §1985:VI.6.19.3 SR4  (6.19.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "One class reader (IntrinsicArgumentRules.ClassOf through MoveTable16.SenderClassRefusal / ReceiverClassRefusal) refuses an index-class operand in either position at every edition. The 2023 rule also bars message-tag, object and pointer classes, which cannot be declared at 85, so the shared arm does not over-reject there. Diagnostics cite §2023:14.9.25.3 SR1 at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.19.3-4",
+  "refutation": "UPHELD",
+  "classes": "a,b,d",
+  "evidence": "Attacked group-level USAGE INDEX and RENAMES of an index item. Probes at --std 85: r6gidx (01 G USAGE INDEX with 05 I1, I2; MOVE G TO X and MOVE X TO G) -> admitted, OK: G is a group item, not an index data item, because USAGE at group level applies to each elementary item (§1985:VI.5.14.4 GR1); r6gidx2 (MOVE I1 of that group) -> COBOL0809; r6ren (66 RI RENAMES an index item, MOVE RI) -> COBOL0809; r6rm (MOVE IX(1:2)) -> COBOL1647 refused. cite.py: OK §1985:VI.6.19.3 SR4 'An index data item must not appear as an operand'; OK §1985:VI.5.14.3 SR5 'An index data item can be referenced explicitly only'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

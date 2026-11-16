@@ -1,0 +1,89 @@
+{
+ "rule-id": "1989-RV-A.2.46.3-1",
+ "rule-digest": "b86ad5341dfa",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-185",
+  "sources": {
+   "reader": "ff89fdfde760514e2bc0562bee0a433af9db278f53ae1ec61ce484c7c6abf3e0",
+   "refuter": "08c7735aaefeb2139238a831dbfc11046c362485e84f48be27128b1ebc942ad7"
+  },
+  "imported": {
+   "reader": "6d0e8adba5c4b46c97de90ee171285de1ee6dadf9c4947077642614b0e5003c5",
+   "refuter": "ecbfd28adf40979acfab109e4a84ff360b755213c0a1acb6d5a4baf7aa4e6967"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.46.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION WHEN-COMPILED (no arguments) returns 21 alphanumeric characters: yyyymmdd, hh 00-23, mm, ss, hundredths, then '+', '-' or '0' and the offset hours and minutes from Greenwich Mean Time ('-' at most 12 h, '+' at most 13 h, '0' with 0000), denoting the local compilation time.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IsDefinedAt; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CompileClock; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ProgramEmitter; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#WhenCompiledStamp; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#DateFormat21; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#Format21",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: refuses a function whose catalog IntroducedIn exceeds the dialect level; WHEN-COMPILED carries IntroducedIn 85 so it is admitted at 85 as at 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read the stamp path end to end (catalog row -> binder -> ProgramEmitter Lazy capture -> IntrinsicRenderer WhenCompiled arm -> CobolDate.Format21); grepped WhenCompiled/WHEN-COMPILED/DialectLevel/Edition in those members: only the catalog window consults the edition; Format21 and the capture are edition-independent.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pins length, digit ranges, sign/offset consistency and constancy; it does not pin a contained program's stamp (RV2) or reference modification of the value, which the probe wc1 covers. The '0' (no offset facility) arm is unreachable on .NET.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-185/wc1.cob",
+    "printed": "[2026111601295373-0800] / YEAR 2026 REST 111601295373-0800 / OFFSET -0800 (refmod 17:5) / CURRENT [2026111601295488-0800] / LEN 21 / 1-16 NUMERIC / INNER [2026111601295373-0800]",
+    "expected": "21 characters per RV1 with local time behind GMT shown as '-0800'; group move and refmod of the value; contained program returns the same compilation stamp (RV2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-185/wc2.cob",
+    "printed": "error COBOL1504: FUNCTION WHEN-COMPILED takes 0 argument(s); 1 given (ISO §2023:15.3)",
+    "expected": "refused: the general format A.2.46.2 has no argument"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.46@1985-WHEN-COMPILED-FUNCTION/g85_f40_01.cob",
+    "printed": "LENGTH 21 / FIELDS Y / OFFSET Y / CLOCK ADVANCED Y / SAME STAMP Y / COMPILED NOT AFTER RUN Y (MATCH)",
+    "expected": "all Y per RV1/RV2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-185/wc1.cob",
+    "printed": "first version (wc1-001) refused PIC 9(21) (COBOL0802, 18-digit limit at 85) and FUNCTION LENGTH as a DISPLAY operand (COBOL0900, integer function as identifier requires 2002)",
+    "expected": "both are 1985 restrictions of other rules, correctly refused; WHEN-COMPILED itself is accepted at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.46.3 RV1",
+    "check": "OK  §1989:A.2.46.3 RV1  (2.46.3 Returned Values)  the text is in RV1 [Two numeric digits of the hours past midnight, in the range 00 through 23]"
+   },
+   {
+    "cite": "§1989:A.2.46.3 RV1",
+    "check": "OK  §1989:A.2.46.3 RV1  (2.46.3 Returned Values)  the text is in RV1 [two numeric digits are returned in the range 00 through 13]"
+   },
+   {
+    "cite": "§1989:A.2.46.3 RV2",
+    "check": "OK  §1989:A.2.46.3 RV2  (2.46.3 Returned Values)  the text is in RV2"
+   }
+  ],
+  "notes": "The stamp is captured once per compilation from DateTimeOffset.Now and formatted by the one Format21 (yyyyMMddHHmmssff, sign, |offset hours|, |offset minutes|), baked as a constant; a fractional negative offset such as -03:30 renders -0330 by the Math.Abs arms. Edge left as a note, not a defect: a host at UTC+14 would yield '+14', outside RV1's 00-13, a zone the 1989 text predates; the only alternative ('0') would falsely claim no offset facility. The refusal diagnostic cites §2023 rather than the 1985 text (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.46.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read CobolDate.Format21 (yyyyMMddHHmmssff + sign by Offset>=0 + |Offset.Hours| + |Offset.Minutes|, InvariantCulture Gregorian) and ProgramEmitter's Lazy per-compilation capture via CompilationInputs.ReadCompilationTime; no listing carries a compile time (DATE-COMPILED is only a comment paragraph), so nothing can disagree with the stamp. Probes at --std 85 (refute-1985-185/runs): rw1-001 WHEN-COMPILED as argument of REVERSE and NUMVAL(refmod 1:8), INSPECT TALLYING subject, STRING sender with POINTER, relation against CURRENT-DATE and a stored copy, refmod 17:1 / 18:4 / 9:2 -> '[2026111601345995-0800]', REV correct, NUMVAL 20261116, PTR 24 (21 chars), COMPILED BEFORE NOW, CONSTANT, SIGN OK, OFFSET NUMERIC, HOUR OK; rw2-001 'FUNCTION WHEN-COMPILED ()' refused COBOL0900 (empty argument list is a 2002 form, general format A.2.46.2 has none); rw3-001 as a MOVE receiver refused COBOL5506 (A.2.3: functions cannot be receiving operands); rw4-001 in COMPUTE refused COBOL0844 (alphanumeric function, not arithmetic operand). cite.py: OK §1989:A.2.46.3 RV1 [two numeric digits are returned in the range 00 through 13]. Only unreachable edge: a UTC+14 host would emit '+14', outside RV1's 00-13, a zone for which RV1 has no conforming encoding; not probeable on this host (.NET on Windows ignores TZ) and not a code defect of this rule.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

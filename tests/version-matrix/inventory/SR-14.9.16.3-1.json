@@ -1,9 +1,9 @@
 {
  "rule-id": "SR-14.9.16.3-1",
  "rule-digest": "50f64bd1a05f",
- "verdict": "CONFORMS",
+ "verdict": "PARTIAL",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve",
  "test-ref": "unit:BoundDeferralDriftTests.ReportWriterOperand_NamingNoReport_IsARefusal",
  "editions": "85,2002,2014,2023",
- "notes": "GAP -> CONFORMS (kb/Work PB909). Rule text validated: cite.py --check 14.9.16.3 \"Data-name-1 shall name a detail report group\" -> OK 1). A found group that is not DETAIL is ReportGenerateNotDetail (emitted under the shared COBOL0899 code — a wave-48 T lead); an ambiguous one is COBOL1920 (ReportGroupResolution, the qualification half 'It may be qualified by a report-name'); a name that is neither a detail group nor a report (Match.None, undiagnosed by contract) is now COBOL1757 at bind instead of a COBOL1756 deferral."
+ "notes": "PARTIAL (2026-11-16, the 1985 code reads, cause b: wrong the same way at every edition): the mechanism of kb/Work PB5775: PB5775 - a report group name that is also a Working-Storage name is resolved without the ambiguity being reported (GENERATE, USE BEFORE REPORTING; every edition). Owner: kb/Work PB5775 (open). Ruled in kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md; the 1985 rows that carry into this rule: 1985-SR-XIII.3.7.3-1, 1985-SR-XIII.4.3.3-1. Recorded by the registrar from the ruling and its note, the repro not re-run by the registrar. The prose that follows is the stored CONFORMS account, kept as the account of the part that holds. || GAP -> CONFORMS (kb/Work PB909). Rule text validated: cite.py --check 14.9.16.3 \"Data-name-1 shall name a detail report group\" -> OK 1). A found group that is not DETAIL is ReportGenerateNotDetail (emitted under the shared COBOL0899 code — a wave-48 T lead); an ambiguous one is COBOL1920 (ReportGroupResolution, the qualification half 'It may be qualified by a report-name'); a name that is neither a detail group nor a report (Match.None, undiagnosed by contract) is now COBOL1757 at bind instead of a COBOL1756 deferral."
 }

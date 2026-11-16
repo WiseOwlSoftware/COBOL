@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-3",
+ "rule-digest": "2ff7680eb4ba",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-019",
+  "sources": {
+   "reader": "cac08827760b8caaf05d2d24cc3ecb7e6585b892b5d4949fa57ccdb12c87e9e7",
+   "refuter": "915b665368ad697fd9e06b3a65595021e012c10acde06b17ad688f066fd6a0e9"
+  },
+  "imported": {
+   "reader": "6d62b9626f8747b2dd55c549e1ba8a33d219f25b55926e5d01586dad3e4d3d1b",
+   "refuter": "463c3769c010eda8c31a2fdcea25c775ab56bfab3ca1ad9dbb2a2c1b2b7e57ef"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output for the witness",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-VI.6.27.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "identifier-4 is the receiving area for data and identifier-5 the receiving area for delimiters: each is stored into by the MOVE rules and never altered as a sender, identifier-5 being alphanumeric.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#UnstringInto; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringIntoTarget; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+  "edition-consulted": [],
+  "edition-search": "Grepped StringUnstringBinder.cs, StringEmitter.cs, ReceivingStore.cs, CobolStringOps.cs and EcEmitter.cs#EmitOverflow for Edition|CobolVersion|Std|Dialect|Construct|ReservedWord: StringEmitter, ReceivingStore and CobolStringOps have none; the binder's ctx.Edition uses are the diagnostic sink only (BoundRejected.Report / BoundOperandError.Report -> edition.Error), no switch; EcEmitter#EmitOverflow reads the >>TURN checking state, not the edition. Grepped VersionConformancePass.cs for UNSTRING: only VisitUnstringStatement (SR7 sender ref-mod) and VisitConditionalPhrases (phrase order). CobolIO.g4 unstringIntoTarget (receivingIdentifier, optional DELIMITER IN and COUNT IN receivingIdentifier) carries no version predicate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness does not exercise refusal of a non-receivable identifier-4 or identifier-5",
+  "probes": [
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/14.9.48-UNSTRING/l1c35_unstring_receiving_operands.cob",
+    "printed": "N1=0012 D1=[,  ] J1=[ ABCDE] D2=[:] A1=[XY ] D3=[   ] S1 unchanged (matches its .out at --std 85)",
+    "expected": "MOVE-rule stores into identifier-4 and identifier-5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/xd5.cob, xcomp.cob",
+    "printed": "COBOL1651 numeric DELIMITER IN refused; COBOL1626 COMP INTO refused",
+    "expected": "identifier-5 alphanumeric (SR2), identifier-4 USAGE DISPLAY (SR3)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/xnat.cob",
+    "printed": "COBOL0900 national data (PICTURE symbol N) requires COBOL-2002",
+    "expected": "no national category at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR3",
+    "check": "OK  §1985:VI.6.27.4 GR3  (║6.27.4 General Rules║)  the text is in GR3"
+   }
+  ],
+  "notes": "A definitional rule; the binder binds identifier-4 and identifier-5 as receivers of MOVEs from the conceptual item. The refusal diagnostics at --std 85 cite only §2023 rules (cosmetic)."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "g3.cob at --std 85: a function-identifier as identifier-4, as identifier-5 and as identifier-6 is refused (COBOL5506), as §1985:IV.4.3.8.3.3 SR3a requires; alphanumeric-edited and numeric-edited INTO refused (COBOL1626); r1 F DELIMITER IN X(1) takes ','; r1 H DELIMITER IN at end of sender is spaces; r2 F group and alphabetic receivers stored by MOVE. cite.py: OK §1985:VI.6.27.4 GR3, OK §1985:IV.4.3.8.3.3 SR3a.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,92 @@
+{
+ "rule-id": "1989-AR-A.2.34.3-1",
+ "rule-digest": "afd55fdaf2cb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-171",
+  "sources": {
+   "reader": "b9e1fb2dbadce3c7a5d8fb6b4c742c50d1f946596a6ce67df9c7c2055b5bf3a5",
+   "refuter": "cb6f0ea645b0cd3ae00802e52db865e1a5964587e93a9697ae35be5074b42c28"
+  },
+  "imported": {
+   "reader": "a7c78175ec82d944d33919730390df48333a4c98846d57f6475eba7cf765b17d",
+   "refuter": "e9b66c4321f3e2b5a7b84f0d17a857b2310700f1e3fc39894c801b5f9704a84a"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.34.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each argument of FUNCTION PRESENT-VALUE must be of class numeric, i.e. an arithmetic expression (a numeric elementary item, a numeric literal, ZERO, a numeric or integer function, or a combination of them, §1989:A.2.2 type 1 and §1985:VI.6.2.1), including a table(ALL) list; an alphanumeric item or literal, a numeric-edited item, a reference-modified numeric item (class alphanumeric at 1985, §1985:IV.4.3.8.4.4 GR5) or a non-ZERO figurative constant must be refused. The witness covers items, literals and expressions; it does not cover ZERO, table(ALL) over ODO, nested functions or the refusal half.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#PresentValue",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: whether FUNCTION PRESENT-VALUE exists at the edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) for a position's extra predicates; the PRESENT-VALUE row carries none, so the class screen ('n' = class numeric) is edition-free",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped IntrinsicBinder.cs for Edition/DialectLevel/ConstructRegistry/since:, IntrinsicArgumentRules.cs for Edition/Year/since:; the Verified row is Uniform('n') with no edition predicate. ScreenIdentifierPlacement (NumericFunctionIdentifierOperand2002) is not reached for a function inside an arithmetic expression.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises items, literals and expressions in both positions; not ZERO, table(ALL) over OCCURS DEPENDING ON, nested numeric functions, or any refusal",
+  "probes": [
+   {
+    "class": "b,c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/pv_refuse.cob",
+    "printed": "COBOL1627 on all five: PIC X item arg-1, \"100\" literal, PIC Z9.99 numeric-edited item, W-N (1:2) reference-modified numeric item, SPACE (each 'is of class alphanumeric ... requires class numeric')",
+    "expected": "refused: arguments must be class numeric (§1989:A.2.34.3 AR1); ref-mod of a numeric item is class alphanumeric at 1985 (§1985:IV.4.3.8.4.4 GR5)"
+   },
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/pv_accept.cob",
+    "printed": "PV-ZERO-ALL= 0060.00; PV-NEG-RATE= 0100.00; PV-FN= 0016.00; PV-ODO2= 0030.00 (ZERO arg-1, COMP-3 ODO table(ALL) arg-2 at 3 then 2 elements, negative scaled rate -0.5, nested FUNCTION SQRT)",
+    "expected": "60.00, 100.00, 16.00, 30.00 per §1989:A.2.34.4 RV1"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/pv_big.cob",
+    "printed": "15-digit amount -999999999999999 -> -0999999999999999.00; 16-digit amount -9999999999999999 -> size error (ON SIZE ERROR fires), receiver 0; same at --std 2023",
+    "expected": "class-numeric argument accepted (AR1 satisfied); the returned value is 'an approximation' whose characteristics are implementor-defined (§1989:A.2.3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.34.3 AR1",
+    "check": "OK  §1989:A.2.34.3 AR1  (2.34.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1 [\"An arithmetic expression must be specified\"]"
+   },
+   {
+    "cite": "§1985:VI.6.2.1",
+    "check": "OK  §1985:VI.6.2.1  (6.2.1 Definition of an Arithmetic Expression)  the text is in the clause [\"the figurative constant ZERO\"]"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.4.4 GR5",
+    "check": "OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The class screen is one edition-free table row (Uniform 'n') driven through CheckArgumentClasses, and every refusal and acceptance probe matched the 1985 text. Side observation outside AR1: the native PRESENT-VALUE result is narrowed to binary64 (CobolIntrinsics.Float.cs#PresentValue -> NarrowResult), so a 16-digit amount returns 1E16 and COMPUTE into PIC -9(16).99 takes a size error at 85 and 2023 alike; the returned value is an implementor-characterised approximation (§1989:A.2.3 item 2), so it is not judged a defect of this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.34.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "rg1.cob --std 85 --compile-only (runs/rg1-001): PRESENT-VALUE refuses a PIC AAA item (class alphabetic) in argument-1 and argument-3, a PIC XBX alphanumeric-edited item, a group, ALL \"5\", LOW-VALUE, FUNCTION CHAR (65) (COBOL1627 each), a USAGE INDEX item (COBOL6979, §1985:VI.5.14.3 SR5) and an index-name (COBOL1637). rg2.cob (runs/rg2-001): N\"5\" and 1.0E-1 refused at 85 as COBOL-2002 literals (COBOL0900) and by class. rg3.cob --std 85 (runs/rg3-001): PV-2D=16.5 over W-C (ALL ALL), PV-P=300.003 over PIC 9PP and PIC PP9, PV-EXP=75.00 with rate W-N - 4 = 1 and amounts 100 100, all as A.2.34.4 RV1 gives. cite.py: OK §1989:A.2.34.3 AR1 (2.34.3 Arguments) the text is in AR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

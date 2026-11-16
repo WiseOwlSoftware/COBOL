@@ -1,0 +1,112 @@
+{
+ "rule-id": "1985-GR-XIII.3.15.4-4",
+ "rule-digest": "ea74ff22d7e5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-146",
+  "sources": {
+   "reader": "56366494aea5ec4e06ce1598d7ce21691365b3bac4e45db00a320a0e89505f44",
+   "refuter": "db4bfb5fe13af4f720492392954309b2223394c15d7a072b8045b8ef690e7e5b"
+  },
+  "imported": {
+   "reader": "58058a5a1658eaa4d70e8f611ccfc9868b454ba4e1683e73a46eb7916ded8418",
+   "refuter": "77ccd05e9fa922c1e906dc40a6f7f35980aad0bd51ee6452e1af8039f813dd30"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.15.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relative LINE NUMBER PLUS integer-2 that is not the group's first places its line at the previous print line plus integer-2 (zero = the same line, overprinted), and a first relative clause is placed by the presentation rules tables: RH HEADING+integer-2-1 (LINE-COUNTER+integer-2 unpaged), PH after RH LINE-COUNTER+integer-2 else HEADING+integer-2-1, body group FIRST DETAIL when first on the page (LINE-COUNTER+1 after a saved next-group integer) else LINE-COUNTER+integer-2, RF after PF LINE-COUNTER+integer-2 else FOOTING+integer-2, unpaged LINE-COUNTER+integer-2.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SubsequentTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Overprint; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportRelativeSign",
+    "switches": "the '+' symbol for PLUS is a 2002 construct, refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses",
+    "switches": "85-only: integer-2 over three significant digits (SR1) and a relative first line of a page footing (SR9) are refused",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
+    "switches": "85-only SR9 check that a relative body group fits from FIRST DETAIL",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Runtime placement (FirstLineTarget, SubsequentTarget, PlaceAfterSavedNextGroup) has no edition test; grep of ReportWriter.cs for Edition/Dialect lists only DialectBehavior sites unrelated to line placement.",
+  "behaviour-differs-by-edition": "no for placement: ln_types gives identical pages at --std 85 and --std 2023; the 1985 tables and the 2023 GR5 formulas coincide for every form 1985 permits. The compile-time screens differ ('+' symbol, PF relative first line).",
+  "witnesses-cover": "part: g85_f29_02 covers a body group's first relative line (FIRST DETAIL, then LINE-COUNTER+integer-2) and PLUS 2 / PLUS 0 after absolute lines; RH, PH, RF first relative lines, the unpaged report and the line after a saved next-group integer are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/ln_types.cob",
+    "printed": "RH PLUS 2 on 3 (HEADING 2+2-1), rh PLUS 1 on 4, PH PLUS 1 on 5 after RH then on 2 of pages 2-3, DR PLUS 2 on FD 6 first on page then LC+2 (12, 14), A+ PLUS 1 on 10 with Z0 PLUS 0 overprinted on 10, pf PLUS 1 on 18, RF PLUS 1 on 19 after PF; LC after each GENERATE 06 10 12 10 12 14 06 19",
+    "expected": "§1985:XIII.3.10.6 GR3b, 3.10.7 3b, 3.10.8 GR4b, 3.10.10 GR3b and GR4 for later lines: the same numbers"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/ngunpg.cob",
+    "printed": "unpaged: RH PLUS 2 on 2, DE PLUS 1 on 4, D2 PLUS 1 on 7 with PLUS 0 overprinted, DE on 8, RF PLUS 3 on 13",
+    "expected": "LINE-COUNTER + integer-2 for each first relative line (3.10.6 GR3d, 3.10.8 GR4d, 3.10.10 GR3d)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/ng_paged.cob",
+    "printed": "PAGE 3 LINE 11 [D211]: after a saved next-group integer 10 the relative body group lands on line 11 of the new page",
+    "expected": "3.10.8 GR3b then GR4b first paragraph: the line immediately following LINE-COUNTER (10) = 11"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/c_plus_sign.cob",
+    "printed": "error COBOL0900: the '+' symbol for PLUS ... requires COBOL-2002 (accepted at 2023)",
+    "expected": "refused at 85: §1985:XIII.3.15.2 spells PLUS only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.15.4 GR4",
+    "check": "OK  §1985:XIII.3.15.4 GR4  (3.15.4 General Rules)  the text is in GR4 (\"If integer-2 is zero, the line will be printed on the same line as the previous print line\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.8 GR4b",
+    "check": "OK  §1985:XIII.3.10.8 GR4b  the text is in GR4b (\"presented on the line immediately following the line indicated by the value contained in LINE-COUNTER\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.6 GR3b",
+    "check": "OK  §1985:XIII.3.10.6 GR3b  the text is in GR3b (\"subtracting 1 from the value of integer-2 of the HEADING phrase\")"
+   },
+   {
+    "cite": "§1985:XIII.3.10.10 GR3b",
+    "check": "OK  §1985:XIII.3.10.10 GR3b  the text is in GR3b (\"the sum of the final LINE-COUNTER setting established by the page footing report group\")"
+   }
+  ],
+  "notes": "Every first-relative-line row of the 1985 tables was probed, paged and unpaged, and each placed the line as the table says. Later relative lines add to the previous line, and PLUS 0 overprints it. The page heading rows lean on the RECONSTRUCTED §1985:XIII.3.10.7 (folios XIII-30/31 missing, kb/Work PB4952), so that part rests on low-confidence text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.15.4-4",
+  "refutation": "OVERTURNED",
+  "classes": "e,c,f",
+  "evidence": "cfplus0.cob (PAGE 15 HEADING 1 FD 4 LD 10 FOOTING 12; DE-A LINE PLUS 1 NEXT GROUP 9; CF-1 for WS-K1 with one line, LINE PLUS 0). Two GENERATEs put DA on 4 (LC 9) and 10 (LC 12, saved 9). A control break then presents CF-1. --std 85 printed PAGE 2 LINE 10 [CF10], then DA on PAGE 3 LINE 4. --std 2023 printed the same. The 1985 text gives a different page. CF-1 is a body group of row 'R / no NEXT GROUP', so fit test 3b applies. A body group has been presented on page 1, so the trial sum is LC 12 + integer 0 = 12, which is not greater than the control footing's lower limit (FOOTING 12), so 'the report group is presented on the current page'. Rule 4b, second paragraph (a body group already presented on the page): line = LC + integer of the first LINE NUMBER clause = 12. So CF-1 belongs on PAGE 1 LINE 12, with LC 12 and the saved 9 still pending for DE-A. The code's PresentBody/PlaceAfterSavedNextGroup always takes a page advance when _nextGroupSave != 0 and places a relative first line at saved+1 (the 2023 GR4a model: 'a page advance ... before any other non-dummy body group'). It has no edition arm, so at 85 the first relative line of a body group is not placed 'by specified rules (Presentation Rules Tables)' (GR4 second paragraph) when integer-2 is 0. The reader's own requirement says 'else LINE-COUNTER+integer-2' for a body group that is not first on the page, and the code breaks that. cite.py: OK §1985:XIII.3.15.4 GR4 (\"determined by specified rules\"); OK §1985:XIII.3.10.8 GR3b (\"If the trial sum is not greater than the body group's lower limit integer, then the report group is presented on the current page\"); OK §1985:XIII.3.10.8 GR4b (\"adding the content of LINE-COUNTER and the integer of the first LINE NUMBER clause of the current body group\"); OK §1985:XIII.3.10.8 GR2 (CF lower limit = FOOTING); OK §1985:XIII.3.15.3 SR1 (\"Integer-2 may be zero\"). Other probes matched: ngcf (CH/DE/CF relative first lines, PF NEXT GROUP PLUS 2 then RF PLUS 1 on 29 = 28+1, rule 3.10.10 3b).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody: the _nextGroupSave != 0 branch bypasses the 1985 fit test 3b/3a for every edition (no DialectBehavior); at 85 a body group must first be fitted at LINE-COUNTER = FOOTING",
+   "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup: unconditional AdvancePage implements §2023 GR4a, not §1985:XIII.3.10.8 GR3b"
+  ],
+  "corrected": "NON-CONFORMING (wrong-answer), cause (a): at --std 85 this edition needs its own arm. After a body group's absolute NEXT GROUP fills the save location (LC = FOOTING), a control footing whose first line is LINE PLUS 0 passes fit test 3b (12 + 0 <= FOOTING 12) and must be presented on the current page at LC + 0 (rule 4b). The compiler instead advances the page and prints it at saved+1 (page 2, line 10), at 85 the same as at 2023. Repro: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-146/src/cfplus0.cob. Expected per 1985: PAGE 1 LINE 12 [CF12]. Observed: PAGE 2 LINE 10 [CF10]. It is narrow (only a first relative line of integer 0 in a group whose lower limit is FOOTING), but the rule text decides it."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "Report Writer. After a body group's absolute NEXT GROUP saves its integer, the next relative group whose LINE integers sum to zero (a control footing with LINE PLUS 0) is sent to the next page. The 1985 fit test keeps it on the page: a body group HAS been presented there, so the saved integer is not consulted. The forced page advance is the 2023 rule, applied at every edition. Narrow: only a relative group of integer sum 0 whose lower limit is at least the FOOTING line. The rules it rests on are printed text (folios XIII-32 to XIII-36), not reconstruction.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md"
+ },
+ "work": "PB5823"
+}

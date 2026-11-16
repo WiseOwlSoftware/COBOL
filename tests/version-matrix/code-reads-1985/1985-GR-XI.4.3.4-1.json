@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-XI.4.3.4-1",
+ "rule-digest": "e5b2f8e1b5db",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-142",
+  "sources": {
+   "reader": "1b405c8d2d8789ea1783a031373970254b47f543c63e6fc47bea7632162d687f",
+   "refuter": "4ecd83abe57f4fc70a790418c834f24f58dd9091a1c22c6fb1a932faa9d473ff"
+  },
+  "imported": {
+   "reader": "13946021398f656bde09c7c2bdc8a71e21cb0684c18f9b130c4737fa83209233",
+   "refuter": "459ab3ec2748225ab4fc3d9541b5125d50d0b845b02d1670635dbcdc27eb9169"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every record description of an SD must name the one record area, so after a RETURN each of them (shorter, longer, group or elementary, signed numeric or variable-occurrence) views the returned record's characters as an implicit redefinition; only the positions past the current record's size are undefined.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordAreaStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitImageInto; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordWidth",
+  "edition-consulted": [],
+  "edition-search": "grep for DialectLevel, CobolVersion, DialectBehavior, IsActive, Constructs in SortBinder.cs (BindReturn), SortEmitter.cs (EmitReturn), SequentialIoEmitter.cs (EmitRecordAreaStore, EmitImageInto) and FileModel.cs: the shared-area store consults no edition. The INTO phrase's IntoPhraseRules.Return.PhraseAt reads the edition only to pick the citation text of its diagnostics (BoundTree.cs), not behaviour, and belongs to GR5/GR6.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f27_03 covers two equal-length (6-position) descriptions, alphanumeric and a group with an unsigned numeric item; not exercised are descriptions of different lengths, a signed numeric view, a variable-occurrence (ODO) record and a second description over it, and RETURN INTO with a subscript taken from the returned record.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/t6a.cob",
+    "printed": "A[PP104N] K=PP C=PP IX=1 / A[QQ2012] K=QQ C=QQ IX=2 / A[RR104N] K=RR C=RR IX=1",
+    "expected": "SA (X(6)), SB (XX, 9, S9(3): -45 as 04N) and the shorter SC (XX) all see the returned record; SC's release leaves positions 3-6 the implementor's (undefined)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/t6a.cob",
+    "printed": "TAB [RR104NQQ2012......]",
+    "expected": "RETURN INTO W-ELT (SB-IX): the subscript is the returned record's SB-IX, evaluated after the record is made available (GR6b): element 1 then 2, then 1 again by the third record's undefined IX position"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/t6a.cob",
+    "printed": "V[A1q] K=A N=1 T1=q / V[B4wxyz] K=B N=4 T1=w",
+    "expected": "an ODO record VR and the fixed VS over the same area: VS-K and VS-N see the returned record, VR's length follows its own VR-N"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XI.4.3@1985-RETURN-STATEMENT/g85_f27_03.cob",
+    "printed": "PP1234 PP 1234 1235 / QQ0041 QQ 0041 0042; EXPECT: MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.3.4 GR1",
+    "check": "OK  §1985:XI.4.3.4 GR1  (4.3.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XI.4.3.4 GR2",
+    "check": "OK  §1985:XI.4.3.4 GR2  (4.3.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XI.4.3.4 GR6",
+    "check": "OK  §1985:XI.4.3.4 GR6  (4.3.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "BindReturn resolves the store through PlaceTable.RecordArea, the largest record's view of the one SD record area, and EmitReturn writes the returned image there through SequentialIoEmitter.EmitRecordAreaStore / EmitImageInto, so every 01 under the SD redefines the same characters. The path consults no edition; every probe at --std 85 showed each description viewing the returned record.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "q6a at --std 85 in a MERGE output procedure (the reader probed SORT): SD with three 01s, X(7), a group with S9(3) SIGN LEADING SEPARATE and an ODO 0 TO 2 table, and a group with 9(4); RETURN SM INTO W7: A[A-0122x] K=A NUM=-012 N=2 C=-012 W7=[A-0122x] / A[B+0451q] K=B NUM=+045 N=1 / A[C+3000 ] K=C NUM=+300 N=0, SUM +0333: every description views the returned characters. cite.py: OK §1985:XI.4.3.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

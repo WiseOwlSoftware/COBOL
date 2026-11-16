@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-23",
+ "rule-digest": "4c2378651470",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-123",
+  "sources": {
+   "reader": "2a038aa4eda79245e44f17a46396a0d07259a19a45f018cc546b0a2da6fe34e4",
+   "refuter": "682fc1281745e66c275b93fc2f52298f7014de67670a15739aebe068fe2e0f23"
+  },
+  "imported": {
+   "reader": "9afdf459991938a461cf2c88ff1b0ca8155f46063db93f437fdc5904cede5054",
+   "refuter": "e06ea45849902465051d41275bd57efaa3595f96f461a0a5e100e850c78d1c98"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.3.4-23",
+  "verdict": "CONFORMS",
+  "requirement": "Every execution of an OPEN, successful or not, on a file of any organization sets the file's I-O status to the VII.1.3.5 value for its outcome (00, 05, 07, 35, 37, 38, 39, 41, 30), and the FILE STATUS item receives it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenArbitrated; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RefusedAsAlreadyOpen; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (2002+): at 85 no Table 19 arbitration in FileRegistry#SharedOpenAttempt and a host sharing refusal is '30' not '61'",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (2002+): at 85 the physical file is locked ('38' through any file-name), from 2002 the file connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register",
+    "switches": "the connector's Edition (FileConnector#Edition) is handed down from the compiled --std; read only by the two DialectBehavior questions above",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior over Runtime/IO/{FileConnector,FileRegistry,SequentialConnector,KeyedConnector}.cs; the status path itself (FileConnector#Status setter) is edition-free",
+  "behaviour-differs-by-edition": "yes: at 85 a second connector on an open physical file opens 00 (no '61'), and CLOSE WITH LOCK gives '38' to every file-name of the physical file",
+  "witnesses-cover": "part: the witness is sequential only (00, 41, 35, 05); not exercised: relative and indexed, EXTEND/I-O of an absent file, NO REWIND '07', '38' after CLOSE WITH LOCK",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p23_status.cob",
+    "printed": "SX-EXTEND-ABSENT=35 SX-IO-ABSENT=35 SO-IO-OPT-ABSENT=05 SO-IN-CREATED=00 SE-EXT-OPT-ABSENT=05 SQ-OUT=00 SQ2-IN-WHILE-SQ-OPEN=00 SQ-NOREWIND=07 SQ-CLOSE-LOCK=00 SQ-AFTER-LOCK=38 SQ2-AFTER-LOCK=38 RL-IN-ABSENT=35 RL-OUT=00 RL-AGAIN=41 RL-IO=00 IX-IO-ABSENT=35 IX-OUT=00 IX-AGAIN=41 IX-IN=00",
+    "expected": "VII.1.3.5: 35 non-optional absent INPUT/I-O/EXTEND, 05 optional absent (created for I-O/EXTEND), 07 NO REWIND on non-reel, 38 after CLOSE WITH LOCK, 41 already open, 00 otherwise; every FILE STATUS item started at '99'"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p23_status.cob",
+    "printed": "SQ2-IN-WHILE-SQ-OPEN=00",
+    "expected": "85 defines no '61': a second file-name opening the same physical file is a normal open"
+   },
+   {
+    "class": "b",
+    "file": "conformance-suite/cases/14.9.27-OPEN/l1_open_status_updated.cob",
+    "printed": "EXPECT: MATCH (A-OUT=00 A-AGAIN=41 B-IN=35 C-IN=05 A-IN=00)",
+    "expected": "the witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.4 GR23",
+    "check": "OK  §1985:VII.4.3.4 GR23  (4.3.4 General Rules)  the text is in GR23"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4a"
+   }
+  ],
+  "notes": "Every OPEN outcome passes the one FileConnector#Status setter and EmitOpen stores it into the FILE STATUS item after each file's open. At 85 the two edition arms (no sharing facility, physical-file lock) give the 85 statuses, as probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.3.4-23",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VII.4.3.4 GR23 (cite.py: OK  §1985:VII.4.3.4 GR23 the text is in GR23) and the whole OPEN status list of §1985:VII.1.3.5 (00, 05, 07, 30, 35, 37, 38, 39, 41, 9x). Attacked what the reader did not reach: 37, and a 2023-only OPEN status leaking at 85. r23_perm.cob, a read-only ro.dat: RO-OUTPUT=37 RO-EXTEND=37 RO-IO=37, then RO-INPUT=00 RO-READ=00 ABCD, so the file was untouched (GR26). This is VII.1.3.5 3d 1 (cite.py: OK §1985:VII.1.3.5, it lies in GRL2.3d.1). OPEN OUTPUT on a directory gave 37 and OPEN INPUT on a directory gave 35; where more than one value applies the implementor chooses (cite.py: OK §1985:VII.1.3.5, it lies in GR5). Class c: the runtime's only 2023-only OPEN status, '31' (FileConnector#AssociationFailure), is reachable only through ASSIGN USING. r23_using.cob is refused at --std 85 with COBOL0900. In r23_dyn.cob, ASSIGN TO WS-NAME with WS-NAME = SPACES opened 00 with no '31'. The reader's probe already showed no '61' at 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

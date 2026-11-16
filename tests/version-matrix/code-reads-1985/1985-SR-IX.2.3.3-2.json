@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-IX.2.3.3-2",
+ "rule-digest": "ba65e0a4ec52",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-046",
+  "sources": {
+   "reader": "6a7549fbd4d57f686dea1cc5be349852eadfd6130b5348654b454c5ee83af605",
+   "refuter": "a01d34c378e6889baef00ddf26ad4565679549337ef74068668c568978c99cac"
+  },
+  "imported": {
+   "reader": "0b4497b36596691814887b541fd37046510e5ddc0decc72f3e16d97c53859ea2",
+   "refuter": "2c5a981a34a3bfb88becb92adf72f4f8349b23426199f40d33414b6679c046bc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.2.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an indexed file's file-name may appear in only one SELECT of a program's FILE-CONTROL paragraph, and every file-name a SELECT names must have an FD in the Data Division of the same program (a SELECT in a containing program is not satisfied by an FD in a contained one).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#ScreenSelectsHaveDescriptions; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
+  "edition-consulted": [],
+  "edition-search": "Read BindFileControl (SelectedFiles duplicate check, COBOL2634) and ScreenSelectsHaveDescriptions (COBOL2635): neither reads Edition.DialectLevel, CobolVersion, ConstructRegistry or ReservedWords; EditionContext.Error (EditionContext.cs#Error) only records the diagnostic. The only DialectLevel reads in BindFileControl are on the PADDING clause, not on this path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses exercise the per-program scope with sequential files and the FD-without-SELECT direction; none exercises a duplicate SELECT or a SELECT without FD on an INDEXED file at 85 (probed here).",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c1dup.cob",
+    "printed": "error COBOL2634: file-name 'IX' is specified in a second SELECT clause",
+    "expected": "refused: file-name specified only once in FILE-CONTROL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c1nofd.cob",
+    "printed": "error COBOL2635: file 'IY' is specified in a SELECT clause but has no file description entry",
+    "expected": "refused: SELECT file-name must have an FD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c1nested.cob",
+    "printed": "COBOL2635 on the outer SELECT IX and COBOL2636 on the contained program's FD IX",
+    "expected": "refused: the FD must be in the same program as the SELECT"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c1ok.cob",
+    "printed": "READ=AAAA111111 (exit 0)",
+    "expected": "legal indexed DYNAMIC entry with its FD compiles and runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.3.3 SR2",
+    "check": "OK  §1985:IX.2.3.3 SR2  (2.3.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Both sentences are enforced edition-invariantly by the two binder screens; the 2023 rule (§2023:12.4.5.2 SR2/SR3) states the same obligation, so one arm serves every edition. The diagnostics cite the 2023 clause even at --std 85, a cosmetic point only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.2.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe r1nest.cob (refute-1985-046/r1nest-001, --std 85): a containing and a contained program each with its own SELECT IX (indexed, DYNAMIC) and its own FD IX compiles and runs, IN=ZZZZ999999 OUT=AAAA111111, exit 0: the once-only rule is per program, not per run unit, as SR2 reads ('in the Data Division of the same program'). The reader's c1dup/c1nofd/c1nested already show the two refusals (COBOL2634, COBOL2635/2636). No edition read on the path found beyond the reader's. cite.py: OK  §1985:IX.2.3.3 SR2  (2.3.3 Syntax Rules)  the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

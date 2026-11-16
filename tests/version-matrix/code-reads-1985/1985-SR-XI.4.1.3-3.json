@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-SR-XI.4.1.3-3",
+ "rule-digest": "8f10524e88a2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-070",
+  "sources": {
+   "reader": "de079a6807c8e991d8e984d833274cda2a902dd64b033ce43c2af44b921b1036",
+   "refuter": "62f2829030083f0d05e97ccaecad667c74c74e0e638f267d441ed1ecbfe518f8"
+  },
+  "imported": {
+   "reader": "568a1ea2a1734ad0005cf0312707f7c9d7274189b8d262827d927d91e3d9baee",
+   "refuter": "219bab7c8ea3e5e59f880919f1e706050260733f7e0f020f77996a4c7023bc88"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.1.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each USING file (file-name-2, file-name-3 and any further) is bounded by the sort-merge file: a variable-length file-name-1 refuses a USING file whose records are smaller than its smallest or larger than its largest record; a fixed-length file-name-1 refuses a USING file record larger than its largest record and admits a smaller one (space-filled by GR2).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenTransferRecordSizes; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeRange; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ImpliesVariableFormat; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize (from 2002): Format 3's integers are the bounds from 2002; at 85 the record descriptions' own range (§1985:VII.3.8.4 GR14)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ScreenTransferRecordSizes reads no edition (read whole); SortBinder.cs edition greps hit only RELEASE and ScreenSameClauses.",
+  "behaviour-differs-by-edition": "yes: only for a Format 3 RECORD clause, whose compared range comes from the record descriptions at 85 and from the integers from 2002",
+  "witnesses-cover": "part: pb995_sort_merge_record_size_ranges runs only the legal side at 85 (USING equal to a fixed SD); the refusals and the variable SD are exercised only by this slice's probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/m3vsmall.cob",
+    "printed": "SD VARYING 5 TO 8, USING record 3 -> COBOL1757 'SW' describes variable-length records of 5 to 8 bytes but 'MA' describes fixed-length records of 3 bytes",
+    "expected": "refused: less than the smallest"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/m3vlarge.cob",
+    "printed": "SD VARYING 5 TO 8, USING record 10 -> COBOL1757",
+    "expected": "refused: greater than the largest"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/m3vok.cob",
+    "printed": "SD VARYING 5 TO 8, USING 5 and 8: runs, merged in key order",
+    "expected": "accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/m3flarge.cob",
+    "printed": "SD fixed 6, USING record 8 -> COBOL1757 shall not describe a record that is larger",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/m3fok.cob",
+    "printed": "SD fixed 6, USING 3 and 5: runs [AA1     ] [BB222   ] [CC3     ] [DD444   ]",
+    "expected": "accepted; shorter records space-filled (GR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/m3fmt3small.cob",
+    "printed": "SD RECORD CONTAINS 5 TO 8 (records 5 and 8), USING 3 -> COBOL1757 variable-length records of 5 to 8 bytes",
+    "expected": "refused under the documented choice that Format 3 is variable (§1985:VII.3.8.4 GR13)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/m3odosm.cob",
+    "printed": "SD with no RECORD clause and an OCCURS 1 TO 5 DEPENDING table (4..8), USING 3: accepted and runs (SD is implied fixed 8, DOC-A.1-147)",
+    "expected": "accepted: with no RECORD clause fixed or variable is implementor defined (§1985:II.2.1.4.3) and the documented choice is fixed"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.1.3 SR3",
+    "check": "OK  §1985:XI.4.1.3 SR3  (4.1.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
+   }
+  ],
+  "notes": "The same screen as SR11 with the roles exchanged; every USING file is visited. The amended wording ('in the files', X3.23a-1989) changes nothing the code reads.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.1.3-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "Same screen as SR11 with roles exchanged. Probes --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-070/: r3usvar SD VARYING 5 TO 8, USING MA 'RECORD IS VARYING IN SIZE FROM 3 TO 8' (records 8 and 3) -> COBOL1757 'MA describes variable-length records of 3 to 8 bytes' (a variable USING file's smallest below the SD's smallest is refused); r3rel USING MA (relative, fixed 6) and MB (indexed, fixed 3) under SD VARYING 5 TO 8 -> COBOL1757 on MB only (relative within range accepted, indexed below smallest refused). cite.py: OK §1985:XI.4.1.3 SR3 the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

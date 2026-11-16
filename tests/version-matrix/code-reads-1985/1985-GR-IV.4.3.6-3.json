@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-IV.4.3.6-3",
+ "rule-digest": "509f02bb909d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-005",
+  "sources": {
+   "reader": "2b33b3fd84e577d1e3956cfca3f3e1b4ba342aef6633d8fb66faf257e9af3243",
+   "refuter": "e8a51ee43a12a13170182cd213d5e1e2346f8af4c32efc338396ac4b652905f8"
+  },
+  "imported": {
+   "reader": "ddd1e4ea355053d518aa0afbfcaa1a07cacd577d0307293b3cad009bd7621488",
+   "refuter": "0438e02e9eb906ba469639900205bb16ed0f62f60330add337990e35a7a64ad9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.6-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when the receiving elementary item is alphanumeric, alphanumeric edited or alphabetic, the sending data is placed from the leftmost receiving position with space fill or right truncation (the edited case placing data into the non-insertion positions), and a JUSTIFIED receiver takes the JUSTIFIED clause's modified rule instead; this covers every sender 1985 admits to those receivers (alphanumeric, group, integer numeric and numeric-edited, reference-modified, variable-length).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreAligned; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#StrStoreJustified; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Store; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteFill",
+  "edition-consulted": [],
+  "edition-search": "Grepped edition/dialect/version and DialectLevel in MoveEmitter.cs, CobolString.cs, RuntimeApi.cs's store members and MoveTable16.cs: the alignment store (CobolString.Store via StrStoreAligned) takes only the width and the JUSTIFIED flag. Edition gates near the path (FigurativeAssociation.GateSr5, the national-data and zero-length-literal construct gates in VersionConformancePass) decide which receivers and senders exist at 85, not how they align.",
+  "behaviour-differs-by-edition": "no for alignment; the receiver classes differ (national receivers and zero-length literal senders are refused at 85, as probed)",
+  "witnesses-cover": "part: the witnesses cover JUSTIFIED spellings and READ/RETURN INTO of variable-length records into plain, justified and alphanumeric-edited receivers; not exercised: alphabetic receivers, numeric and numeric-edited senders, group senders, reference-modified receivers and senders, ODO group senders, and edited masks with 0 or / insertion",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/m1.cob",
+    "printed": "1=[AB   ] 2=[ABCDE] 3=[AB   ] 4=[AB] 5=[AB   0] 6=[A/B] 7=[   AB] 8=[FG] 9=[007  ] 10=[00] 11=[042  ] 12=[  3.5] 13=[  ] 14=[gh12 ] 15=[gh] 21=[123  ]",
+    "expected": "left alignment, space fill / right truncation for X and A; edited XXBXX0 and X/X take data in non-insertion positions; JUSTIFIED right pads/truncates left; integer numeric sender moved as its unsigned digits; numeric-edited and group senders as characters"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/m1.cob",
+    "printed": "16=[CD   ] 17=[*Q  *] 18=[*Q AB] 19=[     ] 20=[ABCDE]",
+    "expected": "ref-mod sender (3:2) left-aligned; ref-mod receiver (2:3) padded within its window and truncated within (4:2); ODO group sender/receiver at current length"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/m3.cob",
+    "printed": "COBOL0819: a noninteger numeric sending operand does not move to an alphabetic, alphanumeric or alphanumeric-edited receiver",
+    "expected": "1985 MOVE refuses a noninteger numeric sender to an alphanumeric receiver"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/m2.cob",
+    "printed": "COBOL0900: national data (PICTURE symbol N / USAGE NATIONAL) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "the 2002 national receiver does not exist at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/m1.cob (first run, since removed)",
+    "printed": "COBOL0900: the zero-length literal requires COBOL-2014 (targeting COBOL-85); COBOL0819 numeric sender to alphabetic receiver",
+    "expected": "both refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.6 GR3",
+    "check": "OK  §1985:IV.4.3.6 GR3  (4.3.6 Standard Alignment Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "One store, CobolString.Store, owns left alignment with right space fill/truncation and the JUSTIFIED variant, with no edition input; every receiver category and sender shape 85 admits aligned as the rule says, and the edited receivers route through the editor so insertion characters survive. The variable-length and FILE cases are carried by the pb339 witness and the ODO/ref-mod probes.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.6-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "cite.py: OK §1985:IV.4.3.6 GR3 'aligned at the leftmost character position'. Read §1985 MOVE GR3/GR4a (P positions count as zeros in the size; separate sign not moved; usage converted). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/ma.cob at 85: PIC 99PP=1200 to X(6)/X(3)/JUST X(6) -> [1200  ][120][  1200]; S9(4) COMP -37 -> [0037  ], COMP-3 9(5) -> [00456 ], SIGN LEADING SEPARATE and TRAILING -> [012   ], separate-sign into JUST -> [   012], COMP to X(2) -> [00], COMP-3 into X0XBX -> [000 4], 'ABCDE' into X0XBX -> [A0B C], A(4) truncation [ab c]. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/mb.cob: UNSTRING into JUST RIGHT and A(5) receivers ([  abc][def], [abc][defgh]), ACCEPT FROM DATE into X(8) space-filled right, READ INTO JUST RIGHT X(6) [  wxyz] and X(2) [wx] on a sequential file, group sender [AB12  ]. All as the text gives; the store has no edition input.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

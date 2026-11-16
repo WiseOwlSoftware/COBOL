@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-VI.6.6.3-4",
+ "rule-digest": "cf21659b98fd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-160",
+  "sources": {
+   "reader": "06e7f0c524cb2ee3f5bb1704ee3939a3b37bb5828fcf7f1964f8abd7e2f96744",
+   "refuter": "0a07f13600d8ff8d67ac2ca675b9c78a9f000660be3a12d7c5632ea1c2b5ddfe"
+  },
+  "imported": {
+   "reader": "6c6d627e6534a58c6148c746ca0be55fed545d2c7f10b2f3d7beaca62d3ce56f",
+   "refuter": "5a1c9a78a988d92db0883d0a2fc95cd27e7fb02fa51fe8de0849aaa00659cbb8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.6.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, ADD format 3 must accept CORR as the exact abbreviation of CORRESPONDING, with the same pairing, ROUNDED, SIZE ERROR and END-ADD behaviour, and CORR must be a reserved word that cannot be a user-defined word.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindAddCorresponding; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind; src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "whether CORR is reserved; the row is true at all four editions",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
+    "switches": "perPair = DialectLevel < 2002: when the group operands' subscripts are evaluated (per pair below 2002). This does not touch the CORR/CORRESPONDING equivalence",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for CORR in the grammar (one alternative, (CORRESPONDING | CORR), no predicate), the reserved-word table, and Edition/DialectLevel reads in CorrespondingBinder.cs",
+  "behaviour-differs-by-edition": "no: the abbreviation is the same at every edition. Only the subscript identification time differs, and that belongs to another rule",
+  "witnesses-cover": "part: g85_bf04_06 covers ADD CORR against ADD CORRESPONDING with no phrases. It does not cover ROUNDED, SIZE ERROR, END-ADD, SUBTRACT/MOVE CORR or CORR as a user word",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c1a.cob",
+    "printed": "SE-CORR / A=+001.5 B=001 E=  7 / SE-CORRESPONDING / A=+000.0 B=001 E=  7 / A=+001.5 B=998 E=  7 / A=-001.5 B=999 E=  5 (identical at --std 2023)",
+    "expected": "CORR = CORRESPONDING: signed scaled A pairs, B overflows (size error, unchanged), numeric-edited E is not paired for ADD/SUBTRACT, OCCURS item T ignored; MOVE CORR pairs E"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c1b.cob",
+    "printed": "error COBOL0803: ROUNDED MODE IS requires COBOL-2014 (targeting COBOL-85)",
+    "expected": "ADD CORR ... ROUNDED MODE IS (a 2014 phrase) refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c1c.cob",
+    "printed": "error COBOL0901: 'CORR' is a reserved word in COBOL-85 and cannot be used as a user-defined word",
+    "expected": "CORR is reserved at 85 and cannot be a data-name"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.6.3 SR4",
+    "check": "OK  §1985:VI.6.6.3 SR4  (6.6.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "CORR and CORRESPONDING are one grammar alternative, and BindAddCorresponding accepts either token the same way, so the two can never diverge. The first c1a run was refused (COBOL0900) because it gave a numeric literal VALUE to a numeric-edited item, which 1985 bars; the probe was corrected.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.6.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "r1b.cob (runs/r1b-002): ADD CORR GX (I) TO GY OF W versus ADD CORRESPONDING GX (I) TO GY IN W2, then SUBTRACT CORR / SUBTRACT CORRESPONDING GX (1) with ON SIZE ERROR and END-SUBTRACT, over a subscripted sending group holding FILLER, a REDEFINES item, an 88 and a nested group: both spellings print 0110220030343 then 0010020030042 (REDEFINES item C not paired, FILLER ignored, nested H.K paired), identical. r1a.cob (runs/r1a-001): ADD CORR G1 TO G2 G3 refused (COBOL0307), as the 1985 format 3 allows one identifier-2. The reader's c1a/c1b/c1c already covered ROUNDED, SIZE ERROR, ROUNDED MODE refusal and CORR as a user word. cite: OK  §1985:VI.6.6.3 SR4  (6.6.3 Syntax Rules)  the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.2.3-1",
+ "rule-digest": "d87d97051762",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-045",
+  "sources": {
+   "reader": "64185b6687708af943fba5f30e64b60f05d36f988767769df6d282dd193f3f0b",
+   "refuter": "cf98d565304185b2edc20b1abf82e0c5328352b506579f52932359c35a054354"
+  },
+  "imported": {
+   "reader": "b413fdeeb25d920c5fd30dc28d3c6f45788a8d9828bae0bde5817f424c74a901",
+   "refuter": "b3fa4faf2d28a6113cea9e7326ca6645330f794ecc53cc984976d682e304a981"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.3.8.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a subscript may be written on data-name-1 (or on condition-name-1) only when that entry (or the condition-name's conditional variable) contains an OCCURS clause or is subordinate to one; a subscript on any other item or group, or on a condition-name whose variable is not in a table, is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenSubscriptArity; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsTableElement; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#SubscriptArity; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#CannotBeSubscripted",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenCobol85SubscriptDataNames",
+    "switches": "on the same ReadSubscripts path: ConstructRegistry.IsAvailable(SubscriptArithmeticExpression2002) asks SR5's integer data-name-2 at 85 only; not this rule's OCCURS test",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSubscriptPart",
+    "switches": "the 1985 subscript SHAPE (SR5/SR6 forms) via Constructs.SubscriptArithmeticExpression2002; not this rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ScreenSubscriptArity and DataItem.IsTableElement/SubscriptArity read no EditionContext, CobolVersion, ConstructRegistry or Permissive (read the members; grep 'Edition|ConstructRegistry' over SubscriptBinder.cs shows only diagnostics sinks there); the OCCURS test is one arm for every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers a subscript on a plain elementary item only; not exercised there are a subscripted group with no OCCURS, a subscripted condition-name whose conditional variable is outside any table, and the positive forms (an item subordinate to an OCCURS, a condition-name in a table)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-045/sr1a.cob",
+    "printed": "COBOL2096 'PLAIN (1)': a subscript is written on 'PLAIN', whose data description entry neither contains an OCCURS clause nor is subordinate to one",
+    "expected": "refused (SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-045/sr1b.cob",
+    "printed": "COBOL2096 'SEVEN (1)': a subscript is written on 'PLAIN' ...",
+    "expected": "refused: condition-name-1's data-name has no OCCURS (SR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-045/sr1d.cob",
+    "printed": "COBOL2096 on 'PLAIN (1)' (receiver) and on 'G (1)' (group with no OCCURS, sender)",
+    "expected": "both refused, on both sides of MOVE"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-045/sr1c.cob",
+    "printed": "FOUR2 / NOTFOUR1 / 149 42 42 / 190",
+    "expected": "legal: subscripted condition-name FOUR(S) of a table element, subordinate items Z(S), Y(2), group table element G2(1) all compile and run with the right values"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.2.3 SR1",
+    "check": "OK  §1985:IV.4.3.8.2.3 SR1  (4.3.8.2.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "SR1 is DataItem.IsTableElement (SubscriptArity > 0, counting the entry's own and every ancestor's OCCURS), asked by ScreenSubscriptArity for every procedure-division reference; condition-names resolve to their conditional variable before the screen. The 1985 arm is the latest arm.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.3.8.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 under refute-1985-045: sr1x.cob (subscript on a level-77, a 66 RENAMES, a file record field, a REDEFINES of a table and its field): five COBOL2096, one per reference. rw1.cob (report-writer SOURCE PLAIN (1) and SUM PLAIN (1), a path outside the procedure division): COBOL2096 on both. dbg1.cob USE FOR DEBUGGING ON PLAIN (1): refused COBOL6334 (the 1985 debugging rule, earlier than SR1). Grep of SubscriptBinder.cs for EditionContext/ConstructRegistry/Permissive/Edition. shows only the SR5 integer data-name gate (line 143) and diagnostic sinks; ScreenSubscriptArity consults no edition, as the reader says. cite.py: OK  §1985:IV.4.3.8.2.3 SR1  (4.3.8.2.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

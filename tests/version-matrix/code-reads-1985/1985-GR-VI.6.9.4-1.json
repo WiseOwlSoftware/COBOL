@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.6.9.4-1",
+ "rule-digest": "78541ead1444",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-117",
+  "sources": {
+   "reader": "7de40780b8cb6a72515b8717be3d8385b3fadba56275c753953c42e157e51f13",
+   "refuter": "2be25b7c9253341d4e7b43074ba07e54000ba81b034f970d74c6f38fbaf1e711"
+  },
+  "imported": {
+   "reader": "1daf879638e97053526f6b180f63861d61cfde43c28331958d97910bd7a2a77f",
+   "refuter": "ecc0567915b55b81b85ddf99a0fc2b0a964cfdd9524492513f976ea012c9ce53"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.9.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 CONTINUE, written anywhere an imperative or conditional statement may be, must have no effect on execution: no data change, no transfer, no condition; the 2023 AFTER ... SECONDS phrase does not exist at 85 and must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindContinue; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitContinueStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitContinueStatement",
+    "switches": "Constructs.ContinueAfter2023: the AFTER ... SECONDS phrase is refused below 2023 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "BindContinue returns BoundNop for plain CONTINUE at every edition and StatementEmitter#Visit(BoundNop) emits nothing; the only edition test is the AFTER phrase gate.",
+  "behaviour-differs-by-edition": "no for plain CONTINUE; the AFTER phrase is accepted only from 2023",
+  "witnesses-cover": "part: g85_bf15_04 covers CONTINUE as a statement; not exercised: in IF/ELSE, ON SIZE ERROR, AT END/NOT AT END, EVALUATE WHEN, an inline PERFORM body, a paragraph body, two in a sentence, and the AFTER refusal",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/cont1.cob",
+    "printed": "C1 05; C2; C3; C4 06; C5 99; C6 4; C7; C8 00 ABCD; C9 10; C10; C11",
+    "expected": "CONTINUE in every position changes nothing: A stays 05; ADD under ON/NOT ON SIZE ERROR CONTINUE still stores 06 and leaves 99 on size error; the inline PERFORM runs to K = 4; the READ status and record are those of the READ; control falls through each one"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/cont2.cob",
+    "printed": "error COBOL0900: CONTINUE AFTER n SECONDS requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.9.4 GR1",
+    "check": "OK  §1985:VI.6.9.4 GR1  (6.9.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Plain CONTINUE binds to BoundNop and emits nothing, so it cannot change data or flow; the probes in every statement position printed the unchanged state, and the later edition's AFTER phrase is refused at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.9.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "rcont.cob (rcont-002) at --std 85 tried positions the reader did not: CONTINUE before and after another statement in one sentence (N1 01); CONTINUE as the ELSE of an inner IF in a nested IF without END-IF (N2 FELL, neither wrong branch); CONTINUE as SEARCH AT END (N3 index 4, no WHEN) and as a SEARCH WHEN imperative (N4 index 1); a paragraph whose only statement is CONTINUE, PERFORMed (N5 00) and as the first of a PERFORM THRU range (N6 01); a GO TO target paragraph beginning with CONTINUE (N7 END). Nothing changed data or flow. The 2023 AFTER phrase is the only later form, and the reader showed it refused. cite.py: OK §1985:VI.6.9.4 GR1 the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

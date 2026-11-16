@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-1",
+ "rule-digest": "46f678ffba54",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-042",
+  "sources": {
+   "reader": "14d2b0105f24092ed65e9ae26302fb068a0e84b6a64867dd9083c587d651c0fb",
+   "refuter": "409e6d12258bdd082bf19e73191b0bd4d3ccff4bf9a1cb6cfb3f144a27f82644"
+  },
+  "imported": {
+   "reader": "5765e1c6b04e5234dfed05f768fd418fc9b0f6af498c8721cbbfde3084277156",
+   "refuter": "728fa1c08f56c0bdd2c4b1be84b7ecdb409b370215ecf1d6d0a5c17a01a422d5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.1-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the space (and, in reference format, the line end) is a separator wherever the formats need one, any run of spaces is accepted where one separator space is, the spaces after a comma, semicolon or period belong to that separator, and two character-strings with no separator between them are one character-string.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#WS; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#IsSeparatorSpace; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#LexAndParse",
+  "edition-consulted": [],
+  "edition-search": "Read the WS, FNARG_SEPARATOR, DOT, COMMA and SEMICOLON lexer rules and SeparatorRule.cs whole (its remarks state it is edition-invariant); grepped Edition|Version|Std in SeparatorRule.cs and PictureSeparatorPeriodRule.cs (none) and read Frontend.cs LexAndParse: the edition reaches the lexer only through retypes.PrimeLexer (reserved-word retyping) and the debugging-line rewriter, neither of which touches WS or the [,;]-space separator.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c17_separator_spaces covers runs of spaces and spaces after comma/semicolon/period in procedure statements; not data-division entries, division/section headers, or the refusal (character-strings with no separator)",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c2_spaces.cob",
+    "printed": "A=007007! / B=Q / C=BCD / D=016 / E / F (EXPECT: MATCH)",
+    "expected": "runs of spaces between every word of headers, data entries, subscripts, reference modifiers, arithmetic and conditions, and before periods, all accepted with unchanged meaning"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c2_nospace.cob",
+    "printed": "COBOL5506: missing token before 'TON-B' ... expected TO",
+    "expected": "TO and N-B with no separator form one character-string TON-B, so MOVE has no TO: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.3.5-Separators/w73a-period-not-followed-by-space.cob",
+    "printed": "COBOL2632 the period is not followed by a space",
+    "expected": "a period with no space after it is no separator"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.1 SR1",
+    "check": "OK  §1985:IV.4.2.1 SR1  (4.2.1 Separators)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.2",
+    "check": "OK  §1985:IV.4.2  (4.2 LANGUAGE STRUCTURE)  the text is in the clause"
+   }
+  ],
+  "notes": "The lexer skips [ \\n]+ as one WS token and the [,;]-plus-spaces as one separator token, so the spaces after a comma or semicolon are consumed with it exactly as SR1's last sentence says. The same lexer serves every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.1-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,d",
+  "evidence": "Probes at --std 85 aimed inside list regions and the text-manipulation path, which the reader did not try: s1 runs of spaces after a comma and a semicolon inside subscripts W-F (2,    1) W-F (2;    2), a comma at line end inside a subscript, FUNCTION MAX (3,    7,     5) and (3   9   5), W-T (2:   3): A=C B=D C=E D=07 E=09 F=BCD, all right; s2 COPY with runs of spaces and pseudo-text ==MOVE    1== against library text MOVE 1: LIB=07 (multiple spaces matched as one separator); s3 REPLACE ==MOVE    1,   TO== matched MOVE 1 TO and MOVE 1 <line end> TO: R=08 S=08. cite.py: OK §1985:IV.4.2.1 SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-IX.2.4.4-2",
+ "rule-digest": "fd652fc375e7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-091",
+  "sources": {
+   "reader": "856ff51229cf03620fffb2e5ae042782b609a5cdee52de36cd6aee0c01373113",
+   "refuter": "300791588672753519fa07b454a5d57638913067e263f8aa7a5ef100bb60448e"
+  },
+  "imported": {
+   "reader": "2add42fb26c226aa9ba8d16b34bd73b1fb4ee0ba45f05eadb2a5ee8d1bfb1fcc",
+   "refuter": "39289c580e1554c772f67143ec44c3281fe906e8a5e7ef5d7ce76403bae30192"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.4.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, a sequential-access indexed file must deliver records ascending on the current key of reference (prime after OPEN, the START key after START) in the file's collating sequence, which at 1985 is always the native one (§1985:IX.2.3.4 GR3), duplicates of an alternate key in arrival order; relative and sequential files in their organization's order.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadNext; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveKeyCollating; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadNext",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFileCollatingSequenceClause (Constructs.FileCollatingClause2002)",
+    "switches": "refuses the file COLLATING SEQUENCE clause below 2002, so 1985 keys always collate native",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration (ctx.Data.DialectLevel passed to FileRegistry.RegisterIndexed as the connector's Edition)",
+    "switches": "carries the edition into the connector for the DialectBehavior tests; access mode itself is passed edition-blind",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped Edition/DialectBehavior in IndexedConnector, KeyedConnector, RelativeConnector: the sequential selection consults none; the only consult is the 2002 gate on the file COLLATING SEQUENCE clause, which leaves PrimeKeyCollation null (native) at 1985.",
+  "behaviour-differs-by-edition": "yes: from 2002 a file COLLATING SEQUENCE clause can change the key order; at 1985 the clause is refused and the order is native",
+  "witnesses-cover": "part: the witness pins prime and alternate ascending order; native order under a PROGRAM COLLATING SEQUENCE, duplicates' arrival order and a READ after a failed START are not exercised",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p3orderc.cob",
+    "printed": "prime walk ' 9B5','11B3','A1A4','Z1A2','a1B1' (native, PROGRAM COLLATING SEQUENCE REV ignored); alternate walk 02 Z1A2, 00 A1A4, 02 a1B1, 02 11B3, 00 9B5 (arrival order inside each duplicate set, 02 while a duplicate follows)",
+    "expected": "native ascending per key of reference; duplicates in order of arrival"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p3orderb.cob",
+    "printed": "START NOT LESS THAN LOW-VALUE (LOW-VALUE = 'z' under REV) on alternate: INVALID; following READs 46; START GT 'B' INVALID 23; START GT 'A1' on prime then Z1A2, a1B1, END",
+    "expected": "LOW-VALUE is the program sequence's lowest, keys compare native so no record qualifies (23); READ after failed START is 46 (§1985:IX.4.5.4 GR4a, GR12)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p6coll.cob",
+    "printed": "COBOL0900 the file COLLATING SEQUENCE clause requires COBOL-2002",
+    "expected": "refused at 1985"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/conformance-suite/cases/IX.2.4@1985-ACCESS-MODE-CLAUSE/g85_bf19_07",
+    "printed": "MATCH",
+    "expected": "witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.4.4 GR2",
+    "check": "OK  §1985:IX.2.4.4 GR2  the text is in GR2"
+   },
+   {
+    "cite": "§1985:IX.2.3.4 GR3",
+    "check": "OK  §1985:IX.2.3.4 GR3  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IX.4.5.4 GR12",
+    "check": "OK  §1985:IX.4.5.4 GR12  the text is in GR12"
+   }
+  ],
+  "notes": "My first p3 probe looped (its READ loop waited for AT END while each READ returned 46 after a correctly failed START); it was stopped and rerun bounded. The program collating sequence does not reach the key comparison at 1985.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.4.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "Probe ra_native.cob (run ra_native-001), no ACCESS MODE clause, keys LOW-VALUE, SPACES, 'zz', CHAR(129) x2, CHAR(201) x2, HIGH-VALUE: the sequential walk came back in ORD order 1, 33, 123, 129, 201, 536 and then AT END 10, which is native ascending for characters beyond 7 bits as well (OK §1985:IX.2.3.4 GR3 'the collating sequence associated with the native character set is assumed'; OK §1985:IX.2.4.4 GR2 'ascending within a given key of reference'). Probe rb_dyn.cob: the alternate key of reference walked duplicate sets in arrival order with 02/00 correct. Read IndexedConnector.SelectSequentialRecord: it seeks by key value (GreaterOrEqual after OPEN/START, GreaterThan or composite ordinal after READ), so OK §1985:IX.4.5.4 GR4 holds.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

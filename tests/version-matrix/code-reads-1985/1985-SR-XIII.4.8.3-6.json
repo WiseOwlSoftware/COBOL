@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-XIII.4.8.3-6",
+ "rule-digest": "a695256dd9d4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-167",
+  "sources": {
+   "reader": "509e48487795ec3912577b6c74daa6c42209bd2711676e42df3ac2c40812a80d",
+   "refuter": "675270f0bb4a549b69588b2b0ea9dd94ceeada1dbad64af2f13ff80a395329d0"
+  },
+  "imported": {
+   "reader": "c5ba9c745e9e4b6de75f29af780aff8f1de86709d231f480192bc8fa2f05d34d",
+   "refuter": "76c2f3d5bc1e1ab17c6905c0a027607f7addb08eafb9952e2f76d7d17e489934"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.8.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the compiler must refuse a second USE AFTER STANDARD EXCEPTION/ERROR PROCEDURE ON OUTPUT, or a second ON EXTEND, in the declaratives of one Procedure Division, while accepting OUTPUT and EXTEND once each and the same phrase again in a separate (contained) program's Procedure Division.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclEndUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectMethodDeclaratives",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "AFTER/PROCEDURE omission and Formats 3/4 refused below 2002; not the duplicate-mode check",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "The _useModes register check in DeclBindUse takes no edition input (read it); the register is per ProcedureTableBuilder, i.e. per bound unit, so per Procedure Division.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_04 shows only the legal half (OUTPUT and EXTEND once each); the refusal of a repeat and the per-Procedure-Division scope are probed here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/sr6outout.cob",
+    "printed": "error COBOL0897: declarative section 'U2': this open mode already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR7)",
+    "expected": "refused: OUTPUT specified twice"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/sr6extext.cob",
+    "printed": "error COBOL0897 ... this open mode already has a USE procedure in this procedure division",
+    "expected": "refused: EXTEND specified twice"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/sr6outext.cob",
+    "printed": "U1 / DONE 41",
+    "expected": "accepted; OUTPUT USE runs on the failed second OPEN OUTPUT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/sr6nest.cob",
+    "printed": "OUTER USE OUTPUT 41 / INNER USE OUTPUT 41",
+    "expected": "accepted: each program's Procedure Division specifies OUTPUT once; each program's own USE runs"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/sr6noafter.cob",
+    "printed": "error COBOL0900 (AFTER and PROCEDURE omitted require COBOL-2002)",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.8.3 SR6",
+    "check": "OK  §1985:XIII.4.8.3 SR6  (4.8.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "The repeat check is the same code at 85 and 2023 (sr6outout gives the same COBOL0897 at --std 2023). The diagnostic text cites §2023:14.9.49.3 SR7 even at --std 85; the rule is enforced, only the message's citation names the later edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.8.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "I attacked the 1985-only GLOBAL phrase (§1985 IPC USE [GLOBAL]) and the scope of 'a given Procedure Division'. r6globdup.cob: USE GLOBAL ... ON EXTEND plus USE ... ON EXTEND in one Procedure Division was refused with COBOL0897 (correct: EXTEND is specified twice). r6glob.cob: USE GLOBAL ON OUTPUT in the outer program and USE ON OUTPUT in a contained program compiled. Its output was OUTER 41 / INNER 41 / OUTER 41: the inner program's own USE ran, and a contained program with no USE reached the outer GLOBAL one. r6sep.cob: two separately compiled programs in one source, each with USE ON EXTEND, compiled and ran (A 41 / B 41). The register is per Procedure Division as SR6 says. The diagnostic cites §2023:14.9.49.3 SR7 even at --std 85; the reader already noted this, and it is a message-citation issue only. cite: OK  §1985:XIII.4.8.3 SR6  (4.8.3 Syntax Rules)  the text is in SR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

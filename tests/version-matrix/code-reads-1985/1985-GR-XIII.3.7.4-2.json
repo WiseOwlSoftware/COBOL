@@ -1,0 +1,82 @@
+{
+ "rule-id": "1985-GR-XIII.3.7.4-2",
+ "rule-digest": "dc906c521dbc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-151",
+  "sources": {
+   "reader": "a12a58a63be1851511ed40f4a83a570d4b875d4271d26c2b066a5ea013e61409",
+   "refuter": "5325b85cac938cc72a59a6577402dc0d6e1669dcdf81cdb8e6554b02c3e9b1d5"
+  },
+  "imported": {
+   "reader": "73c50c0bdbb2bf570a975a029d555d55a6cb01cdcf0bb88b3ca5279f299f63da"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.7.4-2",
+  "verdict": "DIVERGES",
+  "requirement": "At --std 85 the first GENERATE for a report saves every control item's value; every later GENERATE (of any detail or of the report-name) tests each control item for a change of value against the saved set, a change causes a break, and the break is at the highest level changed.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ChangedFrom; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes ctx.Data.DialectLevel into CobolReport.Edition, the argument every DialectBehaviors.IsActive question of the engine is asked with; the CONTROL registration (AddControl order, FINAL, image/float/collated arms) is edition-independent",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate (GROUP INDICATE consumed only by a presentation at 85); the break detection, save and CH/CF ordering beside it is one arm for every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehaviors.IsActive and Edition over ReportWriter.cs and the AddControl arms of ReportWriterEmitter.EmitReportConstruction: the save at the first GENERATE, DetectBreakLevel and ControlEntry.ChangedFrom take no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf35_01 uses PIC X and SIGN SEPARATE controls with distinct values; the report-name first GENERATE, a break sensed by a different detail's GENERATE, and a value-equal image change (-0/+0) were not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/XIII.3.7@1985-CONTROL-CLAUSE/g85_bf35_01.cob",
+    "printed": "EXPECT: MATCH (run_probe --std 85 --expect)",
+    "expected": "the case's .out"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p1hier.cob",
+    "printed": "CONTROLS K1 (group) K2 (S999 COMP-3) K3 (S9V9): G1 CH1 CH2 CH3 DE; minor change CF3 CH3 DE; intermediate CF3 CF2 CH2 CH3 DE; group-subfield change CF3 CF2 CF1 CH1 CH2 CH3 DE; no change DE only; K2 -1 and -999/-9.9 extremes break at K2; two moves between GENERATEs compared against the saved set only; CF USE procedures see prior values, CH/DE current; TERMINATE CF3 CF2 CF1",
+    "expected": "§1985:XIII.3.7.4 GR1/GR2, §1985:XIII.4.3.4 GR3/GR6: highest changed level, CFs minor to major, CHs major to minor, saved set renewed at each break"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p2summ.cob",
+    "printed": "R (FINAL K): first GENERATE R prints CHF, CHK +0 (saves); K=1 GENERATE R: CFK 0, CHK +1; GENERATE DTL: DE +1, no break; report S: a change sensed by GENERATE of a different detail SD2 (SCF A, SCH B, SD2 B); +0 to -0 sensed as a break (CFK 0, CHK -0) while IF K = 0 is true",
+    "expected": "breaks as derived; no break between +0 and -0 (§1985:XIII.3.7.4 GR3 a, numeric comparison)"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p3negz.cob",
+    "printed": "--std 85 and --std 2023 both write: DE +0 / CFK / DE -0 / CFK (stdout 'K = 0 is true')",
+    "expected": "DE +0 / DE -0 / CFK: no change of value, so no break before TERMINATE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.7.4 GR2",
+    "check": "OK  §1985:XIII.3.7.4 GR2  (3.7.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XIII.3.7.4 GR3",
+    "check": "OK  §1985:XIII.3.7.4 GR3  (3.7.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The save, the test on every GENERATE and the highest-level association conform (p1, p2). A numeric control whose content goes from +0 to -0 (no change of value) is sensed as a break: the numeric arm of EmitReportConstruction passes no equality delegate and ChangedFrom falls back to ordinal image equality. The comparison class itself is GR3 a, so the same defect also fails 1985-GR-XIII.3.7.4-3; refuter may prefer to keep it on GR3 alone.",
+  "seeded": true,
+  "harm": "wrong-answer",
+  "cause": "b",
+  "at-2023": "same: DE +0 / CFK / DE -0 / CFK (a spurious control footing)",
+  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p3negz.cob: RD R CONTROL IS K; K PIC S9 SIGN LEADING SEPARATE redefined by KX PIC XX; GENERATE DTL; MOVE \"-0\" TO KX; GENERATE DTL; TERMINATE R",
+  "expected": "§1985:XIII.3.7.4 GR2: 'A change of value in any control data item causes a control break'; -0 and +0 compare equal as numeric operands (GR3 a), so no break: DE +0, DE -0, CFK",
+  "observed": "DE +0, CFK, DE -0, CFK, while IF K = 0 is true",
+  "known_note": "PB5782 (open; in E:/COBOL kb/Work, not in the pinned tree)"
+ },
+ "work": "PB5782"
+}

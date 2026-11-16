@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-SR-VI.6.23.3-5",
+ "rule-digest": "67f68e51141b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-059",
+  "sources": {
+   "reader": "d0e508c6c70216ef170048c56706a92c0835308986446eeda25f17d27b4e19fc",
+   "refuter": "937cdec4799302a68ccfd698c0ba313a6f5f7548f75861fada0e84ee54943480"
+  },
+  "imported": {
+   "reader": "62d1e75bbd6e3bb21f1d4999172f16c6b663888ca197c63de6584ac561da0ba6",
+   "refuter": "c8b5f089d7f8602257fa6cd5230bae4cc4bacc6110aaacf07c737819804ca914"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.23.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each mnemonic-name-1 of SET Format 3 must be a SPECIAL-NAMES mnemonic-name associated with an implementor switch whose status SET may alter (the implementor's set: SWITCH-0..36, UPSI-0..7, all settable per DOC-A.1-191); a device or feature mnemonic, an implementor-name itself, a condition-name, a data-name or an undeclared word must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#MnemonicRegistry; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|Year|CobolVersion in MnemonicRegistry.cs and ImplementorNames.cs (no hits beyond the namespace import); grep setswitch|SetSwitch in VersionConformancePass.cs (none); SwitchBindSet reads no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness runs SPECIAL-NAMES inheritance into nested programs; the refusals (device, feature, implementor-name, undeclared, condition-name) are exercised only by the probes here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/t5ok.cob",
+    "printed": "EXIT 0; SW1 ON, SW1 OFF, U3 ON (SET SW1 U3 TO ON over SWITCH-1 and UPSI-3)",
+    "expected": "legal: switch mnemonics set and their status conditions follow"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/t5bad.cob",
+    "printed": "COBOL1757 for CONS (device CONSOLE), TOP-PAGE (feature C01), SWITCH-1 (implementor-name, not a mnemonic), NOSUCH, X (data item), SW1-ON (condition-name)",
+    "expected": "refused per SR5"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.23.3 SR5",
+    "check": "OK  §1985:VI.6.23.3 SR5  (6.23.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "The implementor-defined part is documented in docs/conformance/7/DOC-A.1-191.md (every switch-name may be referenced by SET). The screen reads the one mnemonic registry's row kind and screens every receiver.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "t5bad refused the same way at --std 2023 (6 errors)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.23.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "src/t5x.cob (t5x-001): COBOL1757 for SET of a device mnemonic (SYSIN IS MYIN), an alphabet-name, a symbolic-character, a class-name, a paragraph-name, a list SW2 MYIN with one bad receiver, and the implementor-name SWITCH-2 itself. src/t5y.cob (t5y-001, EXIT 0): SET SW2 TO ON U0 TO OFF, then SET SW2 U0 TO ON, printed SW2 ON / U0 OFF / SW2 NOT OFF / U0 NOT OFF, and a contained program's SET SW2 TO OFF printed INNER SW2 OFF. The settable set is the implementor's (docs/conformance DOC-A.1-191 per the reader). cite.py: 'OK  §1985:VI.6.23.3 SR5  (6.23.3 Syntax Rules)  the text is in SR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

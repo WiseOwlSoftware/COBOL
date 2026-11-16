@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-GR-VI.6.23.4-6",
+ "rule-digest": "2786e2d8d675",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-018",
+  "sources": {
+   "reader": "fb33f080892f9b0330999556cb236abc088c04afd25aacf24a6ceb4e70e4079b",
+   "refuter": "cc99f6375fac48dc88063ba7d578b3199aa2f6d4d9b44f5b4283f3334ebbd2e6"
+  },
+  "imported": {
+   "reader": "9e2f69d6890f9e47b1cd2b1044563ee33007ca17fae8f3ddb1c6ee3cbaddef7f",
+   "refuter": "81580b28bf09cd8f4e8f9b437f487c82225b051e05a414df0df3d3f58c9d6c13"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.23.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, SET Format 3 (SET {mnemonic-name-1}... TO {ON|OFF}, the phrase repeatable) must change the status of each external switch associated with each mnemonic-name-1 so that a later switch-status condition-name (ON STATUS / OFF STATUS of SPECIAL-NAMES, §1985:VI.6.3.1.4) evaluates as on after ON and off after OFF, for every receiver of every phrase in order, including from a contained program and through a condition-name declared for only one of the two statuses.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setSwitchStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setSwitchPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchCondOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitSetSwitches; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit; src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#Set; src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#Get",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet",
+    "switches": "nothing behavioural: BoundRejected.Reported(ctx.Edition) only carries the edition context when an SR5 receiver is refused",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition|CobolVersion|Std in SetAlterBinder.cs, SpecialNamesBinder.cs, ConfigurationNames.cs, AlterSwitchEmitter.cs; grep of Switch|VisitSet in Validation/VersionConformancePass.cs (no VisitSetSwitchStatement: only SetBoolean/SetTo/SetLocale/SetContent/SetLastException visits). SpecialNamesBinder uses Edition only for Edition.At locations and Edition.Error diagnostics. The runtime SwitchStore has no edition input.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness sets one switch with one receiver per phrase and tests it through EVALUATE; not exercised: several receivers in one phrase, several phrases in one SET, a condition-name declared for only one status, a contained program, the environment-supplied initial status",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/set1.cob",
+    "printed": "A1 ON / A1OFF F / B1OFF F / C1 OFF / A2 OFF / A2OFF T / B2 NOTOFF / C2 ON / A3 OFF / IN-A OFF / A4 ON",
+    "expected": "SET SWA SWB TO ON SWC TO OFF: A-ON true, A-OFF false, B-OFF false, C-ON false; then SWA OFF, SWB SWC ON; SET SWA TO ON SWA TO OFF leaves A off (left to right); a contained program INNER sees the container's condition-name (§1985:VI.4.5.4 GR1) and its SET TO ON is seen by the container"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/rf1.cob",
+    "printed": "error COBOL1757: SET 'CONS' TO ON ... 'CONS' is the mnemonic-name of the device-name 'CONSOLE'",
+    "expected": "refused: mnemonic-name-1 must be associated with an external switch (§1985:VI.6.23.3 SR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/rf2.cob",
+    "printed": "error COBOL1757 (a switch-status condition-name A-ON as the operand)",
+    "expected": "refused (SR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/rf3.cob",
+    "printed": "error COBOL1757: 'SWITCH-1' is itself a switch-name, an implementor-name",
+    "expected": "refused (SR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/rf5.cob",
+    "printed": "error COBOL2269 for SET SWA (1) TO ON",
+    "expected": "refused: a mnemonic-name takes no subscript"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/rf7.cob",
+    "printed": "error COBOL1639: SET 'SWA' TO TRUE — 'SWA' is not a condition-name",
+    "expected": "refused: Format 4 takes a condition-name of a conditional variable (§1985:VI.6.23.3 SR6)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/ok1.cob",
+    "printed": "A OFF without the environment; A ON with COBOL_SWITCH_1=ON",
+    "expected": "the initial status is implementor-defined (documented DOC-A.1-191); a switch with no SET reflects it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.23.4 GR6",
+    "check": "OK  §1985:VI.6.23.4 GR6  (6.23.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "One grammar unit per printed phrase, one binder loop over every receiver of every phrase, one emitted ExternalSwitches.Set per receiver in source order, and the switch-status condition reads the same run-unit store; no member on the path branches on the edition. The SR5 diagnostics cite §2023 clause numbers at --std 85 (a diagnostic-text matter of other rules, not of GR6).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output (rf1 refused identically at --std 2023)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.23.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VI.6.23.2 Format 3, VI.6.23.3 SR5, VI.6.23.4 GR6. SwitchStore (Runtime/Control/SwitchStore.cs) is keyed by the implementor switch-name and scoped to the run unit, so GR6's 'a condition-name associated with that switch' is reached from any program. Probes (run_case.py, --std 85): refute-1985-018/s1-001: MAINP sets SWITCH-1 through mnemonic SWA, which has no condition-name; separately compiled SUBP declares SWITCH-1 ON/OFF STATUS only and prints SUB S1 ON / NOT OFF, then NOT ON / OFF after SET SWA TO OFF; SUBP2 sets SWITCH-2 OFF through its own mnemonic, and MAINP's B-ON then reads OFF. s3-001: SET SWC SWU TO ON SWC TO OFF SWU TO OFF SWU TO ON gives C OFF / U ON / OK2 (phrases left to right, UPSI-0 with only an ON condition-name). s2-001 (class c): SET C-ON TO FALSE is refused, COBOL0900 'SET condition-name TO FALSE requires COBOL-2002' plus COBOL1757. Edition grep of SetAlterBinder.cs and AlterSwitchEmitter.cs: only BoundRejected.Reported(ctx.Edition); VersionConformancePass has no SET-switch visit. cite: OK  §1985:VI.6.23.4 GR6  (6.23.4 General Rules)  the text is in GR6",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

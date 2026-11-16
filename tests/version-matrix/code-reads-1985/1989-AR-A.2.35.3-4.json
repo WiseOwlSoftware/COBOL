@@ -1,0 +1,69 @@
+{
+ "rule-id": "1989-AR-A.2.35.3-4",
+ "rule-digest": "5029887bb43b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-171",
+  "sources": {
+   "reader": "b9e1fb2dbadce3c7a5d8fb6b4c742c50d1f946596a6ce67df9c7c2055b5bf3a5",
+   "refuter": "cb6f0ea645b0cd3ae00802e52db865e1a5964587e93a9697ae35be5074b42c28"
+  },
+  "imported": {
+   "reader": "9f9feffa7b17663b2ef225e86484e2f5d50232eea2b2b1cbdfc71b20895d8602",
+   "refuter": "6fc007117e8bd69358f2cb4b40ef7565504ed6ab9bc805f2227df94cbc9d50cf"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.35.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every FUNCTION RANDOM reference without argument-1 after the first returns the next number of the current sequence. That is the sequence the last seeded reference started, or the implementor's, and it holds across every program of the run unit. The witness covers alternating seeds in one program; the probe adds a called program that continues the caller's sequence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#FloatBody; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Next; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Random",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: whether FUNCTION RANDOM exists at the edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Greps of IntrinsicRenderer.cs FloatBody, CobolIntrinsics.Float.cs, RandomSequence.cs and RunUnit.cs for Edition/DialectLevel/CobolVersion/DialectBehavior: none.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: one program alternating seeds 7 and 8; not continuation across programs of one run unit",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_runit.cob",
+    "printed": "CALLED=CONTINUES-SEQUENCE: after RANDOM (7) in the main program, the nested called program's two unseeded references equal the 2nd and 3rd numbers of seed 7's sequence",
+    "expected": "the next number in the current sequence (§1989:A.2.35.3 AR4)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_accept.cob",
+    "printed": "SEED5=SAME x7: the unseeded reference after each seed-5 restart equals the 2nd number of seed 5's sequence",
+    "expected": "the next number in the current sequence"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.35.3 AR4",
+    "check": "OK  §1989:A.2.35.3 AR4  (2.35.3 Arguments)  the text is in AR4"
+   }
+  ],
+  "notes": "The unseeded arm renders CobolIntrinsics.Random(), which reads RunUnit.Current.Random.Next(), the one generator that seeded references replace. The edition is not consulted.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.35.3-4",
+  "refutation": "UPHELD",
+  "classes": "d,e",
+  "evidence": "rs3.cob --std 85 (runs/rs3-001): after RANDOM (11) in the main program, a SEPARATELY compiled program RS2SUB (not nested) takes the 2nd number and the caller's next reference the 3rd (SEPARATE=CONTINUES). rs1.cob (runs/rs1-002): RANDOM (5) - RANDOM in one expression = A1 - A2 (SEED-NEXT=OK), so the references are evaluated left to right. RANDOM - RANDOM = +0.021455805 against the truncated A2 - A3 = +0.021455806; the sign and magnitude match, and the 1-ulp difference comes from truncating each operand. cite.py: OK §1989:A.2.35.3 AR4 the text is in AR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

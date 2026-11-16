@@ -1,0 +1,101 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-2",
+ "rule-digest": "eb5b34d47d25",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-104",
+  "sources": {
+   "reader": "38386c3b3a5afa062d572540c91c70d6783456cf167724d067ed6ba2b5cf36b4",
+   "refuter": "542afc9d803bd3729493fa432f509edf47182342e2d842e9e573eab2d9152cec"
+  },
+  "imported": {
+   "reader": "f92a9f87698058298fb70348894e13c6ed69e4a318ce44656667def5b09c25b6",
+   "refuter": "1863a9a6c538c27bdd4813909710e357e478b0847a5b98a7585982f3da00271e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.14.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, USAGE (DISPLAY implicit or explicit, BINARY, COMPUTATIONAL/COMP, PACKED-DECIMAL, INDEX) decides only the storage representation. Statements must give the same results for the same PICTURE and value whatever the usage: arithmetic, MOVE, compare, condition-names, subscripts, PERFORM VARYING, scaled and P-scaled items. The exception is a statement whose own rule restricts operand usage, such as ref-mod, STRING and INSPECT requiring DISPLAY at 85; those must be refused. The witness covers integer arithmetic, MOVE and compare across the five usages.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#Truncation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+    "switches": "edition.Extension flags vendor spellings (COMP-1..COMP-5) only under the extension-flagging option; BINARY/COMP/COMPUTATIONAL/PACKED-DECIMAL/DISPLAY map to one Usage at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#UsageConstructId",
+    "switches": "post-1985 usages (NATIONAL, POINTER, BINARY-CHAR..DOUBLE, FLOAT-*, ...) refused COBOL0900 below their introducing edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+    "switches": "numeric item digit limit: 18 at COBOL-85, 31 at 2002+ (COBOL0802 for 19-31 at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition.|CobolVersion|ConstructRegistry in Model/PicInfo.cs: none on ByteForm/StorageWidth/Truncation; ParseUsage reads the edition only through the nonstandard-extension flag.",
+  "behaviour-differs-by-edition": "no for the 1985 usages (gr2p stdout identical at 2023); yes for the set of usages: post-1985 usages are refused at 85 via VersionConformancePass#UsageConstructId",
+  "witnesses-cover": "part: g85_bf12_03 covers integer ADD/MOVE/compare/MULTIPLY/DIVIDE; it does not cover scaled/P-scaled items, unsigned receivers of a negative value, condition-names, subscripts and PERFORM VARYING on non-DISPLAY items, size error on packed, or the statement-restriction refusals",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr2p.cob",
+    "printed": "SCL=-012.34 x4 SEQ=YES PSC=YES 012300 ABS=0037 0037 C88=YES SUB=b V=e V=c V=a ACC=+00009 SBSIZE NEG=-999.99 -999.99 PSIZE PK=+99999",
+    "expected": "Scaled and P-scaled items agree across usages. Unsigned BINARY and PACKED receivers store the absolute value. Condition-names, subscripts and PERFORM VARYING on BINARY items work. Size error keeps the value for BINARY and PACKED."
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr2r.cob",
+    "printed": "error COBOL1647: reference modification of a numeric item of USAGE Binary ... is not permitted",
+    "expected": "§1985:IV.4.3.8.4.3 SR1 'Data-name-1 must reference a data item whose usage is DISPLAY' - refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr2s.cob",
+    "printed": "error COBOL1626 STRING sending operand 'NB' ... USAGE Binary; error COBOL1626 INSPECT identifier-1 'NB' ... USAGE Binary",
+    "expected": "the statements whose specifications restrict usage refuse a BINARY operand"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/u_picn2usagenational.cob; u_usagepointer.cob; u_binarylong.cob",
+    "printed": "COBOL0900 national data requires COBOL-2002; COBOL0900 USAGE POINTER requires COBOL-2002; COBOL0900 fixed-width binary usage requires COBOL-2002",
+    "expected": "usages the 1985 general format lacks are refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/u_pics94comp5.cob; u_pics94comp4.cob; u_pics94comp3.cob; u_comp1.cob",
+    "printed": "EXIT 0 (accepted)",
+    "expected": "vendor usage spellings are an implementor extension. Accepting them is allowed, and ParseUsage flags them under the extension-flagging option."
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.4 GR2",
+    "check": "OK  §1985:VI.5.14.4 GR2  (5.14.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.4.3 SR1",
+    "check": "OK  §1985:IV.4.3.8.4.3 SR1  (4.3.8.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "Every usage feeds the same NumProfile arithmetic. Only ByteForm and StorageWidth differ by usage, and neither reads the edition. Statement-specific usage restrictions are enforced at 85. ACC=+00009 is the DISPLAY statement's implementor-defined rendering of a signed packed item, not a GR2 effect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "gr2p prints identical output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.14.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Attacked the 1985 statement restrictions the reader did not try and the uses that must NOT differ by usage. r2a: IF binary NUMERIC and IF packed NUMERIC refused COBOL6918 citing §1985:VI.6.3.1.2 (correct: 1985 requires DISPLAY). r2b-002: BINARY/PACKED integer compared with an alphanumeric literal refused COBOL2532; correct at 85 because cite.py: OK  §1985:VI.6.3.1.1.2 (6.3.1.1.2 Comparison of Nonnumeric Operands) 'Numeric and nonnumeric operands may be compared only when their usage is the same'. r2c: UNSTRING INTO a BINARY receiver refused COBOL1626 (cite.py: OK  §1985:VI.6.27.3 SR3). r2b-003 (EXIT 0): MOVE 9(4) BINARY/DISPLAY/PACKED to X(6) all [0042  ]; MOVE '0123' to BINARY and DISPLAY both 0123; BINARY and DISPLAY scaled to numeric-edited both [  12.50-]; DIVIDE GIVING REMAINDER identical (-014 -002) for BINARY and DISPLAY; COMPUTE ROUNDED identical (+03.3); UNSTRING with BINARY COUNT IN/POINTER and PACKED TALLYING works (AB CD 0002 0007 0002); STRING WITH POINTER on a COMP item accepted and works (06; STRING SR2 exempts identifier-4, cite.py: OK only as §1985:VI.6.25.3 SR2); INSPECT TALLYING into BINARY 0002; MOVE/ADD CORRESPONDING from DISPLAY to BINARY/PACKED members and INITIALIZE all correct. cite.py: OK  §1985:VI.5.14.4 GR2  (5.14.4 General Rules)  the text is in GR2. Side note only: the COBOL2532 and COBOL1626 refusals at --std 85 cite 2023 clauses, not the 1985 text (diagnostic citation, not a verdict defect).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

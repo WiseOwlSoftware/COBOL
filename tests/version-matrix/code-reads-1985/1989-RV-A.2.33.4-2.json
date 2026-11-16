@@ -1,0 +1,100 @@
+{
+ "rule-id": "1989-RV-A.2.33.4-2",
+ "rule-digest": "b3389613bbc6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-183",
+  "sources": {
+   "reader": "4f0be211b120206b4c2a37f4a219d7959c5b7b1ec6118333aa2cc287c325cc8c",
+   "refuter": "2069fc40c4ba993e90b28e81950f109a26308d8479e1d47c5a5d50585c0c6ec7"
+  },
+  "imported": {
+   "reader": "9ea49c21ee4e796fac44dafb18e55069ecc678ee2ef98247a817757d9817385e",
+   "refuter": "9f2cb6f73c47e4e4fc3fd613a90fcb138c83ad10f56720472916a41cadfcbe07"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.33.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the comparisons ORD-MIN uses to find the least argument-1 are those of a 1985 simple (relation) condition: numeric operands by algebraic value regardless of usage, length of literals not significant and zero unique regardless of sign (§1985:VI.6.3.1.1.1); nonnumeric operands character by character in the program collating sequence named in OBJECT-COMPUTER (native when none), the shorter extended on the right with spaces (§1985:VI.6.3.1.1.2). The witness covers algebraic order, collating order against length, and one padding tie; it does not exercise a non-native PROGRAM COLLATING SEQUENCE, usages other than DISPLAY, or signed zero.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#SelectMin; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMinString; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Compare; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RawArgPairs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window for ORD-MIN (admitted at 85); the PCS flag (Configuration.Collating) and string-body choice in the same method read no edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+    "switches": "ORD-MIN IntroducedIn 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Searched IntrinsicBinder.cs for DialectLevel|ConstructRegistry (none near the string-body resolution or the collate flags at lines 881-911), IntrinsicRenderer.cs for Edition|DialectLevel (none), and the runtime Intrinsics folder for Edition|Dialect (only unrelated NUMVAL-C and exponent comments).",
+  "behaviour-differs-by-edition": "no: the relation semantics the selection uses are the edition-neutral CobolNum.Compare / CobolString.Compare / CobolCollation.Compare; ordsel.cob matches at 85 and 2023",
+  "witnesses-cover": "part: g85_bf40_06 covers algebraic order, collating order over length, and a space-extension tie; not exercised: a PROGRAM COLLATING SEQUENCE, COMP and SIGN SEPARATE usages, -0 vs +0, numeric-edited (alphanumeric-class) comparison, figurative constants",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordpcs.cob",
+    "printed": "P1 02; P5 01 (D C 'E' with C ALSO D: tie, E unlisted so highest); P6 02; P8 01 ('AB' less than 'A ' because the unlisted space collates after B); P12 LT (the relation agrees)",
+    "expected": "02, 01, 02, 01, LT"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordsel.cob",
+    "printed": "D2 02 (PIC -9 items compared as alphanumeric: ' 3' < '-5'); D8 01 (7, SIGN LEADING SEPARATE 7.0, COMP 7 all equal); D10 01; D12 02; D14 02 (P-scaled 700 equals 700)",
+    "expected": "02, 01, 01, 02, 02"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordsel.cob",
+    "printed": "F7 01 (+0 vs -0 equal); F5 01 (0 FR1 ZERO: 0 and ZERO tie, FR1 greater); F4 02",
+    "expected": "01, 01, 02"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordsel.cob",
+    "printed": "A4 01 and A6 01 (reference-modified elements compared with space semantics)",
+    "expected": "01, 01"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.33@1985-ORD-MIN-FUNCTION/g85_bf40_06.cob",
+    "printed": "EXPECT: MATCH (OMIN1 3, OMIN2 2, OMIN3 2, OMIN4 1)",
+    "expected": "the .out file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.33.4 RV2",
+    "check": "OK  §1989:A.2.33.4 RV2  (2.33.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.1",
+    "check": "OK  §1985:VI.6.3.1.1.1  (6.3.1.1.1 Comparison of Numeric Operands)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.2",
+    "check": "OK  §1985:VI.6.3.1.1.2  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in the clause; it lies in GRL2.2"
+   }
+  ],
+  "notes": "The binder resolves an all-nonnumeric list (class-neutral figuratives do not vote) to OrdMinString and passes the PCS weights when a PROGRAM COLLATING SEQUENCE is in effect, so the function and an IF on the same operands agree (P8 vs P12). Numeric lists compare with CobolNum.Compare at each argument's own scale, which treats -0 and +0 as equal.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.33.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,c,d,f",
+  "evidence": "Attack aimed at the one carrier that could break algebraic comparison: CobolIntrinsics.RealArgs.cs#OrdMaxReal/OrdMinReal compare binary64 values. ordreal.cob at --std 85 mixes FUNCTION SQRT with 18-digit and 18-decimal-place items: N1 01, N2 02, N3 02, M3 02, matching IF B1 < B2 and IF F1 < F2, so the renderer lifts the approximate argument to decimal and the real body is not reached at 85. ordgrp.cob: group comparisons (G1/G2 with COMP subfields, H1/H2 signed DISPLAY in groups) agree with the IF relation on the same operands (GM 02 + REL G1<G2; HM 01 + REL H1>H2). cite.py: OK §1989:A.2.33.4 RV2 'made according to the rules for simple conditions'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

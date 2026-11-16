@@ -1,0 +1,112 @@
+{
+ "rule-id": "1985-GR-VI.2.4.4-1",
+ "rule-digest": "4e607358ac0a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-011",
+  "sources": {
+   "reader": "091e3b25e3d00b1a40bd0009ebeae128d3db24f1dc25c012a419ab97b24c8613",
+   "refuter": "1a816b12394bef79e79a2accf7a8521e70c9d4b42ce4dd9c00d4b4cc911a6bc8"
+  },
+  "imported": {
+   "reader": "7545de6932764747ada1d914d821256b2257735a2199bf6a1594424fc10bd695",
+   "refuter": "f6ff30f97c3d1b47e9c0a89b92b5d365429779d61209896b78e1c24933af9ddc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.2.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, END PROGRAM program-name must end the program its name designates: everything after it belongs to no part of that program (its names, data and procedures are out of scope), so the next COBOL text must open a separately compiled program (IDENTIFICATION DIVISION header, required at 1985) or, for a contained program, continue the container; the witness covers the nested (Inter-Program Communication) layout, not two separately compiled Nucleus programs in one source.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#Run; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision",
+    "switches": "identification-header-optional-2002: a unit after END PROGRAM opening on PROGRAM-ID without the IDENTIFICATION DIVISION header is refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#Report",
+    "switches": "nothing: the EditionContext is only the diagnostic sink; the end-marker screen is the same at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep EndProgramHeader across src (only EndMarkerPass); grep Edition|DialectLevel in EndMarkerPass.cs (only Report's sink). The grammar's programUnit/nestedProgram pairing is edition-free.",
+  "behaviour-differs-by-edition": "no for the end itself; at 1985 the following unit must carry the IDENTIFICATION DIVISION header (2002 made it optional) and END FUNCTION has no 1985 form",
+  "witnesses-cover": "part: l1c08 covers nested programs; not exercised: two separately compiled programs in one source reusing names, text after the last END PROGRAM, a header-less following unit at 85, END FUNCTION, a mismatched name",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c5/p1.cob",
+    "printed": "A X=AAAA / B X=BBBB / B P2 / A AGAIN X=AAAA / A P2",
+    "expected": "END PROGRAM EPA ends EPA, so EPB is a separate program whose X, P1, P2 do not collide with EPA's (VI.2.4.4 GR1, GR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c5/p2.cob",
+    "printed": "error COBOL2793: the end marker names 'EPZ', but the program-name declared in the PROGRAM-ID paragraph it ends is 'EPA' ... (ISO §2023:10.7.3 SR2)",
+    "expected": "refused: §1985:VI.2.4.3 SR2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c5/p3.cob",
+    "printed": "error COBOL0001: unexpected 'DISPLAY'",
+    "expected": "a statement after END PROGRAM is not part of the ended program and is not an Identification Division header: refused (GR1, GR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c5/p4.cob",
+    "printed": "error COBOL0900: a source unit without the IDENTIFICATION DIVISION header requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "1985 GR2: the next program must begin with the Identification Division header"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c5/p5.cob",
+    "printed": "error COBOL2793: PROGRAM-ID 'EPA' contains another source unit, so its end marker END PROGRAM EPA shall be present ... (ISO §2023:10.7.3 SR1)",
+    "expected": "without END PROGRAM EPA the second program is contained in EPA, which then lacks its required end header (§1985:X.2.5.4 GR1): refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c5/p6.cob",
+    "printed": "error COBOL2274: PROGRAM-ID 'EPA': END FUNCTION cannot close a program definition",
+    "expected": "1985 has only END PROGRAM: refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c5/p7.cob",
+    "printed": "A",
+    "expected": "a single program with END PROGRAM runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.2.4.4 GR1",
+    "check": "OK  §1985:VI.2.4.4 GR1  (║2.4.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.2.4.4 GR2",
+    "check": "OK  §1985:VI.2.4.4 GR2  (║2.4.4 General Rules║)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.2.4.3 SR2",
+    "check": "OK  §1985:VI.2.4.3 SR2  (║2.4.3 Syntax Rules║)  the text is in SR2"
+   }
+  ],
+  "notes": "The grammar closes a programUnit at its endProgramHeader, so text after it is either a new unit or a syntax error, and EndMarkerPass checks the marker names the unit it closes. Behaviour conforms at --std 85. The refusals cite ISO §2023:10.7.3 at --std 85, not the 1985 rule; that is a citation-wording point on the syntax rules, not a GR1 defect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.2.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "refute-1985-011/c5 (--std 85): END PROGRAM \"EPA\" (literal; 1985 SR1 user-defined word) refused COBOL5506; END PROGRAM epa for PROGRAM-ID EPA accepted and runs A/B (lowercase equivalent); END PROGRAM EPA without its period refused COBOL0307; a following unit opening 'ID DIVISION.' refused COBOL0001 (GR2 requires the Identification Division header); the well-formed pair runs A, B. Residual (as the reader noted): the refusals cite §2023 text at --std 85, a diagnostic-wording point, not GR1 behaviour. OK  §1985:VI.2.4.4 GR1 the text is in GR1; OK  §1985:VI.2.4.3 SR1 the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-3",
+ "rule-digest": "e00f45befd21",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-134",
+  "sources": {
+   "reader": "554b5ad7de4a4b9808dbc5589d61a93fd36f522d449f40546eff8c076bdbb48a",
+   "refuter": "bea9901c1f37eb50ff99d557a23fbd9be3e5b3cdce94e7563a41be66b409ddcd"
+  },
+  "imported": {
+   "reader": "bf83958fb9182982a761fb39cd0fe3847eff8940925f6ad5b7fcbbcb6887fc12",
+   "refuter": "135989860e5101dd08e3377bdeccda58430afba752ddb0190d87b1419963947c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.4.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, when a relative file is not in an open mode (never opened, after a failed OPEN, after CLOSE), every statement that references it other than OPEN and SORT/MERGE USING/GIVING must not execute its operation: READ and START answer 47, WRITE 48, REWRITE and DELETE 49, CLOSE 42, nothing changes in the file, and the AT END / INVALID KEY imperatives do not run; SORT/MERGE USING/GIVING may reference it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): at 85 a READ/WRITE/REWRITE/DELETE/START without AT END/INVALID KEY and no applicable USE is refused (COBOL6826); compile-time only, the runtime statement is the same code",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "DialectBehavior.FileSharingFacility (2002+): at 85 every OPEN takes the AllOther file lock and Table 19 is not consulted; no effect on open-mode or position rules",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/IsActive/CobolVersion over Runtime/IO FileConnector, KeyedConnector, RelativeConnector, FileRegistry: the open-mode guards consult no edition; the only edition reads on the path are the sharing default at OPEN and RelativeWriteKeyOutOfRangeIsPermanentError (key<1 only, not reached by this rule).",
+  "behaviour-differs-by-edition": "no: the six probes print identically at --std 2023; only the compile-time exception-phrase requirement differs",
+  "witnesses-cover": "part: g85_bf24_07 exercises SORT USING/GIVING on a closed file and START after CLOSE; never-opened READ/WRITE/REWRITE/DELETE/START/CLOSE, the sequential-access file, and statements after a failed OPEN are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/p1notopen.cob",
+    "printed": "never opened: dynamic READ random 47, READ NEXT 47, WRITE 48, REWRITE 49, DELETE 49, START 47, CLOSE 42; sequential-access Q (USE ran each time) 47/48/49/49/42; after failed OPEN INPUT 35: READ 47, WRITE 48, CLOSE 42; after failed OPEN I-O 35: DELETE 49; after CLOSE 47/48/49/49/47/42; reopen reads ABCD; no AT END/INVALID KEY imperative ran (MATCH)",
+    "expected": "1985 VIII.1.3.4 statuses 47/48/49/42 for a file not open; the record written before CLOSE intact"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/p1notopen.cob",
+    "printed": "--std 2023 run: identical (MATCH)",
+    "expected": "same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.4 GR3",
+    "check": "OK  §1985:VIII.4.4.4 GR3  the text is in the rule (or the clause): \"no statement may be executed which references the file\""
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  the text is in the rule (or the clause): \"A CLOSE statement is attempted for a file not in the open mode\""
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  the text is in the rule (or the clause): \"The execution of a DELETE or REWRITE statement is attempted on a file not open in the I-O mode\""
+   }
+  ],
+  "notes": "Openness is one bit (FileConnector.IsOpen) cleared by every CLOSE and never set by a failed OPEN, and every verb's guard tests it before touching the store. The 4x statuses are logic errors so the conditional imperatives are skipped, matching 1985 VIII.1.3.4; continuing afterwards is the implementor's choice.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.4.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85 (runs under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-134/runs). r1cells-001: multi-file OPEN INPUT N S with N absent non-optional gives N 35, S 00 and S reads SSS1 (GR17), then READ N 47; failed OPEN EXTEND of an absent non-optional file 35, then WRITE 48, CLOSE 42. r3lock-001 (a state the reader did not try: after CLOSE WITH LOCK, Level 2 at 85): CLOSE LOCK 00, then random READ 47, READ NEXT 47, WRITE 48, START 47, CLOSE 42, OPEN 38, READ NEXT after the failed OPEN 47, and OPEN of a second SELECT of the same physical file 38 (the 85 arm of CloseWithLockLocksFileConnector, physical-file lock per VIII.1.3.4 38). No AT END/INVALID KEY imperative ran on any refused statement; only the USE procedure ran. cite.py: OK §1985:VIII.4.4.4 GR3 'no statement may be executed which references the file'; OK §1985:VIII.4.4.4 GR17 'as if a separate OPEN statement had been written for each file-name'; OK §1985:VIII.1.3.4 (GRL2.4d) 'an OPEN statement is attempted on a file previously closed with lock'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock: DialectBehavior.CloseWithLockLocksFileConnector, at 85 the physical file is locked, from 2002 the connector; on the not-open path after CLOSE WITH LOCK, probed, 85 arm correct",
+   "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock: same switch, read by OPEN"
+  ],
+  "corrected": ""
+ }
+}

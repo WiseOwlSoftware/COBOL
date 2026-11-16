@@ -1,0 +1,122 @@
+{
+ "rule-id": "1985-SR-IX.4.8.3-1",
+ "rule-digest": "8d997c87799f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-048",
+  "sources": {
+   "reader": "ffda7751b6ffff529d4fbbd967332ed572be084dfa5bf14a6c918b2dab1daeee",
+   "refuter": "799a6246823527f7181c6232e4f09cca0c2db56f4e32c7b7c50886ff80f17f76"
+  },
+  "imported": {
+   "reader": "c46feaf02b7a25ee0b89751e6462d23aeaa0598253ceaddca8b2f6fd3b1f14ac",
+   "refuter": "3582c17553e708f294e62dfdf06dfc376aeda318ffa18151258da951994775a5"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "edition-search": "",
+  "rule-id": "1985-SR-IX.4.8.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a USE statement is accepted only as the sole statement of the first sentence immediately after a declarative section header; every other placement (nondeclarative section, declarative paragraph, after another sentence, sharing a sentence, a second USE) is refused, a declarative section without a USE is refused, and the rest of the section must be paragraphs (zero or more), so unnamed sentences after the USE sentence are refused because a 1985 paragraph begins with a paragraph-name (IV.6.4.1.2).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeclarativeSection; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLeadingSentences",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLeadingSentences",
+    "switches": "procedure-without-leading-paragraph-2002 (COBOL0900): sentences after the USE sentence before the first paragraph-name are refused below 2002, accepted at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "USE without PROCEDURE/AFTER word, Format 3/4 USE gated to 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "behaviour-differs-by-edition": "yes: at 2023 a paragraph-name-omitted paragraph after the USE sentence is legal (u1unnamed compiles clean at --std 2023); at 85 it is refused with COBOL0900",
+  "witnesses-cover": "part: the witness covers only USE outside declaratives; not USE sharing a sentence, USE not first, USE in a declarative paragraph, two USE sentences, a section with no USE, or unnamed sentences after USE",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u1notfirst.cob",
+    "printed": "COBOL0897 the first sentence shall consist of a single USE statement; COBOL2377 on the later USE; COBOL0900",
+    "expected": "refused (USE must immediately follow the section header)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u1sharesent.cob",
+    "printed": "COBOL0897 the first sentence shall consist of a single USE statement",
+    "expected": "refused (USE must appear in a sentence by itself)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u1inpara.cob",
+    "printed": "COBOL2377 ... inside a declarative section, after its first sentence",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u1twouse.cob",
+    "printed": "COBOL2377 + COBOL0900",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u1nondecl.cob",
+    "printed": "COBOL2377 ... in the nondeclarative portion",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u1nouse.cob",
+    "printed": "COBOL0897",
+    "expected": "refused (a declarative section header is followed by its USE statement)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u1unnamed.cob",
+    "printed": "COBOL0900 sentences before the first paragraph-name ... requires COBOL-2002 (at --std 2023: EXIT 0)",
+    "expected": "refused at 85: the remainder must consist of procedural paragraphs"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/uc_noproc.cob",
+    "printed": "COBOL0900 a USE AFTER STANDARD EXCEPTION/ERROR statement without the word PROCEDURE requires COBOL-2002",
+    "expected": "refused (PROCEDURE is underlined in 1985)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/u1legal.cob",
+    "printed": "DECL ST1=35 / DECL2 / OPEN ST1=35 / W1 ST1=00 / DECL ST1=22 / DECL2 / W2 ST1=22 / HITS=2",
+    "expected": "accepted, with a zero-paragraph declarative section; the declarative runs after a failed OPEN I-O and a duplicate-key WRITE on an indexed file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.8.3 SR1",
+    "check": "OK  §1985:IX.4.8.3 SR1  (4.8.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.6.4.1.2",
+    "check": "OK  §1985:IV.6.4.1.2  (6.4.1.2 Procedures)  the text is in the clause"
+   }
+  ],
+  "notes": "DeclCollectSection consumes the one legal position (first sentence, single USE) and reports COBOL0897 otherwise; every USE that reaches StatementBinder is misplaced (COBOL2377). The 1985-only restriction that the remainder be named paragraphs is enforced by the 2002 Annex F.2 item 90 gate in VisitDeclarativeSection."
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.8.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-048/src at --std 85: r1seg.cob (1985 declarative section header with segment-number 'S1 SECTION 10.' then USE, the Format 1 body of IV.6.4.1.4.2) EXIT 0, 'DECL ST1=35 / AFTER OPEN ST1=35'; r1ifuse.cob (USE nested inside IF in a declarative paragraph) COBOL2377 refused; r1nested.cob (USE ... INPUT in a contained program's declaratives) EXIT 0, 'IN-DECL ST1=35 / IN AFTER OPEN'; r3debug.cob shows the 1985 debugging-section placement arm (COBOL6948, XV.3.2.3 SR1) in DeclCollectSection, a sibling check, not this rule. 1985 text read: IV.6.4.1.2 (a paragraph begins with a paragraph-name) and IV.6.4.1.4.2 Format 1 (section-name SECTION [segment-number]. USE statement. [paragraph-name. [sentence]...]...), consistent with the reader's 0900 gate. cite.py: 'OK  §1985:IX.4.8.3 SR1  (4.8.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:IV.6.4.1.4.2  (6.4.1.4.2 Procedure Division Body)  the text is in the clause'; 'OK  §1985:IV.6.4.1.2  (6.4.1.2 Procedures)  the text is in the clause'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection: DebuggingModeDeclared decides whether a USE FOR DEBUGGING section is compiled or treated as comment (1985 Debug module), and the XV.3.2.3 SR1 placement check; neither changes this rule's verdict"
+  ],
+  "corrected": ""
+ }
+}

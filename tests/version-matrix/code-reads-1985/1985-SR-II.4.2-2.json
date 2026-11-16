@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-SR-II.4.2-2",
+ "rule-digest": "90157ed0e809",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-042",
+  "sources": {
+   "reader": "14d2b0105f24092ed65e9ae26302fb068a0e84b6a64867dd9083c587d651c0fb",
+   "refuter": "409e6d12258bdd082bf19e73191b0bd4d3ccff4bf9a1cb6cfb3f144a27f82644"
+  },
+  "imported": {
+   "reader": "7827488ecb37b47762ad88e88e0df5705696bf83ad491af940d5bb27ddf80d00",
+   "refuter": "e918dd1ec0aea8459e1f18064e75a5d0cf2c1a6878ce86657dc70d57315fadc6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-II.4.2-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a VALUE clause on the group entry that defines a whole table (any number of dimensions, fixed or OCCURS DEPENDING ON) initializes the whole table area, and a VALUE clause on any lower-level (subordinate, non-condition-name) entry of that table must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGroupValueDeclarationsPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckGroupValueDeclarationsPass.cs#Subordinates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupValueSlicer.cs#SliceInit; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClause",
+    "switches": "refuses the 2002 Format 2 (table) VALUE ... FROM phrase below COBOL-2002 (construct value-table-format-2002, COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory",
+    "switches": "FigurativeAssociation.GateAllZeroAsNumeric(Edition.Edition, ...) and Edition.Removed/Permissive for literal-class handling; not reached by the subordinate-VALUE screen",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read CheckGroupValueDeclarationsPass whole: the SR13-sentence-2 subordinate screen (COBOL1702) consults no edition; grepped Edition/Version/Std in ValidateValueCategory; found the Format-2 gate via the COBOL0900 diagnostic text in VersionConformancePass and ConstructRegistry.g.cs (value-table-format-2002).",
+  "behaviour-differs-by-edition": "yes: only the 2002 Format 2 (table) VALUE spelling is refused at 85; the group-VALUE table initialization and the subordinate-VALUE refusal are the same code at every edition",
+  "witnesses-cover": "part: the witnesses exercise group VALUE over elementary members, not a table (OCCURS) under the group, a multi-dimensional table, an ODO table, or the subordinate-VALUE refusal",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c1_table_value.cob",
+    "printed": "T1=[ABCDEFGHIJKL] ABEFGHKL / T2=[XYXYXYXYX] YXY / T3=[0000] 0 / E3-ZERO TRUE / T4=[PQRS] RS / T4N3=[PQRSTU] TU / T5=[AB    ] [  ] (EXPECT: MATCH)",
+    "expected": "2-dimensional table, ALL literal, ZEROS, an 88 under a table element, an ODO table initialized at its maximum (§1985:VI.5.15.6 GR5), and a short literal space-filled: the group area initialized as a whole"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c1_sub_value.cob",
+    "printed": "COBOL1702 at E1 (OCCURS element with VALUE), C2 (VALUE two levels below), G3 (nested group VALUE); exit 65",
+    "expected": "refused: lower level entries must not contain VALUE clauses"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c1_fmt2.cob",
+    "printed": "--std 85: COBOL0900 the Format 2 (table) VALUE clause requires COBOL-2002; --std 2023: compiles and runs",
+    "expected": "1985 has no table-VALUE FROM format: refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:II.4.2 SR2",
+    "check": "OK  §1985:II.4.2 SR2  (4.2 INITIAL VALUES OF TABLES)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.5.15.6 GR3",
+    "check": "OK  §1985:VI.5.15.6 GR3  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.5.15.6 GR5",
+    "check": "OK  §1985:VI.5.15.6 GR5  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR5"
+   }
+  ],
+  "notes": "The subordinate-VALUE refusal walks the whole subtree (Subordinates) and level-88 entries are not forest nodes, so condition-names under a table element stay legal as 1985 intends. The diagnostics cite §2023 clause numbers at --std 85, a message-text matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-II.4.2-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes under refute-1985-042/src at --std 85: v1 COMP / v4 JUSTIFIED / v8 SYNC element under table-defining group VALUE -> COBOL1702 (GR4); v2 numeric literal on group -> COBOL1657 (GR3); v3 X\"..\" -> COBOL0900 hex literal requires 2002; v7 N\"..\" -> COBOL0900; v5 group VALUE with REDEFINES -> COBOL2406 (GR2); v6 literal longer than table -> COBOL1740; v10 table group VALUE in FILE SECTION -> COBOL0900 (GR1a); v11 nested tables with group VALUE, ALL literal, SPACES, 88 under element: '[ABCDEFQQ    ] ED' / 'Q2' as expected. cite.py: OK §1985:II.4.2 SR2; OK §1985:VI.5.15.6 GR3; OK §1985:VI.5.15.6 GR4; OK §1985:VI.5.15.6 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

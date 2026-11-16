@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-XII.2.3-5",
+ "rule-digest": "649cd1f136e8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-164",
+  "sources": {
+   "reader": "6d8a53cec0accaefe2bb291e691ac63c7183c9fe3c9773a098fc5de8702ddabb",
+   "refuter": "416d110d13e37c263a308110960fcca2febb2009618d9486ee0ec1fba4bb829e"
+  },
+  "imported": {
+   "reader": "1d65ba7d326d256a7178c26e33d9520d6d931aa940904d905e1d175749458284",
+   "refuter": "f44559d79ffdc626c723b7ffd3d4ddb17eb73a5b0035eabfae37199ea8e6616f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XII.2.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a word, numeric literal or nonnumeric literal inside pseudo-text-1 or pseudo-text-2 of COPY REPLACING may be split across lines by a hyphen in the indicator area and is joined by the normal continuation rules (§1985:IV.7.2.2: intervening comment and blank lines skipped, a continued nonnumeric literal keeps its trailing spaces to margin R and resumes after the quotation mark), with area A of each continuation line blank and both characters of '==' on one line.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#Add; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ContinueFixed; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuationTextInAreaA; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnWordContinuation; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuationTextInAreaA",
+    "switches": "ConstructRegistry fixed-form-text-in-area-a-2002: continuation text in area A refused (COBOL3735) at 85, allowed from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnWordContinuation",
+    "switches": "dialectLevel < 2023 returns: word continuation accepted at 85, COBOL0902 (removed) at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#OnContinuation",
+    "switches": "dialectLevel < 2023 returns: no obsolete flag for the column-7 hyphen at 85, COBOL0903 warning at 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 word continuation in pseudo-text is legal and continuation text in area A is refused; at 2023 word continuation is removed (COBOL0902) and the hyphen is obsolete (COBOL0903)",
+  "witnesses-cover": "part: g85_f28_01 covers a word, a numeric literal and a nonnumeric literal ending at margin R; not intervening comment or blank lines, trailing-space literal content, nor the area-A and split-delimiter refusals",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/ptcopy.cob",
+    "printed": "[                    ][AB                  ] (exit 0)",
+    "expected": "WS-LONG/NAME joined across a comment and a blank line matches WS-LONGNAME; the continued literal keeps its spaces to margin R then CD, truncated to X(20): WS-OTHERNAME = AB + 18 spaces"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/ptareaa.cob",
+    "printed": "COBOL3735: text of a continuation line (a hyphen in column 7) that begins in area A (targeting COBOL-85)",
+    "expected": "area A of the continuation line must be blank (§1985:IV.7.2.5)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/ptcopy.cob",
+    "printed": "--std 2023: COBOL0903 warning, COBOL0902 word continuation removed",
+    "expected": "edition arm: legal at 85, removed at 2023"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.2.3 SR5",
+    "check": "OK  §1985:XII.2.3 SR5  the text is in SR5"
+   },
+   {
+    "cite": "§1985:IV.7.2.5",
+    "check": "OK  §1985:IV.7.2.5  (7.2.5 Pseudo-Text)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.7.2.2",
+    "check": "OK  §1985:IV.7.2.2  (7.2.2 Continuation of Lines)  the text is in the clause"
+   }
+  ],
+  "notes": "Continuation is resolved in the reference-format logical-line builder before COPY/REPLACE see the text, so pseudo-text continuation is the ordinary fixed-form ContinueFixed join. The seed ContinueFloating is the 2002+ floating-indicator path, not taken at 85. Diagnostics at 85 cite §2023 clauses; cosmetic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XII.2.3-5",
+  "refutation": "UPHELD",
+  "classes": "a,b,c",
+  "evidence": "Probes at --std 85: rcp2.cob COPY REPLACING ==PIC-HERE== BY ==PIC X(1 / -2)== (a PICTURE character-string continued, the IV.7.2.2 form the reader did not try) and ==WS-ITEM== BY a word continued over THREE lines (WS- / -TH / -ING): exit 0, [ABC         ] (X(12) and WS-THING both formed). rcp4.cob a nonnumeric literal in pseudo-text-1 continued with its last character at margin R (col 72) and resumed after the quotation mark matches library literal \"PQRSTUVW\": [HIT     ]; rcp3.cob the same with the continued line ending at col 71 (one trailing space belongs to the literal per IV.7.2.2) does not match: [PQRSTUVW], correct. Also a continuation line following the opening delimiter (BY == / -\"HIT\"==) joined. rcp1.cob: pseudo-text-2 text X(3) written in area A (no hyphen) is refused COBOL3735; this is right at 85, not an over-reject: §1985:XII.2.4 GR9 places each pseudo-text-2 word in the resultant program in the area where it appears, so the PICTURE operand lands in area A. cite.py: OK §1985:XII.2.3 SR5; OK §1985:IV.7.2.2 (\"All spaces at the end of the continued line are considered part of the literal\"); OK §1985:XII.2.4 GR9 (\"Each text word in pseudo-text-2 that is to be placed into the resultant program begins in the same area\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

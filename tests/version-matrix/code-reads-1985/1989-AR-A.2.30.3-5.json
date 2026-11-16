@@ -1,0 +1,116 @@
+{
+ "rule-id": "1989-AR-A.2.30.3-5",
+ "rule-digest": "41c700338352",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-170",
+  "sources": {
+   "reader": "9068f7d16290245a182e477a81ec5b4ba4a7d80cd8d843c4ce024176ee06e05a",
+   "refuter": "5cb3ba6f29ecc81323b9250fcbe87686f3e18c53e6236dc04bdbd884007a5098"
+  },
+  "imported": {
+   "reader": "ed1c380338101b6d552042d422353145d641cb12d5d69dd9cc12b88606821578",
+   "refuter": "38100791b13a673cccb9308d8c27c36f8037ead0c5d510e6888f609c1c627266"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.30.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85, a NUMVAL-C reference without argument-2 must take cs to be the program's currency symbol: the single character of the CURRENCY SIGN clause when present (§1985:VI.4.5.4 GR11), else the currency sign $ (§1985:III.2), and an explicit argument-2 replaces it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#SoleCurrencyString; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#SwitchBindCurrency; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalCDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily",
+    "switches": "ConstructRegistry NumvalCLocalePhrase2002 / NumvalCAnycaseKeyword2002 (refused at 85; a data item named LOCALE is an operand) and DialectBehavior.NumvalCCurrencyContentRules (off at 85)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#SwitchBindCurrency",
+    "switches": "CurrencySymbolExclusion.For(DialectLevel) and CurrencySymbolEquivalence.Fold(DialectLevel): the 1985 GR11 exclusion list; the PICTURE SYMBOL phrase is a 2002 construct",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "SoleCurrencyString itself is edition-blind (0 explicit strings gives $, 1 gives that string); the edition shapes which CURRENCY clauses can exist at 85, and BindNumvalCFamily injects the sole string as argument-2",
+  "behaviour-differs-by-edition": "yes: at 85 the currency string is one character (GR11) and argument-2 content is unscreened; the injection of the program's currency symbol as cs is the same code",
+  "witnesses-cover": "part: g85_bf41_05 (CURRENCY SIGN '#') and g85_bf41_06 (default $) cover the leading-cs forms; not a letter currency symbol, an explicit argument-2 that overrides the program symbol, a value with no cs, the cs/DECIMAL-POINT IS COMMA combination, or the 2002 multi-character and PICTURE SYMBOL forms 85 must refuse",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/cur_e.cob",
+    "printed": "E1=-000001250 E2=-000000300 E3= 000000700 E4= 000100000 E5= 000000900 (EXPECT: MATCH)",
+    "expected": "CURRENCY SIGN 'E': 'E12.50CR' = -12.50, '-E 3' = -3, ('$7','$') = 7, '1,000' = 1000, item ' E 9 ' = 9 (x100)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/cur_dpc.cob",
+    "printed": "D1= 000123450 D2=-000000001 (EXPECT: MATCH)",
+    "expected": "'#' as cs under DECIMAL-POINT IS COMMA"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/curmulti.cob",
+    "printed": "COBOL0890 CURRENCY SIGN \"EUR\": without PICTURE SYMBOL the literal shall consist of a single character",
+    "expected": "refused: 'limited to a single character' (§1985:VI.4.5.4 GR11)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/cursym.cob",
+    "printed": "COBOL0893 CURRENCY SIGN WITH PICTURE SYMBOL requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/curtwo.cob",
+    "printed": "COBOL2423 clause written 2 times (format admits it once) and COBOL1644 2 distinct currency strings",
+    "expected": "refused: the 1985 SPECIAL-NAMES format admits one CURRENCY SIGN clause"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/curbad.cob",
+    "printed": "COBOL0891 CURRENCY SIGN literal 'R': not a valid currency symbol (ISO §1985:VI.4.5.4 GR11)",
+    "expected": "refused (GR11 b)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/nc_kw2.cob",
+    "printed": "K1= 000000500",
+    "expected": "at 85 LOCALE is a user word: a data item LOCALE VALUE '#' is argument-2, so '#5' = 5"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.30.3 AR5",
+    "check": "OK  §1989:A.2.30.3 AR5  (2.30.3 Arguments)  the text is in AR5"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause [If no CURRENCY SIGN clause is present in a COBOL source program, the currency symbol is identical to the currency sign]"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR11",
+    "check": "OK  §1985:VI.4.5.4 GR11  (4.5.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1989:A.2.30.3 AR1",
+    "check": "OK  §1989:A.2.30.3 AR1  (2.30.3 Arguments)  the text is in AR1 [cs is the string of one or more characters specified by argument-2]"
+   }
+  ],
+  "notes": "The binder injects the unit's sole currency string ($ by default, else the CURRENCY SIGN character) as argument-2 when none is written, and every probed form returns the represented value. Lead outside this slice (1989-AR-A.2.30.3-1 / AR4): lead_nc_class.cob in the scratch directory shows a PIC A argument-2 and a numeric-edited argument-1 refused with COBOL1627 at 85, while §1989:A.2.2 type 3 admits 'A data item of the class alphabetic or alphanumeric'; site IntrinsicArgumentRules.cs#Admissible ('a' kind) and #PredicateViolation (CharacterCategory).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.30.3-5",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Attacked the program-currency injection (SoleCurrencyString) for an inherited symbol and for a 1985-only symbol. nest_nc.cob: the contained program inherits CURRENCY SIGN '#' and NUMVAL-C('#1.234,5') with no argument-2 gives 1234.50 (MATCH); sep_nc.cob: separately compiled SEPB without the clause takes '$' ('$1,234.5'=1234.50, MATCH). cur_n.cob: CURRENCY SIGN IS 'N' (not excluded by §1985:VI.4.5.4 GR11 list b) is accepted at 85 and NUMVAL-C('N12.50CR')=-12.50, NUMVAL-C(' - N 1,003')=-1003.00 (MATCH). Incidental, outside this rule: NUMVAL-C of a numeric-edited item is refused with COBOL1627 citing the 2023 CATEGORY wording, the reader's AR1/AR4 lead. cite.py: 'OK  §1989:A.2.30.3 AR5  (2.30.3 Arguments)  the text is in AR5'; 'OK  §1985:VI.4.5.4 GR11  (4.5.4 General Rules)  the text is in GR11'; 'OK  §1985:VI.4.2  (4.2 CONFIGURATION SECTION)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

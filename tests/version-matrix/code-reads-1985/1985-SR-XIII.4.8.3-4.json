@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-SR-XIII.4.8.3-4",
+ "rule-digest": "524e352c4942",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-166",
+  "sources": {
+   "reader": "a2ea7dfee8159667eb1727d685d5c1c58e6decfc8b4eb0ed26fd8e225b5e9647",
+   "refuter": "0afc575a59150d57fe5e4134025dce16eff31c0e12ff61716d8af47b2677c881"
+  },
+  "imported": {
+   "reader": "587860c9b66a36fd80356fc717fa59f9fe7f6ad32ec3990710150140071b91fc",
+   "refuter": "db9d36d50f1fa5485adccdafa9c88abd8d6d92d4845ab156fdf6fc4542508f47"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.8.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 USE AFTER STANDARD ERROR PROCEDURE and USE AFTER STANDARD EXCEPTION PROCEDURE must be accepted and treated identically for every target the format allows (file-name, OUTPUT, EXTEND), including counting as the same phrase for SR6's once-only limit.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "at 85 refuses Format 1 without AFTER (use-without-after-2002) or without PROCEDURE (use-without-procedure-2002) and Formats 3/4 (EXCEPTION CONDITION / EXCEPTION OBJECT); the ERROR-versus-EXCEPTION choice is not consulted",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of .ERROR()/.EXCEPTION() accessors over src/WiseOwl.Cobol.Compiler finds no read of the USE statement's ERROR or EXCEPTION token (only CommunicationSectionBinder and ControlFlowBinder, other statements); the grammar alternative `(EXCEPTION | ERROR)` is one choice and the builder reads only useOnTarget, so the synonym holds by construction at every edition.",
+  "behaviour-differs-by-edition": "no for SR4; the surrounding required words AFTER and PROCEDURE are refused-when-omitted only at 85.",
+  "witnesses-cover": "part: g85_bf27_07 uses EXCEPTION on a file-name and ERROR on the report file; the mode targets (OUTPUT, EXTEND) and the SR6 interaction are exercised only by probes p5use and p5dup.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p5use.cob",
+    "printed": "OUTPUT-ERROR 47 / EXTEND-EXCEPTION 35 / PRT-ERROR 41 / PRT-ERROR 42 / DONE (same at --std 2023)",
+    "expected": "ERROR ON OUTPUT runs for the READ of an output file (47); EXCEPTION ON EXTEND runs for the failed OPEN EXTEND (35, §1985:XIII.4.8.4 GR5c); ERROR ON the report file runs for the second OPEN (41) and second CLOSE (42)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p5dup.cob",
+    "printed": "COBOL0897 declarative section 'X-SEC': this open mode already has a USE procedure in this procedure division",
+    "expected": "USE ... ERROR ... ON OUTPUT and USE ... EXCEPTION ... ON OUTPUT are the same phrase twice, refused by §1985:XIII.4.8.3 SR6"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p7use85.cob",
+    "printed": "COBOL0900 without AFTER (line 23); COBOL0900 without PROCEDURE (line 27); COBOL0877 and COBOL0878 for USE AFTER EXCEPTION CONDITION EC-I-O",
+    "expected": "1985 underlines AFTER and PROCEDURE and has no Format 3; each later-edition form refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.8.3 SR4",
+    "check": "OK  §1985:XIII.4.8.3 SR4  (4.8.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:XIII.4.8.3 SR6",
+    "check": "OK  §1985:XIII.4.8.3 SR6  (4.8.3 Syntax Rules)  the text is in SR6"
+   },
+   {
+    "cite": "§1985:XIII.4.8.4 GR5c",
+    "check": "OK  §1985:XIII.4.8.4 GR5c  (4.8.4 General Rules)  the text is in GR5c"
+   }
+  ],
+  "notes": "The grammar admits ERROR or EXCEPTION in one alternative and no compiler member reads which was written, so the two are interchangeable for file-name and mode targets; p5dup shows the duplicate-mode check treats them as one phrase. DeclBindUse reads only the target (file-names or the OUTPUT/EXTEND mode) and registers modes once per procedure division.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.8.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r5use.cob (runs/r5use-001) at --std 85, the 1985 IPC GLOBAL form with both words: 'USE GLOBAL AFTER STANDARD ERROR PROCEDURE ON PRT' and 'USE GLOBAL AFTER STANDARD EXCEPTION PROCEDURE ON INPUT' compile; printed GLOBAL-EXC-INPUT 35 (OPEN INPUT of a missing file) / GLOBAL-ERROR 41 / DONE. r6dup.cob (runs/r6dup-001): ERROR ON PRT and EXCEPTION ON PRT in two sections refused COBOL0897 'file PRT already has a USE procedure', so the two words are one phrase for SR3 as well as SR6 (reader p5dup). Grammar CobolControlFlow.g4#useStatement takes (EXCEPTION | ERROR) in one alternative. cite.py: OK §1985:XIII.4.8.3 SR4 (the text is in SR4); OK §1985:XIII.4.8.3 SR3 (the text is in SR3).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

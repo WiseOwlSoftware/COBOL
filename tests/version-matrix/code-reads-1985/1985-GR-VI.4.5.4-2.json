@@ -1,0 +1,125 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-2",
+ "rule-digest": "acea022dcd4c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-012",
+  "sources": {
+   "reader": "772d04de36b8dcb0c7a9bad79fbde06fa7f4b1574a81c0b1293adb73ea60c2da",
+   "refuter": "685481e42a190f590cc0945a0736c04a0507fdcc67d71c0f44c2c8b6494c9eec"
+  },
+  "imported": {
+   "reader": "e209c31f811eddf6699759809cab8e257be6febe279c1107518c3266a18636a0",
+   "refuter": "e5cc5ef31e4e30ff44b2d4b6d0c54a1d1eabff747060680d1c71d01729cda2e7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.5.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an implementor-name-1 entry naming an external switch may associate its ON and/or OFF status with condition-names, in each of the four printed alternatives (mnemonic with ON then OFF, mnemonic with OFF then ON, ON with optional OFF, OFF with optional ON), and a switch-status condition naming one is true exactly when the switch is in that status (§1985:VI.6.3.1.4); a condition-name on a non-switch implementor-name is refused (SR2).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#implementorSwitchEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#switchStatusPhrases; src/WiseOwl.Cobol.Compiler/Binding/ImplementorNameEntry.cs#Read; src/WiseOwl.Cobol.Compiler/Binding/ImplementorNameEntry.cs#Unavailable; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#BindImplementorNameEntry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchCondOf; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit; src/WiseOwl.Cobol.Runtime/Control/SwitchStore.cs#Get; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#Build",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#At (read by src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition)",
+    "switches": "which SPECIAL-NAMES figure ranks the paragraph's clauses: below 2002 the 1985 figure's fixed sequence (switch entries before ALPHABET/SYMBOLIC/CLASS/CURRENCY/DECIMAL-POINT, else COBOL2987); at 2023 the 2023 figure, which does not rank them",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition/CobolVersion/Construct/DialectLevel over SpecialNamesBinder.cs, ImplementorNameEntry.cs, SetAlterBinder.cs (switch half), ConditionRenderer.cs Visit(BoundSwitchCondition), ImplementorNames.cs, SwitchStore.cs and the grammar rules implementorSwitchEntry/switchStatusPhrases/switchOnClause/switchOffClause: Edition.At only sets the diagnostic location; binding, condition rendering and the runtime are one arm at every edition. The only edition switch reached is the clause-order figure.",
+  "behaviour-differs-by-edition": "yes: only the SPECIAL-NAMES clause order (a switch entry after CLASS is COBOL2987 at 85, accepted at 2023); the condition-name association and its truth value are the same code at every edition",
+  "witnesses-cover": "part: the witness exercises OFF-first with a mnemonic and ON-only without one, initial OFF and one SET; not exercised: the ON-then-OFF and OFF-only alternatives, an initial ON status from the external facility, NOT/compound/EVALUATE/PERFORM UNTIL uses, and the SR2 refusal",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/sw1.cob",
+    "printed": "no environment: S1=OFF S1OFF=T S2=OFF S4=OFF U0=OFF BOTH-OFF EV-OFF I=3; with COBOL_SWITCH_1=ON COBOL_UPSI_0=1 COBOL_SWITCH_4=true COBOL_SWITCH_2=on: S1=ON S1OFF=F S2=ON S4=ON U0=ON BOTH-OFF EV-OFF I=3",
+    "expected": "each condition-name true exactly when its switch is in the named status (§1985:VI.6.3.1.4); all four 1985 alternatives accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r1.cob",
+    "printed": "COBOL2241: 'CONSOLE' is a device-name, and only a switch-name-1 entry may carry ON STATUS / OFF STATUS condition-names",
+    "expected": "refused: SR2, a condition-name cannot be associated with such an implementor-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r10.cob",
+    "printed": "COBOL2241: 'SWITCH-99' is not a switch-name, feature-name or device-name this implementation makes available",
+    "expected": "refused: not an implementor switch"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r2.cob",
+    "printed": "COBOL1639: 'S9-ON' is not defined",
+    "expected": "refused: undeclared condition-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r8.cob",
+    "printed": "COBOL1639: 'S1-ON (1)' is not defined - no declaration in this source element gives the name 'S1-ON'",
+    "expected": "refused: the switch-status condition is condition-name-1 alone (§1985:VI.6.3.1.4 format); the refusal is right, its wording claims the name is undeclared"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r12.cob",
+    "printed": "COBOL1639: 'S1-ON OF T' is not defined",
+    "expected": "refused: no qualification of a switch condition-name"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r3.cob",
+    "printed": "COBOL1757: SET 'S1-ON' TO TRUE - 'S1-ON' IS a condition-name, but the SPECIAL-NAMES kind",
+    "expected": "refused at 85: SET format 4 SR6, condition-name-1 must be associated with a conditional variable"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/r4.cob",
+    "printed": "COBOL1757 and COBOL0900: SET condition-name TO FALSE requires COBOL-2002",
+    "expected": "refused at 85: TO FALSE is a later edition's phrase"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/ord.cob",
+    "printed": "--std 85: COBOL2987 switch entry written after CLASS; --std 2023: runs, prints OFF",
+    "expected": "85: refused by the §1985:VI.4.5.2 sequence"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.4 GR2",
+    "check": "OK  §1985:VI.4.5.4 GR2  (4.5.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.4",
+    "check": "OK  §1985:VI.6.3.1.4  (6.3.1.4 Switch-Status Condition)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.4.5.3 SR2",
+    "check": "OK  §1985:VI.4.5.3 SR2  (4.5.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.23.3 SR6",
+    "check": "OK  §1985:VI.6.23.3 SR6  (6.23.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "Every 1985 alternative binds through one grammar rule and one binder; the condition renders as ExternalSwitches.Get and the store reads COBOL_<SWITCH> once. The only edition branch on the path is the 1985 clause-order figure. Minor: a subscripted or qualified switch condition-name is refused with COBOL1639 'not defined', whose wording says the name has no declaration; the refusal itself is correct.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.5.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:VI.4.5.2 format (four switch alternatives, STATUS/IS optional), VI.4.5.3 SR1-SR2, VI.4.5.4 GR1-GR3, VI.6.3.1.4. Probes at --std 85: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c9.cob (one switch across a nested program, a separately compiled program with its own SPECIAL-NAMES mnemonic and an OFF-only entry, and an ON-only entry with no mnemonic; with and without COBOL_SWITCH_3=ON): every program sees the one external status (M0 OFF/I0 OFF/I1 ON/M1 ON/O0 ON/M2 OFF/M3 OFF/O2 ON; env ON gives M0 ON/I0 ON). c10/c11 (same condition-name for two switches, and for ON and OFF of one switch): COBOL4250 refused. c12 (switch condition-name also an 88): unqualified reference refused COBOL1639 as ambiguous. c13 (SWITCH-1 named twice with two mnemonics): both mnemonics alter one switch, conditions correct. Class c: c15 later-edition reserved words RAISE/TYPEDEF/BASED as mnemonic and condition-names compile and run at 85 (refused COBOL0901 at 2023); c16/c17 1985-only reserved words EGI, SUB-QUEUE-1, SEGMENT-LIMIT refused COBOL0901 at 85. Edition sites: SetAlterBinder/SpecialNamesBinder grep shows ctx.Edition only as diagnostic sink; reserved-word table is the one other site and is right. cite.py: OK §1985:VI.4.5.4 GR2 (the text is in GR2); OK §1985:VI.4.5.4 GR1 (the text is in GR1).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#implementorSwitchEntry via cobolWord: the per-edition reserved-word table decides which words may be mnemonic/condition-names (85 admits RAISE/TYPEDEF, refuses EGI/SEGMENT-LIMIT) - probed, correct"
+  ],
+  "corrected": ""
+ }
+}

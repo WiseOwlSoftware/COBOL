@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.5.15.5-1",
+ "rule-digest": "ca2e98372a8a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-105",
+  "sources": {
+   "reader": "7a9965027fa8ac03da8da86a8e7e0dd4c809bb62cb704b42b9c66abe53006c8c",
+   "refuter": "730415957dd54d1805f677ff57a61db418ac6f2c3e310491da1b75365a6dcd2a"
+  },
+  "imported": {
+   "reader": "1642bddd1b611a82b6d701fe08c0819543207c530d6f8a1cfe82f563bbefcb82",
+   "refuter": "5c0c488aeb8c417060f36963061cb0df0d5420d51408b1d2546bd8066640f10d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.15.5-1",
+  "verdict": "CONFORMS",
+  "requirement": "A level-88 entry must carry a VALUE clause and a condition-name and nothing else (no PICTURE, USAGE, OCCURS, SIGN, SYNC, JUSTIFIED, BLANK WHEN ZERO, REDEFINES, FILLER or omitted name, nor the 2002 FALSE or validation phrases), and the condition-name takes its variable's class, category, scaling and usage for SET TO TRUE and the condition test, for every kind of conditional variable (numeric, scaled, signed, COMP, PACKED, edited, alphanumeric, group, table element); the witness covers unsigned and signed DISPLAY numerics and one alphanumeric.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#EntryNameObligation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClauseFalsePhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClauseFalsePhrase",
+    "switches": "refuses WHEN SET TO FALSE below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#Check",
+    "switches": "refuses the VALIDATE facility's VALID/INVALID phrase (the only nameless-88 form) below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "LevelNumberPass documents and the grep confirms it reads no edition (no DialectLevel, ConstructRegistry or Edition reads); the format screen is the same at every edition.",
+  "behaviour-differs-by-edition": "yes: from 2002 a condition-name entry may also carry WHEN SET TO FALSE, and from 2002 a nameless 88 with VALID/INVALID is the validation format; at 85 both are refused",
+  "witnesses-cover": "part: the refusal half, scaled, COMP, PACKED-DECIMAL, edited, group, table-element and figurative/ALL/multi-value condition-names are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/r15_1.cob .. r15_14.cob",
+    "printed": "COBOL1747 for 88 without VALUE, with PIC, USAGE, OCCURS, JUSTIFIED, BLANK WHEN ZERO, SIGN, SYNC, REDEFINES, EXTERNAL, GLOBAL, with no name and with FILLER",
+    "expected": "only the VALUE clause and the condition-name are permitted; VALUE is required"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/r15_10.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/r15_15.cob",
+    "printed": "COBOL0900 the VALUE clause's WHEN SET TO FALSE phrase requires COBOL-2002; COBOL0900 a data description clause of the VALIDATE facility requires COBOL-2002 (INVALID)",
+    "expected": "2002 phrases refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p15a.cob",
+    "printed": "V=1.50 V15-T VR-T; E=[  1.00] E1-T; C=9999 CB-T CZ-T; PN-T PN-F; G=[A5] GN5-T; T=[NYN] TY2-T TY1-F; SP-T A=[ZZZ] AM-T",
+    "expected": "the condition-name takes its variable's characteristics: scaled 9V99, edited ZZ9.99 (edited literal), COMP, PACKED S9(3) at -999, alphanumeric group, subscripted table element, SPACES, ALL literal, multiple values"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.15.5 GR1",
+    "check": "OK  §1985:VI.5.15.5 GR1  (║5.15.5 Condition-Name Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "The format screen runs on the parse tree before binding, so every extra clause draws one COBOL1747. A first probe that wrote a group's 88 after a subordinate entry correctly drew COBOL1657, because the 88 then belonged to the numeric leaf.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.15.5-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Tested the last sentence of the rule, that the characteristics of a condition-name are those of its conditional variable, against literal classes the reader did not try (compile-only at 85). c1 PIC 9 VALUE \"A\" gives COBOL1657. c2 PIC X VALUE 5 gives COBOL1657. c7 PIC A(2) VALUE 12 gives COBOL1657. c3 ZZ9.99 VALUE 1 gives COBOL0900, the numeric-literal VALUE for a numeric-edited item, a later-edition form 85 must refuse (§1985:VI.5.15.4 GR1b). c4 X(2) VALUE \"ABC\" gives COBOL1740 (§1985:VI.5.15.3 SR3). c5 9V9 VALUE 1.25 gives COBOL1625 (truncation). c6 unsigned 9 VALUE -1 gives COBOL1625. c8 VALUE 9 THRU 3 gives COBOL2961. c9 and c10, PIC 9 with VALUE SPACE and VALUE HIGH-VALUE, give COBOL1657. c11, an 88 on a group that REDEFINES a group with a COMP leaf, compiles, which is right because the redefining group's own leaves are DISPLAY. c12, an 88 after a 66, gives COBOL1976. cite.py: OK  §1985:VI.5.15.5 GR1  (║5.15.5 Condition-Name Rules║)  the text is in GR1; OK §1985:VI.5.15.3 SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

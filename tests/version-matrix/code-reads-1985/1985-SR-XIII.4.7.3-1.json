@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-SR-XIII.4.7.3-1",
+ "rule-digest": "acdbacb16e0b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-166",
+  "sources": {
+   "reader": "a2ea7dfee8159667eb1727d685d5c1c58e6decfc8b4eb0ed26fd8e225b5e9647",
+   "refuter": "0afc575a59150d57fe5e4134025dce16eff31c0e12ff61716d8af47b2677c881"
+  },
+  "imported": {
+   "reader": "bc77c52525e9a2d0d8f99d74efd84452e4269b968ff7801bb22135558c0c4afa",
+   "refuter": "8cbf4c2a785a7abef5e21f2c2f9f1cb98f784beb066abe10f5353b73930b423c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.7.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every report-name-1 of a TERMINATE statement must be the name of a report description entry (RD) in the Report Section; any other name must be refused, and several names are legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindTerminate; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectInBeforeReporting",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile",
+    "switches": "Edition.Has(2002): a contained program's TERMINATE of a container's report needs a GLOBAL FD at 2002+; skipped at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition.Has over ReportWriterBinder.cs; the Reports.Named lookup enforcing SR1 has no edition switch; TERMINATE is reserved at every edition.",
+  "behaviour-differs-by-edition": "no for SR1; yes on the same statement for the 2002+ FD GLOBAL rule, correctly skipped at 85.",
+  "witnesses-cover": "part: g85_f31_04 exercises the legal multi-name form; the refusal half and the contained-program form come from probes p3initterm and p6glob.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p3initterm.cob",
+    "printed": "COBOL1757 'report-name-1 shall be defined by a report description entry' for PRT, DTL, DTL-COL, WS-X, SQ, NOSUCH, the second operand of 'TERMINATE RPT WS-X', MAIN-PARA",
+    "expected": "every operand that is not an RD name refused (§1985:XIII.4.7.3 SR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p3ok.cob",
+    "printed": "TERMINATE R-C R-B R-A: END B then END A; R-C (no GENERATE) produces nothing",
+    "expected": "several RD names accepted, each terminated in order (§1985:XIII.4.7.4 GR2 for R-C)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p6glob.cob",
+    "printed": "--std 85 compiles and runs; --std 2023 COBOL2392 at TERMINATE RPT (§2023:14.9.46.3 SR2)",
+    "expected": "1985: a GLOBAL report-name is an RD name the contained program may TERMINATE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.7.3 SR1",
+    "check": "OK  §1985:XIII.4.7.3 SR1  (4.7.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.4.7.4 GR2",
+    "check": "OK  §1985:XIII.4.7.4 GR2  (4.7.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "BindTerminate is the INITIATE twin: the same report lookup and COBOL1757 refusal, with the 2002+ FD GLOBAL rule correctly off at 85. Diagnostics cite §2023:14.9.46.3 SR1 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.7.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe refute-1985-166/r3init.cob at --std 85 (runs/r3init-001): 'TERMINATE RIN' in the container (RD of the contained program) and 'TERMINATE RPT' in the contained program (container's non-GLOBAL RD) each draw COBOL1757. cite.py: OK §1985:XIII.4.7.3 SR1 (the text is in SR1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

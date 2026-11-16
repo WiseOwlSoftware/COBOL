@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-GR-VIII.2.4.4-3",
+ "rule-digest": "0f8579a44f56",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-129",
+  "sources": {
+   "reader": "b3071f7b6436600a50ce0da5153ddc103ba8737cb68a57ef384e86e7577a20da",
+   "refuter": "b96e05144740c9f8385ccfef50ac159ad5d6ab142c44ae60b5d3f8a3c15bc20a"
+  },
+  "imported": {
+   "reader": "162598e2778acfe301fe0318ee787a2e65aca499ebc98b32f6d0dcde93ef070a",
+   "refuter": "7d4b4c065006ac4dcb3b608d4ce06d2be6d27fa7ea58ebf26847da247d3bf1b7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.4.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in random access (and the random statements of dynamic access), the value of the RELATIVE KEY item at the start of the statement selects the record a READ, WRITE, REWRITE or DELETE acts on; a number with no record gives 23, an occupied number on WRITE gives 22, and a key below 1 on WRITE is the 1985 boundary condition 24.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError (2014): key below 1 gives invalid key 24 at 85, permanent error 34 at 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: a random WRITE with a key of 0 runs the INVALID KEY phrase with status 24 at 85 (the 1985 status list has no 34); from 2014 it is the permanent error 34.",
+  "witnesses-cover": "part: l1c12_access_mode_random_dynamic and g85_f17_04 cover READ of a present and an absent number and WRITE of an occupied one; not key 0, the largest key, a COMP key, DELETE by key, or a READ INTO that overwrites the key (probed here).",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p5accd-001",
+    "printed": "RDY KEY 0 INV 23 / RDY KEY 998 INV 23 / RDY KEY 7 DELETED INV 23 / DEL7 00 / DEL7 AGAIN INV 23 / RC KEY 10 00 [0010  ] / RC INTO KEY 00 KC=14649 [999LLL]",
+    "expected": "the key value selects the record; absent, zero or deleted numbers give 23; with READ RC INTO KC the record at RRN 999 (the key's value before the statement) is read"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p3st-002",
+    "printed": "W0 INV 24 / WRITE KEY 0 24",
+    "expected": "§1985:VIII.1.3.4 GRL2.3c: 24, invalid key"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p4e7-001; p4e8-001; p4e11-001",
+    "printed": "COBOL0863 for a signed key (S99), a key with P (9P) and a key in the file's own record",
+    "expected": "§1985:VIII.2.4.3 SR2, SR3"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p5accd-001",
+    "printed": "KC PIC 9(4) COMP as RELATIVE KEY: RC KEY 10 00 [0010  ]",
+    "expected": "any unsigned integer item is a relative key"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/l1c12_access_mode_random_dynamic-001; g85_f17_04-001",
+    "printed": "EXPECT: MATCH for both",
+    "expected": "the witnesses' .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.4.4 GR3",
+    "check": "OK  §1985:VIII.2.4.4 GR3  (2.4.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VIII.2.4.3 SR2",
+    "check": "OK  §1985:VIII.2.4.3 SR2  (2.4.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "KC=14649 is the alphanumeric-to-numeric INTO move of '999LLL' (content undefined), not a key effect; the selected record shows the key was read before the move. The edition arm for key 0 on WRITE takes the 1985 status.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.4.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Operand classes of the key (§1985:VIII.2.4.3 SR2) the reader did not try (runs r43*-001, --std 85): PIC 9V9, PIC XX, PIC Z9, a group, and USAGE INDEX each refused COBOL0863 (an index data item may be referenced only in SEARCH, SET, a relation condition or USING, §1985:VI.5.14.3 SR5, so it is not a relative key); a qualified key 'K OF G' (SR1) and an EXTERNAL PIC 9(3) key admitted. r44-001: qualified PIC 9(3) COMP key, WRITE at 4 and at 999 (the largest 3-digit key) 00; random REWRITE of absent 5 -> 23; REWRITE of 4 -> 00 and READ 4 gives CCCC; DELETE and REWRITE with key 0 -> 23; READ 999 gives ZZZZ. Key 0 on WRITE stays 24 at 85 (the reader's edition arm), which the 1985 text lets the implementor define ('The implementor specifies the manner in which these boundaries are defined', §1985:VIII.1.3.4 (3)c). cite.py: 'OK  §1985:VIII.2.4.4 GR3  (2.4.4 General Rules)  the text is in GR3'; 'OK  §1985:VIII.2.4.3 SR2  (2.4.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:VI.5.14.3 SR5  (5.14.3 Syntax Rules)  the text is in SR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VIII.4.3.4-2",
+ "rule-digest": "ab50bee94755",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-131",
+  "sources": {
+   "reader": "077c4d26f8afe05187e521cf4e919cbb44d4d2cad5e3b47ea84b460842b78cf4",
+   "refuter": "3216838ec51aca23102145102d132f2612c28935f4fefd0091de2678d7670aa0"
+  },
+  "imported": {
+   "reader": "84f525051a6d8962ae0bfb1b92452e918e363ad726ef7d9d3fd5621b0ade2ef1",
+   "refuter": "374af91faf6db7b5f94c3848189d2f2c4c959ed220b69f2df831961b00e6b278"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for a relative file in sequential access mode, DELETE succeeds only when the last I-O statement on that file was a successful READ, and then removes exactly the record that READ accessed (whatever the relative key now holds); otherwise (no READ since OPEN, a REWRITE, DELETE or START in between, an at-end or failed READ) it is unsuccessful with status 43. I-O statements on other files do not count.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadSucceeded; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PrevOpWasSuccessfulRead",
+  "edition-consulted": [],
+  "edition-search": "grep Edition/DialectLevel/DialectBehavior in RelativeConnector.Delete, the FileConnector Status setter and ReadSucceeded: none; the gate is per-connector state dropped by every status assignment and re-armed only by a successful READ",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f23_02 covers one READ then DELETE; g85_bf30_03 leg Q the same; not the 43 cases (no READ, after REWRITE, after DELETE, after START, after at end) nor a relative key changed between READ and DELETE",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/del2.cob",
+    "printed": "A-NOREAD 43 / B-DEL-AFTER-REWRITE 43 / C-DEL1 00, C-DEL2 43 / E-DEL 00 (READ of another file between) / K-DEL 00 KS=0006, later pass shows REC4 gone and REC6 kept / D-ATEND 10 then DELETE 43 / final pass REC1 REC5 REC6 REC7 REC8; identical at --std 2023",
+    "expected": "43 (VIII.1.3.4 GRL2.5c) for each case without a just-preceding successful READ of this file; otherwise the read record is removed"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/del3.cob",
+    "printed": "QR 00 Q_01, QST 00 (START KEY = 5), QDEL-AFTER-START 43, QR5 00 Q_05, QDEL5 00, QST5 IK 23",
+    "expected": "a START in between makes the DELETE 43; READ then DELETE removes record 5"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.3.4 GR2",
+    "check": "OK  §1985:VIII.4.3.4 GR2  (4.3.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5c"
+   }
+  ],
+  "notes": "The sequential arm deletes _lastSlot, the slot the last READ selected, not the relative key, so a key changed after the READ does not redirect the DELETE. The 43 gate is dropped at the single Status chokepoint, so every intervening statement on the file, failed or successful, disarms it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "Probe refute-1985-131/d56.cob (runs/d56-001, --std 85), sequential-access relative file open I-O: READ (00 Q_01), a WRITE that fails 48 (illegal in I-O for sequential access), then DELETE -> 'QDEL-AFTER-WRITE 43'; READ (00 Q_02), an OPEN I-O of the already-open file that fails 41, then DELETE -> 'QDEL-AFTER-OPEN41 43' (a failed statement on the file is still the last I-O statement); READ (Q_03) then DELETE 00 then READ gives Q_04, and the final pass lists Q_01 Q_02 Q_04..Q_09 (only the READ's record removed). The 43 gate is the PrevOpWasSuccessfulRead flag dropped by every Status assignment; no edition is consulted. cite.py: OK §1985:VIII.4.3.4 GR2 (the text is in GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

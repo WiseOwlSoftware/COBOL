@@ -1,0 +1,83 @@
+{
+ "rule-id": "1989-RV-A.2.25.4-1",
+ "rule-digest": "194019b04d87",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-180",
+  "sources": {
+   "reader": "b5874b3639f0d78b2869cfd0326da0530db24cab4e135f6db89df4567e71ba0b",
+   "refuter": "bbae1edda13178c47e7bf070f2019b28f1f8b3a3c1be48f6bd6c487443c94d19"
+  },
+  "imported": {
+   "reader": "0cf44ac6de5db773730a980cd68a990335851baa68042dbe443d53882e07c8ab",
+   "refuter": "da46493d5d8f183b3962f236c8dba270a8282494464dd9a44bf15ee18f1d2b7c"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.25.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "FUNCTION MEDIAN returns the content of the argument-1 that holds the middle value once all argument-1 values (ALL-expanded, ODO at current count, any numeric usage, scaling and sign, expressions) are arranged in algebraic order by the simple-condition rules.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#Binary64ResultIsApproximation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/FunctionValueLane.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MedianScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#MedianDec; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the function's IntroducedIn (85 for MAX, MEAN, MEDIAN) against DialectLevel: COBOL1502 before it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands is refused (COBOL0900); inside an arithmetic expression it is not consulted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StandardDecimal",
+    "switches": "OPTIONS ARITHMETIC mode; at 85 no ARITHMETIC clause exists so Options.Arithmetic is Native, the latest edition's default arm",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior over IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs, CobolIntrinsics.Exact.cs, CobolIntrinsics.Dec.cs, CobolIntrinsics.ExactValue.cs and CobolTable.cs found none on the MAX/MEAN/MEDIAN arms; the edition is read only in IntrinsicBinder (availability window, identifier-placement screen, argument predicates) and through the arithmetic mode",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf40_03 covers literals, a signed item and a fixed ALL table with odd counts; not exercised there are ODO ranges, multi-ALL tables, 18-digit maxima, P-scaled, COMP-3 and COMP items and expressions (probed here)",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/median.cob",
+    "printed": "D1= 000000001.50000000 D2= 000000000.75000000 D3=-000000000.50000000 D4= 000000001.50000000 D5= 000000003.50000000 D6= 000000003.00000000 D7= 999999999999999998 D8= 000000000000000000 D9= 999999999999999999 DA= 000000000.00300000 DB= 000000007.00000000 DC=-000000000.75000000 DD=SIZE DE=4 DF= 000000002.00000000 DG= 000000000.10000000 DH= 000000004.50000000",
+    "expected": "D1 ODO N=5 sorted -2.5 0 1.5 3.3 10 -> 1.5; D2 N=4 -> (0+1.5)/2=0.75; D3 N=2 -> -0.5; D4 N=1 -> 1.5; D5 1..6 -> 3.5; D6 T2C(ALL 2)=1,5 -> 3; D7 (K1+K3)/2 truncated 999999999999999998; D8 0; D9 K1; DA (0.001+0.005)/2=0.003; DB 7; DC (-1-0.5)/2=-0.75; DD 60 size error; DE MEDIAN(9 4 1)=4; DF 2; DG 0.1; DH 4.5"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxlater.cob",
+    "printed": "COBOL0900 floating-point numeric literal 1.5E1 requires COBOL-2002 (lines 9, 11, 12); COBOL0900 national literal N\"AB\" requires COBOL-2002 plus COBOL1627 class mismatch (line 10)",
+    "expected": "a floating-point literal argument (2002) is refused at --std 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.25.4 RV1",
+    "check": "OK  §1989:A.2.25.4 RV1  (2.25.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   }
+  ],
+  "notes": "MedianScaled sorts a copy of the scale-aligned values (MedianDec on the SDIDI lane) and takes the middle at scale+1 through checked ExactMul, so the selection is algebraic and an 18-digit middle does not wrap. Same output at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.25.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "meanctx2-001 at --std 85: C8 IF MEDIAN (W1 W2 W1) = W1 true (odd count returns the content), CD MEDIAN (TQE (ALL 2) TQE (1 ALL)) over 2,8,1,2,3 = 2, CJ MEDIAN (3 - 1, W1 * 10, 0.5 + 0.5) of expressions = 1, CK MEDIAN (FUNCTION MAX (1 3) 2 9 1) = 2.5, CA MEDIAN (FUNCTION MEAN (1 2) 1 2) = 1.5, CH MEDIAN (-0 -1 1 0) = 0; degen-001 G4 MEDIAN (W-N) = -1.25 (one argument). numplace-001: DISPLAY FUNCTION MEDIAN (1 2) refused COBOL0900 at 85, so the DISPLAY device arm (FunctionDeviceText) is not reachable at this edition. cite.py: OK §1989:A.2.25.4 RV1 'the content of the argument-1 having the middle value'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

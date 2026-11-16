@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-SR-VI.6.26.3-2",
+ "rule-digest": "5bf79201b988",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-060",
+  "sources": {
+   "reader": "560a7f471262d9d49a465e03dd3fdf65ae51432d29285da51636ba587900dbb4",
+   "refuter": "7a46c5415a90da6fb4312da600544c74561a5626aee8f30369c3937043eb576d"
+  },
+  "imported": {
+   "reader": "449b70c25f8381496507f48f74e8fc06654672a767102ca2096a1443a982f305",
+   "refuter": "383569206c6b3fcfa917ba469464421cf952196b6651b440fc16015b9524f5c8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.26.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 every literal in SUBTRACT (literal-1 before FROM in formats 1 and 2, literal-2 after FROM in format 2) must be a numeric literal; the only figurative permitted is ZERO/ZEROS/ZEROES, with ALL redundant at 1985 (IV.4.2.2.2.3), so nonnumeric literals, SPACE, HIGH-/LOW-VALUE, QUOTE, ALL literal and symbolic-characters must be refused and ZERO (with or without ALL) and signed/decimal/18-digit numeric literals accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NumLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ZeroOperand; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric (via ExpressionBinder#ZeroOperand)",
+    "switches": "ConstructRegistry.Check(FigurativeAllZeroNumericRemoved2002): ALL ZERO as an arithmetic operand accepted at 85, COBOL0902 from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: SUBTRACT ALL ZERO FROM N compiles and runs at --std 85 (10=[+0013]) and is COBOL0902 at --std 2023; every other literal form behaves the same at both",
+  "witnesses-cover": "part: the witnesses cover a nonnumeric literal-1 and literal-2; figuratives (SPACE, HIGH/LOW-VALUE, QUOTE, ALL literal, symbolic-character, ZERO and ALL ZERO) are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/sub-sr2-neg.cob",
+    "printed": "COBOL0844 on all 11 statements: \"1\" (formats 1 and 2, both positions), SPACE, HIGH-VALUE, QUOTE, ALL \"1\", LOW-VALUE as literal-2, symbolic STAR, ALL \"5\" as literal-2",
+    "expected": "each refused (SR2; IV.4.2.2.2.3 SRL3.1)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/sub-sr2-pos.cob",
+    "printed": "1=[+0010] 2=[+0006.50] 3=[+0013] 4=[-0001.00] 5=[+0013] 6=[-999999999999999999] 7=[+999999999999999998] 8=SIZE 8=[+0013] 9=[    2.50] 10=[+0013]",
+    "expected": "ZERO/ZEROS/ZEROES, ALL ZERO, negative, decimal and 18-digit literals legal; size error leaves N unchanged"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/sub-sr2-pos.cob",
+    "printed": "--std 2023: COBOL0902 at line 32 (ALL ZERO as an arithmetic operand removed in COBOL-2002)",
+    "expected": "the 1985 arm accepts ALL ZERO; later editions refuse it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.26.3 SR2",
+    "check": "OK  §1985:VI.6.26.3 SR2  (6.26.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3 SRL3.1",
+    "check": "OK  §1985:IV.4.2.2.2.3 SRL3.1  (4.2.2.2.3 Figurative Constant Values)  the text is in SRL3.1"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3 SRL3.3",
+    "check": "OK  §1985:IV.4.2.2.2.3 SRL3.3  (4.2.2.2.3 Figurative Constant Values)  the text is in SRL3.3"
+   }
+  ],
+  "notes": "The one numeric-context reader refuses every non-numeric literal and figurative but ZERO; the ALL ZERO edge is edition-gated and the 1985 arm accepts it, as the 1985 text's redundant-ALL rule requires. Minor wording point: the 1985 COBOL0844 text for SPACE etc. says ZERO is permitted 'WITHOUT the ALL phrase', which is the 2002+ rule; the refusal itself is right.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.26.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Class c: src/laterlit.cob - floating-point 1.0E1 as literal-1 and literal-2, B\"1\", N\"1\" each refused at 85 (COBOL0900/COBOL0844); src/misc85.cob - a 19-digit literal refused (COBOL0802, 1985 18-digit cap). Class f: src/subpos.cob with DECIMAL-POINT IS COMMA: SUBTRACT 1,5 FROM N -> 1=[+0011,50]; SUBTRACT ZERO FROM ZERO GIVING M -> +0000,00; SUBTRACT ALL ZEROS FROM ALL ZEROES GIVING E (ALL ZERO as literal-2) -> 0,00; SUBTRACT +,5 -0 FROM 2 -> 1,50; ALL ZERO format 1 -> 11,50 unchanged. ALL ZERO accepted at 85 matches §1985:IV.4.2.2.2.3 SRL3.3 (ALL redundant). Residual (not overturning): COBOL0844 text at 85 says ZERO is permitted 'without the ALL phrase', the 2002+ wording; the refusal itself is correct. cite.py: OK  §1985:VI.6.26.3 SR2  the text is in SR2; OK  §1985:IV.4.2.2.2.3 SRL3.3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

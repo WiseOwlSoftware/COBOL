@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-17",
+ "rule-digest": "a44e31742b36",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-135",
+  "sources": {
+   "reader": "a5c75b51ba1c9b5730d0695d9a0eb47b2704b6a6edb2a0e42a0fd598b8b016ad",
+   "refuter": "49ee6ba4163163c28fc1db122bb19804c00178ea3c0ff28eb983935628bc8f65"
+  },
+  "imported": {
+   "reader": "d5f320bb42d2a250db013a75e76a5bd7e2caacfb5ddabcf1a32a8014e465c079",
+   "refuter": "d2503096c97ddd03f8b1e42d07dfd0bd0d7fd764468b88f868fa539ff29ea20e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-17",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, END-READ ends the scope of the READ statement it pairs with, under both formats, with or without the conditional phrases, nested inside IF, inline PERFORM or another READ's phrase; an END-READ (or other terminator) with no open READ is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readStatement; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#UnownedScopeTerminator; src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "END-READ is reserved in all four editions (row true,true,true,true)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep END-READ|END_READ over src: only the lexer token, the readStatement rule (END_READ?), the reserved-word row and a diagnostic text; no VersionConformancePass arm",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the two witnesses test IF/END-IF scope termination, not READ; END-READ itself was exercised only by these probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p17end.cob",
+    "printed": "1-NAE AAAA / 1-AFTER-IN-IF / 2-OUTER BBBB / 2-INNER AAAA / 2-STILL-IN-OUTER-NAE / 2-AFTER / 3-BODY 1 00 / 3-END 2 / 3-BODY 2 10 / 4-A AAAA / 4-B BBBB / USE-G 10 / 4-C 10",
+    "expected": "each END-READ closes only its own READ; the enclosing IF, NOT AT END and PERFORM continue"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p17bad.cob",
+    "printed": "error COBOL0306: END-WRITE appears without a matching WRITE statement; error COBOL0306: END-READ appears without a matching READ statement",
+    "expected": "a mismatched and a stray terminator are refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR17",
+    "check": "OK  §1985:VIII.4.5.4 GR17  (4.5.4 General Rules)  the text is in GR17"
+   }
+  ],
+  "notes": "The grammar binds END_READ as the optional last element of readStatement, so the parser closes the innermost open READ. The first probe run failed on RF and RD, which are 1985 Report Writer reserved words; the names were changed and the program reran.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not run; the path has no edition arm",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-17",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "r17.cob --std 85 (runs/r17-001): a READ nested in another READ's NOT AT END closed by END-READ, the outer NOT AT END continues (1I 0002 BBBB / 1O AAAA 0002 BBBB / 1-AFTER); a phrase-less READ ... END-READ inside IF/ELSE leaves the IF open (2-THEN CCCC); a format 2 READ with END-READ inside the AT END of an outer READ, outer ended by the period (3I AAAA / 3O-END-CONT / 3-AFTER). Reader's p17bad covers stray terminators. cite: OK §1985:VIII.4.5.4 GR17 the text is in GR17.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

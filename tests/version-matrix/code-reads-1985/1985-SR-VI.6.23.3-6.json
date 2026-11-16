@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-VI.6.23.3-6",
+ "rule-digest": "9b3b064936fd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-059",
+  "sources": {
+   "reader": "d0e508c6c70216ef170048c56706a92c0835308986446eeda25f17d27b4e19fc",
+   "refuter": "937cdec4799302a68ccfd698c0ba313a6f5f7548f75861fada0e84ee54943480"
+  },
+  "imported": {
+   "reader": "d52683aea50622ea5e942d4e4fda5c0f3c3e05893abc90c5805ab77974056534",
+   "refuter": "ff0ae454f1ca36a40163642a1776a146cfe46d95359c3811b423afbbbef71240"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.23.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each condition-name-1 of SET Format 4 (TO TRUE) must be a level-88 condition-name of a conditional variable (subscripted when the variable is in a table); a switch-status condition-name, a data-name, a group, a mnemonic-name, a procedure-name or an undeclared word must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetCondition; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectSetConditionName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchNameOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSetBooleanStatement",
+    "switches": "set-condition-false-2002 and set-condition-repeated-2002: TO FALSE and a second TO TRUE phrase are refused at 1985; not the conditional-variable screen",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion in SetBinder.BindSetCondition and StatementValidation.RejectSetConditionName: none; the SR6 screen is the same code at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers procedure and condition operands; subscripted level-88s, the switch-status condition-name refusal and mnemonic/group operands are exercised only by the probes here",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/t5ok.cob",
+    "printed": "EXIT 0; T= YN CV=01 (SET E-YES (2), E-NO (3) and CV-LOW TO TRUE store the first VALUE literal)",
+    "expected": "legal level-88 operands, table and scalar"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/t6bad.cob",
+    "printed": "COBOL1757 for SW1-ON (switch-status condition-name); COBOL1639 for X, G (group), NOSUCH, SW1 (mnemonic-name), MAIN-PARA",
+    "expected": "refused per SR6"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.23.3 SR6",
+    "check": "OK  §1985:VI.6.23.3 SR6  (6.23.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "ConditionOf resolves only level-88 condition-names; anything else goes to RejectSetConditionName, which tells the switch-status kind apart. The 1985-only restrictions on Format 4 (no FALSE, no repeated phrase) are separate construct gates.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "t6bad refused the same way at --std 2023 (6 errors)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.23.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "src/t6x.cob (t6x-001, EXIT 0): a level-88 on a group (G-AB), on a FILLER, qualified by OF and IN, and subscripted in a table: printed 'G=AB H=071 J=4 TB= Y '. src/t6y.cob (t6y-001): COBOL1639 for an alphabet-name, a class-name and an index data item; an ambiguous unqualified K-LOW refused (COBOL1639); an unsubscripted table condition-name refused (COBOL2270); SET ... TO FALSE refused at 85 (COBOL0900, a 2002 addition). cite.py: 'OK  §1985:VI.6.23.3 SR6  (6.23.3 Syntax Rules)  the text is in SR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

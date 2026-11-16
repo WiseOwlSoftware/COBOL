@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-VI.6.22.3-5",
+ "rule-digest": "6beb1c823094",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-059",
+  "sources": {
+   "reader": "d0e508c6c70216ef170048c56706a92c0835308986446eeda25f17d27b4e19fc",
+   "refuter": "937cdec4799302a68ccfd698c0ba313a6f5f7548f75861fada0e84ee54943480"
+  },
+  "imported": {
+   "reader": "6bf67c6d3fe34d7531c297c30153879a123742cc6b87deaba57a1c11806b254e",
+   "refuter": "9901672ce3873c1c734da1ff976140e0f1534c37dc01506c93e27e1041e3d119"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.22.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in both SEARCH formats, a WHEN phrase whose body is NEXT SENTENCE must be refused when END-SEARCH is written, and accepted (transferring to the next sentence) when it is not.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckSearchEndSearchNextSentence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#Phrases; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#IsNextSentenceArm",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement",
+    "switches": "construct next-sentence-archaic-2023: the archaic flag on NEXT SENTENCE at 2023; not raised at 1985, and not the END-SEARCH screen",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion in StatementValidation.CheckSearchEndSearchNextSentence, SearchBinder.Phrases and StatementBinder.IsNextSentenceArm: none; the screen is the same code at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness runs SEARCH with NEXT SENTENCE; the END-SEARCH refusal in both formats is exercised only by the probes here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/s5.cob",
+    "printed": "COBOL2409 for SEARCH (line 10) and SEARCH ALL (line 14): END-SEARCH specified and a WHEN phrase's body is NEXT SENTENCE",
+    "expected": "refused per SR5, both formats"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/s5ok.cob",
+    "printed": "EXIT 0; B NOT-SKIPPED AFTER1 C AFTER2 AFTER3 AFTER4 (NEXT SENTENCE without END-SEARCH in both formats, END-SEARCH with imperative bodies)",
+    "expected": "legal forms accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.22.3 SR5",
+    "check": "OK  §1985:VI.6.22.3 SR5  (║6.22.3 Syntax Rules║)  the text is in SR5"
+   }
+  ],
+  "notes": "One screen serves both formats from Phrases, keyed on the WHEN arm being exactly NEXT SENTENCE. 1985 takes the same arm as 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "s5 refused the same way at --std 2023 (2 errors)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.22.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "src/s5x.cob (s5x-001): with END-SEARCH, AT END NEXT SENTENCE, a WHEN body 'DISPLAY NEXT SENTENCE', and an IF ... END-IF followed by NEXT SENTENCE in SEARCH ALL are each refused (COBOL2269: NEXT SENTENCE outside the three formats that print it), and a second WHEN whose body is NEXT SENTENCE draws COBOL2409. src/s5y.cob: the same misplacements without END-SEARCH are refused too (COBOL2269), so 1985's phrase-only NEXT SENTENCE is not admitted as a statement. src/s5z.cob (s5z-001, EXIT 0): a SEARCH with a NEXT SENTENCE WHEN body, ended by END-IF or by ELSE of an enclosing IF (GR1c), is accepted and transfers past the period: printed AFTER1 AFTER2 only. cite.py: 'OK  §1985:VI.6.22.3 SR5  (║6.22.3 Syntax Rules║)  the text is in SR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

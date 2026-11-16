@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-2",
+ "rule-digest": "f16a06844dec",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-011",
+  "sources": {
+   "reader": "091e3b25e3d00b1a40bd0009ebeae128d3db24f1dc25c012a419ab97b24c8613",
+   "refuter": "1a816b12394bef79e79a2accf7a8521e70c9d4b42ce4dd9c00d4b4cc911a6bc8"
+  },
+  "imported": {
+   "reader": "2dbedeb2d984f59a66b887a44353fd1ae8724c67d366b1809919f7fcb8f6f622",
+   "refuter": "c0613fb037250b4b355cb72cf9292b187900c254fb036ff3eae1463d86b97387"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, after a successful WRITE of an indexed file named in a SAME RECORD AREA clause, the released logical record must remain available in record-name-1's area and as a record of every other file of that clause (any organization, any record shape: fixed, variable-length, elementary); without the clause its availability is undefined (not observable). The witness l1c37 covers only two sequential files.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#OutOfLineRecordsOfArea; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#BeginReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#ReleasedRecordNeedsAlsoAvailable",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+    "switches": "Constructs.FromLiteral2002: FROM literal-1 (figurative included) refused below 2002 (COBOL0871)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectLevel|DialectBehavior over KeyedIoEmitter.cs EmitWrite, SequentialIoEmitter.cs Begin/End/EmitReleasedRecordAlsoAvailable, FileControlBinder.IoControl.cs LinkSameRecordArea and FileModel.SameRecordAreaPeers: none; the SAME RECORD AREA overlay (implicit redefinition) and the out-of-line store are edition-free. The only edition gate on WRITE ... FROM is the 2002 literal operand.",
+  "behaviour-differs-by-edition": "no: the also-available mechanism is one arm; only FROM literal-1 is an edition arm (refused at 85)",
+  "witnesses-cover": "part: l1c37 covers sequential files only; not exercised: an indexed record-name-1 (this module's rule), variable-length and elementary (out-of-line) peer records, a failed WRITE",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c2/p1.cob",
+    "printed": "indexed RANDOM F1 + sequential F2 + indexed DYNAMIC F3 in one SAME RECORD AREA: W1 OK 00; SRC K01 -123 TAIL; R1 K01 -123 TAIL; R1B K01 TAIL; R2 K01|TAIL; R3 K01 TAIL; dup-key WRITE -> W2 IK 22, R2 still K01; WRITE R3 FROM edited-pic item -> W3 OK 00, ED -12.50, R1/R2 show -12.50; reread RD1 K01 -123 TAIL 00, RD3 -12.50 00",
+    "expected": "after a successful WRITE the record stays in record-name-1's area and is available as every peer file's record (GR2); identifier-1 (WS-SRC with COMP-3, WS-ED edited) keeps its content (GR4)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c2/p3.cob",
+    "printed": "RECORD VARYING 4..12 + ODO indexed SEQUENTIAL record sharing with an elementary numeric record (out-of-line) and an indexed group: W1 OK 00, C 4 T AB RL 06, R3 1234ABCD, WS 1234ABCD; W2 00 R3 5550ABCD; WRITE R2 (S9(11)V9 SIGN SEPARATE) -> R3 012345678905+ K1 012; reread RD 1234AB 06 / 5550 04",
+    "expected": "variable-length released record and out-of-line elementary peer both see the released record (GR2); FROM operand unchanged (GR4)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c2/p4.cob",
+    "printed": "WRITE R3 FROM WS-Z ('000000012345+') -> W4 00; MOVE R2 TO edited -> 1234.5",
+    "expected": "the indexed file's released record is available as the elementary numeric peer record R2 (GR2)"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c2/p5.cob",
+    "printed": "WRITE R1 FROM FUNCTION UPPER-CASE(WS) -> W1 OK 00, R2 ABCDEFGH, WS abcdefgh; second OPEN I-O -> 41; WRITE after OPEN INPUT -> W3 48, R2 abcdefgh (GR3 a MOVE happened)",
+    "expected": "1985 Amendment 1 alphanumeric function-identifier as FROM operand works; failed WRITE (not open for output) unsuccessful"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c2/p6refuse.cob",
+    "printed": "error COBOL0871: FROM literal-1 requires COBOL-2002 (targeting COBOL-85) - WRITE ... FROM literal-1",
+    "expected": "1985 FROM takes identifier-1 only; WRITE R1 FROM ZERO refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c2/p2refuse.cob",
+    "printed": "error COBOL6827: WRITE FROM R2: the operand names the record area of file 'F1' (§1985:IX.4.9.3 SR1)",
+    "expected": "a peer record of the same SAME RECORD AREA is the same storage area as record-name-1: refused by SR1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR2",
+    "check": "OK  §1985:IX.4.9.4 GR2  (4.9.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:IX.4.9.3 SR1",
+    "check": "OK  §1985:IX.4.9.3 SR1  (4.9.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "SAME RECORD AREA files' character-window records are linked as implicit redefinitions of one anchor (LinkSameRecordArea), so a released record is in every peer's area for free; an out-of-line (variable-length or slot-carried elementary) record on either side gets an emitted store after the WRITE (Begin/EndReleasedRecord, used by KeyedIoEmitter.EmitWrite). Probes at --std 85 with indexed random, dynamic and sequential files, ODO and an elementary numeric peer all showed the record available.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "refute-1985-011/c2/r1.cob (--std 85): indexed RANDOM F1 (two 01s) in SAME RECORD AREA with a relative F2, a sequential RECORD VARYING/ODO F4 (also in a SAME AREA with F2) and a SORT file SD SF, only F1 ever opened: after WRITE R1 'K0105ABCDE' -> 00, R2 'K0105' N 105, R4 positions 3-4 '10', RS 'K0105A|BCDE'; WRITE R1B (second 01, 4 chars) -> 00 and R1/R2/RS show 'XYZW'; reread both records 00. Peers never opened, a sort-merge peer and a SAME AREA subset all see the released record. OK  §1985:IX.4.9.4 GR2 the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

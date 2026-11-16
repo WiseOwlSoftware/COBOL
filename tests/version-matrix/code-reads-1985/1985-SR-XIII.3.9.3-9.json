@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-9",
+ "rule-digest": "6d35ae73619b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-079",
+  "sources": {
+   "reader": "84ee836935de360f1eecdc37b4694460b2d77bb584e189d7b954072ca0835ad1",
+   "refuter": "624b2ffc5ee40fd3c1abf6988b52e3c963e8fdda830171f94e1ea14e6f070f0a"
+  },
+  "imported": {
+   "reader": "066793e7cc97b5a239898e18158cb12e9861632fc4f9700d1d00e91d674cd94e",
+   "refuter": "3fbae751411c67554330af30f66e6bb42bbd07b5d1176707922f482efbd6a64d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.9.3-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a report group in which an entry with a LINE NUMBER clause (format 1, 2 or 3) has any subordinate entry, at any depth, that also has a LINE NUMBER clause, whether the clause is absolute, PLUS or with NEXT PAGE, while sibling LINE clauses and a LINE on a format 3 entry under a format 1 entry without one stay legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineNesting",
+  "edition-consulted": [],
+  "edition-search": "ScreenReportLineNesting and its caller (line 680) contain no Edition.DialectLevel, CobolVersion, ConstructRegistry or ReservedWords reference; the rule is applied identically at every edition (pb565 witness refuse-at 85, 2002, 2014, 2023).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb565 covers LINE PLUS inside LINE PLUS (format 2 in format 2); format 1 over format 2, format 1 over format 3, format 2 over format 3, NEXT PAGE, the legal sibling and cross-group cases are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/l1.cob",
+    "printed": "COBOL2199 at the inner LINE (plus the 1985 SR4 hierarchy refusals COBOL2247)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/l2.cob",
+    "printed": "COBOL2199 (01 TYPE DE LINE 1 over 03 LINE 2)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/l3.cob",
+    "printed": "COBOL2199 (01 LINE 1 over a format 3 entry with LINE 2)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/l4.cob",
+    "printed": "COBOL2199 (03 LINE 2 over 05 format 3 with LINE 3)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/l7.cob",
+    "printed": "COBOL2199 (LINE NUMBER IS 1 ON NEXT PAGE over LINE NUMBER IS PLUS 1: the 1985 spelling)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/l5.cob",
+    "printed": "runs; report line 'A B'",
+    "expected": "accepted: LINE only on the format 1 entry"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/l6.cob",
+    "printed": "runs; A, B, C on successive lines",
+    "expected": "accepted: sibling LINE clauses, one on a format 3 entry"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/l8.cob",
+    "printed": "runs; D1 printed, no refusal for the next 01 group's LINE",
+    "expected": "accepted: a following group is not subordinate"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.9.3 SR9",
+    "check": "OK  §1985:XIII.3.9.3 SR9  (3.9.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "The flat-array walk stops at the first entry whose level is not greater, so it reaches every subordinate entry and no sibling or later group. The message cites only §2023:13.18.35.3 SR4 at --std 85 (citation blemish).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.9.3-9",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Attack: a LINE two levels below the LINE-bearing entry through an intermediate format 2 entry without LINE (01 TYPE DE LINE PLUS 1 / 03 USAGE DISPLAY / 05 LINE PLUS 1 COLUMN 1 PIC X(2)). Probe r4 -> COBOL2199 at the 05 entry, exit 65: the walk reaches every depth of subordination. cite.py: OK §1985:XIII.3.9.3 SR9 'must not have a subordinate entry that also contains a LINE NUMBER clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

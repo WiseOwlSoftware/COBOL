@@ -1,0 +1,84 @@
+{
+ "rule-id": "1989-AR-A.2.18.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-167",
+  "sources": {
+   "reader": "509e48487795ec3912577b6c74daa6c42209bd2711676e42df3ac2c40812a80d",
+   "refuter": "675270f0bb4a549b69588b2b0ea9dd94ceeada1dbad64af2f13ff80a395329d0"
+  },
+  "imported": {
+   "reader": "9e4793b3b5fe32857fcaf60d4da75ad74abf0668d7a05c8c53d31a12a8eed334",
+   "refuter": "04a37db0a7757ace2c20be64642cb6f58774bb05d2f014e2d67e4750079a3357"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.18.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 argument-1 of FUNCTION INTEGER-PART must be a numeric argument (an arithmetic expression); every operand not of class numeric must be refused and every arithmetic-expression form (signed, scaled, binary, packed, subscripted, a numeric function) accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 IntroducedIn/RemovedIn window: the function is available at 85 (IntroducedIn 85), so no refusal",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) for per-position predicates; the Uniform rows of COS/FACTORIAL/INTEGER-PART carry none, so the class screen is the same code at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf38_04 exercises only accepted forms; the refusal half is probed here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/ipbad.cob",
+    "printed": "COBOL1627 x7: PIC X, \"1\", numeric-edited, group, SPACE, PIC A, ALL \"1\" each refused (requires class numeric, §2023:15.49.3 r1)",
+    "expected": "each refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/fnok2.cob",
+    "printed": "COS(SQRT4-2) 1.0000 / COS(COMP3) 1.0000 / COS(TE*0) 1.0000 / COS(ZERO) 1.0000 / IP(TE(2)) -3.0000 / IP(-123.45) -123.0000 / IP(BIG) -999999999999999999 / IP(-0.9) 0.0000 / IP(LOG10) 2.0000",
+    "expected": "accepted: arithmetic expressions over packed, binary, signed scaled, subscripted items, a numeric function, ZERO; values per the returned-value rules"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/fnok2.cob",
+    "printed": "IP(BIG) -999999999999999999 / IP(-0.9) 0.0000",
+    "expected": "the 18-digit negative maximum returns itself; -0.9 returns the least integer >= -0.9, i.e. 0 (§1989:A.2.18.4 RV3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.18.3 AR1",
+    "check": "OK  §1989:A.2.18.3 AR1  (2.18.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   }
+  ],
+  "notes": "Same class screen as COS (Verified row 'n'); edition-invariant. Messages cite §2023:15.49.3 r1 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.18.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "ixarg.cob: INTEGER-PART (IXD), where IXD is USAGE INDEX, was refused with COBOL6979 (§1985:VI.5.14.3 SR5, cite OK), and INTEGER-PART (TX), where TX is an index-name, was refused with COBOL1637. cosc.cob: INTEGER-PART (WN (2:2)) (reference-modified, class alphanumeric) and INTEGER-PART (FUNCTION CHAR (50)) were refused with COBOL1627, and INTEGER-PART (1.5E0) was refused with COBOL0900 (2002 literal). cosok.cob ran: a P-scaled S9PP item holding -300 gave -0300, SVPP9 * 1000 gave -0009, a SIGN LEADING SEPARATE item holding -7.5 gave -0007 (RV3), and - WSS ** 1 gave +0007. cite: OK  §1989:A.2.18.3 AR1  (2.18.3 Arguments)  the text is in AR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

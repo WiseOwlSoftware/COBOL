@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-SR-VI.6.9.3-1",
+ "rule-digest": "988a746788fc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-061",
+  "sources": {
+   "reader": "19a1b68739c8a501f314c55dcb2bf4acfc3981c694766c8c8858499010645818",
+   "refuter": "c924c9b72f38a1cb5d858b2aa79df0b05d2e78c6c9da2886301456a06ac8265b"
+  },
+  "imported": {
+   "reader": "b28d996beaffcbbf8bc78a68cd01d22c27d3473426ae63d9e685622fcc45fdc5",
+   "refuter": "2976635f77d646d58c2b7e47146c0df6834e29a4a4f001cff5c31c00f4c0892b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.9.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the plain CONTINUE statement must be accepted, as a no-operation, in every position where a conditional or imperative statement may be written (a sentence, IF/ELSE branches, nested IF, EVALUATE WHEN and WHEN OTHER, inline PERFORM, SEARCH AT END and WHEN, the SIZE ERROR, OVERFLOW and AT END phrases, a paragraph holding only CONTINUE, before another statement); the 2023 CONTINUE AFTER ... SECONDS form does not exist in 1985 and must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#continueStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindContinue; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitContinueStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitContinueStatement",
+    "switches": "Constructs.ContinueAfter2023: the AFTER ... SECONDS phrase is refused below 2023 (COBOL0900); plain CONTINUE is ungated",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "continueStatement is one alternative of the shared statement rule (CobolParserCore.g4), so it is reached wherever any imperative statement is; BindContinue returns BoundNop for plain CONTINUE with no edition test; the only edition consult is the phrase gate.",
+  "behaviour-differs-by-edition": "yes: CONTINUE AFTER arithmetic-expression SECONDS is accepted at 2023 and refused at 85; plain CONTINUE is the same at every edition",
+  "witnesses-cover": "part: the witness uses CONTINUE in a debugging declarative procedure; not exercised: the conditional-statement phrases (SIZE ERROR, OVERFLOW, AT END, SEARCH WHEN), EVALUATE, inline PERFORM, the AFTER phrase refusal",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r3ok.cob",
+    "printed": "IF-OK / AFTER-CONT 001 ABCD (no BAD lines; exit 0)",
+    "expected": "CONTINUE accepted in sentence, IF/ELSE, nested IF, EVALUATE WHEN/OTHER, inline PERFORM, SEARCH AT END/WHEN, ADD ON SIZE ERROR (N1 stays 001), STRING ON OVERFLOW (S1 = ABCD), READ AT END of an empty sequential file, a paragraph of only CONTINUE, CONTINUE before DISPLAY; no effect on execution"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r3ref.cob",
+    "printed": "error COBOL0900: CONTINUE AFTER n SECONDS requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "refused: the 1985 general format is CONTINUE alone"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.9.3 SR1",
+    "check": "OK  §1985:VI.6.9.3 SR1  (6.9.3 Syntax Rules)  the text is in SR1 [may be used anywhere a conditional statement or an imperative-statement may be used]"
+   },
+   {
+    "cite": "§1985:VI.6.9.4 GR1",
+    "check": "OK  §1985:VI.6.9.4 GR1  (6.9.4 General Rules)  the text is in GR1 [has no effect on the execution of the program]"
+   }
+  ],
+  "notes": "CONTINUE is an alternative of the one statement rule, so every imperative-statement position admits it, and it binds to a no-op. Every position probed compiled and ran with no effect, and the 2023-only AFTER phrase is refused by name at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.9.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "q3ok.cob (run, --std 85, exit 0, prints 'R=XYZ' and 'DONE 002 AB 3'): CONTINUE accepted and inert as the only statement of a declarative USE AFTER STANDARD ERROR paragraph; in WRITE/READ/START/DELETE/REWRITE INVALID KEY and NOT INVALID KEY on an indexed file; in WRITE AT END-OF-PAGE and NOT AT END-OF-PAGE on a LINAGE file inside an inline PERFORM n TIMES; DIVIDE by zero ON SIZE ERROR (N1 kept, NOT ON SIZE ERROR not taken); ADD NOT ON SIZE ERROR; UNSTRING ON OVERFLOW (NOT ON OVERFLOW not taken); CALL ON OVERFLOW of a missing program; SEARCH ALL WHEN; EVALUATE ... ALSO ... WHEN ANY ALSO 0; inside inline PERFORM UNTIL after another statement; two consecutive CONTINUEs before ELSE NEXT SENTENCE; RETURN AT END and NOT AT END in a SORT output procedure. The 2023 AFTER phrase is refused at 85 (reader's r3ref). Two first-draft errors (UNSTRING of a literal, WRITE FROM literal COBOL0871) were correct 1985 refusals of my probe. cite.py: OK §1985:VI.6.9.3 SR1 [may be used anywhere a conditional statement or an imperative-statement may be used].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
