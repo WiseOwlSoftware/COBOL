@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.1.2-11",
+ "rule-digest": "0a08869335c4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf",
+ "test-ref": "conformance:cases/8.4.2.13@2002-LINAGE-COUNTER/g2lct01_linage_counter_in_procedure_statements; conformance:cases/8.4.1.1@2002-Qualification/g2-qual-linage-counter-two-fds",
+ "notes": "§2002:8.4.2.1.2 SR11 defers to 8.4.2.13, whose GR2 defers to 13.16.32 GR7: g2lct01 (accept [2002]) shows the bare and qualified identifier holding 1 after OPEN, 2 after a WRITE, 5 after ADVANCING 3; g2-qual-linage-counter-two-fds adds IN/OF file-name with two registers (matched at --std 2002)."
+}

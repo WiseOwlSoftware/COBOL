@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-2",
+ "rule-digest": "77b0a617fc12",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitCallMethod",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call14_positional_correspondence",
+ "notes": "§2002:14.8.4.3 GR2: argument/formal correspondence 'is positional and not by name equivalence', in all three 2002 formats. --std 2002 run of formats 1 (ON OVERFLOW), 2 and 3 (AS NESTED) with formals named in the reverse order matched the derived output."
+}

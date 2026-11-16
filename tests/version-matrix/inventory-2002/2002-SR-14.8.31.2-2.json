@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-SR-14.8.31.2-2",
  "rule-digest": "c3d99945530f",
- "test-ref": "conformance:cases/14.9.33-RESUME/pb1160-resume-in-when-in-global-declarative",
+ "test-ref": "conformance:cases/14.9.33-RESUME/pb1160-resume-in-global-declarative",
+ "notes": "retired-witness: conformance:cases/14.9.33-RESUME/pb1160-resume-in-when-in-global-declarative (refused at 2002 also by the COBOL0900 introduction gate of the 2023 exception-checking PERFORM, so its 2002 refusal witnesses no 2002 rule; its band is 2023 again (records-2002-reads-2 review R1-1); the direct form pb1160-resume-in-global-declarative is refused at 2002 by COBOL0713 alone)",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

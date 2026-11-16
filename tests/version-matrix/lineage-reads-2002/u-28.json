@@ -1,0 +1,1566 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-28 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-28",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.36.3-11",
+   "2002-GR-14.8.36.3-12",
+   "2002-GR-14.8.36.3-14",
+   "2002-GR-14.8.36.3-9",
+   "2002-SR-14.8.37.2-3",
+   "2002-GR-14.8.37.3-10",
+   "2002-GR-14.8.37.3-14",
+   "2002-GR-14.8.37.3-16",
+   "2002-GR-14.8.37.3-17",
+   "2002-GR-14.8.37.3-4",
+   "2002-GR-14.8.37.3-6",
+   "2002-GR-14.8.37.3-9",
+   "2002-GR-14.8.38.3-1",
+   "2002-SR-14.8.39.2-3",
+   "2002-GR-14.8.39.3-1",
+   "2002-GR-14.8.39.3-10",
+   "2002-GR-14.8.39.3-8",
+   "2002-GR-14.8.39.3-9",
+   "2002-SR-14.8.40.2-1",
+   "2002-SR-14.8.40.2-6",
+   "2002-GR-14.8.40.3-1",
+   "2002-GR-14.8.40.3-2",
+   "2002-GR-14.8.40.3-3",
+   "2002-GR-14.8.40.3-5",
+   "2002-GR-14.8.40.3-6"
+  ],
+  "pointers": {
+   "2002-GR-14.8.36.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.40.4-12",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.36.3-12": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.40.4-13",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.36.3-14": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.40.4-15",
+    "similarity": 0.997
+   },
+   "2002-GR-14.8.36.3-9": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.40.4-10",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.37.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.41.3-3",
+    "similarity": 0.983
+   },
+   "2002-GR-14.8.37.3-10": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.41.4-10",
+    "similarity": 0.83
+   },
+   "2002-GR-14.8.37.3-14": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.41.4-14",
+    "similarity": 0.998
+   },
+   "2002-GR-14.8.37.3-16": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.41.4-16",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.37.3-17": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.41.4-17",
+    "similarity": 0.952
+   },
+   "2002-GR-14.8.37.3-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.41.4-4",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.37.3-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.41.4-6",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.37.3-9": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.41.4-9",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.38.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.42.4-1",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.39.2-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.43.3-4",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.39.3-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.43.4-1",
+    "similarity": 0.702
+   },
+   "2002-GR-14.8.39.3-10": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.43.4-10",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.39.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.43.4-8",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.39.3-9": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.43.4-9",
+    "similarity": 0.743
+   },
+   "2002-SR-14.8.40.2-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.44.3-1",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.40.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.44.3-6",
+    "similarity": 0.934
+   },
+   "2002-GR-14.8.40.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.44.4-1",
+    "similarity": 0.968
+   },
+   "2002-GR-14.8.40.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.44.4-2",
+    "similarity": 0.947
+   },
+   "2002-GR-14.8.40.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.44.4-3",
+    "similarity": 0.953
+   },
+   "2002-GR-14.8.40.3-5": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.44.4-5",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.40.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.44.4-6",
+    "similarity": 0.947
+   }
+  }
+ },
+ "read": {
+  "slice": "u-28",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.36.3-11",
+    "to": [
+     "GR-14.9.40.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36.3 GR11 (FORMAT 1)",
+    "clause-2023": "14.9.40.4 GR12 (FORMAT 1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR11",
+      "quote": "Each record is obtained as if a READ statement with the NEXT phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR12",
+      "quote": "Each record is obtained as if a READ statement with the NEXT phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "USING: implicit OPEN INPUT (SHARING WITH READ ONLY when the file has SHARING ALL), non-fatal OPEN status continues",
+     "records obtained as if READ NEXT IGNORING LOCK AT END; record size kept; EC-SORT-MERGE-RELEASE on too large / too small",
+     "implicit CLOSE before sequencing; USE procedures executed; sequential, relative and indexed USING files"
+    ],
+    "evidence-2002": {
+     "open/sharing": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.40-SORT/pb714_sort_using_sharing_read_only (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "non-fatal / fatal open, USE, termination": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.6.13.1.3-Fatal-exception-conditions/pb993_sort_merge_transfer_termination, E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.6.13.1.2-Normal-completion-of-a-declarative-procedure/pb367b_sort_use_not_normal, E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec (H: implicit OPEN of a missing file), E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/pb2700_sort_merge_missing_using_covered (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "record size / EC-SORT-MERGE-RELEASE": "covered by unit:SortMergeStatementEcTests.ImplicitRelease_TestsTheReadSize (run-time library, no edition input)",
+     "relative/indexed USING": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/pb994_sort_merge_keyed_using_giving (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "pb837_sort_implicit_io_status": "refused at 2002 (ORGANIZATION LINE SEQUENTIAL, a 2023 element): not a 2002 program; its per-operation status legs are also exercised by pb993 and pb1036"
+    },
+    "reason": "Word-identical apart from \"non-fatal\"/\"nonfatal\". 2002 format 1 of SORT has the same USING phrase; IGNORING LOCK, SHARING ALL / READ ONLY and EC-SORT-MERGE-RELEASE (Fatal, 2002 Table) exist in 2002 with the same meaning. 2023 adds LINE SEQUENTIAL files the sentence also reaches (a widening). The pointer witnesses that are 2002 programs pass at --std 2002.",
+    "probe": null,
+    "widening": "line sequential USING files (2023 only)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-12",
+    "to": [
+     "GR-14.9.40.4-13"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.36.3 GR12 (FORMAT 1); 14.8.36.2 SR1",
+    "clause-2023": "14.9.40.4 GR13 (FORMAT 1); 14.9.40.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR12",
+      "quote": "If the range of the output procedure causes the execution of any MERGE, RELEASE, or format 1 SORT statement, the EC-SORT-MERGE-ACTIVE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR13",
+      "quote": "If the range of the output procedure causes the execution of any MERGE, RELEASE, or format 1 SORT statement, the EC-SORT-MERGE-ACTIVE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR1",
+      "quote": "A SORT statement may appear anywhere in the procedure division except that a format 1 SORT statement shall not appear in the declarative portion",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR3",
+      "quote": "A SORT statement shall not appear in imperative-statement-1 of an exception-checking PERFORM statement, in an input or output procedure, or in a declarative procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.2 SR1",
+      "quote": "A MERGE statement may appear anywhere in the procedure division except in the declaratives portion",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MERGE, RELEASE or format 1 SORT executed in the range via a transfer of control (PERFORM from the procedure)",
+     "MERGE or format 1 SORT WRITTEN DIRECTLY in the output procedure: legal source in 2002 (SR1 of SORT and MERGE bar only the declaratives), so GR12 governs it at run time",
+     "RELEASE written directly in the output procedure"
+    ],
+    "evidence-2002": {
+     "via transfer of control": "covered by unit:SortMergeStatementEcTests.Release_InAnOutputProcedure_RaisesActive_BeforeFlowRelease_AndReleasesNothing (run-time) and E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_output_procedure (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "SORT written in the output procedure": "not shown by the pointer (at 2023 it is refused, COBOL2700); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-out.cob -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-out-2002.out (OUT-SORT SM=EC-SORT-MERGE-ACTIVE)",
+     "MERGE written in the output procedure": "not shown by the pointer (refused at 2023, COBOL1572); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-out-merge.cob -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-out-merge-2002.out",
+     "RELEASE written in the output procedure": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-out.cob (OUT-REL SM=EC-SORT-MERGE-ACTIVE, then the fatal termination)"
+    },
+    "reason": "The sentence is word-identical, but the statements it reaches are not: 2002 SR1 lets a format 1 SORT appear anywhere outside the declaratives, and 2002 MERGE SR1 likewise, so a SORT or MERGE written in the output procedure is a 2002 program whose run-time EC-SORT-MERGE-ACTIVE this rule requires. 2023 SR3 (and the MERGE rule) make that source illegal, so the 2023 row has no witness of it. Probes at --std 2002: the source is accepted and each leg sets EC-SORT-MERGE-ACTIVE; the same source at 2023 is refused (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-direct-2023.out). The run-time message at 2002 cites §2023 (cosmetic).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-out.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for a SORT and a MERGE written directly in the output procedure (probes sma-out.cob and sma-out-merge.cob are the candidates); otherwise KEPT",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-out-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-out-merge-2002.out"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-14",
+    "to": [
+     "GR-14.9.40.4-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36.3 GR14 (FORMAT 1)",
+    "clause-2023": "14.9.40.4 GR15 (FORMAT 1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR14",
+      "quote": "On the first attempt to write beyond the externally defined boundaries of the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR15",
+      "quote": "On the first attempt to write outside the externally defined boundaries of the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "Any I-O status associated with an unsuccessful completion is associated with an exception condition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "GIVING: implicit OPEN OUTPUT SHARING WITH NO OTHER after any input procedure",
+     "records written as if WRITE; sizes; relative key 1, 2, ...",
+     "implicit CLOSE; USE AFTER EXCEPTION/ERROR on unsuccessful as-if operations; boundary violation; fatal / non-fatal OPEN"
+    ],
+    "evidence-2002": {
+     "open status / sharing": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.40-SORT/pb714_sort_giving_open_status (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "termination, fatal open, boundary": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.6.13.1.3-Fatal-exception-conditions/pb993_sort_merge_transfer_termination (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "relative / indexed GIVING, relative key values": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/pb994_sort_merge_keyed_using_giving (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "all records to every GIVING file": "covered by unit:SortWorkBoundTests.EveryGivingFile_ReceivesTheWholeResult_FromDiskRuns (run-time)",
+     "successful status 02 runs no USE at 2002": "pointer witness pb994_sort_giving_indexed_io_warning is a 2023 program (EC-I-O-WARNING, refused at 2002); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/giving-02.cob -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/giving-02-2002.out shows no declarative at 2002, as 2002 9.1.12 requires (only an unsuccessful completion is associated with an exception condition)"
+    },
+    "reason": "Same words apart from \"beyond\"/\"outside\", \"non-fatal\"/\"nonfatal\" and the internal cross-reference (14c / 15c, the same item). Which USE procedures the implicit WRITE can run is decided by the I-O status clause: in 2002 only unsuccessful completions carry an exception, and the probe shows the compiler at 2002 runs no declarative on status 02. Every pointer witness that is a 2002 program passes at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/giving-02.cob",
+    "widening": "EC-I-O-WARNING on a successful nonzero status, line sequential GIVING files (2023 only)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-9",
+    "to": [
+     "GR-14.9.40.4-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.36.3 GR9 (FORMAT 1); 14.8.36.2 SR1",
+    "clause-2023": "14.9.40.4 GR10 (FORMAT 1); 14.9.40.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR9",
+      "quote": "If the range of the input procedure causes the execution of any MERGE, RETURN, or format 1 SORT statements, the EC-SORT-MERGE-ACTIVE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR10",
+      "quote": "If the range of the input procedure causes the execution of any MERGE, RETURN, or format 1 SORT statements, the EC-SORT-MERGE-ACTIVE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR1",
+      "quote": "A SORT statement may appear anywhere in the procedure division except that a format 1 SORT statement shall not appear in the declarative portion",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR3",
+      "quote": "A SORT statement shall not appear in imperative-statement-1 of an exception-checking PERFORM statement, in an input or output procedure, or in a declarative procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.2 SR1",
+      "quote": "A MERGE statement may appear anywhere in the procedure division except in the declaratives portion",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MERGE, RETURN or format 1 SORT executed in the range via a transfer of control",
+     "format 1 SORT or MERGE WRITTEN DIRECTLY in the input procedure (legal 2002 source)",
+     "RETURN written in the input procedure"
+    ],
+    "evidence-2002": {
+     "via transfer of control": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec (leg E, SORT in a PERFORMed paragraph) (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log) and unit:SortMergeStatementEcTests.Return_InAnInputProcedure_RaisesActive_BeforeFlowReturn",
+     "SORT written in the input procedure": "not shown by the pointer (pb1036 says such a SORT \"is refused at compile time\" - true at 2023 only); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-direct.cob -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-direct-2002.out (IN-SORT SM=EC-SORT-MERGE-ACTIVE)",
+     "MERGE written in the input procedure": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-direct.cob (IN-MERGE SM=EC-SORT-MERGE-ACTIVE)",
+     "RETURN written in the input procedure": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-ret.cob -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-ret-2002.out (declarative runs, then fatal termination; same at 2023)"
+    },
+    "reason": "As for GR12: 2002 SR1 of SORT and of MERGE admit a SORT or MERGE written in an input procedure, so this rule governs that source at run time in 2002; 2023 SR3 refuses it (COBOL2700 / COBOL1572 at --std 2023, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-direct-2023.out), and the 2023 witness pb1036 explicitly routes around it. Probes at --std 2002 show acceptance and EC-SORT-MERGE-ACTIVE for each leg.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-direct.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for a SORT and a MERGE written directly in the input procedure (probe sma-direct.cob is the candidate); otherwise KEPT",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-direct-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sma-ret-2002.out"
+   },
+   {
+    "rule-id": "2002-SR-14.8.37.2-3",
+    "to": [
+     "SR-14.9.41.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.37.2 SR3; 8.8.4.1.1.1 format 1",
+    "clause-2023": "14.9.41.3 SR3; 8.8.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.2 SR3",
+      "quote": "relational-operator is a relational operator specified in the general-relation format of 8.8.4.1.1, Relation conditions, with the exception of the relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.3 SR3",
+      "quote": "relational-operator is a relational operator specified in the general-relation format of 8.8.4.2, Simple relation conditions, with the exception of the relational operators",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "KEY phrase operators of the 2002 general-relation format: [NOT] GREATER/>, [NOT] LESS/<, EQUAL/=, >=, <=, GREATER/LESS THAN OR EQUAL TO",
+     "exclusion of IS NOT EQUAL TO and IS NOT =",
+     "<> is not a 2002 operator"
+    ],
+    "evidence-2002": {
+     "admitted operators": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.7.5-Relational-operators/pb333_start_general_relation_operators, E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.41-START/pb370_start_forward_operators, pb370_start_relative_reverse, pb370_start_indexed_reverse (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-op-ok.cob",
+     "NOT ... OR EQUAL refused": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.41-START/pb333-start-not-or-equal-operator (refused COBOL5506 at 2002, log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "NOT EQUAL / NOT = refused": "not shown by the pointer row; covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-op-ne1.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-op-ne2.cob (COBOL0862 at 2002)",
+     "<> refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-op-ne3.cob (COBOL0900: <> requires COBOL-2014)"
+    },
+    "reason": "Only the cross-reference differs (8.8.4.1.1 Relation conditions / 8.8.4.2 Simple relation conditions); the 2002 format 1 operator list has no <> (2014), which the compiler refuses at 2002. The rule's own content, the NOT EQUAL exclusion, has no witness in the pointer row (its tests show the admitted operators and a parse refusal); the probes show it at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-op-ne1.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for the NOT EQUAL / NOT = refusal (probes start-op-ne1.cob and start-op-ne2.cob are candidates); otherwise KEPT",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-op-ne1-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-op-ne2-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-op-ne3-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-op-ok-2002.out"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-10",
+    "to": [
+     "GR-14.9.41.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37.3 GR10 (RELATIVE FILES)",
+    "clause-2023": "14.9.41.4 GR10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR10",
+      "quote": "uses the data item referenced by the RELATIVE KEY phrase of the ACCESS MODE clause associated with file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR10",
+      "quote": "uses the data item referenced by the RELATIVE KEY clause in the file control entry associated with file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.13.3 GR2",
+      "quote": "The relative key data item associated with the execution of an input-output statement is the data item referenced by data-name-1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "relative START: the comparison uses the relative key data item of file-name-1"
+    ],
+    "evidence-2002": {
+     "relative key item": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.41-START/l1_start_relative_key_item (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)"
+    },
+    "reason": "The 2002 words name \"the RELATIVE KEY phrase of the ACCESS MODE clause\", but the 2002 ACCESS MODE clause (12.3.4.4) has no such phrase: the item is the one the 2002 RELATIVE KEY clause (12.3.4.13) names, exactly 2023's \"RELATIVE KEY clause in the file control entry\". The differing words change nothing a program can show; the witness passes at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-14",
+    "to": [
+     "GR-14.9.41.4-14"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.37.3 GR14 (INDEXED FILES)",
+    "clause-2023": "14.9.41.4 GR14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR14",
+      "quote": "If arithmetic-expression-1 does not evaluate to a positive non-zero integer that is less than or equal to the length of the associated key",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR14",
+      "quote": "If arithmetic-expression-1 does not evaluate to a positive nonzero integer that is less than or equal to the length of the associated key",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.4.2 GR2",
+      "quote": "the techniques used in handling arithmetic expressions, arithmetic statements, the SUM clause, and certain integer and numeric functions shall be those specified for standard arithmetic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LENGTH arithmetic-expression-1 not a positive non-zero integer <= key length: status 23, invalid key, unsuccessful",
+     "arithmetic-expression-1 evaluated by native arithmetic (default)",
+     "arithmetic-expression-1 evaluated by 2002 standard arithmetic (ARITHMETIC IS STANDARD: 32-digit truncation per operation)"
+    ],
+    "evidence-2002": {
+     "native": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb357_start_length_not_integer (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log) and unit:StartKeyLengthTests.*",
+     "standard arithmetic": "not shown by the pointer; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-len-std.cob -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-len-std-2002.out: OK 00, expected INVALID 23"
+    },
+    "reason": "Same words (non-zero / nonzero). What \"evaluates to\" means is the arithmetic in effect: in 2002 ARITHMETIC IS STANDARD applies 8.8.1.3 to every arithmetic expression (11.8.4.2 GR2), a mode 2023 does not have, so the 2023 row has no evidence for it. B * 1000 + 1 - B * 1000 with B = 10**30 is 0 under 2002 standard arithmetic (10**33 + 1 truncates to 32 digits), so START must fail with 23; the pinned compiler evaluates 1 and succeeds. Known defect kb/Work PB5575 reaches this rule: the pinned tree (coderead85-tree-d, 24372b7b17) has only the compile-time arm; the run-time arm (32-digit truncation, 31-digit rounding at the final transfer) landed on main 2026-11-15 after the pin (bb0c8648e1 and its landing), so the probe must be re-run on a post-landing build before the row is closed. Not a new defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-len-std.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 under ARITHMETIC IS STANDARD the LENGTH expression is evaluated by 2002 standard arithmetic; re-probe start-len-std.cob on a build with the PB5575 run-time arm (expected INVALID 23) and adopt it as the 2002 witness",
+    "compiler-at-2002": "wrong (pinned tree): program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-len-std.cob; expected INVALID 23 (§2002:8.8.1.3.2 \"The result shall be the exact sum truncated to 32 significant digits\", §2002:14.8.37.3 GR14); observed \"OK 00\" (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/start-len-std-2002.out). Reach of known PB5575."
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-16",
+    "to": [
+     "GR-14.9.41.4-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37.3 GR16 (INDEXED FILES)",
+    "clause-2023": "14.9.41.4 GR16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR16",
+      "quote": "This key of reference is used to establish the ordering of records for the purpose of this START statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR16",
+      "quote": "This key of reference is used to establish the ordering of records for the purpose of this START statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "key of reference from the KEY phrase key (prime or alternate) or the key sharing its leftmost character",
+     "used by later sequential READs"
+    ],
+    "evidence-2002": {
+     "prime / partial key": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.41-START/pb358_start_no_key_phrase, E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/12.4.5.7-COLLATING-SEQUENCE/file_collating_seq (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "alternate / SOURCE key": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "altkey_suppress_when": "refused at 2002 (SUPPRESS WHEN is a 2023 element): not a 2002 program"
+    },
+    "reason": "Word-identical (general rule / General rule). The 2002 general format and SR6 are the same as 2023 (2023 SR4 adds an OCCURS restriction in place of qualification, a syntax change outside this rule). The 2002-program witnesses pass at 2002.",
+    "probe": null,
+    "widening": "alternate keys with SUPPRESS WHEN (2023)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-17",
+    "to": [
+     "GR-14.9.41.4-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37.3 GR17 (INDEXED FILES)",
+    "clause-2023": "14.9.41.4 GR17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR17",
+      "quote": "Comparison proceeds as specified for items of the class of data-name-1 and operands of equal length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR17",
+      "quote": "any record identified as being suppressed by the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause is ignored",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "temporary key areas from the record area, LENGTH / record-key-name / data-name length",
+     "forward search for EQUAL/GREATER/NOT LESS/>=, reverse for LESS/NOT GREATER/<=",
+     "comparison in the file collating sequence, alphanumeric or national, equal length",
+     "position or invalid key"
+    ],
+    "evidence-2002": {
+     "length legs": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.41-START/pb355_start_length_past_operand, pb355_start_length_national_past_operand (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "operators / reverse order": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.41-START/pb370_start_indexed_reverse, pb3334_start_indexed_tree_operators (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "collating sequence, no KEY phrase, SOURCE key": "covered by file_collating_seq, pb358_start_no_key_phrase, pb1099_record_key_source (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "invalid key": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/l1_start_indexed_invalid_key (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)"
+    },
+    "reason": "The 2002 rule lacks only 2023's SUPPRESS WHEN sentence (a 2023 element) and cites 8.8.4.1.1.6 / 8.8.4.1.1.8 for 8.8.4.2.7 / 8.8.4.2.9: the equal-length comparison is the same in both. 2002 is a subset; its scope is covered by pointer witnesses that pass at 2002.",
+    "probe": null,
+    "widening": "records suppressed by SUPPRESS WHEN are ignored (2023)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-4",
+    "to": [
+     "GR-14.9.41.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37.3 GR4",
+    "clause-2023": "14.9.41.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR4",
+      "quote": "The execution of the START statement causes the value of the I-O status associated with file-name-1 to be updated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR4",
+      "quote": "The execution of the START statement causes the value of the I-O status associated with file-name-1 to be updated",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "START updates the I-O status of file-name-1 (2002 9.1.12 values)"
+    ],
+    "evidence-2002": {
+     "status update": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log); also pb357, pb870 (PASS at 2002)",
+     "pb352_start_sequential_first_last_line": "LINE SEQUENTIAL, a 2023 element: not a 2002 program"
+    },
+    "reason": "Identical apart from the clause number of I-O status (9.1.12 / 9.1.13). The START status values (00, 23, 46, 47 ...) are the same in both; 2023's EC-I-O-WARNING for successful nonzero statuses does not arise from START.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-6",
+    "to": [
+     "GR-14.9.41.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37.3 GR6; 9.1.13",
+    "clause-2023": "14.9.41.4 GR6; 9.1.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR6",
+      "quote": "depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the START statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR6",
+      "quote": "depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the START statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "INVALID KEY / NOT INVALID KEY transfer of control per 2002 9.1.13 (USE EXCEPTION file procedure or EC-I-O-INVALID-KEY procedure when no INVALID KEY)"
+    ],
+    "evidence-2002": {
+     "transfer of control": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last, E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.41-START/pb870_start_first_last_relative_exceptions (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)"
+    },
+    "reason": "Same words. 2002 9.1.13 and 2023 9.1.14 give the same transfers (2023 rewords \"USE EXCEPTION procedure\" as \"applicable exception processing statements\", which in 2023 also covers an exception-checking PERFORM: a 2023 widening).",
+    "probe": null,
+    "widening": "exception-checking PERFORM as exception processing (2023)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-9",
+    "to": [
+     "GR-14.9.41.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37.3 GR9 (RELATIVE FILES)",
+    "clause-2023": "14.9.41.4 GR9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR9",
+      "quote": "the file position indicator is set to the relative record number of the first logical record in the file whose key satisfies the comparison searching the file in reverse order",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR9",
+      "quote": "the file position indicator is set to the relative record number of the first logical record in the file whose key satisfies the comparison searching the file in reverse order",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "relative START numeric comparison; forward search for EQUAL/GREATER/NOT LESS/>=, reverse for LESS/NOT GREATER/<=; invalid key when none"
+    ],
+    "evidence-2002": {
+     "forward / reverse / invalid": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.41-START/pb370_start_forward_operators, pb370_start_relative_reverse (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)"
+    },
+    "reason": "Same words apart from the cross-reference to numeric comparison (8.8.4.1.1.3 / 8.8.4.2.4). The 2002 numeric comparison applies standard arithmetic rounding under ARITHMETIC IS STANDARD, but a relative key and a relative record number are integers of at most 31 digits, so no comparison here can differ.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.38.3-1",
+    "to": [
+     "GR-14.9.42.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.38.3 GR1 -> 14.5.10",
+    "clause-2023": "14.9.42.4 GR1 -> 14.6.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR1",
+      "quote": "The operations described in 14.5.10, Normal run unit termination, are performed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.42.4 GR1",
+      "quote": "The operations described in 14.6.11, Normal run unit termination, are performed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "remaining portions of any partially-received messages are eliminated from the queue",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.11",
+      "quote": "An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses in the run unit",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "14.5.10 rule 1: implicit CLOSE of open files, no declaratives",
+     "14.5.10 rule 2: partially-received messages eliminated from the queue, unterminated SEND portions purged (communication facility)",
+     "14.5.10 rules 3-5: the remaining run-unit termination operations"
+    ],
+    "evidence-2002": {
+     "rules 1, 3-5": "covered by conformance-test:RunUnitScopeHostTests and unit:RunUnitStateDriftTests (run-time library; no edition input)",
+     "rule 2 (MCS)": "not shown by the pointer; candidate unit:MessageControlTests.AMessagePartlyReceivedByARunUnitThatEnded_IsNotCounted, APortionSentAndNotEnded_IsPurgedWhenTheRunUnitEnds_AndNeverReachesTheDestination, PortionNotEnded_IsPurgedWithTheRunUnit (they end the session as RunUnit.Terminate does, not through a compiled STOP RUN)"
+    },
+    "reason": "The rule defers to Normal run unit termination, which in 2002 has a communication item (rule 2: partial received messages eliminated, unterminated SEND portions purged) that 2023 14.6.11 lacks (2023 adds COMMIT, dynamic storage and message-tag items instead). The communication facility is optional in 2002 (3.1) but the compiler provides it at --std 2002 (MessageControlSession), so the item is in scope. Not probed: its effect is visible only to another run unit sharing the MCS store; the unit tests above are the candidate witnesses.",
+    "probe": null,
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for 14.5.10 rule 2 after STOP RUN (the MessageControlTests unit tests are candidates; a two-program run sharing the MCS store would be the direct witness); otherwise KEPT",
+    "compiler-at-2002": "not probed: the purge is observable only from a second run unit on the same MCS store"
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-3",
+    "to": [
+     "SR-14.9.43.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39.2 SR3",
+    "clause-2023": "14.9.43.3 SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR3",
+      "quote": "Identifier-3 shall not be reference modified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR4",
+      "quote": "Identifier-3 shall not be reference-modified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "STRING INTO identifier-3 shall not be reference modified"
+    ],
+    "evidence-2002": {
+     "refusal": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.43-STRING/pb88-string-into-refmod (refused COBOL1651 at --std 2002, log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)"
+    },
+    "reason": "Identical but for the hyphen. The 2002 STRING general format matches 2023 (the ellipsis of identifier-1 is placed differently in the transcription, same meaning).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-1",
+    "to": [
+     "GR-14.9.43.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.39.3 GR1",
+    "clause-2023": "14.9.43.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR1",
+      "quote": "Literal-2 or the content of the data item referenced by identifier-2 indicates the character(s) delimiting the move",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR1",
+      "quote": "If the SIZE phrase is associated with an identifier-1 that references a dynamic-length elementary item, the current length of the data item is used",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "DELIMITED BY literal-2 / identifier-2: delimiter characters",
+     "DELIMITED BY SIZE: complete sending item",
+     "alphanumeric and national operands"
+    ],
+    "evidence-2002": {
+     "national, literal-2 and SIZE": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.43-STRING/pb1179_string_into_national_receiver (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "alphanumeric, identifier-2 delimiter": "not shown by the pointer at 2002 (pb1179_string_receiver_arms is refused at 2002: DYNAMIC LENGTH is a 2014 element); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002.cob leg 1 -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002-2002.out"
+    },
+    "reason": "The 2002 rule lacks 2023's dynamic-length sentence (2014 element), so 2002 is a subset. But the pointer's alphanumeric witness is a 2014+ program and does not compile at 2002; its other witness is national only. The probe shows literal-2, identifier-2 (\"--\") and SIZE delimiting at 2002: R1=ABCDXYZ!.. as derived.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002.cob",
+    "widening": "dynamic-length identifier-1 with SIZE (2014+)",
+    "class": "other",
+    "needs": "a 2002 witness for the alphanumeric literal-2 / identifier-2 / SIZE delimiting (str-2002.cob leg 1 is the candidate); otherwise KEPT",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002-2002.out"
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-10",
+    "to": [
+     "GR-14.9.43.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39.3 GR10",
+    "clause-2023": "14.9.43.4 GR10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR10",
+      "quote": "the result of the execution of this statement is undefined, even if they are defined by the same data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR10",
+      "quote": "the result of the execution of this statement is undefined, even if they are defined by the same data description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "overlap of identifier-1/2 with identifier-3/4, or 3 with 4: result undefined"
+    ],
+    "evidence-2002": {
+     "overlap legs": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.43-STRING/pb1908_string_overlap_sender, _delimiter, _pointer, _linkage, _function, pb1908_string_function_order (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)"
+    },
+    "reason": "Same words; only the cross-reference differs (14.5.9 / 14.6.10). The 2002 and 2023 Overlapping operands clauses differ for operands of the same description entry, but this rule itself makes the result undefined \"even if they are defined by the same data description entry\", so the referenced difference does not reach it.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-8",
+    "to": [
+     "GR-14.9.43.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.39.3 GR8; 14.5.12.1.3",
+    "clause-2023": "14.9.43.4 GR8; 14.6.13.1.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR8",
+      "quote": "If the ON OVERFLOW phrase is not specified, execution continues as specified in 14.5.12.1.3, Non-fatal exception conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR8",
+      "quote": "If the ON OVERFLOW phrase is not specified, execution continues as specified in 14.6.13.1.4, Nonfatal exception conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If a conditional phrase with a NOT phrase is specified in the interrupted statement, imperative-statement in that phrase is not executed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "pointer < 1 or > length before a move: no transfer, EC-OVERFLOW-STRING, ON OVERFLOW",
+     "no ON OVERFLOW: non-fatal processing (declarative when checked; NOT ON OVERFLOW not executed)"
+    ],
+    "evidence-2002": {
+     "pointer below one / beyond length": "not shown at 2002 by the pointer (its conformance-tests compile at --std 2023; pb1179_string_receiver_arms is refused at 2002); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002.cob legs 2, 3",
+     "overflow without ON OVERFLOW, checked": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002.cob leg 4 (DECL EC-OVERFLOW-STRING, NOT ON OVERFLOW not run, R3=ABCD P=05)"
+    },
+    "reason": "Same words apart from the non-fatal clause reference; 2002 14.5.12.1.3 and 2023 14.6.13.1.4 agree for a STRING (2023 adds the exception-checking PERFORM). The difference is evidence: no pointer witness runs at 2002; the probe does.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for GR8 a)-e) (str-2002.cob legs 2-4 are the candidate); otherwise KEPT",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002-2002.out"
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-9",
+    "to": [
+     "GR-14.9.43.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39.3 GR9",
+    "clause-2023": "14.9.43.4 GR9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR9",
+      "quote": "If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR9",
+      "quote": "If control is returned from imperative-statement-2, control is then transferred to the end of the STRING statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "no overflow with NOT ON OVERFLOW: ON OVERFLOW ignored, imperative-statement-2 executed, explicit transfer honoured, else end of STRING"
+    ],
+    "evidence-2002": {
+     "NOT ON OVERFLOW / ON ignored": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.48-UNSTRING/phrase_order_overflow (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "explicit transfer in imperative-statement-2": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002.cob legs 5, 6 (GO TO leaves; ON OVERFLOW ignored)"
+    },
+    "reason": "The words differ only in the closing sentences: 2002 spells out an explicit transfer in imperative-statement-2, 2023 says \"If control is returned from imperative-statement-2\". Both mean control leaves on a GO TO and otherwise reaches the end of the STRING; nothing a program can show differs. The pointer witness phrase_order_overflow passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/str-2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.40.2-1",
+    "to": [
+     "SR-14.9.44.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.40.2 SR1; 14.6.6 rule 2",
+    "clause-2023": "14.9.44.3 SR1; 14.7.7 rule 2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.2 SR1",
+      "quote": "When native arithmetic is in effect, the composite of operands described in 14.6.6, Arithmetic statements, is determined as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.3 SR1",
+      "quote": "When native arithmetic is in effect, the composite of operands described in 14.7.7, Arithmetic statements, is determined as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "the composite of operands shall not contain more than 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "Storing of a standard intermediate data item in a resultant-identifier shall be according to the rules for the MOVE statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "native arithmetic: composite of operands <= 31 digits, format 1 all operands",
+     "format 2 excluding the GIVING items",
+     "format 3 per pair",
+     "no limit under ARITHMETIC IS STANDARD"
+    ],
+    "evidence-2002": {
+     "format 2": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.2-ADD/ca4_giving_composite (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "format 1 refusal": "not shown by the pointer; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-comp-native.cob (COBOL0805 at 2002)",
+     "format 3 refusal": "not shown by the pointer; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-comp-native3.cob (COBOL0805 at 2002)",
+     "standard arithmetic admits a wider composite": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std.cob (34-digit composite accepted at 2002 under ARITHMETIC IS STANDARD)"
+    },
+    "reason": "Same words but the cross-reference; 2002 14.6.6 rule 2 is 2023 14.7.7 rule 2 without the standard floating-point usages and literals (2023 elements). The pointer's only witness is a format 2 positive case; formats 1 and 3 and the native-only condition are shown by the probes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-comp-native.cob",
+    "widening": "standard floating-point usages and floating-point literals excluded from the composite (2023)",
+    "class": "other",
+    "needs": "a 2002 witness for the format 1 and format 3 composite refusals (probes sub-comp-native.cob, sub-comp-native3.cob are candidates); otherwise KEPT",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-comp-native-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-comp-native3-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std-2002.out (compiles)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.40.2-6",
+    "to": [
+     "SR-14.9.44.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.40.2 SR6 (FORMAT 3)",
+    "clause-2023": "14.9.44.3 SR6 (FORMAT 3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.2 SR6",
+      "quote": "Identifier-4 and identifier-5 shall be alphanumeric group items, national group items, or strongly-typed group items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.3 SR6",
+      "quote": "Identifier-4 and identifier-5 shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-4/5: alphanumeric, national or strongly-typed group items; not level 66; bit groups and elementary items refused"
+    ],
+    "evidence-2002": {
+     "admitted kinds": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.2-ADD/pb392_corresponding_group_kinds, E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.44-SUBTRACT/pb393_corresponding_odo_group (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "refusals": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.2-ADD/pb392-subtract-corresponding-bit-group, pb236-add-corr-elementary, pb236-add-corr-level-66 (refused COBOL1757 at 2002, log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)"
+    },
+    "reason": "The 2002 list lacks only variable-length groups (a 2023 element): 2002 is a subset and every pointer witness behaves at 2002.",
+    "probe": null,
+    "widening": "variable-length groups (2023)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.40.3-1",
+    "to": [
+     "GR-14.9.44.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.40.3 GR1",
+    "clause-2023": "14.9.44.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.3 GR1",
+      "quote": "When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.4 GR1",
+      "quote": "When standard-decimal arithmetic, or standard-binary arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "When a standard intermediate data item is being moved to a resultant-identifier for which the ROUNDED phrase has not been specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.4.2 GR2",
+      "quote": "the techniques used in handling arithmetic expressions, arithmetic statements, the SUM clause, and certain integer and numeric functions shall be those specified for standard arithmetic",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 under native arithmetic",
+     "format 1 under 2002 standard arithmetic (ARITHMETIC IS STANDARD)"
+    ],
+    "evidence-2002": {
+     "native format 1": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.44-SUBTRACT/l1_subtract_format1_initial_evaluation (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "2002 standard arithmetic": "not shown by the pointer (its standard witnesses use STANDARD-DECIMAL, refused at 2002: l1_subtract_format1_standard_decimal, pb228_subtract_standard_decimal_order); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std.cob -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std-2002.out"
+    },
+    "reason": "The 2002 rule's second paragraph is conditioned on \"standard arithmetic\" (2002 8.8.1.3: 32 significant digits, truncated per operation, rounded to 31 digits on the final move without ROUNDED); 2023's on standard-decimal or standard-binary arithmetic, different modes the 2002 text does not have. The 2023 row's witnesses of that leg use STANDARD-DECIMAL, which the compiler refuses at 2002. Under ARITHMETIC IS STANDARD the probe shows the pinned compiler computing with more than 32 digits. Known defect kb/Work PB5575 reaches this rule: the pinned tree (coderead85-tree-d, 24372b7b17) has only the compile-time arm; the run-time arm (32-digit truncation, 31-digit rounding at the final transfer) landed on main 2026-11-15 after the pin (bb0c8648e1 and its landing), so the probe must be re-run on a post-landing build before the row is closed. Not a new defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: format 1 SUBTRACT under 2002 standard arithmetic; re-probe sub-std.cob on a build with the PB5575 run-time arm (expected F1 Z= 5.000) and adopt it as the 2002 witness",
+    "compiler-at-2002": "wrong (pinned tree): program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std.cob; expected \"F1 Z= 5.000\" (§2002:8.8.1.3.2, §2002:8.8.1.3.1.3, §2002:14.8.40.3 GR1); observed \"F1 Z= 4.999\" (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std-2002.out). Reach of known PB5575."
+   },
+   {
+    "rule-id": "2002-GR-14.8.40.3-2",
+    "to": [
+     "GR-14.9.44.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.40.3 GR2",
+    "clause-2023": "14.9.44.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.3 GR2",
+      "quote": "When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.4 GR2",
+      "quote": "When standard-decimal arithmetic, or standard-binary arithmetic is in effect, the result of the subtraction is equivalent to the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "When a standard intermediate data item is being moved to a resultant-identifier for which the ROUNDED phrase has not been specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.4.2 GR2",
+      "quote": "the techniques used in handling arithmetic expressions, arithmetic statements, the SUM clause, and certain integer and numeric functions shall be those specified for standard arithmetic",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 2 under native arithmetic",
+     "format 2 under 2002 standard arithmetic (ARITHMETIC IS STANDARD)"
+    ],
+    "evidence-2002": {
+     "native format 2": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.26-MULTIPLY/pb134_giving_sending_operands (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "2002 standard arithmetic": "not shown by the pointer (its standard witnesses use STANDARD-DECIMAL, refused at 2002: l1_subtract_format1_standard_decimal, pb228_subtract_standard_decimal_order); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std.cob -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std-2002.out"
+    },
+    "reason": "The 2002 rule's second paragraph is conditioned on \"standard arithmetic\" (2002 8.8.1.3: 32 significant digits, truncated per operation, rounded to 31 digits on the final move without ROUNDED); 2023's on standard-decimal or standard-binary arithmetic, different modes the 2002 text does not have. The 2023 row's witnesses of that leg use STANDARD-DECIMAL, which the compiler refuses at 2002. Under ARITHMETIC IS STANDARD the probe shows the pinned compiler computing with more than 32 digits. Known defect kb/Work PB5575 reaches this rule: the pinned tree (coderead85-tree-d, 24372b7b17) has only the compile-time arm; the run-time arm (32-digit truncation, 31-digit rounding at the final transfer) landed on main 2026-11-15 after the pin (bb0c8648e1 and its landing), so the probe must be re-run on a post-landing build before the row is closed. Not a new defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: format 2 SUBTRACT under 2002 standard arithmetic; re-probe sub-std.cob on a build with the PB5575 run-time arm (expected F2 G= 5.000) and adopt it as the 2002 witness",
+    "compiler-at-2002": "wrong (pinned tree): program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std.cob; expected \"F2 G= 5.000\" (§2002:8.8.1.3.2, §2002:8.8.1.3.1.3, §2002:14.8.40.3 GR2); observed \"F2 G= 4.999\" (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std-2002.out). Reach of known PB5575."
+   },
+   {
+    "rule-id": "2002-GR-14.8.40.3-3",
+    "to": [
+     "GR-14.9.44.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.40.3 GR3",
+    "clause-2023": "14.9.44.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.3 GR3",
+      "quote": "When standard arithmetic is in effect, the result of the subtraction is equivalent to",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.4 GR3",
+      "quote": "When standard-decimal arithmetic, or standard-binary arithmetic is in effect, the result of the subtraction is equivalent to",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "When a standard intermediate data item is being moved to a resultant-identifier for which the ROUNDED phrase has not been specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.4.2 GR2",
+      "quote": "the techniques used in handling arithmetic expressions, arithmetic statements, the SUM clause, and certain integer and numeric functions shall be those specified for standard arithmetic",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 3 under native arithmetic",
+     "format 3 under 2002 standard arithmetic (ARITHMETIC IS STANDARD)"
+    ],
+    "evidence-2002": {
+     "native format 3": "covered by conformance-test:CorrespondingDifferentialTests.SubtractCorr_TargetMinusSource_CorrToken and E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.44-SUBTRACT/pb393_corresponding_odo_group (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "2002 standard arithmetic": "not shown by the pointer (its standard witnesses use STANDARD-DECIMAL, refused at 2002: l1_subtract_format1_standard_decimal, pb228_subtract_standard_decimal_order); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/subcorr-std.cob -> E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/subcorr-std-2002.out"
+    },
+    "reason": "The 2002 rule's second paragraph is conditioned on \"standard arithmetic\" (2002 8.8.1.3: 32 significant digits, truncated per operation, rounded to 31 digits on the final move without ROUNDED); 2023's on standard-decimal or standard-binary arithmetic, different modes the 2002 text does not have. The 2023 row's witnesses of that leg use STANDARD-DECIMAL, which the compiler refuses at 2002. Under ARITHMETIC IS STANDARD the probe shows the pinned compiler computing with more than 32 digits. Known defect kb/Work PB5575 reaches this rule: the pinned tree (coderead85-tree-d, 24372b7b17) has only the compile-time arm; the run-time arm (32-digit truncation, 31-digit rounding at the final transfer) landed on main 2026-11-15 after the pin (bb0c8648e1 and its landing), so the probe must be re-run on a post-landing build before the row is closed. Not a new defect. Note: both editions write the standard leg as (operand-1 - operand-2) with operand-1 from identifier-4, which contradicts the first sentence (\"subtracted from ... identifier-5\") and GR5; the compiler follows GR5 (identifier-5 minus identifier-4) in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/subcorr-std.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: format 3 SUBTRACT under 2002 standard arithmetic; re-probe subcorr-std.cob on a build with the PB5575 run-time arm (expected A=1000000000000000000000000000000) and adopt it as the 2002 witness",
+    "compiler-at-2002": "wrong (pinned tree): program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/subcorr-std.cob; expected \"A=1000000000000000000000000000000\" (§2002:8.8.1.3.2, §2002:8.8.1.3.1.3, §2002:14.8.40.3 GR3); observed \"A=0999999999999999999999999999999\" (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/subcorr-std-2002.out). Reach of known PB5575."
+   },
+   {
+    "rule-id": "2002-GR-14.8.40.3-5",
+    "to": [
+     "GR-14.9.44.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.40.3 GR5; 14.6.5",
+    "clause-2023": "14.9.44.4 GR5; 14.7.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.3 GR5",
+      "quote": "Data items within identifier-4 are selected to be subtracted from selected data items within identifier-5 according to the rules specified in 14.6.5, CORRESPONDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.4 GR5",
+      "quote": "Data items within identifier-4 are selected to be subtracted from selected data items within identifier-5 according to the rules specified in 14.7.6, CORRESPONDING phrase",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CORRESPONDING selection per 2002 14.6.5 (alphanumeric, bit, national, strongly-typed groups); each pair as a separate SUBTRACT"
+    ],
+    "evidence-2002": {
+     "selection and per-pair results": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.44-SUBTRACT/pb393_corresponding_odo_group, E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.2-ADD/pb229_corresponding_size_error_per_pair (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log) and conformance-test:CorrespondingDifferentialTests.SubtractCorr_TargetMinusSource_CorrToken"
+    },
+    "reason": "Same words but the cross-reference. 2002 14.6.5 is 2023 14.7.6 without variable-length groups and message-tag (2023 elements) and with an extra sentence (\"Alphanumeric groups and strongly-typed group items are processed as group items as usual\") that changes no selection. The 2002-program witnesses pass at 2002.",
+    "probe": null,
+    "widening": "variable-length groups (2023)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.40.3-6",
+    "to": [
+     "GR-14.9.44.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.40.3 GR6",
+    "clause-2023": "14.9.44.4 GR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.3 GR6",
+      "quote": "Additional rules and explanations relative to this statement are given in 14.5.9, Overlapping operands",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.4 GR6",
+      "quote": "Additional rules and explanations relative to this statement are given in 14.6.13.2, Incompatible data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "the composite of operands shall not contain more than 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "Storing of a standard intermediate data item in a resultant-identifier shall be according to the rules for the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "if standard arithmetic is specified for the source unit or the implementor defines that the range of values allowed for the intermediate data item is to be checked",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "14.5.9 Overlapping operands (2002 only; results undefined across entries)",
+     "14.5.12.2 Incompatible data",
+     "14.6.3 ROUNDED (no MODE in 2002)",
+     "14.6.4 SIZE ERROR, including rule 4: the standard intermediate range under standard arithmetic",
+     "14.6.5 CORRESPONDING",
+     "14.6.6 Arithmetic statements, including rule 3: standard arithmetic statements defined by arithmetic expressions, stored by the MOVE rules"
+    ],
+    "evidence-2002": {
+     "incompatible data": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.44-SUBTRACT/pb395_subtract_incompatible_sender (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "SIZE ERROR / ROUNDED (native)": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.2-ADD/optional_on_size_error (PASS at --std 2002 on the pinned tree, run with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/run.py; log E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/cases-2002.log)",
+     "overlapping operands": "no requirement: 2002 14.5.9 leaves the result undefined unless a statement rule defines it",
+     "standard arithmetic legs of 14.6.4 and 14.6.6": "not shown by the pointer; probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/subcorr-std.cob show the pinned compiler not applying 2002 standard arithmetic (PB5575)"
+    },
+    "reason": "The 2002 list names 14.5.9 Overlapping operands, which 2023 drops (2023 14.7.7 NOTE 3 defines the results instead; 2002 leaves them undefined, so 2023 behaviour satisfies 2002). The referenced 2002 clauses 14.6.4 and 14.6.6 carry standard arithmetic arms (standard intermediate range check; statements defined by expressions) that 2023 replaces with standard-decimal / standard-binary. Known defect kb/Work PB5575 reaches this rule: the pinned tree (coderead85-tree-d, 24372b7b17) has only the compile-time arm; the run-time arm (32-digit truncation, 31-digit rounding at the final transfer) landed on main 2026-11-15 after the pin (bb0c8648e1 and its landing), so the probe must be re-run on a post-landing build before the row is closed. Not a new defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-28/sub-std.cob",
+    "widening": "ROUNDED MODE, PERFORM WHEN, standard-decimal/binary and floating-point legs (2014/2023)",
+    "class": "deferral",
+    "needs": "its own verdict: the 2002 standard arithmetic arms of 14.6.4 and 14.6.6 for SUBTRACT, re-probed on a build with the PB5575 run-time arm; the native legs are KEPT",
+    "compiler-at-2002": "wrong (pinned tree) for the standard-arithmetic leg only: see 2002-GR-14.8.40.3-1/-2/-3 probes; reach of known PB5575"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-28",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.36.3-11",
+    "verdict": "UPHELD",
+    "reason": "2002 SORT format 1 USING phrase, SR1-SR12 and GR11 a)-c) match 2023 GR12 word for word (non-fatal/nonfatal). The rule defers to 'applicable USE procedures' and to the non-fatal/fatal class of the implicit OPEN's exception: the 2002 EC-I-O fatality table (AT-END, INVALID-KEY, FILE-SHARING, RECORD-OPERATION NF; PERMANENT-ERROR, LOGIC-ERROR fatal) is the 2023 one less EC-I-O-WARNING and EC-I-O-RECORD-CONTENT (2023 additions), and EC-SORT-MERGE-RELEASE is Fatal in both. The one place a 2023 addition could leak back (a successful nonzero OPEN status running a USE procedure) was probed: an OPTIONAL absent USING file under >>TURN EC-I-O CHECKING ON with a USE ... ON file declarative runs no declarative at --std 2002 (and 2023). No CD or removed form reaches the USING file (SR8 bars report and sort-merge files; RECORD DELIMITER and PADDING CHARACTER exist in both editions or do not change the as-if READ).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR11",
+      "quote": "If a non-fatal exception condition exists as a result of the execution of the implicit OPEN statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-28/using-05.cob (outputs using-05-2002.out, using-05-2023.out: no DECL line, AFTER U=00)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-14",
+    "verdict": "UPHELD",
+    "reason": "GIVING phrase, SR8/SR9/SR11 and GR14 a)-c) match 2023 GR15 (beyond/outside, non-fatal/nonfatal, '14c'/'15c' self-reference). The USE procedures the implicit WRITE can run are named by the rule itself ('any associated USE AFTER EXCEPTION/ERROR procedures'), same words in both, so the 9.1.13/9.1.14 difference that overturns START GR6 does not reach this rule's own text; the reader's giving-02 probe covers the 2023-only successful-nonzero-status leg at 2002. Relative key 1,2,... and fatal/non-fatal OPEN legs have 2002-program witnesses passing at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-10",
+    "verdict": "UPHELD",
+    "reason": "2002's 'RELATIVE KEY phrase of the ACCESS MODE clause' names the item the 2002 RELATIVE KEY clause (12.3.4.13) references; SR5 confirms it ('the data item specified in the RELATIVE KEY clause'). Checked the one 2023 change that touches relative keys (E.2 item 24, external files): 2002 12.3.4.3 GR1 i) already requires the same RELATIVE KEY specification referencing an external item, so no 2002 program has a per-runtime-element relative key item that 2023 forbids.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.3 GR1",
+      "quote": "The same specification of the RELATIVE KEY clause, where data-name-7 references an external data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR1",
+      "quote": "The same specification of the RELATIVE KEY clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-16",
+    "verdict": "UPHELD",
+    "reason": "START general format identical in both editions (FIRST / KEY ... WITH LENGTH / LAST, INVALID KEY group). 2002 SR6 equals 2023 SR6; 2002 SR4 (qualification) vs 2023 SR4 (no OCCURS) is outside this rule. 2002 RECORD KEY keys are alphanumeric or national only (12.3.4.12 SR2), as in 2023. Only widening is SUPPRESS WHEN (2023).",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-17",
+    "verdict": "UPHELD",
+    "reason": "2002 GR17 a)-e) equal 2023 GR17 without the SUPPRESS WHEN sentence (2023 addition). The comparison is alphanumeric or national of equal length in both; 2002 record keys cannot be of another class (12.3.4.12 SR2), so no 2002-only operand class reaches e). Witnesses named by the reader pass at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-4",
+    "verdict": "UPHELD",
+    "reason": "Same sentence; the I-O status values START can produce (00, 23, 46, 47, 9x) are unchanged. The 2023 status changes in E.2 (items 15-18: 04, 07, 0x, 37) and EC-I-O-WARNING concern OPEN/CLOSE/READ or are enabled only by an explicit 2023 TURN, so none reaches a 2002 START.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-6",
+    "verdict": "OVERTURNED",
+    "reason": "The rule has no content of its own: transfer of control is 'as specified in 9.1.13'. That referenced clause is not the same text as 2023 9.1.14. 2002 9.1.13 3)/4) run only 'a USE AFTER EXCEPTION procedure ... associated with the file connector' and otherwise send control to the end of the statement; 2023 9.1.14 3) runs 'any applicable exception processing statements'. 2023 Annex E.2 item 19 a) records exactly this as a substantive change: with no INVALID KEY phrase, an INPUT/OUTPUT/I-O/EXTEND declarative 'would not have been executed. It will now be executed'. Under the literal 2002 reading, a START with no INVALID KEY phrase on a file open INPUT whose only declarative is USE ... ON INPUT (or a file-less USE AFTER EC EC-I-O-INVALID-KEY) runs no declarative; 2002 9.1.12 and USE GR3/GR6 b) point the other way, so 2002 is at best ambiguous here. The project's determination (kb/Work PB344) runs the declarative at every edition, but it is derived from 2023 Annex E and 1985 NIST READ tests, not from the 2002 text, and its 2002 witness (pb344_use_mode_invalid_key_2002) exercises WRITE and READ, not START. The reader's START evidence (pb352, pb870) covers only file-name declaratives. Probes at --std 2002: both declaratives run (DECL-INPUT FS=23; DECL-EC-IK FS=23), the same as at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR6",
+      "quote": "as specified in 9.1.13, Invalid key condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR6",
+      "quote": "as specified in 9.1.14, Invalid key condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "If the INVALID KEY phrase is not specified in the input-output statement and there is no USE AFTER EXCEPTION procedure associated with the file connector associated with the input-output statement, control is transferred to the end of the input-output statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.14 GR3",
+      "quote": "any applicable exception processing statements are executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "If an INVALID KEY phrase is not specified and an invalid key condition occurs, any declarative that specified INPUT, OUTPUT, I-O, or EXTEND would not have been executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "the exception condition that exists determines whether an applicable USE procedure shall be executed according to the rules in 14.8.45, USE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.45.3 GR6",
+      "quote": "unless an AT END or INVALID KEY phrase takes precedence",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "a 2002-text adjudication of 9.1.13 3)/4) against 9.1.12 and USE GR3/GR6 for an unphrased invalid key from START with an open-mode or file-less EC-I-O-INVALID-KEY declarative (extend PB344, which argues from 2023 Annex E and 1985 NIST only), then a 2002 START witness (probes start-ik-mode.cob, start-ik-ec.cob are candidates)",
+    "compiler-at-2002": "runs both declaratives at 2002 (same as 2023): correct under the PB344 reading, wrong under the literal 9.1.13 4) reading",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-28/start-ik-mode.cob (and start-ik-ec.cob; outputs start-ik-mode-2002.out, start-ik-mode-2023.out, start-ik-ec-2002.out, start-ik-ec-2023.out)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-9",
+    "verdict": "UPHELD",
+    "reason": "Same words except the numeric-comparison cross-reference. Under 2002 ARITHMETIC IS STANDARD the comparison is of an unsigned integer relative key with a relative record number, both at most 31 digits, so the 32-digit standard-arithmetic difference cannot change the outcome.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-3",
+    "verdict": "UPHELD",
+    "reason": "2002 STRING general format matches 2023 (only the ellipsis placement in the transcription differs). 2002 SR1 admits the same alphanumeric/boolean/national literals and display/national identifiers as 2023 SR1; 2023 adds only SR3 (zero-length literal-2) and SR11 (variable-length group). The refusal witness is refused at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-10",
+    "verdict": "UPHELD",
+    "reason": "Same words; the rule fixes the result as undefined itself ('even if they are defined by the same data description entry'), so the difference between 2002 14.5.9 and 2023 14.6.10 cannot reach it. No 2002-only operand class exists in STRING.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-9",
+    "verdict": "UPHELD",
+    "reason": "2002 spells out explicit transfer from imperative-statement-2; 2023 says 'If control is returned from imperative-statement-2'. A GO TO out of imperative-statement-2 leaves the STRING in both; otherwise control reaches the end of the STRING. No program can show a difference; the reader's phrase_order_overflow and str-2002.cob legs 5-6 run at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.40.2-6",
+    "verdict": "UPHELD",
+    "reason": "2002 list (alphanumeric, national, strongly-typed groups; not level 66) is 2023's less variable-length groups. Bit groups are excluded by both texts even though 2002 14.6.5 names them as D1/D2. Refusal and acceptance witnesses behave at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.40.3-5",
+    "verdict": "UPHELD",
+    "reason": "2002 14.6.5 equals 2023 14.7.6 without variable-length groups and message-tag (2023 additions) and with a NOTE sentence that changes no selection. The 2002-only reach is ARITHMETIC IS STANDARD, but this rule only requires CORR results equal separate SUBTRACT statements; the per-statement standard-arithmetic result belongs to GR1/GR3 (already DIFFERENT, PB5575). Probe at --std 2002 under ARITHMETIC IS STANDARD: SUBTRACT CORR and the separate SUBTRACTs give identical results.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.3 GR5",
+      "quote": "The results are the same as if the user had referred to each pair of corresponding identifiers in separate SUBTRACT statements",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-28/corr-eqv-std.cob (output corr-eqv-std-2002.out: CORR and SEP lines equal)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "a9d7ee486246c77d6d9fef42635b40d611ecef047b8c1ddaa6f55268e170c8f7",
+  "read": "7970c4c6a8e20b05dfb0464a61f64d7742503f7cca2448ca74cfd48eb1de2ad5",
+  "refute": "5aea537f8d28cfdf69c82a81c601e3e90a9b2190d456d865f7dfb2c72afa8177"
+ }
+}

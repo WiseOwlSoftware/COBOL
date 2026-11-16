@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.14.1",
+ "rule-digest": "7e67601c980e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog",
+ "test-ref": "conformance:cases/15.16.4-Returned-value-rules/char_national",
+ "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.16.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; witness runs at 2002. Cited: §2002:15.14."
+}

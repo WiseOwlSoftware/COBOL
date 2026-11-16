@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.3.3-6",
+ "rule-digest": "99bc8cf64bb4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1357_replace_also_last",
+ "notes": "§2002:7.1.3.3 GR6: with none active, REPLACE LAST OFF has no effect and REPLACE ALSO becomes active with ALSO ignored ([X1-X2-], [AAX2-]). pb1357 (accepted at 2002) matched at --std 2002."
+}

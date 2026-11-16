@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_value_thru_through_equivalent
       *> rules: [GR-8.8.4.5.3-1, SR-13.18.63.3-28]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

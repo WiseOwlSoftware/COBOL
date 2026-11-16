@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.13.2-3",
+ "rule-digest": "577a41b38ef5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#LinageFileOf",
+ "test-ref": "conformance:cases/8.4.2.13@2002-LINAGE-COUNTER/g2lct04_linage_counter_format_forms",
+ "notes": "§2002:8.4.2.13.2 SR3 defers to §2002:8.4.1.1.2 SR6: qualification is required only when more than one LINAGE FD is specified in the source element. Run at --std 2002 with the pinned compiler (tree dc1f2dcce8): g2lct04 exit 0, MATCH .out (above); g2lct05 exit 65, error COBOL5997 at (31,17), the MOVE line, as derived (from the reader's probe p03_linage_two_fd_unqualified.cob); existing pb5166-linage-counter-own-entries-2002 prints 01, equal to its .out."
+}

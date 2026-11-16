@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: g2rct01_report_counters_in_integer_contexts
-      *> rules: [2002-SR-8.4.2.14.2-1]
+      *> rules: [2002-SR-8.4.2.14.2-1, 2002-SR-8.4.2.1.2-12]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
@@ -24,6 +24,7 @@
       *>   "LC ZERO"     IF LINE-COUNTER = 0
       *>   "SUB A"       TE (PAGE-COUNTER) is TE (1) of "ABC"
       *>   "ADD 02"      ADD PAGE-COUNTER IN RPT1 TO N (1 + 1)
+      *>                 (Format 11, §2002:8.4.2.1.2 SR12)
       *>   "SET 03"      MOVE 3 TO PAGE-COUNTER, then MOVE it to N
       *>   "SENT"        both SENDs accepted (MCS disposition not shown)
        IDENTIFICATION DIVISION.

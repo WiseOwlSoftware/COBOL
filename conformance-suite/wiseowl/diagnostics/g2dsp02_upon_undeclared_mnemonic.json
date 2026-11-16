@@ -1,0 +1,1 @@
+{"refuse-at": ["2002"], "expect": "COBOL0817: DISPLAY UPON 'NO-SUCH-DEV': not a mnemonic-name declared in SPECIAL-NAMES"}

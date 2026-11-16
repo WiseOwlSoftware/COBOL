@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-SR-7.2.2-10",
  "rule-digest": "a242996b78c2",
- "test-ref": "conformance:cases/7.3-Compiler-directives/pb807-display-directive-concatenation",
+ "test-ref": "conformance:cases/7.3-Compiler-directives/pb807-define-directive-concatenation",
+ "notes": "retired-witness: conformance:cases/7.3-Compiler-directives/pb807-display-directive-concatenation (refused at 2002 also by the COBOL0900 introduction gate of the 2023 >>DISPLAY directive, so its 2002 refusal witnesses no 2002 rule; its band is 2023 again (records-2002-reads-2 review R1-1); the >>DEFINE form pb807-define-directive-concatenation is refused at 2002 by COBOL1619 alone)",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

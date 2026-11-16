@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.1.2-4",
+ "rule-digest": "b0b6c1da5be5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#SumCounterFor; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk",
+ "test-ref": "conformance:cases/8.4.1.1@2002-Qualification/g2-qual-cd-name-two-cds; conformance:cases/8.4.1.1@2002-Qualification/g2-qual-cd-name-misordered",
+ "notes": "§2002:8.4.1.1.2 SR4: qualifiers innermost first, a condition-name in its conditional variable's hierarchy, which under a CD ends in the cd-name: FLD-YES IN FLD IN RECB IN CDB accepted and tested correctly at --std 2002; FLD-YES OF CDA OF RECA refused COBOL1639 (g2-qual-cd-name-misordered)."
+}

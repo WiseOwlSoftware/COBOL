@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.75.1",
+ "rule-digest": "491ac9a537d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.90.4-Returned-value-rule/intrinsics_test_validators",
+ "notes": "Own verdict from the read lineage-reads-2002/u-55.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.93.2, witnessed at 2002 by the cases test-ref names. The read: The 2002 general format of TEST-NUMVAL is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused. Cited: §2002:15.75."
+}

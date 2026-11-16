@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.16.2-1",
+ "rule-digest": "1dd7d1e8e34f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandClassScreen",
+ "test-ref": "conformance:cases/14.8.16@2002-GO-TO-STATEMENT/g2goto01_cd_depending_integer",
+ "notes": "§2002:14.8.16.2 SR1 admits only a numeric elementary integer: CD DESTINATION COUNT and a CD record PIC 9 item select per §2002:14.8.16.3 GR2 (G1 P2, G2 Q3, G3 FELL), and STATUS KEY, a PIC 9V9 CD item and a CD group are refused COBOL2324; the --std 2002 runs matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.16.2-1",
+ "rule-digest": "c5edfced89ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.19-PAGE/l1c21_page_directive_comment_text",
+ "notes": "Own verdict from the read lineage-reads-2002/u-03.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-7.3.19.3-1, witnessed at 2002 by the cases test-ref names. The read: Only '6' vs 'Clause 6'. The referenced rule 3b is word-identical in both editions (2002 clause 6 rule 3b, 2023 6.1 rule 3b). Same format (>>PAGE [comment-text-1]). The pointer's witness l1c21_page_directive_comment_text (accept: [2002]) runs at --std 2002 and matches. Cited: §2002:7.2.16.2 SR1; §2002:6."
+}

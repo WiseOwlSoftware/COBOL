@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.19.2-1",
+ "rule-digest": "c0b2afa7978e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb416-initialize-target-class-index",
+ "notes": "Own verdict from the read lineage-reads-2002/u-23.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.20.3-1, witnessed at 2002 by the cases test-ref names. The read: 2023 adds message-tag (not a 2002 class: no MESSAGE-TAG in the 2002 text). Format identical except the category-name list's 2023 additions. Cited: §2002:14.8.19.2 SR1."
+}

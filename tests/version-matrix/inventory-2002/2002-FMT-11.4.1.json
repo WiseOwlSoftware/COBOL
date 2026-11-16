@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-11.4.1",
+ "rule-digest": "6595663269b7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#functionIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#externalizedNamePhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#prototypePhrase; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+ "test-ref": "conformance:cases/11.5-FUNCTION-ID/l1c10_function_id_prototype_as_and_is",
+ "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-11.5.2, witnessed at 2002 by the cases test-ref names. The read: Identical formats; the row's golden runs at 2002. Cited: §2002:11.4.1."
+}

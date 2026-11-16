@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb317_open_no_rewind_85
       *> rules: [GR-9.1.13.2-6, GR-14.9.27.4-11]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

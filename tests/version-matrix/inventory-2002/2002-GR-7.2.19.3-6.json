@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.19.3-6",
+ "rule-digest": "5fc390ca1259",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#EnabledAtHeader; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Fold",
+ "test-ref": "conformance:cases/7.2.19@2002-TURN-DIRECTIVE/g2trn06_off_disables_following",
+ "notes": "§2002:7.2.19.3 GR6 witnessed on EC-I-O-AT-END: an OFF inside a READ leaves that READ checked, disables following statements until an ON, and with file-name-1 disables only that file; the --std 2002 run of the rebuilt case matched the derived output."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-36",
+ "rule-digest": "d33669af0d97",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReleaseOrdinals; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Release",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c38_write_alt_key_dup_order",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.51.4-40, witnessed at 2002 by the cases test-ref names. The read: Spelling only ('nonunique'/'non unique'). The 2023 suppression rule (GR41) is separate and 2023-only. Cited: §2002:14.8.47.3 GR36."
+}

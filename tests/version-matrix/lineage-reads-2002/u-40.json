@@ -1,0 +1,1776 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-40 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-40",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-DOC-B.1-75",
+   "2002-DOC-B.1-76",
+   "2002-DOC-B.1-77",
+   "2002-DOC-B.1-78",
+   "2002-DOC-B.1-79",
+   "2002-DOC-B.1-8",
+   "2002-DOC-B.1-80",
+   "2002-DOC-B.1-81",
+   "2002-DOC-B.1-82",
+   "2002-DOC-B.1-83",
+   "2002-DOC-B.1-84",
+   "2002-DOC-B.1-85",
+   "2002-DOC-B.1-86",
+   "2002-DOC-B.1-87",
+   "2002-DOC-B.1-88",
+   "2002-DOC-B.1-89",
+   "2002-DOC-B.1-9",
+   "2002-DOC-B.1-90",
+   "2002-DOC-B.1-94",
+   "2002-DOC-B.1-95",
+   "2002-DOC-B.1-96",
+   "2002-DOC-B.1-97",
+   "2002-DOC-B.1-98",
+   "2002-DOC-B.1-99",
+   "2002-FMT-11.1.1"
+  ],
+  "pointers": {
+   "2002-DOC-B.1-75": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-98",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-76": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-77": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-101",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-78": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-79": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-103",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-8": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-8",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-80": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-104",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-81": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-105",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-82": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-106",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-83": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-107",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-84": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-108",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-85": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-109",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-86": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-110",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-87": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-111",
+    "similarity": 0.997
+   },
+   "2002-DOC-B.1-88": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-113",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-89": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-116",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-9": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-9",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-90": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-117",
+    "similarity": 0.987
+   },
+   "2002-DOC-B.1-94": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-121",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-95": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-122",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-96": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-123",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-97": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-124",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-98": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "DOC-A.1-125",
+    "similarity": 0.838
+   },
+   "2002-DOC-B.1-99": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-126",
+    "similarity": 1.0
+   },
+   "2002-FMT-11.1.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-11.2.1",
+    "similarity": 0.985
+   }
+  }
+ },
+ "read": {
+  "slice": "u-40",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-DOC-B.1-75",
+    "to": [
+     "DOC-A.1-98"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 75 (8.3.1.2.4 National literals, GR4 second sentence)",
+    "clause-2023": "A.1 item 98 (8.3.3.5 National literals, GR5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the implementor's mapping of a hexadecimal-national hex-character-sequence-1 to a character when national characters do not occupy a multiple of four bits; conditionally required, the condition being such a coded character set"
+    ],
+    "evidence-2002": [
+     "the condition is absent at --std 2002 exactly as at 2023: national characters are UTF-16 code units (4 hex digits each, 16 bits); covered by conformance:cases/8.3.3.5-National-literals/l1c12_hex_national_no_character (accept [2002], re-run at --std 2002: MATCH, runcase-4.log) and probe p95.log (NX\"004100420043\" -> ABC, LENGTH(NX\"00410042\") = 2 at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Hexadecimal national literals (mapping when characters not multiples of four bits). This item is conditionally required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Hexadecimal national literals (mapping when characters not multiples of four bits)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR4",
+      "quote": "The implementor also defines the mapping of each hex-character-sequence-1 to a character, when the characters do not occupy a multiple of four bits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR5",
+      "quote": "The implementor also defines the mapping of each hex-character-sequence-1 to a character, when the characters do not occupy a multiple of four bits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Conditionally required: If the associated feature or language element is implemented then this element is also required",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words; 2002 puts the sentence in GR4 (with the runtime value), 2023 splits it into GR5 (A.1 98 still cites GR4: a stale cross-reference only). The B.1 preamble's 'conditionally required' licence is word-identical, so the 2023 DOCUMENTED-NON-SUPPORT (condition absent) carries; the national representation is the same at 2002 (probe). 2023 also admits zero-length NX literals (2002 SR1 forbids them) but the mapping item never applies to an empty sequence.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p95.log",
+    "widening": null,
+    "licence-2002": "§2002:B.1 preamble 'Conditionally required: If the associated feature or language element is implemented then this element is also required' (the condition, a character set whose characters are not multiples of four bits, does not exist in the implementation)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-76",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 76 (Table 14, 14.5.12.1 Exception conditions)",
+    "clause-2023": "A.1 items 99 and 100 (Table 13)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "level-3 implementor-defined names EC-IMP-suffix (14.5.12.1: 'starting with the characters EC-IMP-'): optional, specification of the suffix and meaning",
+     "the EC-level-2-IMP names of Table 14 (EC-ARGUMENT-IMP .. EC-VALIDATE-IMP, eighteen in 2002, fatality 'Imp'): optional, meaning and fatality"
+    ],
+    "evidence-2002": [
+     "EC-IMP-suffix not provided: refused at 2002 by wiseowl/diagnostics pb1531-ec-imp-suffix-raise/-turn/-use (refuse-at includes 2002, COBOL0711); EC-IMP level-2 valid: l1_dns_a1_99_ec_imp_level2_valid (accept [2002], re-run at 2002: MATCH, runcase-1.log)",
+     "EC-level-2-IMP names: probe p76.log: at --std 2002 sixteen of the eighteen 2002 names are valid in >>TURN, USE and RAISE and fatal (rc 1 after the declarative), EC-SCREEN-IMP refused COBOL1707 (screen section declined; 2002 licence §2002:3.1.5 + B.3), EC-VALIDATE-IMP refused COBOL1710 (VALIDATE declined at 2002: the known VALIDATE defect PB5577 reaches this name, no new defect); the 2023-only names EC-CONTINUE-IMP, EC-EXTERNAL-IMP, EC-MCS-IMP refused at 2002 (COBOL0878), as they must be"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Implementor-defined exception conditions, EC-xxx-IMP (specification of xxx, meaning). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Implementor-defined exception conditions, EC-IMP-xxx (specification and meaning of xxx). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Implementor-defined level-2 exception conditions, EC-level-2-IMP (specification and meaning of the specified level-2 exception condition)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "The level-3 exception-names for implementor-defined exceptions are defined by the implementor by creating an exception-name starting with the characters 'EC-IMP-'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "The implementor defines the action to be taken, the fatality, and when the exception is raised",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Optional: The element may be provided at the implementor's option",
+      "check": "OK"
+     }
+    ],
+    "reason": "No word-identical twin: 2002 has ONE item for every implementor-defined exception name ('EC-xxx-IMP'), while 2023 has two (item 99, the EC-IMP-suffix level-3 names, and item 100, the EC-level-2-IMP names). The 2002 item's scope is the union of both 2023 items, restricted to the 2002 Table 14 names. Both 2023 rows carry editions 2002,2014,2023 and both halves hold at --std 2002 (probe p76.log, the pb1531 refusals, l1_dns_a1_99). Split-rule, closable by KEPT to both targets.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p76.log",
+    "widening": null,
+    "class": "split-rule",
+    "second-targets": [
+     "DOC-A.1-99",
+     "DOC-A.1-100"
+    ],
+    "needs": "KEPT to both targets DOC-A.1-99 (DOCUMENTED-NON-SUPPORT) and DOC-A.1-100 (CONFORMS), both with editions 2002,2014,2023; 2002 witnesses: pb1531-ec-imp-suffix-* (refuse-at 2002), l1_dns_a1_99_ec_imp_level2_valid (accept 2002), probe p76.log",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p76.log); EC-VALIDATE-IMP's refusal at 2002 is the known VALIDATE non-support (PB5577), not this item's (the item is optional)",
+    "licence-2002": "§2002:B.1 preamble 'Optional: The element may be provided at the implementor's option' (for the EC-IMP-suffix names not provided)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-77",
+    "to": [
+     "DOC-A.1-101"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 77 (14.8.22 INVOKE, GR2b)",
+    "clause-2023": "A.1 item 101 (14.9.23 INVOKE, GR2b)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the behaviour of INVOKE when the method invoked is a non-COBOL method (a .NET member reached through a universal object reference or a class-name)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/l1_invoke_dotnet_member_universal (accept [2002], re-run at 2002: MATCH, runcase-4.log) and the negatives l1-invoke-dotnet-class-new (COBOL0823) and l1-invoke-dotnet-member-typed (COBOL0825), refuse-at including 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "INVOKE statement (behavior when invoking a non-COBOL method). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "INVOKE statement (behavior when invoking a non-COBOL method). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.3 GR2b",
+      "quote": "If the method to be invoked is a non-COBOL method, the behavior of the INVOKE statement is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR2b",
+      "quote": "If the method to be invoked is a non-COBOL method, the behavior of the INVOKE statement is implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical item and word-identical GR2b in both editions; the twin's witnesses run at --std 2002 (accept band starts at 2002) and the golden matches when re-run at 2002. EC-OO-METHOD, which the universal arm raises, is Fatal in both Table 14 (2002) and Table 13 (2023).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-4.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-78",
+    "to": [
+     "DOC-A.1-102"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 78 (14.8.22 INVOKE, cited GR7d; the resource check is GR7b)",
+    "clause-2023": "A.1 item 102 (14.9.23 INVOKE, cited GR7e; the resource check is GR7b)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "which runtime resources INVOKE checks before activating a method (GR7b: method not found or resources unavailable -> EC-OO-METHOD, fatal)"
+    ],
+    "evidence-2002": [
+     "probe p78.log: a factory method invoking itself without end at --std 2002 ends with 'EC-OO-METHOD (fatal) ... the stack the method needs is not available' (identical to 2023), the arm the twin's conformance-test ActivationResourcesTests.RecursiveMethod_PastTheStack_IsEcOoMethod pins at 2023; the type-initializer arm is the runtime's RunUnit.FactoryObject (unit FactoryInitializationFailureTests, no edition input)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "INVOKE statement (execution time resources that are checked). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "INVOKE statement (runtime resources that are checked). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.3 GR7b",
+      "quote": "If the method is not found or the resources necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR7b",
+      "quote": "If the method is not found or the resources necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "The slice gives no pointer ('no same-subject 2023 rule'), but A.1 item 102 is this item: the words differ only in 'execution time' (2002) vs 'runtime' (2023) and in the cited rule letter (7d vs 7e; in both editions the resource sentence is GR7b), neither of which changes what a program can show. GR7b is word-identical. I use DOC-A.1-102 (CONFORMS, editions 2002,2014,2023) as the pointer; its stack arm holds at --std 2002 by probe.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p78.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-79",
+    "to": [
+     "DOC-A.1-103"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 79 (9.1.12 I-O status)",
+    "clause-2023": "A.1 item 103 (9.1.13 I-O status)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the action after a fatal I-O status (first digit 3 or 4, or a 9x the implementor makes fatal) once any applicable USE EXCEPTION procedure has run, or with none, after normal error processing: continue or terminate"
+    ],
+    "evidence-2002": [
+     "probe p79.log at --std 2002: OPEN INPUT of an absent file with no FILE STATUS and no USE ends the run unit abnormally (EC-I-O-PERMANENT-ERROR, status 35, rc 1); with FILE STATUS it continues (OPEN 35, then READ 47, NOT AT END ignored); with a USE procedure it continues after the procedure; the SORT/MERGE arm: pb2700_sort_merge_missing_using_covered (accept [85], re-run at 2002: MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "I-O status (action taken for fatal exception conditions). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "Certain classes of I-O status values indicate fatal exception conditions. These are: any that begin with the digit 3 or 4, and any that begin with the digit 9 that the implementor defines as fatal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "These are: any that begin with the digit 3, 4, or 7, and any that begin with the digit 9 that the implementor defines as fatal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The implementor may either continue or terminate the execution of the run unit",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same item; the 2023 clause is WIDER (it adds the fatal class 7, record content, and 'exception processing statements' beyond USE). The 2002 classes 3, 4 and fatal 9x are a subset; the twin's witnesses (DocA1Item103WitnessTests) compile at 2023, so the 2002 evidence is the probe, which shows the same determination at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p79.log",
+    "widening": "2023 adds fatal class '7' (EC-I-O-RECORD-CONTENT) and ON EXCEPTION / PERFORM exception processing statements"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-8",
+    "to": [
+     "DOC-A.1-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 8 (12.2.6 SPECIAL-NAMES, GR6)",
+    "clause-2023": "A.1 item 8 (12.3.7 SPECIAL-NAMES, GR6)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the ordinal position of each character in the native alphanumeric and native national coded character sets (seen through ORD, CHAR, CHAR-NATIONAL and the NATIVE alphabet)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.3.7-SPECIAL-NAMES/l1c01_native_ordinal_positions and l1c01_native_ordinal_positions_wide: PASS at --std 2002 (adopt-2002 results.json)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "ALPHABET clause (ordinal number of characters in the native coded character sets). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR6",
+      "quote": "The implementor shall define the order of characters within the native alphanumeric coded character set and the native national coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR6",
+      "quote": "The implementor shall define the order of characters within the native alphanumeric coded character set and the native national coded character set",
+      "check": "OK"
+     }
+    ],
+    "reason": "Item and GR6 word-identical; the twin's goldens pass at --std 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-80",
+    "to": [
+     "DOC-A.1-104"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 80 (9.1.12 I-O status)",
+    "clause-2023": "A.1 item 104 (9.1.13.1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "which value the implementor places in the I-O status when more than one of 9.1.12.1 to 9.1.12.9 applies (the 2002 set: 00-07, 0x, 1x, 2x, 3x, 4x, 5x, 61, 9x)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/9.1.13.2-Successful-completion/pb317_open_no_rewind (accept [2023]) re-run at --std 2002: MATCH (runcase-1.log); the ordering in FileConnector.SequentialReadGuard has no edition input"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "I-O status (if more than one value applies). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "If more than one value applies, the implementor determines which of the applicable values to place in the I-O status",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.1",
+      "quote": "If more than one value applies, the implementor determines which of the applicable values to place in the I-O status",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence. The 2002 status set is a subset of 2023's (2023 adds 06, 09, 62, 7x, which belong to line sequential and 2023-only sharing/content cases the compiler refuses at 2002), so every 2002 precedence case is a 2023 one; the twin's golden matches at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-1.log",
+    "widening": "2023 adds statuses 06, 09, 62 and 7x to the set the precedence chooses from"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-81",
+    "to": [
+     "DOC-A.1-105"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 81 (9.1.12 I-O status, condition 5)",
+    "clause-2023": "A.1 item 105 (9.1.13.1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the implementor's technique for correcting a permanent error condition, which otherwise remains in effect for every later I-O operation on the file (2002 permanent errors on an OPEN connector: 30, and 34 for a write past a sequential file's boundary)"
+    ],
+    "evidence-2002": [
+     "NOT shown at --std 2002 by a program: the twin's golden pb1541_permanent_error_remains_in_effect re-run at 2002 DIFFERS (runcase-1.log: WRITE0 24 where 2023 has 34, so no permanent error starts and every later leg answers its healthy status). Its producer is the 2014+ behaviour switch DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError (RelativeConnector.cs:349): at 2002 a relative WRITE with key 0 is the invalid key 24 (§2002:14.8.47.3 GR29b), correctly. The other 2023 producer, a READ whose ODO record exceeds the maximum (34, §2023:9.1.13.6 4b), is 2023 text. What remains is the unit evidence PermanentErrorInEffectTests (runtime FileConnector, PermanentErrorReplay at FileConnector.cs:168, not edition-gated)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "I-O status, permanent error (technique for error correction). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "The permanent error condition remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique is invoked to correct the permanent error condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.3 GR29b",
+      "quote": "When an attempt is made to write beyond the externally defined boundaries of the file, the I-O status associated with the write file connector is set to '24'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR29b",
+      "quote": "If the relative key data item contains a value that is less than 1 or greater than the highest relative record number permitted for the file",
+      "check": "OK"
+     }
+    ],
+    "reason": "The item's words are the same, but the 2023 row's only program witness reaches the permanent error through a 2014+ rule (relative WRITE out of key range -> '34', an edition switch in the compiler), so at --std 2002 the golden shows nothing about the technique. A 2002 program can reach a permanent error on an open connector only through a host failure (30) or a full medium (34), which the unit tests inject. This is the screen's 'adjacent to a behaviour switch' cause reaching a pair through its witness rather than its words.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-1.log",
+    "widening": null,
+    "class": "other",
+    "needs": "KEPT to DOC-A.1-105 on its edition-free unit witnesses (PermanentErrorInEffectTests; PermanentErrorReplay is not edition-gated) with a signed note that pb1541's producer is the 2014+ switch RelativeWriteKeyOutOfRangeIsPermanentError, or a 2002 program witness that produces a 30/34 on an open connector",
+    "compiler-at-2002": "correct (not contradicted: at 2002 the pb1541 WRITE answers the 2002 invalid key 24 by the switch; the replay mechanism has no edition input); no 2002 program reaches the technique - E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-1.log"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-82",
+    "to": [
+     "DOC-A.1-106"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 82 (9.1.12.2 Implementor-defined successful completion)",
+    "clause-2023": "A.1 item 106 (9.1.13.3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the value of x in an implementor-defined successful status 0x (A-M or a-m): optional; not provided"
+    ],
+    "evidence-2002": [
+     "covered by wiseowl/cases/A.1-Implementor-defined-language-element-list/l1_dns_a1_106_no_0x_io_status (accept [2023]) re-run at --std 2002: MATCH (runcase-1.log): every sampled successful statement answers 00"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "I-O status 0x (value of x). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.2",
+      "quote": "The value of x is specified by the implementor and may be any of the uppercase letters 'A' through 'M' or lowercase letters 'a' through 'm'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.3",
+      "quote": "The value of x is specified by the implementor and may be any of the uppercase letters 'A' through 'M' or lowercase letters 'a' through 'm'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Optional: The element may be provided at the implementor's option",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same optional item; 2002 licenses not providing it by the same B.1 preamble, and the twin's DOCUMENTED-NON-SUPPORT witness matches at 2002. The twin row's editions omit 2002 only because its case is accept [2023]; its observable (00 at every successful statement) holds at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-1.log",
+    "widening": null,
+    "licence-2002": "§2002:B.1 preamble 'Optional: The element may be provided at the implementor's option' and item 82 'This item is optional'"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-83",
+    "to": [
+     "DOC-A.1-107"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 83 (9.1.12.4 item 4, status 24)",
+    "clause-2023": "A.1 item 107 (9.1.13.5, status 24)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the manner in which the externally-defined boundaries of a physical relative or indexed file are defined (a WRITE beyond them is 24)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/9.1.13.5-.../pb1192_relative_write_boundary_85 (accept [85], so in the --std 2002 run; re-run at 2002: identical to the golden but for trailing blanks, runcase-4.log) and unit FileBoundaryTests (runtime, no edition input)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "I-O status 24 (manner in which the boundaries of a file are defined). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "An attempt is made to write beyond the externally-defined boundaries of a physical relative or indexed file. The implementor specifies the manner in which these boundaries are defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.5",
+      "quote": "The implementor specifies the manner in which these boundaries are defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same determination in both; the twin's golden runs from 85 on.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-4.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-84",
+    "to": [
+     "DOC-A.1-108"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 84 (9.1.12.5 item 3, status 34)",
+    "clause-2023": "A.1 item 108 (9.1.13.6, status 34)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the manner in which the externally-defined boundaries of a physical sequential file are defined (a WRITE beyond them is 34)"
+    ],
+    "evidence-2002": [
+     "covered by unit FileBoundaryTests.SequentialWrite_OnAFullMedium_Is34_AtTheWrite and WriteFailure_MediumExhaustionIs34_AnyOtherFailureIs30: runtime-level (HostFile.IsMediumBoundary, FileStatusCode.ForWriteFailure), no edition input (no DialectBehavior consumer on that path)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "I-O status 34 (manner in which the boundaries of a file are defined). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.5",
+      "quote": "an attempt is made to write beyond the externally-defined boundaries of a physical sequential file. The implementor specifies the manner in which these boundaries are defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.6",
+      "quote": "an attempt is made to write outside the externally-defined boundaries of a physical sequential file",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement ('beyond' in 2002, 'outside' in 2023; 2023 also adds a second '34' for a READ whose ODO record exceeds the maximum, 2023 text only, which this item does not govern); the determination (the host medium's capacity) lives in the runtime with no edition input, and the twin's evidence is that unit evidence at every edition alike.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-85",
+    "to": [
+     "DOC-A.1-109"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 85 (9.1.12.7 item 2, status 52)",
+    "clause-2023": "A.1 item 109 (9.1.13.8, status 52)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the conditions under which a deadlock is detected (status 52): with the 2002 RETRY phrase (14.6.8), a RETRY FOREVER on a record locked by another connector of the same run unit"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002: conformance:cases/14.9.30-READ/pb346_read_retry_record_conflict_2014 re-run at 2002: MATCH (runcase-2.log; R2FVR=52 and S1FVR=52, every finite RETRY 51); file-sharing arms never 52: pb142_retry_open_sharing (accept [2002]; re-run MATCH), file_sharing_seq and file_sharing_mutate PASS at 2002 (adopt-2002 results.json); unit CobolFileLockTests.RetryLoop_LandsTheConflictsOwnStatus_ByClass (runtime ExhaustionStatus, no edition input)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "I-O status 52 (conditions under which deadlock is detected). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.7",
+      "quote": "The input-output statement is unsuccessful due to a deadlock. The implementor shall specify under what conditions a deadlock is detected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.8",
+      "quote": "The implementor shall specify under what conditions a deadlock is detected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.8.2 GR3",
+      "quote": "If the FOREVER phrase is specified, the MSCS shall attempt to gain access to a locked resource until the input-output operation has been completed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same item, same 9.1.12.7 text, and 2002 has the same RETRY phrase (14.6.8, word for word the 2023 14.7.9 but 'MSCS'). 2002 defines only 61 for file sharing (2023 adds 62), which narrows nothing the determination says (no sharing conflict answers 52). pb142_retry_conflict_class_ec (DELETE FILE, a 2023 statement) does not run at 2002, but the deadlock arm is shown at 2002 by pb346.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-2.log",
+    "widening": "2023 adds status 62 and DELETE FILE to the conflict classes"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-86",
+    "to": [
+     "DOC-A.1-110"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 86 (9.1.12.9, status 9x)",
+    "clause-2023": "A.1 item 110 (9.1.13.11, status 9x)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the value of x in an implementor-defined unsuccessful status 9x: WiseOwl provides 90 (LINAGE value violation, CODE-SET character with no image)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/9.1.13.11-.../pb526_linage_ec_condition and 13.18.34-LINAGE/pb526_linage_ec_condition_85: PASS at --std 2002 (adopt-2002 results.json); A.1-.../pb1542_code_set_unrepresentable_85 (accept [85]) re-run at 2002: MATCH (runcase-4.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "I-O status 9x (value of x). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.9",
+      "quote": "This condition shall not duplicate any condition specified by the I-O status values 00 through 61. The value of x is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.11",
+      "quote": "The value of x is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.32.3 GR6",
+      "quote": "If the value does not conform to these two rules, the EC-I-O-LINAGE exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same optional item; 2002's non-duplication bound (00 through 61) is narrower in wording than 2023's (any other status) but the 90 the compiler gives duplicates neither (the LINAGE violation and the code-set case have no 00-61 status in 2002). Twin goldens pass at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-4.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-87",
+    "to": [
+     "DOC-A.1-111"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 87 (7.2.14 LEAP-SECOND GR2; 14.8.1 ACCEPT GR11; 15.16 CURRENT-DATE; 15.80 WHEN-COMPILED)",
+    "clause-2023": "A.1 item 111 (7.3.17 GR2; 14.9.1 GR11; 15.21; 15.99)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "whether, under >>LEAP-SECOND ON (specified or implied), a seconds value above 59 may be reported by ACCEPT ... TIME, CURRENT-DATE and WHEN-COMPILED, and the maximum"
+    ],
+    "evidence-2002": [
+     "covered at 2002 by the twin's own classes: conformance-test LeapSecondReportedSecondsPinTests.ReportedSeconds_On_2002_LastTickBeforeLeapSecond_NeverExceeds59 (compiles at DialectLevel 2002: ACCEPT TIME and CURRENT-DATE report 59) and unit WhenCompiledStampTests.WhenCompiled_LeapSecond* [InlineData(2002)] (WHEN-COMPILED bakes 59)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "LEAP-SECOND directive (whether a value greater than 59 seconds may be reported and, if so, the maximum number of seconds that may be reported). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.14.3 GR2",
+      "quote": "When ON is specified or implied, the implementor defines whether a value greater than 59 may be reported in the seconds position of the value returned from",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.17.4 GR2",
+      "quote": "When ON is specified or implied, the implementor defines whether a value greater than 59 may be reported",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same item; 2002's three sources are the three the 2002 arms of the twin's tests pin (FORMATTED-CURRENT-DATE is 2014+, which the tests leave out at 2002). Words differ only in clause numbers and 'return value' vs 'Returned value'.",
+    "probe": null,
+    "widening": "2023's directive also governs FORMATTED-CURRENT-DATE and the SECONDS-PAST-MIDNIGHT standard numeric time form (2014+ functions)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-88",
+    "to": [
+     "DOC-A.1-113"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 88 (9.3.14.2 Life cycle for instance objects)",
+    "clause-2023": "A.1 item 113 (9.3.14.3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the timing and algorithm deciding that an instance object cannot take part in continued execution (garbage collection), and its effect on the object's files"
+    ],
+    "evidence-2002": [
+     "covered by unit InstanceFileFinalizerTests.AnUnreachableObjectsFile_IsClosedInItsOwnRunUnit_BeforeTheNextOpen (runtime CobolObject / FileRegistry.EnqueueInstanceClose, no edition input); objects with files exist in 2002 (OBJECT paragraph with a FILE SECTION)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Life cycle for objects (timing and algorithm for taking part in continued execution). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.14.2",
+      "quote": "The timing and algorithm for the mechanism that determines whether or not an instance object can take part in the continued execution of the run unit is implementor defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.14.3",
+      "quote": "The timing and algorithm for the mechanism that determines whether or not an instance object can take part in the continued execution of the run unit is implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "The clause is word-identical in both editions (bar a hyphen); the mechanism is the .NET GC in the runtime, edition-free.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-89",
+    "to": [
+     "DOC-A.1-116"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 89 (13.6 Linkage section, GR3 and GR5)",
+    "clause-2023": "A.1 item 116 (13.7 Linkage section, 13.7.4 GR3 and GR5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "whether access to formal parameters and the returning item is guaranteed, and the initial value of linkage items, when a program is activated by a non-COBOL runtime element (a .NET host through the generated Call entry); conditionally required"
+    ],
+    "evidence-2002": [
+     "pb2671_omitted_formal_category_default (accept [2002]; re-run at 2002: MATCH, runcase-3.log); probe p89: the host entry public static string Call(ref string LA, ref long? LN) generated at --std 2002 is identical to the one at --std 2023 (P89LNK.g.cs differs only in the assembly's Edition stamp), so the twin's conformance-test NonCobolActivatorLinkageTests (a .NET host calling Call) exercises the same entry"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Linkage section (whether access to linkage section items is meaningful when called from a non-COBOL program). This item is conditionally required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.6.3 GR3",
+      "quote": "If a program is activated by a non-COBOL runtime element, the implementor defines whether access to formal parameters and the returning item is guaranteed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.4 GR3",
+      "quote": "If a program is activated by a non-COBOL runtime element, the implementor defines whether access to formal parameters and the returning item is guaranteed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Item and GR3/GR5 word-identical; the emitted host entry is the same at both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p89-2002/P89LNK.g.cs",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-9",
+    "to": [
+     "DOC-A.1-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 9 (8.3.1.2.1 Alphanumeric literals, SR6)",
+    "clause-2023": "A.1 item 9 (8.3.3.2 Alphanumeric literals, SR6)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the number of hexadecimal digits mapping to one alphanumeric character in an X\"...\" literal (two), at every place a literal is written"
+    ],
+    "evidence-2002": [
+     "covered by wiseowl/diagnostics r03-hex-literal-digit-grouping and pb1393-concat-operand-hex-grouping (refuse-at includes 2002, COBOL1635) and conformance:cases/8.3.3.2-.../pb1393_hex_literal_positions (PASS at --std 2002, adopt-2002 results.json); probe p95.log: X\"4142\" length 2 at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Alphanumeric literals (number of hexadecimal digits that map to an alphanumeric character). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR6",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified as the number of hexadecimal digits that map to an alphanumeric character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR6",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified as the number of hexadecimal digits that map to an alphanumeric character",
+      "check": "OK"
+     }
+    ],
+    "reason": "SR6 word-identical; the twin's witnesses all run at 2002. 2023 additionally admits a zero-length X\"\" (SR1 differs), which the digit count never reaches.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p95.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-90",
+    "to": [
+     "DOC-A.1-117"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 90 (6.4 Logical conversion; clause 7; 7.2.15 LISTING GR1)",
+    "clause-2023": "A.1 item 117 (6.5; Clause 7; 7.3.18 GR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "whether and when the compiler produces a source listing (it does not; the LISTING directive is then ignored), and the effect of logical conversion on a listing"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/7.3.18-LISTING/pb725_directive_facility: PASS at --std 2002 (adopt-2002 results.json)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Listings (whether and when produced by the compiler, effect of logical conversion). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.15.2 GR1",
+      "quote": "Whether the compiler produces a source listing is implementor defined. If the compiler does not produce a source listing, the LISTING directive shall be ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.18.3 GR1",
+      "quote": "If the compiler does not produce a source listing, the LISTING directive shall be ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.4",
+      "quote": "The implementor shall define the effect on the source listing, if any, of logical conversion",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in the cross-reference form ('7' vs 'Clause 7') and clause numbers; GR1 and the 6.4 sentence are the same, and the twin's golden passes at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-94",
+    "to": [
+     "DOC-A.1-121"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 94 (11.6 METHOD-ID, GR1a)",
+    "clause-2023": "A.1 item 121 (11.7 METHOD-ID, GR1a)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the method name declared by METHOD-ID. GET/SET PROPERTY property-name-1 (__GET_<P> / __SET_<P>)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/11.7-METHOD-ID/oo_property_methods (PASS at --std 2002, adopt-2002 results.json), A.1-.../oo_property_ref and pb1520_property_keyword_spelled_name (accept [2002]; re-run at 2002: MATCH, runcase-4.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "METHOD-ID paragraph (actual method-name used when PROPERTY phrase is specified). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.3 GR1a",
+      "quote": "If the PROPERTY clause is specified, the name is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR1a",
+      "quote": "If the PROPERTY clause is specified, the name is implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 11.6 general format (method-name-1 [AS literal-1] | GET/SET PROPERTY property-name-1, OVERRIDE, FINAL) and GR1 are the same in both editions; the witnesses run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-4.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-95",
+    "to": [
+     "DOC-A.1-122"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 95 (8.3.1.2.4 National literals, SR5)",
+    "clause-2023": "A.1 item 122 (8.3.3.5 National literals, SR5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the number of hexadecimal digits mapping to one national character in an NX\"...\" literal (four, one UTF-16 code unit)"
+    ],
+    "evidence-2002": [
+     "the twin's golden r03_hexadecimal_national_and_boolean_literals does NOT run at 2002 (it also writes a zero-length literal, refused at 2002: adopt-2002 S1 list B), but l1c12_hex_national_no_character (accept [2002], re-run MATCH, runcase-4.log) shows four digits per character at 2002 (LENGTH(NX\"D800\") = 1, LENGTH(NX\"D800DC00\") = 2, NX\"0041\" ORD 66), and probe p95.log: NX\"004100420043\" -> ABC, NX\"00414\" refused COBOL1635 at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "National literals (number of hexadecimal digits that map to a national character). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR5",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified as the number of hexadecimal digits that map to a national character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.3 SR5",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified as the number of hexadecimal digits that map to a national character",
+      "check": "OK"
+     }
+    ],
+    "reason": "SR5 word-identical; the determination holds at 2002 by a 2002-band golden and by probe. The row's listed golden is 2023-only for an unrelated reason (zero-length literal), so the recorder should cite l1c12 as the 2002 witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p95.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-96",
+    "to": [
+     "DOC-A.1-123"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 96 (8.8.1.2 Native arithmetic; 11.8.4 ARITHMETIC clause; 14.6.6 Arithmetic statements)",
+    "clause-2023": "A.1 item 123 (8.8.1.3; 11.9.5; 14.7.7)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "native-arithmetic techniques and the implementor-defined intermediate with no ARITHMETIC clause or ARITHMETIC IS NATIVE",
+     "native-arithmetic techniques ALSO under ARITHMETIC IS STANDARD, for operations that use binary-char, binary-short, binary-long, binary-double, float-short, float-long or float-extended items (§2002:8.8.1.2, 8.8.1.3)"
+    ],
+    "evidence-2002": [
+     "first item covered at 2002: l1_native_arith_lane_and_rounding PASS at 2002 (adopt-2002 results.json); pb4592, pb4587, pb4702, pb4730 (accept [2002, 2014, 2023]); pb125_factorial_native_size (accept [2002]; re-run MATCH, runcase-4.log)",
+     "second item NOT shown, and the compiler is wrong: probe p96.log (the repro of the known defect in defects-2002-c.json, re-run here at the pinned tree) under ARITHMETIC IS STANDARD gives SQRT(FLOAT-LONG 2) = SQRT(BINARY-LONG 2) = 1.414213562373095048801688724209, the standard 32-digit result, where 2002 makes native arithmetic (the native run gives 1.414213562373095100000000000000) apply"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Native arithmetic (techniques used, intermediate data item). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.2",
+      "quote": "It will also be in effect when the ARITHMETIC IS STANDARD clause is specified and certain operations use data items as indicated in 8.8.1.3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "When a data item described with a usage of binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended is an operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.1.3",
+      "quote": "Native arithmetic is in effect when the ARITHMETIC IS NATIVE clause is specified in the OPTIONS paragraph or no ARITHMETIC clause is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "The item's words match, but the clause it names says more in 2002: native arithmetic is also in effect under ARITHMETIC IS STANDARD for operations on binary-* and float-* items. 2023 has no such arm (standard-binary/standard-decimal have their own rules), so the twin's evidence covers only the NATIVE/default arm. At --std 2002 the compiler picks the arithmetic mode per source unit and evaluates those operations by standard arithmetic: the known defect (defects-2002-c.json, 'ARITHMETIC IS STANDARD evaluates operations on BINARY-LONG and FLOAT-LONG operands by standard arithmetic'), which also reaches this row.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p96.log",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for an operation on a binary or float item under ARITHMETIC IS STANDARD is standard arithmetic (p96.log), wrong by §2002:8.8.1.2; after the known mode-selection defect (defects-2002-c) is fixed, a 2002 witness for that arm; the NATIVE/default arm KEPT to DOC-A.1-123",
+    "compiler-at-2002": "wrong (known defect, already in defects-2002-c.json; add 2002-DOC-B.1-96 to its rows) - program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p96_sqrt_fl.cob, expected the float-long and binary-long lines by native arithmetic per §2002:8.8.1.2, observed the 32-digit standard value for all three lines"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-97",
+    "to": [
+     "DOC-A.1-124"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 97 (5.4 Integer operands, rule 3a and 3c)",
+    "clause-2023": "A.1 item 124 (5.5 Integer operands, rule 3a)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "under native arithmetic, when an operand constrained to 'integer' in a general rule is an integer (5.4 3a)",
+     "under native arithmetic, when an ARITHMETIC EXPRESSION is an integer (5.4 3c, a 2002 rule 2023 dropped)",
+     "both of the above also under ARITHMETIC IS STANDARD for operations on binary-* and float-* items, where 2002 puts native arithmetic in effect (8.8.1.2)"
+    ],
+    "evidence-2002": [
+     "3a covered at 2002: pb1526_integer_argument_has_integral_value (accept [2023]; re-run at 2002 MATCH, runcase-3.log), pb41_position_not_integer PASS at 2002",
+     "3c covered at 2002: pb1890_position_expression_exact (accept [2023]; re-run at 2002 MATCH, runcase-3.log) - a subscript/position arithmetic expression decided by the same determination",
+     "NOT shown: under ARITHMETIC IS STANDARD the compiler applies standard arithmetic to binary/float operations at 2002 (the known mode defect, p96.log), so the 3b test (standard intermediate, zeros right of the point) decides where 2002 says the implementor's 3a/3c determination does; no observable difference found for binary-* and float-short/long values (their fractions show within 32 digits), so not probed further"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Native arithmetic (when an operand or arithmetic expression is an integer). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.4",
+      "quote": "If native arithmetic is in effect, the implementor shall define when an arithmetic expression is an integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.4",
+      "quote": "If native arithmetic is in effect, the implementor shall define when the operand is an integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:5.5",
+      "quote": "If native arithmetic is in effect, the implementor shall define when the operand represents an integer",
+      "check": "OK"
+     }
+    ],
+    "reason": "No word-identical twin: 2002's 5.4 has a rule 3c (when an arithmetic expression is an integer) that 2023's 5.5 lacks, though both annex items keep 'or arithmetic expression' in the title. The 3c arm is shown at 2002 by pb1890 (re-run). The remaining 2002-only scope is the native arm inside ARITHMETIC IS STANDARD, unshown and decided today by the standard rule (the known mode defect); no observable wrong answer was found for this item, so it is not counted as a new defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-3.log",
+    "widening": null,
+    "class": "own-text",
+    "needs": "KEPT to DOC-A.1-124 with the 2002 witnesses pb1526_integer_argument_has_integral_value and pb1890_position_expression_exact (both MATCH at --std 2002) for 3a and 3c, plus a signed note (or a witness once the defects-2002-c mode defect is fixed) for the native arm under ARITHMETIC IS STANDARD",
+    "compiler-at-2002": "correct for 3a and 3c (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-3.log); not probed for the STANDARD+binary/float arm beyond the known mode defect (no observable integer-test difference within 32 digits for binary-* and float-short/long)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-98",
+    "to": [
+     "DOC-A.1-125"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 98 (8.4.2.7 NULL GR1; 8.4.2.10 Predefined-address GR1 and GR2)",
+    "clause-2023": "A.1 item 125 (8.4.3.7 NULL object reference GR1; 8.4.3.10 GR1, 2 and 3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the null object reference value (never references an object)",
+     "the null data address of a data-pointer (never the address of a data item)",
+     "the null program address of a program-pointer (never the address of a program)"
+    ],
+    "evidence-2002": [
+     "all three categories null at 2002: conformance:cases/13.18.63-VALUE/pb557_pointer_class_initial_value_is_null (accept [2002]; re-run MATCH, runcase-3.log), with a data-pointer set to an address not NULL; probe p98.log at 2002: SET PP TO ADDRESS OF PROGRAM \"P98SUB\" (an outermost program) is not NULL, a new object reference is not NULL, SET O TO NULL is NULL; unit PointerImageTests.Null_OfEveryCategory_IsTheZeroAddress (runtime, no edition input)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "NULL (value of NULL). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.7.3 GR1",
+      "quote": "Predefined object reference NULL contains the null object reference value; this is a unique value defined by the implementor such that it is guaranteed to never reference an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.10.3 GR1",
+      "quote": "The null data address is an implementor-defined value that is guaranteed not to represent the address of any data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.10.3 GR2",
+      "quote": "The null program address is an implementor-defined value that is guaranteed not to represent the address of any program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.10.4 GR1",
+      "quote": "The null data address is an implementor-defined value that is guaranteed not to represent the address of any data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 item cites three rules (object reference, data address, program address); 2023 cites the same plus GR3 (function-pointer and message-tag content), a widening. The twin's function-pointer golden pb452 does not run at 2002 (SET ... TO function-pointer is 2014+), but every 2002 category is shown at 2002 by pb557 and the probe.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/p98.log",
+    "widening": "2023 adds the function-pointer and message-tag null values (8.4.3.10 GR3)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-99",
+    "to": [
+     "DOC-A.1-126"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 99 (12.2.5 OBJECT-COMPUTER, GR3 and GR4)",
+    "clause-2023": "A.1 item 126 (12.3.6 OBJECT-COMPUTER, GR3 and GR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the object computer when OBJECT-COMPUTER is written without computer-name-1, and when it is absent (not inherited from a containing source unit)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-.../pb373_object_computer_name_inert (accept [2023]) re-run at --std 2002: MATCH (runcase-1.log): OTHER-NAME, NO-NAME and NO-PARAGRAPH all SAME"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "OBJECT-COMPUTER paragraph (default object computer). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR3",
+      "quote": "When the OBJECT-COMPUTER paragraph is specified, but computer-name-1 is not specified, the object computer is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR4",
+      "quote": "When the OBJECT-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including an OBJECT-COMPUTER paragraph, the object computer is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR3",
+      "quote": "When the OBJECT-COMPUTER paragraph is specified, but computer-name-1 is not specified, the object computer is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR3 and GR4 word-identical; computer-name-1 is optional in both general formats; the twin's golden matches at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/runcase-1.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-11.1.1",
+    "to": [
+     "FMT-11.2.1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.1.1 Identification division structure, general format",
+    "clause-2023": "11.2.1 Identification division structure, general format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "[IDENTIFICATION DIVISION.] then exactly one of program-id, function-id, class-id, factory, object, method-id, interface-id paragraph, then [options-paragraph]; every source-unit kind of 2002 (programs, functions, classes, factory/object, methods, interfaces)"
+    ],
+    "evidence-2002": [
+     "probe fmt111.log at --std 2002: an interface with a method prototype, a function with OPTIONS, and a header-less program with OPTIONS compile and run (FN=7, FMT111-OK); OPTIONS before PROGRAM-ID refused (COBOL5506); AUTHOR refused (COBOL0902, the 2002 deletion); class/factory/method-id at 2002 in p78; twin witnesses at 2002: pb829_identification_header_optional (accept [2002], re-run MATCH), pb829-identification-unrecognized-paragraph and pb1508-options-paragraph-repeated (refuse-at includes 2002); pb829_closed_formats_legal does not run at 2002 only because it also writes a numeric VALUE for a numeric-edited item (a 2023 form)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.1.1",
+      "quote": "function-id-paragraph | 11.4, FUNCTION-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.2.1",
+      "quote": "function-id-paragraph | 11.5, FUNCTION-ID paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "The diagram is the same in both editions (render-identical text, same optional header, same seven alternatives, same optional options-paragraph); the term table differs only in subclause numbers. 2002 already has no AUTHOR..SECURITY paragraphs, as 2023. Shown at 2002 by the twin's 2002-band witnesses and the probe.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-40/fmt111.log",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-40",
+  "cases": [
+   {
+    "rule-id": "2002-DOC-B.1-75",
+    "verdict": "UPHELD",
+    "reason": "The item is conditionally required on a coded character set whose characters are not multiples of four bits; that condition is absent at --std 2002 as at 2023 (national = UTF-16 code units). The national literal format and its hex sequences are the same; no communication-section or removed-form reach (a literal's mapping does not depend on where it is written). A national hex literal on a 2002 debugging line (WITH DEBUGGING MODE) is lexed the same way: refute-u-40/dbg_hex_ok.cob gives LENGTH(NX\"004100420043\") = 3 at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR4",
+      "quote": "The implementor also defines the mapping of each hex-character-sequence-1 to a character, when the characters do not occupy a multiple of four bits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR5",
+      "quote": "The implementor also defines the mapping of each hex-character-sequence-1 to a character, when the characters do not occupy a multiple of four bits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-40/dbg_hex_ok.cob"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-77",
+    "verdict": "OVERTURNED",
+    "reason": "Item 77 is GR2b: the behaviour of the INVOKE statement when the method is non-COBOL. In 2002 that statement's BY REFERENCE argument identifier-3 and its RETURNING item identifier-4 may be data items of the COMMUNICATION SECTION (SR9, SR11; Annex A lists INVOKE SR9 and SR11 among the communication-facility entities, and the facility may be used in a program definition). 2023 SR9/SR11 drop the communication section, so the 2023 row's witnesses (l1_invoke_dotnet_member_universal and its negatives) never pass a CD-record item to a non-COBOL method. Probe at --std 2002: INVOKE U \"ToString\" USING F-ARG RETURNING F-RET and INVOKE U \"Equals\" USING BY REFERENCE F-ARG, F-ARG/F-RET under CD CIN FOR INPUT: compiles (COBOL0903 obsolete warning only), each INVOKE raises EC-OO-METHOD (the documented determination: a non-COBOL member is never reached), the CD items are unchanged (AFTER [UNCHANGED ], AFTER2 [ARGUMENT  ]). Compiler at 2002: correct. --std 2023 refuses the CD (COBOL0902). Needs: a 2002 witness for the CD-operand case (this probe is the candidate).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "Identifier-3 shall be an address-identifier or shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR11",
+      "quote": "Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR9",
+      "quote": "Identifier-3 shall be an address-identifier or shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR11",
+      "quote": "Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.3 GR2b",
+      "quote": "If the method to be invoked is a non-COBOL method, the behavior of the INVOKE statement is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "14.8.22, INVOKE statement, syntax rules 9 and 11 refer to the communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility may be used only in a program definition",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-40/inv_cd.cob"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-78",
+    "verdict": "UPHELD",
+    "reason": "Item 78 cites GR7d in 2002 and GR7e in 2023, and these are the same sentence (transfer of control; non-COBOL execution implementor-defined); the resource check is GR7b, word-identical but for 'the method is not activated' vs 'the method invocation is not successful' (same effect). 2023 inserts a new GR7d (external-item checks, EC-EXTERNAL-*) that 2002's INVOKE lacks, which only widens 2023. INVOKE operands may be CD items in 2002 (see B.1-77), but the resources checked (the method found, the stack it needs) do not depend on the section of an argument, and the reader's probe p78 shows the stack arm at 2002. No removed INVOKE form (the 2002 and 2023 general formats are the same).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR7b",
+      "quote": "If the method is not found or the resources necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.3 GR7d",
+      "quote": "If the invoked method is a COBOL method, its execution is described in 14.1.3, General rules of the procedure division; otherwise, the execution is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR7e",
+      "quote": "If the invoked method is a COBOL method, its execution is described in 14.2.3, General rules of the procedure division; otherwise, the execution is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-79",
+    "verdict": "OVERTURNED",
+    "reason": "The item is the action after a FATAL I-O status, and 2002's fatal class 3 includes status 38 (OPEN on a file connector previously closed WITH LOCK), a form 2023 removed with the CLOSE WITH LOCK phrase (2023 Annex E.2; 2023 9.1.13.6 has no 38). The reader's scope ('first digit 3 or 4') and probe p79 cover 35 only; the 2023 row cannot show the fatal action for 38. Probes at --std 2002: lock38_nofs.cob (no FILE STATUS, no USE): after CLOSE FA WITH LOCK, OPEN INPUT FA ends the run unit: 'abnormal run-unit termination: EC-I-O-PERMANENT-ERROR (fatal): I-O status 38 on FA (OPEN)', rc 1; lock38_fs.cob (FILE STATUS): OPEN2 38, execution continues, the following READ answers 47 and its NOT AT END is not run. Consistent with the 35 determination: compiler at 2002 correct (its message cites §2023:9.1.13.1 at --std 2002, cosmetic). --std 2023 refuses CLOSE WITH LOCK (COBOL0902). Needs: a 2002 witness for the 38 arm (these probes are candidates).",
+    "citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "Certain classes of I-O status values indicate fatal exception conditions. These are: any that begin with the digit 3 or 4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.5",
+      "quote": "A permanent error exists because an OPEN statement is attempted on a file connector previously closed with lock",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.3 GR24",
+      "quote": "If the file connector referenced by file-name-1 is locked by a previously-executed CLOSE statement with the LOCK phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "The WITH LOCK phrase of the CLOSE statement and the related File Status of 38",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-40/lock38_nofs.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-40/lock38_fs.cob"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-8",
+    "verdict": "UPHELD",
+    "reason": "GR6 defines the order of characters in the native alphanumeric and national coded character sets; it governs no operand or entry, so the 2002 CD-record and debugging-line contexts do not reach it, and the SPECIAL-NAMES ALPHABET forms that use NATIVE are the same. The twin's goldens pass at 2002 (adopt-2002 results).",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR6",
+      "quote": "The implementor shall define the order of characters within the native alphanumeric coded character set and the native national coded character set",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-80",
+    "verdict": "OVERTURNED",
+    "reason": "The reader's reason ('the 2002 status set is a subset of 2023's') is false: 2002 9.1.12.5 has status 38 (OPEN after CLOSE WITH LOCK), which 2023 removed (Annex E.2; 2023 9.1.13.6 lists 30, 31, 34, 35, 37, 39). So the 2002 precedence determination ranges over cases with 38 that no 2023 witness can reach, e.g. 38 together with 61. Probe at --std 2002 (lock38_fs.cob): FA closed WITH LOCK, FB (same physical file) opened INPUT SHARING WITH NO OTHER (OPENB 00), then OPEN INPUT FA, where 38 and 61a both apply: the compiler places 38 (OPEN3 38). Any applicable value is conformant, so compiler at 2002: correct. Needs: a 2002 witness for the 38 precedence arm (this probe is the candidate) and the determination documented to include 38.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "If more than one value applies, the implementor determines which of the applicable values to place in the I-O status",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.5",
+      "quote": "A permanent error exists because an OPEN statement is attempted on a file connector previously closed with lock",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.8",
+      "quote": "An attempt is made to open a physical file that is currently open by another file connector in the sharing with no other mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "The WITH LOCK phrase of the CLOSE statement and the related File Status of 38",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-40/lock38_fs.cob"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-82",
+    "verdict": "UPHELD",
+    "reason": "Optional item, not provided at either edition; 2002's non-duplication bound ('9x or 00 through 61', which includes 2002's 38) constrains only a provided 0x. The twin's witness (every successful statement answers 00) matches at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.12.2",
+      "quote": "The value of x is specified by the implementor and may be any of the uppercase letters 'A' through 'M' or lowercase letters 'a' through 'm'",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-83",
+    "verdict": "UPHELD",
+    "reason": "Same determination (the boundaries of a relative or indexed file; 2002 'beyond', 2023 'outside'). At 2002 the compiler takes a relative WRITE key outside the range as the 24 boundary (the 2014+ switch to 34 does not apply), and pb1192_relative_write_boundary_85 runs from 85 and matches at 2002. No CD or removed form reaches a relative/indexed WRITE.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.12.4",
+      "quote": "An attempt is made to write beyond the externally-defined boundaries of a physical relative or indexed file. The implementor specifies the manner in which these boundaries are defined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-84",
+    "verdict": "UPHELD",
+    "reason": "Same determination for a physical sequential file (the host medium's capacity, runtime code without an edition input). 2023's extra 34 (ODO READ) is outside this 2002 item. Sequential files of 2002 (LINAGE, report files) are the same kinds in 2023.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.12.5",
+      "quote": "an attempt is made to write beyond the externally-defined boundaries of a physical sequential file. The implementor specifies the manner in which these boundaries are defined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-85",
+    "verdict": "UPHELD",
+    "reason": "9.1.12.7 52 is word-identical, 2002 has the same RETRY phrase, and the reader re-ran pb346 at 2002 (deadlock 52). Record locking is not reachable from a CD, and no 2002 locking form was removed (CLOSE WITH LOCK is a file lock answering 38, not a deadlock).",
+    "citations": [
+     {
+      "cite": "§2002:9.1.12.7",
+      "quote": "The input-output statement is unsuccessful due to a deadlock. The implementor shall specify under what conditions a deadlock is detected",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-86",
+    "verdict": "UPHELD",
+    "reason": "Optional 9x; the compiler's 90 (LINAGE value violation, CODE-SET character with no image) duplicates no 2002 status 00-61 (EC-I-O-LINAGE has no 00-61 status in 2002 Table 14; 38 is the CLOSE WITH LOCK case, unrelated). Twin goldens pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.12.9",
+      "quote": "This condition shall not duplicate any condition specified by the I-O status values 00 through 61",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-87",
+    "verdict": "UPHELD",
+    "reason": "2002 7.2.14 has the same format (ON not underlined in either) and its GR2 lists exactly ACCEPT TIME, CURRENT-DATE and WHEN-COMPILED, the three 2002 arms the twin's tests pin at DialectLevel 2002; 2023 only adds FORMATTED-CURRENT-DATE and SECONDS-PAST-MIDNIGHT (widening).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.14.3 GR2",
+      "quote": "When ON is specified or implied, the implementor defines whether a value greater than 59 may be reported",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-88",
+    "verdict": "UPHELD",
+    "reason": "9.3.14.2 is the same text; the mechanism is the edition-free runtime (the .NET GC and the instance-file finalizer); no CD reach (the communication facility may be used only in a program definition, not in an object).",
+    "citations": [
+     {
+      "cite": "§2002:9.3.14.2",
+      "quote": "The timing and algorithm for the mechanism that determines whether or not an instance object can take part in the continued execution of the run unit is implementor defined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-89",
+    "verdict": "UPHELD",
+    "reason": "The 2002 linkage section format has 77-level, constant and record entries (2023 adds type-declaration entries: widening); SR1 lists the same source elements; GR3/GR5 are the same. Linkage items are not CD items. The reader showed the host entry generated at 2002 is the one at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.6.3 GR3",
+      "quote": "If a program is activated by a non-COBOL runtime element, the implementor defines whether access to formal parameters and the returning item is guaranteed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-9",
+    "verdict": "UPHELD",
+    "reason": "SR6 is word-identical and the digit count is a property of the literal wherever written. The one 2002-only place a literal can be written that 2023 lacks is a debugging line; probed at 2002: with WITH DEBUGGING MODE, a D line X\"414243\" displays ABC and X\"41424\" is refused COBOL1635; without debugging mode the D line is a comment and X\"41424\" is not diagnosed. Compiler correct; no requirement differs.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR6",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified as the number of hexadecimal digits that map to an alphanumeric character",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-40/dbg_hex_bad.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-40/dbg_hex_bad_nodebug.cob"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-90",
+    "verdict": "UPHELD",
+    "reason": "The listing-related text of 2002 clause 7 (LISTING GR1, PAGE GR3, COPY SUPPRESS PRINTING GR4, the '/' comment indicator, 6.4) all exists in 2023 (2023 adds the DISPLAY directive: widening). 2002's FLAG-85 and FLAG-NATIVE-ARITHMETIC directives (gone in 2023) ask for a warning mechanism, not a listing, so they are outside this item. The compiler produces no listing at either edition and the twin's golden passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.16.3 GR3",
+      "quote": "If a source listing is not being produced, a PAGE directive shall have no effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR4",
+      "quote": "If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-94",
+    "verdict": "UPHELD",
+    "reason": "The METHOD-ID general format is the same in both editions and GR1a is the same. 2023 moves method identity to the 'method resolution signature' (SR3/SR4), a widening; the property-method name the compiler chooses (__GET_/__SET_) cannot collide with a 2002 method-name, and the witnesses run at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR1a",
+      "quote": "If the PROPERTY clause is specified, the name is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR3",
+      "quote": "there shall be a method with the same method resolution signature as the method declared by this method definition defined in a superclass",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-95",
+    "verdict": "UPHELD",
+    "reason": "SR5 word-identical; four digits per national character at 2002 shown by l1c12 (reader) and, on a 2002 debugging line, by my probe (NX\"004100420043\" length 3; NX\"00410\" refused COBOL1635 under WITH DEBUGGING MODE).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR5",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified as the number of hexadecimal digits that map to a national character",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-40/dbg_hex_bad.cob"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-98",
+    "verdict": "UPHELD",
+    "reason": "The three 2002 null values (object reference, data address, program address) are a subset of 2023's (which adds function-pointer and message-tag); each is shown at 2002 by pb557 and the reader's probe. The null value of a category does not depend on where the item is described.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.10.3 GR2",
+      "quote": "The null program address is an implementor-defined value that is guaranteed not to represent the address of any program",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-99",
+    "verdict": "UPHELD",
+    "reason": "The 2002 and 2023 OBJECT-COMPUTER general formats are the same (optional computer-name-1, CHARACTER CLASSIFICATION, PROGRAM COLLATING SEQUENCE); 2002 has no MEMORY SIZE or SEGMENT-LIMIT. GR3/GR4 identical; pb373 matches at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR3",
+      "quote": "When the OBJECT-COMPUTER paragraph is specified, but computer-name-1 is not specified, the object computer is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-11.1.1",
+    "verdict": "UPHELD",
+    "reason": "Diagram identical in both editions (optional header, the same seven paragraph alternatives, optional options-paragraph); only subclause numbers in the term table differ. 2002 already deleted AUTHOR..SECURITY. The paragraphs' own formats are separate rules. No CD or debugging reach.",
+    "citations": [
+     {
+      "cite": "§2002:11.1.1",
+      "quote": "function-id-paragraph | 11.4, FUNCTION-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.2.1",
+      "quote": "function-id-paragraph | 11.5, FUNCTION-ID paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "b2719294589c163b89316b251b48d6208e86fc7b9cadbf10b0efa7911640c801",
+  "read": "891cdaafc96e2f8c68b03edd12d58991e04a3b6deffe1f08c9596b80c48a3c89",
+  "refute": "608efab61540c42ba51234880fb8f573429b38d571db3149c5eeff43331fe063"
+ }
+}

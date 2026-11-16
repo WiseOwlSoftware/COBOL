@@ -447,6 +447,52 @@ def main() -> int:
               "with why, and the rest are written; a SAME with no refuter record and a DIFFERENT write nothing",
               set(refused) == {v["rule-id"], g["rule-id"]} and "no own-edition witness" in refused[v["rule-id"]][0]
               and "lineage screen" in refused[g["rule-id"]][0] and x["rule-id"] not in written and d["rule-id"] not in written)
+        # THE OWN VERDICT FROM A POINTER (section 10.6): an upheld SAME of a rule no candidate pair pairs becomes the
+        # rule's own verdict once its pointer is witnessed at 2002; the writer is the imported run's step beside
+        # change-batch, and a run not imported from reads is refused.
+        paired_ids = {p["rule-id"] for p in pairs}
+        store_2002 = A.read_store(A.inventory_dir(inventory_schema.edition(2002), spec_pdf.REPO))
+        lone = [r for r in inventory_schema.edition(2002).rules() if r["id"] not in paired_ids and r["kind"] == "GR"
+                and not (store_2002.get(r["id"]) or {}).get("verdict")][:2]
+        own_reads = root / "own-reads"
+        own_reads.mkdir()
+        ptr = ["GR-14.9.11.4-1", "GR-14.9.11.4-2"]
+        (own_reads / "u-01-read.json").write_text(json.dumps({"slice": "u-01", "cases": [
+            {"rule-id": r["id"], "to": [t], "verdict": "SAME", "reason": "planted pointer SAME",
+             "citations": [{"cite": r["citation"], "check": "OK"}], "probe": None} for r, t in zip(lone, ptr)]}),
+            encoding="utf-8", newline="\n")
+        (own_reads / "u-01-refute.json").write_text(json.dumps({"slice": "u-01", "disputed-different": [], "cases": [
+            {"rule-id": r["id"], "verdict": "UPHELD", "reason": "planted", "citations": [], "class": None, "probe": None}
+            for r in lone]}), encoding="utf-8", newline="\n")
+        own_state = root / "own-imported"
+        code, out = run(["import-reads", "--edition", "2002", "--reads", str(own_reads), "--record",
+                         str(root / "own-records"), "--state", str(own_state)], fake)
+        own_w = lineage_reads.Witnesses(
+            {f"cases/X/{t}": lineage_reads.CaseInfo(f"cases/X/{t}", root, e, e, (), (t,), None)
+             for t, e in zip(ptr, (("2002", "2023"), ("2023",)))},
+            {t: [f"conformance:cases/X/{t}"] for t in ptr}, {t: ["2002", "2023"] for t in ptr},
+            {t: "CONFORMS" for t in ptr}, {t: ["src/WiseOwl.Cobol.Compiler/A.cs#M"] for t in ptr})
+        A.witnesses_of = lambda newer: own_w
+        try:
+            own_batch = root / "own.json"
+            code, out = run(["own-verdict-batch", "--edition", "2002", "--state", str(own_state), "--out",
+                             str(own_batch)], fake)
+            refused_run, _ = run(["own-verdict-batch", "--edition", "2002", "--state", str(state), "--out",
+                                  str(root / "x.json")], fake)
+        finally:
+            A.witnesses_of = real_witnesses
+        own_written = json.loads(own_batch.read_text(encoding="utf-8"))["records"]
+        own_refused = json.loads(own_batch.with_name("own.refused.json").read_text(encoding="utf-8"))["refused"]
+        check("own-verdict-batch writes the own verdict of the upheld pointer SAME whose pointer runs at 2002 (the "
+              "pointer's verdict, its code, only its 2002 case, notes naming the read) and refuses the one whose pointer "
+              "does not, with why",
+              code == 0 and len(lone) == 2 and [r["rule-id"] for r in own_written] == [lone[0]["id"]]
+              and own_written[0]["verdict"] == "CONFORMS" and own_written[0]["test-ref"] == f"conformance:cases/X/{ptr[0]}"
+              and own_written[0]["notes"].startswith("Own verdict from the read lineage-reads-2002/u-01.json")
+              and [r["rule-id"] for r in own_refused] == [lone[1]["id"]]
+              and "no own-edition witness" in own_refused[0]["reasons"][0])
+        check("own-verdict-batch refuses a run not imported from reads, by name",
+              isinstance(refused_run, str) and "not imported from reads" in refused_run)
         planted = {"1985-SR-VI.5.8.3-1": {"disposition": A.CARRIES, "rules_2023": ["SR-13.18.38.3-1"],
                                           "change": {"kind": "KEPT", "to": ["SR-13.18.38.3-1"]}},
                    "1985-SR-VI.5.8.3-2": {"disposition": A.DISPUTED, "rules_2023": ["SR-13.18.38.3-1"], "contested": True},

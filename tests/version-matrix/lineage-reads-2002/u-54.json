@@ -1,0 +1,1988 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-54 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-54",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-FMT-15.29.1",
+   "2002-FMT-15.30.1",
+   "2002-FMT-15.31.1",
+   "2002-FMT-15.32.1",
+   "2002-FMT-15.33.1",
+   "2002-FMT-15.34.1",
+   "2002-FMT-15.35.1",
+   "2002-FMT-15.36.1",
+   "2002-FMT-15.37.1",
+   "2002-FMT-15.38.1",
+   "2002-FMT-15.39.1",
+   "2002-FMT-15.40.1",
+   "2002-FMT-15.41.1",
+   "2002-FMT-15.42.1",
+   "2002-FMT-15.43.1",
+   "2002-FMT-15.44.1",
+   "2002-FMT-15.45.1",
+   "2002-FMT-15.46.1",
+   "2002-FMT-15.47.1",
+   "2002-FMT-15.48.1",
+   "2002-FMT-15.49.1",
+   "2002-FMT-15.50.1",
+   "2002-FMT-15.51.1",
+   "2002-FMT-15.52.1",
+   "2002-FMT-15.53.1"
+  ],
+  "pointers": {
+   "2002-FMT-15.29.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.34.2",
+    "similarity": 0.837
+   },
+   "2002-FMT-15.30.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.35.2",
+    "similarity": 0.841
+   },
+   "2002-FMT-15.31.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.36.2",
+    "similarity": 0.85
+   },
+   "2002-FMT-15.32.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.42.2",
+    "similarity": 0.857
+   },
+   "2002-FMT-15.33.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.43.2",
+    "similarity": 0.864
+   },
+   "2002-FMT-15.34.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.44.2",
+    "similarity": 0.846
+   },
+   "2002-FMT-15.35.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.45.2",
+    "similarity": 0.865
+   },
+   "2002-FMT-15.36.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.46.2",
+    "similarity": 0.861
+   },
+   "2002-FMT-15.37.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.47.2",
+    "similarity": 0.859
+   },
+   "2002-FMT-15.38.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.49.2",
+    "similarity": 0.855
+   },
+   "2002-FMT-15.39.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.50.2",
+    "similarity": 0.775
+   },
+   "2002-FMT-15.40.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.51.2",
+    "similarity": 0.892
+   },
+   "2002-FMT-15.41.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.52.2",
+    "similarity": 0.876
+   },
+   "2002-FMT-15.42.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.53.2",
+    "similarity": 0.876
+   },
+   "2002-FMT-15.43.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.55.2",
+    "similarity": 0.837
+   },
+   "2002-FMT-15.44.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.56.2",
+    "similarity": 0.841
+   },
+   "2002-FMT-15.45.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.57.2",
+    "similarity": 0.733
+   },
+   "2002-FMT-15.46.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.58.2",
+    "similarity": 0.862
+   },
+   "2002-FMT-15.47.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.59.2",
+    "similarity": 0.837
+   },
+   "2002-FMT-15.48.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.60.2",
+    "similarity": 0.839
+   },
+   "2002-FMT-15.49.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.61.2",
+    "similarity": 0.844
+   },
+   "2002-FMT-15.50.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.62.2",
+    "similarity": 0.848
+   },
+   "2002-FMT-15.51.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.63.2",
+    "similarity": 0.837
+   },
+   "2002-FMT-15.52.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.64.2",
+    "similarity": 0.859
+   },
+   "2002-FMT-15.53.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.66.2",
+    "similarity": 0.872
+   }
+  }
+ },
+ "read": {
+  "slice": "u-54",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-FMT-15.29.1",
+    "to": [
+     "FMT-15.34.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.29.1 General format (EXP function)",
+    "clause-2023": "15.34.2 General format (EXP function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.29",
+      "quote": "The EXP function returns an approximation of the value of e raised to the power of the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.34.1",
+      "quote": "The EXP function returns an approximation of the value of *e* raised to the power of the argument.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION EXP ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to EXP with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) EXP= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_exp2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.29 -> 15.34). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.30.1",
+    "to": [
+     "FMT-15.35.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.30.1 General format (EXP10 function)",
+    "clause-2023": "15.35.2 General format (EXP10 function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.30",
+      "quote": "The EXP10 function returns an approximation of the value of 10 raised to the power of the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.35.1",
+      "quote": "The EXP10 function returns an approximation of the value of 10 raised to the power of the argument.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION EXP10 ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to EXP10 with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) EXP10= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_exp10_0.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.30 -> 15.35). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.31.1",
+    "to": [
+     "FMT-15.36.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.31.1 General format (FACTORIAL function)",
+    "clause-2023": "15.36.2 General format (FACTORIAL function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.31",
+      "quote": "The FACTORIAL function returns an integer that is the factorial of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.36.1",
+      "quote": "The FACTORIAL function returns an integer that is the factorial of argument-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION FACTORIAL ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to FACTORIAL with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) FACT= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_fact2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.31 -> 15.36). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.32.1",
+    "to": [
+     "FMT-15.42.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.32.1 General format (FRACTION-PART function)",
+    "clause-2023": "15.42.2 General format (FRACTION-PART function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.32",
+      "quote": "The FRACTION-PART function returns a numeric value that is the fraction portion of the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.42.1",
+      "quote": "The FRACTION-PART function returns a numeric value that is the fraction portion of the argument.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION FRACTION-PART ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to FRACTION-PART with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) FRAC= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_frac2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.32 -> 15.42). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.33.1",
+    "to": [
+     "FMT-15.43.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.33.1 General format (HIGHEST-ALGEBRAIC function)",
+    "clause-2023": "15.43.2 General format (HIGHEST-ALGEBRAIC function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.33",
+      "quote": "The HIGHEST-ALGEBRAIC function returns a value that is equal to the greatest algebraic value that may be represented in argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.43.1",
+      "quote": "The HIGHEST-ALGEBRAIC function returns a value that is equal to the greatest algebraic value that may be represented in argument-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION HIGHEST-ALGEBRAIC ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to HIGHEST-ALGEBRAIC with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) HIGH= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_high2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.33 -> 15.43). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.34.1",
+    "to": [
+     "FMT-15.44.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.34.1 General format (INTEGER function)",
+    "clause-2023": "15.44.2 General format (INTEGER function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.34",
+      "quote": "The INTEGER function returns the greatest integer value that is less than or equal to the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.44.1",
+      "quote": "The INTEGER function returns the greatest integer value that is less than or equal to the argument.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION INTEGER ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to INTEGER with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) INT= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_int2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.34 -> 15.44). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.35.1",
+    "to": [
+     "FMT-15.45.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.35.1 General format (INTEGER-OF-BOOLEAN function)",
+    "clause-2023": "15.45.2 General format (INTEGER-OF-BOOLEAN function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.35",
+      "quote": "The INTEGER-OF-BOOLEAN function returns the numeric value of the boolean string in argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.45.1",
+      "quote": "The INTEGER-OF-BOOLEAN function returns the numeric value of the boolean string in argument-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION INTEGER-OF-BOOLEAN ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to INTEGER-OF-BOOLEAN with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) IOB= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_iob2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.35 -> 15.45). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.36.1",
+    "to": [
+     "FMT-15.46.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.36.1 General format (INTEGER-OF-DATE function)",
+    "clause-2023": "15.46.2 General format (INTEGER-OF-DATE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.36",
+      "quote": "The INTEGER-OF-DATE function converts a date in the Gregorian calendar from standard date form (YYYYMMDD) to integer date form.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.46.1",
+      "quote": "The INTEGER-OF-DATE function converts a date in the Gregorian calendar from standard date form (YYYYMMDD) to integer date form.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION INTEGER-OF-DATE ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to INTEGER-OF-DATE with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) IOD= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_iod2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.36 -> 15.46). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.37.1",
+    "to": [
+     "FMT-15.47.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.37.1 General format (INTEGER-OF-DAY function)",
+    "clause-2023": "15.47.2 General format (INTEGER-OF-DAY function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.37",
+      "quote": "The INTEGER-OF-DAY function converts a date in the Gregorian calendar from Julian date form (YYYYDDD) to integer date form.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.47.1",
+      "quote": "The INTEGER-OF-DAY function converts a date in the Gregorian calendar from Julian date form (YYYYDDD) to integer date form.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION INTEGER-OF-DAY ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to INTEGER-OF-DAY with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) IODAY= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_iday2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.37 -> 15.47). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.38.1",
+    "to": [
+     "FMT-15.49.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.38.1 General format (INTEGER-PART function)",
+    "clause-2023": "15.49.2 General format (INTEGER-PART function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.38",
+      "quote": "The INTEGER-PART function returns an integer that is the integer portion of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.49.1",
+      "quote": "The INTEGER-PART function returns an integer that is the integer portion of argument-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION INTEGER-PART ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to INTEGER-PART with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) IPART= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_ipart2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.38 -> 15.49). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.39.1",
+    "to": [
+     "FMT-15.50.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "15.39.1 General format (LENGTH function)",
+    "clause-2023": "15.50.2 General format (LENGTH function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.39",
+      "quote": "The LENGTH function returns an integer equal to the length of the argument in alphanumeric character positions, national character positions, or boolean positions, depending on the class of the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.50.1",
+      "quote": "The LENGTH function returns an integer equal to the length of the argument in alphanumeric character positions, national character positions, or boolean positions, depending on the class of the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.50.2",
+      "quote": "FUNCTION LENGTH ( argument-1 [ PHYSICAL ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.39.2 AR1",
+      "quote": "shall be an alphanumeric, national, or boolean literal",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION LENGTH ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to LENGTH with any other number or arrangement of operands is outside the format (refused)",
+     "2002 15.39.1 has no PHYSICAL phrase: FUNCTION LENGTH (argument-1 PHYSICAL) is not a 2002 form"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) LEN= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_len2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)",
+     "PHYSICAL phrase is not a 2002 form": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lenphys.cob: --std 2002 rc=65 COBOL0900 \"the PHYSICAL phrase of FUNCTION LENGTH / BYTE-LENGTH requires COBOL-2014\"; --std 2023 rc=0"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The pointer FMT-15.50.2 reads FUNCTION LENGTH ( argument-1 [ PHYSICAL ] ); the 2002 format is FUNCTION LENGTH ( argument-1 ) only. The differing words change what a program shows: the pointer row evidence includes PHYSICAL tests (pb24_length_physical_keyword, accept [2023]) that are not 2002 programs, and nothing on the row shows the phrase refused at --std 2002. Probe: at --std 2002 the 2002 form works (LEN= 5), a second operand is refused (COBOL1504) and PHYSICAL is refused (COBOL0900), as the 2002 format requires. Observation, not a conformance defect: the 2002 arity diagnostic says \"takes argument-1 [PHYSICAL] (ISO §2023:15.50.2)\", naming a phrase 2002 does not have.",
+    "class": "own-text",
+    "needs": "its own verdict: the compiler at --std 2002 accepts FUNCTION LENGTH (argument-1) and refuses the PHYSICAL phrase (COBOL0900) and a second operand (COBOL1504); witness E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lenphys.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_len2.cob",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lenphys-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out)",
+    "widening": "2014 and 2023 add the optional PHYSICAL phrase"
+   },
+   {
+    "rule-id": "2002-FMT-15.40.1",
+    "to": [
+     "FMT-15.51.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40.1 General format (LOCALE-COMPARE function)",
+    "clause-2023": "15.51.2 General format (LOCALE-COMPARE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40",
+      "quote": "The LOCALE-COMPARE function returns a character indicating the result of comparing argument-1 and argument-2 using a culturally-preferred ordering defined by a locale.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.1",
+      "quote": "The LOCALE-COMPARE function returns a character indicating the result of comparing argument-1 and argument-2 using a culturally-preferred ordering defined by a locale.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.40.1",
+      "quote": "FUNCTION LOCALE-COMPARE ( argument-1 argument-2 [ locale-name-1 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.2",
+      "quote": "FUNCTION LOCALE-COMPARE ( argument-1 argument-2 [ locale-name-1 ] )",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION LOCALE-COMPARE ( ... ) with two or three (locale-name-1 optional) argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to LOCALE-COMPARE with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) LCMP=/LCMP2= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lcmp1.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lcmp4.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.40 -> 15.51). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.41.1",
+    "to": [
+     "FMT-15.52.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.41.1 General format (LOCALE-DATE function)",
+    "clause-2023": "15.52.2 General format (LOCALE-DATE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.41",
+      "quote": "The LOCALE-DATE function returns a character string containing a date in a culturally-appropriate format specified by a locale.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.52.1",
+      "quote": "The LOCALE-DATE function returns a character string containing a date in a culturally-appropriate format specified by a locale.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.41.1",
+      "quote": "FUNCTION LOCALE-DATE ( argument-1 [ locale-name-1 ] )",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION LOCALE-DATE ( ... ) with one or two (locale-name-1 optional) argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to LOCALE-DATE with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) LDATE=/LDATE0= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_ldate3.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.41 -> 15.52). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.42.1",
+    "to": [
+     "FMT-15.53.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.42.1 General format (LOCALE-TIME function)",
+    "clause-2023": "15.53.2 General format (LOCALE-TIME function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.42",
+      "quote": "The LOCALE-TIME function returns a character string containing a time in a culturally-appropriate format specified by a locale.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.53.1",
+      "quote": "The LOCALE-TIME function returns a character string containing a time in a culturally-appropriate format specified by a locale.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.42.1",
+      "quote": "FUNCTION LOCALE-TIME ( argument-1 [ locale-name-1 ] )",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION LOCALE-TIME ( ... ) with one or two (locale-name-1 optional) argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to LOCALE-TIME with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) LTIME=/LTIME0= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_ltime3.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.42 -> 15.53). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.43.1",
+    "to": [
+     "FMT-15.55.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.43.1 General format (LOG function)",
+    "clause-2023": "15.55.2 General format (LOG function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.43",
+      "quote": "The LOG function returns a numeric value that approximates the logarithm to the base e (natural log) of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.55.1",
+      "quote": "The LOG function returns a numeric value that approximates the logarithm to the base *e* (natural log) of argument-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION LOG ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to LOG with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) LOG= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_log2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.43 -> 15.55). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.44.1",
+    "to": [
+     "FMT-15.56.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.44.1 General format (LOG10 function)",
+    "clause-2023": "15.56.2 General format (LOG10 function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.44",
+      "quote": "The LOG10 function returns a numeric value that approximates the logarithm to the base 10 of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.56.1",
+      "quote": "The LOG10 function returns a numeric value that approximates the logarithm to the base 10 of argument-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION LOG10 ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to LOG10 with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) LOG10= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_log10_2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.44 -> 15.56). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.45.1",
+    "to": [
+     "FMT-15.57.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "15.45.1 General format (LOWER-CASE function)",
+    "clause-2023": "15.57.2 General format (LOWER-CASE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.45",
+      "quote": "The LOWER-CASE function returns a character string containing the value of argument-1 with any uppercase letters replaced by their corresponding lowercase letters.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.57.1",
+      "quote": "The LOWER-CASE function returns a character string that contains the value of argument-1 with any uppercase letters replaced by their corresponding lowercase letters.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.57.2",
+      "quote": "FUNCTION LOWER-CASE ( argument-1 [ LOCALE locale-name-1 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.45.2 AR1",
+      "quote": "shall be of class alphabetic, alphanumeric, or national",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION LOWER-CASE ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to LOWER-CASE with any other number or arrangement of operands is outside the format (refused)",
+     "2002 15.45.1 has no LOCALE phrase: FUNCTION LOWER-CASE (argument-1 LOCALE locale-name-1) is not a 2002 form"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) LOWER= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lower2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)",
+     "LOCALE phrase is not a 2002 form": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lowerloc.cob: --std 2002 rc=65 COBOL0900 \"the LOCALE phrase of UPPER-CASE / LOWER-CASE requires COBOL-2014\"; --std 2023 rc=0"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The pointer FMT-15.57.2 reads FUNCTION LOWER-CASE ( argument-1 [ LOCALE locale-name-1 ] ); the 2002 format is FUNCTION LOWER-CASE ( argument-1 ) only (2002 reaches a locale only through OBJECT-COMPUTER character classification, 15.45.3 RV2, not through a phrase). The pointer row evidence is largely LOCALE-phrase tests (pb64t5_case_locale_phrase, LocaleDispositionTests.CaseFunctionLocalePhrase_IsLive) that are not 2002 programs; nothing on it shows the phrase refused at 2002. Probe: at --std 2002 the 2002 form works (LOWER=hello), a second operand is refused (COBOL1504) and the LOCALE phrase is refused (COBOL0900), as the 2002 format requires.",
+    "class": "own-text",
+    "needs": "its own verdict: the compiler at --std 2002 accepts FUNCTION LOWER-CASE (argument-1) and refuses the LOCALE phrase (COBOL0900) and a second operand (COBOL1504); witness E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lowerloc.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lower2.cob",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lowerloc-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out)",
+    "widening": "2014 and 2023 add the optional LOCALE locale-name-1 phrase"
+   },
+   {
+    "rule-id": "2002-FMT-15.46.1",
+    "to": [
+     "FMT-15.58.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.46.1 General format (LOWEST-ALGEBRAIC function)",
+    "clause-2023": "15.58.2 General format (LOWEST-ALGEBRAIC function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.46",
+      "quote": "The LOWEST-ALGEBRAIC function returns a value that is equal to the lowest algebraic value that may be represented in argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.58.1",
+      "quote": "The LOWEST-ALGEBRAIC function returns a value that is equal to the lowest algebraic value that may be represented in argument-1.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION LOWEST-ALGEBRAIC ( ... ) with exactly one argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to LOWEST-ALGEBRAIC with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) LOWEST= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_lowest2.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.46 -> 15.58). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.47.1",
+    "to": [
+     "FMT-15.59.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.47.1 General format (MAX function)",
+    "clause-2023": "15.59.2 General format (MAX function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.47",
+      "quote": "The MAX function returns the content of the argument-1 that contains the maximum value.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.59.1",
+      "quote": "The MAX function returns the content of the argument-1 that contains the maximum value.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION MAX ( ... ) with one or more argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to MAX with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) MAX=/MAX1= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_max0.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.47 -> 15.59). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.48.1",
+    "to": [
+     "FMT-15.60.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.48.1 General format (MEAN function)",
+    "clause-2023": "15.60.2 General format (MEAN function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.48",
+      "quote": "The MEAN function returns a numeric value that is the arithmetic mean (average) of its arguments.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.60.1",
+      "quote": "The MEAN function returns a numeric value that is the arithmetic mean (average) of its arguments.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION MEAN ( ... ) with one or more argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to MEAN with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) MEAN= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_mean0.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.48 -> 15.60). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.49.1",
+    "to": [
+     "FMT-15.61.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.49.1 General format (MEDIAN function)",
+    "clause-2023": "15.61.2 General format (MEDIAN function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.49",
+      "quote": "The MEDIAN function returns the content of the argument whose value is the middle value in the list formed by arranging the arguments in sorted order.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.61.1",
+      "quote": "The MEDIAN function returns the content of the argument whose value is the middle value in the list formed by arranging the arguments in sorted order.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION MEDIAN ( ... ) with one or more argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to MEDIAN with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) MEDIAN= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_median0.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.49 -> 15.61). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.50.1",
+    "to": [
+     "FMT-15.62.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.50.1 General format (MIDRANGE function)",
+    "clause-2023": "15.62.2 General format (MIDRANGE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.50",
+      "quote": "The MIDRANGE (middle range) function returns a numeric value that is the arithmetic mean (average) of the values of the minimum argument and the maximum argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.62.1",
+      "quote": "The MIDRANGE (middle range) function returns a numeric value that is the arithmetic mean (average) of the values of the minimum argument and the maximum argument.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION MIDRANGE ( ... ) with one or more argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to MIDRANGE with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) MIDR= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_midr0.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.50 -> 15.62). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.51.1",
+    "to": [
+     "FMT-15.63.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.51.1 General format (MIN function)",
+    "clause-2023": "15.63.2 General format (MIN function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.51",
+      "quote": "The MIN function returns the content of the argument-1 that contains the minimum value.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.63.1",
+      "quote": "The MIN function returns the content of the argument-1 that contains the minimum value.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION MIN ( ... ) with one or more argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to MIN with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) MIN= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_min0.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.51 -> 15.63). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.52.1",
+    "to": [
+     "FMT-15.64.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.52.1 General format (MOD function)",
+    "clause-2023": "15.64.2 General format (MOD function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.52",
+      "quote": "The MOD function returns an integer value that is argument-1 modulo argument-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.64.1",
+      "quote": "The MOD function returns an integer value that is argument-1 modulo argument-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.52.1",
+      "quote": "FUNCTION MOD ( argument-1 argument-2 )",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION MOD ( ... ) with exactly two argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to MOD with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) MOD= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_mod1.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_mod3.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.52 -> 15.64). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.53.1",
+    "to": [
+     "FMT-15.66.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.53.1 General format (NATIONAL-OF function)",
+    "clause-2023": "15.66.2 General format (NATIONAL-OF function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.53",
+      "quote": "The NATIONAL-OF function returns a character string containing the national character representation of the characters in the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.66.1",
+      "quote": "The NATIONAL-OF function returns a character string containing the national character representation of the characters in the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.53.1",
+      "quote": "FUNCTION NATIONAL-OF ( argument-1 [ argument-2 ] )",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the reference FUNCTION NATIONAL-OF ( ... ) with one or two (argument-2 optional) argument(s) as the 2002 format shows, wherever an intrinsic function reference may appear",
+     "a reference to NATIONAL-OF with any other number or arrangement of operands is outside the format (refused)"
+    ],
+    "evidence-2002": {
+     "reference form accepted at 2002 and evaluated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob: --std 2002 rc=0, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all-2002.out line(s) NATOF1=/NATOF2= (identical to --std 2023)",
+     "other operand counts refused at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/neg_natof3.cob: --std 2002 rc=65 COBOL1504 (each -2002.out beside it)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob",
+    "reason": "The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.53 -> 15.66). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023.",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-54",
+  "cases": [
+   {
+    "rule-id": "2002-FMT-15.29.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.29.1 vs 2023 15.34.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.29",
+      "quote": "The EXP function returns an approximation of the value of e raised to the power of the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.34.1",
+      "quote": "The EXP function returns an approximation of the value of *e* raised to the power of the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.30.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.30.1 vs 2023 15.35.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.30",
+      "quote": "The EXP10 function returns an approximation of the value of 10 raised to the power of the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.35.1",
+      "quote": "The EXP10 function returns an approximation of the value of 10 raised to the power of the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.31.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.31.1 vs 2023 15.36.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.31",
+      "quote": "The FACTORIAL function returns an integer that is the factorial of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.36.1",
+      "quote": "The FACTORIAL function returns an integer that is the factorial of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.32.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.32.1 vs 2023 15.42.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.32.1",
+      "quote": "FUNCTION FRACTION-PART ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.42.2",
+      "quote": "FUNCTION FRACTION-PART ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.33.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.33.1 vs 2023 15.43.2): same function word, same parentheses, same operands, same optionality; 2023 adds an informative D.32 on alternatives but does not mark the function archaic or obsolete. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.33.1",
+      "quote": "FUNCTION HIGHEST-ALGEBRAIC ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.43.2",
+      "quote": "FUNCTION HIGHEST-ALGEBRAIC ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.34.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.34.1 vs 2023 15.44.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.34",
+      "quote": "The INTEGER function returns the greatest integer value that is less than or equal to the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.44.1",
+      "quote": "The INTEGER function returns the greatest integer value that is less than or equal to the argument.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.35.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.35.1 vs 2023 15.45.2): same function word, same parentheses, same operands, same optionality; the Boolean argument kind (bit group, boolean expression or literal, elementary boolean item) is the same sentence in 2002 15.2 item 3 and 2023 15.3 item 3. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.35.1",
+      "quote": "FUNCTION INTEGER-OF-BOOLEAN ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.45.2",
+      "quote": "FUNCTION INTEGER-OF-BOOLEAN ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.36.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.36.1 vs 2023 15.46.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.36.1",
+      "quote": "FUNCTION INTEGER-OF-DATE ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.46.2",
+      "quote": "FUNCTION INTEGER-OF-DATE ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.37.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.37.1 vs 2023 15.47.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.37.1",
+      "quote": "FUNCTION INTEGER-OF-DAY ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.47.2",
+      "quote": "FUNCTION INTEGER-OF-DAY ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.38.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.38.1 vs 2023 15.49.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.38.1",
+      "quote": "FUNCTION INTEGER-PART ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.49.2",
+      "quote": "FUNCTION INTEGER-PART ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.40.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.40.1 vs 2023 15.51.2): same function word, same parentheses, same operands, same optionality; one difference outside the format: 2023 lists LOCALE-COMPARE as an optional element (A.4.9 item 2) while 2002 requires it, but the pointer row is CONFORMS (implemented, not declined) and the probe shows it evaluated at --std 2002, so the 2002 requirement is met. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.40.1",
+      "quote": "FUNCTION LOCALE-COMPARE ( argument-1 argument-2 [ locale-name-1 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.2",
+      "quote": "FUNCTION LOCALE-COMPARE ( argument-1 argument-2 [ locale-name-1 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.41.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.41.1 vs 2023 15.52.2): same function word, same parentheses, same operands, same optionality; 2023 lists LOCALE-DATE as optional (A.4.9 item 3), 2002 requires it, but the pointer row is CONFORMS and both forms (with and without locale-name-1) evaluate at --std 2002. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.41.1",
+      "quote": "FUNCTION LOCALE-DATE ( argument-1 [ locale-name-1 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.52.2",
+      "quote": "FUNCTION LOCALE-DATE ( argument-1 [ locale-name-1 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.42.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.42.1 vs 2023 15.53.2): same function word, same parentheses, same operands, same optionality; 2023 lists LOCALE-TIME as optional (A.4.9 item 4), 2002 requires it, but the pointer row is CONFORMS and both forms evaluate at --std 2002. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.42.1",
+      "quote": "FUNCTION LOCALE-TIME ( argument-1 [ locale-name-1 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.53.2",
+      "quote": "FUNCTION LOCALE-TIME ( argument-1 [ locale-name-1 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.43.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.43.1 vs 2023 15.55.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.43",
+      "quote": "The LOG function returns a numeric value that approximates the logarithm to the base e (natural log) of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.55.1",
+      "quote": "The LOG function returns a numeric value that approximates the logarithm to the base *e* (natural log) of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.44.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.44.1 vs 2023 15.56.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.44",
+      "quote": "The LOG10 function returns a numeric value that approximates the logarithm to the base 10 of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.56.1",
+      "quote": "The LOG10 function returns a numeric value that approximates the logarithm to the base 10 of argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.46.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.46.1 vs 2023 15.58.2): same function word, same parentheses, same operands, same optionality; 2023 D.32 is informative and does not mark the function archaic or obsolete. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.46.1",
+      "quote": "FUNCTION LOWEST-ALGEBRAIC ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.58.2",
+      "quote": "FUNCTION LOWEST-ALGEBRAIC ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.47.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.47.1 vs 2023 15.59.2): same function word, same parentheses, same operands, same optionality; the repeated operand and its ALL-subscript expansion are the same text in both editions. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.47.3 RV2",
+      "quote": "If the value of more than one argument-1 is equal to the greatest value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.59.4 RV2",
+      "quote": "If the value of more than one argument-1 is equal to the greatest value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.48.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.48.1 vs 2023 15.60.2): same function word, same parentheses, same operands, same optionality; the repeated operand and its ALL-subscript expansion are the same text in both editions. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.48.3 RV1",
+      "quote": "For n occurrences of argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.49.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.49.1 vs 2023 15.61.2): same function word, same parentheses, same operands, same optionality; the repeated operand and its ALL-subscript expansion are the same text in both editions. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.49.3 RV1",
+      "quote": "When the number of occurrences of argument-1 is odd",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.50.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.50.1 vs 2023 15.62.2): same function word, same parentheses, same operands, same optionality; the repeated operand and its ALL-subscript expansion are the same text in both editions. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.50.3 RV1",
+      "quote": "where argument-list is the argument-1 list for the MIDRANGE function itself",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.62.4 RV1",
+      "quote": "where argument-list is the argument-1 list for the MIDRANGE function itself",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.51.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.51.1 vs 2023 15.63.2): same function word, same parentheses, same operands, same optionality; the repeated operand and its ALL-subscript expansion are the same text in both editions. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.51.3 RV2",
+      "quote": "If the value of more than one argument-1 is equal to the least value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.63.4 RV2",
+      "quote": "If the value of more than one argument-1 is equal to the least value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.52.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.52.1 vs 2023 15.64.2): same function word, same parentheses, same operands, same optionality. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.52.1",
+      "quote": "FUNCTION MOD ( argument-1 argument-2 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.64.2",
+      "quote": "FUNCTION MOD ( argument-1 argument-2 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.53.1",
+    "verdict": "UPHELD",
+    "reason": "Refuter compared the printed general formats line by line (2002 transcription 15.53.1 vs 2023 15.66.2): same function word, same parentheses, same operands, same optionality; argument-2 optional in both. The format's argument operand admits the same kinds in both editions (function-identifier SR6 in 2002 = SR8 in 2023, word for word), and the clause-15 argument-type list 2002 15.2 is carried into 2023 15.3 (2023 only adds File-name and dynamic-capacity ALL, widenings). 2002 marks no obsolete element in these clauses (G.2 lists only the communication facility, debugging lines and PADDING CHARACTER); a format rule governs no data description entry, so the CD reach of class (a) does not apply; no deferral to unnamed rules. Pointer row CONFORMS. Reader's probe fmt_all.cob gives identical output at --std 2002 and 2023 and the arity negatives are refused (COBOL1504) at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.53.1",
+      "quote": "FUNCTION NATIONAL-OF ( argument-1 [ argument-2 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.66.2",
+      "quote": "FUNCTION NATIONAL-OF ( argument-1 [ argument-2 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR8",
+      "quote": "Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-54/fmt_all.cob"
+   }
+  ],
+  "disputed-different": [],
+  "notes": "Reader's two DIFFERENT rows (2002-FMT-15.39.1 LENGTH: 2023 adds PHYSICAL; 2002-FMT-15.45.1 LOWER-CASE: 2023 adds LOCALE) are real differences in the printed formats and are not disputed. Format quotes of three or fewer real words (EXP, EXP10, FACTORIAL, INTEGER, LOG, LOG10, MAX, MEAN, MEDIAN, MIDRANGE, MIN) are too short for cite.py, so those rows cite the clause's description or returned-value sentence instead; the formats were compared by reading 2002 lines 23644-24430 against 2023 lines 31211-32552."
+ },
+ "imported": {
+  "asked": "581e7eccd8f826a71a0cb6c6a13e3ad8476b041bfef3da37982f3c310eacf0db",
+  "read": "a1039fd30624d01fc5219cec19480c066184a25d26be674abba973fa9c6648fa",
+  "refute": "26de5d325347d53e66505d132975f7cffe899aec02987146208a746ea7bf705c"
+ }
+}

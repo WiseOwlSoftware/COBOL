@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.3.1.2.1.2-2",
+ "rule-digest": "8109a72f5d6b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/l1c01_alnum_literal_characters",
+ "notes": "Own verdict from the read lineage-reads-2002/u-03.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.3.3.2.3-2, witnessed at 2002 by the cases test-ref names. The read: Identical but 'NOTE' vs 'NOTE 1'. Format 1 differs only by 2023 making character-1 optional (zero-length), which this rule does not reach. The pointer's witness l1c01_alnum_literal_characters (accept: [85, 2002]) runs at --std 2002 and matches. Cited: §2002:8.3.1.2.1.2 SR2."
+}

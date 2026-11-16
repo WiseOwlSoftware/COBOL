@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.8.3-7",
+ "rule-digest": "ca8627bbe488",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#ConnectorLockMax; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#RunUnitLockMax; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReleasePriorRecordLocks; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#PreflightReadLock",
+ "test-ref": "conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb338_read_lock_limit_position",
+ "notes": "Own verdict from the read lineage-reads-2002/u-11.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.4.5.9.4-7, witnessed at 2002 by the cases test-ref names. The read: The only difference is the minimum of the implementor's limits: 2002 at least one, 2023 at least 15 and 255. A processor meeting 2023 meets 2002, and the limits are documented once (2002 B.1 item 122). The over-limit statuses 53/54 exist in 2002 9.1.12.7. The MULTIPLE phrase and its sequential ban are the same in both. Cited: §2002:12.3.4.8.3 GR7; §2002:9.1.12.7."
+}

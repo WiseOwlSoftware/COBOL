@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.13.2-3",
+ "rule-digest": "1824e8c5fccd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcResolveLevel3; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcCollectPdRaising; src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/EcRaiseSite.cs#Exit",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi04_exit_raising_each_format; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi05_exit_program_raising_level2_refused; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi06_exit_program_raising_unlisted_user_refused; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi07_exit_method_raising_level2_refused; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi08_exit_method_raising_unlisted_user_refused; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi09_exit_function_raising_level2_refused; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi10_exit_function_raising_unlisted_user_refused",
+ "notes": "§2002:14.8.13.2 SR3 requires a level-3 exception-name, an EC-USER one listed in the PD header, on EXIT PROGRAM/METHOD/FUNCTION RAISING; at --std 2002 a level-2 name is refused COBOL0710 (g2exi05/07/09) and an unlisted EC-USER name COBOL0717 (g2exi06/08/10) on each format, and listed names run in g2exi04 as derived."
+}

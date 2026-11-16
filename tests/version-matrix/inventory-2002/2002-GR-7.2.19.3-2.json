@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.19.3-2",
+ "rule-digest": "962d34a69ef9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionCatalog.cs#DirectiveCovers; src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#Fold",
+ "test-ref": "conformance:cases/7.2.19@2002-TURN-DIRECTIVE/g2trn02_ec_all",
+ "notes": "§2002:7.2.19.3 GR2: after EC-ALL ON, EC-I-O-AT-END and EC-BOUND-SUBSCRIPT are both raised where before it (GR1 default OFF) the at-end is not; the --std 2002 run matched the derived output. The SIZE ERROR leg was removed (§2002:14.6.4: no EC-SIZE with the phrase); the compiler's EC-SIZE-under-phrase behavior is the separate defect g2002u-7-2-19-sizeerr-phrase-sets-ec, not this rule."
+}

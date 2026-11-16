@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c35_unstring_not_on_overflow
       *> rules: [GR-14.9.48.4-17]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

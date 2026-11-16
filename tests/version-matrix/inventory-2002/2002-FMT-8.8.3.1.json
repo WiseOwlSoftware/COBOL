@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.8.3.1",
+ "rule-digest": "635cb606c7f9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#concatOperand; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/LiteralEnvironment.cs",
+ "test-ref": "conformance:cases/8.8.3@2002-CONCATENATION-EXPRESSIONS/g2-concat-operand-forms",
+ "notes": "§2002:8.8.3.1 { literal-1 | concatenation-expression-1 } & literal-2, a constant-name usable as either literal (§2002:13.9.2 SR2); g2-concat-operand-forms at --std 2002 printed the derived chained and constant-name values in all three classes (XKKY, KKZ, 01110, N'QABC')."
+}

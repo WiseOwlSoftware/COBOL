@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.7.2-16",
+ "rule-digest": "0205a6f25e7d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#CheckPropertySpecifiers",
+ "test-ref": "conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_interface_and_property",
+ "notes": "Own verdict from the read lineage-reads-2002/u-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.3.8.3-16, witnessed at 2002 by the cases test-ref names. The read: 2002's property-specifier literal is literal-5 throughout this rule; 2023's text says literal-4 in the condition and literal-5 in the consequence (a 2023 numbering slip). The compiler applies the property specifier's own AS literal, which is the 2002 reading. Cited: §2002:12.2.7.2 SR16."
+}

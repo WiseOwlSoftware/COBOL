@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.8.1",
+ "rule-digest": "fd856dd99f06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#continueStatement",
+ "test-ref": "conformance:cases/14.8.8@2002-CONTINUE-STATEMENT/g2con01_every_2002_position",
+ "notes": "§2002:14.8.8.1 is the bare word CONTINUE (no 2023 AFTER phrase); g2con01 writes it as a sentence and in every 2002 imperative position and runs at --std 2002 with the committed .out L1..L6."
+}

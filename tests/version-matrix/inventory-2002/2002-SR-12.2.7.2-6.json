@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.7.2-6",
+ "rule-digest": "bcefbcd936d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#UnansweredClassSpecifier; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ImportClass; src/WiseOwl.Cobol.Compiler/Binding/MetadataRepositoryProvider.cs#Skeleton",
+ "test-ref": "conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_class_under_another_word; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_expand_skeleton_from_repository",
+ "notes": "Own verdict from the read lineage-reads-2002/u-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.3.8.3-6, witnessed at 2002 by the cases test-ref names. The read: Rename only; same a)/b) split on literal-1. Cited: §2002:12.2.7.2 SR6."
+}
