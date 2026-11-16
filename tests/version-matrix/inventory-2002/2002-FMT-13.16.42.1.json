@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.42.1",
+ "rule-digest": "5e3ce95fd359",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#redefinesClause; src/WiseOwl.Cobol.Frontend/Cst/DataDescriptionCst.cs#RedefinesTarget; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-fmt-cd-record-data-clauses",
+ "notes": "05 R2 REDEFINES R1 (no entry-name clause between the level-number and REDEFINES; level 05 because level 1 is barred in the communication section, §2002:13.16.42.2 SR4): \"1234\" into R1, ADD 1 TO R2 gives R2=1235 and RN2 (renaming R1) = 1235. Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-11.6.2-4",
+ "rule-digest": "dea20216a90c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#MarkRoster; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Model/OoInterfaceSymbol.cs#InheritedClosure",
+ "test-ref": "conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2mid04-same-name-no-override; conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2mid05-same-name-other-parameters; conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2mid06-interface-prototype-same-name",
+ "notes": "§2002:11.6.2 SR4a and SR4b forbid reusing an inherited NAME without OVERRIDE, whatever the parameters. A class that redeclares an inherited M with the same or a different interface is refused with COBOL0837. An interface prototype that reuses an inherited prototype's name is refused with COBOL2761. Each refusal is at the METHOD-ID line, at --std 2002 on build dc1f2dcce8."
+}

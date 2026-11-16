@@ -1,0 +1,2 @@
+           DISPLAY "COPY NORMAL"
+      D    DISPLAY "COPY DEBUG"

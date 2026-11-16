@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.20.2-4",
+ "rule-digest": "bad18b681060",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckUsageDeclarationsPass.cs#ScreenExternalClassItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenExternalRecordTypes",
+ "test-ref": "conformance:cases/13.16.20@2002-EXTERNAL-CLAUSE/g2-external-strong-group; conformance:cases/13.18.22-EXTERNAL/pb231-external-pointer-item; conformance:cases/13.18.22-EXTERNAL/pb1212-external-type-of-class-pointer; conformance:cases/13.18.22-EXTERNAL/pb1212-external-type-of-class-object",
+ "notes": "§2002:13.16.20.2 SR4: EXTERNAL shall not be specified for an object or pointer item (pb231/pb1212, COBOL1796) or a strongly-typed group item (§2002:8.5.3; g2-external-strong-group, COBOL1558); all refused at --std 2002."
+}

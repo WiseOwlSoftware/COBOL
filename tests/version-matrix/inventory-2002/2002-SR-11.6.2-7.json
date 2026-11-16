@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-11.6.2-7",
+ "rule-digest": "e5d4eaf576a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#ScreenPropertyMethodHeader",
+ "test-ref": "conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2mid07-set-property-single-using; conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2mid08-set-property-returning",
+ "notes": "§2002:11.6.2 SR7 constrains only the shape: one USING parameter and no RETURNING phrase. A SET PROPERTY method with that shape is accepted and runs as the set property method (§2002:11.6.3 GR7, 'BAL=0084'). One whose USING item is ACTIVE-CLASS is also accepted, since 2002 has no such ban (§2002:13.16.58.2 SR15). One with a RETURNING phrase and no USING is refused with COBOL2790. Matched at --std 2002 on build dc1f2dcce8."
+}

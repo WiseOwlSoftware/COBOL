@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-8",
+ "rule-digest": "cf6ea056d70c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#CheckPictureRequiredPass",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-usage-no-picture; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-elementary-no-picture; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-binary-long-picture",
+ "notes": "§2002:13.14.2 SR8: in records after a CD, BINARY-LONG/BINARY-SHORT/INDEX/POINTER entries without PICTURE are accepted and run (A=[ABCD], M=07 S=12, PX=NULL), an elementary display item without PICTURE draws COBOL0881 and BINARY-LONG with PICTURE draws COBOL0870, at --std 2002 on build dc1f2dcce8."
+}

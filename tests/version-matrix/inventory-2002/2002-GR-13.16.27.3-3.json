@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.27.3-3",
+ "rule-digest": "07e761b99e97",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#OperandPic; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits",
+ "test-ref": "conformance:cases/13.16.27@2002-GROUP-USAGE-CLAUSE/g2-gu-bit-group-ws-and-cd",
+ "notes": "BG holds the same 12 bits as G (USAGE BIT on the group, no GROUP-USAGE), so it is an alphanumeric group and LENGTH counts alphanumeric character positions rounded up (§2002:15.39.3 RV3, RV6): 02, against 12 for the bit group G. The same holds in WS and in the CD record (W/C LEN-BG=02). Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}
