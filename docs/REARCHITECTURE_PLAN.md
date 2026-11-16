@@ -31,10 +31,15 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   adjudications of PB5683). The campaign clusters PB4995 (the 1985 inventory) and PB3726 (the pipeline-scripts
   restructure, `DESIGN-orchestrator-loop.md` section 16: 30 serial steps starting at PB5428; `docs/CONFORMANCE.md` becomes
   one file per determination with an untracked rendered view) are as their notes state. The 2023 inventory reached ZERO GAP on 2026-11-05
-  (kb/Work A11 closed DOC-A.1-17). **It reads 1 GAP since 2026-11-15, and that is not a regression in the compiler:**
-  `GR-14.9.25.4-1` (§2023:14.9.25.4 GR1) was recorded CONFORMS while kb/Work PB5678 (a MOVE of an edited sender to two or
-  more receivers edits it again, wrong at `--std 2023` too) already existed. The record was corrected to DIVERGES naming
-  PB5678, and the KEPT 1985 row `1985-GR-VI.6.19.4-2` follows it (1985 GAP 32 → 33). PB5678's fix closes both. The 2002
+  (kb/Work A11 closed DOC-A.1-17). **It reads 9 GAP since 2026-11-15, and that is not a regression in the compiler:**
+  each is a record corrected to match a defect that already existed. `GR-14.9.25.4-1` (§2023:14.9.25.4 GR1) was recorded
+  CONFORMS while kb/Work PB5678 (a MOVE of an edited sender to two or more receivers edits it again, wrong at `--std 2023`
+  too) already existed; it was corrected to DIVERGES naming PB5678, and the KEPT 1985 row `1985-GR-VI.6.19.4-2` follows it.
+  Eight more were found by the PB5692 sample's code read and corrected to PARTIAL by the registrar landing
+  records-sample-pb5692 (`inventory_view.py --summary` at its merge of main c50b53fba2: 2023 **1 → 9**, 2002 **1,980 →
+  1,983**, 1985 **835 → 844**, the older rises being KEPT rows that follow their 2023 targets): `GR-12.4.5.3-1` (kb/Work
+  PB5733), `SR-14.9.48.3-5`, `SR-14.9.48.3-6`, `SR-14.9.43.3-7` (PB5734), `SR-14.9.22.3-2` (PB5735), `SR-7.3.16.3-2`,
+  `SR-7.3.13.3-4` (PB5736) and `SR-13.18.29.3-3` (PB5711). Each note's fix closes its rows. The 2002
   inventory's count is held (kb/Work PB5256) and the 1985 inventory is described next. The Mythos lane runs the other GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the
   partition redesign (PB4146) and each fuzz night's triage. Neither lane plans what the other's dispatch holds
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
@@ -44,6 +49,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   first 2002 golden-lane landing), 713 adjudicated: CONFORMS 697, DIVERGES 11, DOCUMENTED-NON-SUPPORT 3, PARTIAL 2. The
   2002 golden lane (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; with the fourth
   landing all 85 of its input files are integrated, and the 12 rows kb/Work PB5625's adjudication decided are recorded.
+  The registrar landing records-sample-pb5692 (main fbe1a21ef4 merged) takes it to **1,899 GAP**: three KEPT rows follow
+  their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression.
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
   2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
   NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded for the GAP count by the PB5675 line below). The 2026-11-12 method: code-read waves over rows whose witness exists
@@ -63,7 +70,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   regression: 570 of the 1,373 stored 1985
   KEPT records have a witness at 85 for every target and stay closed (written as their own test-ref), 232 have one for
   some targets and 571 for none. The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
-  terms is still owed, so 835 is a lower bound. 1985 is the earliest edition: its rows are recorded with their own
+  terms is still owed, so 835 is a lower bound (844 after the registrar landing records-sample-pb5692: eight KEPT rows
+  follow their corrected 2023 targets and `1985-GR-XII.2.4-12` is re-recorded PARTIAL for kb/Work PB5732). 1985 is the earliest edition: its rows are recorded with their own
   verdicts, never as new KEPT records (its word-identical pairing is empty). Since the PB5692 ruling of
   2026-11-15 a shared verdict does not close a 1985 row: each of the 1,373 KEPT rows owes a code adjudication at
   `--std 85` (kb/Work PB5683), and until the record-format switch (kb/Work PB5682) shows a verdict's provenance, the
