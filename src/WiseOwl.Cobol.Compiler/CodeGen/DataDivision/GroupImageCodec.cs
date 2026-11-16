@@ -58,10 +58,23 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// image and bit lanes compose the same occurrences once.</summary>
     private static IReadOnlyList<OccurrenceRun> OccurrenceRunsOf(DataItem item, bool useValues, Subscripts subs, int occ) =>
         useValues ? TableValueRuns.Of(item, subs, occ) : OccurrenceRunEmit.Uniform(occ);
+    /// <summary>⛔ THE SEED OF A SHARED-STORAGE BACKING ROOTED AT A MEMBER OF A GROUP THAT CARRIES A VALUE
+    /// (kb/Work PB5851): the backing's storage is <paramref name="over"/> — the positions of the enclosing group's
+    /// §2023:13.18.63.4 GR5 area that lie over <paramref name="canonical"/>, handed down by the one positional walk
+    /// (<see cref="GroupValueSlicer.ComposedInit"/>) — and never the canonical's own description, which carries no
+    /// VALUE (§2023:13.18.63.3 SR13 bars one below a group VALUE). Seeding it from that description is what lost
+    /// `01 G VALUE "ABCD". 05 A PIC X(4). 05 B REDEFINES A PIC X(4).` to spaces at every edition.
+    /// <para>The canonical of a REDEFINES class never carries OCCURS (§2023:13.18.44.3 SR5), so this is one
+    /// occurrence: the occurrence walk of <see cref="ImageInitOf"/> is not needed and not taken.</para></summary>
+    public string BackingSeedOver(DataItem canonical, GroupArea over) =>
+        ImageInitOfOne(canonical, useValues: true, default, SeedRecipe.InitialState, over);
+
     /// <param name="subs">The subscript tuple of THIS occurrence — the twin of
     /// <see cref="ValueInitializer.InitializerFor"/>'s parameter of the same name, so the image lane and the
     /// native-field lane compose one occurrence from the same literal text (kb/Work PB208/PB505).</param>
-    private string ImageInitOfOne(DataItem item, bool useValues, Subscripts subs, SeedRecipe recipe)
+    /// <param name="over">The enclosing group's VALUE area over this item, when one governs it
+    /// (<see cref="BackingSeedOver"/>); null everywhere else.</param>
+    private string ImageInitOfOne(DataItem item, bool useValues, Subscripts subs, SeedRecipe recipe, GroupArea? over = null)
     {
         // ⛔ A POINTER-CLASS LEAF CONTRIBUTES RESERVED BYTES AND NO IMAGE (kb/Work PB231 — the pointer third).
         // Its value is a managed reference held in the area's MANAGED SLOT (Place.SlotWindow / StorageCell.SlotAt),
@@ -80,7 +93,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // VALUE, if any, is the slot's seed (CellDynSeeds). A one-character fill here displaced every following
         // member of an ADDRESS-OF-taken variable-length group by one position.
         if (DynSlotWindow.CarriedBySlot(item)) return "\"\"";
-        string image = CarrierInitOfOne(item, useValues, subs, recipe);
+        string image = CarrierInitOfOne(item, useValues, subs, recipe, over);
         // ⛔ A NATIONAL LEAF'S SEED IS ITS BYTES, NOT ITS CARRIER (kb/Work PB231). Everything this method seeds
         // is a BYTE-ADDRESSED shared area — a Tier-B REDEFINES backing, an EXTERNAL run-unit cell, a
         // BASED/ADDRESS-OF cell, an OO backing — and a national character position occupies TWO of those bytes
@@ -170,14 +183,23 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
 
     /// <summary>The item's initial image in its VALUE CARRIER's own units — see <see cref="ImageInitOfOne"/>,
     /// which applies the storage coding on top (kb/Work PB231).</summary>
-    private string CarrierInitOfOne(DataItem item, bool useValues, Subscripts subs, SeedRecipe recipe)
+    private string CarrierInitOfOne(DataItem item, bool useValues, Subscripts subs, SeedRecipe recipe, GroupArea? over)
     {
+        // ⛔ AN ENCLOSING GROUP'S AREA GOVERNS THIS ITEM (kb/Work PB5851, BackingSeedOver): its positions are the
+        // item's storage "without consideration for the individual elementary or group items" (§2023:13.18.63.4 GR5),
+        // so neither the item's own description nor its members' are consulted. A boolean leaf stores its positions
+        // through its usage (BooleanImageOf); a national leaf's characters become bytes in ImageInitOfOne, as every
+        // national leaf's do.
+        if (over is { } governing)
+            return item.IsGroup ? AreaImageOf(item, governing)
+                : item.Pic!.Category is PicCategory.Boolean ? BooleanImageOf(governing.CsExpression(), item.Pic)
+                : governing.CsExpression();
         if (item.IsGroup)
         {
             // ⛔ A GROUP-LEVEL VALUE INITIALIZES THE AREA (ISO §2023:13.18.63.4 GR5 — "the group area is initialized
             // without consideration for the individual elementary or group items contained within this group"),
             // so it REPLACES the member-wise composition below rather than being composed alongside it. The one
-            // area rule is GroupValueSlicer.AreaTextOf, shared with the record-struct lane.
+            // area rule is GroupValueSlicer.AreaOf, shared with the record-struct lane.
             //
             // ⚠ THIS ARM WAS MISSING, and it was a live silent wrong answer on LEGAL source (kb/Work PB184's
             // sibling sweep). ImageInitOf is THE seeder for every character-image backing since the PB164
@@ -197,14 +219,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // so this lane cannot disagree with the record-struct lane about what a bit group's area is
             // (kb/Work PB207).
             if (useValues && recipe is SeedRecipe.InitialState && GroupValueSlicer.AreaOf(item, ctx, subs) is { } area)
-                // A bit group's area is m BOOLEAN POSITIONS (§2023:13.18.29.4 GR1b); its IMAGE is those positions
-                // PACKED — ceil(m/8) characters through CobolBits.Pack, the ONE bit-order law (D19/PB43), never
-                // a second packer written here. The count is asked of ExtentBits, not taken from the area's own
-                // Length: the two are equal by AreaOf's contract, and asking the LAYOUT keeps the image the
-                // group's full width even if a future area were handed back short (Pack zero-fills the rest).
-                return area.Bits
-                    ? RuntimeApi.BitsPack(area.CsExpression(), $"{BitLayout.ExtentBits(item)}")
-                    : area.CsExpression();
+                return AreaImageOf(item, area);
 
             // ⛔ A BIT GROUP'S IMAGE IS ITS PACKED AREA, NOT ITS MEMBERS' IMAGES CONCATENATED. Each bit member
             // images as its own ceil(n/8) characters, and §2023:8.5.1.6.3 makes same-level bit members SHARE bytes —
@@ -328,6 +343,27 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// and a figurative VALUE therefore reached the image as carrier characters (kb/Work PB584).</summary>
     private static string BooleanImageOf(string carrier, PicInfo pic) =>
         pic.Usage is Usage.Bit ? RuntimeApi.BitsPack(carrier, $"{pic.Length}") : carrier;
+
+    /// <summary>A GROUP's storage image when a §2023:13.18.63.4 GR5 area — its own VALUE's, or the slice of an enclosing
+    /// group's (<see cref="BackingSeedOver"/>) — is its content: the area's positions in the group's storage unit.
+    /// <list type="bullet">
+    ///   <item>A BIT group's area is m BOOLEAN POSITIONS (§2023:13.18.29.4 GR1b); its image is those positions PACKED —
+    ///     ceil(m/8) characters through CobolBits.Pack, the ONE bit-order law (D19/PB43). The count is asked of
+    ///     ExtentBits rather than of the area's own width: the two are equal by AreaOf's contract, and asking the
+    ///     LAYOUT keeps the image the group's full width (Pack zero-fills the rest).</item>
+    ///   <item>A NATIONAL group's area is national character positions (§2023:13.18.29.4 GR2b), and every backing this
+    ///     codec seeds is byte-addressed, where a national position occupies two bytes (D-N1, UTF-16BE): the area is
+    ///     stored through <c>NatBytes</c>, exactly as each national LEAF's characters are in
+    ///     <see cref="ImageInitOfOne"/>. Without it `01 NH GROUP-USAGE NATIONAL VALUE N"KL". 05 NHA PIC N.
+    ///     05 NHB PIC N. 01 NHR REDEFINES NH PIC X(4).` stored the two characters as two bytes and read back
+    ///     NH as U+4B4C U+2020 (kb/Work PB5851's sweep).</item>
+    ///   <item>Every other group's area is character positions, which are its bytes: §2023:13.18.63.3 SR14 makes every
+    ///     item subordinate to an alphanumeric group carrying a VALUE usage DISPLAY.</item>
+    /// </list></summary>
+    private static string AreaImageOf(DataItem group, GroupArea area) =>
+        area.Bits ? RuntimeApi.BitsPack(area.CsExpression(), $"{BitLayout.ExtentBits(group)}")
+        : group.ImageUnit > 1 ? RuntimeApi.NatBytes(area.CsExpression())
+        : area.CsExpression();
 
     /// <summary>Emit a variable-length group's <c>CurrentImage()</c> — the §2023:14.9.11.4 GR7 implementor-defined
     /// DISPLAY format, documented as CONFORMANCE.md A.1 item 57 (kb/Work PB164): the members' images in
