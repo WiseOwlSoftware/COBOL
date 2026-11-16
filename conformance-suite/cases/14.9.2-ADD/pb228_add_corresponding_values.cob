@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb228_add_corresponding_values
       *> rules: [GR-14.9.2.4-3]
-      *> accept: [2002]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

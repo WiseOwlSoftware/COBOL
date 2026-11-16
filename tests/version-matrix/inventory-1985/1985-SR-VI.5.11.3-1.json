@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.11.3-1",
  "rule-digest": "54b70b3b15d5",
+ "test-ref": "conformance:cases/13.16-Data-description/l1_renames_through_thru",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
