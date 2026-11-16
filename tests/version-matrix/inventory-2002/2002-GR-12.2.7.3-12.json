@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.7.3-12",
  "rule-digest": "1b6daa12bd84",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb1100_class_repository_function_program",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

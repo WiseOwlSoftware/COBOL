@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.56.3-1",
+ "rule-digest": "c9603274c4ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandType; src/WiseOwl.Cobol.Compiler/Binding/Model/DescriptionCopy.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CloneRenamesOnto; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames",
+ "test-ref": "conformance:cases/13.16.56@2002-TYPEDEF-CLAUSE/g2002-cd-typedef-member-refs",
+ "notes": "§2002:13.16.56.3 GR1: members of a type declaration written under a CD are reached only through groups typed by it, qualified when two such groups exist, and a same-named other resource is reached when no group exists; derived CX=AB CY=CD, COND OK, TQ=OTHR, CR LEN=08, CR=ABNOCDOK matched the --std 2002 run, and the unqualified member with two groups was refused COBOL1639."
+}

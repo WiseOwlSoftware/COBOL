@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.51.2-7",
  "rule-digest": "0655ec83ded2",
+ "test-ref": "conformance:cases/13.18.53-SOURCE/pb852_report_source_operand_parens",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

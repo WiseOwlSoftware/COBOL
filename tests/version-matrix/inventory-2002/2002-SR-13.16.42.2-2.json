@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-2",
+ "rule-digest": "aa1b252e8f6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TemplateItems; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-entry-rules; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-level-mismatch; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-88",
+ "notes": "§2002:13.16.42.2 SR2: equal level-numbers, never 66 or 88. In a CD record at --std 2002, 05/05 and 10/10 redefinitions compile and bind (C1=0013, T2=7856, AR=12 BR=34); 05 over a level-10 item is refused COBOL1654 and an 88 REDEFINES COBOL1747; all runs matched the derivation."
+}

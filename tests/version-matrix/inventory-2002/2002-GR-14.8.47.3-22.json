@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-22",
+ "rule-digest": "1e48261714a8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_linage_end_of_page",
+ "notes": "§2002:14.8.47.3 GR22 with §2002:13.16.32.3 GR3/GR7: page overflow raises end-of-page and resets LINAGE-COUNTER to 1, for AFTER specified, AFTER implied and BEFORE (a). Printing or spacing into the footing area raises end-of-page with no reposition (b). The --std 2002 run of the pinned build dc1f2dcce8 matched the derived .out."
+}

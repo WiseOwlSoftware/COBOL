@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.2-2",
+ "rule-digest": "407508469427",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveLine.cs#TryParse; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#FormatSegments; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#DirectiveText; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ScanProgramText; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#DirectiveAfterText",
+ "test-ref": "conformance:cases/7.2@2002-COMPILER-DIRECTIVES/g2cd04_flag85_after_text_refused; conformance:cases/7.2@2002-COMPILER-DIRECTIVES/g2cd05_fna_after_text_refused; conformance:cases/7.2@2002-COMPILER-DIRECTIVES/g2cd01_one_line_directives",
+ "notes": "§2002:7.2.2 SR2 'A compiler directive shall be preceded only by zero, one, or more space characters': a FLAG-85 or FLAG-NATIVE-ARITHMETIC directive after program text on its line is refused at 2002 (COBOL2691 at line 19, pinned build --std 2002), while directives at columns 8, 9 and 16 are accepted (g2cd01)."
+}

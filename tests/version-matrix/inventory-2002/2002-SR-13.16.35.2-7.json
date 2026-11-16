@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.35.2-7",
  "rule-digest": "19762772b7a6",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-report-heading-relative; conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-page-footing-relative",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

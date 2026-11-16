@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.21.2-2",
+ "rule-digest": "940816213096",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KnownWidth",
+ "test-ref": "conformance:cases/15.21@2002-DISPLAY-OF-FUNCTION/g2-display-of-substitution-argument",
+ "notes": "§2002:15.21.2 AR2: PIC X, PIC A and one-character literal argument-2 forms are accepted and, under the documented total correspondence (§2002:15.21.3 RV1, DOC-A.1-33), never substitute ([ABC], length 003, CJK character kept) at --std 2002; a two-position argument-2 is refused (COBOL1546, g2-display-of-arg2-length-refused)."
+}

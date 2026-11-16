@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-DOC-B.1-25",
  "rule-digest": "869a228200fc",
+ "test-ref": "conformance:wiseowl/cases/13.18.23-FOREGROUND-COLOR/a42-screen-foreground-color; conformance:wiseowl/cases/13.18.4-BACKGROUND-COLOR/a42-screen-background-color",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

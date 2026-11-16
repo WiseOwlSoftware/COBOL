@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.41.3-10",
+ "rule-digest": "d3d8d090b9f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordMax; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize",
+ "test-ref": "conformance:cases/13.16.41@2002-RECORD-CLAUSE/g2-record-varying-unstated-max",
+ "notes": "§2002:13.16.41.3 GR10: with no integer-3 the maximum record size is the greatest described record, here R2 at 25 bytes (GR8, GR8b), over R1's 10. At --std 2002 WRITE with L=10 and L=25 gives status 00 and L=26 gives 44 (GR14a, §2002:9.1.12.6), matching the derivation."
+}

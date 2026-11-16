@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.11.3-6",
  "rule-digest": "006c32c600c4",
+ "test-ref": "conformance:cases/13.18.45-RENAMES/pb1284_renames_range_fixed",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

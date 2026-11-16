@@ -49,8 +49,9 @@ AUDITS = (
     # What the table owes, and each stored record a flag now asks a new question (kb/Work PB5597), is printed, never red.
     ("LINEAGE SCREEN", ["scripts/spec/lineage_screen.py", "--check"]),
     # kb/Work PB5597: every read record of an older edition's rules interprets (the one normalization), every stored
-    # change record whose source names one is that read's decision (a SAME its refuter upheld), and every stored KEPT
-    # record of an edition that closes on own-edition evidence (2002) still has a suite witness that runs there.
+    # change record whose source names one is that read's decision (a SAME its refuter upheld), and, at every older held
+    # edition (kb/Work PB5675), every KEPT row's own witness (its test-ref) is a suite case that runs there, of the kind
+    # its rule needs: a narrowed or moved witness is red, by row and case.
     ("LINEAGE READS", ["scripts/spec/lineage_reads.py", "--check"]),
     # kb/Work PB689, PB5256: the independent count critic, every held ISO edition: each rule block holds exactly the
     # ordinals its transcription prints, but where the catalog records a finding that explains the difference.
@@ -68,6 +69,9 @@ AUDITS = (
     ("LINE ENDINGS", ["scripts/line_endings.py", "--check"]),
     # kb/Work PB735, PB2878: a byte-level fact about the committed tree, an audit so that no test reads every path.
     ("CONFLICT MARKERS", ["scripts/conflict_markers.py", "--check"]),
+    # kb/Work PB5694: no two tracked paths (or directories above them) differ only in letter case, which a case-insensitive
+    # checkout folds into one and Linux keeps apart. A fact about the committed tree's names, an audit like CONFLICT MARKERS.
+    ("CASE COLLISIONS", ["scripts/case_collisions.py", "--check"]),
     # kb/Work PB5396, PB3694: the public-API baselines list no symbol twice (RS0025 fails the Release build on one) and every
     # Unshipped one is in ordinal order, the one order that lets plain git merge two branches' new symbols; the module's `--write`
     # is the fixer. A byte-level fact about the committed tree, an audit like CONFLICT MARKERS.

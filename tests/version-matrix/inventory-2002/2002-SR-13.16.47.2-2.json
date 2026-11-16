@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.47.2-2",
+ "rule-digest": "fd19da5e2ff2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "test-ref": "conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-cd-subordinate; conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-cd-level-88; conformance:cases/13.18.49-SAME-AS/l1c27-same-as-followed-by-subordinate; conformance:cases/13.18.49-SAME-AS/l1c27-same-as-followed-by-88",
+ "notes": "§2002:13.16.47.2 SR2 forbids a subordinate or level 88 entry immediately after a SAME AS entry, and reaches CD records (§2002:A.1.1.2). Both CD-record violations are refused at --std 2002 at the SAME AS entry with COBOL1555 (the pinned build dc1f2dcce8); the working-storage reach is the l1c27 pair, refused at 2002."
+}

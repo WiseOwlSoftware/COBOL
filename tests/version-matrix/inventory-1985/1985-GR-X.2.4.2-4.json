@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.2.4.2-4",
  "rule-digest": "8052fc6767f9",
+ "test-ref": "conformance:cases/14.6.2.3.2-Initial-state/l1c15_initial_container_resets_nested; conformance:cases/11.10-PROGRAM-ID/l1c21_initial_program_state",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

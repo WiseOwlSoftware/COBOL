@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.10.2-11",
  "rule-digest": "a66007fa20f8",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-after-match-category-mismatch; conformance:cases/7.3.13-EVALUATE/pb1364-when-format2-after-match-malformed",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

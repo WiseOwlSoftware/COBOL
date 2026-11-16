@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.9.5-1",
  "rule-digest": "63c7253ac1ca",
+ "test-ref": "conformance:cases/13.18.40-PICTURE/pb490_simple_insertion_strings_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

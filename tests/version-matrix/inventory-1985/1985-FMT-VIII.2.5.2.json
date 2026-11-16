@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VIII.2.5.2",
  "rule-digest": "1ee4570267a2",
+ "test-ref": "conformance:cases/12.4.5.10-ORGANIZATION/pb706-record-sequential-below-2023; conformance:cases/12.4.5.10-ORGANIZATION/pb688-line-sequential-below-2023",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

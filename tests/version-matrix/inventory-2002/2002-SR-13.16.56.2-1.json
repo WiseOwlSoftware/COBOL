@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.56.2-1",
+ "rule-digest": "fee38048433a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandTemplate",
+ "test-ref": "conformance:cases/13.16.56@2002-TYPEDEF-CLAUSE/g2002-cd-typedef-strong-elementary",
+ "notes": "§2002:13.16.56.2 SR1 forbids STRONG on an elementary type declaration; at 2002 a CD record is ordinary data description entries (§2002:A.1.1.2), so '01 T2 TYPEDEF STRONG PIC X(2)' under an output CD must be refused. --std 2002 refused it at the entry with COBOL1529 (pinned build dc1f2dcce8)."
+}

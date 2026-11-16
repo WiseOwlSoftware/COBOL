@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-16.1.2.1-1",
  "rule-digest": "d12c76170660",
+ "test-ref": "conformance:cases/16.2.1-New-method/pb1548_standard_class_base",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

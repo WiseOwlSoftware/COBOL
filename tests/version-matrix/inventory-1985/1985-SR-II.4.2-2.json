@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-II.4.2-2",
  "rule-digest": "90157ed0e809",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb206_value_size_alphanumeric; conformance:cases/13.18.63-VALUE/pb207_group_value_area_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

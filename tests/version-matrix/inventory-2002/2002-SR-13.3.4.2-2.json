@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.3.4.2-2",
  "rule-digest": "ed6f09471ea5",
+ "test-ref": "conformance:cases/13.4.5-File-description/l1_fd_clauses_any_order",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

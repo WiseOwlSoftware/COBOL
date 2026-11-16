@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.10.3-12",
  "rule-digest": "ca4c0586e9f1",
+ "test-ref": "conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal; conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-positioned; conformance:wiseowl/cases/13.18.14-COLUMN/a42-ec-screen-turn; conformance:wiseowl/cases/13.18.14-COLUMN/a42-ec-screen-raise; conformance:wiseowl/cases/13.18.14-COLUMN/a42-ec-screen-perform-when; conformance:wiseowl/cases/13.18.14-COLUMN/a42-ec-screen-use",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

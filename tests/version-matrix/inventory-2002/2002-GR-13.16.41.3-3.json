@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.41.3-3",
+ "rule-digest": "45b90bd2604f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth",
+ "test-ref": "conformance:cases/13.16.41@2002-RECORD-CLAUSE/g2-record-contains-odo-maximum; conformance:cases/13.16.41@2002-RECORD-CLAUSE/g2-record-contains-odo-maximum-over; conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes",
+ "notes": "§2002:13.16.41.3 GR3 sizes a record by the maximum of its variable-length data item: FR = 2 + 10 = 12 bytes, so at --std 2002 RECORD CONTAINS 12 runs (g2-record-contains-odo-maximum, F=00) and 11 is refused COBOL2010 '3 to 12 bytes'; pb1277_record_size_in_bytes covers bytes regardless of character type at 2002."
+}

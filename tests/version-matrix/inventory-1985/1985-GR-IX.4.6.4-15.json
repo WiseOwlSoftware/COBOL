@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.4.6.4-15",
  "rule-digest": "b81baef248a5",
+ "test-ref": "conformance:cases/14.9.30-READ/pb2693_dup_orders_survive_close",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

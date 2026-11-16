@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VIII.2.4.3-2",
  "rule-digest": "3efb99490562",
+ "test-ref": "conformance:cases/12.4.5.13-RELATIVE-KEY/pb699-relative-key-not-unsigned-integer",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -190,7 +190,12 @@ public static class CobolPtr
     public static ManagedPointer UpByAmountReal(ManagedPointer? p, double by, bool down) =>
         Displace(p, SetAmount.Land(by, out Int128 whole), whole, down);
 
-    /// <summary>Map <see cref="SetAmount"/>'s landing onto THIS format's two rules, ONCE for both lanes. An
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="UpByAmount"/> (kb/Work PB5619): GR19's integrality test runs on the
+    /// SDIDI's own exponent, and an integral amount past the carrier is GR20's.</summary>
+    public static ManagedPointer UpByAmountDec(ManagedPointer? p, CobolDec by, bool down) =>
+        Displace(p, SetAmount.Land(by, out Int128 whole), whole, down);
+
+    /// <summary>Map <see cref="SetAmount"/>'s landing onto THIS format's two rules, ONCE for every lane. An
     /// integral amount too large for the widest integer carrier (a huge double, or a trailing-P amount whose
     /// value is past <see cref="Int128"/>, kb/Work PB2697) is NOT GR19's case — it IS an integer — and no
     /// representable address can result from it, which is GR20's.</summary>
@@ -264,6 +269,28 @@ public static class CobolPtr
         if (up <= 0) { notAvail = false; return ManagedPointer.Null; }   // GR2
         if (up > int.MaxValue) { notAvail = true; return ManagedPointer.Null; }
         return Allocate((Int128)up, fill, out notAvail);
+    }
+
+    /// <summary>The SDIDI lane of ALLOCATE (kb/Work PB5619): GR1's "rounded up to the next whole number" on the value's own
+    /// exponent, so a fraction of 1E-20 still rounds up; GR2's result at or below zero is NULL with no exception; an integral
+    /// request past <see cref="Int128"/> (or past what a cell can hold) is GR5's storage-not-available, never a size error.</summary>
+    public static ManagedPointer AllocateDec(CobolDec size, char fill, out bool notAvail)
+    {
+        notAvail = false;
+        if (size.Sig <= 0) return ManagedPointer.Null;           // GR2 — also ceil(-0.5) = 0
+        Int128 up;
+        if (size.Exp >= 0)
+        {
+            if (!CobolNum.WideningFits(size.Sig, size.Exp)) { notAvail = true; return ManagedPointer.Null; }
+            up = size.Exp == 0 ? size.Sig : size.Sig * Pow10.AsWide(size.Exp);
+        }
+        else if (-size.Exp > 38) up = 1;                          // 0 < value < 1 (Sig < 10^39): GR1 rounds up to 1
+        else
+        {
+            Int128 pow = Pow10.AsWide(-size.Exp);
+            up = size.Sig / pow + (size.Sig % pow != 0 ? 1 : 0);  // GR1
+        }
+        return Allocate(up, fill, out notAvail);
     }
 
     /// <summary>FREE (ISO §2023:14.9.15 GR1): (a) a pointer addressing the START of storage obtained by ALLOCATE

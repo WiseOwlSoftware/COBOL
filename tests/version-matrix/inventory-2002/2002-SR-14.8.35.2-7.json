@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.35.2-7",
+ "rule-digest": "b74afbb5a8f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetCondition",
+ "test-ref": "conformance:cases/14.8.35@2002-SET-STATEMENT/g2-set-false-cd-condition-name; conformance:cases/14.8.35@2002-SET-STATEMENT/g2-set-false-cd-no-false-phrase; conformance:cases/13.18.63-VALUE/pb555_value_false_phrase; conformance:cases/13.18.63-VALUE/pb455_set_false_group_length",
+ "notes": "§2002:14.8.35.2 SR7 requires a FALSE phrase in condition-name-1's VALUE clause for SET TO FALSE; with level-88 entries under an output CD the --std 2002 run prints A=Y / B=N / C=1 / D=0 / E=OFF as derived from §2002:14.8.35.3 GR5/GR6, and SET TO FALSE of a CD condition-name without the phrase is refused COBOL2049."
+}

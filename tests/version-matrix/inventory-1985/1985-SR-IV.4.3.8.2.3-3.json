@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.2.3-3",
  "rule-digest": "d2c8359283e2",
+ "test-ref": "conformance:cases/8.4.2.3-Subscripts/pb459-index-name-not-in-table; conformance:cases/8.4.2.3-Subscripts/pb1472-all-subscript-index-name-other-table",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

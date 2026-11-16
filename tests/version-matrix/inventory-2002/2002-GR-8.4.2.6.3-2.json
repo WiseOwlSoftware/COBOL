@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-8.4.2.6.3-2",
  "rule-digest": "973b1b738f29",
+ "test-ref": "conformance:cases/8.4.3.6-EXCEPTION-OBJECT/gl2m2_exception_object_identity",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

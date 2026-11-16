@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.53.3-4",
+ "rule-digest": "6089952086fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/SynchronizedPhrase.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; docs/CONFORMANCE.md#DOC-A.1-197",
+ "test-ref": "conformance:cases/13.16.53@2002-SYNCHRONIZED-CLAUSE/g2syn01_sync_cd_ws_ls_file_layout",
+ "notes": "§2002:13.16.53.3 GR4: SYNCHRONIZED RIGHT and SYNC RIGHT items in a CD record, a WS 77 and a file record end on the right byte of a one-byte boundary with no adjustment (CDPOS=ABCDEF, FILE=4 PQ). The --std 2002 run of g2syn01 matched."
+}

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-12.2.6.3-12",
  "rule-digest": "59771e7c597f",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb110_symbolic_and_class_in; conformance:cases/12.3.7-SPECIAL-NAMES/pb976_class_for_phrase_rules",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.28.2-2",
+ "rule-digest": "1b9b29b7af77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise",
+ "test-ref": "conformance:cases/14.8.28@2002-RAISE-STATEMENT/g2rai01_raise_object_and_name; conformance:cases/14.8.28@2002-RAISE-STATEMENT/g2rai02_raise_null; conformance:cases/14.8.28@2002-RAISE-STATEMENT/g2rai03_raise_super; conformance:cases/14.8.28@2002-RAISE-STATEMENT/g2rai04_raise_numeric",
+ "notes": "§2002:14.8.28.2 SR2: identifier-1 shall be an object reference, not NULL or SUPER; RAISE NULL, RAISE SUPER (in a method) and RAISE of a numeric item are each refused at the RAISE line with COBOL0848 at --std 2002, and RAISE of object references is accepted and runs (g2rai01)."
+}

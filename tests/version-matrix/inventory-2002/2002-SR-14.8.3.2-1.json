@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.3.2-1",
  "rule-digest": "13be10e6cc4d",
+ "test-ref": "conformance:cases/14.9.3-ALLOCATE/allocate-non-based",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

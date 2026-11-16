@@ -73,6 +73,7 @@ public static class Constructs
     public const string DateToYyyymmdd2002 = "date-to-yyyymmdd-2002";
     public const string DebuggingLineRemoved2014 = "debugging-line-removed-2014";
     public const string DebuggingModeRemoved2014 = "debugging-mode-removed-2014";
+    public const string DefineBooleanExpression2023 = "define-boolean-expression-2023";
     public const string DefineDirective2002 = "define-directive-2002";
     public const string DeleteFile2023 = "delete-file-2023";
     public const string DisplayDirective2023 = "display-directive-2023";

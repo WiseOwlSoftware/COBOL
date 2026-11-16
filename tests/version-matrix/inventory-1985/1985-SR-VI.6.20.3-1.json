@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.20.3-1",
  "rule-digest": "88b3b8a23967",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/pb1142-multiply-alphanumeric-function; conformance:cases/14.9.26-MULTIPLY/l1c19-multiply-giving-alphanumeric",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

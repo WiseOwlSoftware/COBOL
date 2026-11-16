@@ -1,0 +1,24 @@
+== R-G ==
+[RH]
+[PH 1]
+[CHF]
+[CHK A]
+[DE A 1]
+[DE A 2]
+[CFK A]
+[CHK B]
+[DE B 3]
+[CFK B]
+[CHK C]
+[CFK C]
+[CFF]
+== R-P ==
+[RH P]
+---- PAGE ----
+[PH 2]
+[DE P]
+== R-Q ==
+[RH Q]
+---- PAGE ----
+[PH 1]
+[DE Q]

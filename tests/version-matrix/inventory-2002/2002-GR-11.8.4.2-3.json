@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-11.8.4.2-3",
  "rule-digest": "51727e5abf48",
+ "test-ref": "conformance:cases/11.9.5-ARITHMETIC/l1_native_arith_lane_and_rounding",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

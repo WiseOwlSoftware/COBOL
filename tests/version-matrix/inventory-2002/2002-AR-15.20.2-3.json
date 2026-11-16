@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.20.2-3",
+ "rule-digest": "53d334d7b273",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayToYyyyddd; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#IntArg",
+ "test-ref": "conformance:cases/15.20@2002-DAY-TO-YYYYDDD-FUNCTION/g2-day-to-yyyyddd-default-window",
+ "notes": "§2002:15.20.2 AR3 (omitted argument-2 = 50) with §2002:15.20.3 RV1 and §2002:15.81.3 RV2: arguments built on the year of execution put the default on the window edge, so the default equals explicit 50 and differs by one century from 49 and 51; all seven derived lines matched at --std 2002."
+}

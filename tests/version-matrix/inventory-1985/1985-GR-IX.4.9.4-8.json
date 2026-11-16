@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.4.9.4-8",
  "rule-digest": "2d3c13d9f236",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1190_varying_advancing_bounds; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1168_rs_rewrite_size_gr16",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

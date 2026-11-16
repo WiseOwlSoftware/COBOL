@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.4.5.3-1",
  "rule-digest": "8c52436d044a",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb318-open-report-file-input; conformance:cases/13.4.5-File-description/pb1171_report_file_legal_references",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

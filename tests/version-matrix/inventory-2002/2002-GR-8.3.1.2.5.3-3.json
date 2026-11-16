@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-8.3.1.2.5.3-3",
  "rule-digest": "494f39435471",
+ "test-ref": "conformance:cases/8.3.3.6-Figurative-constant-values/pb3962_figurative_zero_before_a_signed_literal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
