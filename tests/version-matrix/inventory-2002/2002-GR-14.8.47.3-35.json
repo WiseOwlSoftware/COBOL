@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-35",
+ "rule-digest": "87df86349418",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_indexed_write_rewrite_keys_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.47.3 GR35: dynamic access writes keys 05, 03, 09, 01 in that order, each successful."
+}

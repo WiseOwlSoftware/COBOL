@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.23.3-13",
+ "rule-digest": "6f2f5d75b7b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#SelectedIsNational; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/pb5578_sort_merge_short_record_select_when_fill; conformance:cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill",
+ "notes": "kb/Work PB5578: §2002:14.8.23.3 GR13: MERGE's GIVING fill, chosen by the GIVING file's SELECT WHEN clauses (MG)."
+}
