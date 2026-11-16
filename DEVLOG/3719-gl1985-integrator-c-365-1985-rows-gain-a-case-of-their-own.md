@@ -1,4 +1,4 @@
-## gl1985 integrator c: 365 1985 rows gain a case of their own (the widen-failed wave, 42 slugs), GAP 780 -> 416
+## Entry 3719 — 2026-11-15 19:58 PST — gl1985 integrator c: 365 1985 rows gain a case of their own (the widen-failed wave, 42 slugs), GAP 780 -> 416
 
 **The lane's shape.** The third integration of the 1985 golden lane (kb/Work PB5675's rule: a KEPT 1985 row closes only
 on a test-ref of its own, a suite case that runs at 85 of the kind its rule needs). Its 374 rows are the `widen-failed`
@@ -42,3 +42,4 @@ does not hold under DOC-A.1-159 with DOC-A.1-146 (a), the read-back `g85_bf13_06
 **Held back.** `g85_bf31_06` and `g85_bf31_07` (PB5783's witnesses, correct, out of the tree); the three defect
 repros; the withdrawn `g85_bf10_03`, `g85_bf21_10` and `g85_bf25_04`. `docs/conformance/`: the ten determinations
 these goldens rest on (DOC-A.1-8, 103, 129, 146, 159, 191, 195, 196, 205, 208) name them under `Pinned by`.
+
