@@ -292,6 +292,18 @@ with tempfile.TemporaryDirectory() as tmp:
                                                                    main, P), [None])
     exact("powershell: a here-string is one word, its content", sl.steps("Write-Output @'\nline\n'@", str(main), P)[0].words,
           ("Write-Output", "line"))
+    # kb/Work PB5764: `Step.expands` marks each word the shell expands at run time, in the syntax of the shell that runs
+    # it (`Step.shell`), for forbidden_commands.py rule 7
+    flags = lambda cmd, shell=B: [(s.shell, s.expands) for s in sl.steps(cmd, str(main), shell)]  # noqa: E731
+    exact("bash: a variable unquoted, in double quotes, braced, a substitution, a backquote, arithmetic expand",
+          flags('rm $a "$b" ${c} $(d) `e` $((1+2)) x'),
+          [(B, (False,)), (B, (False,)), (B, (False,) + (True,) * 6 + (False,))])   # the substitutions' steps run first
+    exact("bash: a `$` in single quotes or escaped is literal; a known variable still expands",
+          flags("v=/x; echo '$a' \"\\$b\" \\$c \"$v\""), [(B, (False,)), (B, (False, False, False, False, True))])
+    exact("powershell: `$x`, `$env:X`, double quotes and `$( … )` expand; single quotes and an escaped `$` do not",
+          flags("ri $a $env:T \"x$b\" $(f) 'y$c' \"`$d\" e", P), [(P, (False,)), (P, (False,) + (True,) * 4 + (False,) * 3)])
+    exact("cmd /c: the payload is cmd.exe's, and its `%X%` expands",
+          flags('cmd /c "rd /s %D% E:/x"'), [("cmd", (False, False, True, False))])
 
 for f in fails:
     print("FAIL:", f)

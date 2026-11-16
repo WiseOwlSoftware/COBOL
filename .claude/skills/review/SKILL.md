@@ -78,7 +78,9 @@ lists WAITING FOR REVIEW. The landing step never reviews and never fixes. The pr
 head, the implementer's report, the findings file (`<scratch>\review-w<wave>-<letter>.jsonl`; any path without a
 space for a hand dispatch), the reviewer label and the round. A wave's prompt also names YOUR SCRATCH DIRECTORY
 (`<scratch>\review-w<wave>-<letter>\`, MANDATORY-PRACTICES P16, kb/Work PB4466): every probe program, copied script or log you keep
-outside the worktree goes there, never in the session scratchpad that every agent of the session shares. It also names the group's DISPATCH SPEC
+outside the worktree goes there, never in the session scratchpad that every agent of the session shares. A probe program runs
+through `python scripts/orchestrator/run_probe.py --root <that directory>\runs --std <edition> --tree <the branch's worktree>
+<program.cob>`, a new directory per run, so nothing is ever deleted first (MANDATORY-PRACTICES P17, kb/Work PB5764). It also names the group's DISPATCH SPEC
 (`<scratch>\msg-w<wave>-<letter>.txt`) and, for a campaign, the owner's STANDING REQUIREMENTS (kb/Work PB3359; the bullets of
 the campaign lead note's `## Standing requirements`): read the spec, because the branch is reviewed against everything
 the implementer was told, and a branch that lacks a requirement is a finding (category `requirement`), not a CLEAN. Run every command against the branch's worktree

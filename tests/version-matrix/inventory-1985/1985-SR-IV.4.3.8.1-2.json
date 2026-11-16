@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.1-2",
  "rule-digest": "2bec33c30c4e",
+ "test-ref": "conformance:cases/IV.4.3.8@1985-Uniqueness-of-Reference/g85_f04_06",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,0 +1,8 @@
+A 1 [DELTA   ]
+A 2 [ALPHA-RW]
+A 3 [CHARLIE ]
+A 4 [BRAVO   ]
+A 5 [ECHO    ]
+A END AFTER 5
+B 1 [ONLY    ]
+B END AFTER 1

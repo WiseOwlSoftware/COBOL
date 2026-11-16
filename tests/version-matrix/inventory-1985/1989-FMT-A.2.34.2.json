@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.34.2",
  "rule-digest": "767f66108353",
+ "test-ref": "conformance:cases/A.2.34@1985-PRESENT-VALUE-FUNCTION/g85_bf42_03",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

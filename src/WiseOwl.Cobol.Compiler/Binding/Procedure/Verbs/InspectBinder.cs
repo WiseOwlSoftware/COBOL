@@ -362,10 +362,11 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>One SR4 entry: the operand's §2023:8.5.2.1 class, and whether it can TRIGGER the rule — SR4 is written
     /// over an operand that "references an ELEMENTARY data item or literal of class boolean or national", while
-    /// "all shall reference a data item or literal" of that class, so a group conforms by its class but never
-    /// triggers.</summary>
+    /// "all shall reference a data item or literal" of that class, so an alphanumeric group conforms by its class but never
+    /// triggers. A bit group and a national group are treated as elementary items (§2023:13.18.29.4 GR1b / GR2b), so they
+    /// trigger it (kb/Work PB5646: a national-group identifier-1 with an alphanumeric literal compiled clean).</summary>
     private static (CobolClass? Class, bool Triggers) Sr4Entry(BoundOperand op) =>
-        (IntrinsicArgumentRules.ClassOf(op), op is not BoundFieldOperand { Place: var place } || ItemCategory.IsElementaryReference(place));
+        (IntrinsicArgumentRules.ClassOf(op), op is not BoundFieldOperand { Place: var place } || ItemCategory.IsElementaryOrBitNationalGroupReference(place));
 
     /// <summary>⛔ SR3's last sentence, asked of every literal position (kb/Work PB1127): "Literal-1, literal-2,
     /// literal-3, literal-4, or literal-5 shall not be a zero-length literal" — a zero-length literal has no

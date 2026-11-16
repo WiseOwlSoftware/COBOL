@@ -47,12 +47,16 @@ refused program's refuse-at editions and expect text).
 RULES. Do NOT write anything inside E:\\COBOL; do NOT run dotnet build/test; do NOT edit any draft .out or refusal —
 the expected values are SPEC-DERIVED and refuter-upheld; if the compiler disagrees, the compiler is the suspect.
 Compiler: E:\\COBOL\\.claude\\worktrees\\lane3-pin-1d6cc442\\src\\WiseOwl.Cobol.Cli\\bin\\Debug\\net10.0\\cobol.exe (a PINNED build of battery-green tree 1d6cc442 — landings cannot move it under you; never use the main tree's exe).
-FOR EACH POSITIVE DRAFT: copy the .cob to a fresh scratch dir under ${SCRATCH}/run/${slug}/<name>/ and run
-  cobol.exe <id>.cob --std <each edition of its header's accept> --run
-capturing stdout+stderr. Compare stdout to the draft .out: trailing whitespace per line and the final newline are
-ignored, CRLF == LF (the suite runner's rule, CutRunner.Normalize). Anything else is output-mismatch.
+EVERY RUN goes through the probe runner, which copies the program into a NEW directory under its root each time and
+deletes nothing (never a recursive delete of a path that holds a variable: MANDATORY-PRACTICES P17):
+  python E:\\COBOL\\scripts\\orchestrator\\run_probe.py --root ${SCRATCH}/run/${slug} --std <edition> --exe <the Compiler above> [--with <a file it needs>] ...
+FOR EACH POSITIVE DRAFT, at each edition of its header's accept, run
+  run_probe.py ... --expect <the draft .out> <id>.cob
+It prints stdout and stderr and EXPECT: MATCH, or EXPECT: DIFFERS and the differing lines, by the suite runner's own rule
+(trailing spaces per line and the final newlines ignored, CRLF == LF: conformance-suite/harness/run.py normalize). A
+DIFFERS is output-mismatch.
 FOR EACH NEGATIVE DRAFT (no accept; its entry under the report's \`refusals\`): for EACH refuse-at edition run
-  cobol.exe <id>.cob --std <year>
+  run_probe.py ... --compile-only <id>.cob   at --std <year>
 and require a non-zero exit AND the expect text in the diagnostics; also run it at one edition NOT listed (if
 any exists in {85,2002,2014,2023}) and record whether it compiles clean there (report only; it is evidence about the
 edition band, not a pass/fail criterion unless the rule is edition-limited).

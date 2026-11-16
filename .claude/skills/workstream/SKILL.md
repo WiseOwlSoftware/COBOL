@@ -63,6 +63,7 @@ effort, turn cap, 1-hour prompt cache and — for the read-only roles — a hook
 - Every dispatch prompt carries the graceful-stop line naming TWO files, the owner's global `<coord>\scratch\STOP` and the fleet's own `<scratch>\STOP-<scope>` (MANDATORY-PRACTICES P3, kb/Work PB2483): before each new step check both; if either exists, checkpoint-commit, write STATUS.md NEXT, return status SPLIT. Wind your own fleet down with its `STOP-<scope>`, never the global file.
 - A workflow agent never ends its turn while a background job runs: start the job in the background to a log, then block in the foreground on `timeout 580 bash -c 'until grep -qE "<verdict pattern>" <log>; do sleep 5; done'`.
 - A killed agent is replaced by a FRESH agent that reads the checkpoint; resume via `SendMessage` only within a step of finishing.
+- An agent runs a probe program through `scripts/orchestrator/run_probe.py` (a new directory per run, outside every git tree), never a recursive delete of a variable path (P17, kb/Work PB5764).
 
 ## 2. Caps, the gate, and the rolling wave
 

@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.3.3-4",
  "rule-digest": "6f1bbec58b60",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindArithmeticStatementOperand",
+ "test-ref": "conformance:cases/IV.4.3.8.3@1985-Function-Identifier/g85_x02",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter. §1985:IV.4.3.8.3.3 SR4: a function-identifier that references an integer or numeric function may be used only in an arithmetic expression. IntrinsicBinder.ScreenIdentifierPlacement refuses a numeric-category function result at the identifier door at --std 85 (COBOL0900) and BindArithmeticStatementOperand admits it in an arithmetic expression; the refusal case g85_x02 (MOVE FUNCTION ORD (\"A\") TO N, an integer function as the sending operand of MOVE, refused at its MOVE line while the same function on the right side of COMPUTE is legal) pins it. The CHANGED relation to the 2023 rows stands: 2023 lifts the limit.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

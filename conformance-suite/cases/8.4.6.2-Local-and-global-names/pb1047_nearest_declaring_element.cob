@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1047_nearest_declaring_element
-      *> rules: [GR-8.4.6.2.1-1, GR-8.4.6.2.1-3]
+      *> rules: [GR-8.4.6.2.1-1, GR-8.4.6.2.1-3, GR-13.18.27.4-2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -77,7 +77,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   witness lane's (320 held, 419 in `remaining-1985.json`). Since the PB5692 ruling of 2026-11-15 a shared verdict does
   not close a 1985 row: each of the 1,373 KEPT rows owes a code adjudication at `--std 85` (kb/Work PB5683), and until
   the record-format switch (kb/Work PB5682) shows a verdict's provenance, the rows counted closed on a shared verdict
-  (the 64 PB5730 closed among them) are not evidence that 1985 is done.
+  (the 64 PB5730 closed among them) are not evidence that 1985 is done. The witness lane's first landing
+  (golden-1985-1) gave 124 more KEPT rows a new case of their own: **1985 from 780 to 656 GAP**.
 - **▶ DECISIONS OF 2026-11-12.** kb/Work PB5373 decides how a 1985 rule with no reachable witness closes: the
   deciding session signs derivations (the owner confirmed "You sign derivations"; the dated file beside PB5373).
   kb/Work PB479 designs rows for the standard's unnumbered obligations (the unit is the paragraph printed at a clause's

@@ -41,6 +41,9 @@ carries its exact site and a concrete failure scenario you verified; a style opi
 a branch with findings goes back to its implementer or a finisher, never fixed by you.
 Anything you must keep outside the worktree (a probe program, a copied script, a log) goes in the scratch directory your prompt
 names, yours alone (MANDATORY-PRACTICES P16, kb/Work PB4466), never in the session scratchpad every agent of the session shares.
+A probe program runs on the branch's build through `python scripts/orchestrator/run_probe.py --root <that directory>\runs
+--std <edition> --tree <the branch's worktree> <program.cob>`: each run is a new directory, so nothing is deleted first;
+never a recursive delete of a path that holds a variable (MANDATORY-PRACTICES P17, kb/Work PB5764).
 
 ## The R2 review (docs/rearchitecture/DESIGN-architecture-review.md section 3 R2)
 
