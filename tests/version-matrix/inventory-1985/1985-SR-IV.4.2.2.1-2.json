@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.2.2.1-2",
  "rule-digest": "77afa26dd589",
- "test-ref": "conformance:cases/IV.4.2.2@1985-Character-Strings/g85_f03_02",
+ "test-ref": "conformance:cases/IV.4.2.2@1985-Character-Strings/g85_f03_02; conformance:cases/IV.4.2.2.1@1985-COBOL-Words/pb5848-copy-text-name-add; conformance:cases/IV.4.2.2.1@1985-COBOL-Words/pb5848-copy-text-name-length; conformance:cases/IV.4.2.2.1@1985-COBOL-Words/pb5848-copy-text-name-ordinary",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
