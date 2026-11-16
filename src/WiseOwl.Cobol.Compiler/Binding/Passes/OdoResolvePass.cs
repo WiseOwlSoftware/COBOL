@@ -179,12 +179,13 @@ internal sealed class OdoResolvePass : IBindPass
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectNotInteger, $"OCCURS DEPENDING ON '{depName}' on '{subject}': data-name-1 "
                     + "shall describe an integer (ISO §2023:13.18.38.3 SR17)" + via);
 
-            // SR18 / SR21 (kb/Work PB1261): data-name-1 must share the table record's SCOPE and RESIDENCE attributes,
+            // SR18 / SR21 (kb/Work PB1261, PB5797): data-name-1 must share the table record's SCOPE and RESIDENCE attributes,
             // or the table's current extent would depend on a counter that a program sharing the record cannot see
             // (GLOBAL) or that is not shared with it (EXTERNAL — two run-unit programs would disagree about the
-            // record's length). "Described in the same data division" holds by construction: this pass runs inside
-            // Bind, before a contained program inherits any container's names, so data-name-1 resolved among this
-            // element's own items.
+            // record's length), AND be described in the SAME DATA DIVISION. That second half does NOT hold by
+            // construction: a contained program's binder inherits its containers' GLOBAL names before this pass runs
+            // (DataBinder.InheritContainerGlobalData), so data-name-1 may resolve to a container's item —
+            // DependingAttributeFault asks whether it did.
             if (!declaration && DependingAttributeFault(binder, item, dep) is { } attributeFault)
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch,
                     $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': {attributeFault}{via}");
@@ -279,11 +280,20 @@ internal sealed class OdoResolvePass : IBindPass
     {
         // A sum counter (kb/Work PB5310) is a global name when its report is (§2023:13.18.27.4 GR1), whatever its register's root.
         bool globalDep = binder.SumCounterReportOf(dep) is ({ } counterReport, _) ? counterReport.IsGlobal : binder.IsGlobalRecord(dep.Root);
-        if (binder.IsGlobalRecord(table.Root) && !globalDep)
+        bool tableGlobal = binder.IsGlobalRecord(table.Root), tableExternal = table.Root.HasExternalClause || table.Root.ExternalFromType;
+        // "Described in the same data division" (§1985:VI.5.8.3 SR8/SR9; §2023:13.18.38.3 SR18/SR21): a counter this unit inherited
+        // from a containing program (DataBinder.InheritContainerGlobalData) is described in that program's data division.
+        if ((tableGlobal || tableExternal) && binder.IsDescribedInContainer(dep))
+            return $"the table's record '{table.Root.CobolName}' is {(tableGlobal ? "global" : "EXTERNAL")} and data-name-1 "
+                + $"'{dep.CobolName}' is described in the data division of a containing program — \"shall reference a "
+                + (tableGlobal ? "data item that is described in the same data division\" (ISO §2023:13.18.38.3 SR18; §1985:VI.5.8.3 SR9)"
+                               : "data item possessing the external attribute that is described in the same data division\" "
+                                 + "(ISO §2023:13.18.38.3 SR21; §1985:VI.5.8.3 SR8)");
+        if (tableGlobal && !globalDep)
             return $"the table's record '{table.Root.CobolName}' is global and data-name-1 is not a global name — \"If "
                 + "the OCCURS clause is specified in an entry subordinate to one containing the GLOBAL clause, "
                 + "data-name-1, if specified, shall be a global name\" (ISO §2023:13.18.38.3 SR18)";
-        if ((table.Root.HasExternalClause || table.Root.ExternalFromType) && !DataBinder.IsInExternalRecord(dep.Root, binder.State.Files))
+        if (tableExternal && !DataBinder.IsInExternalRecord(dep.Root, binder.State.Files))
             return $"the table's record '{table.Root.CobolName}' is EXTERNAL and data-name-1 does not possess the "
                 + "external attribute — \"data-name-1 shall reference a data item possessing the external attribute "
                 + "that is described in the same data division\" (ISO §2023:13.18.38.3 SR21)";
