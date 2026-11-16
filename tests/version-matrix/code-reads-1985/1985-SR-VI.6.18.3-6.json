@@ -60,5 +60,6 @@
   "expected": "a compile-time diagnostic: \"Identifier-2 must reference an elementary numeric data item\" (§1985:VI.6.18.3 SR6); the reference-modified item is \"class and category alphanumeric\" (§1985:IV.4.3.8.4.4 GR5)",
   "observed": "error: backend compilation failed (generated C# at c6_tally_refmod.g.cs): (51,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?'",
   "known_note": "PB5734 (addendum kb/Work/PB5734/2026-11-15-inspect-tallying-counter.md names this row and mechanism; the note's status is landed while the INSPECT arm still fails at d92742fe62)"
- }
+ },
+ "work": "PB5859"
 }

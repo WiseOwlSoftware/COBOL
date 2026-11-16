@@ -71,5 +71,11 @@
    "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DeviceNumeric: not an edition switch, a usage switch the reader did not read: NumericByteForm.Zoned takes the receiver's size, every other byte form takes one whole 80-character record, at every --std"
   ],
   "corrected": "NON-CONFORMING (wrong-answer, silent), cause (b): the same at --std 2023. Minimal repro: 01 C4 PIC 9(4) COMP. ACCEPT C4. DISPLAY C4. with input '12345678' prints 5678; §1985:VI.6.5.4 GR4b with the 1985 size of the item (4 characters, §1985:IV.4.3.4) stores the leftmost four characters, '1234', and ignores the rest, as the same program does for PIC 9(4) DISPLAY (1234). '12.50CR' into PIC 9(3)V99 COMP stores zero where the five-character window '12.50' is 12.50. Known: kb/Work PB3513 (landed) chose the whole-record read for binary/packed deliberately, following GnuCOBOL 3.2.0, as GR1 conversion latitude; that latitude does not reach GR4b's choice of which characters are stored, and DOC-A.1-5 states the opposite size. Reading stated: if the owner holds that a binary item's GR4 size is one record, DOC-A.1-5 must say so and this becomes a documentation defect only."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "An ACCEPT from the device into a binary or packed numeric item converts the whole 80-character record, so characters the rule says are ignored decide the value: the line `12345678` into `PIC 9(4) COMP` stores 5678, where a `PIC 9(4)` DISPLAY item stores 1234. See below: decided.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-11.md"
+ },
+ "work": "PB5856"
 }

@@ -71,5 +71,11 @@
    "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring: the POINTER-absent arm ('long ptr = 1') feeds the GR17a initiation test at every edition; at 85 the test must apply only when identifier-7 is written (the 85 arm of DialectBehavior.UnstringZeroLengthSenderTerminates removes the guard but nothing restricts GR17a to identifier-7)"
   ],
   "corrected": "PARTIAL (wrong-answer, cause c: 1985 GR17a covers less than the code applies, only a written POINTER item). At --std 85, UNSTRING with no POINTER from a zero-size identifier-1 must not raise overflow; the ON OVERFLOW imperative runs where GR20 requires NOT ON OVERFLOW. With POINTER, every GR17a and GR17b case probed conforms. The pb5816 witness's leg C expectation must change with the fix. Known note: kb/Work PB5816 (landed) introduced the behaviour; its repro and text cover only the POINTER form."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "At `--std 85` an UNSTRING with NO POINTER phrase from a zero-size sender runs ON OVERFLOW, where the 1985 text gives NOT ON OVERFLOW. The fix of kb/Work PB5816 carried the ruling made for WITH POINTER to the form with no POINTER, and leg C of its witness expects the wrong answer.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-11.md"
+ },
+ "work": "PB5858"
 }

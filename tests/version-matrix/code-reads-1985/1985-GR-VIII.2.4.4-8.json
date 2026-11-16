@@ -127,5 +127,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ExternalItemIdentity: no edition switch, but the identity GR8's sameness test uses is the name path (record name and subordinate names) without position, unlike FileEntryIdentity.KeyEntry's offset-bearing identity for RECORD KEY"
   ],
   "corrected": "If 'the same external data item' means the same character positions of the external record: NON-CONFORMING (under-rejects), cause (b) (ExternalItemIdentity has no edition arm). Repro: runs/r5offrnd-001/r5offrnd.cob, accepted at --std 85 with the two RELATIVE KEY items at positions 1-4 and 5-8 of one external record. No kb/Work note found for the position-blind identity (grep of kb/Work for ExternalItemIdentity and 'same external data item' hits PB1965, PB2118, PB2293, PB2418, PB3212, PB5069, PB5602, PB673; none names a same-named item at another position). For case 1 the known note is PB3513 (landed, the deliberate whole-record read)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "Two programs that describe one external relative file may name RELATIVE KEY items of the same name at DIFFERENT character positions of the external record, and the compiler accepts it: it identifies the item by its name path alone. See below: decided.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-11.md"
+ },
+ "work": "PB5857"
 }
