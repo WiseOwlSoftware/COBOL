@@ -146,13 +146,13 @@ public sealed class ArchOracleDriftTests
             Assert.NotEqual(first.Program, Observe(other).Program);
             Assert.Equal(ArchOracle.ClockProgram, Observe(clock).Program);
             Assert.Equal(ArchOracle.AmbientProgram, Observe(ambient).Program);
-            Assert.All(first.Absent ?? [], p => Assert.DoesNotContain(TestRepo.Root, p, StringComparison.OrdinalIgnoreCase));
             // A COPY of a text-name neither the scratch nor the working directory holds: the working directory's absent
             // probe is recorded, portably (kb/Work PB4333 R2-2), so a library text appearing there later refuses the carry.
             var copied = Observe(copies);
             Assert.Contains(copied.Absent ?? [], p => p.Contains("PB4333ABSENT", StringComparison.OrdinalIgnoreCase)
                 && (p.StartsWith("<repo>/", StringComparison.Ordinal) || Path.IsPathRooted(p)));
-            Assert.All(copied.Absent ?? [], p => Assert.DoesNotContain(TestRepo.Root, p, StringComparison.OrdinalIgnoreCase));
+            // Every absent probe is portable: none spells this machine's repository root.
+            Assert.All([.. first.Absent ?? [], .. copied.Absent ?? []], p => Assert.DoesNotContain(TestRepo.Root, p, StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
