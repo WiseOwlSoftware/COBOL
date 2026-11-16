@@ -82,6 +82,13 @@ public static partial class CobolCharacterRepertoire
         return false;
     }
 
+    /// <summary>Whether <paramref name="codePoint"/> is a character the edition <paramref name="dialectLevel"/>'s COBOL character
+    /// repertoire lacks (kb/Work PB5608): a character beyond the basic characters (the ASCII range, whose basic special characters
+    /// the word scanners and the lexer judge) that is not an extended letter of the edition's Annex B — below 2002 every one, for
+    /// COBOL-85 has no extended letters (see <see cref="PositionOf"/>).</summary>
+    public static bool IsOutsideRepertoire(int codePoint, int dialectLevel)
+        => codePoint >= 0x80 && (dialectLevel < 2002 || PositionOf(codePoint, dialectLevel) == WordCharacterPosition.NotPermitted);
+
     /// <summary>The length of a COBOL word in CHARACTERS (§2023:8.3.2.1's 63): one per code point, so a supplementary-plane
     /// letter is one character, and §2023:8.1.3.2 GR4 c) — "the base character and each combining character are treated as
     /// separate characters in determining the length of a user-defined word" — holds because a combining character is

@@ -468,7 +468,7 @@ public sealed class SharedExtendOpenDriftTests
         // (FileRegistry.RefusedAsAlreadyOpen, kb/Work PB2748) opens nothing and is governed by no posture.
         int assign = Array.FindIndex(lines, l => l.Contains("AssociatePhysical(", StringComparison.Ordinal)
             && !l.TrimStart().StartsWith("//", StringComparison.Ordinal));
-        int open = Array.FindIndex(lines, l => l.Contains("string status = c.Open(mode)", StringComparison.Ordinal)
+        int open = Array.FindIndex(lines, l => l.Contains("string status = linageRefusal ?? c.Open(mode)", StringComparison.Ordinal)
             && !l.TrimStart().StartsWith("//", StringComparison.Ordinal));
         Assert.True(assign >= 0 && open > assign,
             $"The participation fact is assigned at line {assign + 1} and the open it governs is at line "

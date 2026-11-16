@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-XIII.3.22.4-2",
+ "rule-digest": "b358a0a35a42",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-204",
+  "sources": {
+   "reader": "dffb0e24abb8dbf7a5dca9f2740d667c494a7beae275ada08d1fc408f2742f3c",
+   "refuter": "cf5adc8b29c2f9f8c7b939135d61e7541a5ad8d238409d167c4ec071b65784a6"
+  },
+  "imported": {
+   "reader": "c2088bc406fe61a20b63cf6f2a6f9e5c798f4ee4764ed55ce75a9e814c73cd61",
+   "refuter": "47cd1162c02a9dae0a1ee16f800f0e80213489f30bd20be13084f6a23ca14b46"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.22.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a Report Section printable item with VALUE and no GROUP INDICATE must show its literal every time its report group is printed; with GROUP INDICATE the literal is shown only on the first presentation of the detail group in the report, after every page advance and after every control break (or, with neither PAGE nor CONTROL, the first presentation after INITIATE), and spaces otherwise.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GroupIndicatePresent; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ArmGroupIndicate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate (ChangedIn 2002): at 85 a GENERATE whose detail was not presented (SUPPRESS / all-absent) leaves the GROUP INDICATE occasion owed; from 2002 the issued GENERATE consumes it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes Edition = DialectLevel into the CobolReport construction, the argument of every DialectBehaviors.IsActive question of the engine",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectBehavior in ReportWriterEmitter.cs and ReportWriter.cs; DialectBehavior.cs table rows 7.54/7.59/7.60",
+  "behaviour-differs-by-edition": "yes: after a GENERATE whose detail a USE procedure SUPPRESSed, the next presented detail shows its GROUP INDICATE VALUE items at 85 (first presentation) and does not at 2023 (the issued GENERATE consumed the occasion)",
+  "witnesses-cover": "part: g85_f07_07 covers only the no-PAGE no-CONTROL arm (GR2 of GROUP INDICATE); page-advance, control-break and suppressed-presentation arms and non-alphanumeric VALUE items were probed here",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/val1.cob",
+    "printed": "PH / CH / 'VV GI *** -07  1.5 3 1' / 'VV                 3 2' / CH, page advance / 'VV GI *** -07  1.5 3 3' / 'VV ... 3 4','3 5','3 6' / page advance PH / CH / (DL7 suppressed) 'VV GI *** -07  1.5 3 8' / 'VV ... 3 9'",
+    "expected": "non-GI VALUE items (VV, 3) on every printed detail; GI items (alphanumeric, ALL literal, signed numeric, numeric edited) on the first presentation after INITIATE, after the control break + page advance, and on DL8 because DL7 was never presented (§1985:XIII.3.13.4 GR1 keys to presentation)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/val2.cob",
+    "printed": "PH / 'VV GI *** -07  1.5 3 1' / 'VV ... 3 2','3 3','3 4' / PF / PH / 'VV GI *** -07  1.5 3 5' / 'VV ... 3 6','3 8','3 9' / PF",
+    "expected": "pure page advance (no CONTROL) re-presents the GI items on DL5; PH/PF VALUE printed each time"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/val1.cob (--std 2023)",
+    "printed": "same as 85 except DL8 prints 'VV                 3 8' (no GI items)",
+    "expected": "the 2023 arm (§2023:13.18.28.4 GR1, the issued GENERATE consumes the occasion); shows the 85 arm is distinct"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/XIII.3.22@1985-VALUE-CLAUSE/g85_f07_07.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "VV GI 1 / VV 2 / VV 3 / VV GI 4"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.22.4 GR2",
+    "check": "OK  §1985:XIII.3.22.4 GR2  (3.22.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XIII.3.13.4 GR1",
+    "check": "OK  §1985:XIII.3.13.4 GR1  (3.13.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.3.13.4 GR2",
+    "check": "OK  §1985:XIII.3.13.4 GR2  (3.13.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "A GROUP INDICATE item is emitted under a presence guard on CobolReport.GroupIndicatePresent, armed by INITIATE, PageFeed and a control break and consumed after a presentation; an unindicated VALUE item is placed unconditionally on every presentation. 'Spaces supplied' is realised as the item placing nothing on a space-filled line, which prints identically. The 85 arm (occasion consumed only by a presentation) matches the 1985 wording 'first presentation'.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.22.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attacked the 1985 'spaces supplied' wording (§1985:XIII.3.13.4 GR1) against the engine's 2023-style 'absent item' realisation: refute-1985-204/rv1.cob, a detail whose first LINE holds ONLY a GROUP INDICATE VALUE item, at --std 85 (runs/rv1-002) prints 'GI' on presentation 1 and a BLANK line (not a dropped line) before 'VV 2' and 'VV 3', so the line is still presented with spaces; RH VALUE ZERO/SPACES/\"Q\" printed '000', blanks, 'Q '; a VALUE \"JR\" JUSTIFIED RIGHT item printed left-aligned 'JR  ' as GR1c requires. VALUE with BLANK WHEN ZERO is refused COBOL2247 (§1985:XIII.3.9.3 SR11 Table 1), correctly. GI state is per detail group (ArmGroupIndicate sets every _details entry; GroupIndicatePresent read after the group's own page advance). cite.py: OK §1985:XIII.3.22.4 GR2 'will assume the specified value each time its report group is printed'; OK §1985:XIII.3.13.4 GR1 'SOURCE or VALUE clause to be ignored and spaces supplied'; OK §1985:XIII.3.22.4 GR1c 'Initialization is not affected by any BLANK WHEN ZERO or JUSTIFIED clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

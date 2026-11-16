@@ -707,7 +707,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// and <see langword="null"/> when they hold — <b>null, not '00'</b>, because the OPEN's own successful
     /// status is not always '00' ('05' for an absent OPTIONAL file, '07' for a phrase on a non-reel medium) and
     /// this evaluation has nothing to say about it.
-    /// <para>⚠ A violation here does NOT un-open the connector: GR6 b) 2 pins the counter at 0 <i>"until the file
+    /// <para>⚠ From <see cref="DialectBehavior.LinageViolatingOpenLeavesFileOpen"/>'s edition (2002) a violation here does NOT un-open the connector: GR6 b) 2 pins the counter at 0 <i>"until the file
     /// is closed"</i> and makes <i>"all subsequent WRITE statements referencing the file"</i> re-raise, both of
     /// which presuppose an open file connector. What the OPEN reports is an unsuccessful I-O status (so the
     /// standard I-O exception processing of §2023:9.1.12 / §2023:14.9.49.4 GR6 sees it); what it leaves behind is an open
@@ -766,7 +766,7 @@ public sealed partial class SequentialConnector : FileConnector
     private bool EvaluateLinage(LinagePage page)
     {
         var (body, footing, top, bottom) = page;
-        if (body <= 0 || (footing is { } f && (f <= 0 || f > body)))
+        if (!LinageValuesConform(page))
         {
             // GR6 b) 2's continuation, in the order the sentence writes it.
             LinageCounter = 0;
@@ -777,6 +777,26 @@ public sealed partial class SequentialConnector : FileConnector
         (_pageBody, _footing, _top, _bottom) = (body, footing, top, bottom);
         return true;
     }
+
+    /// <summary>⛔ THE ONE STATEMENT OF GR6 b)'s TWO VALUE RULES — §2023:13.18.34.4 GR6 b) 1 "The page size shall be greater than
+    /// zero" and GR6 b) 2 "The footing start shall be greater than zero and not greater than the page size" (§2002:13.16.32.3 GR6;
+    /// §1985:VII.3.7.4 GR2 "The value must be greater than zero" and GR3 "The value must be greater than zero and not greater than integer-1"). The footing rule applies exactly when the FOOTING phrase is
+    /// specified (kb/Work PB525), so it tests the null-ness of <see cref="LinagePage.Footing"/>, never its value. Asked by
+    /// <see cref="EvaluateLinage"/> at a page transition and by <see cref="RefuseOpenForLinage"/> before an OPEN.</summary>
+    private static bool LinageValuesConform(LinagePage page) =>
+        page.Body > 0 && (page.Footing is not { } f || f > 0 && f <= page.Body);
+
+    /// <summary>⛔ THE OPEN AN EDITION BEFORE <see cref="DialectBehavior.LinageViolatingOpenLeavesFileOpen"/>'s REFUSES (kb/Work PB5845).
+    /// §1985:VII.4.3.4 GR1: "The successful execution of an OPEN statement determines the availability of the file
+    /// and results in the file being in an open mode", and the status '90' this implementation gives a LINAGE value-rule violation
+    /// is an implementor-defined condition of §1985:VII.1.3.5 GR5 — an UNSUCCESSFUL statement — so at <c>--std 85</c> the file
+    /// is not in an open mode afterwards: a WRITE is §1985:VII.1.3.5 GRL2.4 g)'s '48', a CLOSE its '42', and the connector is
+    /// left exactly as an OPEN refused for any other reason leaves it. The registry asks this BEFORE the connector's OPEN body, so
+    /// nothing is opened, created or truncated (§1985:VII.4.3.4 GR1: no availability is determined) and there is nothing to undo.
+    /// Returns the OPEN's status ('90', with EC-I-O-LINAGE named) or <see langword="null"/> when the values conform. From 2002
+    /// the OPEN succeeds into the broken page <see cref="BeginLinagePage"/> describes and this is not asked.</summary>
+    internal string? RefuseOpenForLinage(LinagePage page) =>
+        LinageValuesConform(page) ? null : LinageViolationStatus();
 
     /// <summary>The I-O status of an operation stopped by the §2023:13.18.34.4 GR6 b) 2 LINAGE value-rule violation —
     /// set with the exception-name that rule NAMES, so §2023:9.1.13.1's status→EC correspondence (which has no entry
@@ -1053,6 +1073,20 @@ public sealed partial class SequentialConnector : FileConnector
     /// reclassifies the last two LINE SEQUENTIAL (<c>parser.y</c>), so §2023:14.9.51.4 GR21's trailing-space strip applies
     /// to all three, as on a plain line sequential file.</summary>
     private bool IsRecordPrintStream => !_lineSequential && _recordDescribed && !HasLinageClause;
+
+    /// <summary>⛔ A RECORD SEQUENTIAL PRINT FILE IS NOT READ BACK (kb/Work PB5815; <c>docs/CONFORMANCE.md</c> DOC-A.1-146 (c′)): a
+    /// RECORD SEQUENTIAL file whose description has a LINAGE clause, or that a WRITE with the ADVANCING phrase of the program
+    /// names (<see cref="AdvancingDeclared"/>, executed or not: kb/Work PB5201), carries its print controls between its records
+    /// and, under a LINAGE clause, records less their trailing spaces. Nothing on the medium marks where one record ends and a
+    /// control begins, so a READ cannot return the records as they were placed (§1985:VII.2.6.3 GR2, "a record is identified by
+    /// a predecessor-successor relationship established when the record is placed into the file"). The file therefore does
+    /// not support read operations, and OPEN INPUT and OPEN I-O of it are '37' (<see cref="FileConnector.SupportsReadOperations"/>).
+    /// A LINE SEQUENTIAL file is not one: each line IS a record (§2023:9.1.7.2). Another file description that names the same
+    /// physical file with neither is not a print file, and reads its bytes as §2023:9.1.13.2 items 3, 5 and 7 allow.</summary>
+    private bool IsRecordSequentialPrintFile => !_lineSequential && (AdvancingDeclared || HasLinageClause);
+
+    /// <inheritdoc/>
+    private protected override bool SupportsReadOperations => !IsRecordSequentialPrintFile;
 
     /// <summary>This connector's ONE line end for the current open (<see cref="SelectLineEnd"/>).</summary>
     private string _lineEnd;
@@ -1337,10 +1371,12 @@ public sealed partial class SequentialConnector : FileConnector
     /// §2023:9.1.13.2) and RECORD IS VARYING (each record carries its own length prefix, so a mismatch is detected
     /// per record — §2023:14.9.30.4 GR14). Excluded too: a REPORT FILE, which has no record description to disagree
     /// with — its <see cref="FileConnector.RecordWidth"/> is the widest RD's line width and its bytes are print lines with their
-    /// terminators and spacing (<see cref="_recordDescribed"/>, kb/Work PB677).</summary>
+    /// terminators and spacing (<see cref="_recordDescribed"/>, kb/Work PB677). Excluded last: a RECORD SEQUENTIAL PRINT FILE
+    /// (<see cref="IsRecordSequentialPrintFile"/>), whose print controls between its records make its length no multiple of the
+    /// record by construction; only EXTEND reaches the question for one, INPUT and I-O being '37' (kb/Work PB5815).</summary>
     private void NoticeIfLayoutDisagrees()
     {
-        if (_lineSequential || IsVarying || !_recordDescribed) return;
+        if (_lineSequential || IsVarying || !_recordDescribed || IsRecordSequentialPrintFile) return;
         try
         {
             // No existence test at all — not FileInfo.Exists (which swallows an access error into "no file"

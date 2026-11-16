@@ -6,7 +6,8 @@
       *>---
       *> kb/Work PB5073 review R1-1 - 2023:8.4.2.1 (cite.py: OK): a GLOBAL name is no other data item's name in the source element.
       *>   2023:13.18.57.4 GR1 (cite.py: OK): the TYPE clause is "as though the data description identified by type-name-1 had
-      *>   been coded in place", so V.G is a data item named G beside the GLOBAL item G. Nothing references G.
+      *>   been coded in place", so V.G is a data item named G beside the GLOBAL item G. Nothing references G. The refusal is reported at V, the entry
+      *>   whose TYPE clause brought the copy in (kb/Work PB5629), not at G of the TYPEDEF T, which is legal on its own.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5073T.
        DATA DIVISION.

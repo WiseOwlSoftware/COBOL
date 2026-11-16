@@ -28,7 +28,8 @@
       *> admits only "simple-condition, (" after a NOT, and its NOTE
       *> names 'NOT NOT' as not permissible, so SR2 is violated and the
       *> source must be rejected at every edition (a syntax error, the
-      *> generic parse diagnostic COBOL0001).
+      *> generic parse diagnostic, COBOL5506 at the C that no relational
+      *> operator follows: kb/Work PB5784 reads the first NOT as logical).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1ABNN01.
        DATA DIVISION.

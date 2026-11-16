@@ -388,21 +388,21 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     code, hc2 = regate(d, trees=["tree-2"])
     expect("a re-gate of a tree that differs in a path a test may read runs the WHOLE population: no retry file, "
         "nothing carried, no composition across two keys",
-        code.verdict == "GREEN" and sorted(hc2.envs) == sorted(GATED_ASSEMBLIES) and not code.composed_from
-        and all(ONLY_CASES not in v for v in hc2.envs.values()) and not any(code.carried.values()), code.line)
+        code.verdict == "GREEN" and fixtures.hosted_once(hc2) and not code.composed_from
+        and all(ONLY_CASES not in v for n, v in hc2.envs.items() if not n.startswith("preflight-")) and not any(code.carried.values()), code.line)
     d = root / "compose-toolchain"
     d.mkdir()
     regate(d, plant={"red"})
     tool, ht = regate(d, tools="dotnet-sdk 9.0.100, python 3.12.0")
     expect("a run under another toolchain is never composed with: the whole population runs (the toolchain is a facet "
         "of every target's key, kb/Work PB5218)",
-        tool.verdict == "GREEN" and sorted(ht.envs) == sorted(GATED_ASSEMBLIES) and not tool.composed_from, tool.line)
+        tool.verdict == "GREEN" and fixtures.hosted_once(ht) and not tool.composed_from, tool.line)
     d = root / "compose-moved"
     d.mkdir()
     regate(d, plant={"red"}, trees=["tree-1", "tree-edited"])
     moved, hm = regate(d)
     expect("a run whose tree changed WHILE it ran contributes no pass: the whole population runs",
-        moved.verdict == "GREEN" and sorted(hm.envs) == sorted(GATED_ASSEMBLIES) and not moved.composed_from, moved.line)
+        moved.verdict == "GREEN" and fixtures.hosted_once(hm) and not moved.composed_from, moved.line)
     d = root / "compose-inert"
     d.mkdir()
     green1, _ = regate(d)
@@ -436,7 +436,7 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     code_green, hcg = regate(d, trees=["tree-2"])
     expect("a GREEN code-lane run, then a commit that touches one path a test may read, runs EVERYTHING",
         code_green.verdict == "GREEN" and hcg.events[:3] == ["fetch", "slot", "build"]
-        and sorted(hcg.envs) == sorted(GATED_ASSEMBLIES) and not code_green.composed_from, code_green.line)
+        and fixtures.hosted_once(hcg) and not code_green.composed_from, code_green.line)
     d = root / "compose-inert-audit"
     d.mkdir()
     regate(d)
@@ -482,7 +482,7 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     expect("a run RED only for a hung self-test, then a difference in a path every target reads (every key differs): "
         "nothing is up to date or carried and everything runs",
         hang_code.verdict == "GREEN" and hhc.events[:3] == ["fetch", "slot", "build"]
-        and sorted(hhc.envs) == sorted(GATED_ASSEMBLIES) and not hang_code.composed_from and not hang_code.up_to_date
+        and fixtures.hosted_once(hhc) and not hang_code.composed_from and not hang_code.up_to_date
         and not any(hang_code.carried.values()), f"{hang_code.line} {hhc.events}")
     d = root / "target-green-docs"
     d.mkdir()
@@ -529,8 +529,8 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
     other_tools, hot = regate(d, tools="dotnet-sdk 9.0.100, python 3.12.0", trees=["tree-2"], keys=same)
     other_plat, hop = regate(d, platform="linux", trees=["tree-3"], keys={"tree-3": "tree-1"})
     expect("another toolchain or another platform is another key: every target runs",
-        sorted(hot.envs) == sorted(GATED_ASSEMBLIES) and not other_tools.up_to_date
-        and sorted(hop.envs) == sorted(GATED_ASSEMBLIES) and not other_plat.up_to_date, f"{other_tools.line} | {other_plat.line}")
+        fixtures.hosted_once(hot) and not other_tools.up_to_date
+        and fixtures.hosted_once(hop) and not other_plat.up_to_date, f"{other_tools.line} | {other_plat.line}")
     d = root / "target-not-exact"
     d.mkdir()
     dropped, _ = regate(d, plant={"drop"})

@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-II.3.2.4.2-1",
+ "rule-digest": "895984a4bd0e",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-186",
+  "sources": {
+   "reader": "06fab355c0f7982567e6291699a175466a32d112655170fc71a808aaaf14a3a2",
+   "refuter": "afb1f7fd11992ae89d0188327bb15255aba7d6173fe5c95d0310d20f89a1add3"
+  },
+  "imported": {
+   "reader": "33e2eb4d2eea49db5d00614d62306acf3e6429c1925ef619b3e9bc47c309dbb4",
+   "refuter": "b26eb3a682f7445b9135db5148775ec7afccfa423758f2efc007298ee1a2838f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-II.3.2.4.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when GENERATE detects a control break, the control footing report groups of every level from the most minor up to and including the break level are presented (minor first), all controls minor to the break counting as changed whether or not they did; levels with no control footing are skipped; TERMINATE presents them all as for a break at the most major level.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SaveCurrentRestorePriors; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes Edition = DialectLevel into the CobolReport construction; the break sequence reads nothing from it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues (2002): a page heading/footing reached by a footing's page advance sees the prior control values from 2002, the current values at 85 (§1985:XIII.3.20.4 GR13); which groups are presented, and their order, is unchanged",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate (2002) after the detail is presented; not the footing/heading sequence",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the sequence; at 85 a page heading or footing that a footing's page advance reaches sees the current control values (DialectBehavior row 7.54), a different rule (§1985:XIII.3.20.4 GR13)",
+  "witnesses-cover": "part: g85_f01_01 runs one hierarchy; a break at a middle level with an unchanged minor control, sparse levels and a page advance inside the footing sequence are covered by the probes, not the witness",
+  "probes": [
+   {
+    "class": "c,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/cb1.cob",
+    "printed": "CH-F CH-1 A CH-2 1 CH-3 a DE01 | CF-3 a CH-3 b DE02 | CF-3 b CF-2 1 CH-2 -2 CH-3 b DE03 | CF-3 b CF-2 -2 CF-1 A CH-1 B CH-2 -2 CH-3 b DE04 DE05 | CF-3 b CF-2 -2 CF-1 B CF-F",
+    "expected": "CONTROLS FINAL K1 K2(signed COMP) K3: a K3 break gives CF-3 then CH-3; a K2 break (K3 unchanged) gives CF-3, CF-2, then CH-2, CH-3; a K1 break gives CF-3, CF-2, CF-1, then CH-1, CH-2, CH-3; each CF shows the prior control value; TERMINATE gives every CF through FINAL"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/cb2.cob",
+    "printed": "page 1: PH 1 / CH-2 1 / DE01 / CF-3 a / DE02 / CF-3 b, FF, page 2: PH 2 / CH-2 -2 / DE03 / CF-3 b / CF-1 A / CH-2 -2, FF, page 3: PH 3 / DE04 / DE05 / CF-3 b / CF-1 B (raw bytes, runs/cb2-003/CB2.RPT)",
+    "expected": "degenerate hierarchy (CONTROLS K1 K2 K3 with CF only at K3 and K1, CH only at K2) and PAGE LIMIT 6: undeclared levels are skipped, the K2 break's CH-2 moves to a new page after CF-3, the K1 break's CF-3, CF-1, CH-2 run in order"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:II.3.2.4.2 GR1",
+    "check": "OK  §1985:II.3.2.4.2 GR1  (3.2.4.2 Logical Subdivisions of a Report)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:II.3.2.4.2 GR2",
+    "check": "OK  §1985:II.3.2.4.2 GR2  (3.2.4.2 Logical Subdivisions of a Report)  the text is in GR2"
+   }
+  ],
+  "notes": "GenerateCore finds the most major changed level (DetectBreakLevel), restores the priors and calls ProcessControlFootings, which walks _controls from the most minor down to the break level presenting each declared CF; the loop has no edition test. Both probes print the footings in the order GR1 requires, each with the prior control value.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-II.3.2.4.2-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probe rw1.cob at --std 85 (run rw1-001), CONTROLS FINAL CMAJ CMID(signed) CMIN. It covers what the reader did not: summary reporting (GENERATE report-name) with breaks, two controls changing at once, and a CF suppressed by SUPPRESS PRINTING in its USE BEFORE REPORTING. G2 (summary; MID and MIN change) printed 'CF MIN 1, CF MID +1, CH MID -1, CH MIN 2': footings minor up to the break level, none above, each with its prior value. G3 (MAJ and MIN change, CF MID suppressed) printed 'CF MIN 2, CF MID -1, CF MAJ A': the footing at the unchanged MID level was processed, and the report file omits only the suppressed line. TERMINATE printed 'CF MIN 3, CF MID +1, CF MAJ B, CF FINAL'. Summary GENERATEs wrote no DE-X line to RW1.TXT (§1985:II.3.3). Code read: ReportWriter.cs#ProcessControlFootings loops _controls.Count-1 down to breakLevel; DetectBreakLevel returns the most major changed level, skipping FINAL; neither has an edition test. cite.py: 'OK  §1985:II.3.2.4.2 GR1 ... the text is in GR1'; 'OK  §1985:II.3.2.4.2 ... the text is in the clause' (quoted 'all controls that are minor to it are considered to have changed'); 'OK  §1985:II.3.3 ... the text is in the clause' (quoted 'has all detail print lines suppressed automatically').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

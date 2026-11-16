@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-4",
+ "rule-digest": "9f90748656c7",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-222",
+  "sources": {
+   "reader": "2143dc7714c38ed9934ddc089e7bc875aa28895d5b36864710a263978fe42801",
+   "refuter": "babde845945dabf70792e28bd8e798adb2611d3d7ec91859e2f06a9b9cc79643"
+  },
+  "imported": {
+   "reader": "18cdcaea1d4babd54b2f3b2240bc3d77ada3d8463b6d44eb2466548c57671c67",
+   "refuter": "75e759d45af230f8186f5cbe492fecefcc11bba2ed0a56287d58b8fb3f697bb4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.20.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a CONTROL HEADING FINAL group is processed during the chronologically first GENERATE of the report (not at INITIATE, and again after a re-INITIATE), a CH for a control data-name at the beginning of each control group, and on a GENERATE that detects a break the CHs of the break's highest level and every lower level are processed, major to minor; this holds for GENERATE data-name and GENERATE report-name.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes Edition = DialectLevel into CobolReport",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate (GROUP INDICATE consumption only; not which CHs are processed)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues (control values a page group sees during a footing phase; not CH selection)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportGroupType",
+    "switches": "85 refuses the 2002 TYPE CH ... OR PAGE phrase (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehavior|Edition in ReportWriter.cs: four sites (734, 964, 1080, 1490); none sits on the CH selection (the _started first-GENERATE arm presents every CH major to minor; the break arm presents levels breakLevel..last).",
+  "behaviour-differs-by-edition": "no: type1.cob printed the identical group trace at --std 85 and --std 2023; 85 only refuses the 2002 OR PAGE phrase",
+  "witnesses-cover": "part: g85_f01_02 covers CH FINAL at first GENERATE and a two-level break; a three-level hierarchy with a minor-only break, a page advance between groups, GENERATE report-name and a second INITIATE cycle are not exercised",
+  "probes": [
+   {
+    "class": "e,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/type1.cob",
+    "printed": "R1: RH, PH, CHF A1, CHA A1, CHI A1, DE, DE, CFI A1, CHI A2 (minor break: CHI only), DE, PF/PH, CFI, CFA, CHA B2, CHI B2 (major break: CHA and CHI); R3 (GENERATE report-name): CHF A, CHA A, ..., CFA A, CHA B",
+    "expected": "CH FINAL at first GENERATE; on a break the CHs of the break level and lower, major to minor"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/type2.cob",
+    "printed": "CYCLE 1: CHF A1 CHA A1 CHI A1 ...; CYCLE 2 NO GENERATE: nothing; CYCLE 3: CHF B2 CHA B2 CHI B2 at its first GENERATE",
+    "expected": "CH FINAL at the chronologically first GENERATE of each INITIATE cycle; none without a GENERATE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/type3.cob",
+    "printed": "error COBOL0900: the OR PAGE phrase of TYPE CONTROL HEADING requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused at 85 (not in the 1985 TYPE format)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.4 GR4",
+    "check": "OK  §1985:XIII.3.20.4 GR4  (3.20.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "GenerateCore's first-GENERATE arm presents every CH (SortedDictionary by level, FINAL at 0) and its break arm presents levels breakLevel..last after the footings; DetectBreakLevel skips FINAL. The report file of type1 shows the CH lines in the trace's order across three pages.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.20.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe type4.cob at --std 85: CONTROLS FINAL MAJ MID MIN, a group control area, a page advance mid-report, and six GENERATEs over (A1X)(A1Y)(A2Y)(A2Y)(B2Y)(B2Z). File: PH, CHF, CHA A, CHD 1, CHI X at the first GENERATE; minor break: CFI X then CHI Y only; mid break: CFI Y, CFD 1, CHD 2, CHI Y (MAJ heading not repeated); no break after the page advance; major break: CFI, CFD, CFA A, CHA B, CHD 2, CHI Y. The CHs show the new control values. This matches GR4 and §1985:XIII.4.3.4 GR5c/GR6a3 (major to minor, nothing above the break level). ReportWriter.cs#GenerateCore/DetectBreakLevel consult no edition. cite.py: OK §1985:XIII.3.20.4 GR4 'any control heading report groups associated with the highest control level of the break and lower levels are processed'; OK §1985:XIII.4.3.4 GR6 'Process the control heading report groups in the order major to minor'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

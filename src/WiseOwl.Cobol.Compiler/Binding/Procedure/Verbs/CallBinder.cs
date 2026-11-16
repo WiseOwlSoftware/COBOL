@@ -1137,7 +1137,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// category reader <see cref="NameTargetRefusal"/>; an intrinsic function through its §2023:15.2 result category. An
     /// operand already refused, or one whose category is not statically known, is not refused again. CALL tests
     /// program-pointer first (<see cref="Identifier1Screen"/>). Null when admitted, else the face the diagnostic names.</summary>
-    private static string? OperandTargetRefusal(BoundOperand target) => target switch
+    private string? OperandTargetRefusal(BoundOperand target) => target switch
     {
         BoundOperandError => null,
         BoundFieldOperand { Place: var place } => NameTargetRefusal(place),
@@ -1159,8 +1159,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// alphanumeric group items) was accepted and its character image read as a program-name at run time.
     /// <para>⚠ An operand whose class is not statically decidable (a recovery profile for an entry whose PICTURE was
     /// already refused) is admitted, exactly as every class screen over the lattice fails open (kb/Work PB960).</para></summary>
-    private static string? NameTargetRefusal(Place target) =>
-        IntrinsicArgumentRules.ClassOfPlace(target) is null || ItemCategory.IsAlphanumericOrNational(target)
+    private string? NameTargetRefusal(Place target) =>
+        IntrinsicArgumentRules.ClassOfPlace(target) is null || ItemCategory.IsAlphanumericOrNational(target, ctx.Edition.Edition)
             ? null
             : ItemCategory.Face(target);
 

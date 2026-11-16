@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-10",
+ "rule-digest": "6e95829857e3",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-199",
+  "sources": {
+   "reader": "f2e7d2c327033860b1b3ff81a6c5e472804dc40391f672cc6a9ce331d9f25e49",
+   "refuter": "ec70c5001a4b0986d42377a2a7fc5caa65fc0f05f6e0af63a8f5ec8eb884fc16"
+  },
+  "imported": {
+   "reader": "e899ee10d15fb47f3d6c4ad8a73fae8ad147b3930fa39eacaf4bd946f20466a4",
+   "refuter": "0341cbe76874664fbf8ea049a0319e3b970c35596c3a0d070c1399b5cbccd264"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.2.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the n-th USING operand of CALL corresponds to the n-th USING operand of the called program's header, whatever the names. This holds for BY REFERENCE and BY CONTENT operands and for contained and separately compiled callees.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindLinkage; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#LinkageFormal; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitCallMethod",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCallStatement",
+    "switches": "refuses 2002 CALL phrases (RETURNING, AS, BY VALUE, OMITTED) at 85; the positional adoption by LinkageFormal.Position is the same code at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "EmitCallMethod adopts __args[f.Position]; a grep found no edition test on the formal-position path.",
+  "behaviour-differs-by-edition": "no: the positional correspondence is identical. Only the allowed operand kinds differ (85 refuses BY VALUE and OMITTED).",
+  "witnesses-cover": "part: g85_f21_07 covers one call. The probes add swapped names, BY CONTENT mixed with BY REFERENCE, an ODO table operand, and a separately compiled callee with reversed group and elementary operands.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c6a_positional.cob",
+    "printed": "CALLEE A=BBBB B=AAAA P3=-00123.45 LT=T1T2 / CALLER A=2222 B=1111 NUM=-00123.45 / SEP X2=2222 X1-H=11 / CALLER2 A=2222 B=11QQ",
+    "expected": "positional: the caller's B binds to the callee's A, and BY CONTENT NUM is unchanged; the output is the same at --std 2023"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c6b_byvalue.cob",
+    "printed": "COBOL0900: CALL BY VALUE and PROCEDURE DIVISION USING BY VALUE require COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c6c_omitted.cob",
+    "printed": "COBOL0900: OMITTED requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.2.4 GR10",
+    "check": "OK  §1985:X.5.2.4 GR10  (5.2.4 General Rules)  the text is in GR10"
+   }
+  ],
+  "notes": "The probe printed the same output at --std 85 and --std 2023; 2023 adds only the archaic-element warnings for EXIT PROGRAM.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.2.4-10",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Probe r6a_positional_alias.cob (--std 85). (1) A dynamic CALL PNAME (an identifier holding 'SUBP') USING WT-E (3) WT-E (1), with subscripted elementary operands in reverse order: the callee prints 'P1=T3 P2=T1', and afterwards WT=YYT2ZZ. Each position is bound to its own storage. (2) CALL 'SUBP' USING WA WA, one operand in two positions: MOVE 'ZZ' TO P1 is seen through P2 ('SUB AFTER MOVE P2=ZZ'), and afterwards WA=YY. Both positions refer to the caller's one item, which agrees with §1985:X.5.2.4 GR13 (cite.py OK). cite.py: OK  §1985:X.5.2.4 GR10  (5.2.4 General Rules)  the text is in GR10.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -56,9 +56,21 @@ script's tests live in `<root>/selftests/<path>/<name>/` as `case_` functions, `
 first step and its refusal is `=== SELF-TESTS: RED — layout: … ===`, and `python scripts/self_tests.py --only <case file>`
 runs one by hand, DESIGN-orchestrator-loop.md §16.2, kb/Work PB5428) and
 fetches the per-worktree GnuCOBOL corpus when absent, then takes a GATE SLOT (`scripts/gate_slot.py`: at most N gates
-build or test at once, repository-wide — `gate-slot: waiting, k ahead` is the cap working), builds the solution and runs
-the WHOLE population of every test target (`scripts/build_targets.json`) not up to date at its key, one `dotnet test --no-build` host each at once (Server GC,
+build or test at once, repository-wide — `gate-slot: waiting, k ahead` is the cap working), builds the solution, runs
+the PREFLIGHT and then the WHOLE population of every test target (`scripts/build_targets.json`) not up to date at its key, one `dotnet test --no-build` host each at once (Server GC,
 kb/Work PB2526), each population then checked by name against its `--list-tests` (`scripts/test_population.py check`).
+
+- ⭐ **THE PREFLIGHT** (owner 2026-11-16, kb/Work PB5872; DESIGN-test-build-ci.md §3.14.15): after the build, inside the
+  slot, the gate runs the test classes `scripts/build_targets.json` declares as a target's `preflight` (a red one means a
+  derived or pinned file is stale: the Characterization snapshots, the runtime ABI pin, the binder-member readers, the
+  documented facts, the architecture edges, the oracle's enrolment), one host per declaring assembly, at once. A red one
+  ends the gate `=== BUILD-LOCAL GATE: RED — PREFLIGHT RED: <assembly> <case> … the whole population did NOT run … ===`:
+  re-bless the file (or fix the code) and gate again. A green one prints `PREFLIGHT GREEN: n case(s) of k class(es) in s`
+  in the verdict line, and the population runs less its cases, the population check reading both trx files (a case in
+  both is RAN TWICE). What is declared is chosen by a measurement of the gate records, with the numbers in the file; the
+  BUILD TARGETS audit refuses a class no source declares, no weight measures or the budget does not hold. A re-gate of an
+  unchanged key after a preflight red carries its passes and retries only its red case. CI's merge group has no preflight:
+  it runs every target.
 
 - ⭐ **THE POPULATION IS THE SELECTION** (owner decision 1 of PB4323, 2026-10-31; kb/Work PB4328). There is no plan, no
   tier, no impact map and no leg 2: the gate runs every case and is done on `=== BUILD-LOCAL GATE: GREEN — Conformance

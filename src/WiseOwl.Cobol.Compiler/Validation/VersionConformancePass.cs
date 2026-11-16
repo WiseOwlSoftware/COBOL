@@ -203,9 +203,11 @@ internal sealed class VersionConformancePass
     /// procedures of the statements that name this file — not the lexical span the "shall not appear in" rules of
     /// <see cref="GateSortMergeProcedures"/> ask. ⚖ A STATEMENT OF THE DECLARATIVES is in the range when it is one of "all statements in
     /// declarative procedures that are executed as a result of" the range's statements (§1985:XI.4.4.4 GR7 for an input procedure,
-    /// GR10 for an output one), a run-time fact wherever an input (output) procedure for its file exists, so there it is not asked;
-    /// where the program has NONE, the range is empty, no declarative can run inside it, and the statement is outside every range
-    /// at compile time, so it is refused like any other (kb/Work PB5572). At COBOL-2002 and later the same misuse is the run-time exception EC-SORT-MERGE-RELEASE / EC-SORT-MERGE-RETURN
+    /// GR10 for an output one). WHETHER a statement of the range executes the declarative is a run-time fact, but whether one CAN is
+    /// decidable (kb/Work PB5768, <see cref="DeclarativeExecutableFromRange"/>): where the program has no input (output) procedure for
+    /// the file the range is empty (kb/Work PB5572), and where no statement of the range could cause the declarative's USE to apply,
+    /// no declarative can run inside it either; in both the statement is outside every range at compile time, so it is refused like
+    /// any other. At COBOL-2002 and later the same misuse is the run-time exception EC-SORT-MERGE-RELEASE / EC-SORT-MERGE-RETURN
     /// (kb/Work PB1036).
     /// <para>⛔ THE RANGE CROSSES A CALL (kb/Work PB5628): "The range includes all statements that are executed as the result of a transfer of
     /// control by CALL" (§1985:XI.4.4.4 GR7, GR10), so a RELEASE in a contained program a CALL in an input procedure's range activates is in that
@@ -223,7 +225,7 @@ internal sealed class VersionConformancePass
                 ranges[(file, release)] = range = procedures.Range(prog, file, release);
             if (range.ContainsKey(pc)) continue;
             if (procedures.Refused.Contains(file)) continue;   // a statement for this file was refused, its procedures' ranges are unknown, so the use is no cascade of ours (kb/Work PB5496)
-            if (pc < prog.EntryPc && range.Count > 0) continue;   // a declarative the range may execute: GR7/GR10's run-time fact
+            if (pc < prog.EntryPc && DeclarativeExecutableFromRange(prog, range, pc)) continue;   // a declarative the range may execute: GR7/GR10
             if (_calledFromRange.TryGetValue(prog, out var reached) && reached.Contains((file, release))) continue;   // a CALLed program's statements
             using var _ = _sink.At(node.At);
             string verb = release ? "RELEASE" : "RETURN";
@@ -239,6 +241,45 @@ internal sealed class VersionConformancePass
                 verb, release ? "§1985:XI.4.2.3 SR2" : "§1985:XI.4.3.3 SR3"));
         }
     }
+
+    /// <summary>⛔ CAN A STATEMENT OF THE RANGE EXECUTE THE DECLARATIVE THAT HOLDS <paramref name="pc"/> (kb/Work PB5768)? §1985:XI.4.4.4
+    /// GR7 (GR10 for an output procedure) puts in the range "all statements in declarative procedures that are executed as a result of
+    /// the execution of statements in the range", so a declarative RELEASE or RETURN is in the range only if some statement there can
+    /// cause its USE procedure to run. For a USE AFTER STANDARD ERROR/EXCEPTION procedure that is an input-output statement on a file
+    /// the USE names (any file, for an open-mode USE, whose mode is the run time's), or a CALL (the called program's statements are in
+    /// the range, §1985:XI.4.4.4 GR7, and what it does is not this program's to know). A range that holds neither cannot execute it.
+    /// Any other declarative (USE BEFORE REPORTING, USE FOR DEBUGGING) keeps the run-time latitude: the range may execute it whenever
+    /// the range is not empty.</summary>
+    private static bool DeclarativeExecutableFromRange(BoundProgram prog, Dictionary<int, FileModel> range, int pc)
+    {
+        if (range.Count == 0) return false;
+        if (prog.Declaratives?.FirstOrDefault(d => d.Contains(pc)) is not { ReportGroup: null } use
+            || (use.Files.Count == 0 && use.ModeIndex is null))
+            return true;
+        bool Triggers(BoundStatement s) =>
+            s is BoundCallProgram
+            || UseTriggeringFiles(s).Any(f => use.ModeIndex is not null || use.Files.Contains(f, ReferenceEqualityComparer.Instance))
+            || s.StatementChildren().Any(Triggers);
+        return range.Keys.Any(rangePc => prog.Paragraphs[rangePc].Statements.Any(Triggers));
+    }
+
+    /// <summary>The files an input-output statement references whose unsuccessful execution can apply a USE AFTER STANDARD
+    /// ERROR/EXCEPTION procedure: OPEN, CLOSE, READ, WRITE, REWRITE, DELETE and START, in every organization. RELEASE and RETURN
+    /// reference a sort-merge file, which no USE AFTER STANDARD ERROR procedure names.</summary>
+    private static IEnumerable<FileModel> UseTriggeringFiles(BoundStatement s) => s switch
+    {
+        BoundOpen o => o.Files.Select(f => f.File),
+        BoundClose c => c.Files.Select(f => f.File),
+        BoundRead r => [r.File],
+        BoundWrite w => [w.File],
+        BoundRewrite rw => [rw.File],
+        BoundKeyedRead kr => [kr.File],
+        BoundKeyedWrite kw => [kw.File],
+        BoundKeyedRewrite krw => [krw.File],
+        BoundKeyedDelete kd => [kd.File],
+        BoundKeyedStart ks => [ks.File],
+        _ => [],
+    };
 
     /// <summary>A program's SORT and MERGE procedures and its RELEASE and RETURN statements, each with the pc of its paragraph: what
     /// <see cref="GateReleaseReturnRange"/> and <see cref="CalledFromRange"/> both read, collected by one walk. <see cref="Refused"/> holds the
@@ -1418,6 +1459,26 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.ExitParagraph2002, "the EXIT PARAGRAPH statement");
             else if (ctx.PERFORM() is not null)     // §2023:14.9.14.2 Format 3 — EXIT PERFORM [CYCLE], a COBOL-2002 structured exit
                 _p.Check(Constructs.ExitPerform2002, "the EXIT PERFORM statement");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>⛔ §1985:VI.6.16.3 SR3 — "If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified"
+        /// (kb/Work PB5798; COBOL7486, COBOL-85 only: §2002:14.8.18, §2014:14.9.18 and §2023:14.9.19 print no such rule). The NEXT
+        /// SENTENCE phrase of THIS IF is a statement of one of its two arms; a nested IF's phrase is that IF's own.</summary>
+        public override object? VisitIfStatement(CobolParserCore.IfStatementContext ctx)
+        {
+            if (_p._edition.Year < 2002 && ctx.END_IF() is not null)
+                foreach (var block in ctx.statementBlock())
+                    foreach (var s in block.statement())
+                        if (s.nextSentenceStatement() is { } next)
+                        {
+                            using var _ = Sink.At(next);
+                            _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.NextSentenceWithEndIf.Code, EditionSeverity.Error,
+                                DiagnosticCatalog.NextSentenceWithEndIf.Id,
+                                "an IF statement with the END-IF phrase has the NEXT SENTENCE phrase — §1985:VI.6.16.3 SR3: \"If the "
+                                + "END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.\"", "NEXT SENTENCE",
+                                DiagnosticCatalog.NextSentenceWithEndIf.IsoSection));
+                        }
             return base.VisitChildren(ctx);
         }
 

@@ -1003,6 +1003,13 @@
  ],
  "derivations": [
   {
+   "key": "DRV-1985-GR-IV.4.4.2-L2.1",
+   "arm": "definitional",
+   "names": "defines when a statement of the user's program has no next executable statement: the last statement of a declarative section whose paragraph is not being executed under the control of another statement",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-VI.3.4.4-1",
    "arm": "unpopulatable-antecedent",
    "names": "the set of source program listings is empty: the cobol command has no listing option, and a compilation writes only the assembly, its runtime configuration and the generated C# source, with diagnostics on standard error (section 7, A.1 item 117: the compiler never produces a source listing)",
@@ -1059,6 +1066,13 @@
    "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
   },
   {
+   "key": "DRV-1985-GR-X.2.3.3-3",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of 1985 language elements by which a program can address, replace or separate object code is empty: a program reaches another program only through its program-name in CALL and CANCEL, under scope and CANCEL rules of their own; the one element that observes loading, the ON OVERFLOW or ON EXCEPTION phrase of CALL, reports an availability decided by object time resources the implementor defines, so it fixes no output either way",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-XI.4.1.4-10",
    "arm": "definitional",
    "names": "defines a constraint on the USER's program (no statement executed in a MERGE output procedure, or in a USE procedure the MERGE invokes, may manipulate file-name-2, file-name-3 or file-name-4 or access their record areas), with no I-O status and no result, so §1985:I.1.6 leaves a violation undefined and the implementation is obliged to nothing",
@@ -1071,6 +1085,13 @@
    "names": "\"then the order of return of these records is undefined\"",
    "signature": "claude: 2026-11-16",
    "refuter": "—"
+  },
+  {
+   "key": "DRV-1985-GR-XIII.3.14.4-2",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of reads of a report group's area by a program is empty: a printable item cannot be referenced, every position of a print line is set anew from SOURCE, SUM, VALUE or spaces each time its group is presented, and the one item an entry lets a program read, a sum counter, holds at every read what the SUM, TYPE and INITIATE rules put in it, whether or not it lies in the group's area",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept-4.jsonl"
   },
   {
    "key": "DRV-1985-GR-XIII.3.21.4-1",

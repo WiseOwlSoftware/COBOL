@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-16",
+ "rule-digest": "baba02ce1d02",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-200",
+  "sources": {
+   "reader": "26bb19fe1d4bb01c88a769c3a58463eeb8ab46fea462e5c6064d202818529b52",
+   "refuter": "ba0b579a4bec30e41782e838b8dd6d1f645c1ed0730b967486861cfa537b810b"
+  },
+  "imported": {
+   "reader": "ac6862ca2a6ba9265655c199acc61011fe73ace27ce8f54d6797dd49344c4579",
+   "refuter": "c5e84b8f720a150ac7d21fc854ecd5a530b301003dde804b90fe2d96aa637edb"
+  }
+ },
+ "reader": {
+  "edition-search": "",
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-X.5.2.4-16",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 an END-CALL closes the CALL begun by the most recently preceding unterminated CALL (either format, with or without ON OVERFLOW / [NOT] ON EXCEPTION), so a statement after END-CALL belongs to the enclosing statement and a CALL ... END-CALL is an imperative (delimited scope) statement admissible inside another statement's imperative-statement; a CALL with a conditional phrase and no END-CALL is a conditional statement there and is refused; a stray END-CALL is a syntax error.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#callStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#Associates; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#UnownedScopeTerminator; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCall",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#MayAssociate",
+    "switches": "ConstructRegistry.IsAvailable(edition, call-on-overflow-removed-2023): at 85 the CALL ON OVERFLOW format associates under the Proved reading; at 2023 only by the superset last-resort reading, then refused",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCallStatement",
+    "switches": "CallOnOverflowRemoved2023 check (COBOL0882 at 2023, silent at 85); END-CALL itself is not gated",
+    "same-arm-as-latest": false
+   }
+  ],
+  "behaviour-differs-by-edition": "yes: only the ON OVERFLOW phrase the delimited CALL may carry (accepted at 85, COBOL0882 at 2023); the END-CALL scope delimiting, nesting and the conditional-statement refusal are the same code at every edition",
+  "witnesses-cover": "part: g85_f21_07 and 1985-GR-X_5_2_4-16 cover only a successful CALL inside IF; not covered: nested CALL ... END-CALL inside another CALL's ON OVERFLOW / NOT ON EXCEPTION, END-CALL after a failed CALL, END-CALL with no phrase, a delimited CALL inside another verb's imperative-statement, and the refusal halves",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr16a.cob",
+    "printed": "OVF1 / EXC2 / AFTER INNER / AFTER OUTER / IN SUB / PLAIN END-CALL / EXC3 / IN IF AFTER 3 / IN SUB / NOT4 / IN SUB / STILL NOT4 / DONE (run gr16a-001)",
+    "expected": "each END-CALL closes the most recent unterminated CALL (§1985:IV.6.4.3): the inner CALL's END-CALL leaves AFTER INNER in the outer ON OVERFLOW; a CALL inside NOT ON EXCEPTION closed by END-CALL leaves STILL NOT4 in the outer phrase"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr16b.cob",
+    "printed": "error COBOL2796: ADD ON SIZE ERROR: this CALL statement is written without its explicit scope terminator END-CALL, so it is a conditional statement ...",
+    "expected": "refused: ON SIZE ERROR takes an imperative-statement and an undelimited CALL ON OVERFLOW is conditional"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr16c.cob",
+    "printed": "error COBOL0306: unexpected 'END-CALL'. END-CALL appears without a matching CALL statement.",
+    "expected": "refused: no CALL to delimit"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr16d.cob",
+    "printed": "OVF1 / SIZE ERR TAIL / DONE",
+    "expected": "CALL ... END-CALL is imperative inside ON SIZE ERROR; the DISPLAY after END-CALL belongs to the ADD's phrase"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr16a.cob",
+    "printed": "--std 2023: COBOL0882 CALL ON OVERFLOW was removed in COBOL-2023 at both ON OVERFLOW sites (run gr16a-002, compile-only)",
+    "expected": "85 accepts ON OVERFLOW (Format 1); 2023 has no such phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.2.4 GR16",
+    "check": "OK  §1985:X.5.2.4 GR16  (cite.py --check with \"The END-CALL phrase delimits the scope of the CALL statement\")"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (cite.py --check with \"each explicit scope terminator terminates the statement begun by the most recently preceding\")"
+   }
+  ],
+  "notes": "Both witnesses MATCH at 85. The grammar closes a CALL with END_CALL? after the one conditionalPhrases loop, ConditionalStatements.IsConditional treats a CALL with a phrase and its END-CALL as imperative, and ProcedureFormatPass refuses the undelimited form inside an imperative-statement. Aside, not this rule: COBOL2796's message cites §2023:14.5.1 at --std 85 instead of the 1985 text."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.2.4-16",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85 under refute-1985-200/src: g16mix1 (ON OVERFLOW + NOT ON EXCEPTION ... END-CALL) refused COBOL2269; g16mix3 (ON EXCEPTION + ON OVERFLOW) refused COBOL2269; g16mix2 (NOT ON EXCEPTION before ON EXCEPTION, a 2002 phrase order) refused COBOL0900; g16ret (2002 RETURNING) refused COBOL0884; g16cond (undelimited CALL ON EXCEPTION inside another CALL's ON EXCEPTION) and g16cond2 (undelimited IF inside ON OVERFLOW) refused COBOL2796; g16nest (CALL...END-CALL inside IF/ELSE, inside an inner IF in ON EXCEPTION, inside inline PERFORM, inside NOT ON EXCEPTION) printed OVF2/IN INNER IF/IN EXC1/IN OUTER IF/SUB/LOOP/SUB/LOOP/SUB/EXC3/TAIL OF NOT/DONE, each END-CALL closing the nearest CALL. cite.py: OK §1985:X.5.2.4 GR16 the text is in GR16; OK §1985:IV.2.1 the text is in the clause.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases: conditional-phrases-any-order-2002 refuses NOT ON EXCEPTION before ON EXCEPTION at 85 (COBOL0900), accepts it from 2002"
+  ],
+  "corrected": ""
+ }
+}

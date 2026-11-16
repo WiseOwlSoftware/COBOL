@@ -979,7 +979,8 @@ public static class DiagnosticCatalog
         + "execution sets the I-O status, ISO §2023:9.1.13.1) references a record description entry of a sort-merge (SD) "
         + "file outside its FROM or INTO phrase. ISO §2023:13.4.6.3 SR4: \"A record description entry associated with "
         + "file-name-1 shall not be specified in an input-output statement other than following the word FROM or the "
-        + "word INTO.\"",
+        + "word INTO.\" The rule starts in COBOL-2002 (§2002:13.3.5.2 SR4, §2014:13.4.5.2 SR4): the 1985 text forbids "
+        + "only input-output statements for the sort or merge file itself (§1985:XI.3.2.3 SR3), so COBOL-85 does not raise it.",
         "ISO §2023:13.4.6.3 SR4");
     // kb/Work PB666: the APPLY COMMIT antecedent family had no code anywhere — its rows were CONFORMS "witnessed by the
     // refusal of the antecedent" (the since-retired COBOL1709 refusing APPLY COMMIT, kb/Work PB371), which was
@@ -3350,6 +3351,15 @@ public static class DiagnosticCatalog
         + "the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\" (§1985:XI.4.3.3 SR3)",
         "§1985:XI.4.2.3 SR2; §1985:XI.4.3.3 SR3");
 
+    /// <summary>COBOL7486 — at COBOL-85 an IF statement that has the END-IF phrase also has the NEXT SENTENCE phrase (kb/Work PB5798).
+    /// §1985:VI.6.16.3 SR3: "If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified." The rule is
+    /// 1985's alone (2002, 2014 and 2023 print none), asked by <c>VersionConformancePass.VisitIfStatement</c>.</summary>
+    public static readonly DiagnosticDescriptor NextSentenceWithEndIf = new(
+        "COBOL7486", "next-sentence-with-end-if", EditionSeverity.Error,
+        "An IF statement with the END-IF phrase also has the NEXT SENTENCE phrase. "
+        + "\"If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.\" (§1985:VI.6.16.3 SR3)",
+        "§1985:VI.6.16.3 SR3");
+
     /// <summary>COBOL7234 — a PERFORM in a USE BEFORE REPORTING procedure has a GENERATE, INITIATE or TERMINATE statement in its range
     /// (kb/Work PB5254). §1985:XIII.4.9.3 SR3: "A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or
     /// TERMINATE statements in its range." A COBOL-85 rule, reported at --std 85, asked of the bound program
@@ -5218,6 +5228,32 @@ public static class DiagnosticCatalog
         + "`IF ZERO = ZERO` and `PERFORM UNTIL 1 = 2` each compare two literals. The program compiles and the relation "
         + "is evaluated as written; the warning is the §2023:4.2.2 indication that the source is outside the standard.",
         "ISO §2023:8.8.4.2.1");
+
+    /// <summary>COBOL7609 — a relation condition with no reference to a variable, at COBOL-85 (kb/Work PB5826).
+    /// §1985:VI.6.3.1.1: "The relation condition must contain at least one reference to a variable." COBOL3146 asks the
+    /// 2002 wording (an operand that is not a literal) from 2002 on; the 1985 text is stricter, since an arithmetic
+    /// expression of literals references no variable. A WARNING by the same determination (docs/CONFORMANCE.md
+    /// D-RELLITERAL): the severity is implementor latitude and GnuCOBOL warns.</summary>
+    public static readonly DiagnosticDescriptor RelationNoVariableReference = new(
+        "COBOL7609", "relation-no-variable-reference", EditionSeverity.Warning,
+        "A relation condition references no variable. ISO §1985:VI.6.3.1.1: \"The relation condition must contain at least "
+        + "one reference to a variable.\" Each operand is a literal, a figurative constant or an arithmetic expression of "
+        + "literals, so `IF 1 = 2` and `IF 2 * 2 = 4` are outside the 1985 text. The program compiles and the relation is "
+        + "evaluated as written; the warning is the indication that the source is outside the standard. From COBOL-2002 "
+        + "the rule is COBOL3146's.",
+        "ISO §1985:VI.6.3.1.1");
+
+    /// <summary>COBOL7610 — a sign condition whose arithmetic expression references no variable, at COBOL-85
+    /// (kb/Work PB5826). §1985:VI.6.3.1.5: "Arithmetic-expression-1 must contain at least one reference to a variable."
+    /// The 2002 and 2023 sign-condition texts have no such sentence, so it is raised below 2002 only; a WARNING, as
+    /// COBOL7609.</summary>
+    public static readonly DiagnosticDescriptor SignConditionNoVariableReference = new(
+        "COBOL7610", "sign-condition-no-variable-reference", EditionSeverity.Warning,
+        "The arithmetic expression of a sign condition references no variable. ISO §1985:VI.6.3.1.5: "
+        + "\"Arithmetic-expression-1 must contain at least one reference to a variable.\" `IF 3 IS POSITIVE` and "
+        + "`IF 2 * 2 IS NOT ZERO` are outside the 1985 text. The program compiles and the condition is evaluated as "
+        + "written; the warning is the indication that the source is outside the standard.",
+        "ISO §1985:VI.6.3.1.5");
 
     /// <summary>COBOL3317 — a condition-name reference written with a reference modifier (kb/Work PB2468):
     /// <c>IF CN(1:2)</c>, SEARCH ALL <c>WHEN CN(IX)(1:2)</c>, <c>SET CN(1:2) TO TRUE</c>. The binder used to resolve

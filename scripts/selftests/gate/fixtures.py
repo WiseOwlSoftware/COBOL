@@ -36,6 +36,17 @@ def world():
     return root, sink, gate, said
 
 
+def hosted_once(host: FakeHost) -> bool:
+    """Every gated assembly ran in exactly ONE host of the gate: its population's, or, for an assembly the planted
+    preflight runs whole, its preflight's (kb/Work PB5872); and no planted case ran twice."""
+    from test_population import GATED_ASSEMBLIES  # noqa: PLC0415
+    whole = host.planted_preflight_whole()
+    population = sorted(n for n in host.hosts_run if not n.startswith("preflight-"))
+    return (population == sorted(a for a in GATED_ASSEMBLIES if a not in whole)
+            and all(f"preflight-{a}" in host.hosts_run for a in whole)
+            and len(host.cases_run) == len(set(host.cases_run)))
+
+
 def audit_shape_arms() -> str:
     """The audit on a planted tree: '' when every arm holds, else what failed."""
     with tempfile.TemporaryDirectory() as tmp:

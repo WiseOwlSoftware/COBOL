@@ -1,0 +1,96 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-4",
+ "rule-digest": "2a36b2318fd3",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-200",
+  "sources": {
+   "reader": "26bb19fe1d4bb01c88a769c3a58463eeb8ab46fea462e5c6064d202818529b52",
+   "refuter": "ba0b579a4bec30e41782e838b8dd6d1f645c1ed0730b967486861cfa537b810b"
+  },
+  "imported": {
+   "reader": "0a415521531c975e3e1e0e3cd5ae497715d369cde4fd3bf9ab5aaa27c5f526cd",
+   "refuter": "9d33314ab17c9489c5759e67721854db5ce2b8852f7984cb61bbd07b5f8a0ede"
+  }
+ },
+ "reader": {
+  "edition-search": "ResolveVisible and CommonProgramReferable read no edition (grep for Edition, CobolVersion, DialectBehavior, IsAvailable in ProgramTable.cs, ProgramNameScope.cs, CallBinder.cs, CallEmitter.cs); the 85 difference arrives only through the RECURSIVE attribute being unavailable.",
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-X.5.2.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a CALL (literal-1 or identifier-1) naming a program-name that several run-unit programs share resolves by §1985:X.1.3.8.1: a program directly contained in the caller first, then a COMMON program directly contained in a program that contains the caller (unless the caller is within that common program), otherwise the separately compiled program; a non-common program nested elsewhere is never reachable.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Runtime/Control/ProgramNameScope.cs#CommonProgramReferable; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCall",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/ExternalizedNames.cs#FormInEdition",
+    "switches": "the edition's Annex C spelling of a dynamic identifier-1 name (CallEmitter passes ctx.Data.DialectLevel); identity for every name a 1985 program-name can be (ASCII)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramIdAttributes",
+    "switches": "PROGRAM-ID ... RECURSIVE refused at 85 (COBOL0885), so ResolveVisible's rule 2 (self-call) and CommonProgramReferable's recursive bypass are unreachable at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "behaviour-differs-by-edition": "no: the three-step mechanism is the same code at every edition; only the 2002+ RECURSIVE attribute (refused at 85) widens the common-program exception later",
+  "witnesses-cover": "part: g85_f02_04 covers mechanisms a, b and c by literal-1 one level deep; not covered: identifier-1, a common program in an INDIRECT container, a non-common sibling or grandchild shadowing a separate program, a call from inside the common program itself, and the duplicate-name refusals",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr4a.cob",
+    "printed": "NESTED X IN P1 / SEPARATE X / SEPARATE X / SEPARATE S / COMMON C1 / SEPARATE C1 / COMMON C1 / SEPARATE C1 / COMMON C1 / SEPARATE C1 (run gr4a-001)",
+    "expected": "P1 reaches its own X (a); P2 by literal and by identifier reaches the separate X, and the separate S rather than its non-common sibling S (c); C1A inside common C1 reaches the separate C1 (b's exception); P4 reaches M's common C1 through an indirect container by literal and identifier (b)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr4b.cob",
+    "printed": "error COBOL2214: program 'X' contained in 'M' repeats the name of another program contained in 'M' ...",
+    "expected": "refused: two identically named programs within one separately compiled program (§1985:X.1.3.8.1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr4c.cob",
+    "printed": "error COBOL2213: PROGRAM-ID 'X' and PROGRAM-ID 'X' both externalize the name 'X' in this compilation group",
+    "expected": "refused: two separately compiled programs of one name are not distinguishable"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr4d.cob",
+    "printed": "error COBOL0885: PROGRAM-ID RECURSIVE requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused at 85: no RECURSIVE attribute in this edition"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr4e.cob",
+    "printed": "NESTED M / Q",
+    "expected": "a program directly contained in the caller is called even when it shares the caller's own name (mechanism a)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.2.4 GR4",
+    "check": "OK  §1985:X.5.2.4 GR4  (cite.py --check with \"resolved by using the scope of names conventions for program-names\")"
+   },
+   {
+    "cite": "§1985:X.1.3.8.1 SR2",
+    "check": "OK  §1985:X.1.3.8.1 SR2  (cite.py --check with \"except that program possessing the common attribute and any programs contained within it\")"
+   }
+  ],
+  "notes": "g85_f02_04 MATCHes at 85. Resolution is at run time in ProgramTable.ResolveVisible (children, then common programs of each container nearest first, then outermost), with the common-program exception written once in ProgramNameScope. Aside: COBOL2213/COBOL2214 cite §2023 text at --std 85."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.2.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "g4deep: a COMMON C2 directly contained in P3 is reached from P5 (two levels inside P3) by literal and identifier-1 (PIC X(30)), while P2 (a sibling of P3) reaches the separate C2: COMMON C2 IN P3 x2 / SEPARATE C2 x2. g4grand: M calling X where X is COMMON in its child P1 reaches the separate X (rule 2 limits the common program to its container's descendants). g4branch: two X in different branches of one separately compiled M refused COBOL2214 (§1985:X.3.1.3 SR2). The reader's gr4e (nested M inside outer M, accepted) is admitted by the literal text of X.1.3.8.1 and X.3.1.3 SR2 (the outermost program is not 'contained within' itself), so not a refutation. cite.py: OK §1985:X.5.2.4 GR4 the text is in GR4; OK §1985:X.1.3.8.1 the text is in the clause; OK §1985:X.3.1.3 SR2 the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

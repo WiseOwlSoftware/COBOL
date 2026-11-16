@@ -1,0 +1,79 @@
+{
+ "rule-id": "1989-RV-A.2.46.3-2",
+ "rule-digest": "9cc192997374",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-215",
+  "sources": {
+   "reader": "9f20798d80fdfbeae4540a13860dd82449ca35b8d3ce9a7c204f59960d4b5e89",
+   "refuter": "95cb3606a48f435f75f5314268ce4b4911f95283e4d0bfdb5c9fcfb53902f01d"
+  },
+  "imported": {
+   "reader": "bb503fc39ffe8ec2736b6f1fd89939652ce6f36d5b7f6ea07e8b61130d11a392",
+   "refuter": "419541e631a0c63ebf8ec9ac800af093e930d54b9db14aa953e2b3908b5972d3"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.46.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION WHEN-COMPILED must return the date and time at which the separately compiled program that contains it was compiled, and every contained program (at any nesting depth) must return that same compilation date and time, never the run time.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#_whenCompiledStamp; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#BeginUnit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#WhenCompiledStamp; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#Format21; src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadCompilationTime; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CompileClock; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IsDefinedAt",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window: sig.IntroducedIn (85 for WHEN-COMPILED) against Edition.DialectLevel; refuses a function introduced after the target edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped the emit path (ProgramEmitter, EmitCore, IntrinsicRenderer \"WhenCompiled\" arm, CobolDate.Format21, CompilationInputs.ReadCompilationTime) for DialectLevel, Edition., CobolVersion, DialectBehavior, ConstructRegistry, IsActive: none. The only edition read is the binder's IntroducedIn window, which admits the function at 85 exactly as at 2023.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb120_when_compiled_contained covers one level of containment; not exercised there: a doubly nested contained program, a second separately compiled program in the same source file, reference modification of the function, and that the value precedes the run time (is the compile stamp, not the clock at run).",
+  "probes": [
+   {
+    "class": "a,c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-215/src/wc1.cob",
+    "printed": "LEN=21 / IN1 SAME / IN2 SAME / SEP SAME / REFMOD OK / BEFORE RUN OK / DIGITS OK / OFFSET MATCHES RUN OK (run dir runs/wc1-002)",
+    "expected": "Outer, contained (WC1A) and doubly contained (WC1B) programs return the same compilation stamp (RV2); WHEN-COMPILED (1:4) equals the year; the 21-character value (RV1) is earlier than CURRENT-DATE at run time, i.e. it is the compilation date and time."
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-215/src/wc1.cob",
+    "printed": "first draft refused at 85: COBOL0900 'a numeric or integer function-identifier where an identifier is written ... requires COBOL-2002' for DISPLAY FUNCTION LENGTH (FUNCTION WHEN-COMPILED) (runs/wc1-001); an alphanumeric WHEN-COMPILED in that position is admitted",
+    "expected": "1985 admits an integer function only in an arithmetic expression; WHEN-COMPILED is alphanumeric and is admitted as an identifier operand."
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-215/src/wc1.cob",
+    "printed": "at --std 2023 the same eight lines (runs/wc1-003), plus COBOL0903 archaic EXIT PROGRAM warnings",
+    "expected": "same behaviour at the latest edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.46.3 RV2",
+    "check": "OK  §1989:A.2.46.3 RV2  (2.46.3 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1989:A.2.46.3 RV1",
+    "check": "OK  §1989:A.2.46.3 RV1  (2.46.3 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "The stamp is captured once per compilation through CompilationInputs.ReadCompilationTime, formatted by CobolDate.Format21 and emitted as a C# string constant; every unit's emitter (BeginUnit, and the host-entry DataEmitter) shares the one Lazy, so contained programs at any depth bake the containing compilation's stamp. The §1985:A.2.46.3 form fails cite.py (the 1989 amendment is cited as §1989), so the rule is cited as the catalog does. A second separately compiled program in the same source file also receives the same stamp, which is correct because it is compiled in the same compilation.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output (runs/wc1-003)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.46.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1989:A.2.46.3 RV1-RV3 whole and the emit path (ProgramEmitter._whenCompiledStamp Lazy per Emit, CompilationInputs.ReadCompilationTime, IntrinsicRenderer 'WhenCompiled' arm emitting a C# string constant; RoslynBackend deterministic PE so object code carries no other time). Attack on RV2's FIRST sentence (each source program its own compilation time), which the reader never separated from the containment half: WCSUB (with contained WCSUBIN) compiled alone (runs/WCSUB-002, baked 2026111604163345-0800), then WCMAIN compiled ~6 s later with WCSUB.dll beside it and run (runs/wcmain-001): ME=2026111604163909-0800, SUB=SUBI=2026111604163345-0800, 'SUB COMPILED EARLIER OK', COMMON contained program 'COMMON SAME', FUNCTION REVERSE (FUNCTION WHEN-COMPILED) round-trips 'REVERSE OK'. Class c: FUNCTION WHEN-COMPILED () refused at 85, COBOL0900 empty argument list requires COBOL-2002 (runs/wc3-001). No edition site beyond the binder's IntroducedIn window. cite.py: 'OK  §1989:A.2.46.3 RV2  (2.46.3 Returned Values)  the text is in RV2'; 'OK  §1989:A.2.46.3 RV3  (2.46.3 Returned Values)  the text is in RV3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

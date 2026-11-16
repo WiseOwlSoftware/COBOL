@@ -32,6 +32,11 @@
       "tests/_shared/HostLoad.cs|using var reader = new StreamReader(\"/proc/stat\");": "the Linux kernel's CPU counters (/proc), outside the repository: a host observation, no input"
     }
   },
+  "preflight": {
+    "about": "THE GATE'S PREFLIGHT (kb/Work PB5872; scripts/gate_legs.py `Legs.preflight`; DESIGN-test-build-ci.md section 3.14.15): the test classes, declared per test target as its `preflight` (class -> why), whose red means a DERIVED OR PINNED FILE IS STALE (a snapshot, a pin, a measured file the code must equal) and which run in seconds. In a code-lane gate they run after the build and before the whole population, one host per assembly; a red one ends the gate RED at once, its verdict line saying PREFLIGHT and naming the case, and the whole population does not run. On a green preflight the population runs as before, less the cases the preflight ran: no case runs twice (the population check reads both trx files, and a case in both is RAN TWICE). The BUILD TARGETS audit (`python scripts/buildgraph.py check`, `preflight_findings`) holds the declaration to the budget below: every declared class is declared in its project's sources and MEASURED in the committed weights file (each class's median merge-group seconds), no class weighs more than `class_weight_s`, and the classes weigh no more than `total_weight_s` together, so a class that takes minutes cannot be declared.",
+    "measurement": "Chosen 2026-11-16 from this host's gate records (every worktree's TestResults/build-local/*/verdict.json and the trx beside it: 166 records, 53 full-lane RED, 28 with an audit red, 26 with a test red), ranked by how often a class was a run's ONLY red class and by its own seconds there. Admitted (only-red runs / runs red at all, median local seconds): Characterization whole (EmittedCSharpSnapshotTests 2/2, 6.6 s; DiagnosticSnapshotTests, GateLegDriftTests, RuntimeApiGuardTests and SmokeTests 0/0, 3.7 s together: the 37-case target, which then starts no population host); Unit Architecture.BinderMemberReadersDriftTests 2/5, 2.1 s, RuntimeAbiPinDriftTests 1/2, 0.4 s, DocumentedFactsDriftTests 0/5, 0.1 s; RepoDrift ArchitectureEdgesDriftTests 1/3, 11.1 s, Architecture.BackendContractDriftTests 1/1, 1.1 s; Conformance ArchOracleDriftTests 2/3, 0.8 s. Left out: SpecTraceabilityInventoryDriftTests (1/3, 36.2 s; weight 16.9, over the class budget); ConformanceSuiteTests_P14, SortMergeDifferentialTests and BothRunnersVerdictDriftTests_P3 (a behaviour red, 19 to 570 s); the source-shape drift tests red once beside others (RecordAreaUse, CobolSpace, StageOwnedDirectiveOperand, LiteralAliasResolution, BoundDeferral: no derived file); DialectBehaviorRegistryDriftTests (never red).",
+    "budget": {"weights": "tests/_shared/test-weights.json", "class_weight_s": 10.0, "total_weight_s": 15.0}
+  },
   "targets": {
     "conformance-suite": {
       "kind": "generated",
@@ -100,6 +105,9 @@
       "kind": "test",
       "assembly": "Conformance",
       "project": "tests/WiseOwl.Cobol.Tests.Conformance/",
+      "preflight": {
+        "WiseOwl.Cobol.Tests.Conformance.ArchOracleDriftTests": "the oracle's enrolment of every partitioned row source (ArchOracle.Sources): a run's only red twice, found 463 s and 659 s into the test phase"
+      },
       "depends": ["conformance-suite"],
       "inputs": {
         "@build": "the compiler, the runtime and the CLI it builds and runs",
@@ -173,6 +181,11 @@
       "kind": "test",
       "assembly": "Unit",
       "project": "tests/WiseOwl.Cobol.Tests.Unit/",
+      "preflight": {
+        "WiseOwl.Cobol.Tests.Unit.RuntimeAbiPinDriftTests": "the runtime ABI pin (src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin): red when a shipped Runtime member moves and the pin was not bumped (kb/Work PB5858 run 1)",
+        "WiseOwl.Cobol.Tests.Unit.Architecture.BinderMemberReadersDriftTests": "the measured binder-member readers file (Architecture/binder-member-readers.json): a run's only red twice, red in five runs",
+        "WiseOwl.Cobol.Tests.Unit.DocumentedFactsDriftTests": "the documented compiler facts (tests/doc-facts/compiler-facts.json): red in five runs"
+      },
       "depends": ["conformance-suite"],
       "inputs": {
         "@build": "the compiler, the runtime and the CLI it tests, and the sources its sweeps read (src/)",
@@ -224,6 +237,10 @@
       "kind": "test",
       "assembly": "RepoDrift",
       "project": "tests/WiseOwl.Cobol.Tests.RepoDrift/",
+      "preflight": {
+        "WiseOwl.Cobol.Tests.RepoDrift.ArchitectureEdgesDriftTests": "the architecture-edges pin (docs/rearchitecture/architecture-edges.json): a run's only red once, red in three runs",
+        "WiseOwl.Cobol.Tests.RepoDrift.Architecture.BackendContractDriftTests": "the backend contract the edges file pins beside it: a run's only red once"
+      },
       "inputs": {
         "@population-inputs": "the repository's drift tests bind the documents' data files, the records, the scripts a compiler test runs, the CI files, every test source and the NAMES of every tracked file (tests/_shared/TrackedTree.cs, NulByteDriftTests' whole-tree sweep) to each other and to the compiler: every population input (lane_classification.Classification.is_population_input); it reads the traceability inventory itself (TraceabilityInventory, SpecTraceabilityInventoryDriftTests, RegistryShapeDriftTests) and never the generated suite, so it depends on no generated target"
       },
@@ -236,6 +253,13 @@
       "kind": "test",
       "assembly": "Characterization",
       "project": "tests/WiseOwl.Cobol.Tests.Characterization/",
+      "preflight": {
+        "WiseOwl.Cobol.Tests.Characterization.EmittedCSharpSnapshotTests": "the emitted-C# snapshots (its Snapshots/ directory): red when a compiler change moves an emitted program and the snapshot was not re-blessed; a run's only red twice in the records",
+        "WiseOwl.Cobol.Tests.Characterization.DiagnosticSnapshotTests": "the diagnostic snapshots beside them, the same kind of pinned file",
+        "WiseOwl.Cobol.Tests.Characterization.GateLegDriftTests": "the rest of the 37-case target (weight 0.0), so the target's population host never starts",
+        "WiseOwl.Cobol.Tests.Characterization.RuntimeApiGuardTests": "the rest of the 37-case target (weight 0.0), so the target's population host never starts",
+        "WiseOwl.Cobol.Tests.Characterization.SmokeTests": "the rest of the 37-case target (weight 0.0), so the target's population host never starts"
+      },
       "inputs": {
         "@build": "the compiler and runtime it drives",
         "tests/WiseOwl.Cobol.Tests.Characterization/": "its own sources, project and snapshots (CharacterizationCorpus SnapshotDir)",

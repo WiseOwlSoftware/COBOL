@@ -1,10 +1,17 @@
       *>--- conformance-case
       *> id: pb1543_nbsp_is_a_text_word_character
       *> rules: [DOC-A.1-23]
-      *> accept: [85]
+      *> accept: [2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> EDITIONS. The rules below are the 2023 ones (2014 alike,
+      *> §2014:7.2.1.4 3)). Before 2014 a text-word is a sequence of
+      *> COBOL characters (§1985:III.2 (3), §2002:7.1.1.4 3)), which
+      *> U+00A0 is not, so at 85 and 2002 this operand is no text-word
+      *> and the program is refused (kb/Work PB5608; witnesses
+      *> pb5608-replace-text-word-non-cobol-character-refused-85 and
+      *> pb5608-replace-partial-word-2-non-cobol-character-refused).
       *> kb/Work PB1543 - a character that only LOOKS like a space is
       *> an ordinary text-word character in COPY REPLACING / REPLACE:
       *> only the COBOL character space (and the tab and line end the

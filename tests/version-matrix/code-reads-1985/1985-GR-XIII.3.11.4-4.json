@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-XIII.3.11.4-4",
+ "rule-digest": "1749212c9d99",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-222",
+  "sources": {
+   "reader": "2143dc7714c38ed9934ddc089e7bc875aa28895d5b36864710a263978fe42801",
+   "refuter": "babde845945dabf70792e28bd8e798adb2611d3d7ec91859e2f06a9b9cc79643"
+  },
+  "imported": {
+   "reader": "8f0b31e4d84dddc9aaa8d5ff6e8dca1be77e0c7b77ff444bced806236833d9e9",
+   "refuter": "89b30681b81ec87d2aee167ea6a54f535ab7f206e5bfee853d73f5c9e30b28f2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.11.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the leftmost character position of every print line of a report is column number 1, so a COLUMN NUMBER IS integer-1 entry places the printable item's leftmost character at the integer-1-th position of the line (column 1 is the first byte, with no offset or prefix); the 1985 clause has only the absolute integer form, which must be nonzero.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitCompose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#AbsoluteLeftmost; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#ReportPlace; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#NewLine",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Run",
+    "switches": "only the citation text of the COLUMN 0 refusal (§1985:III.2 vs §2023:5.5); both editions refuse integer 0",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause",
+    "switches": "the 2002 COLUMN forms (PLUS, LEFT/CENTER/RIGHT, multiple operands) are refused at 85 with COBOL0900; accepted at 2002+",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes Edition into CobolReport; Place and NewLine never read it",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition|CobolVersion|IsActive in ReportWriterEmitter.cs, ReportModel.cs (ReportColumnSpec) and ReportWriter.cs Place/NewLine/ReportLineImage: the placement path (column-1 -> zero-based index in Place) consults no edition; only the grammar/construct gate for 2002 forms and the integer-operand message do.",
+  "behaviour-differs-by-edition": "no: column 1 is the first position at every edition; 85 only refuses the 2002 relative/aligned/multiple forms of the clause",
+  "witnesses-cover": "part: g85_z01 places items at columns 3 and 8 only; column 1 itself, adjacent items ending/starting on contiguous columns, a 19-character signed item and the COLUMN 0 degenerate form are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/col1.cob",
+    "printed": "[A-00500+-9999999999999999990123+|       ] / A AT COLUMN 1",
+    "expected": "A in column 1, -005 in 2-5, 00+ in 6-8, -999999999999999999 in 9-27, 0123+ in 28-32, | in 33 (GR4 with GR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/col0.cob",
+    "printed": "error COBOL2386: COLUMN 0: the integer operand 0 shall be nonzero — §1985:III.2",
+    "expected": "refused: there is no column 0 (GR4) and an integer must be nonzero (§1985:III.2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/colplus.cob",
+    "printed": "error COBOL0900 x2: relative (PLUS) COLUMN operand / RIGHT alignment word requires COBOL-2002",
+    "expected": "refused at 85: the 1985 format is COLUMN NUMBER IS integer-1 only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.11.4 GR4",
+    "check": "OK  §1985:XIII.3.11.4 GR4  (3.11.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "CobolReport.Place maps column n to zero-based index n-1 over a space-filled line image, and the 85 single-absolute-operand shape emits one Place call with integer-1 unchanged (AbsoluteLeftmost returns Value for the default LEFT alignment). The probe read the report file back byte by byte and every item sits at its 1-based column.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.11.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attack: the 1985 CODE clause puts literal-1 in the first two positions of each report record and those positions are not part of the print line, so column 1 must be record byte 3. Probe refute-1985-222/code1.cob (two reports on one file, CODE \"AB\"/\"CD\", COLUMN 1 and 3) at --std 85 wrote 'ABX Y' and 'CDQQ' (od -c): column 1 sits after the code. Probe col3.cob: COLUMN 1 PIC X(5) JUSTIFIED RIGHT under a format-2 LINE entry printed '   AB' in 1-5, GROUP INDICATE at 6 only on the first detail, BLANK WHEN ZERO 7-9 blank, '|' at 10. Reader's col0/colplus cover the refusal and 2002-form halves. cite.py: OK §1985:XIII.3.11.4 GR4 'The leftmost position of the print line is considered to be column number 1'; OK §1985:XIII.3.6.4 GR1 'literal-1 is automatically placed in the first two character positions'; OK §1985:XIII.3.6.4 GR2 'are not included in the description of the print line'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

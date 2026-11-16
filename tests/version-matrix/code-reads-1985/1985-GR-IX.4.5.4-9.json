@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-9",
+ "rule-digest": "2c4a840d4085",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-220",
+  "sources": {
+   "reader": "50a8f3d68f3d437a001985558ba4659dc474823cff7dca3474cc911605a78541",
+   "refuter": "3db9c99631f73777b37640bd411ef66839539b74e8f6ef69e0309533a50ff9aa"
+  },
+  "imported": {
+   "reader": "36a4d471be563553a6c215de3255b2a775b2eb38210393fd0045b4525fb49185",
+   "refuter": "3465bb7287dbfd7f274b54b072656638cd4f8ab25979b8ccc6dac80cffc25a22"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.5.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "A format 2 (random, by prime or alternate KEY) READ of an indexed file, random or dynamic access, whose file position indicator says an optional input file is not present (an OPTIONAL file opened INPUT while absent, OPEN status 05) is unsuccessful with the invalid key condition: I-O status 23 (§1985:IX.1.3.4 status 23 item 2), INVALID KEY executed and NOT INVALID KEY not, or the USE procedure run when no INVALID KEY phrase is written; afterwards the file position indicator says no valid next record (GR12).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordNotFound; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+    "switches": "DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly (the 1985 status 02 on a random READ with a following duplicate) is consulted only after a record is found; the absent-optional guard returns status 23 before it, so this rule's arm is the same at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+    "switches": "the 1985 mandatory INVALID KEY / AT END unless a USE applies (§1985:IX.4.5.3 SR7, COBOL6826) is enforced at 85; it shapes which programs compile, not the runtime outcome of this rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of src/WiseOwl.Cobol.Runtime/IO for Edition/CobolVersion: IndexedConnector.cs consults DialectBehaviors twice (READ PREVIOUS after OPEN, duplicate-key status), FileConnector.cs once (sharing facility); none is on the absent-optional format 2 path before the guard",
+  "behaviour-differs-by-edition": "no: the repro prints the same at --std 85 and --std 2023 (opt2.cob both MATCH)",
+  "witnesses-cover": "part: pb344_use_mode_invalid_key_85 exercises the USE-procedure route of an invalid key; the INVALID KEY / NOT INVALID KEY phrase route, READ KEY IS an alternate key, dynamic access, READ INTO, and the status after a following format 1 READ are not exercised for an absent optional indexed file",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/opt1.cob",
+    "printed": "OPEN IXR 05 / A INVALID 23 / A AREA K001ZZZZ / USE IXR 23 / B AFTER USE 23 / USE IXR 23 / C STATUS 23 / OPEN IXD 05 / D INVALID 23 / E INVALID 23 / F STATUS 46 / CLOSE 00; EXPECT MATCH",
+    "expected": "random-access READ with INVALID KEY: 23 and the INVALID KEY branch; with no phrase the USE procedure runs with 23; with only NOT INVALID KEY the USE runs and NOT INVALID KEY does not; dynamic READ KEY IS alternate key and prime key: 23; then READ NEXT finds no valid next record (GR12, GR4a: unsuccessful, not at end; 46)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/opt2.cob",
+    "printed": "OPEN 05 / N AT END 10 / R INVALID 23 / R2 INVALID 23; MATCH at --std 85 and at --std 2023",
+    "expected": "format 1 READ NEXT straight after OPEN goes to GR10 (at end, 10), format 2 READ INTO afterwards and after a re-OPEN: invalid key 23"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/scr_read_withlock.cob",
+    "printed": "error COBOL0900: a record-lock phrase ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "a 2002 READ phrase is refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.4 GR9",
+    "check": "OK  §1985:IX.4.5.4 GR9  (4.5.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c.2 (\"A START or random READ statement is attempted on an optional input file that is not present\")"
+   },
+   {
+    "cite": "§1985:IX.4.5.4 GR12",
+    "check": "OK  §1985:IX.4.5.4 GR12  (4.5.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:IX.4.4.4 GR9",
+    "check": "OK  §1985:IX.4.4.4 GR9  (4.4.4 General Rules)  the text is in GR9"
+   }
+  ],
+  "notes": "IndexedConnector.ReadRandom returns '23' through RandomReadAbsentOptionalGuard before any store lookup, and the generated READ routes '23' to INVALID KEY or the USE procedure. My first expectation for the trailing READ NEXT (at end) was wrong: GR12 makes the failed random READ leave no valid next record, so 46 with neither AT END nor NOT AT END is right. The record area after the failed READ is undefined by GR12; the compiler leaves it unchanged.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.5.4-9",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "Probe at --std 85, EXPECT MATCH: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/o1.cob, RANDOM access OPTIONAL indexed file absent, OPEN INPUT 05; READ INTO TE(IX) KEY IS an alternate key WITH DUPLICATES gives INVALID KEY with 23 and the subscripted INTO target is unchanged; prime-key READ INTO gives 23 with the INTO target unchanged (GR8b 'The implied MOVE statement does not occur if the execution of the READ statement was unsuccessful'); after CLOSE, OPEN I-O of the absent optional file creates it (05, Table 1) and a READ is 23 (record not found); after WRITE the READ INTO succeeds 00. The guard (FileConnector.cs#RandomReadAbsentOptionalGuard, shared by IndexedConnector.ReadRandom and RelativeConnector) consults no edition; the reader's edition list holds. cite.py: OK §1985:IX.4.5.4 GR9; OK §1985:IX.4.5.4 GR8; OK §1985:IX.4.4.4 GR9.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

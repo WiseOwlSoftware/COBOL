@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-5",
+ "rule-digest": "f7d091119d9d",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-209",
+  "sources": {
+   "reader": "e67efa97fa7def09f93fca295ec3bf1442696d40155671442223522267174241",
+   "refuter": "58b9949a14dc09c0541af37b1d1f61f7860ecb6c16fd51836ed173e8be5ac5b6"
+  },
+  "imported": {
+   "reader": "aba9a911510e0e0fa47889657b862a6bef825a86c8775c3f03cc779c99f117e7",
+   "refuter": "e71e99c98b91dce066c57ec81eaafc9be4df8de11df35882817b40e5ad7a67c4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.8.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in a format-2 OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1 entry, the compiler must refuse integer-1 below zero and integer-2 not greater than integer-1, and accept integer-1 of zero with integer-2 greater (zero is explicitly allowed for integer-1, overriding §1985:III.2's nonzero default).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#OccursBound; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoBindOccursSpec",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Classify",
+    "switches": "IntegerSlot.At(dialectLevel): the zero-permission of an integer slot; OccursBound returns IntegerSlot.Zero with no edition floor, so integer-1 may be zero at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#ZeroMessage",
+    "switches": "the wording of the zero-integer refusal: §1985:III.2 below 2002, §2023:5.5 from 2002 (message text only)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/Version/1985/Occurs in OdoResolvePass.cs, IntegerOperandPass.cs, VersionConformancePass.cs (VisitOccursClause gates only OCCURS DYNAMIC and report OCCURS); the SR5 check itself in OdoResolvePass#Run is unconditional.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f07_05 refuses integer-2 equal to integer-1 and g85_f07_06 accepts integer-1 of zero; integer-1 greater than integer-2 and a signed integer-1 are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/o1.cob",
+    "printed": "error COBOL0850: OCCURS 5 TO 3 on 'WS-EL': integer-1 shall be greater than or equal to zero and less than integer-2",
+    "expected": "refused: integer-2 must be greater than integer-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/o2.cob",
+    "printed": "error COBOL0850: OCCURS 4 TO 4",
+    "expected": "refused: integer-2 equal to integer-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/o4.cob",
+    "printed": "error COBOL0001 / COBOL1941 unexpected '-' at OCCURS -1 TO 3",
+    "expected": "refused: integer-1 below zero"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/o7.cob",
+    "printed": "error COBOL2386 (integer-2 of 0 shall be nonzero, §1985:III.2) and COBOL0850 for OCCURS 0 TO 0",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/o3.cob",
+    "printed": "[A] then [] (OCCURS 0 TO 1, counter 2 then 0)",
+    "expected": "accepted: integer-1 zero, integer-2 greater"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/o8.cob",
+    "printed": "[AB] then [] (OCCURS 0 TO 99)",
+    "expected": "accepted; group length follows the counter"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/o6.cob",
+    "printed": "error COBOL2789: integer-1 TO integer-2 written without DEPENDING ON",
+    "expected": "refused: integer-1 TO appears only in format 2, which requires DEPENDING ON"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.3 SR5",
+    "check": "OK  §1985:VI.5.8.3 SR5  (5.8.3 Syntax Rules)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   }
+  ],
+  "notes": "OdoResolvePass#Run refuses spec.Min < 0 || spec.Min >= spec.Max at every edition (COBOL0850); a minus sign never parses as an integer; IntegerOperandPass#OccursBound lets integer-1 be zero. The COBOL0850 message cites §2023:13.18.38.3 SR16 rather than the 1985 rule at --std 85 (wording only). The ReportSectionBinder seed is irrelevant at 1985: report OCCURS first exists at 2002 (VersionConformancePass gates it).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.8.3-5",
+  "refutation": "UPHELD",
+  "classes": "a,b,c",
+  "evidence": "cite.py: OK  §1985:VI.5.8.3 SR5  the text is in SR5. Probes at --std 85 under refute-1985-209/runs: r1 OCCURS +0 TO 3 DEPENDING refused (COBOL0001/COBOL1941 at '+'; a signed integer is not an integer per the 1985 definition); r5 OCCURS 1 TO +3 refused (COBOL0001); r4 OCCURS 3 TO 3.0 refused (COBOL5506 non-integer literal); r2 OCCURS 3 TIMES DEPENDING ON (2002-style omitted integer-1, which the 1985 format-2 prints as required) refused COBOL2789; r3 OCCURS 1 TO 3 DEPENDING ON (counter 2) ran and printed '[  ]' (two-character group). No form SR5 governs was mis-handled.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

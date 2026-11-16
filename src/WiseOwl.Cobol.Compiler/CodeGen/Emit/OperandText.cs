@@ -334,9 +334,19 @@ internal static class OperandText
     /// number of bytes determined as above is zero, the record is a zero-length item", and §2023:14.9.25.4 GR1/GR2
     /// then space-fill the receiver — which is exactly what a zero-length window moves. It is an image WINDOW
     /// (<see cref="RuntimeApi.StrWindow"/>), not a reference modification the program wrote, so no range
-    /// violation exists to raise (kb/Work PB1707).</para></summary>
+    /// violation exists to raise (kb/Work PB1707).</para>
+    /// <para>⛔ WHERE THE RECORD CLAUSE SIZES THE RECORD LARGER THAN EVERY DESCRIPTION
+    /// (<see cref="FileModel.RecordClauseExceedsDescriptions"/>, kb/Work PB5785) the record area holds only the
+    /// description-wide leading part of the record, so the image is the CONNECTOR's current record, which the READ made
+    /// available at its own length (<c>CobolFile.CurrentRecord</c>; the sort store's returned image for a RETURN): the
+    /// record §2023:13.18.43.4 GR6/GR7 sizes and GR16 counts.</para></summary>
     public static string CurrentRecordImage(BoundCurrentRecord n) =>
-        RuntimeApi.StrWindow(RecordAreaImage(n.Area, use: AreaUse.Whole), "1", CurrentRecordLength(n));
+        RuntimeApi.StrWindow(
+            n.File.RecordClauseExceedsDescriptions
+                ? n.File.IsSortMerge ? RuntimeApi.SortLastReturnedImage(EmitText.FileKeyExpr(n.File))
+                                     : RuntimeApi.FileCurrentRecord(EmitText.FileKeyExpr(n.File))
+                : RecordAreaImage(n.Area, use: AreaUse.Whole),
+            "1", CurrentRecordLength(n));
 
     /// <summary>§2023:13.18.43.4 GR16's two arms, rendered — "the number of bytes in the current record that
     /// participate as the sending operands in the implicit MOVE statement": GR16 a) "If data-name-1 is specified,
@@ -914,9 +924,15 @@ internal static class OperandText
     {
         public bool Visit(BoundStringLiteral n) => true;
         public bool Visit(BoundAllLiteral n) => true;   // ALL "literal" is an alphanumeric figurative
-        public bool Visit(BoundFieldOperand n) => n.Place.Item.IsGroup || n.Place.Item.Pic?.Category
-            is PicCategory.Alphanumeric or PicCategory.NumericEdited
-            or PicCategory.National or PicCategory.Boolean;
+        // ⛔ A REFERENCE-MODIFIED operand's category is its UNIQUE DATA ITEM'S (kb/Work PB5780; RefModPlace.Category, kb/Work
+        // PB70): "the categories numeric, numeric edited, and alphanumeric edited are considered class and category
+        // alphanumeric" (§1985:IV.4.3.8.4.4 GR5; §2023:8.4.3.3.4 GR6), so `N3 (1:3) = 5` compares characters, never the
+        // inner numeric item's value.
+        public bool Visit(BoundFieldOperand n) => n.Place is RefModPlace rm
+            ? IsTextCategory(rm.Category)
+            : n.Place.Item.IsGroup || n.Place.Item.Pic?.Category is { } c && IsTextCategory(c);
+        private static bool IsTextCategory(PicCategory c) =>
+            c is PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National or PicCategory.Boolean;
         // The current record is an ALPHANUMERIC value — §2023:14.9.30.4 GR4 b) calls the implied move "an
         // alphanumeric group move" and §2023:13.18.43.4 GR16 counts its size in BYTES.
         public bool Visit(BoundCurrentRecord n) => true;

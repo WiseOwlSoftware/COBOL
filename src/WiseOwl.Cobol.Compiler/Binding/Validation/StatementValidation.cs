@@ -1233,7 +1233,7 @@ internal sealed class StatementValidation(DataBinder data)
         // rather than restating the rule. identifier-1 is reported in preference to a record: it is the operand
         // the programmer chose, and a record-name they may not have written.
         DataItem? badRecord = file.Records.FirstOrDefault(r => !AdmitsIntoRecord(r));
-        bool badReceiver = !AdmitsIntoOperand(receiver);
+        bool badReceiver = !AdmitsIntoOperand(receiver, data.Edition.Edition);
         if (badRecord is null && !badReceiver) return true;
 
         string why = badReceiver
@@ -1254,14 +1254,14 @@ internal sealed class StatementValidation(DataBinder data)
     /// §2023:13.18.45.4 GR2 — the FIRST alternative arm b) admits, not the elementary one — and is admitted without
     /// reading the entry behind it; the alias is a group item, NOT a composed elementary view (kb/Work PB430; the same
     /// reading <c>MoveTable16.OperandItem</c> takes of the alias for SR9, kb/Work PB907). A REFERENCE-MODIFIED receiver
-    /// is read through its VIEW's category, the ONE reader <see cref="ItemCategory.IsAlphanumericOrNational(Place)"/>
+    /// is read through its VIEW's category, the ONE reader <see cref="ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)"/>
     /// (kb/Work PB5211): §2023:8.4.3.3.4 GR6 and §1985:IV.4.3.8.4.4 GR5 give the unique data item "the same class and
     /// category as that defined for" identifier-1 and rewrite only the edited and numeric categories to alphanumeric
     /// (national under a national usage), so <c>READ F INTO WS-NUM(1:4)</c> is admitted while
     /// <c>READ F INTO WS-ALPHA(1:4)</c> over a category-alphabetic item draws the refusal its unsliced twin draws.
     /// A blanket "every reference-modified place is alphanumeric" admitted the alphabetic slice.</summary>
-    private static bool AdmitsIntoOperand(Place p) =>
-        p is RenamesPlace || ItemCategory.IsAlphanumericOrNational(p);
+    private static bool AdmitsIntoOperand(Place p, EditionInfo edition) =>
+        p is RenamesPlace || ItemCategory.IsAlphanumericOrNational(p, edition);
 
     /// <summary>Arm b) applied to ONE record-name — "an alphanumeric group item or an elementary item of category
     /// alphanumeric or category national", which is exactly <see cref="ItemCategory.IsAlphanumericOrNational"/>:
@@ -1476,10 +1476,16 @@ internal sealed class StatementValidation(DataBinder data)
     /// own and is screened as one, if it is an input-output statement), and the record-name / file-name operand
     /// itself (whose SD case is SR3's, <see cref="ScreenSortMergeFile"/> — one rule reported once). A record
     /// description entry is the 01 and every entry subordinate to it, so the test is on the reference's record.
-    /// </para></summary>
+    /// </para>
+    /// <para>⛔ THE RULE STARTS IN COBOL-2002 (kb/Work PB5827): §1985:XI.3.2.3 SR3 forbids only that "no input-output
+    /// statements may be executed for this sort or merge file" (<see cref="ScreenSortMergeFile"/>); it has no rule on
+    /// naming an SD record's items as an operand of ANOTHER file's statement (<c>WRITE OF-REC AFTER ADVANCING SW-N
+    /// LINES</c> needs only an integer item, §1985:VII.4.7.3 SR4). So below 2002 this screen asks nothing, and from
+    /// 2002 the message cites the edition's own rule (<see cref="SortMergeRecordRuleCite"/>).</para></summary>
     public void ScreenSortMergeRecordReferences(Antlr4.Runtime.ParserRuleContext statement, string verb,
                                                 ReferenceResolver refs)
     {
+        if (data.Edition.DialectLevel < 2002) return;
         Walk(statement);
 
         void Walk(IParseTree node)
@@ -1510,12 +1516,22 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.SortMergeRecordInIoStatement,
                 $"{verb} '{DataBinder.WrittenText(dref)}' — "
                 + (ReferenceEquals(root, probe.Item) ? "" : $"'{probe.Item.CobolName}' belongs to ")
-                + $"'{root.CobolName}', a record description entry of the sort-merge file '{sd.CobolName}', and ISO §2023:13.4.6.3 SR4: \"A record description entry associated "
+                + $"'{root.CobolName}', a record description entry of the sort-merge file '{sd.CobolName}', and {SortMergeRecordRuleCite}: \"A record description entry associated "
                 + "with file-name-1 shall not be specified in an input-output statement other than following the word "
                 + "FROM or the word INTO.\" Move the value to a working-storage item first, or name it in the FROM / "
                 + "INTO phrase.");
         }
     }
+
+    /// <summary>The citation of the SR4 text in force at the edition being compiled: the rule is SR4 of §2002:13.3.5.2,
+    /// of §2014:13.4.5.2 and of §2023:13.4.6.3, in the same words (each --checked); §1985 has none
+    /// (<see cref="ScreenSortMergeRecordReferences"/> asks nothing below 2002).</summary>
+    private string SortMergeRecordRuleCite => data.Edition.DialectLevel switch
+    {
+        >= 2023 => "ISO §2023:13.4.6.3 SR4",
+        >= 2014 => "ISO §2014:13.4.5.2 SR4",
+        _ => "ISO §2002:13.3.5.2 SR4",
+    };
 
     /// <summary>⛔ THE ONE SCREEN for the L1–L3 "phrase written where this statement's syntax rules forbid it"
     /// leniency family (kb/Work PB144). Three syntax rules across READ/REWRITE/DELETE say a phrase "shall not be
@@ -1977,16 +1993,69 @@ internal sealed class StatementValidation(DataBinder data)
     /// function, and an arithmetic expression of literals (<c>IF 1 + 1 = 2</c>) is an expression; neither is a
     /// literal. The severity is a WARNING at every edition (§2023:4.2.2: "This warning mechanism shall indicate violations
     /// of such rules"; docs/CONFORMANCE.md D-RELLITERAL follows GnuCOBOL, which warns), and the relation keeps the
-    /// value it always had.</para></summary>
+    /// value it always had.</para>
+    /// <para>⛔ BELOW COBOL-2002 THE REQUIREMENT IS THE 1985 ONE (kb/Work PB5826): §1985:VI.6.3.1.1 says "The relation
+    /// condition must contain at least one reference to a variable", and an arithmetic expression of literals
+    /// (<c>IF 2 * 2 = 4</c>) references no variable, so it is as much outside the text as <c>IF 1 = 2</c>. The edition
+    /// asks <see cref="HasNoVariableReference"/> of both operands, warns COBOL7609 at its own citation (never the
+    /// 2023 sentence, whose wording is the 2002 change to "an operand that is not a literal"), and the severity and the
+    /// evaluation as written are D-RELLITERAL's, extended to the 1985 text.</para></summary>
     public void CheckRelationHasNonLiteralOperand(BoundOperand subject, BoundOperand obj)
     {
+        if (data.Edition.DialectLevel < 2002)
+        {
+            if (HasNoVariableReference(subject) && HasNoVariableReference(obj))
+                data.Edition.Warning(DiagnosticCatalog.RelationNoVariableReference,
+                    "this relation condition references no variable — each operand is a literal, a figurative constant or an "
+                    + "arithmetic expression of literals — and ISO §1985:VI.6.3.1.1 requires that \"The relation condition must "
+                    + "contain at least one reference to a variable\"; compare a data item; the relation is evaluated as written");
+            return;
+        }
         if (!IsWrittenLiteral(subject) || !IsWrittenLiteral(obj)) return;
         data.Edition.Warning(DiagnosticCatalog.RelationOperandsAllLiteral,
             "both operands of this relation condition are literals (a figurative constant, a symbolic-character and a "
-            + "constant-name are literals: §2023:8.3.3.6, §2023:8.3.2.2.29, §2023:13.10.4 GR1), and ISO §2023:8.8.4.2.1 requires that \"A "
+            + $"constant-name are literals: §2023:8.3.3.6, §2023:8.3.2.2.29, §2023:13.10.4 GR1), and ISO {RelationOperandRuleCite} requires that \"A "
             + "relation condition shall contain at least one reference to an operand that is not a literal\" — compare "
             + "a data item; the relation is evaluated as written");
     }
+
+    /// <summary>The citation of the "at least one reference to an operand that is not a literal" sentence in the edition
+    /// compiled (2002 onward; below it <see cref="CheckRelationHasNonLiteralOperand"/> asks the 1985 sentence): §2002:8.8.4.1.1,
+    /// §2014:8.8.4.1.1 and §2023:8.8.4.2.1, each --checked.</summary>
+    private string RelationOperandRuleCite => data.Edition.DialectLevel switch
+    {
+        >= 2023 => "§2023:8.8.4.2.1",
+        >= 2014 => "§2014:8.8.4.1.1",
+        _ => "§2002:8.8.4.1.1",
+    };
+
+    /// <summary>⛔ THE ONE READING OF §1985:VI.6.3.1.5 — "Arithmetic-expression-1 must contain at least one reference to a
+    /// variable" — for the sign condition <c>arithmetic-expression-1 IS [NOT] POSITIVE | NEGATIVE | ZERO</c> as written
+    /// (kb/Work PB5826): a warning COBOL7610, below COBOL-2002 only, because the 2002 and 2023 texts of the sign condition
+    /// state no such sentence. An EVALUATE selection subject spliced into a sign condition (§2023:14.9.13.3 SR5) is the
+    /// EVALUATE's, not asked here (see <see cref="CheckRelationHasNonLiteralOperand"/>).</summary>
+    public void CheckSignConditionHasVariable(BoundExpr expr)
+    {
+        if (data.Edition.DialectLevel >= 2002 || !IsLiteralOnly(expr)) return;
+        data.Edition.Warning(DiagnosticCatalog.SignConditionNoVariableReference,
+            "the arithmetic expression of this sign condition references no variable, and ISO §1985:VI.6.3.1.5 requires that "
+            + "\"Arithmetic-expression-1 must contain at least one reference to a variable\"; test a data item; the condition "
+            + "is evaluated as written");
+    }
+
+    /// <summary>A relation operand that references no variable (§1985:VI.6.3.1.1): a literal as the source wrote it, or
+    /// an arithmetic expression whose every leaf is one. A folded function value is a function's result, so it is not.</summary>
+    private static bool HasNoVariableReference(BoundOperand o) =>
+        IsWrittenLiteral(o) || o is BoundComputedOperand { FunctionValue: false } c && IsLiteralOnly(c.Expr);
+
+    private static bool IsLiteralOnly(BoundExpr e) => e switch
+    {
+        BoundNumLiteral { FunctionValue: false } => true,
+        BoundBinary b => IsLiteralOnly(b.Left) && IsLiteralOnly(b.Right),
+        BoundNegate n => IsLiteralOnly(n.Operand),
+        BoundPower p => IsLiteralOnly(p.Base) && IsLiteralOnly(p.Exp),
+        _ => false,
+    };
 
     /// <summary>A bound operand that is a literal as the source wrote it (see
     /// <see cref="CheckRelationHasNonLiteralOperand"/>): every literal and figurative shape the operand binder

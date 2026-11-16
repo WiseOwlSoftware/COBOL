@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XIII.4.7.4-2",
+ "rule-digest": "269089380c52",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-204",
+  "sources": {
+   "reader": "dffb0e24abb8dbf7a5dca9f2740d667c494a7beae275ada08d1fc408f2742f3c",
+   "refuter": "cf5adc8b29c2f9f8c7b939135d61e7541a5ad8d238409d167c4ec071b65784a6"
+  },
+  "imported": {
+   "reader": "1db7154f4ad1d7e7b480587de110e1f51d995b598ba2b10eaa0dfd9b43d47b07",
+   "refuter": "b722432a5d9f4663d3dc6ce574dd3ab06cd136c680311c299b040a071ed8ffb5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.7.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when no GENERATE for a report has executed since its INITIATE, a TERMINATE for that report must produce no report group (no CF, PF, RF, PH, RH) and perform none of the related processing (no USE BEFORE REPORTING procedure, no control-break processing, no LINE-COUNTER/PAGE-COUNTER change), whatever the report defines and whatever happened to the control items or to other reports meanwhile.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|DialectBehavior|CobolVersion in ReportWriter.cs: TerminateCore consults DialectBehavior.TerminateDiscardsSavedNextGroup and (through WithPageGroupControlValues) ControlFootingPageGroupsSeePriorControlValues, but both only INSIDE the `if (_started)` branch; the GR2 path (_started false: skip to _active = false) consults no edition. _started is set by GenerateCore's first successful GENERATE (after the GR10/inactive refusals) and cleared by Initiate and TerminateCore, with no edition test",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f01_03 covers INITIATE immediately followed by TERMINATE on a report with PH/DE/CF FINAL/PF; a GENERATE of another report in the interval, a changed control item, RH/RF/CH declared, a re-INITIATE after an earlier cycle that did GENERATE, and the summary GENERATE report-name form were probed here",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/term1.cob",
+    "printed": "CASE 1 (INITIATE, TERMINATE): no USE line, PC 01 LC 00 / CASE 2 (GENERATE of report R2 only, control item changed): no USE line, PC 01 LC 00 / CASE 3 (GENERATE R1 summary): USE RH1 PH1 CHF CHK DE1 CFK CFF PF1 RF1, LC 19 / CASE 4 (re-INITIATE, TERMINATE): no USE line, PC 01 LC 00 / CASE 5 (GENERATE DE1): all groups; file holds only the groups of cases 3 and 5",
+    "expected": "cases 1, 2, 4 produce nothing and run no USE procedure; a GENERATE report-name counts as a GENERATE (case 3 produces the terminating groups)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/term1.cob (--std 2023)",
+    "printed": "byte-identical stdout to --std 85",
+    "expected": "the same rule at the latest edition (§2023:14.9.46.4 GR2)"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/XIII.4.7@1985-TERMINATE-STATEMENT/g85_f01_03.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "R2 TERMINATED PG 1 LC 00 with no R2 group or USE line"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.7.4 GR2",
+    "check": "OK  §1985:XIII.4.7.4 GR2  (4.7.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "TerminateCore guards all group processing with `if (_started)`; only the inactive/GR10 refusals precede it and the state change to inactive follows it. Classes a, d, e, f do not reach this rule (no data operand). Side observation outside this rule: case 5's report heading after a re-INITIATE was written without a page feed after case 3's report footing; not judged here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.7.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read ReportWriter.cs#TerminateCore: every group action sits inside if (_started); _started is set only by a GENERATE that passed the GR10/inactive refusals and is cleared by Initiate. refute-1985-204/tm1.cob at --std 85 (runs/tm1-002): a GLOBAL report with 1985 CODE \"XX\", CONTROLS FINAL WS-K, RH/PH/CF FINAL/PF/RF, control item changed between INITIATE and TERMINATE: TERMINATE leaves PAGE-COUNTER 1, LINE-COUNTER 0 and the closed file holds 0 bytes (no RH, PF, CF, RF, no code prefix). Second cycle: the only GENERATE is executed in a contained program (CALL INNER) for the GLOBAL report; TERMINATE then produces the groups (62 bytes, LC 19), so a GENERATE from a contained program counts. cite.py: OK §1985:XIII.4.7.4 GR2 'does not cause the report writer control system to produce any report groups'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

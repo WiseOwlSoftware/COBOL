@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-14",
+ "rule-digest": "35cef664079c",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-197",
+  "sources": {
+   "reader": "359c0ab0e8cbd5c307a03768823e69fdf2f0764e839a7c394dc5c248940caff3",
+   "refuter": "14dbb44353cc61e0ef0d20861d6dba71f6a4ac39506967ccce5af27ba08d26c0"
+  },
+  "imported": {
+   "reader": "11868e10adf0184fc371ab13601b7542fe7b6ffdec1beaa1864a951b9c4f670f",
+   "refuter": "423ab262d7cad78935dfd6906f835adcf81b96b78fd7b1fa0bac17f216bf6d7b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.4.4-14",
+  "verdict": "CONFORMS",
+  "requirement": "END-READ must terminate the READ statement it follows (the most recently preceding unterminated READ, per §1985:IV.6.4.3), so statements after it are outside the READ's AT END / NOT AT END phrases and a READ ... END-READ can nest as an imperative statement; a stray END-READ with no open READ is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#Report; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "END-READ reserved at each edition (row reserved true at 1985, 2002, 2014, 2023)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "the grammar rule readStatement ends in END_READ? with no semantic predicate; grep of END-READ across src finds only the lexer, the generated parser, the diagnostic catalog and the reserved-word row",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f21_01 covers a single READ inside IF with AT END / NOT AT END and END-READ; nesting READ within READ, END-READ with no conditional phrase (USE procedure), and the stray END-READ refusal are not exercised",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/endread.cob",
+    "printed": "OUTER NOT AT END AAA / INNER AT END / AFTER INNER (IN OUTER NAE) / AFTER OUTER / L2 XXX 00 / USE F2 10 / L2B 10 / L3 DONE",
+    "expected": "the inner END-READ ends the inner READ so the following DISPLAY runs in the outer NOT AT END; READ F2 END-READ with only a USE procedure delimits (USE runs at end, then the next statement); ELSE implicitly ends an unterminated READ inside IF"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/endread_bad.cob",
+    "printed": "endread_bad.cob(46,12): error COBOL0306: unexpected 'END-READ'. END-READ appears without a matching READ statement.",
+    "expected": "a second END-READ with no unterminated READ is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.4.4 GR14",
+    "check": "OK  §1985:VII.4.4.4 GR14  (4.4.4 General Rules)  the text is in GR14"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+   }
+  ],
+  "notes": "Scope delimiting is done by the shared ANTLR rule readStatement (conditionalPhrases END_READ?) and needs no edition arm because END-READ exists and is reserved at 1985. Nested, unconditional and implicitly terminated forms behave as §1985:IV.6.4.3 states, and a stray END-READ is refused with COBOL0306.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.4.4-14",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:IV.6.4.3 and §1985:IV.6.4.2.3.1 (a delimited scope statement is imperative; a READ with AT END/NOT AT END and no END-READ is conditional). Grammar readStatement ends 'conditionalPhrases END_READ?' with phrase association by conditionalPhraseAssociates; no edition arm. Probes at --std 85: er2.cob (runs/er2-001) inner READ...END-READ inside the OUTER AT END followed by the outer NOT AT END: 'O-NAE AAA / AFTER 0 / O-AE / I-NAE XXX / O-AE-TAIL / AFTER 1' (inner END-READ closes the inner READ; the following NOT AT END is the outer's); READ INTO ... AT END ... END-READ: 'Q YYY 00 / Q2-AE / Q2 10'. er3.cob (runs/er3-002) inner READ taking both AT END and NOT AT END then END-READ inside outer AT END: 'INNER NAE BBB / STILL IN OUTER AT END / DONE' (END-READ terminates the most recent unterminated READ). Refusals: er5.cob unterminated conditional inner READ inside the outer's imperative-statement -> 'error COBOL2796 ... Write END-READ to close it'; er4.cob NOT AT END after END-READ -> 'error COBOL2269: unexpected 'NOT'. The READ statement ends before this token'. cite.py: 'OK  §1985:VII.4.4.4 GR14  (4.4.4 General Rules)  the text is in GR14'; 'OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause'; 'OK  §1985:IV.6.4.2.3.1  (6.4.2.3.1 Definition of Imperative Statement)  the text is in the clause'. Side observation, not a rule failure: COBOL2796/COBOL2269 quote §2023 text at --std 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

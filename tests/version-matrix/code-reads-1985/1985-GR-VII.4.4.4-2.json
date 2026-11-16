@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-2",
+ "rule-digest": "4f07511cd1ed",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-197",
+  "sources": {
+   "reader": "359c0ab0e8cbd5c307a03768823e69fdf2f0764e839a7c394dc5c248940caff3",
+   "refuter": "14dbb44353cc61e0ef0d20861d6dba71f6a4ac39506967ccce5af27ba08d26c0"
+  },
+  "imported": {
+   "reader": "a784bb00e7b20f9fb0d8522296deabcb9513733599662a39b5d0eb43aa567781",
+   "refuter": "23b484f087aa29a383302d769398bf4e40a3a810c7467ff9501d1b578fa8c8bf"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.4.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "On a sequential-organization READ, writing NEXT (with or without RECORD, INTO, AT END, NOT AT END, END-READ) must behave exactly as the same READ without NEXT; the later PREVIOUS alternative of the direction is not part of the 1985 format and must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundKeyedIo.cs#ReadKind; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "refuses the PREVIOUS alternative below COBOL-2002 (construct read-previous-2002, COBOL0900); the NEXT alternative is never gated",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: PREVIOUS is accepted at 2002 and later and refused at 1985; NEXT has no effect on a sequential file at every edition (BindRead sets ReadKind.Next for NEXT and for no direction alike)",
+  "witnesses-cover": "part: g85_f21_01 alternates NEXT and plain READs on a fixed-length file; NEXT with INTO on a variable-length file, NEXT at end and after at end, NEXT on an absent optional file, and the PREVIOUS refusal are not exercised",
+  "probes": [
+   {
+    "class": "a,b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/rdnext.cob",
+    "printed": "N1 [AB      ] 2 00 / N2 [CDEFGH  ] 6 00 / N3 AT END 10 / N4 46 / OPT OPEN 05 / OPT AT END 10",
+    "expected": "READ NEXT INTO / NEXT RECORD INTO deliver records 1 and 2 with their lengths; READ NEXT then gives at end 10 and, after it, 46 with neither phrase run; on an absent OPTIONAL file the first READ NEXT is at end 10, as a plain READ would"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/rdprev.cob",
+    "printed": "rdprev.cob(36,20): error COBOL0900: READ PREVIOUS requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "PREVIOUS is not in the 1985 READ format (§1985:VII.4.4.2 shows only [NEXT]) and is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.4.4 GR2",
+    "check": "OK  §1985:VII.4.4.4 GR2  (4.4.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "SequentialIoBinder.BindRead maps both an explicit NEXT and an absent direction to ReadKind.Next, so the emitted READ is the same; only PREVIOUS changes the kind, and VersionConformancePass.VisitReadDirection refuses it at 1985. The probe outputs match plain-READ behaviour in every leg.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.4.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Attacked the 1985-only arm the reader did not combine with NEXT: OPEN INPUT ... REVERSED (1985 only). nx2.cob at --std 85 (runs/nx2-002): READ NEXT, READ NEXT RECORD, plain READ on a REVERSED file read backward exactly as a plain READ: 'R1 CCC 00 / R2 BBB 00 / R3 AAA 00', then READ NEXT INTO ... AT END ... NOT AT END ... END-READ at end 'R4 AE / R4 10' (INTO not executed); I-O mode READ NEXT / REWRITE / READ NEXT / REWRITE then a fresh OPEN INPUT and three READ NEXT: 'I2 BBB 00 / I3 00 / F ZZZ' (NEXT does not disturb the REWRITE-after-READ pairing). Later-edition forms refused: nx3.cob READ NEXT RECORD WITH NO LOCK -> 'error COBOL0900: a record-lock phrase ... requires COBOL-2002 (targeting COBOL-85)'; reader's rdprev.cob showed PREVIOUS -> COBOL0900. cite.py: 'OK  §1985:VII.4.4.4 GR2  (4.4.4 General Rules)  the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

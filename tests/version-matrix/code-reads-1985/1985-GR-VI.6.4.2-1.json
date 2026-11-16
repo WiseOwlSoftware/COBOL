@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-GR-VI.6.4.2-1",
+ "rule-digest": "7dd411cfab11",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-194",
+  "sources": {
+   "reader": "bdd3863e8ec76aad6f11f7e0e65a0c8963616a15ae67e48a809b4a2c0a6f76df",
+   "refuter": "10340cc44f038713176d94e3e5c8e9ab7219d8557dae7045825a145a7d1ded96"
+  },
+  "imported": {
+   "reader": "a27bd8e53c12f2829e1279db55ea4537a72b82aa7230eb51f10b79f71f014074",
+   "refuter": "723bd0d59ca1498a3be31fada63d937c040d4f5f80b9ea9493f91dc68eca315d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.4.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "When an exponentiation in an arithmetic expression violates §1985:VI.6.2.3 GR5 (a zero base with an exponent not greater than zero, or a negative base whose power has no real result), the arithmetic operation ends and a size error condition exists: with ON SIZE ERROR every affected resultant keeps its prior value and the phrase runs (NOT ON SIZE ERROR ignored); without the phrase the resultants are undefined and control goes to the end of the statement, the program continuing; a negative base with a real result (odd root) is no violation, and of two real results the positive one is returned (GR5b).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Power; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#CheckPowRule6; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#PowNativeReal; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolExact.cs#PowReal",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower",
+    "switches": "DialectBehavior.NegativeBaseRequiresIntegerExponent (from 2002): at 85 a negative base with a non-integer exponent is a size error only when no real result exists (BoundPower realRoots = true); from 2002 any non-integer exponent of a negative base is EC-SIZE-EXPONENTIATION",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal (from 2002): at 85 an unphrased size error is caught, the resultant left unchanged and the program continues; from 2002 it is the fatal EC-SIZE-EXPONENTIATION",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep NegativeBaseRequiresIntegerExponent|UnphrasedSizeErrorIsFatal|SIZE-EXPONENTIATION over the compiler and runtime; the zero-base screen (CheckPowRule6) and the phrase handling with ON SIZE ERROR are the same at every edition.",
+  "behaviour-differs-by-edition": "yes: (-8) ** 0.2 is the real root -1.5157 with NOT ON SIZE ERROR at 85 and a size error at 2023; COMPUTE X = 0 ** 0 with no phrase continues at 85 and terminates the run unit with EC-SIZE-EXPONENTIATION (fatal) at 2023.",
+  "witnesses-cover": "part: g85_f04_03 covers 0 ** 0, 0 ** -2, -4 ** 0.5, a legal control and a violation inside a larger expression with the phrase; not exercised: several resultants, the unphrased statement continuing, NOT ON SIZE ERROR ignored without the phrase, odd-root negative bases (GR5b/GR5c real results) and the violation inside a relation condition.",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ex1.cob",
+    "printed": "--std 85: T1 SE X=7 / T2 SE X=7 / T3 SE X=7 Y=7 / T4 SE X=7 / T5 SE X=7 / T6 NOSE 2.0000 / T7 NOSE 0.0000 / T8 NOSE 0.0625 / T9 NOSE -1.5157 / T10 END / T11 END",
+    "expected": "0**0, Z**-1, (-4)**0.5 (two resultants), (0**0)*0 and 1+(-4)**1.5 each a size error with every resultant unchanged; 4**0.5 = 2 (positive root, GR5b); 0**2 = 0; (-4)**-2 = 0.0625; (-8)**0.2 = -1.5157 (a real fifth root exists, GR5c); without the phrase NOT ON SIZE ERROR is ignored and execution continues"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ex1.cob",
+    "printed": "--std 2023: T9 SE (X unchanged); T11 abnormal run-unit termination: EC-SIZE-EXPONENTIATION (fatal)",
+    "expected": "the later edition's arm, showing the 85 arm is distinct"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ex3.cob",
+    "printed": "U1 NOSE 4.0000 / U2 NOSE -2.0000 / U3 SE X unchanged / U4 SE R18 unchanged",
+    "expected": "(-32)**0.4 = 4, (-32)**0.2 = -2 (real results), (-32)**0.25 no real result: size error; an 18-digit square overflowing is a size error (GR3, the control)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ex2.cob",
+    "printed": "C1 FALSE / C2 FALSE / END",
+    "expected": "a violation inside a relation condition causes a size error (no phrase to run); the 1985 text gives the condition no value, and the program continues"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/g85_f04_03.cob",
+    "printed": "EXPECT: MATCH (g85_f04_03.out)",
+    "expected": "the witness's derived output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.4.2 GR1",
+    "check": "OK  §1985:VI.6.4.2 GR1  (6.4.2 The ON SIZE ERROR Phrase)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.2.3 GR5a",
+    "check": "OK  §1985:VI.6.2.3 GR5a  (║6.2.3 Formation and Evaluation Rules║)  the text is in GR5a"
+   },
+   {
+    "cite": "§1985:VI.6.2.3 GR5b",
+    "check": "OK  §1985:VI.6.2.3 GR5b  (║6.2.3 Formation and Evaluation Rules║)  the text is in GR5b"
+   },
+   {
+    "cite": "§1985:VI.6.2.3 GR5c",
+    "check": "OK  §1985:VI.6.2.3 GR5c  (║6.2.3 Formation and Evaluation Rules║)  the text is in GR5c"
+   }
+  ],
+  "notes": "Two edition arms serve this rule at 85 and both match the 1985 text: BindPower keeps real roots of negative bases (GR5c), and EmitArith catches an unphrased size error and continues instead of raising the fatal 2002+ exception condition. With the phrase, every resultant of the statement stays unchanged and NOT ON SIZE ERROR is skipped, as GR1 and the phrase rules require.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.4.2-1",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/re1.cob at --std 85 (runs/re1-001): a violation inside an intrinsic function argument, COMPUTE X = FUNCTION MAX(Z ** E, 5) with Z=0, E=-0.5 at run time, takes ON SIZE ERROR with X unchanged (V1 SE X=+00007.0000); a ROUNDED COMPUTE with (-16) ** 0.5 (no real result) takes ON SIZE ERROR, X unchanged; 16 ** 0.25 = 2 (positive root, GR5b); 0 ** 0.5 = 0 (exponent > 0, no violation, GR5a); (-27)**3/1000 = -19.683 (integer exponent of a negative base, no violation); unphrased COMPUTE X = Z ** Z continues (V6 CONTINUED); a violation inside a PERFORM UNTIL condition does not stop the run (V7 END). cite.py: OK §1985:VI.6.4.2 GR1 the text is in GR1; OK §1985:VI.6.2.3 GR5a; OK §1985:VI.6.2.3 GR5b.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

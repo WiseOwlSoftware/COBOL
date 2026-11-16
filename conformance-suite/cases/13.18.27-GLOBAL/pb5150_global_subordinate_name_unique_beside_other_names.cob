@@ -8,7 +8,7 @@
       *> kb/Work PB5150 - the LEGAL side of the global-subordinate uniqueness rule. SUB-G is subordinate to the GLOBAL record GLB,
       *>   so it is a global name (§2023:13.18.27.4 GR1, cite.py: OK) and the contained program reads it. No other item of the
       *>   source element is spelled SUB-G; the non-global name N is spelled by two items told apart by qualification
-      *>   (§2023:8.4.2.2.1). conformance:negative/pb5150-global-subordinate-name-reused-by-local-record is the refused side.
+      *>   (§2023:8.4.2.2.1). conformance:pb5629_global_subordinate_names_told_apart_by_qualification pins the same-named subordinates (PB5629).
       *> DERIVATION. The outer program displays N OF L1 and N OF L2 ("A", "B"), then the contained program displays SUB-G ("S").
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5150P.

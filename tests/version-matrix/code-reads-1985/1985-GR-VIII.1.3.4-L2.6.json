@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-L2.6",
+ "rule-digest": "2f8eb6c3d764",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-197",
+  "sources": {
+   "reader": "359c0ab0e8cbd5c307a03768823e69fdf2f0764e839a7c394dc5c248940caff3",
+   "refuter": "14dbb44353cc61e0ef0d20861d6dba71f6a4ac39506967ccce5af27ba08d26c0"
+  },
+  "imported": {
+   "reader": "1b09feb471cac6ebd65db9d7eea7bdb0a59f693b90a7afa92a0b43c1e3a6dec6",
+   "refuter": "cf492d39e565c696107af2fac8931c933464e2d3495a38a0abfd9168da604704"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.1.3.4-L2.6",
+  "verdict": "CONFORMS",
+  "requirement": "Every I-O status in the 9x class that the implementation sets on a RELATIVE file must report an unsuccessful completion for an implementor-defined condition that none of the 00-49 values describes, with x defined (documented) by the implementor.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#CharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#LinageValueViolation; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordRulesFailure; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordHasCharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/FileCharacterSet.cs#HasCharacterWithoutByteImage",
+  "edition-consulted": [],
+  "edition-search": "grep for '\"9[0-9A-Z]\"' and the two FileStatusCode constants across WiseOwl.Cobol.Runtime and WiseOwl.Cobol.Compiler: the only 9x values on file connectors are '90' (LINAGE, raised only by SequentialConnector, so never on a relative file) and '91' (KeyedConnector.RecordRulesFailure for relative/indexed WRITE and REWRITE); neither path, nor EcEmitter, IoStatusClass or DispatchEmitter, tests Edition, CobolVersion or DialectBehavior",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses exercise '90' (LINAGE) and '91' (CODE-SET) on SEQUENTIAL files only; the relative file's only 9x value ('91' on WRITE/REWRITE of a character with no byte image) is not exercised by them",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/rel9x.cob",
+    "printed": "USE RL 91 / W1 91 [AB€D] / W2 00 / W3 00 / USE RL 91 / RW 91 / RD 00 [WXYZ] / RD1 00 [ABéD] / RD3 INVALID / RD3 23",
+    "expected": "a relative WRITE and REWRITE of a record holding U+20AC are unsuccessful with 9x (91), the USE procedure runs, INVALID KEY does not (91 is not an invalid key condition), nothing reaches the medium (record 1 then writes cleanly with a byte-image character, record 2 keeps WXYZ); 23 stays the standard's own value for a missing record"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/rel9x_nouse.cob",
+    "printed": "W1 91 [AB€D] / W2 00 / W3 00 / RW 91 / RD 00 [WXYZ] / RD1 00 [ABéD] / RD3 INVALID / RD3 23",
+    "expected": "without a USE procedure the FILE STATUS item reads 91 and execution continues; the same output at --std 2023 (rel9x_nouse23.cob)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.1.3.4 GRL2.6",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.6  (1.3.4 I-O Status)  the text is in GRL2.6"
+   }
+  ],
+  "notes": "On a relative file the runtime's one 9x value is '91', a WRITE/REWRITE record character with no byte image in the file's character set, which none of the 1985 relative values 00-49 (§1985:VIII.1.3.4) describes; '90' is reachable only on a LINAGE sequential file. Both values and their meaning are documented in docs/conformance/7/DOC-A.1-110.md. Probed at 1985 with and without a USE procedure; behaviour is identical at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.1.3.4-L2.6",
+  "refutation": "UPHELD",
+  "classes": "d,e",
+  "evidence": "grep of the runtime for 9x literals: FileStatus.cs LinageValueViolation '90' (SequentialConnector only) and CharacterWithoutByteImage '91' (KeyedConnector.RecordRulesFailure for relative/indexed); MessageStore 91-93 are communication status, not file I-O. '91' (record character with no byte image) duplicates none of the 1985 relative values 00-49 (30 is 'no further information'). Documented in docs/conformance/7/DOC-A.1-110.md (exists). Probe rel9s.cob at --std 85 (runs/rel9s-001), the SEQUENTIAL access mode the reader did not try: 'USE RL 91 / W1 91 RK=00 / W2 00 RK=01 / W3 00 RK=02' (the failed WRITE consumes no record number); I-O READ then REWRITE with '€' -> 'USE RL 91 / RW 91', the next REWRITE -> 'USE RL 43 / RW2 43' (the last I-O statement was the failed REWRITE, not a successful READ: §1985:VIII.1.3.4 status 43 text), then 'R2 00 RK=02 BBBB' and 'R3 00 RK=01 AAAA' (nothing reached the medium). cite.py: 'OK  §1985:VIII.1.3.4 GRL2.6  (1.3.4 I-O Status)  the text is in GRL2.6'; 'OK  §1985:VIII.1.3.4 GRL2.5  (1.3.4 I-O Status)  the text is in GRL2.5'. The one reading: whether a character with no byte image is admissible 1985 source is implementor latitude (the computer's character set); the 9x rule itself holds.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,74 @@
+{
+ "rule-id": "1989-GR-A.2.3-1",
+ "rule-digest": "8126f9e600b6",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-213",
+  "sources": {
+   "reader": "07a3bc781ea4553ae95c6f4c46d319a4ba3926e90fd22d0612a8c806a5a59f7f",
+   "refuter": "dcc28c5606f0ba555728df0bbafe761ad65887dcddc2af0e1f9e17a8d30cc23b"
+  },
+  "imported": {
+   "reader": "e92d2e283ff4021e40b7d97cd5c994117843a194dba79f2e4cab81bbd277d47d",
+   "refuter": "4ab50529dd3e0d9ccbcde3485b670d698ae4d3ae660dedfedb5578ba607758a9"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-GR-A.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every alphanumeric function (CHAR, CURRENT-DATE, LOWER-CASE, REVERSE, UPPER-CASE, WHEN-COMPILED) is an elementary item of class and category alphanumeric, of the size its definition states, with implicit usage DISPLAY: it moves, compares, strings and class-tests as an alphanumeric DISPLAY item and is refused as an arithmetic operand and as a receiving operand.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#ImplicitUsageOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window: IntroducedIn 85 against DialectLevel for each function",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "numeric-function-identifier-operand-2002 is asked only for a NUMERIC category; an alphanumeric function passes as an identifier at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "CategoryOf/ImplicitUsageOf and IntrinsicResultLength take no edition; grep of IntrinsicCatalog.cs for Edition/Version found none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f13_05 covers REVERSE and UPPER-CASE size, moves and class tests; not CHAR/CURRENT-DATE/WHEN-COMPILED sizes, a STRING sender or INSPECT operand, comparisons, or the arithmetic- and receiving-operand refusals",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/gr1.cob",
+    "printed": "L-CHAR=01 L-CDATE=21 L-WC=21 L-LOWER=07 L-UPPER-ODO3=03 L-UPPER-ODO5=05 L-REV-REFMOD=03 STR=[12ABCDEFGA] P=11 CMP-NUM=EQ CMP-ALNUM=GT CMP-CHAR=EQ INSP-CNT=02",
+    "expected": "sizes 1/21/21/argument length (ODO group at its current length); STRING admits them as DISPLAY senders; nonnumeric comparison with a numeric integer item; INSPECT TALLYING FOR ALL FUNCTION CHAR (66)"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/gr2.cob",
+    "printed": "COBOL0844 FUNCTION REVERSE is not a numeric operand (COMPUTE and ADD); COBOL1632 INSPECT REPLACING into a function-identifier is a receiving operand",
+    "expected": "an alphanumeric function is no arithmetic operand and never a receiving operand (§1989:A.2.3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.3 GR1",
+    "check": "OK  §1989:A.2.3 GR1  (2.3 TYPES OF FUNCTIONS)  the text is in GR1"
+   }
+  ],
+  "notes": "IntrinsicSig.CategoryOf maps type Alphanumeric to category alphanumeric and ImplicitUsageOf gives it usage Display in one place; IntrinsicResultLength carries the fixed or argument-1 size. MOVE 'AB' TO FUNCTION REVERSE (W2) is refused as a parse error (COBOL5506), a correct refusal with a generic message.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-GR-A.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "xgr1.cob at --std 85 exercises the category-alphanumeric moves and the implicit DISPLAY usage the reader did not: MOVE FUNCTION REVERSE (D) TO PIC 9(3) = 321, TO PIC ZZ9 = [321], UPPER-CASE TO PIC A(3) = [ABC], TO PIC X/X = [A/B]; INSPECT FUNCTION UPPER-CASE (X) TALLYING CNT FOR ALL \"B\" CHARACTERS BEFORE \"2\" = 03 (the inspected item must be usage DISPLAY, §1985 INSPECT SR1); UNSTRING FUNCTION UPPER-CASE (X) DELIMITED BY \"1\" = [A ][B2]; class tests NUMERIC and ALPHABETIC-UPPER true; EVALUATE subject; comparison with the integer literal 321 EQ and with ALL \"A\" EQ. xgr2/xgr2b: STRING ... INTO FUNCTION REVERSE (X), ACCEPT FUNCTION UPPER-CASE (X), INITIALIZE FUNCTION REVERSE (X) are refused (COBOL5506 parse errors: correct refusal, generic text), and FUNCTION CHAR (50) as a subscript is refused COBOL0844 + COBOL0900. cite.py: OK  §1989:A.2.3 GR1  (2.3 TYPES OF FUNCTIONS)  the text is in GR1; OK  §1985:IV.4.3.8.3.3 SR3  (4.3.8.3.3 Syntax Rules)  the text is in SR3. No edition switch on the category or usage of an alphanumeric function was found beyond the reader's two sites.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

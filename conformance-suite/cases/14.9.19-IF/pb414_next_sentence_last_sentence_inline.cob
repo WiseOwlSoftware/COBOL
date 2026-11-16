@@ -1,13 +1,13 @@
       *>--- conformance-case
       *> id: pb414_next_sentence_last_sentence_inline
       *> rules: [GR-14.9.19.4-4, GR-14.9.19.4-6]
-      *> accept: [85, 2002]
+      *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
       *> kb/Work PB414 - NEXT SENTENCE inside an inline PERFORM in the LAST sentence of a paragraph, both arms,
-      *> at --std 85 (the earliest supported edition; NEXT SENTENCE is legal in all four and is flagged ARCHAIC
-      *> with COBOL0903 at 2023 only, so there is no edition BELOW its introduction to reject it).
+      *> at --std 2002 (NEXT SENTENCE is flagged ARCHAIC with COBOL0903 at 2023 only; at --std 85 these IFs are
+      *> refused, because each has END-IF: §1985:VI.6.16.3 SR3, COBOL7486, kb/Work PB5798).
       *>
       *> EXPECTED OUTPUT, DERIVED FROM THE SPEC AND NOT FROM A RUN:
       *> 14.9.19.4 GR4 - "If condition-1 is true and NEXT SENTENCE is specified in the THEN phrase, the ELSE

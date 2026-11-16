@@ -27,6 +27,8 @@ internal sealed class SortStore(SortMemory memory)
         Work = work;
     }
 
+    /// <summary>The image of the most recently RETURNed record, at its own length — empty before the first and at end.</summary>
+    public string LastReturnedImage = "";
     public int LastReturnedLength;
     /// <summary>The extent table of the most recently RETURNed record — null when it carries none.</summary>
     public RecordExtents? LastReturnedExtents;

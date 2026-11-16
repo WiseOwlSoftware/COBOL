@@ -397,6 +397,11 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// object, so either being all spaces selects the value comparison.</summary>
     private bool BlankWhenZeroSenderTest(BoundRelational r, out string test)
     {
+        // ⛔ GR3 IS COBOL-2023's (kb/Work PB5771): §2002:13.16.8.3 and §2014:13.18.8.3 have two general rules and §1985:VI.5.4.4
+        // two, none of which makes an all-spaces item zero; there the item is numeric edited (§1985:VI.5.4.4 GR2: "the category of
+        // the item is considered to be numeric edited"), a nonnumeric operand, and the ordinary dispatch compares its characters.
+        test = "";
+        if (ctx.Data.DialectLevel < 2023) return false;
         // ⛔ NEITHER PREDICATE MAY READ THROUGH A REFERENCE MODIFICATION. §2023:8.4.3.3.4 GR5 makes the slice "a
         // unique data item", and GR6 c) gives it a category of its own — "the categories numeric and
         // numeric-edited are considered class and category national if the usage is national; otherwise they are
