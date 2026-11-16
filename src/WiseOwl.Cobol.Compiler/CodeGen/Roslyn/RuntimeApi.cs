@@ -2008,13 +2008,10 @@ internal static class RuntimeApi
     // "without a SHARING phrase" arm and <see cref="FileOpenShared"/> for a phrase-bearing one — so the DRIFT IS
     // COMPILE-ENFORCED: there is no phrase-less implicit-open renderer left for a new call site to reach.
 
-    /// <summary>CLOSE a connector — <c>CobolFile.Close</c>.</summary>
-    public static string FileClose(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Close)}({name})";
-
-    /// <summary>The IMPLICIT close (§2023:14.9.5 GR9 — only a connector "that is open") — <c>CobolFile.CloseIfOpen</c>.</summary>
-    public static string FileCloseIfOpen(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.CloseIfOpen)}({name})";
+    /// <summary>The guard of a program's IMPLICIT CLOSE (§2023:14.9.5.4 GR9 — only a connector "that is open") —
+    /// <c>CobolFile.IsOpen</c>; the CLOSE behind it is <see cref="FileClose(string, Binding.Bound.BoundCloseKind)"/>.</summary>
+    public static string FileIsOpen(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.IsOpen)}({name})";
 
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
     /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment;

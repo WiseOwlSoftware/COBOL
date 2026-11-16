@@ -731,11 +731,43 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     internal IDisposable EmitOpenScope(FileModel file, BoundOpenMode mode) =>
         EmitStatementScope(file, RuntimeApi.FileBeginOpen(FileKeyExpr(file), mode));
 
-    /// <summary>⛔ THE ONE RENDERING OF A CLOSE STATEMENT'S SCOPE (kb/Work PB5261), the OPEN scope's twin, shared by the explicit CLOSE and the
-    /// SORT/MERGE implicit closes (§2023:14.9.40.4 GR12 c), GR15 c); §2023:14.9.24.4 GR7 c), GR12 c)): the file stays in the mode it was open
-    /// in through the CLOSE's own USE procedure, then in none (§2023:14.9.49.4 GR6 b)–e)). Dispose it after the hook is emitted.</summary>
-    internal IDisposable EmitCloseScope(FileModel file) =>
-        EmitStatementScope(file, RuntimeApi.FileBeginClose(FileKeyExpr(file)));
+    /// <summary>⛔ THE ONE CLOSE (kb/Work PB5261, PB5847): every CLOSE the program executes, written or implicit, is this
+    /// sequence — the explicit CLOSE (<see cref="EmitClose"/>), the SORT/MERGE implicit closes (§2023:14.9.40.4 GR12 c),
+    /// GR15 c); §2023:14.9.24.4 GR7 c), GR12 c)) and a program's own implicit CLOSE (<see cref="EmitImplicitClose"/>).
+    /// <list type="number">
+    /// <item>The CLOSE scope, the OPEN scope's twin: the file stays in the mode it was open in through the CLOSE's own USE
+    /// procedure, then in none (§2023:14.9.49.4 GR6 b)–e)).</item>
+    /// <item>The written form's runtime entry (Table 14, §2023:14.9.6.4 GR3).</item>
+    /// <item>The I-O status store: "The execution of the CLOSE statement causes the value of the I-O status associated
+    /// with file-name-1 to be updated" (§2023:14.9.6.4 GR4; §1985:VII.4.2.4 GR4), into the FILE STATUS item.</item>
+    /// <item><paramref name="useProcedures"/>: the reach's own exception-procedure hook, or null where the rule that
+    /// executes the CLOSE says that no USE procedure is executed (§2023:14.9.5.4 GR9; §1985:X.5.3.4 GR10).</item>
+    /// </list>
+    /// A step added to the CLOSE is added here, so no reach can drift from the others (CloseSequenceDriftTests).</summary>
+    internal void EmitCloseStatement(FileModel file, BoundCloseKind kind, Action? useProcedures)
+    {
+        using (EmitStatementScope(file, RuntimeApi.FileBeginClose(FileKeyExpr(file))))
+        {
+            ctx.Writer.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");
+            EmitStoreFileStatus(file);
+            useProcedures?.Invoke();
+        }
+    }
+
+    /// <summary>A program's IMPLICIT CLOSE of one of its internal files — the CANCEL's (§2023:14.9.5.4 GR9; §1985:X.5.3.4
+    /// GR10), which an INITIAL program's return also executes (§2023:14.9.18.4 GR2; §1985:X.5.4.4 GR3): "an implicit CLOSE
+    /// statement without any optional phrases", so the plain CLOSE of <see cref="EmitCloseStatement"/>, with the two
+    /// differences the rule states and no others: it is executed only for a file "that is open" (a closed one is skipped,
+    /// never given a '42' of its own; kb/Work PB154), and "Any USE procedures associated with any of these files are not
+    /// executed" (so no hook). The I-O status IS stored: the FILE STATUS item can outlive the program (a GLOBAL item of its
+    /// container, an EXTERNAL item), and before kb/Work PB5847 it kept the last statement's value (10 where 00 is due).
+    /// "Executed for all such files, even when an error occurs": a close failure is the '30' FileConnector.Close maps it
+    /// to (kb/Work PB140), so the caller's loop never stops.</summary>
+    internal void EmitImplicitClose(FileModel file)
+    {
+        using (ctx.Writer.Block($"if ({RuntimeApi.FileIsOpen(FileKeyExpr(file))})"))
+            EmitCloseStatement(file, BoundCloseKind.Normal, useProcedures: null);
+    }
 
     private IDisposable EmitStatementScope(FileModel file, string begin)
     {
@@ -847,12 +879,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 active = $"__rptAct{ctx.Names.NextEc()}";
                 w.Line($"bool {active} = {string.Join(" || ", reports.Select(r => $"{RuntimeApi.ReportEngine(r.CsIndex, ctx.Data.Reports.Depth(r))}.IsActive"))};   // read BEFORE the close (§2023:14.9.6.4 GR5)");
             }
-            using (EmitCloseScope(file))
-            {
-                w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file), kind)};");
-                EmitStoreFileStatus(file);
-                EmitUseHook(file, "CLOSE");
-            }
+            EmitCloseStatement(file, kind, useProcedures: () => EmitUseHook(file, "CLOSE"));
             if (active is not null)
                 using (w.Block($"if ({active})"))
                 {

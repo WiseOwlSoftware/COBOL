@@ -351,16 +351,11 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// MERGE can place it after the output procedure (kb/Work PB1141), and offered to its own USE hook.</summary>
     private void EmitInputClose(FileModel input, Transfer tx)
     {
-        var w = ctx.Writer;
         string f = FileKeyExpr(input);
-        // The as-if CLOSE gets the scope and the hook an explicit CLOSE gets (SequentialIoEmitter.EmitClose): no AT END phrase
-        // exists on a CLOSE, so nothing takes precedence over its declarative (kb/Work PB5261).
-        using (seqIo.EmitCloseScope(input))
-        {
-            w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR12c / GR7c)");
-            seqIo.EmitStoreFileStatus(input);
-            EmitTransferHook(input, RuntimeApi.FileStatus(f), TransferIo.UsingClose, tx);
-        }
+        // The as-if CLOSE is THE ONE CLOSE an explicit CLOSE is (SequentialIoEmitter.EmitCloseStatement), offered to the
+        // transfer's own hook: no AT END phrase exists on a CLOSE, so nothing takes precedence over its declarative (kb/Work PB5261).
+        seqIo.EmitCloseStatement(input, BoundCloseKind.Normal,
+            useProcedures: () => EmitTransferHook(input, RuntimeApi.FileStatus(f), TransferIo.UsingClose, tx));
     }
 
     /// <summary>The implicit GIVING transfer for one output file (SORT GR15 / MERGE GR12): REWIND the return
@@ -450,12 +445,9 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             }
             EmitSuccessfulTransferHook(output, ws, TransferIo.GivingWrite, tx, otherwise: true);
         }
-        using (seqIo.EmitCloseScope(output))
-        {
-            w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
-            seqIo.EmitStoreFileStatus(output);
-            EmitTransferHook(output, RuntimeApi.FileStatus(f), TransferIo.GivingClose, tx);
-        }
+        // The as-if CLOSE (GR15 c) / MERGE GR12 c)): THE ONE CLOSE (SequentialIoEmitter.EmitCloseStatement), with the transfer's hook.
+        seqIo.EmitCloseStatement(output, BoundCloseKind.Normal,
+            useProcedures: () => EmitTransferHook(output, RuntimeApi.FileStatus(f), TransferIo.GivingClose, tx));
         if (tx.Bypassed) w.Line($"{tx.BypassLabel}: ;   // MERGE GR12 a) — the bypassed file's processing ends here");
         tx.BypassLabel = null;
     }

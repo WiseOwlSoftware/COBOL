@@ -97,9 +97,11 @@ public static class CobolFile
     /// <summary>CLOSE the file (emitted for each closed file-name).</summary>
     public static void Close(string name) => _reg.Close(name);
 
-    /// <summary>The IMPLICIT close (CANCEL §2023:14.9.5 GR9 / INITIAL return §2023:14.9.18 GR2 / run-unit close): only a
-    /// connector "that is open" closes — a closed one is skipped, never stamped '42' (kb/Work PB154).</summary>
-    public static void CloseIfOpen(string name) => _reg.CloseIfOpen(name);
+    /// <summary>The guard of a program's IMPLICIT CLOSE (CANCEL §2023:14.9.5.4 GR9 / §1985:X.5.3.4 GR10, and the INITIAL
+    /// program's return, §2023:14.9.18.4 GR2 / §1985:X.5.4.4 GR3): the implicit CLOSE is executed only for a connector
+    /// "that is open", so a closed one is skipped, never stamped '42' (kb/Work PB154), and so is a name the registry does
+    /// not hold. The CLOSE itself is the explicit CLOSE's own emitted sequence (kb/Work PB5847).</summary>
+    public static bool IsOpen(string name) => _reg.IsOpen(name);
 
     /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38).</summary>
     public static void CloseWithLock(string name) => _reg.CloseWithLock(name);
