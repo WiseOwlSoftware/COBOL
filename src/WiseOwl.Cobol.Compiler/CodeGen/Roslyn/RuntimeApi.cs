@@ -239,6 +239,20 @@ internal static class RuntimeApi
     public static string NumFormatImage(string value, string profile) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImage)}({value}, {profile})";
 
+    /// <summary>The 1985 and 2002 image store of a sign holder: <see cref="NumFormatImage"/>, except that a zero value takes the
+    /// SENDING operand's sign <paramref name="senderNegative"/> (<c>CobolNum.FormatImageSendersSign</c>, §1985:VI.6.19.4 GR4b1;
+    /// kb/Work PB5852).</summary>
+    public static string NumFormatImageSendersSign(string value, string senderNegative, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatImageSendersSign)}({value}, {senderNegative}, {profile})";
+
+    /// <summary>Is a sending value negative, on whichever carrier it is rendered (<c>CobolNum.IsNegative</c>)?</summary>
+    public static string NumIsNegative(string value) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.IsNegative)}({value})";
+
+    /// <summary>The sign a zoned image CARRIES, a negative zero's included (<c>CobolNum.ImageIsNegative</c>).</summary>
+    public static string NumImageIsNegative(string image, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.ImageIsNegative)}({image}, {profile})";
+
     /// <summary>The magnitude digits of a signed ZONED image that is the de-signed source of an alphanumeric MOVE or compare
     /// (<c>CobolNum.DeSignImage</c>, ISO §2023:14.9.25.4 GR6a): decoded and re-emitted when the image is valid, copied as it stands when it
     /// is not (a numeric item still holding spaces). <paramref name="sending"/> selects the §2023:14.6.13.2 rule 2 checked lane, as for

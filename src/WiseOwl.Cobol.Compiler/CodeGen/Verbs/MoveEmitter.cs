@@ -1049,6 +1049,12 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                 }
                 NumX n = AllLiteralNumber(source, pic)
                     ?? num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
+                // ⛔ AT 1985 AND 2002 THE SIGN IS THE SENDING OPERAND'S (§1985:VI.6.19.4 GR4b1; kb/Work PB5852): an image-carried
+                // sign holder is written with the sender's sign over a zero result. The sign is read BEFORE the store
+                // truncates, from the one read of the sender (SendersSign), so a store whose digits all truncate away keeps it.
+                SendersSignCapture? signed = SendersSignStore.KeepsSendersSign(ctx.Data.DialectLevel, source, target)
+                    ? SendersSign(source, ref n)
+                    : null;
                 // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §2023:14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
@@ -1066,9 +1072,55 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                 string stored = ArithmeticEmitter.Narrow(
                     NumericRenderer.StoreExpr(n, recvScaleM, target.ProfileName, rounding, raiseOnSizeError), target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
+                if (signed is { } s)
+                    return s.Wrap(RuntimeApi.NumFormatImageSendersSign(stored, s.Negative, target.ProfileName));
                 return target.StoreAsImage ? RuntimeApi.NumFormatImage(stored, target.ProfileName) : stored;
             default:
                 return "default";
+        }
+    }
+
+    /// <summary>The sending operand's sign, read once (kb/Work PB5852): <see cref="Negative"/> is the C# test, and
+    /// <see cref="Wrap"/> encloses the whole store when the test reads a captured value.</summary>
+    /// <param name="Negative">A C# boolean expression: the sender is negative.</param>
+    /// <param name="Capture">The C# expression the sending value was rendered as and the variable that captures it, or null
+    /// when the test reads no captured value (a literal, an image sender's characters).</param>
+    private readonly record struct SendersSignCapture(string Negative, (string Value, string Variable)? Capture)
+    {
+        /// <summary>The store, inside the capture of the sending value when there is one: <c>(value is var v ? store : default!)</c>,
+        /// whose pattern variable is definitely assigned wherever the store reads it.</summary>
+        public string Wrap(string store) =>
+            Capture is var (value, variable) ? $"({value} is var {variable} ? {store} : default!)" : store;
+    }
+
+    /// <summary>⛔ THE SIGN OF THE SENDING OPERAND OF A 1985 OR 2002 NUMERIC STORE (§1985:VI.6.19.4 GR4b1; kb/Work PB5852;
+    /// DESIGN-data-model §2.1.1), read from what the operand IS, never from the truncated value: a negative literal is negative at
+    /// compile time; an image-carried sign holder's sign is the one its characters carry, a negative zero's included
+    /// (<c>CobolNum.ImageIsNegative</c>, so a negative zero moved on stays negative); every other sender's is its value's.
+    /// ⛔ THE SENDER IS READ ONCE (§1985:VI.6.19.4 GR2: a subscript, reference modifier or function-identifier "is evaluated
+    /// only once"): the one read is CAPTURED and both the sign and the value read the capture (<paramref name="n"/> is
+    /// rewritten to read it). An image sender's capture is its image, and its value is decoded from it by the one windowed
+    /// reader the place's own numeric read uses (<see cref="NumericRenderer.WindowedNum"/>); any other sender's capture is
+    /// its rendered value.</summary>
+    private SendersSignCapture SendersSign(BoundOperand source, ref NumX n)
+    {
+        switch (source)
+        {
+            case BoundNumericLiteral:
+                return new("true", null);   // SendersSignStore.SenderMayBeNegative admitted it: a minus sign and a non-zero digit
+            // (a reference-modified sender never reaches here: it is alphanumeric, so SenderMayBeNegative refused it)
+            case BoundFieldOperand { Place: not TableAllPlace and var place }
+                when SendersSignStore.HoldsNegativeZero(place.Item):
+            {
+                string image = $"__sg{ctx.Names.NextStoreTmp()}";
+                n = NumericRenderer.WindowedNum(image, place.Item, place.Item.Pic!, SendingRef.MoveToNumeric);
+                return new(RuntimeApi.NumImageIsNegative(image, place.Item.ProfileName), (PlaceRenderer.Read(place), image));
+            }
+            default:
+                string variable = $"__sg{ctx.Names.NextStoreTmp()}";
+                string value = n.Expr;
+                n = n with { Expr = variable, WithPrecision = null };
+                return new(RuntimeApi.NumIsNegative(variable), (value, variable));
         }
     }
 

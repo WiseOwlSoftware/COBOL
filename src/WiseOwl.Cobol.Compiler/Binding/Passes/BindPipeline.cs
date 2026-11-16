@@ -81,13 +81,15 @@ internal static class BindPipeline
         // Whole-group operand collection from the BOUND trees + boundary formals (PHASE-05 Step 5; DEVLOG 752/753).
         new("UsageCollectionPass", PassPhase.ProcedureBound, PassPhase.UsageCollected, UsageCollectionPass.Run)
         {
-            Views = PassViews.Appends(FactSetKind.WholeGroupReferenced, FactSetKind.CharacterChannelItems),
+            Views = PassViews.Appends(FactSetKind.WholeGroupReferenced, FactSetKind.CharacterChannelItems,
+                FactSetKind.NumericStores),
         },
         // Settle every StoreAsImage flag (temp re-sync → image marking → OO harmonize), then classify StorageForm.
         new("StorageFormPass", PassPhase.UsageCollected, PassPhase.StorageComputed, StorageFormPass.Run)
         {
             Views = PassViews.Of(appends: [], readsEarly: [],
-                readsWhole: [FactSetKind.ImageForcedItems, FactSetKind.WholeGroupReferenced, FactSetKind.CharacterChannelItems]),
+                readsWhole: [FactSetKind.ImageForcedItems, FactSetKind.WholeGroupReferenced, FactSetKind.CharacterChannelItems,
+                    FactSetKind.NumericStores]),
         },
         // Every Place the backend asks of an ITEM (not of a written reference) is built here, once, in the model layer
         // (kb/Work PB2375): the storage-form pass settled the early-image facts the builder reads.

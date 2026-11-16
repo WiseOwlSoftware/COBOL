@@ -120,6 +120,11 @@
       "changedIn": 2002
     },
     {
+      "id": "move-sign-is-the-values-sign",
+      "vcrRow": "7.85",
+      "changedIn": 2014
+    },
+    {
       "id": "negative-base-requires-integer-exponent",
       "vcrRow": "7.67",
       "changedIn": 2002

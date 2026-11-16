@@ -192,6 +192,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.InspectFormat3LengthIdentifiedOnce = 7 -> 
 WiseOwl.Cobol.Runtime.DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic = 25 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IntegerDateFormBounded = 11 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.LinageViolatingOpenLeavesFileOpen = 28 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.MoveSignIsTheValuesSign = 29 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.NegativeBaseRequiresIntegerExponent = 17 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 12 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -1084,9 +1085,18 @@ static WiseOwl.Cobol.Runtime.CobolNum.DisplayDecimal(System.Int128 unscaled, in 
 static WiseOwl.Cobol.Runtime.CobolNum.DisplayDecimal(string! image, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.DisplayDecimalU(System.UInt128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.FormatExactFunctionText(WiseOwl.Cobol.Runtime.CobolExact value, bool deSign = false, bool commaMode = false) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.FormatImageSendersSign(System.Int128 unscaled, bool senderNegative, in WiseOwl.Cobol.Runtime.NumProfile item) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.FormatStandardData(System.Int128 unscaled, in WiseOwl.Cobol.Runtime.NumProfile item) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.FormatWideFunctionText(WiseOwl.Cobol.Runtime.CobolWide value, int scale, bool deSign = false, bool commaMode = false) -> string!
 static WiseOwl.Cobol.Runtime.CobolNum.GroupDigits(string! text) -> string!
+static WiseOwl.Cobol.Runtime.CobolNum.IsNegative(System.Int128 value) -> bool
+static WiseOwl.Cobol.Runtime.CobolNum.IsNegative(System.UInt128 value) -> bool
+static WiseOwl.Cobol.Runtime.CobolNum.IsNegative(WiseOwl.Cobol.Runtime.CobolDec value) -> bool
+static WiseOwl.Cobol.Runtime.CobolNum.IsNegative(WiseOwl.Cobol.Runtime.CobolExact value) -> bool
+static WiseOwl.Cobol.Runtime.CobolNum.IsNegative(WiseOwl.Cobol.Runtime.CobolWide value) -> bool
+static WiseOwl.Cobol.Runtime.CobolNum.IsNegative(double value) -> bool
+static WiseOwl.Cobol.Runtime.CobolNum.IsNegative(long value) -> bool
+static WiseOwl.Cobol.Runtime.CobolNum.IsNegative(ulong value) -> bool
 static WiseOwl.Cobol.Runtime.CobolNum.NestedQuotientScale(int receiverScale, int precision) -> int
 static WiseOwl.Cobol.Runtime.CobolNum.ParseDeviceDecimal(string! window, in WiseOwl.Cobol.Runtime.NumProfile receiver, bool commaMode) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNum.PositionOfWide(System.Int128 unscaled, int scale) -> System.Int128
