@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.18.3-6",
  "rule-digest": "d62427be0143",
- "test-ref": "conformance:cases/14.9.22-INSPECT/pb1127-inspect-index-item-tally-counter",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1127-inspect-index-item-tally-counter; conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/pb5859-inspect-tallying-refmod-counter; conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/pb5859-inspect-tallying-whole-counter",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

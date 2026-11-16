@@ -424,6 +424,10 @@
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Procedure.AddressOfOperandScreen"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::IsDescribedInContainer": [
+      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::IsDescribedLater": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
