@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb994-merge-using-random-access
-*> rules: [SR-12.4.5.5.2-1, SR-14.9.24.3-13]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb994-merge-using-random-access
+      *> rules: [SR-12.4.5.5.2-1, SR-14.9.24.3-13]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB994 - AN INDEXED FILE DESCRIBED WITH ACCESS MODE RANDOM IS REFUSED AS A MERGE USING FILE.
       *>   cite.py --check 14.9.24.3 "If file-name-2 or file-name-3 references a relative or an indexed file, its access
       *>     mode shall be sequential or dynamic." -> OK §2023:14.9.24.3 13)

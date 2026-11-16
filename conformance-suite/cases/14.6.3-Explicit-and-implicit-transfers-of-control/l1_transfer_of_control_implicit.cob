@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: l1_transfer_of_control_implicit
-*> rules: [GR-14.6.3-3]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_transfer_of_control_implicit
+      *> rules: [GR-14.6.3-3]
+      *> accept: [85, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:14.6.3 3) — explicit/implicit transfer of control: empty procedures, EXIT PROGRAM, implicit GOBACK
       *> RULE (§2023:14.6.3, cite.py OK, the paragraphs of item 3) pinned here):
       *>  (A) "The procedure branching statement EXIT PROGRAM causes an

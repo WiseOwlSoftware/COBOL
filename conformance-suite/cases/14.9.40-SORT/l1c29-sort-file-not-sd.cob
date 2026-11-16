@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: l1c29-sort-file-not-sd
-*> rules: [SR-14.9.40.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1c29-sort-file-not-sd
+      *> rules: [SR-14.9.40.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:14.9.40.3 SR4 — SORT file-name-1 described by an FD, not an SD
       *> Rule: "File-name-1 shall be described in a sort-merge file
       *> description entry in the data division."

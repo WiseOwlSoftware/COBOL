@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb994-merge-giving-indexed-first-key-descending
-*> rules: [SR-14.9.24.3-10]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb994-merge-giving-indexed-first-key-descending
+      *> rules: [SR-14.9.24.3-10]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB994 - MERGE GIVING AN INDEXED FILE WITH A DESCENDING FIRST KEY IS REFUSED BY SR10.
       *>   cite.py --check 14.9.24.3 "If file-name-4 references an indexed file, the first specification of data-name-1
       *>     shall be associated with an ASCENDING phrase and the data item referenced by that data-name-1 shall occupy

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.14.4-8",
  "rule-digest": "a291b779b1d8",
+ "test-ref": "conformance:cases/14.9.25-MOVE/pb430_gr4_no_conversion; conformance:cases/13.18.45-RENAMES/pb3563_renames_thru_numeric_leaf_characters; conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_85; conformance:cases/13.18.32-JUSTIFIED/pb339_into_current_record_2023; conformance:cases/14.9.30-READ/pb5386_read_into_subscript_after_read; conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_85; conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2023; conformance:cases/14.9.34-RETURN/pb5386_return_into_subscript_after_return",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

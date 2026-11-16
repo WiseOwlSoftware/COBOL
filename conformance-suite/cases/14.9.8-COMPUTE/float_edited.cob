@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: float_edited
-*> rules: [GR-14.9.8.4-2]
-*> accept: [2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: float_edited
+      *> rules: [GR-14.9.8.4-2]
+      *> accept: [2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. FLTEDT.
       *> a float (COMP-2) source edited into a numeric-edited receiver,

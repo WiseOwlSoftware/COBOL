@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb966-add-corr-level66-alias
-*> rules: [SR-14.9.2.3-6]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb966-add-corr-level66-alias
+      *> rules: [SR-14.9.2.3-6]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB966 - ADD CORRESPONDING REFUSES A LEVEL-66 OPERAND OF EITHER RENAMES FORM.
       *> 14.9.2.3 SR6: "Identifier-4 and identifier-5 shall be alphanumeric group items, national group
       *> items, variable-length groups, or strongly-typed group items and shall not be described with

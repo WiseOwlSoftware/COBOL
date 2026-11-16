@@ -1,14 +1,14 @@
-*>--- conformance-case
-*> id: pb318-open-extend-access-linage
-*> rules: [SR-14.9.27.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
-*> ISO 1989:2023 14.9.27.3 SR2 - "The EXTEND phrase shall be specified only if the access mode of the
-*> file connector referenced by file-name-1 is sequential and the LINAGE clause is not specified in
-*> the file description entry for file-name-1." One sentence, two conjuncts: FR (ACCESS MODE IS
-*> RANDOM) violates the first and FL (a LINAGE clause) the second. Both compiled clean until
-*> kb/Work PB318; the EXTEND on the LINAGE file ran against an unmodelled page state.
+      *>--- conformance-case
+      *> id: pb318-open-extend-access-linage
+      *> rules: [SR-14.9.27.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> ISO 1989:2023 14.9.27.3 SR2 - "The EXTEND phrase shall be specified only if the access mode of the
+      *> file connector referenced by file-name-1 is sequential and the LINAGE clause is not specified in
+      *> the file description entry for file-name-1." One sentence, two conjuncts: FR (ACCESS MODE IS
+      *> RANDOM) violates the first and FL (a LINAGE clause) the second. Both compiled clean until
+      *> kb/Work PB318; the EXTEND on the LINAGE file ran against an unmodelled page state.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB318EXL.
        ENVIRONMENT DIVISION.

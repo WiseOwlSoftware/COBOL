@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb88-string-into-refmod
-*> rules: [SR-14.9.43.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb88-string-into-refmod
+      *> rules: [SR-14.9.43.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 14.9.43.3 SR4: "Identifier-3 shall not be reference-modified." kb/Work PB88: this compiled clean and
       *> died at run time (a BoundUnsupported stage on illegal source); COBOL1651 at bind now.
        IDENTIFICATION DIVISION.

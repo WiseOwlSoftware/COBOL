@@ -1,11 +1,11 @@
-*>--- conformance-case
-*> id: pb344_use_mode_invalid_key_2023
-*> rules: [GR-9.1.13.5-2, GR-9.1.13.5-3, GR-14.9.30.4-28,
-*>    GR-14.9.49.4-6]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb344_use_mode_invalid_key_2023
+      *> rules: [GR-9.1.13.5-2, GR-9.1.13.5-3, GR-14.9.30.4-28,
+      *>    GR-14.9.49.4-6]
+      *> accept: [85, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB344 — the ISO edition the compilation targets reaches the file connectors and the
       *> generated USE-declarative selector.  Until PB344 no edition reached either, so the 2023 rules
       *> were served to --std 85, 2002 and 2014 as well.

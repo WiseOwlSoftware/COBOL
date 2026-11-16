@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: delete-record-invalid-key-sequential-access
-*> rules: [SR-14.9.10.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: delete-record-invalid-key-sequential-access
+      *> rules: [SR-14.9.10.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 14.9.10.3 SR2: "The INVALID KEY and the NOT INVALID KEY
       *> phrases shall not be specified for a DELETE RECORD statement that
       *> references a file that is in sequential access mode."
