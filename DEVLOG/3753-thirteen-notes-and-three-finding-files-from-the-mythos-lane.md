@@ -1,4 +1,4 @@
-## Thirteen notes and three finding files from the Mythos lane's batch-10 rulings of 2026-11-16
+## Entry 3753 — 2026-11-16 05:00 PST — Thirteen notes and three finding files from the Mythos lane's batch-10 rulings of 2026-11-16
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). Each defect note carries the rule text with its `cite.py --check` line, the repro program in full, expected and observed, and a Sites block.
 
@@ -19,3 +19,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 Three dated finding files beside existing notes: `kb/Work/PB5781/2026-11-16-the-rem-format-row.md` (the row `1989-FMT-A.2.37.2`), `kb/Work/PB5826/2026-11-16-two-more-shapes.md` (`1 = A OR 2` and `IF 1 = 2` only warn), and the ruling copied unchanged as `kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md`.
 
 **The population is read.** The ruling counts 97 of 1,282 rows of the 1985 code reads contradicted (7.6 %), from the rulings files by script.
+
