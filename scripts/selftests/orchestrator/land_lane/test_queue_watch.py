@@ -402,7 +402,8 @@ def case_017_classify_red_results_unread_or_no_record_is_uncl(expect):
     expect("classify_red (kb/Work PB5697): a red whose every case is the runner's host running out is INFRA, naming the "
            "resource; with a test red beside them the host's cases are set apart and the rest classified (A.Pass ran "
            "green: RUNNER), the line naming the unjudged ones",
-           classify_red(host)[0] == lm.INFRA and "commit limit exhausted" in classify_red(host)[1]
+           classify_red(host)[0] == lm.INFRA and classify_red(host)[1].startswith("every red case")
+           and "commit limit exhausted" in classify_red(host)[1]
            and classify_red(part)[0] == lm.RUNNER and "1 more red case(s) are the host running out" in classify_red(part)[1],
            f"{classify_red(host)} {classify_red(part)}")
 
