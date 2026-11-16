@@ -180,14 +180,18 @@ def case_02_a_case_the_rule_cannot_name_exactly_runs(expect):
     manifest["editions"]["2023"][1]["build"] = [{"file": "cases/c/t2.cob", "output": "T2"}]   # a multi-unit test
     del blobs["conformance-suite/cases/c/t3.out"]                                                # a named file untracked
     oracle["suite/2023/t4"] = ("!", "!", "!")                                                     # its compile threw
+    oracle["suite/2023/t6"] = ("cs6", "dg6", gate_differential.CLOCK)                         # WHEN-COMPILED
     truncated = NAMES[0].replace('id: "t1")', 'id: "t1"...)')
-    listed = Counter({NAMES[0]: 1, NAMES[1]: 1, NAMES[2]: 1, NAMES[3]: 1, NAMES[4]: 2, truncated: 1, HAND: 1})
+    clock = NAMES[0].replace('"t1"', '"t6"')
+    listed = Counter({NAMES[0]: 1, NAMES[1]: 1, NAMES[2]: 1, NAMES[3]: 1, NAMES[4]: 2, truncated: 1, HAND: 1, clock: 1})
     got = gate_differential.case_digests(listed, oracle, manifest, {p: b for p, b in blobs.items()})
-    expect("only t1 has a digest: a multi-unit entry, an untracked named file, a capture that threw, a name listed twice, a "
-           "truncated display name and a case of no family each have none, by their reasons",
+    expect("only t1 has a digest: a multi-unit entry, an untracked named file, a capture that threw, a program that reads "
+           "the compile clock, a name listed twice, a truncated display name and a case of no family each have none, by "
+           "their reasons",
            sorted(got.by_name) == [NAMES[0]] and got.uncarriable == Counter({
                "an entry the rule does not carry (build steps, servers, a flag test)": 1,
                "a file its entry names is not tracked": 1, "no digest of its compile": 1, "listed more than once": 2,
+               "its program reads the compile clock (WHEN-COMPILED)": 1,
                "not a carried family": 2}), f"{sorted(got.by_name)} {dict(got.uncarriable)}")
 
 

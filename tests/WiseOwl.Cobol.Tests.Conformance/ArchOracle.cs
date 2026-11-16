@@ -38,7 +38,8 @@ public static class ArchOracle
     /// the SHA-256 of the emitted PROGRAM BYTES (null when no assembly was written): the assembly and the runtime
     /// configuration beside it, exactly as the backend wrote them, which is what a test runs (kb/Work PB4333). Roslyn
     /// emits deterministically and no output path enters the bytes, so one program is one digest in any directory; a
-    /// program that read the compile clock (WHEN-COMPILED) has a new digest every compile.</summary>
+    /// program that read the compile clock (WHEN-COMPILED) bakes the time into its bytes and is named
+    /// <see cref="ClockProgram"/> instead.</summary>
     internal sealed record Observation(string? CSharp, string Diagnostics, string? Program = null);
 
     /// <summary>One compile configuration the suites perform, by its stable identity.</summary>
@@ -196,9 +197,10 @@ public static class ArchOracle
         var diagnostics = new StringBuilder();
         var csharp = new StringBuilder();
         var program = new StringBuilder();
-        bool anyCSharp = false, anyProgram = false;
+        bool anyCSharp = false, anyProgram = false, anyClock = false;
         foreach (var (label, o) in parts)
         {
+            anyClock |= o.Program == ClockProgram;
             diagnostics.Append("== ").Append(label).Append('\n').Append(o.Diagnostics);
             if (o.Program is not null)
             {
@@ -210,7 +212,8 @@ public static class ArchOracle
             csharp.Append("== ").Append(label).Append('\n').Append(o.CSharp);
         }
 
-        return new(anyCSharp ? csharp.ToString() : null, diagnostics.ToString(), anyProgram ? Sha256(program.ToString()) : null);
+        return new(anyCSharp ? csharp.ToString() : null, diagnostics.ToString(),
+            anyClock ? ClockProgram : anyProgram ? Sha256(program.ToString()) : null);
     }
 
     /// <summary>The canonical observation of one driver result whose outputs went to <paramref name="scratch"/>.</summary>
@@ -233,8 +236,15 @@ public static class ArchOracle
         // correct compiler changes run to run. Masked only in a compilation that recorded reading the clock (kb/Work PB985's input record).
         if (csharp is not null && r.Inputs.ReadsCompilationTime)
             csharp = WhenCompiledStamp.Replace(csharp, "<when-compiled>");
-        return new(csharp is null ? null : Portable(csharp, scratch), Portable(diagnostics.ToString(), scratch), ProgramDigest(r));
+        // A compilation that read the clock bakes the time into its bytes, so they are no digest of the program: it is
+        // named ClockProgram, repeatably, and the differential never carries it (kb/Work PB4333).
+        return new(csharp is null ? null : Portable(csharp, scratch), Portable(diagnostics.ToString(), scratch),
+            r.Inputs.ReadsCompilationTime && r.Success ? ClockProgram : ProgramDigest(r));
     }
+
+    /// <summary>The program "digest" of a compilation that read the compile clock (WHEN-COMPILED): its bytes differ every
+    /// compile, so it has none, and scripts/gate_differential.py runs every case that names it.</summary>
+    internal const string ClockProgram = "clock";
 
     /// <summary>THE EMITTED PROGRAM'S BYTES as one digest (kb/Work PB4333): the assembly the driver wrote and the runtime
     /// configuration the packager wrote beside it (<c>AssemblyPackager.Package</c>; a library has none). The runtime copy
@@ -293,8 +303,8 @@ public static class ArchOracle
     /// (<c>&lt;id&gt;.g.cs</c>) and diagnostic stream (<c>&lt;id&gt;.diag.txt</c>), <c>cases.tsv</c> — one line
     /// per case, ordinal order: id, population, SHA-256 of the C# (<c>-</c> when none), SHA-256 of the diagnostics.
     /// <c>digests --out FILE [--jobs N]</c> compiles every case and writes FILE alone, one line per case: id, population,
-    /// the C# digest, the diagnostics digest and the PROGRAM digest (<c>-</c> when none; <c>!</c> for each when the case
-    /// threw), the program differential's input (kb/Work PB4333; scripts/gate_differential.py).
+    /// the C# digest, the diagnostics digest and the PROGRAM digest (<c>-</c> when none, <c>clock</c> for a compilation
+    /// that read the compile clock; <c>!</c> for each when the case threw), the program differential's input (kb/Work PB4333; scripts/gate_differential.py).
     /// <c>list</c> prints the population (id TAB population) without compiling. Exit 0 on success; 2 on a usage
     /// error; 3 when the compiled-program cache is on (the oracle must observe the compiler); 4 when a case threw.
     /// </summary>

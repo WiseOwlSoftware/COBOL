@@ -49,6 +49,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 import buildgraph  # noqa: E402  - THE targets, their keys and the one store (kb/Work PB5218)
 import lane_classification  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
 
 #: The version of the harness key's and the case digest's composition: a change to either is a change of this.
 SCHEMA = b"program-differential 1"
@@ -62,6 +63,9 @@ SUITE_ROOT = "conformance-suite/"
 CASE_DIR = "conformance-cases"
 #: A case set not written for this long is pruned when another is written (a harness key no tree has any more).
 PRUNE_DAYS = 21
+#: The program "digest" the capture writes for a compilation that read the compile clock (ArchOracle.ClockProgram):
+#: its bytes differ every compile, so such a case is never carried.
+CLOCK = "clock"
 #: The capture's file in the gate's run directory.
 DIGESTS_FILE = "oracle-digests.tsv"
 
@@ -197,6 +201,9 @@ def case_digests(listed: Counter, oracle: Mapping[str, tuple[str, str, str]], ma
         digests = oracle.get(oracle_id)
         if digests is None or "!" in digests:
             out.uncarriable["no digest of its compile"] += 1
+            continue
+        if digests[2] == CLOCK:
+            out.uncarriable["its program reads the compile clock (WHEN-COMPILED)"] += 1
             continue
         files = []
         for p in sorted({str(p) for p in named}):
@@ -397,6 +404,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    from standard_streams import ensure_utf8  # noqa: E402
     ensure_utf8()
     sys.exit(main())
