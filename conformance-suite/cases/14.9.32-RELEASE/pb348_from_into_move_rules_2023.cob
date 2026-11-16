@@ -2,7 +2,7 @@
       *> id: pb348_from_into_move_rules_2023
       *> rules: [SR-14.9.32.3-3, GR-14.9.32.4-4, GR-14.9.34.4-5,
       *>    GR-14.9.35.4-2, GR-14.9.35.4-7, GR-14.9.51.4-5]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

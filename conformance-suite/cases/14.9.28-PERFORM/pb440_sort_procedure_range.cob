@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb440_sort_procedure_range
       *> rules: [GR-14.9.28.4-6, GR-14.9.40.4-11, GR-14.9.40.4-14]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

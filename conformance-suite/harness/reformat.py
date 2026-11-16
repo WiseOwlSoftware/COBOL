@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""to_fixed.py — THE FREE-FORM TO FIXED-FORM CONVERTER of a conformance-suite case, in place (kb/Work PB5754;
+"""reformat.py — THE FREE-FORM TO FIXED-FORM CONVERTER of a conformance-suite case, in place (kb/Work PB5754;
 DESIGN-conformance-suite.md §3.6).
 
-    python conformance-suite/harness/to_fixed.py [--dry-run] <case.cob> [<case.cob> ...]
+    python conformance-suite/harness/reformat.py [--dry-run] <case.cob> [<case.cob> ...]
 
 WHY. A suite case witnesses a row at an edition only when its text is in a reference format that edition defines
 (kb/Work PB5754, lineage_reads.format_problem): before 2002 that is fixed form alone, "each compiler accepts source
@@ -430,7 +430,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{'would convert' if a.dry_run else 'converted'} {cob.as_posix()}"
               + (f" (and {len(plan.files) - 1} library text(s))" if len(plan.files) > 1 else "")
               + (" (its refusal entry's position moved)" if plan.entry else ""))
-    print(f"to_fixed: {done} converted{' (dry run)' if a.dry_run else ''}, {sum(refused.values())} refused {refused}")
+    print(f"reformat: {done} converted{' (dry run)' if a.dry_run else ''}, {sum(refused.values())} refused {refused}")
     return 1 if refused else 0
 
 

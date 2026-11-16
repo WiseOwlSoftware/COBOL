@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_move_corr_equivalence
       *> rules: [SR-14.9.25.3-11]
-      *> accept: [2002, 2023]
+      *> accept: [85, 2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

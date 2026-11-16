@@ -10,7 +10,7 @@ import selftest_cases
 from scratch_repo import scratch_dir
 from standard_streams import ensure_utf8
 
-T = selftest_cases.subject(__file__)   # conformance-suite/harness/to_fixed.py
+T = selftest_cases.subject(__file__)   # conformance-suite/harness/reformat.py
 G = T.generate
 RESERVED = G.reserved_words()
 LATER = ["2002", "2014", "2023"]
@@ -183,7 +183,7 @@ def _refused_at(body, kind, editions):
 
 
 def _suite(files):
-    root = scratch_dir("to-fixed-")
+    root = scratch_dir("reformat-")
     for rel, text in files.items():
         p = root / rel
         p.parent.mkdir(parents=True, exist_ok=True)

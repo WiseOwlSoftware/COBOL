@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: func_expr_arg
       *> rules: [GR-8.8.1.2-2]
-      *> accept: [2014]
+      *> accept: [85, 2014]
       *> source-format: fixed
       *> portable: unverified
       *>---

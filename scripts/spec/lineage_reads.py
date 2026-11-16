@@ -904,7 +904,7 @@ def summary(decisions: list[Decision]) -> dict[str, Any]:
 #: What a suite case of a kept-but-unwitnessed row can do at the edition (`widen_plan`).
 RUNS, WIDEN, WIDEN_REFUSAL, BAND, NO_EDITION, MISSING = "runs", "widen", "widen-refusal", "band", "no-edition", "missing"
 #: A case written in a reference format the edition does not define (`format_problem`, kb/Work PB5754): no witness there,
-#: and no widening makes it one; converting its text (conformance-suite/harness/to_fixed.py) does.
+#: and no widening makes it one; converting its text (conformance-suite/harness/reformat.py) does.
 FORMAT = "format"
 #: A case whose file the working tree changes: neither a witness nor a candidate until it is committed and gated.
 UNCOMMITTED = "uncommitted"

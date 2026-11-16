@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_transfer_of_control_implicit
       *> rules: [GR-14.6.3-3]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

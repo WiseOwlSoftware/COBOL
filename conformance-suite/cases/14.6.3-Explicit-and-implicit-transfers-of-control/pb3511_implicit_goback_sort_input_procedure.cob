@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb3511_implicit_goback_sort_input_procedure
       *> rules: [GR-14.6.3-3, GR-14.9.40.4-11]
-      *> accept: [2002]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_display_transfer_size
       *> rules: [GR-14.9.11.4-2, GR-14.9.11.4-5, DOC-A.1-58]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

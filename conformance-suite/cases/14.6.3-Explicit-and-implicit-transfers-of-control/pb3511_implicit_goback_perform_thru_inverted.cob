@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb3511_implicit_goback_perform_thru_inverted
       *> rules: [GR-14.6.3-3, GR-14.9.28.4-5, GR-14.9.28.4-6]
-      *> accept: [2002]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

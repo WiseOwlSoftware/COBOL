@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb120_when_compiled_contained
       *> rules: [RV-15.99.3-2]
-      *> accept: [2002]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

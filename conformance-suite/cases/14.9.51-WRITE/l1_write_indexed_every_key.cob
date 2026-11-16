@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_write_indexed_every_key
       *> rules: [GR-14.9.51.4-34]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

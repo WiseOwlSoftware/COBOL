@@ -120,7 +120,7 @@ def _strip_floating(text: str, quote: str | None) -> tuple[str, str | None]:
 def floating_comment(text: str) -> tuple[str, str | None, str | None]:
     """`text` (a line of free-form program text) split at its floating comment indicator outside a literal: the program
     text before it, the comment from `*>` on (None when the line has none), and the quote still open at the end of the
-    program text (None when every literal closes on the line). The free-form converter (to_fixed.py) moves the comment
+    program text (None when every literal closes on the line). The free-form converter (reformat.py) moves the comment
     and refuses an open literal."""
     code, quote = _strip_floating(text, None)
     rest = text[len(code):]

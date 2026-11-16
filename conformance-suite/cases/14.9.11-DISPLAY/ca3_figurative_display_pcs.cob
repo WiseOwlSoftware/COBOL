@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: ca3_figurative_display_pcs
       *> rules: [GR-14.9.11.4-3, GR-14.9.11.4-6]
-      *> accept: [2002]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

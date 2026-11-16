@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: float_intrinsic
       *> rules: [RV-15.84.4-4]
-      *> accept: [2002]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

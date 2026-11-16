@@ -2,7 +2,7 @@
       *> id: pb336_optional_absent_read_46
       *> rules: [GR-9.1.11-1, GR-9.1.11-2, GR-9.1.11-3, GR-9.1.13.4-1,
       *>    GR-9.1.13.7-6, GR-14.9.30.4-1]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
