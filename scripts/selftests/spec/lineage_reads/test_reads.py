@@ -384,6 +384,46 @@ def case_07_the_widening_proves_first_and_writes_last(expect):
            "cases/X/r" in got["reverted"] and (d / "r.json").read_text(encoding="utf-8") == files["r.json"])
 
 
+def case_07b_a_refusal_drawn_only_with_a_diagnosis_the_case_does_not_expect_is_not_widened(expect):
+    """Review R1-1 of records-2002-reads-2: message-tag-refused-strong-group-ordering expects COBOL1535 and draws it at
+    2002, but 2002 also refuses it with the COBOL0900 introduction gate (USAGE MESSAGE-TAG is new in 2023) and COBOL1567
+    (a 33-character word); its 2002 refusal witnessed no 2002 rule, and the widening wrote it."""
+    d = scratch_dir("lineage-reads-refusal-diagnoses")
+    out = {"2023": "  p.cob(24,12): error COBOL1535: ordering\n  p.cob(9,1): warning COBOL0400: a warning\n",
+           "2002": "  p.cob(24,12): error COBOL1535: ordering\n  p.cob(14,20): error COBOL1567: 33 characters\n"
+                   "  p.cob(19,11): error COBOL0900: USAGE MESSAGE-TAG requires COBOL-2023\n"}
+    compiled = []
+
+    def run(cmd, **kw):
+        sp = cmd[cmd.index("--std") + 1]
+        compiled.append(sp)
+        return F.completed(65, out[sp])
+    (d / "r.json").write_text('{"refuse-at": ["2023"], "expect": "COBOL1535"}', encoding="utf-8", newline="")
+    case = R.CaseInfo("cases/X/r", d / "r.cob", ("2023",), (), (), ("SR-1",), None, ("2023",), d / "r.json", "COBOL1535")
+    w = R.Witnesses({"cases/X/r": case}, {}, {})
+    got = R.widen_apply({"cases": {"cases/X/r": {"status": R.WIDEN_REFUSAL}}}, w, ED, d / "cobol", d / "scratch-1", run)
+    why = got["reverted"].get("cases/X/r", "")
+    expect("refused at the edition with its expected code AND an introduction gate and a limit it does not draw at its "
+           "own edition: not widened, the reason naming both codes", got["widened"] == [] and "COBOL0900" in why
+           and "COBOL1567" in why and "COBOL1535" not in why.split("which")[0]
+           and json.loads((d / "r.json").read_text(encoding="utf-8"))["refuse-at"] == ["2023"])
+    expect.equal("the proof compiles the case at the edition and then at its newest refusing edition", compiled,
+                 ["2002", "2023"])
+    out["2002"] = "  p.cob(24,12): error COBOL1535: ordering\n  p.cob(30,1): error COBOL1288: a cascade\n"
+    out["2023"] = out["2002"]
+    expect("an extra error the case draws at its own edition too (a cascade its gate row passes with) is expected",
+           R.refused_at(case, "2002", d / "cobol", d / "scratch-2", run, "2023") is None)
+    out["2002"] = "  p.cob(24,12): error COBOL1535: ordering\n  p.cob(9,1): warning COBOL0400: a warning\n"
+    compiled.clear()
+    expect("a warning is no diagnosis of the program, and nothing unexpected needs no second compile",
+           R.refused_at(case, "2002", d / "cobol", d / "scratch-3", run, "2023") is None and compiled == ["2002"])
+    gate = R.CaseInfo("cases/X/g", d / "g.cob", ("85",), (), (), ("SR-1",), None, ("85",), d / "g.json",
+                      "COBOL0900: USAGE MESSAGE-TAG")
+    out["2002"] = "  p.cob(19,11): error COBOL0900: USAGE MESSAGE-TAG requires COBOL-2023\n"
+    expect("an introduction-gate test that EXPECTS the gate is refused by the code its entry names",
+           R.refused_at(gate, "2002", d / "cobol", d / "scratch-4", run) is None)
+
+
 #: The child a KILL is planted in (review R2-1): it plants the widening in argv[1] and dies (os._exit, no cleanup can
 #: run) at the point argv[2] names: while run.py proves (`prove`) or after the first proven case is written (`write`).
 KILLED_CHILD = r"""

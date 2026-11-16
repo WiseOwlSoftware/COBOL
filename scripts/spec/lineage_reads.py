@@ -1150,7 +1150,8 @@ def prove(plan: dict[str, Any], w: Witnesses, ed: Edition, compiler: pathlib.Pat
     run at the edition by the suite's runner (run.py, on a manifest written into `scratch`); each `WIDEN_REFUSAL` case
     compiled at the edition. Returns why each case is NOT proven, by key ("" for one that is): a case the generator
     refuses there, one whose verdict in this run's results is not PASS, every one when run.py exits outside `RUN_RAN`
-    or writes no results, a refusal test not refused with its expected diagnostic."""
+    or writes no results, a refusal test not refused with its expected diagnostic or refused there also for one it does
+    not expect (`refused_at`, against its newest refusing edition)."""
     sp = ed.spelling
     accepted = [k for k, c in sorted(plan["cases"].items()) if c["status"] == WIDEN]
     out: dict[str, str] = {}
@@ -1174,8 +1175,10 @@ def prove(plan: dict[str, Any], w: Witnesses, ed: Edition, compiler: pathlib.Pat
             bad = [f"{e['id']}: {verdicts.get(e['id'])}" for e in es if verdicts.get(e["id"]) != "PASS"]
             out[k] = (f"the harness's verdict at {sp} is not PASS ({'; '.join(bad)})" if verdicts else
                       f"the harness exited {r.returncode} and wrote no results of this run") if bad else ""
+    order = inventory_schema.load_schema().editions
     for k in [k for k, c in sorted(plan["cases"].items()) if c["status"] == WIDEN_REFUSAL]:
-        out[k] = refused_at(w.cases[k], sp, compiler, scratch, run) or ""
+        c = w.cases[k]
+        out[k] = refused_at(c, sp, compiler, scratch, run, max(c.refuse_at, key=order.index)) or ""
     return out
 
 
@@ -1232,16 +1235,44 @@ def widen_apply(plan: dict[str, Any], w: Witnesses, ed: Edition, compiler: pathl
             "resumed": resumed, "already-written": finished}
 
 
-def refused_at(c: CaseInfo, spelling: str, compiler: pathlib.Path, scratch: pathlib.Path, run: Any = subprocess.run) -> str | None:
-    """Why the refusal test `c` does not refuse at the edition (None when it does): compiled at `--std` with `compiler`,
-    the compilation must fail and report the entry's code or text, as the gate's refusal row requires."""
-    out = scratch / "refusals" / c.key.replace("/", "_")
+#: An error diagnosis in the compiler's output, by its code. Only an error refuses a program; a warning diagnoses nothing.
+ERROR_CODE = re.compile(r"\berror (COBOL\d{4})\b")
+#: A diagnostic code named in a refusal entry's `expect` text.
+CODE = re.compile(r"\bCOBOL\d{4}\b")
+
+
+def _compile(c: CaseInfo, spelling: str, compiler: pathlib.Path, scratch: pathlib.Path, run: Any) -> str | None:
+    """The compiler's output for the case at `--std spelling`, None when it compiles. It runs in its own scratch
+    directory, never inside the git tree (as the suite's runner compiles in its work directory)."""
+    out = scratch / "refusals" / c.key.replace("/", "_") / spelling
     out.mkdir(parents=True, exist_ok=True)
     r = run([str(compiler), str(c.path), "--std", spelling, "--source-format", c.source_format, "-o", str(out / "p.dll")],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=c.path.parent, timeout=600)
-    if r.returncode == 0:
+            capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=out, timeout=600)
+    return None if r.returncode == 0 else (r.stdout or "") + (r.stderr or "")
+
+
+def refused_at(c: CaseInfo, spelling: str, compiler: pathlib.Path, scratch: pathlib.Path, run: Any = subprocess.run,
+               reference: str | None = None) -> str | None:
+    """Why the refusal test `c` does not WITNESS its rule by a refusal at the edition (None when it does). Compiled at
+    `--std` with `compiler`, the compilation must fail and report the entry's code or text, as the gate's refusal row
+    requires, AND every error it draws there must be one the case expects (review R1-1 of records-2002-reads-2): a code
+    its entry's `expect` names, or one it draws too at `reference`, an edition it is already refused at and witnesses its
+    rule (a cascade the gate's row passes there). Any other error, an introduction gate (COBOL0900: the construct does
+    not exist at the edition) or the edition's own limit (COBOL1567: a word longer than it allows), makes the program
+    illegal there before the rule applies: its refusal passes whatever the rule does, so it witnesses no rule there."""
+    text = _compile(c, spelling, compiler, scratch, run)
+    if text is None:
         return f"accepted at {spelling}"
-    return None if c.expect and c.expect in (r.stdout or "") + (r.stderr or "") else f"refused at {spelling} without {c.expect!r}"
+    if not (c.expect and c.expect in text):
+        return f"refused at {spelling} without {c.expect!r}"
+    unexpected = set(ERROR_CODE.findall(text)) - set(CODE.findall(c.expect))
+    if unexpected and reference is not None and reference != spelling:
+        unexpected -= set(ERROR_CODE.findall(_compile(c, reference, compiler, scratch, run) or ""))
+    if not unexpected:
+        return None
+    return (f"refused at {spelling} also for {', '.join(sorted(unexpected))}, which its entry does not expect "
+            f"({c.expect!r}) and it does not draw at {reference or 'an edition it witnesses'}: the program is illegal at "
+            f"{spelling} before its rule applies, so it witnesses no rule there")
 
 
 # -- the audit ----------------------------------------------------------------------------------------------------------
