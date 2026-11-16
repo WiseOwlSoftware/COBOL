@@ -683,6 +683,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             foreach (var ps in pending)
                 if (ps.AllZero)
                     FigurativeAssociation.GateAllZeroAsArithmeticOperand(data.Edition.Edition, data.Edition.Sink, ps.Name, where: "");
+                else if (ps.LinkageRef is { } linkageRef) refs.Names.ScreenLinkageReference(linkageRef, ps.Item!);
                 else if (ps.Item is { } it) ScreenPositionOperandClass(it, ps.Name, position);
                 else IndexNameInPositionError(ps.Name, position);
         return bound;
@@ -758,7 +759,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             if (written.PropertyObject is not null) return null;
             // ⛔ AN UNRESOLVABLE NAME ROUTES TO D18 — IT IS NOT A VERDICT (fix-queue PB50): the expression binder
             // reports a genuinely undefined name at the operand itself.
-            if (ResolveSubscriptName(dref.cobolWord().GetText(), written.Qualifiers, position, ref pending,
+            if (ResolveSubscriptName(dref, dref.cobolWord().GetText(), written.Qualifiers, position, ref pending,
                     out bool scaled, (dref.Start, indexNames)) is not { } read) return null;
             // A scaled operand inside a compound position — evaluate the whole expression instead (above).
             return scaled && compound ? null : read;
@@ -797,8 +798,11 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// screen (<see cref="IndexNameInPositionError"/>, <c>Item</c> null). Queued rather than emitted so an exit
     /// to D18 later in the token loop cannot leave a diagnostic behind for the D18 route to duplicate — see
     /// <see cref="BindPosition"/>. The third kind (<paramref name="AllZero"/>, <c>Name</c> the operand as written) is the
-    /// §2023:8.3.3.6.3 SR1 a) edition edge of a position written <c>ALL ZERO</c> (kb/Work PB3960).</summary>
-    private readonly record struct PendingScreen(DataItem? Item, string Name, bool AllZero = false);
+    /// §2023:8.3.3.6.3 SR1 a) edition edge of a position written <c>ALL ZERO</c> (kb/Work PB3960). The fourth
+    /// (<paramref name="LinkageRef"/>, the operand's own reference) is the §2023:13.7.3 SR4 linkage screen
+    /// (kb/Work PB5846), which keeps <c>Item</c> the resolved item.</summary>
+    private readonly record struct PendingScreen(DataItem? Item, string Name, bool AllZero = false,
+        Core.DataReferenceContext? LinkageRef = null);
 
     /// <summary>⛔ §2023:8.4.2.3.3 SR4 — THE ONE CONSUMER OF THE INDEX→TABLE ASSOCIATION on the reference side:
     /// "Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced
@@ -943,7 +947,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// referenced, so §2023:8.4.2.3.3 SR4 is applied there (<see cref="ScreenIndexNameAssociation"/>). Threaded rather
     /// than kept on the resolver because the D18 materializer can re-enter this resolver for a nested
     /// reference (kb/Work PB459).</param>
-    private Position? ResolveSubscriptName(string name, List<string> qualifiers, SegmentPosition position,
+    private Position? ResolveSubscriptName(Core.DataReferenceContext dref, string name, List<string> qualifiers, SegmentPosition position,
         ref List<PendingScreen>? pending, out bool scaled, (IToken Token, List<IndexUse>? Into) nameToken)
     {
         scaled = false;
@@ -978,6 +982,12 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             return new PositionLocal(counter.Local, AsLong: true);
         DataItem? item = qualifiers.Count == 0 ? refs.Names.ResolveUnqualified(name) : refs.Names.ResolveQualified(name, qualifiers);
         if (item is null) return null;
+        // ⛔ §1985:X.5.1 GR4 / §2023:13.7.3 SR4 AT A SUBSCRIPT OR REFERENCE-MODIFICATION POSITION (kb/Work PB5846): the name written
+        // here is a reference within the procedure division, so a LINKAGE item that is no header operand (and no subordinate,
+        // redefinition, renaming or BASED item of one) is refused as `DISPLAY L-ITEM` is — the SAME screen
+        // (NameResolution.ScreenLinkageReference) the identification step asks, queued with the class screen so an
+        // abandoned walk (the D18 route screens the operand through Identify) reports once.
+        if (data.Linkage.UnreferenceableLinkageRecord(item) is not null) (pending ??= []).Add(new PendingScreen(item, name, LinkageRef: dref));
         // ⛔ A NO-THROUGH level-66 ALIAS IS READ AS THE ITEM IT RENAMES (kb/Work PB5477). §1985:VI.5.11.4 GR2 and
         // §2023:13.18.45.4 GR1: "all of the data attributes of data-name-2" become data-name-1's and its storage is data-name-2's,
         // so `66 RN RENAMES GA` (GA PIC 9) is a numeric integer item and a legal subscript. The alias owns no field: naming it
