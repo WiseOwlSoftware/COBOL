@@ -1,4 +1,4 @@
-## PB5730: widen plans the stored KEPT rows, and the 1985 widening batch closes 64 rows (1985 GAP 844 to 780 on main)
+## Entry 3714 — 2026-11-15 18:36 PST — PB5730: widen plans the stored KEPT rows, and the 1985 widening batch closes 64 rows (1985 GAP 844 to 780 on main)
 
 **The mechanism.** `lineage_reads.py widen` planned only from read decisions, and 1985 has no read records: its 1,373
 KEPT records are stored records of its comparison audit, so the 803 without a witness of their own had no widening path.
@@ -21,3 +21,4 @@ lane.
 
 **Stopped.** A predicate that a KEPT row's own witness cites the row or a target fails 25 stored references (10 at
 1985, 15 at 2002); it was committed and reverted, and the list goes to the deciding session.
+
