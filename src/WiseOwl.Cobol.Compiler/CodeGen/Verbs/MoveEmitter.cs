@@ -1108,7 +1108,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         {
             case BoundNumericLiteral:
                 return new("true", null);   // SendersSignStore.SenderMayBeNegative admitted it: a minus sign and a non-zero digit
-            case BoundFieldOperand { Place: not (RefModPlace or TableAllPlace) and var place }
+            // (a reference-modified sender never reaches here: it is alphanumeric, so SenderMayBeNegative refused it)
+            case BoundFieldOperand { Place: not TableAllPlace and var place }
                 when SendersSignStore.HoldsNegativeZero(place.Item):
             {
                 string image = $"__sg{ctx.Names.NextStoreTmp()}";

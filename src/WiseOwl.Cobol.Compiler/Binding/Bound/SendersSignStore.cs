@@ -61,7 +61,7 @@ internal static class SendersSignStore
     {
         BoundNumericLiteral lit => lit.Text.StartsWith('-') && NonZeroDigitExponents(lit.Text).Any(),
         // A reference-modified sender is alphanumeric (§1985:VI.6.19.4 GR4b3's unsigned integer), whatever its item.
-        BoundFieldOperand { Place: not RefModPlace, Place.Item.Pic: { Category: PicCategory.Numeric or PicCategory.NumericEdited, HoldsSign: true } } => true,
+        BoundFieldOperand { Place.DenotedItem: not null, Place.Item.Pic: { Category: PicCategory.Numeric or PicCategory.NumericEdited, HoldsSign: true } } => true,
         BoundComputedOperand c => c.IsNumericFunctionValue,
         _ => false,
     };
