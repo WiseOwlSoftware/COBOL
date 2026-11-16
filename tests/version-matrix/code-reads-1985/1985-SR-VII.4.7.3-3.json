@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-SR-VII.4.7.3-3",
+ "rule-digest": "2c860b21b556",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-162",
+  "sources": {
+   "reader": "c3e815222f3db3c4f9a246f9cc40540a60c0bad3872ec9834fa92e4d8d58d304",
+   "refuter": "8da29fb07a35a84701a4ba36c5c1c5551c642f72bdbe73707ca9679d0e7dbfee"
+  },
+  "imported": {
+   "reader": "2114d97a4838db3f135c67f7a0a9da3e78c9dd732f0df0af10bbc03050d2745a",
+   "refuter": "a2d69e0a5794976f25968ae4abd18f642d4130f5355ddcb013fd68123917819b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.7.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a WRITE whose ADVANCING phrase (BEFORE or AFTER) names a SPECIAL-NAMES mnemonic-name must be refused when the record's file has a LINAGE clause in its FD (integer or data-name LINAGE), while ADVANCING integer/identifier/PAGE on that file, and ADVANCING mnemonic-name on a file without LINAGE, stay legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckWriteAdvancingMnemonic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindWrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitWriteBeforeAfter",
+    "switches": "refuses the 2023 combined BEFORE AFTER ADVANCING pair below 2023; not the SR3 check",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitWriteStatement",
+    "switches": "WRITE FILE phrase and retry/lock phrase placement gates; not the SR3 check",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read SequentialIoBinder#BindWrite and StatementValidation#CheckWriteAdvancingMnemonic: the test is file.Linage != null && mnemonic operand, with no EditionContext/CobolVersion/ConstructRegistry test; grepped VersionConformancePass for VisitWrite/WriteBeforeAfter/EndOfPage.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f22_03 exercises AFTER ADVANCING mnemonic on an integer LINAGE; BEFORE, a data-name LINAGE, and the acceptance half (mnemonic without LINAGE, integer/PAGE with LINAGE) are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/adv1.cob",
+    "printed": "EXIT 65; COBOL0862 at line 27 (AFTER ADVANCING TOP-PAGE, FD with LINAGE IS WS-LIN) and line 28 (BEFORE TOP-PAGE, second record of the same FD); line 29 (mnemonic on FD Q without LINAGE) not refused",
+    "expected": "refuse both WRITEs on the LINAGE file; accept the one on file Q"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/adv2.cob",
+    "printed": "SP=00 SQ=00 LC=1",
+    "expected": "accepted and run: ADVANCING 2 LINES, identifier, PAGE on the LINAGE file; mnemonic and BEFORE 1 LINE on the non-LINAGE file"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/adv3.cob",
+    "printed": "COBOL0862 (SR3) and COBOL0900 'WRITE BEFORE AFTER ADVANCING requires COBOL-2023 (targeting COBOL-85)'",
+    "expected": "the 2023 BEFORE AFTER pair refused at 85, and SR3 still applies"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/adv1.cob",
+    "printed": "--std 2023: the same two COBOL0862 plus COBOL0902 for LABEL RECORDS",
+    "expected": "same SR3 refusal at 2023 (SR13)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.3 SR3",
+    "check": "OK  §1985:VII.4.7.3 SR3  (4.7.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "One edition-agnostic check on the sequential WRITE arm. Relative/indexed WRITE refuses any ADVANCING phrase before this check (KeyedIoBinder#BindWrite), and the 1985 Relative and Indexed WRITE formats have no ADVANCING phrase, so the rule is reached only on sequential files, as in the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusal",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.7.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read SequentialIoBinder.cs BindWrite (line 255 CheckWriteAdvancingMnemonic on file.Linage and MnemonicOperand(adv), which resolves through ctx.Mnemonics) and StatementValidation.cs CheckWriteAdvancingMnemonic; no edition test. Attack the reader did not try: §1985:VI.4.2 'apply to each contained program' (cite.py: OK  §1985:VI.4.2  (4.2 CONFIGURATION SECTION)  the text is in the clause), so a contained program reaches the outer SPECIAL-NAMES mnemonic and a GLOBAL LINAGE FD. w1.cob (--std 85): contained W1IN writes PREC of GLOBAL FD PFL (LINAGE 5) AFTER ADVANCING TOP-PAGE and BEFORE TOP-PAGE (outer C01 IS TOP-PAGE) -> COBOL0862 at lines 31 and 32; QREC of the GLOBAL non-LINAGE FD QF AFTER TOP-PAGE (line 35) not refused by SR3. w2.cob the legal half (QREC AFTER TOP-PAGE in the contained program) compiled and ran, SP=00 SQ=00. cite.py: OK  §1985:VII.4.7.3 SR3  (4.7.3 Syntax Rules)  the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

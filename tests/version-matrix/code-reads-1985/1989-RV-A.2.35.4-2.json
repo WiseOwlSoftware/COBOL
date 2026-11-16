@@ -1,0 +1,84 @@
+{
+ "rule-id": "1989-RV-A.2.35.4-2",
+ "rule-digest": "e565aaf52c56",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-183",
+  "sources": {
+   "reader": "4f0be211b120206b4c2a37f4a219d7959c5b7b1ec6118333aa2cc287c325cc8c",
+   "refuter": "2069fc40c4ba993e90b28e81950f109a26308d8479e1d47c5a5d50585c0c6ec7"
+  },
+  "imported": {
+   "reader": "7b98e62c12a150eaaa9e9afebfa5c7b0d017438391fb8fc2d8a3a04887a60ad3",
+   "refuter": "68f210218f450c5f3f8ffaa8e6ca24594e4faaabc34d116bcbe17bac505179ab"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.35.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for a given seed value FUNCTION RANDOM produces the same sequence every time on this implementation: a seeded reference followed by argument-less references yields the same numbers whenever that seed is given again, within one run unit and across separate runs, whatever form the seed takes (literal, identifier of any usage, arithmetic expression) and whether the follow-on references are in the seeding program or in a called program of the same run unit. The witness covers re-seeding within one run unit only.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Restart; src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Next; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Random; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#FloatBody",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: RANDOM admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+    "switches": "RANDOM IntroducedIn 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "No edition input in Random(Int128), RandomSequence or FloatBody (grep Edition|Dialect); the seed is reduced by seed AND 0x7FFFFFFF and passed to new System.Random(int), whose seeded generator is deterministic.",
+  "behaviour-differs-by-edition": "no: rnd2.cob prints the same numbers at --std 85 and --std 2023",
+  "witnesses-cover": "part: g85_f38_07 covers re-seeding with 5 and 17 inside one run; not exercised: repeatability across separate runs, a sequence continued across CALL, seed given as COMP identifier or as an expression, seeds beyond the int range",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/rnd2.cob",
+    "printed": "two separate runs (rnd2-001, rnd2-002) print identical V1, V5 and V6 lines: V1 0.60747361118321940 0.80544185862198560 0.65081852751356480; V6 0.72624326996795980; V4 BIG SEED SAME",
+    "expected": "the same sequence for the same seed in every run"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/rnd2.cob",
+    "printed": "V2 SAME ACROSS CALL (seed 17 from a S9(4) COMP item, 2nd value taken in nested program RNDSUB); V3 SAME FROM EXPRESSION (seed 16 + 1)",
+    "expected": "SAME, SAME"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.35@1985-RANDOM-FUNCTION/g85_f38_07.cob",
+    "printed": "EXPECT: MATCH (R1 SEED 5 RESTARTED SAME / R2 SEED 17 RESTARTED SAME)",
+    "expected": "the .out file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.35.4 RV2",
+    "check": "OK  §1989:A.2.35.4 RV2  (2.35.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1989:A.2.35.3 AR2",
+    "check": "OK  §1989:A.2.35.3 AR2  (2.35.3 Arguments)  the text is in AR2"
+   }
+  ],
+  "notes": "RandomSequence lives on RunUnit, so a called program continues the caller's seeded sequence; Restart builds new System.Random(seed), whose seeded algorithm is fixed, so the same seed reproduces across processes (shown by two runs). Determinism across .NET runtime versions is the implementation's 'given implementation' boundary.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.35.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "rndseed2.cob at --std 85: the seed value 5 given as literal, 10 / 2, (11 / 2) * 2 - 6, a SIGN LEADING SEPARATE item, 2 ** 2 + 1 and FUNCTION INTEGER(5.9) all print the same first and second values (0.33836984091362443 0.28441844754126780); seed 0 as literal, ZERO and 5 - 5 all print 0.72624326996795980 0.81732535959096870. rndseed.cob (refusal half): a PIC 9V9 seed, FUNCTION SQRT(25) and S9(9) COMP / 10 are refused with COBOL1627, which §1989:A.2.2 AR4 supports ('An arithmetic expression which will always result in an integer value must be specified', cite.py OK). The 31-bit fold of wider seeds maps one seed value to one sequence, which RV2 allows. cite.py: OK §1989:A.2.35.4 RV2 'the sequence of pseudo-random numbers'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

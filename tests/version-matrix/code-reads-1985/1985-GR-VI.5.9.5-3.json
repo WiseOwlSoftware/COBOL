@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-3",
+ "rule-digest": "abcddce776d5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-015",
+  "sources": {
+   "reader": "f1c2b03e7ee836ba38eee57b1584c5183bc99b1fba76cbf45b4b29ef90f5779e",
+   "refuter": "73835129bd9bc151e31048c04eb9c7b08ea0c2ae20226c831c9bfab1418a22ed"
+  },
+  "imported": {
+   "reader": "84eb04002bd622a37c8d2090b53bf29d39779367cf666261f2aeb1888c0c13fc",
+   "refuter": "0916796f91987d8aa91afee0b1578de29d1230e12b7641ffd539d336fff72d0c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.9.5-3",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 a PICTURE that combines a floating insertion string (cs, '+' or '-') with zero suppression ('Z' or '*') must be refused, and one that uses both 'Z' and '*' must be refused, while fixed insertion beside zero suppression stays legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#MarkFloating; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Table10Rows; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence",
+    "switches": "dialectLevel < 2002: a non-floating currency symbol takes only the CurrencyLeading role (the 1985 chart has one fixed cs row/column); also appends the 1985 chart clause to the COBOL1935 message",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+    "switches": "edition.DialectLevel < 2002 selects the 1985 BLANK WHEN ZERO arm (asterisk only, VI.5.9.3 SR7) over the 2002+ S-or-asterisk arm; message text",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/ConstructRegistry/CobolVersion in PictureComposition.cs and PictureAnalyzer.cs. The cells that decide this rule (floating {+-}/cs rows and columns against {Z *}) are the 2023 Table 10 matrix used at every edition; compared by hand with the 1985 chart of VI.5.9.6 (spec md lines 11449-11471): the floating {Z*}-left row is blank in every floating +-/cs column, the floating {+-}-left and cs-left rows are blank in the {Z*} columns, the same as Table10Rows. SR21 (Z/* exclusive) and SR23 (+/- exclusive) are edition-blind.",
+  "behaviour-differs-by-edition": "no: the floating-vs-suppression and Z-vs-* refusals are the same code and the same matrix cells at 1985 and 2023 (probes 1 and 8 give the same diagnostic at --std 2023).",
+  "witnesses-cover": "part: pb528 and pb530 are legal-source witnesses only (ZZ9, ***9, $$$9.99, ZZZ,ZZ9.99, +$$$); no witness of the refusal half (floating with Z/*, Z with *)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p2_pic_1.cob .. p2_pic_9.cob",
+    "printed": "$$$ZZ9, ZZ$$$9, ++ZZ9, ZZ++9, --**9, **--9, $$**9: error COBOL1935 (the Table-10 precedence pair named); ZZ**9, **ZZ9: error COBOL1934 'the symbol Z and the symbol * are mutually exclusive'",
+    "expected": "each refused: floating insertion and zero suppression are mutually exclusive; only one replacement type with zero suppression"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p2_pic_15.cob, p2_pic_16.cob, p2_pic_18.cob, p2_pic_19.cob, p3_fixcs_float.cob",
+    "printed": "$ZZZ9 [$  12]; +ZZZ9 [-   3]; $***9 [$**12]; ***9CR [***3CR]; $++9 [$-12]",
+    "expected": "legal: fixed insertion is not floating insertion"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p3_cur_e_bad.cob",
+    "printed": "CURRENCY SIGN IS \"E\", PIC EEZZ9: error COBOL1935 Z may not follow E",
+    "expected": "refused at 1985: a floating currency string of the 1985 currency letter E with zero suppression"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.9.5 GR3",
+    "check": "OK  §1985:VI.5.9.5 GR3  (5.9.5 Editing Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.5.9.6",
+    "check": "OK  §1985:VI.5.9.6  (5.9.6 Precedence Rules)  the text is in the clause"
+   }
+  ],
+  "notes": "Floating-vs-suppression is refused by the Table-10 walk (its floating and Z/* cells match the 1985 chart), and Z-vs-* by SR21; fixed insertion beside suppression stays legal. The diagnostics cite §2023 clauses at --std 85 (COBOL1934 adds no 1985 citation), which is wording, not a conformance failure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.9.5-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "g1..g64 at --std 85 beyond the reader's set: floating vs suppression on both sides of the point and in both orders refused (ZZ++, **$$, $$**, ZZ--9, $$.ZZ, ++.**, $$$.**, Z$Z, *$$9, +$$**, $(3)Z(2) COBOL1935; Z,ZZ9.++, ZZ.$$, **.++, **.$$ COBOL1934); Z with * refused in every arrangement incl. lowercase z and insertion between (z*9, ZZ*9, **z9, ZB*9, Z.**, *.ZZ, Z(3)*(2)9 COBOL1934); fixed insertion beside suppression stays legal and renders per GR6 (+**9 [+**1], **9+ [**1+], $**.** [$*1.00], +$**9 [+$**1], 0**9 [0*12], -ZZ.ZZ, ZZ.ZZ-). The 1985 chart (spec md 11449-11471) has blanks at every floating{+-}/cs x {Z*} cell; no probe found a combination the compiler admits. cite.py: 'OK  §1985:VI.5.9.5 GR3  (5.9.5 Editing Rules)  the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

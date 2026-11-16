@@ -1,0 +1,181 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-3",
+ "rule-digest": "82aa2d14da41",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-071",
+  "sources": {
+   "reader": "90a7f18d255b545bee9f7532c2b43d3174e2468167bc66f03ff0fb60ab7004ef",
+   "refuter": "5ff05a7002ed3d0fe9d4c6c14bb6d40fe2625a6767b6221c63700a72659e7bdb"
+  },
+  "imported": {
+   "reader": "b13dc30ac2c0b9385dcb4e17dcf89bac8f48d87335c9ce8c995cae308837f875",
+   "refuter": "f7c38922f22977afa52c5a973a50c996f1eee9468bad1813dc5b810542a45575"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.4.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 SORT ... USING is refused when a USING file describes a record larger than the SD's largest record (fixed SD), or a record smaller than the smallest or larger than the largest record described for a variable-length SD. Fixed versus variable is the implementor's choice for an SD with no RECORD clause or with Format 3 (§1985:II.2.1.4.3).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenTransferRecordSizes; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeRange; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "VaryingRecordInfo.BoundsEnforced via DialectBehavior.RecordContainsRangeBindsRecordSize (2002 on): at 85 the range of a Format 3 (RECORD CONTAINS m TO n) file is its record descriptions' smallest..largest, not m..n",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: for a Format 3 SD (RECORD CONTAINS 2 TO 8, records of 3 and 6), USING a 7-byte file is refused at 85 (range 3..6, the largest record described) and accepted at 2023 (range 2..8)",
+  "witnesses-cover": "part: the witness is the legal edges only (fixed smaller or equal, variable range inside); the refusals at 85 and the Format 3, multi-01 and ODO SDs are not witnessed",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ua.cob",
+    "printed": "COBOL1757: fixed SD 5, USING fixed 6 refused",
+    "expected": "refused (larger)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ub.cob",
+    "printed": "EXIT 0: fixed SD 5, USING fixed 4",
+    "expected": "accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ub5.cob",
+    "printed": "EXIT 0: fixed SD 5, USING fixed 5",
+    "expected": "accepted"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/uc.cob",
+    "printed": "COBOL1757: varying SD 3..6, USING fixed 2 refused",
+    "expected": "refused (smaller)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/uc7.cob",
+    "printed": "COBOL1757: varying SD 3..6, USING fixed 7 refused",
+    "expected": "refused (larger)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ud.cob",
+    "printed": "COBOL1757: varying SD 3..6, USING varying 3..7 refused",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ud2.cob",
+    "printed": "COBOL1757: varying SD 3..6, USING varying 2..6 refused",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ue.cob",
+    "printed": "EXIT 0: varying SD 3..6, USING varying 4..6",
+    "expected": "accepted"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/uf.cob",
+    "printed": "COBOL1757: fixed SD 5, USING varying 2..6 refused",
+    "expected": "refused (largest 6 > 5)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ug.cob",
+    "printed": "EXIT 0: fixed SD 5, USING varying 2..5",
+    "expected": "accepted"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/uh.cob",
+    "printed": "EXIT 0: SD with 01s of 3 and 6 (no RECORD clause, fixed 6), USING fixed 6",
+    "expected": "accepted"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/uh7.cob",
+    "printed": "COBOL1757: same SD, USING fixed 7 refused",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ui.cob",
+    "printed": "COBOL1757: SD record with OCCURS 1 TO 4 DEPENDING (no RECORD clause, taken as fixed 6), USING fixed 7 refused",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ui2.cob",
+    "printed": "EXIT 0: same ODO SD, USING fixed 2",
+    "expected": "accepted under the fixed-length choice"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/ui3.cob",
+    "printed": "EXIT 0: same ODO SD, USING fixed 4",
+    "expected": "accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/uj.cob",
+    "printed": "COBOL1757: Format 3 SD (3 TO 6) taken as variable 3..6, USING fixed 2 refused",
+    "expected": "refused under the variable-length choice"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/uj7.cob",
+    "printed": "COBOL1757: Format 3 SD, USING fixed 7 refused",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/uk7.cob",
+    "printed": "--std 85: COBOL1757 (range 3..6 from the record descriptions); --std 2023: EXIT 0",
+    "expected": "85: refused, the largest record described is 6"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.3 SR3",
+    "check": "OK  §1985:XI.4.4.3 SR3  (4.4.3 Syntax Rules)  the text is in SR3 [the size of the records contained in the file referenced by file-name-2 must not be less than the smallest record nor larger than the largest record described for file-name-1]"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR3",
+    "check": "OK  §1985:XI.4.4.3 SR3  (4.4.3 Syntax Rules)  the text is in SR3 [the size of the records contained in the file referenced by file-name-2 must not be larger than the largest record described for the file referenced by file-name-1]"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause [it is implementor defined whether fixed length or variable length records are obtained]"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR13",
+    "check": "OK  §1985:VII.3.8.4 GR13  (3.8.4 General Rules)  the text is in GR13 [It is implementor defined whether format 3 of the RECORD clause produces fixed length records or variable length records]"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR14",
+    "check": "OK  §1985:VII.3.8.4 GR14  (3.8.4 General Rules)  the text is in GR14 [the size of each data record is completely defined in the record description entry]"
+   }
+  ],
+  "notes": "One RecordSizeRange comparison covers both arms, and the fixed/variable classification is applied consistently. Format 3 is taken as variable, measured by its record descriptions at 85 (GR14). An SD with no RECORD clause but an ODO record is taken as fixed at its maximum. Both are implementor choices under §1985:II.2.1.4.3. I found no docs/conformance entry that names the 1985 Format-3 choice; that is a documentation check, not a rule failure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.4.3-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Read SortBinder.cs#ScreenTransferRecordSizes (loops over EVERY USING file) and FileModel.cs#RecordSizeRange/VaryMin/VaryMax/ImpliesVariableFormat (ODO is not a variable-length group, so an FD/SD with no RECORD clause and an ODO record is fixed at its maximum). Probes at --std 85 (compile verdicts; EXIT 1 runs are status 35 on the absent input file): x6a SD Format 2 FROM 2 TO 8 (records 3,6), USING fixed 7 accepted (integer-3 is the largest record of the file, §1985:VII.3.8.4 GR4); x6b SD Format 2 with no FROM/TO over an ODO record (3..6 per GR5/GR6/GR7), USING fixed 2 refused; x6c USING fixed 3 and 6 accepted; x6d second USING file fixed 7 refused (each USING file checked); x6e fixed SD 6, second USING file 7 refused; x6f USING FD RECORD CONTAINS 7 over 01 X(5) vs fixed SD 6 refused (Format 1 records are 7); x6g USING FD Format 3 2 TO 8 with records 3,5 vs fixed SD 5 accepted (85 measures Format 3 by its record descriptions, GR14); x6h varying 3..5 into varying 3..6 accepted; x6i varying 3..5 into varying 4..6 refused. x6j (runtime consistency of the fixed classification): FD with an ODO record and no RECORD clause writes 6-byte padded records (12-byte file for two WRITEs) and SORT into a FROM 5 TO 6 SD returns L=6 for both, so the check's fixed-6 classification matches what the file holds. cite.py: OK  §1985:XI.4.4.3 SR3; OK  §1985:VII.3.8.4 GR6; OK  §1985:II.2.1.4.3 [it is implementor defined whether fixed length or variable length records are obtained].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-XII.3.4-4",
+ "rule-digest": "f2f1a57f41cb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-144",
+  "sources": {
+   "reader": "72264e88926b78dc3b8e0e2892ca0fd3d164afe74e3222cf08a546e41fb1f8d5",
+   "refuter": "152cfc7a214db13ef4263492ec5fde59da5bf728b175ca0fe9b29372aa999b5e"
+  },
+  "imported": {
+   "reader": "41608233d71735d29fefb8d4d8a7d09c68e6f85e9697a0c78d6bfc88153930ca",
+   "refuter": "59f3e0a33494e7e8c5d2cab30fe48b2f192fabc878acf667b5eed59ae286b949"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XII.3.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every REPLACE statement is applied to the text that results after all COPY statements are processed: a REPLACE never changes a COPY statement's own operands, its pseudo-text-1 matches text words brought in by COPY (including a match spanning source and library text), and a REPLACE statement written in library text takes effect.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Manipulate; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+    "switches": "EditionInfo.ReplaceScopeEndsWithSeparatelyCompiledProgram (scope end, GR3), ReplaceAnywhere2002 (SR1 separator period), ReplaceAlsoLast2002 (ALSO/LAST refused at 85); the COPY-then-REPLACE order is not switched",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+    "switches": "edition.ReplacedTextIsLaidOutInFixedForm (layout of replaced text)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Manipulate renders the whole COPY-expanded text (run.Render) and only then calls ApplyReplaceStatements, for every dialectLevel; grep of dialectLevel/EditionInfo in ConditionalCompilationProcessor.Manipulate finds no edition switch on the order.",
+  "behaviour-differs-by-edition": "no: the order (COPY first, REPLACE over the expanded text) is the same at 85 and 2023; 85 differs only in REPLACE's own phrase and placement gates",
+  "witnesses-cover": "part: g85_f28_03 covers REPLACE acting on copied text; not exercised: a REPLACE operand naming the COPY text-name, a match spanning source and library text, a REPLACE written inside library text",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c2gr4.cob",
+    "printed": "LIB / JOINED / YY (MATCH at --std 85 and --std 2023)",
+    "expected": "REPLACE ==c1lit== BY ==c2lit== does not redirect COPY c1lit (COPY first): LIB; ==\"Q\" \"LIB\"== matches across source and copied text: JOINED; REPLACE inside copied library text applies to later source: YY"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c2refuse.cob",
+    "printed": "COBOL0900 REPLACE not preceded by a separator period requires COBOL-2002 (§1985:XII.3.3 SR1); COBOL0900 REPLACE ALSO requires COBOL-2002",
+    "expected": "both refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.3.4 GR4",
+    "check": "OK  §1985:XII.3.4 GR4  (║3.4 General Rules║)  the text is in GR4"
+   }
+  ],
+  "notes": "ConditionalCompilationProcessor.Manipulate renders the conditional-compilation and COPY driver over the whole text (recursively into copybooks) and applies ApplyReplaceStatements once over the expanded result, so REPLACE sees only post-COPY text. FindStatementKeyword walks text words, so COPY statements are recognized wherever a character-string stands before REPLACE runs.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output (MATCH)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XII.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "run_probe --std 85 r2cpr.cob (runs/r2cpr-002): a COPY written inside REPLACE pseudo-text-1 and pseudo-text-2 (legal by §1985:XII.2.3 SR7, no rule bars a COPY inside a REPLACE) is processed first: DISPLAY \"LIB\" -> NEW, DISPLAY \"X1\" -> LIB, and REPLACE matches the output of a COPY REPLACING ('ZZ' -> ZOK). The first run (r2cpr-001) wrote ==COPY with no space and was refused COBOL2451, correctly by §1985:XII.2.3 SR2. r2op.cob (runs/r2op-001): REPLACE =='LIB'== and ==r1lit== do not alter a COPY's REPLACING operand or text-name (CCC, RRRRRR), REPLACE OFF ends it (LIB). cite.py: OK §1985:XII.3.4 GR4 the text is in GR4; OK §1985:XII.2.3 SR7; OK §1985:XII.2.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

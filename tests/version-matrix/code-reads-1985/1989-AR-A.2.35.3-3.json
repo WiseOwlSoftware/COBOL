@@ -1,0 +1,69 @@
+{
+ "rule-id": "1989-AR-A.2.35.3-3",
+ "rule-digest": "0225aa1e4349",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-171",
+  "sources": {
+   "reader": "b9e1fb2dbadce3c7a5d8fb6b4c742c50d1f946596a6ce67df9c7c2055b5bf3a5",
+   "refuter": "cb6f0ea645b0cd3ae00802e52db865e1a5964587e93a9697ae35be5074b42c28"
+  },
+  "imported": {
+   "reader": "ab59e1b941815a84ef3a2c1ad4fbf566ea2152e78daebfad45fe0951ad5caa04",
+   "refuter": "8eb26b46fdd491db181c744aa470a034986bda7de4c0361ad53f6aa40a558d66"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.35.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when the first FUNCTION RANDOM reference in the run unit has no argument-1, the implementor supplies the seed. The reference must return a value from a sequence that later unseeded references continue and a later seeded reference replaces. The witness covers this in one program; the probe adds a second program in the same run unit.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Next; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Random; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Begin; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#FloatBody",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: whether FUNCTION RANDOM exists at the edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Greps of RandomSequence.cs, RunUnit.cs and CobolIntrinsics.Float.cs for Edition/DialectLevel/CobolVersion/DialectBehavior: none; the implementor seed is OS entropy (new System.Random()) created lazily at the run unit's first unseeded reference.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: a first unseeded reference in a single-program run unit; not a run unit of several programs",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_runit.cob",
+    "printed": "UNSEEDED=ADVANCES (first reference has no argument-1; the second continues); CALLED=CONTINUES-SEQUENCE",
+    "expected": "implementor seed for the unseeded first reference (§1989:A.2.35.3 AR3); the run unit holds one current sequence"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_neg.cob",
+    "printed": "AFTER-NEG-NEXT-IN-RANGE=+0.049097318 (an unseeded reference after a rejected seed draws from the implementor-seeded sequence)",
+    "expected": "a value in [0,1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.35.3 AR3",
+    "check": "OK  §1989:A.2.35.3 AR3  (2.35.3 Arguments)  the text is in AR3"
+   }
+  ],
+  "notes": "The implementor seed is recorded as conformance determination DOC-A.1-144 (OS entropy). Its state lives on RunUnit, so it is scoped to the run unit as the rule requires. No path consults the edition beyond the function's introduction check.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.35.3-3",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "The implementor seed is OS entropy on RunUnit, recorded as determination DOC-A.1-144, which satisfies 'defined by the implementor'. No edition site found in RandomSequence.cs or RunUnit.cs beyond the reader's. The reader's rnd_runit/rnd_neg probes show the unseeded first reference draws from a run-unit sequence that later unseeded references continue. My probes found no shape that breaks it. cite.py: OK §1989:A.2.35.3 AR3 the text is in AR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-6",
+ "rule-digest": "663b2005d072",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-099",
+  "sources": {
+   "reader": "7fe496d433ccb535591a8ad63fc59e22218ac1415edd20e9c8d8cad3d19976b8",
+   "refuter": "dd885ab0c2cd3867572cc4e1d13f78dd8f826a31e58d05364df34ddcab60c43f"
+  },
+  "imported": {
+   "reader": "cad72ab1048fcba5ce5e5f637d44c4ecc0338aea4b9fbc42ecdb4a69ab3f8f77",
+   "refuter": "f4a9fd7dc6f385a6bed0bf664094fb26fb04076ed7d8a54b6ddbf965624a75c4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a START on an OPTIONAL indexed file that was absent at OPEN INPUT (status 05) must be an invalid key condition (status 23): the INVALID KEY imperative runs, or with no INVALID KEY phrase the USE procedure runs, and NOT INVALID KEY never runs, for every KEY form including none.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OptionalAbsent; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement / #VisitStartKeyPhrase / #VisitStartWithLength",
+    "switches": "2002 START forms refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "IndexedConnector.Start line 882 'if (OptionalAbsent) return StartFail()' (23) reads no edition; KeyedConnector.OpenCore sets OptionalAbsent without an edition read (grep Edition|DialectBehavior)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f20_08 covers EQUAL with both phrases; the no-INVALID-KEY form routed to a USE procedure, the NOT LESS operator and the no-KEY-phrase form are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/st1.cob",
+    "printed": "M-OPEN=05 / S5-INVALID / S5=23 K001XXXX USES 4 / USE-M 23 / S6=23 K001XXXX USES 5",
+    "expected": "OPEN INPUT of absent optional -> 05; START KEY NOT LESS with both phrases runs INVALID KEY only and not the USE procedure; START with no KEY phrase and only NOT INVALID KEY runs the USE procedure with 23 and not NOT INVALID KEY"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR6",
+    "check": "OK  §1985:IX.4.7.4 GR6  (║4.7.4 General Rules║)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c.2"
+   },
+   {
+    "cite": "§1985:IX.1.3.5 GR2",
+    "check": "OK  §1985:IX.1.3.5 GR2  (1.3.5 The Invalid Key Condition)  the text is in GR2"
+   }
+  ],
+  "notes": "The absent-optional test precedes every key computation in IndexedConnector.Start, so every KEY form is covered by one line; both transfer arms probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe src/s1.cob (s1-001): OPTIONAL indexed file absent at OPEN INPUT -> M-OPEN=05; a sequential READ first -> 'M-AT-END 10' (IX.1.3.4 2a.2); then START KEY GREATER THAN with only NOT INVALID KEY -> mode-based 'USE-INPUT ... 23', M1=23, NOT INVALID KEY not run; START KEY EQUAL with only INVALID KEY -> M2-INVALID, M2=23. The intervening READ did not clear the 'not present' file position indicator (IndexedConnector.cs#Start line 882 'if (OptionalAbsent) return StartFail()', no edition read). cite.py: 'OK  §1985:IX.4.7.4 GR6  (║4.7.4 General Rules║)  the text is in GR6'; 'OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c.2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

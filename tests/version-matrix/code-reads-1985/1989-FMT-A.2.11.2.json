@@ -1,0 +1,97 @@
+{
+ "rule-id": "1989-FMT-A.2.11.2",
+ "rule-digest": "726a09ef98f7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-174",
+  "sources": {
+   "reader": "8a2dec28f86e235a9e21fb901ad02fb325a9f759c756cb55241e4581382feff4",
+   "refuter": "f3a1dcd4089b1d6fc6f6ff97d0c1f808a1c18a7466120fc3fb72152d1b93cf74"
+  },
+  "imported": {
+   "reader": "92d8dbc22763abad6d1a344dbef8f28e964be1505e8c4d54c036ac16a719cf44",
+   "refuter": "1808e0d4756bd7b8a401fdf2ac93e3f6a9eadc3d97fb72a5a87c72dd289d1681"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.11.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept FUNCTION CURRENT-DATE with no argument list (optionally reference-modified, since it is an alphanumeric function usable wherever an identifier is) and return the 21-character value of §1989:A.2.11.3, and must refuse any argument, the empty '( )' list, and its use as a numeric operand.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ResultRefMod; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#CurrentDate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "construct FunctionEmptyArgumentList2002: FUNCTION CURRENT-DATE ( ) refused below 2002, admitted and run at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window: CURRENT-DATE IntroducedIn 85; admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "NumericFunctionIdentifierOperand2002 applies only to numeric/integer functions; CURRENT-DATE is alphanumeric, so MOVE FUNCTION CURRENT-DATE TO D takes the same arm as 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: FUNCTION CURRENT-DATE ( ) is refused at 85 (COBOL0900) and compiles and runs at 2023; the keyword-only form is the same code",
+  "witnesses-cover": "part: g85_bf05_03 covers the bare form; no witness exercises an argument, the empty list, ref-mod of the result or the numeric-operand refusal",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/cdate-ok.cob",
+    "printed": "CD=2026111600523619-0800 DIGITS=OK SIGN=OK YEAR=2026 LEN=21 (host clock 2026-11-16 00:52:34 PST)",
+    "expected": "21 characters: YYYYMMDD hhmmss hundredths, '-' for behind GMT, 0800 (§1989:A.2.11.3 RV1); ref-mod (1:4) admitted for an alphanumeric function"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/cdate-bad.cob",
+    "printed": "COBOL1504 'takes 0 argument(s); 1 given' and '2 given'; COBOL0844 for COMPUTE R = FUNCTION CURRENT-DATE",
+    "expected": "all refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/cdate-empty.cob",
+    "printed": "--std 85: COBOL0900 'an empty function argument list ( ) requires COBOL-2002'; --std 2023: EXIT 0, 2026111600524023-0800",
+    "expected": "refused at 85 (the 1985 format braces the argument inside the parentheses)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.11.1",
+    "check": "OK  §1989:A.2.11.1  (2.11.1 Description)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.11.3 RV1",
+    "check": "OK  §1989:A.2.11.3 RV1  (2.11.3 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.2",
+    "check": "OK  §1985:IV.4.3.8.3.2  (4.3.8.3.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.2.1.4",
+    "check": "OK  §1985:IV.2.1.4  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in the clause"
+   }
+  ],
+  "notes": "The format clause §1989:A.2.11.2 is too short for cite.py's quotation check. Arity 0..0 comes from the catalog row; the empty-list refusal is the 1985 edition arm in VersionConformancePass. The runtime body formats the run-unit clock into the 21-character layout and the probe matched the host clock and offset.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.11.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "cdate-recv.cob at --std 85: FUNCTION CURRENT-DATE as MOVE receiver, ACCEPT target, STRING INTO and MOVE receiver of its own ref-mod each COBOL5506 (receiving operand, §1985:IV.4.3.8.3.3 SR3a); cdate-insp.cob: INSPECT FUNCTION CURRENT-DATE REPLACING and CONVERTING each COBOL1632. cdate-send.cob: as a sending operand of UNSTRING (Y=2026), INSPECT TALLYING (N=01 for '-' at UTC-8) and STRING with (17:1) (M=-), all admitted. cdate-dn.cob: a data item named CURRENT-DATE coexists with FUNCTION CURRENT-DATE (DN=HELLO, FN17=-, MONTH=OK, CMP=OK). cite.py: OK §1985:IV.4.3.8.3.3 SR3; OK §1985:IV.4.2.2.1.4; OK §1989:A.2.11.3 RV1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

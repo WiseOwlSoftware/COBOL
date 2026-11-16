@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-2",
+ "rule-digest": "ef6625507f03",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-113",
+  "sources": {
+   "reader": "9e16c1aa971425a4b8a397cba94309dde729a8b6a0436fab764dd51d99307d99",
+   "refuter": "8cba34c317369f509ca7b93c39d2ca658455da6c1854a7605b3d5c2f7ae4b531"
+  },
+  "imported": {
+   "reader": "cc8738e20035c3d59f96c5737e2cc3dc31d20d67ee461e8ca43bec8c2ee221a9",
+   "refuter": "8766b1a7a83864c36ce02fc6eb28691bed0acedf486873cf601c4c0a9484ea52"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 literal-2 or identifier-2's content (any USAGE DISPLAY item: alphanumeric, group, integer numeric, reference-modified) is the delimiter character string; with SIZE the complete sending item is moved; a figurative constant delimiter (any spelling, singular or plural, a symbolic character, HIGH-/LOW-VALUE) is a one-character nonnumeric literal, while ALL figuratives and numeric literals are refused (SR1, SR2).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#Fill; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStringStatement",
+    "switches": "string-delimited-omitted-2002: at 85 a last sending phrase without DELIMITED is refused COBOL0900 (2002+ implies SIZE)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|ConstructRegistry|DialectBehavior over StringEmitter.cs, CobolStringOps.cs, FigurativeConstants.cs: none; StringUnstringBinder uses ctx.Edition only as the diagnostic sink of its reports, no edition comparison.",
+  "behaviour-differs-by-edition": "yes: an omitted trailing DELIMITED phrase is refused at 85 and implies SIZE at 2002+; delimiter semantics are the same code",
+  "witnesses-cover": "part: g85_bf02_03 covers SIZE, a literal and a two-character identifier delimiter, SPACE and ZERO delimiters; not exercised: plural figuratives, symbolic characters, HIGH/LOW-VALUE, group SIZE, numeric identifier-2, reference-modified identifier-2, ALL/numeric refusals",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr234.cob",
+    "printed": "A [A-B012******] B [10**********] C [AB12X\"Y*****] E [AB**********] F OK K [ABC*********] (MATCH)",
+    "expected": "group SIZE moves all 6 chars; numeric DN '2' delimits; SPACES/ZEROES one char; symbolic char delimiter; HIGH/LOW one char; S5(4:1) delimits"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/refall2.cob",
+    "printed": "COBOL1757 DELIMITED BY 'ALL SPACES' refused; refallq.cob COBOL1757 ALL \"B\"; refnum2.cob COBOL1626 numeric literal delimiter",
+    "expected": "SR1 ALL figurative and SR2 numeric literal refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/omitdl.cob",
+    "printed": "--std 85 COBOL0900 'DELIMITED phrase omitted requires COBOL-2002'; --std 2023 [ACD***]",
+    "expected": "85 format requires DELIMITED after each sending run"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR2",
+    "check": "OK  §1985:VI.6.25.4 GR2  (║6.25.4 General Rules║)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.25.3 SR1",
+    "check": "OK  §1985:VI.6.25.3 SR1  (║6.25.3 Syntax Rules║)  the text is in SR1"
+   }
+  ],
+  "notes": "A figurative delimiter renders as new string(Fill(kind), 1), one character in the program collating sequence; SIZE passes a null delimiter so the kernel moves the whole image. Diagnostic texts cite 2023 clause numbers.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "cite.py 'OK §1985:VI.6.25.4 GR2 the text is in GR2', 'OK §1985:VI.4.5.4 GR5' (HIGH-VALUE = highest in program collating sequence). Probes at 85: sp1.cob signed S9 identifier-2 delimiter matches its overpunched content ('3 [AB******]'); FUNCTION UPPER-CASE sender (amendment 1) admitted '2 [AB******]'; hv4.cob under PROGRAM COLLATING SEQUENCE ALPHABET 256 THRU 1, HIGH-VALUES and LOW-VALUE delimiters stop at a character MOVEd from the same figurative ('1 [AB**]','2 [A***]'); subp.cob subscripted delimiter D(P) evaluated once (§1985:IV.4.3.8 OK) '2 [A*******] 02'; n85.cob N\"AB\" refused COBOL0900 at 85. hv2/hv3 first looked like HIGH-VALUE was wrong under the reversed alphabet (ORD 65536, U+FFFF), but docs/conformance/7/DOC-A.1-31.md makes the native set the 65,536 BMP code units, so the unspecified characters follow and U+FFFF is the highest: consistent, not a defect.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

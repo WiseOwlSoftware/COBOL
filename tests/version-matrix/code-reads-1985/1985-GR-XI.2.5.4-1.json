@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XI.2.5.4-1",
+ "rule-digest": "ad49315aac3d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-033",
+  "sources": {
+   "reader": "13cc6799f88b464f1d7f9af78e1b13de577101149a37847b7088ad9a74c77d45",
+   "refuter": "455f82c1e6756a1de7d09787d8625dccbb72271f5f57eeb9af65a282f18bd6ae"
+  },
+  "imported": {
+   "reader": "6cf63bc35f8e5756078516f666a48720da968aebe5db8b217f5b89aac05401ae",
+   "refuter": "b55b5a60ab677b5456761cdbd1802e8a17486a8d92bf2182ae8ee0163edade78"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.2.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, files (in the Sort-Merge module, a sort or merge file among them) named in one SAME RECORD AREA clause share one record area, left-aligned as an implicit redefinition, so a record moved, released, read or returned through one file's record-name is the content of every other member's records, whatever their lengths, with all members open at once.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#ReleasedRecordNeedsAlsoAvailable",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|ConstructRegistry|DialectLevel|CobolVersion' over FileControlBinder.IoControl.cs (only Edition.At / Edition.Error diagnostic positioning and emission, no switch; none inside LinkSameRecordArea, lines 560-600) and FileModel.cs SameRecordAreaPeers/AreaFiles (none); SequentialIoEmitter's SAME RECORD AREA arm (ReleasedRecordNeedsAlsoAvailable) reads only the model. The seed DataBinder.cs#BindIoControl is a call site (line 579, inside BindDeclarations), not a member.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb235 shares the area between two sequential FDs (READ, CLOSE); it does not exercise the Sort-Merge module's form (an SD in the clause, RELEASE/RETURN and SORT USING through the shared area), records of different lengths, or a variable-length (ODO) sort record.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/s1sra.cob",
+    "printed": "AFTER-RELEASE O-REC=30CCCC; O-HEAD=10A O-TAIL=AAA; S-KEY=20 S-TXT=BBBB; RETURNED O-REC=10AAAA/20BBBB/30CCCC; FILE 10AAAA/20BBBB/30CCCC",
+    "expected": "the SD record and both FD records (X(6) and 3+3 group) are one left-aligned area: a released or returned record reads through O-REC, a MOVE to O-REC is S-REC's content, WRITE O-REC writes the returned record"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/s2sra.cob",
+    "printed": "READ I-REC=22BB S-KEY=22 S-TXT=BB I-REC3=22B; OUT 22BB; OUT 11AA",
+    "expected": "a READ of the input FD is S-REC's content (leftmost aligned with the shorter I-REC3); SORT USING/GIVING still sorts descending"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/s3odo.cob",
+    "printed": "AFTER-RELEASE O-REC=[303CCC  ]; VIA-FD S-KEY=10 S-N=5 S-REC=[105AAAAA]; RETURNED O-REC=[105AAAAA] S-REC=[105AAAAA]; RETURNED O-REC=[303CCC  ] S-REC=[303CCC]",
+    "expected": "an ODO sort record shares the area with a fixed FD record: the released variable record is seen through O-REC, a MOVE through O-REC sets S-N and makes S-REC 8 characters"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.2.5.4 GR1",
+    "check": "OK  §1985:XI.2.5.4 GR1  (2.5.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The clause records its members once (SameClauses) and LinkSameRecordArea joins their records into one implicit-redefinition class; out-of-line (variable-length) records get the emitted also-available store. The probes cover the SD form, the mixed lengths and an ODO sort record, all left-aligned in one area.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.2.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "r5org.cob at --std 85 (refute-1985-033/r5org-002), the organizations the reader did not try (SR6): SAME RECORD AREA FOR an SD, an INDEXED (dynamic) file and a RELATIVE (random) file, with records of 6, 6 and 8 characters. Printed 'VIA-RL S-KEY=22 S-TXT=BBBB' (a MOVE to the longer relative record is the sort record, left-aligned), 'RETURNED IX-REC=22BBBB RL-A=22BBBB' / '11AAAA' (DESCENDING order; the returned record seen through both FD records), 'AFTER-WRITE S-REC=22BBBB FS=00' (the written indexed record still available through the area), 'READ-IX S-REC=22BBBB RL-A=22BBBB FS=00' (a random READ of the indexed file is the content of the other members), 'READ-RL S-REC=22BBBB IX-REC=22BBBB RL-B=[ZZ]'. A first run (r5org-001) was refused COBOL0863 for a numeric RECORD KEY, correct at 85 (§1985:IX.2.7.3 SR2), and the key was made PIC X(2). cite.py: OK §1985:XI.2.5.4 GR1 the text is in GR1; OK §1985:XI.2.5.3 SR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

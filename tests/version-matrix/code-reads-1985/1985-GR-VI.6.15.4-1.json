@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.6.15.4-1",
+ "rule-digest": "aada90d63f1b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-015",
+  "sources": {
+   "reader": "f1c2b03e7ee836ba38eee57b1584c5183bc99b1fba76cbf45b4b29ef90f5779e",
+   "refuter": "73835129bd9bc151e31048c04eb9c7b08ea0c2ae20226c831c9bfab1418a22ed"
+  },
+  "imported": {
+   "reader": "d86baf8c18a02d0bc195c64c0e6c07b7223a3515dbaf19e1e9434733e50dac15",
+   "refuter": "5e5a9c1de17191315e9f75d1f4927a5f286a937a97219e8343a9cb0c2ecddf67"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.15.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 executing a format-1 GO TO procedure-name-1 must transfer control to that paragraph, or to the first paragraph of that section, from any position (forward, backward, out of an inline PERFORM, a PERFORMed range, an IF or an EVALUATE), resolving a qualified or same-section paragraph-name, and refusing an undefined or ambiguous name.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#AlterGoTo; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ExplicitTransferOut; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#TransferOut",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGoToStatement",
+    "switches": "the target-less GO TO (GoToFormat.AnsiAlterable) is refused from 2002 (BareGotoRemoved2002); legal at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#AlterGoTo",
+    "switches": "not an edition test itself, but ALTER exists only at 85 (AlterRemoved2002 in VersionConformancePass), so only at 85 can a GO TO in an ALTERed paragraph bind as BoundGoToAlterable; every other GO TO binds as BoundGoTo, the latest edition's arm",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel|ConstructRegistry|DialectBehavior|Edition.Year over ControlFlowBinder.cs (only StopLiteralRemoved2002, for STOP), StatementEmitter.cs and EmitterState.cs: none on the GO TO path; VersionConformancePass#VisitGoToStatement gates only the target-less form.",
+  "behaviour-differs-by-edition": "no for GO TO procedure-name-1: same binding and emission at 85 and 2023 (p6 output identical); the 85-only ALTERable arm is GR2/ALTER's subject.",
+  "witnesses-cover": "part: pb413 covers GO TO out of an inline PERFORM; not covered: backward and forward paragraph transfer, GO TO a section, qualified paragraph-name, GO TO inside a PERFORMed THRU range and a PERFORMed section, GO TO from an EVALUATE body, refusal of undefined and ambiguous names",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p6_goto.cob",
+    "printed": "START FWD N=01 FWD N=02 FWD N=03 INLINE M=01 OUT-OF-INLINE M=02 RANGE-A RANGE-C BACK-FROM-RANGE O-1 O-3 BACK-FROM-SECTION DUP-IN-S-TWO S-END-E-1",
+    "expected": "control goes to the named paragraph each time (SKIPPED, RANGE-B, O-2 and the S-THREE DUP never run); GO TO a section reaches its first paragraph; a PERFORM range still returns at its end"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p6b_undef.cob, p6c_ambig.cob, p6e_samesec.cob",
+    "printed": "GO TO NOWHERE: COBOL1639; unqualified DUP declared in two other sections: COBOL2121 not unique; DUP in the same section: runs S1-DUP",
+    "expected": "a name that identifies no procedure, or is not unique, is refused; a same-section paragraph-name needs no qualifier"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p6d_alter.cob",
+    "printed": "ALTER SW TO PROCEED TO TGT; GO TO SW; SW. GO TO. -> ALTERED-TGT",
+    "expected": "the 85-only target-less GO TO with ALTER is accepted and transfers to the altered target"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.15.4 GR1",
+    "check": "OK  §1985:VI.6.15.4 GR1  (6.15.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "GO TO procedure-name-1 binds through the one procedure resolution to the target's start pc and emits __pc = target plus a jump in the paragraph dispatcher; every transfer probed reached the named procedure at --std 85, the same as at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.15.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "t2_goto.cob at --std 85: GO TO into a SECTION 60 (independent segment) and back, backward GO TO within it, GO TO a section with no qualifier, GO TO out of a PERFORMed section skipping SUB-2, GO TO qualified FIN OF S-END in SECTION 55: START SEG N=1 SEG N=2 BARE-P N=2 BARE-P N=3 SUB-3 K=1 FIN N=3. t6_seg.cob (85-only arm): an ALTERed GO TO in an independent segment returns to its initial state when a GO TO from the fixed segment re-enters it (P-A N=1, P-B N=1, P-A N=2), per §1985:XVI.1.4.3 (cite.py 'OK  §1985:XVI.1.4.3 ... it lies in GR3'). Refusals: GO TO a paragraph of the containing program from a nested program COBOL1639; duplicate unqualified paragraph COBOL2121; section-name equal to a paragraph-name COBOL2692. Sentences before a section's first paragraph are refused at 85 (COBOL0900), consistent with the 1985 Procedure Division format. cite.py: 'OK  §1985:VI.6.15.4 GR1  (6.15.4 General Rules)  the text is in GR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

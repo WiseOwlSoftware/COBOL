@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-3",
+ "rule-digest": "e00f45befd21",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-096",
+  "sources": {
+   "reader": "4885c94b53f00c92261aa337973cfa772e2e53555c523fdf10e285f06db771e3",
+   "refuter": "9e7b7d463898bf2aef2f6e898c1e390033f25e3495d88a95c4dec25178b53b19"
+  },
+  "imported": {
+   "reader": "4416a9cc63b937f365dbd64bd614ef6ef5c754501ba24890739420046e306086",
+   "refuter": "7674ef4bcfdb872b76b3a1c0862f5ce617803974dfcd59d5b709bfdd57e929f7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.4.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, any input-output statement (READ, WRITE, REWRITE, DELETE, START, CLOSE) referencing an indexed file that is not in an open mode, in every access mode, must not take effect and must report its logic-error I-O status (47/48/49/42, IX.1.3.4), while OPEN and SORT/MERGE USING/GIVING on a not-open file proceed normally; the witness covers SORT and DELETE in dynamic access only.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "bakes --std (85) into each connector's registration (FileConnector.Edition); no rule of this case reads it except the gates listed",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "file sharing facility off at 85 (no Table 19 arbitration, no '61'); not an outcome of this rule in one run unit",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "default sharing mode of an OPEN: ALL OTHER at 85, READ ONLY / NO OTHER from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|DialectBehavior|CobolVersion|SharingFacilityInEffect' over FileConnector.cs, IndexedConnector.cs, KeyedConnector.cs, FileRegistry.cs: the open-mode guards (ReadOpenModeGuard, StartOpenModeGuard, MutationOpenModeGuard, IndexedConnector.Write's mode test) read no edition; the only edition reads on the path are registration and the sharing-facility gate",
+  "behaviour-differs-by-edition": "no: the not-open statuses are the same at 85 and 2023 (p2table2 run at 2023, p2table2-002, printed identical lines)",
+  "witnesses-cover": "part: g85_bf24_08 exercises SORT USING/GIVING on not-open files and DELETE on a closed dynamic file; READ/WRITE/REWRITE/START/CLOSE on a not-open file, sequential and random access, MERGE, and the statement after a failed OPEN are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-096/p1notopen-002/p1notopen.cob",
+    "printed": "never-opened sequential/random/dynamic indexed files: READ 47, READ NEXT 47, WRITE 48, REWRITE 49, DELETE 49, START 47, CLOSE 42; after OPEN+CLOSE: READ 47, DELETE 49, CLOSE 42; SORT USING XV GIVING SQ (both not open) then OPEN INPUT SQ=00, Q1=K001AAAA; SORT USING SQ GIVING XS (indexed) then OPEN XS=00, S1=00 K001AAAA; MERGE USING XV XS GIVING SQ runs (M1/M2=K001AAAA); failed OPEN INPUT (non-optional absent)=35, then READ NEXT 47, WRITE 48, CLOSE 42",
+    "expected": "each statement on a file not in an open mode is unsuccessful with its IX.1.3.4 logic-error value (47 READ/START, 48 WRITE, 49 DELETE/REWRITE, 42 CLOSE); SORT/MERGE USING/GIVING and OPEN are the exceptions and run; after a failed OPEN either the 35 or the 4x applies and the implementor picks (IX.1.3.4 GR6)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR3",
+    "check": "OK  §1985:IX.4.4.4 GR3  (4.4.4 General Rules)  the text is in GR3  [\"no statement may be executed which references the file\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5f  [\"The execution of a READ or START statement is attempted on a file not open in the input or I-O mode\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5g  [\"The execution of a WRITE statement is attempted on a file not open in the I-O, output\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5h  [\"The execution of a DELETE or REWRITE statement is attempted on a file not open in the I-O mode\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5b  [\"A CLOSE statement is attempted for a file not in the open mode\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4 GR6",
+    "check": "OK  §1985:IX.1.3.4 GR6  (1.3.4 I-O Status)  the text is in GR6  [\"If more than one value applies, the implementor determines which of the applicable values\"]"
+   }
+  ],
+  "notes": "The runtime guards refuse every statement on a not-open indexed file with the IX.1.3.4 value and touch nothing; SORT and MERGE USING/GIVING open and close the files themselves and leave them not open. After a failed OPEN (35) the next READ answers 47, one of the applicable values the implementor may choose (IX.1.3.4 GR6).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe q2misc-001 (--std 85): not-open sequential and dynamic indexed files, READ AT END / NOT AT END and format 2 READ INVALID KEY / NOT INVALID KEY: neither phrase runs, the USE procedure runs with 47 (B1/B2/B3=47); CLOSE WITH LOCK then OPEN INPUT = 38 (USE runs), then READ 47, CLOSE 42 (the file stays not open after a refused OPEN). Probe q3l1..q3l5 (class c): OPEN SHARING WITH ALL OTHER refused at 85 (COBOL0900), READ WITH LOCK / WITH NO LOCK / ADVANCING ON LOCK refused at 85 (COBOL0900), accepted at 2023. Edition grep over FileConnector.cs/IndexedConnector.cs/KeyedConnector.cs: Edition read only at SharingFacilityInEffect, IndexedReadPreviousAfterOpenAtEnd and IndexedDuplicateKeyStatusSequentialOnly; none on the open-mode guards. cite: OK §1985:IX.4.4.4 GR3 (the text is in GR3) [either explicitly or implicitly].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

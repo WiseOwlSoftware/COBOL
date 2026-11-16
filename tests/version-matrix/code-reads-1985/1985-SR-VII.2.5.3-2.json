@@ -1,0 +1,111 @@
+{
+ "rule-id": "1985-SR-VII.2.5.3-2",
+ "rule-digest": "dd80d3ade414",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-062",
+  "sources": {
+   "reader": "bcae14ed2cb9ef4fd129801d9934183cf9e56f22e5d496d086e444f68e37e988",
+   "refuter": "f6d2740f0365363e53468248473fec428211b7eb2cfc4ebe62ec90d36a92a187"
+  },
+  "imported": {
+   "reader": "ec866fa12564c9928c7c900153e0667c619b553b2b64e3cc72c54520aa72fda0",
+   "refuter": "9269083ea1c56f915a46e5eb790b1e17becd46eb8691ece621e5b89abb17d8a1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.5.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the FILE STATUS data-name-1 must reference a data item of exactly two character positions whose category is alphanumeric (an elementary PIC XX, or a 1985 group item, which is always alphanumeric, of two characters) defined in the Working-Storage or Linkage Section; a numeric, numeric-edited, alphanumeric-edited or alphabetic item, any other size, and an item of the File, Report or Communication Section are refused; the witness covers only the two legal forms (PIC XX and a two-character group).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileStatusClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenFileStatusItem; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#FileStatusShapeFault; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumeric; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Section",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataNameSubscripted",
+    "switches": "EditionInfo.SubscriptedClauseOperands (Year == 2002): only 2002 captures a subscript on data-name-1; at 85 a written subscript is refused (COBOL2024), as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenFileStatusItem",
+    "switches": "the OCCURS row is skipped only when SubscriptedClauseOperands (2002); at 85 an OCCURS item is refused, as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused",
+    "switches": "below 2002 a report entry that is not a sum counter is refused under §1985:XIII.3.9.3 SR10d (a sum counter is a data-name everywhere at 85); wording only, the refusal happens at both",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read ScreenFileStatusItem and FileStatusShapeFault (category, ODO, size, section in rule order) and grep 'Edition.' in them: only SubscriptedClauseOperands; ItemCategory.IsAlphanumeric reads no edition; grep 'SubscriptedClauseOperands' in WiseOwl.Cobol.Editions/EditionInfo.cs (Year == 2002).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: PIC XX and a two-character group are exercised; the refusal half (each wrong category, each wrong size, each forbidden section), a Linkage item, a numeric-children group and a qualified name are not",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r5_fs_legal-001/r5_fs_legal.cob",
+    "printed": "F1 [35] 3/5 / F2 [00] / F3 [00] [  ] / SUB COMPILED (exit 0)",
+    "expected": "a two-character group of two PIC 9 items (alphanumeric group at 85), PIC XX JUSTIFIED RIGHT, a qualified S-Q OF G-QUAL (only that one updated) and a Linkage Section PIC XX all accepted and updated"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r5_fs_refused-001/r5_fs_refused.cob",
+    "printed": "COBOL2455 for PIC 99 (numeric), PIC XXX (3 positions), PIC X (1 position), PIC XB (alphanumeric-edited), PIC AA (alphabetic), an FD record field (file section), an ODO group, PIC Z9 (numeric-edited); COBOL2455 SR1 for an OCCURS item",
+    "expected": "every one refused by SR2 (or, for the table element, the unsubscripted data-name)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r5_fs_cd_report-003/r5_fs_cd_report.cob",
+    "printed": "COBOL2455 'CD-ST' is defined in the communication section; COBOL5092 FILE STATUS 'RPT-X' names the report group description entry ... §1985:XIII.3.9.3 SR10d",
+    "expected": "a CD STATUS KEY item (Communication Section) and a report group item (Report Section) both refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r5_fs_sumcounter-001/r5_fs_sumcounter.cob",
+    "printed": "COBOL2455 FILE STATUS 'SUMC' is a category-numeric item, not of the category alphanumeric",
+    "expected": "a 1985 sum counter (a data-name at 85) as data-name-1 refused: numeric and in the Report Section"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r5_fs_subscript-001/r5_fs_subscript.cob",
+    "printed": "COBOL2024: FILE STATUS 'S-TAB (1)' is written with a subscript",
+    "expected": "data-name-1 is a data-name at 85 (qualifiable per SR1, not subscripted): refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r5_fs_refused-001/r5_fs_refused.cob",
+    "printed": "FILE STATUS 'S-ODO' is a group whose size an OCCURS DEPENDING ON clause varies, not a two-character data item",
+    "expected": "a variable-length group is not a two-character data item: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.5.3 SR2",
+    "check": "OK  §1985:VII.2.5.3 SR2  (2.5.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The screen asks category, size and section once per resolved item at every edition; the 2023 LOCAL-STORAGE admission is unreachable at 85 (no such section). Messages cite §2023:12.4.5.8.3 at --std 85; the Report Section case is refused by the report-reference rule rather than by SR2's section conjunct, still a refusal.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.5.3-2",
+  "refutation": "OVERTURNED",
+  "classes": "d,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-062/p4_fs_renames-001 (--std 85): WORKING-STORAGE 01 G66 (05 G66-A PIC X, 05 G66-B PIC X, 05 G66-C PIC X(3)), 66 FS66 RENAMES G66-A THRU G66-B, FILE STATUS IS FS66, OPEN INPUT of a missing file -> the compiler crashes, exit 1: \"Unhandled exception: System.InvalidOperationException: no Place was built for data item 'FS66' when binding finished ... (kb/Work PB2375)\" at PlaceTable.Of <- PlaceTable.FileStatusOf <- SequentialIoEmitter.EmitStoreFileStatus <- EmitOpen. p4_fs_renames1-001 (66 FS66 RENAMES a PIC XX item, no THRU) crashes the same way. Both crash identically at --std 2023 (p4_fs_renames-002, p4_fs_renames1-002). Per §1985:VI.5.11.4 GR1 a THRU renames is a group item (alphanumeric at 85), here of two characters in Working-Storage, and per GR2 the single renames has PIC XX's attributes: both meet SR2, so the program is legal. ScreenFileStatusItem admits it (no diagnostic) and the emitter then has no Place for a level-66 item. Control: p4_fs_77redef-001 (77 PIC XX, and PIC XX inside a REDEFINES group) runs, FS77=35 FSRD=35. cite.py: OK §1985:VII.2.5.3 SR2 the text is in SR2; OK §1985:VI.5.11.4 GR1 the text is in GR1. kb/Work: no note names a level-66 FILE STATUS item (searched RENAMES x FILE STATUS; PB2375 is the landed PlaceBuilder extraction the message names).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceTable.cs#FileStatusOf: no Place for a level-66 RENAMES item (every edition)"
+  ],
+  "corrected": "NON-CONFORMING, crashes, cause (b): a two-character alphanumeric level-66 RENAMES item in Working-Storage named in FILE STATUS crashes code generation at --std 85 and --std 2023 alike; expected: accepted, and the I-O status (35 for the failed OPEN) stored in it."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "THE COMPILER CRASHES ON LEGAL SOURCE. A level 66 item that renames one elementary item, named as FILE STATUS, LINAGE, DEPENDING ON, RELATIVE KEY or a report CONTROL, ends the compiler with an unhandled `System.InvalidOperationException` (\"no Place was built for data item\"), at 85 and at 2023, with no COBOL diagnostic. Each use is legal: \"all of the data attributes of data-name-2 become the data attributes for data-name-1\" (`§1985:VI.5.11.4 GR2`). I ran the FILE STATUS case. Not probed: SORT and MERGE keys, SUM operands, RECORD KEY. For `1985-SR-XIII.3.7.3-2` the row's own check is right for every operand that compiles.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5801"
+}

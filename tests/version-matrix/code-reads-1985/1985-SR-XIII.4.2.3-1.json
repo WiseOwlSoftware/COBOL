@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-SR-XIII.4.2.3-1",
+ "rule-digest": "bd6653c35fa9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-166",
+  "sources": {
+   "reader": "a2ea7dfee8159667eb1727d685d5c1c58e6decfc8b4eb0ed26fd8e225b5e9647",
+   "refuter": "0afc575a59150d57fe5e4134025dce16eff31c0e12ff61716d8af47b2677c881"
+  },
+  "imported": {
+   "reader": "4c81f878fdec291c048a31d86b8195b5dcd1fbbd4283d835421827b3936cc8c3",
+   "refuter": "b5ce9c4446f8bbae09bde35cdbff464f0e47506dc8b270176a1d3a8aa7df44e3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a single CLOSE statement may name a report file together with files of any other organization (sequential, relative, indexed) and any access mode, and the compiler must accept it and close each file as a separate CLOSE in the order written.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "CLOSE WITH LOCK accepted through 2014, refused at 2023 (close-with-lock-removed-2023); not part of SR1 but on the CLOSE path",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read BindClose, ResolveFile and EmitClose; grep of DialectLevel/Edition.Has/CobolVersion over SequentialIoBinder.cs, StatementValidation.cs ResolveFile and the CLOSE visitors of VersionConformancePass.cs. BindClose checks no organization or access uniformity at any edition; the only edition consult on the path is the WITH LOCK gate.",
+  "behaviour-differs-by-edition": "no: SR1's permission (mixed organizations and access modes in one CLOSE) is honored identically; only the WITH LOCK phrase differs (removed at 2023), which is not this rule.",
+  "witnesses-cover": "part: g85_bf18_09 mixes report files with relative random/sequential files; it does not exercise an indexed file, a sequential-organization file or WITH LOCK in the same CLOSE, which probe p1close adds.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p1close.cob",
+    "printed": "OPEN 00 00 00 00 / CLOSE 00 00 00 00 / REOPEN-LOCKED 38 / CLOSE-NOT-OPEN 42 42 42 USE 4 / READBACK XXXX LLLL / CLOSE3 00 00; report file holds D",
+    "expected": "CLOSE RFL SQ WITH LOCK RL IX (report, sequential, relative random, indexed dynamic) accepted; each file closed with status 00 (XIII.4.2.4 GR7); locked file reopen 38; CLOSE of unopened files 42 each with the USE procedure run per file"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p1close.cob",
+    "printed": "--std 2023: COBOL0902 the CLOSE WITH LOCK phrase was removed in COBOL-2023",
+    "expected": "the 1985-only WITH LOCK form inside a mixed CLOSE is legal at 85 and refused at 2023"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.2.3 SR1",
+    "check": "OK  §1985:XIII.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.4.2.4 GR7",
+    "check": "OK  §1985:XIII.4.2.4 GR7  (4.2.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "SR1 is a permission; the binder resolves each file-name independently and imposes no cross-file organization or access check, and the emitter runs one implicit CLOSE per file in written order. The probe shows four organizations and access modes plus WITH LOCK in one CLOSE at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Read §1985:XIII.4.2.2-4.2.4 whole. Probe refute-1985-166/r8close.cob at --std 85 (runs/r8close-002): one CLOSE names the report file WITH NO REWIND, a sequential file REEL, a relative file opened I-O (sequential access) and an indexed file opened INPUT (random access); printed OPEN 00 00 00 00 / CLOSE 07 07 00 00 / WRITE-AFTER-REEL 00 / CLOSE2 00 42: each file got its own phrase's effect (NO REWIND ignored on non-reel media and REEL leaving the sequential file open, both 07; relative and indexed closed 00), i.e. separate CLOSEs in written order (GR7). No organization or access uniformity check exists on the path. cite.py: OK §1985:XIII.4.2.3 SR1 (the text is in SR1); OK §1985:XIII.4.2.4 GR7 (the text is in GR7).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

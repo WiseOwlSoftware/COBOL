@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-VI.6.26.4-1",
+ "rule-digest": "9b7e265b2de4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-114",
+  "sources": {
+   "reader": "32db31cf70df4d7ef171121d99fc690dc0e1d97df0cddda97380269810bbef58",
+   "refuter": "aa64710d97213766196ce98602e344723f873c20e8a0d1c2c55173f6ebd4c986"
+  },
+  "imported": {
+   "reader": "74039bdbb8802e335167a58d955f566da0cfce92305b6c9f335efbb7844e0824",
+   "refuter": "4fd7941060cbef09eecb43e0ae394fcfdc8332e6148ed872adebb7d5c202c16a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.26.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, SUBTRACT format 1 adds every operand before FROM (identifiers and numeric literals) into one temporary formed before any receiver is stored, then subtracts that temporary from each identifier-2 in written order, each receiver identified as it is stored (§1985:VI.6.4.6), with its own ROUNDED, an unsigned receiver taking the magnitude, and the ON SIZE ERROR rules of §1985:VI.6.4.2 (affected receivers unchanged with the phrase, others stored).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Fold; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Combine; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 an unphrased size error is caught, the affected resultant left as formed or unchanged, later receivers stored and execution continues (§1985:VI.6.4.2); from 2002 the fatal-EC shape",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+    "switches": "data.Edition.MaxDigits: composite cap 18 at 85, 31 from 2002 (syntax-rule screen on the same path)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of DialectLevel|DialectBehaviors|MaxDigits|Edition.Year over ArithmeticBinder.cs, ArithmeticEmitter.cs, NumericRenderer.cs, ExpressionBinder.cs#IdentifiedAtStore, StatementEmitter.cs; the two hits above are the only switches on the format-1 path (ArithmeticEmitter#UnsignedSubsidiary is DIVIDE-only).",
+  "behaviour-differs-by-edition": "yes: an unphrased size error continues at 85 (undefined value, statement after runs) where 2002+ treat it as a fatal exception condition; the composite cap is 18 at 85 against 31; the temporary-sum and left-to-right store semantics are the same arm.",
+  "witnesses-cover": "part: the witnesses cover multiple receivers, the initial evaluation and receiver identification at store; not exercised: ROUNDED per receiver, unsigned receiver magnitude, unphrased size error at 85, 19-digit temporary sums, P-scaled operands, COMP/COMP-3 aliasing receivers.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subgr1.cob",
+    "printed": "G1 -003 +087; G3 -3.3 -006; G4 003; G10 +1002 +00000; G11 +000",
+    "expected": "temp 13 formed before A is stored: A=-3, C=87; temp 3.28: R ROUNDED -3.3, A=-6; unsigned 5-8 stores 3; COMP/COMP-3 aliasing: BN=1002, PK=0"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subgr1.cob",
+    "printed": "G2 2 2{1I2{2{2{; G5 10 +160; G6 SIZE / G6 50 +160; G7 -999999999999999999; G8 400; G9 500",
+    "expected": "WE(I) identified after I was stored (§1985:VI.6.4.6 'ADD temp TO d (c)'): WE(2)=19; unphrased size error: D undefined, C=160, execution continues; with the phrase D unchanged 50; 19-digit temporary exact; PIC 9PP minus .003 truncates to 400, ROUNDED 500"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subref.cob",
+    "printed": "COBOL1689 (FROM literal without GIVING); COBOL1675 (edited and group receivers); COBOL0805 composite 23 digits, 18-digit cap; COBOL0844 (alphanumeric item and literal operands)",
+    "expected": "each refused by §1985:VI.6.26.3 SR1-SR3"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.26.4 GR1",
+    "check": "OK  §1985:VI.6.26.4 GR1  (6.26.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.4.6",
+    "check": "OK  §1985:VI.6.4.6  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.4.2",
+    "check": "OK  §1985:VI.6.4.2  (6.4.2 The ON SIZE ERROR Phrase)  the text is in the clause; it lies in GR3"
+   }
+  ],
+  "notes": "EmitInPlace folds the minuends once (Fold), snapshots it when several receivers or a run-time-identified receiver exist, and StoreInPlace subtracts it from each receiver in order; ResolveReceivingAtStore defers subscript identification to each store, which is exactly §1985:VI.6.4.6's expansion. Every probe printed the value the 1985 text gives.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.26.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85 (refute-1985-114/rsub1-001): 0 - 2.5 ROUNDED into S9 -> -3 (§1985:VI.6.4.1 absolute value increased); SUBTRACT 1.5 FROM R ROUNDED R2 -> -2 -1 (ROUNDED per receiver); PIC 9 value 9 minus -0.6 ROUNDED -> SIZE, unchanged 9 (rounding before size check), unrounded -> NOSIZE 9; S9(4) COMP -9999 minus 1 -> SIZE, unchanged (BINARY limit is the PICTURE's); unsigned 5-20 -> SIZE unchanged 5, 5-14 -> 9 (magnitude); SUBTRACT WE(I) FROM I WE(I) with I=2, WE=(7,3) -> I=1, WE(1)=4 (temp formed first, WE(I) identified after I stored, §1985:VI.6.4.6). Refusals (rc1-001, rc2-001, rc3-001): composite 20 digits COBOL0805; ROUNDED MODE IS COBOL0803 'requires COBOL-2014'; PIC S9(20) COBOL0802. The only edition switches on the path are the two the reader lists (ArithmeticEmitter.cs:264 UnsignedSubsidiary is DIVIDE-only). cite.py: OK §1985:VI.6.26.4 GR1; OK §1985:VI.6.4.2 (rounding before size error, GR3 item).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

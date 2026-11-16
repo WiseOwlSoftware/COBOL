@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-IX.1.3.5-2",
+ "rule-digest": "53adcd2fbce1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-089",
+  "sources": {
+   "reader": "7beb12d3af4b4cc13253dcfcf5d99df71f5f22e784b35157e4ec7656dfef52f5",
+   "refuter": "194fe694038fc7e73d79f71bc520c5893469ca42b3581e0d0993925b138ca55b"
+  },
+  "imported": {
+   "reader": "48e15809adb5743a7a6b3bbbd7bc3c126c10377f3bb74c9431c905fa66247ccc",
+   "refuter": "014f9567420dd57759aa52d5d076e2c7219bb2cdbd6eb1ebefd58a1ce73518fc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.1.3.5-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, with INVALID KEY specified, an invalid key condition on an indexed file must not run the associated USE AFTER EXCEPTION procedure. Control goes to the INVALID KEY imperative; an explicit transfer (GO TO) inside it is obeyed; otherwise control passes to the end of the statement and NOT INVALID KEY is ignored. Nested delimited-scope statements and PERFORM inside the imperative must run by their own rules. The witness (a relative file, accepted at 85 and 2023) covers phrase-with-USE and the not-invalid arms; it does not cover indexed files, GO TO out of the imperative, nested I-O statements, or PERFORM.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitPhrasePair; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers",
+  "edition-consulted": [],
+  "edition-search": "The generated __IoCheck (DispatchEmitter.cs lines 388-409) skips the declarative when __invKey && IoStatusClass.InvalidKey, with no edition test. UseTierEmitter states its tiers are edition-invariant (kb/Work PB344). grep Edition|DialectBehavior over SequentialIoEmitter.cs, KeyedIoEmitter.cs and DispatchEmitter.cs finds nothing on this path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: indexed organization, GO TO out of the imperative, a nested I-O statement and PERFORM in the imperative are not in l1_delete_invalid_key_transfer",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-089/p5tr.cob",
+    "printed": "W1 00 / IK-W 22 / AFTER-W 22 / USE 22 / NOPHRASE-W 22 / M-2 23 / NIK-INNER 00 / P-X 00 / IK-D-END 1 / AFTER-D 00 / NIK-D2 00 / IK-RW 23",
+    "expected": "With the phrase, no USE line follows IK-W and NIK-W is absent. Without the phrase, the USE procedure runs. GO TO M-2 leaves the READ (no FELL-THROUGH, no NIK-R). The nested READ and the PERFORM run, then control reaches the end of the DELETE (no NIK-D)."
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "l1_delete_invalid_key_transfer.out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.1.3.5 GR2",
+    "check": "OK  §1985:IX.1.3.5 GR2  (1.3.5 The Invalid Key Condition)  the text is in GR2"
+   }
+  ],
+  "notes": "EmitPhrasePair renders if (2x) { imperative } else if (0x && gate) { NOT imperative }, so NOT INVALID KEY never follows an invalid key. The __IoCheck body passes invalidKeyHandled and returns before the declarative tiers for the 2x family. Every arm of the rule was observed on an indexed file at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.1.3.5-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:IX.1.3.5 GR2 and the 1985 USE format (line 21048: USE [GLOBAL] AFTER STANDARD ... ON {file-name|INPUT|OUTPUT|I-O|EXTEND}). r3.cob (r3-001): with INVALID KEY specified, neither the open-mode USE ON OUTPUT nor the USE GLOBAL ON I-O ran (IK-OUT 22 then AFTER-OUT with no USE line; IK-IO 22 then AFTER-IO; IN-IK 22 then IN-AFTER in the nested program; IK-DEL, IK-RDA and IN-IK-RW with no USE line), NOT INVALID KEY was ignored (no NIK-OUT or IN-NIK), and control reached the end of the statement; the same statements without the phrase ran the matching USE (USE-OUT, USE-IO, and USE-IO from the nested program), so the phrase and not the declarative selection decides. 1985-only forms exercised: USE GLOBAL and the open-mode USE with STANDARD omitted (optional in 1985's format). cite.py: 'OK §1985:IX.1.3.5 GR2 (1.3.5 The Invalid Key Condition) the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

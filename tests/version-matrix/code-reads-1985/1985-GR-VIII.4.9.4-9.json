@@ -1,0 +1,106 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-9",
+ "rule-digest": "b47e42e14eeb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-139",
+  "sources": {
+   "reader": "8b7eb4b4f4c233fc9bfb0a7a1fdbe7fe8a3325f9bd89535c63f50860cc39bd1f",
+   "refuter": "f4df25706caf73949493e1a6a03355d84423508379155471e02b2451d758c4dc"
+  },
+  "imported": {
+   "reader": "42effde549f54df2533d111b6c29a278d84929ec317cda8024e4cc2b0411d6ff",
+   "refuter": "0afb637664e5742dc7e3cd67e32ea000ba105c9aafdc6dca8c893ffaa958adfc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.9.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "After a relative-file WRITE (any access mode), control follows VIII.1.3.5: an invalid key condition (22, 24) runs INVALID KEY if present and skips NOT INVALID KEY and the USE procedure, else runs the USE procedure and ignores NOT INVALID KEY; a non-invalid-key exception (e.g. 48) goes through the USE procedure with neither phrase; success runs NOT INVALID KEY or falls to the end of the statement; an explicit transfer inside a phrase is honoured.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitPhrasePair; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#InvalidKey; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError (from 2014): a random/dynamic key < 1 or above the highest RRN is '24' invalid key at 85/2002 and '34' permanent error at 2014/2023, which decides whether INVALID KEY or the USE procedure takes control",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+    "switches": "DialectLevel >= 2002 adds the SORT GR17 exit filter around a declarative call; 85 keeps the plain try/finally form; no effect on the phrase dispatch",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Dialect over KeyedIoEmitter, SequentialIoEmitter, IoStatusClass, UseTierEmitter, DispatchEmitter, EcEmitter and Runtime/IO; the phrase dispatch itself (EmitPhrasePair over IoStatusClass) is edition-free; EC-I-O masks are zero at 85 (no TURN directive), so the plain __IoCheck hook is taken",
+  "behaviour-differs-by-edition": "yes: a random WRITE with RELATIVE KEY 0 is invalid key 24 (INVALID KEY phrase) at 85 and permanent error 34 (USE procedure, no phrase) at 2023",
+  "witnesses-cover": "part: g85_bf26_05 exercises random access OUTPUT mode with status 22 only; not 24 (boundary, sequential key overflow), dynamic access I-O mode, a non-invalid-key exception, or a GO TO inside the phrase",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/w1rel.cob",
+    "printed": "USE 48 / T1 END 48 (WRITE on unopened file: neither phrase)",
+    "expected": "VIII.1.3.5: exception not invalid key -> USE procedure, phrases ignored"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/w1rel.cob",
+    "printed": "T2 INV 24 ZERO (random key 0)",
+    "expected": "GR14b boundary -> invalid key 24, INVALID KEY runs, record area unaffected"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/w1rel.cob",
+    "printed": "T3 AT P2 22 (GO TO in INVALID KEY)",
+    "expected": "explicit transfer of control honoured"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/w1rel.cob",
+    "printed": "T4 INV 10 24 9; then without INVALID KEY: USE 00 24 / T5 END 24",
+    "expected": "GR14c: sequential key PIC 9 overflow -> 24, INVALID KEY; with no phrase USE runs and NOT INVALID KEY is ignored"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/w1rel.cob",
+    "printed": "T6 OK 00 / T7 INV 22 XXX3 (dynamic access, I-O mode)",
+    "expected": "success -> NOT INVALID KEY; duplicate -> INVALID KEY"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/w1rel.cob",
+    "printed": "at --std 2023 the key-0 WRITE gives USE 34 and no phrase",
+    "expected": "2023 arm differs (34 permanent error); the 85 arm 24 is what §1985:VIII.1.3.4 (3) c allows"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.9.4 GR9",
+    "check": "OK  §1985:VIII.4.9.4 GR9  (4.9.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VIII.4.9.4 GR14",
+    "check": "OK  §1985:VIII.4.9.4 GR14  (4.9.4 General Rules)  the text is in GR14"
+   },
+   {
+    "cite": "§1985:VIII.1.3.5",
+    "check": "OK  §1985:VIII.1.3.5  (1.3.5 The Invalid Key Condition)  the text is in the clause; it lies in GR2"
+   }
+  ],
+  "notes": "The phrase pair is rendered once (EmitPhrasePair) over the IoStatusClass '2x' test, with the USE hook told invalidKeyHandled so a handled invalid key skips the declarative. Every probed branch of VIII.1.3.5 printed the expected control path at --std 85. run_probe.py is absent from the pinned tree, so the main checkout's tracked copy was run with --exe naming the pinned compiler.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.9.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "Read §1985:VIII.4.9.4 GR8-GR15 and VIII.1.3.5 (both arms) and the relative I-O status list (22/24/44). Read KeyedIoEmitter.EmitWrite, SequentialIoEmitter.EmitUseHook/EmitInvalid/EmitPhrasePair. Probes at --std 85 (refute-1985-139/r1a.cob, runs/r1a-002; r1b.cob, runs/r1b-001), aimed at what the reader did not try: (A) a file with NO FILE STATUS and no USE, duplicate WRITE with INVALID KEY -> 'A1 OK / A2 INV / A CONTINUES' (no uncovered-fatal termination of the run unit); (F) GO TO inside NOT INVALID KEY -> 'F AT P2'; (G) a delimited WRITE nested in INVALID KEY -> 'G INNER OK / G OUTER INV TAIL', NOT INVALID KEY of the outer skipped; (B) OPEN EXTEND (1985 level-2 box) sequential relative, PIC 9 key after 8 records -> 'B1 OK 00 9' then 'B2 INV 24 9 EX10' (GR12, GR14c, GR15 record area unaffected); (C) RECORD VARYING 2 TO 6 with DEPENDING ON = 1 -> 'USE-FILE 00 44 / C1 END 44' with neither phrase (GR8, VIII.1.3.5 second arm item 1), then length 4 -> 'C2 OK 00'; (E) open-mode USE ON I-O, dynamic access, duplicate with no INVALID KEY -> 'USE-IO 22', and with NOT INVALID KEY only -> USE runs, 'E2 OK' skipped; (r1b) USE GLOBAL in the container for a GLOBAL FD written by a contained program -> 'OUTER USE 22 / C1 END 22' without the phrase, 'C2 INV 22' (global USE not run) with it, 'C3 OK 00' on success. cite.py: 'OK  §1985:VIII.4.9.4 GR8 ... the text is in GR8'; 'OK  §1985:VIII.4.9.4 GR12 ... the text is in GR12'; 'OK  §1985:VIII.1.3.5 ... it lies in GRL2.1'; 'OK  §1985:VIII.4.9.4 GR14 ... the text is in GR14'. Every control path of VIII.1.3.5 matched at --std 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

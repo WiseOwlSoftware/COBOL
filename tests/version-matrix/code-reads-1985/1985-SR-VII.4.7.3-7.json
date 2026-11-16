@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-SR-VII.4.7.3-7",
+ "rule-digest": "a36f02b31708",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-07",
+  "sources": {
+   "reader": "9e72b95aeaf2386e6b0225ad32fc510fa05daebbacf5f6cdf53fe9c8fb6f5022",
+   "refuter": "61367aa677a245292474507a02e0f62dd01c1dd87d9e527d7c73929a8681bbfb"
+  },
+  "imported": {
+   "reader": "a7498698d262f3b48ea29cb0d8734772766de8a5ab3c34bb07059c8fded5b31f",
+   "refuter": "55db83f0c5317b8e56834a42d13e376ef7d60dfc793dc41f751e21582f024f1f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.7.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a WRITE statement that specifies ADVANCING PAGE (BEFORE or AFTER, with or without the word ADVANCING) together with the [AT] END-OF-PAGE / EOP phrase must be refused, in either phrase order; the NOT END-OF-PAGE phrase is named separately by SR8, so ADVANCING PAGE with only NOT AT END-OF-PAGE is not covered by SR7.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#AnyAdvancePage; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckWriteEopAdvancingPage",
+  "edition-consulted": [],
+  "edition-search": "Read BindWrite's END-OF-PAGE block and CheckWriteEopAdvancingPage: no DialectLevel/CobolVersion/ConstructRegistry test; grep -rn 'EndOfPage|END-OF-PAGE|EOP' in WiseOwl.Cobol.Compiler filtered for edition|DialectLevel|Construct|Version found only VersionConformancePass's WRITE lock-phrase placement checks (2002/2014 constructs, not this rule) and the phrase-order check. data.Edition is used only as the diagnostic sink.",
+  "behaviour-differs-by-edition": "no (the 1985 SR7 and 2023 SR18 are the same obligation; the diagnostic cites ISO §2023:14.9.51.3 SR18 at every edition, including --std 85)",
+  "witnesses-cover": "part: the witness covers AFTER ADVANCING PAGE with AT and NOT AT END-OF-PAGE; BEFORE PAGE, the EOP spelling, AFTER PAGE without ADVANCING, NOT-only and non-PAGE advancing are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c2/ateop.cob",
+    "printed": "error COBOL0861: WRITE ADVANCING PAGE with an END-OF-PAGE phrase: the two shall not both be specified in a single WRITE statement (ISO §2023:14.9.51.3 SR18)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c2/eopword.cob",
+    "printed": "error COBOL0861 (BEFORE ADVANCING PAGE EOP ...)",
+    "expected": "refused (EOP = END-OF-PAGE, SR9)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c2/notfirst.cob",
+    "printed": "error COBOL0861 and COBOL0900 'AT END-OF-PAGE after NOT AT END-OF-PAGE ... requires COBOL-2002'",
+    "expected": "refused: SR7 and the 1985 format's phrase order"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c2/notonly.cob",
+    "printed": "RAN notonly",
+    "expected": "accepted: only NOT END-OF-PAGE, which SR7 does not name (SR8 names it separately)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c2/lines.cob",
+    "printed": "RAN lines",
+    "expected": "accepted: ADVANCING 2 LINES with END-OF-PAGE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c2/noadv.cob",
+    "printed": "RAN noadv",
+    "expected": "accepted: AT EOP without ADVANCING"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c2/nolinage.cob",
+    "printed": "COBOL0860 (no LINAGE, SR8) and COBOL0861 (SR7)",
+    "expected": "both rules refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.3 SR7",
+    "check": "OK  §1985:VII.4.7.3 SR7  (4.7.3 Syntax Rules)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:VII.4.7.3 SR8",
+    "check": "OK  §1985:VII.4.7.3 SR8  (4.7.3 Syntax Rules)  the text is in SR8"
+   }
+  ],
+  "notes": "The check is edition-independent and refuses every ADVANCING PAGE + AT END-OF-PAGE/EOP form probed at --std 85. Diagnostic-face observation only: COBOL0861 (and COBOL0860) cite ISO §2023:14.9.51.3 SR18/SR19 at --std 85, where the RECORD-clause screen cites the 1985 rule via Rule1985 (kb/Work PB5361 pattern); the refusal itself is correct.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "ateop.cob: same error COBOL0861 (ISO §2023:14.9.51.3 SR18)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.7.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VII.4.7 whole and SequentialIoBinder.cs#BindWrite (the SR18 call reads AnyAdvancePage(adv) = wba.PAGE() and the non-negated EndOfPage phrase) and StatementValidation.cs#CheckWriteEopAdvancingPage. The reader's NOT-only reading holds in the 1985 text itself: SR8 names 'the END-OF-PAGE or the NOT END-OF-PAGE phrase' as two phrases and GR17 says 'imperative-statement-1 specified in the END-OF-PAGE phrase', so SR7's 'END-OF-PAGE' is the AT phrase. Probes at --std 85 (refute-1985-07/c2), all forms the reader did not run: nowd.cob AFTER PAGE (no word ADVANCING) AT END-OF-PAGE -> COBOL0861; both.cob BEFORE PAGE AT EOP + NOT AT END-OF-PAGE -> COBOL0861; noat.cob ADVANCING PAGE END-OF-PAGE (no AT, period-terminated) -> COBOL0861; inif.cob the WRITE inside IF ... ELSE with bare EOP -> COBOL0861; baf.cob the 2023-only BEFORE AFTER pair with PAGE + AT EOP -> COBOL0861 plus COBOL0900 'requires COBOL-2023'. notrun.cob/notrun2.cob: ADVANCING PAGE with only NOT AT END-OF-PAGE compiles and its imperative does not run, while a following ADVANCING 1 LINE NOT phrase does (LC=2); that matches §1985:VII.3.7.4 GR9c (the reset 'implicitly incremented to exceed the value specified by integer-1', a page overflow, which without FOOTING is the end-of-page condition per LINAGE GR1), so GR9 is not broken either. cite.py: 'OK  §1985:VII.4.7.3 SR7'; 'OK  §1985:VII.4.7.3 SR8'; 'OK  §1985:VII.4.7.4 GR17'; 'OK  §1985:VII.3.7.4 GR9c'; 'OK  §1985:VII.4.7.4 GR9'. Diagnostic face only: COBOL0861 cites ISO §2023:14.9.51.3 SR18 at --std 85 (the reader already noted it).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

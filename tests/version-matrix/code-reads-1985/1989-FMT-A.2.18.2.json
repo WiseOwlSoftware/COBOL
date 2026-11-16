@@ -1,0 +1,87 @@
+{
+ "rule-id": "1989-FMT-A.2.18.2",
+ "rule-digest": "a9d896c1849a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-081",
+  "sources": {
+   "reader": "10b4aade8e8b99f9bc115cfbcccf36f29e1515815c3527e0342120b2257f790b",
+   "refuter": "353f6aa3fef4fa94d6dcd70227a67a8f22e47d6f6ce07edc9362bbe8db1e1554"
+  },
+  "imported": {
+   "reader": "57f23f3175030e1ab8ff8e8eaf723532c121d86ecbebc74a63fc059ee1c55e2d",
+   "refuter": "ca4bd6da02189d1d8189472d7dd7f461cee16d62d7817c95b9f23404b95e8291"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.18.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION INTEGER-PART ( argument-1 ) must be accepted with exactly one argument (any arithmetic expression, spaces allowed inside the parentheses) and truncate toward zero; zero arguments, an empty '( )', a missing parenthesized list, or two arguments must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgsOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: IntrinsicSig.IntroducedIn (85 for the 1989 module rows) against ctx.Edition.DialectLevel, COBOL1502/COBOL1503",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "Constructs.FunctionEmptyArgumentList2002: an empty '( )' argument list is COBOL0900 below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) gates the per-position predicates (CharacterCategory etc.); the class-kind test itself is edition-invariant",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: an empty '( )' list is additionally COBOL0900 at 85 (function-empty-argument-list-2002); at 2002+ only the arity error COBOL1504 applies. Both refuse INTEGER-PART().",
+  "witnesses-cover": "part: l1_integer_floor_85 covers the accepted one-argument form over DISPLAY items; the refusal half (two, zero, empty, no list) and literal/expression/ZERO arguments are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/fmtok.cob",
+    "printed": "IP-A=-00012 IP-LIT=-00001 IP-EXP=-00003 IP-POS= 00007 IP-ZERO= 00000",
+    "expected": "-12.75->-12, ( -1.5 )->-1, 3.5*-1->-3, +7.9->7, ZERO->0 (A.2.18.4 RV1-RV3)"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/fmtbad.cob",
+    "printed": "COBOL1504 INTEGER-PART takes 1 argument(s); 2 given / 0 given (for '()' and for no list), plus COBOL0900 an empty function argument list requires COBOL-2002",
+    "expected": "the format admits exactly one argument: refuse each"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.18.2",
+    "check": "OK  §1989:A.2.18.2  (2.18.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause ('The definition of a function specifies the number of arguments required')"
+   },
+   {
+    "cite": "§1989:A.2.18.4 RV3",
+    "check": "OK  §1989:A.2.18.4 RV3  (2.18.4 Returned Values)  the text is in RV3"
+   }
+  ],
+  "notes": "The catalog row (Fixed 1..1, IntroducedIn 85) drives the arity check in BindFunctionResult; the grammar's functionCall carries the parenthesized list and VersionConformancePass refuses the 2002 empty list at 85. Accepted forms truncate toward zero.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.18.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "rfmt1.cob: INTEGER-PART(A - 1) one argument -> -13; nested INTEGER-PART(FUNCTION INTEGER-PART(A)) -> -12 (GR2); 'INTEGER-PART (A)' -> -12; (-.5) -> 0; (FUNCTION LOG10(H)) -> 3. rfmt5.cob: S9(18) -999999999999999999 unchanged; SV9(18) -0.99..9 -> 0. rfmt2.cob refusals: (A -1) is two arguments (signed literal) COBOL1504; (A, A) COBOL1504; INTEGER-PART(A)(1:1) COBOL1629 (right per §1985:IV.4.3.8.3.3 SR2). rfmt3.cob (class c): REPOSITORY FUNCTION ALL INTRINSIC refused COBOL0900 requires COBOL-2002, and INTEGER-PART(A) without the keyword FUNCTION is an undefined name (COBOL1639); rfmt4.cob same without REPOSITORY. cite.py: OK §1985:IV.4.3.8.3.3 SR1, OK SR2; the format quotation is under cite.py's four-word floor (FAIL quote-too-short), clause read at specs line 32091.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.6.3.4-1",
+ "rule-digest": "9ca7c1e3752e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-115",
+  "sources": {
+   "reader": "69c771359a168cf7d7cc8744a6c562d623513d60aa5edacc3cf3ab03cbabd784",
+   "refuter": "03f03007c1fc0a432010088b88914ea4e7c24ae81d905af2465248e3baa89d09"
+  },
+  "imported": {
+   "reader": "751b18c11c61d2380ca50dbae733f88ebcc18dad68f940297ef4f2e6b0f3e9a8",
+   "refuter": "7ed1ad46d2406740d815616d46cc02b75a82fb1eef19aed3aa52c49e1c7616f3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the connected conditions of each hierarchical level (an AND level, an OR level, a parenthesized level, an abbreviated combined relation's expansion), in every statement that takes a condition (IF, PERFORM UNTIL, EVALUATE WHEN, SEARCH WHEN), are evaluated left to right and the level stops as soon as its truth value is known.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPrimary; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#SizeErrorGuarded",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#SizeErrorGuarded",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: below 2002 a relation or sign condition whose operand performs arithmetic is wrapped in CobolSizeError.FalseWhenRaised(() => ...), a deferred lambda, so a size error makes the leaf false; at 2002+ it renders bare and a size error is fatal",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -i 'edition|DialectLevel|Version' over ConditionRenderer.cs and ConditionBinder.cs. The binder's ctx.Edition uses are boolean-expression diagnostics (a 2002 construct). The renderer's other DialectLevel reads (lines 463, 475, 1167) choose an operand's comparison image, not the evaluation order. BoundLogical renders as C# && / || in operand order and BoundNot as !(...), at every edition.",
+  "behaviour-differs-by-edition": "no: the && / || order has one rendering; the 85 size-error arm wraps a leaf in a lambda, which keeps the leaf lazy",
+  "witnesses-cover": "part: g85_bf15_02 covers IF only; PERFORM UNTIL, EVALUATE WHEN, SEARCH WHEN, an abbreviated combined relation, AND-over-OR precedence without parentheses, and a guarded division or subscript are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/cnd1.cob",
+    "printed": "C1 F / C2 T / C3 F / C4 K=0 SEQ=5 / C5 OTHER SEQ=5 / C6 T SEQ=5 / C7 F SEQ=5 / C8 T SEQ=5 / C9 F SEQ=5 / C10 END / C11 SEQ=X (MATCH at --std 85 and at --std 2023)",
+    "expected": "GR1: once a level is decided, the RANDOM(7)/RANDOM(9) re-seed is never evaluated (SEQ=5) in PERFORM UNTIL, EVALUATE WHEN, the abbreviated F = 1 OR 2 AND ..., NOT (...), and figure 4's shape; it IS evaluated when needed (C11 SEQ=X)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/cnd2.cob",
+    "printed": "--std 85: Z F; --std 2023: EC-SIZE-ZERO-DIVIDE (fatal)",
+    "expected": "an evaluated N / 0 makes the leaf false at 85 and is fatal at 2023, so cnd1's C1/C2 MATCH at 2023 shows the guarded division was never evaluated"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.3.4 GR1",
+    "check": "OK  §1985:VI.6.3.4 GR1  the text is in GR1 (quoted: \"evaluated in order from left to right\")"
+   }
+  ],
+  "notes": "BindFlatSequence keeps the operands in written order, and ConditionRenderer.Visit(BoundLogical) joins them with C# && / ||, which short-circuit. At 85 a leaf with arithmetic goes through SizeErrorGuarded's deferred lambda, still inside the && chain, so the 85 arm stays lazy. At 85 the guarded-division lines (C1-C3) cannot tell the two orders apart, because an evaluated zero divide is false there; the RANDOM lines can.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "cr1.cob: an abbreviated OR level 'I > 10 OR TE (I) = \"A\" OR \"B\"' with I=11 on a 10-entry table gives B1 T with no fault; 'J = 0 OR TE (J)' gives B2 T; inline PERFORM VARYING ... UNTIL J > 10 OR TE (J) NOT = \"A\" ends at J=11 with no fault (B3); EVALUATE TRUE ALSO TRUE WHEN I > 10 OR TE (I) = \"A\" ALSO I NOT > 10 gives OTHER (B4); NOT (I NOT > 10 AND TE (I) = \"A\") gives T (B5). cr2.cob: a guarded sign condition over N / D (D=0) gives S1 F / S2 T, a guarded subscripted condition-name IS-A (I) S3 F, a guarded class condition S4 T, PERFORM WITH TEST AFTER UNTIL W = 1 OR FUNCTION RANDOM > 2 never calls RANDOM (S5 SKIPPED), and a needed nested level is evaluated (S6 T). cite.py: OK §1985:VI.6.3.4 GR1 (\"evaluation of that hierarchical level terminates as soon as a truth value for it is determined\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

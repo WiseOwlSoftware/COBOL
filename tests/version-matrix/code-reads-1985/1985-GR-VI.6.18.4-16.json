@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-16",
+ "rule-digest": "37cba5b720f9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-016",
+  "sources": {
+   "reader": "6dc6b8eb09b28ec640187fcede7c10a546cd677794143e60c8224cf9a0afc72c",
+   "refuter": "9c887bf6a45081872b1e706650bd9db321b9bf6a8f99c94f692cbe63350fbcfe"
+  },
+  "imported": {
+   "reader": "55fbe3793401c26585066213b28581835ffe2f98ae8eab4fbe9674782504601f",
+   "refuter": "9c157109d19ed20ee7e90736b981427e19e60b075e50869666ace206914e55a2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.18.4-16",
+  "verdict": "CONFORMS",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "requirement": "For a format 2 INSPECT (or the replacing half of a format 3), when identifier-3 (pattern), identifier-4 (BEFORE/AFTER) or identifier-5 (replacement) shares storage with identifier-1, even through the same entry, the result is undefined at 85: the compiler owes acceptance and a completed run, not a particular result.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#ReplaceOperandTexts; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhrases",
+    "switches": "DialectBehavior.InspectBeforeFromFirstEligiblePosition (from 2023): at 85 a BEFORE delimiter is located from the leftmost position (BoundInspect.BeforeFromLeftmost = true), at 2023 from the first eligible position",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind",
+    "switches": "DialectBehavior.InspectFormat3LengthIdentifiedOnce (from 2002): a format 3 over an occurs-depending identifier-1 at 85 sets ReplacingTakesLengthAnew (InspectEmitter#EmitBody re-reads identifier-1 for the REPLACING half); from 2002 the DEPENDING ON object is frozen",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The overlap mechanism itself (InspectEmitter#CounterMayChangeInputs, #CounterMayOverlapTarget, #MayReadStorageOf, StorageOverlap#MayShareStorage, CobolInspect Tally/Replace/Convert) has no edition reference: grep 'Edition|CobolVersion|Std|Dialect|IsAtLeast|Version' over InspectEmitter.cs, CobolInspect.cs and StorageOverlap.cs found only a doc-comment mention of DialectBehavior in CobolInspect.cs; the edition consults are the binder's, listed.",
+  "behaviour-differs-by-edition": "no for the overlap itself: at every edition each operand is read as the call's arguments at the start of the REPLACING pass and the one write-back is the only store (D-INS3); P1..P5 print the same at 85 and 2023.",
+  "witnesses-cover": "part: pb1907_inspect_replacing_overlap covers pattern, replacement and BEFORE overlap through reference modification and REDEFINES. It does not exercise AFTER-delimiter overlap with CHARACTERS, an occurs-depending identifier-1, a signed identifier-1 whose own character is the pattern, or FIRST/LEADING with overlapped operands (probed below).",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-016/gr16.cob",
+    "printed": "P3=[9BCD] (ODO group G REPLACING ALL \"3\" BY \"9\": the count digit is replaced)",
+    "expected": "undefined where identifier-1 includes its DEPENDING ON object; completes"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-016/gr16.cob",
+    "printed": "P1=[ABBB] (CHARACTERS BY X(2:1) AFTER X(1:1)); P2=[BBCA] (ALL X(4:1) BY X(2:1) BEFORE X(3:1)); P5=[BCAA] (FIRST/FIRST/LEADING over Y's own characters); same at 2023",
+    "expected": "undefined (GR16); completes deterministically"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.22-INSPECT/pb1907_inspect_replacing_overlap.cob",
+    "printed": "--std 85: E1=[RQ] E2=[BA] E3=[ZQQZ] E4=[XYXY] E5=[BQBA] (matches the .out)",
+    "expected": "undefined; the documented D-INS3 choice"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-016/gr16.cob",
+    "printed": "P4=[727-] (SN S9(3) SIGN TRAILING SEPARATE VALUE -121, REPLACING ALL SNC BY \"7\", SNC its first character)",
+    "expected": "undefined; the sign is retained per GR3c"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.4 GR16",
+    "check": "OK  §1985:VI.6.18.4 GR16  (6.18.4 General Rules)  the text is in GR16"
+   },
+   {
+    "cite": "§1985:VI.6.4.5",
+    "check": "OK  §1985:VI.6.4.5  (6.4.5 Overlapping Operands)  the text is in the clause"
+   }
+  ],
+  "notes": "An undefined-result rule. The compiler accepts every overlapped REPLACING form probed at 85 and completes with the D-INS3 snapshot result, identical at 2023. No refusal is owed, because an overlap is legal source (§1985:VI.6.4.5)."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.18.4-16",
+  "refutation": "UPHELD",
+  "classes": "a,b,d",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-016/ri13.cob K7: group SG holds subscript J2, INSPECT SG REPLACING ALL \"1\" BY PE(J2) -> [XAAAAX] at 85 and 2023 (identifier-5 PE(J2) does not overlap identifier-1, so GR5 defines it; the replacement is fixed from J2's value before J2 itself is replaced). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-016/ri16.cob: H1 INSPECT X REPLACING ALL X BY X -> [ABCD]; H2 REPLACING FIRST X BY Y AFTER X -> [ABCD] (identifier-3, -4 both identifier-1); H4 ODO group at count 0 REPLACING CHARACTERS BY \"1\" -> [1 ] (its DEPENDING ON digit replaced; length fixed at the start, GR1); H6 format 3 ODO -> [333 |3]. All compile at 85 and complete; nothing is refused, and nothing is owed. cite.py: 'OK  §1985:VI.6.18.4 GR16  (6.18.4 General Rules)  the text is in GR16'. Also read: §1985:VI.6.18.4 GR5 (subscripts evaluated once, first) and GR17 (format 2 subscripts once, before format 1) bound where GR13/16/19 end, so a re-read mechanism that re-evaluated a subscript would break a DEFINED case. cite.py: 'OK  §1985:VI.6.18.4 GR5  (6.18.4 General Rules)  the text is in GR5'; 'OK  §1985:VI.6.18.4 GR17  (6.18.4 General Rules)  the text is in GR17'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,101 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-13",
+ "rule-digest": "d928d985a5ee",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-096",
+  "sources": {
+   "reader": "4885c94b53f00c92261aa337973cfa772e2e53555c523fdf10e285f06db771e3",
+   "refuter": "9e7b7d463898bf2aef2f6e898c1e390033f25e3495d88a95c4dec25178b53b19"
+  },
+  "imported": {
+   "reader": "1375569fb0c5b5bf7e55c2cc1d25ea8b08f057304d9c694cefedf2b79b9dde24",
+   "refuter": "efc034f9ed638e7c3f7953d7a09ffabb9fd9a62d3bf6c6134af3cbeb60e18b3d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.5.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, on a dynamic-access indexed file, READ ... NEXT retrieves the next logical record in the current key of reference: after OPEN the first record; after a READ (format 1 or 2) the first record whose key is greater (or the next duplicate in release order); after START the first record satisfying it; at end 10, and 46 after an unsuccessful READ; a later edition's READ PREVIOUS and a NEXT-less sequential READ are refused at 85. The witness covers prime and alternate keys of reference after OPEN and after a format 2 READ.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "bakes --std (85) into each connector's registration (FileConnector.Edition); no rule of this case reads it except the gates listed",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord",
+    "switches": "DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, asked only for READ PREVIOUS; a NEXT walk never takes it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+    "switches": "DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly (02 on a random READ at 85); the FPI it sets for a following NEXT is the same at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ParseArm",
+    "switches": "VisitReadDirection: READ PREVIOUS is a COBOL-2002 construct, refused at 85 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "Year < 2002: dynamic READ with AT END and no NEXT refused (COBOL7144, IX.4.5.3 SR5)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|DialectBehavior|Year' over KeyedIoBinder.BindRead, StatementValidation.cs, IndexedConnector.cs and VersionConformancePass.cs",
+  "behaviour-differs-by-edition": "yes: at 85 the NEXT phrase must be written for a dynamic sequential READ (2002+ implies it from AT END) and READ PREVIOUS does not exist; the record a READ NEXT retrieves is the same (p6next printed identical lines at 85 and 2023, p6next-003)",
+  "witnesses-cover": "part: g85_bf29_05 covers after OPEN and after a format 2 READ by prime and alternate key; after START, after DELETE/REWRITE/failed WRITE, duplicates in release order, at end then 46, a failed random READ, INTO, variable-length records, LOW-VALUE/HIGH-VALUE keys and the 85-only refusals are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-096/p6next-002/p6next.cob",
+    "printed": "random READ K002 then NEXT K003; DELETE K003 then NEXT K004; REWRITE then NEXT K005; NEXT at end 10 then 46; READ KEY IS alt AA -> K005, NEXT -> K001 (02, duplicate BB follows), K002, K004CCZZ, at end 10; START > K003 then NEXT INTO -> K004CCZZ; failed random READ 23 then NEXT 46; failed WRITE (22) then NEXT from K001 -> K002; keys LOW-VALUES/0000/HIGH-VALUES: NEXT after random READ LOW-VALUES -> ZE, HI, at end 10; RECORD VARYING 6..12: random READ K001 length 07, NEXT K002 length 12",
+    "expected": "GR4c/d/e selection on the current key of reference (duplicates in release order, 02 when the next record duplicates), GR10 at end 10, GR12 then 46, GR15/GR16 key of reference kept for later format 1 READs, the varying length delivered"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-096/p6arms-001/p6arms.cob",
+    "printed": "--std 85: COBOL0900 READ PREVIOUS requires COBOL-2002; COBOL7144 dynamic READ with AT END and no NEXT (IX.4.5.3 SR5), on both NEXT-less READs; --std 2023 (p6arms-002): compiles clean",
+    "expected": "1985 Format 1 has no PREVIOUS, and SR5 requires NEXT for a sequential retrieval in dynamic access"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.4 GR13",
+    "check": "OK  §1985:IX.4.5.4 GR13  (4.5.4 General Rules)  the text is in GR13  [\"causes the next logical record to be retrieved from that file\"]"
+   },
+   {
+    "cite": "§1985:IX.4.5.4 GR4d",
+    "check": "OK  §1985:IX.4.5.4 GR4d  (4.5.4 General Rules)  the text is in GR4d  [\"first existing record in the file whose key value is greater than the file position indicator is selected\"]"
+   },
+   {
+    "cite": "§1985:IX.4.5.4 GR12",
+    "check": "OK  §1985:IX.4.5.4 GR12  (4.5.4 General Rules)  the text is in GR12  [\"the file position indicator is set to indicate that no valid next record has been established\"]"
+   },
+   {
+    "cite": "§1985:IX.4.5.3 SR5",
+    "check": "OK  §1985:IX.4.5.3 SR5  (4.5.3 Syntax Rules)  the text is in SR5  [\"The NEXT phrase must be specified for files in dynamic access mode\"]"
+   }
+  ],
+  "notes": "SelectSequentialRecord chooses the rule from the positioner (OPEN/START: >= key; READ: > key plus duplicate ordinal) over the key of reference's tree, matching GR4c-e; ReadRandom sets the FPI and key of reference a following NEXT uses. The 85-specific arms are compile-time (SR5, no PREVIOUS) and both fire.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.5.4-13",
+  "refutation": "UPHELD",
+  "classes": "a,c,d,f",
+  "evidence": "Probe q13next-001 (--std 85): READ K003 then a successful WRITE K004 then NEXT = K004 (GR4d selects by key, not by cursor); random DELETE of the next record K006 then NEXT = K008; REWRITE changing K002's alternate CC->BB places it last among BB duplicates (K001 02, K003 02, K002 00, then K008) and a REWRITE that keeps K001's alternate keeps its place (GR14); START alternate >= CC then NEXT walks the alternate (K008 DD, K004 EE, at end 10); START > K003 (FPI K004), DELETE K004, NEXT = K008 (>= FPI); START > K003 (FPI K008), WRITE K005, NEXT = K008 (IX.4.7.4 GR4a sets the FPI to the record's key, GR4c >= that). Probe q4into-001: after OPEN, READ NEXT INTO TE(XV-N) stores into TE(3), the subscript taken from the record read (GR8b); START on alternate then format 2 READ without KEY makes prime the key of reference for later NEXTs (GR16: K001, K002, K003, at end 10). cite: OK §1985:IX.4.5.4 GR4c; OK §1985:IX.4.5.4 GR14 [made available in the same order in which they are released by execution of WRITE statements]; OK §1985:IX.4.7.4 GR4a; OK §1985:IX.4.5.4 GR8b; OK §1985:IX.4.5.4 GR13.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

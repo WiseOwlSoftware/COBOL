@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-XIII.4.4.4-4",
+ "rule-digest": "270b4842255b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-152",
+  "sources": {
+   "reader": "e23968e2da2f5939c191162db081a26142102b77a144c60e66035875b49ed1cc",
+   "refuter": "0995353eb593187f7e77ec4afc286a6cfb37fedc44c04577cfd233b48b895a05"
+  },
+  "imported": {
+   "reader": "f7a509ac3fd279cf21ee6dd0309f3eabf238b358a6804ac9c5dab9fe2fe1d4ab",
+   "refuter": "826c0237673880b9de30c0cb3faddd86d693108fab9a6e138a0460e94314e648"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.4.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "An INITIATE naming several reports must act as one INITIATE per report-name, in the written order, so GR1 applies to each named report.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindInitiate; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundImplicitSeries; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitInitiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile",
+    "switches": "Edition.Has(2002) GLOBAL-file check per name; not applied at 85, does not change the per-name series",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "BindInitiate builds one BoundInitiate per name in a BoundImplicitSeries with no edition test; grep Edition in ReportWriterEmitter EmitInitiate finds none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf37_03 covers LINE-COUNTER and PAGE-COUNTER of three reports; not the sum counters, and the order is not observable to a conforming program",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/ini4.cob",
+    "printed": "after INITIATE R2 R1: R1 LC 00 PC 01 TA +00 TB +00 / R2 LC 00 PC 01 TC +00; generated C# calls __RPT_1.Initiate() then __RPT_0.Initiate() (written order R2, R1)",
+    "expected": "each named report initialized, in written order"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/ini4x.cob",
+    "printed": "error COBOL1757: INITIATE 'WS-V': report-name-1 shall be defined by a report description entry in the report section (ISO §2023:14.9.21.3 SR1)",
+    "expected": "refused (§1985:XIII.4.4.3 SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/ini4d.cob",
+    "printed": "INITIATE R1 R1: first resets, second is no-op",
+    "expected": "as two INITIATEs; the second violates GR3 (undefined)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.4.4 GR4",
+    "check": "OK  §1985:XIII.4.4.4 GR4  (4.4.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XIII.4.4.4 GR3",
+    "check": "OK  §1985:XIII.4.4.4 GR3  (4.4.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The series lowers to one engine Initiate() per name in written order, confirmed in the generated C#. The SR1 refusal's message cites only §2023 at --std 85, which belongs to SR1, not this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.4.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "refute-1985-152/rini4.cob (--std 85): three reports, two on one file (FD REPORTS ARE R1 R2), counters moved by page advances (R1 LC 02 PC 04, R2 LC 02 PC 03, R3 LC 03 PC 05) and MOVE 41/43 into named sum counters; one INITIATE R2 R3 R1 printed R1 00 01 00 R2 00 01 R3 00 01 00, each initialized as by its own INITIATE. The order between distinct reports is not observable to a conforming program (no declarative runs on INITIATE; a repeated name violates GR3). cite.py: OK  §1985:XIII.4.4.4 GR4  (4.4.4 General Rules)  the text is in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

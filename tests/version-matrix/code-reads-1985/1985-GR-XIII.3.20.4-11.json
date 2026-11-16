@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-11",
+ "rule-digest": "7816ba8c29bd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-148",
+  "sources": {
+   "reader": "cd63eeb9ed9709933e7a904755c89e9c66dcc37e523cc5c55ebba2d2eec5793c",
+   "refuter": "81637a99046fc20383bc9651dbe773c4bc246f732873a7dcede1deb6bd379c64"
+  },
+  "imported": {
+   "reader": "e0436550d3f2b4165f247bf1a27c19f87c610ec134965a93efe61354b2cfebe1",
+   "refuter": "14f177fcb00ac1bf717e36959e265b30c6f60cc590319edd8765e804e966886c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.20.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, on GENERATE data-name (and on GENERATE report-name for a report's sole detail) the detail's subtotalling is done first, then its USE BEFORE REPORTING procedure, then nothing more if SUPPRESS ran, the group is not printable or the statement is GENERATE report-name, otherwise the detail is presented; a report with no detail gets only the subtotalling on GENERATE report-name.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitSuppress; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateSummary; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SuppressPrinting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+    "switches": "DialectLevel < 2002 SR6 refusal of GENERATE report-name with more than one detail; SummaryDetail chosen at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate: at 85 a suppressed detail leaves GROUP INDICATE owed",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataReferences",
+    "switches": "DialectLevel >= 2002 skips the §1985 SR5 USE-statement control-data check",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/IsActive in ReportWriterBinder.cs, ReportWriterEmitter.cs and ReportWriter.cs",
+  "behaviour-differs-by-edition": "no for the 11a-11e sequence (same code at 85 and 2023, probe output identical); the edition arms are the SR6 refusal and GROUP INDICATE",
+  "witnesses-cover": "part: g85_f29_04 covers a-e for a printable detail and GENERATE report-name; a nonprintable detail and the report with no detail group are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/p5gr11.cob",
+    "printed": "USE DA SEES TA 00005 / 00012 (suppressed, not printed) / USE DN SEES TN 00003 (nonprintable DN) / 00013; TA 00013 TN 00003 TALL 00016; report lines DA 005, DA 001, footing",
+    "expected": "a before b (USE sees the counter already incremented), c suppresses only presentation, nonprintable detail still subtotalled and its USE run"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/p2summ.cob",
+    "printed": "USE DA 1, 2, 3; DA presented once",
+    "expected": "GENERATE report-name runs a and b, stops at d"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/p6nodet.cob",
+    "printed": "A 00012, B -00004, ALL 00008; TALL 00008",
+    "expected": "no detail group: GENERATE report-name subtotals as though one detail existed"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/b5genrn.cob",
+    "printed": "error COBOL6823 (SR6)",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.4 GR11a",
+    "check": "OK  §1985:XIII.3.20.4 GR11a  (3.20.4 General Rules)  the text is in GR11a"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR11c",
+    "check": "OK  §1985:XIII.3.20.4 GR11c  (3.20.4 General Rules)  the text is in GR11c"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR11d",
+    "check": "OK  §1985:XIII.3.20.4 GR11d  (3.20.4 General Rules)  the text is in GR11d"
+   }
+  ],
+  "notes": "GenerateCore runs the SUM loop before PresentBody/BeginGroup, and BeginGroup runs RunBeforeReporting and returns false (no presentation) on SUPPRESS, on no present line, or with print false (the GenerateSummary path). Probes at --std 2023 print the same.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.20.4-11",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probe r6gr11-001 at --std 85: two reports on one FD; RPT with detail DA (USE BEFORE REPORTING DA that SUPPRESSes on its 2nd and 3rd run) and CF SUM WS-AMT UPON DA; RPU with an UNNAMED detail and a CF SUM without UPON, driven only by GENERATE RPU. Sequence GENERATE DA(5), DA(3), RPT(-4), RPU(-4), DA(10), RPU(10) printed USE DA 1 TA 5, 2 TA 8, 3 TA 4, 4 TA 14 (11a before 11b each time, including GENERATE report-name with a negative addend), TA 14, TU 6, and the report DA 005, DA 010, CFG 14, CFU 6: the suppressed DA (11c) and the GENERATE RPT run (11d) not presented, the unnamed detail of RPU never presented, both subtotalled. cite.py: 'OK  §1985:XIII.3.20.4 GR11a  (3.20.4 General Rules)  the text is in GR11a'; 'OK  §1985:XIII.3.20.4 GR11c ...'; 'OK  §1985:XIII.3.20.4 GR11d ...'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

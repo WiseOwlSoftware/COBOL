@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-SR-VIII.4.6.3-3",
+ "rule-digest": "20d1863e66a1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-066",
+  "sources": {
+   "reader": "782a15d6d4ed2b34c9f2b420d14fa857d1b86bc0d29c612eb4f7e3b9990dbe87",
+   "refuter": "133b0ee88928662624958649568689b37ceefe6eea1878bdcd746ed49b26a742"
+  },
+  "imported": {
+   "reader": "cafe837e5ab50384d514d471959aacc1958f109f28c7bfab5146844d7e2bc173",
+   "refuter": "6ab7354020d9a181d81a45cbb486fefd87d0d3ec9e54d7a0ac9148a42d9064eb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.6.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a REWRITE statement on a relative file in sequential access mode must not carry INVALID KEY or NOT INVALID KEY (alone or together, with or without FROM), while random and dynamic REWRITE keep the phrases and their invalid key condition.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Removed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Removed",
+    "switches": "severity only (strict error, --permissive warning); reads Permissive, not the edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "Edition.Year < 2002: the 1985 mandatory INVALID KEY of SR4 (another rule) on the same statement",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the two witnesses cover INVALID KEY on relative sequential access and on sequential organization; NOT INVALID KEY alone, FROM, the default access mode and the legal random/dynamic arms are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/rw3seq.cob",
+    "printed": "COBOL1720 x3: NOT INVALID KEY on ACCESS SEQUENTIAL (line 25); INVALID+NOT INVALID with FROM on default access (line 29); INVALID KEY on default access with period scope (line 34) (exit 65); identical at --std 2023",
+    "expected": "every relative sequential-access REWRITE with either phrase refused (§1985:VIII.4.6.3 SR3)"
+   },
+   {
+    "class": "e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/rw3ok.cob",
+    "printed": "R1=NIK 00 / R2=IK 23 / R3=IK 23 / R4 FS=00 / R5 FS=00 / X1=NEW1 Y1=YYYY",
+    "expected": "random and dynamic REWRITE with INVALID KEY compile and raise 23 on a missing record (GR13); sequential-access REWRITE without phrases after READ succeeds; the FROM data and the replaced record read back"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.6.3 SR3",
+    "check": "OK  §1985:VIII.4.6.3 SR3  (4.6.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "KeyedIoBinder.BindRewrite screens either phrase family when Organization is Relative and AccessMode is Sequential (default included) through the COBOL1720 seam; no edition arm exists for this rule and none is needed, since the 1985 text matches the later one. Message cites the 2023 clause number only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.6.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "glbseq-001 at --std 85, in the contained program on the GLOBAL sequential-access relative file: REWRITE of the file's SECOND record (XF-REC2) with NOT INVALID KEY refused COBOL1720 (line 41); REWRITE of the qualified record `XF-REC IN XF` (SR2 qualification) with INVALID KEY refused COBOL1720 (line 45). The screen keys on the record's file, not on the first record or an unqualified name. cite.py: OK  §1985:VIII.4.6.3 SR3  (4.6.3 Syntax Rules)  the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

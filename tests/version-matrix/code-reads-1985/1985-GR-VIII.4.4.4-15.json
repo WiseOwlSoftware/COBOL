@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-15",
+ "rule-digest": "8e1c78615ca8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-133",
+  "sources": {
+   "reader": "8c88ffe28e2472ad4ab2c358fa8e0582bac02f3729ba242a4c6d66454a28e31e",
+   "refuter": "ef7a10a801de3da8a44b31d0304eebb4cbbc57407e0c57d79715b2567e47bf8b"
+  },
+  "imported": {
+   "reader": "5f169bebb1c36185093be1b6a552e38cc8d4341103655d4e18432544159545c7",
+   "refuter": "bc9eb657f224b1daa02912ac3f3ae515928287daeda71f56642a25e1bf763b1e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.4.4-15",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a successful OPEN I-O or (level 2) OPEN EXTEND of an unavailable OPTIONAL relative file creates it as if OPEN OUTPUT then CLOSE (status 05, the file then empty, its fixed attributes those of this description), an OPEN OUTPUT creates the file with no data records, and an unsuccessful OPEN (a non-optional absent file, 35) creates nothing.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#JournalCreation; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#AttachStore; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#AttachStore",
+    "switches": "StoreTable.AttachCreated arbitrated flag = SharingFacilityInEffect (false at 85)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "Table 19 arbitration skipped at 85 (FileSharingFacility)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Runtime/IO for SharingFacilityInEffect|DialectBehavior|Edition; KeyedConnector.OpenCore's creation arms (Output; IO/Extend when !exists && IsOptional) consult no edition and are the same arm at every edition. The EXTEND sequential-access screen (StatementValidation.CheckOpenModeForFile, COBOL2372) is edition-agnostic.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f19_03 covers EXTEND and I-O creation of absent OPTIONAL files (05, empty) and OUTPUT re-creation with no data records; the non-optional failure creating nothing, the creation establishing this description's record size, and EXTEND of a now-present file are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/gr15_create-001",
+    "printed": "QI I-O ABSENT 05 / QI CLOSE 00 / QW 9-BYTE OVER CREATED 4-BYTE 39 / QN INPUT 00 / QN AT END 10 / QI I-O PRESENT 00 / QE EXTEND ABSENT 05 / QE EXTEND PRESENT 00 / QE E001 / QE E002 / QE END 10 / QX EXTEND ABSENT NONOPT 35 / QX INPUT STILL ABSENT 35",
+    "expected": "05 and an empty created file whose sizes are this description's; a later EXTEND 00 appends; non-optional EXTEND 35 and the file is not created (GR19 'the physical file is not affected')"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/gr16_status-001",
+    "printed": "RB I-O ABSENT NONOPT 35 ... RBO INPUT ABSENT OPT 05 ... RB INPUT STILL ABSENT 35 / RC I-O ABSENT OPT 05 / RC READ 2 INVALID 23 / RCN INPUT NOW PRESENT 00",
+    "expected": "a failed I-O on a non-optional absent file creates nothing; I-O of an absent optional file creates it"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/gr15_extend_random-001",
+    "printed": "COBOL2372: OPEN EXTEND 'QR' - the file's access mode is RANDOM; EXTEND requires sequential access (ISO §2023:14.9.27.3 SR2)",
+    "expected": "§1985:VIII.4.4.3 SR1: EXTEND only in sequential access mode: refused (same at --std 2023, run gr15_extend_random-002)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/g85_f19_03-001",
+    "printed": "EXPECT: MATCH (g85_f19_03.out)",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.4 GR15",
+    "check": "OK  §1985:VIII.4.4.4 GR15  (4.4.4 General Rules)  the text is in GR15"
+   },
+   {
+    "cite": "§1985:VIII.4.4.4 GR19",
+    "check": "OK  §1985:VIII.4.4.4 GR19  (4.4.4 General Rules)  the text is in GR19"
+   },
+   {
+    "cite": "§1985:VIII.4.4.3 SR1",
+    "check": "OK  §1985:VIII.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The creation arms are edition-neutral and create through a CreateNew handle plus an empty keyed store whose meta records this description's attributes, which is why a 9-byte description then meets 39. Side observation outside this rule: the COBOL2372 refusal at --std 85 cites §2023:14.9.27.3 SR2 instead of §1985:VIII.4.4.3 SR1 (diagnostic text only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.4.4-15",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "Probe runs/r15_outrecreate-001: OPEN OUTPUT over an existing 4-byte file through a 9-byte description 00, WRITE 00, INPUT 9 reads B00000001 then 10, and INPUT through the old 4-byte description 39: OUTPUT re-creates the file with this description's sizes and no data records. An OPTIONAL absent file opened INPUT gives 05 and AT END 10 but is NOT created: a later non-optional INPUT of it gives 35. runs/r16_ro-001: a failed OPTIONAL EXTEND/I-O (37) creates nothing and changes nothing. cite.py: OK  §1985:VIII.4.4.4 GR15  (4.4.4 General Rules)  the text is in GR15; OK  §1985:VIII.4.4.4 GR19  (4.4.4 General Rules)  the text is in GR19",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

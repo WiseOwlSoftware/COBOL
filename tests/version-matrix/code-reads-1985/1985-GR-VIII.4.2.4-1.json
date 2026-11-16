@@ -1,0 +1,82 @@
+{
+ "rule-id": "1985-GR-VIII.4.2.4-1",
+ "rule-digest": "b4152c377ea4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-027",
+  "sources": {
+   "reader": "fd23e0b0bc1d1d7c605b5f311a04e2b0993c86b5be3e5a258e565fef035f0a0a",
+   "refuter": "e4ba0104cfd61f9386e26ae9a7898ae75d668e9819c419c14a590a237f8f10f6"
+  },
+  "imported": {
+   "reader": "02552bea1d26e196c1c5af31e1639fe45d19761b7a1785612f751240565b6bd8",
+   "refuter": "441d4cad1cc50e319f8da36fb796f689846aaed5be62e044f895f75a062cfce4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a CLOSE of a relative file is executed only for a file in an open mode: a CLOSE of a file never opened, already closed, or whose OPEN failed is unsuccessful with I-O status 42 (§1985:VIII.1.3.4 (5) b), performs no closing action (a CLOSE WITH LOCK that fails locks nothing), and runs an applicable USE procedure; each file-name of a multi-file CLOSE is judged separately (GR7).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#IsOpen; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: after a SUCCESSFUL close WITH LOCK, 85 locks the physical file, 2002+ the file connector; the not-open guard (42, nothing locked) precedes it on both arms",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#ParseArm.VisitCloseOption",
+    "switches": "Constructs.CloseWithLockRemoved2023: WITH LOCK accepted at 85 (printed in the 1985 relative CLOSE format), refused COBOL0902 at 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectBehavior in FileRegistry.cs close path, SequentialIoEmitter.EmitClose and SequentialIoBinder.BindClose; grep closeOption/CloseStatement in Validation; the GR1 guard in CloseCell and FileConnector.Close consults no edition.",
+  "behaviour-differs-by-edition": "no: the not-open guard is the same at every edition; WITH LOCK (accepted at 85, removed at 2023) and what a successful WITH LOCK locks differ, which is beside this rule.",
+  "witnesses-cover": "part: pb140_close_status covers a sequential file's 42; the relative organization, a CLOSE after a failed OPEN, WITH LOCK on a not-open file, the multi-file CLOSE and the USE procedure are exercised only by this slice's probes",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-027/clsrel.cob",
+    "printed": "NEVER-OPEN=42; OPEN-ABSENT=35; AFTER-FAIL=42; OPENOUT=00; CLOSE1=00; CLOSE2=42; REOPEN=00; MULTI=00 00; MULTI2=00 42 (CLOSE RB RA with RB closed); LOCK=00; LOCKED-OPEN=38; USE-RC 42 / RC-NOTOPEN=42; RC-LOCK=00; USE-RC 42 / RC-LOCK2=42",
+    "expected": "CLOSE only for an open file: 42 otherwise, including after a failed (35) OPEN; each file of a multi-file CLOSE separately; USE AFTER STANDARD ERROR runs for 42; a successful WITH LOCK locks (38 on reopen)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-027/clsbad_reel.cob",
+    "printed": "error COBOL1693: CLOSE 'R1' with the REEL/UNIT phrase — the phrase may be used only with a sequential-organization file (also UNIT, UNIT FOR REMOVAL, WITH NO REWIND: clsbad_unit/remov/norew.cob); CLOSE R1 LOCK accepted, ST=00 (clsbad_baredlock.cob)",
+    "expected": "the 1985 relative CLOSE format is CLOSE file-name-1 [WITH LOCK]: REEL/UNIT/NO REWIND refused, WITH optional"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.2.4 GR1",
+    "check": "OK  §1985:VIII.4.2.4 GR1  (4.2.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5b"
+   },
+   {
+    "cite": "§1985:VIII.4.2.4 GR7",
+    "check": "OK  §1985:VIII.4.2.4 GR7  (4.2.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "CloseCell hoists the not-open guard ahead of every closing action and sets 42; CloseWithLock locks only after a successful close, so a failed CLOSE WITH LOCK leaves the file openable. The multi-file CLOSE is emitted as one implicit CLOSE per file-name.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-027/cls2.cob (cls2-002): OPEN OUTPUT twice -> 41 with USE run, file stays open, CLOSE 00, CLOSE again 42 with USE run; a CLOSE executed INSIDE the USE procedure of the file (entered on a 41) closes it 00 and the following mainline CLOSE is 42; OPTIONAL relative file OPEN EXTEND 05, CLOSE 00, CLOSE 42. OPEN EXTEND on a DYNAMIC relative file refused COBOL2372, matching §1985:VIII.4.4.3 SR1 (OK, the text is in SR1). clsglob.cob: CLOSE WITH LOCK of a GLOBAL relative file from a nested program: first 00, second 42. cite.py: OK §1985:VIII.4.2.4 GR1 the text is in GR1; OK §1985:VIII.1.3.4 (GRL2.5b) 42. FileRegistry's edition sites are CloseWithLockLocksFileConnector (named) and FileSharingFacility (an OPEN sharing default, not the close path).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

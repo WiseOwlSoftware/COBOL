@@ -1,0 +1,96 @@
+{
+ "rule-id": "1985-GR-XI.4.3.4-4",
+ "rule-digest": "9e0af9921dea",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-034",
+  "sources": {
+   "reader": "55ae482fcbf67505d3260e5fbf4749320bc5ece0f8f8fa7cd6fd93be84c07f69",
+   "refuter": "957a2a6d8a425cad511eea6e561c872dc2460431a2616651179853f12c607cad"
+  },
+  "imported": {
+   "reader": "bf65c439e38804e07e9dbe2b36ae4f232eeee1eaf3f6226abb891ffad5257608",
+   "refuter": "c075371be2ffe86bcdc07a223359432b31637f48c5b700b99812b6824e8597cc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.3.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, END-RETURN must close the RETURN statement so that a RETURN written with END-RETURN is a delimited scope (imperative) statement usable as the operand of another statement's conditional phrase and followed by more statements in the same scope; a RETURN without it is a conditional statement that ends at the next phrase of its container or the separator period and is refused where an imperative statement is required, and an END-RETURN with no open RETURN is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#returnStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (END-RETURN row)",
+    "switches": "END-RETURN reserved at 85/2002/2014/2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases",
+    "switches": "construct conditional-phrases-any-order-2002: at 85 NOT AT END before AT END is refused (COBOL0900), at 2023 accepted (§2023:14.9.34.3 SR4)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for END-RETURN scope itself (grammar, IsConditional and VisitStatementBlock are edition-blind); the phrase ORDER inside the scope differs (85 fixed order, 2023 either order)",
+  "witnesses-cover": "part: pb350_85 and pb351 cover END-RETURN closing a RETURN inside an inline PERFORM and delimited conditionals of other verbs; not exercised: a delimited RETURN as the operand of another statement's NOT AT END followed by more statements, RETURN closed by the period, END-RETURN after AT END only, and the refusals (undelimited RETURN as an imperative, stray END-RETURN, an undelimited conditional inside RETURN's AT END)",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/r1scope.cob",
+    "printed": "R1 AAA / IF-CONT-1 / R2 BBB / READ-CONT F01 / R3 CCC / AFTER-PERIOD / SAME-SENTENCE-4 / LOOP Y / DONE (EXPECT: MATCH)",
+    "expected": "statements after END-RETURN run in the enclosing scope (IF branch, READ NOT AT END, same sentence, inline PERFORM); the period closes an undelimited RETURN"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/r2a.cob",
+    "printed": "error COBOL2796: READ NOT AT END: this RETURN statement is written without its explicit scope terminator END-RETURN, so it is a conditional statement",
+    "expected": "refused: the NOT AT END operand is an imperative statement (§1985 IV glossary: a conditional statement is imperative only when delimited)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/r2b.cob",
+    "printed": "error COBOL0306: unexpected 'END-RETURN'. END-RETURN appears without a matching RETURN statement.",
+    "expected": "refused: a stray END-RETURN"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/r2d.cob",
+    "printed": "error COBOL2796: RETURN AT END: this READ statement is written without its explicit scope terminator END-READ",
+    "expected": "refused: END-RETURN closes the RETURN, so the undelimited READ inside AT END is a conditional statement where an imperative is required"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/r2c.cob",
+    "printed": "--std 85: error COBOL0900 ... the RETURN statement writes AT END after NOT AT END, and its COBOL-85 general format prints AT END first; --std 2023: EXIT 0",
+    "expected": "85 refuses the 2023 reversed phrase order within the END-RETURN scope"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.3.4 GR4",
+    "check": "OK  §1985:XI.4.3.4 GR4  (4.3.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+   }
+  ],
+  "notes": "The grammar's optional END_RETURN after conditionalPhrases makes the delimited form; ConditionalStatements.IsConditional reads 'phrase written and terminator absent' off the parse, and ProcedureFormatPass refuses a conditional statement in any non-IF statementBlock. All four refusal and accept probes behave per the 1985 scope rules; r2a, r2b and r2d answer identically at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "(1) r3nest.cob (refute-1985-034/r3nest-001): a delimited RETURN nested in an outer RETURN's NOT AT END, followed by a statement of the outer NOT AT END and then the outer END-RETURN. Printed INNER BBB / OUTER-CONT BBB / AFTER-OUTER / EOF-INNER-2 / OUTER-CONT-2 / AFTER-OUTER-2 / DONE. Each END-RETURN closed the nearest open RETURN, per the IV.6.4.3 scope rules. (2) r4noat.cob (r4noat-001), class c: a RETURN with END-RETURN and NOT AT END but no AT END, which is outside the 1985 format where AT END is mandatory (§1985:XI.4.3.2). Refused with COBOL1850 'the AT END phrase is required on every RETURN statement'. That message cites §2023 text, which is a message-wording matter outside this rule. cite.py: 'OK  §1985:XI.4.3.4 GR4  (4.3.4 General Rules)  the text is in GR4'; 'OK  §1985:XI.4.3.2  (4.3.2 General Format)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

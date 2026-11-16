@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-IX.4.7.3-1",
+ "rule-digest": "615ef66034c4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-047",
+  "sources": {
+   "reader": "9bbef6ebfe1a7236a25f655700364e0d5407afbaf1cf4a4fc918abbc819e04a6",
+   "refuter": "34b1b04dc4a276e66e53ec68437e4bd991457d344507da4065ac88c10feda43f"
+  },
+  "imported": {
+   "reader": "f51259828021c48137086875fa51d2f5d5c36535ba3f2b953f5211082d47f072",
+   "refuter": "33102ccf0dce63c61610c37a65bff110dc574daa3a187ce86a4f45e7c53e0951"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.7.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a START naming an indexed file in random access mode must be refused (with or without the KEY phrase); START on sequential (explicit or default) or dynamic access is legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "Year < 2002: mandatory INVALID KEY (SR3); does not decide SR1",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the SR1 test (file.AccessMode == Random -> COBOL0862) reads no edition; grep DialectLevel|Edition.Year in KeyedIoBinder.cs (no hits); FIRST/LAST gates live in VersionConformancePass and are not on this path",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb325-start-random-access covers the random refusal; the accepted sequential/dynamic/default forms are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c5_rnd.cob",
+    "printed": "error COBOL0862: START on 'IXF': the access mode shall be sequential or dynamic",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c5_rndnokey.cob",
+    "printed": "error COBOL0862 (no KEY phrase)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c5_seq.cob",
+    "printed": "START FS=00 / BBBBDATA02",
+    "expected": "accepted; KEY > 'B   ' positions at BBBB"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c5_dflt.cob",
+    "printed": "START FS=00 / BBBBDATA02",
+    "expected": "accepted; no ACCESS clause means sequential; KEY NOT < positions at BBBB"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c5_dyn.cob",
+    "printed": "START FS=00 / BBBBDATA02",
+    "expected": "accepted (dynamic)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.3 SR1",
+    "check": "OK  §1985:IX.4.7.3 SR1  (║4.7.3 Syntax Rules║)  the text is in SR1"
+   }
+  ],
+  "notes": "There is one edition-agnostic test on access mode, made before any phrase is examined. The accepted forms position correctly at run time.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same code path, COBOL0862",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.7.3-1",
+  "refutation": "UPHELD",
+  "classes": "b",
+  "evidence": "--std 85. r5_global_rnd.cob: a nested program STARTs a GLOBAL indexed file declared ACCESS MODE IS RANDOM in the outer program and gets 'COBOL0862: START on 'IXF': the access mode shall be sequential or dynamic'. KeyedIoBinder.cs#BindStart line 319 tests file.AccessMode == Random, with no edition read. cite.py: 'OK  §1985:IX.4.7.3 SR1  (4.7.3 Syntax Rules)  the text is in SR1'. The reader's probes already cover sequential, default and dynamic acceptance.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

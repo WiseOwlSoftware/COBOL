@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-SR-XIII.3.2.3-2",
+ "rule-digest": "68e537e3eba2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-165",
+  "sources": {
+   "reader": "33a634f8775865fadbb8ae9792708c139cef0d2f3d430b2edfebd14f738b511e",
+   "refuter": "55d291252e80be0bec81fc1e5090b7c44bebe67b285d7aa906d8c70e9de3df4c"
+  },
+  "imported": {
+   "reader": "66cbe183f9dc3605e310d87136d9a336c88840637bfb338a1accf4f60584bd48",
+   "refuter": "b1df9d74da8de44210803071200caf612b1dfcca26d053e41b663d6df9c2cb11"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.2.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the clauses of a report file's FD (BLOCK CONTAINS, RECORD, LABEL RECORDS, VALUE OF, CODE-SET, REPORT) must be accepted in any order with the same effect (the REPORT clause ties the report wherever it stands), each written at most once; the witness covers only REPORT/LABEL/RECORD/BLOCK reversed.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ByClauseContext; src/WiseOwl.Cobol.Compiler/Binding/UnrepeatedElements.cs#AtMostOnce",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+    "switches": "row.At(DialectLevel) picks the figure of the edition; the FileDescriptionClauseContext row carries no Earlier figure and Sequence null (order free), so 85 reads the same figure as 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFormatClause",
+    "switches": "refuses the 2002 FORMAT clause at 85 (COBOL0900); not on the order path",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition in FileDescriptionFormats.cs (none), FileControlBinder.FileSection.cs (only the record-required and BLOCK screens, not the order path), ClauseCardinality.cs Earlier rows (FD row has none)",
+  "behaviour-differs-by-edition": "no: the order licence is the same; only the clause set differs (LABEL/VALUE OF/DATA RECORDS are 85, FORMAT is 2002+)",
+  "witnesses-cover": "part: g85_bf22_04 reverses four clauses; VALUE OF and CODE-SET interleaved, a repeated clause and clauses outside the report format are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/fd1.cob",
+    "printed": "PC=01 / DONE (CODE-SET, REPORT, VALUE OF, BLOCK, LABEL, RECORD in that order)",
+    "expected": "accepted and the report runs: SR2 any order; INITIATE sets PAGE-COUNTER to one"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/fd2.cob",
+    "printed": "COBOL2423 the clause 'BLOCK CONTAINS 2 RECORDS' is written 2 times",
+    "expected": "refused: each bracket once, order free"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/fd3.cob",
+    "printed": "COBOL2604 the LINAGE clause is not a clause of Format 3 (report)",
+    "expected": "refused: §1985:XIII.3.2.2 has no LINAGE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/fd4.cob",
+    "printed": "COBOL2604 + COBOL0900 the FORMAT clause requires COBOL-2002",
+    "expected": "refused: no FORMAT clause in 1985"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/fd6.cob",
+    "printed": "PC=01 / DONE with RECORD CONTAINS 10 TO 20 CHARACTERS among the reordered clauses",
+    "expected": "accepted (integer-4 TO integer-5 form of §1985:XIII.3.2.2)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/fd5.cob",
+    "printed": "COBOL6849 DATA RECORDS ZZ is not the name of an 01 record description of file 'REP-F'",
+    "expected": "refused (DATA RECORDS is not in the report FD format; no record may follow, SR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.2.3 SR2",
+    "check": "OK  §1985:XIII.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The grammar admits fileDescriptionClause+ in any order; the format (report or not) is decided from a REPORT clause written anywhere in the entry before any clause binds, and ClosedFormatPass counts each once-only clause with no order rank. Diagnostics name §2023 sections at --std 85 (a wording matter only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.2.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes in E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-165/src, run with run_probe.py --std 85. fdA.cob (VALUE OF, LABEL RECORD IS OMITTED, REPORTS ARE RPT-A RPT-B, RECORD, BLOCK 2 TO 4 RECORDS, in that order) ran: DONE, and FDA.TXT has AAAAA / '  BBBBB' / AAAAA, so a two-report REPORTS clause in the middle of the entry ties both reports. Each clause once: fdB.cob (VALUE OF twice), fdC.cob (REPORT IS twice) and fdD.cob (LABEL twice) are refused with COBOL2423. Class c: fdE.cob writes IS GLOBAL second among the report-FD clauses at 85 and runs (DONE); that is legal, because the IPC module's report-file FD (§1985:X.4.2 Format 3) prints [IS EXTERNAL] [IS GLOBAL]. ClauseCardinality.cs#ByClauseContext's FileDescriptionClauseContext row has Sequence null and no Earlier figure; the 1985 figure prints no clause the row fails to count. cite.py: 'OK  §1985:XIII.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:X.4.2.3 SR3  (4.2.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

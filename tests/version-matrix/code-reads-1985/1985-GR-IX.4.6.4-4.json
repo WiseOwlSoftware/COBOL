@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-4",
+ "rule-digest": "265809f157df",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-098",
+  "sources": {
+   "reader": "788e53558b4381cf255d9c081677dac47f052321951ca850fbebdef13de861c5",
+   "refuter": "9dff07812fb3aee109baad25f5bafc9a55d5800dcadb6114d238b8a540a8d55b"
+  },
+  "imported": {
+   "reader": "e78d4a556e45a6dff59d45b04e4000feb67028ec688d2c91d257136e8adad7a3",
+   "refuter": "f800f437278c6ff2eb1654af0fdca0ee240a767b15f94e92f15e530cc9b76eeb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "After a successful REWRITE the record is no longer available in the record area, except that when the file is in a SAME RECORD AREA clause (level 2) the record is available as a record of every file in that clause and of its own file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#BeginReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReleasedRecordAlsoAvailable; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#OutOfLineRecordsOfArea",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "refusal of 2002+ REWRITE phrases at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -i 'edition|DialectBehavior' in SequentialIoEmitter.cs, KeyedIoEmitter.cs, FileModel.cs: the only hit on a write path is NamedRecordEntry (SELECT WHEN, sequential-organization REWRITE only, not reached by the keyed emitter); the released-record store is edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf07_09 covers a RANDOM-access REWRITE FROM with a fixed-length peer; not sequential access, a variable-length (OCCURS DEPENDING ON, out-of-line) peer, or an unsuccessful REWRITE",
+  "probes": [
+   {
+    "class": "a",
+    "file": "work-1985-098/p3sra.cob",
+    "printed": "ST=00 XA=K016NEWAB1 SB=K01/6NEWAB1 SC=K01/6/N1 (SC record has OCCURS 1 TO 6 DEPENDING ON SC-N, RECORD VARYING)",
+    "expected": "the released record is available as SB's and SC's record"
+   },
+   {
+    "class": "e",
+    "file": "work-1985-098/p3sra.cob",
+    "printed": "sequential-access XA: success 00 and peers populated; RW2 21 then XA2=K996OLDAA2",
+    "expected": "store only on success"
+   },
+   {
+    "class": "c",
+    "file": "work-1985-098/p3sra23.cob",
+    "printed": "identical at --std 2023",
+    "expected": "same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR4",
+    "check": "OK  §1985:IX.4.6.4 GR4  (4.6.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "Character-window records of the area share one backing, so they see the record at no cost; an out-of-line peer (ODO record) gets an emitted store guarded by a successful status. 'No longer available' without SAME RECORD AREA leaves content undefined; keeping it does not violate the rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-4",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "q3sra.cob (q3sra-001): RANDOM-access indexed file in SAME RECORD AREA with a RECORD VARYING / OCCURS 1 TO 6 DEPENDING ON peer: successful REWRITE FROM -> ST=00, XA=K013NEWAB1, SC=K01/3/NW (the record is available as the peer's record); failed REWRITE (23) leaves the shared area as the FROM move made it. q2alt.cob: sequential access with a fixed peer, success A5 PEER K002U02D02. 'No longer available' without SAME RECORD AREA leaves content undefined, so keeping it does not contradict the rule. cite.py: 'OK  §1985:IX.4.6.4 GR4  (4.6.4 General Rules)  the text is in GR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

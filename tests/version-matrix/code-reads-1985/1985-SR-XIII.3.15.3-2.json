@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-XIII.3.15.3-2",
+ "rule-digest": "c8bc0771de47",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-074",
+  "sources": {
+   "reader": "4e280ecb892567a1a70eba8a53575211af2f49a0afeef6f043c7ee194d7abde9",
+   "refuter": "bb40349bcbb5d0da945c3f118211db9163dddddb6816052f790a6399f6ca9150"
+  },
+  "imported": {
+   "reader": "8259bf0d0b7ab5c23498ae4af995d2f99dc018ca7395bb057637a4f33ad33dc5",
+   "refuter": "8ce329ff7eb7c9ada6dff2f2818e6924d58db9608f9c240b5f264f3c628855d1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.15.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "Within a report group, any entry with a LINE NUMBER clause that has a subordinate entry (immediate or deeper, group or elementary) also carrying a LINE NUMBER clause is refused; sibling LINE NUMBER entries are accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineNesting",
+  "edition-consulted": [],
+  "edition-search": "read ScreenReportLineNesting (no Edition.DialectLevel, ConstructRegistry or DialectBehavior read); its caller loop at ReportSectionBinder.cs line 680 calls it at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness has one nesting shape; the level-01 LINE over an elementary LINE and the deeper (non-immediate) subordinate are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/ln_nest01.cob",
+    "printed": "COBOL2199: an entry that contains a LINE clause shall not have a subordinate entry that also contains a LINE clause",
+    "expected": "refused (01 LINE over 05 elementary LINE)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/ln_deep.cob",
+    "printed": "COBOL2199 at the level-07 entry (plus the 1985 format SR4 b/c refusals of the 4-level shape)",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/ln_sib.cob",
+    "printed": "exit 0; RGP.TXT line 3 ' AAA', line 5 '  12    AAA'",
+    "expected": "sibling LINE 3, PLUS 2, PLUS 0 accepted; PLUS 0 prints on the same line (XIII.3.15.4 GR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.15.3 SR2",
+    "check": "OK  §1985:XIII.3.15.3 SR2  (3.15.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The flat-array screen walks every subordinate of each LINE entry until the level returns, so both immediate and deep nesting are refused once per entry. The rule is the same at every edition, and so is the code. The message cites §2023:13.18.35.3 SR4 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.15.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Read XIII.3.15.3 SR2 and XIII.3.9.3 SR4. Probes at --std 85: p4_deep2 (01 LINE / 05 USAGE group without LINE / 10 LINE) COBOL2199 refused (non-immediate subordinate through a format 2 entry); p4_seq (01 LINE + 05 COLUMN; 01 with three 05 LINE siblings incl. PLUS 0; PH; a second RD whose 01 has no LINE and 05 LINE) exit 0, RGU.TXT 'PH', '', 'AAA', ' BBB   CCC', '', '   DDD' and RGU2.TXT 'EEE' (no cross-group or cross-RD false nesting). Grep of ReportSectionBinder.cs for DialectLevel shows no edition test on the nesting screen. cite.py: OK §1985:XIII.3.15.3 SR2 'the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

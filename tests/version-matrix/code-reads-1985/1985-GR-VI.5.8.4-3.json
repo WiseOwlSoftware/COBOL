@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-VI.5.8.4-3",
+ "rule-digest": "5fc253e1a1e6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-014",
+  "sources": {
+   "reader": "033c718f66fa8327f6c6097812f1d6775bf39f1061001634aaebd3db3ff0ac86",
+   "refuter": "4e2defe6b916e6fb79a025d09c8420aa472c43d66af8d98ecc224e3e85cee037"
+  },
+  "imported": {
+   "reader": "d1d7a25b85edcebd2c69fde7c59e0a40ca9aaac4be789456ded0e6410e4ba986",
+   "refuter": "67dc9514ca98d29ffa0a9f2f4d37e66754df7a74e61b65b30b9c2f262571501e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.8.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a group holding a format 2 OCCURS is referenced: with data-name-1 outside the group the operation uses only the part given by data-name-1's value at the start of the operation, sending or receiving; with data-name-1 inside the group, a sending reference uses that current part and a receiving reference uses the group's maximum length.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#WrapIfOdoGroup; src/WiseOwl.Cobol.Compiler/Binding/Model/OdoModel.cs#WrapGroup; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#UsesCurrentExtent; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#SendingImage; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#ReceiveInto; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#LengthExpr",
+  "edition-consulted": [],
+  "edition-search": "Grepped OdoModel.cs, PlaceBuilder.cs, RecordLayout.cs, PlaceRenderer.cs and GroupImageCodec.cs for DialectLevel|EditionContext|CobolVersion|ConstructRegistry|DialectBehavior|Edition.: no match. The direction rule is the single expression UsesCurrentExtent = dir == Sending || !DependingInside.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb202_odo_refmod_group_direction covers reference-modified and whole-group sending, and a reference-modified receiver with data-name-1 inside; the whole-group RECEIVER with data-name-1 outside (GR3a's receiving half), the whole-group receiver with data-name-1 inside, group-to-group moves, comparisons and READ INTO are not exercised.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo3.cob",
+    "printed": "A1[ABCDEF---------] A2[ABCDEF              ] A3 EQ",
+    "expected": "GR3a: data-name-1 outside, MM=2: receiver takes 6 characters, rest unchanged; sender sends 6; comparison on 6"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo3.cob",
+    "printed": "B1[3][3abcdefghi] B2[5abcdefghijklmn ] B3[2abcdef             ] B4 EQ",
+    "expected": "GR3b: receiver with data-name-1 inside takes the maximum 16 positions (NN becomes 3); sender uses current extent"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo3.cob",
+    "printed": "B5[3] B6[5abcdefghi ] B7[3abcde---------]",
+    "expected": "MOVE G TO G2: sender's extent from NN at the start (10), receiver maximum (11) so the statement itself changes KK to 3; MOVE G TO H uses MM at the start (6)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo4.cob",
+    "printed": "R1[4][4aaabbbcccddd] R2[4aaabb         ]",
+    "expected": "READ INTO a group with data-name-1 inside: maximum length; INTO a group with data-name-1 outside (MM=2): 6 characters"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo3.cob",
+    "printed": "output identical at --std 85 and --std 2023 (same85vs2023=True)",
+    "expected": "same rule"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.4 GR3a",
+    "check": "OK  §1985:VI.5.8.4 GR3a  (5.8.4 General Rules)  the text is in GR3a"
+   },
+   {
+    "cite": "§1985:VI.5.8.4 GR3b",
+    "check": "OK  §1985:VI.5.8.4 GR3b  (5.8.4 General Rules)  the text is in GR3b"
+   }
+  ],
+  "notes": "The binder wraps every group over an ODO table as an OdoGroupPlace that records whether data-name-1 is inside, and the renderer picks the current extent or the maximum image from the access direction alone; no edition is read. MOVE SPACES to a group with data-name-1 inside blanks the count (B9), which is the program's own error, not the compiler's (VI.5.8.4 GR2b requires the value in range).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.8.4-3",
+  "refutation": "OVERTURNED",
+  "classes": "a,b,f",
+  "evidence": "rd2.cob at --std 85 (identical at --std 2023): 01 H. 05 HN PIC 9. 05 HE PIC X OCCURS 1 TO 5 TIMES DEPENDING ON HN (data-name-1 INSIDE the group). MOVE \"5*****\" TO H, MOVE 1 TO HN, MOVE 2 TO PTR, STRING \"ab\" DELIMITED BY SIZE INTO H WITH POINTER PTR, MOVE 5 TO HN, DISPLAY H PTR. Expected [5ab***][04]: H is the STRING receiving item (VI.6.25.4 GR1), so its maximum length 6 is used (VI.5.8.4 GR3b), and positions not written stay unchanged (GR4a no space filling, GR8). Printed S2[5a    ][03]: the receiver was taken at its CURRENT extent (2 positions), only 'a' moved, and positions 3-6 were overwritten with spaces. S4 (POINTER 3 > current extent): ON OVERFLOW taken although position 3 is within the 6-position maximum, and H's positions 3-6 were still blanked: [5*    ][03]. Control S3 (same STRING into a fixed group) correct [5ab***][04]; data-name-1 OUTSIDE (rd1.cob S1 [WX---][03]) correct; UNSTRING INTO H (rd3.cob) correct [5abcd ][XYZ]; MOVE 3 TO MM G (rd1 F1 [3  --]) correct per VI.6.19.4 GR2. Cause in code: src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString reads the receiver with ReadImage(s.Into) (OperandText.AsString, the SENDING image at the current extent) and stores it back with WriteImage -> PlaceRenderer.WriteGroupValue, the RECEIVING store at the maximum length, which pads with spaces. kb/Work search (STRING with ODO/OCCURS DEPENDING/maximum length): no note covers it (PB871 is dynamic-length elementary items, PB1123 identification timing). Doubtful extra: INSPECT H REPLACING with HN inside used the current extent (rd1 I4 [5##***]); 1985 does not call INSPECT's identifier-1 a receiving item, so not counted. cite.py: OK §1985:VI.5.8.4 GR3b; OK §1985:VI.6.25.4 GR1; OK §1985:VI.6.25.4 GR4a; OK §1985:VI.6.25.4 GR8; OK §1985:VI.6.25.3 SR2 (a group identifier-3 is legal: implicitly USAGE DISPLAY); OK §1985:VI.6.19.4 GR2.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString: no edition switch; reads identifier-3 with the sending (current-extent) image of an ODO group whose data-name-1 is inside, then stores it at the receiving maximum"
+  ],
+  "corrected": "NON-CONFORMING (wrong-answer), cause (b), same at --std 2023: STRING INTO a group whose OCCURS DEPENDING data-name-1 is inside the group uses the current extent instead of the maximum length GR3b requires for a receiving item, transfers too few characters, raises a false overflow, and space-fills the positions beyond the current extent, contrary to STRING GR4a/GR8. Repro: refute-1985-014/rd2.cob."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "STRING into a group that holds an OCCURS DEPENDING ON table with its count item inside the group overflows and stores short. 2023 row `GR-13.18.38.4-8`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-1.md"
+ },
+ "work": "PB5776"
+}

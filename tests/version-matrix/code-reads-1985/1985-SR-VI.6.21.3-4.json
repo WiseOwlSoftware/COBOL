@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-4",
+ "rule-digest": "8e83507b30dc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-058",
+  "sources": {
+   "reader": "17c9a50c0599b55c526ec793a2d8245cb2c8f0691c3a03cba568a17c9962d3a5",
+   "refuter": "ae091fd372e0f5d6c34cb408fab426558f4ac6e99628334a1503734ae59c85a0"
+  },
+  "imported": {
+   "reader": "11b6f068888bfa49105d723ce6a8b79c73a3c6ea064eab6a99c7139f44427830",
+   "refuter": "ae72be0431d97cf8578fa56c36e794b1e153269c709e3bf7d05ebd47e3ab3877"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every PERFORM identifier (identifier-1 of TIMES, the varied identifier-2/-5, the FROM identifier-3/-6 and the BY identifier-4/-7) must be a numeric elementary item, and the TIMES identifier-1 a numeric integer; alphanumeric, alphabetic, numeric-edited, group, index data items, reference-modified slices and (at 85) numeric function-identifiers in these identifier positions are refused, while signed, scaled (P), COMP/COMP-3 and noninteger (outside TIMES) numeric items are accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#CountOperand; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingLevel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002, asked from CountOperand (IntrinsicOperand) and BindVaryingOperand: a numeric/integer function as TIMES count or FROM/BY identifier refused at 85, admitted at 2002+",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef",
+    "switches": "IndexDataItemAdmittedAt(DialectLevel) for the ArithmeticIndexNameWindow row: no at every edition, so an index data item FROM/BY falls to the class screen",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying",
+    "switches": "DialectBehavior PerformVaryingInitInnerBeforeAugmentOuter (GR10 order, not this rule's operand class)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read CountOperand, BindVaryingLevel, BindVaryingOperand, CheckVaryingOperandRules, OperandClassScreen and OperandContextRules; grepped them for Edition.Edition, DialectLevel, ConstructRegistry, DialectBehaviors. The class and integer screens take no edition.",
+  "behaviour-differs-by-edition": "yes: a numeric function-identifier as the TIMES count or a FROM/BY identifier is refused at 85 (§1985:IV.4.3.8.3.3 SR4) and admitted from 2002; the numeric/integer class screens are the same at every edition",
+  "witnesses-cover": "part: witnesses cover an alphanumeric and an index data item as the varied identifier, an index data item VARYING target and a noninteger TIMES item; not exercised are FROM/BY identifiers of every class, AFTER-level identifiers, numeric-edited/group/ref-modified items, P-scaled and signed TIMES counts, and functions",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf4pos.cob",
+    "printed": "A 0000 / B 0020 / C 0005 / D 1.5 D 2.0 D 2.5 / E 01 E 03 E 05 / F +000 F -003 (exit 0)",
+    "expected": "S9(2) count -1 runs zero times; PIC 9P count 20 runs 20 times; COMP-3 and COMP counts accepted (2+3); noninteger 9V9 varied with 9V9 FROM/BY identifiers; ODO table element T(I) as varied identifier; signed varied with negative BY"
+   },
+   {
+    "class": "a,b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf4ref.cob",
+    "printed": "18 statements, 18 diagnostics: COBOL1646 TIMES count for 9V9, X, Z9, group, index, ref-modified, alphabetic; COBOL2120 varied identifier for X, Z9, group, index, ref-modified; COBOL0844 FROM/BY identifier for X, Z9, group, index, alphabetic, ref-modified",
+    "expected": "every non-numeric-elementary identifier refused, and a noninteger TIMES count refused"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf4aft.cob",
+    "printed": "COBOL2120 AFTER X1; COBOL0844 AFTER FROM NE and BY X1; COBOL0900 FUNCTION LENGTH as TIMES count, FROM and BY (§1985:IV.4.3.8.3.3 SR4)",
+    "expected": "AFTER-level identifiers screened like the VARYING level; a numeric function is no identifier operand at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR4",
+    "check": "OK  §1985:VI.6.21.3 SR4  (6.21.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "Three screens carry the rule: IsIntegerOperand for the TIMES count, the OperandClassScreen PerformVaryingIdentifier row for the varied item, and the 8.8.1.1 class screen for FROM/BY; each refused every class probed and admitted every numeric form. A literal 0 TIMES draws COBOL2386 under the §1985:III.2 integer definition, a different rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "At --std 85: rp4pos printed A 003 (66 RENAMES of elementary numeric as TIMES count) / B 200 (PIC 9PP count) / C +001 C +003 (FROM SIGN TRAILING SEPARATE, BY BINARY, UNTIL against PACKED-DECIMAL) / D 004+ .. D 001+ (sign-separate item varied BY -1) / E 002 (PIC 9(18) count) / F 004 (out-of-line Format 4 with an AFTER level, RENAMES varied, BINARY FROM/BY), each right. rp4ref: PIC P9 (noninteger by scaling) TIMES count refused COBOL1646; 66 RENAMES THRU (group) refused as TIMES count (COBOL1646), as varied item (COBOL2120) and as FROM (COBOL0844); condition-name as BY and TIMES refused COBOL1639; alphanumeric-edited varied item refused COBOL2120 and as AFTER-level BY refused COBOL0844; FUNCTION CURRENT-DATE as FROM refused COBOL0844 (§1985:IV.4.3.8.3.3 SR3b). rp4lin: LINAGE-COUNTER as TIMES count and FROM accepted (T T, V 0002 V 0003): an attack on 'described in the Data Division' fails, because §1985:IV.4.2.2.1.3.3.1 admits a special register wherever an identifier is specified when the category matches, and §1985 VII 1.3.7 gives LINAGE-COUNTER an implicit unsigned-integer description; rlinrx: LINAGE-COUNTER as the varied item refused COBOL2026 (only the I-O control system may change it). An inline PERFORM with AFTER is refused COBOL0900 at 85, which §1985:VI.6.21.3 SR2 requires. cite.py: OK §1985:VI.6.21.3 SR4 the text is in SR4; OK §1985:IV.4.2.2.1.3.3.1 the text is in the clause; OK §1985:VI.6.21.3 SR2 the text is in SR2; OK §1985:IV.4.3.8.3.3 SR3b.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler (COBOL0900 inline-PERFORM AFTER gate, perform-inline-after-2002 construct): consults the edition on the Format 4 path; it enforces SR2, not SR4",
+   "src/WiseOwl.Cobol.Compiler (COBOL2026 LINAGE-COUNTER receiver screen): on the varied-identifier path; edition-independent"
+  ],
+  "corrected": ""
+ }
+}

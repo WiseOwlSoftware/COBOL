@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-8",
+ "rule-digest": "346e7c4cc88f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-028",
+  "sources": {
+   "reader": "ecc6b3fea65b7e8f346e8afe9c69f717ee3390855a48f4828683119993b37cf6",
+   "refuter": "2e3ef5aa81e9ebe44f10c9b93e0a7c1fb1aae8ad67192c39e7bfeaaf6cc8e905"
+  },
+  "imported": {
+   "reader": "44c95e87f00a82edc4165d7f7db1e23f91593dc313522d0b5331447ea23d22a8",
+   "refuter": "507aaf6baafd41129d97c743e29eeca3291d7ff77d99fbb10efd12f31b64e846"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.4.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an OPEN (INPUT, I-O, EXTEND) of an existing relative file whose implementor-validated fixed file attributes (§1985:II.2.1: organization, record type, minimum and maximum logical record size, ...) conflict with the program's description is unsuccessful with I-O status 39 (§1985:VIII.1.3.4 (4) e), leaves the file unaffected and the file not open; which attributes are validated is the implementor's, and must be documented (§1985:C.2 item 86). OPEN OUTPUT creates the file and is not a validation.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; docs/conformance/7/DOC-A.1-129.md",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect' over FixedFileAttributes.cs (no hit), KeyedConnector.cs (FixedAttributeConflict/MetaPage.Describes have none), FileConnector.cs Open (line 1245 guard: mode is not Output && presence Present && FixedAttributeConflict(), no edition term); the relative arm's comparison is organization, Varying, Min/MaxRecordSize, identical at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers the relative organization opened INPUT and EXTEND with a different size, record type and organization; OPEN I-O with a conflict, the statements after the failed OPEN, the USE procedure on 39, the file left unaffected, dynamic vs random access (not a fixed attribute) and a varying relative file with a different minimum are covered only by probe p2open",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p2open.cob",
+    "printed": "MAKE=00 USE-RB 39 IO-BIGGER=39 USE-RB 47 READ-AFTER-FAILED-OPEN=47 USE-RB 48 WRITE-AFTER-FAILED-OPEN=48 USE-RB 42 CLOSE-AFTER-FAILED-OPEN=42 USE-RB 39 IN-BIGGER=39 DYNAMIC-SAME=00 RDY-READ=00 TWO RDY-NEXT=10",
+    "expected": "OPEN I-O / INPUT of a 20-byte relative file through a 30-byte FD is unsuccessful, 39, the USE procedure runs (permanent error: 'Any specified exception procedures are executed'), the file is not open afterwards (READ 47, WRITE 48, CLOSE 42), and the file is unaffected (a matching FD in DYNAMIC access opens 00 and reads record 2 'TWO')"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p2open.cob",
+    "printed": "VMAKE=00 FIXED-OVER-VAR=39 VAR-OTHER-MIN=39 VAR-SAME=00 VAR-READ=00 0005",
+    "expected": "record type (fixed vs variable) and minimum record size are validated per the documented determination (DOC-A.1-129 (3)): 39; the matching varying FD opens 00 and reads length 5"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p2open-002",
+    "printed": "error COBOL2372: OPEN EXTEND 'RB' - the file's access mode is RANDOM; EXTEND requires sequential access",
+    "expected": "1985 relative OPEN EXTEND is for sequential access only (the compile-time refusal; the EXTEND conflict arm is the witness's S5)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.4 GR8",
+    "check": "OK  §1985:VIII.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:II.2.1",
+    "check": "OK  §1985:II.2.1  (2.1 FILE ATTRIBUTES)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:C.2",
+    "check": "OK  §1985:C.2  (2. IMPLEMENTOR-DEFINED LANGUAGE ELEMENT LIST)  the text is in the clause (item 86)"
+   }
+  ],
+  "notes": "One OPEN-time comparison, FileConnector.Open asking the KeyedConnector override, which reads the relative store's meta page and compares through FixedFileAttributes.Conflicts before OpenCore, so a refused OPEN leaves the file untouched. The validated set is the implementor's and is documented in docs/conformance/7/DOC-A.1-129.md; nothing on the path is edition-specific, which the 1985 text permits.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.4.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "Probe r8open.cob (run r8open-001, --std 85): a relative file created by OPEN OUTPUT/CLOSE with no records through a 20-byte FD, then OPEN INPUT and OPEN EXTEND through a 30-byte FD: 39 and 39 (the meta page is written at creation, so an empty store is validated); a 1985 Format 2 RECORD CONTAINS 10 TO 20 file reopened through a fixed 20-byte FD: 39 for INPUT and for EXTEND; OPEN INPUT RG RC2 (GR17) gives RG=00 and RC2=39 and RG reads on (10 at end), so the conflict is per file; the matching RECORD CONTAINS 10 TO 20 FD opens 00 and reads both lengths. The validated set (organization, record type, min/max record size) is the one docs/conformance/7/DOC-A.1-129.md documents, which GR8 leaves to the implementor. cite.py: OK  §1985:VIII.4.4.4 GR8 (the text is in GR8); OK  §1985:VIII.4.4.4 GR17.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open: the sharing-refusal catch consults SharingFacilityInEffect (61 vs 30 at 85); not the '39' arm, so not on GR8's path"
+  ],
+  "corrected": ""
+ }
+}

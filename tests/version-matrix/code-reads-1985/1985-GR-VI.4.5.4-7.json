@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-7",
+ "rule-digest": "8ff49278a95a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-102",
+  "sources": {
+   "reader": "0aca3eed776d10077df1ada3f233644bd2d0ebb07e39741ed7b1f57803851a1a",
+   "refuter": "8820ad5928eff40479d7638c4a2f01dc02a28a619de196373de9498143191521"
+  },
+  "imported": {
+   "reader": "38b94e373723c0a37b6a2c18c43181a08861f601fcf3de81b0e6d11d6b880017",
+   "refuter": "c45a9effb1972435584a1bdf83028ba95bbcebcb5f784a89763c59d59feac760"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-VI.4.5.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, HIGH-VALUE and LOW-VALUE written as literals inside the SPECIAL-NAMES paragraph (the ALPHABET literal phrase including ALSO operands, and CLASS literals including THRU) stand for the native highest and lowest characters (U+FFFF and U+0000 here), never the program collating sequence's extremes, while the same words elsewhere keep GR5/GR6's meaning.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetFigurative; src/WiseOwl.Cobol.Compiler/Binding/LiteralEnvironment.cs#SpecialNames; src/WiseOwl.Cobol.Compiler/Binding/LiteralEnvironment.cs#HighValue; src/WiseOwl.Cobol.Compiler/Binding/LiteralEnvironment.cs#LowValue",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlphabetClause",
+    "switches": "the 2002 FOR ALPHANUMERIC/NATIONAL phrase, UCS-4/UTF-8/UTF-16 and LOCALE alphabets: refused at 85 (COBOL0900), admitted at 2023; the 1985 literal/STANDARD/NATIVE forms pass",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramCollatingSequenceClause",
+    "switches": "the 2002 national surface of PROGRAM COLLATING SEQUENCE refused at 85; the single alphabet-name-1 form passes",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBind",
+    "switches": "the LOCALE alphabet arm returns below 2002 (already refused by the pass)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/CobolVersion/Construct/IsAtLeast in CodeGen/Roslyn/FigurativeConstants.cs, Binding/LiteralEnvironment.cs, Binding/CollatingModel.cs, Binding/SpecialNamesBinder*.cs (hits only the LOCALE arm and the range-IN gate); read VersionConformancePass VisitAlphabetClause / VisitProgramCollatingSequenceClause / VisitSymbolicCharactersClause. The extreme computation and the figurative fill are edition-neutral.",
+  "behaviour-differs-by-edition": "no for alphanumeric alphabets; the later editions' NATIONAL-phrase arm (native national extremes) is unreachable at 85, where FOR NATIONAL is refused.",
+  "witnesses-cover": "part: g85_bf03_03 covers HIGH-VALUE and LOW-VALUE as ALPHABET literals; not ALSO with a figurative, the CLASS clause (single and THRU), or the contrast with the procedure-division meaning under a PCS that specifies the native extremes (probed here).",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p4cls.cob",
+    "printed": "FF-IN-HICLS HV-OUT 00-IN-LOCLS LV-OUT LV=M",
+    "expected": "CLASS HICLS IS HIGH-VALUE holds U+FFFF; CLASS LOCLS IS LOW-VALUE THRU \" \" holds U+0000..U+0020; the procedure HIGH-VALUE (U+FFFE under PCS \"M\" 65536 \"A\" \"B\" 1 \"N\") and LOW-VALUE (\"M\") fall outside them"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p4alpha.cob",
+    "printed": "FF-EQ-A 00-EQ-C LV=A HV-NOT-FF",
+    "expected": "\"A\" ALSO HIGH-VALUE and LOW-VALUE ALSO \"C\": U+FFFF shares A's position, U+0000 shares C's; the procedure LOW-VALUE is A and HIGH-VALUE is not U+FFFF (it is specified)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p4nat85.cob",
+    "printed": "error COBOL0900 the FOR ALPHANUMERIC/NATIONAL phrase requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/g85_bf03_03.cob",
+    "printed": "MATCH",
+    "expected": "ORD-NHI=00002 ORD-NLO=00004 ORD-A=00003 NHI-LT-A NLO-GT-A LV=B"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.4 GR7",
+    "check": "OK  §1985:VI.4.5.4 GR7  (4.5.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "Every literal inside SPECIAL-NAMES is read through LiteralEnvironment.SpecialNames (inSpecialNames, so the native pins) or the ALPHABET clause's AlphabetFigurative map; both answer NativeCollatingSequence's U+FFFF / U+0000. Refusal and file/size classes do not reach this general rule."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.5.4-7",
+  "refutation": "UPHELD",
+  "classes": "a,b,d",
+  "evidence": "r5sn-002: plural spellings and THRU with figuratives inside SPECIAL-NAMES: ALPHABET AL IS LOW-VALUES THRU \"@\" \"Q\" HIGH-VALUES (as the PCS) puts native U+0000..U+0040 first and native U+FFFF at position 67, so the procedure LOW-VALUE is U+0000 (LV-00), procedure HIGH-VALUE U+FFFE (HV-FE), Q and U+FFFF collate below A; CLASS CEVERY IS HIGH-VALUE THRU LOW-VALUE (descending THRU over the whole native set) holds Z; CLASS CHI IS HIGH-VALUES holds U+FFFF and not U+FFFE although the procedure HIGH-VALUE is U+FFFE. SR5 forbids only symbolic-character figuratives in these literals, so HIGH-VALUE/LOW-VALUE there are legal. cite.py: 'OK  §1985:VI.4.5.4 GR7  (4.5.4 General Rules)  the text is in GR7'; 'OK  §1985:VI.4.5.3 SR5  (4.5.3 Syntax Rules)  the text is in SR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

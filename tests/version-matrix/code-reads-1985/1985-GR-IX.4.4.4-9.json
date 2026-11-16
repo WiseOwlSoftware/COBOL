@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-9",
+ "rule-digest": "2b4a98d426f8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-096",
+  "sources": {
+   "reader": "4885c94b53f00c92261aa337973cfa772e2e53555c523fdf10e285f06db771e3",
+   "refuter": "9e7b7d463898bf2aef2f6e898c1e390033f25e3495d88a95c4dec25178b53b19"
+  },
+  "imported": {
+   "reader": "6ccae742009c5837cbe57a654009e2c580d776f04c540023c955334119eec614",
+   "refuter": "c7b5303a1c9f4d5cff69ca3005cdee1fbc3c37fd0e7963662280ea2140eb9250"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.4.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, OPEN INPUT of a SELECT OPTIONAL indexed file that is not present must succeed (05) and leave the file position indicator saying 'optional input file not present', so the first format 1 READ is at end (10) and a START or format 2 READ is invalid key (23), in every access mode, without creating the file. The witness covers dynamic access START and READ NEXT only.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OptionalAbsent; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "bakes --std (85) into each connector's registration (FileConnector.Edition); no rule of this case reads it except the gates listed",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep 'Edition|DialectBehavior' over KeyedConnector.OpenCore's Input arm, FileConnector.SequentialReadGuard and RandomReadAbsentOptionalGuard: none; SELECT OPTIONAL on an indexed file compiles at 85 with no gate",
+  "behaviour-differs-by-edition": "no: p4optabs printed identical lines at 85 and 2023 (p4optabs-002)",
+  "witnesses-cover": "part: l1_open_optional_input_absent covers dynamic access (START 23, READ NEXT 10); sequential access, random access, the KEY phrase READ, the 46 after the first at end and 'not created' for indexed are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "e,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-096/p4optabs-001/p4optabs.cob",
+    "printed": "sequential: OPEN 05, READ at end 10, second READ 46, re-OPEN 05 (not created), START 23; random: OPEN 05, READ 23, READ 23, READ KEY IS alternate 23; dynamic: OPEN 05, READ NEXT 10, random READ 23 then READ NEXT 46, START 23; no data file in the run directory",
+    "expected": "05 at OPEN, first sequential READ at end 10, START/random READ 23 (READ GR9), a READ after the at end 46, no file created"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR9",
+    "check": "OK  §1985:IX.4.4.4 GR9  (4.4.4 General Rules)  the text is in GR9  [\"sets the file position indicator to indicate that an optional input file is not present\"]"
+   },
+   {
+    "cite": "§1985:IX.4.5.4 GR10",
+    "check": "OK  §1985:IX.4.5.4 GR10  (4.5.4 General Rules)  the text is in GR10  [\"or that an optional input file is not present\"]"
+   },
+   {
+    "cite": "§1985:IX.4.5.4 GR9",
+    "check": "OK  §1985:IX.4.5.4 GR9  (4.5.4 General Rules)  the text is in GR9  [\"the invalid key condition exists and execution of the READ statement is unsuccessful\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.1d  [\"An OPEN statement is successfully executed but the referenced optional file is not present\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.2a.2  [\"A sequential READ statement is attempted for the first time on an optional input file that is not present\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c.2  [\"A START or random READ statement is attempted on an optional input file that is not present\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5e.3  [\"The preceding READ statement caused an at end condition\"]"
+   }
+  ],
+  "notes": "KeyedConnector.OpenCore's Input arm sets OptionalAbsent and answers 05 without creating the file; the shared guards turn that state into 10 (first sequential READ) and 23 (random READ, START), and the unsuccessful READ arms 46 for its successor as 1985's 46 item 3 requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe q2misc-001: SELECT OPTIONAL absent indexed, dynamic: OPEN INPUT 05, START with no INVALID KEY: USE runs with 23, then READ NEXT 46 (START unsuccessful, IX.1.3.4 46 item 1); format 2 READ with no INVALID KEY: USE runs with 23. Sequential: OPEN 05, READ with no AT END: USE runs with 10 (IX.4.5.4 GR10c); READ with AT END: AT END runs and USE does not (GR10b); CLOSE 00. cite: OK §1985:IX.4.4.4 GR9 [sets the file position indicator to indicate that an optional input file is not present]; OK §1985:IX.4.5.4 GR10c [a USE AFTER EXCEPTION procedure must be associated with the file connector].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

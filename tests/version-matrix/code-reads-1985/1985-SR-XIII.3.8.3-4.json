@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-SR-XIII.3.8.3-4",
+ "rule-digest": "f70f2ca9d799",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-078",
+  "sources": {
+   "reader": "b0bd5c2450046e0dd7a170d5666b191062e8062c4935c1bcaccc2bdaea756290",
+   "refuter": "5d47e263f056ccc1b2ad9a07051a4408b8f30631fb90247c56a4af11c777622c"
+  },
+  "imported": {
+   "reader": "372fadf63990d023095c08e0f309b39e327daf1fe1140928a9e1ada81e913a7d",
+   "refuter": "760f3cce014e8111cd7826dac6f96ea295f2572ac0996a1a674815e85f289c6b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.8.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FIRST DETAIL integer-3 must be at least HEADING integer-2, whether integer-2 is written or defaulted to one, with the phrases in any order (SR1) and equality allowed; an omitted integer-3 takes integer-2 (GR2b) and cannot violate the rule.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers",
+    "switches": "ExceedsThreeSignificantDigits85 (DialectLevel < 2002) adds the 1985 SR2 digit limit; the ascending-order loop runs the same at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral (IntegerOperandRules.Classify(dialectLevel), ZeroMessage)",
+    "switches": "ReportPageSubclauseContext is Nonzero at every edition; ZeroMessage cites §1985:III.2 below 2002 (wording only)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageSubclause",
+    "switches": "LAST CONTROL HEADING, the DE abbreviation and IS before an integer are refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1270 covers the legal ascending case (HEADING 2 FIRST DETAIL 4); the refused side is not exercised at 85",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pgfdlt.cob",
+    "printed": "COBOL2744 the HEADING integer 5 is greater than the FIRST DETAIL integer 4, exit 65 (same at 2023)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pgfd0.cob",
+    "printed": "COBOL2386 FIRST DETAIL 0 shall be nonzero, exit 65 (HEADING omitted, defaulting to 1)",
+    "expected": "refused: 0 < the defaulted integer-2 of 1"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pgeq.cob",
+    "printed": "exit 0, OK (HEADING 5 FIRST DETAIL 5 LAST DETAIL 6 FOOTING 6)",
+    "expected": "accepted: equality allowed"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pglch.cob",
+    "printed": "COBOL0900 the LAST CONTROL HEADING phrase of the PAGE clause requires COBOL-2002, exit 65",
+    "expected": "refused at 85: the phrase is not in the 1985 format (XIII.3.8.2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.8.3 SR4",
+    "check": "OK  §1985:XIII.3.8.3 SR4  (3.8.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:XIII.3.8.3 SR1",
+    "check": "OK  §1985:XIII.3.8.3 SR1  (3.8.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "ScreenReportPageIntegers sorts the written phrases into the canonical order and compares each with the next one written. Each omitted integer's GR2 default is a copy of a neighbour, so checking only the written integers also covers the defaulted pairs. At 85 the message cites §2023:13.18.39.3 SR6.",
+  "seeded": true,
+  "at-2023": "pgfdlt refused identically",
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.8.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "At --std 85: pgrev (FIRST DETAIL 3 HEADING 5, the phrases reversed) gives COBOL2744 'the HEADING integer 5 is greater than the FIRST DETAIL integer 3', exit 65. pghlim (PAGE 30 HEADING 40, so integer-3 defaults to 40 and integer-4 to 30) gives COBOL2744 'HEADING integer 40 is greater than the page limit 30', exit 65. pgfdneg (FIRST DETAIL -3) and pgfdpos (FIRST DETAIL +2) are refused by the grammar, exit 65. pgrevok (PAGE 30 FOOTING 20 LAST DETAIL 20 FIRST DETAIL 2 HEADING 1, written in reverse order) exit 0, OK. The pairwise check of the written integers in canonical order is equivalent to SR4 under the GR2 defaults, since each default copies a neighbour (OK §1985:XIII.3.8.4 GR2 'a value equal to integer-2 is given to integer-3'). OK §1985:XIII.3.8.3 SR4 'Integer-3 must be greater than or equal to integer-2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,137 @@
+{
+ "rule-id": "1985-FMT-XIII.3.14.2",
+ "rule-digest": "7450378d05c8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-003",
+  "sources": {
+   "reader": "73584da0799ab42f3edfc4b3993b3fa5a0a666c6471569a40b01e7bf727d4a7f",
+   "refuter": "4b70dd01aa64b402015783da02daecdc5f13dd314ec9021380b25f8599d5fe05"
+  },
+  "imported": {
+   "reader": "0e18a3c3163294d17ba384bd3f1292f8a0ee2a2a52a674a0878f9f8950743ced",
+   "refuter": "40b12bed1433172e07c922eb7c77a8b2783c1edf4f6a9abe308d265a4a3936fc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-XIII.3.14.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every report group description entry must begin with a level-number, a one- or two-digit number (1 through 9 also as 01 through 09, IV.7.4), whose value under an RD is 01 through 49 only (XIII.3.14.3 SR2); single-digit and two-digit spellings across that range must be accepted and build the group hierarchy, and 0, 50, 66, 77, 88, a three-digit spelling and an entry with no level-number must be refused. The witness covers only a legal hierarchy.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Classify; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#For",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConstantEntryBody",
+    "switches": "refuses a 2002 constant entry (01 ... CONSTANT AS) below 2002, including one standing in the REPORT SECTION, which LevelNumberPass.Classify leaves to the constant-entry binder",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/Dialect/CobolVersion in LevelNumberPass.cs: none (the pass takes only a diagnostic sink, so the report-group arm, the 1-49 range and the two-digit test are the same at every edition)",
+  "behaviour-differs-by-edition": "no: the report-group level-number range and spelling are the same at 85 and 2023 (p5a prints the same report at both)",
+  "witnesses-cover": "part: the witness exercises a legal level hierarchy; none exercises single-digit spellings in a report group, 49, or the refusals 0, 50, 66, 77, 88, 001",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5a.cob",
+    "printed": "report file: '007 AB' / 'END' (no diagnostic)",
+    "expected": "levels 1, 2, 49 and 01, 05, 10 under RD: accepted; the DETAIL and REPORT FOOTING groups are produced"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5j.cob",
+    "printed": "report file: '007' / 'DM' / '007'",
+    "expected": "single-digit levels 9 and 3 subordinate to 01: accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5b.cob",
+    "printed": "error COBOL1746: level-number 50 ... shall have level-numbers with the values 1 through 49",
+    "expected": "50 under RD: refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5c.cob",
+    "printed": "error COBOL1746: level-number 88 on 'C88' ...",
+    "expected": "88 under RD: refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5d.cob",
+    "printed": "error COBOL0001: cannot parse construct near 'RENAMES'",
+    "expected": "66 RENAMES under RD: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5e.cob",
+    "printed": "error COBOL1746: level-number 77 on 'DL' ...",
+    "expected": "77 under RD: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5f.cob",
+    "printed": "error COBOL1746: level-number 001 ... a level-number is expressed as a one-digit or two-digit number",
+    "expected": "three-digit spelling is no level-number (IV.7.4): refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5g.cob",
+    "printed": "error COBOL1746: level-number 0 on 'DL' ...",
+    "expected": "0 is outside 01-49: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5h.cob",
+    "printed": "error COBOL0001: unexpected 'COLUMN'",
+    "expected": "an entry with no level-number (SR1): refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5i.cob",
+    "printed": "error COBOL0900: constant entry (01 ... CONSTANT AS) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "a 2002 constant entry in the report section is not a 1985 form: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p5a.cob",
+    "printed": "at --std 2023: report file '007 AB' / 'END'",
+    "expected": "same at the latest edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.14.1",
+    "check": "OK  §1985:XIII.3.14.1  (3.14.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XIII.3.14.3 SR1",
+    "check": "OK  §1985:XIII.3.14.3 SR1  (3.14.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.3.14.3 SR2",
+    "check": "OK  §1985:XIII.3.14.3 SR2  (3.14.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.7.4",
+    "check": "OK  §1985:IV.7.4  (7.4 DATA DIVISION ENTRIES)  the text is in the clause"
+   }
+  ],
+  "notes": "LevelNumberPass classifies a reportGroupEntry's level-number to the ReportGroup arm (1-49, no specials) and refuses any spelling over two digits; the pass consults no edition, which is right because 1985 states the same range and spelling. A first probe of mine wrote 49 and 09 as siblings and drew COBOL2771, which is correct at 85 (§1985 data division concepts require identical level-numbers for items immediately subordinate to a group).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p5a identical",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-XIII.3.14.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "At --std 85, against what the reader did not probe: l1 an RD whose first entry is 05 (GR1: 01 identifies the first entry) -> COBOL2772 'report group entry before any 01-level entry' plus COBOL2247; l2 levels 01/05/03 in one group -> COBOL2771 unequal subordinate levels; l3 01 DETAIL with two 05 LINE groups of 07 items, plus a level-01 REPORT FOOTING with a level-49 item -> report '007/AB/007/AB/ /END'; l5 05 indented two columns into area A -> runs; l6 a format-2 05 LINE entry with nothing subordinate -> COBOL2247 (§1985:XIII.3.9.3 SR4c). Class c: l4 level 01 under RD written in area B -> COBOL3734 'requires COBOL-2002' at 85 (§1985:IV.7.4 requires 01 in area A), the same source runs at --std 2023 ('007/007'). cite.py: OK §1985:XIII.3.14.4 GR1; OK §1985:XIII.3.14.3 SR2; OK §1985:IV.7.4 (01 or 77 must begin in area A).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler (reference-format area-A check, COBOL3734): the level 01 area-A requirement is gated to below 2002; the reader listed only VisitConstantEntryBody. It is a reference-format arm beside the level-number, and the 85 arm is right"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,82 @@
+{
+ "rule-id": "1985-SR-IX.4.8.3-4",
+ "rule-digest": "524e352c4942",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-155",
+  "sources": {
+   "reader": "0de8f709c2b4ee3ffec721fd32c4bd152a11c5331bcb981f9d433bcb8682d5a8",
+   "refuter": "61677f953081c0603a4306d57d35c598bc4ebcb6f35cb94ba979f66aba39782c"
+  },
+  "imported": {
+   "reader": "1b2432fa40b7ab197d2499343edafe604d8fed9a222266137829aa7d0f72a376",
+   "refuter": "b29fd4317c3a0a960b22898c5945ff70467ab4430b38897ae75eb4d6b5eb228a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.8.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 USE AFTER STANDARD ERROR PROCEDURE and USE AFTER STANDARD EXCEPTION PROCEDURE are one statement: either word selects the same procedure for a file-name list or an open mode, satisfies the 1985 mandatory-phrase rules alike, and counts alike for the once-only rules (a file in an ERROR and an EXCEPTION USE, or a mode in both, is the duplicate SR3/SR6 forbid).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#HasApplicableUse; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "85 refuses omission of AFTER or PROCEDURE in Format 1; does not distinguish ERROR from EXCEPTION",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): a USE written with ERROR excuses the mandatory INVALID KEY/AT END exactly as one with EXCEPTION (HasApplicableUse reads only Files and ModeIndex)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf27_06 covers ERROR and EXCEPTION on explicit file-names firing alike; not the mode forms, the mandatory-phrase excuse, or the synonym in the duplicate rules",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/runs/g85_bf27_06-001",
+    "printed": "EXPECT: MATCH (g85_bf27_06.out)",
+    "expected": "the witness .out"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/src/p6use2.cob",
+    "printed": "U-FILES 23 00 00 / A1 23 / U-FILES 23 23 00 / A2 23 / U-FILES 23 23 10 / A3 10 / U-IO 23 00 / A4 23 / U-IO 23 22 / A5 22",
+    "expected": "USE ... ERROR ON files and USE ... EXCEPTION ON I-O each excuse READ/WRITE without INVALID KEY/AT END at 85 and fire for 23/10/22, control returning to the next statement (§1985:IX.4.8.4 GR5, GR6)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/src/p7usedup.cob",
+    "printed": "COBOL0897 'U-B': file 'XR' already has a USE procedure (ERROR then EXCEPTION); COBOL0897 'U-D' open mode already has a USE procedure (INPUT, ERROR then EXCEPTION); same for U-F, U-H, U-J",
+    "expected": "ERROR and EXCEPTION are the same statement, so each repeat violates SR3 or SR6"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.8.3 SR4",
+    "check": "OK  §1985:IX.4.8.3 SR4  (4.8.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "The grammar takes (EXCEPTION | ERROR) as one alternative and no binder, pass or emitter reads which word was written, so the two cannot diverge. The registries behind SR3/SR6 and the 85-only mandatory-phrase screen key on the file or mode only, which the refusal and run probes confirm.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.8.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Attacked through the 1985 IPC form USE [GLOBAL] AFTER STANDARD {EXCEPTION|ERROR} (§1985:X.5.5.2), which the reader did not probe. r4glob-002 at --std 85: outer USE GLOBAL ... ERROR ON INPUT and USE GLOBAL AFTER EXCEPTION ON I-O; contained INNER1 (no declaratives) and INNER2 (own EXCEPTION ON INPUT). Printed G-IN fired / OUTER OSQ 35 / G-IN fired / INNER1 XR 35 / G-IO fired / INNER1 RDY 23 / L-IN fired 35 / INNER2 RR 35: the GLOBAL ERROR procedure serves the contained program like an EXCEPTION one, the outer GLOBAL EXCEPTION ON I-O excuses INNER1's READ without INVALID KEY, and INNER2's own declarative takes precedence (§1985:X.5.5.4 GR1a). r5dup-001: GLOBAL ERROR ON INPUT then EXCEPTION ON INPUT -> COBOL0897; GLOBAL EXCEPTION ON XR then ERROR ON SQ XR -> COBOL0897 for XR; GLOBAL ERROR then GLOBAL EXCEPTION ON EXTEND -> COBOL0897 (SR3, SR6 count the synonyms as one). r5late-001 class c: USE AFTER EXCEPTION CONDITION EC-I-O refused COBOL0877/0878; USE ERROR PROCEDURE (no AFTER) and USE AFTER STANDARD EXCEPTION ON SQ (no PROCEDURE) refused COBOL0900. STANDARD omitted (USE AFTER EXCEPTION PROCEDURE ON INPUT) is accepted, as the 1985 format leaves STANDARD unrequired. cite.py: OK §1985:IX.4.8.3 SR4; OK §1985:IX.4.8.3 SR3; OK §1985:X.5.5.4 GR1a.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement: also gates Format 3 USE AFTER EXCEPTION CONDITION (2002) and the EC-name window, refused at 85; neither distinguishes ERROR from EXCEPTION"
+  ],
+  "corrected": ""
+ }
+}

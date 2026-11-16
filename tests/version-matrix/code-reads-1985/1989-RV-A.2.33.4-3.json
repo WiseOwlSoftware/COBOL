@@ -1,0 +1,96 @@
+{
+ "rule-id": "1989-RV-A.2.33.4-3",
+ "rule-digest": "e6b4f0dd4ed8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-183",
+  "sources": {
+   "reader": "4f0be211b120206b4c2a37f4a219d7959c5b7b1ec6118333aa2cc287c325cc8c",
+   "refuter": "2069fc40c4ba993e90b28e81950f109a26308d8479e1d47c5a5d50585c0c6ec7"
+  },
+  "imported": {
+   "reader": "3405d50746d163f2bdd3ac753f96990b568a44e68835229ed76314aa5dd96159",
+   "refuter": "ed509f926b8c67bef2035cf0db77d58f30c9bc112d66770aed1c0c9d92f8896e"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.33.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when two or more argument-1 values of FUNCTION ORD-MIN are equal and least under the simple-condition rules (algebraic equality across scales and usages, +0 = -0; collating equality including ALSO-equal characters and space extension), the ordinal of the leftmost such argument is returned, for every argument form the 1989 module allows. The witness covers a numeric literal tie and one space-extension tie.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#SelectMin; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#OrdMinAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMinString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMin; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#OrdMinDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Wide.cs#SelectWide; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#SelectExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#OrdMinReal; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window for ORD-MIN, admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+    "switches": "ORD-MIN IntroducedIn 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "As for 1989-RV-A.2.33.4-1: the tie handling is the strict-less update in each runtime body, none of which takes an edition input.",
+  "behaviour-differs-by-edition": "no: same output at --std 85 and --std 2023",
+  "witnesses-cover": "part: g85_bf40_06 covers a 2-and-2 literal tie and a padded-literal tie; not exercised: ties across scale/usage (7, 7.0 SIGN LEADING SEPARATE, COMP 7), +0/-0, ZERO vs 0, 18-digit negative ties, ALSO-equal characters under a PCS, ties inside an ALL/ODO expansion",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordsel.cob",
+    "printed": "D4 01 (equal groups); D6 01 (alphanumeric ABC = alphabetic ABC); D8 01 (7 SL1 CMP1)",
+    "expected": "01, 01, 01"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordsel.cob",
+    "printed": "F2 01 (NEG1 BIG1 NEG1); F5 01 (0 FR1 ZERO); F7 01 (+0 -0); F9 03 (BIG1 FR1 NEG1 0 NEG1)",
+    "expected": "01, 01, 01, 03"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordsel.cob",
+    "printed": "A4 01 (S(ALL)(3:2): '  ' at 1 and 4)",
+    "expected": "01"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/ordpcs.cob",
+    "printed": "P5 01 (D then C, equal by ALSO); P6 02 (E C D: C and D tie, leftmost C)",
+    "expected": "01, 02"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.33@1985-ORD-MIN-FUNCTION/g85_bf40_06.cob",
+    "printed": "EXPECT: MATCH (OMIN3 2, OMIN4 1)",
+    "expected": "the .out file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.33.4 RV3",
+    "check": "OK  §1989:A.2.33.4 RV3  (2.33.4 Returned Values)  the text is in RV3"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.1",
+    "check": "OK  §1985:VI.6.3.1.1.1  (6.3.1.1.1 Comparison of Numeric Operands)  the text is in the clause"
+   }
+  ],
+  "notes": "Every carrier keeps the first index and replaces it only on a strictly smaller comparison (c < 0), so the leftmost of equal least values wins; the probes reach the Int128 pair, string and PCS-collation bodies. The aligned Int128 OrdMin in CobolIntrinsics.Exact.cs has the same strict update.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.33.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "ordgrp.cob at --std 85: IN 01 (2, 2, 2 from MOD, literal and REM), CN 01 (CHAR(66) and \"B\"), UN 01 (literal-equal item and UPPER-CASE result). ordall2.cob: N1 05, N3 02 (leftmost 0 of a later tie 0,0 under ODO N=3), N4 04. ordreal.cob: no false tie between 18-digit values when a binary64 argument is present (N1 01, N2 02). cite.py: OK §1989:A.2.33.4 RV2 (the tie judged by simple-condition equality).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.6-4",
+ "rule-digest": "c50ef2104488",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-150",
+  "sources": {
+   "reader": "7697c568dbb2a3c85cecd17e51af211a6f653d5e6cb0624595d46d53a5bde9a3",
+   "refuter": "1cf85c8f5c2ce69b9820c2199aa1ac9137fc69e3e23d294d2de8dae79b62d502"
+  },
+  "imported": {
+   "reader": "da5062d88606c75cbbfc20a957c8645a0e19c884a0e8539dab0f0d770352c127",
+   "refuter": "55dd079e6612116edf4ff6e924b4fefd27f49f1251df5b987fbf8c8f7770574f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.5.6-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each INITIATE sets the report's LINE-COUNTER to zero and every page advance the RWCS executes resets it to zero before the page heading is processed; only the RWCS changes it (a program's MOVE into it is refused).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#LineCounter; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup restores LINE-COUNTER from the NEXT GROUP save at TERMINATE (not INITIATE or page advance; inactive at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Initiate sets LineCounter = 0 and PageFeed sets LineCounter = 0 unconditionally; neither reads Edition or DialectBehaviors (grep of Edition in ReportWriter.cs). The receiving-operand refusal COBOL2197 is edition-independent.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf36_06 covers INITIATE of two reports, a re-INITIATE and the overflow advance after NEXT GROUP NEXT PAGE; the LINE ON NEXT PAGE and absolute-LINE advances and EXTEND mode are probe-only",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pc1.cob",
+    "printed": "INITIATE -> LC 00; each of the three advances -> 'PH: ... LC 00' in USE BEFORE REPORTING of the page heading; after TERMINATE LC 07, then INITIATE -> LC 00",
+    "expected": "zero after INITIATE and at each page advance"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pcl.cob",
+    "printed": "error COBOL2197: LINE-COUNTER shall not be referenced as a receiving operand",
+    "expected": "refused: §1985:XIII.3.5.6 GR2 only the RWCS can change it"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pce.cob",
+    "printed": "OPEN EXTEND: the same LC trace",
+    "expected": "same"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/pc1.cob",
+    "printed": "--std 2023: identical trace",
+    "expected": "same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.6 GR4",
+    "check": "OK  §1985:XIII.3.5.6 GR4  (3.5.6 LINE-COUNTER Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "Witness g85_bf36_06 MATCHes at 85. COBOL2197 cites §2023:8.4.3.15.3 SR3 at 85 rather than the 1985 rule, a wording issue only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.5.6-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "ini2.cob (runs/ini2-002): each of two reports INITIATEd in one statement shows LINE-COUNTER 00 (L1 00 L2 00), both first and after TERMINATE and re-INITIATE in reverse order, whatever value the RWCS had left (02/04). sup.cob: the page advance after the suppressed group shows 'PH: PC 00000002 LC 00'. The suppressed group itself left LC at 05 (§1985:XIII.3.5.6 GR5 cite.py OK, 'whose printing is suppressed by means of the SUPPRESS statement'), so a reset happens only on a real advance. cfnp.cob: no advance, no reset (LC 08 into the PF). Initiate and PageFeed set LineCounter = 0 with no edition read. The TerminateDiscardsSavedNextGroup arm runs at TERMINATE, not at INITIATE or at a page advance, and Initiate clears _nextGroupSave unconditionally, so nothing saved survives into a new INITIATE. cite.py: OK  §1985:XIII.3.5.6 GR4  (3.5.6 LINE-COUNTER Rules)  the text is in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

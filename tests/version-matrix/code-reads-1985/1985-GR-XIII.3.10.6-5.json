@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.6-5",
+ "rule-digest": "9d09b49230f8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-145",
+  "sources": {
+   "reader": "16e919ad61b91578bb140064b907ea9ff6d5d12879721f44f2a8c615382a2e89",
+   "refuter": "153581c84afa9119e551cb7b435a919dd398b725151cddf496a9c8dfbb7013b9"
+  },
+  "imported": {
+   "reader": "b1bedaa0e8773d656fdf39fe260c646419865544e6a8440d1e53cee8ffe8e073",
+   "refuter": "29f872bb88500b8df89b6a14d40cb1fd584c8dfe8fbb1a24aaf4bfac93e3778f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.6-5",
+  "verdict": "CONFORMS",
+  "requirement": "After a report heading is presented at --std 85 the RWCS sets LINE-COUNTER to the absolute NEXT GROUP integer (a), the final print line plus a relative NEXT GROUP integer (b, paged and unpaged), zero for NEXT GROUP NEXT PAGE (c), the final print line when NEXT GROUP is absent (d), and leaves LINE-COUNTER unchanged for a nonprintable (no LINE NUMBER) report heading (e).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|DialectBehavior' ReportWriter.cs gives lines 734, 964, 1080, 1490 only (SumPresentable, GenerateCore, TerminateCore, WithPageGroupControlValues); none is on the report heading path GenerateCore -> PresentHeadingFooting -> BeginGroup/PresentLines/PresentLine -> ApplyNextGroup(ReportHeading arm) -> PageFeed. ReportWriterEmitter#EmitReportConstruction bakes Edition into CobolReport but nothing on this path reads it. The binder's NEXT GROUP legality checks (COBOL2284) are syntax rules, not this GR.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "all of the rule's range at this edition (g85_bf36_01: a, b paged and unpaged, c, d paged and unpaged, e)",
+  "probes": [
+   {
+    "class": "a..f witness",
+    "file": "conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01.cob",
+    "printed": "EXPECT: MATCH (g85_bf36_01.out)",
+    "expected": "BEFORE PH LINE-COUNTER 05/05/00/03/00; unpaged LC 6 and 4"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p1_rh_ph.cob",
+    "printed": "R-H (RH LINE 2, LINE PLUS 2, NEXT GROUP 7): BEFORE PH-H LINE-COUNTER 07, PH at 8; R-J (RH LINE 3 NEXT GROUP PLUS 2): BEFORE PH-J LINE-COUNTER 05; R-K (RH LINE 5 NEXT GROUP NEXT PAGE): BEFORE DE-K LINE-COUNTER 00 PAGE-COUNTER 2, DE on page 2 line 10",
+    "expected": "5a: 7; 5b: 3+2=5; 5c: 0 and the RH alone on page 1 (GR4c)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r1_rh_ngreset.cob",
+    "printed": "error COBOL0900: the WITH RESET phrase of NEXT GROUP NEXT PAGE ... requires COBOL-2002",
+    "expected": "refused: §1985:XIII.3.16.2 has no WITH RESET"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r7_rh_unpaged_absng.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r10_rh_ngnp_unpaged.cob",
+    "printed": "error COBOL2284 (only the relative form of NEXT GROUP in an unpaged report) for both",
+    "expected": "Table 1: R Absolute and R NEXT PAGE without a PAGE clause are Illegal Combinations"
+   },
+   {
+    "class": "c (latest)",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p1_rh_ph.cob --std 2023",
+    "printed": "stdout identical to the --std 85 run",
+    "expected": "same arm"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.6 GR5",
+    "check": "OK  §1985:XIII.3.10.6 GR5  (3.10.6 Report Heading Group Presentation Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "ApplyNextGroup's ReportHeading arm sets LINE-COUNTER = integer (5a), += integer after PresentLine left it on the final line (5b), and for NEXT PAGE calls PageFeed which zeroes it (5c); with no NEXT GROUP the last PresentLine value stands (5d); BeginGroup returns false for a group with no line, so nothing moves (5e). The witness and the probes agree, and the 2023 run is identical.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.6-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read ReportWriter.cs ApplyNextGroup (ReportHeading arm: Absolute LC = integer, Relative LC += integer, NEXT PAGE -> PageFeed, which sets LineCounter = 0), PresentHeadingFooting, BeginGroup (no line or SUPPRESS returns before ApplyNextGroup: 5e, and §1985:XIII.3.5.6 GR5 for a suppressed group, cite.py 'OK  §1985:XIII.3.5.6 GR5  (3.5.6 LINE-COUNTER Rules)  the text is in GR5'). Probe q3_rh_ph.cob (runs/q3_rh_ph-001, --std 85): R-P RH of two relative lines (R row, 3b: HEADING 3 -1 +1 = 3, 4) with NEXT GROUP PLUS 2 gave 'BEFORE PH-P LC 06' (5b: 4+2); R-Q RH LINE 3 NEXT GROUP 6 gave 'BEFORE PH-Q LC 06' (5a). Class c: q4_rh_line_np.cob (RH LINE 2 ON NEXT PAGE) refused, COBOL2199 (§1985:XIII.3.15.3 SR7). The reader's probes cover 5c (LC 00, PAGE-COUNTER 2), 5d and the unpaged 5b; nothing found that the code misses. cite.py: 'OK  §1985:XIII.3.10.6 GR5  (3.10.6 Report Heading Group Presentation Rules)  the text is in GR5'; 'OK  §1985:XIII.3.15.3 SR7  (3.15.3 Syntax Rules)  the text is in SR7'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

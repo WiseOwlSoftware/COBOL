@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-IX.1.3.4-L2.2",
+ "rule-digest": "d87ef5efc115",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-006",
+  "sources": {
+   "reader": "c57a74a79da0c970db70b554914ff1ef6745cfd09743215e5e8ed2d6bd789656",
+   "refuter": "2736100c82b3bb50b0d7353a1e35a29ad639d5471a8043d50d0460a9dda1de2e"
+  },
+  "imported": {
+   "reader": "783142468475d42495e7459fedb5e14705917542fb2e4431353c4d77609f7f95",
+   "refuter": "c3cf8735465d68011daa58095f348987f33d586c821d52ff11ac897a047315fd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.1.3.4-L2.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for an indexed file (sequential or dynamic access, any key of reference, fixed or variable records) a sequential READ (READ [NEXT]) that finds no next logical record must set I-O status 10 because the end of the file was reached, and the first sequential READ of an optional input file that was not present at OPEN must set 10; the AT END phrase or the applicable USE procedure follows.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#FileRegisterIndexed",
+    "switches": "bakes the compiling --std into the connector (EditionArg -> FileConnector.Edition)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord",
+    "switches": "DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, only for READ PREVIOUS after OPEN (no 1985 form); the READ NEXT at-end arm is unconditional",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+    "switches": "IndexedReadStatus/DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly decides the 02 status of a successful read only; the 10 return (selected is null) and the guard's 10/46 are edition-free",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep 'Edition|DialectBehavior' in Runtime/IO/FileConnector.cs, IndexedConnector.cs, KeyedConnector.cs, FileStatus.cs and 'Edition.Edition|IsAvailable|DialectBehavior|EditionArg' in the READ binders/emitters",
+  "behaviour-differs-by-edition": "no: the at-end status is one arm; c5b prints the same lines at --std 2023",
+  "witnesses-cover": "part: the witnesses cover the 46 after an unsuccessful read and the absent optional file; reaching the end under sequential and dynamic access, after START, on an alternate key of reference, an empty file and a variable-length file are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c5a.cob",
+    "printed": "R1 AAAZZ 00 / R2 BBBYY 00 / E3 10 / START 00 / R4 BBBYY / E5 10 / RANDOM 00 / R6 BBBYY 00 / R7 AAAZZ / OPT-OPEN 05 / OPT-E1 10 / EMPTY-E 10",
+    "expected": "dynamic READ NEXT past the last record: 10 and AT END; after START: 10 at end; alternate key YY then ZZ order; absent OPTIONAL file OPEN INPUT 05, first READ 10; empty file first READ 10"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c5b.cob",
+    "printed": "RAND BBBYY 00 / USE-IX 10 / AFTER-NEXT 10 / USE-IX 46 / AFTER-46 46 / USE-OP 10 / OPT1 10 / USE-OP 46 / OPT2 46 / OPT-IO 05 / USE-OP 10 / OPT-IO-READ 10; same at --std 2023",
+    "expected": "random READ then READ NEXT with no next: 10 and the USE procedure runs; a second sequential READ is 46 (not first time); OPEN I-O of an absent optional creates the file (05) and its READ reaches end: 10"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c5c.cob",
+    "printed": "R AAA 03 00 / R BBB 08 00 / END 10",
+    "expected": "RECORD VARYING 3 TO 8 indexed file: 10 after the last record"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.1.3.4 GRL2.2",
+    "check": "OK  §1985:IX.1.3.4 GRL2.2  (1.3.4 I-O Status)  the text is in GRL2.2"
+   }
+  ],
+  "notes": "IndexedConnector.ReadSequential returns AtEnd (10) when SelectSequentialRecord finds no record, and FileConnector.SequentialReadGuard returns 10 for the first READ of an absent optional file and 46 thereafter (LastReadUnsuccessful checked first). The edition reaches the connector but is consulted only for READ PREVIOUS and the 02 status, neither on this path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.1.3.4-L2.2",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "r5a.cob at --std 85 (dynamic indexed, alternate key WITH DUPLICATES, a USE procedure on both files): records with prime keys LOW-VALUES, BBB, CCC, HIGH-VALUES (figurative keys at both ends); random READ of HIGH-VALUES 00 then READ NEXT INTO W -> 'HV-END 10 ####' (AT END taken, INTO not moved, §1985:IX.4.5.4 GR8b); START KEY > BBB, READ NEXT CCC 00, DELETE, READ NEXT HIGH-VALUES 00, DELETE, READ NEXT -> E3 10 (end reached after deleting the records ahead); START on AK = X then READ NEXT 02 (duplicate follows, GR4e), 00, then A-E3 10; absent OPTIONAL file OPEN INPUT 05, START -> 23 (§1985:IX.4.7.4 GR6), then READ NEXT -> 46 through the USE procedure, not 10: correct because §1985:IX.4.7.4 GR8 sets 'no valid next record has been established' after the failed START, so §1985:IX.4.5.4 GR4a makes the READ unsuccessful (46, GRL2.5 item e 1) rather than reaching GR4b's optional-not-present at end; GRL2.2 2) applies only while the position indicator still says the optional file is not present. cite.py: OK §1985:IX.1.3.4 GRL2.2; OK §1985:IX.4.5.4 GR4a; OK §1985:IX.4.5.4 GR4e; OK §1985:IX.4.7.4 GR6; OK §1985:IX.4.7.4 GR8; OK §1985:IX.1.3.4 GRL2.5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

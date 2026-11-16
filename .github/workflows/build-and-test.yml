@@ -406,7 +406,7 @@ jobs:
     needs: changes
     if: github.event_name == 'merge_group' || needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-26.04
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - id: checkout
         uses: actions/checkout@v7
@@ -490,6 +490,9 @@ jobs:
       - name: Lineage reads — every read record interprets, every stored record from a read is its decision, every own-edition KEPT record still witnessed there (lineage_reads.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/lineage_reads.py --check
+      - name: Code reads — every code read of an older edition's rule holds its shape, its own-edition citations and its parts as imported; a contradicted one names its note (code_reads.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/code_reads.py --check
       - name: Catalog coverage — each held ISO edition's rule blocks hold the ordinals the transcription prints (audit_catalog_coverage.py --held --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/audit_catalog_coverage.py --held --check
@@ -672,7 +675,7 @@ jobs:
     # `!failure()`: linux-generate is skipped when the plan generates nothing for this leg, which must not skip the shards.
     if: ${{ !cancelled() && !failure() && needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.linux_targets != '[]' }}
     runs-on: ubuntu-26.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -862,7 +865,7 @@ jobs:
     # `!failure()`: windows-generate is skipped when the plan generates nothing for this leg, which must not skip the shards.
     if: ${{ !cancelled() && !failure() && needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.windows_targets != '[]' }}
     runs-on: windows-2025-vs2026
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -977,7 +980,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true'
     runs-on: ubuntu-26.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - id: checkout
         uses: actions/checkout@v7
@@ -1022,7 +1025,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.reads_tooling == 'true'
     runs-on: windows-2025-vs2026
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - id: checkout
         uses: actions/checkout@v7

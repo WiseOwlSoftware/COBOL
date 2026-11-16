@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VII.4.6.4-3",
+ "rule-digest": "bd301715e55f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-025",
+  "sources": {
+   "reader": "dde92b60efc95ce31baaefeae9939f4084f1f29d58a45aa253e056ad1595f3d9",
+   "refuter": "b321bae242d25139ede9cd256e0b6ef85dd3794fdec3ab640e6c64631d78fbf7"
+  },
+  "imported": {
+   "reader": "ff0e02c5164a1e23201fc2aef538ec82d4fc3dc769801ad751ad12278804a041",
+   "refuter": "1068fcdcc3e9ab3a9afd39228ca4b341bb763fcef95f50032d2bf6fe527b4aa0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.6.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "A procedure-name of a declarative (USE) section may be referenced from a different declarative section or from the nondeclarative portion only by PERFORM (alone or THRU). A GO TO (simple or DEPENDING), an ALTER (either operand) or a SORT/MERGE INPUT/OUTPUT PROCEDURE that names it from outside its own section is refused; references inside the same section are free. A USE FOR DEBUGGING section's procedures may not be referenced from outside the debugging sections at all (XV.3.2.3 SR3).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel|IsActive|Constructs|CobolVersion|Edition.Edition in StatementValidation.CheckDeclarativesBoundary and ProcedureTableBuilder.ResolveProcedureOperand: none. data.Edition.Error is the diagnostic sink, not an edition test. The debugging-section arm runs only when WITH DEBUGGING MODE compiled a debugging section, which is a property of the source, not a --std test.",
+  "behaviour-differs-by-edition": "no: the same funnel and severity at every edition (the doc comment says 'Every edition')",
+  "witnesses-cover": "part: pb362_declaratives_reference_boundary covers the legal half (PERFORM, PERFORM THRU, PERFORM section, GO TO inside a section); not exercised at 85: GO TO from main or from another declarative section, GO TO DEPENDING, ALTER of either operand, SORT INPUT PROCEDURE naming a declarative section, the debugging-section arm",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/use3_goto_main.cob",
+    "printed": "use3_goto_main COBOL2376 GO TO 'DP2' ... in the nondeclarative portion; use3_goto_decl COBOL2376 GO TO 'DP1' ... in a different declarative section 'D2'; use3_gotodep COBOL2376 GO TO DEPENDING 'DP2'; use3_alter COBOL2376 ALTER 'DP1'; use3_alter_to COBOL2376 ALTER TO PROCEED TO 'DP2'; use3_sort COBOL2376 SORT INPUT PROCEDURE 'D1'",
+    "expected": "each a non-PERFORM reference into a declarative section from outside it: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/use3_ok.cob",
+    "printed": "EXIT 0, N=0004",
+    "expected": "PERFORM from main and from another declarative section and GO TO inside a section are legal; four ADDs run"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/use3_debug.cob",
+    "printed": "error COBOL6946: PERFORM 'DBP1': 'DBP1' is a procedure of the debugging section 'DB1', and this statement is outside the set of debugging sections; §1985:XV.3.2.3 SR3",
+    "expected": "a 1985-only USE FOR DEBUGGING section: refused even by PERFORM (XV.3.2.3 SR3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.6.4 GR3",
+    "check": "OK  §1985:VII.4.6.4 GR3  (4.6.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:XV.3.2.3 SR3",
+    "check": "OK  §1985:XV.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "Every statement that takes a procedure-name resolves through ResolveProcedureOperand, which asks CheckDeclarativesBoundary by section identity. Only PERFORM (and RESUME, which 1985 lacks) is exempt. Each verb that can reference a procedure was probed in both directions.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.6.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes beyond the reader's (refute-1985-025/src/use3ok2.cob, u3x_*.cob, --std 85). Legal half, no over-rejection: PERFORM P1 OF D1 THRU P4 OF D1 from main, GO TO P3 OF D1 (qualified) and GO TO P4 DEPENDING ON K inside D1, PERFORM P1 OF D2 2 TIMES, PERFORM D2 VARYING ... UNTIL, GO TO P1 OF MAINSEC and an unqualified GO TO P1 from MAINSEC while P1 also names a paragraph of D1 and D2 -> all compile and run (N=0003/0023/0043/1043; LOCAL-P1). (use3ok2-002 was my own program falling out of a PERFORM range into a recursive PERFORM: a program error, stack overflow, not evidence; -003 is the corrected program.) Refusal half: MERGE ... OUTPUT PROCEDURE IS D1, SORT ... OUTPUT PROCEDURE IS P1 OF D1, SORT ... INPUT PROCEDURE IS M9 THRU D1 (declarative as the THRU end) -> each COBOL2376. Side note, not a GR3 defect: at --std 85 COBOL2376 quotes and cites §2023:14.9.49.3 SR4 instead of §1985:VII.4.6.4 GR3, while COBOL6946 cites §1985:XV.3.2.3 SR3. cite.py: OK §1985:VII.4.6.4 GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

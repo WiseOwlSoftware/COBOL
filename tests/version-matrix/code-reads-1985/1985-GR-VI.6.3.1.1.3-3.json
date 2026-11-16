@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.1.3-3",
+ "rule-digest": "29e4ad58581d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-021",
+  "sources": {
+   "reader": "d8b04f25894c554c86c7c009c255e91a675061cd161721206e4d73509e56127f",
+   "refuter": "7ed834854b592c4129cae5be328aeb61a7b43d5647cc251a4a1fb77878085e52"
+  },
+  "imported": {
+   "reader": "9ce8fad78827a004e7a37632c2bde130b1320e117efd92a31e2dae46b43964e5",
+   "refuter": "99f55ad904083bbaac5cf221f96920a1a7e66604600830af3fc3e868e59072a0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.3.1.1.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relation between an index data item and an index-name or another index data item compares their actual (stored) values without conversion, and an index data item is not comparable with any other operand (numeric item, literal, ZERO, alphanumeric).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#Breach; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckGeneralRelationComparability; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelational",
+  "edition-consulted": [],
+  "edition-search": "Same greps as the GR2 case over RelationComparability.cs, StatementValidation.CheckGeneralRelationComparability, NumericRenderer.cs and ConditionRenderer.cs: no edition switch on the class-index pair; Breach answers null for li && ri (two class-index operands) and IndexPair otherwise, at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1468 exercises IDA = I1 (equal and unequal) only; not index-data-item vs index-data-item, the reversed order, index data items set from index-names of tables with different element sizes, a subordinate index data item, ordering operators, or the refusal half",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-021/gr3idx.cob",
+    "printed": "01 EQ (IDA=I1), 02 EQ (I1=IDA), 03 EQ (IDA=IDB), 04 LT (IDA<I2), 05 LT (NOT <), 06 LT (IDA<IDB), 07 GT, 08 EQ (IDC from J1 of a PIC X table = IDA from I1 of a PIC X(7) table, both occurrence 4), 09 EQ (IDC=J1), 10 LT",
+    "expected": "'The actual values are compared without conversion'; the stored value of an index data item is the index-name's value moved by SET without conversion (implementor-defined representation, here the occurrence number)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-021/gr3ref.cob",
+    "printed": "COBOL2533 at IDA = 1, IDA = N, IDA = ZERO, IDA = XA, N = IDA; exit 65",
+    "expected": "'Relation tests may be made only between' ... 'An index data item and an index-name or another index data item': no other partner"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.3.1.1.3 GR3",
+    "check": "OK  §1985:VI.6.3.1.1.3 GR3  (6.3.1.1.3 Comparisons Involving Index-Names and/or Index Data Items)  the text is in GR3"
+   }
+  ],
+  "notes": "Index-names and index data items share one representation (the occurrence number), so 'without conversion' compares the same values the SET moved. Classes a and e do not apply (no variable-length or file reach for an index data item compare); class c: the pairing list is the same in 1985 and later editions.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.3.1.1.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,d,e-like channel",
+  "evidence": "refute-1985-021/idx3.cob --std 85 (idx3-001): group MOVE GA TO GB carrying an index data item, GIB = GIA EQ and GIB = I1 EQ; OCCURS USAGE INDEX elements TIX(1) > TIX(2) GT, TIX(K) = I1 EQ; SET J1 (PIC X table) TO TIX(1) then J1 = TIX(1) EQ (no conversion); CALL BY REFERENCE of a group holding an index data item, callee SET LO TO LI, LO = LI EQ, caller IDA = GIA EQ, IDA = I1 EQ; abbreviated TIX(K) = I1 AND I2 OR TIX(2) F and TIX(2) NOT = I1 AND NOT I2 T (both match hand expansion). idx3r.cob --compile-only: COBOL2533 at IDA = FUNCTION INTEGER(N), IDA = N + 1, IDA = HIGH-VALUES, IDA = FUNCTION REVERSE(X1), IDA = I1 OR 2 (the carried literal 2 opposite IDA); I1 = 1 AND IDA admitted (I1 = IDA is a legal pair). cite: OK  §1985:VI.6.3.1.1.3 GR3 the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

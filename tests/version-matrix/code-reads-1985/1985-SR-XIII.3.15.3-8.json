@@ -1,0 +1,136 @@
+{
+ "rule-id": "1985-SR-XIII.3.15.3-8",
+ "rule-digest": "4d534d2e7bb6",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-09",
+  "sources": {
+   "reader": "2b5d4d717412a43a15a2ad02336fb327afb76598435e08ccca7c0e96cc110f02",
+   "refuter": "dfad5fdf6dd02d62fe0671256b59fb0a63ab97a6e9ce71b43437b519b8097b67"
+  },
+  "imported": {
+   "reader": "d88dacda30ceff46e0de78e1fe98ee102a9984d371e866896a82b93bf78898f2",
+   "refuter": "ba7aec1c746b51684d9a56ff3dee68922930d216c6327ec54003bcaefabd050d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.15.3-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every entry that defines a printable item (an elementary entry with a COLUMN NUMBER clause, XIII.3.11.1 / XIII.3.11.3 SR1) must be refused unless it contains a LINE NUMBER clause itself or is subordinate (by level-number ancestry, not by position) to an entry that contains one; entries without COLUMN are not printable and are not asked.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SubordinateToLineClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#IsReportGroupEntry; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportGroups; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause",
+    "switches": "refuses at 85 (COBOL0900, ReportMultiColumn2002) the 2002 COLUMN forms: several operands, a PLUS operand, LEFT/CENTER/RIGHT, the COL/COLS/COLUMNS/NUMBERS spellings, leaving exactly COLUMN NUMBER IS integer-1",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+    "switches": "Edition.DialectLevel < 2002 arms for OTHER rules of the same screen (the XIII.3.9.3 SR11 Table 1 rows, the format 2/3 level rules); the LINE-ancestry arm itself is unconditional",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of ScreenReportEntryClausePresence for DialectLevel/Version/Construct: the test `elementary && column && !line && !SubordinateToLineClause` has no edition condition; SubordinateToLineClause has none.",
+  "behaviour-differs-by-edition": "no: the LINE-ancestry requirement is the same at 85 and 2023; what differs is the COLUMN clause's own form (85 admits only COLUMN NUMBER IS integer-1), gated by VersionConformancePass.",
+  "witnesses-cover": "part: the witnesses cover a COLUMN entry with no LINE anywhere, a COLUMN sibling of a LINE entry, and the legal 01/03 LINE/05 COLUMN and LINE+COLUMN-in-one-entry forms; not exercised: LINE on the 01 with COLUMN two levels below through a LINE-less group, a COLUMN under a LINE-less group that is a sibling of a LINE entry, a non-printable entry without LINE, the 2002 COLUMN forms at 85.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/col_no_line.cob",
+    "printed": "error COBOL2247: RD 'R1' entry 'FILLER' has a COLUMN clause but neither a LINE clause of its own nor an entry above it that has one",
+    "expected": "refused: printable item with no LINE NUMBER clause in or above it (XIII.3.15.3 SR8)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/col_sibling.cob",
+    "printed": "error COBOL2247 at the 03 COLUMN entry that is a sibling of the 03 LINE entry",
+    "expected": "refused: subordinate only to the LINE-less 01"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/col_under_group_noline.cob",
+    "printed": "error COBOL2247 at the 05 COLUMN entry under a LINE-less 03 group",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/anc01.cob",
+    "printed": "compiles; two lines '  A Z'",
+    "expected": "legal: 05 COLUMN entries subordinate, through a LINE-less 03 group, to the 01 LINE PLUS 1 entry; A at column 3, Z at column 5"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/line_at_01.cob",
+    "printed": "'   Q  A'",
+    "expected": "legal: Q at column 4, A at column 7"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/line_and_col_same.cob",
+    "printed": "' L'",
+    "expected": "legal: LINE and COLUMN in one entry"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/nonprint_noline.cob",
+    "printed": "compiles; 'A'",
+    "expected": "legal: an entry with no COLUMN is not a printable item (XIII.3.11.4 GR1), so SR8 does not ask it"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/col_right_85.cob",
+    "printed": "error COBOL0900: ... the RIGHT alignment word of the COLUMN clause ... requires COBOL-2002",
+    "expected": "refused at 85: the format is COLUMN NUMBER IS integer-1"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/col_multi_85.cob",
+    "printed": "error COBOL0900: the multiple COLUMN clause form requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/col_plus_85.cob",
+    "printed": "error COBOL0900: the relative (PLUS) COLUMN operand requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c1/deep.cob",
+    "printed": "error COBOL2247 citing §1985:XIII.3.9.3 SR4 b and c (a fourth hierarchic level)",
+    "expected": "refused at 85 by the three-level rule (another rule)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.15.3 SR8",
+    "check": "OK  §1985:XIII.3.15.3 SR8  (3.15.3 Syntax Rules)  the text is in SR8"
+   },
+   {
+    "cite": "§1985:XIII.3.11.3 SR1",
+    "check": "OK  §1985:XIII.3.11.3 SR1  (3.11.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.3.15.4 GR1",
+    "check": "OK  §1985:XIII.3.15.4 GR1  (3.15.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The screen reads level-number ancestry over the written entries, cut into runs at constant entries; every refusal and legal form probed at --std 85 behaved per the 1985 text (col_no_line and col_sibling refused identically at --std 2023). The diagnostic cites only the 2023 clause numbers, not §1985:XIII.3.15.3 SR8 (cosmetic).",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.15.3-8",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:XIII.3.15.3 SR8, XIII.3.11.3 SR1 and XIII.3.9.3 SR3/SR4 (format 1 has no COLUMN; format 3 entries are elementary, levels 02-49), and ReportSectionBinder#ScreenReportEntryClausePresence/#SubordinateToLineClause/#IsReportGroupEntry. Attacked the 'elementary &&' guard: a COLUMN entry that the code sees as a group (03 COLUMN 1 PIC X VALUE 'A' over 05 LINE PLUS 1 ..., refute-1985-09/c1/grp_pic_col.cob; 03 COLUMN 1 with no PIC, grp_col_nopic.cob) is refused (COBOL2247, SR11 group-entry screen), so no printable item escapes. 01 TYPE DE COLUMN 1 PIC X (o1_col.cob) refused by the SR9 screen and the 85 format-1 screen; 01 with LINE+COLUMN (o1_line_col.cob) refused by the 85 format screen; a SOURCE printable sibling of a LINE group (src_col.cob) refused. cite.py: OK §1985:XIII.3.15.3 SR8; OK §1985:XIII.3.11.3 SR1; OK §1985:XIII.3.9.3 SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

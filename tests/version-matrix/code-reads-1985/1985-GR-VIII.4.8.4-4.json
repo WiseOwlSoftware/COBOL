@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-VIII.4.8.4-4",
+ "rule-digest": "c458ad37989c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-138",
+  "sources": {
+   "reader": "1d0da3b2b68c66cf063d3fb0da8b75600ed535cdbc25e1c5a19cccf981ddffcb",
+   "refuter": "f00a1590c6b38096b68a691c96876784b74a7241298156153a80eaeca088afe5"
+  },
+  "imported": {
+   "reader": "bd5e7d41beeead55298fe6cd0d47418c3bf16910bffc41f69fc7d06c2f5ad28c",
+   "refuter": "62cf0e45b670a6d314680b4537cc8f71dd84832935803db06f1a36c22aff22c8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.8.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a file named explicitly in a USE statement is served by that declarative alone: an INPUT/OUTPUT/I-O/EXTEND USE never runs for it (and SR3 refuses the same file-name in a second USE).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "Format 3/4 USE (2002 introductions) and the optional AFTER / PROCEDURE words (2002); at 85 both words are required and F3/F4 refused",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 adds the SORT GR17 exit filter around the declarative's run; 1985 takes the plain try/finally, which does not touch selection",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers",
+    "switches": "nothing: the file-name tier then open-mode tier are documented edition-invariant (kb/Work PB344)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "as for GR1: DialectBehavior / DialectLevel / Edition greps over the dispatch emitters; the binder's _useFiles register consults the edition only to report",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness uses one file-name USE against a mode USE; the probes add the failed-OPEN path ('in the process of being opened') and the SR3 refusal",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-138/gr45.cob",
+    "printed": "T1: D-FILE 35 (D-IN not run) for OPEN INPUT of R1 named in USE ON R1 while USE ON INPUT exists",
+    "expected": "only the file-name declarative applies to R1 (GR4, GR5 b 'except those files referenced by file-name-1')"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-138/gr4dup.cob",
+    "printed": "error COBOL0897: declarative section 'D-EXT': file 'R1' already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)",
+    "expected": "refused: the same file-name in two USE AFTER EXCEPTION statements (VIII.4.8.3 SR3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.4 GR4",
+    "check": "OK  §1985:VIII.4.8.4 GR4  (4.8.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VIII.4.8.3 SR3",
+    "check": "OK  §1985:VIII.4.8.3 SR3  (4.8.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "EmitScopeTiers emits the file-name switch first, each case returning, so the mode tier is never reached for an explicitly named file. The SR3 diagnostic cites the 2023 clause (§2023:14.9.49.3 SR8) at --std 85, a citation-wording point and not a behaviour defect of this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.8.4-4",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,e",
+  "evidence": "nest3.cob run at --std 85 (runs/nest3-001): 'N3 inner OPEN INPUT FG' printed 'OUTER GLOBAL INPUT 35' although OUTERP names FG explicitly in USE ON FG; nest3x.cob (LABEL RECORDS removed) at --std 2023 prints the same. Code read: src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers Qualifies(d) = !globalOnly || d.Global gates the file-name switch, so on the outward GLOBAL walk (ProgramEmitter#EmitRunGlobalUse) a container's non-GLOBAL file-name USE is not consulted to exclude its file from the mode tier. Single-program file-beats-mode (reader's gr45 T1) holds. cite.py: OK §1985:VIII.4.8.4 GR4 the text is in GR4; OK §1985:VIII.4.8.4 GR5b the text is in GR5b; OK §1985:X.5.5.4 GR1 the text is in GR1 ('must satisfy the rules for execution of that declarative'); OK §1985:X.5.5.4 GR1b.",
+  "edition-sites-missed": [],
+  "corrected": "NON-CONFORMING (wrong-answer, cause b: same at --std 2023). Minimal program: refute-1985-138/nest3.cob. OUTERP declares FD FG IS GLOBAL and has two declaratives: OUT-IN 'USE GLOBAL AFTER STANDARD ERROR PROCEDURE ON INPUT' and OUT-FG 'USE AFTER STANDARD ERROR PROCEDURE ON FG' (not GLOBAL). Contained INNP (no declaratives) executes OPEN INPUT FG on a missing file. Expected: no declarative runs. GR4 'no other USE statement applies to file-name-1' and GR5b 'except those files referenced by file-name-1 in another USE statement specifying the same condition' remove FG from OUT-IN's scope; X.5.5.4 GR1 'The declarative which is selected for execution must satisfy the rules for execution of that declarative' and GR1b admits only GLOBAL declaratives of the container, so OUT-FG is not selectable either. Observed: 'OUTER GLOBAL INPUT 35' (nest3-001 at 85, nest3x at 2023 the same). Cause: UseTierEmitter.EmitScopeTiers with globalOnly=true drops the non-GLOBAL file-name cases from the switch (__f), so a file the container names explicitly falls through to the GLOBAL open-mode tier. No kb/Work note found (grepped globalOnly, 'except those files referenced', USE GLOBAL notes PB3554/PB369 are other defects)."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A containing program holds USE GLOBAL ... ON INPUT and USE ... ON FG. A contained program with no declaratives fails to open FG, and the compiler runs the container's GLOBAL INPUT declarative. No declarative qualifies: see below. Not PB5812's question, because both USE statements are in one program.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-7.md"
+ },
+ "work": "PB5821"
+}

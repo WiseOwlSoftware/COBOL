@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-6",
+ "rule-digest": "957381c37f43",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-018",
+  "sources": {
+   "reader": "fb33f080892f9b0330999556cb236abc088c04afd25aacf24a6ceb4e70e4079b",
+   "refuter": "cc99f6375fac48dc88063ba7d578b3199aa2f6d4d9b44f5b4283f3334ebbd2e6"
+  },
+  "imported": {
+   "reader": "5bd7f1503e0cffec41a3c0183792bac906e65e9842323e8889114f1a819f4550",
+   "refuter": "cd6f2b16a3be7245f3277ba04cb31c0bb816e496f64c3a6fb978c2bce5193c93"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a STRING with no POINTER phrase must behave as if identifier-4 held 1: transfer starts at the leftmost character of identifier-3, advances one position per character moved, and overflows (GR9) when the implicit pointer passes identifier-3's size; the unwritten positions keep their prior content (GR8).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#stringStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStringStatement",
+    "switches": "refuses a STRING whose last sending phrase omits DELIMITED (Constructs.StringDelimitedOmitted2002) at --std 85; a syntax arm, it does not touch the pointer or the transfer",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString",
+    "switches": "nothing behavioural: BoundRejected.Report/BoundOperandError.Report(ctx.Edition, ...) only carry the edition context for SR diagnostics",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition|CobolVersion|Dialect|Construct in StringEmitter.cs and StringUnstringBinder.cs; grep of String|Unstring in Validation/VersionConformancePass.cs. EmitString and CobolStringOps.StringTransfer take no edition input: the implicit pointer of 1 and the per-character increment are one code path for every --std.",
+  "behaviour-differs-by-edition": "no (for the implicit pointer; the omitted-DELIMITED phrase is a separate syntax arm that 1985 refuses)",
+  "witnesses-cover": "part: pb664 has one STRING without POINTER and no overflow; not exercised: several sending items without POINTER, the implicit-pointer overflow with ON/NOT ON OVERFLOW, untouched trailing positions, numeric/figurative senders, an ODO receiver",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str1.cob",
+    "printed": "1 [ABC.......]",
+    "expected": "no POINTER: transfer at position 1, positions 4-10 keep '.' (GR6, GR8)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str1.cob",
+    "printed": "NOOVF / 2 [ABCDEAB...]",
+    "expected": "three senders from implicit pointer 1, 'AB*CD' delimited by '*' gives AB; 7 chars fit in 10: NOT ON OVERFLOW"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str1.cob",
+    "printed": "8 [01K 0\"....]",
+    "expected": "signed S9(3) -12 sends its zoned image 01K; SPACE, ZERO, QUOTE are one-character items (GR3), placed from implicit pointer 1"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str2.cob",
+    "printed": "3 OVF / 3 [12]",
+    "expected": "ODO receiver V (size 5 at start) filled from position 1, the sixth character overflows (the ODO object itself was overwritten, so V then displays 2 chars)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/str3.cob",
+    "printed": "--std 85: error COBOL0900 a STRING statement with the DELIMITED phrase omitted requires COBOL-2002; --std 2023: ABCD",
+    "expected": "1985's format closes each sending group with DELIMITED; the later edition's omission is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR6",
+    "check": "OK  §1985:VI.6.25.4 GR6  (║6.25.4 General Rules║)  the text is in GR6"
+   }
+  ],
+  "notes": "EmitString writes `long ptr = 1;` when the POINTER phrase is absent and runs the same StringTransfer kernel as the POINTER form, so every following general rule (GR7 increment, GR8 untouched positions, GR9 overflow) applies unchanged. No member on the transfer path consults the edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same results for the str1/str2 forms (identical code path)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,c,d,f",
+  "evidence": "Read §1985:VI.6.25.2-4 (GR4-GR10). StringEmitter.EmitString writes 'long ptr = 1;' with no POINTER and runs the shared StringTransfer kernel. Probes (run_case.py, --std 85): t1-001 G: STRING \"AB\" DELIMITED BY \"B\" \"CD\" DELIMITED BY SIZE INTO R (no POINTER) gives [ACD.......], so the implicit pointer carries across sending items and the untouched positions keep '.'. u1-001 line 8: a SIGN LEADING SEPARATE S9(3) -12 sender gives [-012    ] (its content). t1-001 (class c): the zero-length literal \"\" is refused, COBOL0900 'requires COBOL-2014'. The reader's str3 covers the 2002 omitted-DELIMITED refusal. Edition grep of StringEmitter.cs and StringUnstringBinder.cs: only ctx.Edition passed to diagnostics. cite: OK  §1985:VI.6.25.4 GR6  (║6.25.4 General Rules║)  the text is in GR6",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

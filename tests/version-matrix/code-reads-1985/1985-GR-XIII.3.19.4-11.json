@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-XIII.3.19.4-11",
+ "rule-digest": "9f8b241569c1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-147",
+  "sources": {
+   "reader": "aff0e1385e6225d488e8b2cc3ec3c7c65b700c07c5563f8d9152780be230c482",
+   "refuter": "4339c344b8821e5c914117f89968167c481a2bb1a6773ab21ae3ce0d3e67c9b3"
+  },
+  "imported": {
+   "reader": "2207bb5c4f120080e1d7b852760a586a6d375e13c8bf1d025067d0cf9fb9f806",
+   "refuter": "79816df450e467495f061555b1d84b1139416d19fbb98e155a5f96a9ac848f87"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.19.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a sum counter with no RESET phrase must be set to zero when its control footing is processed (after presentation, even when that footing is reached at a minor level of a larger break); with RESET ON data-name-2 or FINAL it must be zeroed only when that level of the control hierarchy is processed (declared footing or not); and INITIATE must zero every sum counter of the report, including values a procedure statement stored.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#EndOfGroupSumReset; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Reset",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenResetLevel",
+    "switches": "DialectLevel < 2002 picks the 1985 wording of the RESET-level refusal (§1985:XIII.3.19.3 SR4); the reset level the runtime uses is computed the same way",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+    "switches": "DialectLevel < 2002: SUM only in a control footing (§1985:XIII.3.19.3 SR3), so the 2023 'group in which it is printed' reset is the 1985 'control footing within which it is defined'",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the reset points are the same code; 85 only narrows where a SUM may stand",
+  "witnesses-cover": "part: g85_bf09_09 shows a FINAL footing total; RESET ON a higher control, a counter in a minor footing reached by a major break, and INITIATE after procedure-division stores are not exercised",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/sum1.cob",
+    "printed": "S-RST (CF MIN, RESET ON MAJ) 3, 6, 4; M-SUM (CF MAJ, RESET ON FINAL) 6, 10; S-DUP (no RESET) 6, 6, 8; F-SUM rolled from S-RST 13",
+    "expected": "S-RST keeps accumulating across the minor break (3 -> 6) and restarts after the major break (4); M-SUM is not reset at the MAJ footing (6 then 10); counters without RESET restart after every CF MIN"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/sum1.cob",
+    "printed": "ALTERED +0050 +0050 +0050 +0050 / AFTER-INIT +0000 +0000 +0000 +0000; second run CF MIN '   2    2    1    1    2', CF MAJ '   4    1', CF FINAL '   1'",
+    "expected": "INITIATE sets every sum counter to zero, whatever a procedure statement stored (GR6 permits the store)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/sumref.cob",
+    "printed": "COBOL6824: RESET ON MIN is a lower level control than 'MAJ'",
+    "expected": "§1985:XIII.3.19.3 SR4 refusal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.19.4 GR11",
+    "check": "OK  §1985:XIII.3.19.4 GR11  (3.19.4 General Rules)  the text is in GR11 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR10",
+    "check": "OK  §1985:XIII.3.20.4 GR10  (3.20.4 General Rules)  the text is in GR10"
+   }
+  ],
+  "notes": "Initiate resets every SumEntry; EndOfGroupSumReset resets the no-RESET counters of the group that was processed (also on the suppressed or non-printable path through BeginGroup), and ProcessControlFootings resets RESET ON counters by level whether or not a footing is declared, the step §1985:XIII.3.20.4 GR10 f orders. GR11 is reconstructed text (folio XIII-54, kb/Work PB4952); it agrees with the printed TYPE GR10 f and INITIATE rules.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.19.4-11",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "sum3a-001 (above): S-RM SUM W-A RESET ON MAJ in CF MIN, with NO control footing declared for MAJ, printed 1, 3, 3: it kept accumulating across the minor break and restarted after the major break, the 'designated level of the control hierarchy' processed with no group of its own (XIII.3.20.4 GR10's 'even though no control footing report group has been defined'). S-RF RESET ON FINAL printed 1, 3, 6. The counters without RESET restarted after every CF MIN, including the one reached by the major break. sum3s.cob adds USE BEFORE REPORTING CFN with IF MIN = '1' SUPPRESS PRINTING: sum3s-001 suppressed the first CF MIN and the next printed 4 24 60 (S-QD 2*2), so a suppressed footing still zeroed its counters (GR10 d leads to f). sum3.cob's second INITIATE restarted every counter (CF MIN '2 12 30' again). The reader's sum1 covered INITIATE after procedure-division stores. GR11 is reconstructed text (folio XIII-54), but each of its sentences is backed by printed rules. cite.py: 'OK  §1985:XIII.3.19.4 GR11  (3.19.4 General Rules)  the text is in GR11 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]'; 'OK  §1985:XIII.3.20.4 GR10f  (3.20.4 General Rules)  the text is in GR10f'; 'OK  §1985:XIII.3.20.4 GR10d  (3.20.4 General Rules)  the text is in GR10d'; 'OK  §1985:XIII.3.20.4 GR10  (3.20.4 General Rules)  the text is in GR10'; 'OK  §1985:XIII.4.4.4 GR1a  (4.4.4 General Rules)  the text is in GR1a'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

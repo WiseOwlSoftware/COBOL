@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-9",
+ "rule-digest": "2fdcd8ddf7da",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-103",
+  "sources": {
+   "reader": "df135a2141f6f595b27df3702753a0de19e3c71aa32277a637b05d67d2fcff8f",
+   "refuter": "8e04a85a2f8d90bdb85d2233a95119a128117f326a1233f3e2dfea55f04d6285"
+  },
+  "imported": {
+   "reader": "a5ec48d5dad97a32b667d131d06099726ad44913db192986860c028875bc422a",
+   "refuter": "678f79b26ca7679e8e0902977973c9692f6d89bfdc8b14356f795aee2f7ea2c0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.5.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 each symbolic-character-1 must denote, in storage and in every comparison/move/STRING, the native character (the native internal representation) of the character GR8 selects, whether integer-1 is a native ordinal or (IN alphabet-name-2) an ordinal in a STANDARD-1/STANDARD-2/NATIVE/implementor-name/literal alphabet, independent of the program collating sequence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SwitchBindSymbolic; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CharAt; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SymbolicOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#SymbolicOperand",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSymbolicCharactersClause",
+    "switches": "refuses the FOR ALPHANUMERIC/NATIONAL phrase before 2002 (Constructs.SpecialNamesForNational2002); the value computation itself is edition-blind",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep CobolVersion|IsAtLeast|DialectBehavior|ConstructRegistry|Edition.Version in SpecialNamesBinder*.cs, CollatingModel.cs, ImplementorCodeNames.cs: only the RANGE IN alphabet gate (unrelated) and currency; SwitchBindSymbolic uses Edition only as a diagnostic sink (Edition.At).",
+  "behaviour-differs-by-edition": "no: the value (native char of the selected character) is computed by one edition-blind path; only the 2002 FOR phrase is gated",
+  "witnesses-cover": "part: g85_bf03_04 covers native ordinal, literal alphabet with ALSO, STANDARD-1; not an implementor-name (EBCDIC) alphabet whose ordinals differ from native codes, NATIVE alphabet, the unspecified-character tail of a literal alphabet, or a non-native PROGRAM COLLATING SEQUENCE",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/sym1.cob",
+    "printed": "EA=A E0=0 NA=A L5=5 L11=Z / EA-EQ E0-EQ L5-EQ L11-EQ EA-LT-B X2=AA (VALUE ALL EA)",
+    "expected": "194 IN EBCDIC = native 'A', 241 IN EBCDIC = '0', 66 IN NATIVE = 'A', literal alphabet ordinals 6/11 = '5'/'Z'; each equal to the native literal"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/sym2.cob",
+    "printed": "EA-EQ E1-EQ 1-GE-A A1A (PROGRAM COLLATING SEQUENCE IS EBCDIC alphabet)",
+    "expected": "native 'A' and '1' representation; comparisons under the EBCDIC program sequence put '1' above 'A'"
+   },
+   {
+    "class": "c,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/sym3.cob",
+    "printed": "error COBOL0900: the FOR ALPHANUMERIC/NATIONAL phrase ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "1985 format has no FOR phrase; refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.4 GR9",
+    "check": "OK  §1985:VI.4.5.4 GR9  (4.5.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR8",
+    "check": "OK  §1985:VI.4.5.4 GR8  (4.5.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "SwitchBindSymbolic stores the symbolic value as a native .NET character: native ordinal n -> code unit n-1, IN alphabet -> CodedCharacterSet.CharAt, which inverts the alphabet's table to the native character (ALSO: literal-1). Probes over EBCDIC, NATIVE, literal (including unspecified tail behaviour not probed) and STANDARD-1 (witness) all yield the native character.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.5.4-9",
+  "refutation": "UPHELD",
+  "classes": "c,d,b",
+  "evidence": "Read §1985:VI.4.5.4 GR4 a-d (with Amendment 2's new d4 and the d6 ALSO sentence), GR8, GR9, SR10 and CodedCharacterSet.CharAt / SwitchBindSymbolic. Probe refute-1985-103/rs1.cob (rs1-001) used a literal alphabet the reader did not try: \"Z\" ALSO \"Y\", a descending THRU \"B\" THRU \"A\", a native-ordinal literal 69, then \"C\". It printed LZ=Z LB=B LA=A LD=D LC=C, so ALSO uses literal-1 only (GR4 d6): INSPECT TALLYING FOR ALL LZ on 'ZYZA' gave CNT=02, not 3. The first unspecified ordinal (6) is LOW-VALUE (U+0000), the implementor's d4 determination, which CodedCharacterSet documents. STANDARD-2 ordinals 66/37 gave A/$; NATIVE 35 gave '\"'; VALUE LZ and MOVE ALL LB gave Z and BBBB; a contained program sees LA and NQ (GR1). rs2.cob (rs2-001, compile-only) refused the later editions' forms at 85: a constant-name ordinal (the constant entry needs COBOL-2002, COBOL0900) and IN a UTF-8 alphabet (COBOL0900 plus COBOL5986). Greps of SpecialNamesBinder*.cs and CollatingModel.cs for DialectLevel|IsAtLeast|CobolVersion|ConstructRegistry find only the Currency, LOCALE and RANGE gates, none of them on this path. cite.py: OK §1985:VI.4.5.4 GR9 (the text is in GR9); OK §1985:VI.4.5.4 GR4 ('only literal-1 is used to represent the character in the native character set', the text is in GR4). A reading I did not pursue: the code maps STANDARD-2 ordinal 37 to '$'. That is a GR4a question, whether the 1985 IRV puts the currency sign at 0x24, and not a GR9 question.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

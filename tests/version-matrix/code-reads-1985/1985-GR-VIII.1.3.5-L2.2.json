@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.5-L2.2",
+ "rule-digest": "41629fa3352f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-128",
+  "sources": {
+   "reader": "818b2b1736fc0bfea2f57a9812ee858c7d1c6da2b172231e927e971b297c34f2",
+   "refuter": "30a504c9065d09eef0f7511e73ccc3edaffc08d811acf61d17a03809c2c45d48"
+  },
+  "imported": {
+   "reader": "53f0e5e141fce2694ae91cd8c93c4ab04990786b993f98ea6793061fdd4ba49b",
+   "refuter": "299ea25e71d01e4f6c43957514be932f7b25f2b9ab881edbffafa01cbe794e40"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.1.3.5-L2.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a relative-file DELETE, READ, REWRITE, START or WRITE completes with no exception condition, control goes to the end of the statement, or to the NOT INVALID KEY imperative when written (whose explicit transfers are honoured), and the INVALID KEY phrase is ignored.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitPhrasePair; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitNotPhrase; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#Successful",
+  "edition-consulted": [],
+  "edition-search": "grep Edition / DialectBehavior / IsActive in SequentialIoEmitter.cs, KeyedIoEmitter.cs, IoStatusClass.cs: none on this path. UseHookResult.NotPhraseGate is non-null only with an enabled EC-I-O mask (a >>TURN directive; none at 85 in these probes).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_delete_invalid_key_transfer covers a successful DELETE taking NOT INVALID KEY; not exercised: READ, REWRITE, START and WRITE successes, an explicit GO TO in the NOT INVALID KEY imperative, and success with no NOT phrase",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p2_ik.cob",
+    "printed": "NIK-W1 00 / NIK-R1 R001 00 then AT-M3 (GO TO M3 in NOT INVALID KEY: no FELL-THROUGH-NIK) / NIK-RW 00 / NIK-ST 00 / NIK-DEL1 00 / W2 00 (no NOT phrase, no IK-W2)",
+    "expected": "NOT INVALID KEY on every success, GO TO honoured, INVALID KEY ignored, end of statement when no NOT phrase"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p5_04.cob",
+    "printed": "USE-RQ 39 / OPEN-RQ 39, then 47 on the READ: a reader record shorter than the file's records is refused at OPEN",
+    "expected": "the 04 success arm could not be reached this way; 39 at OPEN is §1985:VIII.1.3.4 status 39"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.1.3.5 GRL2.2",
+    "check": "OK  §1985:VIII.1.3.5 GRL2.2  (1.3.5 The Invalid Key Condition)  the text is in GRL2.2"
+   }
+  ],
+  "notes": "EmitPhrasePair guards the NOT INVALID KEY body with IoStatusClass.Successful (0x), and the hook gate is added only under the EC model. Every success leg behaved as the text requires. The 04 success status was not reached in a probe because a record-length mismatch gives 39 at OPEN, so the 04 arm is decided from the code (Successful covers 0x) alone.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.1.3.5-L2.2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "The reader could not reach the 04 success status and decided it from code. Probe r5_04.cob at --std 85 (runs/r5_04-002) reaches it: a zero-byte file made by a sequential OPEN OUTPUT/CLOSE is opened INPUT by RB (record X(4)) and I-O by RA (record X(8)), and RA writes RRN 1 with 8 characters. A random READ RB of key 1 then prints NIK-B 04 ABCD: a successful completion with a record length conflict takes NOT INVALID KEY, as GRL2.2 requires (04 is under 'Successful Completion', VIII.1.3.4 GRL2.1). r2_global.cob gives IN-NIK-R1 00 in a contained program with a GLOBAL USE present. cite.py: OK §1985:VIII.1.3.5 GRL2.2 the text is in GRL2.2; OK §1985:VIII.1.3.4 GRL2.1 the text is in GRL2.1; OK §1985:VIII.4.5.4 GR16 the text is in GR16.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

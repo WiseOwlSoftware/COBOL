@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-9",
+ "rule-digest": "8efe32eda783",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-050",
+  "sources": {
+   "reader": "8e01fa6550172ba1facd2fe4fb98c158da138cb22996003aea9facaa68b1c334",
+   "refuter": "4bf51d44593d59f61dffc405634107d030ebe087e126c032e9cc19b97e1e25dd"
+  },
+  "imported": {
+   "reader": "f6fa92b53ea9a3b513487c4e076b69bc8783304363b8fdd744e27fc7e2b0c90f",
+   "refuter": "5bf9d4e56592db84193d6e6d57e06e1f8f6846c62e6ceee22744f755108024d3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.4.5.3-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the number of symbolic-character-1 occurrences must equal the number of integer-1 occurrences in a SYMBOLIC CHARACTERS clause; any surplus on either side, and a clause without an integer, must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SwitchBindSymbolic; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SymbolicClauseOperands",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSymbolicCharactersClause",
+    "switches": "FOR phrase refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the count comparison `names.Count != ords.Count` and the group-shape test in SwitchBindSymbolic have no edition test (grep DialectLevel/Edition. in SpecialNamesBinder.Classes.cs).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers only more names than integers",
+  "probes": [
+   {
+    "class": "b",
+    "file": "src/sr9_names_more.cob",
+    "printed": "COBOL1670 3 symbolic-character name(s) against 2 integer(s)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/sr9_ints_more.cob",
+    "printed": "COBOL1670 1 ... against 2 integer(s)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/sr9_ints_more2.cob",
+    "printed": "COBOL1670 2 ... against 3 integer(s)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/sr9_noint.cob",
+    "printed": "COBOL1670 the clause must open with a symbolic-character-1 and close with an integer-1",
+    "expected": "refused (degenerate)"
+   },
+   {
+    "class": "d",
+    "file": "src/sr8_crossgroup.cob",
+    "printed": "ABC",
+    "expected": "legal: 3 names, 3 integers over the clause"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.3 SR9",
+    "check": "OK  §1985:VI.4.5.3 SR9  (4.5.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "Every mismatch is refused with COBOL1670 and the declared names are recovered so nothing cascades. The behaviour is the same at --std 2023 (sr9_names_more printed the same line).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same COBOL1670",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.4.5.3-9",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:VI.4.5.3 SR9 and the corrected 1985 format (outermost braces deleted, Errata C124). Probes at --std 85: r9_groups_bad (S1 S2 ARE 66 S3 ARE 67 68 69) COBOL1670 3 names against 4 integers; r9_names_only (S1 S2, no integer) COBOL1670 group shape; r9_in_then_more (S1 IS 1 IN AL S2 IS 67, a group after IN without a new SYMBOLIC CHARACTERS) refused COBOL5506 at 67; r9_noisare (S1 S2 66 67, IS/ARE omitted) accepted and printed AB: the 1985 diagram stacks IS/ARE in braces with neither underlined, so omission is a format reading, not an SR9 one-to-one question, and the counts match. cite.py: OK §1985:VI.4.5.3 SR9.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

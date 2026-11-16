@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-1",
+ "rule-digest": "cdebd9b7987b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-143",
+  "sources": {
+   "reader": "d6f5754ea6b503f937777c5361bf6adaf6363a918b1fb3366588b677ebe2604f",
+   "refuter": "fa1600c9e0ab9c13be7e4cc4a4eb952e187c8956152dfb8fbf2c3150a943f909"
+  },
+  "imported": {
+   "reader": "3545c140e0e47015f7efd4a83528a7e18fa37564629aa550e32232493b464412",
+   "refuter": "987fb0842f8ffc097da70757b7479909c17e3e1075c72f699b088162dd422dd5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when the SD (file-name-1) contains only fixed length records (an explicit RECORD CONTAINS integer-1, or the implementor's implied fixed format), every record read from a USING file (file-name-2, of any organization: sequential, relative, indexed) that is shorter than that fixed length must be released to the sort space-filled on the right from the first position after its last character; a variable-length SD gets no fill (each record released at the size it was read).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortVaryingOf; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FillTo; src/WiseOwl.Cobol.Runtime/IO/RecordFill.cs#Fit",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect|IsAtLeast|Std' over SortEmitter.cs: no match; grep 'Edition|CobolVersion|Dialect' over src/WiseOwl.Cobol.Runtime/IO: only connector, status and report-writer files, not CobolSort, RecordFill or SortKeyColumns; SortBinder's edition reads (RELEASE range at line 517, SAME RECORD AREA at line 927) are not on this path; FileModel.RecordSizeVaries / ImpliesVariableFormat read no edition (the implied RECORD clause is the edition-independent determination D-FRA).",
+  "behaviour-differs-by-edition": "no (the national-space arm of ShortRecordFillNational is unreachable at 85, which has no national class; the alphanumeric space is the 1985 fill)",
+  "witnesses-cover": "part: g85_bf33_01 leg U covers a variable-length sequential USING file into a fixed SD; not exercised are a shorter FIXED-length USING file, relative and indexed USING files, several USING files of different lengths in one statement, and an OPTIONAL absent USING file",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/sf1.cob",
+    "printed": "U-[A444  ] U-[B4RL  ] U-[C3I   ] U-[D444  ] U-[E4RL  ] U-[F3I   ] DONE",
+    "expected": "fixed 4-char sequential, 4-char relative and 3-char indexed USING records all released to the 6-char SD padded with spaces (the record area was preset to X before each RETURN); the OPTIONAL absent OPT2 contributes nothing"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XI.4.4@1985-SORT-STATEMENT/g85_bf33_01.cob",
+    "printed": "EXPECT: MATCH (g85_bf33_01.out)",
+    "expected": "RECORD VARYING USING records of 2, 4, 6 chars space filled to 6"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/sf4.cob",
+    "printed": "error COBOL1757: SORT USING file 'BIG': 'SD6' describes fixed-length records of 6 bytes but 'BIG' describes fixed-length records of 8 bytes",
+    "expected": "SR3: a USING record larger than the fixed SD record is refused (the case GR1 does not cover)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.4 GR1",
+    "check": "OK  §1985:XI.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR3",
+    "check": "OK  §1985:XI.4.4.3 SR3  (4.4.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR3",
+    "check": "OK  §1985:VII.3.8.4 GR3  (3.8.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
+   }
+  ],
+  "notes": "EmitInputFile releases each as-if READ record through CobolSort.FillTo(tmp, sdWidth, national) when the SD is fixed (SortVaryingOf null), which RecordFill.Fit pads with spaces; a varying SD releases FileCurrentRecord at the read length. Whether a file without a RECORD clause is fixed is implementor defined at 1985 (II.2.1.4.3); the compiler's D-FRA answer (fixed unless a record is variable-length) is applied uniformly.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "su1.cob (runs/su1-005, --std 85): USING an ODO sequential file, a RECORD VARYING indexed file (records of 6 and 3) and a relative file with 01s of 6 and 2, into a fixed 6-char SD: [SZTUVW] [RSTUVW] [HMN   ] [GHIJKL] [5ABCDE] [2XYCDE] [1QYCDE]. The indexed 3-char record is space filled. The ODO and two-01 files have no RECORD clause; the compiler writes them as fixed 6-byte records (su1u.dat is 18 bytes, 5ABCDE2XYCDE1QYCDE), so they are read at 6 and no fill applies. That is the implementor choice §1985:II.2.1.4.3 leaves open ('OK  §1985:II.2.1.4.3 ... the text is in the clause'). su2.cob (runs/su2-001): an SD with RECORD CONTAINS 8 CHARACTERS and a 6-char 01 (legal by 'OK  §1985:VII.3.8.3 SR1'), USING a 6-char file, GIVING a RECORD CONTAINS 10 file: su2g.dat holds 'AFIRST    BSECND    ', so the fill is to the SD's fixed length, not to its 01's size. cite.py 'OK  §1985:XI.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,107 @@
+{
+ "rule-id": "1985-GR-XII.2.4-1",
+ "rule-digest": "bd17e58d010a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-143",
+  "sources": {
+   "reader": "d6f5754ea6b503f937777c5361bf6adaf6363a918b1fb3366588b677ebe2604f",
+   "refuter": "fa1600c9e0ab9c13be7e4cc4a4eb952e187c8956152dfb8fbf2c3150a943f909"
+  },
+  "imported": {
+   "reader": "c0160aa292aa0aec71cb9b22357e32ca88998a90efad600db2f88ad3074b57f4",
+   "refuter": "132b2c06464a65aba95b2b634866790922aab9d5cb08fe0789b1d08642878c09"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XII.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every COPY statement must be resolved and its library text spliced into the source before the resultant text is processed: statements, clauses, paragraphs and IF/ELSE structure completed by library text compile as one text, procedure-names supplied by library text are referable from before the COPY, REPLACE statements (processed after COPY, XII.3.4 GR4) act on copied text and may match across the source/library boundary, a REPLACE carried in library text acts on the source after it, and a COPY inside a literal, a comment line or a comment-entry is not processed; library text that itself contains a COPY is refused (GR12, the 1985 arm).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Manipulate; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
+    "switches": "construct copy-nested-library-text-2002 (COBOL0900): below 2002 library text containing a COPY statement is refused (§1985:XII.2.4 GR12); 2002+ expands the nested COPY",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+    "switches": "EditionInfo.ReplacedTextIsLaidOutInFixedForm: the COBOL-85 layout rules for introduced lines and continued literals of replaced text (GR9-GR11)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+    "switches": "EditionInfo.ReplaceScopeEndsWithSeparatelyCompiledProgram: where a REPLACE statement's scope ends",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|CobolVersion|Std|Dialect' over CopyProcessor.cs; the ORDER of processing (Manipulate renders every COPY through ExpandCopiesOneLevel, then runs ApplyReplaceStatements over the expanded text, then the parser sees the result) reads no edition, so GR1 itself takes the same arm as 2023; the three edition reads above shape what is accepted or laid out, not when COPY is processed.",
+  "behaviour-differs-by-edition": "no for GR1's ordering; yes beside it: nested COPY is refused at 85 and expanded at 2023 (cp3)",
+  "witnesses-cover": "part: g85_bf34_01 covers a statement and a data entry completed by library text and a sentence spanning a COPY; not exercised are a forward GO TO to a paragraph supplied by library text, ELSE supplied by library text, a source REPLACE acting on copied text and matching across the COPY boundary, a REPLACE supplied by library text, COPY inside a literal, a comment line and a comment-entry",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/cp1.cob",
+    "printed": "IN-LIB RPL / COPY CP1A. 123 / EQ / RPL; EXPECT: MATCH",
+    "expected": "GO TO P-LIB reaches the copied paragraph; REPLACE OLD-NAME BY NEW-NAME acts on copied data and procedure text; the literal \"COPY CP1A.\" and the comment line '*    COPY CP1Z.' (no such text) are untouched; the copied ELSE completes the IF"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/cp2.cob",
+    "printed": "R-ABC; EXPECT: MATCH",
+    "expected": "a REPLACE in library text CP2R acts on the source after the COPY (XQ becomes DISPLAY); AUTHOR. COPY CP2NONE. is a comment-entry (SR10), so the missing text is never sought"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/cp3.cob",
+    "printed": "--std 85: error COBOL0900: library text that contains a COPY statement requires COBOL-2002 (targeting COBOL-85) ... §1985:XII.2.4 GR12; --std 2023: compiles, prints 12",
+    "expected": "§1985:XII.2.4 GR12 forbids a COPY in the text a COPY produces"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/cp4.cob",
+    "printed": "B / B (85 and 2023); EXPECT: MATCH",
+    "expected": "REPLACE ==DISPLAY \"A\" \"Q\"== matches text two of whose words come from source and one from library text CP4L, because the COPY is processed first"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.2.4 GR1",
+    "check": "OK  §1985:XII.2.4 GR1  (2.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XII.2.4 GR12",
+    "check": "OK  §1985:XII.2.4 GR12  (2.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:XII.3.4 GR4",
+    "check": "OK  §1985:XII.3.4 GR4  (║3.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XII.2.3 SR10",
+    "check": "OK  §1985:XII.2.3 SR10  (2.3 Syntax Rules)  the text is in SR10"
+   },
+   {
+    "cite": "§1985:XII.2.4 GR8",
+    "check": "OK  §1985:XII.2.4 GR8  (2.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "GR1 holds by construction: ConditionalCompilationProcessor.Manipulate expands every COPY (ExpandCopiesOneLevel, recursively through RenderCopybook) into one mapped text, then applies REPLACE over it, and only that resultant text is lexed and parsed. Witness g85_bf34_01 MATCHes at 85. Probe classes a, e and f do not apply to a text-manipulation rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XII.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "cq1.cob with five copybooks (runs/cq1-002, --std 85), COPY used where SR7 allows any character-string: COPY supplying SOURCE-COMPUTER WITH DEBUGGING MODE, which turns on a later D line (DEBUG-LINE printed); COPY inside a PICTURE clause (PIC COPY CQPIC. VALUE \"HELLO\" -> P[HELLO]); COPY inside a COMPUTE expression (B[015]); COPY supplying a whole data entry up to its period (C[007]); COPY supplying END-IF (GT, END). cq2.cob (runs/cq2-001 at 85, cq2-002 at 2023): a COPY inside REPLACE pseudo-text-2 is processed first, then REPLACE puts in the library text: FROM-LIB / END. That fits GR1 and §1985:XII.3.4 GR4. The cq1-001 refusal of 'COPY CQLVL..' is right: the first period is not a separator. cite.py 'OK  §1985:XII.2.4 GR1  (2.4 General Rules)  the text is in GR1'; 'OK  §1985:XII.3.4 GR4  (║3.4 General Rules║)  the text is in GR4'; 'OK  §1985:XII.2.3 SR7  (2.3 Syntax Rules)  the text is in SR7'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

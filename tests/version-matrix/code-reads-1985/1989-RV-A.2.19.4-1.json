@@ -1,0 +1,95 @@
+{
+ "rule-id": "1989-RV-A.2.19.4-1",
+ "rule-digest": "ce8e8120380e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-179",
+  "sources": {
+   "reader": "752918f740d4701b243063a8a209b3ca969e7b471059a84e46d1ca15127b7cc4",
+   "refuter": "b120f52bcc190465b82233b0e0a336aa1189a5c292619628f87a891951c462ce"
+  },
+  "imported": {
+   "reader": "655b1c2652f8ac1eab79a99e9c32ea32cd648b8c88169626eb127ecab4882bf7",
+   "refuter": "c5b2bc3ed198cb3a7c1e907915f025e77fc4265704013f22f46a9bb081c29cef"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.19.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION LENGTH of a nonnumeric literal, of any elementary data item (any class, category and usage, a reference-modified item included), or of a group with no variable occurrence item returns the argument's size in character positions.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#Positions; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window sig.IntroducedIn (85): LENGTH admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily",
+    "switches": "Constructs.LengthPhysicalArgument2014: the PHYSICAL phrase is refused below 2014 (not reached by a 1985 argument-1-only call)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(year): per-edition argument predicates; none changes LENGTH's value",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of ItemLength.cs, IntrinsicRenderer.cs and PlaceBuilder.cs for Edition, DialectLevel, DialectBehavior, CobolVersion: no hit; the fold computes the same size at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf05_04 covers a literal, PIC X, signed DISPLAY with and without SIGN SEPARATE, numeric edited, a table element and two fixed groups; it does not cover COMP/BINARY/PACKED-DECIMAL usage, PIC A, P scaling, a reference-modified argument, or a nested group.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/len2.cob",
+    "printed": "COMP=002 BIN=004 PACK=003 ALPHA=003 PSCALE=002 GG=007 GG1=002 LIT1=001 LITQ=005",
+    "expected": "the size in character positions: 9(4) COMP 2 and S9(9) BINARY 4 (implementor-defined storage, §1985 USAGE), S9(5) PACKED 3, A(3) 3, 99PPP 2 (P occupies no position), nested group 7, its subgroup 2, \"A\" 1, \"AB\"\"CD\" 5"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/len2.cob",
+    "printed": "REFMOD=003 REFMODV=006 (X7(I:) with I=2) REFMOD71=001 SUM=015",
+    "expected": "X7(2:3) 3, X7(2:) 6, X7(7:1) 1 (the bound), LENGTH(G)+LENGTH(X7) = 8+7"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/len1.cob (--std 2023)",
+    "printed": "GMIX=008 (X(3)+9(4) COMP+S9(5) PACKED); all other lines equal the 85 run",
+    "expected": "3+2+3 = 8; the same value at both editions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/len1.cob",
+    "printed": "error COBOL6979: the index data item 'IX' is an intrinsic function argument ... (ISO §1985:VI.5.14.3 SR5)",
+    "expected": "an index data item may be referenced explicitly only in SEARCH, SET, a relation condition or USING (§1985:VI.5.14.3 SR5)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.19.4 RV1",
+    "check": "OK  §1989:A.2.19.4 RV1  (2.19.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.19.4 RV3",
+    "check": "OK  §1989:A.2.19.4 RV3  (2.19.4 Returned Values)  the text is in RV3"
+   }
+  ],
+  "notes": "A literal or fixed-size item folds at bind time to its size (ItemLength.Positions / the literal's length); a reference-modified argument takes the runtime length of the substring. Binary and packed items answer their storage size, the implementor's choice the USAGE clause leaves open. No edition switch touches the value.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.19.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probe rlen1.cob at --std 85 (runs/rlen1-001): 66 RENAMES R1A THRU R1B 10 (4 + S9(5) SIGN LEADING SEPARATE 6), RENAMES R1B THRU R1C 9, RENAMES single item 3; PPP99 2; 9(5) BLANK WHEN ZERO 5; +ZZ,ZZ9.99 10; continued 60-character nonnumeric literal 60; FD record X(40) 40; ODO element 5. Group X + S9(9) COMP SYNCHRONIZED answers 5: the 1985 SYNCHRONIZED clause leaves implicit FILLER to the implementor and docs/conformance/7/DOC-A.1-195.md and DOC-A.1-197.md document no alignment and no implicit FILLER, so 5 is the group's size in character positions. Figurative SPACE answers 1 and ALL \"AB\" 2 (rc2-001), consistent with §1985 IV 4.2.2.2 (a figurative constant may stand where 'literal' appears; ALL literal unassociated has the literal's length). Class c: numeric literal refused COBOL1627, X\"..\" and N\"..\" refused COBOL0900 (rc1-001). Index data item refusal re-checked: cite.py OK  §1985:VI.5.14.3 SR5 ... the text is in SR5. cite.py: OK  §1989:A.2.19.4 RV1  (2.19.4 Returned Values)  the text is in RV1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-2",
+ "rule-digest": "d92a6f7b6c58",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-151",
+  "sources": {
+   "reader": "a12a58a63be1851511ed40f4a83a570d4b875d4271d26c2b066a5ea013e61409",
+   "refuter": "5325b85cac938cc72a59a6577402dc0d6e1669dcdf81cdb8e6554b02c3e9b1d5"
+  },
+  "imported": {
+   "reader": "acb9f6abda81cdcaa62999ce770bb7d12ef704f640496326e229e0dff7b706c2",
+   "refuter": "8f68197ebf3f0315732d37a65274e1c7ce30833e777d3008ce3482ef9e4181a7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 GENERATE data-name-1 performs detail processing (control-break processing, SUM, the detail's USE procedure) for the named detail and normally presents it; presentation is withheld only where the text provides (SUPPRESS, a dummy group).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Generate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes ctx.Data.DialectLevel into CobolReport.Edition, the argument every DialectBehaviors.IsActive question of the engine is asked with; the CONTROL registration (AddControl order, FINAL, image/float/collated arms) is edition-independent",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate (GROUP INDICATE consumed only by a presentation at 85); the break detection, save and CH/CF ordering beside it is one arm for every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehaviors.IsActive/Edition in ReportWriter.cs GenerateCore and PresentBody: only the GROUP INDICATE consumption is edition-dependent; EmitGenerate takes no edition",
+  "behaviour-differs-by-edition": "yes: at 85 a GROUP INDICATE occasion is consumed only by a presentation (GroupIndicateConsumedByIssuedGenerate), not by an issued GENERATE whose detail did not present",
+  "witnesses-cover": "part: g85_f29_05 presents details; GENERATE of each of two details in one report was probed (p2 report S)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/XIII.4.3@1985-GENERATE-STATEMENT/g85_f29_05.cob",
+    "printed": "EXPECT: MATCH (run_probe --std 85 --expect)",
+    "expected": "the case's .out"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p1hier.cob",
+    "printed": "CONTROLS K1 (group) K2 (S999 COMP-3) K3 (S9V9): G1 CH1 CH2 CH3 DE; minor change CF3 CH3 DE; intermediate CF3 CF2 CH2 CH3 DE; group-subfield change CF3 CF2 CF1 CH1 CH2 CH3 DE; no change DE only; K2 -1 and -999/-9.9 extremes break at K2; two moves between GENERATEs compared against the saved set only; CF USE procedures see prior values, CH/DE current; TERMINATE CF3 CF2 CF1",
+    "expected": "§1985:XIII.3.7.4 GR1/GR2, §1985:XIII.4.3.4 GR3/GR6: highest changed level, CFs minor to major, CHs major to minor, saved set renewed at each break"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p2summ.cob",
+    "printed": "R (FINAL K): first GENERATE R prints CHF, CHK +0 (saves); K=1 GENERATE R: CFK 0, CHK +1; GENERATE DTL: DE +1, no break; report S: a change sensed by GENERATE of a different detail SD2 (SCF A, SCH B, SD2 B); +0 to -0 sensed as a break (CFK 0, CHK -0) while IF K = 0 is true",
+    "expected": "breaks as derived; no break between +0 and -0 (§1985:XIII.3.7.4 GR3 a, numeric comparison)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p8gens.cob",
+    "printed": "--compile-only at 85: COBOL6823 GENERATE S: the report description entry holds 2 detail report groups",
+    "expected": "refused (1985 GENERATE SR2 b)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.3.4 GR2",
+    "check": "OK  §1985:XIII.4.3.4 GR2  (4.3.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "EmitGenerate calls Generate(detail), which runs the break processing and PresentBody(detail); the 85 arm on GROUP INDICATE is the 1985 text's own reading and does not change whether the detail presents.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Read §1985:XIII.4.3.4 GR2 and the detail processing it points to, §1985:XIII.3.20.4 GR11 a-e (subtotal, USE, then no presentation if SUPPRESS or not printable). Probes at --std 85: r2dum (a nonprintable DETAIL 'DUM' with no LINE clause, SUM N UPON DUM; GENERATE DTL OF R and GENERATE DTL IN R2 with DTL in two RDs): DUM never presented, its USE procedure ran each time with LINE-COUNTER unchanged (3,4,6), its SUM UPON counted 004 then 005, the qualified GENERATEs presented in the right report. r2sup (SUPPRESS PRINTING in USE BEFORE REPORTING DTL on N=1 and N=4, GROUP INDICATE item): suppressed details still summed (CFK 006, 009), GROUP INDICATE printed on the first PRESENTED detail after INITIATE and after the break (the 85 arm). cite: OK  §1985:XIII.4.3.4 GR2  (4.3.4 General Rules)  the text is in GR2; OK  §1985:XIII.3.20.4 GR11  (3.20.4 General Rules)  the text is in GR11.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

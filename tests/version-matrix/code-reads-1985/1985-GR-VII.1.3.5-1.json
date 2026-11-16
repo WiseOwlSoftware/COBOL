@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-GR-VII.1.3.5-1",
+ "rule-digest": "d64dac7ddf57",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-117",
+  "sources": {
+   "reader": "7de40780b8cb6a72515b8717be3d8385b3fadba56275c753953c42e157e51f13",
+   "refuter": "2be25b7c9253341d4e7b43074ba07e54000ba81b034f970d74c6f38fbaf1e711"
+  },
+  "imported": {
+   "reader": "b6bbceaac79d3e700c172b962f1237f41efb659c562abec60e5020bc36212db6",
+   "refuter": "7d22b7ea52c468e93206aab464396d3907de0eb7867d835ad41bcd6d90f6936e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.1.3.5-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a CLOSE, OPEN, READ, REWRITE or WRITE on a sequential file that executes successfully must set its I-O status to a Successful Completion value (00, or 04 / 05 / 07 in their listed cases) and must not execute a USE AFTER STANDARD EXCEPTION procedure, for fixed and RECORD VARYING records and every 1985 open mode and CLOSE phrase.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#Success; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#OptionalFileNotFound; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#PhraseOnNonReelMedium; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility: no file-sharing facility at 85 (records buffered while the connector is alone; siblings released at OPEN); the success status is unchanged",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 85 CLOSE WITH LOCK locks the physical file, from 2002 the connector; the CLOSE itself reports 00 at both",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for DialectBehavior.|DialectLevel|CobolVersion in src/WiseOwl.Cobol.Runtime/IO: the status constants and the success-family tests (status[0] == '0') are edition-free; the two hits above touch sharing and the lock, not the success values.",
+  "behaviour-differs-by-edition": "no for the Successful Completion values themselves; the edition-dependent arms change what a later OPEN sees after CLOSE WITH LOCK and how connectors share, not the status of the successful statement",
+  "witnesses-cover": "part: g85_bf18_01 covers 00 for OPEN (OUTPUT, EXTEND, I-O, INPUT), WRITE, READ, REWRITE and CLOSE and no USE on success; not exercised: 05 for an absent OPTIONAL file (INPUT and EXTEND, created), 07 for CLOSE WITH NO REWIND, OPEN WITH NO REWIND and CLOSE REEL on disk, 04 for a short record, RECORD VARYING records, CLOSE WITH LOCK, and the USE procedure staying silent for 04/05/07",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/ios1.cob",
+    "printed": "E1 OPEN-INPUT-OPTIONAL-ABSENT 05 USES 0; E2 CLOSE 00; E3 OPEN-EXTEND-OPTIONAL-ABSENT 05; E4 WRITE 00; E5 CLOSE-NO-REWIND 07; E6 OPEN-NO-REWIND 07; E7 READ 00 WXYZ; E8 CLOSE-REEL 07; E9 CLOSE 00; A6 CLOSE-LOCK 00 USES 0",
+    "expected": "05 for an absent optional file (EXTEND creates it, the later READ finds WXYZ), 07 for a NO REWIND / REEL phrase on a non-reel medium, 00 otherwise, and no USE procedure for any of them (§1985:VII.1.3.5 Successful Completion a-d)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/ios1.cob",
+    "printed": "A1 WRITE3 00; A2 WRITE10 00; A3 CLOSE 00; A4 READ 00 03 ABC; A5 READ 00 10 0123456789",
+    "expected": "RECORD VARYING ... DEPENDING ON records of 3 and 10 written and read with 00, the depending item set by READ"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/ios1.cob",
+    "printed": "USE RAN 00 00 00 35; X1 OPEN-MISSING 35 USES 1",
+    "expected": "a failed OPEN of a non-optional absent file is not successful: 35, the USE procedure runs once, then the next statement"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/ios3.cob",
+    "printed": "L1 00 AAAA USES 0; L2 04 USES 0; USE RAN 10; L3 10 USES 1",
+    "expected": "a READ of a 2-byte remainder of a 4-character fixed file is 04 (successful, no USE); the next READ is at end 10 with no AT END phrase, so USE runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.1.3.5 GR1",
+    "check": "OK  §1985:VII.1.3.5 GR1  (1.3.5 I-O Status)  the text is in GR1"
+   }
+  ],
+  "notes": "The connectors return the success-family constants and the registry and USE machinery treat a status beginning 0 as successful at every edition; every Successful Completion case 1985 lists printed its value with the USE procedure silent, and a failed OPEN ran it. A side probe (ios2.cob, a varying file read through a 4-character FD) read raw 4-byte chunks with 00, which is the implementor's physical-format latitude, not a finding.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.1.3.5-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "rios.cob (rios-002): OPEN I-O of an absent OPTIONAL file, a case the reader did not try -> 05, no USE; the next READ -> 10 at end; rios2.cob: after OPEN I-O of absent OPTIONAL NOFILE3 and CLOSE, a non-optional SELECT of the same name opens INPUT with 00, so the 1985 'If the open mode is I-O or extend, the file has been created' holds. REWRITE after OPEN I-O -> 00; CLOSE REEL FOR REMOVAL, CLOSE UNIT, CLOSE REEL, CLOSE UNIT FOR REMOVAL on disk -> 07 each, the file still open after each (a later plain CLOSE -> 00); CLOSE WITH NO REWIND and OPEN INPUT WITH NO REWIND -> 07; the USE procedure counter stayed 0 through every success value. Class c: CLOSE F1 FOR REMOVAL without REEL/UNIT is refused (COBOL2269), as the 1985 CLOSE format allows FOR REMOVAL only after REEL/UNIT. The runtime IO DialectBehavior grep (FileConnector#SharingFacilityInEffect, FileRegistry#CloseWithLock, the indexed and relative arms) shows no other site on the sequential success path. cite.py: OK §1985:VII.1.3.5 the text is in the clause; it lies in GRL2.1c; OK §1985:VII.4.2.1 the text is in the clause.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

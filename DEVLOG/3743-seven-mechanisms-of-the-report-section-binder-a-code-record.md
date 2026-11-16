@@ -22,6 +22,7 @@ a zero-digit profile, so the character-image control key was the same empty stri
 **PB5775.** A report group or entry name and a same-spelled data item were counted in two separate lookups and never together, so GENERATE, USE BEFORE REPORTING, SUM UPON, SOURCE and an ordinary MOVE compiled over the shared name.
 `DataBinder.QualifiedCandidates` and `NameResolution.ResolveUnqualified` count a report entry of the same spelling and source element with the data items, and `ReportGroupResolution.Resolve` counts the data items with the
 report groups; the qualified spelling `DA OF R-1` is the way out. Rows `FMT-14.9.16.2` and `FMT-14.9.49.2` go PARTIAL to CONFORMS.
+Main re-recorded five 2023 rows PARTIAL for PB5775 and PB5788 while this was in review (the 1985 code reads); the same fix closes them, so `SR-13.18.53.3-4`, `SR-14.9.49.3-9`, `SR-13.18.16.3-2`, `SR-14.9.16.3-1` and `GR-13.18.12.4-2` go back to CONFORMS, and a CONTROL homonym (`pb5775-control-homonym`, and its 85 twin) witnesses the CONTROL arm.
 
 COBOL7441 used; COBOL7442 and COBOL7443 returned unused. Gate: see the landing record.
 

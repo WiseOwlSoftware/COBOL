@@ -1,0 +1,109 @@
+{
+ "rule-id": "1985-FMT-VIII.2.5.2",
+ "rule-digest": "1ee4570267a2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-003",
+  "sources": {
+   "reader": "73584da0799ab42f3edfc4b3993b3fa5a0a666c6471569a40b01e7bf727d4a7f",
+   "refuter": "4b70dd01aa64b402015783da02daecdc5f13dd314ec9021380b25f8599d5fe05"
+  },
+  "imported": {
+   "reader": "3a2ef66a43cb4ea7ab9c1204819ee4f9a683833b0ee027c84674ae448b1db223",
+   "refuter": "2bf23a8f0282e3dcaf7fef488b4b27f4c974e7d8a0e3c1d689d95a3b4983973e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VIII.2.5.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the file control entry must accept the relative organization clause in all three spellings the format allows (ORGANIZATION IS RELATIVE, ORGANIZATION RELATIVE, bare RELATIVE), bind the file as relative organization, and refuse forms outside the format (IS without ORGANIZATION, ORGANIZATION IS with no organization word). The witnesses cover only the LINE/RECORD SEQUENTIAL refusals, not RELATIVE.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationType; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
+    "switches": "refuses the 2023 LINE SEQUENTIAL and written-out RECORD SEQUENTIAL arms below 2023 (COBOL0900); the RELATIVE arm is not gated",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep EditionContext/CobolVersion/DialectLevel/Construct in FileControlBinder.cs (only Edition.At cursor scoping and Padding/Reserve gates, none on organization) and FileOrganization.Relative across the compiler (only EditionCite.At, which picks a diagnostic's citation, not behaviour)",
+  "behaviour-differs-by-edition": "no: RELATIVE binds and runs identically at 85 and 2023; only the LINE/RECORD SEQUENTIAL siblings differ",
+  "witnesses-cover": "part: the witnesses refuse LINE SEQUENTIAL and RECORD SEQUENTIAL at 85; none exercises the RELATIVE spellings",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p1a.cob",
+    "printed": "DUP3 INVALID / R3=CCCC / R2 INVALID",
+    "expected": "ORGANIZATION IS RELATIVE: relative file, records identified by integer > 0 (VIII.2.5.3 GR2): duplicate slot 3 INVALID, slot 3 reads CCCC, empty slot 2 INVALID"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p1b.cob",
+    "printed": "DUP3 INVALID / R3=CCCC / R2 INVALID",
+    "expected": "ORGANIZATION RELATIVE (optional IS omitted) accepted, same result"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p1c.cob",
+    "printed": "DUP3 INVALID / R3=CCCC / R2 INVALID",
+    "expected": "bare RELATIVE (bracket omitted) accepted, same result"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p1d.cob",
+    "printed": "error COBOL1970: unexpected 'IS'",
+    "expected": "IS RELATIVE without ORGANIZATION is outside the format: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p1e.cob",
+    "printed": "error COBOL5506: unexpected 'ACCESS' ... expected INDEXED, LINE, RECORD, RELATIVE or SEQUENTIAL",
+    "expected": "ORGANIZATION IS with no RELATIVE: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p1f.cob",
+    "printed": "error COBOL2423: clause 'ORGANIZATION IS RELATIVE' is written 2 times",
+    "expected": "clause written twice refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p1g.cob",
+    "printed": "error COBOL0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "the 2023 LINE SEQUENTIAL phrase is not in the 1985 format: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p1a.cob",
+    "printed": "at --std 2023: DUP3 INVALID / R3=CCCC / R2 INVALID",
+    "expected": "same behaviour at the latest edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.5.1",
+    "check": "OK  §1985:VIII.2.5.1  (2.5.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VIII.2.5.3 GR2",
+    "check": "OK  §1985:VIII.2.5.3 GR2  (2.5.3 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The one grammar rule (ORGANIZATION IS?)? organizationType admits exactly the 1985 format's three spellings and MapOrganization binds RELATIVE at every edition. The only edition gate on the clause is for the 2023 LINE/RECORD SEQUENTIAL arms, which 85 correctly refuses.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output as at 85",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VIII.2.5.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Attacked the clause-order and ambiguity the reader did not try (§1985:VIII.2.3.3 SR1: clauses after SELECT in any order). All at --std 85 ran and bound F as relative (a first run drew COBOL6826, the relative-only WRITE INVALID KEY rule, proving relative binding): r1a ORGANIZATION IS RELATIVE before ASSIGN -> R1=AAAA R2=BBBB FS=00; r1e bare RELATIVE before ASSIGN -> same; r1b 'ACCESS MODE IS SEQUENTIAL RELATIVE' (bare organization word right after SEQUENTIAL, where RELATIVE KEY could be read) -> same; r1c 'ACCESS SEQUENTIAL RELATIVE KEY IS K RELATIVE' -> same; r1d RELATIVE between ACCESS and FILE STATUS -> same. Class e: r1f ORGANIZATION RELATIVE ACCESS DYNAMIC, OPEN INPUT of a missing file then READ -> 'DECL FS=35 / OPEN FS=35 / DECL FS=47 / READ FS=47'. Reader's 2023-form refusal (LINE SEQUENTIAL, COBOL0900) stands. cite.py: OK §1985:VIII.2.3.3 SR1 the text is in SR1; OK §1985:VIII.2.5.3 GR1 the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

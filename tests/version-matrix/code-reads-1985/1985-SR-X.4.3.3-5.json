@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-X.4.3.3-5",
+ "rule-digest": "b946aed22861",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-069",
+  "sources": {
+   "reader": "9f0bf86741a9ea8cc51d693425b6f68228c084eff42ed1d7fd43db717c3ec49d",
+   "refuter": "6d1250296380d24f9783d1915f0ad21da7cc6b1fb2273d7875b40718133da4a3"
+  },
+  "imported": {
+   "reader": "1f72eae678aafee33de2150ac046c24c215bd80908a94a220df6c807c17f2bc5",
+   "refuter": "5eddb6ce7b447aaf5abc0aa548bf027a3f3204c866856d27fe98e5edfe55f281"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.4.3.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a level-01 entry that writes GLOBAL or EXTERNAL with the FILLER format or with no entry-name, and must refuse an unnamed/FILLER record description subordinate to an FD that writes EXTERNAL or GLOBAL; named entries in those positions compile.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#ScreenFileRecordEntryNames",
+  "edition-consulted": [],
+  "edition-search": "Read ScreenClausePlacement (the DataNameRequired row of ClausePlacementRules.Rules, isFiller = cobolName is null || FILLER at DataBinder.cs:3725) and ScreenFileRecordEntryNames: neither reads DialectLevel, CobolVersion, ConstructRegistry or ReservedWords; Edition.Error is only the diagnostic sink (EditionContext#Error records unconditionally). One arm at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers only an FD IS EXTERNAL with a FILLER record; not exercised: a Working-Storage 01 with EXTERNAL/GLOBAL and FILLER or omitted name, an FD IS GLOBAL with an unnamed record, a FILLER group record after a named one, and the accept half (named entries)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r1a.cob",
+    "printed": "EXIT 65, COBOL2404 at (5,8): the EXTERNAL clause is not admitted here - this entry has no data-name",
+    "expected": "refused: 01 FILLER ... IS EXTERNAL violates SR5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r1b.cob",
+    "printed": "EXIT 65, COBOL2404 at (5,8): the GLOBAL clause is not admitted here (implied FILLER)",
+    "expected": "refused: 01 with omitted name and GLOBAL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r1c.cob",
+    "printed": "EXIT 65, COBOL2404 at (10,8): a record description entry of file 'F' has no data-name, and the file description entry contains the GLOBAL clause",
+    "expected": "refused: FD IS GLOBAL with an unnamed record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r1e.cob",
+    "printed": "EXIT 65, COBOL2404 at (11,8) for the second (FILLER group) record of FD F IS EXTERNAL; the named R1 drew nothing",
+    "expected": "refused only for the FILLER record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r1f.cob",
+    "printed": "EXIT 65, COBOL2404 at (6,8) for 01 FILLER IS GLOBAL group",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r1d.cob",
+    "printed": "EXIT 0, XY        |ABCDEF|005",
+    "expected": "accepted: named FD GLOBAL records, named EXTERNAL elementary, named GLOBAL group whose subordinates are FILLER/unnamed (SR5 asks only the entry carrying the clause), elementary GLOBAL with VALUE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.3.3 SR5",
+    "check": "OK  §1985:X.4.3.3 SR5  (4.3.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "One edition-blind rule row (DataNameRequired) serves the entry half and ScreenFileRecordEntryNames serves the FD-record half; both fire at --std 85 for every form probed. The diagnostic text cites §2023:13.16.3 SR7 even at --std 85 (a citation of the latest edition, not a wrong verdict).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.4.3.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "x1a FD F IS EXTERNAL with an omitted-name 01 (the reader tried omitted-name only under GLOBAL) -> EXIT 65 COBOL2404 at (10,8); x1b lowercase 'filler ... external' in WS and an omitted-name '01 IS GLOBAL' group in a contained program -> COBOL2404 at (5,8) and (14,8); x1c FD IS EXTERNAL IS GLOBAL with named R1 and a FILLER group record -> COBOL2404 only at (11,8); x1d FILLER record under an FD with neither clause plus named GLOBAL-with-VALUE and EXTERNAL items -> EXIT 0 'ABCXYZ' (the rule asks nothing of a plain FD's records). Read §1985:X.4.6.3 SR1: GLOBAL reaches 01 entries of File/Working-Storage, FDs and RDs; an RD's report-name is mandatory, so no further form is in range. cite.py: 'OK  §1985:X.4.3.3 SR5  (4.3.3 Syntax Rules)  the text is in SR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

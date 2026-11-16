@@ -1,0 +1,101 @@
+{
+ "rule-id": "1985-SR-XIII.3.8.3-5",
+ "rule-digest": "1e2e2a4ad37f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-078",
+  "sources": {
+   "reader": "b0bd5c2450046e0dd7a170d5666b191062e8062c4935c1bcaccc2bdaea756290",
+   "refuter": "5d47e263f056ccc1b2ad9a07051a4408b8f30631fb90247c56a4af11c777622c"
+  },
+  "imported": {
+   "reader": "180713eb941576e652e91619f929e65f32aa22f0645abde69d9f5021308eb814",
+   "refuter": "14b9ead43150c454e439140ca0b84b592279e0d5fc345345689f7d843614c808"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.8.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, LAST DETAIL integer-4 must be at least FIRST DETAIL integer-3, where integer-3 may be defaulted to integer-2 (GR2b) and integer-4 to integer-5 or integer-1 (GR2c, GR2d), in any phrase order, with equality allowed.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers",
+    "switches": "ExceedsThreeSignificantDigits85 (DialectLevel < 2002) adds the 1985 SR2 digit limit; the ascending-order loop runs the same at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral (IntegerOperandRules.Classify(dialectLevel), ZeroMessage)",
+    "switches": "ReportPageSubclauseContext is Nonzero at every edition; ZeroMessage cites §1985:III.2 below 2002 (wording only)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageSubclause",
+    "switches": "LAST CONTROL HEADING, the DE abbreviation and IS before an integer are refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1270 covers the legal side (FIRST DETAIL 4 LAST DETAIL 9); the refused side and the defaulted operands are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pgldlt.cob",
+    "printed": "COBOL2744 the FIRST DETAIL integer 10 is greater than the LAST DETAIL integer 9, exit 65 (also COBOL2199 for the detail group)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pgorder.cob",
+    "printed": "COBOL2744 FIRST DETAIL 10 > LAST DETAIL 9 with LAST DETAIL written first, exit 65",
+    "expected": "refused: the phrases may be in any order (SR1); the rule is about values"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pglddef.cob",
+    "printed": "COBOL2744 the HEADING integer 10 is greater than the LAST DETAIL integer 9, exit 65 (FIRST DETAIL omitted)",
+    "expected": "refused: integer-3 defaults to integer-2 = 10 > integer-4 = 9"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pgfdgt4.cob",
+    "printed": "COBOL2744 the FIRST DETAIL integer 12 is greater than the FOOTING integer 11, exit 65 (LAST DETAIL omitted)",
+    "expected": "refused: integer-4 defaults to integer-5 = 11 < integer-3 = 12 (GR2d)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/pgeq.cob",
+    "printed": "exit 0, OK (FIRST DETAIL 5, LAST DETAIL 6)",
+    "expected": "accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.8.3 SR5",
+    "check": "OK  §1985:XIII.3.8.3 SR5  (3.8.3 Syntax Rules)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:XIII.3.8.4 GR2",
+    "check": "OK  §1985:XIII.3.8.4 GR2  (3.8.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The pairwise check of the written integers also catches violations that pass through the GR2 defaults, since each default copies a written neighbour: a defaulted integer-3 is compared by way of HEADING, and a defaulted integer-4 by way of FOOTING. Each probe was refused or accepted as the 1985 text requires. The diagnostic cites 2023.",
+  "seeded": true,
+  "at-2023": "same ordering loop",
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.8.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "At --std 85: pgfdlim (PAGE 30 FIRST DETAIL 40, with LAST DETAIL and FOOTING omitted so integer-4 = integer-1 = 30 by GR2c) gives COBOL2744 'the FIRST DETAIL integer 40 is greater than the page limit 30', exit 65. pgldneg (LAST DETAIL -1) gives COBOL0001, exit 65. pgrevok (FIRST DETAIL 2 LAST DETAIL 20, written out of order) exit 0, OK. With the reader's pgldlt, pgorder, pglddef and pgfdgt4, every defaulted pairing GR2 b to e can produce is covered. OK §1985:XIII.3.8.3 SR5 'Integer-4 must be greater than or equal to integer-3'; OK §1985:XIII.3.8.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-7",
+ "rule-digest": "b40079617e67",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-042",
+  "sources": {
+   "reader": "14d2b0105f24092ed65e9ae26302fb068a0e84b6a64867dd9083c587d651c0fb",
+   "refuter": "409e6d12258bdd082bf19e73191b0bd4d3ccff4bf9a1cb6cfb3f144a27f82644"
+  },
+  "imported": {
+   "reader": "1eb67cb8897b32f196c5e71848704c0f2a9e51bd3ea533e95c8bb4c24478a12d",
+   "refuter": "1df318c7df5263fda75e3229c7b2a20801e2786f5688c81d379e85c09a5455f6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.1-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the colon is a separator (it needs no space on either side) and must be written where a general format shows it, which in COBOL-85 (with Amendment 1) is the reference modifier of an identifier or function-identifier, ( leftmost-character-position : [length] ); a reference modifier without its colon, and a colon where no format shows one, are refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#COLON; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#COLONCOLON; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#refModSpec; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#subscriptPart; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInlineMethodInvocation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInlineMethodInvocation",
+    "switches": "refuses the 2002 invocation operator '::' (inline-method-invocation-2002, COBOL0900) below COBOL-2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The COLON token and refModSpec are shared by every edition (no predicate); grepped COLONCOLON and invocation operator in VersionConformancePass (the one edition gate found); SeparatorRule's '::' spacing check (COBOL2993) has no edition read.",
+  "behaviour-differs-by-edition": "yes: '::' is the 2002 invocation operator and is refused at 85; the single colon of the reference modifier is the same code at every edition",
+  "witnesses-cover": "part: l1c17_colon_separator covers the conforming colon forms; the missing-colon and misplaced-colon refusals and a function-identifier's reference modifier are not exercised there",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/l1c17_colon_separator.cob",
+    "printed": "A=BCD / B=AB / C=CDE / D=B / E=CD (EXPECT: MATCH)",
+    "expected": "colon with and without surrounding spaces, length omitted, after a subscript, expressions on both sides"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c5_ref6.cob",
+    "printed": "BCDEABCDE",
+    "expected": "W-S(2:3) W-S (5:1) W-S(1:5) at the bounds: BCD E ABCDE"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c5_ref8.cob",
+    "printed": "bcde",
+    "expected": "FUNCTION LOWER-CASE (W-S) (2:2) and (4:) on an alphanumeric function: bc de"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c5_ref1.cob",
+    "printed": "W-S (2 3): COBOL2096 a subscript is written on 'W-S' ... write the reference-modification colon form",
+    "expected": "the colon the reference-modifier format requires is missing: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c5_ref2.cob",
+    "printed": "MOVE 1 TO N-A:. : COBOL2269 unexpected ':'; c5_ref4 W-S (:2): COBOL2876 the colon cannot lead; c5_ref5 W-S (2:3:): COBOL5506 ':' is not expected here",
+    "expected": "a colon where no format shows it: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c5_ref7.cob",
+    "printed": "W-S (N-A :: 1): COBOL0900 in-line method invocation requires COBOL-2002 (plus COBOL2138, COBOL0900 subscript); c5_ref3 W-S (N-A::1): COBOL2993 the invocation operator '::' is not ... preceded or followed by a separator space",
+    "expected": "COBOL-85 has no '::'; two adjacent colons fit no 1985 format: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.1 SR7",
+    "check": "OK  §1985:IV.4.2.1 SR7  (4.2.1 Separators)  the text is in SR7"
+   }
+  ],
+  "notes": "Every 1985 colon form probed is accepted and every misplaced or missing colon refused. At --std 85 the unspaced 'N-A::1' is refused with a message about the 2002 invocation operator's spacing rather than the COBOL0900 edition gate the spaced form gets; it is still refused, so this is message wording only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.1-7",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "The only 1985 format that shows a colon is the reference modifier; '::' (2002) refused per the reader's c5_ref7. Probes at --std 85: k1 ref-mod on a function-identifier with arguments FUNCTION REVERSE (W-S) (1:2) -> FE; a ref-mod nested in a function argument inside the leftmost position W-S (FUNCTION LENGTH (W-S (1:2)) : 1) -> B; expressions both sides W-S (N-A - 1:N-A + 1) -> ABC; qualified subscripted element then ref-mod W-F OF W-R (N-A + 1) (2:) -> F; W-S(N-A:) -> BCDEF; receiving ref-mod MOVE \"Z\" TO W-S (6:1) -> ABCDEZ. Refusals: k2 W-S (2 3:1) -> COBOL0001 near ':'; k3 DISPLAY W-S : 2 -> COBOL2269 unexpected ':'. cite.py: OK §1985:IV.4.2.1 SR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

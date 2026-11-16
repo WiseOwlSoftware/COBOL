@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-3",
+ "rule-digest": "e009987363fa",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-034",
+  "sources": {
+   "reader": "55ae482fcbf67505d3260e5fbf4749320bc5ece0f8f8fa7cd6fd93be84c07f69",
+   "refuter": "957a2a6d8a425cad511eea6e561c872dc2460431a2616651179853f12c607cad"
+  },
+  "imported": {
+   "reader": "f3d21e9e54317255f3b60984ce12a0371c561642f70781fc560d2e35a8922f88",
+   "refuter": "921dda05f4b63770b11016834cbe455e2ed0c30ca71de08f4dac2918ce9e5f9b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.4.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, with WITH DUPLICATES IN ORDER, records whose keys all compare equal (relation-condition rules under the SORT's collating sequence) must be returned in the order of the USING files as written in the SORT statement (1985 allows several) and, within one file, in the order the records are accessed from it (relative slot order, indexed prime-key order), or in RELEASE order for an input procedure - for fixed and variable-length records, in memory or spilled.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Sort; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortedOrder; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#WriteSortedChunk; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#Cascade; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SequenceSort; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortMergeCursor",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortStatement",
+    "switches": "construct table-sort-2002: a Format 2 (table) SORT, DUPLICATES included, is refused at 85 (COBOL0870), accepted at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (DUPLICATES row)",
+    "switches": "DUPLICATES reserved at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the file SORT: the stable sort (index sort with release-order tie break, strict earliest-run merge) is unconditional and edition-blind; the table-SORT form exists only from 2002",
+  "witnesses-cover": "part: pb704_85 covers an input procedure releasing six records in memory; not exercised: several USING files of each organization with access order differing from write order, ties from the COLLATING SEQUENCE (ALSO), variable-length records, and runs spilled to disk",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/s1dup.cob",
+    "printed": "aF3-2 AF3-3 AF1-2 aF1-3 aF2-2 AF2-3 BF3-1 bF1-1 BF1-4 bF2-1 (EXPECT: MATCH)",
+    "expected": "USING F3(indexed, written T3,T1,T2) F4(empty) F1(seq) F2(relative, slots written 3,1,2) with ALSO ties: file order F3,F1,F2, each in access order (key order / slot order)"
+   },
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/s2spill.cob",
+    "printed": "64K memory: COUNT=03000 BAD=00000 GROUPS=ABC; default memory: same; 64K with a missing TMPDIR: 'temporary sort work file ... could not be created' (spill proven)",
+    "expected": "3000 RELEASEs of a RECORD VARYING 5..9 SD, keys B/A/C interleaved: three groups A,B,C, each strictly in release order"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/s4table.cob",
+    "printed": "--std 85: error COBOL0870: SORT of a table (Format 2) requires COBOL-2002; --std 2023: A1B1B2",
+    "expected": "85 refuses the later edition's table SORT with DUPLICATES"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.4 GR3",
+    "check": "OK  §1985:XI.4.4.4 GR3  (4.4.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The DUPLICATES flag is passed to CobolSort.Sort for traceability only; stability is unconditional, which satisfies GR3 and refines GR4's undefined order. USING files are released file by file in statement order through as-if READ NEXT, so access order is the file's own.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.4.4-3",
+  "refutation": "UPHELD",
+  "classes": "d,e",
+  "evidence": "(1) t1zero.cob (refute-1985-034/t1zero-001): SORT WITH DUPLICATES on a SIGN LEADING SEPARATE key with -0/+0 ties. USING F2 F1 ASCENDING printed -1F1-1 +0F2-1 -0F2-2 -0F1-2 +0F1-3 +1F2-3. USING F1 F2 DESCENDING printed +1F2-3 -0F1-2 +0F1-3 +0F2-1 -0F2-2 -1F1-1. Both are file order then access order, with the zeros tied algebraically. (2) t2pcs.cob (t2pcs-001): ties made only by the PROGRAM COLLATING SEQUENCE (A ALSO a, no phrase). DESCENDING USING F1 F2 printed bF1-3 BF2-3 aF1-1 AF1-2 AF2-1 aF2-2: MATCH. cite.py: 'OK  §1985:XI.4.4.4 GR3  (4.4.4 General Rules)  the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

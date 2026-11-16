@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-VII.2.3.4-2",
+ "rule-digest": "8eb936e053fd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-118",
+  "sources": {
+   "reader": "96bb92ba553385b02467dab1079c63a5975ffea93eea5ee50d70035c3f8ebae6",
+   "refuter": "939bffc94d17ed56ddb17501859558d5490eb1520bfe2a92f7bf91d6e56ea706"
+  },
+  "imported": {
+   "reader": "3336116cd6d6fedc559d4105bcd601e392e51d58dfa4c8117f88c0686f6b3b47",
+   "refuter": "58bd03d524c0b303c5e8ede37a906cccc1a76b432cc55eddbd5e75951ac628c1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the OPTIONAL phrase takes effect only for an OPEN in input, I-O or extend mode: an absent optional file opens with 05 (created for I-O and extend, at end on the first READ for input), an absent non-optional file fails with 35, and OPEN OUTPUT of an optional file behaves exactly as of any file (created, 00); this holds for every organization whose SELECT may carry OPTIONAL at 85.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#IsOptional; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenCore",
+  "edition-consulted": [],
+  "edition-search": "grep -n IsOptional over Runtime/IO/*.cs and Optional/OPTIONAL over Binding/FileControlBinder.cs and CobolIO.g4, then grep for DialectBehaviors.IsActive, Edition, DialectLevel on those members: the OPEN arms that read IsOptional (SequentialConnector#OpenCore, KeyedConnector#OpenCore) consult no edition and are the code every edition takes",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf19_01 covers a sequential file in every open mode and an absent non-optional input; relative and indexed OPTIONAL files and an optional file that is present are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/g85_bf19_01.cob",
+    "printed": "OPT OPEN INPUT 05; OPT READ AT END 10; OPT OPEN I-O 05; OPT I-O REOPEN 00; OPT I-O FILE EMPTY 10; OPT OPEN EXTEND 05; OPT EXTEND REOPEN 00; OPT EXTEND RECORD EX01; OPT OPEN OUTPUT 00; REQ OPEN INPUT 35; EXPECT: MATCH",
+    "expected": "05 for input/I-O/extend of an absent optional file (I-O and extend create it), 10 on the first READ, 00 for OUTPUT, 35 for the non-optional file"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/optk.cob",
+    "printed": "REL OPT INPUT 05; REL OPT READ 10; REL OPT I-O 05; REL OPT I-O READ 10; REL REOPEN 00; IDX OPT I-O 05; IDX OPT RANDOM READ 23; IDX WRITE 00; IDX OPT EXTEND 05; IDX EXT WRITE 00; IDX EXT READ 00 K9D9; SEQ OPT OUTPUT 00; SEQ OPT PRESENT INPUT 00; REL NONOPT I-O 35",
+    "expected": "the same rule for relative and indexed optional files (their modules carry the same GR), a present optional file opens 00, an absent non-optional relative file opened I-O is 35"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/optk.cob",
+    "printed": "REL NONOPT I-O 35 (USE ran)",
+    "expected": "without OPTIONAL an absent file is not created by OPEN I-O"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.3.4 GR2",
+    "check": "OK  §1985:VII.2.3.4 GR2  (2.3.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.1",
+    "check": "OK  §1985:VII.1.3.5 GRL2.1  (1.3.5 I-O Status)  the text is in GRL2.1"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.2",
+    "check": "OK  §1985:VII.1.3.5 GRL2.2  (1.3.5 I-O Status)  the text is in GRL2.2"
+   }
+  ],
+  "notes": "The binder sets FileModel.Optional from the grammar's SELECT OPTIONAL token and the connector's IsOptional is read only in the INPUT, EXTEND and I-O arms of OpenCore; the OUTPUT arm ignores it, which is the rule's 'applies only'. The 1985 text gives 05 and creation for I-O and extend exactly as the code does.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe refute-1985-118/opt2.cob at --std 85 (opt2-001), aimed at what the reader did not try: OPEN INPUT of an absent optional file 05, READ 10, CLOSE 00 and the file is NOT created (a non-optional SELECT of the same name then answers 35); OPEN EXTEND of it 05 creates it and the record written is read back 00 E001 through the non-optional SELECT; OPEN OUTPUT of the now-present optional file 00 and truncates (READ 10), i.e. OPTIONAL has no effect in output mode; a RANDOM-access relative OPTIONAL file opened I-O absent 05, READ KEY 23, WRITE 00, read back by a second SELECT. cite.py: OK §1985:VII.2.3.4 GR2; OK §1985:VII.1.3.5 GRL2.1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

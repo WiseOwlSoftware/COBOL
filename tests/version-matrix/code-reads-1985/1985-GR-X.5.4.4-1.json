@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-X.5.4.4-1",
+ "rule-digest": "3490258c78b9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-141",
+  "sources": {
+   "reader": "b3a70455ab72b9cd9ad09033b97f0699d7892ffe22da370e5ce307b0a6400e7f",
+   "refuter": "2ed23be80230dee69edd5468629de243b17111a84f51fa39061c9cd233fb6ee3"
+  },
+  "imported": {
+   "reader": "d1534b2e023e47e0a9c1f4728793148070994949039e8cdfbd187277664ef86e",
+   "refuter": "1a40ec37aebba348ef1195d1cdf1c29225e5d7a5cc9e0a11a4d77909b22afb17"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "An EXIT PROGRAM statement executed in a program that no CALL activated (the run unit's main program) acts as no operation: execution continues with the next executable statement wherever the statement sits (own sentence, end of an IF, a PERFORMed paragraph, an inline PERFORM, a declarative, a SORT input or output procedure, after a CALL has returned).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitProgramClass; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExitStatement",
+    "switches": "ExitProgramArchaic2023 (COBOL0903 warning at 2023 only) and ExitProgramNotLast2002 (refuses at 85 an EXIT PROGRAM that a statement of its imperative sequence follows, X.5.4.3 SR1); neither changes the run-time arm",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRaisingPhrase",
+    "switches": "StatementRaising2002: EXIT PROGRAM RAISING refused at 85 (COBOL0879)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for GR1's run-time behaviour (the __asCalled gate is the same emitted code at every edition); 85 refuses the 2002 RAISING tail and 2023 adds an archaic warning",
+  "witnesses-cover": "part: g85_f26_02 covers own sentence, the end of an IF and a PERFORMed paragraph; not covered: inline PERFORM, a declarative, SORT input and output procedures, after a CALL returned",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/X.5.4@1985-EXIT-PROGRAM-STATEMENT/g85_f26_02.cob",
+    "printed": "BEFORE / AFTER 1 / IN IF / AFTER 2 / IN P-2 / AFTER 3, EXPECT MATCH",
+    "expected": "as the witness derives from GR1"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p1a.cob",
+    "printed": "LOOP K=3 / DECL 35 / DECL AFTER EXIT / AFTER OPEN 35 / OUT 1 / OUT 3 / AFTER SORT / SUB1 / AFTER CALL AND EXIT, EXPECT MATCH",
+    "expected": "inline PERFORM runs all 3 iterations; the declarative after the FAILED OPEN continues past EXIT PROGRAM and returns to the statement after the OPEN; the SORT input procedure releases both records and the output procedure returns both; after the called SUB1 returned (its own EXIT PROGRAM returns), the main's EXIT PROGRAM continues"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p1b.cob",
+    "printed": "--std 85: error COBOL0879 the GOBACK / EXIT ... RAISING phrase requires COBOL-2002; --std 2023: warning COBOL0903 EXIT PROGRAM obsolete (plus an operand error from the probe's EC-ALL without EXCEPTION)",
+    "expected": "the 85 format of EXIT PROGRAM (X.5.4.2) has no RAISING phrase, so it is refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.4.4 GR1",
+    "check": "OK  §1985:X.5.4.4 GR1  (5.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "EmitExitProgram wraps the return in if (__asCalled); __asCalled is an instance flag set true only on the ICobolProgram.Call activation path in the emitted class and reset in its finally, so a main program entered by RunMain never returns on EXIT PROGRAM. At 85 a program cannot call the main program (no recursion), so the main is never under a caller's control.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "r3a.cob at --std 85 has a main program WITH the INITIAL attribute, which the reader did not try. GR3's implicit cancel applies only to a called program, so the main must keep its data and its contained programs' state. Output: SUB 1 / AFTER EXIT CNT=1 / SUB 2 (no cancel of the main or of its contained SUB) / IN P-2 / IN P-3 / AFTER PERFORM (EXIT PROGRAM inside a PERFORM THRU range continues into P-3) / INNER / AFTER INNER IF / THEN / AFTER ELSE EXIT (EXIT PROGRAM as the ELSE of an unterminated IF continues with the next sentence) / IN P-4 / FELL TO P-5 (EXIT PROGRAM after GO TO falls through to the next paragraph). cite.py: OK §1985:X.5.4.4 GR1; OK §1985:X.5.4.4 GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-VII.3.7.4-5",
+ "rule-digest": "64a0e8a88438",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-121",
+  "sources": {
+   "reader": "14765693275ab25651d3d10898dbaa20ad5bbd180380d3200754a48836162545",
+   "refuter": "7dbecbf905be77bcbc1585f4fb85f8005f0070d30a0b0f7c5b0fbc5355f364ab"
+  },
+  "imported": {
+   "reader": "9f6a433471957b760e3abb2d310953d5c451358beddf5fafcc9b99614073d65b",
+   "refuter": "a7b431aabd107496595e7a07d717e5ba791d82658333128674fed694c7db50a9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.7.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "For a LINAGE file, integer-4 or the value of data-name-4 (taken at OPEN OUTPUT for the first page and at each ADVANCING PAGE / page overflow for the next page, GR7) is the number of lines of the bottom margin of each logical page, laid on the medium after the page body and before the next page, and zero is a legal value.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindLinageClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#LinageArg; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#PositionOnLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginNextLogicalPage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage",
+    "switches": "only the citation text of the COBOL2025 operand diagnostic (LinageClauseRules.Operand.CitationAt prints §1985:VII.3.7.3 SR1 at --std 85); the screen itself is the same",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped SequentialConnector.cs, FileRegistry.cs and SequentialIoEmitter.cs for Edition/DialectLevel/DialectBehavior/IsActive; the LINAGE page model (BeginLinagePage, EvaluateLinage, PositionOnLogicalPage, BeginNextLogicalPage, EmitTopMarginIfPending) reads no edition; the LinageArg rendering and BindLinageClause read none; WiseOwl.Cobol.Editions has only the LINAGE reserved-word rows (continuous since 1985).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_linage_zero_margins covers a written zero, pb523_linage_margins_on_the_medium_85 a nonzero integer-4 on the medium; neither covers the data-name-4 form or its re-evaluation for the next page (GR7 b), which the probe lnbot1 covers",
+  "probes": [
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/lnbot1.cob",
+    "printed": "LC-B=0001 / LINES=0008 / A@=0002 B@=0006 C@=0007 D@=0008",
+    "expected": "LINAGE 2 LINES LINES AT BOTTOM BM, BM=3 at OPEN then 0 before the overflow: page 1 = body lines 1-2 + bottom 3 (lines 3-5), page 2 body at lines 6-7 with bottom 0, page 3 at line 8: A@2 B@6 C@7 D@8, 8 lines (GR5, GR7 a/b, GR10)"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/lnbot2.cob",
+    "printed": "error COBOL2025: LINAGE clause operand 'BM' is a signed numeric data item, not an unsigned one ... (ANSI §1985:VII.3.7.3 SR1)",
+    "expected": "refused: data-name-4 must be an unsigned integer (§1985:VII.3.7.3 SR1)"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/lnbot3.cob",
+    "printed": "error COBOL2025: LINAGE clause operand 'BM' is a numeric data item with digits to the right of the decimal point ... (ANSI §1985:VII.3.7.3 SR1)",
+    "expected": "refused: data-name-4 must be an integer (§1985:VII.3.7.3 SR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/lnbot1.cob",
+    "printed": "at --std 2023: identical output LC-B=0001 / LINES=0008 / A@=0002 B@=0006 C@=0007 D@=0008",
+    "expected": "the 1985 LINAGE clause has no form of its own; the same layout at every edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.4 GR5",
+    "check": "OK  §1985:VII.3.7.4 GR5  (║3.7.4 General Rules║)  the text is in GR5"
+   }
+  ],
+  "notes": "The bottom margin is laid in BeginNextLogicalPage step 1 against the OLD page's _bottom, then EvaluateLinage adopts the re-read data-name values for the next page, which is GR7 b's split; zero is the identity. No edition is consulted on this path and the 1985 and 2023 outputs agree.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.7.4-5",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "Probe src/lnr1.cob (lnr1-001) at --std 85: LINAGE 3 TOP 1 BOTTOM BM, BM=2 at OPEN, 0 before WRITE BEFORE ADVANCING PAGE, 4 before an overflowing AFTER ADVANCING 5 LINES, then AFTER ADVANCING PAGE: printed X@=0002 Y@=0009 Z@=0012 W@=0020 LC-Z=0001, exactly the expected layout (page1 bottom 2 from OPEN, page2 bottom 0 taken at ADVANCING PAGE, page3 bottom 4 taken at overflow, GR5 + GR7 a/b). lnr2 (lnr2-001): data-name-4 qualified (BM OF LG) and COMP, same output (SR2). lnr3 (class c): TOP/BOTTOM phrases out of order refused COBOL1970 at 85. cite.py: OK §1985:VII.3.7.4 GR5; OK §1985:VII.3.7.4 GR7b; OK §1985:VII.3.7.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

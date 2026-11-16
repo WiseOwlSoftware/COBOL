@@ -1,0 +1,124 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-7",
+ "rule-digest": "7b35eabbe9a9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-165",
+  "sources": {
+   "reader": "33a634f8775865fadbb8ae9792708c139cef0d2f3d430b2edfebd14f738b511e",
+   "refuter": "55d291252e80be0bec81fc1e5090b7c44bebe67b285d7aa906d8c70e9de3df4c"
+  },
+  "imported": {
+   "reader": "667ce41b0a42d634904f38797cab12cb6454484c4500161e8e19076e71181d69",
+   "refuter": "775ec166d64b24fcd4839d6eafa84dcc8c75887b2782b044c46c6d189b362396"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.9.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a format 2 entry may omit data-name-1, and when written that name may be used only as a qualifier of a sum counter reference (Procedure Division, SOURCE clause, data division clause operand); any other reference to it (GENERATE, USE BEFORE REPORTING, SUM UPON, SOURCE, MOVE, a condition, ODO object) must be refused; the witness covers DISPLAY of the name.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReportUnidentified; src/WiseOwl.Cobol.Compiler/Binding/ReportScope.cs#EntriesNamed; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused",
+    "switches": "DialectLevel < 2002 picks the message (§1985 SR10d text) for a non-sum-counter entry; the refusal itself is the same",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run",
+    "switches": "at 85 a data division operand may name a sum counter (SumCounterOperand85), qualified through the format 2 name",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 a sum counter (qualified through a format 2 name) may be a data division clause operand; 2002+ has the section rule",
+  "witnesses-cover": "part: 1985-SR-XIII_3_9_3-7 refuses DISPLAY TOT-GRP and g85_bf09_04 accepts the entry; the qualifying use and the GENERATE/USE/UPON/SOURCE/ODO refusals are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/s1.cob",
+    "printed": "MID=00012 / OUT=00012 (MOVE TOT-X IN TOT-GRP OF CF-G IN RPT; USE BEFORE REPORTING CF-G moving TOT-X OF TOT-GRP; SOURCE TOT-X OF TOT-GRP)",
+    "expected": "accepted: qualifier of a sum counter; SUM of 5 and 7 is 12"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/s8.cob",
+    "printed": "MID=00012 TAB=************| (OCCURS 1 TO 20 DEPENDING ON TOT-X OF TOT-GRP)",
+    "expected": "accepted at 85: a sum counter qualified by the format 2 name; 12 occurrences"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/s9.cob",
+    "printed": "COBOL5092 OCCURS DEPENDING ON 'TOT-GRP' names the report group description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/s2.cob",
+    "printed": "COBOL1757 GENERATE TOT-GRP names neither a detail report group nor a report",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/s3.cob",
+    "printed": "COBOL2144 SOURCE 'TOT-GRP' names the report section item, neither a report counter nor a sum counter",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/s4.cob",
+    "printed": "COBOL0897 USE BEFORE REPORTING 'TOT-GRP' does not name a report group",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/s5.cob",
+    "printed": "COBOL2046 the UPON operand 'TOT-GRP' does not name a report group (+ COBOL2749 for the probe's second CF FINAL)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/s6.cob",
+    "printed": "COBOL5092 'TOT-GRP' names the report group description entry ... §1985:XIII.3.9.3 SR10d",
+    "expected": "refused (MOVE TOT-GRP TO W-OUT)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/s7.cob",
+    "printed": "COBOL5092 (IF TOT-GRP = SPACES)",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.9.3 SR7",
+    "check": "OK  §1985:XIII.3.9.3 SR7  (3.9.3 Syntax Rules)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:XIII.3.9.3 SR10d",
+    "check": "OK  §1985:XIII.3.9.3 SR10d  (3.9.3 Syntax Rules)  the text is in SR10d"
+   },
+   {
+    "cite": "§1985:XIII.3.9.3 SR5",
+    "check": "OK  §1985:XIII.3.9.3 SR5  (3.9.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "Every use is enforced. Lead (diagnostic wording only, not a verdict): at --std 85 ReportEntryReferenceRefused quotes §1985:XIII.3.9.3 SR10d (a format 3 rule) for EVERY non-sum-counter entry, so a reference to a format 2 name (s6.cob, MOVE TOT-GRP TO W-OUT) is told SR10d where SR7 governs, and a format 1 name would be told SR10d where SR5 governs; site src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused, the DialectLevel < 2002 arm.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.9.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Each other use of a format 2 name is refused. T1.cob (SUM TOT-GRP) gets COBOL2730. T2.cob (SOURCE LINE-COUNTER OF TOT-GRP, a qualifier of something other than a sum counter) gets COBOL2729. T3.cob (MOVE SRC OF TOT-GRP, where SRC is a SOURCE item) gets COBOL5092 citing SR10d. T4.cob (SUM ... RESET ON TOT-GRP) gets COBOL0899. The legal qualifier uses work. In T6.cob, SUM TOT-X OF TOT-GRP in CF FINAL rolls forward a CF W-K sum counter and prints 00012 / 00010 / 00022, which is correct. In T5.cob a Working-Storage TOT-X sits beside the sum counter, and TOT-X OF TOT-GRP resolves to the counter (MID=00012) while TOT-X OF WS-G gives 00007. cite.py: 'OK  §1985:XIII.3.9.3 SR7  (3.9.3 Syntax Rules)  the text is in SR7'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

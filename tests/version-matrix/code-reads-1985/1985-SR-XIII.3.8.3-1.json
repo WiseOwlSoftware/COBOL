@@ -1,0 +1,114 @@
+{
+ "rule-id": "1985-SR-XIII.3.8.3-1",
+ "rule-digest": "a28269445522",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-165",
+  "sources": {
+   "reader": "33a634f8775865fadbb8ae9792708c139cef0d2f3d430b2edfebd14f738b511e",
+   "refuter": "55d291252e80be0bec81fc1e5090b7c44bebe67b285d7aa906d8c70e9de3df4c"
+  },
+  "imported": {
+   "reader": "632c51420999ac10547a96f39b733edf725d7000decad4e780657966661de56f",
+   "refuter": "8b48e077ad42f4f7fd4f4a2ea517a2937be19fcfc482a7492acac509cfff3ed4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.8.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the HEADING, FIRST DETAIL, LAST DETAIL and FOOTING phrases of the PAGE clause must be accepted in any order with the same page layout, each at most once, while the 2002 forms (LAST CONTROL HEADING, DE, IS before the integer, page width) are refused; the witness covers one reordering.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageSubclause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#PagePhraseOf; src/WiseOwl.Cobol.Compiler/Binding/UnrepeatedElements.cs#AtMostOnce; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageSubclause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageSubclause",
+    "switches": "ReportPageForms2002: refuses LAST CONTROL HEADING/CH, DE and IS before a phrase's integer below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageClause",
+    "switches": "ReportPageForms2002: refuses the page width and the omitted page limit below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the order path (reportPageSubclause* and the per-phrase AtMostOnce loop) consults no edition; grep DialectLevel in BindReportDescriptionClauses finds only the CONTROL SR6 arm",
+  "behaviour-differs-by-edition": "yes: 2002 adds LAST CONTROL HEADING, DE, IS and the width; the order licence is the same",
+  "witnesses-cover": "part: g85_bf37_01 reorders the phrases once; repeated phrases and the 2002 forms are not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/pg1.cob",
+    "printed": "RAN; PH on line 2, details on lines 4-8, PF on line 11, then page 2 (FOOTING, LAST DETAIL, FIRST DETAIL, HEADING order)",
+    "expected": "accepted; regions per §1985:XIII.3.8.3 SR8"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/pg2.cob",
+    "printed": "RAN; report file byte-identical to pg1 (printed order)",
+    "expected": "same layout whatever the order"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/pg3.cob",
+    "printed": "RAN; byte-identical to pg1 (PAGE 12 LAST DETAIL, HEADING, FOOTING, FIRST DETAIL)",
+    "expected": "same layout"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/pg4.cob",
+    "printed": "COBOL2423 the PAGE clause's HEADING phrase is written 2 times (+ COBOL2744)",
+    "expected": "refused: each phrase once"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/pg5.cob",
+    "printed": "COBOL0900 the LAST CONTROL HEADING phrase requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/pg6.cob",
+    "printed": "COBOL0900 the DE abbreviation of DETAIL requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/pg7.cob",
+    "printed": "COBOL0900 the word IS before a phrase's integer requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/pg8.cob",
+    "printed": "COBOL0900 the page width (COLS or COLUMNS) requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.8.3 SR1",
+    "check": "OK  §1985:XIII.3.8.3 SR1  (3.8.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.3.8.3 SR8e",
+    "check": "OK  §1985:XIII.3.8.3 SR8e  (3.8.3 Syntax Rules)  the text is in SR8e"
+   }
+  ],
+  "notes": "The grammar spells the phrases as reportPageSubclause*, the binder stores each into its own model field by PagePhraseOf regardless of position, and UnrepeatedElements refuses a repeat. Three orders produce byte-identical report files. A first draft with PF at LINE 11 and FOOTING 11 was correctly refused (SR8e region is FOOTING+1 to the limit), though COBOL2199's wording 'lies above the upper limit 12' reads oddly.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.8.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "The order licence covers only the four phrases after integer-1 [LINE|LINES], and the compiler keeps the rest fixed: PGA.cob (LINES written after HEADING) gets COBOL0001 unexpected 'LINES', and PGB.cob (HEADING before LIMIT) gets COBOL5506. A repeated phrase is refused: PGD.cob (FOOTING twice) gets COBOL2423. Partial phrase sets give the same layout in either order: PGE.cob (FOOTING 10 FIRST DETAIL 4) and PGF.cob (FIRST DETAIL 4 FOOTING 10) produce byte-identical report files (cmp). PGG.cob (LIMITS ARE 12 LINE, then LAST DETAIL, HEADING, FOOTING, FIRST DETAIL) and PGC.cob (PAGE IS 12 LINES, printed order) are byte-identical too. PGC: PAGE IS 12 is accepted at 85. VersionConformancePass.cs#VisitReportPageClause documents that the rendered 1985 page underlines only PAGE, so LIMIT and IS are optional words; that is not this rule in any case. cite.py: 'OK  §1985:XIII.3.8.3 SR1  (3.8.3 Syntax Rules)  the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

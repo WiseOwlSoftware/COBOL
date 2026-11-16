@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-SR-XIII.2.3.3-1",
+ "rule-digest": "4f92dc80ece2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-073",
+  "sources": {
+   "reader": "1648f90507cba719c3e443f8f0b0e2de6ee890d2a44527f6ff625cbd51f59169",
+   "refuter": "f57489ea91dd4a858b11a93e9901d36bb0c1321db809946d27dc7dc869f597f8"
+  },
+  "imported": {
+   "reader": "6687d43b5e32224d982965b29c6b837e7fac3d7c1f7cc5952797303360181118",
+   "refuter": "e88cec1ab030b983e07dbf32e94d4ca64aa6b17a8cfdf608a76845f2b47d958c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.2.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a report file's file control entry must begin with SELECT [OPTIONAL] file-name-1, and every clause the format prints (ASSIGN, RESERVE, ORGANIZATION SEQUENTIAL, PADDING CHARACTER, RECORD DELIMITER, ACCESS MODE SEQUENTIAL, FILE STATUS) may follow in any order with the same effect; a clause written before SELECT is refused. The witness l1c11_select_clause_any_order reorders clauses for indexed and sequential files, not for a report file.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+    "switches": "PADDING CHARACTER InEdition (DialectLevel < 2014); order-blind",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen",
+    "switches": "sortMerge1985 (SD entries only) and RulesFor(edition) row set; a report file takes the latest arm",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "The grammar rule SELECT OPTIONAL? fileName fileControlClauses* DOT is edition-free (no predicate); the binder's clause loop dispatches by clause kind, not position. Grepped FileControlBinder.cs, FileControlKeyRules.cs for DialectLevel|ConstructRegistry: no consult on clause order.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: no report file in the witness; OPTIONAL, PADDING and RESERVE ahead of a trailing ASSIGN on a report file, and the refusal half, are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r1anyorder.cob",
+    "printed": "OPEN=00 CLOSE=00 EXPECT: MATCH; R1ORDER.RPT written with HELLO",
+    "expected": "accepted: SELECT OPTIONAL then FILE STATUS, ACCESS, PADDING, RESERVE, ORGANIZATION, ASSIGN last; every clause takes effect (the trailing ASSIGN names the file, FILE STATUS receives 00)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r2selectnotfirst.cob",
+    "printed": "r2selectnotfirst.cob(6,12): error COBOL0001: unexpected 'ASSIGN'",
+    "expected": "refused: SELECT must be first"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.2.3.3 SR1",
+    "check": "OK  §1985:XIII.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "Order freedom is structural (a Kleene-star of alternative clauses after SELECT) and the binder reads each clause by kind, so a report file's entry behaves the same in any order. The refusal of a clause ahead of SELECT is a plain parse error (COBOL0001), which names the out-of-place word.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.2.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85: s1order.cob, SELECT OPTIONAL RPF RECORD DELIMITER IS STANDARD-1 SEQUENTIAL STATUS FS RESERVE 2 AREA ACCESS SEQUENTIAL ASSIGN TO \"S1ORD.RPT\" (optional words omitted, RECORD DELIMITER first, ASSIGN last), compiled and ran OPEN=00 CLOSE=00 and S1ORD.RPT holds HELLO (only warning COBOL1778, the RECORD DELIMITER no-effect notice); s2optfirst.cob, OPTIONAL written after ASSIGN, refused COBOL1970 'unexpected OPTIONAL' (OPTIONAL belongs to the SELECT clause, which must come first). The reader's r2 covered ASSIGN before SELECT. 'The SELECT clause must be specified first in the file control entry. The clauses which follow the SELECT clause may appear in any order' (OK §1985:XIII.2.3.3 SR1). No edition site switches clause order.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

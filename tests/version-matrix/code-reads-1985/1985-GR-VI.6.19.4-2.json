@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.6.19.4-2",
+ "rule-digest": "ca6e88c698ce",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-110",
+  "sources": {
+   "reader": "625c9371e87b3c1389c455dd0ce4d0fe904442b477ea8ac29eeaad5e8a96a2a6",
+   "refuter": "e04e97de1b8432b5ba295a3e282f626455f88c6a954316d0b82361efb3932bc3"
+  },
+  "imported": {
+   "reader": "afdb919ba1a35f3d3283d84cddf68fa3f40de1f65bde8e9e6e388ef0357c37e4",
+   "refuter": "2f2b59fd3e473ad2fad593cd9fc95c92512e83b0d2ef86a01b4e80f7c1b7db5e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.19.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, MOVE must move the sending value to each identifier-2 left to right, evaluating identifier-1's subscript, reference modifier, function-identifier and (occurs-depending) length once, immediately before the first receiver, and each receiver's subscripting and length immediately before the move to that receiver, so that MOVE a (b) TO b, c (b) behaves as MOVE a (b) TO temp, MOVE temp TO b, MOVE temp TO c (b).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#Materialize; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceiverBracketEmitter.cs#Receive",
+  "edition-consulted": [],
+  "edition-search": "grep for EditionContext/CobolVersion/DialectLevel/DialectBehavior/ConstructRegistry in MoveBinder.cs, MoveEmitter.cs, SendingValueTemp.cs, ReceiverBracketEmitter.cs: the only hits are diagnostic reporting through ctx.Edition, the FROM-phrase function class gate (DialectLevel < 2014, file I/O FROM, not MOVE) and PictureAnalyzer's edition argument for the float-edited intermediate picture; the temp-freeze decision in BindMoveOf (targets.Count > 1, NeedsLengthFreeze, receiverEvaluationOvertakesSender) takes no edition input",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf05_02 covers subscripted sender/receivers and reference-modified sender and receiver; not exercised: an occurs-depending sender or receiver length, a function-identifier sender, edited/numeric/signed receivers and figurative/ALL senders across several receivers",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mov2.cob",
+    "printed": "A1=1 [12   ] A2=[3  yz] F1=3 [43  ] D1=3 0000030000 [ 3] [     3    ] D2=[ababa] [abab] D3=[0000] 00 [ 0] D4=2 [02-02-00+]",
+    "expected": "A1: ODO sender length 2 taken once (CNT=1 after the first store does not shorten Y5's value); A2: receiver G3's ODO length is K=3 set by the earlier receiver; F1: FUNCTION REVERSE (X (1:I)) evaluated once with I=2; D1: TE (J) / EDE (J) use J=3 set by the first receiver; D2/D3 figurative and ALL literal per receiver; D4: SE (1) then J=2 then SE (2). All match."
+   },
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mov2.cob (at --std 2023)",
+    "printed": "identical to --std 85",
+    "expected": "same path at every edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.19.4 GR2",
+    "check": "OK  §1985:VI.6.19.4 GR2  (6.19.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The sender is frozen into a SendingValueTemp whenever there is more than one receiver or its length needs freezing, and each receiver is identified immediately before its store in MoveEmitter; no edition arm. Refusal (class b) and later-edition (class c) probes do not apply to this general rule; the 1989 amendment's function-identifier sender was probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.19.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,c,d,f",
+  "evidence": "rmov1.cob at --std 85 and 2023 (rmov1-001, -002, identical): the standard's own example MOVE AE (B) TO B, CE (B) with B=2 gives M1=3 [00300] (sender frozen at AE (2)); reference-modified sender X (I:2) TO I, Y4 gives M2=4 [34  ] (modifier evaluated once); receiver Y4 (I:1) after I gives M3=3 [ab3d], Y4 (1:L) after L gives M4=2 [2 cd]; a receiving group containing its own ODO object takes its maximum length (§1985:VI.5.8.4 GR3b, which the reader's probes did not reach) M5=[5abcde]; a sending group with its own ODO object takes its current length M6=[2vw    ]; two receivers M7=[5vw   ] [2vw    ]. rmov2.cob --compile-only: N\"AB\", B\"1\", X\"41\" and PIC 1 refused COBOL0900 at 85. grep of DialectBehavior uses for ODO/MOVE/receiving/length found none on the MOVE path. cite.py: OK §1985:VI.6.19.4 GR2 'Any length evaluation or subscripting associated with identifier-2 is evaluated immediately before'; OK §1985:VI.5.8.4 GR3b 'If the group is a receiving item, the maximum length of the group will be used'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

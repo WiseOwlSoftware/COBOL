@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-10",
+ "rule-digest": "a74abea7b3a3",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-132",
+  "sources": {
+   "reader": "565ab41613f172f4f04dfc492196238647aeeac1cd25d6a2732d504114b4efb9",
+   "refuter": "55a4e5b140cda29191a8ef067d5cd10f9b392c843988601140796bc5057947e0"
+  },
+  "imported": {
+   "reader": "61d6e1a31ead4990cb615601cff54f20128e08e4ead792db648a87576246cde5",
+   "refuter": "9c14b167b67d96b25e52df6fc3814e7e164fbd1a6baaf62a15be48f2dff3d01c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.4.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a successful OPEN INPUT or OPEN I-O of a relative file (any access mode) sets the file position indicator to 1, so the first sequential READ (READ or READ NEXT) returns the existing record with the lowest relative record number at or above 1.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Opened; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ResetPosition; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#SelectSequentialSlot",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "OPEN's implementor-default sharing mode (ALL OTHER at 85)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "RelativeConnector#AttachStore through the shared physical-file table or not",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehaviors over KeyedConnector.cs (none) and RelativeConnector.cs (Write only); Opened sets _fpi=1 and _inclusive=true for every mode and OpenCore sets FpiValid for INPUT and I-O, with no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf24_11; this probe adds a file whose record 1 is deleted (first existing > 1), I-O sequential and I-O dynamic READ NEXT, a varying-length record, and an absent optional INPUT file",
+  "probes": [
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-132/popen.cob",
+    "printed": "I1=00 0001 R1AAAA; after deleting 1,2,4: D1=00 0003 R3C (I-O dynamic READ NEXT); I3=00 0003 R3C 3 (INPUT seq, DEPENDING ON = 3); I4-AE=10; O3=00 0003 R3C (I-O seq)",
+    "expected": "indicator 1 then first existing record at or after it (GR10, VIII.4.5.4)"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-132/popen.cob",
+    "printed": "N-OPEN=35 then WRITE N-W=48; P after EXTEND creation: PR1=00 0001 P001",
+    "expected": "failed OPEN leaves the file not open; the statement after it is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.4 GR10",
+    "check": "OK  §1985:VIII.4.4.4 GR10  (4.4.4 General Rules)  the text is in GR10"
+   }
+  ],
+  "notes": "Opened sets the indicator to slot 1 as an inclusive bound; SelectSequentialSlot seeks GreaterOrEqual from it, which yields record 1 or the lowest existing record. Identical output at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.4.4-10",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "refute-1985-132/rdyn.cob: OPEN I-O dynamic, WRITE of a new record 1 below the existing 3..8, READ NEXT returns record 1 (FPI 1 inclusive, WRITE does not move it); CLOSE and OPEN INPUT returns 1 then 7. rfpi.cob: after a 46 poison from a failed START/READ, CLOSE and OPEN I-O gives READ NEXT N3=00 0002 (FPI reset to 1, first existing 2). Class c compile-only at --std 85: OPEN I-O F SHARING WITH ALL OTHER refused (COBOL5506), OPEN I-O F WITH LOCK refused, OPEN INPUT relative WITH NO REWIND refused (COBOL1802). cite.py: OK §1985:VIII.4.4.4 GR10; OK §1985:VIII.4.5.4 GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
