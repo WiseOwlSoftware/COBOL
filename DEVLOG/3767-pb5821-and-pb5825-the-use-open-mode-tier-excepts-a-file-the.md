@@ -1,4 +1,4 @@
-## PB5821 and PB5825: the USE open-mode tier excepts a file the container names, and sees the mode the file is open in
+## Entry 3767 — 2026-11-16 08:14 PST — PB5821 and PB5825: the USE open-mode tier excepts a file the container names, and sees the mode the file is open in
 
 Both notes sit in `UseTierEmitter.EmitScopeTiers`, the one renderer of the USE file-name tier and open-mode tier for `__IoCheck`, `__IoCheckEc` and `__RunGlobalUse`.
 
@@ -9,3 +9,4 @@ Both notes sit in `UseTierEmitter.EmitScopeTiers`, the one renderer of the USE f
 **Goldens.** `14.9.49-USE/pb5821_use_global_input_excepts_named_file` and `pb5825_use_output_for_file_open_output`, each accepted at 85, 2002, 2014 and 2023 with one `.out`; the rule has no edition boundary, so there is no refused-below twin. Both probes now print the expected lines at all four editions.
 
 **Rows.** `GR-14.9.49.4-5` and `-6` re-recorded PARTIAL to CONFORMS (GAP 37 to 35).
+
