@@ -1650,7 +1650,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + "clause shall also be specified (ISO §2023:13.15.3 SR15)");
             if (Edition.DialectLevel < 2002)
                 ScreenReportEntryFormats(entries, i, level, where, usage, line, column,
-                    picture, formatThreeOnly: source || value || sum || groupIndicate || justifiedOrBwz || sign, hasName: ge.dataName().NameOrNull() is not null,
+                    picture, elementary, formatThreeOnly: source || value || sum || groupIndicate || justifiedOrBwz || sign, hasName: ge.dataName().NameOrNull() is not null,
                     written);
             if (groupIndicate)
             {
@@ -1717,7 +1717,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// </list>
     /// COBOL-2002 and later have one entry format, whose rules the screens above already ask.</summary>
     private void ScreenReportEntryFormats(Core.ReportGroupEntryContext[] entries, int self, int level, string where,
-        bool usage, bool line, bool column, bool picture, bool formatThreeOnly, bool hasName, ReportEntryClause written)
+        bool usage, bool line, bool column, bool picture, bool elementary, bool formatThreeOnly, bool hasName, ReportEntryClause written)
     {
         const ReportEntryClause FormatThreeClauses = ReportEntryClause.Picture | ReportEntryClause.Sign | ReportEntryClause.Justified
             | ReportEntryClause.BlankWhenZero | ReportEntryClause.Column | ReportEntryClause.Source | ReportEntryClause.Value
@@ -1727,6 +1727,16 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + $"{ReportEntryClauseTable.Words(levelOneFormatThree)}; the first entry of a report group is a format 1 entry, which "
                 + "has none of them, and a format 3 entry's level-number is an integer from 02 to 49 (ISO §1985:XIII.3.9.3 SR3, "
                 + "SR4a)");
+        // JUSTIFIED and BLANK WHEN ZERO are clauses of the Nucleus (§1985:XIII.3.9.4 GR2 makes the Report Writer's the same), each
+        // "only at the elementary item level" (§1985:VI.5.6.3 SR1) and "only for an elementary item" (§1985:VI.5.4.3 SR1), and
+        // the group formats (format 1 and format 2, §1985:XIII.3.9.2) do not print them: a group entry below level 01 that writes
+        // one is refused here (kb/Work PB5850; the 2002 and later screen refuses it as §2023:13.15.3 SR15's missing COLUMN clause).
+        if (level > 1 && !elementary
+            && (written & (ReportEntryClause.Justified | ReportEntryClause.BlankWhenZero)) is var groupClauses and not ReportEntryClause.None)
+            Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a group entry and writes "
+                + $"{ReportEntryClauseTable.Words(groupClauses)}; the JUSTIFIED clause can be specified only at the elementary item "
+                + "level and the BLANK WHEN ZERO clause only for an elementary item, and a Report Writer entry takes both as the "
+                + "Nucleus does (ISO §1985:VI.5.6.3 SR1; §1985:VI.5.4.3 SR1; §1985:XIII.3.9.4 GR2)");
         bool formatTwo = level > 1 && !picture && !formatThreeOnly && !column;
         // A level 49 entry can have no subordinate entry, so SR4 c and SR8 b would refuse it too: SR3 is the rule it breaks,
         // and it is reported alone.
@@ -2238,7 +2248,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // SR18 is a FORMATS 2 AND 3 rule (kb/Work PB1261): a report group entry is subordinate to its report
         // description entry, which §2023:13.18.27.3 SR1 e) lets carry the GLOBAL clause — the data-division twin is
         // Passes/OdoResolvePass.cs#DependingAttributeFault, over the same global-name answer (IsGlobalRecord).
-        if (model.IsGlobal && !_d.IsGlobalRecord(spec.DependingItem.Root))
+        if (model.IsGlobal && _d.IsDescribedInContainer(spec.DependingItem))
+        {
+            using var _ = Editions.DiagnosticCursorExtensions.At(Edition, spec.DependingAt);
+            Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch, $"RD '{model.Name}': OCCURS … DEPENDING ON "
+                + $"'{spec.DependingName}' — the report is global and data-name-1 is described in the data division of a "
+                + "containing program: \"shall reference a data item that is described in the same data division\" "
+                + "(ISO §2023:13.18.38.3 SR18)");
+        }
+        else if (model.IsGlobal && !_d.IsGlobalRecord(spec.DependingItem.Root))
         {
             using var _ = Editions.DiagnosticCursorExtensions.At(Edition, spec.DependingAt);
             Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch, $"RD '{model.Name}': OCCURS … DEPENDING ON "

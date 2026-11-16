@@ -3,7 +3,7 @@
  "rule-digest": "1a3e95365ba9",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#RecordAreaImage",
- "test-ref": "conformance:cases/VII.3.8@1985-RECORD-CLAUSE/1985-GR-VII_3_8_4-12; conformance:cases/VII.3.8@1985-RECORD-CLAUSE/pb5309-read-into-odo-first-record",
+ "test-ref": "conformance:cases/VII.3.8@1985-RECORD-CLAUSE/1985-GR-VII_3_8_4-12; conformance:cases/VII.3.8@1985-RECORD-CLAUSE/pb5309-read-into-odo-first-record; conformance:cases/13.18.43-RECORD/pb5785_read_into_varying_depending_larger",
  "notes": "CONFORMS since kb/Work PB5309. With INTO the sender is the current record, the length the DEPENDING ON item holds (GR12 a) or the length just read (GR12 b) of the record area: OperandText.CurrentRecordImage reads the area WHOLE (AreaUse.Whole), so an OCCURS DEPENDING ON item of the area's first record description no longer cuts the sender to the table's current count (VI.5.8.4 GR3a speaks of the table area used in an operation on the group, and the record the READ made available is not such an operation). The golden reads a 12-character record into a right-justified receiver with the table count 2, with the table in the first record description of one file and in the second of another: both send ABCDEFGHIJKL.",
  "next": {
   "kind": "CHANGED",

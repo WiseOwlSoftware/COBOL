@@ -225,6 +225,13 @@ public sealed partial class DataBinder
     internal bool IsGlobalRecord(DataItem record) =>
         record.HasGlobalClause || State.Files.Declared.Any(f => f.IsGlobal && f.Records.Contains(record));
 
+    /// <summary>Is <paramref name="item"/> described in the data division of a CONTAINING program rather than this unit's own
+    /// (§1985:VI.5.8.3 SR8/SR9; §2023:13.18.38.3 SR18/SR21: data-name-1 "shall reference a data item that is described in the
+    /// same data division")? A contained program's binder inherits its containers' GLOBAL names before the OCCURS DEPENDING
+    /// resolve (<see cref="InheritContainerGlobalData"/>), so data-name-1 can resolve to one (kb/Work PB5797).</summary>
+    internal bool IsDescribedInContainer(DataItem item) =>
+        State.Inherited.DataRoots.Any(r => ReferenceEquals(r.Root, item.Root));
+
 }
 
 /// <summary>⛔ THE ONE ADMISSION OF AN OCCURS DEPENDING ON OBJECT (ISO §2023:13.18.38.3 SR17: "Data-name-1 shall describe an
