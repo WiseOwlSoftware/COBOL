@@ -1100,7 +1100,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <see cref="ItemCategory.IsElementaryReference"/>), of the base item's usage, and was refused COBOL0847 as the
     /// group its base is.</para></summary>
     internal static bool IsInspectElementaryCharacterItem(Place place) =>
-        ItemCategory.IsElementaryReference(place) && ItemCategory.IsDisplayOrNationalUsage(place.Item);
+        ItemCategory.IsElementaryOrBitNationalGroupReference(place) && ItemCategory.IsDisplayOrNationalUsage(place.Item);
 
     /// <summary>ISO §2023:14.9.22.3 SR1 — identifier-1 "shall reference either an alphanumeric or national group item or
     /// an elementary item described implicitly or explicitly as usage display or national": the group kinds by

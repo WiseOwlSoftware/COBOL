@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.30.1",
+ "rule-digest": "307f074e41e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#justifiedClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-fmt-cd-record-data-clauses",
+ "notes": "J1 PIC X(5) JUSTIFIED RIGHT receives \"AB\" -> \"   AB\" (§2002:13.16.30.3 GR2, space fill on the left); J2 PIC X(5) JUST receives \"WXYZABCD\" -> \"ZABCD\" (GR1, leftmost positions truncated; SR2, JUST abbreviates JUSTIFIED). Line J1=[   AB] J2=[ZABCD]. Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}

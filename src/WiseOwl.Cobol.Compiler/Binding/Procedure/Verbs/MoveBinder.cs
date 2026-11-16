@@ -56,13 +56,19 @@ using Core = CobolParserCore;
 /// <see langword="null"/> where the verb states none.</param>
 /// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
 /// at the editions before COBOL-2014 (kb/Work PB5077, PB5270).</param>
+/// <param name="IntrinsicOnlyBefore2014">True where the verb's COBOL-2002 function rule restricts only an INTRINSIC function
+/// ("If identifier-1 references an intrinsic function and the FILE phrase is …", §2002:14.8.33.2 SR8 and SR9) and states no
+/// unconditional function rule beside it: a user-defined function is then a sender the MOVE rules alone judge, until COBOL-2014
+/// restates the rule for "a function" (§2023:14.9.35.3 SR8 and SR9; kb/Work PB5645). WRITE's 2002 SR4 is unconditional
+/// ("If identifier-1 is a function-identifier"), so its rows are false, as is RELEASE's.</param>
 internal sealed record FromPhraseRules(
     string Statement,
     EditionCite MoveRule,
     PicCategory[]? FunctionCategories,
     EditionCite? FunctionRuleCite,
     string? ZeroLengthLiteralRuleCite,
-    RecordAreaVerb AreaVerb)
+    RecordAreaVerb AreaVerb,
+    bool IntrinsicOnlyBefore2014 = false)
 {
     /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's FROM phrase carries at <paramref name="dialectLevel"/>
     /// for a file of <paramref name="organization"/>, citing the MOVE rule as the edition numbers it (kb/Work PB5352) — the twin of
@@ -121,7 +127,8 @@ internal sealed record FromPhraseRules(
         new("ISO §2023:14.9.35.3 SR8 (§2002:14.8.33.2 SR8) — \"If identifier-1 references a function and the FILE phrase is "
             + "specified, identifier-1 shall reference an alphanumeric or national function.\""),
         null,
-        RecordAreaVerb.Rewrite);
+        RecordAreaVerb.Rewrite,
+        IntrinsicOnlyBefore2014: true);
 
     /// <summary>REWRITE (ISO §2023:14.9.35). §2023:14.9.35.3 SR9's set is the WIDER one — it admits a boolean function —
     /// and it is the applicable rule where the FILE phrase (SR8's condition) is not written; the FILE phrase has its own row,
@@ -130,12 +137,13 @@ internal sealed record FromPhraseRules(
         "REWRITE FROM",
         new("ISO §2023:14.9.35.4 GR7 a); §2023:14.9.35.3 SR6", "§1985:VII.4.5.4 GR4", "§1985:VIII.4.6.4 GR5", "§1985:IX.4.6.4 GR5"),
         [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
-        new("ISO §2023:14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
+        new("ISO §2023:14.9.35.3 SR9 (§2002:14.8.33.2 SR9) — \"If identifier-1 references a function and the FILE phrase is not specified, "
             + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
             "§1985:VII.4.5.3 SR1 — " + Alphanumeric1985, "§1985:VIII.4.6.3 SR1 — " + Alphanumeric1985,
             "§1985:IX.4.6.3 SR1 — " + Alphanumeric1985),
         null,
-        RecordAreaVerb.Rewrite);
+        RecordAreaVerb.Rewrite,
+        IntrinsicOnlyBefore2014: true);
 }
 
 internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, CorrespondingBinder corr)
@@ -430,6 +438,11 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             return true;
         var cat = MoveTable16.SenderPosition(source).Category;
         if (admitted.Contains(cat)) return true;
+        // §2002:14.8.33.2 SR8 / SR9 restrict only "an intrinsic function"; a user-defined function (a signature the unit's
+        // functions hold) is judged by the verb's MOVE-validity rule alone until COBOL-2014 widens the rule to "a function"
+        // (§2014:14.9.33.2 SR7 / SR8, §2023:14.9.35.3 SR8 / SR9) — kb/Work PB5645.
+        if (rules.IntrinsicOnlyBefore2014 && ctx.Edition.DialectLevel < 2014 && host.Intrinsic.SignatureOf(fc) is not null)
+            return true;
         ctx.Edition.Error(DiagnosticCatalog.FromPhraseFunctionClass,
             $"{rules.Statement} {DataBinder.WrittenText(fc)}: {functionRule.At(ctx.Edition.DialectLevel, file.Organization)} — this function's result is of "
             + $"category {cat.ToString().ToLowerInvariant()}");

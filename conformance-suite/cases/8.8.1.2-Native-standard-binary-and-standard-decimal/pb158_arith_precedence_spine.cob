@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb158_arith_precedence_spine
       *> rules: [GR-8.8.1.2-2, GR-8.8.1.2-4]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

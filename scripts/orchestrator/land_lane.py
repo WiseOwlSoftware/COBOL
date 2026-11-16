@@ -781,7 +781,10 @@ def _iso(t: str) -> dt.datetime | None:
 # anyone is blamed the lane classifies it, comparing the failed run's red cases (its test results, downloaded by
 # queue_facts.fetch_bounce_results into the worktree, where the finisher's gate reads them too) with the branch's GREEN
 # gate record (enqueue.tested_locally: the run that covers the queued head, or the run a REUSED answer names):
-#   INFRA         no test failed in the run (a job died before or outside its tests), or the run timed out
+#   INFRA         no test failed in the run (a job died before or outside its tests), or the run timed out, or every
+#                 red case is the runner's host running out (scripts/host_resources.py, the gate's own table: a primary
+#                 host-resource signature in the run, kb/Work PB5697); in a red with a test red beside them those cases
+#                 are set apart and the rest classified
 #   RUNNER        every red case ran GREEN in that record, or the record is a lane's that runs no compiler test (the
 #                 inert or the tooling lane, lane_classification.TEST_FREE_LANES: no compiler test reads the change):
 #                 a Linux, Release, host or runner difference, or a flake
@@ -821,6 +824,8 @@ class RedFacts:
     test_free: str = ""                   # that record's lane when it runs no compiler test (inert, tooling)
     passed: frozenset[str] = frozenset()  # the cases the record ran and passed
     listed: frozenset[str] = frozenset()  # every case the record lists, run or skipped
+    exhausted: frozenset[str] = frozenset()  # the red cases that are the runner's host running out (kb/Work PB5697)
+    resources: str = ""                      # what ran out, spelled for the line (host_resources.Judgement.named)
 
 
 def classify_red(f: RedFacts) -> tuple[str, str]:
@@ -836,6 +841,12 @@ def classify_red(f: RedFacts) -> tuple[str, str]:
         return lm.INFRA, f"merge-group run {f.run} timed out"
     if not f.failed:
         return lm.INFRA, f"no test failed in merge-group run {f.run}: a job died before or outside its tests"
+    if f.exhausted and not f.failed - f.exhausted:
+        return lm.INFRA, (f"every red case ({len(f.failed)}: {some(f.failed)}) of merge-group run {f.run} is its runner's "
+                          f"host running out ({f.resources}; scripts/host_resources.py, kb/Work PB5697): no test red")
+    if f.exhausted:   # the host's cases are unjudged; the class is the rest's
+        cls, why = classify_red(dataclasses.replace(f, failed=f.failed - f.exhausted, exhausted=frozenset()))
+        return cls, f"{why}; {len(f.exhausted)} more red case(s) are the host running out ({f.resources}), unjudged"
     if not f.record:
         return lm.UNCLASSIFIED, f"{len(f.failed)} case(s) failed ({some(f.failed)}), and no gate record to compare: {f.no_record}"
     if f.test_free:
@@ -860,6 +871,7 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
     import enqueue  # noqa: PLC0415  (the one reader of a gate record that covers a head)
     import gate_host  # noqa: PLC0415  (scripts/: the record, the run root, where a bounce's results land)
     import gate_runs  # noqa: PLC0415
+    import host_resources  # noqa: PLC0415  (scripts/: the gate's one table of host-resource signatures, kb/Work PB5697)
     import lane_classification  # noqa: PLC0415  (scripts/: the lanes whose record keeps no test result)
     import queue_facts  # noqa: PLC0415
     import test_population as tp  # noqa: PLC0415  (scripts/: THE trx reader)
@@ -878,7 +890,14 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
         failed = frozenset(tp.red_cases(sorted(dest.rglob("*.trx"))))
     except tp.UnreadableTrx as e:
         return RedFacts(src.run, src.conclusion, unobserved=f"a trx of run {src.run} is unreadable: {e}")
-    facts = RedFacts(src.run, src.conclusion, failed)
+    try:
+        judged = host_resources.judge([host_resources.HostEvidence("merge-group", True, True, tp.failed_texts(
+            sorted(dest.rglob("*.trx"))))])
+    except tp.UnreadableTrx as e:
+        return RedFacts(src.run, src.conclusion, unobserved=f"a trx of run {src.run} is unreadable: {e}")
+    facts = RedFacts(src.run, src.conclusion, failed,
+                     exhausted=frozenset(c for cs in judged.unjudged.values() for c in cs) & failed,
+                     resources=judged.named() if judged.exhausted else "")
     try:
         proof = enqueue.tested_locally(wt, str(att.get("end_head") or att.get("head") or ""), MAIN)
     except (OSError, subprocess.SubprocessError, ValueError) as e:

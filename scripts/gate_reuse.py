@@ -113,7 +113,7 @@ class PassCarry:
                     passed[asm] |= names
                 red_hosts |= {r["asm"] for r in rec.get("runs") or []
                               if isinstance(r, dict) and r.get("red") and r.get("asm") in found
-                              and not self._red_explained(p, r["asm"])}
+                              and not self.red_explained(p, r["asm"])}
         return Carry(runs, passed, red_hosts=red_hosts) if runs else None
 
     def record_passes(self, out: Outcome, run: Path, assemblies: list[str], generated: dict[str, str]) -> None:
@@ -337,7 +337,7 @@ class PassCarry:
                                         newline="\n")
 
     @staticmethod
-    def _red_explained(run: Path, asm: str) -> bool:
+    def red_explained(run: Path, asm: str) -> bool:
         """WHETHER A RED HOST'S RED IS THE CASES ITS TRX NAMES (kb/Work PB5099, review R1-1 and R2-1): the host printed a
         `Failed!` verdict whose Failed count equals the trx's Failed results, and there is at least one. Then a retry of
         those cases tests everything the red was about. Any other red (no verdict line, a count the trx does not

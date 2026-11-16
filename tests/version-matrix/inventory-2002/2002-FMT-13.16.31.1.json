@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.31.1",
+ "rule-digest": "7450378d05c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-fmt-cd-record-data-clauses",
+ "notes": "Entries of the CD record carry level-numbers 01, 05, 5 (§2002:13.16.31.2 SR3), 10, 88 and 66 (SR2: entries subordinate to a CD take 66, 88 or 1 through 49). The program compiles and every field behaves (all lines); C1-ONE, an 88 under a level-5 entry, prints C1-ONE; the 66 entries RN1/RN2/RN3 print. Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}

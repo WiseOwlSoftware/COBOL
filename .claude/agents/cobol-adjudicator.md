@@ -27,6 +27,9 @@ whose built compiler you probe, and where your checkpoint lines go.
 - Derive the expected result from `specs/ISO_COBOL_2023.md` FIRST and validate every citation with
   `python scripts/spec/cite.py --check`. NIST and GnuCOBOL are regression nets, never authority.
 - A verdict needs its evidence: a MISSING observation is not a negative one. Every lead carries its repro and code site.
+- A probe program runs through `python scripts/orchestrator/run_probe.py --root <your scratch directory>\runs --std
+  <edition> --tree <the pinned checkout> <program.cob>`: each run is a new directory, so nothing is deleted first; never
+  a recursive delete of a path that holds a variable (MANDATORY-PRACTICES P17, kb/Work PB5764; the guard hook refuses one).
 - The repository is read-only to you, and a hook enforces it. Write only your checkpoint `.jsonl` and report under the
   scratch directory your brief names (never the session scratchpad: MANDATORY-PRACTICES P16); record_verdicts batches are applied by the orchestrator.
 - Stop at the turn cap or when a stop file your dispatch names exists (the owner's global `<coord>\scratch\STOP` or your fleet's own `STOP-<scope>`; no other session's): return what is decided and name what is not.

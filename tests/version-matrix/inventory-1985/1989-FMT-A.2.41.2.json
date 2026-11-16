@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.41.2",
  "rule-digest": "746f57722db4",
+ "test-ref": "conformance:cases/A.2.41@1985-STANDARD-DEVIATION-FUNCTION/g85_f37_08",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
