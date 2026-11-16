@@ -1,11 +1,11 @@
-*>--- conformance-case
-*> id: pb742_legal_entry_formats_85
-*> rules: [SR-12.4.5.2-8, SR-12.4.5.2-9, GR-12.4.5.3-5, GR-12.4.5.3-7,
-*>    GR-12.4.5.3-8, GR-12.4.5.3-9, SR-12.4.5.6.3-2, SR-12.4.5.12.3-2]
-*> accept: [85, 2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb742_legal_entry_formats_85
+      *> rules: [SR-12.4.5.2-8, SR-12.4.5.2-9, GR-12.4.5.3-5, GR-12.4.5.3-7,
+      *>    GR-12.4.5.3-8, GR-12.4.5.3-9, SR-12.4.5.6.3-2, SR-12.4.5.12.3-2]
+      *> accept: [85, 2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 1989:2023 12.4.5 - the LEGAL twin of the pb742-* / pb743-* negatives, and the
       *> over-rejection guard on the two rules they add (kb/Work PB742, PB743). Every shape the new
       *> rows could get wrong is here and must BIND AND RUN:
@@ -88,13 +88,16 @@
            DISPLAY "SEQ=" SQ-REC.
            CLOSE SQF.
            OPEN OUTPUT IXF.
-           MOVE "CC" TO IX-KEY. MOVE "ZZ" TO IX-ALT. MOVE "TRI " TO IX-DATA.
+           MOVE "CC" TO IX-KEY. MOVE "ZZ" TO IX-ALT.
+           MOVE "TRI " TO IX-DATA.
            WRITE IX-REC INVALID KEY CONTINUE END-WRITE
            .
-           MOVE "AA" TO IX-KEY. MOVE "ZZ" TO IX-ALT. MOVE "ONE " TO IX-DATA.
+           MOVE "AA" TO IX-KEY. MOVE "ZZ" TO IX-ALT.
+           MOVE "ONE " TO IX-DATA.
            WRITE IX-REC INVALID KEY CONTINUE END-WRITE
            .
-           MOVE "BB" TO IX-KEY. MOVE "YY" TO IX-ALT. MOVE "TWO " TO IX-DATA.
+           MOVE "BB" TO IX-KEY. MOVE "YY" TO IX-ALT.
+           MOVE "TWO " TO IX-DATA.
            WRITE IX-REC INVALID KEY CONTINUE END-WRITE
            .
            CLOSE IXF.
@@ -108,9 +111,11 @@
            END-PERFORM.
            CLOSE IXF.
            OPEN OUTPUT RLF.
-           MOVE 1 TO WS-RK. MOVE "ONE " TO RL-REC. WRITE RL-REC INVALID KEY CONTINUE END-WRITE
+           MOVE 1 TO WS-RK. MOVE "ONE " TO RL-REC.
+           WRITE RL-REC INVALID KEY CONTINUE END-WRITE
            .
-           MOVE 2 TO WS-RK. MOVE "TWO " TO RL-REC. WRITE RL-REC INVALID KEY CONTINUE END-WRITE
+           MOVE 2 TO WS-RK. MOVE "TWO " TO RL-REC.
+           WRITE RL-REC INVALID KEY CONTINUE END-WRITE
            .
            CLOSE RLF.
            OPEN INPUT RLF.

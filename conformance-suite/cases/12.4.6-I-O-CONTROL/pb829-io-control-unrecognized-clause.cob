@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb829-io-control-unrecognized-clause
-*> rules: [FMT-12.4.6.2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb829-io-control-unrecognized-clause
+      *> rules: [FMT-12.4.6.2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB829 - the CLOSED ISO 12.4.6.2 general format.  ONE grammar rule -
       *> `genericClause : IDENTIFIER (IDENTIFIER|literal)*`, described in the grammar as a
       *> "vendor/extension hook" - was wired into SIX sites spanning EIGHT closed general formats, and

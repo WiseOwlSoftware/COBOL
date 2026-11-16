@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb1125_inspect_printed_format_shapes
-*> rules: [FMT-14.9.22.2]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1125_inspect_printed_format_shapes
+      *> rules: [FMT-14.9.22.2]
+      *> accept: [2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> PB1125 - ISO 14.9.22.2 general formats, read from the rendered PDF (folio 643-644): the printed shapes
       *> are the ones the grammar now spells, and every LEGAL shape must still parse and run.
       *>   tallying-phrase : { identifier-2 FOR { CHARACTERS [abp] | ALL { operand [abp] } ... | LEADING { ... } ... } ... } ...

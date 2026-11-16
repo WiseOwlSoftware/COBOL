@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: func_expr_arg
-*> rules: [GR-8.8.1.2-2]
-*> accept: [2014]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: func_expr_arg
+      *> rules: [GR-8.8.1.2-2]
+      *> accept: [2014]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> P7 Step 12 probe - FUNCTION arguments are real arithmetic expressions (ISO 8.4.3.2 SR8):
       *> compound arguments with * / ** and parentheses (8.8.1; ** folds LEFT per 8.8.1.2 r3), the
       *> 8.7.1/8.3.3.3.2 space-vs-adjacent sign discrimination (MAX(A -4) = two args, MAX(A - 4) = one),

@@ -1,11 +1,11 @@
-*>--- conformance-case
-*> id: pb336_optional_absent_read_46
-*> rules: [GR-9.1.11-1, GR-9.1.11-2, GR-9.1.11-3, GR-9.1.13.4-1,
-*>    GR-9.1.13.7-6, GR-14.9.30.4-1]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb336_optional_absent_read_46
+      *> rules: [GR-9.1.11-1, GR-9.1.11-2, GR-9.1.11-3, GR-9.1.13.4-1,
+      *>    GR-9.1.13.7-6, GR-14.9.30.4-1]
+      *> accept: [2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 14.9.30.4 GR21 first sentence -- "For a sequential READ statement, if the
       *> previous READ or START statement for the file connector was unsuccessful, then
       *> the READ statement is unsuccessful and the I-O status is set to '46'" -- against

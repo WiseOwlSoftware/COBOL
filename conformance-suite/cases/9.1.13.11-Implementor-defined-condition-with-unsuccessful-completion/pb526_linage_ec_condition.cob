@@ -1,11 +1,11 @@
-*>--- conformance-case
-*> id: pb526_linage_ec_condition
-*> rules: [GR-9.1.13.11-1, GR-13.18.34.4-3, GR-13.18.34.4-6,
-*>    DOC-A.1-110]
-*> accept: [2002, 2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb526_linage_ec_condition
+      *> rules: [GR-9.1.13.11-1, GR-13.18.34.4-3, GR-13.18.34.4-6,
+      *>    DOC-A.1-110]
+      *> accept: [2002, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:13.18.34.4 GR6 b) — the LINAGE value rules AND what happens
       *> when they are violated. This fixture pins the SECOND HALF of that
       *> rule, which had no reachable behaviour at all before kb/Work

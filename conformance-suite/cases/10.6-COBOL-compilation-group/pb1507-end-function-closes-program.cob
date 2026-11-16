@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1507-end-function-closes-program
-*> rules: [FMT-10.6.1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1507-end-function-closes-program
+      *> rules: [FMT-10.6.1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1507 - 10.6.1: the program-definition format ends with `END PROGRAM program-name-1.`; END FUNCTION
       *>   closes only a function-definition or a function-prototype. COBOL2274.
        IDENTIFICATION DIVISION.

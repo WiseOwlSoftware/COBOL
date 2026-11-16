@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb128_resultant_categories
-*> rules: [SR-14.9.2.3-2, SR-14.9.8.3-1, SR-14.9.12.3-2]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb128_resultant_categories
+      *> rules: [SR-14.9.2.3-2, SR-14.9.8.3-1, SR-14.9.12.3-2]
+      *> accept: [2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB128 — the arithmetic resultant categories the syntax rules ADMIT, pinned from the legal
       *> side: DIVIDE's REMAINDER identifier-4 admits a NUMERIC-EDITED item (ISO 14.9.12.3 SR2 — the same
       *> rule that admits the GIVING quotient's editing), and ADD GIVING admits one (14.9.2.3 SR4). The

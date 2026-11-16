@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: l1_integer_date_form_returned
-*> rules: [RV-15.46.4-1, RV-15.47.4-1, FMT-15.46.2]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_integer_date_form_returned
+      *> rules: [RV-15.46.4-1, RV-15.47.4-1, FMT-15.46.2]
+      *> accept: [2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:15.46.4 r1 / §2023:15.47.4 r1 — INTEGER-OF-DATE and INTEGER-OF-DAY each
       *> return a value IN INTEGER DATE FORM, and §2023:15.46.2's one-argument format.
       *>

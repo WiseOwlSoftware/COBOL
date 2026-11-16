@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb205-control-operand-not-unique
-*> rules: [SR-13.18.16.3-6]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb205-control-operand-not-unique
+      *> rules: [SR-13.18.16.3-6]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 13.18.16.3 SR6: "Data-name-1 shall be unique in any given CONTROL
       *> clause." Uniqueness is of the WRITTEN reference - SR6's own second
       *> sentence permits two operands to "refer to the same physical data item

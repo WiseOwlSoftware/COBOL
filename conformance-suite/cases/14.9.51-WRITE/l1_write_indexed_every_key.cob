@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: l1_write_indexed_every_key
-*> rules: [GR-14.9.51.4-34]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_write_indexed_every_key
+      *> rules: [GR-14.9.51.4-34]
+      *> accept: [2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:14.9.51.4 34) — a record WRITTEN to an indexed file is then accessible by EVERY record key: prime and each alternate
       *> THE RULE: "Successful execution of a WRITE statement causes the
       *>   content of the record area to be released. The operating

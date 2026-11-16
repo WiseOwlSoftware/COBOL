@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb3511_implicit_goback_perform_thru_inverted
-*> rules: [GR-14.6.3-3, GR-14.9.28.4-5, GR-14.9.28.4-6]
-*> accept: [2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb3511_implicit_goback_perform_thru_inverted
+      *> rules: [GR-14.6.3-3, GR-14.9.28.4-5, GR-14.9.28.4-6]
+      *> accept: [2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> PB3511 - a PERFORM THRU whose procedure-name-2 is written BEFORE
       *>   procedure-name-1, with procedure-name-1 the last paragraph: control
       *>   runs off the end of the procedure division and never reaches the

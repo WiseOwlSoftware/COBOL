@@ -1,11 +1,11 @@
-*>--- conformance-case
-*> id: pb528-picture-composition
-*> rules: [SR-13.18.40.3-12, SR-13.18.40.3-16, SR-13.18.40.3-17,
-*>    SR-13.18.40.3-18, SR-13.18.40.3-19, SR-13.18.40.3-20,
-*>    SR-13.18.40.3-21, SR-13.18.40.3-22, SR-13.18.40.3-24]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb528-picture-composition
+      *> rules: [SR-13.18.40.3-12, SR-13.18.40.3-16, SR-13.18.40.3-17,
+      *>    SR-13.18.40.3-18, SR-13.18.40.3-19, SR-13.18.40.3-20,
+      *>    SR-13.18.40.3-21, SR-13.18.40.3-22, SR-13.18.40.3-24]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB528 - the COMPOSITION syntax rules of ISO 1989:2023 13.18.40.3. PictureAnalyzer's symbol
       *> loop tested MEMBERSHIP only, so every one of these compiled clean at all four editions and several
       *> RAN, producing an image no rule defines (PIC 99.99.99 turned 123456 into 56.00.00; PIC ZZ**9 rendered

@@ -1,12 +1,12 @@
-*>--- conformance-case
-*> id: pb1087_same_clauses_legal
-*> rules: [SR-12.4.6.4.3-1, SR-12.4.6.4.3-5, SR-12.4.6.4.3-6,
-*>    SR-12.4.6.4.3-7, SR-12.4.6.4.3-8, SR-12.4.6.4.3-9,
-*>    SR-12.4.6.4.3-10, FMT-12.4.6.4.2]
-*> accept: [2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1087_same_clauses_legal
+      *> rules: [SR-12.4.6.4.3-1, SR-12.4.6.4.3-5, SR-12.4.6.4.3-6,
+      *>    SR-12.4.6.4.3-7, SR-12.4.6.4.3-8, SR-12.4.6.4.3-9,
+      *>    SR-12.4.6.4.3-10, FMT-12.4.6.4.2]
+      *> accept: [2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1087 - THE LEGAL SPELLINGS NEXT TO THE SAME-CLAUSE RULES (negatives pb1087-same-*, pb1242-same-*).
       *>   12.4.6.4.3 SR7: a file other than a report/sort/merge file may be in one file-area, one record-area and one
       *>     or more sort-merge-area clauses. SR1: SORT and SORT-MERGE are equivalent (S1 uses SORT, S2 SORT-MERGE).

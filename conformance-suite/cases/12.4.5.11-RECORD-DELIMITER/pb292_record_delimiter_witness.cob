@@ -1,13 +1,13 @@
-*>--- conformance-case
-*> id: pb292_record_delimiter_witness
-*> rules: [SR-12.4.5.11.3-1, SR-12.4.5.11.3-2, GR-12.4.5.11.4-1,
-*>    GR-12.4.5.11.4-2, GR-12.4.5.11.4-3, GR-12.4.5.11.4-4,
-*>    GR-12.4.5.11.4-5, GR-12.4.5.11.4-6, FMT-12.4.5.11.2, DOC-A.1-149,
-*>    DOC-A.1-150, DOC-A.1-151]
-*> accept: [2002, 2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb292_record_delimiter_witness
+      *> rules: [SR-12.4.5.11.3-1, SR-12.4.5.11.3-2, GR-12.4.5.11.4-1,
+      *>    GR-12.4.5.11.4-2, GR-12.4.5.11.4-3, GR-12.4.5.11.4-4,
+      *>    GR-12.4.5.11.4-5, GR-12.4.5.11.4-6, FMT-12.4.5.11.2, DOC-A.1-149,
+      *>    DOC-A.1-150, DOC-A.1-151]
+      *> accept: [2002, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 12.4.5.11 RECORD DELIMITER clause - THE INERTNESS HALF of the
       *> kb/Work PB292 witness. The DECLINE half (COBOL1778 on both
       *> arms, every edition) cannot be asserted by a positive golden,
@@ -137,33 +137,41 @@
            OPEN INPUT F1
            MOVE 99 TO WS-LEN1
            READ F1 AT END CONTINUE END-READ
-           DISPLAY "A1=" WS-ST " LEN=" WS-LEN1 " [" F1-REC(1:WS-LEN1) "]"
+           DISPLAY "A1=" WS-ST " LEN=" WS-LEN1 " [" F1-REC(1:WS-LEN1)
+               "]"
            MOVE 99 TO WS-LEN1
            READ F1 AT END CONTINUE END-READ
-           DISPLAY "A2=" WS-ST " LEN=" WS-LEN1 " [" F1-REC(1:WS-LEN1) "]"
+           DISPLAY "A2=" WS-ST " LEN=" WS-LEN1 " [" F1-REC(1:WS-LEN1)
+               "]"
            CLOSE F1
            OPEN INPUT F2
            MOVE 99 TO WS-LEN2
            READ F2 AT END CONTINUE END-READ
-           DISPLAY "B1=" WS-ST " LEN=" WS-LEN2 " [" F2-REC(1:WS-LEN2) "]"
+           DISPLAY "B1=" WS-ST " LEN=" WS-LEN2 " [" F2-REC(1:WS-LEN2)
+               "]"
            MOVE 99 TO WS-LEN2
            READ F2 AT END CONTINUE END-READ
-           DISPLAY "B2=" WS-ST " LEN=" WS-LEN2 " [" F2-REC(1:WS-LEN2) "]"
+           DISPLAY "B2=" WS-ST " LEN=" WS-LEN2 " [" F2-REC(1:WS-LEN2)
+               "]"
            CLOSE F2
            OPEN INPUT F3
            MOVE 99 TO WS-LEN3
            READ F3 AT END CONTINUE END-READ
-           DISPLAY "C1=" WS-ST " LEN=" WS-LEN3 " [" F3-REC(1:WS-LEN3) "]"
+           DISPLAY "C1=" WS-ST " LEN=" WS-LEN3 " [" F3-REC(1:WS-LEN3)
+               "]"
            MOVE 99 TO WS-LEN3
            READ F3 AT END CONTINUE END-READ
-           DISPLAY "C2=" WS-ST " LEN=" WS-LEN3 " [" F3-REC(1:WS-LEN3) "]"
+           DISPLAY "C2=" WS-ST " LEN=" WS-LEN3 " [" F3-REC(1:WS-LEN3)
+               "]"
            CLOSE F3
            OPEN INPUT F4
            MOVE 99 TO WS-LEN4
            READ F4 AT END CONTINUE END-READ
-           DISPLAY "D1=" WS-ST " LEN=" WS-LEN4 " [" F4-REC(1:WS-LEN4) "]"
+           DISPLAY "D1=" WS-ST " LEN=" WS-LEN4 " [" F4-REC(1:WS-LEN4)
+               "]"
            MOVE 99 TO WS-LEN4
            READ F4 AT END CONTINUE END-READ
-           DISPLAY "D2=" WS-ST " LEN=" WS-LEN4 " [" F4-REC(1:WS-LEN4) "]"
+           DISPLAY "D2=" WS-ST " LEN=" WS-LEN4 " [" F4-REC(1:WS-LEN4)
+               "]"
            CLOSE F4
            STOP RUN.

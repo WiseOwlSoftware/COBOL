@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb994-sort-using-random-access
-*> rules: [SR-12.4.5.5.2-1, SR-14.9.40.3-12]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb994-sort-using-random-access
+      *> rules: [SR-12.4.5.5.2-1, SR-14.9.40.3-12]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB994 - A RELATIVE FILE DESCRIBED WITH ACCESS MODE RANDOM IS REFUSED AS A SORT USING FILE.
       *>   cite.py --check 12.4.5.5.2 "The RANDOM clause shall not be specified for file-names specified in the USING or
       *>     GIVING phrase of a SORT or MERGE statement" -> OK §2023:12.4.5.5.2 1)

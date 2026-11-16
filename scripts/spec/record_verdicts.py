@@ -96,6 +96,7 @@ from inventory_store import REPO, inventory_dir, read_store, record_of, write_st
 import inventory_view  # noqa: E402  (THE view: the rows a batch is validated against and written from; kb/Work PB4992)
 import lineage  # noqa: E402  (THE definition of an older edition's change record and its state; kb/Work PB4993)
 import lineage_screen  # noqa: E402  (the flags a change record answers before it is written; kb/Work PB5597)
+import lineage_reads  # noqa: E402  (the one predicate of a witness's reference format; kb/Work PB5754)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -284,6 +285,11 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # so its record carries none (its own-edition witness, `test-ref`, aside: kb/Work PB5675); every other check of an older row is the change record's own (`next_errors`, the
         # schema's `next`), asked of the row as it will be written.
         if "next" in fields:
+            # ⛔ A WITNESS AT AN OLDER EDITION IS SOURCE TEXT OF THAT EDITION (kb/Work PB5754): each conformance-suite case
+            # the record names is written in a reference format the edition defines, asked of the one predicate the
+            # LINEAGE READS audit asks (lineage_reads.format_problem)
+            bad += [f"{where}: {why}" for ref in schema.split(rec.get("test-ref", ""), schema.test_ref_sep)
+                    if (why := lineage_reads.ref_format_problem(ref, ed))]
             after = {**row, **merged(row, rec, schema, ed)}
             for err in lineage.next_errors(after, ed, schema, targets or {}):
                 bad.append(f"{where}: {err}")

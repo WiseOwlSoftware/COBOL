@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1025-alternate-key-beyond-minimum
-*> rules: [SR-12.4.5.6.3-5]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1025-alternate-key-beyond-minimum
+      *> rules: [SR-12.4.5.6.3-5]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1025 - ISO 12.4.5.6.3 SR5: "If the indexed file
       *> contains variable-length records, each data-name-1 and
       *> data-name-2 shall be contained within the first x bytes of the

@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1034-abbreviated-not-gteq
-*> rules: [FMT-8.7.5.1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1034-abbreviated-not-gteq
+      *> rules: [FMT-8.7.5.1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1034, the abbreviated-combined-relation consumer of the one operator rule. ISO 1989:2023
       *> 8.8.4.12.2 prints the abbreviated tail's operator as `{ NOT | simple-relational-operator |
       *> extended-relational-operator }`, and 8.7.5.1 prints those two operator sets: neither has `>=` with a NOT,

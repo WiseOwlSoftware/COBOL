@@ -117,6 +117,16 @@ def _strip_floating(text: str, quote: str | None) -> tuple[str, str | None]:
     return "".join(out), quote
 
 
+def floating_comment(text: str) -> tuple[str, str | None, str | None]:
+    """`text` (a line of free-form program text) split at its floating comment indicator outside a literal: the program
+    text before it, the comment from `*>` on (None when the line has none), and the quote still open at the end of the
+    program text (None when every literal closes on the line). The free-form converter (to_fixed.py) moves the comment
+    and refuses an open literal."""
+    code, quote = _strip_floating(text, None)
+    rest = text[len(code):]
+    return code, (rest if rest.startswith("*>") else None), quote
+
+
 #: Area A of the fixed form: "character positions 8, 9, 10, and 11" (§1985:IV.7.2), the start of the program-text area.
 AREA_A_WIDTH = 4
 #: A division header at the start of a line's program text, and the division it names.

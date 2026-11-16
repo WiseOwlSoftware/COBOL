@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb120_when_compiled_contained
-*> rules: [RV-15.99.3-2]
-*> accept: [2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb120_when_compiled_contained
+      *> rules: [RV-15.99.3-2]
+      *> accept: [2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB120 — WHEN-COMPILED across a contained source unit. ISO 15.99.3 r2: "The returned value in
       *> a contained source unit is the compilation date and time associated with the compilation unit in
       *> which it is contained" — the container and its contained program must bake the SAME stamp (one

@@ -1,11 +1,11 @@
-*>--- conformance-case
-*> id: pb348_from_into_move_rules_2023
-*> rules: [SR-14.9.32.3-3, GR-14.9.32.4-4, GR-14.9.34.4-5,
-*>    GR-14.9.35.4-2, GR-14.9.35.4-7, GR-14.9.51.4-5]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb348_from_into_move_rules_2023
+      *> rules: [SR-14.9.32.3-3, GR-14.9.32.4-4, GR-14.9.34.4-5,
+      *>    GR-14.9.35.4-2, GR-14.9.35.4-7, GR-14.9.51.4-5]
+      *> accept: [2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 1989:2023 14.9.32.4 GR4 a), 14.9.51.4 GR5 a), 14.9.35.4 GR7 a) -- each makes a ... FROM
       *> phrase EXACTLY "MOVE identifier-1 TO record-name-1 according to the rules specified for the
       *> MOVE statement", followed by the same statement without the phrase; 14.9.30.4 GR4 b) and

@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: l1_sync_abbrev_group_below_2023
-*> rules: [SR-13.18.55.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_sync_abbrev_group_below_2023
+      *> rules: [SR-13.18.55.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:13.18.55.3 SR2 - "SYNC is an abbreviation for SYNCHRONIZED." An
       *> abbreviation is the SAME clause spelled shorter, so it has to meet
       *> the SAME edition gate: SYNCHRONIZED on a GROUP item is a COBOL-2023

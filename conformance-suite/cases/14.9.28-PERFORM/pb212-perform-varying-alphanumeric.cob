@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb212-perform-varying-alphanumeric
-*> rules: [SR-14.9.28.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb212-perform-varying-alphanumeric
+      *> rules: [SR-14.9.28.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 14.9.28.3 SR2: "Each identifier shall reference a numeric
       *> elementary item described in the data division." A PIC X induction
       *> variable used to compile and throw at run time (the PB210-PB212
