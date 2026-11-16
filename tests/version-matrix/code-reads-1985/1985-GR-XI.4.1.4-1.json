@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-1",
+ "rule-digest": "7ba7fc5468dc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-142",
+  "sources": {
+   "reader": "1b405c8d2d8789ea1783a031373970254b47f543c63e6fc47bea7632162d687f",
+   "refuter": "4ecd83abe57f4fc70a790418c834f24f58dd9091a1c22c6fb1a932faa9d473ff"
+  },
+  "imported": {
+   "reader": "5907165cf45ea4fb143a3d52cc4fa00e3168b144fd526df65733acdddb9e7fd6",
+   "refuter": "4a745c53954b20290be0ec72e6745732b2d0aaabad93e711d06bf98c041f2957"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.1.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a MERGE must transfer every record of every USING file (file-name-2 and each file-name-3), whatever the file's organization (sequential, relative, indexed), an empty file or an OPTIONAL file that is absent contributing none, into the merged result delivered to the output procedure or to every GIVING file; none dropped or duplicated.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Merge; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Release; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Return; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#Sequence",
+  "edition-consulted": [],
+  "edition-search": "grep for DialectLevel, CobolVersion, DialectBehavior, IsActive, Constructs, EditionContext in SortEmitter.cs, CobolSort.cs, SortWork.cs and the MERGE half of SortBinder.cs: no site on the MERGE transfer path consults the edition; the one SortBinder edition read (rangeFailsStatement) is the RELEASE statement's. The 85 path is the latest edition's code.",
+  "behaviour-differs-by-edition": "no: the transfer is one code path. The disposition of a failed implicit OPEN (SortEmitter.RuleFor, the 2023 MERGE rules) is applied at 85 too, where §1985:VII.4.6.4 GR6 leaves the action after a critical I-O error to the implementor.",
+  "witnesses-cover": "part: g85_f27_01 covers three sequential USING files GIVING one file with distinct keys; not exercised are relative and indexed USING files, an empty and an absent OPTIONAL USING file, two GIVING files, the spill path of a merge larger than the sort memory, and a failed implicit OPEN.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/m2a.cob",
+    "printed": "RK 08 / G1 A11 A23 B12 C11 C21 C12 C33 D13 / G2 01..08 same order / COUNT 16",
+    "expected": "USING sequential F1, empty F5, relative F2, absent OPTIONAL F6, indexed F3: all 8 records in each of two GIVING files, ties in USING order (GR4), relative keys 1..8 (GR11)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/m2b.cob",
+    "printed": "USE FM 35 / AFTER MERGE 35 / G1 never created, then OPEN INPUT G1 is status 35",
+    "expected": "a critical error (35) on the implicit OPEN of a USING file: the USE procedure runs (GR7); the action after it is the implementor's (§1985:VII.4.6.4 GR6); the compiler terminates the MERGE"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/m2c.cob",
+    "printed": "COUNT 09000 OUT-OF-PLACE 00000 (with WISEOWL_COBOL_SORT_MEMORY=64K and with the default)",
+    "expected": "9000 records of three files, each record in key order exactly once"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XI.4.1@1985-MERGE-STATEMENT/g85_bf33_02.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "variable-length USING files merged through a fixed SD (OUTPUT PROCEDURE) and a variable SD (GIVING)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XI.4.1@1985-MERGE-STATEMENT/g85_f27_01.cob",
+    "printed": "A1 B2 C1 D3 E1 F2 COUNT 6; EXPECT: MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.1.4 GR1",
+    "check": "OK  §1985:XI.4.1.4 GR1  (4.1.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XI.4.1.4 GR4",
+    "check": "OK  §1985:XI.4.1.4 GR4  (4.1.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XI.4.1.4 GR7",
+    "check": "OK  §1985:XI.4.1.4 GR7  (4.1.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:XI.4.1.4 GR11",
+    "check": "OK  §1985:XI.4.1.4 GR11  (4.1.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:VII.4.6.4 GR6",
+    "check": "OK  §1985:VII.4.6.4 GR6  (4.6.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "Every USING stream is opened, read to its end and released (EmitInputFile), the streams are k-way merged (CobolSort.Merge, SortWork) and each GIVING file is rewound and written the whole result (EmitGivingFile). All organizations, empty and absent OPTIONAL inputs and a merge past the sort memory lost and duplicated nothing. The one edition-blind piece, RuleFor's termination of the MERGE after a failed implicit OPEN, falls inside the implementor's latitude at 85 (§1985:VII.4.6.4 GR6), so it is not a departure from GR1.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.1.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,e",
+  "evidence": "q2a: USING a RANDOM-access relative and indexed file refused COBOL1757 at 85; legal at 85 too: §1985:VIII.2.4.3 SR4 (cite.py OK) / Indexed I-O SR1 'The ACCESS MODE IS RANDOM clause must not be specified for file-names specified in the USING or GIVING phrase of a SORT or MERGE statement' (the diagnostic cites only §2023, a cosmetic edition slip). q2b: USING a DYNAMIC relative file with gaps (keys 2, 9; 5 deleted), a DYNAMIC indexed file written out of key order, and a sequential-key indexed file, OUTPUT PROCEDURE: M A11 A33 B22 C33 D22 E11 F33 COUNT 07 (all records once, ties by USING order). q2d: variable sequential FD (VARYING 2..6 DEPENDING) and an ODO FD with no RECORD clause into a VARYING SD: COUNT 06, sizes 2,6,4 kept from F1; F2 records at 6 per the documented implementor fixed-length choice (docs/conformance DOC-A.1-147, §1985:II.2.1.4.3). Side observation, not this rule: when the MERGE statement is refused (q2a, q2c), every RETURN in its output procedure gets a spurious COBOL7081 'stands outside the range of every output procedure' cascade. cite.py: reader's §1985:XI.4.1.4 GR1/GR4/GR7 checks stand.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb706-record-sequential-below-2023
-*> rules: [FMT-12.4.5.10.2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb706-record-sequential-below-2023
+      *> rules: [FMT-12.4.5.10.2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ORGANIZATION IS RECORD SEQUENTIAL is the written-out RECORD arm of
       *> the ISO 12.4.5.10.2 { LINE | RECORD } SEQUENTIAL inner choice,
       *> which arrived with line sequential organization in COBOL-2023

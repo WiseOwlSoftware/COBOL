@@ -1,0 +1,166 @@
+{
+ "rule-id": "1989-FMT-A.2.39.2",
+ "rule-digest": "2d62dcfba533",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-082",
+  "sources": {
+   "reader": "dd9b44c1b742e02b12346e55ed10c4683e79aba4c27c07aac8eb4cad3b61c785",
+   "refuter": "b7da010220de6b5975b4fdabeebf3a7805728925846b7411bb08d39fac0b337b"
+  },
+  "imported": {
+   "reader": "ce810b2bdf6503c8ea0014e6f2d870f167f8dc0ba4142e1432e09aadbbd96d7c",
+   "refuter": "e51ae0c5f2ce328aa13557899c3ad4ca62abd7d00d9d4a702092b3aaf792c0d9"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.39.2",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 (Amendment 1) the compiler must accept FUNCTION SIN written with exactly one argument-1 in parentheses (an identifier, literal or arithmetic expression, §1985:IV.4.3.8.3.3 SR1) and refuse any other shape: two arguments, an empty list, no list, a reference-modifier on this numeric function (SR2), and (SR4) a SIN reference outside an arithmetic expression.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "the D8 edition window sig.IntroducedIn > ctx.Edition.DialectLevel / RemovedIn (COBOL1502/COBOL1503); the catalog row carries IntroducedIn 85, so --std 85 admits the function",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry numeric-function-identifier-operand-2002: at 85 a numeric/integer function written where an identifier stands (MOVE, DISPLAY, ADD operand, PERFORM n TIMES) is COBOL0900 per §1985:IV.4.3.8.3.3 SR4; inside an arithmetic expression it is not consulted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "function-empty-argument-list-2002: at 85 '( )' gets COBOL0900 in addition to the arity COBOL1504",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+    "switches": "repository-function-2002 picks the remedy text for a keyword-omitted RESERVED intrinsic (LENGTH/SIGN/SUM/RANDOM); SIN is not one, so SIN written without FUNCTION is an undefined data-name at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 SIN is admitted only inside an arithmetic expression (MOVE/DISPLAY/ADD operand refused, legal at 2023) and an empty '( )' is also an edition error; the one-argument format and its arity refusal are identical",
+  "witnesses-cover": "part: the witness exercises only the two-argument refusal; the legal one-argument form, the empty list, the missing list, the reference-modifier (SR2) and the placement rule (SR4) are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/p1trig.cob",
+    "printed": "SIN-0 = 0.00000000000000000, SIN-1 = 0.84147098480789650, SIN-NEG(-1.5708) =-0.99999999999325370, SIN-BIG(999999999999999999) =-0.63611020883537050, SIN-PS(9PPP 3000) = 0.21918997428281808, SIN-EXP(1+1*2-0.5) = 0.59847214410395640, SIN-LIT(-0.5) =-0.47942553860420300, SIN-ZERO(ZERO) = 0 (exit 0)",
+    "expected": "one argument accepted as identifier, literal, figurative ZERO or arithmetic expression; values match mpmath sin to 16 digits"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r1two.cob",
+    "printed": "error COBOL1504: FUNCTION SIN takes 1 argument(s); 2 given",
+    "expected": "refused: the format admits exactly one argument-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r10space.cob",
+    "printed": "error COBOL1504: FUNCTION SIN takes 1 argument(s); 2 given (space-separated SIN(N N))",
+    "expected": "refused"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r2none.cob",
+    "printed": "COBOL1504 ... 0 given; COBOL0900 an empty function argument list '( )' requires COBOL-2002",
+    "expected": "refused: argument-1 is required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r3noparen.cob",
+    "printed": "error COBOL1504: FUNCTION SIN takes 1 argument(s); 0 given",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r4refmod.cob",
+    "printed": "error COBOL1629: 'FUNCTION SIN' is not an alphanumeric ... function, so its result cannot be reference-modified",
+    "expected": "refused by §1985:IV.4.3.8.3.3 SR2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r5move.cob",
+    "printed": "85: COBOL0900 a numeric or integer function-identifier where an identifier is written ... requires COBOL-2002; at --std 2023 exit 0",
+    "expected": "refused at 85 by SR4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r6disp.cob",
+    "printed": "COBOL0900 (DISPLAY FUNCTION SIN(N))",
+    "expected": "refused at 85 by SR4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r13add.cob",
+    "printed": "COBOL0900 (ADD FUNCTION SIN(N) TO R)",
+    "expected": "refused at 85 by SR4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r9float.cob",
+    "printed": "COBOL0900: a floating-point numeric literal requires COBOL-2002",
+    "expected": "a 2002 literal form refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r7nokw.cob",
+    "printed": "COBOL1639: 'SIN(N)' is not defined",
+    "expected": "the word FUNCTION is required by the 85 format"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/r8alpha.cob",
+    "printed": "COBOL1627: FUNCTION SIN argument-1 is of class alphanumeric",
+    "expected": "refused (A.2.39.3 AR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.39.2",
+    "check": "FAIL [quote-too-short]: 'FUNCTION SIN ( argument-1 )' has 3 real word(s) (the format has no 4-word quotation; the clause exists, see A.2.39.1)"
+   },
+   {
+    "cite": "§1989:A.2.39.1",
+    "check": "OK  §1989:A.2.39.1  (2.39.1 Description)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.2",
+    "check": "OK  §1985:IV.4.3.8.3.2  (4.3.8.3.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR2",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR2  (4.3.8.3.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1989:A.2.39.3 AR1",
+    "check": "OK  §1989:A.2.39.3 AR1  (2.39.3 Arguments)  the text is in AR1"
+   }
+  ],
+  "notes": "Grammar functionCall admits any argument list; IntrinsicBinder#BindIntrinsicCore enforces the catalog's MinArgs=MaxArgs=1 (COBOL1504) for every shape, and the SR2 ref-mod and SR4 placement rules are enforced at 85. The 85 path differs from 2023 only where the 85 text is stricter (placement, empty list), each a correct edition arm.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.39.2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Read §1985:IV.4.3.8.3.2/.3 (format, SR1-SR4) and A.2.39, A.2.2, A.2.3. Probes at --std 85 under refute-1985-082: okplace.cob (exit 0: SIN ( N ) with spaces, SIN(- N), SIN(TE(1)+1), SIN((N+1)*(N-1))=0, SIN(LENGTH(X))=-0.95892427, SIN(N ** 2), SIN in sign condition POSITIVE, abbreviated relation, EVALUATE subject and ref-mod start INTEGER(2.5) all accepted, arithmetic-expression positions); refusals: a1refmod SIN(N(1:2)) COBOL1627 alphanumeric, a2numed numeric-edited COBOL1627, a3group COBOL1627, a4all ALL \"1\" COBOL1627, a5space COBOL1627, a14alit COBOL1627, a6class IF SIN(N) NUMERIC COBOL6918, a7subscr/a15sub2 function in subscript COBOL0900 (85 subscript form), a8set SET IX TO INTEGER(1.5) COBOL0900, a9call CALL USING BY CONTENT SIN(N) COBOL0900 (§1985:X.5.2.3 SR4), a10goto GO TO DEPENDING ON COBOL0900, a11perf PERFORM VARYING FROM COBOL0900, a12recv COMPUTE SIN(N)=1 COBOL5506, a13div DIVIDE SIN(N) INTO R COBOL0900; a16search/a17until (relation conditions) exit 0 as SR4 allows. Edition grep of IntrinsicBinder.cs: the only further edition read (CheckArgumentClasses ArgPredicate.AppliesAt, kb PB5162) carries only CharacterCategory predicates, not reached by SIN. cite.py: OK §1985:IV.4.3.8.3.3 SR4; OK §1985:IV.4.3.8.3.3 SR1; OK §1989:A.2.39.3 AR1; OK §1985:VI.6.3.1.2.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses: ArgPredicate.AppliesAt(edition year) gates per-edition argument predicates (CharacterCategory only; same arm for SIN)"
+  ],
+  "corrected": ""
+ }
+}

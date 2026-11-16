@@ -1,9 +1,9 @@
 {
  "rule-id": "GR-14.9.51.4-18",
  "rule-digest": "d5f574690a46",
- "verdict": "CONFORMS",
+ "verdict": "PARTIAL",
  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#CountRecords",
  "test-ref": "conformance:cases/14.9.51-WRITE/pb713_shared_extend_open_2023; conformance:cases/14.9.51-WRITE/pb713_shared_extend_open_2002; conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/l1_open_extend_position; unit:SharedExtendOpenDriftTests.SharedExtend_OpensAndAppends_ForEverySequentialFraming",
  "editions": "85,2002,2014,2023",
- "notes": "The EXTEND write-ordinal base is the record count present at OPEN, measured before this OPEN's own writer exists (kb/Work PB713); the goldens read the appended record back as the successor of the existing one on every organization and framing. retired-witness: src/Cobol.Net.Runtime/IO/SequentialConnector.cs#ExistingRecordCount (kb/Work PB2692 (train 1047) replaced ExistingRecordCount with the one bounded measurement SequentialConnector.CountRecords)"
+ "notes": "PARTIAL (2026-11-16, the 1985 code reads, cause b: wrong the same way at every edition): the mechanism of kb/Work PB5815: PB5815 - a file written with ADVANCING or LINAGE is opened INPUT or I-O with status 00 and read as fixed blocks: wrong records, no AT END, REWRITE over a line end (every edition). Owner: kb/Work PB5815 (open). Ruled in kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-7.md; the 1985 rows that carry into this rule: 1985-GR-VII.4.7.4-12. Recorded by the registrar from the ruling and its note, the repro not re-run by the registrar. The prose that follows is the stored CONFORMS account, kept as the account of the part that holds. || The EXTEND write-ordinal base is the record count present at OPEN, measured before this OPEN's own writer exists (kb/Work PB713); the goldens read the appended record back as the successor of the existing one on every organization and framing. retired-witness: src/Cobol.Net.Runtime/IO/SequentialConnector.cs#ExistingRecordCount (kb/Work PB2692 (train 1047) replaced ExistingRecordCount with the one bounded measurement SequentialConnector.CountRecords)"
 }

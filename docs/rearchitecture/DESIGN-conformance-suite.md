@@ -201,6 +201,8 @@ The file block holds one field, `source-format` (`fixed` or `free`, required; fi
 | `requires` | Optional or processor-dependent elements needed, by stable `constructs/` module id (`module-report-writer`), never by A.4 number, which differs between editions. The module row records the element's status per edition; a profile not claiming it where it is optional or processor-dependent gets NOT APPLICABLE |
 | `implementor-defined` | A.1 items whose enumerated value the output depends on (§3.3) |
 | `files` | Copybooks, data files and other units the test needs, beside the case file |
+| `stdin` | A file beside the test, LF line ends only, that is the program's standard input (PB5755). Without it the input is closed (end of file), and what an ACCEPT then stores is the implementor's (DOC-A.1-5), which no rule states. The generator refuses a test that names a rule of the transfer of data from the input device (an ACCEPT statement's general rule whose catalog text speaks of its device and not of a screen: §1985:VI.6.5.4 GR1-GR5, §2023:14.9.1.4 GR1-GR5), executes an ACCEPT reading standard input (no FROM, or FROM CONSOLE, SYSIN or a mnemonic-name SPECIAL-NAMES binds to one) and declares none. The test runs solo |
+| `output-file` | `{name: <file the program leaves in its run directory>, expected: <file beside the test holding its content>}` (PB5765): compared once the process has ended, on the normalization of the standard output, in addition to it, so a rule whose effect shows only after the run unit ends (STOP RUN's implicit CLOSE, §1985:VI.6.24.4 GR2) has an observable. A missing file, a file that differs and an absent expected file are three distinct FAILs, each naming the file. `expected` never ends in `.out`; the files of one test (`files`, `stdin`, `expected`) are distinct. Only an accepted test declares it; it runs solo |
 | `main` | `yes`: the test runs as the run unit's main program, alone; the only test that may write a STOP statement |
 | `build` | WiseOwl tests only (PB2101): ordered compile steps of a multi-unit test, `"<file>"` or `"<file> > <output>"`, `"{self}"` for the test; it runs solo. Refused in `cases/`: how separate units find each other is implementor-defined |
 | `servers` | WiseOwl tests only (PB4745, DESIGN-message-control.md §0 Q9): a map from a message server name to a declared file, `{BALANCE: balsrv.cbl}`. The in-process runner compiles each file as a `build` unit is (its options `wiseowl/options/<id>.<file>.json`) and starts its main program, before the test, as a concurrent run unit serving the name in the test's own MCS directory; it ends them with the test. A name is compared as a server name is (trailing spaces removed, without regard to case); a file's assembly is neither the test's nor a build step's nor another server's. It runs solo. Refused in `cases/`: how a second run unit is started and found is implementor-defined |
@@ -518,6 +520,38 @@ section passing. CD 1.3 renumbers 167 of 588 clauses (`review-feasibility/cd13_n
 each 2023 row is matched to its 2027 rule: a changed `rule-digest` is a `variants` candidate, a new rule an `@2027`
 row, an unmatched one a band ending at 2023 (S20, PB4397).
 
+### 3.6 Source format before 2002, and the converter (kb/Work PB5754)
+
+**What a free-form case may be before 2002.** Free form is a 2002 feature (§2023:6.4; `generate.FIRST_FREE_FORM`, and
+`generate.format_defined_at` is the one statement of the fact). A free-form test of `cases/` is refused where it is
+ACCEPTED or FLAGGED before 2002 (`check_editions`, §4). A free-form REFUSAL test may still be refused at 85 (its
+`wiseowl/diagnostics/` `refuse-at`), and a free-form test of `wiseowl/cases/` may run at 85: both exercise WiseOwl's
+`--source-format free` extension (docs/CONFORMANCE.md DOC-A.1-158) and the edition gates, and main keeps about 1,250
+such refusal tests as regression tests. What none of them is, is a WITNESS of a row of an edition before 2002: a case
+witnesses a row at an edition only when its text is in a reference format that edition defines (kb/Work PB5754;
+`lineage_reads.format_problem`, which the inventory's audit, its writer and its planner ask: DESIGN-spec-conformance-
+review.md section 10.6). So a free-form case a 1985 row needs as its witness is converted to fixed form, and a
+free-form test no 1985 row names is left as it is. A test whose subject is free form itself or the `--source-format`
+option stays free form and witnesses no 1985 row.
+
+**The converter.** `python conformance-suite/harness/reformat.py [--dry-run] <case.cob>...` (S8's tool, §13) rewrites a
+free-form case and each library text it declares and copies, IN PLACE, in the 1985 layout (§1985:IV.7): division,
+section and paragraph headers, paragraph-names, FD/SD/CD/RD, level-numbers 01 and 77, DECLARATIVES and end markers in
+area A (columns 8-11); every sentence, entry and continued line in area B (column 12 on); any other data description
+entry where it was, right of margin A; a comment line `      *> text` (the asterisk in column 7), an inline floating
+comment moved to a comment line of its own before its line; a free-form mark `*> <<` becomes `<<` in the sequence
+number area (§3.2); margin R at column 72 (cobol_source.FIXED_TEXT_END), a longer line re-wrapped between separators.
+The header's `source-format:` becomes `fixed` and its lines move to column 7; nothing else in it changes; line endings
+stay LF. It decides each line from the harness's own reader (`cobol_source`: the tokens, `floating_comment`), never a
+second tokenizer, and a refusal test's expected position (`(line,col)`, `at line N`) moves with its text. It does not
+guess: a `>>` directive, a tab, a literal that would need the continuation rule, a line whose kind it cannot decide (a
+one-word sentence whose word is reserved at only some of the editions the free-form text is written for), a
+comment-entry, a line no separator lets end by column 72, a shared or twice-placed library text and a marked line whose
+comment holds more than its mark are each a refusal naming the file and line, and the converted text must have the
+original's tokens in the same order (comments aside) or it is refused and nothing is written. The gate proves each
+conversion: the case runs at every edition it is placed at with its expectation unchanged. A fixed-form text the
+compiler handles differently from its free-form original is a compiler defect, filed with the pair as its repro.
+
 ## 4. The tree, the generator and where it lives
 
 ```
@@ -628,8 +662,14 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
   (`scripts/docchecks/register.py`); GnuCOBOL's were measured on cobc 3.2.0 and S3 verifies them. A profile states
   each enumerating A.1 item's value and its extra reserved words per edition (GnuCOBOL's: what `cobc --list-reserved`
   lists beyond `reserved-words.json`).
-- **Each program runs in its own fresh directory** with its tests' declared files and stdin closed; case files run in
-  parallel. A declared file lies there at its place beside the test's source, so a library text in a library folder
+- **Each program runs in its own fresh directory** with its tests' declared files and stdin closed, or fed the file the
+  test's `stdin` declares (PB5755): both runners feed it to the program's run alone, never to a compile, and the manifest
+  entry carries it as `stdin`, a suite-relative path (`run.py`'s `execute` and an adapter hook's `StepContext.stdin`; the
+  in-process runner's `CutRunner.RunExit`). A test that declares an `output-file` (PB5765) is also judged on that file once
+  the process has ended (`run.py`'s `output_file`, the in-process runner's `OutputFileVerdict`), the manifest entry carrying
+  `{name, expected}`; each key is present only for a test that declares it. If a runner forgot a key, the planted tests of
+  `run.py --self-test` and of `ConformanceSuiteDeclaredFilesTests` fail, and so does the verdict comparison of §9 on every
+  suite test that declares it. Case files run in parallel. A declared file lies there at its place beside the test's source, so a library text in a library folder
   (`<library>/<file>`) keeps its library; `run.py` (`Run.staged`) and the in-process runner (`ConformanceSuiteRunner.Stage`)
   stage it the same way.
 - **A case file runs in three steps** (17d, 17g), so one failing test never hides another or fails the file. (1) Compile
@@ -914,7 +954,9 @@ rules 2, 5, 6).
 **Filed from revision 3** (2026-11-04), in this order, each blocked by the one before; each owns one module or register.
 - **S5 — the edition schema (§3.5).** (PB4683) Band start and optional end in schema, validator and C# twin; per-edition clause
   locators; `@<edition>` ids and folders; `{from: <edition>}`.
-- **S8 — the free-to-fixed converter (§6).** (PB4684) `reformat.py`, ahead of S5b, which uses it.
+- **S8 — the free-to-fixed converter (§6).** (PB4684) `reformat.py`, ahead of S5b, which uses it. The converter exists
+  (§3.6, kb/Work PB5754: built for the free-form cases 1985 rows name, its cases under `harness/selftests/reformat/`);
+  S8's remainder is its run over the mixed folders for S5b.
 - **S5b — the case file (§3-§5, §6 step 2; decision 17).** (PB4685) `casefile.py`: blocks, solo programs, per-profile grouped
   programs and their driver (`generate.py --profile`), sectioned outputs, `main` and what runs alone, the case-file
   refusals; the three-step run and INTERFERENCE in both runners, one xUnit result per test; the adapters' entry

@@ -1,0 +1,57 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-17",
+ "rule-digest": "055addc9002f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-095",
+  "sources": {
+   "reader": "9a2ce2b731564d79fdb18fed5634bd5b41a2329f4f9a6f0d1eaeafa5176eaa61",
+   "refuter": "c1b6810ed6330f619b4728026e7f448015f803896c57f72d4a002cb599b888ab"
+  },
+  "imported": {
+   "reader": "ff510200f52624c0b75549aba4398715a7c021d51cd670dc3f31eab77aa133f6",
+   "refuter": "5358f550b49cf20092bc3f46ac50a1d5982c6aa03a945134c52402d5f42e88fc"
+  }
+ },
+ "reader": {
+  "verdict": "CONFORMS",
+  "edition-search": "grep -n 'Edition|DialectLevel|IsActive' in SequentialIoBinder.BindOpen and SequentialIoEmitter.EmitOpen: ctx.Edition appears only as the diagnostic sink of BoundRejected; the split into a BoundImplicitSeries of one BoundOpen per file-name is edition-free (the runtime sharing sites of the other OPEN rules lie below each single OPEN)",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.4.4.4-17",
+  "requirement": "At --std 85 an OPEN naming several files (in one or several mode groups, of any organizations) behaves as one OPEN per file-name in source order, each with its own group's mode, status and USE procedure, and a failure of one does not prevent the later ones.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
+  "edition-consulted": [],
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f19_04 covers two mode groups of indexed files and the order of two failing files; mixed organizations and continuation past a failed file with a USE that returns are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-095/src/p17.cob",
+    "printed": "USE-X 00 35 99 99; USE-Y 00 35 35 99; AFTER 00 35 35 00; WRITES 00 00; USE-Y 00 00 35 00; AFTER2 00 00 35 00",
+    "expected": "files opened left to right: Q (sequential) before X, X's USE runs before Y is attempted (Y still 99), Z (relative) still opened after both failures; the second OPEN mixes INPUT/OUTPUT/INPUT/I-O groups, each file in its own mode"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR17",
+    "check": "OK  §1985:IX.4.4.4 GR17  (4.4.4 General Rules)  the text is in GR17"
+   }
+  ],
+  "notes": "BindOpen returns BoundImplicitSeries.Of one BoundOpen per file-name in source order, and EmitOpen emits for each its open, status store and USE hook. Probed with mixed organizations and a USE that returns: order and per-file modes are as the rule says."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-17",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe r17.cob (class b, the same file-name twice in one OPEN, in one mode group and across two): OPEN OUTPUT F G F gave F 41 (third open of an open file), G 00, and the later WRITE on F 00 (the first open stood); OPEN INPUT F I-O F G gave F 41 from its I-O and kept INPUT mode (WRITE 48), G opened I-O 00. These are the results of separate OPENs in source order. cite.py: OK §1985:IX.4.4.4 GR17 'as if a separate OPEN statement had been written for each file-name'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

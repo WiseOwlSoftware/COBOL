@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-SR-IX.2.3.3-1",
+ "rule-digest": "4f92dc80ece2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-045",
+  "sources": {
+   "reader": "64185b6687708af943fba5f30e64b60f05d36f988767769df6d282dd193f3f0b",
+   "refuter": "cf98d565304185b2edc20b1abf82e0c5328352b506579f52932359c35a054354"
+  },
+  "imported": {
+   "reader": "a41b3da9763298ec8510ed48ccf434b0cb4c1e233587e952e89b48de7fee4a76",
+   "refuter": "6b078ecf2c4fd3bcae9fa42dac7e24ccb9bd7517c11fafa7f3d9a91b8404a1c3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.2.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an indexed file control entry begins with SELECT [OPTIONAL] file-name-1, and the clauses of the 1985 indexed format (ASSIGN, RESERVE, [ORGANIZATION IS] INDEXED, ACCESS MODE, RECORD KEY, ALTERNATE RECORD KEY [WITH DUPLICATES], FILE STATUS) may follow in any order, each taking effect wherever written; a clause before SELECT is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLockModeClause",
+    "switches": "admits the LOCK MODE clause only at 2002+ (not an order switch)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSharingClause",
+    "switches": "admits the SHARING clause only at 2002+ (not an order switch)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRelativeKeyClause",
+    "switches": "the one ORDER rule the 85 arm imposes, for RELATIVE files only (RELATIVE KEY is a phrase of ACCESS MODE at 85); never reached by an indexed entry",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The grammar makes SELECT the head of fileControlClauseGroup and fileControlClauses* an unordered repetition; grep of VersionConformancePass for FileControlClauses finds only the relative-key order check, so no order constraint applies to an indexed entry at any edition.",
+  "behaviour-differs-by-edition": "no: the order freedom is the same; only which clauses exist differs (2002 LOCK MODE, SHARING refused at 85)",
+  "witnesses-cover": "part: the witness reverses the printed order of FILE STATUS, RECORD KEY, ACCESS, ORGANIZATION, ASSIGN; not exercised there are ALTERNATE RECORD KEY WITH DUPLICATES and RESERVE in unusual positions, OPTIONAL, the ORGANIZATION IS words omitted, optional words omitted, and ACCESS RANDOM",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-045/fc1.cob",
+    "printed": "OPEN-OPT=05 / DUP=22 / ALT=TWO 02 / NXT=ONE 00 / MISS=23 / RN=ZED 00",
+    "expected": "ALTERNATE KEY first, FILE STATUS, RESERVE, ACCESS DYNAMIC, RECORD KEY, bare INDEXED, ASSIGN last: OPTIONAL OPEN I-O of an absent file 05, duplicate prime key 22, alternate key read with duplicates 02, NEXT 00, miss 23; second entry ACCESS RANDOM RECORD key, ASSIGN without TO, STATUS without FILE, ORGANIZATION last: random read 00"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-045/fc3.cob",
+    "printed": "COBOL0001: unexpected 'ORGANIZATION'",
+    "expected": "a clause before SELECT refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-045/fc2.cob",
+    "printed": "COBOL0900 the LOCK MODE clause requires COBOL-2002; COBOL0900 the SHARING clause requires COBOL-2002",
+    "expected": "2002 clauses among the following clauses refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.3.3 SR1",
+    "check": "OK  §1985:IX.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar head-anchors SELECT and repeats the clauses without order; the bind reads each clause by kind, so a clause takes effect wherever it is written, as the run shows (record key, alternate key with duplicates, status, optional, access mode).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.2.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "fcx.cob at 85: SELECT FI OPTIONAL (OPTIONAL after file-name-1, outside the SELECT clause) refused COBOL1970. fci.cob: ALTERNATE RECORD KEY A1, RESERVE, ACCESS DYNAMIC, a second ALTERNATE KEY A2 WITH DUPLICATES interleaved after other clauses, FILE STATUS, ORGANIZATION INDEXED, RECORD KEY K without IS, ASSIGN last without TO: compiled and ran. The duplicate A1 gave 22, READ KEY IS A2 gave 'K01A01ZZZ 02', READ KEY IS A1 gave 'K02A02ZZZ 00'. So each repeated clause takes effect wherever it is written. Clauses not in the 1985 indexed format: fcy.cob/fcp.cob PADDING CHARACTER and RECORD DELIMITER refused COBOL2912, RELATIVE KEY refused COBOL0863. fcz.cob: 2002/2023 forms ASSIGN USING, RECORD KEY ... SOURCE IS, SUPPRESS WHEN refused COBOL0900. cite.py: OK  §1985:IX.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

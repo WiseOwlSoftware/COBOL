@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-1",
+ "rule-digest": "b519b2325ebc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-099",
+  "sources": {
+   "reader": "7fe496d433ccb535591a8ad63fc59e22218ac1415edd20e9c8d8cad3d19976b8",
+   "refuter": "dd885ab0c2cd3867572cc4e1d13f78dd8f826a31e58d05364df34ddcab60c43f"
+  },
+  "imported": {
+   "reader": "8dd0fddc34e9747281679128e8170c0601f2bcd1e779b01d3f1d2cb3a5eb4603",
+   "refuter": "5ac3483a02383931b49d9dc1d46a5f09eaf90eeb0492fe236f01f239615db112"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a START on an indexed file succeeds only while the file is open INPUT or I-O; when it is not open, or open OUTPUT or EXTEND, the START is unsuccessful with I-O status 47 (IX.1.3.4 logic error), which is not an invalid key condition, so an applicable USE procedure runs and neither INVALID KEY nor NOT INVALID KEY executes.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#StartIndexed; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+    "switches": "START FIRST/LAST refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartKeyPhrase",
+    "switches": "reverse operators (<, <=, LESS, NOT GREATER) refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartWithLength",
+    "switches": "WITH LENGTH refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+    "switches": "ctx.Edition.SubscriptedClauseOperands (data-name-1 under OCCURS)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "store attach/arbitration at OPEN only; StartOpenModeGuard reads no edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior|DialectLevel in IndexedConnector.cs, FileConnector.cs (StartOpenModeGuard), FileRegistry.cs#StartIndexed, KeyedIoEmitter.cs#EmitStart: the open-mode guard and the status path read no edition",
+  "behaviour-differs-by-edition": "no: the open-mode rule is the same code at every edition; only other START forms are gated",
+  "witnesses-cover": "part: g85_f20_08 covers never-opened and OUTPUT (47) and INPUT/I-O success; EXTEND mode, a START after CLOSE, the sequential access mode, and the USE-procedure / phrase routing of the 47 are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/st1.cob",
+    "printed": "USE-X 47 / OUT-START=47 USES 1 / USE-X 47 / CLOSED-START=47 USES 2 / OPEN-EXTEND=00 / USE-X 47 / EXT-START=47 USES 3 / S1-NOT-INVALID / S1=00 ... / S4=00",
+    "expected": "OUTPUT, closed and EXTEND -> 47 with the USE procedure run and neither INVALID KEY nor NOT INVALID KEY executed (IX.1.3.5: 47 is not an invalid key condition); INPUT (sequential access) and I-O -> 00"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/edarm_c1.cob",
+    "printed": "error COBOL0900: START FIRST/LAST requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "FIRST is not in the 1985 general format IX.4.7.2: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/edarm_c6.cob",
+    "printed": "EXIT: 0 (compiles)",
+    "expected": "KEY IS = is in the 1985 format: accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR1",
+    "check": "OK  §1985:IX.4.7.4 GR1  (║4.7.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5f"
+   },
+   {
+    "cite": "§1985:IX.1.3.5 GR2",
+    "check": "OK  §1985:IX.1.3.5 GR2  (1.3.5 The Invalid Key Condition)  the text is in GR2"
+   }
+  ],
+  "notes": "IndexedConnector.Start's first line is StartOpenModeGuard (47), before any key logic; EmitInvalid renders INVALID KEY on a 2x class only and NOT INVALID KEY on a 0x class only, so a 47 runs neither, and EmitUseHook dispatches the USE procedure. All four non-open states probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe src/s1.cob (run s1-001, --std 85): non-optional absent file OPEN INPUT -> 'USE-N 35 / N-OPEN=35', then START with both phrases -> 'USE-N 47 / N-START=47' (neither phrase); OUTPUT mode with a MODE-based USE (USE ... ON OUTPUT, not file-name) -> 'USE-OUTPUT 47 / O-START=47'; dynamic access OPEN I-O -> START succeeds (D1-NOT-INVALID 00); after CLOSE WITH LOCK -> 'L-START=47'. c1.cob: 1985 operators 'NOT <' and 'GREATER THAN OR EQUAL TO' accepted and position correctly (A-READ K003CCCC, B-READ K001AAAA); c3.cob: 'NOT GREATER THAN' refused COBOL0900 at 85. StartOpenModeGuard (FileConnector.cs:843) = permanent-error replay ?? (IsOpen && Mode not Output/Extend ? null : 47); a failed OPEN leaves the connector closed so 47, matching IX.1.3.4 5f. cite.py: 'OK  §1985:IX.4.7.4 GR1  (║4.7.4 General Rules║)  the text is in GR1'; 'OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5f'; 'OK  §1985:IX.1.3.5  (1.3.5 The Invalid Key Condition)  the text is in the clause; it lies in GRL2.1'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock / #ClosedWithLock: DialectBehavior.CloseWithLockLocksFileConnector (85 locks the physical file, 2002+ the connector); it governs the later OPEN (38), not START, so a START after CLOSE WITH LOCK is 47 at 85 (probed)"
+  ],
+  "corrected": ""
+ }
+}

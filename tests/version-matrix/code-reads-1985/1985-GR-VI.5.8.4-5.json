@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-VI.5.8.4-5",
+ "rule-digest": "8e25b2a72335",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-014",
+  "sources": {
+   "reader": "033c718f66fa8327f6c6097812f1d6775bf39f1061001634aaebd3db3ff0ac86",
+   "refuter": "4e2defe6b916e6fb79a025d09c8420aa472c43d66af8d98ecc224e3e85cee037"
+  },
+  "imported": {
+   "reader": "54f9034e003d595d61be776f6f851b0fb2ad8c752a75fa8101d34d56249b05ad",
+   "refuter": "fe6a22915f9367337c6900245fb135162f1a8b2f9fdf2aa0080e19135e0a17c1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.8.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a record description holding a format 2 OCCURS under an FD or SD whose RECORD clause has VARYING makes the records variable length, and when the RECORD clause has no DEPENDING ON, WRITE, REWRITE and RELEASE size the record from the current value of the OCCURS data-name-1, for sequential, relative and indexed files, with data-name-1 inside or outside the record.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingLengthArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RewriteLengthArg; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#LengthExpr; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#OdoExtent",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs (FileRegister call, ctx.Data.DialectLevel) -> src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the connector's edition: CLOSE WITH LOCK behaviour and the default file-sharing posture (DialectBehavior.FileSharingFacility, CloseWithLockLocksFileConnector); it does not touch the record length",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped SequentialIoEmitter.cs for VaryingLengthArg|DialectLevel|Edition.|EditionContext and the runtime for dialectLevel/edition: the only edition reads on the WRITE/REWRITE path are the connector registration's edition and DialectBehavior.SelectWhenOnlyForFilePhraseStatements, neither of which sizes the record.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c20_odo_record_varying_no_depending covers sequential WRITE, REWRITE (00 and 44) and RELEASE with data-name-1 inside the record; relative and indexed files, WRITE FROM, data-name-1 outside the record, a zero-occurrence record and the WRITE after a failed OPEN are not exercised.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo5.cob",
+    "printed": "R1[2][2AB] R2 00 R3[4][4WXYZ] R4[5][5PQRST] X1[A3abc] X2[B1z] X3[A6abcdef]",
+    "expected": "relative and indexed: each record written and rewritten at 1+RN (2+XN) bytes; WRITE FROM sets RN through the receiving maximum and writes 5 bytes"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo5.cob",
+    "printed": "odo5s.dat bytes: 03 00 00 00 4c 4d 4e 01 00 00 00 4f",
+    "expected": "data-name-1 WN in Working-Storage: records of 3 and 1 bytes"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo6.cob",
+    "printed": "odo6-missing.dat bytes: 01 00 00 00 30 07 00 00 00 36 41 42 43 44 45 46 (FN=0 writes 1 byte, FN=6 writes 7)",
+    "expected": "zero occurrences: fixed part only; maximum: 7"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo6.cob",
+    "printed": "DECL 35 / OPEN 35 / DECL 48 / WRITE 48",
+    "expected": "failed OPEN INPUT of a missing file, then WRITE on the unopened connector: status 48 and the declarative runs"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/odo7.cob",
+    "printed": "COBOL1547 'UNBOUNDED' is not an integer literal (plus cascade COBOL0850 OCCURS 0 TO 0); COBOL0900 OCCURS DYNAMIC requires COBOL-2014",
+    "expected": "later editions' OCCURS forms refused at 85 (UNBOUNDED is an ordinary word in 1985)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.4 GR5",
+    "check": "OK  §1985:VI.5.8.4 GR5  (5.8.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "With no RECORD DEPENDING item, VaryingLengthArg yields null and the runtime takes the record image at its current ODO extent (LengthExpr), so the length written is the OCCURS count at the statement for every organization. The connector's edition argument governs sharing and CLOSE WITH LOCK, not the record size.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.8.4-5",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "rv1.cob at --std 85: SD with RECORD IS VARYING IN SIZE FROM 2 TO 6 and an ODO record, no DEPENDING; RELEASE of records with SN=3,0,4 through SORT ... GIVING a VARYING FD, then OPEN EXTEND and WRITE of a second fixed 01 record (PIC X(3)). rv1.out bytes: 02 00 00 00 'A0' / 06 00 00 00 'B4wxyz' / 05 00 00 00 'C3abc' / 03 00 00 00 'XYZ': every record sized from the OCCURS count at RELEASE, kept through SORT, and the other 01 record written at its own size. Reader's probes already covered relative, indexed, outside data-name-1, zero occurrences and a failed OPEN. cite.py: OK §1985:VI.5.8.4 GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

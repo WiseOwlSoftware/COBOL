@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb404-exit-program-in-global-declarative
-*> rules: [SR-14.9.14.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb404-exit-program-in-global-declarative
+      *> rules: [SR-14.9.14.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB404. ISO 14.9.14.3 SR2, stated under FORMAT 2 (EXIT PROGRAM): "The EXIT statement shall
       *> not be specified in a declarative procedure for which the GLOBAL phrase is specified in the
       *> associated USE statement." EXIT PROGRAM and USE ... GLOBAL are both 1985 elements, so the rule

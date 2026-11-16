@@ -1,0 +1,119 @@
+{
+ "rule-id": "1985-GR-VI.6.17.4-1",
+ "rule-digest": "5a54e4ef1a1a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-108",
+  "sources": {
+   "reader": "c4d8ea3f55533cfd9c7fc21d4a5f675ed97b33f34413b57b8c9128bcff9d8b8c",
+   "refuter": "7a42d0b149501cc49f783fe50cd656d1bdc95f450fc95f3cd24d2ca0b6437430"
+  },
+  "imported": {
+   "reader": "bfaad25a3c752e45feda22cc3e61d4603468bcbb392d92b5d9beeedc46d8603b",
+   "refuter": "474655131015eb79bb8c57b5376ed9b3393385fe9008bdc4db8ebde61ab86332"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.17.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 each REPLACING key word (ALPHABETIC, ALPHANUMERIC, NUMERIC, ALPHANUMERIC-EDITED, NUMERIC-EDITED) selects exactly the elementary items of that 1985 data category (VI.5.9.4: all-A alphabetic; A/X/9 mixes alphanumeric; with B, 0 or slash alphanumeric edited; 9 P S V numeric; BLANK WHEN ZERO numeric is numeric edited), and no other category word exists at 1985.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#InitializeCategoryOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#InitializeItemCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Qualify; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeCategoryName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName",
+  "behaviour-differs-by-edition": "yes: 2002+ adds eight category words and category sets in one item, both refused at 85; the five 1985 words map identically",
+  "witnesses-cover": "part: g85_bf13_05 exercises some categories; ALPHABETIC against alphanumeric-edited AAB, BLANK WHEN ZERO, A9/XA, scaled and reference-modified items were added by the probes",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ini1.cob",
+    "printed": "T1 NUMERIC BY 7: GN 007 GS +007 GB +0007 GP +00007 GT 777, GBZ (BLANK WHEN ZERO) 456 and every non-numeric item unchanged; T2 ALPHABETIC: only GA 'Q  '; T3 ALPHANUMERIC: only GX 'Z  '; T4 ALPHANUMERIC-EDITED 'ABCD': GAE 'AB/CD', GAB(AAB) 'AB '; T5 NUMERIC-EDITED 12.5: GNE ' 12.50', GBZ '012'; T6 PIC X by NUMERIC unchanged 'ppp'; T7 004; T8 two items 001/K; T9 BY SRC 'HEL'; T10 ALL \"AB\" 'ABA' and 12345 truncated 345/+345/+2345/+12345; T11 -6: 006/-006/-0006/-00006; T12 W-X(2:1) 'pMp'; T13 W-N(2:1) REPLACING NUMERIC unchanged 004 (a ref-modified item is alphanumeric)",
+    "expected": "only items of the named category receive an implicit MOVE of the sender (GR1, GR2a/b); BLANK WHEN ZERO numeric is numeric edited (VI.5.4.4 GR2); AAB is alphanumeric edited (VI.5.9.4 GR5a)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ini7.cob",
+    "printed": "T1[K K 153tuv0w] T2[K K 020tuv0w] T3[K K 020tuL0M]",
+    "expected": "PIC A9 and XA alphanumeric; 9V9 and VPP9 numeric (0.25 gives 02 and 0); AA alphabetic; X0X alphanumeric edited"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/inic4.cob",
+    "printed": "error COBOL0900: INITIALIZE category-name (2002 words) requires COBOL-2002 (targeting COBOL-85) ... NATIONAL",
+    "expected": "NATIONAL is not one of the five 1985 category words: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/inic5.cob",
+    "printed": "error COBOL0900: an INITIALIZE REPLACING item naming more than one category requires COBOL-2002",
+    "expected": "the 1985 braces take one category per item: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.17.4 GR1",
+    "check": "OK  §1985:VI.6.17.4 GR1  (║6.17.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.4.4 GR2",
+    "check": "OK  §1985:VI.5.4.4 GR2  (5.4.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.5.9.4 GR5a",
+    "check": "OK  §1985:VI.5.9.4 GR5a  (5.9.4 General Rules)  the text is in GR5a"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3",
+    "check": "OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "InitializeItemCategory maps the PICTURE model's category onto the five 1985 categories (alphanumeric edited by EditMask, alphabetic by IsAlphabetic) and the probes confirm each word reaches exactly its category, including BLANK WHEN ZERO as numeric edited and a reference-modified operand as alphanumeric.",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeStatement",
+    "switches": "refuses WITH FILLER (COBOL0830), TO VALUE (COBOL0831), TO DEFAULT (COBOL0832) and THEN REPLACING (COBOL0833) below 2002; the plain REPLACING form passes untouched",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName",
+    "switches": "refuses the eight post-85 category words (NATIONAL, BOOLEAN, the pointer words...) below their edition; the five 1985 words are ungated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem",
+    "switches": "refuses a REPLACING item naming more than one category below 2002 (PB5180)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85VariableOccurrence",
+    "switches": "refuses identifier-1 described with or containing OCCURS DEPENDING ON below 2002 (1985 SR4)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateInitialize",
+    "switches": "the figurative-to-numeric MOVE edition rows per REPLACING NUMERIC/NUMERIC-EDITED sender",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|ConstructRegistry|CobolVersion|Constructs. in InitializeBinder.cs, BoundInitialize.cs and InitializeEmitter.cs: ctx.Edition there is only the diagnostic sink; the expansion, qualification, sender choice and emitter are edition-blind, and the edition is consulted only by VersionConformancePass's post-85 surface gates.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "ini1, ini4, ini5 and ini6 print the same output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.17.4-1",
+  "refutation": "OVERTURNED",
+  "classes": "c,d",
+  "evidence": "rini3.cob (01 WA PIC A(3) VALUE 'abc'): INITIALIZE WA (2:1) REPLACING ALPHABETIC DATA BY 'Q' printed M1[abc] (expected aQc), and INITIALIZE WA (2:1) REPLACING ALPHANUMERIC DATA BY 'Q' printed M2[aQc] (expected abc); run_case --expect DIFFERS at --std 85 (rini3-001) and at --std 2023 (rini3-002). 1985 makes a reference-modified alphabetic item ALPHABETIC: only numeric, numeric edited and alphanumeric edited become alphanumeric. cite.py: OK  §1985:IV.4.3.8.4.4 GR5 'the unique data item has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric'; OK  §1985:VI.6.17.4 GR1 'corresponds to a category of data as defined elsewhere in this document'; OK §1985:VI.5.9.4 GR2a. Cause: InitializeBinder.cs#BindInitializeTarget, the 'place is RefModPlace' arm (line 266), hard-codes InitializeCategory.Alphanumeric for every reference-modified identifier-1 (comment cites a 2023 rule) and never asks the category of data-name-1. The reader's own note ('a reference-modified item is alphanumeric') states the wrong rule. Other categories checked and correct (rini1-002): ref-mod numeric, numeric edited and group to spaces; ***.**, ZZZ.ZZ, +ZZ9, ---9, 999DB, 9B9, 00099, $$$.99, 99/99, X0X, 9X/, 9X, S9(3) TRAILING SEPARATE all right with and without REPLACING. No kb/Work note found (grep of kb/Work for INITIALIZE with reference modification and alphabetic).",
+  "edition-sites-missed": [],
+  "corrected": "Non-conforming (wrong-answer, cause b: same at --std 2023): a reference-modified alphabetic identifier-1 is put in category alphanumeric, so REPLACING ALPHABETIC skips it and REPLACING ALPHANUMERIC stores into it, against §1985:IV.4.3.8.4.4 GR5 and §1985:VI.6.17.4 GR1/GR2b. Repro rini3.cob; expected M1[aQc] M2[abc], observed M1[abc] M2[aQc]."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "INITIALIZE ... REPLACING treats a reference-modified alphabetic item as alphanumeric, so the wrong REPLACING phrase applies (`M2[aQc]` where `abc` is right). Both editions keep the item's category. Leads: the same \"a reference-modified slice is always alphanumeric\" assumption is written in `MoveOverlap.cs` and `ExpressionBinder.cs`, not probed.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ },
+ "work": "PB5813"
+}

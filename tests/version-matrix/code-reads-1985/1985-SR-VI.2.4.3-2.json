@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-SR-VI.2.4.3-2",
+ "rule-digest": "696eb790bddb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-049",
+  "sources": {
+   "reader": "10dca661834ae36992a491f98e1f7036352d6834b1823ead606ba66e666e3cd8",
+   "refuter": "c6c580ba56f1b3930b355fe8d0149fff62abb7811726ac73a12ff5d5031b511b"
+  },
+  "imported": {
+   "reader": "6b662df2c2a694b24b6dc8c68dcb26fd26f79b9c5dae03d776b9a4118f07e56e",
+   "refuter": "09d350b2b8c8d30447215d62cb79cd7e83294939c83a469c4ce1b479645c5871"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.2.4.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an END PROGRAM header whose program-name is not the (case-folded) program-name declared in the PROGRAM-ID paragraph of the program it ends must be refused, for a single program, a sequence of separately compiled programs, and nested programs; a matching name (any letter case, 1985 lowercase equivalence) must be accepted.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#Run; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ContainedNames; src/WiseOwl.Cobol.Runtime/CobolNames.cs#Same; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs",
+  "edition-consulted": [],
+  "edition-search": "Read EndMarkerPass.cs whole; grep 'Version|Edition\\.|IsAtLeast|Std' in it finds nothing: the EditionContext parameter is used only for edition.At (location) and edition.Error (EditionContext.Error records the diagnostic without consulting the edition). The grammar rule endProgramHeader has no version predicate. The same code runs at every --std.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb988 covers a single-program name mismatch; it does not exercise a sequence of separately compiled programs, nested programs, or letter-case equivalence",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c1-mismatch.cob",
+    "printed": "EXIT 65; error COBOL2793: the end marker names 'PROGZ', but the program-name declared in the PROGRAM-ID paragraph it ends is 'PROGA' (ISO §2023:10.7.3 SR2)",
+    "expected": "refused: name must be identical to the PROGRAM-ID name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c1-seq-other.cob",
+    "printed": "EXIT 65; second program PROGB closed by END PROGRAM PROGA refused COBOL2793 (SR2)",
+    "expected": "refused: GR1 the header ends the program it names, so PROGB is not ended by END PROGRAM PROGA"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c1-nested-ok.cob",
+    "printed": "EXIT 0; INNER / OUTER",
+    "expected": "accepted (nested programs, 1985 Inter-Program Communication level 2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c1-nested-swap.cob",
+    "printed": "EXIT 65; two COBOL2793 errors: end markers of nested programs out of order (SR3)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c1-match-lower.cob",
+    "printed": "EXIT 0; RAN",
+    "expected": "accepted: 1985 lowercase letter equivalent to uppercase in words"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c1-endfunction.cob",
+    "printed": "EXIT 65; COBOL2274 END FUNCTION cannot close a program definition",
+    "expected": "refused: 1985 format is END PROGRAM program-name only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.2.4.3 SR2",
+    "check": "OK  §1985:VI.2.4.3 SR2  (║2.4.3 Syntax Rules║)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.2.4.4 GR1",
+    "check": "OK  §1985:VI.2.4.4 GR1  (║2.4.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "EndMarkerPass screens every END PROGRAM marker against the PROGRAM-ID it closes, pre-bind and edition-blind; the 1985 range (single, sequence, nested, case) is refused or accepted as the text requires. The diagnostic cites ISO §2023:10.7.3 even at --std 85 (cosmetic, the rule is the same).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "c1-mismatch at --std 2023: the same COBOL2793 SR2 refusal",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs": "call of EndMarkerPass.Run pre-bind"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.2.4.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read EndMarkerPass.cs whole (Run, ScreenProgram, ContainedNames, Report) and the grammar (programUnit, nestedProgram, endProgramHeader, programName = cobolWord | reservedGatedWord): the name test is CobolNames.Same over the marker and the PROGRAM-ID name, edition-blind, run pre-bind on every unit and every nested unit. Probes at --std 85 (refute-1985-049/src/r1-*.cob) on what the reader did not try: END PROGRAM PROGB closing PROGA where PROGB is declared only LATER (not 'a preceding PROGRAM-ID') -> COBOL2793 SR2; a nested sibling closed with an earlier sibling's name (PB ... END PROGRAM PA) -> COBOL2793 SR2 (PA preceded, but GR1: the header ends the program it names, and PA is already ended); PROG-A closed by END PROGRAM PROGA -> COBOL2793 (no hyphen folding); END PROGRAM \"PROGA\" (literal, not a user-defined word) -> COBOL5506; an inner program left unclosed so END PROGRAM OUTER stands in its place -> COBOL2793 SR1 + SR3; three-deep nesting with the 1985 IS COMMON PROGRAM / IS INITIAL PROGRAM attributes and mixed-case markers (END PROGRAM inner / Mid / OUTER) -> EXIT 0 INNER MID; a program named with a word reserved only in later editions (PROGRAM-ID. typedef ... END PROGRAM TYPEDEF) -> EXIT 0 A. cite.py: OK  §1985:VI.2.4.3 SR2  (║2.4.3 Syntax Rules║)  the text is in SR2; OK  §1985:VI.2.4.4 GR1  (║2.4.4 General Rules║)  the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

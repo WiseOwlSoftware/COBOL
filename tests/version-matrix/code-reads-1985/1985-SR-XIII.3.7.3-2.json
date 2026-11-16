@@ -1,0 +1,118 @@
+{
+ "rule-id": "1985-SR-XIII.3.7.3-2",
+ "rule-digest": "f578c5587023",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-078",
+  "sources": {
+   "reader": "b0bd5c2450046e0dd7a170d5666b191062e8062c4935c1bcaccc2bdaea756290",
+   "refuter": "5d47e263f056ccc1b2ad9a07051a4408b8f30631fb90247c56a4af11c777622c"
+  },
+  "imported": {
+   "reader": "00e5a1eb280df87fdc453433500964f52a808cfbf8bfd3bacf91c65cfba98f49",
+   "refuter": "02eacb36f917ce22da473e7d11a72f264583e03c18b9cb0db7fc7dd377359c6f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.7.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the compiler must refuse a CONTROL clause in which two recurrences of data-name-1 identify the same data item, however each is spelled (unqualified or qualified, XIII.3.7.3 SR1), and accept operands that identify different items (including a group and its subordinate, or a REDEFINES of an operand).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenControlItemsDistinct; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#LookupQualified; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenControlItemsDistinct",
+    "switches": "returns at DialectLevel >= 2002: the resolved-item comparison (1985 SR2) runs only below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+    "switches": "Edition.DialectLevel >= 2002 guards the written-reference uniqueness loop (§2023:13.18.16.3 SR6); skipped at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (Check of Constructs.ReportControlReferenceModification2002)",
+    "switches": "a reference-modified CONTROL operand is refused below 2002 (COBOL0900), so the ref-mod exemption in ScreenControlItemsDistinct is unreachable at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef",
+    "switches": "Edition.SubscriptedClauseOperands (2002 only): a subscripted operand is refused at 85, as at 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 'CONTROLS ARE CX CX OF WG' (one item, two spellings) is refused (COBOL1699 citing §1985:XIII.3.7.3 SR2); at 2023 the same program compiles and runs (exit 0, 'OK') because 2023 SR6 asks only that the written references differ",
+  "witnesses-cover": "part: pb205-control-operand-not-unique covers the identical spelling twice; the qualified/unqualified spellings of one item and the legal different-item cases are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/ctldup.cob",
+    "printed": "COBOL1699 CONTROL operand 'CX' identifies the data item 'CX' that 'CX' already identifies (§1985:XIII.3.7.3 SR2), exit 65",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/ctlqual.cob",
+    "printed": "at 85: COBOL1699 'CX OF WG' identifies the data item 'CX' that 'CX' already identifies, exit 65; at 2023: exit 0, OK",
+    "expected": "refused at 85: both recurrences identify one item"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/ctlqual2.cob",
+    "printed": "COBOL1699 'CX OF WG' vs 'CX IN WG', exit 65 (FINAL WG CX OF WG CX IN WG)",
+    "expected": "refused: OF and IN spell the same item"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/ctlredef.cob",
+    "printed": "exit 0, OK (CONTROLS ARE CX CY, CY REDEFINES CX)",
+    "expected": "accepted: two different data items"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/ctlgrpelt.cob",
+    "printed": "exit 0, OK (CONTROLS ARE WG CX, CX subordinate to WG)",
+    "expected": "accepted: a group and its subordinate are different data items"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/ctlrm.cob",
+    "printed": "COBOL0900 reference-modified control name requires COBOL-2002, twice, exit 65",
+    "expected": "refused at 85: data-name-1 is a data-name, qualification only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.7.3 SR2",
+    "check": "OK  §1985:XIII.3.7.3 SR2  (3.7.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XIII.3.7.3 SR1",
+    "check": "OK  §1985:XIII.3.7.3 SR1  (3.7.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The 1985 rule has an arm of its own. ResolveReports looks each operand up, then ScreenControlItemsDistinct compares the RESOLVED DataItem objects with ReferenceEquals; the 2002+ written-reference loop is off below 2002. The probes refuse one item spelled two ways at 85 and accept it at 2023, as each edition's text requires.",
+  "seeded": true,
+  "at-2023": "ctlqual compiles and runs (different, and correct for 2023 SR6)",
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.7.3-2",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,d",
+  "evidence": "At --std 85: ctlmulti (CONTROLS ARE CX OF WG OF REC CX OF REC, one item) gives COBOL1699 citing §1985:XIII.3.7.3 SR2, exit 65. ctlfin (FINAL CX CZ CX OF WG, with a non-adjacent repeat) gives COBOL1699, exit 65. ctl2grp (CX OF WG1 CX OF WG2, two items with one name) exit 0, OK. So the resolved-item comparison is right. The case the reader did not try is ctlren: 01 WG with 05 CX and 05 CZ, then 66 RX RENAMES CX, and CONTROLS ARE CX RX. It CRASHES: exit 1, 'Unhandled exception: System.InvalidOperationException: no Place was built for data item 'RX' when binding finished' (PlaceTable.Of via PlaceTablePass.TableOf). ctlren1 (CONTROLS ARE RX alone) crashes the same way. ctlren0 (RX declared, CONTROLS ARE CX) exit 0, OK. ctlren at --std 2023 crashes identically, so the cause is (b). A level-66 name is a data-name, and OK §1985:XIII.3.7.3 SR1 'Data-name-1 must not be defined in the Report Section' is SR1's only bar on the operand. The RENAMES is legal (OK §1985:VI.5.11.3 SR4 'must be names of elementary items or groups of elementary items'). RX is its own entry with CX's attributes (OK §1985:VI.5.11.4 GR2). Reading: RX and CX are different data items (the same storage, like the REDEFINES pair the reader accepted), so OK §1985:XIII.3.7.3 SR2 'Each recurrence of data-name-1 must identify a different data item' admits CX RX, and the compiler crashes instead of compiling it. Under the opposite reading (one item) SR2 refuses it, and the compiler crashes instead of refusing. Either way this operand class gets no SR2 verdict. The crash is in the CONTROL operand's place building (PlaceTablePass), not in ScreenControlItemsDistinct. That is why I mark this DOUBTFUL rather than OVERTURNED. No kb/Work note found (searched kb/Work for RENAMES together with CONTROL operand/clause; PB2375 is only the extraction the message names).",
+  "edition-sites-missed": [],
+  "corrected": "SR2's resolved-item arm (ScreenControlItemsDistinct) is right for every operand that binds. A level-66 RENAMES operand crashes the compile at every edition (harm: crashes, cause b), so this rule has no verdict for that operand class. File it as a new defect against the CONTROL operand path (ReportSectionBinder.ResolveReports, then PlaceTablePass)."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "THE COMPILER CRASHES ON LEGAL SOURCE. A level 66 item that renames one elementary item, named as FILE STATUS, LINAGE, DEPENDING ON, RELATIVE KEY or a report CONTROL, ends the compiler with an unhandled `System.InvalidOperationException` (\"no Place was built for data item\"), at 85 and at 2023, with no COBOL diagnostic. Each use is legal: \"all of the data attributes of data-name-2 become the data attributes for data-name-1\" (`§1985:VI.5.11.4 GR2`). I ran the FILE STATUS case. Not probed: SORT and MERGE keys, SUM operands, RECORD KEY. For `1985-SR-XIII.3.7.3-2` the row's own check is right for every operand that compiles.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5801"
+}

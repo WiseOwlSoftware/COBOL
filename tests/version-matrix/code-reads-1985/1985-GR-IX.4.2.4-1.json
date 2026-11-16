@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-IX.4.2.4-1",
+ "rule-digest": "b4152c377ea4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-007",
+  "sources": {
+   "reader": "1290c16924a69b66758bfada8555bbb4fea7f9d51b7f458e54c7ce5b78fd4a05",
+   "refuter": "613c822c869be30f20ba72b6ba07bce073a9faceeb08eb1d86231c89e7f04a4f"
+  },
+  "imported": {
+   "reader": "2b3a74aaf97aa5fb256f3215341fe3ab05746fea693be7844bc85f4ca3b1a8c5",
+   "refuter": "55bdcdde2c68cccd70a782ec07e278c3cdca35db4a1cb466d4deb7a6da74299e"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.4.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a CLOSE of an indexed file not in an open mode (never opened, already closed, after a failed OPEN) is unsuccessful with '42' (§1985:IX.1.3.4), performs no closing action, and runs the file's applicable USE procedure.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedClose; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#CloseCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "Constructs.CloseWithLockRemoved2023: CLOSE WITH LOCK accepted at 85/2002/2014, refused COBOL0902 at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (from 2002): at 85 the lock is set on the physical file's state, from 2002 on the connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "the same behavior, the OPEN-side test of that lock ('38')",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehaviors./Edition/CobolVersion in FileRegistry.cs, FileConnector.cs, KeyedConnector.cs, IndexedConnector.cs, SequentialIoEmitter.cs#EmitClose and VersionConformancePass.cs: the plain CLOSE path (SequentialIoEmitter#EmitClose -> FileRegistry#CloseByFormat/#CloseCell -> FileConnector#Close -> KeyedConnector#CloseCore) consults no edition; only the WITH LOCK arm does.",
+  "behaviour-differs-by-edition": "no for the not-open guard; CLOSE WITH LOCK has 85-specific arms (a physical-file lock; refused at 2023)",
+  "witnesses-cover": "part: pb140_close_status uses a SEQUENTIAL file; no witness closes an INDEXED file that is not open",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/close1.cob",
+    "printed": "NEVER-OPEN=42 CLOSE-AGAIN=42 MULTI=00 42 MISSING-OPEN=35 MISSING-CLOSE=42 LOCK-CLOSE2=42",
+    "expected": "'42' for every CLOSE of a file not open (never opened, closed, after a '35' OPEN); the other file of a multi-file CLOSE still closes"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/close2.cob",
+    "printed": "USE-IX 42 IX-NOTOPEN=42 USE-IR 39 IR-OPEN=39 USE-IR 42 IR-CLOSE-AFTER-39=42",
+    "expected": "'42' when never opened and after a '39' OPEN, with the USE AFTER STANDARD ERROR procedure run"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/ref.cob",
+    "printed": "CLOSE IX WITH NO REWIND / UNIT / REEL FOR REMOVAL: COBOL1693; bare CLOSE: COBOL0001",
+    "expected": "85's indexed CLOSE format has only WITH LOCK"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.2.4 GR1",
+    "check": "OK  §1985:IX.4.2.4 GR1  (4.2.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5b (I-O Status = 42, CLOSE of a file not in the open mode)"
+   }
+  ],
+  "notes": "FileRegistry#CloseCell puts the not-open guard ahead of every closing action and FileConnector#Close repeats it; no edition is consulted on it. COBOL1693's message cites §2023:14.9.6.3 SR1 at --std 85 (a citation of another edition, not a wrong refusal)."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "cite.py OK §1985:IX.4.2.4 GR1 (reader's line re-used, text read at specs/ANSI_COBOL_1985.md 19036). Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-007/cls1.cob --std 85: OPEN while open REOPEN-WHILE-OPEN=41, the file stays open and CLOSE-AFTER-41=00, CLOSE-AGAIN=42; an EXTERNAL indexed file closed in a nested program: SUB-CLOSE=00, READ-AFTER-SUBCLOSE=47, CLOSE-AFTER-SUBCLOSE=42; CLOSE after a '38' OPEN: IR-CLOSE-AFTER-38=42, IQ-CLOSE=42, IP-CLOSE=42. OPEN EXTEND of a DYNAMIC indexed file is refused COBOL2372 at 85 (another rule).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

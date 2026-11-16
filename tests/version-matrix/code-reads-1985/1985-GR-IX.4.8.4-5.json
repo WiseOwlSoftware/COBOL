@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-IX.4.8.4-5",
+ "rule-digest": "635a5d323660",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-100",
+  "sources": {
+   "reader": "9e5378ca97e05fd5bba8e43b47606534d2137f69cec1c0ac4622461e31655677",
+   "refuter": "d533c8ba750d4760f54937eb28a6e16e363a8fe9911fbefaff634446f6c2abe6"
+  },
+  "imported": {
+   "reader": "dfa046afcc702bbb5a74106c64160365a2e59a0361afab0bb3411e3e9c289762",
+   "refuter": "bef630a7a9ea13e739092435efabe648c0302aa0770685a4013d71f5787d3783"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.8.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a USE procedure runs after an unsuccessful I-O operation unless the statement's AT END phrase (for the at-end condition) or INVALID KEY phrase (for the invalid key condition) takes precedence: a named-file USE for its file (a), and an INPUT/OUTPUT/I-O/EXTEND USE for any file open, or being opened, in that mode and not named by another USE (b-e).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#InvalidKey; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenModeView; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#BeginOpen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "refuses USE Format 3/4 (EC model, COBOL0877) and Format 1 without AFTER/PROCEDURE below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 adds the SORT GR17 exit filter to an EC-free __RunUse; 1985 takes the bare try/finally invoker (same dispatch, same return to the caller)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "UseTierEmitter.EmitScopeTiers (file-name tier then open-mode tier), DispatchEmitter.EmitUseMachinery (__IoCheck), ProgramEmitter.EmitRunGlobalUse/ChainHasGlobalUse consult no edition: grep of Edition|CobolVersion|DialectLevel|DialectBehavior|IsAtLeast over DispatchEmitter.cs, UseTierEmitter.cs, EcEmitter.cs, ProgramEmitter.cs, SequentialIoEmitter.cs, KeyedIoEmitter.cs, IoStatusClass.cs, ProcedureTableBuilder.cs; UseTierEmitter's remarks record the tiers as edition-invariant by determination (kb/Work PB344). __IoCheck's AT END / INVALID KEY precedence tests (IoStatusClass.AtEnd/InvalidKey on the status) are edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf26_08 covers a-e on indexed files with READ/WRITE/OPEN; not a non-invalid-key status on a statement that has INVALID KEY (48), the 46 after at end under AT END, START/DELETE/REWRITE, OPEN I-O of an absent file, or a CLOSE of a file not open",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr5_precedence.cob",
+    "printed": "USE-I-O 00 35 (failed OPEN I-O); USE-INPUT 48 and no WR-INVALID-KEY (WRITE on a file open INPUT); ST-INVALID-KEY 23 and no USE; USE-INPUT 23 (START, no phrase); AT-END-2 10 and no USE; USE-INPUT 46 and no AT-END-3; DEL-INVALID-KEY 23 and no USE; USE-I-O 23 (REWRITE, no phrase); CLOSE-NOT-OPEN 42 and no USE",
+    "expected": "a phrase takes precedence only for its own condition; the mode USE runs for the open or being-opened mode; no mode USE for a file not open"
+   },
+   {
+    "class": "e",
+    "file": "conformance-suite/cases/IX.4.8@1985-USE-STATEMENT/g85_bf26_08.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.8.4 GR5",
+    "check": "OK  §1985:IX.4.8.4 GR5  (4.8.4 General Rules)  the text is in GR5",
+    "quoted": "unless an AT END or INVALID KEY phrase takes precedence"
+   }
+  ],
+  "notes": "__IoCheck returns early only when the status is in the family of the phrase written, then selects the file-name tier and then the open-mode tier; OpenModeView answers the mode being opened during an OPEN. Every probe line matched the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.8.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "r5_success.cob (r5_success-001): no USE ran for the successful statuses 02 (WRITE duplicate alternate WITH DUPLICATES; READ by duplicate alternate) and 05 (OPEN INPUT and OPEN I-O of an absent OPTIONAL indexed file); the 21 sequence error on a sequential-access WRITE with INVALID KEY ran SEQ-INVALID 21 and no USE; the 21 on an EXTEND WRITE without a phrase ran USE-EXTEND 21. r5_named.cob (r5_named-001): on a file not open, READ NEXT with AT END (47), WRITE with INVALID KEY (48), START with INVALID KEY (47) and random READ with INVALID KEY (47) each ran the named USE and not the phrase; READ NEXT after AT END ran AT-END-RIGHT 10 then USE-NAMED 46. Every line matches GR5 a-e. cite.py: 'OK  §1985:IX.4.8.4 GR5  (4.8.4 General Rules)  the text is in GR5' for 'unless an AT END or INVALID KEY phrase takes precedence'. Runtime edition sites in IO grep (DialectBehaviors.IsActive): IndexedConnector.cs:580 IndexedDuplicateKeyStatusSequentialOnly changes only whether the successful 02 is returned, which never reaches a USE.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs (line 580, DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly): whether a READ returns 02 at 85; a successful status, so no USE either way"
+  ],
+  "corrected": ""
+ }
+}

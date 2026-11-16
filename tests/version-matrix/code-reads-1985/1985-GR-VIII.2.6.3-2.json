@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-GR-VIII.2.6.3-2",
+ "rule-digest": "05a4846d6432",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-130",
+  "sources": {
+   "reader": "82310cf41338ae9e7c482c179d67010eaf9e7e6d944aefbc8817fd8fb807316d",
+   "refuter": "3d556626bd58f455ba5b06e4a7e057b06372450d68af16a584207b701c1e7e2f"
+  },
+  "imported": {
+   "reader": "c843f4d4a472953d9aba26dada45b3da887f0b070ee45730a303200dbf0b1ae7",
+   "refuter": "7e98c78d5859eb9274555761d85cad263313b2d04b82e815cb31f388c97735cb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.6.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the Sequential I-O SAME clause (§1985:VII.2.13) must hold for relative files: operands are files of this program's FILE-CONTROL and not external, a file in at most one SAME AREA and one SAME RECORD AREA clause, a SAME AREA group wholly inside any SAME RECORD AREA it shares a file with, mixed organizations and access modes allowed, and a SAME RECORD AREA record is one area aligned leftmost for every open output file and the most recently read input file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "below 2002 the report-file row admits SAME SORT/SORT-MERGE AREA; relative (Other-kind) files take the same row at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition.Edition.Year|DialectLevel over FileControlBinder.IoControl.cs: the only edition axis is the report-file row of SameOccurrenceRule; the sharing itself (LinkSameRecordArea's implicit redefinition) is edition-free.",
+  "behaviour-differs-by-edition": "no: for relative files the SAME rules and the shared record area are the same at 85 and 2023 (only report files differ)",
+  "witnesses-cover": "part: the witness covers SAME AREA plus SAME RECORD AREA on three relative files; it does not exercise the SR1/SR2/SR3a/SR3b/SR3c refusals, mixed organizations (SR4), variable-length records, or the most-recently-read rule across organizations",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/s_b1.cob; s_b1d.cob; s_b2.cob; s_b3.cob; s_b4.cob; s_b5.cob; s_b6.cob",
+    "printed": "COBOL2738 for each: 'RX' / 'NOTAFILE' is not a file of FILE-CONTROL; R1 references an external file connector; R1 in more than one file-area clause; R2 in more than one record-area clause; SAME RECORD AREA shares files with SAME AREA but omits 'R2'; SAME RECORD AREA names only one file",
+    "expected": "refused (§1985:VII.2.13.3 SR1, SR2, SR3a, SR3b, SR3c; the format's file-name-2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/s_ok3c.cob; s_okdisj.cob",
+    "printed": "EXIT 0",
+    "expected": "accepted: SR3c lets the record-area clause name additional files"
+   },
+   {
+    "class": "a,d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/psame.cob",
+    "printed": "A1 [51][234] [51][2345] / A2 00 00 00 / B1 00 / C1 00 06 [51234] / C2 00 [512345] / C3 00 [512345] / D1 00 [R2REC1]",
+    "expected": "relative (dynamic, ODO, VARYING), relative sequential, sequential and indexed files in one SAME RECORD AREA: one area aligned leftmost for output files and the most recently read input file (§1985:VII.2.13.4 GR2): matches"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/psame2.cob",
+    "printed": "BOTH 00 00",
+    "expected": "two SAME AREA files open at once: 'not valid' (§1985:VII.2.13.4 GR1) with no result specified; the run continues"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/VIII.2.6@1985-I-O-CONTROL-PARAGRAPH/g85_bf07_07.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "its .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.6.3 GR2",
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.2.6.3 GR2\" \"The SAME clause for the Relative I-O module is the same as the SAME clause for the Sequential I-O module\" -> OK  §1985:VIII.2.6.3 GR2  (2.6.3 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.2.13.3 SR3",
+    "check": "python scripts/spec/cite.py --check \"§1985:VII.2.13.3 SR3\" \"A file-name must not appear in more than one SAME AREA clause\" -> OK  §1985:VII.2.13.3 SR3  (2.13.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VII.2.13.4 GR2",
+    "check": "python scripts/spec/cite.py --check \"§1985:VII.2.13.4 GR2\" \"records are aligned on the leftmost character position\" -> OK  §1985:VII.2.13.4 GR2  (2.13.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.2.13.4 GR1",
+    "check": "python scripts/spec/cite.py --check \"§1985:VII.2.13.4 GR1\" \"it is not valid to have more than one of these files in the open mode at the same time\" -> OK  §1985:VII.2.13.4 GR1  (2.13.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Relative files go through the same SAME binder as sequential files, and every imported rule holds at 85. GR1 calls two SAME AREA files open at once 'not valid' but gives no result, and the runtime does not detect it (psame2), which a conforming program cannot observe. Diagnostics cite 2023 clause numbers.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.6.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "same_glob.cob / same_glob2.cob: a contained program's SAME RECORD AREA / SAME AREA naming the container's GLOBAL relative file refused COBOL2738 (§1985:VII.2.13.3 SR1, 'FILE-CONTROL paragraph of the same program'). same_ac.cob: APPLY COMMIT (a 2023 I-O-CONTROL clause) beside a SAME clause at --std 85 refused COBOL0900; it also emits a 2023-only COBOL2974 (§2023 SR11) at 85, a cascade diagnostic, not a verdict change. Reader's runtime probes (psame) cover GR2 alignment. cite.py: OK §1985:VII.2.13.3 SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

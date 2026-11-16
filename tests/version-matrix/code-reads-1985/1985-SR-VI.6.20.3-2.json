@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-SR-VI.6.20.3-2",
+ "rule-digest": "5bf79201b988",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-058",
+  "sources": {
+   "reader": "17c9a50c0599b55c526ec793a2d8245cb2c8f0691c3a03cba568a17c9962d3a5",
+   "refuter": "ae091fd372e0f5d6c34cb408fab426558f4ac6e99628334a1503734ae59c85a0"
+  },
+  "imported": {
+   "reader": "24142521d731f1f2b7827602593565f9f4b35c91d098fc1b92f379da1e4da503",
+   "refuter": "6f5efd0ec9fc7e2d962811ffdcb65631582e045536aec75921283872b7868993"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.20.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 literal-1 and literal-2 of MULTIPLY must be numeric literals; a nonnumeric literal or any figurative constant other than ZERO (ZEROS, ZEROES, with or without ALL at 85, §1985:IV.4.2.2.2.3 SRL3.1) is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NumLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ZeroOperand; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsArithmeticOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric",
+    "switches": "ConstructRegistry figurative-all-zero-numeric-removed-2002: ALL ZERO as a numeric literal admitted at 85, COBOL0902 from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs (rows hex-alphanumeric-literal-2002 and the national-literal row)",
+    "switches": "X\"..\" and N\"..\" literals require 2002 (COBOL0900); they are also refused here as nonnumeric (COBOL0844)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read NumLiteral -> NonNumericInNumericContext -> ZeroOperand; the only edition consult is the ALL ZERO construct gate; grepped for DialectLevel/ConstructRegistry in ExpressionBinder.",
+  "behaviour-differs-by-edition": "yes: MULTIPLY ALL ZERO BY N is legal at 85 (ALL before a figurative constant is redundant, 1985 SRL3.1 bars only non-ZERO figuratives) and refused from 2002 (COBOL0902); the 85 arm admits it, as the 1985 text requires",
+  "witnesses-cover": "part: witnesses cover alphanumeric literals as literal-1; not exercised are figurative constants (SPACE, HIGH-VALUE, QUOTE, LOW-VALUES, ALL literal), ZERO/ALL ZERO, Format-2 literal-2, and signed/decimal numeric literals",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/mullit.cob",
+    "printed": "COBOL0844 on \"12\" (literal-1), SPACE, HIGH-VALUE, \"3\" (Format-2 literal-2), ALL \"1\", QUOTE, LOW-VALUES; MULTIPLY 2 BY 3 GIVING N3 accepted",
+    "expected": "every nonnumeric literal and non-ZERO figurative refused; two numeric literals in Format 2 accepted"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/mulpos.cob",
+    "printed": "D 0000 (MULTIPLY ZERO BY N4), E 0000 (MULTIPLY ALL ZERO BY N5), B -003.75 (2.5 literal), I -006.00 (-2 BY 3 GIVING)",
+    "expected": "ZERO and ALL ZERO legal at 85 and value 0; signed and decimal numeric literals legal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/mulall.cob",
+    "printed": "--std 2023: COBOL0902 ALL ZERO removed in COBOL-2002",
+    "expected": "later edition refuses what 85 admits (edition arm visible)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/mulhex.cob",
+    "printed": "--std 85: COBOL0844 + COBOL0900 for X\"31\" and N\"1\"",
+    "expected": "post-85 literal forms refused at 85 and not numeric in any case"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.20.3 SR2",
+    "check": "OK  §1985:VI.6.20.3 SR2  (6.20.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3 SRL3.1",
+    "check": "OK  §1985:IV.4.2.2.2.3 SRL3.1  (4.2.2.2.3 Figurative Constant Values)  the text is in SRL3.1"
+   }
+  ],
+  "notes": "One nonnumeric-literal reading serves every arithmetic operand; at 85 it admits ZERO and ALL ZERO and refuses every other figurative and nonnumeric literal. The COBOL0902 text at 2023 cites '§1985:IV.4.2.2.2.3 SR1', which cite.py says is SRL3.1 (a citation slip in a 2002+ diagnostic, not this rule's behaviour).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.20.3-2",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "rm2lit at --std 85: symbolic-character SYM-ONE as literal-1 and Format-2 literal-2, ALL SYM-ONE, ALL SPACES, ALL QUOTES, ALL HIGH-VALUES all refused COBOL0844; the 2002 forms 1.5E2 (floating-point literal), \"1\" & \"2\" (concatenation) and B\"1\" (boolean) refused with COBOL0900 (and COBOL0844). rm2pos: MULTIPLY ZEROES BY ZEROS GIVING N1 -> A 0000; MULTIPLY 7 BY ALL ZEROES -> B +0000.00 (ALL redundant before a figurative other than ALL literal, §1985:IV.4.2.2.2.3 SRL3.3 reading); +.5 BY -4 -> C -0002.00; 18-digit literal BY 0 -> D 0000. cite.py: OK §1985:VI.6.20.3 SR2 the text is in SR2; OK §1985:IV.4.2.2.2.3 SRL3.1 the text is in SRL3.1 ('the only figurative constant permitted is ZERO (ZEROS, ZEROES)').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

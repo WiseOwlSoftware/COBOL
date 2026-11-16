@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-GR-VIII.3.2.4-2",
+ "rule-digest": "92b9b9e941df",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-130",
+  "sources": {
+   "reader": "82310cf41338ae9e7c482c179d67010eaf9e7e6d944aefbc8817fd8fb807316d",
+   "refuter": "3d556626bd58f455ba5b06e4a7e057b06372450d68af16a584207b701c1e7e2f"
+  },
+  "imported": {
+   "reader": "5e4cbb55078419e9547012dd6c824c6e6fc68165d09a85bcdef947ed015e2a15",
+   "refuter": "fbe23938d19e3826c2309cb65ff7a63c293fa3ce5131fadd32d46cc769ba9a8a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.3.2.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a relative FD must accept the Sequential I-O BLOCK CONTAINS clause (§1985:VII.3.3) in every form its format allows: integer-2 alone or integer-1 TO integer-2, RECORDS or CHARACTERS or neither (CHARACTERS implied), with the 1985 integer rule (no zero, no sign), no ordering rule on the pair, and the same values in every BLOCK CONTAINS clause of an external connector's descriptions (GR5).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionIdentity.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#CheckFileDescriptions",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause",
+    "switches": "the integer-2 > integer-1 rule applies only from 2002 (§2023:13.18.10.3 SR1); at 85 equal and inverted bounds translate",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "below 2002 CheckFileDescriptions asks GR5 (BLOCK CONTAINS agreement across an external connector's FDs, COBOL6847)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots",
+    "switches": "IntegerOperandRules.Classify(ctx, DialectLevel): the slot's zero permission and the message's citation (§1985:III.2 at 85); BLOCK CONTAINS 0 is refused (COBOL2386), the nonzero slot as at the latest edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition over FileControlBinder.FileSection.cs, ExternalFileConnectorRules.cs, FileDescriptionIdentity.cs, IntegerOperandPass.cs.",
+  "behaviour-differs-by-edition": "yes: at 85 BLOCK CONTAINS 40 TO 8 and 8 TO 8 compile (2023 refuses 40 TO 8 with COBOL2009), and external FDs must agree on BLOCK CONTAINS (1985-only GR5)",
+  "witnesses-cover": "part: the witness has '2 RECORDS' and '20 TO 400 CHARACTERS'; it does not exercise the bare or CHARACTERS-implied forms, equal or inverted bounds, zero or signed integers, a repeated clause, or GR5's external agreement",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/blk_rec.cob; blk_chr.cob; blk_bare.cob; blk_range.cob; blk_eq.cob; blk_inv.cob; blk_none.cob",
+    "printed": "each EXIT 0, R 00 ABCD",
+    "expected": "accepted at 85 (the 1985 clause has no syntax rules; GR4 min/max), and the file works"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/blk_zero.cob; blk_neg.cob; blk_twice.cob",
+    "printed": "COBOL2386 the integer operand 0 shall be nonzero (§1985:III.2); COBOL0001/COBOL1970 unexpected '-'; COBOL2423 clause written 2 times",
+    "expected": "refused"
+   },
+   {
+    "class": "e,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/ext_same.cob; ext_diff.cob; ext_absent.cob",
+    "printed": "same: B EXT2 2; diff: error COBOL6847 ... (\"2..5\" against \"2..6\") ... (ISO §1985:VII.3.3.3 GR5); absent in one FD: B EXT2 2",
+    "expected": "GR5: BLOCK CONTAINS clauses of one external connector must agree; a description without the clause is not a clause to compare"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-130/src/blk_inv.cob",
+    "printed": "--std 2023: error COBOL2009 integer-2 shall be greater than integer-1",
+    "expected": "the edition arm: refused at 2023, accepted at 85"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/VIII.3.2@1985-FILE-DESCRIPTION-ENTRY/g85_f17_05.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "its .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.3.2.4 GR2",
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.3.2.4 GR2\" \"the specifications for the BLOCK CONTAINS clause are located on page VII-23\" -> OK  §1985:VIII.3.2.4 GR2  (3.2.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.3.3.3 GR4",
+    "check": "python scripts/spec/cite.py --check \"§1985:VII.3.3.3 GR4\" \"they refer to the minimum and maximum size of the physical record, respectively\" -> OK  §1985:VII.3.3.3 GR4  (3.3.3 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VII.3.3.3 GR5",
+    "check": "python scripts/spec/cite.py --check \"§1985:VII.3.3.3 GR5\" \"must have the same value for integer-1 and integer-2\" -> OK  §1985:VII.3.3.3 GR5  (3.3.3 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "BLOCK CONTAINS has no effect on disk storage (GR1 to GR3 are implementor or environment matters), so the observable obligations are acceptance, the integer rule and GR5, and all hold at 85. The '-2' refusal is a parse error, not a named integer-rule message.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.3.2.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "Rendered PDF pages 397 (VII-23) and 444 (VIII-14): {RECORDS|CHARACTERS} are braces with CHARACTERS not underlined (the transcription of page 444 wrongly underlines CHARACTERS), so by §1985:IV.2.1.4 CHARACTERS is the default and the bare form is legal; blk_nocont.cob 'BLOCK 4.' compiles and runs (R 00 ABCD). Refusals: blk_plus '+2 RECORDS' and blk_plus1 '+1 TO 4' refused (parse error COBOL0001/1970); blk_dec '2.0 RECORDS' refused COBOL5506; blk_zero1 '0 TO 4' refused COBOL2386 (§1985:III.2 integer neither signed nor zero); blk_both 'RECORDS CHARACTERS' refused. ext_unit / ext_unit2: external FDs '2 TO 6 RECORDS' vs '2 TO 6 CHARACTERS' / '2 TO 6' compile, consistent with GR5 which compares only integer-1 and integer-2. cite.py: OK §1985:IV.2.1.4; OK §1985:III.2; OK §1985:VII.3.3.3 GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

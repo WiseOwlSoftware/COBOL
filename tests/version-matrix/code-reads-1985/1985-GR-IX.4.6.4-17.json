@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-17",
+ "rule-digest": "21876b921ed5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-098",
+  "sources": {
+   "reader": "788e53558b4381cf255d9c081677dac47f052321951ca850fbebdef13de861c5",
+   "refuter": "9dff07812fb3aee109baad25f5bafc9a55d5800dcadb6114d238b8a540a8d55b"
+  },
+  "imported": {
+   "reader": "850656b913bf8d521f2046d4e1229db049b5bd5ab210112364d6a9b06e257931",
+   "refuter": "a04deda07262c164b554524fd38475ef1243e0244135c237f8a9890a2ef93a6c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-17",
+  "verdict": "CONFORMS",
+  "requirement": "When REWRITE meets an invalid key condition it is unsuccessful: the file is not updated, the record area keeps its content, and the I-O status shows the cause (21, 22 or 23), with control passing per the INVALID KEY phrase.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "refusal of 2002+ REWRITE phrases at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "sharing/lock arms of the governed REWRITE (inert with one connector)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep over the REWRITE path (IndexedConnector, FileConnector, FileRegistry, KeyedIoEmitter): the invalid key returns precede IndexedStore.Replace and consult no edition; the record area is never written back by the keyed REWRITE emitter (the released-record store runs only on success).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f16_07 covers 21/23/22 with the area and file checked; not RANDOM mode, REWRITE FROM before an invalid key, or a SAME RECORD AREA peer",
+  "probes": [
+   {
+    "class": "b",
+    "file": "work-1985-098/p2key.cob",
+    "printed": "R1 AREA K009U09D09ZZZZ (23); R3 AREA K001U02D09BAD1 (22); CHK K001 never shows BAD1",
+    "expected": "area unchanged, file unchanged, status the cause"
+   },
+   {
+    "class": "d",
+    "file": "work-1985-098/p6elem.cob",
+    "printed": "E2 IK 21; AREA A00900000+ (the FROM move); file A00200002+ unchanged",
+    "expected": "the FROM move (GR5a) happened, the failed REWRITE leaves the area and file alone"
+   },
+   {
+    "class": "e",
+    "file": "work-1985-098/p3sra.cob",
+    "printed": "RW2 INVALID 21; XA2=K996OLDAA2; FIL K026OLDAA2 unchanged",
+    "expected": "no update after 21 with a SAME RECORD AREA"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR17",
+    "check": "OK  §1985:IX.4.6.4 GR17  (4.6.4 General Rules)  the text is in GR17"
+   }
+  ],
+  "notes": "The connector validates every invalid key condition before IndexedStore.Replace and returns the status; the emitter stores the status and runs the INVALID KEY branch, and does not write to the record area afterwards. Probes cover all three causes, random/dynamic/sequential, REWRITE FROM.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-17",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "q2alt.cob A2: sequential-access 22 with a SAME RECORD AREA peer -> area (and the peer, the same storage) keep the program's content K002U03D0Q, file unchanged, INVALID KEY branch taken and no USE run. q3sra.cob (q3sra-001): RANDOM access REWRITE FROM to absent key -> RW2 INVALID 23, area holds the FROM move (GR5a, cite OK) and is not changed after, file keeps K013NEWAB1. q1col.cob C1/C2: 21 and 23 leave the file unchanged. cite.py: 'OK  §1985:IX.4.6.4 GR17  (4.6.4 General Rules)  the text is in GR17'; 'OK  §1985:IX.4.6.4 GR5  (4.6.4 General Rules)  the text is in GR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

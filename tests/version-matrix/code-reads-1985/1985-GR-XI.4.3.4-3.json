@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-GR-XI.4.3.4-3",
+ "rule-digest": "0804c2a2a938",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-143",
+  "sources": {
+   "reader": "d6f5754ea6b503f937777c5361bf6adaf6363a918b1fb3366588b677ebe2604f",
+   "refuter": "fa1600c9e0ab9c13be7e4cc4a4eb952e187c8956152dfb8fbf2c3150a943f909"
+  },
+  "imported": {
+   "reader": "7f810b9b4bc383db99f76eab9fd0458d26f9c6d1d5669c626cb3685cd48371af",
+   "refuter": "4d2acadffb8bf6efce201799736d030ffc257162c6136ceb9faf1dd4d6d69e95"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.3.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a RETURN finds a next record, the compiler must make the record available in the SD record area, then perform any INTO implicit move (subscripts of identifier-1 evaluated after the read, GR6b), and only then transfer control to the NOT AT END imperative-statement-2 when written, else to the end of the RETURN statement; the AT END imperative must not run. Covers fixed and variable-length (RECORD VARYING) SD records, INTO alphanumeric/group receivers, the forms with and without NOT AT END and END-RETURN.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#returnStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases",
+    "switches": "construct conditional-phrases-any-order-2002 (COBOL0900): below 2002 NOT AT END written before AT END is refused; 2002+ accepts the reversed order",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read BindReturn and EmitReturn whole: neither consults the edition on the control-transfer path (ctx.Edition appears only as the argument of BoundRejected.Reported). grep for Edition|CobolVersion|Dialect in SortEmitter.EmitReturn region found none; the only edition arm on the RETURN path is the phrase-order gate in VersionConformancePass, reached through the shared conditionalPhrases rule.",
+  "behaviour-differs-by-edition": "no for GR3's ordering of record-available, INTO move and transfer of control; yes for phrase order only: at 85 NOT AT END before AT END is refused (COBOL0900), at 2023 accepted (SR4)",
+  "witnesses-cover": "part: g85_bf33_03 covers fixed-length SD, INTO alphanumeric, with and without NOT AT END; not exercised are a variable-length SD (DEPENDING item and group move), an INTO subscripted by the returned record, an INTO group receiver, a GO TO out of NOT AT END, and RETURN without END-RETURN",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/ret1.cob",
+    "printed": "A-NAE[1ZZ   ][3] / A-END / B-NAE[2Q    ][2] / C-NAE[3ABCDE] / D-END[4XYZ][4] / E-ATEND[......] / E-END / DONE",
+    "expected": "varying SD: NOT AT END sees INTO receiver filled by a group move of the 3-char record and W-LEN=3; INTO W-E(SRT-K) lands in occurrence 2 (subscript after read, GR6b); GO TO from NOT AT END transfers; no-NOT-AT-END form continues after RETURN; at end NOT AT END ignored and INTO not done"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/ret1.cob",
+    "printed": "C-NAE[3ABCDE]",
+    "expected": "INTO a group item receives the whole 6-char record before imperative-statement-2"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/ret1.cob",
+    "printed": "B-NAE[2Q    ][2]",
+    "expected": "subscript SRT-K is the value of the record just returned (2), so occurrence 2 receives 2Q"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/ret2.cob",
+    "printed": "--std 85: error COBOL0900 ... RETURN statement writes AT END after NOT AT END, and its COBOL-85 general format prints AT END first; --std 2023: compiles, prints NAE",
+    "expected": "§1985:XI.4.3.2 prints AT END before NOT AT END and §1985:IV.2.1 requires that sequence; 2023 SR4 permits reversal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/ret3.cob",
+    "printed": "error COBOL1850: the AT END phrase is required on every RETURN statement and is omitted (85 and 2023)",
+    "expected": "AT END is unbracketed in §1985:XI.4.3.2; without it GR3's at-end destination does not exist"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.3.4 GR3",
+    "check": "OK  §1985:XI.4.3.4 GR3  (4.3.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:XI.4.3.4 GR6",
+    "check": "OK  §1985:XI.4.3.4 GR6  (4.3.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:XI.4.3.4 GR2",
+    "check": "OK  §1985:XI.4.3.4 GR2  (4.3.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:IV.2.1",
+    "check": "OK  §1985:IV.2.1  (2.1 DEFINITION OF A GENERAL FORMAT)  the text is in the clause"
+   }
+  ],
+  "notes": "EmitReturn emits one if/else: the store's ReturnStatement test, then the record-area store, the DEPENDING restore, the INTO move, then NOT AT END, which is exactly GR3's order; the else arm holds AT END. Witness g85_bf33_03 MATCHes at 85. The run_probe.py named in the brief is absent from the pinned tree; probes ran through E:/COBOL/scripts/orchestrator/run_probe.py with --exe the pinned compiler.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.3.4-3",
+  "refutation": "UPHELD",
+  "classes": "d,e,f",
+  "evidence": "Attacked the MERGE path (GR3 covers RETURN under MERGE too; the reader probed SORT only) and INTO receivers of other classes under one record description (GR5a): refute-1985-143/src/rm1.cob, run runs/rm1-002 at --std 85: MERGE MF USING F1 F2 OUTPUT PROCEDURE; RETURN INTO 9(6)V99 -> A-NAE[000010.00]; INTO X(2) -> B-NAE[00]; INTO ZZZ,ZZ9.99 inside IF/ELSE with END-RETURN -> C-NAE[     30.00] then C-AFTER; D-NAE[001234.00]; at end E-ATEND with NOT AT END ignored; DONE. Each NOT AT END sees the INTO move already done, as GR3 orders. cite.py: 'OK  §1985:XI.4.3.4 GR3  (4.3.4 General Rules)  the text is in GR3'; 'OK  §1985:XI.4.3.4 GR6b  (4.3.4 General Rules)  the text is in GR6b'. grep Edition over SortEmitter.cs finds no edition read on the control-transfer path; SortBinder's ctx.Edition uses are diagnostic sinks (BoundRejected.Reported), as the reader said.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

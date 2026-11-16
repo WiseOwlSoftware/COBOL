@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VI.6.13.4-3",
+ "rule-digest": "1d32a1384549",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-015",
+  "sources": {
+   "reader": "f1c2b03e7ee836ba38eee57b1584c5183bc99b1fba76cbf45b4b29ef90f5779e",
+   "refuter": "73835129bd9bc151e31048c04eb9c7b08ea0c2ae20226c831c9bfab1418a22ed"
+  },
+  "imported": {
+   "reader": "3623d7be14663ea6c0e857fe169c4f83b3424020326806f738fb23030ced740c",
+   "refuter": "2c25c4ee6012c812b80acf891929cb6e0c09f3ac811e4ca342694ec79515667c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.13.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85, after the comparison, the EVALUATE statement must run the imperative-statement-1 of the FIRST selected WHEN phrase (shared by consecutive WHENs), else imperative-statement-2 of WHEN OTHER when one is written, and its scope must end at the end of that imperative statement, or at once when nothing is selected and no WHEN OTHER is written; a later WHEN is never run even if the selected one changes the subject.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/EvaluateEmitter.cs#Emit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind",
+    "switches": "DialectBehavior.EvaluateObjectsInWhenPhraseOrder (active from 2002): at 85 a selection object that references a function is evaluated at the start of the statement (MaterializeTruth), per §1985:VI.6.13.4 GR1; it changes object evaluation, not the GR3 dispatch",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ScreenPairing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindWhenItem",
+    "switches": "ScreenPairing: EvaluateOperandCombinations.IsPermitted(s, o, Edition.Year); BindWhenItem: ConstructRegistry.Check(EvaluatePartialExpression2002): which subject/object pairings are legal; not the selection dispatch",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|ConstructRegistry|DialectBehavior|Edition.Year over EvaluateBinder.cs and EvaluateEmitter.cs gives the sites listed; EvaluateEmitter#Emit (the if / else-if / else chain that realizes GR3) consults no edition.",
+  "behaviour-differs-by-edition": "no: the dispatch is the same chain at every edition; the probe's output is identical at --std 85 and --std 2023.",
+  "witnesses-cover": "part: pb396 covers a shared WHEN body, WHEN OTHER and no-match-no-OTHER; not covered: a multi-statement body, a selected body changing the subject or a subscript, the first of several satisfied WHENs, nested EVALUATE, a period-terminated EVALUATE, EVALUATE inside an inline PERFORM",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p5_evaluate.cob",
+    "printed": "W1-A W1-B AFTER1 X=+002 / OTHER-OK OTHER-2 / AFTER3 / FIRST-OK / IN-B OUTER-REST / E7 I=2 / N-OTHER 001 N2 N-OTHER 003 / P2-B P2-NEXT-SENTENCE / END",
+    "expected": "GR3 a-c: the whole first selected body runs and the scope ends (no W2 after X became 2, no E8 after I became 2), OTHER runs when nothing matches, nothing runs and control continues when there is no OTHER"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-015/p5b_noimp.cob, p5c_nootherimp.cob",
+    "printed": "WHEN 1 followed directly by WHEN OTHER (last WHEN without imperative): COBOL2072; WHEN OTHER with no statement: COBOL2072",
+    "expected": "refused: imperative-statement-1 and imperative-statement-2 are required by the 1985 general format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.13.4 GR3",
+    "check": "OK  §1985:VI.6.13.4 GR3  (║6.13.4 General Rules║)  the text is in GR3"
+   }
+  ],
+  "notes": "The EVALUATE lowers to one if / else-if / else chain whose arms are the WHEN bodies in source order, so the first selected body alone runs and the scope ends after it. The only 85 arm on the path is the object-evaluation timing of GR1, which this rule does not reach.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.13.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "e1_eval.cob/e2_eval.cob at --std 85: nested EVALUATE without END-EVALUATE absorbs the following WHENs (IN-2 only); three-subject ALSO with THRU, NOT and a conditional object selects the first satisfied set and runs its whole multi-statement body including a PERFORM that changes the subject (E-OK, E-OK2 X=2, no WRONG2/OTHER); inline PERFORM VARYING whose selected body changes the subject I: T=011 (WHEN 3 not run after I became 3); GO TO from a WHEN body leaves the statement; period-terminated EVALUATE with no match continues at the next sentence; nonnumeric padding comparison and EVALUATE FALSE. e3_cond.cob: an IF without END-IF as a WHEN body is refused (COBOL2796) at 85 and 2023, as the imperative-statement-1 of the 1985 format requires. cite.py: 'OK  §1985:VI.6.13.4 GR3  (║6.13.4 General Rules║)  the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

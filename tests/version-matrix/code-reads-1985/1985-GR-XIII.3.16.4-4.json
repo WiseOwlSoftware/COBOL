@@ -1,0 +1,121 @@
+{
+ "rule-id": "1985-GR-XIII.3.16.4-4",
+ "rule-digest": "2ed8a4cc60fe",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-147",
+  "sources": {
+   "reader": "aff0e1385e6225d488e8b2cc3ec3c7c65b700c07c5563f8d9152780be230c482",
+   "refuter": "4339c344b8821e5c914117f89968167c481a2bb1a6773ab21ae3ce0d3e67c9b3"
+  },
+  "imported": {
+   "reader": "3d4094bbbbe2ed08911db53c8ff19cb00b229a3dab0c8f7d9646eb981e8014ef",
+   "refuter": "e79abf59c5ffb9d36214de5622bd0f84b2cb4acf3f0bdee1abdf799dbe828599"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.16.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the NEXT GROUP clause of a body group (CH, DE, CF) must set LINE-COUNTER after the group so that it positions the next body group (absolute: the integer, or FOOTING plus the saved next group integer when the last line is on or past it, with the next body group placed at saved+1 after the page advance; relative: last line plus integer, clamped to FOOTING; NEXT PAGE: FOOTING), a report heading's clause must position the page heading (absolute integer, last line plus integer, or NEXT PAGE putting the RH alone on page 1), and a page footing's clause must position the report footing (§1985:XIII.3.10.6 GR5, XIII.3.10.8 GR3/GR4/GR6, XIII.3.10.9 GR5).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (from 2002): at 2002+ a saved absolute NEXT GROUP is discarded at TERMINATE and LINE-COUNTER restored; at 85 the save stays, so the first TERMINATE control footing takes the page advance and is placed at saved+1 per §1985:XIII.3.10.8 GR3 b",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes Edition = DialectLevel into the CobolReport engine, the argument of every DialectBehaviors.IsActive question",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+    "switches": "DialectLevel < 2002: §1985:XIII.3.16.3 SR1 (NEXT GROUP needs a LINE clause in the group); the same member builds the ReportNextGroup the runtime applies, identically at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportNextGroupClause",
+    "switches": "Constructs.ReportNextPageReset2002: WITH RESET refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: a saved absolute NEXT GROUP of the last body group before TERMINATE positions the TERMINATE control footing at 85 (page advance, saved+1) and is discarded at 2002+; WITH RESET exists only from 2002",
+  "witnesses-cover": "part: 1985-GR-XIII_3_16_4-4 and g85_bf36_03 cover body-group NEXT GROUP; the report heading and page footing halves and the saved-integer path at TERMINATE are not exercised by them",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/ng4.cob",
+    "printed": "--std 85: RH 01 / PH 04 (RH NEXT GROUP 3) / DT 08 / DT 19 (DET NEXT GROUP 18: LC 18, next at 19) / page 2: PF 27, PH 01, DT 19 (saved 18, placed at saved+1) / page 3: PF 27, PH 01, CF 19 (TERMINATE CF FINAL at saved+1) / PF 27 / RF 29 (PF NEXT GROUP PLUS 1 -> LC 28); LC 29 PC 3. --std 2023: CF 20 on page 2, PF 27, RF 29, PC 2",
+    "expected": "85: every position as derived from §1985:XIII.3.10.6 GR5 a, 3.10.8 GR3 a/b, GR4 b, GR6 a, 3.10.9 GR5 b; the TERMINATE CF FINAL meets the saved integer (page advance, line 19)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/ng4np.cob",
+    "printed": "RH alone on page 1; page 2 opens PH 01 (PAGE-COUNTER 2), DT 08",
+    "expected": "§1985:XIII.3.10.6 GR4 c (cited in the record as the RH rules): NEXT GROUP NEXT PAGE puts the RH by itself on the first page; the PH starts the next page"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/ng4rl.cob",
+    "printed": "RH 01, PH 06 (RH NEXT GROUP PLUS 4)",
+    "expected": "§1985:XIII.3.10.6 GR5 b: LC = 1 + 4 = 5, the PH's relative first line on 6"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/ng3np.cob",
+    "printed": "a body group NEXT GROUP NEXT PAGE at the highest level advanced the page: the next detail on line 1 of page 2",
+    "expected": "§1985:XIII.3.10.8 GR6 c: LC = FOOTING, the next body group fails its fit test"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.16.4 GR4",
+    "check": "OK  §1985:XIII.3.16.4 GR4  (3.16.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XIII.3.10.8 GR3",
+    "check": "OK  §1985:XIII.3.10.8 GR3  (3.10.8 Body Group Presentation Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:XIII.3.10.6 GR5",
+    "check": "OK  §1985:XIII.3.10.6 GR5  (3.10.6 Report Heading Group Presentation Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:XIII.3.10.9 GR5",
+    "check": "OK  §1985:XIII.3.10.9 GR5  (3.10.9 Page Footing Presentation Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:XIII.3.10.6 GR4c",
+    "check": "OK  §1985:XIII.3.10.6 GR4c  (3.10.6 Report Heading Group Presentation Rules)  the text is in GR4c"
+   }
+  ],
+  "notes": "ApplyNextGroup handles the three group families; the saved next group integer and PlaceAfterSavedNextGroup give the 1985 fit-test 3a/3b placement. The one edition arm (TerminateDiscardsSavedNextGroup) is right for 85: the 1985 text has no discard rule, and the probe shows the TERMINATE footing placed after the saved integer. Page heading placement after an RH relies partly on the reconstructed Table 2 (folios XIII-30/31, kb/Work PB4952).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "ng4 at --std 2023 discards the saved integer at TERMINATE (CF on page 2 line 20), the 2023 rule",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.16.4-4",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-147/src/ngp0.cob (PAGE 30 HEADING 1 FIRST DETAIL 3 LAST DETAIL 20 FOOTING 25; CONTROL MIN; DET LINE PLUS 1 NEXT GROUP 5; CF MIN LINE PLUS 0, legal: 'Integer-2 may be zero'). --std 85 run ngp0-001 printed p1 l03 'DET 1 03 1', p1 l06 'DET 1 06 1', p2 l06 'CFMIN 06 2', p2 l07 'DET 2 07 2', p3 l06 'CFMIN 06 3'. 1985 derivation: the second DET ends on 6 >= 5, so GR6a sets LINE-COUNTER = FOOTING 25 and saves 5. The CF MIN of the break is a relative body group on a page where a body group has been presented, so fit test GR3b first paragraph applies: trial = 25 + 0 = 25, not greater than the CF lower limit FOOTING 25 (GR2) -> 'presented on the current page', first line by GR4b second paragraph at LINE-COUNTER + 0 = 25 (p1 l25, LC 25, PC 1); the save stays set. The next DET: trial 26 > 20 -> page advance, then no body group on page 2 and the save is set -> LC 5, DET at 6 (p2 l06); its NEXT GROUP saves again and the TERMINATE CF MIN fits at p2 l25. Expected: p1 l03, p1 l06, p1 l25 CFMIN 25 1, p2 l06 DET 2 06 2, p2 l25 CFMIN 25 2; observed shifts every later group by a page. Cause: PresentBody routes any group after a saved integer to PlaceAfterSavedNextGroup, which calls AdvancePage unconditionally (the §2023:13.18.37.4 GR4a 'page advance just before any other non-dummy body group'); at 1985 the save is consulted only inside the fit test after a failed GR3a/3b/3c test, so a group that still fits on the current page is presented there. --std 2023 run ngp0-002: p2 l06 CFMIN, p2 l07 CFMIN overprinting DET 2 (2023 arm). cite.py: 'OK  §1985:XIII.3.10.8 GR3b  (3.10.8 Body Group Presentation Rules)  the text is in GR3b'; 'OK  §1985:XIII.3.10.8 GR4b  ... the text is in GR4b'; 'OK  §1985:XIII.3.10.8 GR6a  ... the text is in GR6a'; 'OK  §1985:XIII.3.10.8 GR2  ... the text is in GR2'; 'OK  §1985:XIII.3.15.3 SR1  (3.15.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:XIII.3.16.4 GR4  (3.16.4 General Rules)  the text is in GR4'. The reader's probes (ng4, ng4np, ng4rl, ng3np) all used body groups whose trial sum exceeds the lower limit, so the forced advance and the 1985 fit test agreed there.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody: the _nextGroupSave != 0 arm takes PlaceAfterSavedNextGroup at every edition; 1985 needs the GR3a/3b/3c fit test first (the save is read only after a failed test's page advance), an arm no DialectBehavior provides",
+   "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup: unconditional AdvancePage (the 2023 GR4a forced advance) on the 85 path"
+  ],
+  "corrected": "NON-CONFORMING (wrong-answer), cause (a): at --std 85 a body group that follows a saved absolute NEXT GROUP integer must first take the 1985 fit test against LINE-COUNTER = FOOTING (GR3a/3b/3c first paragraphs); only when that test fails does the page advance happen and the saved integer place the group (saved+1, or the reapplied absolute test). A control footing whose LINE clauses are all PLUS 0 (trial sum = FOOTING) must be presented on the current page at line FOOTING and leave the save set for the next body group. Minimal repro: ngp0.cob above."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "Report Writer. After a body group's absolute NEXT GROUP saves its integer, the next relative group whose LINE integers sum to zero (a control footing with LINE PLUS 0) is sent to the next page. The 1985 fit test keeps it on the page: a body group HAS been presented there, so the saved integer is not consulted. The forced page advance is the 2023 rule, applied at every edition. Narrow: only a relative group of integer sum 0 whose lower limit is at least the FOOTING line. The rules it rests on are printed text (folios XIII-32 to XIII-36), not reconstruction.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md"
+ },
+ "work": "PB5823"
+}

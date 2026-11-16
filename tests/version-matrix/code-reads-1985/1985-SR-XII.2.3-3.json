@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-SR-XII.2.3-3",
+ "rule-digest": "642763c20adc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-072",
+  "sources": {
+   "reader": "8faa70c91ba153e9fc27714fcad9447dad30c11e0b562ea1fe2b33095d82bb38",
+   "refuter": "374d4dcf956d6db7060749dc5aef8f8b5af8b3397717b588079502f13202a76d"
+  },
+  "imported": {
+   "reader": "38b35e9b2b74c3582dd722354521f0b6296fe2b73411aeeb88f4860bcfd7ee8b",
+   "refuter": "158fbb6f85d2bcba8c668333f98047bf36fc73fa46976d3c8c2fe9c9e091a93a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XII.2.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a COPY REPLACING whose pseudo-text-1 holds no text word (only spaces, nothing at all, or only comment lines, which a 1985 pseudo-text may contain but which are not text words).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen.PartialWord",
+    "switches": "LEADING/TRAILING partial-word phrase gate (Constructs.ReplacingPartialWord2002, COBOL0900 at 85)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen.CopyWord",
+    "switches": "the set of words barred as word-1/word-2 (1985: COPY only)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OnNonPseudoTextOperand",
+    "switches": "removal gate of the non-pseudo-text operand forms (removed at 2023)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the Whole-kind check in ScreenOperandPair (from.MatchWords.Count == 0) consults no edition; the edition gates above sit on the same operand-parse path",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers ==;== only; empty, all-space and comment-only pseudo-text-1 were not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/CR1.cob",
+    "printed": "error COBOL2572: COPY statement: pseudo-text-1 holds no text-word to match",
+    "expected": "refused (== ==)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/CR4.cob",
+    "printed": "error COBOL2572 ... holds no text-word",
+    "expected": "refused (====)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/CR5.cob",
+    "printed": "error COBOL2572 ... holds no text-word",
+    "expected": "refused (pseudo-text-1 holding only a comment line)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/CR7.cob",
+    "printed": "[BBB] (exit 0)",
+    "expected": "legal: a literal text word, and a comma beside a word"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/CR8.cob",
+    "printed": "[AAA ] (exit 0)",
+    "expected": "legal: parentheses are text words; ==( 3 )== matched X(3) and became X(4)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/CL1.cob",
+    "printed": "error COBOL0900: the LEADING / TRAILING partial-word phrases ... requires COBOL-2002",
+    "expected": "refused at 85: the 2002 partial-word phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.2.3 SR3",
+    "check": "OK  §1985:XII.2.3 SR3  (2.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "Pseudo-text elements are scanned as text words and comment lines are not elements, so an operand of only spaces or comment lines has zero match words and is refused. At --std 85 the message cites '§2023:7.2.3.3 SR6' (the merged 2023 rule) rather than §1985:XII.2.3 SR3/SR9, a citation-only blemish.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XII.2.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "1985 text word (§1985:III.2 Text Word (3), cite.py OK: 'except comment lines and the word 'COPY''): Q2copy-001 ==COPY== (no text word in 1985) refused (COBOL2451 nested COPY; a refusal either way). Q1star-001 ==*>== at 85 fixed form (a 1985 text word, a comment at 2002+) accepted and matched: [AAA]. Q3cperiod-001 ==.== (separator period, a 1985 text word) accepted and matched: [QQQ] (Q3period/Q3bperiod glued X(3)VALUE because the library period touched ')': the program's layout, GR10, not SR3). Q4slash-001 (only a '/' comment line), Q4blank-001 (only a blank line), Q11seq-001 (a word only in columns 73-80, outside margin R) all refused COBOL2572. Q5debug-001 pseudo-text-1 only a debugging line 'XDEL' accepted and matched (GR7, cite.py OK §1985:XII.2.4 GR7): [AAA]. cite.py: OK §1985:XII.2.3 SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

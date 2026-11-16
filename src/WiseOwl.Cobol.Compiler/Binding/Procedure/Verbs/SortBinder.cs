@@ -687,10 +687,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // §2023:14.9.40.3 SR6 g) / §2023:14.9.24.3 SR4 g): with variable-length records every key lies within the first
             // n bytes, n the minimum record size — for ANY record, so a key that follows a variable-length member is
             // measured at its furthest reach (every preceding member at its maximum). ⛔ The minimum is the file's
-            // (§2023:13.18.43.4 GR9 when the RECORD clause states none — FileModel.VaryMin), and the rule applies to
+            // (§2023:13.18.43.4 GR9 when the RECORD clause states none — FileModel.RecordSizeRange, which sizes a format 3 record at its maximum at 85, §1985:VII.3.8.4 GR15), and the rule applies to
             // every file whose records vary, including the implied Format 2 of a variable-length record (D-FRA);
             // it used to fire only when a RECORD clause wrote integer-2.
-            if (file.RecordSizeVaries && file.VaryMin is var min && win.MaxEnd > min)
+            if (file.RecordSizeVaries && file.RecordSizeRange.Min is var min && win.MaxEnd > min)
                 ctx.Edition.Error(DiagnosticCatalog.SortKeyBeyondMinimumRecord, $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' "
                     + (win.FollowsVariable
                         ? $"follows a variable-length member of record '{root.CobolName}' and can reach byte {win.MaxEnd}"

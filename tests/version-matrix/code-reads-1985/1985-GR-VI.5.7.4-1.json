@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-VI.5.7.4-1",
+ "rule-digest": "138dfbc21ac7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-014",
+  "sources": {
+   "reader": "033c718f66fa8327f6c6097812f1d6775bf39f1061001634aaebd3db3ff0ac86",
+   "refuter": "4e2defe6b916e6fb79a025d09c8420aa472c43d66af8d98ecc224e3e85cee037"
+  },
+  "imported": {
+   "reader": "d6be09b59586fc3fc10b62e15345dbf39d090d532aa3faa5f5511d1c90ea6ef4",
+   "refuter": "bcb1603529bc3c204dd8abffd6fb71693b221a772c15a968b4ed591af2cb2d22"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.7.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the first entry of every record description (FD, SD, Working-Storage, Linkage, and a report group in an RD) must be level 01 (written 01 or 1); an entry of level 02-49 that opens a record, or follows a 77, is refused, and each 01 begins a new record.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber",
+  "edition-consulted": [],
+  "edition-search": "DataBinder.BindEntries' local AttachToHierarchy reports COBOL2771 through EditionContext.Error, which is a diagnostic sink with no edition switch (read EditionContext.cs). LevelNumberPass.cs grepped for DialectLevel|Edition.|Year|CobolVersion|Construct: only a comment stating the level sets are the same at all four editions.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1246_level_hierarchy_legal and pb485_level_number_legal_forms are positive; the refusal half (pb1246-fd-first-entry-not-level-1) carries no 85 accept tag, and SD, Linkage, after-77 and RD forms are not witnessed at 85.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/lvl_FD.cob",
+    "printed": "COBOL2771 'FR': level-number 5 opens no record",
+    "expected": "refused: FD record begins at 05"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/lvl_WS.cob",
+    "printed": "COBOL2771 'W1': level-number 5 opens no record",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/lvl_A77.cob",
+    "printed": "COBOL2771 'W2': level-number 5 opens no record",
+    "expected": "refused: 05 after a 77"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/lvl_LK.cob",
+    "printed": "COBOL2771 'L1': level-number 10 opens no record",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/lvl_SD.cob",
+    "printed": "COBOL2771 'SR': level-number 3 opens no record",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/lvlr05.cob",
+    "printed": "COBOL2772 RD 'RPT': report group entry before any 01-level entry",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-014/lvl1.cob",
+    "printed": "WABVHH / AB/ABCD",
+    "expected": "level 1 written as '1', 77/01 alternation, two 01 records of one FD share the area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.7.4 GR1",
+    "check": "OK  §1985:VI.5.7.4 GR1  (5.7.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The hierarchy walk refuses any record-opening entry that is not 01 or 77 in every 1985 section probed, and the report binder refuses a report group that does not begin at 01. The diagnostics cite §2023 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.7.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "At --std 85: rl1.cob CD CIN FOR INPUT with first entry 05 -> COBOL2771 (a 1985-only Communication Section record); rl2.cob the same with 01 compiles and runs (OK); rl3.cob a 66 as first FD entry -> COBOL2740; rl4.cob 77 + 88 then 10 -> COBOL2771; rl6.cob Linkage first entry 02 -> COBOL2771; rl5.cob 01 / 01 with 49 / level written '1' -> runs, QC. cite.py: OK §1985:VI.5.7.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

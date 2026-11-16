@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb917-report-group-picture-twice
-*> rules: [FMT-13.18.52.2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb917-report-group-picture-twice
+      *> rules: [FMT-13.18.52.2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB917 - ISO 5.2.6.2 and 5.2.7 (cite.py OK on both).  13.15.2 prints [ picture-clause ] once with no ellipsis, so a report group description entry that
       *> writes PICTURE twice is non-conforming.
        IDENTIFICATION DIVISION.

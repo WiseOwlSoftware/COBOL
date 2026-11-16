@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-SR-VII.4.3.3-4",
+ "rule-digest": "09e3ec603188",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-161",
+  "sources": {
+   "reader": "0ee01c589d82fd02e2245a993fb1d16b7696c13c6946f91dece28459ef98e1f4",
+   "refuter": "f69f057f460de758eb8ca3bd1c121864f38cd29b6dde5c291401af369111f7ee"
+  },
+  "imported": {
+   "reader": "2c3ccd8c5b8abedff73f1614de39588bc7ff5c6f91111e89fca7f0a6712d02a9",
+   "refuter": "1a0ff94add8eae5da54d002be203070ed8e8632fd27155323b050653492930f5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.3.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 one OPEN statement must accept file-names of mixed organization and access mode, in any mix of INPUT, OUTPUT, I-O and EXTEND groups, with per-file phrases screened against each file's own module, and execute as separate OPEN statements in written order (a failing file does not stop the later ones).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOpenFileSpec",
+    "switches": "REVERSED removed from 2002 (open-reversed-removed-2002); admitted at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOpenStatement",
+    "switches": "the OPEN SHARING phrase requires 2002; refused at 85 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility off at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the mixed-organization permission is the same; the editions differ only in REVERSED and SHARING",
+  "witnesses-cover": "part: g85_bf23_02 covers one mixed OPEN; a failed open inside a mixed list, OPTIONAL relative input, and the per-module phrase refusals are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/mix1.cob",
+    "printed": "OPEN OUTPUT SQ RL IX IR -> 00000000; OPEN I-O IX IR INPUT RL MS -> 00 00 00 05 and reads succeed; OPEN INPUT RL NX IX with NX missing -> USE fires with 35, RL 00, IX 00 and IX then reads K1CC",
+    "expected": "GR24: as separate OPEN statements in order; optional missing input 05; a missing non-optional file 35 without affecting the others"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_open_reversed_rel.cob",
+    "printed": "COBOL2210 OPEN 'RL' REVERSED; n_open_norewind_idx.cob COBOL1802 IX WITH NO REWIND; n_open_extend_linage.cob COBOL2372 EXTEND on a LINAGE file",
+    "expected": "§1985:VII.4.3.3 SR1 and SR3 and the relative/indexed formats"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_open_sharing.cob",
+    "printed": "COBOL0900 the OPEN SHARING phrase requires COBOL-2002",
+    "expected": "SHARING is not in the 1985 format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_open_mix_ok.cob",
+    "printed": "exit 0: OPEN INPUT SQ REVERSED RL IX OUTPUT LP SQ WITH NO REWIND I-O IX RL EXTEND SQ accepted",
+    "expected": "REVERSED is a 1985 phrase for sequential files; groups of every mode may mix organizations"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.3 SR4",
+    "check": "OK  §1985:VII.4.3.3 SR4  (4.3.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VII.4.3.4 GR24",
+    "check": "OK  §1985:VII.4.3.4 GR24  (4.3.4 General Rules)  the text is in GR24"
+   }
+  ],
+  "notes": "BindOpen screens each file-name against its own organization and emits one implicit OPEN per file, so mixed lists compile and run as separate opens; the edition gates touch only REVERSED and SHARING. The refusal diagnostics cite §2023 clauses at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.3.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "o1.cob: OPEN EXTEND SQ RL IX with RL dynamic and IX random refused COBOL2372 for RL and IX only (the relative/indexed module's own rule, per file in the mixed list). o2.cob: an SD file in OPEN OUTPUT SQ SW RL refused COBOL1692. o3.cob (runs/o3-001): RL already open, OPEN OUTPUT SQ RL IX printed 'USE 00 41 99' then 'OPEN-MIX 00 41 00', and WRITE IX and WRITE SQ then succeed 00: the failing middle file does not stop the later one and order holds. cite.py: OK §1985:VII.4.3.3 SR4 'need not all have the same organization or access'; OK §1985:VII.4.3.4 GR24 'as if a separate OPEN statement had been written'; OK §1985:VIII.4.4.3 SR1 'The EXTEND phrase must only be used for files in the sequential access mode'. The COBOL2372 message cites §2023 at --std 85 (cosmetic, as the reader noted).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

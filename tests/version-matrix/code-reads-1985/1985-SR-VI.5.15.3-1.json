@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-VI.5.15.3-1",
+ "rule-digest": "da4b1e0548c8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-053",
+  "sources": {
+   "reader": "3dda3f9c45a552503ddf958a1c713d25573016bf498999c6d589ba62f715a59d",
+   "refuter": "5406f19ea7d01bec10f9510f7137b2db96db53eb8dfc134552e9d5d219f94767"
+  },
+  "imported": {
+   "reader": "d7d51ac5b8d6e2338214423b5a395ab0c76262d181f5cd6568029c827aa97a5c",
+   "refuter": "661d3b7a7e70d5507de5f6049a0dcbb2dd06ad6fc47362658c9c4ec327dce5cc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.15.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, THRU and THROUGH must be interchangeable in the format-2 (condition-name) VALUE clause, after VALUE IS or VALUES ARE, for numeric (including signed) and nonnumeric ranges, one or several in a series. Each spelling must give the same condition test and SET result, and both must be refused where format 2 does not apply (a non-88 entry).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#THRU; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#valueClauseRange; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueItem; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsKeyword",
+    "switches": "word status of THRU / THROUGH (both reserved at 85, the same as 2023, ReservedWords.Table.cs#Entries)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep valueClauseRange over Compiler/Frontend C#: BindCondition and the VALUE placement screens read the range node and never the token, and no DialectLevel test guards the range",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers numeric ranges after VALUE. Nonnumeric ranges, signed literals, VALUES ARE, mixing both spellings in one clause, SET TO TRUE and the non-88 refusal are not exercised.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/val1.cob",
+    "printed": "FTTTFFFFF FTTTFFFFF TTFTTFFFT / NEG-IN / NEG-OUT / NEG-END / SET=B",
+    "expected": "\"B\" THRU \"D\" and VALUES ARE \"B\" THROUGH \"D\" give the same image over ABCDEFGHZ; a mixed list \"A\" THRU \"B\", \"D\" THROUGH \"E\" \"Z\" is true at A,B,D,E,Z; -5 THRU -1 and -5 THROUGH -1 agree inside, outside and at the end value; SET to TRUE stores the first literal \"B\" (§1985:VI.5.15.3 SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/val2.cob",
+    "printed": "COBOL2167 on A1 (VALUE 1 THRU 5) and A2 (VALUE 1 THROUGH 5), level 1",
+    "expected": "both spellings refused outside a condition-name entry (format 1 has only literal-1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.15.3 SR1",
+    "check": "OK  §1985:VI.5.15.3 SR1  (5.15.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "valueClauseRange takes (THRU | THROUGH) as one alternative, and the binder reads only operand(0) and operand(1), so the spellings cannot diverge. The two probe images were checked by hand against the range rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.15.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "rva3 (run, --std 85): figurative constants in ranges with both spellings (LOW-VALUE THRU \"M\", \"N\" THROUGH HIGH-VALUE, SPACE THROUGH \"!\", ZERO THRU 9, ZEROES THROUGH 9, 100 THRU 199) and a 77-level 88 mixing THROUGH/THRU without commas; printed 'LOhisp / loHIsp / LOhiSP / Z0 / Y0 / nZ150 / Y150 / nY-1 / +000 / S35 / nS20 / 10', all correct by hand. rva1: SPACE THRU SPACES refused COBOL2961 (correct by §1985:VI.5.15.5 GR2, literal-2 must be less). rva2: WHEN SET TO FALSE (2002 phrase) after a THRU range and after a THROUGH range both refused COBOL0900 (class c); VALUES on a format-1 entry refused COBOL2177. cite.py: OK §1985:VI.5.15.3 SR1; OK §1985:VI.5.15.5 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.1.2-1",
+ "rule-digest": "530eff6fccdf",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-043",
+  "sources": {
+   "reader": "1667c3b1690208ab290e480852559f3da80d2a6e0d3a25d9d3d42d6d0345d701",
+   "refuter": "a2581782c82960ae1a0b9a0fa098844441970746965c02869b640ffcead6ffa4"
+  },
+  "imported": {
+   "reader": "21e84aa2aac29d1bf4de82edaed002f91c62574f33aa2323557de5bb28375a05",
+   "refuter": "63eca28b050f00adcddaadb380c2145af109afbf85884aed98ec0115ae778585"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.2.2.1.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 the content (character-1) of a quotation-mark-delimited nonnumeric literal may be any character of the computer character set, so the compiler must accept every character (lowercase, special characters, the apostrophe, '*>', a period-space, a non-ASCII character) as literal content and keep it as the value; only the quotation mark itself is doubled (SR2).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STRINGLIT; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#RepertoireViolation; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#SyntaxViolation; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#Screen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+    "switches": "ConstructRegistry gates on the literal's format: zero-length (Constructs.ZeroLengthLiteral2014), apostrophe delimiter (ApostropheQuotationSymbol2002), X\"..\" (HexAlphanumericLiteral2002), N/B literals; at 85 they refuse those formats, not any content character of a quote-delimited literal",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#MaxPositions",
+    "switches": "the literal length bound (160 at 85, 8191 from 2014) asked by LengthViolation; not the content rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The content rule itself (STR_BODY ~[\"\\n] and RepertoireViolation's Format-1 arm returning null) is edition-blind; grepped LiteralScreen.cs and CobolLiteral.cs for Edition/ConstructRegistry/dialectLevel.",
+  "behaviour-differs-by-edition": "no: for this rule the content of a quote-delimited literal is free at every edition; what differs (apostrophe delimiter, zero length, hex format, length bound) is other rules",
+  "witnesses-cover": "part: the witness exercises non-ASCII characters and doubled/fullwidth quotes; it does not exercise ASCII special characters, the apostrophe, '*>' or '. ' inside a literal at 85 (the probe does)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c1chars.cob",
+    "printed": "--std 85 EXIT 0: [a~@#$%^&*()_+{}|:<>?`[]\\;',./ *> !      ] / lower; 'apos' \"quote\" *> no comment / LEN-APOS=01 / LEN-Q=01 /   .   / é (identical at --std 2023)",
+    "expected": "every character is literal content (§1985:IV.4.2.2.2.1.2 SR1); a doubled quotation mark is one (SR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c1edge.cob",
+    "printed": "--std 85 compile-only EXIT 65: COBOL0900 zero-length literal requires COBOL-2014; COBOL0900 apostrophe-delimited literal requires COBOL-2002; COBOL0900 hexadecimal alphanumeric literal requires COBOL-2002",
+    "expected": "1985 delimits a nonnumeric literal by the quotation mark with at least one character-1 (§1985:IV.4.2.2.2.1 general format); later-edition formats refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.1.2 SR1",
+    "check": "OK  §1985:IV.4.2.2.2.1.2 SR1  (4.2.2.2.1.2 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The lexer body admits every character but the delimiter and newline, and the Format 1 repertoire arm is null at every edition, so any character is content at 85. Probes with ASCII specials, apostrophe, *>, period-space and a non-ASCII letter compile and display intact at --std 85; edition gates only refuse later literal formats.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.2.2.1.2-1",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Probe r1a.cob (refute-1985-043/r1a-002, --std 85, EXIT 0): a literal continued in fixed form keeps the continued line's trailing spaces through margin R and the doubled quotes split over the continuation ('AB\"\"CD' + '-    \"EF\"\"\"\"G\"' prints AB\"CD + 36 spaces + EF\"\"G); a literal whose first line is padded to column 72 with SEQ00001 in 73-80 keeps the two pad spaces and drops the sequence text (COBOL6688 warning only); ASCII specials '*', '-', apostrophe, two apostrophes inside quote-delimited literals display intact; the 85 apostrophe-delimited form is refused (COBOL0900, the correct class-c edition arm). A TAB inside a literal is expanded to the next tab stop at line entry, which is the documented implementor choice docs/conformance/7/DOC-A.1-157.md (owner decision R55: the tab is a positioning control, not a character of the literal); SR1 leaves the computer character set to the implementor, so this does not refute. Checks: 'OK §1985:IV.4.2.2.2.1.2 SR1 ... the text is in SR1'; 'OK §1985:IV.4.2.2.2.1.2 SR2 ... the text is in SR2'; 'OK §1985:IV.7.2.2 (7.2.2 Continuation of Lines) the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

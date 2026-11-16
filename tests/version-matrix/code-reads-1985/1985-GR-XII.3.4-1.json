@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-GR-XII.3.4-1",
+ "rule-digest": "387594520a98",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-035",
+  "sources": {
+   "reader": "bd7eed66aebdc546ae845b67f23f0ee080e2d60df4ccadf33495768b8aca753e",
+   "refuter": "6bd50bc9f68399c732b68e4db6a56e29eec3f3c5a38de9d729df0ee82c561943"
+  },
+  "imported": {
+   "reader": "6facb3d37b52d6eef80677099dedded09f268ec80e7eb4c4027de45590f7cad4",
+   "refuter": "ca96a5445cf83adbfbf8ca185a19f588459afec77bc5205c7fc0e5a250a6e719"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XII.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a format 1 REPLACE statement must replace every matched occurrence of each pseudo-text-1 (one or more text words, matched over text words across lines and separators) in the source program text within its scope by the corresponding pseudo-text-2 (zero or more text words, so an empty one deletes); the scope ends at the next REPLACE or at the end of the separately compiled program.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#MatchesForReplacing; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+    "switches": "EditionInfo.ReplaceScopeEndsWithSeparatelyCompiledProgram (Year < 2002): a REPLACE's scope ends at the separately compiled program's end at 85, at the compilation group's from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+    "switches": "ConstructRegistry ReplaceAnywhere2002 (REPLACE must follow a separator period at 85) and ReplaceAlsoLast2002 (ALSO / LAST refused at 85)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+    "switches": "EditionInfo.ReplacedTextIsLaidOutInFixedForm (Year < 2002): introduced lines take the replaced line's indicator and the continued-literal-on-debugging-line check applies",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen",
+    "switches": "ConstructRegistry gate of the LEADING / TRAILING partial-word phrases (2002 constructs)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#MatchesForReplacing",
+    "switches": "nothing: the text-word comparison is edition-independent",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep edition|Edition|ConstructRegistry|CobolVersion in CopyProcessor.cs and TextWord.cs; EditionInfo.cs properties ReplaceScopeEndsWithSeparatelyCompiledProgram / ReplacedTextIsLaidOutInFixedForm",
+  "behaviour-differs-by-edition": "yes: at 85 the replacement stops at END PROGRAM of the separately compiled program (rep4: REP4B keeps its MSG-X); at 2023 it runs on through the compilation group (rep4 at --std 2023 replaces MSG-X in REP4B's VALUE and is refused). The matching and substitution are the same code.",
+  "witnesses-cover": "part: pb1350_text_words_85 covers single-word and literal operands; it does not exercise multi-word pseudo-text-1 spanning lines, empty pseudo-text-2, several operand pairs, figurative constants/ALL literals, or the 85 scope end",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rep1.cob",
+    "printed": "[BBBB] [YYYY] [019] [007] [W-A]; MATCH",
+    "expected": "W-A -> W-B; the 4-word MOVE ALL \"X\" TO (split over two lines) -> ALL \"Y\"; ADD 1 TO W-C (also across a line break) -> ADD 5; ZERO -> 7 (VALUE ZERO too, so 7+5+5+2=19); DELETEME -> nothing; the literal \"[W-A]\" untouched"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rep2.cob",
+    "printed": "COBOL2572 pseudo-text-1 holds no text-word (====); COBOL0900 REPLACE ALSO requires COBOL-2002",
+    "expected": "§1985:XII.3.3 SR3 refusal of an empty pseudo-text-1; ALSO is no 1985 phrase"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rep3.cob",
+    "printed": "[BBBB] [BBBB] [3]; MATCH",
+    "expected": "W-B(2:3) and W-B (2:3) are the same text words, both replaced by W-B(1:4); a word replaced by an ODO object name"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rep4.cob",
+    "printed": "85: REPLACED / KEPT (MATCH); 2023: COBOL1941 '\"REPLACED\"' is not a clause (the replacement ran into REP4B)",
+    "expected": "§1985:XII.3.4 GR3: in effect until the end of the separately compiled program"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.3.4 GR1",
+    "check": "OK  §1985:XII.3.4 GR1  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XII.3.3 SR3",
+    "check": "OK  §1985:XII.3.3 SR3  the text is in SR3"
+   }
+  ],
+  "notes": "ApplyReplaceStatements finds each REPLACE and keeps an active operand set; ApplyReplacements substitutes every whole-word-sequence match with pseudo-text-2 (empty deletes), comparing text words with TextWord.MatchesForReplacing. Every probe printed the replaced program's expected output, and the 85 arms (scope end, fixed-form layout, ALSO/LAST and anywhere gates) behave per the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XII.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes under refute-1985-035/src at --std 85 via run_case.py, all MATCH: x1 (lowercase pseudo-text ==w-a== matches W-A, W-A-X untouched (whole text words), first pseudo-text-1 ==TAG A-B== wins over ==TAG== (GR6c), ==DISPLAY DUP== BY ==DISPLAY DUP DUP== not rescanned (GR6e), 'DISPLAY, W-Q' matched as 'DISPLAY W-Q' (GR6b separator comma), a comment line inside the matched source text ignored (GR7)); x2 (=='abc'== literal matches \"abc\" and NOT \"ABC\": III-3 NOTE 2 lowercase equivalence excludes nonnumeric literals; a match spanning a normal and a debugging line under WITH DEBUGGING MODE, and a word on a debugging line, replaced (GR8)); x3 (COPY text replaced by a later REPLACE (GR4); a continued nonnumeric literal in pseudo-text-1 matches a source literal continued at a different column (SR5)); x4 (literal containing == inside pseudo-text, a literal with doubled quote, semicolon separator, pseudo-text-1 ending in a separator period); x5 (a second REPLACE's own pseudo-text is not replaced by the first, and supersedes it). cite.py: OK §1985:XII.3.4 GR1, GR6b, GR6e, GR7, GR8. Side observation (GR10, not this rule): pseudo-text-2 ==DISPLAY \"DOT\". END-P.== put a paragraph-name in area B and was refused COBOL3734 at 85; that is the layout question of GR10/GR11, outside GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

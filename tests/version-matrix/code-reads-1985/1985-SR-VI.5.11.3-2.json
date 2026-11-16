@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-VI.5.11.3-2",
+ "rule-digest": "528102242eba",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-052",
+  "sources": {
+   "reader": "3be98b2cba5ceaaa0b1595abfeba4c0b68a42e1005a6a26da4080046d04dbc8d",
+   "refuter": "7aea4d4b87dda59a79d45f2f6b6870c745f49ba47e57992df35852d9d7a7f9fd"
+  },
+  "imported": {
+   "reader": "aa1a49b5833d82eba5b4baf645cb939aec480c298a257b84dd1c4abe2dbf9af7",
+   "refuter": "38b352fb9918cf7ce2611d2e07efe173c4104e18cdd4b5c53cd6c7fdc5153fa8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.11.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every level-66 RENAMES entry must stand directly after the last data description entry of the record description entry it belongs to: a 66 with no preceding record in its section, a 66 after a level-77 item, and any level 02-49 entry written after a record's RENAMES entries have begun must be refused, in every section a record may be described (file, working-storage, linkage), while any number of consecutive 66 entries after a record are legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RenamesEntry.cs#ScreenRenamesPlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.RenamesEntry.cs#ScreenEntryAfterRenames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames",
+  "edition-consulted": [],
+  "edition-search": "Read BindEntries' level-66 arm (openRecord/renamesBegun/CloseRecord, DataBinder.cs:711-960) and both screens in DataBinder.RenamesEntry.cs; grep for DialectLevel/CobolVersion/ConstructRegistry/Std in DataBinder.RenamesEntry.cs and the level-66 arm found none. The placement screens run the same code at every --std.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb1283_renames_legal exercises only legal placement; the refusal half (66 first in section, 66 after a 77, a 05 after a 66) and file/linkage-section records are not exercised by it",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r2a.cob",
+    "printed": "exit 0: [ABCD|CD|34|HELLO] / CD",
+    "expected": "legal: 66 entries after an FD record and after working-storage records, with an 88 inside the record before them"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r2b.cob",
+    "printed": "error COBOL2740: 'B': a data description entry follows the RENAMES entries of its record",
+    "expected": "refusal: the 66 does not follow the LAST entry of the record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r2c.cob",
+    "printed": "error COBOL2740: 'X': the RENAMES entry follows no record description entry it can belong to",
+    "expected": "refusal: a 66 first in its section follows no record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r2d.cob",
+    "printed": "error COBOL2740: 'X': the RENAMES entry follows a level-77 item (plus COBOL1655 for A not in the record)",
+    "expected": "refusal: a 77 is not a record description entry, so the 66 does not immediately follow its record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r2e.cob",
+    "printed": "error COBOL1655: 'X' RENAMES A: 'A' does not name an item of the record",
+    "expected": "refusal: a 66 naming an item of an earlier record does not follow that record"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r2f.cob",
+    "printed": "exit 0: [AB|AB]",
+    "expected": "legal: two consecutive 66 entries, and a 66 after a linkage-section record"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.11.3 SR2",
+    "check": "OK  §1985:VI.5.11.3 SR2  (║5.11.3 Syntax Rules║)  the text is in SR2"
+   }
+  ],
+  "notes": "BindEntries tracks the open record and whether its 66 entries have begun; a 66 with no open non-77 record and a 02-49 entry after the 66 run are both refused with COBOL2740, and a new 01/77 or a constant entry closes the run. A 66 naming an earlier record's item is refused by the SR4 operand resolution (IsWithinRegion). Diagnostics cite 2023 text at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.11.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "BindEntries is called once per FD/SD and per section (FileControlBinder.FileSection.cs:53/156, LinkageBinder.cs:360, CommunicationSectionBinder.cs:151), so openRecord starts null at each boundary. Probes at --std 85: q2 (66 X RENAMES A as the first Linkage entry, A in the Working-Storage record just before the section header) -> COBOL2740 'follows no record description entry'; q3 (FD F2's first entry a 66 naming FD F1's item) -> COBOL2740; q1 (1985-only Communication Section: 66 after the CD's 01 record) -> exit 0, MOVE through the alias writes CSQ1 [MNOPQRSTUVWX]; q4 (SD record ending with an 88 followed by two 66 entries; WS record with an 88 then a 66; a 66 after a redefining 01) -> exit 0 [ABOK|ABOK]. cite.py: OK §1985:VI.5.11.3 SR2 the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

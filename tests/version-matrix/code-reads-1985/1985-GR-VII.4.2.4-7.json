@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-GR-VII.4.2.4-7",
+ "rule-digest": "66612d2377e8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-025",
+  "sources": {
+   "reader": "dde92b60efc95ce31baaefeae9939f4084f1f29d58a45aa253e056ad1595f3d9",
+   "refuter": "b321bae242d25139ede9cd256e0b6ef85dd3794fdec3ab640e6c64631d78fbf7"
+  },
+  "imported": {
+   "reader": "d5703f0b874e52491fa1ae44a340efe4c4924ed15721394ced8a04d3ce9259d8",
+   "refuter": "ec42f032b70156411829d15564a117f5d753f5989cc9f4f524b7eb2054037f18"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.2.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "After a successful CLOSE without REEL/UNIT (plain, WITH LOCK, WITH NO REWIND) of a sequential file, the file is no longer in an open mode and no longer associated with its connector: every following READ/WRITE/REWRITE/CLOSE answers the not-open statuses 47/48/49/42, and a following OPEN (any mode) succeeds as on a closed file (38 only after WITH LOCK); a CLOSE REEL/UNIT on a non-reel medium leaves the file open (GR3 F).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedClose; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 85 the PHYSICAL file is marked closed-with-lock, from 2002 the connector (what a later OPEN refuses with 38); the removal from open mode (FileConnector.Close) is the same code",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Dialect|CobolVersion in FileRegistry.cs (Close, CloseByFormat, CloseCell, SharedClose, CloseWithLock), FileConnector.cs (Close, Status setter), CloseTable14.cs, and FlagConformancePass.VisitCloseStatement: the plain CLOSE path consults the edition nowhere; only CloseWithLock does.",
+  "behaviour-differs-by-edition": "no for this rule: the open-mode removal and connector dissociation are one code path; only the scope of the WITH LOCK lock (physical file at 85, connector from 2002) differs, which is GR3 E's matter, not GR7's",
+  "witnesses-cover": "part: pb140_close_status covers a second CLOSE (42) and reopen (00) after a plain CLOSE and CLOSE UNIT staying open; not exercised: READ/WRITE/REWRITE after CLOSE (47/48/49), WITH LOCK, an optional absent file, reopen in I-O and EXTEND",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/c7close.cob",
+    "printed": "CLOSE-OUT=00 WRITE-AFTER=48 READ-AFTER=47 REWRITE-AFTER=49 CLOSE-AGAIN=42 REOPEN-IO=00 READ1=00 REC00001 CLOSE-UNIT=07 AT-END2 READ-AFTER-UNIT=10 CLOSE-IO=00 REOPEN-EXT=00 WRITE-EXT=00 REOPEN-IN=00 READ2=00 REC00003 OPEN-G=05 CLOSE-G=00 READ-G-AFTER=47 CLOSE-LOCK=00 WRITE-L-AFTER=48 REOPEN-L=38",
+    "expected": "after each successful CLOSE without REEL/UNIT the file is not open: 48/47/49/42 (VII.1.3.5 4b,4f,4g,4h), reopen 00 (38 after LOCK, VII.1.3.5 3e); after CLOSE UNIT the file remains open (READ reaches at end, 10)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.2.4 GR7",
+    "check": "OK  §1985:VII.4.2.4 GR7  (4.2.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4b (42)"
+   },
+   {
+    "cite": "§1985:VII.4.2.4 GR3",
+    "check": "OK  §1985:VII.4.2.4 GR3  (4.2.4 General Rules)  the text is in GR3 (table 1, F: the file remains in the open mode)"
+   }
+  ],
+  "notes": "FileConnector.Close clears _openMode, ModeKnown and the run-unit file lock in a finally, and SharedClose drops the connector from the physical file's open set, so every later statement sees a closed connector. The probe drove every verb after CLOSE, the WITH LOCK form, an absent optional file and reopen in all three modes; all match the 1985 statuses.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.2.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Read §1985:VII.4.2.4 GR1-GR8 and table 1 (C, E, F, H). Probes beyond the reader's (refute-1985-025/src/k7a.cob, k7ext.cob, run at --std 85): the last-READ anchor does not survive a CLOSE (OPEN I-O, READ, CLOSE, OPEN I-O, REWRITE -> 43, next READ delivers record 1); CLOSE A B with A not open -> A=42 B=00 and READ B after -> 47 (GR8 separate closes); CLOSE WITH NO REWIND on disk -> 07, then READ 47, reopen 00 at record 1 (table 1 C,H); after CLOSE B a second SELECT on the same physical file opens EXTEND 00 and its write is read back; CLOSE WITH LOCK then OPEN of the other connector -> 38; an EXTERNAL file and a GLOBAL file closed in a contained program are closed for the container (WRITE -> 48, reopen 00). cite.py: OK §1985:VII.4.2.4 GR7 (the text is in GR7).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

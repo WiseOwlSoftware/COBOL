@@ -1,0 +1,109 @@
+{
+ "rule-id": "1985-GR-VI.4.3.4-1",
+ "rule-digest": "192cf1fb4323",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-011",
+  "sources": {
+   "reader": "091e3b25e3d00b1a40bd0009ebeae128d3db24f1dc25c012a419ab97b24c8613",
+   "refuter": "1a816b12394bef79e79a2accf7a8521e70c9d4b42ce4dd9c00d4b4cc911a6bc8"
+  },
+  "imported": {
+   "reader": "184cfa04b736203a98f60a82b956f25b71ee8b5bd7d8eaf7f673861362001fd7",
+   "refuter": "a5b31b7cb7ba713639ffcf3d85462e73adcc9bcd52b319f01daae3ff19bc9ba5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, the SOURCE-COMPUTER paragraph's clauses (computer-name and WITH DEBUGGING MODE, the only one with an observable effect) must govern the program that states them and every program directly or indirectly contained in it (which may not state a Configuration Section of its own, §1985:VI.4.2), so a contained program's debugging lines and USE FOR DEBUGGING sections are compiled exactly when the container declares the mode, and a separately compiled program after the container's END PROGRAM is not governed by it; the witness covers one level of containment and a debugging section only.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs (call of DebuggingLineRewriter.Rewrite)",
+    "switches": "debuggingSectionsAreComments = ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002): at 85 a debugging section of a unit without the (inherited) mode becomes comment text",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDebuggingModeClause",
+    "switches": "Constructs.DebuggingModeRemoved2014: the clause is available at 85 (removed in 2014)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (computer-name-optional gate)",
+    "switches": "SOURCE-COMPUTER WITH DEBUGGING MODE without computer-name refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DebuggingMode|debuggingSectionsAreComments over src; the inheritance itself (DebuggingLineRewriter UnitFrame(inheritedMode) pushed from the container's Mode; ConfigurationStep.Inherit copying DebuggingModeDeclared) consults no edition.",
+  "behaviour-differs-by-edition": "yes: at 85 the debugging facility exists (lines and USE FOR DEBUGGING sections) and computer-name is required before WITH DEBUGGING MODE; from 2014 the clause is removed. The containment inheritance is the same code at every edition that has the clause",
+  "witnesses-cover": "part: pb1088 covers one contained program's USE FOR DEBUGGING section; not exercised: debugging lines (D in indicator area, in data and procedure divisions) in contained programs, indirect (two-level) containment, a sibling separately compiled program after END PROGRAM, a container without the mode, the contained-Configuration-Section refusal",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c6/p1.cob",
+    "printed": "OUTER / OUTER-D / IN1 / IN1-D M=7 / IN1 N=2 / IN2 / IN2-D / SEP",
+    "expected": "debug lines (incl. a D data entry and a D ADD) compiled in SCIN1 and the doubly contained SCIN2 (GR1); SCSEP after END PROGRAM SCOUT is separate: its D line and its USE FOR DEBUGGING section (holding non-COBOL text) are comments (§1985:VI.4.3.4 GR5, §1985:XV.2.1.3 GR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c6/p2.cob",
+    "printed": "OUTER / IN",
+    "expected": "no mode in the container: debugging lines of container and contained program are comments (GR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c6/p3.cob",
+    "printed": "error COBOL1643: a CONFIGURATION SECTION is specified in a program contained within another program ... (ISO §2023:12.3.3 SR1 / §2023:12.3.4 GR1)",
+    "expected": "refused: §1985:VI.4.2 forbids a contained program a Configuration Section"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c6/p4refuse.cob",
+    "printed": "error COBOL0900: a SOURCE-COMPUTER or OBJECT-COMPUTER clause without computer-name-1 requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "1985 format: computer-name precedes WITH DEBUGGING MODE"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c6/p4.cob",
+    "printed": "DBG P-DEEP / DEEP",
+    "expected": "a USE FOR DEBUGGING section in an indirectly contained program is compiled under the outermost program's mode (GR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.3.4 GR1",
+    "check": "OK  §1985:VI.4.3.4 GR1  (4.3.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.4.3.4 GR5",
+    "check": "OK  §1985:VI.4.3.4 GR5  (4.3.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:XV.2.1.3 GR2",
+    "check": "OK  §1985:XV.2.1.3 GR2  (2.1.3 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.4.2",
+    "check": "OK  §1985:VI.4.2  (4.2 CONFIGURATION SECTION)  the text is in the clause"
+   }
+  ],
+  "notes": "Two twins carry the rule: the frontend's DebuggingLineRewriter keeps a unit stack (PROGRAM-ID pushes a frame inheriting the container's mode, END PROGRAM pops it) deciding debugging lines and, at 85, debugging sections; the binder's ConfigurationStep.Inherit copies DebuggingModeDeclared container-first so USE FOR DEBUGGING activates in contained units at any depth. All probes at --std 85 matched; refusal diagnostics cite ISO §2023 text rather than the 1985 clause.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "refute-1985-011/c6/r1.cob (--std 85): first program OUTA without the mode, second separately compiled SEPB with 'SOURCE-COMPUTER. X DEBUGGING MODE.' (WITH omitted, legal in 1985) containing siblings IN1 and IN2 (IS COMMON, after END PROGRAM IN1, with a D data entry): printed OUTA / SEPB / SEPB-D / IN1 / IN1-D / IN2 / IN2-D Z twice: OUTA's D line a comment, the mode carried to both siblings. r2.cob: USE FOR DEBUGGING in OUTA (no mode) is comment (no DBG line), in IN2 (sibling, inherited mode) it fires before QA: 'DBG-IN2 QA' then 'IN2 QA'. DebuggingLineRewriter scans default-channel tokens, so PROGRAM-ID/END PROGRAM words in literals or comments cannot move the unit stack. OK  §1985:VI.4.3.4 GR1 the text is in GR1; OK  §1985:VI.4.3.4 GR5 the text is in GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

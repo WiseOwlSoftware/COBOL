@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.6-1",
+ "rule-digest": "0bc4fa5e8a9d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-038",
+  "sources": {
+   "reader": "f3b868e25767543825ae53dd3a4e4af7e83b7881dfd29be45762d6d448c0beb2",
+   "refuter": "e30ccc4e1b9ad9e6428a667465d43f8ee6c7eb14c985ef145f14d12cf4b5c867"
+  },
+  "imported": {
+   "reader": "292794dd697688eb9a586b32c58b8367198c23172affd2d77d5adadbce7ed013",
+   "refuter": "f6c28209c3d4ff275dfef599eab0f660f56839272473f8d97dcc7b2301248ea9"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-XIII.3.5.6-1",
+  "verdict": "CONFORMS",
+  "requirement": "LINE-COUNTER is a reserved word naming a special register generated for EACH report of the Report Section (XIII-1 1.2.3: an unsigned integer holding at least 0 through 999999, usage implementor-defined); every RD has its own, qualifiable by report-name, and a program with no RD has none.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#ReportOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterPlace; src/WiseOwl.Cobol.Compiler/Binding/AlgebraicRange.cs#DescribeCounter; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#LineCounter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#ReservedWords",
+    "switches": "LINE-COUNTER / PAGE-COUNTER reserved at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped Edition|DialectLevel|CobolVersion|DialectBehavior in CounterResolver.cs (only LinageFileOf consults Has(2014), not on this path), ReportWriterBinder#CounterExpr/#CounterPlace and AlgebraicRange#DescribeCounter (none); the ReportWriter LineCounter/PageCounter properties carry no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: two reports in one program and cross-report qualification are covered; GLOBAL report counters in a contained program, the no-RD refusal, large values and integer contexts (subscript, COMPUTE, edited receiver) are not",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p6cnt.cob",
+    "printed": "INIT PC1=000001 INIT LC2=000000 LC1=000001 LC2=000003 PC2 ED=999,999 PC1 ED=      1 PC1 NEG=+0000005 PC1 ADD=6 SUB2=C CMP=+2000001",
+    "expected": "one register per report, independent; 999999 representable; unsigned (MOVE -5 stores 5); usable as subscript and in arithmetic"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p10unq.cob",
+    "printed": "COBOL2729 unqualified PAGE-COUNTER with more than one report description entry",
+    "expected": "refused (rule 3: qualify when more than one exists)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p10none.cob",
+    "printed": "COBOL2729 LINE-COUNTER referenced, but the program has no report description entry",
+    "expected": "refused: a register exists only per report"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p10badq.cob",
+    "printed": "COBOL2729 PAGE-COUNTER OF 'R9': the qualifier shall name a report description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p11glob.cob",
+    "printed": "IN LC=000002 IN PC=000001 (a contained program reads the GLOBAL RD's counters)",
+    "expected": "1985 IPC: the counters of a GLOBAL RD are global names"
+   },
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/8.4.2.2-Qualification/pb1456_other_report_counters_85.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.6 GR1",
+    "check": "OK  §1985:XIII.3.5.6 GR1  (3.5.6 LINE-COUNTER Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The register is the report engine's own field (one CobolReport per RD, EmitReportConstruction), reached by the one resolver CounterResolver#ReportOf in both directions; its implicit description (unsigned 32-bit) covers the 999999 the 1985 text requires. Nothing on the path consults the edition."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.5.6-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Same probes as 3.5.5-1: r2unpaged-001 an unpaged RD has its LINE-COUNTER (0 after INITIATE, 2 then 4 after two LINE PLUS 2 details, SOURCE LINE-COUNTER prints 000002/000004/000006, IN qualifier accepted); r2nolocal/r2nolocalq the counter of a non-GLOBAL RD is invisible in a contained program (COBOL2729); r2shadow the inner program's own LINE-COUNTER (1) and LINE-COUNTER OF the outer GLOBAL RD (3) are distinct registers. cite.py: OK §1985:XIII.3.5.6 GR1; OK §1985:X.4.4.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-XIII.3.2.3-4",
+ "rule-digest": "7d7cb4a400cc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-076",
+  "sources": {
+   "reader": "44d586d8cbb609dc61eae27ec31793c5b4679cf8d37209f3730c08e0b61c9851",
+   "refuter": "307ebb4f8f6956d0aa6a0cfddbf9be187b3fea3168a1a1de989118716ae224c9"
+  },
+  "imported": {
+   "reader": "5d3bf79fac3124b825c4e0f7497b223f7bde906eb3de86a6c4464d7dd10d6778",
+   "refuter": "8dbb4d3cc6879c81404256e8b698cd2223591f6b71754298d55099db05741e88"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.2.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an FD that carries a REPORT clause (in any clause order) must be refused when any record description entry follows it, and accepted (with no 1985 'record description required' refusal) when none does.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportFileRecordEntry",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord",
+    "switches": "Edition.DialectLevel < 2002 refuses an FD with no record description (COBOL1837, §1985:VII.3.2.3 SR3); a report file returns before the test, so the report-file arm is the same at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read BindFileSection's FD arm (the IsReportFile && dataDescriptionEntry().Length > 0 check after the clause loop) and MaterializeImpliedRecord; the SR4 check itself reads no edition (only the Edition diagnostic sink).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1171_report_file_legal_references is the legal half only; the refusal (a record under a report FD, the REPORT clause before another clause) is not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p1a_fd_record.cob",
+    "printed": "EXIT 65; error COBOL2578: file description entry 'RPT' specifies a REPORT clause and has 1 record description or constant entry subordinate to it",
+    "expected": "refused: No record description entries may follow the file description entry for a report file"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p1b_fd_record_after_label.cob",
+    "printed": "EXIT 65; error COBOL2578 ... has 4 record description or constant entries (REPORT clause written before LABEL RECORDS; two 01 records, one a group)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p1c_fd_legal.cob",
+    "printed": "EXIT 0; D1 PRESENTED / DONE",
+    "expected": "a report FD with REPORT and LABEL RECORDS and no records compiles and runs (no COBOL1837)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.2.3 SR4",
+    "check": "OK  §1985:XIII.3.2.3 SR4  (3.2.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "The check sits after the FD clause loop so the REPORT clause may come in any position; the 1985-only COBOL1837 'records required' refusal is skipped for a report file because MaterializeImpliedRecord returns on IsReportFile first. Cosmetic: the message counts every data description entry (p1b says 4 for two records with two subordinates) and cites only §2023:13.4.5.3 SR8 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.2.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read FileControlBinder.FileSection.cs#BindFileSection lines 129-138 (IsReportFile && dataDescriptionEntry().Length>0 after the clause loop, no edition test). Probes at --std 85: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r1a_global_report_fd_rec.cob (FD RPT IS GLOBAL, LABEL RECORDS OMITTED, REPORT IS R1, written after a normal FD with its record, then a group 01 with two 02s) -> EXIT 65 COBOL2578 at (12,8), 3 entries; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r1b_report_fd_then_normal_fd.cob (report FD with REPORT before LABEL and BLOCK, followed by a normal FD with two 01 records) -> EXIT 0 DONE, so records of the next FD are not charged to the report FD. cite.py: OK  §1985:XIII.3.2.3 SR4  (3.2.3 Syntax Rules)  the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

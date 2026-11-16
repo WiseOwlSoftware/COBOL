@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-6",
+ "rule-digest": "161d9859c45f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-121",
+  "sources": {
+   "reader": "14765693275ab25651d3d10898dbaa20ad5bbd180380d3200754a48836162545",
+   "refuter": "7dbecbf905be77bcbc1585f4fb85f8005f0070d30a0b0f7c5b0fbc5355f364ab"
+  },
+  "imported": {
+   "reader": "beba96a57673c5932b265bc11d35ec4039c26906896fc2ee0217d1cd8c4c1ca4",
+   "refuter": "724040bbddbc26f778661bf0c1e92db0e56155c18f4325729de3e5d84d9a7206"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.8.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "For a Format 2 sequential file whose RECORD IS VARYING clause omits FROM integer-2, the minimum record size the WRITE/REWRITE bound test applies is the least GR5 minimum size among the file's record descriptions.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordMax; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinExtent; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#MinimumOccurrences; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OutsideVaryingBounds",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize: whether a Format 3 RECORD CONTAINS integer-4 TO integer-5 binds WRITE/REWRITE sizes (off at 1985); a Format 2 RECORD IS VARYING clause sets BoundsEnforced true at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped FileModel.cs, DataItem.cs, FileControlBinder*.cs, SequentialIoEmitter.cs and the runtime IO directory for DialectLevel/Edition/DialectBehavior/IsActive; the size summations (MinExtent, MaxRecordSize, ByteWidth) and VaryMin/VaryMax read no edition; the runtime bound test (OutsideVaryingBounds) reads none; the registration passes the edition to the connector, where only CLOSE WITH LOCK, sharing and the indexed arms read it.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f18_02 (FB: TO 20, no FROM, records 15 and 7, minimum 7) and its FA (minimum from an ODO at its minimum); not covered: a least record that is an ODO group whose minimum is below every fixed record (rv1 F, minimum 4 against a 10 and an 8), a zero length",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/rv1.cob",
+    "printed": "F L=03 44 / F L=04 00 / F L=10 00 / F L=11 44 / F R3 L=08 00 / G M=01 44 / G M=02 00 / G M=16 00 / G M=17 44",
+    "expected": "F: no integers; records X(10), N+GRP(3) OCCURS 1 TO 3 (min 4, max 10), P X(6)+Q REDEFINES P+S X(2) SYNC (8): min 4 (GR5a, GR6), max 10 (GR5b, GR7): 3 and 11 are 44, 4, 10, 8 succeed. G: FROM 2, no TO; G1 X(5), G2 1+X(3) OCCURS 2 TO 5 (max 16): 1 is 44, 2 and 16 succeed, 17 is 44 (GR7 over an ODO maximum)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-121/src/rv1.cob",
+    "printed": "at --std 2023: identical output",
+    "expected": "the Format 2 rule is unchanged in substance; the 1985 arm is the 2023 arm"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.4 GR6",
+    "check": "OK  §1985:VII.3.8.4 GR6  (3.8.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "VaryMin returns the stated integer-2 when a Format 2 clause gives it and otherwise Records.Min(MinRecordSize); the registration passes it to the connector, whose OutsideVaryingBounds gives 44 below it. Probe rv1: 3 is refused 44 and 4 accepted with records of 10, 4..10 and 8.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.8.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "Probe refute-1985-121/src/rvr1.cob (rvr1-002) at --std 85. File H: RECORD IS VARYING IN SIZE with no integers and no DEPENDING ON (GR10 c path, not the reader's data-name-1 path); records H1 X(10), H2 = N PIC 9 + HG(X(2)+X) OCCURS 0 TO 3 (0 is legal, §1985:VI.5.8.3 SR5) with a 66 RENAMES, H3 = 9(4) COMP + X(4): WRITE H2 at N=0 (1 position) 00, N=3 (10) 00, H3 00, H1 00; read back through a second FD with DEPENDING ON: lengths 1,10,6,10 (status 04 there is that FD's own GR6 minimum of 10). File K: TO 12, no FROM, least record K2 (COMP+X(4)=6) under K1 X(8): L=1..5 are 44, 6..9 are 00. The minimum sums a zero-occurrence ODO group, a RENAMES adds nothing, a COMP item counts at its implementor size, and the least record is chosen across records. SYNCHRONIZED slack is the implementor's and documented (docs/conformance/7). cite.py: OK §1985:VII.3.8.4 GR5a; OK §1985:VII.3.8.4 GR6; OK §1985:VII.3.8.4 GR7; OK §1985:VI.5.8.3 SR5. (A first run, rvr1-001, had a PIC 9 loop counter that could not exceed 9; it was stopped before writing any K record and rerun with PIC 99.)",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

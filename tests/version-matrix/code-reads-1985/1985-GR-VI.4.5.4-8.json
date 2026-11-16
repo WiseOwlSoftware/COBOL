@@ -1,0 +1,133 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-8",
+ "rule-digest": "d5867edf6e35",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-102",
+  "sources": {
+   "reader": "0aca3eed776d10077df1ada3f233644bd2d0ebb07e39741ed7b1f57803851a1a",
+   "refuter": "8820ad5928eff40479d7638c4a2f01dc02a28a619de196373de9498143191521"
+  },
+  "imported": {
+   "reader": "3211ca2d291e3e227594005d82b46aa16981b5a8c6bd03302ce315121fd870e3",
+   "refuter": "495c3d9e15df024a2f1006296afab9b32851845fbaf6f0758a6714b80b6b66bc"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-VI.4.5.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each symbolic-character-1 without IN is the native character at ordinal integer-1 (ordinal n = code unit n-1 here), and with IN alphabet-name-2 the character at ordinal integer-1 of that alphabet's character code set (NATIVE, STANDARD-1/2, or a literal phrase whose ordinals follow the specification, THRU in either direction, ALSO sharing one ordinal represented by literal-1, unspecified characters implementor-placed after), the IN phrase applying to every name/integer group of its clause; an ordinal absent from the set is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SwitchBindSymbolic; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SymbolicClauseOperands; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CodedCharacterSet; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CharAt; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#SymbolicOperand",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSymbolicCharactersClause",
+    "switches": "SYMBOLIC CHARACTERS FOR ALPHANUMERIC/NATIONAL refused at 85 (COBOL0900), admitted at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ConstantNamesExist",
+    "switches": "whether a word in integer-1's place may be a constant-name (2002+); at 85 it is refused as not an integer literal (COBOL1547)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlphabetClause",
+    "switches": "the alphabet an IN phrase names cannot be a 2002 national or LOCALE alphabet at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes, only at the edges: the FOR phrase and constant-name ordinals are refused at 85; the ordinal mapping itself is the same code at every edition.",
+  "witnesses-cover": "part: g85_bf03_04 covers native ordinals, a literal-phrase alphabet with ALSO, and STANDARD-1; not NATIVE or STANDARD-2 as the IN alphabet, a descending THRU, an ordinal beyond a literal alphabet's specified characters, IN covering several groups of one clause, use in relation/INSPECT, or the out-of-range refusals (probed here).",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p6sym.cob",
+    "printed": "N1=a I1=Z T=ZWa U=QR T-EQ INSP=AWa U1=NUL",
+    "expected": "98 IN NATIVE = a; 91 IN STANDARD-2 = Z; \"Z\" THRU \"W\" \"a\": ordinals 1 4 5 = Z W a with IN covering both groups; 1 2 IN \"Q\" \"R\" = Q R; 3 IN that alphabet is the first unspecified native character U+0000 (implementor placement, GR4d 4); INSPECT ALL T1 BY P1 (66 = A)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p6zero.cob",
+    "printed": "error COBOL1670: ... IS 0: the ordinal position does not exist in the native character set",
+    "expected": "refused (§1985:VI.4.5.3 SR10)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p6big.cob",
+    "printed": "error COBOL1670: ... IS 65537 ... native character set (65536 characters)",
+    "expected": "refused: beyond the native set"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p6st129.cob",
+    "printed": "error COBOL1670: ... IS 129 ... STANDARD-1, 128 characters",
+    "expected": "refused: beyond the IN set"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p6st128.cob",
+    "printed": "EXIT 0 (compiles)",
+    "expected": "128 IN STANDARD-1 exists"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p6inund.cob",
+    "printed": "error COBOL5985: 'NOSUCH' is not an alphabet-name declared",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p6for.cob",
+    "printed": "error COBOL0900 the FOR ALPHANUMERIC/NATIONAL phrase requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p6word.cob",
+    "printed": "error COBOL1547: 'SIXTY' is not an integer literal ... COBOL-85 has no constant-name",
+    "expected": "refused at 85: integer-1 is an integer"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/g85_bf03_04.cob",
+    "printed": "MATCH",
+    "expected": "SA=A S=QRS SB=B SA-EQ S2-EQ SB-EQ ALL-S1=QQQ W3=RRR"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.4 GR8",
+    "check": "OK  §1985:VI.4.5.4 GR8  (4.5.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VI.4.5.3 SR10",
+    "check": "OK  §1985:VI.4.5.3 SR10  (4.5.3 Syntax Rules)  the text is in SR10"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR4d",
+    "check": "OK  §1985:VI.4.5.4 GR4d  (4.5.4 General Rules)  the text is in GR4d"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR4a",
+    "check": "OK  §1985:VI.4.5.4 GR4a  (4.5.4 General Rules)  the text is in GR4a"
+   }
+  ],
+  "notes": "CodedCharacterSet.CharAt is the one ordinal-to-character map: identity for NATIVE and STANDARD-1/2 (ISO 646 IRV as U+0000-U+007F, documented DOC-A.1-182/187; the 1985 text itself equates the IRV currency sign with $), RepByPos for a literal phrase's specified block and the native-order tail after it. The IN word is read once per clause, so it covers every group."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.5.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Rendered PDF p.245 plus Errata C124 (outermost braces deleted): [SYMBOLIC CHARACTERS {{symbolic-character-1}... {IS|ARE} {integer-1}...}... [IN alphabet-name-2]]..., so IN closes a clause and each repeated clause has its own IN. r6sym-003: ALPHABET AL IS 90 89 \"QRS\" 70 ALSO 71; P1 P2 P3 ARE 1 3 5 IN AL = Y Q S; a separate clause P4 IS 66 without IN = native A; P5 IS 6 IN AL = E (only literal-1 of the ALSO pair represents it, GR4d 6); P6 IS 65535 IN AL = U+FFFF (the last ordinal: 7 characters share 6 ordinals, so the set has 65535); P7 IS 128 IN STANDARD-2 = native U+007F. Refusals: r6mid-001 'M1 IS 1 IN AL M2 IS 66' (a group after IN without a new SYMBOLIC CHARACTERS) refused COBOL5506, as the corrected format requires; r6big-001 65537 IN a literal alphabet and 129 IN STANDARD-2 refused COBOL1670 (SR10); r6sym-001 65536 IN AL refused COBOL1670, correct because the ALSO pair leaves 65535 ordinals. The message's '(literal-phrase, 65536 characters)' gives the character count and not the ordinal count, so it hides why 65536 is refused. That is diagnostic text, not this rule. cite.py: 'OK  §1985:VI.4.5.4 GR8  (4.5.4 General Rules)  the text is in GR8'; 'OK  §1985:VI.4.5.3 SR10  (4.5.3 Syntax Rules)  the text is in SR10'; 'OK  §1985:VI.4.5.4 GR4d ... the text is in GR4d' (only literal-1 is used); 'OK  §1985:VI.4.5.2  (4.5.2 General Format)  the text is in the clause' (Errata C124).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

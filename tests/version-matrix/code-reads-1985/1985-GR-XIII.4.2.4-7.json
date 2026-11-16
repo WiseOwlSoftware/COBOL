@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XIII.4.2.4-7",
+ "rule-digest": "a86ce0c1b4a9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-151",
+  "sources": {
+   "reader": "a12a58a63be1851511ed40f4a83a570d4b875d4271d26c2b066a5ea013e61409",
+   "refuter": "5325b85cac938cc72a59a6577402dc0d6e1669dcdf81cdb8e6554b02c3e9b1d5"
+  },
+  "imported": {
+   "reader": "e257b1a7e157b181e5a31d68fc4598dc61fd2ec504556d5b5d8759c4825869db",
+   "refuter": "ba0d4c868c121e2338af392108dcd2961724aaad992472d2e64af3f70364a266"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.2.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a CLOSE naming several files (report files, and files of any organization and access) behaves as one CLOSE per file in written order, each with its own phrase, I-O status update and USE procedure, a failed one not preventing the later ones.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 85 the physical file is locked, from 2002 the connector (the per-file close, not the series)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EmitClose's per-file loop (one implicit CLOSE per file-name, status store and USE hook inside it) has no edition test: grep DialectLevel/Edition/IsActive in SequentialIoEmitter.EmitClose found none; the EC-REPORT-NOT-TERMINATED raise is an EC-enablement question",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf18_09 covers order and per-file status for plain CLOSE; mixed phrases (WITH LOCK on one file), a failed close ahead of a locked one and a repeated file-name were not exercised (probed)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/XIII.4.2@1985-CLOSE-STATEMENT/g85_bf18_09.cob",
+    "printed": "EXPECT: MATCH (run_probe --std 85 --expect)",
+    "expected": "the case's .out"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-151/p6close.cob",
+    "printed": "CLOSE FA PA WITH LOCK PB (FA never opened): USE-FA 42 PA=99 PB=99, AFTER 42 00 00, REOPEN-PA 38, REOPEN-PB 00; CLOSE PB WITH NO REWIND PB: TWICE 42",
+    "expected": "each file closed as by its own CLOSE in written order with its own phrase; a failed one does not stop the later ones; a repeated file gets 42 on its second close"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.2.4 GR7",
+    "check": "OK  §1985:XIII.4.2.4 GR7  (4.2.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "EmitClose emits one implicit CLOSE per (file, kind) in written order, each storing its own status and running its USE hook; the probe shows FA's failure handled before PA and PB close, PA locked (38 on reopen) and PB closed (00).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.2.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Read §1985:XIII.4.2.4 GR1-GR7 with table 1 (non-reel/unit CLOSE REEL: 'The file remains in the open mode') and SequentialIoEmitter.cs#EmitClose (one implicit CLOSE per (file, kind) in written order, status store and USE hook inside each; the EC-REPORT-NOT-TERMINATED arm is gated by ec.Enabled, not by the edition; grep DialectLevel/IsActive in the file finds no edition test in EmitClose). Probe r7close at --std 85: CLOSE PA REEL FR FI WITH LOCK PB over two report files, an unopened RELATIVE file with a USE procedure and an INDEXED file: PA=07 and still open (OPEN OUTPUT PA then 41, a second INITIATE/GENERATE writes ALPHA twice), FR's USE ran with 42 while PA was already 07 and FI/PB still 99, FI locked (reopen 38), PB closed (OPEN EXTEND 00, BETA kept). Each file got its own phrase, status and USE in written order; the failure did not stop the later ones. cite: OK  §1985:XIII.4.2.4 GR7  (4.2.4 General Rules)  the text is in GR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

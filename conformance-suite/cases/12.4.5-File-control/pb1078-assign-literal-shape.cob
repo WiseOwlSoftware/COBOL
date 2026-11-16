@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1078-assign-literal-shape
-*> rules: [SR-12.4.5.2-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1078-assign-literal-shape
+      *> rules: [SR-12.4.5.2-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1078 - ISO 12.4.5.2 SR4: "Literal-1 shall be an
       *>   alphanumeric literal and shall be neither a figurative
       *>   constant nor a zero-length literal." Both refused forms below

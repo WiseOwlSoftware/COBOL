@@ -3,9 +3,12 @@
   "WHAT A DIAGNOSIS WITNESSES (kb/Work PB5597, branch review R1-1, R2-3; DESIGN-spec-conformance-review.md section 10.6),",
   "read by lineage_reads.EvidenceTable. A conformance-suite case that a compiler is to REFUSE at an edition (a refusal",
   "test's wiseowl/diagnostics refuse-at, a flagged case's flag at) shows a diagnosis, nothing else. It witnesses an older",
-  "rule only where what the rule asks of a compiler IS a diagnosis: the rule's catalog `kind` is a key of",
-  "`diagnosed-kinds` and its text matches none of `needs-accepting-case` (a rule that GRANTS a form, which only a program",
-  "the compiler accepts can witness), or the next-edition rule it carries into is `declined-verdict` (the compiler",
+  "rule only where what the rule asks of a compiler IS a diagnosis: its text matches none of `needs-accepting-case` (a",
+  "rule that GRANTS a form, which only a program the compiler accepts can witness; these win) AND either its catalog",
+  "`kind` is a key of `diagnosed-kinds` or its text, of any kind, matches one of `withholding-rules` (a rule that",
+  "WITHHOLDS a property from a clause, \"does not imply\": no accepted program can tell it was withheld, so the refusal of",
+  "a program relying on it is its one witness, kb/Work PB5783); or the next-edition rule it carries into is",
+  "`declined-verdict` (the compiler",
   "declines the facility, and the read states the older text's licence to decline it, licence-<year>). Every other rule",
   "needs a case ACCEPTED at the edition. The keys are the catalog's own `kind`s, checked against it at load.",
   "`needs-accepting-case` is a TEXT HEURISTIC THAT FAILS CLOSED: a match sends the rule to an accepted case, so a",
@@ -23,6 +26,9 @@
   {"pattern": "\\bin\\s+any\\s+order\\b", "why": "an order left free: every order must be accepted"},
   {"pattern": "\\b(?:is|are)\\s+(?:permitted|allowed)\\b", "why": "a permission stated outright"},
   {"pattern": "\\bcan\\s+be\\b", "why": "\"can be specified\": a permission in other words"}
+ ],
+ "withholding-rules": [
+  {"pattern": "\\b(?:clause|phrase)\\s+does\\s+not\\s+imply\\b", "why": "the subject is a CLAUSE or PHRASE (\"This does not imply\", which glosses an OCCURS DEPENDING ON rule that also states an observable result, is not taken); \"use of the EXTERNAL clause does not imply that the ... name is a global name\": a property withheld, which no accepted program can observe (a local declaration wins either way) and a refusal of a program that relies on it shows (kb/Work PB5783)"}
  ],
  "declined-verdict": "DOCUMENTED-NON-SUPPORT"
 }

@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-3",
+ "rule-digest": "7d85ce08ba0b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-028",
+  "sources": {
+   "reader": "ecc6b3fea65b7e8f346e8afe9c69f717ee3390855a48f4828683119993b37cf6",
+   "refuter": "2e3ef5aa81e9ebe44f10c9b93e0a7c1fb1aae8ad67192c39e7bfeaaf6cc8e905"
+  },
+  "imported": {
+   "reader": "1025c49e114a2f57907f39b27efdb6e4d99dc1648a48f21ec906c0302e085ef5",
+   "refuter": "a2905270d0a1ec4dfa37992c66706d95cbff763e3de1fca8884ee8f38f80873e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every execution of a READ of a relative file (format 1 sequential or NEXT, format 2 random; successful or not) updates the I-O status (FILE STATUS item) to the value §1985:VIII.1.3.4 assigns: 00, 10 at end, 14 relative number too large for the key, 23 invalid key, 46 no valid next record, 47 not open in input or I-O mode.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect' in KeyedIoEmitter.cs, SequentialIoEmitter.cs EmitRead/EmitStoreFileStatus, RelativeConnector.cs and FileConnector.cs's read guards (lines 752-858): no edition term on the READ status path; EmitStoreFileStatus is emitted unconditionally after every keyed READ.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pins 05/10/46/23 for an absent OPTIONAL relative file; 47 (not open, open OUTPUT), 14 (key too small), 00 after a failing READ, and the overwrite of a sentinel value in every status are covered only by probe p4stat",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p4stat.cob",
+    "printed": "READ-IN-OUTPUT-MODE=47 READ-NOT-OPEN=47 SEQ1=00 2 R002 SEQ2-RRN12-KEY-TOO-SMALL=14 SEQ3-AFTER-14=46 SEQ-AFTER-REOPEN=46",
+    "expected": "each READ overwrites the sentinel 'XX': 47 for open OUTPUT and for not open; sequential READ 00 then 14 for RRN 12 against a PIC 9 relative key (status 14), then 46"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p4stat.cob",
+    "printed": "DYN-RANDOM=00 R012 DYN-NEXT-ATEND=10 DYN-NEXT-AFTER-ATEND=46 DYN-RANDOM2=00 R002 DYN-RANDOM-MISSING=23 NIK 00 DYN-RANDOM-AGAIN=00",
+    "expected": "dynamic access: random 00, NEXT at end 10, then 46, random again 00 (the status is updated back after a failure), missing 23, then 00 with the NOT INVALID KEY phrase seeing 00"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR3",
+    "check": "OK  §1985:VIII.4.5.4 GR3  (4.5.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "KeyedIoEmitter.EmitRead stores the connector's status into the FILE STATUS item after every READ, before the USE hook and the phrase branches, and the relative connector sets a status on every path. All six status values the relative READ can produce were observed overwriting a sentinel.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,e,f",
+  "evidence": "The reader's requirement lists 00/10/14/23/46/47 and omits 04, which §1985:VIII.1.3.4 (1) b and GR16 give a READ; attacked there. Probe r3len.cob (r3len-001): RECORD IS VARYING 1 TO 20 with a 5-character record read back: 00 (within the RECORD clause's bounds, the reading FileConnector.RecordLengthConflicts documents). Probe r3stat2.cob (r3stat2-001, with a zero-byte data file): connector A (30-byte FD) opens INPUT 00 on the empty file, connector B (20-byte FD) opens I-O 00 and writes RRN 1, A's random READ gives 04 (GR16 record length conflict, successful); START EQUAL miss 23 then READ NEXT 46 (status 46 item 1, failed START); OPTIONAL absent file opened I-O 05 (created), READ NEXT 10, random READ 23. Each READ overwrote an 'XX' sentinel. cite.py: OK  §1985:VIII.4.5.4 GR3 (the text is in GR3); OK  §1985:VIII.4.5.4 GR16 (the text is in GR16).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

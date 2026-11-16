@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VIII.4.2.4-4",
+ "rule-digest": "37ed63b0ca80",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-027",
+  "sources": {
+   "reader": "fd23e0b0bc1d1d7c605b5f311a04e2b0993c86b5be3e5a258e565fef035f0a0a",
+   "refuter": "e4ba0104cfd61f9386e26ae9a7898ae75d668e9819c419c14a590a237f8f10f6"
+  },
+  "imported": {
+   "reader": "03f4b3494a8a6181b3e26c7ba6e28e1740277745618a5cff866099d3658774e4",
+   "refuter": "62ca3ef2a2f9e07521f520385d80086cb3480730f7b2695e5c995d50d8b53335"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.2.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, closing an OPTIONAL relative file opened INPUT that was not present (OPEN status 05) must succeed (00) without end-of-file processing and without creating the file or changing the file position indicator: the file stays absent, so a later OPEN INPUT answers 05 again, and the CLOSE removes the file from the open mode (a second CLOSE is 42).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#IsOpen; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: a successful WITH LOCK of the absent optional file locks the physical file at 85 (38 on the next OPEN)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectBehavior/OptionalNotPresent in FileRegistry.cs and FileConnector.cs close path; the absent-optional branch of CloseCell consults no edition (its only effect is to suppress 07, unreachable for a relative file).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb140_close_status covers an absent optional SEQUENTIAL file; the relative organization, a CLOSE after READ at end / random READ / START on the absent file, WITH LOCK and the I-O-mode creation case are exercised by this slice's probes",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-027/clsopt.cob",
+    "printed": "OPEN=05; EOF=10; CLOSE=00; REOPEN=05; RAND=23; START=23; CLOSE2=00; CLOSELOCK=00; AFTERLOCK=38; Q-OPEN=05; Q-CLOSE=00; Q-CLOSE2=42; Q-OPENIO=05; Q-CLOSEIO=00; Q-OPENIN=00; Q-EOF=10",
+    "expected": "absent optional input file: CLOSE succeeds 00 with no end-of-file processing; the file is not created (re-OPEN INPUT 05 again); a later CLOSE is 42; OPEN I-O creates it (05), after which OPEN INPUT is 00 (§1985:VIII.1.3.4 (1) c)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.2.4 GR4",
+    "check": "OK  §1985:VIII.4.2.4 GR4  (4.2.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VIII.4.2.4 GR6",
+    "check": "OK  §1985:VIII.4.2.4 GR6  (4.2.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VIII.4.2.4 GR2",
+    "check": "OK  §1985:VIII.4.2.4 GR2  (4.2.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The connector of an absent optional file is in the open mode after the 05 OPEN, so CloseCell's guard passes and the plain close runs; nothing creates the file, which a re-OPEN's 05 shows. The FPI's 'unchanged' half is not observable after the close beyond this.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell": "absent = c.OptionalNotPresent read before the close",
+   "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom": "RandomReadAbsentOptionalGuard"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.2.4-4",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-027/clsopt2.cob (clsopt2-001), OPTIONAL dynamic relative file absent: OPEN INPUT 05, READ NEXT AT END 10, a second READ NEXT does not take AT END (a logic error, beside this rule), CLOSE 00, re-OPEN INPUT 05 again (no file created, no end-of-file processing), CLOSE 00, OPEN I-O 05 (created per §1985:VIII.1.3.4 (1) c), CLOSE 00, OPEN INPUT 00. The FPI 'unchanged' half has no observation after a CLOSE (the next OPEN sets it). cite.py: OK §1985:VIII.4.2.4 GR4 the text is in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

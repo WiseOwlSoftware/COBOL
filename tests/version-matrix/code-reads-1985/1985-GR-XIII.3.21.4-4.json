@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-XIII.3.21.4-4",
+ "rule-digest": "f3a12cbe174c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-150",
+  "sources": {
+   "reader": "7697c568dbb2a3c85cecd17e51af211a6f653d5e6cb0624595d46d53a5bde9a3",
+   "refuter": "1cf85c8f5c2ce69b9820c2199aa1ac9137fc69e3e23d294d2de8dae79b62d502"
+  },
+  "imported": {
+   "reader": "10146796ae3ec09c8e9f0fededfdcfc7ad987582f9b6c6f4734643cf74dfcb7b",
+   "refuter": "7c202c9376a3b44117f522b08bdb311b47fd45a7249989a37ea959f3d39493cd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.21.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a report elementary item with no USAGE clause on itself or on any group above it is implicitly DISPLAY and prints exactly as an explicit USAGE IS DISPLAY item would.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#ReportPrintablePicture; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ReportItemDescription.cs#EnclosingReportItem; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportUsage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+    "switches": "null keyword maps to Usage.Display with no edition test; the nonstandard-spelling register is not reached for null",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "ReportPrintablePicture passes d.UsageText ?? d.InheritedUsage (null when nothing is written) to ParseUsage, whose case null returns Display; grep for DialectLevel/EditionContext/DialectBehaviors on that path found only the Edition object passed for diagnostics.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf13_06 and 1985-GR-XIII_3_21_4-4 cover an unsigned PIC 999 with no usage; nested groups with no usage, signed, edited and alphanumeric items are covered by the probe usg2",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/usg2.cob",
+    "printed": "[-042   3.50- 007 ABC 123456789012345678     END]",
+    "expected": "identical to the explicit-DISPLAY probe usg1 (implicitly DISPLAY): it is"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/usg2.cob",
+    "printed": "at --std 2023 the same line",
+    "expected": "same characters at both editions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/usgg.cob",
+    "printed": "error COBOL2198 at the 01 (COMP) and at the 05 written DISPLAY under it",
+    "expected": "a non-DISPLAY usage on a group is refused, so no item inherits it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.21.4 GR4",
+    "check": "OK  §1985:XIII.3.21.4 GR4  (3.21.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "Two levels of group with no USAGE above every item: all print as DISPLAY characters, byte-identical to the explicit form. The witnesses also pass at 85 (g85_bf13_06 MATCH).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.21.4-4",
+  "refutation": "UPHELD",
+  "classes": "d",
+  "evidence": "The ubare.cob line agrees field for field with what explicit DISPLAY gives. The 99B99/9 item (no USAGE written on it, the group above it written DISPLAY) prints the same as the reader's no-USAGE probe usg2, which matched usg1 byte for byte. I found no form of this edition in which an item with no USAGE anywhere above it takes any usage other than DISPLAY: the only other usage is refused on a report group (COBOL2198). cite.py: OK  §1985:XIII.3.21.4 GR4  (3.21.4 General Rules)  the text is in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

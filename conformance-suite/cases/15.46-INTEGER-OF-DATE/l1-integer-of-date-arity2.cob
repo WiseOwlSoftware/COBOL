@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: l1-integer-of-date-arity2
-*> rules: [FMT-15.46.2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1-integer-of-date-arity2
+      *> rules: [FMT-15.46.2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:15.46.2 general format — FUNCTION INTEGER-OF-DATE ( argument-1 ).
       *> ONE argument, unbracketed: no optional trailing argument, no repetition
       *> group, no phrase. A second argument is not a form this function has, at

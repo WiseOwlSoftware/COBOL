@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-2",
+ "rule-digest": "70f4cb457ad7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-071",
+  "sources": {
+   "reader": "90a7f18d255b545bee9f7532c2b43d3174e2468167bc66f03ff0fb60ab7004ef",
+   "refuter": "5ff05a7002ed3d0fe9d4c6c14bb6d40fe2625a6767b6221c63700a72659e7bdb"
+  },
+  "imported": {
+   "reader": "154431bfa4a8818a29d277b45b449c6f81ae0bb34abeea7c91b165014760a354",
+   "refuter": "64257c900f87f5a1223b643bc9d0e92bd1ad17ed741427fb6f9be550baff6e01"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.4.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 SORT file-name-1 must be a file described by an SD; an FD file is refused, and since COBOL-85 has no table SORT, any other operand (a table, a record, an undefined name) is refused too.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindSort; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortStatement (ParseArm)",
+    "switches": "construct table-sort-2002 (ConstructRegistry, COBOL0870): a SORT with no USING / GIVING / procedure phrases is refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 a table operand is refused (COBOL0870); from 2002 it is Format 2. The SD check itself (SortBindFile, !IsSortMerge) is the same at every edition",
+  "witnesses-cover": "part: the witness is the FD-file refusal; non-file operands at 85 are not witnessed",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/s2ok.cob",
+    "printed": "EXIT 0: SORT S1 USING F1 GIVING F2; 1 AA111 / 2 BB222",
+    "expected": "accepted, sorted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/s2fd.cob",
+    "printed": "COBOL1757: SORT file F1 is not described in a sort-merge description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/s2tab.cob",
+    "printed": "COBOL0870: SORT of a table (Format 2) requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/s2undef.cob",
+    "printed": "COBOL1757: SORT of NOSUCH: USING/GIVING/INPUT/OUTPUT PROCEDURE apply only to a sort-merge FILE operand (Format 2 sorts the table in place)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/s2rec.cob",
+    "printed": "COBOL1757: the same message for SORT R (the SD record) USING ... GIVING ...",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.3 SR2",
+    "check": "OK  §1985:XI.4.4.3 SR2  (4.4.3 Syntax Rules)  the text is in SR2 [File-name-1 must be described in a sort-merge file description entry in the Data Division]"
+   }
+  ],
+  "notes": "Every non-SD operand is refused at --std 85. One wording nit: at 85, a non-file operand written with USING/GIVING draws the Format-2 message ('Format 2 sorts the table in place'), which talks about a format 1985 does not have. The refusal itself is correct.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.4.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85: x5a (SORT of an FD file with INPUT PROCEDURE and GIVING) refused COBOL1757 'F1' is not described in a sort-merge description entry; x5b (SORT of an FD file with no USING/GIVING/procedure phrase) refused COBOL1757 plus COBOL0870; x5c (2002 table SORT with WITH DUPLICATES, a later edition's form) refused COBOL0870 at 85. Diagnostics cite §2023 clause numbers at --std 85 (citation nit only). cite.py: OK  §1985:XI.4.4.3 SR2 [File-name-1 must be described in a sort-merge file description entry].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

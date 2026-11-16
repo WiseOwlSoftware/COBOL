@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-X.1.3.6-1",
+ "rule-digest": "12ce1df18e0f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-139",
+  "sources": {
+   "reader": "8b7eb4b4f4c233fc9bfb0a7a1fdbe7fe8a3325f9bd89535c63f50860cc39bd1f",
+   "refuter": "f4df25706caf73949493e1a6a03355d84423508379155471e02b2451d758c4dc"
+  },
+  "imported": {
+   "reader": "389ffc4b6dffa8e81727f98ea455ee85931b6f67055289e0e66d077434ebf323",
+   "refuter": "de26c3635d1b11ed5007775d0e5a53518af7fbe75353e794d0fa920fe9d9c6a4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.1.3.6-1",
+  "verdict": "CONFORMS",
+  "requirement": "Every program of the run unit that describes an external Working-Storage record (any record-name match, its own subordinate descriptions, or a complete REDEFINES of it per X.4.5.4 GR2) references one and the same storage, whether the programs are contained, siblings or separately compiled; group and elementary items, COMP and variable-occurrence items included.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitExternalBackings; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClause",
+    "switches": "construct value-clause-linkage-file-external-2002: a VALUE clause on an EXTERNAL item is refused at 85 (X.4.5.3 SR3) and admitted from 2002; refusal side only, not the sharing path",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalClause",
+    "switches": "construct external-type-declaration-2023 (STRONG TYPEDEF EXTERNAL); unreachable for a plain 1985 EXTERNAL record",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Dialect|Constructs over LinkageBinder, DataBinder.ClausePlacement, OoEmitter, Runtime/Control/ExternalTable and ConstructRegistry.g.cs (external rows: external-type-declaration-2023, externalized-name-as-2002, value-clause-linkage-file-external-2002); the binding, cell emission and runtime table are edition-free",
+  "behaviour-differs-by-edition": "no: the sharing is the same; only the refusal of VALUE on an EXTERNAL item and the AS phrase differ (later-edition additions)",
+  "witnesses-cover": "part: g85_bf31_04 shares one DISPLAY record between a program and two contained programs; not a separately compiled sibling, a REDEFINES of the whole external record, COMP or variable-occurrence subordinate items, or a contained program of a separately compiled program",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x1ext.cob",
+    "printed": "SUB ABC -1234 3T1T2T3 / SUB REDEF ABC 3T1T2T3 / INNER HE/LLO / MAIN XYC -1233 T1T3 WOLLO",
+    "expected": "sibling X1SUB (different subordinate names, COMP, ODO table in MAIN's view) and its contained X1INNER see and change the one external storage; X1SUB's 01 REDEFINES of the whole external record aliases it (X.4.5.4 GR2)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x1ext.cob",
+    "printed": "EXT-B elementary PIC X(5) in MAIN described as a group of two items in X1INNER: INNER HE/LLO, MAIN WOLLO",
+    "expected": "group against elementary description of the same external record share storage"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x1val.cob",
+    "printed": "error COBOL0900: a data-item or table VALUE clause ... on an EXTERNAL item requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "X.4.5.3 SR3: VALUE must not be used on an EXTERNAL entry"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.1.3.6 GR1",
+    "check": "OK  §1985:X.1.3.6 GR1  (1.3.6 Sharing Data)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.4.5.4 GR2",
+    "check": "OK  §1985:X.4.5.4 GR2  (║4.5.4 General Rules║)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:X.4.5.3 SR3",
+    "check": "OK  §1985:X.4.5.3 SR3  (║4.5.3 Syntax Rules║)  the text is in SR3"
+   }
+  ],
+  "notes": "Each describer's external record is re-based onto one run-unit StorageCell keyed by the upper-folded record name (ExternalTable.Cell), so every describer aliases one image regardless of its subordinate layout. Probed with programs in one source file (siblings and contained); a run unit assembled from separately compiled object files on disk was not probed, as the same runtime table serves both.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.1.3.6-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:X.1.3.6, X.4.5.1-X.4.5.4 and X.2.4.1. The reader did not probe a separately compiled describer: sep/p2sub.cob compiled alone at --std 85 (runs/p2sub-001), its p2sub.dll put beside p2main.cob (runs/p2main-001): P2SUB (01 REDEFINES of the whole external record, X.4.5.4 GR2) printed 'SUB SEES MAINXX +0010', MAIN then 'MAIN AFTER SUB +0015 SUBSET' and its 88 under the external item 'MAIN 88 SUB TRUE' (X.4.5.3 SR3 second sentence: the 88 VALUE is admitted at 85); contained INITIAL P2INI describing EXT-R: 'INI 1 +0016 SUBSET' / 'INI 1 +0017 INITXX' (LOC reinitialized each call, the external data not: X.2.4.1 GR1 covers internal data only); after CANCEL P2SUB the next call 'SUB SEES INITXX +0017' (external storage survives CANCEL). p2g.cob (runs/p2g-001): a GLOBAL EXTERNAL record used by a contained program through the global name, redescribed locally in lower case by a doubly contained program, and an elementary EXTERNAL item described as a group elsewhere: 'H GLOBAL AAA 123 EXT WW/WW', 'I OWN AAA124', 'G III 999 WWZZ', one storage throughout. Class c: p2as.cob 'EXTERNAL AS \"OTHERNAME\"' refused at 85 with COBOL0900 (AS externalized-name requires COBOL-2002). cite.py: 'OK  §1985:X.1.3.6 GR1 ... the text is in GR1'; 'OK  §1985:X.4.5.3 SR3 ... the text is in SR3'; 'OK  §1985:X.2.4.1 GR1 ... the text is in GR1'; 'OK  §1985:X.4.5.4 GR2 ... the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

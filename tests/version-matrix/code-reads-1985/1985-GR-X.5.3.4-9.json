@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-9",
+ "rule-digest": "603f477c4d6a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-141",
+  "sources": {
+   "reader": "b3a70455ab72b9cd9ad09033b97f0699d7892ffe22da370e5ce307b0a6400e7f",
+   "refuter": "2ed23be80230dee69edd5468629de243b17111a84f51fa39061c9cd233fb6ee3"
+  },
+  "imported": {
+   "reader": "a65adbfb75601aa766c407a4d96a0f0700de3375c3a58a0851dae28751fd72b1",
+   "refuter": "dd493d99f779653523147eba1986497c87ffee4b7352a7949154841a6ba8fe4d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.3.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "When a program that describes external data records (an EXTERNAL working-storage record, or the record area of an EXTERNAL file) is cancelled, explicitly, by the cascade of its container's CANCEL, or implicitly by EXIT PROGRAM of an INITIAL program, the contents of those external records are left unchanged, while the program's own internal data returns to its initial state.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitExternalBackings; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/DataEmitter.cs#ExternalCellSeed; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition|CobolVersion|Std|DialectBehavior over ExternalTable.cs, the EXTERNAL arm of OoEmitter.cs and DataEmitter.cs, and ProgramTable.cs#CancelNode: none on the external-record path; the external record is a run-unit ExternalStore cell keyed by name, which CancelNode never touches (it drops only the program instance and its static reset, which excludes external records)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf31_09 covers an explicit CANCEL of a program that describes an external WS record; not covered: cascade cancel of a contained program, the implicit cancel of an INITIAL program, the record area of an EXTERNAL file, binary and table subfields",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p9a.cob",
+    "printed": "X1 / Y1 AAAAA -007 / M1 BBBBB -006 XZ / X1 / Y1 BBBBB -006 / M2 BBBBB -005 / I1 BBBBB -005 / M3 CCCCC +005 / I1 CCCCC +005 / M4 CCCCC +015",
+    "expected": "external alphanumeric, signed COMP and table subfields keep their contents across an explicit CANCEL of the container, the cascade to the contained describer, and the implicit cancel of an INITIAL describer, while each describer's own counter restarts at 1"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p9a.cob",
+    "printed": "F OPEN 00 / F1 R1=WXYZ / F WRITE 00 / F CLOSE 00",
+    "expected": "the EXTERNAL file's record area keeps WXYZ across CANCEL and the external connector stays open (X.5.3.4 GR10 closes only internal file connectors), so the WRITE succeeds"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p9a.cob",
+    "printed": "first run with EXT-R(9:3) on a 10-position record: error COBOL2670 the reference modification (9:3) extends past the 10-position item",
+    "expected": "a reference modification past the record is refused; (8:3) at the bound runs"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/X.5.3@1985-CANCEL-STATEMENT/g85_bf31_09.cob",
+    "printed": "SUB SEES ALPHA CTR=1 / AFTER CALL OMEGA / AFTER CANCEL OMEGA / SUB SEES OMEGA CTR=1 / AFTER RECALL OMEGA (witness .out)",
+    "expected": "as printed"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.3.4 GR9",
+    "check": "OK  §1985:X.5.3.4 GR9  (║5.3.4 General Rules║)  the text is in GR9"
+   }
+  ],
+  "notes": "External records live in the run unit's ExternalTable keyed by the external name; a program instance reaches them through a property, so dropping the instance on CANCEL cannot change them. The seed site EmitStaticReset concerns RECURSIVE static data only (not reachable at 85) and explicitly excludes external records.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.3.4-9",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "r9a.cob at --std 85 uses separately compiled describers W1 and W2. W1 is non-INITIAL. W2 IS INITIAL, with the record EXTERNAL and GLOBAL, and a contained W2C changes it through GLOBAL. The record has an ODO table ET OCCURS 1 TO 5 DEPENDING ON EN inside it and a signed COMP item. CANCEL and CALL go by identifier. Output: W1 CNT=1 EN=3 EC=-007 ET=ABC / W1 CNT=1 (initial) with the record unchanged / W2 CNT=1 EN=4 EC=+003 ET=ABCZ / W2 CNT=1 EN=5 EC=+013 ET=ABCZZ / W1 CNT=2 ... ABCZZ / after CANCEL W1 CNT=1 ... ABCZZ. The variable-length external record and its ODO object survive explicit and implicit cancels, while internal data restarts. cite.py: OK §1985:X.5.3.4 GR9.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

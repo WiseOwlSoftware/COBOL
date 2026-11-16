@@ -1,0 +1,132 @@
+{
+ "rule-id": "1985-GR-VI.5.4.4-2",
+ "rule-digest": "c7e6186b0a40",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-013",
+  "sources": {
+   "reader": "f64052ae96c9020ad01804108d1457da1b7b236869a749cad184389bdce06bdf",
+   "refuter": "015806368cfa0f4373336b31370a6209a59cd8786ba576665394502d5e03c616"
+  },
+  "imported": {
+   "reader": "a55e6ac73b5ab925ae31b6142ef16b65cf2c8238beedc58729832a40b9263889"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.4.4-2",
+  "verdict": "PARTIAL",
+  "requirement": "At 85 a numeric-picture item with BLANK WHEN ZERO is of category numeric edited (class alphanumeric, §1985:IV.4.3.3) in every use: refused as an arithmetic operand, non-GIVING resultant or subscript, as a receiver of SPACE and a sender to alphabetic; it takes only nonnumeric VALUE literals, de-edits as a MOVE sender, and in a relation condition is a nonnumeric operand compared by characters (§1985:VI.6.3.1.1.2), with no value-zero exception for an all-spaces image.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelational; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#BlankWhenZeroSenderTest; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenNumericEditedNumericLiteral; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#BlankWhenZeroViolation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString",
+    "switches": "DialectLevel < 2002: signed numeric picture promoted to numeric edited under BWZ",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenNumericEditedNumericLiteral",
+    "switches": "ConstructRegistry ValueNumericLiteralNumericEdited2023: a numeric VALUE literal on a numeric-edited item is refused below 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#ComparisonText",
+    "switches": "DialectLevel < 2002: the numeric operand of a character comparison as its item characters (1985 GR1)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#BlankWhenZeroSenderTest",
+    "switches": "NOTHING: the blanked-sender value-zero arm of §2023:13.18.8.4 GR3 is taken at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: §2023:13.18.8.4 GR3 (a blanked BWZ sender opposite a numeric or numeric-edited data item has the value zero) has no counterpart in §1985:VI.5.4.4 (two GRs) nor in §2002:13.16.8.3 (two GRs); at 85 the blanked item is a nonnumeric operand like any numeric-edited item",
+  "witnesses-cover": "part: pb535/pb566 cover the category and the stored value; pb509 (accept [85]) asserts the 2023 GR3 results at 85, so the relation range at 85 is witnessed with the wrong expectation",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/b2r.cob",
+    "printed": "COBOL1675 ADD 1 TO W; COBOL0844 ADD W TO N, COMPUTE N = W + 1, TE(W) subscript; COBOL0819 MOVE SPACE TO W, MOVE W TO alphabetic",
+    "expected": "all refused (§1985:VI.6.6.3 SR1, §1985:VI.6.19.4 GR3a/GR3b)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/b2v.cob",
+    "printed": "COBOL0900 for PIC 99 BWZ VALUE 0, VALUE 5 and PIC ZZ9 VALUE 5 at 85; at 2023 W1=[  ] W2=[05] W3=[  5]",
+    "expected": "refused at 85: a numeric edited item takes nonnumeric literals only (§1985:VI.5.15.4 GR1b)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/b2p.cob",
+    "printed": "MOVE W4(\"12\") TO S99 -> +12; blanked -> +00; MOVE -5 TO S9(3) BWZ -> [005]; ADD GIVING W4 -> [03]; MOVE W4 TO X(4) -> [12  ]; W4 = \"12\" EQ",
+    "expected": "numeric-edited behaviour (de-edit on MOVE to numeric, no de-edit to alphanumeric)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/b2a.cob",
+    "printed": "at 85: BWZ=NUM0 TRUE, ED=NUM0 FALSE (plain ZZZ99 \"   00\" vs 0), BWZ>NEG3 TRUE, BWZ=ED TRUE, BWZ=SPACES TRUE",
+    "expected": "at 85: BWZ=NUM0 FALSE (\"     \" vs \"00000\"), BWZ>NEG3 FALSE (\"     \" vs \"00003\"), BWZ=ED FALSE (\"     \" vs \"   00\"), BWZ=SPACES TRUE"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/b2e.cob",
+    "printed": "at 85: EV=EQ (EVALUATE W WHEN Z0), IF=EQ, LIT=NE",
+    "expected": "at 85: EV=NE, IF=NE, LIT=NE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/w509.cob",
+    "printed": "at 85: EQ-NUMITEM-TRUE EQ-EDITED-TRUE GT-NEG-TRUE (the golden agrees)",
+    "expected": "at 85: EQ-NUMITEM-FALSE EQ-EDITED-FALSE GT-NEG-FALSE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.4.4 GR2",
+    "check": "OK  §1985:VI.5.4.4 GR2  (5.4.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:IV.4.3.3",
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.2",
+    "check": "OK  §1985:VI.6.3.1.1.2  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.2 GR1",
+    "check": "OK  §1985:VI.6.3.1.1.2  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in the clause; it lies in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.15.4 GR1b",
+    "check": "OK  §1985:VI.5.15.4 GR1b  (5.15.4 General Rules)  the text is in GR1b"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3a",
+    "check": "OK  §1985:VI.6.19.4 GR3a  (6.19.4 General Rules)  the text is in GR3a"
+   },
+   {
+    "cite": "§1985:VI.6.6.3 SR1",
+    "check": "OK  §1985:VI.6.6.3 SR1  (6.6.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§2023:13.18.8.4 GR3",
+    "check": "OK  §2023:13.18.8.4 GR3  (General rules)  the text is in GR3"
+   },
+   {
+    "cite": "§2002:13.16.8.3 GR2",
+    "check": "OK  §2002:13.16.8.3 GR2  (General rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The bind-time consequences of the category conform at 85, but ConditionRenderer.RenderRelational wraps every relation with a BWZ operand in BlankWhenZeroSenderTest, which takes the value-zero arm of 2023 13.18.8.4 GR3 at every edition. At 85 the blanked item is an ordinary numeric-edited (nonnumeric) operand, so it must compare by characters, as the same compiler already does for a plain PIC ZZZ99 item.",
+  "seeded": true,
+  "harm": "wrong-answer",
+  "cause": "a",
+  "at-2023": "b2a/b2e at --std 2023: BWZ=NUM0 TRUE, EV=EQ, IF=EQ, correct at 2023 per §2023:13.18.8.4 GR3 (same output at --std 2002, whose text also lacks GR3)",
+  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/b2e.cob: 01 W PIC 9(5) BLANK WHEN ZERO. 01 Z0 PIC 9(5) VALUE 0. MOVE 0 TO W. IF W = Z0 DISPLAY \"IF=EQ\" ELSE DISPLAY \"IF=NE\". (--std 85)",
+  "expected": "IF=NE: W is numeric edited (§1985:VI.5.4.4 GR2), so the relation is a nonnumeric comparison in which \"the numeric operand is treated as though it were moved to an elementary alphanumeric data item of the same size\" (§1985:VI.6.3.1.1.2 GR1): \"     \" against \"00000\"",
+  "observed": "IF=EQ (and EVALUATE W WHEN Z0 selects the WHEN; W > PIC S9(5) -3 is TRUE; W = a ZZZ99 item holding \"   00\" is TRUE)",
+  "known_note": "none for the 85 arm; kb/Work PB509 (landed) introduced the unconditional GR3 arm, and its golden pb509_blank_when_zero_relation (accept [85]) pins the 2023 result at 85"
+ },
+ "work": "PB5771"
+}

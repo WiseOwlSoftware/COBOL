@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-14",
+ "rule-digest": "84b528f8c10a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-135",
+  "sources": {
+   "reader": "a5c75b51ba1c9b5730d0695d9a0eb47b2704b6a6edb2a0e42a0fd598b8b016ad",
+   "refuter": "49ee6ba4163163c28fc1db122bb19804c00178ea3c0ff28eb983935628bc8f65"
+  },
+  "imported": {
+   "reader": "7325e9f3cd8490e647de766bb9ddcd1e6e9ea675d6648e1481d2e63fd86cdbac",
+   "refuter": "c44715668b3659cf87597ac633a3abff6f8cb011a2b8f65f2aaae8d2be3ac42b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-14",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every successful format 1 READ (sequential access READ, or dynamic access READ NEXT) of a relative file whose SELECT names RELATIVE KEY moves the relative record number of the record made available into the relative key item by the MOVE rules (any unsigned integer item, DISPLAY or COMP); a format 2 READ, an unsuccessful READ (at end 10, the 14 too-many-digits case, 46, 47) makes no record available and stores nothing.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RelativeSlot; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#LastSlot; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "year < 2002: a dynamic READ with AT END but no NEXT is refused (SR3); the bind of ReadKind is otherwise the same",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+    "switches": "passes DialectLevel to the connector; at 85 only the sharing posture differs (FileRegistry#ImplementorDefaultSharing gives AllOther), not the RRN store",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|DialectBehavior in KeyedIoEmitter.cs, RelativeConnector.cs, KeyedConnector.cs, FileRegistry.cs; the RRN store (SuccessSteps -> arith.StoreArith of FileRelativeSlot) has no edition test",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf30_02 covers DISPLAY keys under dynamic READ NEXT and sequential READ; not covered: COMP key, key unchanged on at end / 14 / 46 / 47, format 2 READ leaving the key alone, START then READ NEXT",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p14key.cob",
+    "printed": "C1 00 00003 R003 / C2 00 00040 / C3 (random) 00 01000 / C4 00 99999 RMAX / ST..C6 00 00040",
+    "expected": "COMP PIC 9(5) key receives each RRN made available, incl. the largest 99999; format 2 leaves the key at its input"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p14key.cob",
+    "printed": "C5-END 10, C5 10 12345; C8 46 22222; T3-END 14, T3 14 999",
+    "expected": "at end, 46 and the 14 condition make no record available, so the key keeps its value"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p14key.cob",
+    "printed": "N0 35 / N1 47 42",
+    "expected": "READ after a failed OPEN is unsuccessful (47), key unchanged"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.4.5@1985-READ-STATEMENT/g85_bf30_02.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR14",
+    "check": "OK  §1985:VIII.4.5.4 GR14  (4.5.4 General Rules)  the text is in GR14"
+   },
+   {
+    "cite": "§1985:VIII.4.5.4 GR12",
+    "check": "OK  §1985:VIII.4.5.4 GR12  (4.5.4 General Rules)  the text is in GR12"
+   }
+  ],
+  "notes": "The store is SuccessSteps in KeyedIoEmitter#EmitRead, guarded by rd.Kind != Random and run only inside the successful-status block, using the numeric store path (MOVE truncation). p14key prints the same at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-14",
+  "refutation": "UPHELD",
+  "classes": "c,d,e,f",
+  "evidence": "Read KeyedIoEmitter.cs#EmitRead: the RRN store (arith.StoreArith of FileRelativeSlot) is in SuccessSteps, guarded by rd.Kind != Random, inside IoStatusClass.Successful (st[0]=='0', so a GR16 04 also stores). r4dyn.cob --std 85 (runs/r4dyn-002): sequential access, RELATIVE KEY PIC 99 COMP: C1 00 02, C4 00 99 (largest fitting), C5-END 14 with key kept 99, C6 46 key kept 99; dynamic READ NEXT after random READ: B2 00 0008; failed READ NEXT 46 leaves key 0003. A 04 could not be produced (two FDs of different sizes on one file give OPEN 39, runs/r14len-001), so the 04 arm is from the code only. Later-edition READ phrases refused at 85 (r4late-001: COBOL0900 x5, COBOL0864 for KEY on relative). cite: OK §1985:VIII.4.5.4 GR14 the text is in GR14.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

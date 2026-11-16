@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-5",
+ "rule-digest": "a78f35e1aa33",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-152",
+  "sources": {
+   "reader": "e23968e2da2f5939c191162db081a26142102b77a144c60e66035875b49ed1cc",
+   "refuter": "0995353eb593187f7e77ec4afc286a6cfb37fedc44c04577cfd233b48b895a05"
+  },
+  "imported": {
+   "reader": "c5b7f5261e9cbd04171a99b05878d50c418be84afb8a302364b8fd1da13b002e",
+   "refuter": "7eb77d39adc11d658e59b0a218f06167f19e1daa78f90ca5e74d2652eceef72a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.3.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "On the chronologically first GENERATE after INITIATE (either form), the report writer control system must process, in order and only where defined, the report heading, the page heading, every control heading major to minor, and then the detail processing (presentation for GENERATE data-name; the detail's non-presenting steps for GENERATE report-name), with page heading/footing handling per GR4.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+    "switches": "DialectLevel < 2002 refuses GENERATE report-name on an RD with more than one detail (SR6 of XIII.3.20.3); not on the GR5 ordering path",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate after the detail presentation (GROUP INDICATE bookkeeping, not the a-d order)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior in ReportWriter.cs (lines 734, 964, 1080, 1490, 1510) and ReportWriterBinder.cs; the first-GENERATE block (RH, PH, control priors, CHs) has no edition test",
+  "behaviour-differs-by-edition": "no: the first-GENERATE order RH, PH, CH major to minor, detail is one code path at 85 and 2023 (gr5sum printed identically at both)",
+  "witnesses-cover": "part: g85_f29_05 covers GENERATE data-name with RH, PH, two CHs; not the report-name form's first GENERATE, nor an RH with NEXT GROUP NEXT PAGE",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/gr5sum.cob",
+    "printed": "U-RH U-PH U-CHF U-CHK U-DA LC 06 U-DA LC 06; file lines 1 RH, 2 PH, 5 CHF, 6 CHK, no detail line",
+    "expected": "GR5 a-c in order, then d's report-name arm: detail processed (its USE runs) but not presented"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/gr5np.cob",
+    "printed": "RH alone on page 1 (RH FF), PH line 2 of page 2, CHF 5, CHK 6, DE-A 7, DE-A 8",
+    "expected": "RH processed first (NEXT GROUP NEXT PAGE leaves it on its own page), then PH, CHs, detail on the next page"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/gr5sum.cob (--std 2023)",
+    "printed": "identical to the --std 85 run",
+    "expected": "same order"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.3.4 GR5",
+    "check": "OK  §1985:XIII.4.3.4 GR5  (4.3.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "GenerateCore's !_started block presents the RH, then the PH, saves control priors, presents every CH in _controlHeadings order (major to minor), then the detail via PresentBody or, for the report-name form, BeginGroup(print:false). Classes a, e and f do not reach this rule (no variable-length data, no file organization choice, no numeric operand).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.3.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read GR5 a-d with GR4 and GenerateCore's !_started block (RH, PH, priors, _controlHeadings.Values, then detail). refute-1985-152/rgr5.cob (--std 85): CH groups written in the source minor first (CHB, then CHA, then CHF) and RH/PH written last; the first GENERATE processed U-RH U-PH U-CHF U-CHA U-CHB U-DA, so the order is the control hierarchy, not source order; a second INITIATE cycle opened with GENERATE report-name processed RH, PH, CHF, CHA, CHB again and ran the detail USE without presenting it. rgr5b.cob (PAGE LIMIT 9, LAST DETAIL 5, PF LINE 8): RH 1, PH 2, CHF 3, CHA 4, CHB 5, then the first detail does not fit: PF on line 8, page advance, PH, detail on line 3 (GR4's page heading/footing processing inside the first GENERATE). Grep of DialectBehavior/Edition in ReportWriter.cs finds no site on the first-GENERATE ordering path (only lines 734, 964, 1080, 1490, none in the !_started block). cite.py: OK  §1985:XIII.4.3.4 GR5  (4.3.4 General Rules)  the text is in GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

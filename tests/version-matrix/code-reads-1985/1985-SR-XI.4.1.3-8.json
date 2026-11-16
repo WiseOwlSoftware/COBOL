@@ -1,0 +1,121 @@
+{
+ "rule-id": "1985-SR-XI.4.1.3-8",
+ "rule-digest": "05b3ab7739ed",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-071",
+  "sources": {
+   "reader": "90a7f18d255b545bee9f7532c2b43d3174e2468167bc66f03ff0fb60ab7004ef",
+   "refuter": "5ff05a7002ed3d0fe9d4c6c14bb6d40fe2625a6767b6221c63700a72659e7bdb"
+  },
+  "imported": {
+   "reader": "402f82af0c19344567b560e6fe148ab821b62794135173c26cb4415f2eaff973",
+   "refuter": "1aa2fc17a63e1209e0b503127bc7ccae7554ba9b4219882ab424d58e8330b59a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.1.3-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a MERGE is refused when any two of its file-names (file-name-1 the SD included) are named in one SAME AREA, SAME SORT AREA or SAME SORT-MERGE AREA clause, or when a SAME RECORD AREA clause names two of its files of which any is not a GIVING file; two GIVING files may share a SAME RECORD AREA.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenSameClauses",
+    "switches": "held1985 (Edition.Year < 2002) gates only the SORT GIVING-in-SAME-RECORD-AREA arm (1985 SORT SR9); every MERGE arm (SortMergeArea, Area when merge, RecordArea when merge) ignores it",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition.Edition / DialectLevel / DialectBehaviors / Constructs in SortBinder.cs and FileControlBinder.IoControl.cs (only line 656, report files in SAME below 2002, not this rule)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness is only the legal side (two GIVING files in SAME RECORD AREA, a SAME SORT AREA naming one statement file); the refusals (SAME AREA / SORT AREA / SORT-MERGE AREA pairs, non-GIVING SAME RECORD AREA pairs) are not witnessed at this edition",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8a.cob",
+    "printed": "COBOL1757 refused: F1,F2 (USING) in SAME AREA",
+    "expected": "refused (SR8 first sentence)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8b.cob",
+    "printed": "COBOL1757 refused: SW,F1 in SAME SORT AREA",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8c.cob",
+    "printed": "COBOL1757 refused: SW,F3 in SAME SORT-MERGE AREA",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8d.cob",
+    "printed": "COBOL1757 refused: F1 (USING),F3 (GIVING) in SAME RECORD AREA",
+    "expected": "refused (only GIVING files may share a record area)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8e.cob",
+    "printed": "COBOL1757 refused: SW,F3 in SAME RECORD AREA",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8f.cob",
+    "printed": "COBOL1757 refused: GIVING F3,F4 in SAME AREA",
+    "expected": "refused (no pair in SAME AREA)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8g.cob",
+    "printed": "EXIT 0: GIVING F3,F4 in SAME RECORD AREA compiles",
+    "expected": "accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8h.cob",
+    "printed": "COBOL1757 refused: USING F1,F2 in SAME RECORD AREA",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8i.cob",
+    "printed": "COBOL1757 refused: F1,F3 in SAME AREA",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/m8j.cob",
+    "printed": "COBOL1757 refused: SW,F4 in SAME SORT AREA",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.1.3 SR8",
+    "check": "OK  §1985:XI.4.1.3 SR8  (4.1.3 Syntax Rules)  the text is in SR8 [No pair of file-names in a MERGE statement may be specified in the same SAME AREA, SAME SORT AREA, or SAME SORT-MERGE AREA clause]"
+   },
+   {
+    "cite": "§1985:XI.4.1.3 SR8",
+    "check": "OK  §1985:XI.4.1.3 SR8  (4.1.3 Syntax Rules)  the text is in SR8 [The only file-names in a MERGE statement that can be specified in the same SAME RECORD AREA clause are those associated with the GIVING phrase]"
+   }
+  ],
+  "notes": "Every barred pairing is refused and the one legal pairing compiles at --std 85. The diagnostics cite only §2023:14.9.24.3 SR11 at --std 85 (same words): a citation nit, not a rule failure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.1.3-8",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read SortBinder.cs#ScreenSameClauses (per-statement screen over FileModel.SameClauses, file-name-1 included; MERGE arms ignore held1985). Probes at --std 85 under refute-1985-071: x1a (SAME RECORD AREA F1 FX, F1 a USING file, FX outside the MERGE) compiles and runs AAAA/BBBB (no over-refusal of a clause naming one MERGE file); x1b (SAME RECORD AREA F3 F4; first MERGE GIVING F3 F4, second MERGE USING F3 F4) refuses only the second MERGE, line 32, COBOL1757 (per-statement roles); x1c (SAME SORT-MERGE AREA S2 F1 F2, S2 another SD, F1 F2 USING) COBOL1757. Reader's m8a..m8j cover every other barred pair. cite.py: OK  §1985:XI.4.1.3 SR8 [No pair of file-names in a MERGE statement may be specified in the same SAME AREA, SAME SORT AREA, or SAME SORT-MERGE AREA clause].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

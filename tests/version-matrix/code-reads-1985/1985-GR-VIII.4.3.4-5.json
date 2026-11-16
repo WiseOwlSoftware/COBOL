@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VIII.4.3.4-5",
+ "rule-digest": "b557f31fde18",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-132",
+  "sources": {
+   "reader": "565ab41613f172f4f04dfc492196238647aeeac1cd25d6a2732d504114b4efb9",
+   "refuter": "55a4e5b140cda29191a8ef067d5cd10f9b392c843988601140796bc5057947e0"
+  },
+  "imported": {
+   "reader": "db2204dfa064a9bc821b4e160a66257020856a9e36df6c77784b7fa89a72779e",
+   "refuter": "9f10218f7fc23f6ddca578ff56ac45cf506d1f2827a257d3b10df2398cf0a135"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.3.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relative-file DELETE (sequential, random or dynamic access; successful or not) must leave the record area and the RECORD VARYING DEPENDING ON data item exactly as they were before the statement.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteSharedInStatement; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteRecordInStatement; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the implementor-default sharing mode the DELETE's lock check reads (ALL OTHER at 85, where the file sharing facility is absent; Table 19 modes from 2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "whether the relative store is attached through the shared physical-file table (RelativeConnector#AttachStore); off at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectBehaviors.IsActive over src/WiseOwl.Cobol.Runtime/IO and KeyedIoEmitter#EmitDelete; the emitter passes the record-area image IN only and emits no store-back into the area or the DEPENDING ON item at any edition; the only edition switches on the path are the sharing posture ones, which do not touch the record area",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf30_03 covers dynamic access success and invalid key and sequential access success; not exercised there: a 43 sequential DELETE, a 49 DELETE (open INPUT or not open), random access, a group record with signed and edited items",
+  "probes": [
+   {
+    "class": "a,d,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-132/pdel.cob",
+    "printed": "D2=00 SNT1-987654,321] 07 -987.65 ; D2B=23 SNT1-987654,321] 07 ; D49=49 SNT2 ; Q43=43 QSN0 ; QD1=00 QSN1 0001 ; QD1B=43 QSN1",
+    "expected": "record area (group with SIGN LEADING SEPARATE and Z,ZZ9 items) and DEPENDING ON item (WL=07) unchanged after DELETE 00, 23, 49, 43 (GR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-132/pdel.cob",
+    "printed": "FUSE=49 D0=49 (not open); Q43=43 QSN0 (no prior READ); QD1B=43 (second DELETE in a row)",
+    "expected": "area unaffected on each failing form"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.3.4 GR5",
+    "check": "OK  §1985:VIII.4.3.4 GR5  (4.3.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The DELETE emitter sends the record-area image to the runtime (for an indexed prime key) and never writes it back; RelativeConnector#Delete takes no image at all. The same output at --std 2023 for the whole probe.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.3.4-5",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "refute-1985-132/rctl.cob (run rctl-001): RECORD VARYING 6 TO 12 DEPENDING ON WL, record with an ODO table (OCCURS 0 TO 6 DEPENDING ON F-N); DELETE with WL=99 (outside the VARYING range) and WL=0, F-N=0, F-T='QQQQQ': D1=00 99 0 QQQQQ, D2=00 00 0 QQQQQ (no 44, area and DEPENDING ON item untouched); reader's pdel covers 00/23/49/43 with signed/edited items. KeyedIoEmitter.cs has no edition test besides DialectLevel passed to the file registration. cite.py: OK §1985:VIII.4.3.4 GR5 the text is in GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

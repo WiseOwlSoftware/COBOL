@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-XIII.3.20.3-1",
+ "rule-digest": "6ed254b899a1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-076",
+  "sources": {
+   "reader": "44d586d8cbb609dc61eae27ec31793c5b4679cf8d37209f3730c08e0b61c9851",
+   "refuter": "307ebb4f8f6956d0aa6a0cfddbf9be187b3fea3168a1a1de989118716ae224c9"
+  },
+  "imported": {
+   "reader": "2dcdc3b3ab19dec42c4ed2cc93729e83ebee32843628929babad93e53e0eda3c",
+   "refuter": "aa08df9554f5f320a3b26b489055fe02657aa4bbc60437a797fefefe03f69283"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.20.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each of RH, PH, CH, DE, CF, PF, RF must be accepted as the TYPE clause abbreviation of REPORT HEADING, PAGE HEADING, CONTROL HEADING, DETAIL, CONTROL FOOTING, PAGE FOOTING, REPORT FOOTING and give the group exactly the behaviour of the full phrase.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupType; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupKindOf; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindGroupType",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "RH, PH, CH, DE, CF, PF, RF (and DETAIL, HEADING, FOOTING) reserved per edition; all four edition columns true",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of VersionConformancePass/ConstructRegistry for the abbreviations found nothing; VisitReportGroupType gates only the control-operand forms, not the abbreviations. GroupKindOf maps the first token with no edition test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "all of the rule's range at this edition",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p2a_abbrev.cob",
+    "printed": "RH PH CH DE CF CH DE CF PF RF; EXPECT: MATCH (witness l1c34 .out)",
+    "expected": "every abbreviation accepted and presented in the order of the type it abbreviates"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p2b_fullwords.cob",
+    "printed": "same ten lines; EXPECT: MATCH against the abbreviation program's output",
+    "expected": "the full phrases behave identically to their abbreviations"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.3 SR1",
+    "check": "OK  §1985:XIII.3.20.3 SR1  (3.20.3 Syntax Rules)  the text is in SR1 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+   }
+  ],
+  "notes": "The abbreviations are tokens of the one grammar alternative per type and GroupKindOf maps them to the same group kind as the full phrase, so the full-word and abbreviated programs print identically at --std 85. The rule text for folio XIII-55 is reconstructed (PB4952).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.20.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "The abbreviations also carry every other rule of the full phrase: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r2a_ph_no_page.cob (TYPE IS PH in an RD with no PAGE clause) and E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r2b_pageheading_no_page.cob (TYPE PAGE HEADING, same RD) both EXIT 65 with the same COBOL0899 'TYPE PageHeading requires a PAGE clause'; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r2c_pf_no_page.cob (PF) EXIT 65 COBOL0899 PageFooting plus COBOL2199. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r3d_final_all_legal.cob mixes CONTROL HEADING FINAL, TYPE IS CH WS-J, CONTROL FOOTING WS-J and CF FINAL in one RD -> EXIT 0. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r4b_two_rds_each_once.cob mixes RH/PH/PF/RF with REPORT HEADING/PAGE HEADING/PAGE FOOTING/REPORT FOOTING and DE with DETAIL -> EXIT 0. cite.py: OK  §1985:XIII.3.20.3 SR1 ... [RECONSTRUCTED: kb/Work PB4952]; the pairs are also printed in the TYPE format of §1985:XIII.3.9.2 Format 1, so the reading does not rest on the reconstruction alone.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

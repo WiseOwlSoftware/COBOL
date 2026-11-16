@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-VI.6.16.4-3",
+ "rule-digest": "d8b07b3766b2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-108",
+  "sources": {
+   "reader": "c4d8ea3f55533cfd9c7fc21d4a5f675ed97b33f34413b57b8c9128bcff9d8b8c",
+   "refuter": "7a42d0b149501cc49f783fe50cd656d1bdc95f450fc95f3cd24d2ca0b6437430"
+  },
+  "imported": {
+   "reader": "e6728e40597d61659ce1840725cf288256d1d3359f2f71521b844a7536e7ea7a",
+   "refuter": "f74b4ba52621c5c60d8f03c44f46f61420327a0ae6336c3b8592be5b1ad896c3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.16.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 a nested IF in statement-1 or statement-2 is matched left to right: each ELSE goes to the nearest preceding IF neither already matched with an ELSE nor implicitly/explicitly terminated, and each END-IF to the nearest preceding IF not yet terminated, including when the IF bodies hold conditional statements (ADD ON SIZE ERROR) that an ELSE or END-IF implicitly terminates and when NEXT SENTENCE is a body.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindIf; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#Associates; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#COBOL0306",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#MayAssociate",
+    "switches": "which [NOT] phrases a conditional statement inside the IF body may take at the target edition (ConstructRegistry.IsAvailable); it does not decide ELSE or END-IF matching",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Dialect in ControlFlowBinder.cs#BindIf, ConditionalPhrases.cs, ProcedureFormatPass.cs; the ifStatement rule `IF condition THEN? statementBlock (ELSE statementBlock)? END_IF?` carries no edition predicate, and ELSE/END-IF matching is ANTLR's greedy nearest-IF choice, edition-blind.",
+  "behaviour-differs-by-edition": "no: only the COBOL0903 archaic warning on NEXT SENTENCE at 2023; the matching is the same",
+  "witnesses-cover": "part: the witnesses cover dangling ELSE, END-IF before ELSE and phrase association; three-deep nesting, NEXT SENTENCE inside a nested IF and END-IF implicitly terminating a conditional ADD were added by the probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ifn1.cob",
+    "printed": "T1-NB T2-B-TAIL T2-A-TAIL T3-ELSE T3B-SE T4-SE T4-AFTER T5-NB T5-ELSE-TAIL T5-AFTER T6-NEXT T7-NA T7-AFTER; EXPECT: MATCH (also MATCH at --std 2023)",
+    "expected": "each ELSE with the nearest unmatched, unterminated IF; each END-IF with the nearest unterminated IF (GR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ifr1.cob",
+    "printed": "error COBOL2269: unexpected 'ELSE'. The IF statement ends before this token",
+    "expected": "a second ELSE with no unmatched IF has nothing to match: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ifr2.cob",
+    "printed": "error COBOL0306: unexpected 'END-IF'. END-IF appears without a matching IF statement.",
+    "expected": "an END-IF with no unterminated IF: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ifr3.cob",
+    "printed": "error COBOL0001: unexpected 'ELSE'",
+    "expected": "an IF terminated by the separator period cannot take a later ELSE: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.16.4 GR3",
+    "check": "OK  §1985:VI.6.16.4 GR3  (6.16.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The grammar's greedy optional ELSE and END_IF give the nearest-IF matching the amended GR3 states, and the binder splits the blocks at the ELSE token. The parse is edition-blind; classes a, d, e, f do not apply to a nesting rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output (ifn1 MATCH)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.16.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "rif1.cob at --std 85 (refute-1985-108/rif1-001), every line as GR3 matches: R1 NOT ON SIZE ERROR then ELSE (ELSE ends the ADD, goes to the IF) R1-NSE / R1B-E; R2 conditional ADD inside the inner IF, first ELSE to the inner IF, second to the outer: R2-NB, R2B-SE, R2C-NA; R3 inner IF ELSE then END-IF with an outer tail: R3-Y R3-TAIL R3-AFTER; R4 ELSE NEXT SENTENCE in the inner IF: R4-AFTER / R4B-NA; R5 four deep with END-IF and ELSE mixed: R5-NC R5-BT; R6 an imperative series stays in the inner ELSE: R6-Y R6-Z / R6B-NA R6B-NA2; R7 END-IF then the outer ELSE: R7-AFTER. Read 6.16.3 SR1 and 6.4.3 Scope of Statements (the next phrase of the containing statement ends an unterminated contained one): matches. cite.py: OK  §1985:VI.6.16.4 GR3 (reader's line). No form only 1985 has bears on the matching.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb215-perform-varying-index-data-item
-*> rules: [SR-14.9.28.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb215-perform-varying-index-data-item
+      *> rules: [SR-14.9.28.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB215. ISO 13.18.60.3 SR10: "An index data item may be referenced
       *> explicitly only in a SEARCH or SET statement, a relation condition, an
       *> intrinsic function argument" ... - no PERFORM entry. 13.18.38.3 r7 lists

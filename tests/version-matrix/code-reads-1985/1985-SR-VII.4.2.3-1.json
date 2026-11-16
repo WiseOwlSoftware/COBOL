@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-SR-VII.4.2.3-1",
+ "rule-digest": "bd6653c35fa9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-161",
+  "sources": {
+   "reader": "0ee01c589d82fd02e2245a993fb1d16b7696c13c6946f91dece28459ef98e1f4",
+   "refuter": "f69f057f460de758eb8ca3bd1c121864f38cd29b6dde5c291401af369111f7ee"
+  },
+  "imported": {
+   "reader": "968d4b85cfb98f0698e55362197bff84b76f559d54c4da83a72b63d9a926d2d4",
+   "refuter": "069aedb3b388a0d6cdaa308dd1cf68800e525c64a9fc9e9f95d2581acd74b090"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 one CLOSE statement must accept and close file-names of mixed organization (sequential, relative, indexed) and access mode (sequential, random, dynamic), each with the phrases its own module allows, with the effect of separate CLOSE statements in written order.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "CLOSE WITH LOCK removal gate at 2023 (close-with-lock-removed-2023); inactive at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: from 2002 the connector is locked, at 85 the physical file",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: mixing organizations in one CLOSE is the same at every edition; only what WITH LOCK locks and whether WITH LOCK is admitted differ",
+  "witnesses-cover": "part: g85_bf18_02 covers two sequential files and one relative random file; indexed files, dynamic access and per-file phrases in a mixed list are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/mix1.cob",
+    "printed": "CLOSE IR SQ WITH LOCK IX RL -> CLOSE-1 00000000; then OPEN INPUT SQ -> 38 via the USE; CLOSE MS IX RL IR -> CLOSE-2 00000000",
+    "expected": "GR8: as separate CLOSE statements; each file's status 00; a file closed with lock answers 38 on OPEN"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_close_norewind_rel.cob",
+    "printed": "COBOL1693 CLOSE 'RL' with the NO REWIND phrase may be used only with a sequential-organization file; n_close_reel_idx.cob: COBOL1693 for IX REEL",
+    "expected": "§1985:VIII.4.2.2 and IX.4.2.2 allow only WITH LOCK for relative and indexed files"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_close_lock_mix.cob",
+    "printed": "exit 0: CLOSE SQ WITH NO REWIND RL WITH LOCK IX WITH LOCK SQ REEL FOR REMOVAL and CLOSE LP RL IX WITH LOCK SQ UNIT accepted",
+    "expected": "each file-name takes the phrases of its own module; WITH LOCK is a 1985 phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.2.3 SR1",
+    "check": "OK  §1985:VII.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VIII.4.2.3 SR1",
+    "check": "OK  §1985:VIII.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VII.4.2.4 GR8",
+    "check": "OK  §1985:VII.4.2.4 GR8  (4.2.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "BindClose resolves each file-name on its own and splits the statement into one implicit CLOSE per file; the only organization test is the NO REWIND/REEL/UNIT screen, which the other modules' formats require. COBOL1693 cites §2023:14.9.6.3 SR1 at --std 85 rather than the 1985 module text (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "c1.cob (runs/c1-001): CLOSE SQ RL WITH LOCK IX with RL never opened printed 'USE 00 42 99' then 'CLOSE-1 00 42 00' (SQ closed first, RL 42 fires the USE before IX is closed, IX then closed: written order, separate statements); IX and SQ reopen 00 and SQ reads AAAA (the failed CLOSE WITH LOCK locked nothing); CLOSE IX RL SQ printed 'USE 99 42 00' then 'CLOSE-2 00 42 00'; OPEN INPUT RL then 35. o2.cob: an SD file in the CLOSE list refused COBOL1692. cite.py: OK §1985:VII.4.2.3 SR1 'need not all have the same organization or access'; OK §1985:VII.4.2.4 GR8 'as if a separate CLOSE statement had been written'. SequentialIoBinder.cs edition reads (lines 324, 428) are READ/FORMAT screens, not on the CLOSE path.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

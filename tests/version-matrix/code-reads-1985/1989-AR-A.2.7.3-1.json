@@ -1,0 +1,96 @@
+{
+ "rule-id": "1989-AR-A.2.7.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-173",
+  "sources": {
+   "reader": "6da29e9e8e38e6dd437da9f99f86e2d251cb93917b356e38b5eebe727b16433e",
+   "refuter": "464bbe68abc3e1e2743bb08ddb4c7b086076c4d21839d6a9a68b4b272f52e151"
+  },
+  "imported": {
+   "reader": "7b434851aff8e44be78a2d5cf1440ad2ba24557d2d8b7d3fe36068b8834b526d",
+   "refuter": "f274b522e950057f87e4a2970c97dd79f78d29bc7fe05e1fdb54825e23a9c7c5"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.7.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 argument-1 of FUNCTION ASIN must be class numeric, i.e. an arithmetic expression (A.2.2 type (1), VI.6.2.1); every such form must be accepted and give the arcsine, and non-numeric arguments may be refused. The witness covers item, literal and expression.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt; the ASIN row carries no predicates",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "same greps as ACOS: no edition reference in the screen, renderer or runtime bodies.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f32_04 covers a signed item, a literal and an expression; not ZERO, COMP-3, a subscripted element, nested functions, nor the refusal half",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/trigok.cob",
+    "printed": "ASIN(-1) -1.570796327, (+1) 1.570796327, (ZERO) 0.000000000, (-0.5) -0.523598776, COMP-3 0.5 0.523598776, W-EL (W-I + 2) = 1 1.570796327, FUNCTION COS (0) 1.570796327, - W-POS -1.570796327, SV9(18) .99..9 1.57079632538068300",
+    "expected": "arcsine in [-pi/2, +pi/2] (A.2.7.4 RV1)"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/trigbad.cob",
+    "printed": "COBOL1627 FUNCTION ASIN argument-1 for \"0.5\", PIC X, PIC A, numeric-edited, group, QUOTE, FUNCTION REVERSE (\"1\"); COBOL1504 for ASIN (0 0)",
+    "expected": "not an arithmetic expression; refusal permitted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-173/src/edarm.cob",
+    "printed": "ASIN (0.5E0): COBOL0900 floating-point literal requires COBOL-2002",
+    "expected": "not 1985 source"
+   },
+   {
+    "class": "witness",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.7@1985-ASIN-FUNCTION/g85_f32_04.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.7.3 AR1",
+    "check": "OK  §1989:A.2.7.3 AR1  (2.7.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.7.4 RV1",
+    "check": "OK  §1989:A.2.7.4 RV1  (2.7.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "Same edition-free class screen as ACOS; every 1985 numeric form is accepted and evaluated, every non-numeric one refused. Diagnostics cite §2023 clauses at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.7.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "rok.cob (rok-002): ASIN of SVP9 COMP-3 .05 = 0.050020857 (arcsin .05 = 0.0500208568), of ZEROES = 0, of W-Q OF G1 / 4 = 0.523598776, of 1.0 = pi/2, of W-LS / 3 (separate-sign item) = pi/2. rzero.cob: ASIN (ALL ZERO) accepted = 0.000000000, consistent with §1985:IV.4.2.2.2.3 SRL3.3 (ALL redundant before ZERO); ASIN (-1.0 * 1) = -1.570796327. rbad.cob: ASIN (HIGH-VALUE) refused COBOL1627. Same class screen as ACOS. cite.py: OK §1985:VI.6.2.1; OK §1985:IV.4.2.2.2.3 SRL3.3.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef: index data item argument refused at 85 (COBOL6979)"
+  ],
+  "corrected": ""
+ }
+}

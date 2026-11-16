@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-VI.5.4.4-1",
+ "rule-digest": "ecc83c128a1d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-013",
+  "sources": {
+   "reader": "f64052ae96c9020ad01804108d1457da1b7b236869a749cad184389bdce06bdf",
+   "refuter": "015806368cfa0f4373336b31370a6209a59cd8786ba576665394502d5e03c616"
+  },
+  "imported": {
+   "reader": "74277d11323a087eadb66c5249f6b67b5df24f6d10b87ff0c6d774a6fc36a544",
+   "refuter": "d428752275b5f381b05ce1533f230e5b7fa6929e7e8159b18dcb22dd976e693b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, whenever a zero value is stored in a BLANK WHEN ZERO item (numeric picture or numeric edited, signed or not at 85) by any statement (MOVE, arithmetic GIVING/COMPUTE, ROUNDED, truncation to zero, INITIALIZE, MOVE CORRESPONDING), the item holds only spaces; VALUE initialization is exempt (§1985:VI.5.15.4 GR1c).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Render; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#BwzFlag; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#EditedImageOfNumericValue",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString",
+    "switches": "DialectLevel < 2002 admits a signed numeric picture (S) into the BWZ numeric-edited promotion (S dropped from the mask); from 2002 SR1 bars S",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#EditedImageOfNumericValue",
+    "switches": "figurative ZERO VALUE on a numeric-edited item: below 2023 zero-fill (not blanked), from 2023 the edited image",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep BlankWhenZero together with DialectLevel/Edition across Compiler and Runtime; CobolEdit.Render has no edition input.",
+  "behaviour-differs-by-edition": "yes: at 85 a signed numeric picture may carry the clause and blanks on zero; at 85 VALUE ZERO on a BWZ item stores zeros (initialization unaffected), at 2023 the edited (blank) image",
+  "witnesses-cover": "part: pb566 covers MOVE/COMPUTE stores; signed pictures, P scaling, ROUNDED to zero, SIZE ERROR, INITIALIZE, MOVE CORRESPONDING, an alphanumeric sender and the VALUE exemption are added by the probes",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/b1a.cob",
+    "printed": "A1=[  ] A2=[12] A3=[  ] A4(MOVE -0 to S9(3) BWZ)=[   ] A5(0.001 to ZZ9.99)=[      ] A6=[  1.50] A7($$$9)=[    ] A8(50 to 99PP)=[  ] A9=[12] B1..B4 (COMPUTE/ADD GIVING/MULTIPLY/ROUNDED 0.4)=[ ] B5 SIZE ERROR keeps [5] B8 PIC 9(18)=[18 spaces] B9=[999999999999999999] C1(-0.04 to -9.9)=[    ] C2 INITIALIZE=[8 spaces] C3=[  ] C4 MOVE CORR=[8 spaces] C5 DIVIDE=[ ] C6 SUBTRACT=[ ] C7(MOVE \"00\")=[  ]",
+    "expected": "spaces whenever the stored value is zero; digits otherwise; SIZE ERROR leaves the item unchanged"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-013/b2p.cob",
+    "printed": "V1 VALUE \"00\"=[00] V2 VALUE ZERO=[00] V3=[007]; S2 MOVE 0 to S9(3) BWZ=[   ]",
+    "expected": "initialization not affected by BWZ (§1985:VI.5.15.4 GR1c); a zero store blanks"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.4.4 GR1",
+    "check": "OK  §1985:VI.5.4.4 GR1  (5.4.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.15.4 GR1c",
+    "check": "OK  §1985:VI.5.15.4 GR1c  (5.15.4 General Rules)  the text is in GR1c"
+   }
+  ],
+  "notes": "Every store into a BWZ item reaches the one runtime formatter, whose blank guard reads the digits after the store rescale, so truncation to zero blanks too. The two edition arms (signed picture at 85, VALUE ZERO zero-fill below 2023) are both what the 1985 text asks.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "b1a: same stores; S9(3) BWZ is refused by SR1 at 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,e,f",
+  "evidence": "r1a at 85: DIVIDE ... GIVING Q REMAINDER RM with RM PIC 99 BWZ and remainder 0 -> RM=[  ]; MOVE ALL \"0\" -> [  ]; MOVE of a blanked BWZ sender to a BWZ receiver -> [  ]; MOVE of a numeric edited \"  0.00\" (de-edit) to 9V99 BWZ -> [   ]; PP99 BWZ with 0.0012 -> [12], with 0.00001 (truncated to zero) -> [  ]; COMPUTE W5 W6 = N8 - N8 (two receivers) -> both blank. r1e: READ F INTO W1 (record PIC X(2) \"00\", an elementary alphanumeric-to-numeric-edited move) -> [  ]. Not blanked: MOVE of a group holding \"00\" -> [00], MOVE 0 to a PIC 99 REDEFINES of the BWZ item -> [00], INSPECT REPLACING ALL \"1\" BY \"0\" -> [00]; r1f ACCEPT \"00\" -> [00]. Reading on which these do not overturn: GR1 is applied by the editing of an elementary store; a group move is 'treated exactly as if it were an alphanumeric to alphanumeric elementary move ... no conversion' (cite.py: OK  §1985:VI.6.19.4 GR5 ... the text is in GR5), INSPECT works on the item 'as though it had been redefined as alphanumeric' (OK  §1985:VI.6.18.4 GR3b), and ACCEPT's conversion is implementor-defined (OK  §1985:VI.6.5.4 GR1); each names a path with no editing. cite.py: OK  §1985:VI.5.4.4 GR1  (5.4.4 General Rules)  the text is in GR1. Side observation (not this rule): S9(3) SIGN LEADING SEPARATE BLANK WHEN ZERO is refused at 85 with COBOL2422; §1985 SIGN SR1 wording ('numeric data description entry whose PICTURE contains S') versus the BWZ category change is a question for the SIGN clause's own rule.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

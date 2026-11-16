@@ -1,0 +1,115 @@
+{
+ "rule-id": "1989-AR-A.2.33.3-1",
+ "rule-digest": "e291d783a8ff",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-170",
+  "sources": {
+   "reader": "9068f7d16290245a182e477a81ec5b4ba4a7d80cd8d843c4ce024176ee06e05a",
+   "refuter": "5cb3ba6f29ecc81323b9250fcbe87686f3e18c53e6236dc04bdbd884007a5098"
+  },
+  "imported": {
+   "reader": "7f838a29cf9795bda7fdd14fe87a6ccf6f42593698b4e92dbbd3c06d17c9247c",
+   "refuter": "44ec35a13ae93200612b4f9522e9e27087bbaa4a46f68a38032d4a3c4b4e45b8"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.33.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 (Amendment 2 applied), when ORD-MIN has more than one argument-1 all arguments must be of one class (alphabetic, numeric or alphanumeric per §1985:IV.4.3.3), except that alphabetic and alphanumeric may be mixed; a mixed numeric/nonnumeric list must be refused and every same-class list accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against DialectLevel: ORD-MIN available",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "as for ORD-MAX: no edition consult in IntrinsicArgumentRules.cs; ORD-MIN's Verified row has no predicate for AppliesAt to switch",
+  "behaviour-differs-by-edition": "no: the same cross-class screen as ORD-MAX and as at 2023",
+  "witnesses-cover": "part: g85_f33_05 covers the accept half; no witness covers the refusal half, numeric-edited or group arguments, figuratives, ALL subscripts or reference modification",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/om_ok.cob",
+    "printed": "N1=1 N2=1 N3=1 N4=1 N5=2 N6=1 N7=3 (EXPECT: MATCH)",
+    "expected": "accepted: same shapes as ORD-MAX; least value, leftmost on ties"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r10.cob",
+    "printed": "COBOL1627 argument-2 is of class alphanumeric ... ISO §2023:15.72.3 r3",
+    "expected": "refused: numeric + alphanumeric item"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r12.cob",
+    "printed": "COBOL1627 argument-2 is of class alphanumeric",
+    "expected": "refused: numeric + numeric-edited"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r13.cob",
+    "printed": "COBOL1627 argument-2 is of class alphanumeric",
+    "expected": "refused: numeric + group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r14.cob",
+    "printed": "COBOL1627 argument-2 is of class numeric",
+    "expected": "refused: alphabetic + numeric"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r15.cob",
+    "printed": "COBOL1627 argument-2 is of class alphanumeric",
+    "expected": "refused: numeric literal + nonnumeric literal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r16.cob",
+    "printed": "COBOL1627 argument-2 is of class numeric",
+    "expected": "refused: alphanumeric + arithmetic expression"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r17.cob",
+    "printed": "COBOL1627 argument-2 is of class numeric",
+    "expected": "refused: SPACE + numeric"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r18.cob",
+    "printed": "COBOL1627 argument-3 is of class alphanumeric",
+    "expected": "refused: numeric + ZERO + alphanumeric"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.33.3 AR1",
+    "check": "OK  §1989:A.2.33.3 AR1  (2.33.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.3",
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
+   }
+  ],
+  "notes": "Same mechanism as ORD-MAX (one Verified row shape, one CrossViolation); every refusal shape is refused and every accept shape returns the right ordinal at 85. Diagnostics cite §2023:15.72.3 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.33.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Same CrossViolation row shape as ORD-MAX (IntrinsicArgumentRules.cs Verified: ['ORD-MIN'] = Uniform('p', ..., CrossArgRule.AllSameClass, ...)). At --std 85: ORD-MIN(FUNCTION LENGTH(AX) AX) refused COBOL1627 'argument-2 is of class alphanumeric'; ORD-MIN(AL FUNCTION SQRT(NU)) refused 'argument-2 is of class numeric'; ORD-MIN(FUNCTION LENGTH(AX) NU 9) accepted, O=1 (leftmost of ties); ORD-MIN(NU(1:1) 5) refused (ref-mod is alphanumeric, the literal numeric); ORD-MIN(NU NE(1:2)) refused; index data item refused COBOL6979. cite.py: 'OK  §1989:A.2.33.3 AR1  (2.33.3 Arguments)  the text is in AR1'; 'OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

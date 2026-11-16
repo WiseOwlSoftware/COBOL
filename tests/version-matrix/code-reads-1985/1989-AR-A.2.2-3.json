@@ -1,0 +1,92 @@
+{
+ "rule-id": "1989-AR-A.2.2-3",
+ "rule-digest": "2a4106d5e8e3",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-168",
+  "sources": {
+   "reader": "b551ea886eb91325bf0b18c7570bc33dc965181476db010001f2ccf68c73885a",
+   "refuter": "6171d2fefbc665a7fad83b00e577138b5135981f88bda74b1e0eda7ed1d0a637"
+  },
+  "imported": {
+   "reader": "9615eaca495c9ae92064a2e37ceb027e60e0cab63e7bb87734b4788b76c7395c",
+   "refuter": "f28f56a51e962085df0137fb15c21c4cb229a5bbd901c14bba127c52ac4714f7"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.2-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an alphanumeric argument position must take a data item of class alphabetic or alphanumeric (which in 1985 includes alphanumeric edited, numeric edited and every group item, §1985:IV.4.3.3) or a nonnumeric literal, refuse class numeric items, numeric literals and numeric expressions/functions, and use the argument's size.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfItem; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPic; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn > ctx.Edition.DialectLevel refuses a function not yet introduced (DiagnosticCatalog.IntrinsicFunctionNotYetIntroduced); the 1989 functions carry IntroducedIn 85 in IntrinsicCatalog, so --std 85 admits them",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(ctx.Edition.Edition.Year) gates each per-position predicate by its Since year; the class screen itself (IntrinsicArgumentRules.Violation over Verified) is edition-blind",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry NumericFunctionIdentifierOperand2002: at --std 85 a numeric/integer function is admitted only inside an arithmetic expression (a nested function argument is one)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep -n 'Edition|CobolVersion|since|Std|1985|1989' over IntrinsicArgumentRules.cs and IntrinsicBinder.cs; the only edition reads on the argument path are ArgPredicate.Since/AppliesAt, sig.IntroducedIn and the 2002 placement construct; ClassOf1/ClassOfPlace/ClassOfItem/ClassOfPic/Admissible/Violation consult no edition",
+  "behaviour-differs-by-edition": "no: ClassStringRules (ByClass over TableTwoClass) admits numeric-edited and groups as class alphanumeric at every edition, which is the 1985 class definition; national members unreachable at 85",
+  "witnesses-cover": "part: g85_f33_01 covers PIC A, PIC X, a group and a literal; numeric-edited, alphanumeric-edited, ref-mod at its bounds, an ODO group, ALL subscripts and the refusal half are not exercised",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-168/src/alnum-pos.cob",
+    "printed": "MATCH: REVERSE(PIC Z9.9 \" 2.5\")=[5.2 ], REVERSE(PIC XBX)=[Q P], UPPER-CASE(PIC ABA)=[X Y], LENGTH(PIC ABA)=3, REVERSE(AN(1:1))=[A], REVERSE(AN(5:1))=[E], REVERSE(AN(2:))=[EDCB], REVERSE(AN(N:N))=[CB], LENGTH(REVERSE(group with BINARY))=4, REVERSE(ODO group, N=2)=[21H] length 3, LOWER-CASE(TBE(N+1))=[six], MAX(TBE(ALL))=[TWO], UPPER-CASE(\"a1-b\")=[A1-B], UPPER-CASE(\"ab c\")=[AB C]",
+    "expected": "alphabetic and alphanumeric-class items (incl. numeric edited, alphanumeric edited, groups, ref-mod views, ODO groups at current size) and nonnumeric literals admitted, their size used"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-168/src/alnum-ref.cob",
+    "printed": "COBOL1627 on REVERSE(PIC 9(3)), REVERSE(123), UPPER-CASE(BINARY item), LOWER-CASE(NU + 1), REVERSE(FUNCTION LOG (2)); exit 65",
+    "expected": "refused: a numeric item, numeric literal, expression or numeric function is not class alphabetic/alphanumeric nor a nonnumeric literal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-168/src/later-ed.cob",
+    "printed": "COBOL0900 national literal N\"abc\" requires COBOL-2002; COBOL0900 floating-point literal 1.5E2 requires COBOL-2002; exit 65",
+    "expected": "a later edition's operand forms (national literal, floating-point literal) are not 1985 literals and are refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.2 AR3",
+    "check": "OK  §1989:A.2.2 AR3  (2.2 ARGUMENTS**)  the text is in AR3"
+   },
+   {
+    "cite": "§1985:IV.4.3.3",
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
+   }
+  ],
+  "notes": "ORD's 2002-only CharacterCategory predicate (Since 2002) is the one place the 85 arm of this class reading is switched; REVERSE/UPPER-CASE/LOWER-CASE carry only MinWidth(1) with Since 85. An ODO group argument is read at its current size (REVERSE gave 3 characters at N=2).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.2-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attacked the figurative-constant form the reader did not try: afig-001 at --std 85 admits UPPER-CASE(SPACE)=[ ], LENGTH(SPACE)=1, REVERSE(ALL \"AB\")=[BA] (same at --std 2023, afig-002). AR3 asks for 'a nonnumeric literal'; §1985:IV.4.3.8.3.3 SR1 makes argument-1 'an identifier, a literal, or an arithmetic expression', and §1985:IV.4.2.2.2.3 (a subsection of 4.2.2.2 Literals) lets a figurative constant stand 'whenever literal appears in a format' with the one exception that a numeric-literal position takes only ZERO; the compiler matches that reading exactly (SPACE/HIGH-VALUE/QUOTE/ALL refused in numeric positions, admitted in alphanumeric ones), and ALL literal's length is the literal's (4.2.2.2.3). Refusal half: aref2-001 refuses REVERSE(IXD USAGE INDEX) COBOL6979, UPPER-CASE(IX) COBOL1637, REVERSE(FUNCTION LOG (5)) and LOWER-CASE(FUNCTION INTEGER (5)) COBOL1627, REVERSE(X\"41\") COBOL0900 (hex literal is not a 1985 nonnumeric literal). cite.py: OK §1989:A.2.2 AR3 the text is in AR3; OK §1985:IV.4.3.8.3.3 SR1 the text is in SR1; OK §1985:IV.4.2.2.2.3 the text is in the clause.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#IndexDataItemAdmittedAt: index data item argument refused at 85, admitted from 2002",
+   "the literal construct gate (COBOL0900) refuses X\"...\" at 85 in an argument position; not on the reader's list"
+  ],
+  "corrected": ""
+ }
+}

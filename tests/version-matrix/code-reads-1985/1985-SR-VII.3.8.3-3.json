@@ -1,0 +1,134 @@
+{
+ "rule-id": "1985-SR-VII.3.8.3-3",
+ "rule-digest": "b879ef62869d",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-07",
+  "sources": {
+   "reader": "9e72b95aeaf2386e6b0225ad32fc510fa05daebbacf5f6cdf53fe9c8fb6f5022",
+   "refuter": "61367aa677a245292474507a02e0f62dd01c1dd87d9e527d7c73929a8681bbfb"
+  },
+  "imported": {
+   "reader": "304b8370aee3f87306746e83fb1fc948ef1158aca18c9240cdfa4767f4b68505",
+   "refuter": "2d50fa2e82692c2806a4b4b5dc6771d9881449d223605bb06dc495b933941471"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.3.8.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a Format 2 RECORD IS VARYING IN SIZE clause that writes both FROM integer-2 and TO integer-3 must be refused unless integer-3 is strictly greater than integer-2 (equal and inverted bounds both refused), for every file the clause can describe (sequential, relative, indexed FD and the SD), with or without the DEPENDING phrase.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt; src/WiseOwl.Cobol.Compiler/Binding/Rule1985.cs#CitationAt; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt",
+    "switches": "edition.DialectLevel >= Since; the SR5/1985-SR3 row has Since 85, so the row is screened at 85 exactly as at 2023 (only the Format 3 SR9 row is Since 2002)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Rule1985.cs#CitationAt",
+    "switches": "diagnostic citation only: DialectLevel < 2002 prints 'ANSI §1985:VII.3.8.3 SR3' instead of 'ISO §2023:13.18.43.3 SR5'",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read RecordClauseRules.Screen end to end and Rule1985; the predicate (hi <= lo) has no edition test.",
+  "behaviour-differs-by-edition": "no (only the cited rule designation differs; the refusal is the same at 85 and 2023)",
+  "witnesses-cover": "part: the witnesses are free-form sequential FDs with DEPENDING; relative, indexed, SD, no-DEPENDING and large-operand forms are not exercised by them (probed here)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/inv.cob",
+    "printed": "error COBOL2009 ... FROM 20 TO 5; integer-3 shall be greater than integer-2 (ANSI §1985:VII.3.8.3 SR3) plus COBOL2010 SR2 for the record",
+    "expected": "refused (SR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/eq.cob",
+    "printed": "error COBOL2009 ... FROM 15 TO 15 ... (ANSI §1985:VII.3.8.3 SR3)",
+    "expected": "refused: 'greater than', equal bounds violate"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/ok.cob",
+    "printed": "RAN ok",
+    "expected": "FROM 15 TO 16 accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/eqnodep.cob",
+    "printed": "error COBOL2009 (SR3) for FROM 15 TO 15 CHARACTERS without DEPENDING",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/fromonly.cob",
+    "printed": "RAN fromonly",
+    "expected": "FROM only: integer-3 not written, rule has no operand pair; accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/rel.cob",
+    "printed": "error COBOL2009 FROM 15 TO 15 (ANSI §1985:VII.3.8.3 SR3) on a relative file",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/idx.cob",
+    "printed": "error COBOL2009 FROM 16 TO 15 on an indexed file",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/sd.cob",
+    "printed": "error COBOL2009 sort-merge file description entry 'S' FROM 10 TO 9",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/odo.cob",
+    "printed": "COBOL2009 SR3 for FROM 15 TO 15 and COBOL2010 for the ODO record '6 to 15 bytes'",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/zer.cob",
+    "printed": "COBOL2386 operand 0 shall be nonzero (§1985:III.2) and COBOL2009 SR3 FROM 1 TO 0",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/big.cob",
+    "printed": "COBOL2427 operand 4294967297 exceeds implementation limit, then COBOL2009 SR3 FROM 2147483647 TO 5",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c1/bytes.cob",
+    "printed": "COBOL0900 the RECORD clause BYTES phrase requires COBOL-2023, and COBOL2009 SR3",
+    "expected": "BYTES is not in the 1985 format: refused; SR3 still reported"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.3 SR3",
+    "check": "OK  §1985:VII.3.8.3 SR3  (3.8.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The one table row (Since 85) screens the strict inequality at every edition; at 85 the diagnostic cites the 1985 rule via Rule1985. The 1985 text prints the RECORD clause once (Sequential I-O VII.3.8) and the screen reaches every FD and SD. At --std 2023 the equal-bounds probe gives the same refusal citing §2023:13.18.43.3 SR5.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "eq.cob: error COBOL2009 ... (ISO §2023:13.18.43.3 SR5)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.3.8.3-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,c",
+  "evidence": "Read §1985:VII.3.8 whole (Formats 1-3, SR1-4, GR1-10) and RecordClauseRules.cs (Rules, AppliesAt, Render/CitationAt). The SR5 row is Since 85; the Format 3 row (SR9) is Since 2002, so SR3 does not overreach into Format 3, which 1985 leaves without an ordering rule. Probes at --std 85 (refute-1985-07/c1): f3eq.cob RECORD CONTAINS 5 TO 5 CHARACTERS -> RAN f3eq (Format 3, outside SR3, accepted); lz.cob FROM 0015 TO 015 -> COBOL2009 'FROM 15 TO 15 ... (ANSI §1985:VII.3.8.3 SR3)' (compared by value); ext.cob EXTERNAL FD FROM 15 TO 15 -> COBOL2009; nest.cob the FD in a contained program (1985 IPC nesting) FROM 15 TO 15 -> COBOL2009, so the screen reaches every program; odorun.cob FROM 6 TO 15 DEPENDING ON with an ODO record writes 8 and 6 bytes and reads them back '0008 2ABCDEXY' / '0006 0ABCDE', and WS-LEN 16 gives status 44 (GR10's last paragraph). cite.py: 'OK  §1985:VII.3.8.3 SR3  (3.8.3 Syntax Rules)  the text is in SR3'; 'OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10'. No reading of 1985's SR3 found that the compiler fails.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

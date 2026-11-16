@@ -1,0 +1,111 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1.3.1-1",
+ "rule-digest": "91fd3fef40bd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-042",
+  "sources": {
+   "reader": "14d2b0105f24092ed65e9ae26302fb068a0e84b6a64867dd9083c587d651c0fb",
+   "refuter": "409e6d12258bdd082bf19e73191b0bd4d3ccff4bf9a1cb6cfb3f144a27f82644"
+  },
+  "imported": {
+   "reader": "5c79dc8b2d3fe2e5188190913ac50bb87a0b4bb19504a1af66bdb337a5cc3f5d",
+   "refuter": "d784187627ea2cddb6eefa82bb2f4cae1fa6d4971d0a28baf7e8aab931324797"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.2.1.3.1-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every key word (uppercase and underlined in a COBOL-85 general format) must be written whenever its format is used, so a statement, clause or entry that omits one is refused, while the format's optional (not underlined) words may be left out, judged by the 1985 underlining where it differs from a later edition's.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#alternateKeyClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordKeyClause; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVarying; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVaryingAfter; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVarying",
+    "switches": "the grammar lets BY be omitted (2002+ form); below COBOL-2002 a VARYING phrase with no BY is refused (COBOL0900), BY being underlined in the 1985 PERFORM format",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVaryingAfter",
+    "switches": "the same for an AFTER phrase with no BY",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "below COBOL-2002 a USE ... EXCEPTION/ERROR without AFTER or without PROCEDURE is refused (both underlined in §1985:VII.4.6.2)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Ran python scripts/spec/audit_grammar_optional_words.py --edition 1985 (reads the 1985 formats from the transcription's decided drawings): 215 formats measured, 0 candidates, and 13 DECIDED rows naming where a word the grammar admits omitted or repeated is refused later, of which PERFORM BY (twice) and USE AFTER/PROCEDURE are the 1985 edition arms above and SUBTRACT FROM is ArithmeticBinder.BindSubtract at every edition. Rendered PDF page 198 (§1985 V-6) to confirm RECORD KEY IS has KEY not underlined, matching the grammar's RECORD KEY? IS?.",
+  "behaviour-differs-by-edition": "yes: PERFORM VARYING/AFTER without BY and USE without AFTER or PROCEDURE are refused at 85 and accepted at 2023 (later editions made those words optional)",
+  "witnesses-cover": "part: pb2024-required-word-omitted covers MOVE without TO; the other statements, data and file-control entries, and the 1985-only required words (PERFORM BY, USE AFTER/PROCEDURE) are not exercised by the witness",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/kw/r01.cob",
+    "printed": "r01..r18 each refused at 85: ADD/SUBTRACT COBOL1689; MULTIPLY expected BY; DIVIDE expected BY or INTO; PERFORM P 3 expected TIMES; OPEN F expected EXTEND/I-O/INPUT/OUTPUT; INSPECT expected FOR; STRING ... BY SIZE unexpected BY; SET IX 1 no literal expected; ACCEPT W-X DATE COBOL2269; SEARCH without WHEN COBOL2269; WRITE F-R 2 LINES COBOL2269; VARYING without FROM expected FROM; GREATER OR 1 expected EQUAL; INITIALIZE REPLACING ... expected BY; EVALUATE OTHER without WHEN COBOL2073; CALL \"SUBX\" N-A COBOL0307",
+    "expected": "every statement written with one of its key words omitted (TO, FROM, BY, INTO, TIMES, INPUT, FOR, DELIMITED, TO, FROM, WHEN, AFTER/BEFORE, FROM, EQUAL, BY, WHEN, USING): refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/kw/f1.cob",
+    "printed": "f1 KEY IS G-K: COBOL1970; f2 ALTERNATE KEY IS: expected RECORD; f3 LABEL STANDARD: expected RECORD or RECORDS; f4 DATA G-R: expected RECORD or RECORDS; f5 RECORD G-K ALTERNATE RECORD G-A / BLOCK 5 RECORDS LABEL RECORDS STANDARD DATA RECORD G-R: exit 0; f6 BLOCK CONTAINS 20: exit 0",
+    "expected": "indexed file-control and FD entries: an omitted RECORD/RECORDS key word refused; omitted optional KEY, IS, CONTAINS, WITH, CHARACTERS accepted"
+   },
+   {
+    "class": "e,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/kw/opt.cob",
+    "printed": "EOF2 / A=[AB  ] S=-04 B=[  ] FS=00 / GT / GE / C@C / N=07 / M=14",
+    "expected": "optional words omitted throughout (ASSIGN, ORGANIZATION IS, ACCESS MODE IS, FILE STATUS, RECORD KEY IS, WITH DUPLICATES, SIGN IS, BLANK WHEN, JUSTIFIED RIGHT spelled JUST, OCCURS TIMES, INDEXED BY, AT END, IS GREATER THAN, GO TO): accepted with the meaning unchanged"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/kw/e1.cob",
+    "printed": "--std 85: COBOL0900 VARYING with no BY, AFTER with no BY; --std 2023: runs, 01 02 01",
+    "expected": "BY is underlined in the 1985 PERFORM VARYING format: refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/kw/u1.cob",
+    "printed": "u1 USE STANDARD ERROR PROCEDURE ON F, u2 USE AFTER ERROR ON F, u3 USE AFTER EXCEPTION F: COBOL0900 at 85; at 2023 each runs (ERR / AFTER OPEN)",
+    "expected": "AFTER and PROCEDURE are underlined in the 1985 USE format: refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/kw/r15.cob",
+    "printed": "COMPUTE N-A EQUAL 1: COBOL0001 near 'EQUAL' (also at 2023)",
+    "expected": "the 1985 COMPUTE format shows only '=': refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.1.3.1 SR1",
+    "check": "OK  §1985:IV.4.2.2.1.3.1 SR1  (4.2.2.1.3.1 Required Words)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.1.3.1",
+    "check": "OK  §1985:IV.4.2.2.1.3.1  (4.2.2.1.3.1 Required Words)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.1.3.2",
+    "check": "OK  §1985:IV.4.2.2.1.3.2  (4.2.2.1.3.2 Optional Words)  the text is in the clause"
+   }
+  ],
+  "notes": "The rule is carried by the shared grammar (a key word is a demanded token) plus, where the grammar admits a later edition's omission, a COBOL0900 gate at 85; the 1985 audit of every drawn format reports no omissible key word left unrefused. The probes sample statements, data and file entries; they do not visit every one of the 215 formats.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.2.1.3.1-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read the 1985 formats for CALL, ALTER, START, OPEN/CLOSE, ADD, PROGRAM-ID, OBJECT-COMPUTER, IF. Omitted key word refused at --std 85 (refute-1985-042/src/kw): o04 ON SIZE without ERROR, o05 ON ERROR without SIZE, o06 ALTER P1 PROCEED TO P2 (first TO), o07 SET IX UP 1 (BY), o08 START G > G-K (KEY), o09 CLOSE F WITH NO (REWIND), o11 SIGN LEADING CHARACTER (SEPARATE), o12 OCCURS 1 TO 3 TIMES ON N-A (DEPENDING), o13 CALL USING BY N-A (REFERENCE/CONTENT), o14 PERFORM WITH BEFORE (TEST), o15 DISPLAY WITH NO (ADVANCING), o18 INSPECT REPLACING ALL \"A\" \"B\" (BY), o19 CONVERTING without TO, m MEMORY SIZE 100 without WORDS/CHARACTERS/MODULES; o22 NOT GREATER THAN OR EQUAL refused (not a 1985 relational operator). Optional words omitted accepted with right results: o01 CALL USING CONTENT N-A REFERENCE N-B (BY not underlined) -> B=07; o03y WRITE ... INVALID with no KEY -> DUP; o06b ALTER P1 TO P2 -> P2; o10 OCCURS ASCENDING W-E (KEY IS) -> S0; o16 WRITE AFTER 2 (ADVANCING/LINES) ; o17 INITIALIZE REPLACING ALPHANUMERIC BY (DATA); o20 ADD 1 2 GIVING (TO) -> 03; o21 UNSTRING DELIMITED \"C\" (BY); o23x GREATER OR EQUAL TO (THAN); o25 LESS THAN OR EQUAL (TO); t1/t2 PROGRAM-ID. T IS INITIAL (PROGRAM) and IF ... THEN (THEN is a 1985 optional word); m MEMORY 100 WORDS (SIZE). cite.py: OK §1985:IV.4.2.2.1.3.1 SR1; OK §1985:IV.4.2.2.1.3.2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

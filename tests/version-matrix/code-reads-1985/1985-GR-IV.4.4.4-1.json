@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-IV.4.4.4-1",
+ "rule-digest": "8306ab139b35",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-088",
+  "sources": {
+   "reader": "39110929ecfc0dd99ae45321e31f75511cd828c0db0cb06751c3ae1f00ff5afc",
+   "refuter": "aef7968fb202f68c58a66835384d08e702f15bfa628f711628a49ef1fd10d2ae"
+  },
+  "imported": {
+   "reader": "bde09adbc1aa6aef0acaf47c845cdcfbdac05894b6449d8d2e0e42e4bd9d505a",
+   "refuter": "bee591f214ee4c56f87a0ea5e296af08a4bcc198fc4a891e60b646e08a2979e7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the separator period at the end of a sentence must terminate the scope of every statement in it not yet terminated (nested IFs, a conditional ADD in an ELSE, a READ AT END inside an IF, a RECEIVE NO DATA), so control resumes at the next sentence.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sentence; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#conditionalPhraseAssociates",
+    "switches": "passes the target edition to ConditionalPhraseAssociation.Associates, which decides which phrase belongs to which open statement; the period itself is the edition-free sentence rule `statement+ DOT`",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "the sentence rule (statement+ DOT) and statementBlock (statement+) carry no predicate; greps of Edition|Version in the grammar rules named found none; the one edition read on the path is the phrase predicate (see the case for GR2).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the four witnesses are 2023-written scope cases accepted at 85; not exercised at 85: a period ending a READ AT END held by an IF, a conditional ADD in an ELSE ended by the period, a 1985 RECEIVE NO DATA ended by the period",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-088/sc1b.cob",
+    "printed": "G1-SIZE, G1-AFTER X=9, G1-EOF, G1-N=5 (each sentence's period ended the IF/ADD and the IF/READ so the next sentence ran)",
+    "expected": "IF A=1 IF B=3 ... ELSE ADD 1 TO X ON SIZE ERROR DISPLAY ... . ends everything: G1-SIZE then G1-AFTER X=9; IF A=1 READ F AT END DISPLAY MOVE 5 TO N. gives G1-EOF and N=5"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-088/rc1.cob",
+    "printed": "WD1 HELLO*****, ND2, END",
+    "expected": "the period after each IF ... RECEIVE ... NO DATA ... WITH DATA ... ELSE ... ends the RECEIVE and the IF; END displayed"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.4.4 GR1",
+    "check": "OK  §1985:IV.4.4.4 GR1  (4.4.4 Explicit and Implicit Scope Terminators)  the text is in GR1"
+   }
+  ],
+  "notes": "The period is the sentence rule's DOT; the statementBlock and conditionalPhrases loops cannot cross it, so every open statement ends there at every edition. Probes at 85 over IF, conditional ADD, READ AT END and the 1985 RECEIVE all resumed at the next sentence.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes under refute-1985-088/src at --std 85 test the refusal half the reader did not try: a statement's scope ended by the period, followed by its explicit terminator. p3a (IF A = 1 DISPLAY 'IN-IF'. END-IF.) was refused with COBOL0306 'END-IF appears without a matching IF statement'. p3c (EVALUATE ... WHEN 1 DISPLAY 'W1'. END-EVALUATE.) was refused with COBOL0306. p3b (an inline PERFORM whose body ends with a period before END-PERFORM) was refused with COBOL2269. p3d ran a period that ends three nested IFs, and a nested IF/ADD ON SIZE ERROR inside an inline PERFORM inside an IF ... ELSE; it printed P-SIZE, P-AFTER-PERF, P-NEXT, NEST3, P-END (no -WRONG line). cite.py: OK §1985:IV.4.4.4 GR1 the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,90 @@
+{
+ "rule-id": "1989-AR-A.2.29.3-3",
+ "rule-digest": "baf423ffb310",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-081",
+  "sources": {
+   "reader": "10b4aade8e8b99f9bc115cfbcccf36f29e1515815c3527e0342120b2257f790b",
+   "refuter": "353f6aa3fef4fa94d6dcd70227a67a8f22e47d6f6ce07edc9362bbe8db1e1554"
+  },
+  "imported": {
+   "reader": "77171b76f581ba2d8ba191408ba4cd5992951a5d068d381e30f7794d276a5f9f",
+   "refuter": "365c7ed04e16aeaba8795e09b77694f42a6b836c8ad4068d6ec354b417af4094"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.29.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when DECIMAL-POINT IS COMMA is in effect (written in the program or inherited by a contained program), NUMVAL must interpret a comma in argument-1 as the decimal point in both formats (leading sign, or trailing sign/CR/DB), for literals and alphanumeric items; a period in that case violates the rule and the result is undefined (A.2.2).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#SwitchBindDecimalPoint; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#CommaFlag; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: IntrinsicSig.IntroducedIn (85 for the 1989 module rows) against ctx.Edition.DialectLevel, COBOL1502/COBOL1503",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#DigitCapFlag",
+    "switches": "the NUMVAL digit cap from the OPTIONS ARITHMETIC mode (native at 85, the 2023 default too); not the comma rule",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Version|DialectBehavior in IntrinsicRenderer.CommaFlag, ConfigurationStep.Inherit, SpecialNamesBinder.SwitchBindDecimalPoint (only DECIMAL-POINT form diagnostics) and CobolIntrinsics.Exact NumvalDec: the comma mode reads ctx.Data.Configuration.DecimalPointIsComma with no edition test",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: nested_special_names_inheritance covers inherited DECIMAL-POINT IS COMMA for literals and PICTUREs but has no NUMVAL call; NUMVAL's comma interpretation is not exercised by the witness",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/nvc.cob",
+    "printed": "LIT= 000001,5000 ITEM=-000012,2500 CR=-000012,5000 LEAD= 000000,7500 TRAIL= 000003,0000 D18= 000012,3456 REFMOD=-000012,2500 INT= 000007,0000 INNER=-000004,2500",
+    "expected": "comma read as the decimal point: 1,5 / -12,25 / 12,5 CR=-12,5 / ,75 / +3, / 12,345678901234567 truncated to the receiver / refmod -12,25 / 7 / the contained program inherits DPC: 4,25DB=-4,25"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/nvp.cob",
+    "printed": "LIT= 000001.5000 NEG=-000012.2500",
+    "expected": "without DPC the period is the decimal point"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/nvcdot.cob",
+    "printed": "DOT= 000000,0000",
+    "expected": "a period under DPC violates AR3: the result is undefined (A.2.2); any value conforms"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.29.3 AR3",
+    "check": "OK  §1989:A.2.29.3 AR3  (2.29.3 Arguments)  the text is in AR3"
+   },
+   {
+    "cite": "§1989:A.2.29.4 RV1",
+    "check": "OK  §1989:A.2.29.4 RV1  (2.29.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause ('do not have values within the permissible range, then the result of such a reference is undefined')"
+   }
+  ],
+  "notes": "The renderer passes commaMode from the compilation unit's (possibly inherited) DECIMAL-POINT IS COMMA to the one NumvalDec scanner; no edition test sits on the path. Both formats, items, ref-modified items and a contained program read the comma as the decimal point at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.29.3-3",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "rnv1b.cob (DPC): NUMVAL(ND(2:2)) of PIC 9(4) 1234 ->23; NUMVAL(group ' 2,5')->2,5; NUMVAL(TE(K)) subscripted '1,234 '->1,234; IF NUMVAL(\"1,5\") > 1,4 -> GT; ' 0,000000000000000001 ' -> 0 at 4 places; ' -,5 '->-0,5; '5,  DB'->-5; 2*NUMVAL(\"1,25\")+0,5 -> 3; and a SEPARATELY compiled second program in the same source without DPC reads '3.75' as 3.7500 (the comma mode does not leak across compilation units). cite.py: OK §1989:A.2.29.3 AR3; OK §1989:A.2.29.3 AR1. LEAD FOR AR1 (rule 1989-AR-A.2.29.3-1, not this case): rnv1.cob NUMVAL(NE) on a PIC -ZZ9,99 numeric-edited item is refused, COBOL1627 'EDITED category ... CATEGORY wording of ISO §2023:15.67.3 r1'. At 1985 numeric edited is class alphanumeric (OK §1985:IV.4.3.3) and the Alphanumeric argument type is 'A data item of the class alphabetic or alphanumeric' (OK §1989:A.2.2, its item 3), Table 1 typing NUMVAL X1; AR1's 'alphanumeric data item' is read as CATEGORY by IntrinsicArgumentRules NUMVAL row (CharacterCategory Since 85). That is a class-vs-category reading for AR1's own refuter; AR3's comma rule holds for every argument the compiler admits.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ArgPredicate.AppliesAt: NUMVAL's CharacterCategory predicate is Since 85, so the 2023 category screen runs at --std 85 (bears on AR1, not AR3)"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-2",
+ "rule-digest": "b4a396468a99",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-125",
+  "sources": {
+   "reader": "bc455473fa2de6f1c4fc150fe11ea0c6256448ddaab13f91ff98d875bd743e30",
+   "refuter": "56a1c9193d22777bd10fa0ae78650e0f8a9a3b26f4ead5cf93fb85dbde45e5b5"
+  },
+  "imported": {
+   "reader": "a41271e22a1b6e797b18f2038452c0a9e9430cd8f7c27e0ed0bcaa27699738a7",
+   "refuter": "5da4994a009479cbd9209657a5f836a6aeadabcffa6280b6c2ae8efa056fa2b4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.5.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a REWRITE of a sequential mass-storage file open I-O succeeds and replaces exactly the record the last READ accessed only when the last input-output statement executed for that file was a successful READ; after any other last statement for that file (a REWRITE, successful or not, a failed WRITE, an at-end READ, an OPEN, or nothing) it is unsuccessful with I-O status 43 (VII.1.3.5) and replaces nothing, while I-O on another file does not break the sequence. The witness covers only the successful READ then REWRITE leg.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OverwriteInPlace; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadSucceeded; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PrevOpWasSuccessfulRead; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteSharedInStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the OPEN's default sharing mode: AllOther at 85 (no file sharing facility) against ReadOnly/NoOther from 2002; RewriteSharedInStatement's LocksEffective reads it, but with no LOCK MODE clause at 85 no lock is set, so the REWRITE outcome is the same",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "whether the file sharing facility applies to the connector; false at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition|CobolVersion|Dialect|DialectLevel over src/WiseOwl.Cobol.Runtime/IO and over CodeGen/Verbs/SequentialIoEmitter.cs, Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite: the '43' gate (Status setter clears it, ReadSucceeded re-arms it) is edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f22_02 runs only the successful READ then REWRITE leg; the 43 refusals after REWRITE, failed WRITE, at-end READ, reopen and the other-file interleave are not exercised by it (g85_bf26_01 covers no-READ 43 for GR7)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p1gate.cob",
+    "printed": "L1A 00, L1B 43 (second REWRITE), L2W 48 then L2R 43, L3 00 (READ F, I-O on G, REWRITE F), L4 00, L5E 10 then L5 43, L6 43 (reopen, no READ); file reads back REC1-B REC2-A REC3-B REC4-B REC5-A",
+    "expected": "43 whenever the last I-O statement on F was not a successful READ; only the record the READ accessed is replaced"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p2vary.cob",
+    "printed": "RECORD VARYING DEPENDING ON with an ODO record: same size 00; size change 44 then the next REWRITE 43; file 03XXX / 06BBBBBB / 02ZZ",
+    "expected": "GR10 44 leaves record unreplaced; the failed REWRITE is the last I-O statement so the next one is 43"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p5rel.cob",
+    "printed": "relative and indexed sequential access: REWRITE before READ 43, after READ 00, again 43; files read back RNEW and K1NN",
+    "expected": "the same gate in the Relative and Indexed modules' sequential access mode"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.4 GR2",
+    "check": "OK  §1985:VII.4.5.4 GR2  (4.5.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4c"
+   },
+   {
+    "cite": "§1985:VII.4.5.4 GR10",
+    "check": "OK  §1985:VII.4.5.4 GR10  (4.5.4 General Rules)  the text is in GR10"
+   }
+  ],
+  "notes": "The gate is one flag dropped at the one Status setter and re-armed only by ReadSucceeded, so every I-O statement on the connector (including a failed REWRITE) breaks it, and it is per connector, so another file's I-O does not. Every probed sequence answered as the 1985 text requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.5.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,e",
+  "evidence": "Read FileConnector.Status setter (drops PrevOpWasSuccessfulRead on every outcome) and ReadSucceeded (re-arms it, status 04 included); SequentialConnector.RewriteRecord tests 49 then 43. Probes at --std 85 (refute-1985-125/src): q3rw.cob with a 1985 Format 3 RECORD CONTAINS 4 TO 8 CHARACTERS file, BLOCK CONTAINS 2 RECORDS: READ then REWRITE of the 8-char record over a 4-char one 44, next REWRITE 43; READ INTO then REWRITE 00; READ, failed re-OPEN 41, REWRITE 43; REWRITE FROM shorter/longer items 00 (padded/truncated MOVE per GR4); OPTIONAL absent OPEN I-O 05, at-end READ 10, REWRITE 43; file reads back AAAA/bbbbbbbb/CCCC/12345678/abc. q7s04.cob: a READ that answers 04 (record longer than the 4 TO 8 maximum) arms the gate, REWRITE then 44 not 43. q1ext.cob: EXTERNAL file, separately compiled Q1B's REWRITE with no READ 43 and its OPEN 41 on the shared connector make the caller's next REWRITE 43. q6*.cob: REWRITE ... INVALID KEY / NOT INVALID KEY refused COBOL1720, RETRY refused COBOL0900 at 85. cite.py: OK §1985:VII.4.5.4 GR2 'must have been a successfully executed READ statement'; OK §1985:VII.1.3.5 (GRL2.4c) 43 text; OK §1985:VII.1.3.5 (GRL2.1b) 04 'A READ statement is successfully executed'; OK §1985:VII.4.5.4 GR10.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,100 @@
+{
+ "rule-id": "1989-RV-A.2.18.4-3",
+ "rule-digest": "a0272fcff88d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-083",
+  "sources": {
+   "reader": "8cddf3defbf6ae2225c30c8eeab4ab2dc0dd44d9a5d0fca3066105d865219485",
+   "refuter": "be400553f381c0f7f3fef8da8a3c3518bebf2f769e51ab8723856fde4a129e2c"
+  },
+  "imported": {
+   "reader": "392739e84abefe2ca8fa0d7d082d5cd1611e9372a5ebdb8125e1a807a7bf872b",
+   "refuter": "dfdb87f0caf1e5891c74406c02eb3808ac1b01cbab2cb1ae28277e0e24161b5b"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.18.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION INTEGER-PART of a negative class-numeric argument (any usage, scale, P-scaling, literal or arithmetic expression, up to 18 digits) returns the least integer >= the argument, i.e. truncation toward zero (-1.5 -> -1, -0.5 -> 0); the function may appear only in an arithmetic expression.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Truncate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 edition window: sig.IntroducedIn (85 for the 1989 module rows, IntrinsicCatalog.cs#Build) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry NumericFunctionIdentifierOperand2002: at 85 a numeric/integer function written where an identifier stands (MOVE sender) is refused (COBOL0900), per §1989:A.2.3 GR2/GR3; never reached inside an arithmetic expression",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+    "switches": "Edition.DigitCapacityExcess: 18-digit cap on items and literals at 85 (31 later); bounds the argument range only",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+    "switches": "num.StandardDecimal (OPTIONS ARITHMETIC, a 2002+ paragraph, so always native at 85): the native dispatch is the one a 2023 program with no ARITHMETIC clause takes",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs, IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs for Edition|DialectLevel|CobolVersion|ArithmeticMode|StandardDecimal; the runtime bodies take no edition input",
+  "behaviour-differs-by-edition": "no: the returned value is the same native Truncate arm (Int128 / 10^scale, toward zero) at 85 and 2023; only the 18-digit argument cap and the identifier-operand refusal differ",
+  "witnesses-cover": "part: the witness covers -1.5, -1.0, -0.5, -0.25 on one S9V99 DISPLAY item; not the 18-digit extreme, COMP/COMP-3, P-scaling, literal and expression arguments, ODO element, or a subscript the statement changes",
+  "probes": [
+   {
+    "class": "d,f,a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/ip1.cob",
+    "printed": "M15=-1 M05=+0 M10=-1 P15=+1 ZRO=+0 BIG=-999999999999999999 BIGF=-9999999999999999 TINY=+0 PK(COMP-3 -12345.678)=-12345 BN(COMP -54321.987)=-54321 PS(S9PP -500)=-500 PV(SVPP9 -.005)=+0 LIT(-1.5)=-1 EXPR(1.5-3)=-1 MUL(INTEGER-PART(-2.5)*3)=-6 ODO(T(2)=-4.2)=-4 SUBSELF(COMPUTE I = INTEGER-PART(T(I)))=-4 CMP=OK (dir ip1-003)",
+    "expected": "least integer >= argument for each negative value: -1, 0, -1, -999999999999999999, -9999999999999999, 0, -12345, -54321, -500, 0, -1, -1, -6, -4, -4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/ref1.cob",
+    "printed": "COBOL1627 for alphanumeric, numeric-edited, group, nonnumeric literal and ref-modified arguments; COBOL1504 for two arguments",
+    "expected": "refused: argument-1 must be class numeric (§1989:A.2.18.3 AR1), one argument"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/ip1.cob",
+    "printed": "first build (ip1-002): MOVE FUNCTION INTEGER-PART(A-M15) TO SDX refused COBOL0900 (requires COBOL-2002)",
+    "expected": "refused at 85: an integer function may be used only in an arithmetic expression (§1989:A.2.3 GR3)"
+   },
+   {
+    "class": "c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/ref2.cob",
+    "printed": "COBOL0802 for PIC S9(19); COBOL0900 for USAGE FLOAT-LONG",
+    "expected": "refused at 85: 18-digit maximum, no floating usage"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.18.4 RV3",
+    "check": "OK  §1989:A.2.18.4 RV3  (2.18.4 Returned Values)  the text is in RV3"
+   },
+   {
+    "cite": "§1989:A.2.3 GR3",
+    "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+   }
+  ],
+  "notes": "The native Truncate body divides the scaled Int128 by 10^scale, which truncates toward zero, so every negative argument gets the least integer >= it. Every probe output was identical at --std 2023 (at2023-ip1.txt). The refusal diagnostics cite the 2023 clause numbers, not §1989, which is cosmetic for this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.18.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "rip1-003 (--std 85): S9(17)V9 -99999999999999999.9 -> -99999999999999999; SV9(18) DISPLAY and COMP-3 -.999999999999999999 -> 0; S9(18) COMP -999999999999999999 unchanged; SPPP9 -.0009 -> 0; S9(3)PPP -123000 -> -123000; SIGN LEADING SEPARATE -7.25 and SIGN TRAILING -7.75 -> -7; -10/4 -> -2; X/Y (-0.6667) -> 0; X**3 (-8.0012) -> -8; INTEGER-PART(SIN(-2)) -> 0; SQRT(2)*-1 -> -1; LOG(10)*-100 -> -230; relation condition = -2 true; IS ZERO true and IS NEGATIVE false for INTEGER-PART(-.999...), IS POSITIVE false for INTEGER-PART(-0.5). -1/3*3 -> 0 is the intermediate-result technique the implementor indicates (§1985:VI.6.2.3 GR6), not this rule. rref1-001: floating literal -1.5E0 argument refused COBOL0900 at 85. rplace1-001: ADD FUNCTION INTEGER-PART(X) TO R refused COBOL0900 (not an arithmetic expression, §1989:A.2.3 GR2/GR3). cite.py: 'OK  §1989:A.2.18.4 RV3  (2.18.4 Returned Values)  the text is in RV3'; 'OK  §1985:VI.6.2.3 ... it lies in GR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

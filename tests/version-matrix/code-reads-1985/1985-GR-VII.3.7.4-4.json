@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-GR-VII.3.7.4-4",
+ "rule-digest": "8ac1046e9182",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-120",
+  "sources": {
+   "reader": "cbbdf8586ff28793043e60f6cd114c8c15b2ea3cdca8f232204cf7e71c2724dc",
+   "refuter": "3b701de0aff4f477041120fc005c7101301723cd7e9a3477268fb9f521bf9346"
+  },
+  "imported": {
+   "reader": "4618c88d6003b4e0b85da4f5a38bfa46a02cdf936924574364ff7b927f7d734c",
+   "refuter": "736c35c1cf39652c85855940ddb7ef1a1720da120881e6c4e19849a81a18f2d7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.7.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, LINES AT TOP integer-3 or the value of data-name-3 (an elementary unsigned integer item) gives the number of lines in the top margin of each logical page, zero allowed, written on the medium before the page body; a data-name's value is taken at OPEN OUTPUT for the first page and at each ADVANCING PAGE or page overflow for the next page (GR7), and the counter counts only body lines.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#linageLinesAtTopPhrase; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindLinageClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandPass; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#LinageArg; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginNextLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandPass",
+    "switches": "IntegerSlot.At(DialectLevel) for the LINES AT TOP slot: IntegerSlot.Zero with Since 0, so zero is permitted at every edition (§1985:VII.3.7.3 SR4 at 85)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage",
+    "switches": "LinageClauseRules.Operand.CitationAt(Edition, ...) picks only the cited rule in the operand-shape diagnostic (§1985:VII.3.7.3 SR1 at 85); the check itself is the same",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition in SequentialConnector.cs (none), FileConnector.cs (only Edition for the sharing facility), SequentialIoEmitter LinageArg (none): the runtime page model has no edition arm",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb523_linage_margins_on_the_medium_85 covers an integer-3 of 3 on the medium, l1_linage_zero_margins zero margins, pb526_linage_ec_condition_85 the page-value conditions; not data-name-3 or its re-reading at the next page",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/lt01.cob",
+    "printed": "PA (LINAGE 2 LINES TOP TOPN; TOPN 2 at OPEN, 0 before page 2, 3 before ADVANCING PAGE): lines 1-3 blank, 4 A1L1, 5 A1L2, 6 A2L1, 7-9 blank, 10 A3L1, 11 A3L2; LC 2 / 2 / 1. PB (TOP 0 BOTTOM 1, BEFORE ADVANCING): 1 B1L1, 2 B1L2, 3 blank, 4 B2L1; LC 2",
+    "expected": "page 1 top margin 2 (lines 1-2) with A1L1 on body line 2; page 2 top margin 0 so it starts at line 5; page 3 top margin 3 (lines 7-9) with A3L1 on line 10; TOP 0 gives no margin lines"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/lt02b.cob",
+    "printed": "COBOL2025 'TS' is a signed numeric data item; COBOL2025 'TD' has digits to the right of the decimal point (§1985:VII.3.7.3 SR1)",
+    "expected": "data-name-3 must be an elementary unsigned integer item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/lt02.cob",
+    "printed": "COBOL0001 unexpected '-' for LINES AT TOP -1",
+    "expected": "integer-3 is unsigned"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/w_pb523_linage_margins_on_the_medium_85.cob",
+    "printed": "EXPECT: MATCH (LINES=0012 A@=0005 B@=0011 C@=0012); l1_linage_zero_margins EXPECT: MATCH",
+    "expected": "the witnesses' derived layouts"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.4 GR4",
+    "check": "OK  §1985:VII.3.7.4 GR4  (║3.7.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR7b",
+    "check": "OK  §1985:VII.3.7.4 GR7b  (║3.7.4 General Rules║)  the text is in GR7b"
+   },
+   {
+    "cite": "§1985:VII.3.7.3 SR4",
+    "check": "OK  §1985:VII.3.7.3 SR4  (║3.7.3 Syntax Rules║)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VII.3.7.3 SR1",
+    "check": "OK  §1985:VII.3.7.3 SR1  (║3.7.3 Syntax Rules║)  the text is in SR1"
+   }
+  ],
+  "notes": "The top margin is written as blank lines on the medium at OPEN OUTPUT and at each new logical page, and a data-name-3 is re-read at the page change as GR7 b requires; zero, as literal and as data-name value, gives no margin. Variable-length records and failed-open paths do not bear on this rule (a LINAGE file is output-only for the margin), so classes a and the failed-open half of e were not probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.7.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e,f",
+  "evidence": "Attacked GR4 through GR7b's timing, which the reader's lt01 left open for the END-OF-PAGE path: lteop.cob at --std 85 (LINAGE 2 LINES TOP TOPN OF CTL, TOPN 1 at OPEN; the EOP imperative MOVEs 4 to TOPN; later overflow without EOP): medium lines 1 blank, 2 A1, 3 A2, 4 blank, 5 A3, 6 A4, 7-10 blank, 11 A5 and 'EOP1 LC 1', i.e. page 2 took the value at the overflow (1), not the one the imperative set after repositioning (§1985:VII.4.7.4 GR18), and page 3 took 4; a qualified data-name-3 works. PB: TOPB 2 at OPEN then 0, first WRITE BEFORE ADVANCING PAGE: lines 1-2 margin, 3 B1, 4 blank, 5 B2 (page 2 margin 0). ltfs.cob data-name-3 in another file's FILE SECTION record (1985 SR1 does not restrict the section): accepted, 2 at OPEN gives lines 1-2 blank, A1 line 3, 0 at the overflow gives A2 on line 4. ltext.cob OPEN EXTEND of a LINAGE file refused COBOL2372 (§1985:VII.4.3.3 SR3), so no unspecified margin path exists. LINAGE-COUNTER reads 1 after the reposition. Note the compiler places the first WRITE AFTER ADVANCING 1 on body line 2 (LINAGE-COUNTER set to 1 at OPEN, then advanced), consistent with GR9c/d; that is a WRITE/LINAGE-COUNTER matter, not GR4's margin size. cite.py: 'OK  §1985:VII.3.7.4 GR4  (║3.7.4 General Rules║)  the text is in GR4'; 'OK  §1985:VII.3.7.4 GR7b  (║3.7.4 General Rules║)  the text is in GR7b'; 'OK  §1985:VII.4.7.4 GR18  (4.7.4 General Rules)  the text is in GR18'; 'OK  §1985:VII.4.3.3 SR3  (4.3.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

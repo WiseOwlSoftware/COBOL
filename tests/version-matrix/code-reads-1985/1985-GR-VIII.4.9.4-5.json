@@ -1,0 +1,57 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-5",
+ "rule-digest": "f9eda5730f43",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-030",
+  "sources": {
+   "reader": "6a54b92703dd89d91d8c2c8249243252dc12c32561af6395a54c23c9404933b8",
+   "refuter": "7153369b207d74fd7316f2cab1a1f5813e4a99b184d1b7973a87bc2b7478b0dc"
+  },
+  "imported": {
+   "reader": "cc9edf1e4a27d293af41ba30ab91ab4314b19f58d9281aeb1f53444efaf2727c",
+   "refuter": "816391e6f42de55c4f5c8ee2300344aee4e42c576a7ac8c880c8ea6746c89cc6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.9.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "A relative WRITE, successful or not, must leave the file position indicator where the last OPEN, START or READ put it, so a following READ NEXT continues from that position (and picks up a record inserted after it).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordRulesFailure",
+  "edition-consulted": [],
+  "edition-search": "RelativeConnector.Write sets only _lastReleasedSlot (sequential) and _lastSlot; it never touches FpiValid or the FPI key. grep Edition|DialectBehavior in RelativeConnector.cs finds only the out-of-range key gate, which does not touch the FPI.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness sets the FPI by a random READ and writes one higher key; a START-set indicator, a lower inserted key and a failed WRITE are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/p5fpi.cob",
+    "printed": "W3 00 0003 / N1 00 0004 04  / W8 INV / W8 22 / W5 00 / N 0005 W05 / N 0006 06  / N 0008 08  / N 0010 10  / END",
+    "expected": "START at 4 then WRITE 3: READ NEXT gives 4; a failed WRITE (22) and a WRITE of 5 leave the indicator at 4: next are 5, 6, 8, 10, end"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.9.4 GR5",
+    "check": "OK  §1985:VIII.4.9.4 GR5  (4.9.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The WRITE path has no FPI assignment at all; the probe shows a START-set and READ-set indicator survive both a successful and a failed WRITE.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.9.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "rfpi.cob at --std 85, aimed at the OPEN-set and the AT-END-set indicator the reader did not try: records 5,6,8; OPEN I-O sets the FPI to 1 (§1985:VIII.4.4.4 GR10), WRITE 2 then READ NEXT -> 002 REC002 (selected by GR4c of READ, so the WRITE did not move the FPI to the first existing record); after READ NEXT reached AT END (10), WRITE 9 -> 00, READ NEXT -> 46 (the FPI still says no next record; record 9 not returned). DELETE/WRITE of 5 between READs: READ NEXT continues 5, 6, 8. cite.py: OK §1985:VIII.4.9.4 GR5; OK §1985:VIII.4.4.4 GR10 'the file position indicator is set to 1'; OK §1985:VIII.4.5.4 GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

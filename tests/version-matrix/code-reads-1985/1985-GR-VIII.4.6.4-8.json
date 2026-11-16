@@ -1,0 +1,82 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-8",
+ "rule-digest": "3142f6fcf630",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-136",
+  "sources": {
+   "reader": "15c79324ed68ea6516287bb8931f5cef958eef5caa3ef38dad69d7c84f11ce98",
+   "refuter": "3286e614e427bf24fa93b65f249932df9023a44048f20bfc136422ad00f027b2"
+  },
+  "imported": {
+   "reader": "878bd003aa41b7757ee9fe7d6e3582481fd30291c06014a02c5f191658af36bb",
+   "refuter": "31bcb077bbdaa55c27ce926a0547546fcda7849309b633a70013f735e1ca6ae5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.6.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "Every execution of REWRITE on a relative file must update its I-O status (FILE STATUS item) with the VIII.1.3.4 value for the outcome: 00 success, 23 absent record, 43 no preceding successful READ in sequential access, 44 outside the RECORD VARYING bounds, 49 file not open in the I-O mode (not open, INPUT, OUTPUT, EXTEND, after a failed OPEN).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize (from 2002): at 85 only a RECORD IS VARYING clause bounds the REWRITE size (44); a RECORD CONTAINS range does not",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "FileSharingFacility off at 85; status assignment unchanged",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior over the REWRITE path files; the status values come from FileStatusCode constants shared by every edition.",
+  "behaviour-differs-by-edition": "no: for the statuses this rule reaches, 2023 prints the same values (the RECORD CONTAINS range arm is GR12's, not exercised here)",
+  "witnesses-cover": "part: g85_bf26_03 covers 00, 23 and 49 (open INPUT); not 43, 44, 49 for not open/OUTPUT/EXTEND/after a failed OPEN",
+  "probes": [
+   {
+    "class": "a,b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/rw8a.cob",
+    "printed": "USE 49 NOTOPEN 49 / USE 49 OUTPUT 49 / USE 49 EXTEND 49 / USE 49 INPUT 49 / READ1 00 06 / USE 44 SHORT 44 / USE 43 AFTER-FAIL 43 / READ2 00 08 / MAXLEN 00 / USE-N 35 OPEN-N 35 / USE-N 49 AFTER-FAILED-OPEN 49",
+    "expected": "the FILE STATUS item (planted 99 before each) changes to 49, 49, 49, 49, 44, 43, 00, and 49 after a failed OPEN; USE procedure runs for each unsuccessful one"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/rw13a.cob",
+    "printed": "K3 INV 23 / K0 INV 23 / K9999 INV 23 / K2D INV 23 / K5F INV 23 / K4F OK 00 / K14 OK 00",
+    "expected": "99 planted before each becomes 23 or 00"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.6.4 GR8",
+    "check": "OK  §1985:VIII.4.6.4 GR8  (4.6.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5h"
+   },
+   {
+    "cite": "§1985:VIII.4.6.4 GR12",
+    "check": "OK  §1985:VIII.4.6.4 GR12  (4.6.4 General Rules)  the text is in GR12"
+   }
+  ],
+  "notes": "The emitter writes the connector status into the FILE STATUS item after every REWRITE (EmitStoreFileStatus) before the USE hook and the INVALID KEY dispatch. rw8a at --std 2023 prints the identical lines.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.6.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "Probe refute-1985-136/g8b.cob at --std 85 (runs/g8b-001), RANDOM access, RECORD IS VARYING 4 TO 12 DEPENDING ON RA-LEN, '99' planted before each REWRITE: RA-LEN 13 -> 'USE 44 / LONG 44'; RA-LEN 3 -> 'USE 44 / SHORT 44' (INVALID KEY not taken, VIII.1.3.4 5d1); absent key -> 'ABS INV 23' (status set before the imperative); success -> 'OK NOT 00'; CLOSE WITH LOCK then REWRITE -> 'USE 49 / AFTER-LOCK 49' (a not-open state the reader did not try); OPEN after lock -> 38. Every outcome updates the FILE STATUS item with the VIII.1.3.4 value. cite.py: 'OK  §1985:VIII.4.6.4 GR8  (4.6.4 General Rules)  the text is in GR8'; 'OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5c'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

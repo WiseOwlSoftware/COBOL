@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VII.3.7.4-1",
+ "rule-digest": "c2839f72c106",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-03",
+  "sources": {
+   "reader": "9790cc467c3b586ac588730bbc505d6fcfb8b0adb29e0f59e38e179b812e39aa",
+   "refuter": "2a3fa4b37a43dcb87419e3ab5080c47f5ce8c630cb6c0d65e69e2ff546abdc45"
+  },
+  "imported": {
+   "reader": "68442e9cda5f98288357841d1ff06c2a9c3d76ff06a9a840e02bce20183ee5fa",
+   "refuter": "eece642811b7fd6a4bcadae0c7dc314e3d7e88a95300641d7fcd7123c9ddc30a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.7.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a LINAGE file's logical page is LINAGE + LINES AT TOP + LINES AT BOTTOM lines (FOOTING excluded), an absent TOP or BOTTOM phrase counts as zero, logical pages are laid contiguously on the medium, and when FOOTING is absent the only end-of-page condition is page overflow; for both the integer and the data-name operand forms.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#LinageArg; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#LinagePageExpr; src/WiseOwl.Cobol.Runtime/IO/LinagePage.cs#LinagePage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#PositionOnLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginNextLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EmitTopMarginIfPending",
+  "edition-consulted": [],
+  "edition-search": "The page-size path consults no edition. Searched: grep -rn Linage in src/WiseOwl.Cobol.Compiler filtered for edition|year|dialect|version|IsActive (hits are only Edition.Error reporting and LinageClauseRules.Operand/Footing, which choose the CITATION TEXT of a LINAGE syntax-rule refusal at --std 85, off this path); grep Edition|IsActive in SequentialConnector.cs (only SharingFacilityInEffect at OPEN). LinageArg, LinagePageExpr, BeginLinagePage, EvaluateLinage, PositionOnLogicalPage and BeginNextLogicalPage carry no edition test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers integer TOP and BOTTOM margins being laid on the medium; not exercised: absent TOP/BOTTOM as zero, data-name operands, the no-FOOTING end-of-page rule (EOP only at overflow) and its FOOTING contrast, LINAGE IS 1",
+  "probes": [
+   {
+    "class": "d,b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r2/p2a.cob",
+    "printed": "LINAGE 4 no TOP/BOTTOM/FOOTING: F01..F03 on physical lines 2-4, F04 on line 5 (page 2 line 1), EOP only at rec 4 (overflow), NOT AT END-OF-PAGE on the others; LINAGE LB=3 TOP LT=1 BOTTOM LO=2 (data-names): G01 line 3, G02 line 4, G03 line 8, G06 line 14 (page size 6), EOP at overflow only; FOOTING AT 3 contrast: EOP at LC>=3 as well",
+    "expected": "page size = 4 + 0 + 0 and 3 + 1 + 2 = 6 (GR1); contiguous pages (GR10); no FOOTING -> end-of-page only at page overflow (GR1); plain WRITE acts as AFTER ADVANCING 1 LINE (VII.4.7.4 GR16)"
+   },
+   {
+    "class": "f,b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r2/p2b.cob",
+    "printed": "LINAGE 1 TOP 0 BOTTOM 0: each record on its own physical line, a page each, EOP (overflow) every write; LINAGE LB BOTTOM LO opened at 2/1 then changed to 3/0: B1 line 2, line 3 bottom margin, B2 line 4 (new page), B5 line 7",
+    "expected": "explicit zero margins equal absent ones (GR1, SR4); page 1 = 2+1 = 3 lines, page 2 = 3+0 lines with the new values applied to the next page (GR1 with GR7 b)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.4 GR1",
+    "check": "OK  §1985:VII.3.7.4 GR1  (║3.7.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR10",
+    "check": "OK  §1985:VII.3.7.4 GR10  (║3.7.4 General Rules║)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR7b",
+    "check": "OK  §1985:VII.3.7.4 GR7b  (║3.7.4 General Rules║)  the text is in GR7b"
+   },
+   {
+    "cite": "§1985:VII.4.7.4 GR16",
+    "check": "OK  §1985:VII.4.7.4 GR16  (4.7.4 General Rules)  the text is in GR16"
+   }
+  ],
+  "notes": "The page model (LinagePage with a nullable Footing and zero-default margins) and the connector's page transitions implement GR1 with no edition arm. Medium dumps of three LINAGE files at --std 85 lay the pages exactly at the GR1 sizes, and end-of-page fires only at overflow when FOOTING is absent.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.7.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "r2/q1.cob at --std 85: LINAGE LN OF CTL WITH FOOTING AT FT OF CTL LINES AT TOP TP OF CTL LINES AT BOTTOM BT OF CTL (qualified data-names, 4/3/1/1, page 6 lines): medium lines 1 top, A01-A03 at body 2-4, EOP from footing line 3, A04 overflows onto line 8 = next page body line 1 (bottom line 6, top line 7), LC=01; LINAGE 3 TOP 2 BOTTOM 1 with BEFORE ADVANCING 1, BEFORE ADVANCING PAGE, AFTER ADVANCING PAGE: B1-B3 lines 3-5, EOP on overflow without FOOTING, B4 line 9, B5 line 21 (pages of 6 contiguous lines, no extra spacing). Class c: OPEN EXTEND of a LINAGE file refused at every edition (StatementValidation), which 1985 SR3 also forbids. Footnote: PF is reserved at 85 (report-writer abbreviation); renamed. cite.py: 'OK §1985:VII.4.7.4 GR16g', 'OK §1985:VII.4.7.4 GR18', 'OK §1985:VII.4.3.3 SR3 ... the text is in SR3'. Grep of LINAGE members for Edition/Dialect finds only citation-text selection (LinageClauseRules.CitationAt).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

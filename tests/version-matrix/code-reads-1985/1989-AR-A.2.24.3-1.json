@@ -1,0 +1,85 @@
+{
+ "rule-id": "1989-AR-A.2.24.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-169",
+  "sources": {
+   "reader": "9fd75e16d10fc29e767e79a49edb29f1519e3110fb617740517d0b314c238e6b",
+   "refuter": "c5169ecc1732ffc0f21595e3e7ae4ca5b7d3348850cb56ff2acb8f54880fbd0e"
+  },
+  "imported": {
+   "reader": "08db9bc7851dfe1909f13bb1ea60b0785da7ac5c9068273f53ec786b96dd93ca",
+   "refuter": "dd2fe3c592390fff4d0f4431d3fca44e5995a862e7fbaf373259c8d094d01d2d"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.24.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 every argument-1 of FUNCTION MEAN must be class numeric (an arithmetic expression, §1989:A.2.2 type 1), so the compiler must refuse alphabetic, alphanumeric, nonnumeric-literal, group, numeric-edited and alphanumeric-function arguments and accept numeric items, literals, expressions, nested numeric functions and ALL-subscripted numeric tables.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: IntroducedIn 85 against DialectLevel; MEAN available at 85 and 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicArgumentRules.cs for CobolVersion|EditionContext|Edition|IsAtLeast|ConstructRegistry|DialectBehavior found nothing; the 'n' Uniform row carries no predicates, so CheckArgumentClasses' AppliesAt is never reached for it.",
+  "behaviour-differs-by-edition": "no: 18 COBOL1627 refusals on the probe at both 85 and 2023",
+  "witnesses-cover": "part: g85_f37_02 runs only legal numeric lists; no refusal case and no ALL-subscripted or 18-digit argument",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/statbad.cob",
+    "printed": "COBOL1627 'FUNCTION MEAN argument-N is of class alphanumeric|alphabetic|alphanumeric (numeric-edited)|alphanumeric or national; ISO §2023:15.3 requires class numeric (§2023:15.60.3 r1)' for X item, A item, \"12\", group, numeric-edited, SPACE",
+    "expected": "each refused: argument-1 must be class numeric"
+   },
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/statok.cob",
+    "printed": "MEANBIG[ 999999999999999999] MEANODO[ 0001.125000] MEANEXP[ 0001.333333]",
+    "expected": "(2 x 999999999999999999)/2; (5 - 9 + 7.5 + 1)/4 = 1.125 over the ODO range; (0 + 3 + 1)/3 truncated"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/idxarg.cob",
+    "printed": "COBOL6979 index data item as an intrinsic function argument (§1985:VI.5.14.3 SR5)",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.24.3 AR1",
+    "check": "OK  §1989:A.2.24.3 AR1  (2.24.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1 [quotation: An arithmetic expression must be specified]"
+   }
+  ],
+  "notes": "The Verified row Uniform('n') screens every position through Admissible('n') = class numeric; numeric-edited is projected as class alphanumeric and refused, as 1985 classes it. Diagnostics cite 2023 clauses at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusals and results",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.24.3-1",
+  "refutation": "OVERTURNED",
+  "classes": "a,b,c,d",
+  "evidence": "Probe src/allrmstat.cob at --std 85 (runs/allrmstat-001): COMPUTE R = FUNCTION MEAN (N-EL (ALL) (1:1)) over PIC 9(2) elements 11 72 33 compiles and prints MEAN[0003.6666] = (1+7+3)/3: each argument is a reference-modified numeric item, class alphanumeric by §1985:IV.4.3.8.4.4 GR5 applied per element by GR3a, so §1989:A.2.24.3 AR1 ('Argument-1 must be class numeric') requires a refusal; the compiler decodes the digits instead. Same at --std 2023 (runs/allrmstat-002). Control: the non-ALL form MEAN (N-ITEM (1:2) 5) IS refused with COBOL1627 (src/rmstat.cob runs/rmstat-001), so the screen misses only the ALL+ref-mod shape. cite.py: 'OK  §1989:A.2.24.3 AR1  (2.24.3 Arguments)  the text is in AR1'; 'OK  §1985:IV.4.3.8.4.4 GR3a ...'; 'OK  §1985:IV.4.3.8.4.4 GR5 ...'.",
+  "edition-sites-missed": [],
+  "corrected": "NON-CONFORMING (under-rejects; the accepted program computes a value from digit slices), cause (c): an ALL-subscripted reference-modified numeric table is class alphanumeric at 1985 but src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace classes the TableAllPlace by its numeric element, so Admissible('n') passes it. Same at --std 2023."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A reference-modified element under an ALL subscript (`N-EL (ALL) (1:1)`) is class alphanumeric by the 1985 text, and the argument-class screen classes it as its numeric element. MAX and MIN refuse legal lists; MEAN, MEDIAN and MIDRANGE compute from digit slices; an illegal MAX mix compiles and fails at run time. Not the mechanism of PB5780 or PB5813.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
+ },
+ "work": "PB5833"
+}

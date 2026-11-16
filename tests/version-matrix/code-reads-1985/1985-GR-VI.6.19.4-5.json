@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-VI.6.19.4-5",
+ "rule-digest": "7056d0d6937a",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-02",
+  "sources": {
+   "reader": "947391f858415b91571413850b8dfa4d67aafeca9bcd46000d5d84a7f2418a24",
+   "refuter": "907717b7e6c40c57a172ea394fbfbec32a5c3910046b2600f5383a0707419c6d"
+  },
+  "imported": {
+   "reader": "7941c5e81f1e44f62647d810ecfad65a00dbfab4903ab6bd0015896f74343996",
+   "refuter": "7c34f5c6f0f1d1215822f4ecfef46ae34be7b70f9184f4b4cd56edd43e70b109"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.19.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a MOVE whose sending or receiving operand is a group (any non-elementary move, including a literal, figurative constant or elementary item into a group and a group into an elementary item of any category) must copy the sender's characters as an alphanumeric-to-alphanumeric move, left-aligned, truncated or space-filled on the right, with no conversion of representation, no sign stripping and no editing, ignoring subordinate items and their JUSTIFIED clauses; except (VI.5.8.4 GR3) that a group containing an OCCURS DEPENDING ON uses its current-count part as a sender and when its object is outside the group, and its maximum length as a receiver whose object is inside it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#Kind; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#IsGroupSender; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#EmitGroupMove; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#EmitGroupToElementaryMove; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#NonElementaryMoveSender; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#UsesCurrentExtent; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#SendingImage; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteGroupImage; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#ReceiveInto",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateMove",
+    "switches": "the per-edition SR5 figurative-constant-to-numeric rows; a group receiver is exempted (FigurativeAssociation.Sr5ReceiverOf) at every edition, so a group move never reaches the edition row",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#AllLiteralNumber",
+    "switches": "level1985 = DialectLevel < 2002: the width and scale of an ALL digit literal moved to an ELEMENTARY numeric receiver; not on the group path (a group receiver of ALL literal takes EmitGroupMove)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'Edition|CobolVersion|DialectBehavior|ConstructRegistry|DialectLevel' over MoveClassifier.cs, MoveEmitter.cs, PlaceRenderer.cs, OperandText.cs, ReceivingStore.cs, OdoModel.cs, PlaceBuilder.cs: one hit, MoveEmitter.cs:678 in AllLiteralNumber (elementary numeric receiver only); VersionConformancePass#GateMove is the only validation arm on MOVE. UsesCurrentExtent (dir == Sending || !DependingInside) has no edition test; 1985 GR3 and the later GR8 agree.",
+  "behaviour-differs-by-edition": "no (the ODO direction law of 1985 VI.5.8.4 GR3 is the same as the later edition's; the only edition arm on MOVE is the elementary ALL-literal-to-numeric width)",
+  "witnesses-cover": "part: pb430 covers RENAMES THRU groups, the overpunched sign kept in a group receiver and packed bytes not converted; pb202 covers the ODO direction via ref-mod; pb3563 RENAMES numeric leaf characters. Not exercised by them: group-to-group truncation/padding, group to numeric elementary (space fill), SIGN SEPARATE senders, figurative constants and ALL literals to a group, a numeric literal to a group, JUSTIFIED subordinates ignored, and the ODO receiving max-length with the object inside.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r4/p4.cob",
+    "printed": "D1=[ABC1] (6 to 4, truncated right; JUSTIFIED RIGHT subordinate ignored) D2=[ABC1  ] (space fill) D3=[12  ] (group to PIC 9(4): alphanumeric fill) D4=[  1.50  ] (edited sender, no de-editing) D5=[012-    ] D6=[-012    ] (SIGN SEPARATE kept) D7=+123 (COMP-3 bytes into a group redefined as COMP-3: no conversion) D8=[XYXYXY] D9=[000000] D10=[      ] D11=[123   ] (numeric literal to group, left-aligned) D12=[A   ] D13=[\"\"\"\"]",
+    "expected": "alphanumeric-to-alphanumeric move, no conversion, receiving area filled without regard to subordinate items (§1985:VI.6.19.4 GR5)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r4/p4.cob",
+    "printed": "GN inside, GN=1: MOVE '3ABCDE' TO GODO -> E1=3 [3ABC]; GN=5 -> E2=[5ABCDE] (receiver took the maximum length); GN=2 MOVE GODO TO W10 -> E3=[2AB       ] (sender current count); ON1 outside: E4=[VW   ] E5=[PQ   ] E6=[PQ   ] (receiver current count)",
+    "expected": "§1985:VI.5.8.4 GR3a/GR3b: sender and outside-object receiver use the current count; inside-object receiver uses the maximum length"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r4/p4.cob",
+    "printed": "F1=[9999999999] (18-digit group into X(10), truncated right) F2=[99  ] (ref-mod at the right bound into a group) F3=[1   ]",
+    "expected": "left-justified truncation and space fill"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.19.4 GR5",
+    "check": "OK  §1985:VI.6.19.4 GR5  (6.19.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.5.8.4 GR3a",
+    "check": "OK  §1985:VI.5.8.4 GR3a  (5.8.4 General Rules)  the text is in GR3a"
+   },
+   {
+    "cite": "§1985:VI.5.8.4 GR3b",
+    "check": "OK  §1985:VI.5.8.4 GR3b  (5.8.4 General Rules)  the text is in GR3b"
+   }
+  ],
+  "notes": "MoveClassifier routes any group operand to EmitGroupMove/EmitGroupToElementaryMove, which copy the sender's storage image through the representation codec with no conversion; PlaceRenderer#UsesCurrentExtent is the single ODO direction law and matches 1985 GR3 exactly. Every probe class printed what the 1985 text requires; the overlapping MOVE G6 TO G6(2:) is undefined and was not judged.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.19.4-5",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "Read §1985:VI.6.19.4 GR3-GR5 and §1985:VI.5.8.4 GR2-GR3; the 2023 OCCURS text carries the same receiving-maximum rule, so the single PlaceRenderer#UsesCurrentExtent law is not a later edition's arm leaking into 85. Probe s4/m1.cob at --std 85, aimed at receivers the reader did not try (an elementary receiver whose own alignment or editing would show whether the move is handled as alphanumeric to alphanumeric): group 'AB7' to X(6) JUSTIFIED RIGHT J1=[   AB7] (alphanumeric alignment of GR4a, as GR5 says); to alphanumeric edited X(2)BX(2) J2=[AB7  ] and numeric edited ZZ9.99 J3=[AB7   ] (no editing: the move is alphanumeric to alphanumeric); to A(5) JUSTIFIED RIGHT J4=[  AB7]; to 9(5) J5=[AB7  ]; S9(4) COMP -2 into a group redefined as COMP J6=-0002 (binary image moved, no conversion); overpunched S9(3) -12 through a group into S9(3) J7=-012 (embedded sign byte moved as a character); X(10) into a 3-char group J8=[012] (right truncation) and back J9=[012       ] (space fill), group into JUSTIFIED J10=[   012]. All match the reading that the receiver is aligned as an alphanumeric item and never edited. cite.py: OK §1985:VI.6.19.4 GR5; OK §1985:VI.6.19.4 GR4a; OK §1985:VI.5.8.4 GR3b.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

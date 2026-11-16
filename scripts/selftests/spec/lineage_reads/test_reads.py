@@ -260,6 +260,64 @@ def case_05b_one_rule_at_every_older_edition(expect):
                  R.kept_witnesses(e85, rid, [t], None, paired, w), ([f"conformance:cases/X/{t}"], []))
 
 
+def case_05c_a_row_closed_on_its_own_derivation_is_planned_no_witness(expect):
+    """kb/Work PB5822: the planners' population (`bare_kept`, so `witness-batch` and `widen`) leaves out a KEPT row closed
+    on a derivation of its own, as `lineage.unwitnessed` does, and keeps one whose derivation does not stand. The states
+    are the state rule's (`lineage.state_of`) on a planted schema whose derivation reads a fabricated register."""
+    schema = R.inventory_schema.Schema(json.loads(R.inventory_schema.SCHEMA_PATH.read_text(encoding="utf-8")))
+    d, e85, t = schema.derivation, R.edition(1985), "GR-1"
+    stands, falls, bare = "1985-GR-XIV.1-1", "1985-GR-XIV.1-2", "1985-GR-XIV.1-3"
+    text = "If the operands overlap, the result of the transfer is undefined."
+    schema._catalog = {stands: (1985, text), falls: (1985, text), bare: (1985, text), t: (2023, "Other text.")}
+    schema._register_items = set()
+    d._undefined, d._refuters = {}, {}
+    d._register = {f"DRV-{rid}": R.inventory_schema.DerivationRow(f"DRV-{rid}", "undefined-in-rule", f'"{quote}"', "",
+                                                                  "claude: 2026-11-12", "—")
+                   for rid, quote in ((stands, "the result of the transfer is undefined"),
+                                      (falls, "the result of the move is undefined"))}
+    targets = {t: {"rule-id": t, "state": "OK", "editions": "85,2002,2014,2023"}}
+    rows = [_stored(rid, [t], **({"derivation": d.anchor_template.replace("{rule-id}", rid)} if rid != bare else {}))
+            for rid in (stands, falls, bare)]
+    for r in rows:
+        r["state"] = R.lineage.state_of(r, e85, schema, targets)
+    expect.equal("the state rule closes only the row whose own derivation stands",
+                 [r["state"] for r in rows], ["OK", "GAP", "GAP"])
+    expect.equal("bare_kept leaves out the derivation-closed row and keeps one whose derivation does not stand",
+                 [r["rule-id"] for r in R.bare_kept(rows, schema)[1]], [falls, bare])
+    expect.equal("... and agrees with lineage.unwitnessed, the views' count of the same population",
+                 [r["rule-id"] for r in rows if R.lineage.unwitnessed(r, e85, schema, targets)], [falls, bare])
+
+
+def case_05d_a_rule_that_withholds_a_property_is_witnessed_by_a_refusal(expect):
+    """kb/Work PB5783, option 1: a rule of any kind that WITHHOLDS a property ("does not imply") is witnessed by the
+    refusal of a program that relies on it; a granting word in the same rule still sends it to an accepted case."""
+    t = R.EvidenceTable.load()
+    withholds = "Use of the EXTERNAL clause does not imply that the associated file-name or data-name is a global name."
+    expect("a general rule that says a clause 'does not imply' a property is diagnosable", t.diagnosable("GR", withholds))
+    expect("... but the same text granting a form ('may be accessed') still needs an accepted case (the heuristic "
+           "fails closed and wins)",
+           not t.diagnosable("GR", withholds + " The data item may be accessed by any program that describes it."))
+    expect("a general rule with neither is not diagnosable",
+           not t.diagnosable("GR", "The EXTERNAL clause makes the record available to every program describing it."))
+    expect("a syntax rule is unchanged: a prohibition diagnosable, a grant not",
+           t.diagnosable("SR", "The clause shall not be specified twice.")
+           and not t.diagnosable("SR", "The clause may be specified twice."))
+    for y in R.inventory_schema.HELD:
+        rules = R.edition(y).rules()
+        made = sorted(r["id"] for r in rules if r.get("kind") not in t.diagnosed
+                      and t.diagnosable(r.get("kind", ""), r.get("text", "")))
+        print(f"    INFO  {y}: the withholding pattern makes diagnosable {made or 'no rule'}")
+    expect.equal("on the 1985 catalog it makes diagnosable exactly 1985-GR-X.4.5.4-3 (kb/Work PB5783)",
+                 sorted(r["id"] for r in R.edition(1985).rules() if r.get("kind") not in t.diagnosed
+                        and t.diagnosable(r.get("kind", ""), r.get("text", ""))), ["1985-GR-X.4.5.4-3"])
+    bad = pathlib.Path(scratch_dir("withholding")) / "table.json"
+    doc = json.loads(R.EVIDENCE_TABLE.read_text(encoding="utf-8"))
+    doc["withholding-rules"] = [{"pattern": "x"}]
+    bad.write_text(json.dumps(doc), encoding="utf-8", newline="\n")
+    expect("a withholding pattern without its why is refused at load",
+           F.raises(lambda: R.EvidenceTable.load(bad), "withholding-rules"))
+
+
 def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
     order = ["85", "2002", "2014", "2023"]
     cases = {"cases/X/a": R.CaseInfo("cases/X/a", R.REPO, ("2023",), ("2023",), (), ("GR-1",), None),
@@ -588,7 +646,8 @@ def case_11_a_rule_that_grants_a_form_needs_an_accepted_case(expect):
     expect("a prohibition (\"may not\", \"shall not\") is diagnosable by a refusal",
            t.diagnosable("SR", "Identifier-1 may not be reference modified.")
            and t.diagnosable("SR", "The clause shall not be specified twice."))
-    expect("a general rule is never diagnosable", not t.diagnosable("GR", "The clause shall not be specified twice."))
+    expect("a general rule that withholds nothing is not diagnosable",
+           not t.diagnosable("GR", "The clause shall not be specified twice."))
     sr = "2002-SR-2.1.2-9"
     s = R.normal_slice("p-01", F.record("p-01", [F.read(sr)], [F.refute(sr)]))
     lin = F.lineage([sr])
@@ -680,6 +739,87 @@ def case_12_an_own_verdict_from_a_pointer_is_written_and_audited_like_a_kept_rec
     expect.equal("widen plans the own verdicts blocked only by their evidence, as it plans the KEPT-refused rows",
                  sorted((r["rule-id"], r["for"]) for r in plan["rows"]),
                  sorted((ids[n], R.OWN_VERDICT_FROM_POINTER) for n in ("half", "refusal", "late")))
+
+
+def _format_world():
+    """Four planted cases of one syntax rule's target: a refusal test refused at 85 and 2002 in free form and one in
+    fixed form, and a WiseOwl case accepted at 85 in free form and one in fixed form."""
+    t = "SR-13.18.33.3-1"
+    cases = {
+        "cases/X/free-ref": R.CaseInfo("cases/X/free-ref", R.REPO, ("85", "2002"), (), (), (t,), None, ("85", "2002"),
+                                       source_format="free"),
+        "cases/X/fixed-ref": R.CaseInfo("cases/X/fixed-ref", R.REPO, ("85", "2002"), (), (), (t,), None, ("85", "2002")),
+        "wiseowl/cases/X/free-acc": R.CaseInfo("wiseowl/cases/X/free-acc", R.REPO, ("85",), ("85",), (), (t,), None,
+                                               source_format="free"),
+        "wiseowl/cases/X/fixed-acc": R.CaseInfo("wiseowl/cases/X/fixed-acc", R.REPO, ("85",), ("85",), (), (t,), None)}
+    return t, R.Witnesses(cases, {t: [f"conformance:{k}" for k in cases]}, {t: ["85", "2002", "2014", "2023"]})
+
+
+def case_13_a_witness_at_an_edition_is_text_in_a_format_it_defines(expect):
+    """kb/Work PB5754: one predicate (`format_problem`) asked by the audit, the writer and the planner."""
+    e85 = R.edition(1985)
+    t, w = _format_world()
+    expect("the predicate: free form is no format of 85 and is one of 2002; fixed form is one of both",
+           R.format_problem("free", "85") and not R.format_problem("free", "2002")
+           and not R.format_problem("fixed", "85") and not R.format_problem("fixed", "2002"))
+    probs = w.own_problems(e85, ["conformance:cases/X/free-ref"], True, None)
+    expect("THE AUDIT: a free-form refusal test refused at 85 is no witness of a 1985 row",
+           len(probs) == 1 and "free form" in probs[0] and "PB5754" in probs[0])
+    expect.equal("and the same test is a witness of a 2002 row", w.own_problems(ED, ["conformance:cases/X/free-ref"],
+                                                                               True, None), [])
+    expect.equal("a fixed-form refusal test refused at 85 is a witness at both",
+                 (w.own_problems(e85, ["conformance:cases/X/fixed-ref"], True, None),
+                  w.own_problems(ED, ["conformance:cases/X/fixed-ref"], True, None)), ([], []))
+    expect("a WiseOwl free-form case ACCEPTED at 85 is no witness at 1985 either",
+           w.own_problems(e85, ["conformance:wiseowl/cases/X/free-acc"], False, None)
+           and not w.own_problems(e85, ["conformance:wiseowl/cases/X/fixed-acc"], False, None))
+    lin85 = R.Lineage({"1985-SR-VI.5.7.3-1": "SR"}, {}, R.EvidenceTable.load(), {})
+    own = {"rule-id": "1985-SR-VI.5.7.3-9", "verdict": "CONFORMS", "test-ref": "conformance:cases/X/free-ref; unit:T.M"}
+    expect("THE AUDIT holds a row with a verdict of its own to the same predicate (its unit test is its own fields')",
+           [e for e in R.stored_errors(e85, [own], [], w, lin85) if "free form" in e]
+           and not R.stored_errors(e85, [dict(own, **{"test-ref": "conformance:cases/X/fixed-ref"})], [], w, lin85))
+    expect.equal("THE PLANNER: at 85 the search finds the fixed-form accepted case and only the fixed-form cases run "
+                 "there; at 2002 both refusal tests",
+                 (w.search(e85, True, [t], None, lin85.table)[0], w.at(t, "85"),
+                  sorted(w.search(ED, True, [t], None, lin85.table)[0])),
+                 (["wiseowl/cases/X/fixed-acc"], ["cases/X/fixed-ref", "wiseowl/cases/X/fixed-acc"],
+                  ["cases/X/fixed-ref", "cases/X/free-ref"]))
+    free_only = R.Witnesses({"cases/X/f": R.CaseInfo("cases/X/f", R.REPO, ("2002",), ("2002",), (), (t,), None,
+                                                     source_format="free")}, {t: ["conformance:cases/X/f"]},
+                            {t: ["85", "2002", "2014", "2023"]})
+    plan = R.widen_plan(e85, [R.Unwitnessed("1985-GR-VI.5.7.3-2", (t,), "s")], free_only,
+                        R.Lineage({"1985-GR-VI.5.7.3-2": "GR"}, {}, R.EvidenceTable.load(), {}))
+    expect.equal("THE PLANNER never proposes a free-form case at 85: its status is FORMAT and the row says why",
+                 ({k: c["status"] for k, c in plan["cases"].items()}, plan["rows"][0].get("reasons")),
+                 ({"cases/X/f": R.FORMAT}, {t: [R.NOT_ITS_FORMAT]}))
+    import record_verdicts  # noqa: PLC0415  (the writer)
+    root = scratch_dir("lineage-reads-format")
+    for name, fmt in (("free", "free"), ("fixed", "fixed")):
+        lead = "" if fmt == "free" else "      "
+        p = root / "cases" / "X" / f"{name}.cob"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("".join(f"{lead}{x}\n" for x in ("*>--- conformance-case", f"*> id: {name}", "*> rules: []",
+                                                       f"*> source-format: {fmt}", "*>---")), encoding="utf-8", newline="")
+    real = R.SUITE
+    R.SUITE = root
+    try:
+        def errs(ref):
+            row = {"rule-id": "1985-SR-VI.5.7.3-1", "next": {"kind": "KEPT", "to": [t]}}
+            return [e for e in record_verdicts.validate([(root / "b.json", 0, {"rule-id": row["rule-id"], "test-ref": ref})],
+                                                        SCHEMA, {row["rule-id"]: "SR"}, {row["rule-id"]: row}, e85,
+                                                        {t: {"rule-digest": "d"}}) if "PB5754" in e or "cannot be told" in e]
+        expect("THE WRITER refuses a 1985 record naming a free-form case, before it is written",
+               len(errs("conformance:cases/X/free")) == 1)
+        expect.equal("and writes one naming a fixed-form case", errs("conformance:cases/X/fixed"), [])
+        (root / "cases" / "X" / "broken.cob").write_text("IDENTIFICATION DIVISION.\n", encoding="utf-8", newline="")
+        expect("and refuses one whose header does not read (its format cannot be told)",
+               len(errs("conformance:cases/X/broken")) == 1)
+        expect.equal("a reference to no case on disk is the battery gate's to refuse, never guessed here",
+                     errs("conformance:cases/X/absent"), [])
+        expect.equal("a 2002 reference is not asked to be fixed form",
+                     R.ref_format_problem("conformance:cases/X/free", ED), None)
+    finally:
+        R.SUITE = real
 
 
 if __name__ == "__main__":

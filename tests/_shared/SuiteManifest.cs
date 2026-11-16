@@ -26,11 +26,22 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// header's <c>build</c> puts it); null for a test that is one compilation (DESIGN-external-repository §17.1).</param>
 /// <param name="Servers">A WiseOwl test's message servers in the header's order: the run units the runner starts, each serving its name, before
 /// the test runs (DESIGN-message-control.md §0 Q9); null for a test that starts none.</param>
+/// <param name="Stdin">An accepted test's declared standard input (the header's <c>stdin</c>, design §3.1): the file the program's run is
+/// fed, relative to the suite root; null for a test whose input is closed (end of file).</param>
+/// <param name="OutputFile">An accepted test's declared output file (the header's <c>output-file</c>, design §3.1), judged after the
+/// process ends; null for a test that declares none.</param>
 internal sealed record SuiteTest(
     string Id, string Clause, string Source, string SourceFormat, IReadOnlyList<string> Files,
     IReadOnlyList<string> Requires, IReadOnlyList<string> Words, string Expect, IReadOnlyList<int> ImplementorDefined,
     IReadOnlyDictionary<string, string> ExpectedOutput, int Line, string? Control, bool InSuite,
-    IReadOnlyDictionary<string, string> Options, IReadOnlyList<SuiteBuildStep>? Build, IReadOnlyList<SuiteServer>? Servers);
+    IReadOnlyDictionary<string, string> Options, IReadOnlyList<SuiteBuildStep>? Build, IReadOnlyList<SuiteServer>? Servers,
+    string? Stdin = null, SuiteOutputFile? OutputFile = null);
+
+/// <summary>A test's declared output file (<c>conformance-suite/harness/generate.py#entry_for</c>, the manifest's
+/// <c>output-file</c>).</summary>
+/// <param name="Name">The file the program leaves in its run directory.</param>
+/// <param name="Expected">The file holding what it must contain, relative to the suite root.</param>
+internal sealed record SuiteOutputFile(string Name, string Expected);
 
 /// <summary>One compilation step of a multi-unit test (<c>conformance-suite/harness/generate.py#entry_for</c>, the manifest's
 /// <c>build</c>).</summary>
@@ -200,7 +211,11 @@ internal sealed record WiseOwlManifest(
             accepted ? null : t.GetProperty("control").GetString()!,
             t.GetProperty("in-suite").GetBoolean(), Map(t.GetProperty("options")),
             t.TryGetProperty("build", out JsonElement build) ? [.. build.EnumerateArray().Select(Step)] : null,
-            t.TryGetProperty("servers", out JsonElement servers) ? [.. servers.EnumerateArray().Select(Server)] : null);
+            t.TryGetProperty("servers", out JsonElement servers) ? [.. servers.EnumerateArray().Select(Server)] : null,
+            t.TryGetProperty("stdin", out JsonElement stdin) ? stdin.GetString()! : null,
+            t.TryGetProperty("output-file", out JsonElement outputFile)
+                ? new SuiteOutputFile(outputFile.GetProperty("name").GetString()!, outputFile.GetProperty("expected").GetString()!)
+                : null);
     }
 
     private static SuiteServer Server(JsonElement server) => new(

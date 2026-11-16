@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.2-4",
+ "rule-digest": "8b790e2028b1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-004",
+  "sources": {
+   "reader": "38de986f3e7aa3b9b5ca6aa5681ad055f0e57fd9b5d594bc876208cb6bdc4f65",
+   "refuter": "9636ab143b82a191c2eb59de99fa2525d08ac35f4ae8fbb872a0e4480197da68"
+  },
+  "imported": {
+   "reader": "90942102b114fa3c5a39063cc5721403f362622046e10f44e720700dc8755901",
+   "refuter": "14b4c8e77e83120c47469c6e93a31c369f5a57c16a4fc9c5aa37cf64ea3d7a6b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.2-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every numeric literal must carry the algebraic value of its characters (sign, digits, assumed decimal point), be of category numeric wherever it is used, and have a size equal to the number of digits written (leading zeros included, sign and decimal point excluded), which is the size an integer literal takes when it is treated as alphanumeric in a MOVE or a comparison with a nonnumeric operand and the count measured against the edition's 18-digit literal capacity.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#numericLiteralCore; src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#NumericLiteral.Normalize; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#TryUnscaledParts; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#ScreenDigitCapacity",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#ScreenDigitCapacity",
+    "switches": "EditionInfo.DigitCapacityExcess over the literal's written digit count: more than 18 is COBOL0802 at 85, more than 31 COBOL0801 at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/EditionInfo.cs#DigitCapacityExcess",
+    "switches": "MaxDigits (18 at 85, 31 from 2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the value and category path (NumericLiteral.Normalize, EmitCore.TryUnscaledParts, the MOVE/relation binders) reads no edition; the one edition question is the digit capacity, found by following the seed EditionContext#CheckDigitCapacity to EditionInfo#DigitCapacityExcess and its literal caller LiteralScreen#ScreenDigitCapacity",
+  "behaviour-differs-by-edition": "yes: the size is checked against 18 digits at 85 (a 19-digit literal is refused, COBOL0802) and 31 from 2002 (the same literal runs at --std 2023); value, category and the size used in MOVE and comparison are the same code",
+  "witnesses-cover": "part: pb1446_comma_point_literal_value_and_size covers the value of signed and comma-decimal literals and an 18-digit literal with leading zeros; the size as used when an integer literal is moved to or compared with an alphanumeric or group operand, and the capacity refusal, are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/lit/n01.cob",
+    "printed": "X4('0012') = 0012 T; = 12 F; = 000012 F; G4 = 0012 T; = -0012 T; X4 > 12 F; MOVE 0012/12/-0012/+0012 TO X(6) -> [0012  ] [12    ] [0012  ] [0012  ]; MOVE 0012 TO group(6) -> [0012  ]; 18-digit 0...012 TO group(6) -> [000000]; 001234567 -> [001234]",
+    "expected": "the literal is treated as an alphanumeric item of its digit count (§1985:VI.6.3.1.1.2 GR1, MOVE GR4a: sign not moved), so leading zeros count and the sign does not"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/lit/n01.cob, n03.cob",
+    "printed": "+.5 -> +000.50; -123.45 -> -123.45; 000123.4500 -> +123.45; -999999999999999999 into S9(18) exact; 999999999999999999 + 1 -> SZ, value kept; -7 into 999 -> 007; 1.5 * -2 + .25 -> -002.75; VALUE -0 -> +000; -0.00 = 0 and = +.000 true; .01 -> +000.01; 1234.5 into S9(3)V99 -> +234.50",
+    "expected": "the algebraic quantity of the characters"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/lit/r.cob (four variants)",
+    "printed": "IF X4 = 12.5 -> COBOL2532; MOVE 12.5 TO X4 -> COBOL0819; MOVE 12 TO A(4) -> COBOL0819 (category numeric to alphabetic)",
+    "expected": "category numeric: a noninteger literal cannot be compared with or moved to an alphanumeric operand, no numeric literal moves to alphabetic (§1985:VI.6.19 SR, VI.6.3.1.1.2 (3))"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/lit/r.cob (19-digit variant)",
+    "printed": "--std 85: COBOL0802 the numeric literal '1234567890123456789' has 19 digits; COBOL-85 limits ... to 18; --std 2023: RAN",
+    "expected": "the implementor must allow 1 through 18 digits at 85; refusing 19 is the implementor's limit, measured on the size GR4 defines"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.2 GR4",
+    "check": "OK  §1985:IV.4.2.2.2.2 GR4  (4.2.2.2.2 Numeric Literals)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.2",
+    "check": "OK  §1985:IV.4.2.2.2.2  (4.2.2.2.2 Numeric Literals)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.2 GR1",
+    "check": "OK  §1985:VI.6.3.1.1.2 GR1  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR4a",
+    "check": "OK  §1985:VI.6.19.4 GR4a  (6.19.4 General Rules)  the text is in GR4a"
+   }
+  ],
+  "notes": "Value, category and size behave per GR4 at 85; leading zeros count toward size both in the alphanumeric treatment and in the 18-digit capacity check, and the sign never does. The only edition arm is the capacity (18 at 85), which honours the 1985 minimum of 18.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.2-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "refute-1985-004/lit at --std 85. Category numeric where it is used, each context the reader did not try: a01 VALUE 0012 on PIC X(4) -> COBOL1657 and a03 88 VALUE 12 under PIC X(2) -> COBOL1657 (cite.py 'OK §1985:VI.5.15.4 GR1b' for 'all literals in the VALUE clause must be nonnumeric literals'); a02 VALUE 12 on PIC ZZ9 -> COBOL0900 (numeric-literal VALUE for numeric-edited is a later form, refused at 85); a07 STRING 0012 -> COBOL1626 (cite.py 'OK §1985:VI.6.25.3 SR2'); b01/b02/b04 INSPECT TALLYING/REPLACING/CONVERTING with numeric literals -> COBOL1757 (cite.py 'OK §1985:VI.6.18.3 SR3'); b03 UNSTRING DELIMITED BY 1 -> COBOL1651; a12 VALUE ALL 5 -> refused. Size: a06 DISPLAY 0012 and 12 -> [0012][12] (the written digits, leading zeros kept); a09 IF Z3 = 12 with Z3 PIC ZZ9 ' 12' -> NE (the literal compared as two characters '12 '). Edition arms: a04 DISPLAY -12, a05 DISPLAY 1.5, a11 DISPLAY +5 -> COBOL0900 (cite.py 'OK §1985:VI.6.10.3 SR2' for 'If literal-1 is numeric, then it must be an unsigned integer'); a08 MOVE 1.5E3 -> COBOL0900 a floating-point numeric literal requires COBOL-2002; f01 '-0.000000000000000001' (19 written digits, a leading zero) -> COBOL0802 at 85, consistent with GR4's size as the count of written digits (cite.py 'OK §1985:IV.4.2.2.2.2 GR4'). Value: f01 SV9(18) VALUE -.000000000000000001 -> -.000000000000000001; MOVE -999999999.999999999 to S9(9)V9(9) COMP-3 exact and compares EQ; COMPUTE 123456789012345678 - 0.5 + 0.5 -> +123456789012345678; a10 TE(+2) subscript literal -> element 2. No program the rule refuses compiled and no admitted one was refused.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

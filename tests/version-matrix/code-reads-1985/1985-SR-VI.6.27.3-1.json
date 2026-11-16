@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-SR-VI.6.27.3-1",
+ "rule-digest": "9563454e2e6e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-060",
+  "sources": {
+   "reader": "560a7f471262d9d49a465e03dd3fdf65ae51432d29285da51636ba587900dbb4",
+   "refuter": "7a46c5415a90da6fb4312da600544c74561a5626aee8f30369c3937043eb576d"
+  },
+  "imported": {
+   "reader": "d2428ce6f5dc42d6cd166a7e848243ef3efb4cef43f23efca98cc04d8d1493d6",
+   "refuter": "d19e35a97a7509b62c1a9b4fcd8db14bb8b9dd04e6013998c1ec19f5200a1240"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.27.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 UNSTRING literal-1/literal-2 (DELIMITED BY and OR operands) must be nonnumeric literals - so numeric literals (integer, signed, decimal, also after the ALL phrase) are refused - and must not be a figurative constant beginning with ALL (only reachable after the ALL phrase, as ALL ALL x), while nonnumeric literals and figuratives such as SPACE, ZERO, QUOTE and a symbolic-character, with or without the ALL phrase, stay legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BeginsWithAllWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#UnstringSenderCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringDelimiterItem",
+  "edition-consulted": [],
+  "edition-search": "grep of StringUnstringBinder.cs as for STRING (no edition switch; ctx.Edition only as sink/position); grammar unstringDelimiterItem '(ALL)? strUnstrOperand' has no version predicate; the only edition gate on UNSTRING is src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement (UnstringSenderReferenceModified2002, SR7 of 1985), not this rule's predicate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness is a positive control (ALL \",\", ALL SPACE); the numeric-literal refusals and the ALL ALL figurative refusals are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/uns-sr1-neg.cob",
+    "printed": "COBOL1651 numeric literal for 5, OR 7, -1, ALL 5, 1.5; COBOL1651 'begins with the word ALL' for ALL ALL SPACES, ALL ALL \"*\", OR ALL ALL STAR, ALL ALL ZERO",
+    "expected": "each refused (SR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/uns-sr1-pos.cob",
+    "printed": "1=[A   ][B   ][    ] 2=[A   ][B   ][C   ] 3=[X   ][    ][Y   ] 4=[X   ][Y   ][Z   ] 5=[P   ][Q   ][R   ] 6=[AB  ][CD  ][    ]",
+    "expected": "ZERO, ALL ZEROS, symbolic STAR, ALL STAR, QUOTE, ALL \"-\" OR SPACE legal; values per GR (single vs ALL delimiter)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.3 SR1",
+    "check": "OK  §1985:VI.6.27.3 SR1  (║6.27.3 Syntax Rules║)  the text is in SR1"
+   }
+  ],
+  "notes": "A single ALL before a figurative is read as the ALL phrase (the only legal reading), and a second ALL is refused; numeric literals are refused through the shared category screen. No edition switch on the path, and the 1985 range (no national/boolean/zero-length literals) is a subset of what the code screens.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.27.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Class c: src/laterlit.cob - UNSTRING DELIMITED BY X\"2C\", N\",\", B\"1\" each refused at 85 (COBOL0900 plus COBOL2306/COBOL1651); src/misc85.cob - zero-length \"\" delimiter refused (COBOL0900 2014 introduction, COBOL1651). Class d: src/fnstr.cob UNSTRING 'aXXbXcXXXd' DELIMITED BY ALL \"XX\" OR \"X\" INTO A1 A2 A3 -> 2=[a  ][b  ][c  ] (multi-character literal after the ALL phrase is legal and handled). cite.py: OK  §1985:VI.6.27.3 SR1  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

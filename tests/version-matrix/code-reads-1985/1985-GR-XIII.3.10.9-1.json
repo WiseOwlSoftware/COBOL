@@ -1,0 +1,116 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.9-1",
+ "rule-digest": "f762f125f2e8",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-04",
+  "sources": {
+   "reader": "be50138e22430c137194b3f2f7f1a377dea341308564b9fff83f02392d22c913",
+   "refuter": "ad6e92f9e4d13e42c5e99b7b2fb70a7ba31f653b0e440e19c502cb8f119c6201"
+  },
+  "imported": {
+   "reader": "9f36a6b8c03074cc3bdad7c11d25a8b1b12d89040425e1919e7251b569bc7663",
+   "refuter": "5a2a0a79e62a0c7131fa112257f1896d153a1eb5edd92e4a5b5e83ddd0223483"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.9-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a page footing report group may begin no higher than integer-5 + 1, integer-5 being FOOTING, or LAST DETAIL when FOOTING is omitted, or PAGE LIMIT when both are omitted (§1985:XIII.3.8.4 GR2); a page footing whose absolute first line is at or above integer-5 is refused (SR8e), and a valid one is presented on its LINE NUMBER line.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RelativeFirstLineFloor; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+    "switches": "year < 2002 changes only the REPORT FOOTING upper limit (Cobol85FinalLineCounter); the PAGE FOOTING arm (Footing + 1, PageLimit) is the same",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses",
+    "switches": "Edition.DialectLevel < 2002 refuses a relative first LINE in a page footing (§1985:XIII.3.15.3 SR9); 2002+ places it at FOOTING + integer-2",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep year|DialectLevel|IsActive in ReportSectionBinder GroupLimits/ScreenReportGroupLines and ReportWriter: PresentPageFooting consults no edition; the FOOTING default (ReportSectionBinder lines 261-265) is edition-agnostic and matches §1985:XIII.3.8.4 GR2 c-e.",
+  "behaviour-differs-by-edition": "yes: at 85 the first LINE of a page footing must be absolute (SR9), so the upper limit applies to an absolute line only; the FOOTING+1 limit itself is the same",
+  "witnesses-cover": "part: witnesses cover LINE = FOOTING refused; not exercised: FOOTING defaulted from LAST DETAIL or PAGE LIMIT, FOOTING+1 accepted and placed, a multi-line footing at the lower limit",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c5/P5B.cob",
+    "printed": "error COBOL2199: the absolute line LINE 12 of page footing report group 'PF1' lies above the upper limit 13 (same at --std 2023)",
+    "expected": "FOOTING 12: line 12 refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c5/P5A.cob",
+    "printed": "report lines 5-7 DETL, 13:[PFT1] 14:[PFT2]",
+    "expected": "FOOTING 12: page footing starts on 13 = integer-5 + 1"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c5/P5C.cob",
+    "printed": "error COBOL2199: LINE 10 ... above the upper limit 11",
+    "expected": "LAST DETAIL 10, no FOOTING: integer-5 = 10, line 10 refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c5/P5D.cob",
+    "printed": "11:[PFT1]",
+    "expected": "LAST DETAIL 10, no FOOTING: line 11 accepted and presented"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c5/P5E.cob",
+    "printed": "error COBOL2199: LINE 20 ... above the upper limit 21",
+    "expected": "no LAST DETAIL/FOOTING: integer-5 = PAGE LIMIT 20, no page footing line possible"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c5/P5H.cob",
+    "printed": "error COBOL2199: the relative lines at the end of page footing report group 'PF1' carry its last line to line 21, past the group's lower limit 20",
+    "expected": "lower limit GR2 at PAGE LIMIT"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c5/P5F.cob",
+    "printed": "error COBOL2199: the first LINE clause of a page footing report group is relative (LINE PLUS 2) ... (ISO §1985:XIII.3.15.3 SR9)",
+    "expected": "85-only refusal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.9 GR1",
+    "check": "OK  §1985:XIII.3.10.9 GR1  (cite.py --check \"adding one to the value of integer-5 of the FOOTING phrase\")"
+   },
+   {
+    "cite": "§1985:XIII.3.8.4 GR2",
+    "check": "OK  §1985:XIII.3.8.4 GR2  (cite.py --check \"the value of integer-4 is given to integer-5\")"
+   },
+   {
+    "cite": "§1985:XIII.3.8.3 SR8e",
+    "check": "OK  §1985:XIII.3.8.3 SR8e  (cite.py --check \"from the line number specified by integer-5 plus 1 to the line number specified by integer-1\")"
+   },
+   {
+    "cite": "§1985:XIII.3.15.3 SR9",
+    "check": "OK  §1985:XIII.3.15.3 SR9  (cite.py --check \"must be an absolute LINE NUMBER clause\")"
+   }
+  ],
+  "notes": "GroupLimits gives a page footing (Footing + 1, PageLimit) at every edition, and the binder defaults FOOTING exactly as §1985:XIII.3.8.4 GR2 says. The diagnostics cite §2023 clause numbers at --std 85; the behaviour matches the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.9-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 on shapes the reader did not try. refute-1985-04/c5/r5a.cob: PAGE LIMIT 16 HEADING 1 FIRST DETAIL 3 FOOTING 9 with LAST DETAIL omitted (GR2 d: integer-4 takes integer-5), a group-level 'TYPE PF LINE 10' sourcing LINE-COUNTER, 10 details over two pages: page 1 = HEAD, details on lines 3-9, 'PFT1 10' on line 10, form feed; page 2 = HEAD, three details, blank lines 6-9, 'PFT1 10' on line 10 at TERMINATE. The page footing is presented on integer-5 + 1 on every page. r5c.cob: long forms 'PAGE LIMITS ARE 16 LINES' and 'TYPE PAGE FOOTING LINE NUMBER IS 9' with FOOTING 9: refused COBOL2199 'LINE 9 ... above the upper limit 10'; r5d.cob the same with LINE NUMBER IS 10: accepted, identical report. r5b.cob: a page footing in an RD with no PAGE clause is refused (COBOL0899, plus COBOL2199 for its absolute LINE). cite.py: OK §1985:XIII.3.10.9 GR1 ('adding one to the value of integer-5 of the FOOTING phrase'); OK §1985:XIII.3.8.4 GR2 ('the value of integer-5 is given to integer-4'). Label-only: the diagnostics cite §2023 clauses at --std 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,76 @@
+{
+ "rule-id": "1985-GR-VI.5.13.4-10",
+ "rule-digest": "0f8c8671b20e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-103",
+  "sources": {
+   "reader": "df135a2141f6f595b27df3702753a0de19e3c71aa32277a637b05d67d2fcff8f",
+   "refuter": "8e04a85a2f8d90bdb85d2233a95119a128117f326a1233f3e2dfea55f04d6285"
+  },
+  "imported": {
+   "reader": "2f8a100c155edcd1714d57c83d950519dce06de654added0293985160d465126",
+   "refuter": "2d30210edc22231331222c5398c872deae719c2da235ab27ec597b27237ce398"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.13.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the implementor must specify any rule for synchronizing the records of a data file as it affects synchronization of elementary items, and the compiler must behave as specified for records written and read in every organization (sequential, relative, indexed) and for variable-length records.",
+  "code-location": "docs/conformance/7/DOC-A.1-196.md; docs/conformance/7/DOC-A.1-195.md; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Synchronized; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "below 2023 (DialectLevel < 2023) refuses SYNCHRONIZED on a group item (Constructs.SyncOnGroup2023, COBOL0900) per §1985:VI.5.13.3 SR1; elementary SYNC takes the same path at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Dialect|Construct in DataBinder.SynchronizedClause.cs: only GateSynchronizedGroup. grep -rn Synchronized over src/WiseOwl.Cobol.Compiler/CodeGen and src/WiseOwl.Cobol.Runtime: only RepositoryAttributeRenderer (metadata); no layout, width, offset, file-record or move code reads the flag, so no edition arm exists on the storage path.",
+  "behaviour-differs-by-edition": "no: the documented rule (no record-level synchronization; a SYNC item sits at its unsynchronized offset) is stated 'the same in every edition' and the code has one path",
+  "witnesses-cover": "part: g85_bf12_02 covers a sequential file with a fixed record; not relative or indexed organizations, a variable-length (RECORD VARYING / OCCURS DEPENDING) record, or SYNC LEFT/RIGHT",
+  "probes": [
+   {
+    "class": "e,a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/syn10.cob",
+    "printed": "REL=YES IDX=YES VL2=05 VAR=YES V-END R9-INV",
+    "expected": "per DOC-A.1-196: a relative record with S9(4) COMP SYNC reads back as 4 unpadded positions; an indexed record with S9(9) COMP SYNC LEFT round-trips; a RECORD VARYING record with an ODO table of SYNC RIGHT items is 5 positions (no slack) and the next READ is AT END; a READ of a missing relative record takes INVALID KEY"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/syn6.cob",
+    "printed": "COBOL0900: SYNCHRONIZED on a group item requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "§1985:VI.5.13.3 SR1: only an elementary item"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.4 GR10",
+    "check": "OK  §1985:VI.5.13.4 GR10  (5.13.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VI.5.13.3 SR1",
+    "check": "OK  §1985:VI.5.13.3 SR1  (5.13.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The implementor rule is documented (DOC-A.1-196: no record-level synchronization; DOC-A.1-195: no alignment or implicit FILLER), and nothing on the layout or file path reads the SYNCHRONIZED flag, so records are their own unpadded image. DOC-A.1-196 labels the item 'optional (documented if provided)' after the 2023 text, while 1985 GR10 says 'will be specified'; the entry still specifies the rule (none), so the 1985 obligation is met.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry": "the syncClause read into SynchronizedPhrase"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.13.4-10",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "Read DOC-A.1-196 and DOC-A.1-195. The rule is specified as 'no record-level synchronization; a SYNC item sits at its unsynchronized offset', which meets GR10's 'will be specified by the implementor'. I measured that documented claim directly. Probe sy1.cob (sy1-001) wrote the documented example record (Q, 258 in S9(4) COMP SYNC, Z), and od of sy1.dat gave 51 01 02 5a, exactly as documented. Read back through a PIC X(4) FD over the same file it gave R2-1=Q and R2-4=Z, and the next READ was AT END. A SORT whose SD record has a S9(4) COMP SYNC RIGHT key, GIVING an FD whose item is SYNC LEFT, wrote 12 bytes (62 02 bc 79 63 00 05 7a 61 ff fd 78: 4 per record, no slack), ordered descending on the binary key (700, 5, -3). cite.py: OK §1985:VI.5.13.4 GR10 (the text is in GR10).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

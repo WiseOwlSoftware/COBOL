@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-3",
+ "rule-digest": "6a8b49c1a4c2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-086",
+  "sources": {
+   "reader": "6a96a82bff65079e8e01d9c2900e21b9ccf2e439b3182b3151de0caa9ffc2dd9",
+   "refuter": "84eead25e060f896dd9a49671c4967dbabf36eb95ce5e2b18c300c9c60583088"
+  },
+  "imported": {
+   "reader": "1ebe65038df52731d4c317f96bea4e1109342dde0ea98e0dacac911283f34330",
+   "refuter": "38fdaeb7e017eb7ccbb6ac39be86ab5f0860e4d0d0c51fb7228bb280fe0cec98"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, outside SPECIAL-NAMES, [ALL] HIGH-VALUE(S) is one or more of the character at the highest ordinal position of the PROGRAM collating sequence (native when none is named; under an ALPHABET literal phrase the highest unspecified native character, or the last specified on a tie when every character is specified, §1985:VI.4.5.4 GR5), sized by the associated item; inside SPECIAL-NAMES it is the native highest character (GR7).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Extremes; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#AlphabetDef; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetFigurative; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#NativeCollatingSequence; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (HIGH-VALUE, HIGH-VALUES rows)",
+    "switches": "reserved at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Constructs over CollatingModel.cs, FigurativeConstants.cs, SpecialNamesBinder.Alphabets.cs (only the LOCALE arm's DialectLevel<2002 return and the RangeInAlphabet2002 gate, neither on a 1985 literal-phrase path) and the ResolveProgramCollating block of SpecialNamesBinder.cs (no edition switch); the figurativeConstant grammar rule carries no version predicate",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness names every native character (ordinals 1-65536) so it exercises GR5's specified-block arm; the native default, the partly specified alphabet (unspecified characters above), ALL HIGH-VALUE, group and numeric receivers, INSPECT and the SPECIAL-NAMES exception are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/g85_bf03_01.cob",
+    "printed": "MATCH (witness)",
+    "expected": "HIGH-VALUE \"Q\" under the full alphabet"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/h1.cob",
+    "printed": "ORD-HV 65536; C1 EQ (X3 VALUE HIGH-VALUE = HIGH-VALUES); C2 GT (> \"~\"); C5 EQ (group MOVE HIGH-VALUES, ALL HIGH-VALUE); K 01 ORD 65536 (INSPECT REPLACING/TALLYING); C7 EQ (MOVE HIGH-VALUE to PIC 99); MAX 00003",
+    "expected": "native highest character (implementor's native set: 65,536 UTF-16 units, kb/Work R52)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/h2.cob",
+    "printed": "ORD-HV 65535; C3 EQ; C4 GT",
+    "expected": "ALPHABET \"B\" ALSO \"C\" \"A\": 65,535 positions, HIGH-VALUE the highest unspecified character"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/h3.cob",
+    "printed": "ORD-HV 65536 ORD-LV 00001; LV IS U+FFFF; HV ABOVE",
+    "expected": "ALPHABET 65536 \"A\": U+FFFF lowest, HIGH-VALUE the next native character, highest ordinal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/l1.cob",
+    "printed": "ORD-NUL 00002 ORD-HV 65536 C2 GT",
+    "expected": "ALPHABET \"Z\" LOW-VALUE HIGH-VALUE \"A\": inside SPECIAL-NAMES HIGH-VALUE is the native U+FFFF (position 3), the program's HIGH-VALUE is still the highest position"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GR3",
+    "check": "OK  §1985:IV.4.2.2.2.3 GR3  (4.2.2.2.3 Figurative Constant Values)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR5",
+    "check": "OK  §1985:VI.4.5.4 GR5  (4.5.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR7",
+    "check": "OK  §1985:VI.4.5.4 GR7  (4.5.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "CollatingTable.Extremes computes the highest position over the whole native repertoire (highest unspecified code unit, else GR5's last-specified tie); FigurativeConstants.FillChar reads it from the program alphabet, and AlphabetFigurative pins the SPECIAL-NAMES use to the native extreme. STANDARD-1/STANDARD-2 are treated as the native order, within §1985:VI.4.5.4 GR4 a's implementor correspondence. Classes a, e, f do not bear on the character chosen.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-3",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Attacks the reader did not try: (1) nested program — 1985 forbids a Configuration Section in a contained program and applies the container's OBJECT-COMPUTER/SPECIAL-NAMES to it; src/hl_nest.cob (ALPHABET \"Z\" THRU \"W\" \"B\" ALSO \"C\" \"A\", descending THROUGH) -> inner program ORD-HV 65535 (7 specified chars in 6 positions + 65529 unspecified), HIGH-VALUE > \"A\" GT: the inner program uses the container's sequence. (2) CLASS clause, a second SPECIAL-NAMES context: src/hl_class.cob (ALPHABET 65536 \"A\"; CLASS HVC IS HIGH-VALUE) -> program HIGH-VALUE (U+FFFE) is OUT of HVC, the program LOW-VALUE (U+FFFF) is IN: inside SPECIAL-NAMES HIGH-VALUE is the native highest, outside it the program's. (3) src/hl_std1.cob PROGRAM COLLATING SEQUENCE STANDARD-1 -> ORD-HV 65536 (U+FFFF): native characters with no X3.4 correspondence are placed by the implementor (GR4a), so this is latitude, not a defect. cite.py: OK §1985:VI.4.5.4 GR5; OK §1985:VI.4.5.4 GR7 'When specified as literals in the SPECIAL-NAMES paragraph, the figurative constants HIGH-VALUE and LOW-VALUE'; OK §1985:VI.4.4.4 GR2; OK §1985:VI.4.5.4 GR1; OK §1985:VI.4.2 'The Configuration Section must not be stated in a program which is contained'; OK §1985:VI.4.5.4 GR4. Side observation (not this rule): hl_std1's IF HIGH-VALUE > \"~\" only WARNS (COBOL3146) though 1985 VI.6.3.1.1 says 'The relation condition must contain at least one reference to a variable'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

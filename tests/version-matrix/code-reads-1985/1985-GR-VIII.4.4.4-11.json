@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-11",
+ "rule-digest": "11e913d6f5a4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-132",
+  "sources": {
+   "reader": "565ab41613f172f4f04dfc492196238647aeeac1cd25d6a2732d504114b4efb9",
+   "refuter": "55a4e5b140cda29191a8ef067d5cd10f9b392c843988601140796bc5057947e0"
+  },
+  "imported": {
+   "reader": "8d1341535a600b0ccd3b0b69e6c50134f4a00908e802fac08a340d0a231d5240",
+   "refuter": "4408a90a55fe988ee199e4baef9f3f467bb43ee3e57ab346189972321ff57a92"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.4.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 OPEN EXTEND of a relative file (sequential access only, a level-2 form of this edition) positions after the currently existing record with the highest relative record number, so the next WRITE releases highest+1 (1 for an empty or newly created optional file) and returns it in the RELATIVE KEY item.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Opened; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#NextSequentialSlot; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "OPEN's implementor-default sharing mode (ALL OTHER at 85)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "shared store attach (RelativeConnector#AttachStore)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, random/dynamic arm only (not reached by a sequential EXTEND release)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehaviors over KeyedConnector.cs, RelativeConnector.cs; NextSequentialSlot reads the tree's last key at each release with no edition; CheckOpenModeForFile's EXTEND/access check has no edition test",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf21_04; this probe adds EXTEND after the highest record was deleted, EXTEND over an emptied file, EXTEND of an absent OPTIONAL file, a non-optional absent file, varying-length records, and the EXTEND-on-dynamic refusal",
+  "probes": [
+   {
+    "class": "a,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-132/popen.cob",
+    "printed": "after deleting 4 (highest) with 3 existing: E4=00 0004, E5=00 0005; list L=0003 R3C 3, L=0004 E4 2, L=0005 E5EEEE 6, L-AE=10; emptied file: F1=00 0001; optional absent: P-OPEN=05 P1=00 0001; non-optional absent: N-OPEN=35",
+    "expected": "first release = highest existing + 1 (GR11); 1 for an empty file"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-132/pextr.cob",
+    "printed": "error COBOL2372: OPEN EXTEND 'D' — the file's access mode is DYNAMIC; EXTEND requires sequential access (ISO §2023:14.9.27.3 SR2)",
+    "expected": "refused (§1985:VIII.4.4.3 SR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.4 GR11",
+    "check": "OK  §1985:VIII.4.4.4 GR11  (4.4.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:VIII.4.4.3 SR1",
+    "check": "OK  §1985:VIII.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The positioning is NextSequentialSlot's live read of the tree's last key (max with the connector's last release), so a deleted top record lowers the next number correctly. Side observation, outside this rule: COBOL2372 at --std 85 cites §2023:14.9.27.3 SR2 rather than §1985:VIII.4.4.3 SR1 (a citation-text issue in StatementValidation#CheckOpenModeForFile, not a behaviour defect).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.4.4-11",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "refute-1985-132/rext.cob (rext-003): file written by random access at 2,7,9, record 9 deleted; OPEN EXTEND (sequential, RELATIVE KEY SK) releases 8 then 9 (SE1=00 0008, SE2=00 0009); OPEN EXTEND of a file with no RELATIVE KEY clause (third SELECT over the same file) releases 10; EXTEND then READ is 47 and the next WRITE releases 11; INPUT listing 2,7,8,9,10,11 then AT END. rextr.cob: OPEN EXTEND of a RANDOM access relative file refused at compile (COBOL2372; the reader showed DYNAMIC). Side note, outside this rule: COBOL2372 and COBOL1802 cite §2023 clauses at --std 85 (diagnostic citation text, not behaviour). cite.py: OK §1985:VIII.4.4.4 GR11.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
