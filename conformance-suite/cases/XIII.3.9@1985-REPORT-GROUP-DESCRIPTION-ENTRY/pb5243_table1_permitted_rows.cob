@@ -6,20 +6,20 @@
       *> portable: unverified
       *>---
       *> kb/Work PB5243 - §1985:XIII.3.9.3 SR11 Table 1 (cite.py: OK), "Permissible Clause Combinations in Format 3 Entries": every row, as
-      *> a program COBOL-85 must ACCEPT, including the two the 2023 screens used to refuse. "An 'M' indicates that the presence of the clause
+      *> a program COBOL-85 must ACCEPT, including the one the 2023 screen used to refuse. "An 'M' indicates that the presence of the clause
       *> is mandatory. A 'P' ... permitted, but not required. A blank indicates that the clause is not permitted."
       *>   row 1  PIC M, SUM M, SIGN P, LINE P          U1: a SUM entry with no COLUMN clause (a counter that prints nowhere).
       *>   row 2  PIC, COLUMN, SUM M; BLANK WHEN ZERO, USAGE, SIGN, LINE P     S2.
-      *>   row 3  PIC, SOURCE M; COLUMN, JUSTIFIED, GROUP INDICATE, USAGE, SIGN, LINE P   G1 prints (COLUMN 5); G2 and G3 have NO COLUMN
-      *>          clause, "a 1985 entry with no COLUMN is not printed but is legal": the 2023 rule that JUSTIFIED (§2023:13.15.3 SR15) and
-      *>          GROUP INDICATE (§2023:13.18.28.3 SR1) need a COLUMN clause refused both.
+      *>   row 3  PIC, SOURCE M; COLUMN, JUSTIFIED, GROUP INDICATE, USAGE, SIGN, LINE P   G1 prints (COLUMN 5); G2 has NO COLUMN
+      *>          clause, "a 1985 entry with no COLUMN is not printed but is legal": the 2023 rule that JUSTIFIED needs a COLUMN clause
+      *>          (§2023:13.15.3 SR15) refused it. (GROUP INDICATE without a COLUMN clause is refused: §1985:XIII.3.13.3 SR1, kb/Work PB5806.)
       *>   row 4  PIC, SOURCE M; COLUMN, BLANK WHEN ZERO, GROUP INDICATE, USAGE, SIGN, LINE P   B4.
       *>   row 5  PIC, COLUMN, VALUE M; JUSTIFIED, GROUP INDICATE, USAGE, SIGN, LINE P   V5.
       *> DERIVATION. One GENERATE with WS-C "QQ", WS-Z 0, WS-A 7. Detail line: G1 is the first presentation of its group (§1985:XIII.3.13.4
       *> GR1 a), so it presents WS-C, "QQ" moved to PIC X(5) JUSTIFIED RIGHT: "   QQ" in columns 5-9; B4 moves 0 to PIC 99 BLANK WHEN ZERO:
       *> two spaces in columns 11-12; V5 "ABC" in columns 14-16. The footing line has S2: the counter holds 7 (§1985:XIII.3.19.4 GR2 adds
       *> WS-A at the GENERATE), moved to PIC 99: "07".  The line is read back byte-wise, as conformance:pb541_report_national_item does.
-      *> Each leg can fail: a binder that refuses a row (any of the five, or G2/G3) stops at the translation.
+      *> Each leg can fail: a binder that refuses a row (any of the five, or G2) stops at the translation.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5243P.
        ENVIRONMENT DIVISION.
@@ -48,7 +48,6 @@
            05  G1 COLUMN 5 PIC X(5) JUSTIFIED RIGHT SOURCE WS-C
                GROUP INDICATE.
            05  G2 PIC X(5) SOURCE WS-C JUSTIFIED RIGHT.
-           05  G3 PIC X(5) SOURCE WS-C GROUP INDICATE.
            05  B4 COLUMN 11 PIC 99 BLANK WHEN ZERO SOURCE WS-Z.
            05  V5 COLUMN 14 PIC X(3) JUSTIFIED RIGHT VALUE "ABC".
        01  CFT TYPE CF FINAL LINE PLUS 1.

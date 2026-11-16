@@ -79,7 +79,15 @@ internal static class ReportGroupResolution
         }
         if (scope is not null) found = scope.State.Reports.NearestInScope(found, f => f.Report);
         if (found.Count == 0) return Match.None;
-        if (found.Count == 1)
+        // ⛔ A DATA ITEM OF THE SAME SPELLING IS ANOTHER DECLARATION OF THE NAME (kb/Work PB5775). A report group's name and a
+        // Working-Storage item's live in one namespace of user-defined names: "For each nonunique user-defined name that is explicitly
+        // referenced, uniqueness must be established through a sequence of qualifiers which precludes any ambiguity of reference"
+        // (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1), and a data item has no qualifier that tells it from the report group, so an
+        // UNQUALIFIED reference to the shared name is the ambiguity and the report-name qualifier (DA OF R-1) is the way out. Counted
+        // in the source element the reports are (the data lookup leaves no item a nearer report entry hides, kb/Work PB4196).
+        int dataItems = qualifier is null && scope is not null
+            ? scope.QualifiedCandidates(head, [], scope.ActiveScope).ItemCount : 0;
+        if (found.Count == 1 && dataItems == 0)
         {
             (report, group) = found[0];
             return Match.Found;
@@ -92,10 +100,13 @@ internal static class ReportGroupResolution
         string owners = string.Join(", ", new[] { first.Name }
             .Concat(extra.Select(e => e.Report.Name)).Select(n => $"'{n}'"));
         string example = preferred is not null && found.Any(f => ReferenceEquals(f.Report, preferred)) ? preferred.Name : first.Name;
+        string rule = edition.DialectLevel < 2002 ? "ISO §1985:IV.4.3.8.1 SRL2.1" : "ISO §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1";
+        string homonyms = (found.Count > 1 ? $"described in more than one report description entry ({owners})" : $"described in report {owners}")
+            + (dataItems == 0 ? "" : $"{(found.Count > 1 ? " and" : ",")} also the name of {(dataItems == 1 ? "a data item" : $"{dataItems} data items")}");
         edition.Error(DiagnosticCatalog.ReportGroupReferenceAmbiguous, $"{where}: report group '{head}' is "
-            + $"described in more than one report description entry ({owners}) — qualify the reference "
+            + $"{homonyms} — qualify the reference "
             + $"(e.g. '{head} OF {example}'), since uniqueness shall be established through qualification "
-            + "(ISO §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1)");
+            + $"({rule})");
         return Match.Ambiguous;
     }
 }

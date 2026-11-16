@@ -108,13 +108,15 @@ public sealed class ReportItemReferenceTests
         Assert.DoesNotContain(d, x => x.Contains("error"));
     }
 
-    /// <summary>§2023:8.4.2.1 — a name an ordinary item declares resolves THERE: a procedure division reference to a
-    /// working-storage item that shares the spelling of a report entry is that item's, not the report item's.</summary>
+    /// <summary>§2023:8.4.2.2.3 SR1 (§1985:IV.4.3.8.1 SRL2.1) — a report entry's data-name is a user-defined name like any other, so a
+    /// working-storage item that shares its spelling makes the unqualified name nonunique: the reference is the ambiguity (COBOL1639,
+    /// counting the report entry), never the item's silently (kb/Work PB5775; it was read as the item's before).</summary>
     [Fact]
-    public void AnOrdinaryItemOfTheSameSpelling_TakesTheReference()
+    public void AnOrdinaryItemOfTheSameSpelling_MakesTheUnqualifiedNameNonunique()
     {
         var d = Bind(Source("       01  PV PIC X(3) VALUE \"XYZ\".", "", "           MOVE PV TO W."));
-        Assert.DoesNotContain(d, x => x.Contains("error"));
+        Assert.Single(d, x => x.Contains("COBOL1639") && x.Contains("REPORT SECTION entry"));
+        Assert.DoesNotContain(d, x => x.Contains(ReportItemCode));
     }
 
     /// <summary>The refusal is for a name the qualifiers REACH: a qualifier that is no level above the entry (and not

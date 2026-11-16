@@ -107,7 +107,7 @@
   "definition-dropped": 359,
   "cross-reference": 28,
   "pending-clause": 621,
-  "behaviour-switch": 220,
+  "behaviour-switch": 221,
   "held": 6,
   "band-formats": 84,
   "clause-identity": 1767,
@@ -4123,7 +4123,8 @@
   },
   "2002-AR-15.34.2-1": {
    "definition-changed": "class | of a data item",
-   "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)"
+   "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+   "behaviour-switch": "integer-argument-rounded-under-standard-arithmetic"
   },
   "2002-AR-15.35.2-1": {
    "definition-changed": "class | of a data item",

@@ -93,7 +93,7 @@ public static partial class CobolIntrinsics
         v.Scale <= 0 ? CobolExact.From(0, 0)
         : v.TryWide(out CobolWide wide, out int scale) ? CobolExact.FromWide(FractionPartWide(wide, scale), scale)
         : v.IsBig ? v.FractionPartBig()
-        : CobolExact.FromDec(FractionPartDec(mode, v.Image));
+        : CobolExact.FromDec(FractionPartDec(DecArithmetic.Sdidi(mode), v.Image));
 
     private static CobolExact IntegerOfExact(CobolExact v, bool floor) =>
         v.Scale <= 0 ? v.WithPrecision(0)

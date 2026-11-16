@@ -29,7 +29,7 @@
       *>        second pointers (BBBB, DDDD, FFFF) in place; one that moved only the bytes would print A..F in order.
       *>   2  two inner levels inside a table inside ROW OCCURS 2: element E2(r, e) holds GP(r, e, g, p) for g, p in
       *>        1..2. ROW(2) holds keys 4, 3 with pointers A B C D and E F G H; ROW(1) holds keys 2, 1 with first
-      *>        pointers HHHH, GGGG. SORT E2(2) ASCENDING KEY EK2 sorts ROW(2) only (§2023:8.4.2.3.3 SR5 e)): ROW(2) reads
+      *>        pointers HHHH, GGGG. SORT E2(2, ALL) ASCENDING KEY EK2 sorts ROW(2) only (§2023:8.4.2.3.3 SR5 e)): ROW(2) reads
       *>        3 EEEE FFFF GGGG HHHH, 4 AAAA BBBB CCCC DDDD, and ROW(1) stays 2 HHHH, 1 GGGG.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1951PT.
@@ -102,7 +102,7 @@
            SET GP(2, 2, 1, 2) TO ADDRESS OF WS-F
            SET GP(2, 2, 2, 1) TO ADDRESS OF WS-G
            SET GP(2, 2, 2, 2) TO ADDRESS OF WS-H
-           SORT E2(2) ASCENDING KEY EK2
+           SORT E2(2, ALL) ASCENDING KEY EK2
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > 2
                MOVE SPACES TO OUT-LINE
                MOVE EK2 OF E2(2, I) TO OUT-LINE(1:1)

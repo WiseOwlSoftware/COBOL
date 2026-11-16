@@ -22,11 +22,29 @@ namespace WiseOwl.Cobol.Binding.Model;
 public readonly struct NameCandidates<T> where T : class
 {
     private readonly List<T>? _items;
+    private readonly int _reportEntries;
 
     internal NameCandidates(List<T> items) => _items = items;
 
-    /// <summary>How many declarations survive the reference's qualification.</summary>
-    public int Count => _items?.Count ?? 0;
+    /// <summary>The survivors plus <paramref name="reportEntries"/> REPORT SECTION entries of the same spelling in the same source
+    /// element: names §2023:8.4.2.2.3 SR1 counts with the ordinary ones, which <see cref="Count"/> counts and no member stands for
+    /// (<see cref="ReportEntryCount"/>; kb/Work PB5775).</summary>
+    internal NameCandidates(List<T> items, int reportEntries)
+    {
+        _items = items;
+        _reportEntries = reportEntries;
+    }
+
+    /// <summary>How many declarations survive the reference's qualification, the REPORT SECTION entries of the same spelling
+    /// included: a report entry's data-name is a user-defined name like any other (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1),
+    /// so a data item that shares its name with one is not unique and the reference is the ambiguity.</summary>
+    public int Count => (_items?.Count ?? 0) + _reportEntries;
+
+    /// <summary>How many survivors are ITEMS (<see cref="Count"/> less the report entries, which resolve to no <typeparamref name="T"/>).</summary>
+    public int ItemCount => _items?.Count ?? 0;
+
+    /// <summary>How many of <see cref="Count"/> are REPORT SECTION entries (kb/Work PB5775).</summary>
+    public int ReportEntryCount => _reportEntries;
 
     /// <summary>The declaration the reference identifies — non-null only when exactly one survives.</summary>
     public T? Single => Count == 1 ? _items![0] : null;
@@ -48,17 +66,17 @@ public readonly struct NameCandidates<T> where T : class
     /// uniqueness verdict (ISO §2023:8.4.2.2.1 rule 4's lapsed type-declaration members); the existing survivors keep
     /// their places, so <see cref="FirstDeclaredForPermissive"/> is unchanged.</summary>
     internal NameCandidates<T> Including(IReadOnlyCollection<T> more) =>
-        more.Count == 0 ? this : new([.. _items ?? [], .. more]);
+        more.Count == 0 ? this : new([.. _items ?? [], .. more], _reportEntries);
 
     /// <summary>The survivors followed by another set's — one count over declarations of different origin that the
     /// same reference can name (the record-key-names of several files, kb/Work PB1099 review R1-2).</summary>
     internal NameCandidates<T> Plus(NameCandidates<T> other) =>
-        other.Count == 0 ? this : Count == 0 ? other : new([.. _items!, .. other._items!]);
+        other.Count == 0 ? this : Count == 0 ? other : new([.. _items ?? [], .. other._items ?? []], _reportEntries + other._reportEntries);
 
     /// <summary>The survivors as another member type, in the same order — so a position whose format admits TWO
     /// name classes (data-name-1 or record-key-name-1) counts both in one set and meets the one verdict.</summary>
     internal NameCandidates<TOut> Select<TOut>(Func<T, TOut> map) where TOut : class =>
-        new(_items is null ? [] : _items.ConvertAll(i => map(i)));
+        new(_items is null ? [] : _items.ConvertAll(i => map(i)), _reportEntries);
 
     /// <summary>The first-declared survivor — read ONLY by <see cref="DataBinder.UniqueOrReportAmbiguous{T}"/>'s
     /// <c>--permissive</c> arm (<c>DataNameResolutionDriftTests</c> holds every other reader out).</summary>

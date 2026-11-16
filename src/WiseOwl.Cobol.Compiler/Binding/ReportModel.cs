@@ -494,6 +494,12 @@ public sealed record ReportOccursSpec(
     /// vertical entry's integer-3 out of the horizontal displacement and vice versa.</summary>
     public ReportRepetitionAxis Axis { get; init; } = ReportRepetitionAxis.Horizontal;
 
+    /// <summary>True for the repetitions a MULTIPLE LINE clause stands for (§2023:13.18.35.4 GR9: "functionally equivalent to" a
+    /// simple OCCURS clause), false for those an OCCURS clause writes. A rule about "an OCCURS clause" (§2023:13.18.38.3
+    /// SR10; §2002:13.16.36.2 SR9) reads only the written ones, because a repeating entry is "either" an OCCURS clause "or" a
+    /// LINE or COLUMN clause with more than one operand (§2002:13.13.3 GR3; kb/Work PB5651).</summary>
+    public bool FromMultipleLine { get; init; }
+
     /// <summary>Where data-name-1 was written — its post-build resolution reports there.</summary>
     public Editions.DiagnosticCursor DependingAt { get; init; }
 }

@@ -1152,6 +1152,12 @@ internal static class RuntimeApi
     /// inexact being a size error under INTERMEDIATE ROUNDING IS PROHIBITED (<paramref name="modeExpr"/>).</summary>
     public static string DecToSidi(string value, string modeExpr) => $"{value}.{nameof(CobolDec.ToSidi)}({modeExpr})";
 
+    /// <summary>The arithmetic a decimal intrinsic body evaluates its equivalent arithmetic expression in — <c>DecArithmetic</c>: the
+    /// 32-digit standard intermediate data item of ARITHMETIC IS STANDARD (<paramref name="standardIntermediate"/>, §2002:8.8.1.3)
+    /// or the 34-digit SDIDI (§2023:8.8.1.5.2), each operation at <paramref name="modeExpr"/> (kb/Work PB5575).</summary>
+    public static string DecArithmeticOf(string modeExpr, bool standardIntermediate) =>
+        $"{nameof(DecArithmetic)}.{(standardIntermediate ? nameof(DecArithmetic.Standard) : nameof(DecArithmetic.Sdidi))}({modeExpr})";
+
     /// <summary>A standard intermediate data item ROUNDED to 31 digits — <c>CobolDec.ToSidiRounded</c> — where the rounding rules
     /// of standard arithmetic apply (§2002:8.8.1.3.1.3: a comparison, a function argument with no equivalent expression, a move
     /// to a resultant without ROUNDED).</summary>

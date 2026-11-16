@@ -652,8 +652,8 @@ internal sealed class ReportWriterEmitter(
                 // ⛔ CITATION REPAIRED (kb/Work PB177 arm C): this said "ISO §2023:13.18.16.3 SR3", but SR3 is
                 // "Data-name-1 shall not be subject to any OCCURS clauses" — a real clause answering a
                 // different question. The §2023:13.18.16.3 SHAPE rules (SR3/SR5/SR7) and the §2023:13.18.60.3 SR10 INDEX
-                // rule are REJECTED AT BIND TIME by ReportSectionBinder.ControlOperandShapeViolation, so an INDEX operand
-                // never reaches this loop. What survives here is ONE implementation limit, labelled as one: an
+                // rule are REJECTED AT BIND TIME by ReportSectionBinder.ControlOperandShapeViolation (an INDEX operand except at COBOL-85, below)
+                // never reaches this loop otherwise. What survives here is ONE implementation limit, labelled as one: an
                 // unresolved operand — the shapes ReferenceResolver returns null for, which today are the
                 // dynamic-capacity table entry and a leaf beneath one (both ALSO rejected at bind, by the IsTable
                 // arm), so this limb is a backstop for a resolver shape not yet enumerated.
@@ -667,6 +667,21 @@ internal sealed class ReportWriterEmitter(
                 {
                     w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Display}' does not resolve to a place "
                         + "this backend can save and restore as the prior control value (ISO §2023:13.18.16.4 GR3)"));
+                    continue;
+                }
+                // ⛔ AN INDEX DATA ITEM CONTROL SAVES AND COMPARES ITS OCCURRENCE NUMBER (kb/Work PB5774). COBOL-85 provides for
+                // it: "If the control data item is an index data item, the relation test is for the comparison of two index
+                // data items" (§1985:XIII.3.7.4 GR3b), and the binder admits it only there (EditionInfo.ControlOperandMayBeIndexDataItem).
+                // An index item has no digits, so the character-image channel below (FormatDisplay over a zero-digit profile)
+                // would render every value as the same empty image and no break would ever be seen: the key is the value, in the
+                // invariant culture, and the restore stores the value back the way SET stores one (SetEmitter.StoreSetTarget).
+                if (place.DescribedItem is { Pic.Usage: Usage.Index })
+                {
+                    string indexKey = $"{num.FieldNum(place).Expr}.ToString(global::System.Globalization.CultureInfo.InvariantCulture)";
+                    string indexValue = "long.Parse(__v, global::System.Globalization.CultureInfo.InvariantCulture)";
+                    string indexStore = place.Item.StoreAsImage ? RuntimeApi.NumFormatImage(indexValue, place.Item.ProfileName) : indexValue;
+                    w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {indexKey}, __v => {{ {PlaceRenderer.Write(place, indexStore)} }});"
+                        + "   // index data item CONTROL (§1985:XIII.3.7.4 GR3b)");
                     continue;
                 }
                 // ⛔ A FLOATING-POINT CONTROL ITEM SAVES AND RESTORES ITS BIT PATTERN (kb/Work PB1234). No syntax
