@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.35.4-2",
  "rule-digest": "e565aaf52c56",
+ "test-ref": "conformance:cases/A.2.35@1985-RANDOM-FUNCTION/g85_f38_07",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
