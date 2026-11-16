@@ -1,4 +1,4 @@
-## golden-2002-7: 97 own-edition 2002 records from 16 wave-u slugs of the 2002 witness lane (GAP 1899 to 1805)
+## Entry 3713 — 2026-11-15 18:14 PST — golden-2002-7: 97 own-edition 2002 records from 16 wave-u slugs of the 2002 witness lane (GAP 1899 to 1805)
 
 The seventh landing of the 2002 golden lane (gl2002, kb/Work PB5597). Its 16 input files are "wave u": 2002 rows that
 the 2002 read left needs-own-witness, undecided or uninterpretable. The files cover §2002:11.6 to §2002:13.16.27 and
@@ -65,3 +65,4 @@ clause to variable-length records.
   §2002:9.1.1.
 
 The writers deferred nothing.
+
