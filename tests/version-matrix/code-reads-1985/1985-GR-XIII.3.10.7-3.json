@@ -82,5 +82,10 @@
   "edition-sites-missed": [],
   "corrected": "The verdict rests on a reconstruction, not on 1985 text: CONFORMS to the reconstruction (and to the printed XIII.3.16.4 GR4 for the RH-on-page arm), not decidable against the standard until folio XIII-30 is obtained (kb/Work PB4952). The reading used: when no report heading is on the page, a relative first PH line is placed as a relative first RH line is (HEADING - 1 + integer)."
  },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The first line of a page heading after a report heading conforms to rule 3 of §1985:XIII.3.10.7 as the tree holds it (kb/Work PB5830). Confirmed against the placeholder text of folio XIII-30 (owner decision 2026-11-09, kb/Work PB4952); read again when the printed folio arrives.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-open-readings.md"
+ },
  "work": "PB5830"
 }
