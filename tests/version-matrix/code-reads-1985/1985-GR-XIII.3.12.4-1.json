@@ -1,0 +1,118 @@
+{
+ "rule-id": "1985-GR-XIII.3.12.4-1",
+ "rule-digest": "a8137d3daede",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-146",
+  "sources": {
+   "reader": "56366494aea5ec4e06ce1598d7ce21691365b3bac4e45db00a320a0e89505f44",
+   "refuter": "db4bfb5fe13af4f720492392954309b2223394c15d7a072b8045b8ef690e7e5b"
+  },
+  "imported": {
+   "reader": "340e633f9f7f0e62abacb53f6a09904282705ed95812ea018faf82c3b710d0d3",
+   "refuter": "e7bfc7122c01d52914e21ea7e3c839902172a1c2a0264aecbff3dc3cd98a71c9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.12.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a Report Section entry may omit data-name-1, but a report group named by GENERATE or USE BEFORE REPORTING, a sum counter referenced in the Procedure or Report Section, a detail named in a SUM UPON phrase and an entry used as a sum-counter qualifier must carry a data-name that the compiler resolves; a reference that names no such entry, an ambiguous unqualified sum counter, or a reference to a non-sum entry must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveUponDetail; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportItemOperandRefused",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85",
+    "switches": "Edition.DialectLevel >= 2002 returns null; at 85 a sum counter named by a clause of another data-division section resolves as a data-name (no 2002 section rule)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused",
+    "switches": "DialectLevel < 2002 words the refusal of a non-sum entry by §1985:XIII.3.9.3 SR10d instead of the 2023 section rule; the refusal itself is the same",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveUponDetail",
+    "switches": "DialectLevel < 2002 refuses an UPON detail of another report (§1985:XIII.3.19.3 SR2); resolution of the name itself is shared",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve",
+    "switches": "takes the EditionContext only to report diagnostics; the name lookup is the same at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grep of ReportSectionBinder.cs for DialectLevel/Edition (sites 4178, 4211, 4249, 4359, 4634, 4699 read); ReportWriterBinder BindGenerate and ReportGroupResolution.Resolve read.",
+  "behaviour-differs-by-edition": "yes: at 85 a sum counter is a data-name usable by clauses of other data-division sections and a non-sum entry reference is refused under SR10d; at 2002+ the section rule refuses such clause references and an UPON detail may belong to another report. GENERATE/USE resolution and ambiguity refusal are the same.",
+  "witnesses-cover": "part: g85_bf09_06 covers the positive half of items a-d (named GENERATE/USE groups, a SOURCE and procedure reference to a sum counter, UPON names, qualification); the refusal half (undefined GENERATE/USE names, ambiguous counter, UPON naming a CF, a non-sum entry referenced) is not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/dn_ok.cob",
+    "printed": "L2 TB=002 / L3 TB=002 (unnamed detail accepted; TB IN L2 and TB IN L3 IN CF-1 IN R-1 resolve)",
+    "expected": "TB IN L2 sums every GENERATE (2); TB IN L3 sums UPON DE-A (2); an unnamed 01 entry is legal (SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/dn_gen_undef.cob",
+    "printed": "error COBOL1757: GENERATE DE-X: 'DE-X' names neither a detail report group nor a report description entry",
+    "expected": "refused: GENERATE must name a named report group (GR1 a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/dn_use_undef.cob",
+    "printed": "error COBOL0897: USE BEFORE REPORTING 'CF-X' does not name a report group",
+    "expected": "refused (GR1 a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/dn_use_ok.cob",
+    "printed": "L2 TB=002 / L3 TB=002 / U (declarative ran before CF-1)",
+    "expected": "USE BEFORE REPORTING CF-1 runs before CF-1 is presented"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/dn_ambig.cob",
+    "printed": "error COBOL2145: 'TB': the reference is ambiguous - 2 entries establish a sum counter named 'TB'",
+    "expected": "refused: qualification is required (GR1 d)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/dn_source_ref.cob",
+    "printed": "error COBOL5092: 'SA' names the report group description entry 'SA' ... §1985:XIII.3.9.3 SR10d",
+    "expected": "refused: only a sum counter entry may be referenced (GR1 b with SR10d)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/dn_upon_cf.cob",
+    "printed": "error COBOL2046: the UPON operand 'CF-1' names a report group of TYPE CONTROL FOOTING",
+    "expected": "refused: UPON names a detail report group (GR1 c)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.12.4 GR1",
+    "check": "OK  §1985:XIII.3.12.4 GR1  (3.12.4 General Rules)  the text is in GR1 (\"When a detail report group is referenced in the UPON phrase of the SUM clause\")"
+   },
+   {
+    "cite": "§1985:XIII.3.9.3 SR10d",
+    "check": "OK  §1985:XIII.3.9.3 SR10d  (3.9.3 Syntax Rules)  the text is in SR10d (\"Data-name-1 may be referenced only if the entry defines a sum counter\")"
+   }
+  ],
+  "notes": "All four cases of GR1 resolve through named entries, and each refusal half is diagnosed at --std 85. Witness g85_bf09_06 matches its golden. The 85-specific arms (sum counter as a data-name, SR10d refusal, same-report UPON) were probed or read and follow the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.12.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-146/src at --std 85 (run_probe.py): dn_proc_src (MOVE SA, a named SOURCE entry, in the Procedure Division) -> COBOL5092 citing §1985:XIII.3.9.3 SR10d; dn_proc_grp (DISPLAY DE-A, a report group name) -> COBOL5092; dn_proc_line (MOVE L2, a LINE group entry) -> COBOL5092; dn_ambig_q (TB IN CF-1, still ambiguous between L2 and L3) -> COBOL2145 ambiguous; dn_gen_cf (GENERATE CF-1) -> COBOL0899 not a DETAIL group. ngcf: CF-1 SUM T2 (a Report Section reference to a named sum counter of CF-2, rolling forward) printed 03 then 01, the right totals. Every case a-d needs a name the binder resolves, and each misuse is refused. cite.py: OK §1985:XIII.3.12.4 GR1 (\"When reference is to be made to the sum counter\"). Side note, not this rule: COBOL0899 at --std 85 cites §2023:14.9.16.3 SR1, the wrong edition.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

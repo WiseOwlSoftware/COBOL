@@ -1,0 +1,85 @@
+{
+ "rule-id": "1989-RV-A.2.27.4-3",
+ "rule-digest": "51d71964dc81",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-181",
+  "sources": {
+   "reader": "64adde408a710636ce1336a5767ddd82683bb562f3bbf807b14cc4f6884eaab9",
+   "refuter": "ca573e4b3eb6eea966e401713476fb0266a627947ce5f3c2404df2763568ed6f"
+  },
+  "imported": {
+   "reader": "fbf6ee2bc74c18442fbd8a0ab4268827ddd5db30081f7d225ad5b78dd7b0cc28",
+   "refuter": "b44f889c859ac018cd506df41d66bb601d8bab84cc4fe59e3780f51e757b4922"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.27.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, when MIN's arguments are alphabetic/alphanumeric (an alphanumeric function), the returned value must have exactly the size of the selected argument-1, whatever that argument is: an elementary item, a reference-modified item, a nonnumeric literal, an edited item, or a group whose size varies with OCCURS DEPENDING ON.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#OperandCategory; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MinString",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntrinsicFunctionNotYetIntroduced when sig.IntroducedIn (85) exceeds DialectLevel; MIN is available at 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectLevel over IntrinsicArgumentRules.cs, IntrinsicRenderer.cs and CobolIntrinsics.Exact.cs found none; the string channel returns the selected argument's string with no edition input.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f38_01 covers elementary items of sizes 2-7 and an alphabetic/alphanumeric mix; not covered: reference-modified arguments, ODO groups, literals, edited items",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/minp.cob",
+    "printed": "MINREF [AB], MINREFL 02 (W6 (5:2) selected over W6); MINGRP [AAAZZ] MINGRPL 05 at ODO 3; MINGRP5 07 at ODO 5",
+    "expected": "the size of the selected argument; the ODO group at its current size"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/minp.cob",
+    "printed": "MINTIEL 04 (PIC A(4) selected); MINLIT [AZZZ] (literal selected)",
+    "expected": "the size of the selected argument"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/minpcs.cob",
+    "printed": "NEDT [111] NEDTL 03 for MIN (NE PIC ZZ9.99, W1, AE PIC XBX)",
+    "expected": "edited items are class alphanumeric in 1985 and admitted; size 3 of the selected W1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/ref22.cob",
+    "printed": "MIN (A1 SPACES) compiles at 85 and prints a 1-character space",
+    "expected": "a figurative constant is not an admitted argument (§1989:A.2.2 AR3); see notes"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.27.4 RV3",
+    "check": "OK  §1989:A.2.27.4 RV3  (2.27.4 Returned Values)  the text is in RV3"
+   },
+   {
+    "cite": "§1989:A.2.2 AR3",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR3"
+   }
+  ],
+  "notes": "MinString returns the selected argument string itself (xs[ExtremeIndex]), so the result length is that argument's run-time length, ODO and reference modification included. The figurative-constant acceptance (MIN (A1 SPACES), MIN (A1 ALL \"A\")) is an argument-type under-rejection against §1989:A.2.2 AR3, outside this RV; a grep of kb/Work for figurative + FUNCTION MIN found no note for it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.27.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "sz.cob (runs/sz-002), reference modification whose length the program changes at run time: RM1 [AB] (W6 (3:2)), RM2 [A] (W6 (3:1)), RM3 [ABCD] (W6 (3:4) selected over a 3-character item), RM3L 04 for FUNCTION LENGTH of that MIN in a COMPUTE whose receiver L is also the ref-mod length; FN1 [SRQ] (3) against FN2 [SRQ ] (4) for an alphanumeric function argument and a literal; pad.cob TIE3 [A  ] at the size 3 of the selected PIC A(3). The size is the selected argument's run-time size in every case. OK  §1989:A.2.27.4 RV3  (2.27.4 Returned Values)  the text is in RV3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

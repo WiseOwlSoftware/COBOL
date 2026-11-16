@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-9",
+ "rule-digest": "8a6c8c49210b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-059",
+  "sources": {
+   "reader": "d0e508c6c70216ef170048c56706a92c0835308986446eeda25f17d27b4e19fc",
+   "refuter": "937cdec4799302a68ccfd698c0ba313a6f5f7548f75861fada0e84ee54943480"
+  },
+  "imported": {
+   "reader": "2837885210047507ecbaca6d1ba2eff824eea8ef7f5c95868af9515380ee3bb4",
+   "refuter": "4de663c9d191f8e908b4293f77dc25e04c28a27a6a7f8f10592c08c7e7f84f8d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a literal in the BY phrase of any VARYING or AFTER level of PERFORM Format 4 must not be zero, whatever the varied operand, and the compiler must refuse it; a nonzero (including negative) literal is legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckVaryingOperandRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#ParseLiteral",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying",
+    "switches": "DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter: run-time augment order, not the BY-literal screen",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVarying",
+    "switches": "perform-varying-by-omitted-2002: an omitted BY is refused at 1985, so a BY phrase is always written there",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectBehavior in ControlFlowBinder.PerformVarying.cs; the SR6 (2023) / SR9 (1985) zero test in CheckVaryingOperandRules consults no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness refuses one BY-zero form; the AFTER level, 0.00, -0 and the figurative ZERO are exercised only by the probes here",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/p9.cob",
+    "printed": "COBOL2120 four times: BY '0' (VARYING), BY '0' (AFTER), BY '0.00', BY '-0' each 'The literal in the BY phrase shall not be zero'",
+    "expected": "refused per SR9"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/p9z.cob",
+    "printed": "COBOL2120: BY operand 'ZERO' violates ... shall not be zero",
+    "expected": "refused (a zero BY literal, or not a numeric literal at all under SR5)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/p9ok.cob",
+    "printed": "EXIT 0; BY -2 from 5 printed +05 +03 +01; BY +3 from 1 printed +01 +04",
+    "expected": "legal nonzero signed literals run"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR9",
+    "check": "OK  §1985:VI.6.21.3 SR9  (6.21.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "The zero test reads the literal value (decimal parse, sign applied by Classify), so every spelling of zero is caught at every level, and figurative ZERO is caught too. Same code at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p9 refused the same way at --std 2023 (4 errors)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-9",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "src/r9.cob (r9-001): COBOL2120 'shall not be zero' for BY ZEROS, BY ZEROES, BY +0, BY +.0, BY 000 (index-name varied), BY -0.0 at a third AFTER level, and BY 0 in an in-line PERFORM. src/r8comma.cob with DECIMAL-POINT IS COMMA (r8comma-001): BY 0,0 and BY -0,00 refused the same way, so the value parse is not fooled by the comma spelling. Nonzero literals run (r8ok-001 BY +2, BY 100). cite.py: 'OK  §1985:VI.6.21.3 SR9  (6.21.3 Syntax Rules)  the text is in SR9'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

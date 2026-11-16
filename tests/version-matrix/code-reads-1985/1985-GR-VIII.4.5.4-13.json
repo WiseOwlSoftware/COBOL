@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-13",
+ "rule-digest": "b1b4454f69c6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-134",
+  "sources": {
+   "reader": "554b5ad7de4a4b9808dbc5589d61a93fd36f522d449f40546eff8c076bdbb48a",
+   "refuter": "bea9901c1f37eb50ff99d557a23fbd9be3e5b3cdce94e7563a41be66b409ddcd"
+  },
+  "imported": {
+   "reader": "63d32e808175dfb146dd2c36a42ec718e633e2640210a5410a72dcaac5fd2849",
+   "refuter": "5d1535d112da112ac5dad4c530973d5e9435e6948fec57d37f6ff16249bdb985"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, a READ NEXT of a dynamic-access relative file retrieves the next logical record per 1985 VIII.4.5.4 GR4 (first existing record at or after the indicator set by OPEN/START, after the indicator set by a READ, random READs included), moves its number into the RELATIVE KEY item, is unaffected by intervening WRITE/REWRITE/DELETE, and after an unsuccessful READ answers 46; a sequential dynamic READ without NEXT is refused at 85 (SR3).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadNext; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#SelectSequentialSlot; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#StartAt; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "Year >= 2002 returns early: at 85 a dynamic-access READ with AT END and no NEXT is refused (COBOL7144, 1985 VIII.4.5.3 SR3); 2002+ implies NEXT",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateStatement",
+    "switches": "READ PREVIOUS and START FIRST/LAST refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "SelectSequentialSlot takes no edition (its comment and the grep agree); grep Edition/IsActive over RelativeConnector finds only the WRITE key-range behaviour.",
+  "behaviour-differs-by-edition": "yes: at 85 NEXT must be written for a sequential dynamic READ (COBOL7144) and READ PREVIOUS is refused (COBOL0900); retrieval is the same code at every edition",
+  "witnesses-cover": "part: g85_bf29_02 covers OPEN/START/READ positioning, 14, 46 and optional absent; READ NEXT after WRITE/DELETE/REWRITE in I-O, after a failed random READ, INTO with a subscript the READ changes are not exercised",
+  "probes": [
+   {
+    "class": "e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/p5readnext.cob",
+    "printed": "A=00 R002 02 [R002] (INTO T-ENT(DK) subscript evaluated after the READ set DK); WRITE 3 then READ NEXT R003; DELETE 5 and REWRITE 3 then READ NEXT R007; random READ 2 then READ NEXT NEW3 03; failed random READ 8 23 then READ NEXT 46 via USE; START > 7 then R010; at end 10 then 46 (MATCH)",
+    "expected": "1985 VIII.4.5.4 GR4 c/d, GR12, GR14, GR8b"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/c4readprevious.cob",
+    "printed": "COBOL0900 READ PREVIOUS requires COBOL-2002",
+    "expected": "a later edition's phrase refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/c5readnextrandom.cob",
+    "printed": "COBOL1720 NEXT/AT END not allowed for ACCESS MODE RANDOM",
+    "expected": "format 1 is not for random access at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/c6startfirst.cob",
+    "printed": "COBOL0900 START FIRST/LAST requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/p5readnext.cob",
+    "printed": "--std 2023 run: identical (MATCH)",
+    "expected": "same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR13",
+    "check": "OK  §1985:VIII.4.5.4 GR13  the text is in the rule (or the clause): \"causes the next logical record to be retrieved from that file\""
+   },
+   {
+    "cite": "§1985:VIII.4.5.4 GR4",
+    "check": "OK  §1985:VIII.4.5.4 GR4  the text is in the rule (or the clause): \"whose relative record number is greater than the file position indicator is selected\""
+   },
+   {
+    "cite": "§1985:VIII.4.5.4 GR12",
+    "check": "OK  §1985:VIII.4.5.4 GR12  the text is in the rule (or the clause): \"no valid next record has been established\""
+   },
+   {
+    "cite": "§1985:VIII.4.5.3 SR3",
+    "check": "OK  §1985:VIII.4.5.3 SR3  the text is in the rule (or the clause): \"The NEXT phrase must be specified for files in dynamic access mode\""
+   }
+  ],
+  "notes": "The relative position indicator is a slot number plus an inclusive flag (inclusive after OPEN/START, exclusive after any READ); one tree seek serves READ NEXT. WRITE, REWRITE and DELETE never touch _fpi, matching the 1985 file position indicator definition (VIII.1.3.3).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-13",
+  "refutation": "UPHELD",
+  "classes": "e,f",
+  "evidence": "r2next-001 at --std 85, dynamic file with records 3, 5, 12 and RELATIVE KEY PIC 9: OPEN INPUT then READ NEXT R003 key 3, R005 key 5, then 14 at end (record 12 too large for the key, VIII.4.5.4 GR4 and VIII.1.3.4 14), next READ NEXT 46; START KEY = 1 unsatisfied 23 then READ NEXT 46 (VIII.4.7.4 GR8); START KEY > 6 satisfied by record 12 (00) then READ NEXT 14; random READ 3 then READ NEXT R005 key 5 (GR4d). r3lock-001: READ NEXT after a failed random READ 46. cite.py: OK §1985:VIII.4.5.4 GR13 'causes the next logical record to be retrieved from that file'; OK §1985:VIII.4.5.4 GR4 'the file position indicator is set to indicate this condition'; OK §1985:VIII.4.7.4 GR8 'no valid next record has been established'; OK §1985:VIII.1.3.4 (GRL2.2b) 'the number of significant digits in the relative record number is larger than the size of the relative key data item'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

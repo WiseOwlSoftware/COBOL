@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-SR-XIII.2.3.3-2",
+ "rule-digest": "8df71f264064",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-073",
+  "sources": {
+   "reader": "1648f90507cba719c3e443f8f0b0e2de6ee890d2a44527f6ff625cbd51f59169",
+   "refuter": "f57489ea91dd4a858b11a93e9901d36bb0c1321db809946d27dc7dc869f597f8"
+  },
+  "imported": {
+   "reader": "1dcc7155a5edb22a59d9b67971951196cbee3819587fa18254115728ac7f74c4",
+   "refuter": "1d597149bc61540470ff8ab9359eaf20617c07257b1174c37907551cc3c89c0c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.2.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a report file (an FD carrying a REPORT clause) must be named by exactly one SELECT in the FILE-CONTROL paragraph of its own program: a second SELECT of the same name, an FD with REPORT that no SELECT names, and a SELECT with no FD in the same program (including one whose FD sits in a contained program) are each refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#ScreenSelectsHaveDescriptions",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord",
+    "switches": "DialectLevel < 2002 requires record entries for a non-report FD; returns before the switch for a report file",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen",
+    "switches": "sortMerge1985 arm (SD only)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "The three refusals (COBOL2634 FileNameSelectedTwice, COBOL2636 FileDescriptionWithoutSelect, COBOL2635 SelectWithoutFileDescription) are gated only by `screened` (not a class definition), never by edition; grepped the FileControlBinder partials for DialectLevel|ConstructRegistry|IsAvailable.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses check the general SELECT/FD pairing and legal report FDs; a report file selected twice and a report FD with no SELECT are not exercised for a report file",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r3twice.cob",
+    "printed": "r3twice.cob(7,12): error COBOL2634: file-name 'RPF' is specified in a second SELECT clause",
+    "expected": "refused: specified only once"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r4noselect.cob",
+    "printed": "r4noselect.cob(11,8): error COBOL2636: file description entry 'RPF' names a file that no file control entry specifies",
+    "expected": "refused: a report file described must be specified in FILE-CONTROL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r5nofd.cob",
+    "printed": "r5nofd.cob(7,12): error COBOL2635: file 'RPG' is specified in a SELECT clause but has no file description entry",
+    "expected": "refused: the selected file needs its FD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r8nested.cob",
+    "printed": "COBOL2635 at (6,12) for the outer SELECT and COBOL2636 at (18,8) for the contained program's FD RPF REPORT IS RPT",
+    "expected": "refused: the FD must be in the same program"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r7legalassign.cob",
+    "printed": "A=00 B=00 EXPECT: MATCH",
+    "expected": "two report files, each selected once with an FD carrying REPORT IS / REPORTS ARE, compile and run"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.2.3.3 SR2",
+    "check": "OK  §1985:XIII.2.3.3 SR2  (2.3.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The second sentence is definitional (a report file is the subject of an FD with a REPORT clause), so its testable content is that the SELECT has its FD in the same program; both directions are refused. Diagnostics cite §2023 clauses at --std 85; the behaviour matches the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.2.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe s3nested.cob at --std 85: an outer program and a contained program each SELECT RPF with their own FD RPF REPORT IS RPT / RPT2 (same file-name, separate programs) compiles and runs OUT=00 IN=00 with S3A.RPT=OUTER and S3B.RPT=INNER, so 'specified only once' is applied per program, not across the nest (no over-rejection); the reader's r3/r4/r5/r8 cover the refusals (twice, FD without SELECT, SELECT without FD, FD in a contained program). 'must have a file description entry containing a REPORT clause in the Data Division of the same program' (OK §1985:XIII.2.3.3 SR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

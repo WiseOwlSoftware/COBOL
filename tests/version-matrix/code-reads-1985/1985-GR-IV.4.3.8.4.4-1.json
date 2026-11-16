@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.4.4-1",
+ "rule-digest": "f29e4830989f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-006",
+  "sources": {
+   "reader": "c57a74a79da0c970db70b554914ff1ef6745cfd09743215e5e8ed2d6bd789656",
+   "refuter": "2736100c82b3bb50b0d7353a1e35a29ad639d5471a8043d50d0460a9dda1de2e"
+  },
+  "imported": {
+   "reader": "eb115127d79bf33b232bd587cbf004dd3f78d84c40d47d6989ff6bcb7c950206",
+   "refuter": "2d3945c8bc6d3cb88de5c50f353a393d2880479644a9352671144172e0218049"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.8.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 (Amendment 1 applied) reference modification numbers the characters of data-name-1 (any DISPLAY item: alphanumeric, numeric, numeric edited, group, variable-length) or of an alphanumeric function result from 1 at the leftmost position, and a SIGN IS SEPARATE sign position (LEADING or TRAILING) is one of the numbered positions.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#RefModBinder; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#RefModPlace; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#RefMod; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#RefModStartOffset",
+  "edition-consulted": [],
+  "edition-search": "grep 'Edition.Edition|CobolVersion|IsAvailable|DialectBehavior|Constructs.' in Binding/RefModBinder.cs and RefModZeroLengthState.cs (no hit; data.Edition is used only as the diagnostic sink); grep RefMod in Validation/VersionConformancePass.cs (only the UNSTRING sender gate and a figurative screen, not this rule); CobolString.RefMod takes no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness relates a figurative to a ref-modified item; the ordinal numbering over SIGN SEPARATE items, numeric edited, groups, ODO records and function results is not exercised",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c2a.cob",
+    "printed": "[A][E][BCDE][ABCDE] / [-][123][3] / [456][+] / [  3][.50] / [G][12][H1] / [XYZ][Z][XYZ] / +123 / ABCDQ / [BC] / [Q]",
+    "expected": "position 1 is leftmost; SIGN LEADING SEPARATE -123 has '-' at 1; TRAILING SEPARATE +456 has '+' at 4; numeric edited '  3.50' split 3/3; group GH12 positions; ODO record of current length 3; receiving SL(1:1) and A(5:1); FUNCTION UPPER-CASE(\"abcd\")(2:2)=BC, FUNCTION REVERSE(A)(1:1)=Q"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c2b.cob",
+    "printed": "C(1:1) on PIC 9(4) COMP: COBOL1647; without it: [-123][78]",
+    "expected": "SR1 refuses a non-DISPLAY data-name-1; SL(1:4) is the whole item sign included; SO(1:2) the first two digit characters"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c2a.cob",
+    "printed": "--std 2023 prints the same lines",
+    "expected": "same numbering at every edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.4.4 GR1",
+    "check": "OK  §1985:IV.4.3.8.4.4 GR1  (4.3.8.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The leftmost position is 1 in CobolString.RefMod (start = leftmost-1) over the item's full character image, which for a SIGN SEPARATE item includes the sign character; no edition is consulted on the path. The function form (Amendment 1) is accepted at --std 85 and numbers the result's characters the same way.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.8.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "r2a.cob at --std 85: JUSTIFIED RIGHT JR(4:2)=[AB], JR(1:3)=[   ]; receiving ref-mod on numeric MOVE '9' TO NUM(1:1) -> 923, on S9(3) -123 MOVE '4' TO SNUM(1:1) -> -423; group with a 9(4) COMP child G(5:2)=[YZ], FUNCTION LENGTH(G)=06 (numbering counts the COMP item's two character positions); relative-subscripted T(N + 1)(2:2)=[FG]; alphabetic AL(3:)=[YZ]; alphanumeric edited AE(2:1)/(3:1); numeric edited BLANK WHEN ZERO positions and receiving NE(3:1); ODO group DG(DN:1) at its current bound=[R]; function with a ref-modified argument UPPER-CASE(AL(2:2))(2:1)=[Y]; CURRENT-DATE(1:2)=[20]. r2b.cob: SIGN LEADING SEPARATE written at the GROUP level (inherited by SX/SY): SX(1:1)=[-], SG(1:3)=[-05], SG(4:4)=[+012]; group-level TRAILING SEPARATE SZ(3:1)=[-]; MOVE '+' TO SX(1:1) then COMPUTE SX + 1 = 006; MOVE '-' TO SZ(3:1) -> [07-]; identical at --std 2023. Class c: the function-reference form (Amendment 1) admitted at 85 by the reader's c2a. cite.py: OK §1985:IV.4.3.8.4.4 GR1; OK §1985:IV.4.3.8.4.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,116 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-8",
+ "rule-digest": "9ed71280003d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-072",
+  "sources": {
+   "reader": "8faa70c91ba153e9fc27714fcad9447dad30c11e0b562ea1fe2b33095d82bb38",
+   "refuter": "374d4dcf956d6db7060749dc5aef8f8b5af8b3397717b588079502f13202a76d"
+  },
+  "imported": {
+   "reader": "2da6f54e386a4ea584d38def7b4b018c85c5c61f58baa819d890105aef8e9b4a",
+   "refuter": "b3ba9e7483ec34a07267f3fe6c4782165469c69eb9e08a2512596e6a85295ac1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.4.3-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when any GIVING file-name-3 of a SORT is an indexed file, the compiler must refuse the SORT unless the first KEY data-name is under an ASCENDING phrase and occupies the same character positions in its record as the prime record key of that file (same start and same length); a DESCENDING later key, or a first key in another record description of the SD at those positions, stays legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenIndexedGivingKey; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenSameClauses",
+    "switches": "Year < 2002: SAME RECORD AREA bar on GIVING files (SR9, a different rule) on the same bind path",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortStatement",
+    "switches": "Format-2 table SORT gate, not reached by a Format-1 SORT with GIVING",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "ScreenIndexedGivingKey itself consults no edition; grep Edition in SortBinder.cs gives only ScreenSameClauses",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises only the legal half (ASCENDING key on the prime key's bytes); none of the refusals",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/pb994_sort_merge_keyed_using_giving-001",
+    "printed": "EXPECT: MATCH (1 IX A1yy ... 3 REL 05 D4dd)",
+    "expected": "ASCENDING key at the prime key's positions, indexed GIVING written in key order"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/k1desc.cob",
+    "printed": "error COBOL1757: ... the first specification of data-name-1 is associated with a DESCENDING phrase",
+    "expected": "refused: first key must be ASCENDING"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/k2offset.cob",
+    "printed": "error COBOL1757: ... the first key occupies bytes 3..4 ... prime record key 'IK' occupies bytes 1..2",
+    "expected": "refused: not the same character positions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/k3short.cob",
+    "printed": "error COBOL1757: ... bytes 1..1 ... prime ... 1..2",
+    "expected": "refused: shorter key at same start"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/k7long.cob",
+    "printed": "error COBOL1757: ... bytes 1..4 ... prime ... 1..2",
+    "expected": "refused: group key covering more positions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/k5firstphrase.cob",
+    "printed": "error COBOL1757: ... DESCENDING phrase",
+    "expected": "refused: first data-name-1 (in a DESCENDING phrase) though a later ASCENDING phrase names the prime key"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/k4second.cob",
+    "printed": "IX A0ww / IX A1yy / IX B2zz / IX C3xx (exit 0)",
+    "expected": "legal: first key ASCENDING on prime positions, second key DESCENDING"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/k6otherrec.cob",
+    "printed": "IX A0ww / IX A1yy / IX B2zz / IX C3xx (exit 0)",
+    "expected": "legal: key in the SD's second record description at the same positions (SR4d)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/k8twogiving.cob",
+    "printed": "error COBOL1757 on 'IXF' (the second GIVING file)",
+    "expected": "refused: the indexed file is any of the GIVING files"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.3 SR8",
+    "check": "OK  §1985:XI.4.4.3 SR8  (4.4.3 Syntax Rules)  the text is in SR8"
+   }
+  ],
+  "notes": "One screen compares keys[0]'s direction, record offset and length with the prime key's window for every indexed GIVING file; it consults no edition and the 1985 'same character positions' reading matches. At --std 85 the COBOL1757 message cites 'ISO §2023:14.9.40.3 SR9' rather than the 1985 rule number, a citation-only blemish.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.4.3-8",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "K1alt-001: first key on the ALTERNATE key's bytes 1..2, prime IK at 3..4, DYNAMIC access: refused COBOL1757. K4fdrec2-001: prime key in the FD's second 01 at bytes 3..4, SD key at 3..4: compiled, GIVING file read back in key order (A0ww C3xx A1yy B2zz by bytes 3..4). K5fdrec2bad-001: same FD, SD key at 1..2: refused COBOL1757. K3bgroup-001: group prime key over two PIC X, elementary qualified 'SK OF SR': legal, ordered. K6redef-001: key a REDEFINES of bytes 1..2 with 'ON ASCENDING SK' (KEY omitted): legal, ordered. K2bclass-001: SD key PIC 99 over prime PIC XX positions: compiles (positions only). K3group-001 (RANDOM access) refused for the separate 1985 ACCESS MODE IS RANDOM rule, not this one. ScreenIndexedGivingKey consults no edition. cite.py: OK §1985:XI.4.4.3 SR8 the text is in SR8. Only blemish (already noted by reader): message cites §2023:14.9.40.3 SR9 at --std 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

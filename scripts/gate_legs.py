@@ -63,10 +63,12 @@ class Legs:
             plan[asm].write_text("".join(f"{n}\n" for n in left), encoding="utf-8", newline="\n")
         if any(carried.values()):
             out.carried, out.composed_from = {a: c for a, c in carried.items() if c}, carry.runs
-            self.say(f"build-local: earlier runs of this worktree passed cases at these targets' keys (runs "
-                     f"{', '.join(carry.runs)}), so only what they did not pass runs: "
-                     + ", ".join(f"{a} {carried[a]:,} passed / {to_run[a]:,} to run" for a in todo)
-                     + " (kb/Work PB5099, PB5218)")
+            whence = (f"earlier runs of this worktree passed cases at these targets' keys (runs {', '.join(carry.runs)})"
+                      if carry.runs else "no earlier run of this worktree is carried")
+            self.say(f"build-local: {whence}, and the program differential carries the Conformance cases byte-identical "
+                     f"to a passed one where it applies, so only the rest runs: "
+                     + ", ".join(f"{a} {carried[a]:,} carried / {to_run[a]:,} to run" for a in todo)
+                     + " (kb/Work PB5099, PB5218, PB4333)")
         return plan
 
     def pool_listings(self, spawn: Spawn, todo: list[str]) -> dict[str, concurrent.futures.Future]:
@@ -127,21 +129,32 @@ class Legs:
             return f"not kept: {e}"
         return f"kept as {kept.name}"
 
+    #: What a DEFERRED plan returns when every case of its assembly is carried: that host does not start.
+    NO_HOST = object()
+
     def run_hosts(self, out: Outcome, run: Path, first: Path | None, spawn: Spawn, hosts_started: float,
-                  plan: dict[str, Path | None]) -> None:
+                  plan: dict[str, "Path | None | Callable[[], Path | None | object]"]) -> None:
         """The planned assemblies CONCURRENTLY, one host each, each printed through the one leg report
         (scripts/test_leg_report.py) in a fixed order whatever order they finished in. `plan` (`plan`, kb/Work PB5099,
-        PB5218) names each assembly that runs: None for its whole population, a retry file for its cases not yet passed;
-        an assembly it does not name (up to date, or every case carried) starts no host."""
+        PB5218) names each assembly that runs: None for its whole population, a retry file for its cases not yet passed,
+        or a DEFERRED plan (kb/Work PB4333: the program differential's capture), called in that host's own thread once
+        the others have started, which returns one of those or NO_HOST; an assembly it does not name (up to date, or every
+        case carried) starts no host."""
         asms = [a for a in GATED_ASSEMBLIES if a in plan]
-        self.say("build-local: " + (", ".join(f"{a} ({'whole population' if plan[a] is None else 'cases not yet passed'})"
-                                              for a in asms) or "no test host: nothing to run")
+
+        def how(p) -> str:
+            return "whole population" if p is None else "after its capture" if callable(p) else "cases not yet passed"
+        self.say("build-local: " + (", ".join(f"{a} ({how(plan[a])})" for a in asms) or "no test host: nothing to run")
                  + (" concurrently" if len(asms) > 1 else ""))
 
         stop_beat, finished = threading.Event(), []   # `finished`: appended by each host thread (list.append is atomic)
 
-        def one(asm: str) -> tuple[str, int, float, float]:
-            env = host_env(first, buildgraph.observation_log(run, asm), plan[asm], self.generations.handed(asm))
+        def one(asm: str) -> tuple[str, int | None, float, float]:
+            only = plan[asm]() if callable(plan[asm]) else plan[asm]
+            if only is self.NO_HOST:
+                finished.append(asm)
+                return asm, None, 0.0, time.monotonic() - hosts_started
+            env = host_env(first, buildgraph.observation_log(run, asm), only, self.generations.handed(asm))
             t = time.monotonic()
             rc = self.host.run_host(asm, run, env, spawn)
             finished.append(asm)   # at the host's own return, not at pool.map's submission-order yield (R1-2)
@@ -171,6 +184,8 @@ class Legs:
             return   # stopped by a RED audit (`_audits`): a killed host's log is no report, `_audit_red` ends the gate
         for asm in asms:
             rc, wall, fin = results[asm]
+            if rc is None:   # a deferred plan carried every case: no host ran, and the population check composes it
+                continue
             # THE ONE RULE for what a host prints (kb/Work PB1573): a green host its verdict line, a red one its
             # COMPLETE output. Its exit code is the host's verdict: 0 green, anything else red.
             rep = subprocess.run([sys.executable, str(REPO / "scripts" / "test_leg_report.py"), "--name", asm,

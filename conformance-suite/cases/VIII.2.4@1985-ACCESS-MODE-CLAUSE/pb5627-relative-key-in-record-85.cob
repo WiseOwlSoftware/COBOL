@@ -4,10 +4,12 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO 1989:2023 12.4.5.13.3 SR3 - "Data-name-1 shall not be defined in a record description entry
-      *> subordinate to the associated file-name." The relative key holds the record number the next I-O
-      *> statement is to use, so an item inside the record area would be overwritten by every READ.
-      *> Entry-only (kb/Work PB699); the citation is repaired here too - the old site said "12.4.5.13 SR3".
+      *> kb/Work PB5627. §1985:VIII.2.4.3 SR3 (cite.py: OK):
+      *> "Data-name-1 must not be defined in a record description entry
+      *> associated with that file-name." RL-RK lies inside RL-REC, the
+      *> record of RLF, so the RELATIVE KEY clause is refused under the
+      *> 1985 rule, not §2023:12.4.5.13.3 SR3. Fixed form: 85 defines no
+      *> free form (kb/Work PB5754).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5627F.
        ENVIRONMENT DIVISION.

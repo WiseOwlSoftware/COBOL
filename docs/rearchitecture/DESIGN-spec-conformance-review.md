@@ -2064,18 +2064,19 @@ was read at, which the importer is told with `--pin`; `slice`; `sources`, the SH
 `imported`, the SHA-256 of each part held, so a hand edit is red), and, written by subcommands only, `adjudication`
 (`verdict`, `reason`, `ref`, a tracked file) and `work` (the mechanism's kb/Work note). The reader's required fields are
 decided from the reader brief (`code_reads.reader_problems`): `rule-id` (a rule of the edition), `verdict` (the schema's
-vocabulary, plus the one word `UNDECIDED`: see the two acceptances below), `requirement`,
+vocabulary, plus the one word `UNDECIDED`: see the acceptances below), `requirement`,
 `code-location` (every site of the inventory's shape, `inventory_schema.witness_shape_error`, each optionally followed by a
 remark; empty only where the schema's `requires` of the verdict allows), `edition-consulted` (`site`, `switches`, a boolean `same-arm-as-latest`; an
 empty list needs `edition-search`), `behaviour-differs-by-edition`, `witnesses-cover`, `probes` (non-empty, each `class`,
-`file`, `printed`, `expected`), `citations` (non-empty, each `{cite, check}`, its `cite` parsed by `citation.py`, of the
-rule's own edition or of the edition the catalog's own citation of the rule names, the amendment's `§1989:`, and checked
-by `cite.resolve`), `notes`, `seeded` (a boolean); and for a non-conforming read `harm`, `cause` (a, b or c), `repro`,
+`file`, `printed`, `expected`), `citations` (non-empty, each `{cite, check}`, its `cite` parsed by `citation.py`, of a held
+edition and checked by `cite.resolve` in that edition's text; at least one of the rule's own edition, of the edition the
+catalog's own citation of the rule names, or the amendment's `§1989:`: see the third acceptance below), `notes`, `seeded` (a boolean); and for a non-conforming read `harm`, `cause` (a, b or c), `repro`,
 `expected`, `observed`, `known_note`, and `at-2023` for cause (b). The refuter's: `refutation` (UPHELD, OVERTURNED,
 DOUBTFUL), `classes`, `evidence`, `edition-sites-missed` (a list), and `corrected` for an overturn or a doubt.
 
-**Two acceptances beyond the inventory's shape** (the Mythos lane's decision of 2026-11-15, after the first import refused
-four of the sample's ten slices: nothing is read twice, and no fact is dropped). Everything else outside the shape still
+**Three acceptances beyond the inventory's shape** (the Mythos lane's decisions of 2026-11-15, after the first import refused
+four of the sample's ten slices: nothing is read twice, and no fact is dropped; the third of 2026-11-16, kb/Work PB5842,
+after the first full import refused six slices). Everything else outside the shape still
 refuses, naming the slice, the rule and the text.
 1. *A remark after a location.* A `code-location` entry may be `path#Member` (or a bare `path`) followed by white space and
    ONE parenthesised remark, balanced inside (`...IntrinsicCatalog.cs#IntrinsicCatalog (TAN row: Fixed 1..1, 'n')`);
@@ -2093,6 +2094,12 @@ refuses, naming the slice, the rule and the text.
    accepted as "no verdict": it owes no defect fields and no location, the record's outcome is `undecided` whatever the
    refuter says (a refuter's case on it is legal), it is counted with the undecided records, and `plan` still lists the
    row as owed a read. An adjudication still decides it. Every other word outside the schema's verdicts refuses.
+3. *A citation of another held edition.* A read whose defect is the same at a newer edition (the reader's cause "b") cites
+   that edition's rule beside the rule's own. The citation is parsed and checked (`cite.resolve`) against its own
+   edition's text exactly as the rule's own edition's is, and one that does not check is refused. A read must still carry
+   at least one citation of the rule's own edition, of the edition its catalog citation names, or of `§1989:`: a read
+   that cites only another edition judged nothing by the rule's own text, and is refused, naming the rule
+   (`code_reads.citation_problems`). A citation of an edition the repository does not hold is refused.
 
 **The outcome, one function** (`code_read_store.outcome`; the audit, the view and the planner ask it): `confirmed` (reader
 CONFORMS and refuter UPHELD, or an adjudication of CONFORMS); `contradicted` (reader not CONFORMS, or an adjudication of
@@ -2106,13 +2113,18 @@ is reported together and nothing is written when any slice is refused (a rule of
 a rule read twice, a malformed field, a refuter's case of no CONFORMS read, an orphan refuter's file); a second read of a
 recorded rule replaces it only with `--replace`, which says what it replaced; `--record` elsewhere is a dry run.
 `adjudicate --edition YEAR RULE --verdict V --reason TEXT --ref PATH [--work PBnnnn]` records what a tracked file
-decides. `work --edition YEAR RULE PBnnnn` names a record's mechanism note. `plan --edition YEAR [--witnessed] [--json]`
+decides. `work --edition YEAR RULE PBnnnn` names a record's mechanism note. `withdraw --edition YEAR RULE --reason TEXT`
+removes the rule's record through the store's writer and prints what it removed; it refuses a rule with no record and an
+empty reason, and the row is owed a read again. It is for a read defective as a read (a code location that resolves
+nowhere), never for a read someone disagrees with: that is `adjudicate`. `plan --edition YEAR [--witnessed] [--json]`
 lists the KEPT rows no confirmed or contradicted record decides (stale and undecided are still owed; `--witnessed` keeps
-those with a test-ref of their own): the population the campaign's slices are built from.
+those with a test-ref of their own), leaving out a KEPT row the view computes OK with no test-ref of its own, which is
+closed on a derivation of its own (`lineage.derivation_refusals`, kb/Work PB5822) and needs no code read; the view's count
+of rows owed is the plan's count: the population the campaign's slices are built from.
 
 **The audit** (`code_reads.py --check`, the gate's CODE READS and a step of CI's audits job) is RED on a record that does
-not parse to its shape, a rule the edition lacks, a citation that does not parse, is of another edition or does not
-check, a code-location of no inventory shape, a held part edited since its import, a digest or pin of the wrong shape, an
+not parse to its shape, a rule the edition lacks, a citation that does not parse, is of an edition the repository does not
+hold or does not check, a read with no citation of an anchoring edition (the third acceptance), a code-location of no inventory shape, a held part edited since its import, a digest or pin of the wrong shape, an
 adjudication whose `ref` is no file, and a contradicted record whose `work` is no note; stale, undecided and owed are
 printed. That every site still RESOLVES is the battery gate's, by the one predicate a row is held to
 (`SpecTraceabilityInventoryDriftTests.EveryCodeReadLocation_ResolvesInTheTree`, `SymbolResolves`): the inventory's own

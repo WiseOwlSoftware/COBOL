@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-SR-XIII.2.3.3-4",
+ "rule-digest": "b910692f3344",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-074",
+  "sources": {
+   "reader": "4e280ecb892567a1a70eba8a53575211af2f49a0afeef6f043c7ee194d7abde9",
+   "refuter": "bb40349bcbb5d0da945c3f118211db9163dddddb6816052f790a6399f6ca9150"
+  },
+  "imported": {
+   "reader": "2ccf029ed394e830629348713b221974ff6a1da2df447e0e7a3583627a114664",
+   "refuter": "4d3c8b00b4ad042134eb0db4eaf4d446f95bd81541081a7c4eed3e23dd619534"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.2.3.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "A report file's file control entry admits the clauses of the Sequential I-O module's file control entry at the level this implementation supports (level 2: SELECT [OPTIONAL], ASSIGN, RESERVE, [ORGANIZATION IS] SEQUENTIAL, PADDING CHARACTER, RECORD DELIMITER, ACCESS MODE IS SEQUENTIAL, FILE STATUS, in any order after SELECT), and nothing the Sequential I-O module does not print (indexed/relative organization, keys, RANDOM/DYNAMIC access, later editions' LOCK MODE/SHARING). The witness covers only ACCESS MODE and FILE STATUS on a non-report file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#EntryClauses; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPaddingCharacterClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLockModeClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+    "switches": "file.Padding.InEdition = Edition.DialectLevel < 2014: PADDING CHARACTER counts as a Format 3 (sequential) clause below 2014",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPaddingCharacterClause",
+    "switches": "PaddingCharacterRemoved2014: accepted at 85, refused from 2014",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLockModeClause",
+    "switches": "LOCK MODE / SHARING gated to their introducing edition (refused at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/InEdition in FileControlBinder.cs and FileControlKeyRules.cs; the ACCESS MODE SR2 screen and the Format-1/2 entry rules are edition-invariant (same arm), which matches the 1985 Sequential I-O format.",
+  "behaviour-differs-by-edition": "yes: at 85 PADDING CHARACTER is accepted (deleted from 2014) and LOCK MODE/SHARING are refused; the rest is the same arm.",
+  "witnesses-cover": "part: the witness has no report file; OPTIONAL, RESERVE, PADDING, RECORD DELIMITER on a report file and the refusal of indexed/relative/random forms are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/fc1.cob",
+    "printed": "exit 0; OPEN FS=05, CLOSE FS=00; FC1.TXT = 'HELLO' line; one COBOL1778 warning (RECORD DELIMITER accepted inert)",
+    "expected": "every level-2 Sequential I-O clause, in any order after SELECT, accepted for a report file; OPEN EXTEND of an absent OPTIONAL file succeeds"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/fcx_ORGANI.cob (fcx_ORGANI-001)",
+    "printed": "COBOL2604: the REPORT clause is not a clause of Format 2 (relative-or-indexed); plus COBOL1837, COBOL2714",
+    "expected": "refused: a report file has sequential organization (XIII.2.3.4 GR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/fcx_ACCESS.cob",
+    "printed": "COBOL1858: ACCESS MODE IS RANDOM may not be specified for a sequential file",
+    "expected": "refused: only ACCESS MODE IS SEQUENTIAL is in the format"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/fcx_ORGANI.cob (fcx_ORGANI-002, RELATIVE)",
+    "printed": "COBOL2604 (Format 2 relative-or-indexed)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/fcx_LOCKM.cob",
+    "printed": "COBOL0001: missing token before 'EXCLUSIVE'",
+    "expected": "refused: LOCK MODE is not a 1985 clause (diagnostic is a bare parse error, but the program is refused)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.2.3.3 SR4",
+    "check": "OK  §1985:XIII.2.3.3 SR4  (2.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "The rule is a pointer to the Sequential I-O module; the implementation provides level 2 and accepts every level-2 clause on a report file, in any order, and refuses the keyed/random forms and later-edition clauses. The only edition arms are PADDING CHARACTER (in edition below 2014) and the LOCK MODE/SHARING introduction gates, both correct for 1985. Diagnostics at 85 cite 2023 clause numbers, which is cosmetic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.2.3.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read XIII.2.3.2 format, SR1-SR4, GR4 and VII.2.3.2-2.6 (the Sequential I-O format the rule points to). Probes at --std 85 (refute-1985-074): p1_bare (bare SEQUENTIAL, STATUS without FILE, ACCESS without MODE IS, PADDING CHARACTER data-name, RESERVE 1 AREA, ASSIGN without TO, SELECT first and others in mixed order) exit 0, OPEN FS=00 CLOSE FS=00; p1_lineseq (ORGANIZATION LINE SEQUENTIAL on a report file) COBOL0900 refused; p1_relkey (RELATIVE KEY on a report file) COBOL0863 + COBOL0900 refused; p1_nostat (FILE STATUS PIC 99) COBOL2455 refused per VII.2.5.3 SR2. cite.py: OK §1985:XIII.2.3.3 SR4 'the text is in SR4'; OK §1985:VII.2.5.3 SR2 'the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-IX.2.4.3-1",
+ "rule-digest": "a2cabc116575",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-046",
+  "sources": {
+   "reader": "6a7549fbd4d57f686dea1cc5be349852eadfd6130b5348654b454c5ee83af605",
+   "refuter": "a01d34c378e6889baef00ddf26ad4565679549337ef74068668c568978c99cac"
+  },
+  "imported": {
+   "reader": "80476d818a8bee84b827a85a1c95c97730364ad4187094b43c70d99a24cd2989",
+   "refuter": "441eecdd53340d51a9e83c81acbfa7b80df32ab95cd05671abaf934573e63533"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.2.4.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an indexed file named in the USING or GIVING phrase of a SORT or MERGE statement must not have ACCESS MODE IS RANDOM in its file control entry (SEQUENTIAL, DYNAMIC or the omitted clause are legal); all four phrase positions (SORT USING, SORT GIVING, MERGE USING, MERGE GIVING) are covered.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode",
+  "edition-consulted": [],
+  "edition-search": "Grepped SortBinder.cs for DialectLevel/Edition.Year/CobolVersion: the two edition reads (line 517 RELEASE record range, line 927 MERGE reel rule) are off this path; SortMapIoFiles and MapAccessMode read no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "all of the rule's range at this edition except MERGE GIVING (pb994 covers SORT USING, SORT GIVING, MERGE USING); MERGE GIVING probed here.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c3sortg.cob",
+    "printed": "error COBOL1757: SORT USING/GIVING file 'IX' is described with ACCESS MODE IS RANDOM",
+    "expected": "refused (GIVING)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c3sortu.cob",
+    "printed": "error COBOL1757 ... (ISO §2023:12.4.5.5.2 SR1; §2023:14.9.40.3 SR12)",
+    "expected": "refused (USING)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c3mergeu.cob",
+    "printed": "error COBOL1757: MERGE USING/GIVING file 'IX' is described with ACCESS MODE IS RANDOM",
+    "expected": "refused (MERGE USING)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c3mergeg.cob",
+    "printed": "error COBOL1757: MERGE USING/GIVING file 'IX' ... RANDOM",
+    "expected": "refused (MERGE GIVING)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c3sortgdyn.cob",
+    "printed": "IX=BBBB222222 (exit 0)",
+    "expected": "DYNAMIC GIVING indexed file legal; sorted records keyed in"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c3sortuseq.cob",
+    "printed": "SQ=DDDD444444 (exit 0)",
+    "expected": "SEQUENTIAL USING indexed file legal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.4.3 SR1",
+    "check": "OK  §1985:IX.2.4.3 SR1  (2.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "One edition-invariant screen in SortMapIoFiles refuses a RANDOM-access file in either phrase of either verb; the 2023 rule is word-for-word the same sentence. Diagnostics cite §2023 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.2.4.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "1985 allows several GIVING files (§1985 XI SORT/MERGE, the substantive-change list items 77/96), which the reader's probes did not try. r3sortg2 SORT ... USING SQ GIVING S2 IX, r3sortu2 SORT ... USING SQ IX GIVING S2, r3mergeg2 MERGE ... GIVING IY IX, r3mergeu3 MERGE ... USING SQ S2 IX GIVING IY: each refused COBOL1757 naming IX (the RANDOM file in a non-first position). r3global: a GLOBAL FD IX (RANDOM) named in SORT GIVING inside a contained program -> COBOL1757. cite.py: OK  §1985:IX.2.4.3 SR1  (2.4.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

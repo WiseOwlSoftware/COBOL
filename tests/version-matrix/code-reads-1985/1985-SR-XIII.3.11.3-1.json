@@ -1,0 +1,111 @@
+{
+ "rule-id": "1985-SR-XIII.3.11.3-1",
+ "rule-digest": "ea202b7bc984",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-074",
+  "sources": {
+   "reader": "4e280ecb892567a1a70eba8a53575211af2f49a0afeef6f043c7ee194d7abde9",
+   "refuter": "bb40349bcbb5d0da945c3f118211db9163dddddb6816052f790a6399f6ca9150"
+  },
+  "imported": {
+   "reader": "fea3a4c8e41a2e30bcf5a87922e412bd560a6adea836dd7adef231c5239e373f",
+   "refuter": "0c25d563bb62e1735df5777b9ca9fe80dab11922b78c44dedf7f412c37d3fe58"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.11.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "A COLUMN NUMBER clause is refused on any report group entry that is not elementary (a group entry, including the 1985 format 1 level-01 entry) and on any elementary entry that neither contains a LINE NUMBER clause nor is subordinate to one that does; it is accepted otherwise. The witness covers the accepted forms only.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SubordinateToLineClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats",
+    "switches": "called only when DialectLevel < 2002: a level-01 (format 1) entry writing COLUMN is refused under §1985:XIII.3.9.3 SR3/SR4a",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause",
+    "switches": "report-multi-column-2002: PLUS, multiple integers, LEFT/CENTER/RIGHT and alternate spellings refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+    "switches": "the SR9 (subordinate-to-LINE) and SR11 (elementary-only) arms carry no edition test",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "read ScreenReportEntryClausePresence for Edition.DialectLevel (only SUM and the 2002 SR10/SR13/SR15/GI arms are gated); grep ReportMultiColumn2002.",
+  "behaviour-differs-by-edition": "yes: only the 1985 COLUMN NUMBER IS integer-1 form is accepted at 85; the placement rule itself is the same arm.",
+  "witnesses-cover": "part: the refusals (group entry, no LINE ancestry, sibling after a LINE subtree) are not exercised by the witness",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/col_ok.cob (col_ok-002)",
+    "printed": "exit 0; RGP.TXT ' AAA    12' / '   QQ'",
+    "expected": "COLUMN under a LINE entry and COLUMN in the LINE entry itself both accepted and placed at their columns"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/col_group.cob",
+    "printed": "COBOL2247: entry is a group entry and writes COLUMN (SR11)",
+    "expected": "refused: COLUMN only at the elementary level"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/col_noline.cob (col_noline-002)",
+    "printed": "COBOL2247: has a COLUMN clause but neither a LINE clause of its own nor an entry above it that has one",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/col_sibling.cob",
+    "printed": "COBOL2247: has a COLUMN clause but neither a LINE clause ... (sibling after a LINE subtree)",
+    "expected": "refused: not subordinate to the LINE entry"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/col_01elem.cob",
+    "printed": "COBOL2247: level 01 entry writes PICTURE, COLUMN, SOURCE; format 1 has none of them",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/col_plus.cob; col_multi.cob; col_right.cob",
+    "printed": "COBOL0900 for COLUMN PLUS, COLUMN 2 8 and COLUMN RIGHT: requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/col_ws.cob",
+    "printed": "COBOL1941: 'COLUMN' is not a clause of the data description entry",
+    "expected": "refused outside a report group"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.11.3 SR1",
+    "check": "OK  §1985:XIII.3.11.3 SR1  (3.11.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "Both sentences of the rule are enforced over the flat entry array by ancestry, edition-invariant, and the 85-only format arm adds the level-01 refusal. Messages cite §2023:13.15.3 at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.11.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read XIII.3.11.3 SR1 and the 1985 report group formats XIII.3.9.2/3.9.3 SR4 (three levels; format 2 = group with LINE and/or USAGE; format 3 elementary). Probes at --std 85: p3_f2usage (01 LINE / 05 USAGE DISPLAY group / 10 COLUMN; and 01 no LINE / 05 USAGE / 10 LINE+COLUMN) exit 0, output '  AAA' and '    ZZ' at columns 3 and 5; p3_f2noline (01 no LINE / 05 USAGE / 10 COLUMN) COBOL2247 refused; p3_f2col (format 2 group writing COLUMN) COBOL2247 group-entry refusal; p3_rows (COLUMN with SOURCE+GROUP INDICATE, VALUE, BLANK WHEN ZERO, JUSTIFIED, SIGN SEPARATE, SUM in CF FINAL) exit 0 with correct placement and group indication. cite.py: OK §1985:XIII.3.11.3 SR1; OK §1985:XIII.3.9.3 SR4d.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClauseTable: 85-only Table 1 (XIII.3.9.3 SR11) row check of an elementary entry's clauses, COLUMN among them; probed (p3_rows), admits COLUMN on every format 3 row tried, so no defect"
+  ],
+  "corrected": ""
+ }
+}

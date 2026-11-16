@@ -1,0 +1,90 @@
+{
+ "rule-id": "1989-AR-A.2.43.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-172",
+  "sources": {
+   "reader": "84d0113a32c3b8fb3c49ab99c300f3444f2d3302a70d38fd45e8dc74a96cf591",
+   "refuter": "09e383fce0d4367fa35e04683e772491663c171a175bc0fe5479f69627acfcff"
+  },
+  "imported": {
+   "reader": "0c4ad7d155ca99a3dba1cdc7e88b2a37078262cdf1c396d0d04a55f52ea647ad",
+   "refuter": "9ed209e51d666e10c41cb0a1cdf29752a6d58812b85365943379952d3e70436a"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.43.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 argument-1 of FUNCTION TAN must be class numeric (an arithmetic expression, §1989:A.2.2 AR1); every numeric form must be accepted and every non-numeric operand class refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CandidateClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntroducedIn (85 for TAN) against DialectLevel: admitted",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year); TAN's Uniform 'n' row has no predicates",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_tan_format is a positive run; l1-tan-class-numeric refuses PIC X and numeric-edited only",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_bad_tan.cob",
+    "printed": "COBOL1627 on all 10 lines (alphanumeric, numeric-edited, group, nonnumeric literal, SPACE, ALL literal, ref-mod, UPPER-CASE, HIGH-VALUE, alphabetic)",
+    "expected": "each refused (§1989:A.2.43.3 AR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_ok_trig_sum2.cob",
+    "printed": "T1=-000.577351 TAN(-0.5236), T2= 000.000000 TAN(0), T3= 000.684136 TAN(FUNCTION LENGTH(TBL) / 10)",
+    "expected": "accepted; tan values truncated to 6 places"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_ok_trig_sum2.cob",
+    "printed": "T3 uses LENGTH of an ODO group (N=3 -> 6) as a numeric function argument: tan(0.6)=0.684136",
+    "expected": "0.684136"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_edition_arm.cob",
+    "printed": "TAN (P1 ** 2) accepted (no diagnostic on line 12)",
+    "expected": "an 85 arithmetic expression is a legal numeric argument"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.43.3 AR1",
+    "check": "OK  §1989:A.2.43.3 AR1  (2.43.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   }
+  ],
+  "notes": "Same edition-invariant class screen as SIN and SQRT; no 1985-specific operand class is mis-sorted. Diagnostic cites §2023:15.89.3 r1 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.43.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Accept half (q_ok_forms-001): TAN(- SL) on SIGN LEADING SEPARATE -0.25 A3=0.255341 (tan 0.25 truncated), TAN(((NUM))) nested parentheses A9=0.546302 (tan 0.5). Refuse half (q_bad_forms-001): TAN(index-name TI) COBOL1637 (an index-name is no arithmetic operand; §1985:VI.6.2.1 lists none), TAN(LOW-VALUES) COBOL1627. Later forms (q_later_forms-001): TAN(PIC 1 boolean item) COBOL1627 class boolean plus COBOL0900 boolean requires 2002. cite.py: 'OK §1989:A.2.43.3 AR1 (2.43.3 Arguments) the text is in AR1'; 'OK §1989:A.2.2 AR1'; 'OK §1985:VI.6.2.1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

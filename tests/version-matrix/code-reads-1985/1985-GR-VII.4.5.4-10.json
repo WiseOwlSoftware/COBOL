@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-10",
+ "rule-digest": "b2457f0cc8ca",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-025",
+  "sources": {
+   "reader": "dde92b60efc95ce31baaefeae9939f4084f1f29d58a45aa253e056ad1595f3d9",
+   "refuter": "b321bae242d25139ede9cd256e0b6ef85dd3794fdec3ab640e6c64631d78fbf7"
+  },
+  "imported": {
+   "reader": "6c24587e2860499a49d3b05c340f54eccbf2b17bc2349395061217de45d2e610",
+   "refuter": "9b9c7e5c9fd7b29845a3cae776b91be2ae715f7c9ff034650438681c4046185c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.5.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "A sequential REWRITE whose record-name-1 has a different number of character positions from the record being replaced (fixed file with an explicit or implied record size, RECORD VARYING with or without DEPENDING ON, a record holding OCCURS DEPENDING ON) is unsuccessful with I-O status 44: the record on the file is not changed and the record area keeps its content.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RewriteLengthArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|Dialect|CobolVersion|IsActive over SequentialConnector.cs (Rewrite, RewriteRecord, RewriteRecordSequential, OverwriteInPlace), FileRegistry.cs lines 2671-2760 (RewriteShared, RewriteSharedInStatement), FileConnector.cs#MutationOpenModeGuard, SequentialIoEmitter.cs#RewriteLengthArg/EmitRewrite and FileModel.cs#RecordSizeVaries/ImpliesVariableFormat: none consult the edition. SequentialIoEmitter#NamedRecordEntry consults SelectWhenOnlyForFilePhraseStatements but returns before it for a file with no SELECT WHEN, which is every 1985 file.",
+  "behaviour-differs-by-edition": "no: one size comparison (len != CurrentRecord.Length) and one implied record format (D-FRA) at every edition",
+  "witnesses-cover": "part: pb1168_rs_rewrite_size_gr16 covers a shorter record-name-1 over a longer fixed record and an explicit RECORD CONTAINS larger than the record description; not exercised: RECORD VARYING DEPENDING ON (longer and shorter), an OCCURS DEPENDING ON record, the record area after the failure, the 43 that follows a failed REWRITE",
+  "probes": [
+   {
+    "class": "a,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/rw10size.cob",
+    "printed": "F-READ1=00 R2=[AAAAAAAAAA          ] F-R1-ON-REC1=44 AREA=[XXXXXXXXXX] F-R1-ON-REC2=44 AREA=[ZZZZZZZZZZYYYYYYYYYY] F-REC1=[AAAAAAAAAA          ] F-REC2=[BBBBBBBBBBBBBBBBBBBB] V-READ1=00 VL=10 V-12-ON-10=44 AREA=[QQQQQQQQQQQQ                  ] VL=12 V-10-ON-10-AFTER-FAIL=43 V-READ2=00 VL=07 V-7-ON-7=00 V-REC1=[VVVVVVVVVV] VL=10 V-REC2=[PPPPPPP] VL=07",
+    "expected": "unequal sizes: 44 with the record unchanged and the record area unaffected (GR10, VII.1.3.5 4d.2); equal sizes 00; after the unsuccessful REWRITE the last statement was not a successful READ, so 43 (GR2)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-025/rw6fpi.cob",
+    "printed": "V-READ-A=00 N=03 V-RW-WRONG-SIZE=44",
+    "expected": "an OCCURS DEPENDING ON record grown from 5 to 6 characters over a 5-character record: 44"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.4 GR10",
+    "check": "OK  §1985:VII.4.5.4 GR10  (4.5.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4d.2"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR13",
+    "check": "OK  §1985:VII.3.8.4 GR13  (3.8.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR1",
+    "check": "OK  §1985:VII.3.8.4 GR1  (3.8.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "A file with no RECORD clause and record descriptions of 10 and 20 characters is fixed at 20 (D-FRA), so WRITE R1 writes 20 characters and a REWRITE R1 of that record answers 44. That is GR10 applied to a 20-character record. 1985 leaves the record type implementor-defined (VII.3.8.4 GR13 makes even format 3 either fixed or variable, beside the same 'completely defined in the record description entry' wording as GR1), so I read it as latitude, not a defect. A refuter may want to weigh it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.5.4-10",
+  "refutation": "UPHELD",
+  "classes": "a,b,d",
+  "evidence": "The reader's open question (a file with no RECORD clause and records of 10 and 20 is fixed at 20, so REWRITE of the 10-character record is 44) is settled by explicit 1985 text: §1985:II.2.1.4.3 'it is implementor defined whether fixed length or variable length records are obtained' where no RECORD clause is specified or it specifies a range; the choice is documented (docs/conformance/7/DOC-A.1-147.md cites §1985:II.2.1.4.3), and under a fixed file II.2.1.4.1 lets every operation process only the one record size, so 44 is GR10 applied. Probes (refute-1985-025/src/rw10b.cob, rw10odo.cob, --std 85): RECORD VARYING DEPENDING ON: REWRITE FROM a 30- and a 3-character identifier with DLEN=8 over an 8-character record -> 00 and the file holds the 8 moved characters (size by data-name-1, VII.3.8.4 GR10a); DLEN=25 (over the maximum) -> 44, record unchanged; VARYING 10 TO 20 without DEPENDING: REWRITE of the 20-character description over a 10-character record -> 44, 10 over 10 -> 00, 10 over 20 -> 44 with the record area unaffected; format 3 RECORD CONTAINS 10 TO 20 gives variable records (II.2.1.4.3 latitude), 10 over 10 and 20 over 20 -> 00; ODO record with no RECORD clause (fixed at the 12-character maximum, VII.3.8.4 GR15): REWRITE at N=3 and N=4 over a 12-character record -> 00, consistent with the fixed choice. cite.py: OK §1985:VII.4.5.4 GR10; OK §1985:II.2.1.4.3 (2.1.4.3 Implementor-Defined Record Types); OK §1985:VII.3.8.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

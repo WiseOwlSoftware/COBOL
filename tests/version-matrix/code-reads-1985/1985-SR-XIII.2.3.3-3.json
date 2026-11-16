@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-XIII.2.3.3-3",
+ "rule-digest": "f86530250e99",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-073",
+  "sources": {
+   "reader": "1648f90507cba719c3e443f8f0b0e2de6ee890d2a44527f6ff625cbd51f59169",
+   "refuter": "f57489ea91dd4a858b11a93e9901d36bb0c1321db809946d27dc7dc869f597f8"
+  },
+  "imported": {
+   "reader": "ba9f9e856f50546f422e43ac8bf99628ace84fb6bf314a8d6401ac5ff009f0ee",
+   "refuter": "20243ff3d0c56c302ecb70243592fca0d5f6fe31f36fe790d0ee249328f80890"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.2.3.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 literal-1 of a report file's ASSIGN clause must be a nonnumeric literal that is not a figurative constant: a numeric literal and every figurative constant (SPACE, ZERO, QUOTE, HIGH-VALUES, ALL literal) are refused, while a nonnumeric literal and an implementor-name (with the implementor's rules for their content) are accepted.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignTarget; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Text; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen",
+    "switches": "sortMerge1985 (kind SortMerge and DialectLevel < 2002) suppresses the deferred numeric/figurative findings for a 1985 SD entry only; a report file is not sort-merge, so the findings are reported as at 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "AssignTargetRule.Text records the numeric-literal and figurative-constant findings on FileModel.EntryShapeFindings and reports the non-alphanumeric/zero-length ones directly; the only edition read is in Screen (sortMerge1985). Grepped AssignTargetRule.cs and FileControlKeyRules.cs for DialectLevel|Year|ConstructRegistry.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1078 covers \"\" and SPACE (free form); a numeric literal, ALL literal, QUOTE, ZERO and HIGH-VALUES, and the report-file entry, are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r6literal.cob",
+    "printed": "COBOL2645 on each: ASSIGN TO 123 (shall be an alphanumeric literal), SPACE, ALL\"X\", QUOTE, ZERO, HIGH-VALUES (shall not be a figurative constant)",
+    "expected": "refused: literal-1 must be nonnumeric and not a figurative constant"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r7legalassign.cob",
+    "printed": "A=00 B=00 EXPECT: MATCH; files R7A.RPT (DISK \"R7A.RPT\") and r7bout.txt (implementor-name R7BOUT) written",
+    "expected": "accepted: a nonnumeric literal and an implementor-name, contents defined by the implementor"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/r1anyorder.cob",
+    "printed": "R1ORDER.RPT holds HELLO",
+    "expected": "the nonnumeric literal names the physical file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.2.3.3 SR3",
+    "check": "OK  §1985:XIII.2.3.3 SR3  (2.3.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The 2023-shaped screen refuses exactly the 1985 forms here; its deferral exists only to spare the 1985 SD entry, which this rule does not reach. The message cites §2023:12.4.5.2 SR4 at --std 85. The implementor-name mapping (R7BOUT -> r7bout.txt, DISK + literal) is the implementor's latitude the rule grants.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.2.3.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 (--compile-only), report file ASSIGN TO: X\"54312E525054\" refused COBOL0900 (hexadecimal literal is COBOL-2002); N\"T2.RPT\" refused COBOL2645 + COBOL0900; LOW-VALUE, ZEROES, SPACES, QUOTES each refused COBOL2645 'shall not be a figurative constant'; -1 and 1.5 refused COBOL2645 'shall be an alphanumeric literal'; \"T7.RPT\" ZERO refused COBOL2645 for ZERO (and COBOL2256, the documented one-operand implementor limit, docs/conformance/7/DOC-A.1-71.md, outside SR3); USING WN refused COBOL0900 (2002 phrase). 'Literal-1 must be a nonnumeric literal and must not be a figurative constant' (OK §1985:XIII.2.3.3 SR3). The reader's r7 covers the accepted nonnumeric literal and implementor-name. Message cites §2023:12.4.5.2 SR4, quality only.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

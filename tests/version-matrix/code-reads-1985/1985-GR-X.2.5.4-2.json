@@ -1,0 +1,115 @@
+{
+ "rule-id": "1985-GR-X.2.5.4-2",
+ "rule-digest": "cd6159961e43",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-031",
+  "sources": {
+   "reader": "c483a0a7abaab3fed39c53ce0790c2b589619f0a6304599e1414a759780b8b38",
+   "refuter": "a60a1852ac7f090aaba1d031ca11da70996c6b1ccb0bce18cf63bebe43108ba8"
+  },
+  "imported": {
+   "reader": "3fab0829cd515f00d2e563053d609b9294a17716d47517199424b2953930cfe1",
+   "refuter": "ebe4e4828507c5f723a3923a731e046eb582e8b13cd9f4921395049a2b40ee1f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.2.5.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an END PROGRAM program-name header must end exactly the named source program: what follows belongs to its container (a sibling contained program or the container's own end header) or, after an outermost program, to a separately compiled program; so names and program-name scope end at the header, and a header that does not end the program it stands after (wrong name, out of order, the 2002 END FUNCTION form) is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#ContainedFollowProcedureDivision",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#ContainedFollowProcedureDivision",
+    "switches": "Year >= 2002: a program containing programs must have a procedure division; at 85 (§1985:X.2.3.1 prints [ procedure-division ] [ source-program ] … as separate brackets) it need not",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Year|DialectLevel|ConstructRegistry over EndMarkerPass.cs (none: its SR1/SR2/SR3 screen is edition-neutral and matches §1985:X.2.5.3 SR2/SR3 and X.2.3.2 SR1), SourceUnitShape.cs (the one arm above) and the grammar rules (no predicate on programUnit/nestedProgram/endProgramHeader).",
+  "behaviour-differs-by-edition": "yes: at 85 a container needs no procedure division before its contained programs (accepted at 85, COBOL2274 at 2023); the meaning of the end program header itself is the same",
+  "witnesses-cover": "part: the witness covers two sibling contained programs and a separately compiled program after the outer end header; not exercised there: the refusal half (wrong name, reversed headers, a statement after a contained program's header, END FUNCTION), program-name scope ending at the header, and the 85-only container without a procedure division",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p11a_end_wrong_name.cob",
+    "printed": "error COBOL2793: the end marker names 'P11X', but the program-name declared in the PROGRAM-ID paragraph it ends is 'P11A'",
+    "expected": "§1985:X.2.5.3 SR2: the program-name must be identical to a declared program-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p11b_end_out_of_order.cob",
+    "printed": "error COBOL2793 (x2): the end markers of nested programs are out of order",
+    "expected": "§1985:X.2.5.3 SR3: the inner program's end header must precede the container's"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p11c_stmt_after_end.cob",
+    "printed": "error COBOL0001: unexpected 'DISPLAY'",
+    "expected": "§1985:X.2.5.4 GR3: after a contained program's end header the next statement must be an Identification Division header or another end program header"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p11e_end_function.cob",
+    "printed": "error COBOL2274: END FUNCTION cannot close a program definition",
+    "expected": "the 85 format is END PROGRAM program-name only"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p11f_no_end_then_next.cob",
+    "printed": "error COBOL2793: PROGRAM-ID 'P11FA' precedes another source unit, so its end marker END PROGRAM P11FA shall be present",
+    "expected": "without the header P11FA has not ended (X.2.2), so P11FB would be contained and lacks the header X.2.3.2 SR1 b requires: nonconforming either way"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p11g_sep_after_nested.cob",
+    "printed": "GI INN / GS CANNOT CALL GI",
+    "expected": "after END PROGRAM P11GO, P11GS is separately compiled, so the non-common P11GI contained in P11GO is not callable from it (X.1.3.8.1 (1)): CALL takes ON OVERFLOW"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p11d_no_procdiv_container.cob",
+    "printed": "--std 85 compile-only: EXIT 0; --std 2023: error COBOL2274 ... shall have a procedure division",
+    "expected": "§1985:X.2.3.1 admits [ procedure-division ] and [ source-program ] … as separate optional items"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/10.7-End-markers/l1c08_end_marker_closes_unit.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.5.4 GR2",
+    "check": "OK  §1985:X.2.5.4 GR2  (2.5.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:X.2.5.4 GR3",
+    "check": "OK  §1985:X.2.5.4 GR3  (2.5.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.2.5.3 SR3",
+    "check": "OK  §1985:X.2.5.3 SR3  (2.5.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The grammar closes the innermost open unit at each endProgramHeader and EndMarkerPass.ScreenProgram refuses a header whose name is not that unit's (wrong or reversed), so a header always ends the program it names; the next ID DIVISION is a sibling or a separate program. Every probe behaved as the 1985 text requires; diagnostics cite §2023:10.7.3 though the 85 rules are X.2.5.3.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.2.5.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85: r6a_no_id_header_after_end (a contained sibling after END PROGRAM R6AA begins at PROGRAM-ID with no IDENTIFICATION DIVISION header; GR3 demands that header at 85): refused COBOL0900 'a source unit without the IDENTIFICATION DIVISION header requires COBOL-2002' (an 85 arm the reader did not list, on the source-unit header path; correct). r6b_stmt_after_outer_end (PROCEDURE DIVISION after the outermost END PROGRAM; GR4): refused COBOL0001. r6c_lowercase_name ('end program r6ci.' for PROGRAM-ID R6CI): accepted, runs, I (case-equivalent words). r6d_no_period (END PROGRAM R6DI without its separator period, which the 85 format prints): refused COBOL0001. r6e_outer_end_missing (outer program containing one, its header absent at EOF; GR1): refused COBOL2793. r6f_global_scope_ends (a separately compiled program after END PROGRAM R6FO references R6FO's GLOBAL GG): refused COBOL1639, so names end at the header. cite.py: OK §1985:X.2.5.4 GR1; OK GR2; OK GR3; OK GR4.",
+  "edition-sites-missed": [
+   "the source-unit header check that emits COBOL0900 'a source unit without the IDENTIFICATION DIVISION header requires COBOL-2002': refuses the header-less form at 85 and admits it from 2002 (the reader's edition-consulted list names only SourceUnitShape.ContainedFollowProcedureDivision); its 85 arm is correct"
+  ],
+  "corrected": ""
+ }
+}

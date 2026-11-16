@@ -1,0 +1,131 @@
+{
+ "rule-id": "1985-FMT-VI.5.4.2",
+ "rule-digest": "a2ce25c33c05",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-001",
+  "sources": {
+   "reader": "0c9a101a853299950da8ce65771ad4138dfc395bfc0d780926bc926c1571ee99",
+   "refuter": "89a5772153a1525e6bece1230b6ae73722ec02060ca3c355cceb464de2407340"
+  },
+  "imported": {
+   "reader": "c802d3301d575f07c2c3fa44d266b4ce56aa5ef7b1c5540a684dff05d6963d6b",
+   "refuter": "81ff49f39c1dbcd5734c321367f04fb1fc84bd2d49e3febba0485c2f71dfc387"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VI.5.4.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept BLANK [WHEN] ZERO (WHEN optional, the key word ZERO only) once per entry on an elementary numeric or numeric-edited display item and blank the item when its value is zero, and refuse ZEROS/ZEROES, a missing ZERO, a missing BLANK, a repeated clause and the subjects SR1/SR2 exclude; the witness covers only the ZERO spelling refusal.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blankWhenZeroClause; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#FigurativeSpellingMessage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#BlankWhenZeroViolation; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckClauseSubjectsPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+    "switches": "below 2002 the 'S' symbol beside BLANK WHEN ZERO is accepted (§1985:VI.5.4.3 SR1 takes any numeric PICTURE, kb/Work PB5191) and the '*' refusal cites §1985:VI.5.9.3 SR7; from 2002 both are refused",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition|IsActive over DataBinder.ClausePlacement.cs, CheckClauseSubjectsPass.cs (only SynchronizedViolation is edition-keyed) and the grammar rule; grep BLANK WHEN ZERO with edition/1985 over the compiler",
+  "behaviour-differs-by-edition": "no for the format; yes for its subject: PIC S9(3) BLANK WHEN ZERO compiles at 85 and is COBOL1934 at 2002 and 2023",
+  "witnesses-cover": "part: only the ZEROS/ZEROES refusal; the WHEN-less spelling, the blanking behaviour and the other refusals are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bz1.cob",
+    "printed": "zeros: [   ][      ][   ][    ][    ]; nonzero: [005][  5.00][005][  -5][0001]; MOVE ZERO/ZEROS/ALL \"0\": all blank; MOVE 0.4 to PIC 9(3) BWZ: [   ]",
+    "expected": "spaces when zero (GR1), digits otherwise; BLANK ZERO without WHEN accepted; clause before PICTURE accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzs1.cob",
+    "printed": "85: [   ] then [003]; 2002 and 2023: COBOL1934 'S' beside BLANK WHEN ZERO",
+    "expected": "85: legal per §1985:VI.5.4.3 SR1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzr1.cob",
+    "printed": "COBOL2418 unexpected 'ZEROS' ... requires the keyword ZERO",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzr2.cob",
+    "printed": "COBOL2418 unexpected 'ZEROES'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzr3.cob",
+    "printed": "COBOL5506 missing token before '.' ... expected ZERO",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzr4.cob",
+    "printed": "COBOL1941 unexpected 'WHEN'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzr5.cob",
+    "printed": "COBOL2405 BLANK WHEN ZERO only for numeric/numeric-edited",
+    "expected": "refused (SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzr6.cob",
+    "printed": "COBOL2405 usage display ... this item's usage is BINARY",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzr7.cob",
+    "printed": "COBOL2403 only at the elementary level",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzr8.cob",
+    "printed": "COBOL2423 the clause 'BLANK WHEN ZERO' is written 2 times",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-001/bzr9.cob",
+    "printed": "COBOL5506 unexpected 'IS'",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.4.3 SR1",
+    "check": "OK  §1985:VI.5.4.3 SR1  (5.4.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.4.3 SR2",
+    "check": "OK  §1985:VI.5.4.3 SR2  (5.4.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.5.4.4 GR1",
+    "check": "OK  §1985:VI.5.4.4 GR1  (5.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The format is right at 85. Lead for the GR2 row, not this one: at 85 PIC S9(3) BLANK WHEN ZERO given -3 displays [003] and IF X < 0 is false (bzs2.cob), while a plain S9(3) holds -003; the 1985 text makes the item numeric edited (GR2) and leaves the S's meaning open, so the sign loss deserves its own adjudication.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VI.5.4.2",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "At --std 85 (bz_a.cob etc. in E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-001/): VALUE ZERO on PIC 9(3) BWZ shows [000] and on ZZ9.9 [00000] (cite.py OK  §1985:VI.5.15.4 GR1c 'Initialization is not affected by any BLANK WHEN ZERO'); scaled 9PP given 50 -> [ ] and 500 -> [5]; PPP9 given 0.00001 -> [ ], 0.0001 -> [1]; COMPUTE 7-7 -> [   ]; COMPUTE 999+1 ON SIZE ERROR -> SIZE and the item unchanged; MOVE -0 to 9(3)CR BWZ -> blank, -12 -> [012CR]; 0.001 into 9V99 BWZ -> blank (cite.py OK  §1985:VI.5.4.4 GR1). VALUE 0 (numeric literal) on 9(3) BWZ refused COBOL0900, which is right at 85 since GR2 makes it numeric edited and §1985:VI.5.15.4 GR1b (cite.py OK) requires nonnumeric literals. Refusals: bz_b.cob group USAGE COMP child with BWZ refused (COBOL0881, misleading text but SR2 enforced, cite.py OK §1985:VI.5.4.3 SR2); bz_c.cob '*' with BWZ COBOL1934; bz_d.cob BWZ+JUST COBOL2405; bz_e.cob USAGE INDEX and PIC X(3) subjects COBOL2405. ZEROS/ZEROES refusal stands: the 1985 format prints only the key word ZERO.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

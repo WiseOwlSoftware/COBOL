@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-X.1.3.7-2",
+ "rule-digest": "0d8f361d11d3",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-031",
+  "sources": {
+   "reader": "c483a0a7abaab3fed39c53ce0790c2b589619f0a6304599e1414a759780b8b38",
+   "refuter": "a60a1852ac7f090aaba1d031ca11da70996c6b1ccb0bce18cf63bebe43108ba8"
+  },
+  "imported": {
+   "reader": "f6b4687a5cf440177afe48114e7e7015178af7ec83316348fd0fdb6aede925c7",
+   "refuter": "b14f522e41e60a19de53ac2dcdaa087568d0234bf9e4b3fb66815faeabd7f135"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.1.3.7-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a program contained directly or indirectly in another must reach the container's (or any further container's) file connector through a GLOBAL file-name, so that OPEN/CLOSE/READ/WRITE by either program act on ONE connector (open mode, position, status and record area shared, LINAGE-COUNTER global when the FD has LINAGE), for every organization (sequential, relative, indexed) and access mode, while a non-global file-name of a container is not reachable and a contained program's own same-named file is a separate connector.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#Seed; src/WiseOwl.Cobol.Compiler/Binding/InheritedGlobals.cs#AddContainerFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBindState.cs#VisibleFiles; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|CobolVersion|ConstructRegistry|DialectBehavior over InheritStep.cs, InheritedGlobals.cs, DataBindState.cs and LinkageBinder.cs#CallBindExternalAndGlobal; BinderDriver.cs#Bind's per-program connector key (unit.RegistryKey + '::' + name) carries no edition test. The child's bound verbs hold the container's shared FileModel, so the runtime connector is one at every edition. The 85-specific INVALID KEY / AT END requirement (COBOL6826, §1985:VIII/IX SR) is a separate statement rule and counted a USE GLOBAL procedure of the container as applicable.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers sequential files only (direct and indirect container); not exercised there: relative and indexed organizations, a contained program closing/reopening the container's connector, the statement after a FAILED open, global LINAGE-COUNTER, USE GLOBAL, the refusal of a non-global file and local hiding",
+  "probes": [
+   {
+    "class": "e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p4_share_files.cob",
+    "printed": "OUT MF OPEN=35 / IN RLF WRITE=00 / IN XF WRITE=00 / IN LINAGE-COUNTER=3 / IN MF READ=47 / IN XF CLOSE=00 / OUT RLF READ 3=00 R003 / OUT XF AFTER INNER=00 / OUT XF READ K1=00 D2",
+    "expected": "inner (two levels in) writes relative (dynamic) and indexed (random) files the outer opened; reads the global LINAGE-COUNTER (1 at OPEN + 1 + 1 = 3); READ on the connector whose OPEN failed (35) gives 47; inner CLOSE and re-OPEN OUTPUT of the indexed connector is seen by the outer (its CLOSE succeeds, record D2 read back)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p5a_nonglobal_file.cob",
+    "printed": "error COBOL1639: 'NREC' is not defined / error COBOL1639: 'NF' is not defined as a file",
+    "expected": "a non-global file-name and its record are not reachable from a contained program"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p5b_use_global.cob",
+    "printed": "USE GLOBAL XF 22 / IN AFTER DUP 22",
+    "expected": "the container's USE GLOBAL AFTER STANDARD ERROR on the shared connector runs for the contained program's duplicate-key WRITE (status 22)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p5c_local_file_hides.cob",
+    "printed": "IN OS=   / OUT OPEN 35 / OUT      47",
+    "expected": "the contained program's own FD SF is a different connector (its WRITE does not create the outer's file): the outer's OPEN INPUT of its never-written file fails 35 and its READ gives 47"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/9.1.5-Sharing-file-connectors/l1c11_global_file_common_connector.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.1.3.7 GR2",
+    "check": "OK  §1985:X.1.3.7 GR2  (║1.3.7 Sharing Files║)  the text is in GR2"
+   }
+  ],
+  "notes": "A container's GLOBAL FileModel is recorded in the contained unit's InheritedGlobals and found through DataBindState.VisibleFiles; the bound verbs hold the owner's FileModel, whose runtime key is qualified once by the owner, so every program reaches one connector. Every organization probed shares state as required; the path is edition-neutral.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.1.3.7-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e,f",
+  "evidence": "Probes at --std 85: r2a_status_nonglobal (GLOBAL FDs whose FILE STATUS items LS/HS are NON-global in the container; the inner program OPENs INPUT a missing file and WRITEs an indexed sequential file out of key order): IN SEQ ERR / OUT LS=35 HS=21 / OUT HREC=B1D1 HS=00 / OUT EOF HS=10: the container's status items are updated by the contained program's I/O on the one connector. r2e_relkey_nonglobal (GLOBAL relative random file, RELATIVE KEY a non-global container item set by the container, READ by the inner): IN GOT BBBB / OUT RS=00 RREC=BBBB / IN INVALID / OUT RS=23. r2b_sd_global: SD ... GLOBAL refused COBOL1970 (the 85 SD format has no GLOBAL; X.4.6.3 SR1 names file description entries). r2c_same_record_area_global: GLOBAL FD under SAME RECORD AREA refused COBOL2738 (X.4.6.3 SR3). cite.py: OK §1985:X.1.3.7 GR2; OK §1985:X.4.6.3 SR3. (The 85-only INVALID KEY requirement COBOL6826, §1985:VIII.4.9.3 SR3, fired on an early draft and is a separate rule.)",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

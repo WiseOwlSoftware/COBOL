@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VI.6.22.4-8",
+ "rule-digest": "1cca15029a1e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-112",
+  "sources": {
+   "reader": "8f802580a88c911ec6d56f6023b7c440e54bde1edb428b3440113771717f7829",
+   "refuter": "1b03a63a95ca9f894a10cb97c9351fdb30a86649ceb1f21d45d6872f18d746d0"
+  },
+  "imported": {
+   "reader": "63c1333aeed615b0935d71f6e3e935111113f43ef299edc1edd0eb93bcf3a6f9",
+   "refuter": "ba3f1e20e1defb06a4021166499cc92969429f64feba39fced22ad2e68d02dc3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.22.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "In a format 1 SEARCH VARYING, the compiler must use index-name-1 as the search index when it is an index-name of identifier-1, else the first index-name of identifier-1; and must increment in step a VARYING index-name of another table by one occurrence (GR8a), a VARYING index data item by the same amount as the search index, and a VARYING integer data item by one (GR8b), leaving the table's other index-names unchanged; SR2's operand class and first-index-subscript ban are the refusal half.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSerialScan; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#Screen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch",
+    "switches": "DialectBehavior.SearchIndexBelowTableUnsuccessful (start-test lower bound only)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#Screen",
+    "switches": "nothing: the EditionContext is the diagnostic sink only",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read BindSearch's VARYING arm (same-table index, other-table index SetIndexTarget, data item SetPlaceTarget) and EmitSerialScan's in-step AugmentSetTarget(+1); grepped both files for Edition/DialectBehavior/CobolVersion.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf15_07 and the l1 witnesses cover a successful search with each VARYING operand class; not exercised: an AT END search with VARYING another table's index, a table of different element size, an index data item set from another table's index, signed/COMP/negative identifier-2, a subscripted identifier-2, PIC 9 wrap, an ODO table, and the SR2 refusals",
+  "probes": [
+   {
+    "class": "a,b,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/srchvar.cob (P2-P8)",
+    "printed": "P2 IA=05 IB=01 IC=03; P3 IA=03 JX=06 JY=09; P4 AT END IA=06 JX=04; P5 IA=04 XD-AS-JX=08; P6 IA=05 NC=+0001; P6B IA=04 NS=+00; P7 NE=102230; P7B N9=1; P8 AT END OX=05 OY=04",
+    "expected": "VARYING IC is the search index, IA IB unchanged; JX advances with IA occurrence for occurrence (GR8a), JY unchanged; XD advances by the same amount (GR8b); integer items +1 per increment (-3+4=1, -2+2=0, 20+2=22, 8+3 truncated to 1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/srchref.cob",
+    "printed": "COBOL2325 for VARYING PIC 9V9 and PIC X(2); COBOL2325 for VARYING NE (IA) subscripted by the first index-name; COBOL2075/COBOL0900 for subscripted identifier-1",
+    "expected": "§1985:VI.6.22.3 SR2 and SR1 refusals"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/srchvar-002",
+    "printed": "EXPECT: MATCH at --std 2023",
+    "expected": "no edition difference"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.22.4 GR8a",
+    "check": "OK  §1985:VI.6.22.4 GR8a  (║6.22.4 General Rules║)  the text is in GR8a"
+   },
+   {
+    "cite": "§1985:VI.6.22.4 GR8b",
+    "check": "OK  §1985:VI.6.22.4 GR8b  (║6.22.4 General Rules║)  the text is in GR8b"
+   }
+  ],
+  "notes": "Indexes are occurrence numbers in this implementation, so the in-step +1 of another table's index or an index data item is the same amount as the search index's increment. Diagnostics at --std 85 cite §2023 clause numbers (cosmetic, not this rule). The PIC 9 wrap (8 -> 1 after three increments) follows the truncating arithmetic the text leaves unstated.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.22.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,f",
+  "evidence": "refute-1985-112/src/srch2d.cob at 85 and 2023: P4 SEARCH C3 VARYING RX (RX is the index of the CONTAINING table R3, i.e. 'another table entry'): CX used as the search index, found 'c' at CX=3, RX advanced in step 1->3 (twice), CY=3 unchanged (GR8a); P5 VARYING N5 with the first test true: N5 stays 0, IB unchanged (no increment before a satisfied condition); P6 VARYING IB (second index of identifier-1) started at 6 > 5: immediate AT END, IA=1 untouched, IB=6. cite.py: OK  §1985:VI.6.22.4 GR8a  the text is in GR8a.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-1",
+ "rule-digest": "e3c2e552c11b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-086",
+  "sources": {
+   "reader": "6a96a82bff65079e8e01d9c2900e21b9ccf2e439b3182b3151de0caa9ffc2dd9",
+   "refuter": "84eead25e060f896dd9a49671c4967dbabf36eb95ce5e2b18c300c9c60583088"
+  },
+  "imported": {
+   "reader": "abebd1e657470b09cb8edd2750d0ada02e243d07f738a67844816d328e9f5a51",
+   "refuter": "bdec581804d94787ccb5be58f59e867d7c82bfd2c25c189a22928ec669afd513"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 [ALL] ZERO/ZEROS/ZEROES is the numeric value 0 when associated with a numeric or numeric-edited item (MOVE, compare, arithmetic, VALUE) and one or more '0' characters otherwise, sized to the associated item (GRL2.1) or one character when unassociated (GRL2.2); the word ALL is redundant (SRL3.3), so ALL ZERO is also admitted where a numeric literal is required (SRL3.1); ZERO is refused to an alphabetic receiver (§1985:VI.6.19.4 GR3 b).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#Classify; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#Fill; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric",
+    "switches": "ConstructRegistry FigurativeAllZeroNumericRemoved2002: ALL ZERO in a numeric-restricted position (VALUE of a numeric item, arithmetic operand) admitted at 85, COBOL0902 at 2002 and later",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (ZERO, ZEROS, ZEROES, ALL rows)",
+    "switches": "reserved at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: ALL ZERO where a numeric literal is required is legal at 85 (ALL redundant, §1985:IV.4.2.2.2.3 SRL3.3) and refused from 2002 (COBOL0902); the ZERO value and fill are one path",
+  "witnesses-cover": "part: the witness exercises ZERO against numeric and alphanumeric items; ALL ZERO in numeric-restricted positions, edited/COMP/18-digit receivers, ODO and reference-modified receivers and the alphabetic refusal are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/g85_bf02_01.cob",
+    "printed": "MATCH (witness)",
+    "expected": "witness output"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/z1.cob",
+    "printed": "XV [000] NV [000] XA [00000]; N4 [0000] S4 [+000.0] C4 [+0000] E5 [  0.00]; X3 [000]; AE [0 0]; G [0000]; OG [000  ] (ODO 3 then 5); C1 EQ C2 NE C3 EQ C4 EQ C5 EQ; N4 [0007] S4 [-001.0]; D [0] [0]; T [A0B   ] P [04]; INSPECT -> X3 [AB0]",
+    "expected": "numeric 0 to numeric/edited, '0' repeated to alnum/group/alnum-edited, one char when unassociated (DISPLAY, STRING)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/z2.cob",
+    "printed": "error COBOL0819: the figurative constant ZERO shall not be moved to an alphabetic data item",
+    "expected": "§1985:VI.6.19.4 GR3 b refusal"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/z3.cob",
+    "printed": "C1 LE (-999999999999999999 > ZERO false); B18 [+000000000000000000] C18 [+000000000000000000] X18 [000000000000000000] NE [                 0]",
+    "expected": "largest 1985 numeric item (18 digits) zeroed"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-086/z4.cob",
+    "printed": "85: exit 0, N3 [005] N4 [0005], C1 NE C2 GE; 2023: COBOL0902 on VALUE ALL ZEROS and the two arithmetic ALL ZERO operands",
+    "expected": "ALL ZERO admitted in numeric positions at 85 only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GR1",
+    "check": "OK  §1985:IV.4.2.2.2.3 GR1  (4.2.2.2.3 Figurative Constant Values)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GRL2.1",
+    "check": "OK  §1985:IV.4.2.2.2.3 GRL2.1  (4.2.2.2.3 Figurative Constant Values)  the text is in GRL2.1"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3",
+    "check": "OK  §1985:IV.4.2.2.2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in the clause; it lies in SRL3.3"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3",
+    "check": "OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "ZERO binds to BoundFigurative('Z') whose fill is '0' in every context; numeric receivers take the numeric value through the MOVE/arithmetic paths. PERFORM ZERO TIMES is refused, which agrees with 1985: integer-1 is not 'literal' in the format and the 1985 definition of integer is a numeric literal. S4/C4 DISPLAY shows a leading +, a DISPLAY rendering matter outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attack on ZERO against numeric-edited items, which the reader's requirement folds into 'numeric value 0' but 1985 compares as nonnumeric (§1985:VI.6.3.1.1.1 applies only to class numeric). src/z_edit.cob at 85: MOVE ZERO TO ZZ9.99 -> '  0.00', IF E5 = ZERO NE; 999.99 '000.00' = ZERO NE; ZZZ '   ' = ZERO NE both orders; PIC 999 BLANK WHEN ZERO -> spaces; 9PP and PP9 VALUE ZERO = ZERO EQ. All agree with ZERO as '0' characters in a nonnumeric comparison and numeric value 0 in a MOVE (§1985:VI.6.19.4 GR3). src/z_value.cob: VALUE ZERO on ZZ9.99 -> '000000', on XBX -> '000', group VALUE ZERO -> '0000': unedited initialization as §1985:VI.5.15.4 GR1b requires ('have no effect on initialization of the data item'). Reader's z4 covers the 85-only ALL ZERO arm. cite.py: OK §1985:IV.4.2.2.2.3 GR1; OK §1985:VI.6.3.1.1.1 'For operands whose class is numeric, a comparison is made with respect to the algebraic value'; OK §1985:VI.5.15.4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

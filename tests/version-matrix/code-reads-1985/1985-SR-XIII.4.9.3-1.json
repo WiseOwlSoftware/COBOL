@@ -1,0 +1,122 @@
+{
+ "rule-id": "1985-SR-XIII.4.9.3-1",
+ "rule-digest": "5869b4ab1c2a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-080",
+  "sources": {
+   "reader": "f703bafc36b3227b4c578b07a3e6a16ad81a96c464f4b30caf0eefd646b3f18b",
+   "refuter": "3df0a3407bf807dd061238dfffcd1f6710442b1e15c2b8d8c9e2d7232e6bc4ad"
+  },
+  "imported": {
+   "reader": "16d94ec210b32a43f986d26e9d7da3bd22c532f839aa08e4c987795deb9fc5ce",
+   "refuter": "1d9f49607dc78a968fabcc5e03d826dcabbf79650196216072efb101e12afe7b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.9.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a USE BEFORE REPORTING statement must be the first sentence of a declarative section, alone in that sentence, and the rest of the section zero or more paragraphs: the compiler must refuse it in the nondeclarative portion, after the section's first sentence, inside a paragraph, or sharing its sentence with another statement, and accept a section with zero paragraphs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#InDeclarative",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeclarativeSection",
+    "switches": "GateLeadingSentences: a sentence after the USE and before the first paragraph-name is a 2002 introduction, refused at 85 with COBOL0900 (in addition to COBOL2377 for a second USE there)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "only DEBUGGING/F3/F4/AFTER/PROCEDURE shapes; the BEFORE REPORTING format passes ungated at 85 (GLOBAL included, 1985 IPC module X.5.6)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 a further sentence before the first declarative paragraph is also refused (COBOL0900, 1985 sections consist of paragraphs); the SR1 refusals COBOL0897/COBOL2377 are the same at every edition",
+  "witnesses-cover": "part: pb361-use-outside-declaratives covers only a USE AFTER (not BEFORE REPORTING) in the nondeclarative portion; not covered: USE BEFORE REPORTING after the first sentence, in a paragraph, sharing a sentence, a section without USE, a zero-paragraph section",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2a_outside.cob",
+    "printed": "error COBOL2377 ... this one is in the nondeclarative portion of the procedure division",
+    "expected": "refuse: not in the declaratives portion"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2b_second_sentence.cob",
+    "printed": "error COBOL2377 ... inside a declarative section, after its first sentence; error COBOL0900 sentences before the first paragraph-name ... requires COBOL-2002",
+    "expected": "refuse: does not immediately follow the section header"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2c_not_alone.cob",
+    "printed": "error COBOL0897: declarative section 'BR': the first sentence shall consist of a single USE statement",
+    "expected": "refuse: not in a sentence by itself"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2h_use_no_period_then_stmt.cob",
+    "printed": "error COBOL0897",
+    "expected": "refuse: USE and ADD in one sentence"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2d_in_paragraph.cob",
+    "printed": "error COBOL0897 (section BR first sentence not a USE); error COBOL2377 ... this one is in the nondeclarative portion of the procedure division",
+    "expected": "refuse: USE inside a declarative paragraph"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2j_valid_then_para_use.cob",
+    "printed": "error COBOL2377 ... inside a declarative section, after its first sentence",
+    "expected": "refuse: a second USE in a later paragraph"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2e_no_use.cob",
+    "printed": "error COBOL0897",
+    "expected": "refuse: declarative section with no USE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2f_zero_paras.cob",
+    "printed": "N=0 (compiles, runs)",
+    "expected": "accept: zero procedural paragraphs are allowed"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2g_legal.cob",
+    "printed": "N=2",
+    "expected": "accept; the procedure is the whole section (both paragraphs run once before DET-1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2i_use_global.cob",
+    "printed": "N=1",
+    "expected": "accept USE GLOBAL BEFORE REPORTING at 85 (Inter-Program Communication module X.5.6)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.9.3 SR1",
+    "check": "OK  §1985:XIII.4.9.3 SR1  (4.9.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "Every placement violation is refused at 85 and the legal forms (zero paragraphs, several paragraphs, GLOBAL) compile and run. Cosmetic: when the section's first sentence is not a USE (p2d), the cascade COBOL2377 says the USE is 'in the nondeclarative portion' because EnclosingContext.InDeclarative reads Declarative, which is null for a section whose USE did not bind; the primary COBOL0897 is correct and the same text appears at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.9.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85: r2a_segnum (declarative 'BD SECTION 10.' then USE BEFORE REPORTING DET-1) compiles and runs N=1, so a segment-number on the section header does not break 'immediately follow a section header'; r2b_no_section_header (USE directly after DECLARATIVES.) refused COBOL5506; r2c_after_paragraph_header (BD SECTION. BD-P. USE ...) refused COBOL0897 + COBOL2377; r2d_after_end_decl_section (a section after END DECLARATIVES whose first sentence is USE BEFORE REPORTING) refused COBOL2377 'in the nondeclarative portion' plus the 1985 COBOL0900 for a sentence before the first paragraph-name. cite.py: 'OK  §1985:XIII.4.9.3 SR1  (4.9.3 Syntax Rules)  the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

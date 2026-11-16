@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-4",
+ "rule-digest": "03df7d7816b4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-135",
+  "sources": {
+   "reader": "a5c75b51ba1c9b5730d0695d9a0eb47b2704b6a6edb2a0e42a0fd598b8b016ad",
+   "refuter": "49ee6ba4163163c28fc1db122bb19804c00178ea3c0ff28eb983935628bc8f65"
+  },
+  "imported": {
+   "reader": "d1100976b1383622a0d0556d0ae3a5eda7e99501cb6b4ce6f913a9f9beaa9e1f",
+   "refuter": "abda4b61c8f73842fe36785636fbdd16bfb0762100fcd8f24854c6e09413732e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a format 1 READ of a relative file picks its record from the file position indicator: no valid next record gives an unsuccessful READ (46); an absent optional file gives at end; an indicator set by OPEN or START selects the first existing record >= it; one set by READ (sequential or random) selects the first > it. A WRITE or DELETE does not move it. A found record whose RRN has more digits than the RELATIVE KEY item gives at end 14, as does finding none (10). The indicator then takes the RRN made available.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#SelectSequentialSlot; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Opened; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Unsuccessful; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#InvalidateFilePosition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "year < 2002 refuses a dynamic sequential READ without NEXT (SR3)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "READ PREVIOUS refused before 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "FileSharingFacility inactive at 85: AllOther, the record lock governance around the read",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the selection in RelativeConnector#SelectSequentialSlot takes no edition parameter (its comment says so); grep Edition|DialectBehavior over RelativeConnector.cs shows only the WRITE out-of-range arm",
+  "behaviour-differs-by-edition": "yes: only the source the edition accepts (85 requires NEXT under dynamic access and refuses PREVIOUS); selection over the accepted forms is the same",
+  "witnesses-cover": "part: g85_bf29_02 covers rules a-d, the 14 case and the absent optional file; not covered: the indicator unaffected by WRITE and DELETE, START followed by deleting the started record, 46 after an absent optional file, sequential access without a RELATIVE KEY reading a 4-digit RRN",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p4fpi.cob",
+    "printed": "A1 00 0001 R001 / A2 00 0004 R004 / A3 00 1000 R1K / A4-END 10 / A5 46",
+    "expected": "OPEN I-O FPI=1 selects the record WRITE put at 1; DELETE of 3 leaves FPI at 1 so 4 is next; START =6 then DELETE 6 selects >=6: 1000; at end then 46"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p4fpi.cob",
+    "printed": "S1 00 R001 / S2 00 R004 / S3 00 R1K / S4-END 10 ; O0 05 / O1-END 10 / O2 46",
+    "expected": "with no RELATIVE KEY there is no digit check; an absent optional file is at end, and the READ after that one is 46 (GR12)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p4prev.cob",
+    "printed": "error COBOL7144 (SR3 no NEXT) ; error COBOL0900: READ PREVIOUS requires COBOL-2002",
+    "expected": "a 2002 phrase is refused at 85"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.4.5@1985-READ-STATEMENT/g85_bf29_02.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "witness .out (14 then 46, USE runs, AT END does not)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR4",
+    "check": "OK  §1985:VIII.4.5.4 GR4  (4.5.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VIII.4.5.4 GR12",
+    "check": "OK  §1985:VIII.4.5.4 GR12  (4.5.4 General Rules)  the text is in GR12"
+   }
+  ],
+  "notes": "_inclusive/_fpi are written only by Opened (1, inclusive), ReadSequential and ReadRandom (exclusive) and Start (inclusive), so WRITE and DELETE leave them alone. Every failing exit goes through Unsuccessful, which invalidates the indicator (the next READ is 46). p4fpi prints the same at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output for p4fpi",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-4",
+  "refutation": "UPHELD",
+  "classes": "c,e,f",
+  "evidence": "r4dyn.cob --std 85 (runs/r4dyn-002), cases the reader did not run: random READ 5 then READ NEXT selects the first > 5 (B2 00 0008 R008, rule d with a random READ); failed random READ 3 (23) then READ NEXT is 46 (B4, GR12); START EQUAL 2 + random READ 2 + REWRITE then READ NEXT gives 5 (REWRITE does not move the indicator); failed START (23) then READ NEXT is 46 (B8, START GR8); START NOT LESS 6 selects 8 (B9); key PIC 99 COMP with RRN 100 gives 14 (C5), then 46 (C6). r4late.cob --std 85 (runs/r4late-001): WITH LOCK, ADVANCING ON LOCK, IGNORING LOCK, WITH NO LOCK refused COBOL0900, KEY IS on a relative file refused COBOL0864 (diagnostic cites §2023 only, cosmetic). cites: OK §1985:VIII.4.5.4 GR4; OK §1985:VIII.4.5.4 GR12; OK §1985:VIII.4.7.4 GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

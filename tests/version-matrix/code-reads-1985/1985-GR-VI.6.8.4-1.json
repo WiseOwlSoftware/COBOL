@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-VI.6.8.4-1",
+ "rule-digest": "35f7e5abe83e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-117",
+  "sources": {
+   "reader": "7de40780b8cb6a72515b8717be3d8385b3fadba56275c753953c42e157e51f13",
+   "refuter": "2be25b7c9253341d4e7b43074ba07e54000ba81b034f970d74c6f38fbaf1e711"
+  },
+  "imported": {
+   "reader": "64e2dea2d5c19ba99b844f1e97276315cf11a991494bc81c2a776f3aeccfb2aa",
+   "refuter": "d89261e8dcafea88d5a4f0d6bf405f76e76d3ed2b57bcb6a88db9059a86188a7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.8.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a COMPUTE whose arithmetic expression is a single numeric identifier, a numeric literal or the figurative ZERO must set each identifier-1 (numeric or numeric edited) to that value under the MOVE-like alignment of the arithmetic statements (absolute value into an unsigned receiver, truncation or ROUNDED at the receiver, editing, P-scaled receivers); a nonnumeric literal, alphanumeric or group identifier, or other figurative constant is not an arithmetic expression and must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitCompute; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Render; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#FieldNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#LiteralNum",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: an unphrased size error at 85 continues to the next statement",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#BindParagraph",
+    "switches": "OPTIONS inert below 2002, so the NATIVE arithmetic default holds",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitComputeStatement",
+    "switches": "GateBooleanOperators introduction-gates the 2002+ boolean COMPUTE format; not reached by a numeric single operand",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep for DialectBehavior|DialectLevel|Edition in ArithmeticEmitter.cs and NumericRenderer.cs, and for computeStatement in CobolParserCore.g4 (one grammar rule for every edition, F2 gated in VersionConformancePass).",
+  "behaviour-differs-by-edition": "no: the stored value is the same at 85 and 2023; only an unphrased size error's disposition differs",
+  "witnesses-cover": "part: g85_bf02_02 covers an identifier and literals into numeric, edited and sign-separate receivers; not exercised: negative into unsigned, high-order truncation, the 18-digit maximum, P-scaled sender and receiver, ZERO, an ODO-table element, a FUNCTION identifier, a size error on the single value, and the refusal half",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/comp1.cob",
+    "printed": "G1 123.45; G2 -23.4; G4 1500; G5 500.00; G6 [   $123.45-]; G7 +0000; G9 12; G10  00.0",
+    "expected": "absolute value -123.45 into 9(3)V99 = 123.45; into S99V9 high-order truncated -23.4; 1599 into 99PP truncates to 1500; 9PP 500 -> 500.00; edited $123.45-; ZERO -> +0000; FUNCTION INTEGER(12.7) = 12; -0.05 into S99V9 truncates to zero"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/comp1.cob",
+    "printed": "G3 999999999999999999; G11 23; G12 SIZE 23",
+    "expected": "the largest 18-digit literal stored whole; 123 into PIC 99 without the phrase leaves an undefined value (23 shown) and continues; with ON SIZE ERROR the receiver is unchanged (23) and the phrase runs"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/comp1.cob",
+    "printed": "G8 3.3 (COMPUTE RT = TE (N), TE OCCURS 1 TO 5 DEPENDING ON N, N = 3)",
+    "expected": "3.3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/comp1bad2.cob",
+    "printed": "refused (exit 65): \"12\" COBOL1511 boolean-operand messages; X COBOL0844 alphanumeric not a numeric operand; group G COBOL0844; SPACE and ALL \"1\" COBOL1511; alphanumeric receiver X COBOL1675",
+    "expected": "each refused: not an arithmetic expression (§1985:VI.2 arithmetic expression definition) or not a numeric/numeric-edited identifier-1 (§1985:VI.6.8.3 SR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/comp1bad.cob",
+    "printed": "COMPUTE R EQUAL 5: error COBOL0001 cannot parse construct near 'EQUAL'",
+    "expected": "refused: the 1985 format writes only ="
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.8.4 GR1",
+    "check": "OK  §1985:VI.6.8.4 GR1  (║6.8.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "A single operand renders through FieldNum or LiteralNum and lands once through StoreArith with the receiver's truncation, ROUNDED and editing; every probe matched the text. Side observation outside this rule: at 85 a nonnumeric literal, SPACE or ALL literal right of = is refused with COBOL1511 messages that cite the 2023 boolean COMPUTE format (§2023:14.9.8.3 Format 2 SR2), a format 1985 does not have; the refusal is right, the diagnosis points at a non-1985 construct.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.8.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Class c, 1985 operand class: rcbad.cob COMPUTE R1 = E1 with E1 PIC ZZ9.99 is refused COBOL0844 at 85, as §1985:VI.6.2.1 requires (identifiers must be numeric elementary items); rcflt.cob COMPUTE R1 = 1.5E2 refused COBOL0900 (floating-point literal requires 2002). rcomp.cob (rcomp-001): COMPUTE R3 = ZEROES -> 000 (the ZEROES spelling of the 1985 figurative); COMPUTE MX = 9(18) max -> 999999999999999999; COMPUTE RP ROUNDED = 1549 into 99PP -> 1500; COMPUTE SP = .0007 into SVPP9 -> 0 and SR = SP -> 0.000; COMPUTE BN = 12345 into 9(4) BINARY -> SIZE, unchanged 0000, and 9999 stored; -12.5 into an unsigned receiver -> 012. All match the text. cite.py: OK §1985:VI.6.8.4 GR1 the text is in GR1; OK §1985:VI.6.2.1 the text is in the clause.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

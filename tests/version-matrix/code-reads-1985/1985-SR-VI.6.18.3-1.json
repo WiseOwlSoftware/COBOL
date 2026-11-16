@@ -1,0 +1,116 @@
+{
+ "rule-id": "1985-SR-VI.6.18.3-1",
+ "rule-digest": "f07aafdf0f9b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-057",
+  "sources": {
+   "reader": "ab7040499af21b07388b4fd170124a5fcefbfe1114402ba069cdc3d2ffd4c1d2",
+   "refuter": "fc56b3be0adc1c3bef0322333f30b164577bedae94d51baee9a12ab897c9ad15"
+  },
+  "imported": {
+   "reader": "b7d162606d7d1e33d399f02ef21bf29b6aff05310b6c95cfb151775fd098e846",
+   "refuter": "00409650b5f8d3a8eaf03b2acfbb87b4ced744a788ade38a3a93bbc055abed03"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.18.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 INSPECT (every format) must admit as identifier-1 any group item (whatever its leaves' usages) and any elementary item of any category whose usage is DISPLAY (numeric signed and separate, numeric-edited, alphabetic, alphanumeric, a reference modification, an alphanumeric function-identifier in Format 1), and must refuse an elementary COMPUTATIONAL or INDEX item, an index-name and a numeric or integer function-identifier.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#IsInspectIdentifier1; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#IsInspectElementaryCharacterItem; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectIdentifier1FunctionUsage; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#FunctionIsNotDisplayOrNational; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "below 2002 a numeric/integer function-identifier written as an identifier is additionally refused COBOL0900 (construct numeric-function-identifier-operand-2002, §1985:IV.4.3.8.3.3 SR4); the SR1 usage refusal COBOL1626 that follows is the same arm as 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind (DialectBehaviors.IsActive InspectFormat3LengthIdentifiedOnce)",
+    "switches": "when identifier-1 of a Format 3 depends on an ODO object: freeze its length once (2002+) or re-read it for the REPLACING half (85); not the SR1 screen",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "IsInspectIdentifier1 / IsInspectElementaryCharacterItem / CheckInspectIdentifier1FunctionUsage read no edition (grep DialectLevel|Edition.Year|ConstructRegistry|DialectBehavior in StatementValidation's INSPECT block and InspectBinder.Bind); the 2023 arm's narrowing to alphanumeric/national groups cannot differ at 85, where no bit, strongly-typed or national group can be declared",
+  "behaviour-differs-by-edition": "no for SR1 itself; yes beside it: a numeric function-identifier is also COBOL0900 at 85 (it may appear only in an arithmetic expression there)",
+  "witnesses-cover": "part: the witnesses exercise only the numeric/integer function-identifier refusal; group, usage DISPLAY categories, COMP, INDEX and index-name were not exercised by them",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i3ok.cob",
+    "printed": "G=0003 SN=0002 SN2=-1700 NE=0002 AB=0002 OG=0003 OG6=0006 RM=0001",
+    "expected": "group with a COMP leaf, signed separate numeric (TALLYING and REPLACING), numeric-edited, alphabetic, an ODO group at 3 and 6, and G(3:2) are all admitted and counted correctly"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i3comp.cob",
+    "printed": "COBOL1626 INSPECT identifier-1 'CB' is an elementary item of USAGE Binary",
+    "expected": "refused: COMP is not DISPLAY"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i3compr.cob",
+    "printed": "COBOL1626 (REPLACING form)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i3c3.cob",
+    "printed": "COBOL1626 'GB' (COMP leaf of a group as identifier-1)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i3idx.cob",
+    "printed": "COBOL1626 'IX' USAGE Index",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i3iname.cob",
+    "printed": "COBOL1637 index-name 'TI' is not an identifier",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i3fnlen.cob",
+    "printed": "COBOL0900 numeric function-identifier as identifier requires COBOL-2002 + COBOL1626",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i3fnint.cob",
+    "printed": "COBOL0900 + COBOL1626 for FUNCTION INTEGER(3.5)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i3fnok.cob",
+    "printed": "FN=0002",
+    "expected": "alphanumeric function UPPER-CASE admitted in Format 1; ABCA holds 2 A"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.3 SR1",
+    "check": "OK  §1985:VI.6.18.3 SR1  (6.18.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "One edition-blind predicate (group of alphanumeric/national kind or elementary display/national reference) answers SR1; at 85 every declarable group is alphanumeric, so the 2023 narrowing cannot over-reject. Diagnostics cite §2023:14.9.22.3 SR1 at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.18.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attacked the 2023 arm's 'alphanumeric or national GROUP' narrowing against 1985's plain 'group item', and the 1985 usages BINARY and PACKED-DECIMAL. Probes at --std 85: r3gcomp (01 G USAGE COMP at group level) -> admitted, G=0004; r3gidx (01 G USAGE INDEX group; group of COMP+X with REPLACING) -> admitted, G=0016, H2=B; r3ren (66 RENAMES THRU, 66 alias of a DISPLAY item, alphanumeric-edited X(2)BX TALLYING and REPLACING, PIC 9PP) -> RT=0002 RX=0001 AE=0003 AE2=QQ Q NP=0001; r3disp (embedded-sign S9(4) REPLACING, numeric-edited CONVERTING, group CONVERTING, Format 3 on a group with a COMP leaf) -> ST=-3232 NE=  1.55 GD=XYXY G=ZBC 0001; r3bin (BINARY) and r3pd (PACKED-DECIMAL) -> COBOL1626; r3rencomp (66 alias of a COMP elementary) -> COBOL1626 (message names R2, not RC: cosmetic). cite.py: OK §1985:VI.6.18.3 SR1 'either a group item or any category of elementary item'; OK §1985:VI.5.14.4 GR1 'If the USAGE clause is written at a group level'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

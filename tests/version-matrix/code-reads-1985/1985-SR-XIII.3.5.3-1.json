@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-XIII.3.5.3-1",
+ "rule-digest": "c34797798733",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-077",
+  "sources": {
+   "reader": "3cb4542b61ada33c0173cefd725f25af623649e53faecddd82ffc6696695755c",
+   "refuter": "eab952bdb839d2f59ee994b3b51c0e6e5679aebd111e5f68b7579ced52a74a5a"
+  },
+  "imported": {
+   "reader": "7f678a2a6b5fcf34e7ba1f0e8c60fb60a8b277804b67906c63c7c8aa27b4ec07",
+   "refuter": "3fe1a2b9783d3abdd0aca21ae3324417d841efb5e312786e2556ad8018bb6729"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.5.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "Every RD's report-name-1 must be named by exactly one REPORT clause of the program's FDs: an RD named by none, named by two FDs' REPORT clauses, or named twice inside one REPORT clause must be refused; one FD naming several reports, or several FDs each naming a different report, is legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportClauseNames; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportClauseNameRule; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveReportsPass.cs#Run",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/CobolVersion/ConstructRegistry in ReportSectionBinder.ScreenReportClauseNames and ResolveReports (lines 3554-3620): none; EditionContext.Error (EditionContext.cs:188) records unconditionally; the COBOL2714 descriptor is EditionSeverity.Error with no edition arm.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover an RD in no clause and an RD in two FDs' clauses; a name repeated inside one REPORTS ARE clause and the legal multi-report forms are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr1_dup_same_clause.cob",
+    "printed": "COBOL2714 file 'RPT': the REPORT clause names 'R-A', which is already named by the REPORT clause of file 'RPT' (exit 65)",
+    "expected": "refused: R-A appears twice"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr1_two_fds.cob",
+    "printed": "COBOL2714 file 'RPT2': ... already named by the REPORT clause of file 'RPT' (exit 65)",
+    "expected": "refused: R-A in two REPORT clauses"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr1_none.cob",
+    "printed": "COBOL2714 RD 'R-B' is not named in any file description entry's REPORT clause (exit 65)",
+    "expected": "refused: R-B in no REPORT clause"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr1_ok_two_on_one.cob",
+    "printed": "DONE (exit 0)",
+    "expected": "legal: FD REPORTS ARE R-A R-B"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr1_ok_two_files.cob",
+    "printed": "DONE (exit 0)",
+    "expected": "legal: two FDs, one report each"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.3 SR1",
+    "check": "OK  §1985:XIII.3.5.3 SR1  (3.5.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "ScreenReportClauseNames walks every FD's REPORT names once and refuses a second occurrence (same or another FD); ResolveReports refuses an RD that no FD names. The path is edition-free and the 1985 rule is the same requirement as the later editions'.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.5.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-077/: n_sr1_nested_same_name (container and contained program each with FD RPT REPORT IS R-A and their own RD R-A, legal because report-names are local to their program, §1985:X.1.3.8.2) compiles and runs: INNER / DONE, exit 0. n_sr1_rd_in_inner (container FD RPT IS GLOBAL REPORT IS R-X, the RD R-X only in the contained program) is refused with COBOL2714 twice: the container's REPORT clause names no RD of its own program, and the contained program's RD is in no REPORT clause. The reader's same-clause, two-FD and no-clause refusals and the legal multi-report forms stand. cite.py: 'OK  §1985:XIII.3.5.3 SR1  (3.5.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:X.1.3.8.2 GR3a ... the text is in GR3a'. ReportSectionBinder.cs has no edition arm on ScreenReportClauseNames or ResolveReports (grep DialectLevel: lines 191 to 4699, none in those members).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

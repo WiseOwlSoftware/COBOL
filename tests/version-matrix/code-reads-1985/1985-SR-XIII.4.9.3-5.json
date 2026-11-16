@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-XIII.4.9.3-5",
+ "rule-digest": "0320b27635db",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-080",
+  "sources": {
+   "reader": "f703bafc36b3227b4c578b07a3e6a16ad81a96c464f4b30caf0eefd646b3f18b",
+   "refuter": "3df0a3407bf807dd061238dfffcd1f6710442b1e15c2b8d8c9e2d7232e6bc4ad"
+  },
+  "imported": {
+   "reader": "255553dd4fdf8b54ea521a0772e6efcdbcafa1c1986c1427793e14a322abc642",
+   "refuter": "11348f12f95b8fd5560970d71d9440388c1260f5535d670e493afec5ed839de6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.9.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the USE BEFORE REPORTING statement is a declaration only: it is never executed in the program's flow (the run begins at the first nondeclarative procedure), and its procedure runs only when the RWCS is about to produce the named report group (or when PERFORMed), so a group never produced never runs it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectParagraphs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [],
+  "edition-search": "DeclCollectSection consumes the USE (Format 2 arm of DeclBindUse returns a DeclScope carrying the group) with no edition test; VersionConformancePass#VisitUseStatement gates no BEFORE REPORTING shape. Grepped DeclBindUse and ReportGroupResolution for Edition/DialectLevel/Has(: none on the Format 2 path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb365_report_group_qualified_85 shows the declarative runs only for the qualified group's GENERATE; not covered: a group never produced, a heading group, the start of the run, a PERFORM of the section",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p5_br_never_exec.cob",
+    "printed": "START / INITIATED / BP / BD N=1 / BD N=2 / N=2 U=0 P=1 (EXPECT: MATCH)",
+    "expected": "nothing runs before START; the page-heading declarative runs once just before PH-1 is produced (first GENERATE), the detail declarative once per GENERATE DET-1, and the DET-U declarative never (DET-U is never produced)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p1_use_never_exec.cob",
+    "printed": "START ... BR-DECL H=1 / BR-DECL H=2 ... H=2",
+    "expected": "the detail declarative runs once for GENERATE DET-2 and once for PERFORM BR-SEC; the USE sentence itself does nothing"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p2f_zero_paras.cob",
+    "printed": "N=0",
+    "expected": "a USE BEFORE REPORTING section with zero paragraphs compiles; nothing is executed for it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.9.3 SR5",
+    "check": "OK  §1985:XIII.4.9.3 SR5  (4.9.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "The USE BEFORE REPORTING sentence is bound as a declaration and never reaches the statement binder; the probes show the declarative is entered only by the RWCS just before its group is produced (never for a group never produced) or by PERFORM, and never by program start.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.9.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "r5a_terminate_nogen at --std 85 (RD R-1 CONTROLS FINAL WS-K; declaratives on RH, CF WS-K, CF FINAL, RF): INITIATE then TERMINATE with no GENERATE prints only START / INITIATED / TERMINATED-1 (no declarative, no group produced); the second cycle prints RH-DECL / CK-DECL before the first DET line, CK-DECL at the control break, then at TERMINATE CK-DECL / CF-DECL / RF-DECL, and the report file holds RH 1 CK 2 CK CF RF, each declarative just before its group. r1a_empty_main: a USE BEFORE REPORTING declarative with an empty MAIN SECTION runs nothing. cite.py: 'OK  §1985:XIII.4.9.3 SR5  (4.9.3 Syntax Rules)  the text is in SR5'; 'OK  §1985:XIII.4.9.4 GR4  (4.9.4 General Rules)  the text is in GR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

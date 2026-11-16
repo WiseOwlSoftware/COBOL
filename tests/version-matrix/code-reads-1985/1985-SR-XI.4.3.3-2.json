@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-XI.4.3.3-2",
+ "rule-digest": "bed275bce950",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-071",
+  "sources": {
+   "reader": "90a7f18d255b545bee9f7532c2b43d3174e2468167bc66f03ff0fb60ab7004ef",
+   "refuter": "5ff05a7002ed3d0fe9d4c6c14bb6d40fe2625a6767b6221c63700a72659e7bdb"
+  },
+  "imported": {
+   "reader": "cc0feb9f8b27cb332e8b9585f8c3a443c06197b7a1218d2baaaaf198fa1f93e3",
+   "refuter": "e6895cd16ef7bfa8254e4baf21cd7f6c6a11f6cd9aeb2156cc7910911652c693"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 RETURN file-name-1 must name a file described by an SD; an FD file is refused by this rule, and a non-file name is refused as an unresolved file-name.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindReturn; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReturnFile",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition.Edition / DialectLevel / ConstructRegistry / DialectBehaviors in SortBinder.cs#BindReturn and in StatementValidation.cs ResolveFile / ResolveFileWord / CheckReturnFile: none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "all of the rule's range at this edition",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/t2ok.cob",
+    "printed": "EXIT 0: RETURN S1 INTO WR in a MERGE output procedure; AA111 BB222 CC333 DD444",
+    "expected": "accepted, in merged order"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/t2fd.cob",
+    "printed": "COBOL1757: RETURN F1 - described by an FD",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/t2ws.cob",
+    "printed": "COBOL1639: WR is not defined as a file",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/t2undef.cob",
+    "printed": "COBOL1639: NOSUCH is not defined as a file",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-071/t2rec.cob",
+    "printed": "COBOL1639: R (the SD record) is not defined as a file",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.3.3 SR2",
+    "check": "OK  §1985:XI.4.3.3 SR2  (4.3.3 Syntax Rules)  the text is in SR2 [File-name-1 must be described by a sort-merge file description entry in the Data Division]"
+   }
+  ],
+  "notes": "There is one path and no edition fork. The diagnostic cites §2023:14.9.34.3 SR1.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85: x4a (a nested program, CALLed from the SORT output procedure, RETURNs the containing program's SD S1; a 1985 SD has no GLOBAL clause, so S1 is not visible there) refused COBOL1639 'S1' is not defined as a file; x4b (SORT S1 DESCENDING USING F1 OUTPUT PROCEDURE, RETURN S1 RECORD INTO WR) compiles and prints R BB222 / R AA111. Reader covered FD file, WS item, undefined name, SD record-name. cite.py: OK  §1985:XI.4.3.3 SR2 [File-name-1 must be described by a sort-merge file description entry].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

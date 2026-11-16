@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VII.4.3.3-3",
+ "rule-digest": "def1ed4311e4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-063",
+  "sources": {
+   "reader": "744802b4a1638c5c431fb1f76c34b64e12b58abc808032548c8227e0f0587f59",
+   "refuter": "d5e9c43dcd3ea7e29f71d48982b13f6c75fb4801c66b52167ec1743c03a77248"
+  },
+  "imported": {
+   "reader": "6e71d9357ee989b4303b912cda9830c69533ecdd1b84a3d6c2972608be8760b5",
+   "refuter": "12dee6f7b5a66fe2016a793ef1ee5448379ef5181fc7f6c0c07691e432f0f50d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.3.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an OPEN statement whose EXTEND phrase names a file whose FD carries a LINAGE clause (integer or data-name form, in any position of a multi-phrase OPEN, including a GLOBAL file opened in a contained program) must be refused; EXTEND on a file without LINAGE is accepted and extends it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+  "edition-consulted": [],
+  "edition-search": "Read CheckOpenModeForFile whole: the LINAGE arm (mode is Extend && file.Linage is not null) consults no edition; the only DialectLevel test in it is the FORMAT-clause citation. Grepped the method for DialectLevel/Edition./CitationAt.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb318-open-extend-access-linage (single EXTEND of a LINAGE integer file); mixed OPEN OUTPUT ... EXTEND, data-name LINAGE and a GLOBAL file in a contained program are the probes",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/ext_bad.cob",
+    "printed": "COBOL2372 at (21,12) 'OPEN EXTEND FL ... LINAGE clause' (OPEN OUTPUT FA EXTEND FL); COBOL2372 at (22,12) 'FD2' (OPEN EXTEND FA FD2, LINAGE data-name); FA not reported; cites ISO §2023:14.9.27.3 SR2",
+    "expected": "the LINAGE files refused, FA accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/ext_glob.cob",
+    "printed": "COBOL2372 for OPEN EXTEND FL in the contained program INNER",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/ext_ok.cob",
+    "printed": "EXTEND ST 00 / AAAA / BBBB",
+    "expected": "EXTEND on a non-LINAGE file accepted and appends"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/ext_bad.cob (--std 2023)",
+    "printed": "identical two COBOL2372",
+    "expected": "same arm"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.3 SR3",
+    "check": "OK  §1985:VII.4.3.3 SR3  (4.3.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "Correct refusal at 85 through the edition-free arm; the diagnostic cites ISO §2023:14.9.27.3 SR2 at --std 85, where the sibling LINAGE and RECORD screens cite the 1985 designation through Rule1985 (PB5361's pattern not applied here; cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusal",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.3.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "refute-1985-063/ext_r.cob --std 85 --compile-only: OPEN EXTEND FA, FB, FL (comma list, LINAGE file third) refused COBOL2372 for FL only; OPEN OUTPUT FL EXTEND FA accepted (LINAGE file under OUTPUT is legal); OPEN EXTEND FX on an EXTERNAL FD with a data-name LINAGE (EXTERNAL WS operand) refused. The diagnostic cites ISO §2023:14.9.27.3 SR2 at --std 85 (cosmetic, as the reader said). cite.py: OK §1985:VII.4.3.3 SR3 'The EXTEND phrase must only be used for files for which the LINAGE clause has not been specified'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

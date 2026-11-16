@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-XIII.3.16.3-5",
+ "rule-digest": "ba158bb2b058",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-075",
+  "sources": {
+   "reader": "d8493c73637a810f148e57b0d0c2073d850ef6647a06562cd472bafed9cd873a",
+   "refuter": "e56e979c1687f077d2f941eb6359db2ba212f08c10c8f1680c425b4ecd12ce6b"
+  },
+  "imported": {
+   "reader": "fd321fe6eb8154760bcbe1221b1a46f781173c8250b0cd86f33531349eaba850",
+   "refuter": "a93a26ab8aa703dd4d981a0c1dc0d171ea15490dbc66ecb3cdd8bbed9acd8649"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.16.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a NEXT GROUP clause, in any of its three forms (integer-1, PLUS integer-2, NEXT PAGE), written in a REPORT FOOTING (RF) or PAGE HEADING (PH) report group, under either spelling of the TYPE, and must accept it in RH, CH, DE, CF and PF groups.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+    "switches": "Edition.DialectLevel < 2002 adds the 1985-only SR1 check (a NEXT GROUP needs a LINE NUMBER clause in the group) and, via ExceedsThreeSignificantDigits85, SR2's three-digit limit; the PH/RF refusal that implements SR5 is not gated, so it is the same code at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel in ReportSectionBinder.cs: the only edition tests in BindNextGroupClauses are line 915 (SR1) and line 940 (SR2); the PH/RF branch at line 920 is unconditional",
+  "behaviour-differs-by-edition": "no (for SR5 itself; 1985 adds SR1 and SR2 on the same clause, which a later edition does not have)",
+  "witnesses-cover": "part: the witness covers PH with the relative form only, spelled TYPE PH; RF, the absolute and NEXT PAGE forms, the spelled-out TYPE words, and the accept half in the other five group types are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/ng-rf.cob",
+    "printed": "COBOL2284 RD 'RPT' group 'RFG' (REPORT FOOTING): the NEXT GROUP clause shall not be specified in a page heading or report footing (run ng-rf-003)",
+    "expected": "refused: NEXT GROUP NEXT PAGE in TYPE REPORT FOOTING"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/ng-rfabs.cob",
+    "printed": "COBOL2284 for TYPE RF NEXT GROUP PLUS 2 (run ng-rfabs-003)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/ng-ph.cob",
+    "printed": "COBOL2284 for TYPE IS PAGE HEADING NEXT GROUP IS 2 (absolute form) (run ng-ph-002)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/ng-ok.cob",
+    "printed": "compiles and runs: NEXT GROUP NEXT PAGE in RH (form feed after RH), PLUS 1 in DE, CF FINAL and PF all accepted; report RH\\f PH DE DE CF ... PF RF (run ng-ok-002)",
+    "expected": "accepted in RH, DE, CF and PF"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/ng-rf.cob",
+    "printed": "at --std 2023: the same COBOL2284 (run ng-rf-004); ng-ph at 2023 the same (ng-ph-003)",
+    "expected": "same refusal at every edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.16.3 SR5",
+    "check": "OK  §1985:XIII.3.16.3 SR5  (3.16.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "The PH/RF refusal is unconditional and fires for every NEXT GROUP form and either TYPE spelling at --std 85, and the other five group types accept the clause. The diagnostic text cites §2023:13.18.37.3 SR4 instead of the 1985 rule, which names the same prohibition, so the citation is cosmetic, not a wrong verdict.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.16.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read ReportSectionBinder.BindNextGroupClauses: PH/RF refusal at line 920 is unconditional, keyed on the bound group kind. Probes at --std 85 (refute-1985-075/src): r-ngrfu.cob (unpaged RD, TYPE RF written after LINE and NEXT GROUP PLUS 1 on the 01) -> COBOL2284 (r-ngrfu-001); r-ngph.cob (NEXT GROUP PLUS 1 written first, then LINE 1 TYPE IS PH) -> COBOL2284 (r-ngph-001). cite.py: OK  §1985:XIII.3.16.3 SR5  (3.16.3 Syntax Rules)  the text is in SR5",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-GR-VIII.4.7.4-2",
+ "rule-digest": "77e8c5fbbd95",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-137",
+  "sources": {
+   "reader": "b99b010f47ceb4440d62a5ab9fbf74465d78a21f303966be37d6f768c8a357d1",
+   "refuter": "9cb22ce9e05df163cfda1695ded91135c4aeed657fb215ed49ca529a7b2f3f3a"
+  },
+  "imported": {
+   "reader": "f2f71d127e2150167dc83dd5ff97b25d2eac9141d591f1713995f89093508ff8",
+   "refuter": "5d5884adcb6bcef5a941d25875db055dc39856ff8072ec1a8d9f96b2c999fccb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.7.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a START on a relative file written without the KEY phrase shall compare as KEY IS EQUAL TO the RELATIVE KEY item, in sequential and dynamic access alike: an absent record number is the invalid key condition, never a forward NOT LESS search.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): the 1985 mandatory INVALID KEY phrase",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+    "switches": "START FIRST/LAST refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the op default '==' in BindStart (kp is null) is edition-blind; VisitStartKeyPhrase is not reached without a KEY phrase.",
+  "behaviour-differs-by-edition": "no: the implied EQUAL is the same code at every edition.",
+  "witnesses-cover": "part: g85_f24_04 covers dynamic access; sequential access with a qualified RELATIVE KEY and the absent-record case are probed here.",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p1key.cob",
+    "printed": "A: RK=5, START R INVALID KEY ... -> 00, READ NEXT 0005; B: RK=4 -> B-INV 23",
+    "expected": "EQUAL implied: 5 found, 4 (records 3,5,7) is the invalid key"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p4seq.cob",
+    "printed": "sequential access, START S with SK OF KEYS = 3 -> 00, READ 03",
+    "expected": "EQUAL to 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p5nokey.cob",
+    "printed": "COBOL0862 no RELATIVE KEY clause",
+    "expected": "refused per §1985:VIII.2.4.3 SR5"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p2ref.cob",
+    "printed": "START R FIRST -> COBOL0900 requires COBOL-2002",
+    "expected": "FIRST is not a 1985 form"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p3ctl.cob",
+    "printed": "T4 START R (no KEY) RK=3, NOT INVALID KEY -> T4-NOTINV 00; T7 START M (no KEY) on absent optional -> T7-INV 23",
+    "expected": "EQUAL implied; GR6 on the absent file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.4 GR2",
+    "check": "OK  §1985:VIII.4.7.4 GR2  (║4.7.4 General Rules║)  the text is in GR2"
+   }
+  ],
+  "notes": "BindStart defaults op to '==' when startKeyPhrase is absent and substitutes the RELATIVE KEY item (OperandImplied); RelativeConnector.Start maps '==' to SeekRelation.Equal and fails a key below 1 at once. Witness g85_f24_04 MATCHes.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.7.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "BindStart defaults op '==' when the KEY phrase is absent; RelativeConnector.Start fails '==' below 1 and seeks Equal. Probes at --std 85: q3big.cob RK=6, START R (no KEY; R holds only record 2) -> B4-INV 23, START R2 (holds record 6) -> 00; q1ext.cob START R with no KEY phrase after CLOSE -> 47; q5glob.cob contained program START R (no KEY) RK=2 -> G2-NOTINV 00. cite.py: 'OK  §1985:VIII.4.7.4 GR2 ... the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VIII.4.7.4-3",
+ "rule-digest": "92b0e05f2b4d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-137",
+  "sources": {
+   "reader": "b99b010f47ceb4440d62a5ab9fbf74465d78a21f303966be37d6f768c8a357d1",
+   "refuter": "9cb22ce9e05df163cfda1695ded91135c4aeed657fb215ed49ca529a7b2f3f3a"
+  },
+  "imported": {
+   "reader": "2b8acdccf8778ac7847251f944186a8d06b8db4b2206110964eef29dc9f62320",
+   "refuter": "a87109df9d2822969a2c27cda77793c15b0c3bf3826c78daa924a1d9ac53d5c5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.7.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 no START on a relative file (successful, invalid key, or failed by a logic error such as status 47) shall change the record area or the DEPENDING ON item of the file's RECORD VARYING clause.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#StartAt",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): the 1985 mandatory INVALID KEY phrase",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the relative arm of EmitStart emits only FileStartRelative(name, op, rrn) and the status store; no record-area or DEPENDING ON write; RelativeConnector.Start/StartAt set only _fpi, FpiValid, _inclusive and Status; grep Edition in RelativeConnector.cs hits only the WRITE path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f20_06 covers a successful and an invalid-key START; a START failing with 47 (file not open, file open OUTPUT) is probed here.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p3ctl.cob",
+    "printed": "T1 (not open, 47): QQQQQQQQ 3 unchanged; T3 (23): PPPPPPPP 6 unchanged; T4 (00): PPPPPPPP 6 unchanged; T5 (23 via GO TO) PPPPPPPP 6",
+    "expected": "record area and RL unchanged"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.4.7@1985-START-STATEMENT/g85_f20_06.cob",
+    "printed": "S1=00 ZZZZZZZZ 7; S2=23 YYYYYYYY 5; EXPECT: MATCH",
+    "expected": "unchanged"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.4 GR3",
+    "check": "OK  §1985:VIII.4.7.4 GR3  (║4.7.4 General Rules║)  the text is in GR3"
+   }
+  ],
+  "notes": "The relative START sends only the record number; the area image travels only on the indexed arm and is read, not written. The same p3ctl.cob at --std 2023 prints identical lines.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.7.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "EmitStart's relative arm passes only the record number; RelativeConnector.Start/StartAt set only the FPI and status. Probe q1ext.cob at --std 85, record with OCCURS 1 TO 5 DEPENDING ON R-CNT inside the record, area set to '4WXYZ': failed START (23) -> '4WXYZ CNT=4'; successful START (00) -> '4WXYZ CNT=4'; RK also unchanged (0009 / 0001); the following READ NEXT then delivers '2DE CNT=2'. Also START on a file open EXTEND (47) changed nothing visible. cite.py: 'OK  §1985:VIII.4.7.4 GR3 ... the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

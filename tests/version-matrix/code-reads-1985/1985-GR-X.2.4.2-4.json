@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-X.2.4.2-4",
+ "rule-digest": "8052fc6767f9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-031",
+  "sources": {
+   "reader": "c483a0a7abaab3fed39c53ce0790c2b589619f0a6304599e1414a759780b8b38",
+   "refuter": "a60a1852ac7f090aaba1d031ca11da70996c6b1ccb0bce18cf63bebe43108ba8"
+  },
+  "imported": {
+   "reader": "0f1f2b97549c99f2d3a61f58ca80fc4f81779e8acb1b537b16b779d5c5f12ed2",
+   "refuter": "9081db43c38bc9c5a460a1a20760da821098476745d0f798ee683c36e75c90cd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.2.4.2-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after each CALL of a program possessing the initial attribute, every program it directly or indirectly contains must be in its initial state (X.2.4.1: Working-Storage at its VALUE, internal files not open, PERFORM and ALTERed GO TO reset) the FIRST time it is called after that CALL, and must keep its last-used state on further calls within that same activation (the contained program does not itself acquire the initial attribute in 1985).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitModuleRegistrar",
+  "edition-consulted": [],
+  "edition-search": "grep Dialect|Edition|CobolVersion over ProgramTable.cs: the only edition fact is CancelNode's refusesEveryActiveProgram (DialectBehavior.CancelRefusesEveryActiveProgram, folded at an explicit CANCEL statement); CancelContained, the INITIAL cascade, always passes true, and no contained program is active at the INITIAL container's entry or return, so the 85 and 2002+ arms cannot differ on this path. BinderDriver's unit construction inherits RECURSIVE down the tree but never INITIAL, at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses call each contained program once per activation of the INITIAL container; not exercised there: a SECOND call of the contained program within one activation (must keep last-used state), an indirectly contained program, and ALTER reset (X.2.4.1 (4))",
+  "probes": [
+   {
+    "class": "c,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p10_initial_container.cob",
+    "printed": "PASS 1 / D DC=1 / E EC=1 ES=00 / E PATH FIRST / F FC=1 / E EC=2 ES=00 / E PATH LATER / F FC=2 / PASS 2 / D DC=1 / E EC=1 ES=00 / E PATH FIRST / F FC=1 / E EC=2 ES=00 / E PATH LATER / F FC=2",
+    "expected": "within one activation of INITIAL P10D the contained P10E and indirectly contained P10F keep last-used state (counter 2, the ALTERed GO TO, the file left open); after the second CALL P10D both are initial again: counters 1, the ALTER undone (PATH FIRST), and OPEN OUTPUT of E's file succeeds (00, so it had been closed)"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/14.6.2.3.2-Initial-state/l1c15_initial_container_resets_nested.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the .out"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/11.10-PROGRAM-ID/l1c21_initial_program_state.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.4.2 GR4",
+    "check": "OK  §1985:X.2.4.2 GR4  (2.4.2 Programs in the Initial State)  the text is in GR4"
+   }
+  ],
+  "notes": "CallProgram creates a fresh instance of an INITIAL program and cancels its contained subtree on entry (CancelContained) and again on return (EndInitialActivation), while contained programs keep a cached singleton between calls inside the activation. The probe shows both halves of the 1985 rule, including the ALTER reset; no edition arm is on the path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.2.4.2-4",
+  "refutation": "UPHELD",
+  "classes": "c,e,f",
+  "evidence": "Probes at --std 85: r5a_initial_external_kept (INITIAL R5AI contains R5AC; R5AC has FD EF EXTERNAL, 01 EX EXTERNAL and an internal LC VALUE 0, opens EF and leaves it open; the main program calls R5AI twice then writes EF): C OPEN=00 EC=0001 LC=1 / C OPEN=41 EC=0002 LC=1 / MAIN WRITE=00 EC=0002 / MAIN CLOSE=00 / MAIN R1=CREC / MAIN R2=MAIN: internal data reset, while the external file connector stays open and the external data keeps its value across the INITIAL program's activations and returns. This matches X.2.4.1, which resets only internal data and internal file connectors; the INITIAL cascade (ProgramTable#CancelContained / #EndInitialActivation) does not close external connectors. r5b_initial_common_sibling_kept (COMMON R5BC2, a sibling of INITIAL R5BI and not contained in it, called from R5BI and from R5BI's contained R5BIN across three CALLs of R5BI): KC counts 1..6 (never reset), while IC and NC are 1 on every activation. cite.py: OK §1985:X.2.4.2 GR4; OK §1985:X.2.4.1 (GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

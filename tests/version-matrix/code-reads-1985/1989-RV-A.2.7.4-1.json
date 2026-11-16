@@ -1,0 +1,100 @@
+{
+ "rule-id": "1989-RV-A.2.7.4-1",
+ "rule-digest": "20c32035de22",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-084",
+  "sources": {
+   "reader": "d76922e7053ef1d27c6000be16dd9e134f4a1aae704e2597c600d7d4d09c7a16",
+   "refuter": "848dd86ce04d1a205cf1eaf2249f22ed29255b8c08462ae840eef6ff3df92b73"
+  },
+  "imported": {
+   "reader": "a105466dc87dccd5fa3c9fd5605926bd5e9bbfd62dcb90758ff2c6895ce26fed",
+   "refuter": "e00df04d60d5f1beecd78c36f0f0bc7a77cd167690755a6d8f882eaab2d88ede"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.7.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, FUNCTION ASIN (argument-1), for a numeric argument in [-1, +1] in any written form, must return an approximation of the arcsine in radians lying in [-pi/2, +pi/2].",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Asin; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#AcosOfMagnitude; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainDecAdmitted; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: sig.IntroducedIn (85 for the 1989 Intrinsic Function module rows) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands (DISPLAY/MOVE operand) is refused (COBOL0900), per 1985 IV.4.3.8.3.3 SR4; 2002+ accepts it. Not consulted inside COMPUTE",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 a COMPUTE with no SIZE ERROR phrase catches every size condition and continues (1985 VI.6.4.2 GR3); 2002+ takes the fatal-EC shape. Statement-level, around the function value, not inside it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
+    "switches": "num.StandardDecimal (arithmetic mode): the ARITHMETIC clause does not exist at 85, so 85 always takes the native arms, the same arms the latest edition takes by default",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicRenderer.cs and the runtime CobolIntrinsics.*.cs for Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior: the renderer's function dispatch and every runtime body consult no edition (the runtime Intrinsics folder has none); the generated C# at --std 85 and --std 2023 differs only in the assembly Edition attribute and the COMPUTE size-error wrapper (diff of var85-002/var85.g.cs vs var85-003, trig85-001 vs trig85-002)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers arguments near +-1 only; 0, +-0.5, the exact bounds and expression arguments are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/trig85-001/trig85.cob",
+    "printed": "ASIN(-1)=-1.5707963267948966; ASIN(1)= 1.5707963267948966; ASIN(0)= 0; ASIN(Z S9V9(3) zero)= 0; ASIN(.5)= 0.5235987755982989; ASIN(-.5)=-0.5235987755982989; ASIN(HALF*2)= 1.5707963267948966",
+    "expected": "-pi/2; pi/2 = 1.57079632679489661...; 0; 0; 0.52359877559829887...; -0.52359877559829887...; pi/2"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/trig85-001/trig85.cob",
+    "printed": "ASIN(1) NOT ABOVE PI/2 (against 1.57079632679489662); ASIN(-1) NOT BELOW -PI/2",
+    "expected": "-pi/2 <= value <= +pi/2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r12_asinalnum.cob, dom85-001/dom85.cob",
+    "printed": "ASIN(X) COBOL1627 class alphanumeric; ASIN(0 - 2) prints 0 and the program continues",
+    "expected": "refused (AR1); out of range, the result is undefined"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r08_moveasin.cob",
+    "printed": "COBOL0900: MOVE FUNCTION ASIN(0) TO W requires COBOL-2002",
+    "expected": "refused at 85 (SR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.7.4 RV1",
+    "check": "OK  §1989:A.2.7.4 RV1  (cite.py --check with quoted words: \"greater than or equal to -pi/2\")"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (cite.py --check with quoted words: \"may be used only in an arithmetic expression\")"
+   }
+  ],
+  "notes": "Past |x| = 0.5 ASIN is +-((HalfPiHi - acos|x|) + HalfPiLo) over the exact 1-|x|, which narrows to binary64 pi/2 at +-1, inside the bounds; the emitted call is the same at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.7.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "trigx-001 at --std 85: ASIN(SV9(18) .999999999999999999)=1.5707963253806830 and ASIN(-.999999999999999999)=-1.5707963253806830 (pi/2 - sqrt(2E-18)); SIGN TRAILING SEPARATE 1 gives 1.5707963267948966; COMP -1 gives -1.5707963267948966; scaled SVPP9 .005 gives 0.0050000208335677 (asin(.005)=0.00500002083356... ); ASIN(1 / 3 * 3)=1.5707963267948952 (intermediate 1 - 1E-30, implementor-defined intermediate); ACOS(-1)+ASIN(-1)=1.5707963267948964. All values lie in [-pi/2, pi/2]. cite.py: OK §1989:A.2.7.4 RV1 ('greater than or equal to -pi/2').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

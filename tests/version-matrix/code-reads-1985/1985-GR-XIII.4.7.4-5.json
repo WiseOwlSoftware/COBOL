@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-XIII.4.7.4-5",
+ "rule-digest": "466fa3c37d0c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-041",
+  "sources": {
+   "reader": "8f8ff6373000b0f36ea3f91bbcab7f8744420ff46c192f3a47cd073357236deb",
+   "refuter": "1d45fcf28d956af3fb69e1847bec77be3990ac14d93a294a27e2bfcd9a225549"
+  },
+  "imported": {
+   "reader": "e1a68e50a424a1b456d011a46a0e2b829e2740763287249d7b8d3935ca70e44e",
+   "refuter": "465cb98516e71c664085a304148b6fd1b2667eb273085f0bd77f8b0488dd3147"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.7.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 TERMINATE naming several reports behaves as separate TERMINATE statements in written order: each report's control footings, page footing and report footing (with its own prior-value bracket) complete before the next report starts, a report with no GENERATE produces nothing, and an unsuccessful one does not stop the rest.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindTerminate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitTerminate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile",
+    "switches": "Edition.Has(2002): the contained-program GLOBAL-file requirement is not asked at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup: at 85 the saved absolute NEXT GROUP is kept for the first control footing",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues: which control values PF/PH see during TERMINATE's footing phase",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for this rule: the per-report split (BoundImplicitSeries of one BoundTerminate per name, one engine Terminate call each) is edition-free; the edition arms above change what one report's TERMINATE does, not the multi-name composition",
+  "witnesses-cover": "part: l1c33 covers written order and file left open; per-report completion of the control-footing bracket, a report with no GENERATE in the list, a repeated name and a contained-program TERMINATE are not exercised",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/term.cob",
+    "printed": "TERMINATE R-B R-C R-A: CF-B K=2 J=5 / RF-B K=2 J=5 / CF-A K=1 J=6 / RF-A K=1 J=6 / AFTER K=2 J=6; R-C file empty",
+    "expected": "R-B completely (prior J, J restored), R-C nothing (GR2), then R-A completely"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/term2.cob",
+    "printed": "TERMINATE R-A R-A R-B: RF-A 1, RF-B 2 (second R-A inactive, skipped, R-B still terminated); separate TERMINATE R-A. TERMINATE R-B. behaves the same: RF-B 3",
+    "expected": "same result as separate statements"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/tglob.cob",
+    "printed": "contained program TERMINATE R-B R-A of GLOBAL reports with non-GLOBAL FDs: compiles, both RFs printed",
+    "expected": "accepted at 85 (no 1985 GLOBAL-file rule), each terminated"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.7.4 GR5",
+    "check": "OK  §1985:XIII.4.7.4 GR5  (4.7.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The binder builds one BoundTerminate per report-name inside a BoundImplicitSeries, so each report is a separate implicit statement with its own resumption point; the emitter writes one engine Terminate per report in written order.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.7.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe t1_shared_file.cob (--std 85): two reports in ONE file (REPORTS ARE R-A R-B), different control priors (R-A last generated with K=1, R-B with K=2, K=3 at TERMINATE), a USE on RF-B that changes WS-T SOURCEd by R-A's groups; TERMINATE R-B R-A wrote CFB 2 00 / RFB 2 10, then CFA 1 11 / PFA 11 / RFA 1 11, and K=3 after: R-B completed (its own prior bracket and restore) before R-A began, R-A's groups saw R-B's USE side effect, exactly as two separate statements in written order. First attempt refused PF SOURCE of the control item (COBOL6825, §1985:XIII.3.20.3 SR5, correct and unrelated). u1_dummy_use.cob: a TERMINATE after INITIATE with no GENERATE runs no USE and produces nothing (GR2). cite.py: OK §1985:XIII.4.7.4 GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

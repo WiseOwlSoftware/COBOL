@@ -1,0 +1,95 @@
+{
+ "rule-id": "1989-RV-A.2.18.4-2",
+ "rule-digest": "30f8a7b552f9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-082",
+  "sources": {
+   "reader": "dd9b44c1b742e02b12346e55ed10c4683e79aba4c27c07aac8eb4cad3b61c785",
+   "refuter": "b7da010220de6b5975b4fdabeebf3a7805728925846b7411bb08d39fac0b337b"
+  },
+  "imported": {
+   "reader": "8feab0453986b71744b33e72df6afe5e607b1a237191bab38190749f71d56ed7",
+   "refuter": "e38b4494049e25a67bc2f51cbc22b08adcdbedc3f487b031bf3955715e543349"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.18.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85, FUNCTION INTEGER-PART of a positive class-numeric argument-1 must return the greatest integer less than or equal to it (+1.5 -> +1), for every usage, scaling, literal, expression and numeric-function argument.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Truncate; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#TruncateReal; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Wide.cs#TruncateWide; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "the D8 edition window sig.IntroducedIn > ctx.Edition.DialectLevel / RemovedIn (COBOL1502/COBOL1503); the catalog row carries IntroducedIn 85, so --std 85 admits the function",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry numeric-function-identifier-operand-2002: at 85 a numeric/integer function written where an identifier stands (MOVE, DISPLAY, ADD operand, PERFORM n TIMES) is COBOL0900 per §1985:IV.4.3.8.3.3 SR4; inside an arithmetic expression it is not consulted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOptionsParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitArithmeticMethod",
+    "switches": "OPTIONS paragraph (2002) and ARITHMETIC IS STANDARD-DECIMAL (2014) are refused at 85, so the renderer's num.StandardDecimal arm is unreachable and only the native arm runs (the same arm 2023 takes without an OPTIONS paragraph)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep for Edition|DialectLevel|CobolVersion|DialectBehavior|ConstructRegistry over IntrinsicRenderer.cs, NumericRenderer.cs, IntrinsicArgumentRules.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs and src/WiseOwl.Cobol.Runtime/Intrinsics/*: no hit; the only edition reads on the path are in IntrinsicBinder (window, placement) and the OPTIONS gates in VersionConformancePass",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness's positive arguments are only +1.5 and +1.0; a positive fraction below one unit, .99999999999999999, the largest 18-digit value, P scaling, packed and binary usage, literal, expression and binary64-lane arguments are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/p3int.cob",
+    "printed": "P-P15 = 1, P-LP15(+1.5 lit) = 1, P-PTNY(+1E-17) = 0, P-ALM1(.99999999999999999) = 0, P-PBIG(999999999999999999) = 999999999999999999, P-PBGF(99999999999999999.9) = 99999999999999999, P-PS(9PPP 3000) = 3000, P-PV(VPPP9 .0009) = 0, P-PKP(packed 12.34) = 12, P-BNP(binary 99.9) = 99, P-EXP(7/2) = 3, P-FLT(COS(0)*2.5) = 2, P-FLT2(SIN(1)*10) = 8, COMPUTE A = INTEGER-PART(A / 2) + A with A=7 -> 10.0; P-M15 =-1 (negative arm, RV3)",
+    "expected": "greatest integer <= a positive argument: +1.5 -> +1 (the rule's example), .99999999999999999 -> 0, 99999999999999999.9 -> 99999999999999999"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/i3alpha.cob",
+    "printed": "COBOL1627: FUNCTION INTEGER-PART argument-1 is of class alphanumeric",
+    "expected": "refused (A.2.18.3 AR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/i2move.cob",
+    "printed": "COBOL0900: FUNCTION INTEGER-PART(1.5) as an identifier operand requires COBOL-2002 (MOVE)",
+    "expected": "refused at 85 by §1985:IV.4.3.8.3.3 SR4"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/p3int.cob",
+    "printed": "same output at --std 85 and --std 2023 (diff: SAME)",
+    "expected": "no edition-dependent arm for the value"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.18.4 RV2",
+    "check": "OK  §1989:A.2.18.4 RV2  (2.18.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1989:A.2.18.4 RV3",
+    "check": "OK  §1989:A.2.18.4 RV3  (2.18.4 Returned Values)  the text is in RV3"
+   }
+  ],
+  "notes": "Truncation toward zero (CobolIntrinsics.Exact.cs#Truncate, TruncateReal on the binary64 lane) equals the floor for a positive argument, which is all RV2 asks; the negative arm (RV3) also probed correct (-1.5 -> -1).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.18.4-2",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "i6edge.cob at --std 85: INTEGER-PART of SBN*-100 (binary, =1) -> 1, 0 - T18 (+1E-18) -> 0, 7/2 -> 3, 2 ** 0.5 -> 1, 4 ** 0.5 -> 2, COS(0) -> 1, S9PP*-1 (=100) -> 100, SIN(pi18)*-1 (+1.5e-18) -> 0; i5flt.cob: INTEGER-PART(SIN(0)+999999999999999999) = 999999999999999999 and INTEGER-PART(COS(0)*1234567890123456.7) = 1234567890123456 at 85 and 2023. cite.py: OK §1989:A.2.18.4 RV2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

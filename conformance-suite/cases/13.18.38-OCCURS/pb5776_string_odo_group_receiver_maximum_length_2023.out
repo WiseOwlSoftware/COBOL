@@ -1,0 +1,4 @@
+A NO OVERFLOW
+A H=[5ab***] PTR=04
+B OVERFLOW
+B H=[5abcde] PTR=07

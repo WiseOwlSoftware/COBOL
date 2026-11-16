@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-SR-XIII.3.3.3-2",
+ "rule-digest": "1d391b54f6d4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-076",
+  "sources": {
+   "reader": "44d586d8cbb609dc61eae27ec31793c5b4679cf8d37209f3730c08e0b61c9851",
+   "refuter": "307ebb4f8f6956d0aa6a0cfddbf9be187b3fea3168a1a1de989118716ae224c9"
+  },
+  "imported": {
+   "reader": "25024dd4ce5b842be7ff60372a45d970f85b6013eff51016ec8015689c2920dc",
+   "refuter": "ccfd2102d9987606dd46f80c6cf670bf0836f4340514a3b08c87e58457b60b58"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a report-name written in the REPORT clauses of two file description entries must be refused, and each report-name of a legal one-clause REPORT IS / REPORTS ARE list (one or several reports on one file) is accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportClauseNames; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
+  "edition-consulted": [],
+  "edition-search": "Read ScreenReportClauseNames whole and the ReportNames collection in BindFileSection; neither reads DialectLevel, CobolVersion, Constructs. or ReservedWords (Edition is only the diagnostic sink).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1285-report-in-two-clauses (refused at 85) covers two FDs with one name each; a name inside a multi-name REPORTS ARE list, a repeat inside one clause and the legal shared-file form are covered by these probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p6a_two_fds.cob",
+    "printed": "EXIT 65; error COBOL2714: file 'RPT2': the REPORT clause names 'R-A', which is already named by the REPORT clause of file 'RPT'",
+    "expected": "refused: R-A in two REPORT clauses"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p6b_dup_in_clause.cob",
+    "printed": "EXIT 65; error COBOL2714 for 'R-A' repeated in one REPORTS ARE clause",
+    "expected": "refused (degenerate: GR1 reads two names as two reports, and only one RD R-A can exist)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p6c_legal.cob",
+    "printed": "EXIT 0; A / B",
+    "expected": "accepted: one report per file"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p6e_legal_shared.cob",
+    "printed": "EXIT 0; A / B; P6A.RPT holds 'A' and 'B' lines",
+    "expected": "accepted: REPORTS ARE R-B R-A on one file, order not significant"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.3.3 SR2",
+    "check": "OK  §1985:XIII.3.3.3 SR2  (3.3.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XIII.3.5.3 SR1",
+    "check": "OK  §1985:XIII.3.5.3 SR1  (3.5.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.3.3.4 GR1",
+    "check": "OK  §1985:XIII.3.3.4 GR1  (3.3.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "ScreenReportClauseNames walks every FD's REPORT names in order and refuses each name already claimed by an earlier clause, the same code at every edition. A repeat inside one clause is also refused; the 1985 SR2 wording does not literally forbid it, but XIII.3.3.4 GR1 makes each listed name a distinct report and XIII.3.5.3 SR1 gives each report one RD, so no legal 1985 program is refused.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read ReportSectionBinder.cs#ScreenReportClauseNames (per program's _d.State.Files.Declared and _scope.Declared). The edition-specific attack is the nested program (1985 Inter-Program Communication level 2): E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r6a_nested_same_name.cob (OUTER FD RPT REPORT IS R-A with RD R-A; nested INNER FD RPT2 REPORT IS R-A with its own RD R-A) -> EXIT 0, OUTER DONE / INNER DONE: the rule is not over-applied across programs, matching §1985:XIII.3.3.3 SR1's 'Report Section of the same program'. cite.py: OK  §1985:XIII.3.3.3 SR2  (3.3.3 Syntax Rules)  the text is in SR2; OK  §1985:XIII.3.3.3 SR1  (3.3.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-XI.2.3.3-1",
+ "rule-digest": "471917632daa",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-069",
+  "sources": {
+   "reader": "9f0bf86741a9ea8cc51d693425b6f68228c084eff42ed1d7fd43db717c3ec49d",
+   "refuter": "6d1250296380d24f9783d1915f0ad21da7cc6b1fb2273d7875b40718133da4a3"
+  },
+  "imported": {
+   "reader": "9120194895f79fe93750587cfd5c066573109dac129607ce863448af946194ea",
+   "refuter": "d73f4b67843fe665fda165feac6945e00bdb5dc4390d073735d78d0445f4dd71"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.2.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a sort or merge file SELECTed more than once in one program's FILE-CONTROL paragraph, an SD whose file no SELECT of the same program names, a SELECT with no SD (or FD) in the same program's Data Division (including the split where the SELECT is in a containing program and the SD in a contained one), and a second SD of the same file; one SELECT plus one SD compiles and sorts.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#DescriptionRepeated; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#ScreenSelectsHaveDescriptions; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen",
+    "switches": "below 2002 a sort-merge entry is screened by §1985:XI.2.3.3 SR2 (ASSIGN only) instead of the 2023 sort-merge rows; it is the sibling rule, not SR1's once-only / has-an-SD checks",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of DialectLevel/Edition.Edition/CobolVersion over FileControlBinder.cs, FileControlBinder.FileSection.cs and FileControlKeyRules.cs: the hits are PADDING (2014), RECORD CONTAINS (2002) and FileControlKeyRules.RulesFor/sortMerge1985 (SR2's rows); the SR1 checks themselves (SelectedFiles.ContainsKey -> COBOL2634, the SD arm's FilesByName miss -> COBOL2636, ScreenSelectsHaveDescriptions -> COBOL2635, DescriptionRepeated -> COBOL4250) read no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover an SD with no SELECT, per-program SELECT scope with a legal sort file, and legal 1985 entries; not exercised: a sort file SELECTed twice, a SELECT with no SD at all, the containing/contained split of SELECT and SD, and a doubled SD",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r4a.cob",
+    "printed": "EXIT 65, COBOL2634 at (7,12): file-name 'S1' is specified in a second SELECT clause",
+    "expected": "refused: sort file specified twice in FILE-CONTROL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r4b.cob",
+    "printed": "EXIT 65, COBOL2636 at (11,8): sort-merge file description entry 'S1' names a file that no file control entry specifies",
+    "expected": "refused: SD without SELECT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r4c.cob",
+    "printed": "EXIT 65, COBOL2635 at (6,12): file 'S1' is specified in a SELECT clause but has no FD or SD",
+    "expected": "refused: SELECT with no description"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r4d.cob",
+    "printed": "EXIT 65, COBOL2635 at (6,12) (outer SELECT, no SD) and COBOL2636 at (17,8) (nested SD, no SELECT in its own program)",
+    "expected": "refused both ways: 'in the Data Division of the same program'"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r4f.cob",
+    "printed": "EXIT 65, COBOL4250 at (11,8): S1 described a second time by this sort-merge file description entry",
+    "expected": "refused (the description is the file's one entry)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r4g.cob",
+    "printed": "EXIT 0, 3ITEM / 2ITEM / 1ITEM",
+    "expected": "accepted; SORT DESCENDING with input/output procedures"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.2.3.3 SR1",
+    "check": "OK  §1985:XI.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "Both sentences are answered by the general SELECT/FD/SD pairing screens, which are edition-blind and per program unit; each violation form is refused at --std 85. Messages cite §2023 clauses at --std 85. r4e was a malformed probe (paragraph outside sections) and was replaced by r4g.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.2.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "x4a the same sort-file name SELECTed and SD'd in an outer program and again in its contained program (each once in its own FILE-CONTROL; legal) -> EXIT 0, sorts run in both: 'O AAA / O BBB / I DDD / I CCC'; x4b SELECT S1 with both an FD S1 and an SD S1 -> COBOL4250 at (11,8); x4c a merge file SELECTed twice -> COBOL2634 at (9,12) (the MERGE ... GIVING A1 repetition drew its own COBOL1757). cite.py: 'OK  §1985:XI.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

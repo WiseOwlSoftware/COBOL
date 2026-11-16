@@ -1,0 +1,57 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-4",
+ "rule-digest": "a397b3cb7c5b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-136",
+  "sources": {
+   "reader": "15c79324ed68ea6516287bb8931f5cef958eef5caa3ef38dad69d7c84f11ce98",
+   "refuter": "3286e614e427bf24fa93b65f249932df9023a44048f20bfc136422ad00f027b2"
+  },
+  "imported": {
+   "reader": "8d7e9cbadc729fa82f5c1f13a031f5cefaf54268c4b712cb393f01efb4aebf1f",
+   "refuter": "73a4d442c90a5f72c98f82ec7f09245587bdb02b7168225d64b757faf9bc5410"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.6.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "After a successful REWRITE of a relative file the record need not remain in the record area, except that when the file is named in a SAME RECORD AREA clause the released record stays available in the area and as a record of every other file in that clause.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#BeginReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReleasedRecordAlsoAvailable; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#OutOfLineRecordsOfArea",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|DialectLevel|DialectBehavior|IsActive over SequentialIoEmitter.cs (only NamedRecordEntry and the registrations, not on this path), KeyedIoEmitter.cs (only EmitRegistration) and FileModel.cs#OutOfLineRecordsOfArea/SameRecordAreaPeers: the SAME RECORD AREA sharing is one backing at every edition, and the out-of-line store is emitted on the same compile-time test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf07_08 covers two relative files with character records; not a peer with an ODO record, a three-file clause, a signed COMP-3 field, or the unsuccessful REWRITE",
+  "probes": [
+   {
+    "class": "d,a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-136/rw4a.cob",
+    "printed": "ST=00 / RA=222 -00321 NEW02 / RC=222 /2NEW02 / SBN=22 / INV 23 / RA7=777 +00007 SEVEN / RC7=777 / |SEVEN / FIL=222 -00321 NEW02",
+    "expected": "SAME RECORD AREA FOR RA (relative dynamic) SB (sequential, ODO record) RC (relative sequential): after the successful REWRITE the record is in RA-REC and visible through RC-REC and SB-REC's count field; the failed REWRITE (23) leaves the area as moved and the file record 2 unchanged"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.6.4 GR4",
+    "check": "OK  §1985:VIII.4.6.4 GR4  (4.6.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "Character-window records of a SAME RECORD AREA share one backing, so the released record is available to every peer without a store; an out-of-line peer gets the emitted EmitReleasedRecordAlsoAvailable store on a successful status only. The 'no longer available' half imposes nothing observable, so any area content conforms there.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.6.4-4",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "Probe refute-1985-136/g4b.cob at --std 85 (runs/g4b-002): SAME RECORD AREA FOR RA (relative SEQUENTIAL, RECORD IS VARYING 4 TO 12 DEPENDING ON RA-LEN, ODO record) and IX (indexed DYNAMIC, 20-char record): READ record 1 (LEN 10), RA-LEN 5, REWRITE RA-REC FROM WS-FROM -> 'RW 00', 'FROM-ITEM 03XYZ' (GR6), 'RA-AREA 03XYZ', 'IX-VIEW |03XYZ|' (the released record available as a record of the other file in the clause, an indexed peer the reader did not try); reread 'F1 00 LEN 05 03XYZ', 'F2 00 LEN 08 06BBBBBB'. The sharing is one backing at every edition; no edition site on the path. The 'no longer available' half imposes nothing observable. cite.py: 'OK  §1985:VIII.4.6.4 GR4  (4.6.4 General Rules)  the text is in GR4'; 'OK  §1985:VIII.4.6.4 GR5  (4.6.4 General Rules)  the text is in GR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,127 @@
+{
+ "rule-id": "1985-SR-VI.6.19.3-1",
+ "rule-digest": "79b96182ceca",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-057",
+  "sources": {
+   "reader": "ab7040499af21b07388b4fd170124a5fcefbfe1114402ba069cdc3d2ffd4c1d2",
+   "refuter": "fc56b3be0adc1c3bef0322333f30b164577bedae94d51baee9a12ab897c9ad15"
+  },
+  "imported": {
+   "reader": "61bd6eac1d4af66c033f3119a4cf4729c6f4dccf0c209d5b366eea01db54271c",
+   "refuter": "b8af546d0b09ab14f33150e22f4af9756528d57b8149d14e4ad68a5f7263e18b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.19.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in MOVE Format 1 the sender is literal-1 (a literal, figurative constant or ALL literal) or identifier-1 (a data item, a reference modification, an alphanumeric function-identifier; no 2002 inline method invocation, no numeric function outside an arithmetic expression) and every identifier-2 is a receiving data item (subscripted, reference-modified, a special register such as PAGE-COUNTER) and never a literal, a figurative constant or a function-identifier; each receiver gets the sender in turn.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#moveStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sendingOperand; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#receivingIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#SendingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundMove",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (inline method invocation construct, COBOL0900)",
+    "switches": "refuses the identifier-1 Format 4 inline method invocation (obj :: \"m\") below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "below 2002 refuses a numeric/integer function-identifier as MOVE identifier-1 (construct numeric-function-identifier-operand-2002, §1985:IV.4.3.8.3.3 SR4)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "ReservedWords (ADDRESS not reserved at 85)",
+    "switches": "the 2002 data-address-identifier receiver (ADDRESS OF) is not a word at 85, so 'MOVE P TO ADDRESS OF N' is an undefined name (COBOL1639)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the sender/receiver split itself is the grammar (moveStatement: MOVE sendingOperand moveReceivingPhrase, receivingIdentifier admits no literal or functionCall) and consults no edition; the edition arms above were found from the witnesses' COBOL0900 messages and from probing the 2002 forms",
+  "behaviour-differs-by-edition": "yes: at 85 identifier-1 may not be an inline method invocation or a numeric/integer function, and identifier-2 may not be ADDRESS OF; the sending/receiving roles are the same",
+  "witnesses-cover": "part: the witnesses cover the 2002 inline invocation refusal and PAGE-COUNTER as receiver; a literal, figurative or function-identifier written as identifier-2, several receivers and reference modification at the bounds were not exercised by them",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m1ok.cob",
+    "printed": "[abcd][abcdef  ] [ABCD] [ABABABAB] [abcdex] [ABabcdex] [QR] [QRSTU] [012]",
+    "expected": "two receivers truncated/padded; alphanumeric function sender; ALL literal; X(6:1) and Z(3:) receivers at their bounds; ODO receiver at 2 and 5; numeric literal to numeric"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m1lit.cob",
+    "printed": "COBOL5506 unexpected '\"ABC\"' ... no literal is expected at this position",
+    "expected": "refused: identifier-2 cannot be a literal"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m1fig.cob",
+    "printed": "COBOL5506 unexpected 'SPACES'",
+    "expected": "refused: a figurative constant is no receiving area"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m1num.cob",
+    "printed": "COBOL5506 unexpected '12'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m1fn.cob",
+    "printed": "COBOL5506 unexpected 'FUNCTION'",
+    "expected": "refused: a function-identifier is no receiving area"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m1fnrm.cob",
+    "printed": "COBOL5506 unexpected 'FUNCTION' (reference-modified function as receiver)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m1numfn.cob",
+    "printed": "COBOL0900 a numeric or integer function-identifier where an identifier is written ... requires COBOL-2002",
+    "expected": "refused at 85 (§1985:IV.4.3.8.3.3 SR4)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/m1addr.cob",
+    "printed": "COBOL1639 'ADDRESS' is not defined",
+    "expected": "refused: no ADDRESS OF receiver in 1985"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.3.1-Identifier/pb428-inline-method-invocation-below-2002.cob",
+    "printed": "COBOL0900 in-line method invocation id :: \"method\" requires COBOL-2002 (plus the other OO constructs)",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.3.1-Identifier/pb429_page_counter_receiving.cob",
+    "printed": "EXPECT: MATCH (pb429_page_counter_receiving.out)",
+    "expected": "PAGE-COUNTER admitted as receiving operand"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.19.3 SR1",
+    "check": "OK  §1985:VI.6.19.3 SR1  (6.19.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar fixes the roles: sendingOperand admits a literal, function or data reference and receivingIdentifier only a data reference or a special register, so a literal, figurative or function written as identifier-2 is a parse error. The 85-only refusals of the later sender and receiver forms are edition gates beside the rule, each probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.19.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Class c: 2002 literal forms as literal-1 at --std 85: r5hex X\"41\" -> COBOL0900 hexadecimal literal requires COBOL-2002; r5nat N\"AB\" -> COBOL0900 national literal (plus COBOL0819); r5bool B\"1\" -> COBOL0900 boolean literal; r5cat \"A\" & \"B\" -> COBOL0900 concatenation. Refusal half: r5lc MOVE X TO \"AB\" -> COBOL5506. Admission: r5ok (66 RENAMES THRU receiver and sender, two receivers with a comma, ALL literal to numeric, QUOTE, ZERO to a refmod and a numeric receiver) -> [WXYZ] [WXYZ][WXYZ] [777] [\"\"\"\"] [0][000]. cite.py: OK §1985:VI.6.19.3 SR1 'represents the sending area'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

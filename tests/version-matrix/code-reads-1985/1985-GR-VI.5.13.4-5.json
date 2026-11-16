@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-VI.5.13.4-5",
+ "rule-digest": "66869ac52298",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-103",
+  "sources": {
+   "reader": "df135a2141f6f595b27df3702753a0de19e3c71aa32277a637b05d67d2fcff8f",
+   "refuter": "8e04a85a2f8d90bdb85d2233a95119a128117f326a1233f3e2dfea55f04d6285"
+  },
+  "imported": {
+   "reader": "23e3bdd49154b52d8b3d7e18c043598bdf34d401d51081dec54904b76c010a5e",
+   "refuter": "dc7a4d008ccda6b9cabba455b3980af6bdc1bd2ff4bfabe7682ea043433e48f7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.13.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 every size-dependent action on a SYNCHRONIZED item (justification, truncation, size error/overflow, STRING pointer overflow, reference-modification bounds, INSPECT/LENGTH extent) must use the item's size from its PICTURE, USAGE and SIGN clauses, never any alignment slack, for display, binary, edited, scaled and table-element items.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Synchronized; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "below 2023 (DialectLevel < 2023) refuses SYNCHRONIZED on a group item (Constructs.SyncOnGroup2023, COBOL0900) per §1985:VI.5.13.3 SR1; elementary SYNC takes the same path at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Dialect|Construct in DataBinder.SynchronizedClause.cs: only GateSynchronizedGroup. grep -rn Synchronized over src/WiseOwl.Cobol.Compiler/CodeGen and src/WiseOwl.Cobol.Runtime: only RepositoryAttributeRenderer (metadata); no layout, width, offset, file-record or move code reads the flag, so no edition arm exists on the storage path. The item's size is the PicInfo width, which the SYNC flag never changes (DOC-A.1-195: no padding).",
+  "behaviour-differs-by-edition": "no: size comes from PICTURE/USAGE/SIGN at every edition; only SYNC on a group (2023) is gated",
+  "witnesses-cover": "part: g85_bf11_07 covers display JUSTIFIED, alphanumeric and numeric truncation, SIGN LEADING SEPARATE, ADD size error; not binary (COMP) truncation/size error, STRING overflow, reference modification at bounds, INSPECT, numeric-edited, scaled V items, SYNC in an OCCURS table, or group length",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/syn5.cob",
+    "printed": "SC-OVF SC=   999 SC-TRUNC=  -999 SC-OVF2 (S9(3) COMP SYNC); TN2=    23 (9(2) SYNC RIGHT in OCCURS 3); SE=[234.56] (ZZ9.99 SYNC); SDV=  -345 (S9(3)V9 SYNC)",
+    "expected": "size errors at 3 digits, high-order truncation to the PICTURE, editing to the edited PICTURE's 6 positions"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/syn5.cob",
+    "printed": "SX-OVF SX=[ABCD] PTR=05; SX(4:1)=D SX(2:3)=BCD SXI=[D   ]; CNT=04; LEN-R1=28 LEN-SX=04 LEN-ST=03",
+    "expected": "STRING overflows after 4 characters; ref-mod and INSPECT see 4 positions; group length is the sum of the unpadded sizes"
+   },
+   {
+    "class": "a,b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-103/syn6.cob",
+    "printed": "COBOL2670: 'SX(5:1)': leftmost-position 5 is not a position of the 4-position item; COBOL0900 SYNC on group G1 requires COBOL-2023",
+    "expected": "a 4-position SYNC item has no position 5; SR1 elementary only at 1985"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.4 GR5",
+    "check": "OK  §1985:VI.5.13.4 GR5  (5.13.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "Because the implementation performs no alignment (DOC-A.1-195), the SYNCHRONIZED flag never alters an item's width or offset, so every size-dependent action reads the PICTURE/USAGE/SIGN size. Probes over binary, display, edited, scaled and table SYNC items all honour that size.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry": "the item width comes from its Pic only"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.13.4-5",
+  "refutation": "UPHELD",
+  "classes": "d,f,a",
+  "evidence": "Probe sy5.cob (sy5-003) tried size-dependent actions the reader did not. On an unsigned 9(4) COMP SYNC item, MOVE 12345 truncated to 002345, and ADD 1 to 9999 raised SIZE ERROR (U4B=009999). A PIC X(5) JUSTIFIED RIGHT SYNC LEFT item gave [   AB] and [CDEFG]. An S9(3) SIGN LEADING SEPARATE SYNC RIGHT item gave [-234]. UNSTRING into a PIC X(3) SYNC item gave [HEL] with COUNT 05. A 9(5) COMP SYNC element of an OCCURS table truncated 999999 to 099999, and MULTIPLY raised SIZE ERROR. COMPUTE of FUNCTION LENGTH(G) gave 22 = 2+5+4+3+2x4, no slack, and GA(6:9) of the group moved to X(30) was [FG-234HEL]. At 85, FUNCTION LENGTH written directly as a DISPLAY operand is refused (COBOL0900, a 2002 form), so I used COMPUTE. cite.py: OK §1985:VI.5.13.4 GR5 (the text is in GR5).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

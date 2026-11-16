@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-VII.3.7.4-3",
+ "rule-digest": "60a69614a16a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-023",
+  "sources": {
+   "reader": "2a1b9ce771cb26875d4537a3ada881b7fa908e3c37f01e788153bb24311ccd4c",
+   "refuter": "bfe58dd96295a9a99e558e5cd0636af6b9ca2168b0e8e14aa3571a83c253fa28"
+  },
+  "imported": {
+   "reader": "118325e8277d3b226e8e4f2ba63952dc5cc837132acc19e6827e13cb957c16b0",
+   "refuter": "b46c10aa219b8d5a3ee4c6459648f12c70f5dbfa9423e50bacd61652b394657e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.7.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the footing start (integer-2 or data-name-2's value) must be > 0 and <= the page size, and the footing area is the page-body lines from the footing start through the page size INCLUSIVE, so a WRITE that leaves LINAGE-COUNTER anywhere in [footing, page size] is in the footing area (end-of-page, VII.4.7.4 GR18); an out-of-range data-name value is a 'must' on the program (undefined), an out-of-range literal is refused by SR3 / III.2.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#PositionOnLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus; src/WiseOwl.Cobol.Runtime/IO/LinagePage.cs#LinagePage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#LinageOpExpr; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#ZeroMessage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage",
+    "switches": "only the citation text of the literal integer-2 > integer-1 refusal (LinageClauseRules.Footing.CitationAt -> §1985:VII.3.7.3 SR3 at 85); the test itself is edition-free",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#ZeroMessage",
+    "switches": "only the citation text of the zero literal FOOTING AT 0 refusal (§1985:III.2 below 2002); the refusal is the same",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grep Edition|CobolVersion|DialectBehavior|Std in SequentialConnector.cs (no hit), LinagePage.cs (none), SequentialIoEmitter.cs (one hit, DialectBehavior.SelectWhenOnlyForFilePhraseStatements, unrelated to LINAGE), FileRegistry.cs (Edition only for sharing / CLOSE WITH LOCK; the LINAGE open path SharedOpenAttempt -> BeginLinagePage reads none).",
+  "behaviour-differs-by-edition": "no: run-time page model and footing test are one code path; probes lnk1/lnk2 at --std 85 and --std 2023 print identical lines and write byte-identical print files (cmp).",
+  "witnesses-cover": "part: pb526 covers a zero data-name-2 at OPEN, pb686 the counter == page-size boundary; not exercised by them: footing == page size via data-name (area of one line), footing 1, footing > page size via a data-name at OPEN and at a page transition, the literal refusals.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/lnk2.cob",
+    "printed": "body 5 footing 5 (COMP-3/COMP items): W01..W03 '--' LC 2..4, W04 EOP LC=005; after body 1 footing 2 and BEFORE ADVANCING PAGE: FS=90 LC=000 latched; literal body 3 with data-name footing 4 at OPEN: B-OPEN FS=90 LC=000",
+    "expected": "footing area [5,5] gives EOP only on line 5 (GR3 + VII.4.7.4 GR18); footing > page size is a program 'must' violation, undefined, so the documented 9x status is acceptable"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/lnk3.cob",
+    "printed": "LINAGE IS 2 LINES WITH FOOTING AT 1: WRITE BEFORE ADVANCING 0 -> B0 EOP LC=1; WRITE -> B1 EOP LC=2; 18-digit body/footing 999999999999999999: A NOEOP LC=2",
+    "expected": "footing 1: every line of the body is in the footing area; huge equal values: no end-of-page at line 2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/lnk4.cob",
+    "printed": "COBOL2386 WITH FOOTING AT 0 shall be nonzero (§1985:III.2); COBOL2025 FOOTING AT 4 is greater than the page size 3 (ANSI §1985:VII.3.7.3 SR3)",
+    "expected": "literal integer-2 zero or > integer-1 refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/lnk2.cob",
+    "printed": "--std 2023 run identical to --std 85, print files byte-identical",
+    "expected": "no edition arm: 1985 and 2023 define the same footing area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.4 GR3",
+    "check": "OK  §1985:VII.3.7.4 GR3  (║3.7.4 General Rules║)  the text is in GR3 [quote: The value must be greater than zero and not greater than integer-1; and: The footing area comprises the area of the page body]"
+   },
+   {
+    "cite": "§1985:VII.4.7.4 GR18",
+    "check": "OK  §1985:VII.4.7.4 GR18  (4.7.4 General Rules)  the text is in GR18 [quote: This occurs when the execution of such a WRITE statement causes the LINAGE-COUNTER to equal or exceed the value specified by integer-2]"
+   }
+  ],
+  "notes": "EvaluateLinage applies the >0 and <= page-size test exactly when the FOOTING phrase is present (Footing nullable), and PositionOnLogicalPage raises end-of-page at counter >= footing with no upper clamp, matching the inclusive footing area. A data-name violation answers I-O status 90 and latches until CLOSE, which 1985 leaves undefined.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output and bytes",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.7.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Read SequentialConnector.cs#EvaluateLinage (footing tested only when the phrase is present: f<=0 || f>body) and #PositionOnLogicalPage (overflow at counter+lines > old body, strict; footing EOP at counter >= footing with no upper clamp), matching GR3's inclusive area and VII.4.7.4 GR18. Probe refute-1985-023/rl1.cob at --std 85 (body 6 footing 4 by data-name): A1 ADVANCING 2 '--' LC=3; A2 EOP LC=4; A3 ADVANCING 0 inside the area EOP LC=4; A4 ADVANCING 2 onto the last body line EOP LC=6 (not overflow); after MOVE body 2 footing 1, A5 ADVANCING 0 EOP LC=6 (old page kept); A6 overflow LC=1; A7 EOP LC=2 (new footing 1); file without FOOTING (LINAGE 3): EOP only at overflow (N3 LC=1), others '--'. rl3.cob: OPEN EXTEND of a LINAGE file refused COBOL2372 at 85. cite.py: OK §1985:VII.3.7.4 GR3 (the text is in GR3).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

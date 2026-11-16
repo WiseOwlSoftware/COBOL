@@ -1,0 +1,142 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.7-1",
+ "rule-digest": "a52c43ec04db",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-035",
+  "sources": {
+   "reader": "bd7eed66aebdc546ae845b67f23f0ee080e2d60df4ccadf33495768b8aca753e",
+   "refuter": "6bd50bc9f68399c732b68e4db6a56e29eec3f3c5a38de9d729df0ee82c561943"
+  },
+  "imported": {
+   "reader": "42f7af2c470cac45d03ae998924c94481e65e0b3ca70ab15bf58b0f7fe399b65"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.7-1",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85 (text RECONSTRUCTED, low confidence, kb/Work PB4952) the page heading may begin no higher than one greater than the final LINE-COUNTER setting the report heading established when a report heading was presented on the same page (that setting is the RH's NEXT GROUP integer, its last line plus a NEXT GROUP PLUS integer, or its last line, §1985:XIII.3.10.6 GR5), and no higher than the HEADING integer otherwise; an absolute page heading line above that limit is in error, and a relative first line is placed from it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Cobol85FinalLineCounter; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+    "switches": "takes the year; the PageHeading case returns (HEADING, FIRST DETAIL - 1) without reading it, so no 85 arm applies the RH's final LINE-COUNTER; the year is read only in the report footing case (Cobol85FinalLineCounter, kb/Work PB5244)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+    "switches": "the ReportHeading case bounds the RH's lower limit by the line before an absolute PH's first line (the 2023 GR8 b) shape), the same at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup",
+    "switches": "nothing: the RH's NEXT GROUP sets LINE-COUNTER (absolute / PLUS / NEXT PAGE) at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget",
+    "switches": "nothing: a relative PH after an RH on the page -> LINE-COUNTER + integer, otherwise HEADING + integer - 1",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "read GroupLimits' PageHeading and ReportHeading cases and Cobol85FinalLineCounter's only caller; grep Edition in ReportWriter.cs placement members (none)",
+  "behaviour-differs-by-edition": "yes, by the text: §2023:13.18.57.4 GR7 b) bounds the page heading by the line after the report heading's last line, while 1985 bounds it by the report heading's final LINE-COUNTER, NEXT GROUP included; the compiler applies the 2023 bound at both editions (ph6e accepted at 85 and at 2023)",
+  "witnesses-cover": "part: pb1270 has RH LINE 2 and PH LINE 3 with no NEXT GROUP; relative page headings, the later-page arm and a NEXT GROUP on the report heading are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6a.cob",
+    "printed": "P01 L03 [RH] L04 [PH] ... P02 L03 [PH]",
+    "expected": "relative PH after RH: LC 3 + 1 = 4; on page 2 HEADING + 1 - 1 = 3"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6b.cob",
+    "printed": "P01 L03 [RH] L05 [PH] ... P02 L03 [PH]",
+    "expected": "RH NEXT GROUP PLUS 1 -> LC 4, PH PLUS 1 -> 5"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6c.cob",
+    "printed": "P01 L03 [RH] L05 [PH] ... P02 L03 [PH]",
+    "expected": "RH NEXT GROUP 4 -> LC 4, PH PLUS 1 -> 5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6d.cob",
+    "printed": "COBOL2199 the absolute line LINE 3 of report heading 'RH1' lies below the lower limit 2",
+    "expected": "refused (PH LINE 3 is not above RH's final LC 3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6e.cob",
+    "printed": "compiles clean; P01 L03 [RH] L04 [PH] ... P02 L04 [PH]",
+    "expected": "refused: RH LINE 3 NEXT GROUP 4 sets LINE-COUNTER 4 (§1985:XIII.3.10.6 GR5 a), so the PH's upper limit on page 1 is 5 and its absolute LINE 4 lies above it"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6j.cob",
+    "printed": "P01 L03 [RH] L04 [PH]",
+    "expected": "RH LINE 3 with no NEXT GROUP, PH LINE 4 = LC 3 + 1, legal"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6f.cob",
+    "printed": "P01 L03 [PH] ... P02 L03 [PH]",
+    "expected": "no RH: PH LINE 3 on HEADING 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6g.cob",
+    "printed": "COBOL2199 the absolute line LINE 2 of page heading 'PH1' lies above the upper limit 3",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6h.cob",
+    "printed": "P01 L03 [PH]",
+    "expected": "no RH: PLUS 1 -> HEADING"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6i.cob",
+    "printed": "P01 L03 [RH] / P02 L03 [PH] ... P03 L03 [PH]",
+    "expected": "RH NEXT GROUP NEXT PAGE: no RH on the PH's page, so HEADING"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf6k.cob",
+    "printed": "85: COBOL2199 LINE 11 of report footing 'RF1' lies above the upper limit 12; 2023: runs, RF on line 11",
+    "expected": "the printed sibling rule §1985:XIII.3.10.10 GR1 a has its 85 arm (PB5244); the page-heading rule has none"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.7 GR1",
+    "check": "OK  §1985:XIII.3.10.7 GR1  the text is in GR1 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+   },
+   {
+    "cite": "§1985:XIII.3.10.6 GR5a",
+    "check": "OK  §1985:XIII.3.10.6 GR5a  the text is in GR5a"
+   },
+   {
+    "cite": "§1985:XIII.3.16.4 GR4",
+    "check": "OK  §1985:XIII.3.16.4 GR4  the text is in GR4"
+   },
+   {
+    "cite": "§2023:13.18.57.4 GR7b",
+    "check": "OK  §2023:13.18.57.4 GR7b  the text is in GR7b"
+   }
+  ],
+  "notes": "Relative page headings follow the 1985 rule (the runtime places them from the RH's final LINE-COUNTER, NEXT GROUP included), and an absolute PH above HEADING is refused. GroupLimits gives the page heading HEADING at every edition, and the RH's lower limit uses the PH's first line, not the RH's NEXT GROUP setting, so an absolute PH line between the RH's last line and its NEXT GROUP setting compiles and prints (ph6e). The 1985 text of this rule is a reconstruction (kb/Work PB4952); the finding stands on it and on the printed GR5 a and XIII.3.16.4 GR4.",
+  "seeded": true,
+  "harm": "under-rejects (silent: the page heading is printed on a line the report heading's NEXT GROUP reserved)",
+  "cause": "a",
+  "at-2023": "ph6e compiles and prints PH on line 4 at --std 2023, which §2023:13.18.57.4 GR7 b) allows (the line after the RH's last line, 3)",
+  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/ph6e.cob: RD R1 PAGE LIMIT IS 12 LINES HEADING 3 FIRST DETAIL 6 LAST DETAIL 8 FOOTING 9; 01 RH1 TYPE RH LINE 3 NEXT GROUP 4; 01 PH1 TYPE PH LINE 4; 01 D1 TYPE DE LINE PLUS 1; GENERATE D1 four times",
+  "expected": "§1985:XIII.3.10.7 GR1 (reconstructed): \"the first line number on which the page heading report group can be presented is one greater than the final LINE-COUNTER setting established by the report heading report group\" = 5 (§1985:XIII.3.10.6 GR5 a sets it to the NEXT GROUP integer 4), so PH LINE 4 is in error (§1985:XIII.3.15.3 SR1) and should be refused at --std 85",
+  "observed": "compiles with no diagnostic; page 1 prints RH on line 3 and PH on line 4",
+  "known_note": "none; the unswept sibling of kb/Work PB5244 (landed), which gave the report footing the 1985 final-LINE-COUNTER bound through Cobol85FinalLineCounter"
+ },
+ "work": "PB5789"
+}

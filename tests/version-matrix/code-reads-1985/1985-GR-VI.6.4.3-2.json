@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.6.4.3-2",
+ "rule-digest": "3d1fb73019ef",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-021",
+  "sources": {
+   "reader": "d8b04f25894c554c86c7c009c255e91a675061cd161721206e4d73509e56127f",
+   "refuter": "7ed834854b592c4129cae5be328aeb61a7b43d5647cc251a4a1fb77878085e52"
+  },
+  "imported": {
+   "reader": "819b9678c40bd5273fdedf4ff4595cb2dca53a48c6d716b9dee0e2708368618d",
+   "refuter": "6076e39aa69cdf51caf935ca749699e849c49239db3d29b8f1cc991df2e13fdb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.4.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a same-named pair corresponds for MOVE CORRESPONDING only if at least one is elementary and the implied move is legal under the 1985 MOVE rules (VI.6.19 GR3 a-e at level 2: group moves always legal; SPACE/alphanumeric-edited/alphabetic not to numeric or numeric-edited; numeric/numeric-edited not to alphabetic; noninteger numeric not to alphanumeric or alphanumeric-edited), and for ADD/SUBTRACT CORRESPONDING only if both are elementary numeric items; any other namesake pair is silently not a pair.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrRule2MoveValid; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#DataItemRefusal",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
+    "switches": "perPair = DialectLevel < 2002 (subscript identification per pair at 85); not the rule-2 filter",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition.Has/CobolVersion in MoveTable16.cs and CorrespondingBinder.cs: MoveTable16.DataItemRefusal consults no edition, so the 2023 Table 16 answers at 85; compared cell by cell for every 1985 category pair (numeric integer/noninteger, numeric-edited, alphanumeric, alphanumeric-edited, alphabetic, group) against §1985:VI.6.19 GR3 a-e at level 2, the answers agree.",
+  "behaviour-differs-by-edition": "no (1985 level-2 move legality over its categories coincides with Table 16's rows for those categories; later editions add national/boolean/pointer categories 1985 does not have)",
+  "witnesses-cover": "part: pb391_85 covers numeric->alphabetic, alphabetic->numeric, noninteger->alphanumeric, alphanumeric-edited->numeric and two Yes controls; l1c04 covers ADD/SUBTRACT numeric pairs. Not covered: numeric-edited->numeric (de-edit) / ->numeric-edited / ->alphabetic, alphanumeric->numeric, alphabetic->alphanumeric-edited, P-scaled integer and noninteger to alphanumeric, group x elementary in both directions, signed integer -> alphanumeric, and ADD CORR skipping numeric-edited, alphanumeric and group partners over mixed usages",
+  "probes": [
+   {
+    "class": "b,c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-021/corr3.cob",
+    "printed": "NE=[0012] NE2=[56.78] NE3=[WWWWW] / AN=[123] AE=[888] AB=[A B C] / PI=[300] PFR=[####] NN=[125] GR=[GH] SV=[045] / ADD: A1=105 A2=106 A3=+093 A4=100 A5=100 A6=2 A7=101.50 / SUBTRACT: A1=100 A2=100 A3=+100 A4=100 A5=100 A6=2 A7=100.00",
+    "expected": "legal and paired: numeric-edited->numeric (level-2 de-edit) and ->numeric-edited, alphanumeric->numeric, alphabetic->alphanumeric-edited, 9PP integer->alphanumeric, noninteger->group and group->numeric (non-elementary moves), signed integer->alphanumeric (sign not moved); illegal and skipped: numeric-edited->alphabetic (GR3b), alphanumeric-edited->numeric (GR3a), VPP9 noninteger->alphanumeric (GR3c); ADD/SUBTRACT pair only numeric x numeric (DISPLAY, COMP, COMP-3, scaled) and skip numeric-edited, alphanumeric and group partners"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.4.3 GR2",
+    "check": "OK  §1985:VI.6.4.3 GR2  (║6.4.3 The CORRESPONDING Phrase║)  the text is in GR2"
+   }
+  ],
+  "notes": "CorrMatch descends group x group pairs, so 'at least one elementary' is structural; MOVE asks the one MoveTable16.DataItemRefusal and discards its reason (a silent non-selection), ADD/SUBTRACT require PicCategory.Numeric on both. 1985 GR3d (level 1 forbids numeric-edited -> numeric) does not bind a level-2 implementation, and the compiler implements level 2 (de-editing). Classes e and f do not bear on pair selection.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.4.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attack aimed at 1985 move categories (§1985:VI.6.19.4 GR3 a-e; 1985 alphabetic is PICTURE 'A' only, so PIC XBX is alphanumeric edited, no category mismatch with Table 16). refute-1985-021/corrb.cob --std 85 (corrb-002), MOVE CORRESPONDING G1 TO G2: 999V (an integer: no digit position right of V) -> X(3) paired '123'; numeric-edited noninteger 99.99 -> X(5) paired '12.34' (GR3c bars only a noninteger NUMERIC item); alphanumeric-edited XBX -> A(3) paired 'A B' (GR3b does not bar it); S9(3) -45 -> XXBX paired '04 5' (sign not moved); X(3) -> A(3) paired; A(2) -> 9(2) not paired, stays 99 (GR3a); numeric-edited elementary -> group paired; 99PP 1200 -> X(4) paired '1200'; S9(3) SIGN LEADING SEPARATE -12 -> X(4) paired '012 '. Together with the reader's corr3 (de-edit numeric-edited -> numeric, numeric-edited -> alphabetic skipped, VPP9 -> X skipped, ADD/SUBTRACT numeric-only over COMP/COMP-3/scaled), no pair is chosen or dropped against the 1985 legality. cite: OK  §1985:VI.6.4.3 GR2; OK  §1985:VI.6.19.4 GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-XIII.4.8.3-2",
+ "rule-digest": "92bcab32136b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-080",
+  "sources": {
+   "reader": "f703bafc36b3227b4c578b07a3e6a16ad81a96c464f4b30caf0eefd646b3f18b",
+   "refuter": "3df0a3407bf807dd061238dfffcd1f6710442b1e15c2b8d8c9e2d7232e6bc4ad"
+  },
+  "imported": {
+   "reader": "719438c79655b52761fba174a86cc6b23d6dcbd2411679ffdac6eda977a774f2",
+   "refuter": "c7796951b759a92e6dcd5f1f7ad40fb2ff3e58337923789827a418862c125f4b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.8.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the USE AFTER STANDARD EXCEPTION/ERROR PROCEDURE statement (Report Writer arm: file-name-1, OUTPUT, EXTEND) is a declaration only: it is never executed as a statement, execution starts at the first nondeclarative procedure, and its section runs only when the exception condition arises or the section is PERFORMed (then only the paragraphs run).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectParagraphs; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "Format 3/4 (EXCEPTION CONDITION, EXCEPTION OBJECT) refused below 2002; USE without AFTER / without PROCEDURE refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The never-executed half is structural: DeclCollectSection consumes the first sentence's USE into a BoundDeclarative (scope) and never hands it to the statement binder; CollectParagraphs sets the entry pc after the declaratives. Grepped ProcedureTableBuilder.cs for Edition/DialectLevel/Has( in DeclCollectSection/DeclBindUse: none on this path (only the USE FOR DEBUGGING arm reads configuration).",
+  "behaviour-differs-by-edition": "no: the execution model of the USE statement is the same; only the 2002 formats (F3/F4, optional AFTER/PROCEDURE) are refused at 85",
+  "witnesses-cover": "part: pb365_report_group_qualified_85 exercises a USE BEFORE REPORTING declarative only; nothing exercises a USE AFTER EXCEPTION declarative on a report file at 85, the OUTPUT mode arm, or a PERFORM of a USE section",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p1_use_never_exec.cob",
+    "printed": "START / ERR-DECL FS=30 / AFTER OPEN FS=30 / BR-DECL H=1 / BR-DECL H=2 / ERR-DECL FS=30 / H=2",
+    "expected": "execution begins at MAIN (START first), the USE AFTER ERROR ON RPT procedure runs once after the failed OPEN OUTPUT and control returns to the next statement; PERFORM of each USE section runs only its paragraphs"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p1d_output_mode.cob",
+    "printed": "START / ERR-DECL FS=30 / AFTER OPEN FS=30 / BR-DECL H=1 / BR-DECL H=2 / ERR-DECL FS=30 / H=2",
+    "expected": "USE AFTER STANDARD EXCEPTION PROCEDURE ON OUTPUT selects the failed OPEN OUTPUT of the report file the same way"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p1c_f3_at85.cob",
+    "printed": "error COBOL0878 (EC-I-O introduced by 2002); error COBOL0877 USE AFTER EXCEPTION CONDITION requires COBOL-2002",
+    "expected": "the 1985 format prints only USE AFTER STANDARD {EXCEPTION|ERROR} PROCEDURE ON {file-name-1...|OUTPUT|EXTEND}: refuse the 2002 Format 3"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.8.3 SR2",
+    "check": "OK  §1985:XIII.4.8.3 SR2  (4.8.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The USE statement is consumed as a declaration by DeclCollectSection and never reaches StatementBinder; a USE bound there is refused as misplaced (COBOL2377). The probe shows the run begins at the first nondeclarative procedure, the declarative is entered only on the qualifying failed OPEN, and a PERFORM of the section executes only its procedures.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.8.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-080/: r1a_empty_main (DECLARATIVES with USE AFTER EXCEPTION ON RPT and USE BEFORE REPORTING, then an empty MAIN SECTION): exit 0, prints nothing, so no declarative runs at program start even when the nondeclarative portion has no statement; r1b_extend_last (USE AFTER ERROR PROCEDURE ON OUTPUT then ... ON EXTEND as the last declarative, failed OPEN EXTEND): START / EXT-DECL FS=35 / AFTER OPEN FS=35 C=1, the OUTPUT declarative is not entered and the last declarative returns to the next statement without falling into MAIN; r1e_input_mode (ON INPUT) compiles; class c: r1c USE AFTER EXCEPTION ON RPT (no PROCEDURE) and r1d USE EXCEPTION PROCEDURE ON RPT (no AFTER) are both refused COBOL0900 'requires COBOL-2002'. cite.py: 'OK  §1985:XIII.4.8.3 SR2  (4.8.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:XIII.4.8.4 GR5c  (4.8.4 General Rules)  the text is in GR5c'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

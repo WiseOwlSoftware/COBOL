@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-15",
+ "rule-digest": "b81baef248a5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-009",
+  "sources": {
+   "reader": "1a012f0aed24ca5e6d66c0c04f49408b810c3ad3becebf4565cfd90cc3a5a923",
+   "refuter": "b778b93dd4ded60f559b61f58a28f4485780af94c155ead154f099e4b7ed3adf"
+  },
+  "imported": {
+   "reader": "004b979596961bdb332ec5b8ae9760aeacca92b7a14e6cce8a3fa1926df1e553",
+   "refuter": "afaf94818431bf3617ced7d3409a35522d92607d428ec97491ceb482572bf536"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-15",
+  "verdict": "CONFORMS",
+  "requirement": "On an indexed REWRITE, an alternate key whose value is unchanged keeps the record's retrieval position under that key; a changed key may reorder it, and when duplicates are allowed the record goes last in the duplicate set of its new value; this holds for every access mode and record form 1985 allows.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AlternateValue; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Replace",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "COBOL-85-only mandatory INVALID KEY phrase on REWRITE/START (Year < 2002); syntax only, not this rule's behaviour",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "refuses the 2002 RECORD word / FILE phrase forms at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlternateKeySuppressWhen",
+    "switches": "refuses SUPPRESS WHEN (2023) at 85 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|CobolVersion|DialectBehavior' over src/WiseOwl.Cobol.Runtime/IO/*.cs: the only indexed-connector edition reads are IndexedConnector#SelectSequentialRecord (IndexedReadPreviousAfterOpenAtEnd, READ PREVIOUS only) and #ReadRandom (IndexedDuplicateKeyStatusSequentialOnly, random READ '02' only); neither is on this rule's path. KeyedIoEmitter has no edition read. Rewrite re-stamps a fresh release ordinal only for keys whose value (collating order) changed.",
+  "behaviour-differs-by-edition": "no: the runtime REWRITE path is edition-blind; 85 refuses only the later phrases (SUPPRESS WHEN, SOURCE, RECORD word)",
+  "witnesses-cover": "part: the witness covers dynamic access with an unchanged key and a key changed away and back; not sequential access, a varying-length record, a unique alternate key, figurative values, or the failure path",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/p1_rw_alt.cob",
+    "printed": "A-UNCH: AA 01 02 03; B-TOCC: CC 04 02; B-BACK: AA 01 03 02; unique key changed U3->U0 walks 03 01 02 04; dup unique -> 22; order survives CLOSE (identical at --std 2023)",
+    "expected": "GR15a unchanged order; GR15b last in the duplicate set; GR16c 22"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/p1b_rw_alt_seqvar.cob",
+    "printed": "sequential access RECORD VARYING 4..12: S1=00 NEXT=02; S3=02; BB set 01(LN 4) then 03; AA 02 LN=12",
+    "expected": "the changed record goes last in BB; lengths kept"
+   },
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/p1d_rw_fig.cob",
+    "printed": "HIGH-VALUES/LOW-VALUES keys: order 03 01 02; REWRITE after a failed READ -> 43",
+    "expected": "LOW-VALUE first, then the HIGH-VALUE set in its order of entry"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/p1c_suppress.cob",
+    "printed": "COBOL0900 the SUPPRESS WHEN phrase ... requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "85 has no SUPPRESS WHEN"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR15",
+    "check": "OK  §1985:IX.4.6.4 GR15  (4.6.4 General Rules)  the text is in GR15"
+   }
+  ],
+  "notes": "One release ordinal per key in the frame; Rewrite gives a fresh ordinal only to keys whose value changed (GR15a/b), and Duplicates refuses a unique collision with 22. Every probe matched the 1985 text and was the same at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-15",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "Read IndexedConnector#Rewrite: 'changed' is decided per alternate key from AlternateValue over the record area image (so a key described in another 01 is covered), and only changed keys get a fresh ordinal. I read the definitions it depends on: §1985:IX.2.5.4 GR4 (a key written through another record description) and §1985:B.2.2 (indexed files use the native collating sequence even under PROGRAM COLLATING SEQUENCE). Probe q5_alt2nd01.cob (--std 85, sequential access) rewrote through a second 01 that does not name the alternate key (B-ALT-N PIC 99 over R-ALT). Unchanged 11 -> 00, and the record keeps first place. 03 changed to 12 and back to 11 -> 02 and goes last: walk 02 11, 04 11, 03 11, 01 AA. Same unique U -> 00; the next REWRITE without a READ -> 43 (GR2). Probe q4_pcs.cob ran with PROGRAM COLLATING SEQUENCE IS REV (Z..A): walks and START stayed in native order (01 AA, 02 BB, 03 CC), and after a REWRITE into the AA set the walk was 01 AA, 02 AA. cite.py: OK §1985:IX.4.6.4 GR15 the text is in GR15; OK §1985:IX.2.5.4 GR4 the text is in GR4; OK §1985:B.2.2 the text is in the clause.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

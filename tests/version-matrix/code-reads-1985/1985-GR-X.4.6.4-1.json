@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-X.4.6.4-1",
+ "rule-digest": "fe6971529167",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-032",
+  "sources": {
+   "reader": "0741a30d6c8dce394214e0128a80d0a2654d02fccc0ac1e76ea71c08aa785306",
+   "refuter": "fda5287409efc2a8402ec89359889f9a251930817caddc5e6d453480d939aa2e"
+  },
+  "imported": {
+   "reader": "a8a33cc967cec5ee6de47d923625496b8de0a771653c443f2adeae08420c8980",
+   "refuter": "5ddf663c4625b3d8ae062a7d20d130de3e839eef45ec711bc6a3807023deee0f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.4.6.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a level-01 data-name in the File or Working-Storage Section, a file-name, or a report-name described with GLOBAL must be a global name, and so must every data-name subordinate to it (any level, including the records of a GLOBAL FD and items in an OCCURS table) and every condition-name associated with it or with a subordinate; names of a non-GLOBAL entry (01, its subordinates and 88s, a 77) stay local; GLOBAL is admitted only where X.4.6.3 SR1 allows it (not in LINKAGE, not below level 01, not on a 77).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritContainerGlobalData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#ContainerGlobalRootsOf; src/WiseOwl.Cobol.Compiler/Binding/InheritedGlobals.cs#AddContainerFiles; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalRoots; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalBridgesOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGlobalClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGlobalClause",
+    "switches": "construct linkage-global-2002: the GLOBAL clause in the LINKAGE SECTION is refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "read InheritContainerGlobalData/InheritGlobalSubtree and InheritStep's root gathering; grep LinkageGlobal2002 and the Constructs/ConstructRegistry tables for GLOBAL (only linkage-global-2002); DataBinder.ClausePlacement.cs's GLOBAL placement (COBOL2404) has no edition test. The inheritance of the subtree consults no edition.",
+  "behaviour-differs-by-edition": "yes: GLOBAL in the LINKAGE SECTION is refused at 85 and admitted from 2002; the global-name propagation to subordinates and condition-names is the same code at every edition",
+  "witnesses-cover": "part: the witness covers a GLOBAL FD's several records and their subordinates and GLOBAL REDEFINES entries from direct and indirect containees; not exercised: condition-names (on the 01, on a subordinate, in an OCCURS table), a GLOBAL record of a non-GLOBAL FD, subordinates of a table with an index-name, edited and scaled signed subordinates, the locality of a non-GLOBAL record's names, and the SR1 placement refusals at 85. All probed here.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/glob1.cob",
+    "printed": "D FREC-A-OK ABC / D G-NEG / D NOT G-EMPTY / D G-EL-Z 2 / M G-NUM=+007.5 EL2=Z ED= $7.50 / M GX=2",
+    "expected": "from an indirect containee: 88 of a subordinate of a GLOBAL File Section record (non-GLOBAL FD), 88 on a signed scaled subordinate (-12.5 in range), 88 on the GLOBAL 01 group, 88 on an OCCURS element, the table's index-name (§1985:X.1.3.8.3), qualified G-NUM OF G and an edited subordinate are all the container's items: G-NUM -12.5+20=7.5, element 2 'Z', $7.50, GX 2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/glob2.cob",
+    "printed": "COBOL1639 'L-NUM' is not defined; COBOL1639 'L-TWO' is not defined; COBOL1639 'W77' is not defined (G-REN, the 66 RENAMES of the GLOBAL record, accepted)",
+    "expected": "a non-GLOBAL 01's subordinate and its 88, and a 77, are local names: refused in the containee"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/glob3.cob",
+    "printed": "COBOL2404 GLOBAL on level 05 'G-NUM'; COBOL2404 GLOBAL on level 77 'W77'; COBOL0900 the GLOBAL clause in the linkage section requires COBOL-2002",
+    "expected": "§1985:X.4.6.3 SR1 admits GLOBAL only on level-01 entries of the File and Working-Storage Sections, FDs and RDs: all three refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.6.4 GR1",
+    "check": "OK  §1985:X.4.6.4 GR1  (║4.6.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "InheritGlobalSubtree makes the whole subtree of each container GLOBAL root visible (children, condition-names, index-names, level-66 entries) and leaves non-GLOBAL roots out. One reading to flag, not a failure: the 66 RENAMES of a GLOBAL record is inherited as global; the 1985 text names subordinates and condition-names only, but §1985:VI.5.11.3 SR3 qualifies data-name-1 only by its 01, so treating it as part of the global record is a defensible reading the text does not refute.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.4.6.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "gs1.cob (run gs1-002, --std 85; the first run gs1-001 was my own error, CF FINAL without CONTROL FINAL, correctly refused COBOL0899): GLOBAL RD R-1 with a CF FINAL sum counter S-TOT SUM WAMT, and WS '01 GE IS GLOBAL IS EXTERNAL' with a signed scaled SIGN LEADING SEPARATE subordinate and an 88 range. The containee printed 'D S-TOT=0012 / D S-TOT OF R-1=0012 / D GE-BIG +150.5'. A data-name subordinate to a GLOBAL report-name (the sum counter, unqualified and qualified by the report-name) is a global name, and the condition-name of a GLOBAL EXTERNAL record's subordinate is global. The report printed '07 / 05 / 0012'. gs2.cob (gs2-002, compile only): the same with a non-GLOBAL RD. The containee's 'MOVE S-TOT2' is refused with COBOL1639 'not defined' and 'GENERATE DET-2' with COBOL1757: the names of a non-GLOBAL report stay local. cite.py: 'OK  §1985:X.4.6.4 GR1 ... the text is in GR1'; 'OK  §1985:X.4.6.3 SR1 ... the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -4,10 +4,14 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO 1989:2023 12.4.5.8.3 SR2: "Data-name-1 shall reference a two-character data item of the
-      *> category alphanumeric". PIC X0 is two characters long but category ALPHANUMERIC-EDITED (8.5.2.4),
-      *> a category of its own in 8.5.2.1 Table 2, so SR2 refuses it. It compiled and ran with FS=00
-      *> before kb/Work PB850; GnuCOBOL refuses it too.
+      *> kb/Work PB5627. §1985:VII.2.5.3 SR2 (cite.py: OK): "Data-name-1
+      *> must be defined in the Data Division as a two-character data
+      *> item of the category alphanumeric". PIC X0 is two characters
+      *> long but alphanumeric edited, a category of its own, so the
+      *> FILE STATUS clause is refused under the 1985 rule, not
+      *> §2023:12.4.5.8.3 SR2. It compiled and ran with FS=00 before
+      *> kb/Work PB850; GnuCOBOL refuses it too. Fixed form: 85 defines
+      *> no free form (kb/Work PB5754).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5627G.
        ENVIRONMENT DIVISION.

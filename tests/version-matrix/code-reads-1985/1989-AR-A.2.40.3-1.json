@@ -1,0 +1,90 @@
+{
+ "rule-id": "1989-AR-A.2.40.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-172",
+  "sources": {
+   "reader": "84d0113a32c3b8fb3c49ab99c300f3444f2d3302a70d38fd45e8dc74a96cf591",
+   "refuter": "09e383fce0d4367fa35e04683e772491663c171a175bc0fe5479f69627acfcff"
+  },
+  "imported": {
+   "reader": "46b46de4dc685dc952e84266273be556ca1c72dc4a9efa8db77b7b4b11ceb23e",
+   "refuter": "91ba307e89bd33922789f3ecd37724bbb728975df3a4b3fbed5735e618fd1527"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.40.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 argument-1 of FUNCTION SQRT must be class numeric (an arithmetic expression, §1989:A.2.2 AR1); every numeric form including ZERO, scaled, signed and expression operands must be accepted and every non-numeric operand class refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CandidateClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntroducedIn (85 for SQRT) against DialectLevel: admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year); SQRT's Uniform 'n' row has no predicates, so the class screen is edition-invariant",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf42_05 is a positive run; no witness at 85 refuses a non-numeric argument",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_bad_sqrt.cob",
+    "printed": "COBOL1627 on all 10 lines (alphanumeric, numeric-edited, group, nonnumeric literal, SPACE, ALL literal, ref-mod, UPPER-CASE, HIGH-VALUE, alphabetic)",
+    "expected": "each refused (§1989:A.2.40.3 AR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_sqrt.cob",
+    "printed": "S3=0000000000.000000 SQRT(ZERO), S4=0000000001.414213 SQRT(2), S5=0000000004.000000 SQRT(NG * NG)",
+    "expected": "accepted, approximations"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_sqrt.cob",
+    "printed": "S1=1000000000.000000 SQRT(999999999999999999), S2 SQRT(0)=0",
+    "expected": "accepted; value is an approximation"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_edition_arm.cob",
+    "printed": "SQRT (B\"1\"): COBOL0900 the boolean literal requires COBOL-2002, plus COBOL1627 class boolean",
+    "expected": "a 2002 operand class refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.40.3 AR1",
+    "check": "OK  §1989:A.2.40.3 AR1  (2.40.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   }
+  ],
+  "notes": "Same edition-invariant screen as SIN/TAN; the 1985 class model (numeric-edited is class alphanumeric) agrees with the classifier. Diagnostic cites the §2023 clause at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.40.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Accept half (q_ok_forms-001): SQRT(COMP-3 2.25) A2=1.5, SQRT(PIC 9PP = 400) A4=20 (scaled P), SQRT(BINARY 9) A6=3, SQRT(LINAGE-COUNTER=3) L1=1.732050 (q_special_regs-003). Refuse half (q_bad_forms-001): SQRT(USAGE INDEX item) COBOL6979, SQRT(QUOTE) COBOL1627. Later forms at 85 (q_later_forms-001): SQRT(BINARY-LONG) refused by COBOL0900 (usage requires 2002); SQRT(FUNCTION E) COBOL1502 (E is not in the 1985 text; grep of specs/ANSI_COBOL_1985.md finds no E function). cite.py: 'OK §1989:A.2.40.3 AR1 (2.40.3 Arguments) the text is in AR1'; 'OK §1989:A.2.2 AR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

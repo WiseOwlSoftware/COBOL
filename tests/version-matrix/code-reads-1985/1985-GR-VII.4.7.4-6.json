@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-6",
+ "rule-digest": "85973cde2570",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-026",
+  "sources": {
+   "reader": "a5dafe8cbf6657655f0147d0fac639f370dc4e2a76f6d0aaf2d89580888b6086",
+   "refuter": "c530e3e3d49cbc1fad9c047f19614425ee8fc3e797bca7ec429af4e4c7e9c7cc"
+  },
+  "imported": {
+   "reader": "838c77ebb5a65a89ee11ff52477fd0f886b253473a3aeb31de957ab4e5a31d37",
+   "refuter": "2846c26f7da8b08495cf76045f65e760c81a05933e9c873135800b3d5df24e52"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.7.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "Every WRITE, successful or not, must update the I-O status of its file (and so the FILE STATUS item) to the value VII-2 assigns: '00' on success, '48' when not open in output or extend mode, '44' on a RECORD VARYING size violation, and the module's own values for relative and indexed files.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteAdvancing; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError: random/dynamic key below 1 answers invalid key '24' below 2014 (§1985:VIII.1.3.4 c) and permanent error '34' from 2014",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grep 'IsActive|Edition' over SequentialConnector.cs and IndexedConnector.cs: none on WRITE; the FILE STATUS store after WRITE (EmitStoreFileStatus) has no edition test.",
+  "behaviour-differs-by-edition": "yes: a relative random WRITE with key 0 answers '24' at 1985 (the 1985 arm) where 2014 and later answer '34'; the sequential values are the same",
+  "witnesses-cover": "part: the witness checks WRITE statuses on an unopened file; output/extend success, '48' in input mode, '44' RECORD VARYING violations and relative/indexed values are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-026/st1-001 (st1.cob)",
+    "printed": "W1 not open 48 (preset 99); W2 output 00; W3 input mode 48; W4 extend 00 (preset 99); W5 VL=2 below min 44, record area ABCDEFGH unchanged; W6 00; W7 VL=9 above max 44 unchanged; W8 relative 00; W9 duplicate 22; W10 key 0 24; W11 indexed 00; W12 out of sequence 21; W13 equal key 21",
+    "expected": "§1985:VII.1.3.5: '00', '48' not open in output or extend, '44' boundary violation of the RECORD VARYING sizes (GR8 also: record area unaffected); relative '22' and '24' (§1985:VIII.1.3.4 c); indexed '21' sequence error"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-026/st1-001 (st1.cob)",
+    "printed": "RECORD VARYING FROM 4 TO 8 DEPENDING ON VL: 2 -> 44, 6 -> 00, 9 -> 44",
+    "expected": "GR8: 44 below the smallest or above the largest size"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.4 GR6",
+    "check": "OK  §1985:VII.4.7.4 GR6  (4.7.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4g"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c"
+   }
+  ],
+  "notes": "Every WRITE shape sets the connector status and the emitter stores it into the FILE STATUS item after the statement, overwriting a stale value. The one edition branch on this path (relative key out of range) takes the 1985 arm, which matches the 1985 Relative I-O status text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.7.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,e,f",
+  "evidence": "rst1-001 (--std 85), status preset 99 before each relative WRITE: relative SEQUENTIAL access, RELATIVE KEY PIC 9, ten WRITEs -> 00 x9 (KR 1..9), tenth 24 (the sequential-WRITE key-overflow arm of §1985:VIII.1.3.4 c, not probed by the reader); indexed with ALTERNATE KEY WITH DUPLICATES -> 02, unique alternate duplicate -> 22, prime duplicate -> 22; relative random RECORD VARYING 2..5 DEPENDING: 1 -> 44, 6 -> 44, 5 -> 00; indexed sequential RECORD VARYING 3..6: 2 -> 44, 7 -> 44, 6 -> 00. cite.py: OK §1985:VII.4.7.4 GR6; OK §1985:VIII.1.3.4 (key digits larger than relative key, GRL2.2b/2.3c); OK §1985:IX.1.3.4 '02 ... duplicate key is detected'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

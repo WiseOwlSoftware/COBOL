@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.4.4-2",
+ "rule-digest": "7831e3590fb7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-088",
+  "sources": {
+   "reader": "39110929ecfc0dd99ae45321e31f75511cd828c0db0cb06751c3ae1f00ff5afc",
+   "refuter": "aef7968fb202f68c58a66835384d08e702f15bfa628f711628a49ef1fd10d2ae"
+  },
+  "imported": {
+   "reader": "1bd20aa7f90ae9094acbfbcb4a023abdb40d99f323d0042373501fb49865bbb7",
+   "refuter": "f2d790467bb5a03a92d3bb79abfe6c3b2c8a33a58832d8699aaff4f6f0b9d683"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.8.4.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a reference-modified numeric (DISPLAY, any sign form, scaled or P-scaled), numeric-edited, alphabetic or alphanumeric-edited data-name-1 must be sliced and stored as if it were redefined as an alphanumeric item of the same size: positions are its character positions (a separate sign counts, an embedded sign is the digit's overpunched character), a sending slice yields those characters unconverted, and a receiving slice stores characters without conversion or editing.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#RefModView; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#RefModExclusion; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#NumericImagePlace; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Read; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Write",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition|CobolVersion|Dialect|IsActive in Binding/RefModBinder.cs (only data.Edition.Error/Warning diagnostic sinks, no switch) and in CodeGen/Roslyn/PlaceRenderer.cs (none); the NumericImagePlace wrap and the NumFormatImage/NumStoreImage pair are edition-free. Probe rm2a gives identical output at --std 85 and --std 2023.",
+  "behaviour-differs-by-edition": "no (2023 GR3/GR6 add national and boolean arms that 1985 has no words for; the 1985 categories take the same alphanumeric arm)",
+  "witnesses-cover": "part: g85_bf04_04 covers unsigned DISPLAY, SIGN LEADING SEPARATE, numeric-edited, alphabetic, alphanumeric-edited; not exercised: embedded trailing sign (overpunch), SIGN TRAILING SEPARATE, scaled V and P items, CR/B editing symbols, variable start/length at the bounds, a non-digit stored into a numeric slice, a group slice, ODO table element, refmod in a condition",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-088/rm2a.cob",
+    "printed": "ST3=[L] ST12=[12] SP3=[C] TS4=[-] TS13=[045] SC=[125] SC2=[25] PP=[12] NEW=[ $3.50CR] NECR=[0CR] NB=[3 4] N5KL=[5] N51K=[12345] N6=[A2345] N6W=[A2345] ST=-723 SC=1.77 AL=A1C G=[87Z] TE=[33] CMP OK CMPS NO (identical at --std 2023)",
+    "expected": "character positions of the as-if alphanumeric redefinition: overpunched sign character for S9(3) -123 position 3, separate trailing sign at position 4, V/P not counted as positions, edited symbols as characters, 'A' stored unconverted into N6(1:1), '7' into ST(1:1) gives -723, '77' into SC(2:2) gives 1.77"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-088/rm2b.cob",
+    "printed": "error COBOL1647: 'NC (1:2)': reference modification of a numeric item of USAGE Binary ... is not permitted",
+    "expected": "refused: §1985:IV.4.3.8.4.3 SR1, data-name-1 must be usage DISPLAY, so GR2's as-if redefinition never reaches a COMP item"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.4.4 GR2",
+    "check": "OK  §1985:IV.4.3.8.4.4 GR2  (4.3.8.4.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "RefModView wraps a numeric DISPLAY item in NumericImagePlace (its character image read by NumFormatImage, written back by NumStoreImage) and slices edited/alphabetic items directly as character strings, which is the as-if alphanumeric redefinition GR2 asks for. Sign representation of the embedded overpunch (L for -3, C for +3) is the implementor's data format, not this rule. The diagnostic text cites §2023 rather than §1985, a wording matter outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.8.4.4-2",
+  "refutation": "OVERTURNED",
+  "classes": "b,d,f",
+  "evidence": "Probe refute-1985-088/src/p1b.cob at --std 85 (run p1b-003; p1b-002 is the same source at --std 2023 with the same output): N5 PIC 9(3) VALUE 123; IF N5 (1:3) > 5 printed 'NR-LIT NUMERIC' and IF N5 (1:3) > D5 (D5 PIC 9 VALUE 5) printed 'NR-ITEM NUMERIC', while the same relation over an alphanumeric X (1:3) and over a numeric-edited NE (1:3) printed ALNUM. Under GR2 the numeric item is operated upon as if it were redefined as an alphanumeric item, so the slice is the characters '123', and §1985:VI.6.3.1.1.2 makes 'one numeric and one nonnumeric operand' a character comparison of '123' with '5  ', which is false. The compiler compares the slice as the number 123, which is true. Everything else of GR2 held in p1.cob (run p1-001): the SIGN LEADING overpunch slice gives [J], the LEADING SEPARATE sign gives [-], MOVE 5 TO N(1:2) gives '5 34' (alphanumeric receive), MOVE D7 TO N2(2:2) gives '1074', INSPECT REPLACING on a numeric slice gives '1X34', UNSTRING INTO numeric slices gives 'ABCD', and INSPECT TALLYING SL(1:3) FOR '1' counts 0 (the overpunched J is not converted). p1c.cob (run p1c-001) refuses N5(1:2) in ADD, COMPUTE and a sign condition (COBOL0844). cite.py: OK §1985:IV.4.3.8.4.4 GR2 the text is in GR2; OK §1985:VI.6.3.1.1.2 the text is in the clause (GR1); OK §1985:IV.4.3.8.4.4 GR5 the text is in GR5. Known: kb/Work PB5780 (open, MAJOR, wrong_answer) files exactly this defect and claims row 1985-GR-IV.4.3.8.4.4-5.",
+  "edition-sites-missed": [],
+  "corrected": "NON-CONFORMING (wrong-answer, cause b, the same at --std 2023): a reference-modified numeric DISPLAY item in a relation with a numeric operand is compared algebraically, not as the alphanumeric redefinition that GR2 (with GR5 and §1985:VI.6.3.1.1.2) requires. Repro: IF N5 (1:3) > 5 with N5 PIC 9(3) VALUE 123 is true; the expected result is false. Known note PB5780, filed against GR5's row. The part of the reader's requirement that fails is 'a sending slice yields those characters unconverted'. If the inventory books the comparison under GR5 alone, GR2's position-mapping half does conform."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5780 (a reference-modified numeric item is compared as a number); this row joins it.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-5.md"
+ },
+ "work": "PB5780"
+}

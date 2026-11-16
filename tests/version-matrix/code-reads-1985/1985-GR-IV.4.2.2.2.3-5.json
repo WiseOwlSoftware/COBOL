@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-5",
+ "rule-digest": "051b71026d3c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-005",
+  "sources": {
+   "reader": "2b33b3fd84e577d1e3956cfca3f3e1b4ba342aef6633d8fb66faf257e9af3243",
+   "refuter": "e8a51ee43a12a13170182cd213d5e1e2346f8af4c32efc338396ac4b652905f8"
+  },
+  "imported": {
+   "reader": "8263dc727aa532142457f6942e7e11a797e7bdf94cd477dd853ed9e985bb9cf0",
+   "refuter": "5bad4f190ea564611d19fec2a94077144d71fd322d7159c3715ef98045d26de2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the figurative constant [ALL] QUOTE / [ALL] QUOTES stands for one or more '\"' characters (sized by its associated item, one character where none), and the word QUOTE(S) never bounds a nonnumeric literal, so QUOTE ABD QUOTE is not the literal \"ABD\" (ABD is an ordinary word in that position).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#KindOf; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#Classify; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr5",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr5",
+    "switches": "MOVE QUOTE to a numeric/numeric-edited receiver via ConstructRegistry.Check(Constructs.MoveQuoteNumericObsolete2014): accepted at 85, COBOL0902 at 2023 (a MOVE SR row, not GR5's value or bounding rule)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The value path (grammar quoteWord -> FigurativeConstants.KindOf 'Q' -> FillChar '\"') consults no edition: read FigurativeConstants.cs whole (no EditionInfo/CobolVersion parameter) and grepped QUOTE with edition/version/construct across Frontend and Compiler; the only edition consultation on a QUOTE path is the MOVE SR5 row gate.",
+  "behaviour-differs-by-edition": "no for this rule (value and non-bounding are edition-invariant); the MOVE QUOTE -> numeric receiver legality differs (accepted at 85, removed at 2023) under the MOVE rules, not under GR5",
+  "witnesses-cover": "part: the witness covers MOVE/DISPLAY/compare of QUOTE on X(n); not exercised: ALL QUOTES, VALUE QUOTES, JUSTIFIED/edited/group receivers, STRING/INSPECT operands, and the QUOTE ABD QUOTE refusal in VALUE/MOVE/IF",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/q1.cob",
+    "printed": "A=[\"\"\"] B=[\"\"\"\"] C=[\"\"\"\"] D=[\"\"\"\"] E=[\" \"] F=Y G=Y H=[\"] I=[\"] \"abd\" J=[\"\"\"\"\"\"\"\"\"\"] K=[\"z\"] L=[a\"\"]",
+    "expected": "ALL QUOTES/QUOTES fill X(3), VALUE X(4), JUSTIFIED X(4), group (4 '\"'), XBX edited ('\" \"' after B insertion), compares equal, DISPLAY gives one '\"', DISPLAY QUOTE ABD QUOTE shows '\"' + ABD's content + '\"', STRING one char each, INSPECT BY QUOTE one char"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/q3.cob",
+    "printed": "COBOL1639: the VALUE operand 'ABD' is not a literal ...; COBOL1585 takes exactly one literal",
+    "expected": "VALUE QUOTE ABD QUOTE refused: QUOTE cannot bound a literal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/q2.cob",
+    "printed": "COBOL5506 missing token before 'ABD' ... expected TO",
+    "expected": "MOVE QUOTE ABD QUOTE TO W refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/q4.cob",
+    "printed": "COBOL5506 unexpected 'ABD'",
+    "expected": "IF W = QUOTE ABD QUOTE refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/q5.cob",
+    "printed": "85: N=[\"\"\"] G=[\"\"]; 2023: COBOL0902 MOVE of QUOTE to numeric removed",
+    "expected": "85 admits MOVE QUOTE to numeric (only SPACE is barred in 1985 MOVE SR); QUOTE is the '\"' character"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GR5",
+    "check": "OK  §1985:IV.4.2.2.2.3 GR5  (4.2.2.2.3 Figurative Constant Values)  the text is in GR5"
+   }
+  ],
+  "notes": "The quote value is one table entry (KindOf 'Q') and one fill (FillChar '\"'), shared by every edition, and every probed context gives '\"' sized per IV.4.2.2.2.3 GRL2.1/L2.2. QUOTE ABD QUOTE is refused in VALUE, MOVE and IF because QUOTE is a figurative keyword, never a literal delimiter; the diagnostics at --std 85 cite §2023 clauses, which is a wording matter outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "cite.py: OK §1985:IV.4.2.2.2.3 GR5 'cannot be used in place of a quotation mark'. Probes at --std 85 aimed past the reader's: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/qa.cob (PROGRAM COLLATING SEQUENCE reversed alphabet, UNSTRING DELIMITED BY QUOTE, INSPECT TALLYING FOR ALL QUOTE, 88 VALUE ALL QUOTES, nested program MOVE QUOTE to ref-mod LINKAGE item) printed A=[ab ][cd ] B=03 C=Y D=GT E=Y F=Y G=[ \"\" ]: QUOTE stays '\"' under a program collating sequence and one character where unassociated; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/qd.cob UNSTRING DELIMITED BY ALL QUOTE printed [a ][b ]; refusals E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/qb.cob INSPECT ... BY ALL QUOTE -> COBOL1757 (§1985 INSPECT SR3), E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/qc.cob STRING ALL QUOTE -> COBOL1757 (§1985 STRING SR1). The value path (FigurativeConstants KindOf/FillChar) has no edition input; no arm missed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

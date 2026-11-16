@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-SR-VIII.4.8.3-5",
+ "rule-digest": "7f33710f23a7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-163",
+  "sources": {
+   "reader": "4b088dead2719e1fc593abf6e485ec7a48bf6bcc65261226c2ca26427d8bbf3e",
+   "refuter": "c21732898f741fa02834aa321ab3abb1732b605ad488443c012cc311b90ba757"
+  },
+  "imported": {
+   "reader": "dd16e3fac5ff2c46ccda72cd018ec76fa1b2452a83981656cd57e7d299f466b9",
+   "refuter": "0c72267c44322f153517fe6f2223d5a62185bebe6f88e01c15f2ffc180a24973"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.8.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 one USE statement may reference, explicitly by file-name list or implicitly through INPUT, OUTPUT, I-O or EXTEND, files of different organizations (sequential, relative, indexed) and access modes (sequential, random, dynamic), and the one procedure must run for each referenced file's qualifying condition.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "the 1985 required words AFTER and PROCEDURE and the 2002 Formats 3/4; nothing about the files' organization",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 SORT GR17 exit filter; not organization-dependent",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "DeclBindUse's file loop checks only visibility and sort/merge files (no organization or access test, no edition test); grep of DialectLevel in the dispatch emitters",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_02 mixes relative-sequential and indexed-random explicitly and sequential plus relative-random under INPUT; dynamic access and an indexed file under a mode USE, and the open-failure path of a mode USE across organizations, are covered only by the probe",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p3use.cob",
+    "printed": "D1 (ON FS FR FX: sequential, relative random, indexed dynamic) fires for FS open 35, FR read 23, FX read 23; D2 (EXCEPTION ON INPUT) fires for FM (relative sequential) and FN (indexed random) failed opens; D3 (ERROR ON I-O) fires for both on OPEN I-O",
+    "expected": "one procedure per USE runs for every referenced file whatever its organization or access (§1985:VIII.4.8.4 GR5 a, b, d), and control returns after each non-critical status (GR6)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4nest.cob",
+    "printed": "OUTER-INPUT STO=35 / INNER-INPUT STI=35",
+    "expected": "a sequential file under the outer INPUT USE and a relative file under the contained program's own INPUT USE each reach their own program's declarative (§1985:VIII.4.8.4 GR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.3 SR5",
+    "check": "OK  §1985:VIII.4.8.3 SR5  (4.8.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "DeclBindUse resolves each named file against the visible files and refuses only an unknown or a sort/merge file; mode-scoped USEs carry no file list at all and are matched at run time by the connector's open (or being-opened) mode, so mixing organizations is never compared. Probes exercise the explicit and implicit forms across all three organizations and three access modes.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.8.3-5",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "r1ext-002: USE AFTER STANDARD EXCEPTION PROCEDURE ON FQ FR FX (sequential, relative sequential, indexed sequential) compiled and satisfied the INVALID KEY/AT END requirement for every file; r3err-001: mode USEs reach relative dynamic and relative sequential files (DO 22, DI 23, DIO 23); r1order-001: USE ERROR ON INPUT fires for a relative random file in an OPEN beside sequential and indexed dynamic files. Class c (IPC GLOBAL): r5nestg-001, one USE GLOBAL ERROR ON INPUT in the container serves a sequential file in the container and an indexed dynamic file in a contained program with no declaratives, while a relative random file in a contained program with its own INPUT USE takes that one (§1985:X.5.5.4 GR1a): OUTER-GLOBAL-INPUT STO=35 STI=ZZ / INNER-INPUT STI=35 / OUTER-GLOBAL-INPUT STO=35 STI=35. cite.py: OK §1985:VIII.4.8.3 SR5; OK §1985:X.5.5.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

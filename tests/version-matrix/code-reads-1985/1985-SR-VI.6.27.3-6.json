@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-VI.6.27.3-6",
+ "rule-digest": "5155e26ef132",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-159",
+  "sources": {
+   "reader": "c2acb29deedbe786d1a7cfbf28014a4566b1f9d5fbab9b2095e2b9c1666dfbaf",
+   "refuter": "bf06085bd46da9670c40a16d8407146a1155863d6a0389247df09c0556e12861"
+  },
+  "imported": {
+   "reader": "7ab195c344b9227cd83258851596763ed276180ba9b4510b1f5f75a998840d2e",
+   "refuter": "5d893765f68542f3e631c493637de78133f8753e99995f4dd56faff4ee7fd891"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.27.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an UNSTRING that writes DELIMITER IN or COUNT IN (with or without the optional IN, on any receiver) without the DELIMITED BY phrase must be refused, and both phrases must be accepted on any receiver mix when DELIMITED BY is written.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringIntoTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
+    "switches": "a reference-modified sending operand refused at 1985 (SR7), not this rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Year/IsActive/ConstructRegistry/Constructs in StringUnstringBinder.cs (none); grep unstring in VersionConformancePass.cs (only the sender reference-modification gate); the SR6 test (hasDelim || hasCount) && unstringDelimiterPhrase() is null is edition-free",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers only the permitted half (both phrases under DELIMITED BY); the refusal half and omitted IN are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/uns-bad1.cob",
+    "printed": "error COBOL1651: UNSTRING DELIMITER IN / COUNT IN: the DELIMITED BY phrase shall be specified when either is written",
+    "expected": "DELIMITER IN without DELIMITED BY: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/uns-bad2.cob",
+    "printed": "error COBOL1651 (COUNT IN on the second receiver only)",
+    "expected": "COUNT IN without DELIMITED BY: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/uns-bad3.cob",
+    "printed": "error COBOL1651 (DELIMITER and COUNT with IN omitted)",
+    "expected": "refused"
+   },
+   {
+    "class": "a,d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/uns-ok.cob",
+    "printed": "OVF; R1=AB  D1=,  R2=CDE C2=03 R3=FG  D2=*  C3=02 P=13 TL=03; R1=12  R4=345 C4=03",
+    "expected": "mixed receivers under DELIMITED BY ALL ... OR ALL ...: accepted; counts exclude delimiters; pointer past the 12 examined characters; overflow with H unexamined; numeric receiver with COUNT IN and BY omitted accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.3 SR6",
+    "check": "OK  §1985:VI.6.27.3 SR6  (║6.27.3 Syntax Rules║)  the text is in SR6"
+   }
+  ],
+  "notes": "The binder refuses either phrase on any receiver when unstringDelimiterPhrase is absent, with the one COBOL1651 diagnostic; the message cites §2023:14.9.48.3 SR7 at --std 85, which is cosmetic. The permitted half runs to the 1985 general-rule values.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.27.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "refute-1985-159/uns1.cob at --std 85 (runs/uns1-001): lowercase UNSTRING with DELIMITED BY ALL SPACE (a figurative delimiter) and DELIMITER IN/COUNT IN on the last receiver only, POINTER and TALLYING: 'A AB  |CDE |FG  |  |02|13|03'; DELIMITED BY SPACE with COUNT (IN omitted) on the first receiver only: 'B AB  |02|CDE |    |03' -- both accepted with GR values. Refusals: COUNT IN before DELIMITER IN (the 1985 format fixes the order) COBOL2269 (uns-bad1); COUNT on receiver 2 with TALLYING IN and no DELIMITED BY COBOL1651 (uns-bad2); DELIMITER without IN with POINTER COBOL1651 (uns-bad3); both phrases with ON OVERFLOW COBOL1651 (uns-bad5). cite.py: OK §1985:VI.6.27.3 SR6 'may be specified only if the DELIMITED BY phrase is specified'. The COBOL1651 text cites §2023:14.9.48.3 SR7 at --std 85 (cosmetic, already noted by the reader).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

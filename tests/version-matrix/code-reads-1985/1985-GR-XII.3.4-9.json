@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-XII.3.4-9",
+ "rule-digest": "9d5244dec46e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-035",
+  "sources": {
+   "reader": "bd7eed66aebdc546ae845b67f23f0ee080e2d60df4ccadf33495768b8aca753e",
+   "refuter": "6bd50bc9f68399c732b68e4db6a56e29eec3f3c5a38de9d729df0ee82c561943"
+  },
+  "imported": {
+   "reader": "e4c876410657809a4e49bf8be20cbbe2c92c3574e23b35b04d2eb38ec5c2807d",
+   "refuter": "07b0ff4afeea2258f843a9759222056545349f58e3b772171484205da11c2e5e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XII.3.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must judge the syntax of the program (other than the COPY and REPLACE statements themselves) only on the text that results after every COPY and REPLACE has been processed: text ill-formed before replacement but well-formed after must compile, and text made ill-formed (or made into a construct this edition lacks) by replacement must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Manipulate; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#EndsCharacterString",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Manipulate",
+    "switches": "builds EditionInfo.Of(dialectLevel) and hands it to ApplyReplaceStatements; the ordering (CC + COPY expansion, then REPLACE, then the parse) is not edition-switched",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+    "switches": "the REPLACE statement's own 85 checks (separator period, ALSO/LAST) and the 85 scope end, applied while REPLACE is processed",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitChildren",
+    "switches": "ConstructRegistry edition gates run on the parse of the RESULTANT text (the VALIDATE statement gate refused when REPLACE introduced it)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "traced the call order in ConditionalCompilationProcessor.Manipulate (Render = CC + COPY, then ApplyReplaceStatements, then the parser); grep edition in TextWord.cs (none)",
+  "behaviour-differs-by-edition": "no: the processing order is the same at every edition; only the gates the resultant text meets are the edition's",
+  "witnesses-cover": "part: pb1350_text_words_85 shows only that matching happens over text words; nothing in it is ill-formed before replacement",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rep9a.cob",
+    "printed": "[BBBB] G V P; MATCH",
+    "expected": "a 49-character word (past the 85 30-character limit), the gibberish 'GARBAGE GOES ) HERE (', the 2002-only VALIDATE statement and the reserved word PROGRAM used as a data-name, each replaced into legal 85 text, compile and run"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rep9b.cob",
+    "printed": "COBOL5506 cannot parse construct near 'TO' (MV -> MOVE TO TO)",
+    "expected": "legal-looking text made ill-formed by REPLACE is refused after replacement"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rep9c.cob",
+    "printed": "COBOL0900 the VALIDATE statement requires COBOL-2002 (targeting COBOL-85), at the DO-IT line",
+    "expected": "a 2002 construct produced by REPLACE is judged at 85 on the resultant text"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.3.4 GR9",
+    "check": "OK  §1985:XII.3.4 GR9  the text is in GR9"
+   },
+   {
+    "cite": "§1985:XII.3.4 GR4",
+    "check": "OK  §1985:XII.3.4 GR4  the text is in GR4"
+   }
+  ],
+  "notes": "The text-manipulation stage runs to completion (conditional compilation and COPY in Render, then REPLACE) before the parser and binder see the text, so word-length, reserved-word and edition gates judge only the resultant text. The probes show both halves: source illegal before replacement compiles, and source made illegal by replacement is refused.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XII.3.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 via run_case.py: y2 (W@B, a character outside the COBOL set), y3 (-WB, a word beginning with a hyphen), y4 (a 19-digit numeric literal, past the 18-digit limit), y5 (PIC QQQ), y6 (2002 EXIT PERFORM) each replaced into legal 85 text: all compile and run (BBBB, BBBB, 7, QQQ, BBBB). y1d: a 170-character nonnumeric literal (past the 1985 160 limit) in source and in pseudo-text-1 (SR6 allows 322), replaced by \"SHORT\": compiles, prints SHORT; y1c (same literal, pseudo-text not equal because a continued line's trailing blanks belong to the literal) is left unreplaced and refused COBOL0814 on the RESULTANT literal (the limit is judged after REPLACE). A pseudo-text-2 full of junk (VALIDATE W-B *> @@@ ) () that never matches is not judged. y8: a sentence 'FAKE-PARA.' in area B, a non-verb 'NOT-A-VERB W-B' and 'PIC IS 1985-BAD' all replaced into legal text: A/STMT/BBBB. y9: at 85 '*>' is a text word, not a comment, and ==*> KEEP== BY ==\"K\"== prints BBBBK. cite.py: OK §1985:XII.3.4 GR9; OK §1985:XII.3.3 SR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

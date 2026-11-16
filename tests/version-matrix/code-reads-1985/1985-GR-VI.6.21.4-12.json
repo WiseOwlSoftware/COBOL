@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-12",
+ "rule-digest": "445c0670ec50",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-016",
+  "sources": {
+   "reader": "6dc6b8eb09b28ec640187fcede7c10a546cd677794143e60c8224cf9a0afc72c",
+   "refuter": "9c887bf6a45081872b1e706650bd9db321b9bf6a8f99c94f692cbe63350fbcfe"
+  },
+  "imported": {
+   "reader": "4d75706f4b3f0de0c142ccc91ad81897059b630508241d8c58257d72a171e830",
+   "refuter": "bc698c6b1ce58792783e0d3a1ef30fbb65e12007b453896741146680d5d03b37"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.21.4-12",
+  "verdict": "CONFORMS",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "requirement": "At 85, when an EXIT PROGRAM in the same program executes within a PERFORM range, the statements control then reaches (the caller's, after its CALL) are not part of that range. The called program returns and, per §1985:X.5.4.4 GR2, every PERFORM it executed is considered ended, so a later CALL meets no stale return. An EXIT PROGRAM in a program that was not called continues with the next statement (X.5.4.4 GR1) and stays in the range.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (the Constructs.ExitProgramArchaic2023 check)",
+    "switches": "COBOL0903 archaic warning for EXIT PROGRAM from 2023 only; no effect on execution",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "CallEmitter#EmitExitProgram has no edition reference: it tests __asCalled and throws ProgramReturn, which unwinds every nested dispatch frame. DispatchEmitter.cs and ControlFlowEmitter.cs were grepped as for GR11.",
+  "behaviour-differs-by-edition": "no: gr12.cob prints the same at 85 and 2023; 2023 adds only the COBOL0903 warning.",
+  "witnesses-cover": "part: the listed witness (pb3491) exercises GO TO, not EXIT PROGRAM. It does not exercise EXIT PROGRAM inside a PERFORM range of a called program, nested PERFORMs ended by one EXIT PROGRAM, a second CALL after such an exit, or EXIT PROGRAM in the run unit's first program (probed below).",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-016/gr12.cob",
+    "printed": "P 1 BACK1 P 2 Q 2 BACK2 (SUBX: the first call PERFORMs P, whose EXIT PROGRAM returns; the second call GOes TO P and falls into Q, with no stale PERFORM return)",
+    "expected": "GR12 with X.5.4.4 GR2: the caller's statements lie outside the range, and the ended PERFORM leaves no return mechanism behind"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-016/gr12.cob",
+    "printed": "Y1 Y2 BACK3 (SUBY: two nested PERFORMs ended by one EXIT PROGRAM; no MUST-NOT line printed)",
+    "expected": "all ranges ended; control resumes after the CALL"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-016/gr12.cob",
+    "printed": "P9 RET-MAIN (EXIT PROGRAM inside PERFORM P9 in the main program, which was not called)",
+    "expected": "§1985:X.5.4.4 GR1: execution continues with the next executable statement, so the range completes and the PERFORM returns; P9B does not run"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.4 GR12",
+    "check": "OK  §1985:VI.6.21.4 GR12  (6.21.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:X.5.4.4 GR2",
+    "check": "OK  §1985:X.5.4.4 GR2  (5.4.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:X.5.4.4 GR1",
+    "check": "OK  §1985:X.5.4.4 GR1  (5.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "EXIT PROGRAM in a called program throws ProgramReturn, which unwinds every PERFORM's dispatch frame. The caller's statements therefore never join the range, and a later CALL starts with no active PERFORM. In a program that was not called, EXIT PROGRAM does nothing and the range completes. All probes printed the expected lines at 85."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.21.4-12",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-016/rp12.cob at --std 85: a contained program INNER whose EXIT PROGRAM ends its PERFORM, called from the caller's PERFORM range -> 'CP N1 CP-AFTER RET-CP' (the caller's statements after CALL remain in ITS range; CALLER-Q not run); an INITIAL program (X.5.4.4 GR3) called twice -> 'I1 1' both times; EXIT PROGRAM executed in a USE AFTER ERROR declarative of a called program, reached from a PERFORM range -> 'D1 DECL 35 BACK-D1', and the second call starts fresh 'D1 DECL 35 BACK-D2' (no D0/D1 MUST-NOT lines); EXIT PROGRAM inside PERFORM V1 VARYING J -> 'V1 1 V1 2' on each of two calls (the varying range ended, X.5.4.4 GR2). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-016/rp12s.cob: the CALL sits in independent segment 60 inside a PERFORM range after an ALTER; the return finds the segment in its last-used state ('T7-LAST-USED-OK', §1985:XVI.1.4.3 (2)) and the range completes ('T9 RET-T'). cite.py: 'OK  §1985:VI.6.21.4 GR12  (6.21.4 General Rules)  the text is in GR12'; 'OK  §1985:X.5.4.4 GR2  (5.4.4 General Rules)  the text is in GR2'; 'OK  §1985:X.5.4.4 GR3  (5.4.4 General Rules)  the text is in GR3'; 'OK  §1985:XVI.1.4.3  (1.4.3 Independent Segments)  the text is in the clause; it lies in GRL2.2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

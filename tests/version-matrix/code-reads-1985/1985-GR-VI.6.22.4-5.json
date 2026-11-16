@@ -1,0 +1,57 @@
+{
+ "rule-id": "1985-GR-VI.6.22.4-5",
+ "rule-digest": "4fde23ab596f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-111",
+  "sources": {
+   "reader": "d6329820f4e6f8b9ed8689ebdf2b9be26857dffa18409931c8b9de4fda162935",
+   "refuter": "87323face041a10bfce2fb2ff126a2d889cf521be995c5781b68af935e07664d"
+  },
+  "imported": {
+   "reader": "4bf4ab42ae62eeb88d20b7c180c2e1adb23b558b44646d3b5843fd8467f42ace",
+   "refuter": "0b001a2af09dcf9f12acac533cda9effd626387ef5ccb328ad47775dbeee2dcb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.22.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in both SEARCH formats, after imperative-statement-1 (AT END) or imperative-statement-2 (WHEN) runs without ending in a GO TO, control passes to the end of the SEARCH statement (no further WHEN is evaluated and the search does not continue); one that ends with GO TO transfers to its target.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSearchScan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSearchWhens; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#EmitStatementList; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearchAll",
+  "edition-consulted": [],
+  "edition-search": "grep of ControlFlowEmitter (EmitSearch, EmitSearchScan, EmitSerialScan, EmitAllScan, EmitSearchWhens) and SearchBinder for Edition/Year/DialectBehavior/ConstructRegistry: the only edition read on the SEARCH path is DialectBehavior.SearchIndexBelowTableUnsuccessful in BindSearch, which sets the format-1 start bound and not the transfer after an imperative statement; the goto __searchEnd after each arm is edition-blind",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf15_05/06 cover the WHEN and AT END arms; a second true WHEN after the first, GO TO-terminated arms in both formats and a SEARCH inside an in-line PERFORM were not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/s5a.cob",
+    "printed": "A-W1 2 / A-AFTER Y=1 / B-END / B-AFTER Y=2 / C-HIT / C-AFTER / D-END / D-AFTER / E-HIT / P-E / F-END / P-F / G-1 / G-TAIL 1 / G-2 / G-TAIL 2 / P-G (MATCH)",
+    "expected": "after an arm, control to the end of the SEARCH (second WHEN not taken, statement after END-SEARCH runs); a GO TO-terminated arm transfers to its target in both formats; within an in-line PERFORM each SEARCH end resumes the loop and a GO TO leaves it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.22.4 GR5",
+    "check": "OK  §1985:VI.6.22.4 GR5  (║6.22.4 General Rules║)  the text is in GR5"
+   }
+  ],
+  "notes": "EmitSearchWhens emits goto __searchEnd after each WHEN body unless it terminated (EmitStatementList returns true for a transfer), and EmitSearchScan does the same after the AT END body; GO TO sets __pc and jumps to the dispatcher transfer label so no loop captures it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.22.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Attack: an arm whose last statement is a transfer verb that may not transfer. §1985:VI.6.15.4 GR3 (GO TO DEPENDING with identifier out of range passes to the next statement) and §1985:X.5.4.4 GR1 (EXIT PROGRAM in a program not under a calling program continues with the next executable statement). Probe r5a MATCH: GO TO P-Z DEPENDING ON D (D=7) ending the WHEN arm and the AT END arm of format 1 and of format 2, and EXIT PROGRAM ending a WHEN arm and an AT END arm, in a main program: each reaches the end of the SEARCH ('A-W1 / A-AFTER / B-END / B-AFTER / C-HIT / C-AFTER / D-END / D-AFTER / E-W1 / E-AFTER / F-END / F-AFTER'), the second true WHEN is not entered and P-Z is never reached. cite.py: 'OK  §1985:VI.6.22.4 GR5 ... the text is in GR5'; 'OK  §1985:VI.6.15.4 GR3 ... the text is in GR3'; 'OK  §1985:X.5.4.4 GR1 ... the text is in GR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

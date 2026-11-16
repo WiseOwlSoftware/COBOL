@@ -1,0 +1,107 @@
+{
+ "rule-id": "1985-GR-XIII.3.2.4-4",
+ "rule-digest": "f8d052abfd75",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-037",
+  "sources": {
+   "reader": "b62b5a29f334b4cc7737cb6d24ba106b59ab3c44c67679e762a0c676560b5a88",
+   "refuter": "272dd08d3af3f39cc0aad5dc2dba225ff9d01969a506827e1881cb8e459e276d"
+  },
+  "imported": {
+   "reader": "9a795488f22d3fc8e3932f761fda2dda7eddff626d6e58f51ece5c784e546eeb",
+   "refuter": "f4eace354d2ab1a6b4335f1bfafb6153cac7cbdd11bb2dce1627a1924dd24992"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.2.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the REPORT clause of a report file's FD is the clause of XIII.3.3 (REPORT IS / REPORTS ARE report-name-1 ...): admitted among the 1985 report FD clauses (BLOCK, RECORD, LABEL, VALUE OF, CODE-SET) in any order, its report-names bound to the RDs, with its syntax rules enforced.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#reportClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (Constructs.LabelRecordsRemoved2002 check, line 801)",
+    "switches": "LABEL RECORDS (and the other DeletedAt2002 rows of FileDescriptionFormats.Rows) admitted in the report FD at 85, refused COBOL0902 from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel in FileDescriptionFormats.cs and ResolveReports: none; the only edition switch is the removal gate of the COBOL-85 FD clauses",
+  "behaviour-differs-by-edition": "yes: the 1985 report FD also admits LABEL RECORDS / VALUE OF beside the REPORT clause; at 2023 LABEL RECORDS is refused COBOL0902",
+  "witnesses-cover": "part: pb1050 covers REPORTS ARE with two names; clause order, REPORTS without ARE, the 1985-only FD clauses beside REPORT and the SR1/SR2/SR3 refusals are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep_valueof.cob",
+    "printed": "runs: [AAA 1 ] [BBB 1 ] [BBB 2 ] [AAA 2 ] with REPORTS ARE first, CODE-SET, LABEL RECORDS STANDARD, VALUE OF FILE-ID, RECORD, BLOCK",
+    "expected": "§1985:XIII.3.2.2 format, SR2 any order: accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep.cob",
+    "printed": "--std 2023 compile: error COBOL0902: the LABEL RECORDS clause was removed in COBOL-2002",
+    "expected": "later edition refuses the 85-only clause (contrast arm)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep_linage.cob",
+    "printed": "error COBOL2604: the LINAGE clause ... is not a clause of Format 3 (report) of the file description entry",
+    "expected": "LINAGE is not in the 1985 report FD format: refusal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep_undecl.cob",
+    "printed": "error COBOL2714: the REPORT clause names 'R-C', which is not the subject of a report description entry",
+    "expected": "§1985:XIII.3.3.3 SR1 refusal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep_twice.cob",
+    "printed": "error COBOL2714: the REPORT clause names 'R-A', which is already named by the REPORT clause of file 'PRT'",
+    "expected": "§1985:XIII.3.3.3 SR2 refusal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep_recdesc.cob",
+    "printed": "error COBOL2578: file description entry 'PRT' specifies a REPORT clause and has 1 record description",
+    "expected": "§1985:XIII.3.2.3 SR4 refusal"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep_openin.cob",
+    "printed": "error COBOL2371: OPEN INPUT 'PRT' — a report file shall not be opened INPUT or I-O",
+    "expected": "§1985:XIII.3.3.3 SR3 refusal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep_noare.cob",
+    "printed": "runs (REPORTS R-A R-B without ARE)",
+    "expected": "ARE is optional in the format: accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.2.4 GR4",
+    "check": "OK  §1985:XIII.3.2.4 GR4  (3.2.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "GR4 is a cross-reference to the REPORT clause; the clause is parsed by reportClause, admitted only in Format 3 by FileDescriptionFormats.Rows, and its syntax rules are enforced at 85. The diagnostics at 85 cite §2023 clauses (COBOL2604 lists the 2023 Format 3 clause set, omitting LABEL/VALUE OF that 85 admits); the verdicts are right, the citations are another edition's.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.2.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "GR4 is only a pointer ('The REPORT clause is presented on page XIII-9') and the REPORT clause works at 85 (reader's probes, plus fd_ext-001 and fd_range-001 ran with REPORTS ARE R-A R-B; fd_rel-001: a RELATIVE report file is refused COBOL2604, §1985:XIII.3.2.3 SR3). SIBLING FINDING (not this rule): the printed page (rendered PDF page 589, folio XIII-7) shows the report FD's RECORD clause with only 'CONTAINS integer-3 CHARACTERS' and 'CONTAINS integer-4 TO integer-5 CHARACTERS', and §1985:XIII.3.2.4 GR3 limits the other clauses to those 'shown on page XIII-7', yet fd_varying-001 (FD PRT RECORD IS VARYING IN SIZE FROM 1 TO 12 CHARACTERS REPORTS ARE R-A R-B) compiles and runs at --std 85 (under-rejects; at --std 2023 only LABEL RECORDS is refused, so VARYING has no 85 arm). That belongs to the 3.2.2 format / 3.2.4 GR3 row. cite.py: 'OK  §1985:XIII.3.2.4 GR4  (3.2.4 General Rules)  the text is in GR4'; 'OK  §1985:XIII.3.2.4 GR3  (3.2.4 General Rules)  the text is in GR3'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows: Format 3 (report) admits the RECORD clause's VARYING format at every edition; the 1985 report FD (XIII.3.2.2) has none"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,79 @@
+{
+ "rule-id": "1989-RV-A.2.27.4-2",
+ "rule-digest": "af900d3b5da0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-181",
+  "sources": {
+   "reader": "64adde408a710636ce1336a5767ddd82683bb562f3bbf807b14cc4f6884eaab9",
+   "refuter": "ca573e4b3eb6eea966e401713476fb0266a627947ce5f3c2404df2763568ed6f"
+  },
+  "imported": {
+   "reader": "33a947d5a79a426e2eefc21b01a29ef3ea8f131bdf64a5c6ed4e146bef8c757c",
+   "refuter": "257c11bd108037d39651610616909731cb096bfa201598388c55056f1c8c4f34"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.27.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, when several argument-1 values tie for the least value under the simple-condition comparison (including alphanumeric operands equal only after space padding, and characters made equal by ALSO in the program collating sequence), MIN must return the content of the leftmost of them.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#SelectMin; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#MinAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MinString; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Compare",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntrinsicFunctionNotYetIntroduced when sig.IntroducedIn (85) exceeds DialectLevel; MIN is available at 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "the tie-break lives in the runtime selection loops (SelectMin, ExtremeIndex), which take no edition input; grep Edition|CobolVersion|DialectLevel over CobolIntrinsics.Select.cs, CobolIntrinsics.Exact.cs and IntrinsicRenderer.cs found none.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf40_04 MIN4/MIN5 cover a padding tie between two literals; not covered: ties among items of different sizes and classes, ties made by ALSO in a PROGRAM COLLATING SEQUENCE",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/minp.cob",
+    "printed": "MINTIE1 [AB ] for MIN (A3 'AB ' A2 'AB'); MINTIE2 [AB] for MIN (A2 A3); MINTIE3 [AB  ] with FUNCTION LENGTH 04 for MIN (AL4 A2 A3), AL4 PIC A(4)",
+    "expected": "the leftmost of the equal arguments, at its own size"
+   },
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/minpcs.cob",
+    "printed": "PCS2 [BBB] for MIN (BBB AAA) and PCS3 [AAA] for MIN (AAA BBB) with \"B\" ALSO \"A\"",
+    "expected": "a tie under the program collating sequence returns the leftmost"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/minp.cob",
+    "printed": "MINZ 0 for MIN (NZ=-0 PZ=0.0 1)",
+    "expected": "-0 equals +0; zero"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.27.4 RV2",
+    "check": "OK  §1989:A.2.27.4 RV2  (2.27.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.2",
+    "check": "OK  §1985:VI.6.3.1.1.2  (6.3.1.1.2 Comparison of Nonnumeric Operands)  the text is in the clause"
+   }
+  ],
+  "notes": "Both selection loops replace the candidate only on a strict less-than (SelectMin, ExtremeIndex), so the first of equal arguments is kept. Numeric ties cannot be told apart by value; the padding and ALSO probes are the ones that could fail, and they did not. Same output at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.27.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "pad.cob (runs/pad-001), ties made by ALSO between the pad space and \"B\": TIE1 [A] for MIN (\"A\" \"AB\"), TIE2 [AB] for MIN (\"AB\" \"A\"), TIE3 [A  ] for MIN (AL PIC A(3) \"A  \", W3 \"AB\", W2 \"A\"), TIE4 [AB], LIT2 [A]: the leftmost of the tied arguments every time, alphabetic and alphanumeric mixed (Amendment 2 AR1). sz.cob (runs/sz-002): FN1 [SRQ] and FN2 [SRQ ] for a padding tie between a function result and a literal, in both orders. OK  §1989:A.2.27.4 RV2  (2.27.4 Returned Values)  the text is in RV2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

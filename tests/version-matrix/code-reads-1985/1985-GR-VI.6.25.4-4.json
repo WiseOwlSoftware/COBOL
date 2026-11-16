@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-4",
+ "rule-digest": "deeb65baf309",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-113",
+  "sources": {
+   "reader": "9e16c1aa971425a4b8a397cba94309dde729a8b6a0436fab764dd51d99307d99",
+   "refuter": "8cba34c317369f509ca7b93c39d2ca658455da6c1854a7605b3d5c2f7ae4b531"
+  },
+  "imported": {
+   "reader": "623d41569e9c1c7418af55f0a3e5623a7aadf2b28c4ca9a94aae8be086c8f0a2",
+   "refuter": "01aebb8fe992c720707111bf8d41bce267c7e863cd47939738c241424364d78c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 each sending item's characters are moved left to right into identifier-3 with no space fill: without SIZE until the sender ends, the receiver ends or the delimiter string is found (delimiter not moved; a partial match or a delimiter longer than the sender does not stop it), with SIZE the whole content until the receiver ends; repeated for every sender in order, a DELIMITED phrase governing the run of senders before it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#WriteImage; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStringStatement",
+    "switches": "string-delimited-omitted-2002: refuses at 85 a trailing sender with no DELIMITED phrase",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep over StringEmitter.cs and CobolStringOps.cs: no edition reference; the back-propagation of DELIMITED in BindString is edition-blind.",
+  "behaviour-differs-by-edition": "yes: an omitted trailing DELIMITED is refused at 85 (implies SIZE at 2002+); the transfer itself is the same code",
+  "witnesses-cover": "part: g85_bf02_03 covers no-fill, delimiter stop, receiver-end stop, SIZE and sender order; not exercised: partial/longer delimiter, a DELIMITED phrase over a run of several senders, variable-length (ODO) sender or receiver, reference-modified senders at bounds, edited and signed numeric senders, later senders after the receiver is full",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr234.cob",
+    "printed": "I [PQR*********] (ODO sender at current size 3); J [AEBCDE******] (S5(1:1) S5(5:1) S5(2:4)); G [ABCW********]; H [ABCQ/*******]; L [ABCD] (MATCH)",
+    "expected": "ODO sender at current extent; ref-mod bounds; 'ABC' not stopped by 'CD'; run 'A/1' 'B/2' 'C' each cut at '/'; rest skipped once receiver full"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr10.cob",
+    "printed": "6 OVF / 6 [ABC] (ODO group receiver, current size 3)",
+    "expected": "receiver size is the current ODO size"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr5.cob",
+    "printed": "7 NOOVF / 7 [  7-1] 06 (ZZ9 edited sender '  7' then S99 SIGN LEADING SEPARATE -12 delimited by '2' gives '-1')",
+    "expected": "content moved as characters, alphanumeric-to-alphanumeric"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/omitdl.cob",
+    "printed": "--std 85 COBOL0900; --std 2023 [ACD***]",
+    "expected": "85 refuses the omitted DELIMITED phrase"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/refscal.cob",
+    "printed": "COBOL1651 PIC 9V9 sender refused; refcomp.cob COBOL1626 COMP sender refused",
+    "expected": "SR6 integer, SR2 USAGE DISPLAY"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR4",
+    "check": "OK  §1985:VI.6.25.4 GR4  (║6.25.4 General Rules║)  the text is in GR4"
+   }
+  ],
+  "notes": "The receiver image is read once, StringTransfer writes only touched positions (ordinal IndexOf for the delimiter) and the image is stored back through WriteImage; ODO senders and receivers use their current size.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-4",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "cite.py 'OK §1985:VI.6.25.4 GR4 the text is in GR4'. sp1.cob signed S99 -12 sender moved as raw characters '1K' (alphanumeric-to-alphanumeric, sign not stripped) '4 [1K******]'; group sender with embedded delimiter cut at it; subp.cob two senders T(P) T(P) with POINTER P give 'ABAB' (subscript evaluated once, §1985:IV.4.3.8 OK) and ON OVERFLOW after partial fill leaves the untouched prefix '**ABCDEF'. Reader's ODO and ref-mod probes stand.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

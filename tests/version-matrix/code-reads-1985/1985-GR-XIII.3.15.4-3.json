@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-XIII.3.15.4-3",
+ "rule-digest": "1784bddb99ce",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-146",
+  "sources": {
+   "reader": "56366494aea5ec4e06ce1598d7ce21691365b3bac4e45db00a320a0e89505f44",
+   "refuter": "db4bfb5fe13af4f720492392954309b2223394c15d7a072b8045b8ef690e7e5b"
+  },
+  "imported": {
+   "reader": "479c3e553e5093cde92d5fa4e7dee1f6cffe1e1706ebf3a781e0160c4d602b20",
+   "refuter": "27772adf88a78d8c15b6c07081cd7e21a19d9b7212992ce0c64fe4e1d1580584"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.15.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an absolute LINE NUMBER integer-1 places its print line on that page line, in every report group type (RH, PH, CH/DE/CF, PF, RF), as a first or later line of the group, with LINE-COUNTER equal to that number while the line is presented.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SubsequentTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses",
+    "switches": "ExceedsThreeSignificantDigits85 (§1985:XIII.3.15.3 SR1) and the 85-only PF relative-first-line refusal (SR9)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
+    "switches": "GroupLimits(g, model, Edition.DialectLevel): the 85 page-footing final LINE-COUNTER (Cobol85FinalLineCounter) sets the report footing's upper limit; the 85-only SR9 one-page check of relative body groups",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineClause",
+    "switches": "the multiple LINE clause and LINES/NUMBERS/ARE spellings are 2002 constructs, refused at 85 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The runtime placement path (FirstLineTarget, SubsequentTarget, PresentLine) consults no edition: grep of src/WiseOwl.Cobol.Runtime/IO/Report*.cs for Edition|CobolVersion|Dialect finds only four DialectBehavior questions (sum size error, group indicate, CF page-group control values, TERMINATE save location), none on line placement.",
+  "behaviour-differs-by-edition": "no: placement of an absolute line is the same code and the same output at --std 85 and --std 2023 (ln_types at both editions printed identical pages); only the compile-time operand screens differ.",
+  "witnesses-cover": "part: g85_f29_02 covers absolute lines in a detail group only; absolute lines in RH, PH, PF, RF NEXT PAGE and after a page advance are not exercised by it",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/ln_types.cob",
+    "printed": "PAGE 1 LINE 09 [A909] / PAGE 1 LINE 17 [PF17] / PAGE 2 LINE 09 [A909] after a page advance; SOURCE LINE-COUNTER equals the physical line on every line",
+    "expected": "absolute LINE 9 and PF LINE 17 on lines 9 and 17 of each page (GR3)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/ng_paged.cob",
+    "printed": "PH LINE 2 on line 2 of pages 1-6; DE-4 LINE 6 on line 6 of pages 4 and 6; PF LINE 21 on line 21 of every page",
+    "expected": "absolute lines of PH, DE and PF on their integer lines"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/c_line_zero.cob",
+    "printed": "error COBOL2386: LINE 0: the integer operand 0 shall be nonzero (§1985:III.2)",
+    "expected": "refused: an absolute line number of zero is not an integer this format allows"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/c_multi_line.cob",
+    "printed": "error COBOL0900: multiple LINE ... requires COBOL-2002 (accepted at --std 2023)",
+    "expected": "refused at 85: §1985:XIII.3.15.2 has one operand"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/c_ok_ctrl.cob",
+    "printed": "compiles at 85 and 2023 (LINE 5 ON NEXT PAGE NEXT GROUP PLUS 2)",
+    "expected": "legal 1985 form accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.15.4 GR3",
+    "check": "OK  §1985:XIII.3.15.4 GR3  (3.15.4 General Rules)  the text is in GR3 (\"An absolute line number specifies the line number on which the print line is presented\")"
+   }
+  ],
+  "notes": "Every group type places an absolute line on integer-1, both as the first line and as a later line. LINE-COUNTER equals the line during presentation. g85_f29_02 matches its golden. The runtime arm is shared with 2023 and gives identical output at both editions.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.15.4-3",
+  "refutation": "UPHELD",
+  "classes": "c,f,e",
+  "evidence": "absall (--std 85): RH 'LINE NUMBER IS 1' on 1; CH with lines 'LINE NUMBER 4' / 'LINE 5' / 'LINE IS PLUS 1' on 4,5,6; CF absolute LINE 10 on 10 of each page; CH LINE 4 after the CF at LC 10 advanced to page 2 line 4 (fit test 3a); RF absolute LINE 14 on 14; SOURCE LINE-COUNTER equals the physical line on every line, and the optional NUMBER/IS words are accepted. abs999: PAGE LIMIT 999 with lines 998 'NEXT PAGE' (no ON) and 999 printed on 998/999 of pages 1 and 2, LC 999 (three significant digits, the largest). cite.py: OK §1985:XIII.3.15.4 GR3 (\"An absolute line number specifies the line number on which the print line is presented\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

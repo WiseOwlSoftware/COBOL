@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-11",
+ "rule-digest": "9c2885026710",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-058",
+  "sources": {
+   "reader": "17c9a50c0599b55c526ec793a2d8245cb2c8f0691c3a03cba568a17c9962d3a5",
+   "refuter": "ae091fd372e0f5d6c34cb408fab426558f4ac6e99628334a1503734ae59c85a0"
+  },
+  "imported": {
+   "reader": "f2f74f8b3a0bb075d6fd24ee8821a99386efd40ed423a745d45cefb27e51a5dd",
+   "refuter": "15de932b56f9a7899a0e4ae102d1f143741bb39a109805c9985d32c6d15e0cb6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a PERFORM writes procedure-name-1 THRU procedure-name-2 and either names a procedure (paragraph or section) of the declaratives portion, both must be procedures of the same declarative section; a range from a declarative section into the nondeclarative portion, from the nondeclarative portion into one, or across two declarative sections is refused, whatever TIMES/UNTIL/VARYING phrase follows.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesRange; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureResolution.cs#ResolvedProcedure",
+  "edition-consulted": [],
+  "edition-search": "Read BindPerform's out-of-line THRU arm and CheckDeclarativesRange (section identity test, no edition parameter); grepped both for Edition.Edition, DialectLevel, ConstructRegistry, DialectBehavior: none. Segmentation.CheckProcedures on the same path is the 1985 segmentation rule, not this one.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers one range shape; not exercised are section-to-paragraph ranges inside one declarative section, nondeclarative-to-declarative ranges, two declarative sections, and a range with a TIMES phrase",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/dcpos.cob",
+    "printed": "D1-P1 D1-P2 / D1-P1 D1-P2 / D1-P1 (exit 0)",
+    "expected": "D1-P1 THRU D1-P2, D1 THRU D1-P2 and D1-P1 THRU D1 (same declarative section, performed from the nondeclarative portion) accepted and run"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/dcr1.cob",
+    "printed": "COBOL2186 'D1-P1' THRU 'M-P2' (declarative into nondeclarative)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/dcr2.cob",
+    "printed": "COBOL2186 'D1-P2' THRU 'D2-P1' (two declarative sections); dcr4 'D1' THRU 'D2' same",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/dcr3.cob",
+    "printed": "COBOL2186 'M-P2' THRU 'D2-P1' (nondeclarative into declarative); dcr5 'D2-P1' THRU 'M' (paragraph to nondeclarative section) same",
+    "expected": "refused"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/dcr6.cob",
+    "printed": "COBOL2186 for PERFORM D1-P1 THRU M-P2 2 TIMES",
+    "expected": "refused: the rule holds for every format with THRU"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR11",
+    "check": "OK  §1985:VI.6.21.3 SR11  (6.21.3 Syntax Rules)  the text is in SR11"
+   }
+  ],
+  "notes": "The check compares the owning SectionInfo object of both resolved ends before the range is composed, so every straddling shape probed is refused and same-section ranges (section or paragraph ends) are admitted. The rule text is identical across editions and the code takes one arm at every --std.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-11",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "At --std 85: rdpos (paragraph name P in both declarative section D1 and nondeclarative section M, referenced qualified): PERFORM P OF D1 THRU D1-P2 VARYING N FROM 1 BY 1 UNTIL N > 2 printed D1-P D1-P2 D1-P D1-P2; the UNTIL N > 1 form then ran zero times (N = 3); OPEN INPUT of a missing file entered declarative D2, which runs PERFORM P OF D1 THRU D1-P2 (a range in another declarative section, legal: both ends in D1) and printed D2-IN D1-P D1-P2, then FS 35. rdr1: P OF D1 THRU P OF M, P OF M THRU P OF D1, the same with VARYING (Format 4) and D1 THRU M WITH TEST AFTER UNTIL (Format 3) each refused COBOL2186. The qualified same-name pair shows the check compares the resolved sections, not the spelled names. cite.py: OK §1985:VI.6.21.3 SR11 the text is in SR11.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

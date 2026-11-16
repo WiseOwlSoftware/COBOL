@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-XIII.4.8.3-5",
+ "rule-digest": "7f33710f23a7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-167",
+  "sources": {
+   "reader": "509e48487795ec3912577b6c74daa6c42209bd2711676e42df3ac2c40812a80d",
+   "refuter": "675270f0bb4a549b69588b2b0ea9dd94ceeada1dbad64af2f13ff80a395329d0"
+  },
+  "imported": {
+   "reader": "606fc5f9180fd109ded7345d3718aeaaea91640f9455cbd1aa87ea779b77c977",
+   "refuter": "e9599027725df5663db9afa4e6d4ad904178768844fe772bba61a4da3404f4e9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.8.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the compiler must accept one USE AFTER STANDARD EXCEPTION/ERROR PROCEDURE statement whose explicit file-name list (or implicit OUTPUT/EXTEND scope) covers files of different organizations and access modes (report/sequential, relative, indexed; sequential, random, dynamic) and bind the one procedure to each of them.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useOnTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitDispatchSelector",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "Format 1's omitted AFTER / PROCEDURE words refused below 2002, Format 3/4 refused below 2002; nothing about file organization or access",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read DeclBindUse's file-name arm (no organization/access test at any edition) and grepped UseTierEmitter.cs and EcEmitter.cs for Edition|CobolVersion|Std: no hit; the one edition consult on the path is VersionConformancePass.VisitUseStatement, which does not touch organization or access.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_04 mixes a report (sequential) file and an indexed sequential-access file; relative organization and random/dynamic access are not exercised by it (the probe covers them)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/sr5mix.cob",
+    "printed": "USE SEQ  S=35 ... / USE REL  ... L=35 / USE IX ... I=35 / USE RPT ... R=42 / COUNT 4",
+    "expected": "one USE ON a sequential, a relative random, an indexed dynamic and a report file compiles, and its procedure runs for the failed OPEN of each and the failed CLOSE of the report file (4 times)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/sr6noafter.cob",
+    "printed": "error COBOL0900: a USE STANDARD EXCEPTION/ERROR statement without the word AFTER requires COBOL-2002 (targeting COBOL-85); and the same for PROCEDURE",
+    "expected": "§1985 underlines AFTER and PROCEDURE, so the 2002 spelling is refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.8.3 SR5",
+    "check": "OK  §1985:XIII.4.8.3 SR5  (4.8.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "A permissive rule: nothing on the path restricts the files of one USE by organization or access, and the F1 file tier dispatches per file key. The probe binds one procedure to four files of three organizations and three access modes and it fires for each.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.8.3-5",
+  "refutation": "UPHELD",
+  "classes": "e,c",
+  "evidence": "The reader's sr5mix probe covered only an explicit file-name list. I probed the IMPLICIT scope SR5 also reaches. r5out.cob: one USE ... ON OUTPUT with a sequential, a relative RANDOM, an indexed DYNAMIC and an indexed SEQUENTIAL file all open OUTPUT. A second OPEN (41), duplicate relative and indexed WRITEs (22) and an out-of-order indexed WRITE (21) each fired the one procedure: COUNT 4. r5ext.cob: one USE ... ON EXTEND over sequential, relative-sequential and indexed-sequential files open EXTEND, which §1985 Relative/Indexed OPEN allow in sequential access. Results: 41, 41 and 21, COUNT 3. Run dirs: refute-1985-167/runs/r5out-001 and r5ext-001. cite: OK  §1985:XIII.4.8.3 SR5  (4.8.3 Syntax Rules)  the text is in SR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

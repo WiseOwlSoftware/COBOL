@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-7",
+ "rule-digest": "cbe98479c119",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-152",
+  "sources": {
+   "reader": "e23968e2da2f5939c191162db081a26142102b77a144c60e66035875b49ed1cc",
+   "refuter": "0995353eb593187f7e77ec4afc286a6cfb37fedc44c04577cfd233b48b895a05"
+  },
+  "imported": {
+   "reader": "179e92bcbaaa2e06d5497906b7e0fd35a967144dce555061e807b0b81e7b7780",
+   "refuter": "5be3baaad290e38b8dc2bc7d2db407c08e68595cf411e4c025b6525b2722c13f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.3.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "A program may execute GENERATE for a report only between an INITIATE and the TERMINATE for it; GENERATEs inside each interval must work, and a GENERATE outside one is a program error whose effect 1985 leaves undefined (no exception condition exists in this edition).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportInactiveError",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+    "switches": "DialectLevel < 2002 detail-count refusal for the report-name form; not on the active-state path",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "GenerateCore's !_active arm and ExceptionEngine.ReportInactiveError (FatalIfEnabled on ReportInactiveChecking) consult no edition; grep Edition|DialectBehavior over both files",
+  "behaviour-differs-by-edition": "no: at both editions an out-of-interval GENERATE does nothing (EC-REPORT-INACTIVE is raised only if checking is enabled, which a 1985 program cannot do)",
+  "witnesses-cover": "part: g85_bf37_02 and 1985-GR-XIII_4_3_4-7 cover only legal GENERATEs inside intervals",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/gr7.cob",
+    "printed": "GEN 00 GEN 01 GEN 01 GEN 01 GEN 01 / TAGS 02 AB (GENERATE before INITIATE, between cycles and after the last TERMINATE wrote nothing; the in-interval ones wrote A and B)",
+    "expected": "in-interval GENERATEs present; the violating ones are undefined at 1985, no crash"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/gr7.cob (--std 2023)",
+    "printed": "identical",
+    "expected": "EC-REPORT-INACTIVE unchecked: no effect"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.3.4 GR7",
+    "check": "OK  §1985:XIII.4.3.4 GR7  (4.3.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "The rule restricts the program; the compiler enforces the interval with the _active flag set by Initiate and cleared by TerminateCore, and an out-of-interval GENERATE is a harmless no-op, a permissible outcome of a 1985 undefined case. Classes a, d, e, f do not reach the rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.3.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "GR7 restricts the program and 1985 states no consequence; GenerateCore returns at !_active before touching _started or the sums. refute-1985-152/rgr7.cob (--std 85): GENERATE DE-A with the file not open and the report not initiated, then GENERATE DE-A and GENERATE RPT with the file open but not initiated, then GENERATE after TERMINATE: no crash, no output; after INITIATE the sum counter was 00, and each interval's first GENERATE still presented RH and CH FINAL (the stray GENERATEs did not consume the chronologically first GENERATE), and the CF FINAL sums were 01 and 02 (no stray addend). cite.py: OK  §1985:XIII.4.3.4 GR7  (4.3.4 General Rules)  the text is in GR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

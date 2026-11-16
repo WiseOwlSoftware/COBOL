@@ -1,0 +1,112 @@
+{
+ "rule-id": "1989-FMT-A.2.12.2",
+ "rule-digest": "8ae90e3cff5f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-174",
+  "sources": {
+   "reader": "8a2dec28f86e235a9e21fb901ad02fb325a9f759c756cb55241e4581382feff4",
+   "refuter": "f3a1dcd4089b1d6fc6f6ff97d0c1f808a1c18a7466120fc3fb72152d1b93cf74"
+  },
+  "imported": {
+   "reader": "5bcb6fd962b05915da46b66e5c58fd759d8ce5b5a4cd59bee2ce30bd6bb25896",
+   "refuter": "7b8c3c80a7f245686ca8872a4bc52cdfa871fa3a113e5c4f0780d24317c8bab1"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.12.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept FUNCTION DATE-OF-INTEGER ( argument-1 ) with exactly one integer argument, as an integer function inside an arithmetic expression, and refuse no list, an empty list, two arguments, a reference-modifier on the integer result, and the function written where an identifier stands.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicArgs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ResultRefMod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateOfInteger",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "construct FunctionEmptyArgumentList2002: empty '( )' refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window (IntroducedIn 85, admitted); and DialectBehavior IntegerDateFormBounded read into IntegerDateFormUnbounded: at 85 the integer date form has no 9999 upper bound",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct NumericFunctionIdentifierOperand2002: MOVE FUNCTION DATE-OF-INTEGER (1) TO D refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 an empty list and the identifier-operand position are refused, and the returned-value range is unbounded above (day 3067672 gives 100000101 at 85 and 0 at 2023); the one-argument format is the same code",
+  "witnesses-cover": "part: g85_f35_02 covers the accepted form; no witness exercises the refusal half or the 1985 unbounded arm",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/dint-ok.cob",
+    "printed": "DOI-1=16010101 DOI-ODO=20001231 DOI-EXPR=16010301 COND=OK",
+    "expected": "integer date 1 = 1601-01-01, 146097 = 2000-12-31, 60 = 1601-03-01"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/dint-bad.cob",
+    "printed": "COBOL1504 0 given / 2 given; COBOL0900 identifier-operand requires COBOL-2002; COBOL1629 ref-mod of integer function; COBOL1627 for (1.5)",
+    "expected": "all refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/dint-empty.cob",
+    "printed": "COBOL1504 and COBOL0900 empty list requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/dint-big.cob",
+    "printed": "--std 85: DOI-BIG=100000101 DOI-MAX=099991231; --std 2023: DOI-BIG=000000000 DOI-MAX=099991231",
+    "expected": "1989 module: a positive integer of days after 1600-12-31 with no upper bound (§1989:A.2.12.3 AR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.12.2",
+    "check": "OK  §1989:A.2.12.2  (2.12.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.12.1",
+    "check": "OK  §1989:A.2.12.1  (2.12.1 Description)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.12.3 AR1",
+    "check": "OK  §1989:A.2.12.3 AR1  (2.12.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR2",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR2  (4.3.8.3.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Arity 1..1 and the integer-argument kind come from the catalog row and the Verified table; the format is enforced at bind, and the 1985-only refusals and the unbounded integer-date arm are edition switches that this probe set exercised at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.12.2",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,d,f",
+  "evidence": "doi-bad.cob at --std 85: DISPLAY FUNCTION DATE-OF-INTEGER (1) COBOL0900 (SR4), (FUNCTION SQRT (4)) COBOL1627, ref-mod COBOL1629, all refused; doi-ok2.cob: a data item named DATE-OF-INTEGER as argument (16010228), INTEGER-OF-DATE(19991231)+1 = 20000101, relation condition OK. BUT doi-sum.cob: COMPUTE D = FUNCTION DATE-OF-INTEGER (FUNCTION SQRT (N) + 1) with N = 2 compiles clean at --std 85 and runs on the truncated value 2 (DOI=16010102); identical at --std 2023. The reader's own requirement says 'exactly one integer argument' and its notes say the integer kind is enforced; it is not for a numeric-function term in a sum (the same fail-open the reader found for CHAR, IntrinsicArgumentRules NotAlwaysIntegral/AdditiveSpine). cite.py: OK §1989:A.2.12.3 AR1 'Argument-1 is a positive integer'; OK §1989:A.2.2 (AR4) 'An arithmetic expression which will always result in an integer value must be specified'; OK §1989:A.2.3 (GR2) 'may not be referenced where an integer operand is required'.",
+  "edition-sites-missed": [],
+  "corrected": "Reading: the FMT row's 'argument-1' covers only keyword, name, parentheses and arity, so the format CONFORMS and the integer-argument under-rejection belongs to 1989-AR-A.2.12.3-1 (cause b, harm under-rejects, same at 2023). Under the reader's own requirement (which includes the integer argument) the verdict is PARTIAL on DATE-OF-INTEGER(FUNCTION SQRT(N) + 1)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The general formats of DATE-OF-INTEGER and DAY-OF-INTEGER are right. The integer requirement is their argument rules', which mechanism 1 covers.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
+ }
+}

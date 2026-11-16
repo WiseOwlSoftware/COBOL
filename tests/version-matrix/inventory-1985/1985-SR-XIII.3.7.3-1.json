@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.3.7.3-1",
  "rule-digest": "026ac7bcdf51",
- "test-ref": "conformance:cases/XIII.3.7@1985-CONTROL-CLAUSE/g85_f29_01; conformance:cases/XIII.3.7@1985-CONTROL-CLAUSE/pb5801_control_level66_85",
+ "test-ref": "conformance:cases/XIII.3.7@1985-CONTROL-CLAUSE/g85_f29_01; conformance:cases/XIII.3.7@1985-CONTROL-CLAUSE/pb5775-control-homonym-85; conformance:cases/XIII.3.7@1985-CONTROL-CLAUSE/pb5801_control_level66_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

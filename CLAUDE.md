@@ -149,7 +149,10 @@ differential. Build `WiseOwl.Cobol.sln` (not a single project) before any `--no-
 baseline are in plan §0 "Gates" and §9.
 
 ⛔ **THE RULE: every case the merge group runs on Windows already ran green at the pushed head, on this host, under the
-same `toolchain.env`.** It asks that each case ran green at that tree, not that all ran in one run (kb/Work PB5099). The
+same `toolchain.env` — or is byte-identical in every input to a case that ran green on this host** (the program
+differential, kb/Work PB4333: a Conformance case whose program bytes, diagnostics, manifest entry and named files equal
+those of a passed case at the same harness key, `scripts/gate_differential.py`). It asks that each case ran green at that
+tree, not that all ran in one run (kb/Work PB5099). The
 merge group is therefore the FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the
 Windows self-tests a change's files reach, and (e) GitHub's runners; a merge-group red is one of those five, a flake, or
 infrastructure — never an untested case. Classify every red against the branch's gate record before anything is changed:

@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-IX.2.5.4-1",
+ "rule-digest": "dca0be85d29f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-091",
+  "sources": {
+   "reader": "856ff51229cf03620fffb2e5ae042782b609a5cdee52de36cd6aee0c01373113",
+   "refuter": "300791588672753519fa07b454a5d57638913067e263f8aa7a5ef100bb60448e"
+  },
+  "imported": {
+   "reader": "cdffc7e818006cc06fec914a3196f78f9b879b06ae8e7ccf7aae0a272e38d4cc",
+   "refuter": "aa7ddf830021a8bb8adaa705727871b83af2f0c4ee8320fcfcd464cc5eaa85a8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 (level 2), each ALTERNATE RECORD KEY clause (data-name-1 qualified or not, with or without DUPLICATES) must give the file an alternate record key usable as key of reference by READ KEY, START KEY and sequential reads, and maintained by WRITE/REWRITE/DELETE.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#AlternateRegistrations; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AddAlternateKey; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom (DialectBehaviors.IsActive(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, Edition))",
+    "switches": "whether a random READ of an alternate key whose next record has the same value answers 02 (1985) or 00 (2002 on)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration (ctx.Data.DialectLevel passed to FileRegistry.RegisterIndexed as the connector's Edition)",
+    "switches": "carries the edition into the connector for the DialectBehavior tests; access mode itself is passed edition-blind",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "ConstructRegistry.g.cs has only alternate-key-suppress-when-2023 and record-key-source-2002 for this clause (later phrases); the plain clause path consults no edition; the runtime's one consult is the 02 random-duplicate status.",
+  "behaviour-differs-by-edition": "yes: only the 02 status of a random READ by a duplicated alternate key (1985 02, later 00)",
+  "witnesses-cover": "part: the witness has one alternate key; two keys, a qualified data-name-1, the duplicate refusal and REWRITE maintenance are not exercised",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p7alt.cob",
+    "printed": "W2=02 (dup alt WITH DUPLICATES); W3-INV 22 (dup alt without DUPLICATES); R1=00 by A1 OF IX-REC; R2=02 by A2; RW=02; RW2-INV 22; START on A1 walks XX,YY,ZZ; on A2 walks 04XXA(02),02YYA,01ZZB",
+    "expected": "each clause is a key of the file, qualified names resolve, DUPLICATES honoured"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/conformance-suite/cases/IX.2.5@1985-ALTERNATE-RECORD-KEY-CLAUSE/g85_bf29_04",
+    "printed": "MATCH",
+    "expected": "witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.5.4 GR1",
+    "check": "OK  §1985:IX.2.5.4 GR1  the text is in GR1"
+   }
+  ],
+  "notes": "Alternate keys register in declaration order with their windows and DUPLICATES flag; each becomes its own B+ tree in the store. At --std 2023 the same program gives R2=00, the expected edition difference.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Probe rc_multi.cob: the alternate key was declared only in REC-B and the record was written through REC-A. The key was maintained, READ KEY IS IX-ALT found it, and REWRITE through REC-B created a duplicate, 02 (OK §1985:IX.2.5.4 GR4 'implicitly referenced in keys for all other record description entries'). Class c compile-only probes (rf_*.cob): SUPPRESS WHEN gave COBOL0900 'requires COBOL-2023', SOURCE IS gave COBOL0900 'requires COBOL-2002', a PIC 9 alternate key gave COBOL0863 (OK §1985:IX.2.5.3 SR2 'must be defined as a data item of the category alphanumeric'), an alternate key at the prime key's leftmost position gave COBOL0863, and ALTERNATE KEY with no RECORD gave COBOL5506.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,96 @@
+{
+ "rule-id": "1989-AR-A.2.42.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-172",
+  "sources": {
+   "reader": "84d0113a32c3b8fb3c49ab99c300f3444f2d3302a70d38fd45e8dc74a96cf591",
+   "refuter": "09e383fce0d4367fa35e04683e772491663c171a175bc0fe5479f69627acfcff"
+  },
+  "imported": {
+   "reader": "d05ca7f06283800d44f8e744f6c36eb24441f9d6f8e1c6d0c8fe336c5b2b5440",
+   "refuter": "0eb536e00cd4b69caf10362a43bc302b74d53b61d521808761b0561104d70332"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.42.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every argument-1 of FUNCTION SUM (each of the repeated arguments, and each table element an ALL subscript implies) must be class numeric; numeric items, literals, ZERO, expressions and ALL-subscripted numeric tables (including OCCURS DEPENDING ON) must be accepted and any non-numeric argument in any position refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CandidateClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntroducedIn (85 for SUM) against DialectLevel: admitted",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year); SUM's Uniform 'n' variadic tail has no predicates",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f33_08 is a positive run; no witness at 85 refuses a non-numeric argument in a non-first position",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_bad_sum.cob",
+    "printed": "COBOL1627 'FUNCTION SUM argument-2 ...' on all 10 lines (bad operand placed between two legal ones)",
+    "expected": "each refused (§1989:A.2.42.3 AR1 applies to every repetition)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_ok_trig_sum2.cob",
+    "printed": "U1=11 SUM(T(ALL)) with ODO N=3; U2=44 after MOVE 5 TO N; U3=21 SUM(CEL(ALL ALL)); U7=17 SUM(CEL(ALL 2) T(1))",
+    "expected": "10+4-3=11; +11+22=44; 1..6=21; 2+5+10=17"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_ok_trig_sum2.cob",
+    "printed": "U4=999999999999999999 SUM(BIG BIG NEG); U5=0 SUM(ZERO)",
+    "expected": "999999999999999999; 0"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_ok_trig_sum2.cob",
+    "printed": "U6= 001.476400 SUM(S9V9(4) -0.5236, 1, COMP 1)",
+    "expected": "1.4764"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_edition_arm.cob",
+    "printed": "SUM (P1 N\"1\"): COBOL0900 the national literal requires COBOL-2002, and COBOL1627 class national",
+    "expected": "a 2002 operand class refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.42.3 AR1",
+    "check": "OK  §1989:A.2.42.3 AR1  (2.42.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   }
+  ],
+  "notes": "The Uniform row screens every position of the variadic list, so a bad operand anywhere is refused; ALL-subscripted numeric tables, including ODO tables at their current bound, are accepted and summed correctly. p_bad_sum at --std 2023 gives the same ten COBOL1627 lines.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.42.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "Accept half (q_ok_forms-001): SUM(PIC PP9 0.004, PIC 9PP 400, ZEROS, ZEROES, +1) A5=401.004; SUM(TE(ALL) TE(2) FUNCTION ORD(\"A\")) A8=70 (3+1+66); SUM(LINAGE-COUNTER 1 LINAGE-COUNTER) L2=7 and SUM(PAGE-COUNTER LINE-COUNTER 1) L3=2 (q_special_regs-003). SUM(NUM ALL ZERO) accepted, which §1985:IV.4.2.2.2.3 SRL3.3 allows (ALL before a figurative constant other than ALL literal is redundant, so ALL ZERO is ZERO). Refuse half (q_bad_forms-001): SUM(PIC X table (ALL)) COBOL1627; SUM(numeric-edited table (ALL)) COBOL1627 numeric-edited; SUM(NUM group-table (ALL)) COBOL1627 argument-2 alphanumeric. Later forms (q_later_forms-001): SUM(1 PIC 9 USAGE NATIONAL) refused (COBOL0900 national requires 2002). cite.py: 'OK §1989:A.2.42.3 AR1'; 'OK §1989:A.2.2 AR1'; 'OK §1985:IV.4.2.2.2.3 SRL3.3 (4.2.2.2.3 Figurative Constant Values) the text is in SRL3.3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

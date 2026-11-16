@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VII.4.7.3-6",
+ "rule-digest": "4eefcf812c2d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-064",
+  "sources": {
+   "reader": "48b002003a3c2ef3cb7a7d1862c2bfec9faf954dfb6195f7b3e599d8a9f95474",
+   "refuter": "9bc47292e6c90111ca481f4753bcfbb8d97487629c58dc018abb14f77a8ebd41"
+  },
+  "imported": {
+   "reader": "5bdef1d936181d02546e3140b1dcd518c18e003063a79b6f1e1d3a587bd78d77",
+   "refuter": "ad21e3d50be3ebeb422b2afc824a481b161a8171d43091a6a3035a2f479e965a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.7.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 an ADVANCING mnemonic-name-1 must be a mnemonic-name defined in SPECIAL-NAMES (its own or a containing program's) for an implementor feature (C01, CSP) and positions the page per that feature; a switch's or device's mnemonic, an undefined name, and LINE/LINES after the mnemonic are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#MnemonicOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#FeatureAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#TryUse; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitWriteBeforeAfter",
+    "switches": "BEFORE and AFTER together refused below 2023 (not the mnemonic operand)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of SequentialIoBinder.cs, MnemonicRegistry.cs and ImplementorNames.cs for DialectLevel/CobolVersion/ConstructRegistry/edition: the feature-name table and the mnemonic lookup are edition-invariant",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers the refusal of a device-name mnemonic (SYSOUT); the feature-name acceptance and its positioning, a switch mnemonic, an undefined name and a container's mnemonic are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/w6a.cob",
+    "printed": "WRITTEN; w6a.prt bytes: \\f AAAAA \\r BBBBB \\r \\n CCCCC \\n",
+    "expected": "C01 (AFTER) skips to a new page before the line; CSP (BEFORE) presents the line with no advance (implementor rule, §1985:VII.4.7.4 GR17 d)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/w6b.cob",
+    "printed": "COBOL2243 SW1 is a switch-name's mnemonic; COBOL2243 OUT-DEV is a device-name's; COBOL1639 NOT-DEFINED is not defined; COBOL2269 LINES after a mnemonic; COBOL0862 mnemonic on a LINAGE file",
+    "expected": "a mnemonic not associated with a feature, or not defined in SPECIAL-NAMES, is refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/w6c.cob",
+    "printed": "DONE; w6c.prt bytes: \\f INNER \\n",
+    "expected": "a contained program's WRITE uses the container's SPECIAL-NAMES mnemonic"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.3 SR6",
+    "check": "OK  §1985:VII.4.7.3 SR6  (4.7.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "MnemonicOperand resolves the operand word through the SPECIAL-NAMES registry (own, then container's); FeatureAdvancing refuses a non-feature row (COBOL2243) and maps C01 to the page advance and CSP to a zero-line advance from the one ImplementorNames table. An undefined name falls to the data resolver (COBOL1639).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.7.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r7a.cob (r7a-001): C01 IS TOP-PAGE with BEFORE ADVANCING (line then form feed) and CSP IS NO-SPACE with AFTER ADVANCING: file bytes AAAAA \\f BBBBB \\n CCCCC \\n, positioning per the implementor's feature rows (GR16d). r7b.cob: a contained program declaring its own CONFIGURATION SECTION / SPECIAL-NAMES C01 IS TOP-PAGE is refused COBOL1643, as §1985:VI.4.2 requires (cite.py OK: \"The Configuration Section must not be stated in a program which is contained directly or indirectly within another program\"), so at 85 a mnemonic can only come from the outermost program's SPECIAL-NAMES. Reader's w6b covers switch/device mnemonics, undefined name, LINES after a mnemonic, LINAGE file. cite.py: OK §1985:VII.4.7.3 SR6. Cosmetic: COBOL1643's message cites only §2023.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
