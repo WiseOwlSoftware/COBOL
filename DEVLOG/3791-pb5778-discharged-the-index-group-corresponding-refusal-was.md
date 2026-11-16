@@ -1,3 +1,4 @@
-## PB5778 discharged: the index-group CORRESPONDING refusal was already fixed by PB5630
+## Entry 3791 — 2026-11-16 13:31 PST — PB5778 discharged: the index-group CORRESPONDING refusal was already fixed by PB5630
 
 Group C of wave 20262089 re-probed PB5778 (a MOVE CORRESPONDING operand under a USAGE IS INDEX group, refused at --std 85 with COBOL1757 "inherited from its group"). On this build the repro exits 0 and prints 78: kb/Work PB5630 (afb9ce4d41) made `StatementValidation.Level85Forbidden` ask the operand own entry (§1985:VI.5.14.4 GR1: a group-level USAGE applies to each elementary item). PB5778 duplicated that landed fix, so it is retired with no code change. Inventory row `1985-GR-VI.6.4.3-3` is re-verdicted PARTIAL to CONFORMS with the PB5630 golden as its witness (1985 GAP 56 to 55). The branch also carries the group D predecessor work (PB5827, PB5826; see the entry beside this one).
+
