@@ -998,3 +998,47 @@ def _unit_display_issues(tokens: list[Token], lookup: Callable[[str], set[str] |
             j = k
         i = j
     return issues
+
+
+# ── ACCEPT from standard input ───────────────────────────────────────────────────────────────────────────────────────
+
+#: The device-names WiseOwl binds to standard input, and so what an ACCEPT FROM one of them (or from a mnemonic-name
+#: SPECIAL-NAMES binds to one) reads: the rows of `src/WiseOwl.Cobol.Editions/ImplementorNames.cs` whose capability
+#: includes input (ISO §2023:14.9.1.4 GR5: "The implementor shall specify the device that is used if the FROM phrase is
+#: not specified"; docs/conformance/7/DOC-A.1-2.md). A self-test of `generate.py` reads that table and holds this set to it.
+STDIN_DEVICES = frozenset({"CONSOLE", "SYSIN"})
+
+
+def device_accepts(tokens: list[Token]) -> list[Token]:
+    """The ACCEPT tokens of the procedure divisions in `tokens` (a compilation group, COPY already expanded) that begin a
+    statement reading standard input: an ACCEPT with no FROM phrase, or FROM a device-name of `STDIN_DEVICES` or a
+    mnemonic-name its unit's SPECIAL-NAMES binds to one. An ACCEPT of a screen item, or FROM DATE, DAY, TIME,
+    DAY-OF-WEEK or any other source, reads no standard input."""
+    found: list[Token] = []
+    for unit in source_units(tokens):
+        mnemonics: set[str] = set()
+        env = unit.environment
+        for k, tok in enumerate(env):
+            if tok.kind == WORD and tok.upper in STDIN_DEVICES:
+                j = k + 1
+                if j < len(env) and env[j].kind == WORD and env[j].upper == "IS":
+                    j += 1
+                if j < len(env) and env[j].kind == WORD:
+                    mnemonics.add(env[j].upper)
+        screens = {name for name, classes in data_classes(unit.data).items() if SCREEN_CLASS in classes}
+        proc = unit.procedure
+        for i, tok in enumerate(proc):
+            if not (tok.kind == WORD and tok.upper == "ACCEPT") or i + 1 >= len(proc) or proc[i + 1].kind != WORD:
+                continue
+            target = proc[i + 1].upper
+            j = i + 2
+            while j + 1 < len(proc) and proc[j].upper in ("OF", "IN") and proc[j + 1].kind == WORD:
+                j += 2
+            j, _ = _skip_parens(proc, j)
+            if j < len(proc) and proc[j].kind == WORD and proc[j].upper == "FROM":
+                source = proc[j + 1].upper if j + 1 < len(proc) else ""
+                if source in STDIN_DEVICES or source in mnemonics:
+                    found.append(tok)
+            elif target not in screens:
+                found.append(tok)
+    return found

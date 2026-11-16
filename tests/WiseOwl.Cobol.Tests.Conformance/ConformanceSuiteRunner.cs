@@ -33,7 +33,7 @@ internal readonly record struct SuiteResult(string Verdict, string Reason);
 ///     harness budget is a non-observation, never a value), or the harness could not run the test.</item>
 /// </list>
 /// <para><b>Each test runs in a fresh working directory</b> holding a byte copy of each declared file, with stdin
-/// closed and the default locales pinned (<see cref="CutRunner.RunExit"/>; the WiseOwl adapter pins the same for
+/// closed (or fed the file its header's <c>stdin</c> declares, design §3.1) and the default locales pinned (<see cref="CutRunner.RunExit"/>; the WiseOwl adapter pins the same for
 /// <c>run.py</c>); the program is compiled from a directory of its own holding its source
 /// and declared files, named as its copy library (<c>run.py</c> compiles in the working directory, which the
 /// <c>cobol</c> command searches first, DOC-A.1-40), and a flagged test's control compiles in a directory inside the
@@ -43,6 +43,8 @@ internal readonly record struct SuiteResult(string Verdict, string Reason);
 /// declared unit to <c>&lt;output&gt;.dll</c> with its step's WiseOwl options, and the test's own source AT ITS PLACE in the
 /// list, so a step after it compiles beside, and may overwrite the output of, the program already built (the stale
 /// caller: the callee rebuilt after its caller). The run follows the last step.</para>
+/// <para><b>A test that declares an output file</b> (its header's <c>output-file</c>, design §3.1) is also judged on that file in its
+/// working directory once the run has ended (<see cref="OutputFileVerdict"/>), after its standard output matched.</para>
 /// <para><b>A test that names servers</b> (its header's <c>servers</c>, DESIGN-message-control.md §0 Q9) has each server's unit compiled like a build step and started as a
 /// concurrent run unit serving its name, in the same working directory (the test's MCS directory), before the test runs; <see cref="RunningServers"/> ends them with the test.</para>
 /// </remarks>
@@ -157,7 +159,9 @@ internal static class ConformanceSuiteRunner
 
         // The servers run beside the test and end with it (DESIGN-message-control.md §0 Q9); the exit status is not judged (§2023:3.2).
         using var servers = RunningServers.Start(test.Servers ?? [], work);
-        var (_, stdout, _) = CutRunner.RunExit(dll, work);
+        // The test's declared standard input is fed to the run (its header's `stdin`, design §3.1); with none, input is closed.
+        var (_, stdout, _) = CutRunner.RunExit(dll, work,
+            test.Stdin is null ? null : Path.Combine(SuiteManifest.Root, test.Stdin));
         string key = string.Join(".", test.ImplementorDefined.Order().Select(item =>
             ConformanceSuite.Profile.ImplementorDefined.TryGetValue(item, out string? value)
                 ? $"{item}={value}"
@@ -165,7 +169,28 @@ internal static class ConformanceSuiteRunner
         if (!test.ExpectedOutput.TryGetValue(key, out string? expectedPath))
             throw new SuiteHarnessException($"the manifest has no expected output for {(key.Length == 0 ? "no A.1 value" : key)}");
         string expected = CutRunner.Normalize(File.ReadAllText(Path.Combine(SuiteManifest.Root, expectedPath)));
-        return stdout == expected ? new(Pass, "") : new(Fail, Difference(expected, stdout, expectedPath));
+        if (stdout != expected) return new(Fail, Difference(expected, stdout, expectedPath));
+        return test.OutputFile is null ? new(Pass, "") : OutputFileVerdict(test.OutputFile, work);
+    }
+
+    /// <summary>The verdict on a test's declared output file (its header's <c>output-file</c>, design §3.1), judged once the process has
+    /// ended, as <c>run.py</c>'s <c>output_file</c> judges it: the file the program left in <paramref name="work"/> equals the
+    /// expected content beside the test, on the normalization of the standard output. Three failures, each naming the file:
+    /// the expected content is absent, the program left no file, the file differs. Both files are read as bytes and decoded
+    /// as UTF-8 without a byte-order-mark rule, as <c>run.py</c> reads them.</summary>
+    internal static SuiteResult OutputFileVerdict(SuiteOutputFile declared, string work)
+    {
+        string expectedFile = Path.Combine(SuiteManifest.Root, declared.Expected);
+        string written = Path.Combine(work, declared.Name);
+        if (!File.Exists(expectedFile))
+            return new(Fail, $"the declared output file {declared.Name} cannot be judged: its expected content {declared.Expected} is absent");
+        if (!File.Exists(written))
+            return new(Fail, $"the program left no output file {declared.Name} in its run directory (expected: {declared.Expected})");
+        var utf8 = new System.Text.UTF8Encoding(false);
+        string expected = CutRunner.Normalize(utf8.GetString(File.ReadAllBytes(expectedFile)));
+        string actual = CutRunner.Normalize(utf8.GetString(File.ReadAllBytes(written)));
+        return actual == expected ? new(Pass, "")
+            : new(Fail, Difference(expected, actual, declared.Expected, $"the output file {declared.Name}"));
     }
 
     private static SuiteResult Flagged(string edition, SuiteTest test, string work)
@@ -293,7 +318,7 @@ internal static class ConformanceSuiteRunner
         return joined.Length == 0 ? "no output" : joined[..Math.Min(joined.Length, 400)];
     }
 
-    private static string Difference(string expected, string actual, string expectedPath)
+    private static string Difference(string expected, string actual, string expectedPath, string what = "the output")
     {
         string[] want = expected.Split('\n'), got = actual.Split('\n');
         for (int i = 0; i < Math.Max(want.Length, got.Length); i++)
@@ -301,9 +326,9 @@ internal static class ConformanceSuiteRunner
             string w = i < want.Length ? want[i] : "<end of output>";
             string g = i < got.Length ? got[i] : "<end of output>";
             if (w != g)
-                return $"the output differs from {expectedPath} at line {i + 1}: expected '{Clip(w)}', got '{Clip(g)}'";
+                return $"{what} differs from {expectedPath} at line {i + 1}: expected '{Clip(w)}', got '{Clip(g)}'";
         }
-        return $"the output differs from {expectedPath}";
+        return $"{what} differs from {expectedPath}";
 
         static string Clip(string s) => s.Length <= 160 ? s : s[..160];
     }
