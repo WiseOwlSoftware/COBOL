@@ -26,7 +26,8 @@ filing (the brief's PB5769): this decision note is it, so these are instances he
    §1985:IV.4.3.8.1 SR3 governs. Site: `src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs`
    (`StatementValidation.RejectAmbiguousProcedureName`).
 4. **COBOL5997** (an unqualified LINAGE-COUNTER with two LINAGE files, `refute-a/s3-lc-bad.cob`) cites
-   `§2023:8.4.3.14 SR3 / §2023:8.4.2.2` at 85, where §1985:IV.4.3.8.1 SR3 ("Reserved words naming the special registers
+   2023's 8.4.3.14 "SR3" and 8.4.2.2 at 85 (and the first is itself mis-designated: 8.4.3.14 has no syntax rules, the
+   rule is §2023:8.4.3.14.3 SR3, as `cite.py` answers), where §1985:IV.4.3.8.1 SR3 ("Reserved words naming the special registers
    require qualification to provide uniqueness of reference", the refuter's `cite.py --check` OK) governs. Site:
    `src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs` (`CounterResolver.LinageFileOf`).
 
