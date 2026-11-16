@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-SR-X.4.6.3-2",
+ "rule-digest": "5d89c2295e25",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.NameUniqueness.cs#ScreenGlobalNameUniqueness",
+ "test-ref": "conformance:cases/X.4.6@1985-GLOBAL-CLAUSE/g85_x01",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter at --std 85. §1985:X.4.6.3 SR2: \"the data description entries for any two data items for which the same data-name is specified must not include the GLOBAL clause\". KEPT in substance by the 2023 text, no `next` recorded: the 2023 side has no catalog row until PB5451 and a new 1985 KEPT record is refused (DESIGN-spec-conformance-review.md 10.6). Witnesses: g85_x01."
+}

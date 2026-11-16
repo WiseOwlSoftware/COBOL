@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2.1.1-1",
+ "rule-digest": "b49b71b0a206",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+ "test-ref": "conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x04; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x05; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x06; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x07; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x36",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter at --std 85. §1985:IV.6.4.2.1.1 GR1: \"An EVALUATE, IF, SEARCH, or RETURN statement\". KEPT in substance by the 2023 text, no `next` recorded: the 2023 side has no catalog row until PB5451 and a new 1985 KEPT record is refused (DESIGN-spec-conformance-review.md 10.6). Witnesses: g85_x04, g85_x05, g85_x06, g85_x07, g85_x36."
+}

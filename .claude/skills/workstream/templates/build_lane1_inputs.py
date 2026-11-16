@@ -133,9 +133,10 @@ CONVENTIONS = {
     "test-ref-forms": "conformance:cases/<clause folder>/<id> (spec-derived) · conformance:wiseowl/cases/<folder>/<id> · "
                       "unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any "
                       "*_MatchesLegacy method are NOT spec-derived and cannot close a row.",
-    "compiler": "src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a "
-                "scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet "
-                "is live).",
+    "compiler": "python scripts/orchestrator/run_probe.py --root <your scratch directory, written literally> --std "
+                "<85|2002|2014|2023> --tree <the checkout> [--expect <file.out>] <file.cob>  (each run a new directory "
+                "outside every git tree, nothing deleted: MANDATORY-PRACTICES P17; never dotnet build/test — the tree "
+                "is shared and a guard refuses builds while a fleet is live).",
     "citation-check": "python scripts/spec/cite.py --check \"§2023:<clause>[ <rule>]\" \"<quoted text>\"  — every citation you write, "
                       "in the edition form §<edition>:<locator>[ <rule>] (scripts/spec/citation.py), no exceptions.",
     "record-shape": "{'rule-id','verdict','code-location','test-ref','editions','notes'} — strings only; editions as "

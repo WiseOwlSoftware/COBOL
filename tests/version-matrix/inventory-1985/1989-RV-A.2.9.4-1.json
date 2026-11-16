@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.9.4-1",
  "rule-digest": "7f019854f7fd",
+ "test-ref": "conformance:cases/A.2.9@1985-CHAR-FUNCTION/g85_f06_09",
  "next": {
   "kind": "KEPT",
   "to": [

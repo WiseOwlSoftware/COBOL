@@ -1,0 +1,13 @@
+## The fourteen rules adjudicated at 85, 2026-11-15: what was decided, where the cases are, what was recorded
+
+Sources: `E:/COBOL-coord/scratch/my-20261115/open20/r2/adjudication-r2.json` as corrected by `E:/COBOL-coord/scratch/my-20261115/open20-refute2/refute2.json`. Every case below is fixed form, runs at `--std 85` only, and was validated on the registrar's own build (an accepted case prints its `.out`; a refusal gives its one diagnostic code at the violating line).
+
+**Cases (conformance-suite/cases, folders named for the clause).** 43 new ones: `g85_x01` (X.4.6@1985-GLOBAL-CLAUSE, refusal COBOL6862), `g85_x02` (IV.4.3.8.3@1985-Function-Identifier, refusal COBOL0900), `g85_x03` (A.2@1985-GENERAL-DESCRIPTION, refusal COBOL1627), `g85_x04` to `g85_x35` (IV.6.4.2.1@1985-Conditional-Statements-and-Sentences, refusals COBOL2796: a conditional statement unterminated where only an imperative statement may stand), `g85_x36` to `g85_x41` (the same folder, accepted controls with their `.out`), `g85_x42` and `g85_x43` (A.2@1985-GENERAL-DESCRIPTION, accepted). Corrections the refuter required, applied before copying: `g85_x39` gained `MOVE "K002" TO XKEY` before its START (the golden line rested on an undefined record area; the `.out` did not change); `g85_x43` lost its CHAR leg (its value rested on an implementor-determined collating sequence without an ALPHABET clause); the INTEGER and MOD legs stay. The IF rule is `§1985:VI.6.16.3 SR1`; no draft or adjudication text carried the wrong `§1985:VI.6.15.3` citation.
+
+**Recorded (own verdicts, `record_verdicts.py --edition 1985`; the dry run and the real run both printed `rows changed : 17`, `witnesses : +79 test-ref, +33 code-location added`, `GAP : 780 → 764`).**
+- CONFORMS on the CHANGED rows `1985-SR-IV.4.3.8.3.3-4` (`g85_x02`), `1989-GR-A.2.3-2` (`g85_x42`, `g85_x03`) and `1989-GR-A.2.3-3` (`g85_x43`).
+- PARTIAL on `1985-GR-VI.6.4.3-3`, naming kb/Work PB5778 (a subordinate group of a USAGE INDEX group is refused, legal 1985 source); its two existing refusal cases are the witnesses of the part that conforms.
+- CONFORMS, no `next` and no relation, on `1985-GR-IV.6.4.2.1.1-1`, `-2`, `-3`, `-4`, `-5`, `-7`; `1985-GR-IV.6.4.2.1.1.1-1`, `-2`, `-3`, `-4`, `-6`; `1985-GR-X.2.4.1-3` (its existing case); `1985-SR-X.4.6.3-2` (`g85_x01`). These rules are KEPT in substance by the 2023 text but the 2023 side has no catalog row until PB5451, and a new 1985 KEPT record is refused by DESIGN-spec-conformance-review.md 10.6, so no `next` was written.
+- The tool refused nothing in this batch.
+
+**Not recorded.** `1985-GR-IV.4.4.2-L2.1` and `-L2.2`: kb/Work PB5791. `1985-GR-X.2.3.3-3`: kb/Work PB5792 (no program can observe it; the existing CALL case is not its witness).
