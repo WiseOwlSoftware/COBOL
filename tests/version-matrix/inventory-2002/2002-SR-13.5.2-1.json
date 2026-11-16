@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.5.2-1",
+ "rule-digest": "2dc51316bc28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDefinitionRules.cs#RefusedBy; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs#BindClassData; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindMethodData",
+ "test-ref": "conformance:cases/13.5@2002-LOCAL-STORAGE-SECTION/g2-local-storage-placement",
+ "notes": "§2002:13.5.2 SR1 grants the local-storage section in a program, function and method definition; with §2002:13.5.3 GR2 and §2002:8.6.3 each activation starts from the VALUE, so the --std 2002 run printed P=[PROG] / F1=6 F2=6 / M1=4 M2=4 as derived."
+}

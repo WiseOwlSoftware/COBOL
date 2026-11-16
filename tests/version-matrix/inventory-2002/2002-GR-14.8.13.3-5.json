@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.13.3-5",
+ "rule-digest": "2f9acd927064",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2_exit_program_main_is_continue",
+ "notes": "§2002:14.8.13.3 GR5: in the run unit's main program both EXIT PROGRAM and EXIT PROGRAM RAISING EXCEPTION EC-SIZE-OVERFLOW act as CONTINUE (A, B, C) and no exception is raised (the checking-enabled EC-SIZE-OVERFLOW declarative never runs). Matched at --std 2002 with the pinned build of dc1f2dcce8."
+}

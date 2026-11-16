@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.3.2-11",
+ "rule-digest": "4db5bbe8ad8e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#IsDiscardedFormatDirective; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#HoldsDirectiveAt",
+ "test-ref": "conformance:cases/7.1.3@2002-REPLACE-STATEMENT/g2-replace-pseudo-text-directive-line-refused; conformance:cases/7.1.3@2002-REPLACE-STATEMENT/g2-replace-debugging-line-mode",
+ "notes": "§2002:7.1.3.2 SR11: a >>SOURCE directive line in pseudo-text-2 is refused at 2002 (COBOL2697, line 24), while a >>D debugging line there is not a directive line (§2002:6.1.2) and with DEBUGGING MODE printed DBG; both at --std 2002."
+}

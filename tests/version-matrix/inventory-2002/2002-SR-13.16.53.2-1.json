@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.53.2-1",
+ "rule-digest": "f7fe2f51a1cd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs; src/WiseOwl.Cobol.Editions/Constructs.g.cs",
+ "test-ref": "conformance:cases/13.16.53@2002-SYNCHRONIZED-CLAUSE/g2syn01_sync_cd_ws_ls_file_layout; conformance:cases/13.16.53@2002-SYNCHRONIZED-CLAUSE/g2syn02_sync_group_in_cd_record",
+ "notes": "§2002:13.16.53.2 SR1 limits SYNCHRONIZED to elementary items: elementary SYNC items in a CD record, WS, LS and a file are accepted and run (g2syn01), and SYNCHRONIZED on a group of a CD record is refused COBOL0900 (g2syn02). Both --std 2002 runs were as derived."
+}

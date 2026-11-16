@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-12",
+ "rule-digest": "f4ea063045e9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-p-scaling-legal-forms; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-sr12-p-in-middle",
+ "notes": "§2002:13.16.38.2 SR12 in a CD record: S99PP, 99PPV, SVPP99, PP9 compile, have LENGTH 2,2,2,1 and hold -1200, 4500, -0.0012, 0.007 by the algebraic value of §2002:13.16.38.3 GR13; 9P9 is refused COBOL1934. pinned cobol.exe (tree dc1f2dcce8) --std 2002 --run matched the derived .out."
+}

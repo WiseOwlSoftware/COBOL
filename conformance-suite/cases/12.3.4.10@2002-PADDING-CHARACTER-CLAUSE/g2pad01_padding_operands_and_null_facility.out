@@ -1,0 +1,18 @@
+F1 [AB**]
+F1 [****]
+F1 [CD  ]
+F1 EOF
+F2 [EF  ]
+F2 [    ]
+F2 [GH  ]
+F2 EOF
+F3 [####]
+F3 [****]
+F3 [IJ##]
+F3 EOF
+F4 [****]
+F4 [KL**]
+F4 EOF
+F5 [MN##]
+F5 [####]
+F5 EOF

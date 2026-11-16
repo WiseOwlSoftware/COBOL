@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-2",
+ "rule-digest": "e4600b0998b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceElementary; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ApplyEffectiveUsage; src/WiseOwl.Cobol.Compiler/Binding/Passes/UsageInheritancePass.cs#UsageInheritancePass",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-usage-group-same",
+ "notes": "§2002:13.16.58.2 SR2 permits the same usage written on a group and its subordinates; in a CD record the BINARY and DISPLAY groups with the usage repeated compiled and ran with derived BINARY SAME, SUM= 4444, D1=XY LEN=02 at --std 2002, and a contradicting subordinate usage was refused COBOL1927."
+}

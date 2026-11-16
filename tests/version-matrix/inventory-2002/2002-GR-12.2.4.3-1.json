@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.4.3-1",
+ "rule-digest": "de1a3322ccf8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit",
+ "test-ref": "conformance:cases/12.2.4@2002-SOURCE-COMPUTER-PARAGRAPH/g2src01_debugging_mode_contained",
+ "notes": "At 2002 the SOURCE-COMPUTER clauses include WITH DEBUGGING MODE (§2002:12.2.4.1), and GR1 carries it into contained units, where GR4 compiles their debugging lines. The golden's directly and indirectly contained programs execute their fixed D and floating >>D lines at --std 2002 (MATCH); without the clause they do not."
+}

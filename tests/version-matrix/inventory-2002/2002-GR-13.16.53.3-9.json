@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.53.3-9",
+ "rule-digest": "7bf7e96ed688",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-195",
+ "test-ref": "conformance:cases/13.16.53@2002-SYNCHRONIZED-CLAUSE/g2syn01_sync_cd_ws_ls_file_layout",
+ "notes": "§2002:13.16.53.3 GR9: no optional automatic alignment is specified (DOC-A.1-195), so an unsynchronized binary item in a CD record follows its predecessor directly (CDPOS=ABCDEF, CDLEN=87). The --std 2002 run of g2syn01 matched."
+}

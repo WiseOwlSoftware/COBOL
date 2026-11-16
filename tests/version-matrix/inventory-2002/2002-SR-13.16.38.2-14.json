@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.38.2-14",
+ "rule-digest": "27a02dd170d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+ "test-ref": "conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-sr14-s-not-first; conformance:cases/13.16.38@2002-PICTURE-CLAUSE/g2002-pic-cd-p-scaling-legal-forms",
+ "notes": "§2002:13.16.38.2 SR14 (prohibition) in a CD record: 9S9 is refused COBOL1934 at --std 2002; S99PP and SVPP99 with 'S' first compile and keep an operational sign (P1 < 0, P2 < 0), pinned cobol.exe (tree dc1f2dcce8) --std 2002 --run matched the derived .out."
+}

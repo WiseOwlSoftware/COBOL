@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.2-1",
+ "rule-digest": "d6d423e9b878",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoEnvironmentRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Oo/OoDriver.cs",
+ "test-ref": "conformance:cases/12.3@2002-INPUT-OUTPUT-SECTION/g2ios01_io_section_permitted_placements; conformance:cases/12.3@2002-INPUT-OUTPUT-SECTION/g2ios02-io-section-in-method; conformance:cases/12.3@2002-INPUT-OUTPUT-SECTION/g2ios03-io-section-in-class-outer; conformance:cases/12.3@2002-INPUT-OUTPUT-SECTION/g2ios04-io-section-in-interface",
+ "notes": "§2002:12.3.2 SR1 grants the input-output section in program, function, factory and instance definitions and bars it from method, class-outer and interface definitions: at --std 2002 the four permitted owners each write and read back their own file (FUNCTION=FUNC / PROGRAM=PROG / FACTORY=FACT / OBJECT=OBJT, per §2002:12.3.4.4.3 GR2a and §2002:8.4.5.1.1), and the three barred placements are each refused COBOL2644 alone."
+}

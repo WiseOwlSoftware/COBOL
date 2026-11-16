@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-11.9.2-4",
+ "rule-digest": "d60f7416eee3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Runtime/Control/ProgramNameScope.cs#CommonProgramReferable",
+ "test-ref": "conformance:cases/11.9@2002-PROGRAM-ID-PARAGRAPH/g2-program-id-common-sibling-call",
+ "notes": "§2002:11.9.2 SR4 grants COMMON on a contained program and §2002:11.9.3 GR2 / §2002:8.4.5.2 rule 2 let a sibling call it; the case is accepted at --std 2002 and prints B FROM OUTR / B FROM SIBA / COUNT 2 as derived (without COMMON the sibling CALL is EC-PROGRAM-NOT-FOUND)."
+}

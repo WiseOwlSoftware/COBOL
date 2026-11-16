@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.50.3-4",
+ "rule-digest": "3e8fb4513ae3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#Punch; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SignKindFor; docs/CONFORMANCE.md#DOC-A.1-177; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs",
+ "test-ref": "conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-default-sign",
+ "notes": "§2002:13.16.50.3 GR4 leaves position and representation to the implementor (DOC-A.1-177: trailing, fused, ibm table); a CD-record PIC S9(3) with no SIGN clause shows 01K/01J/01B/12L, equals SIGN TRAILING and keeps its sign, matching the derived .out at --std 2002."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.14.3-12",
+ "rule-digest": "1711604f070f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#SourceAt",
+ "test-ref": "conformance:cases/13.16.14@2002-COLUMN-CLAUSE/g2col01_multiple_column",
+ "notes": "§2002:13.16.14.3 GR12: COLUMNS 1 5 9 prints the same line as its OCCURS 3 STEP 4 equivalent (§2002:13.16.36.3 GR12a). COLUMNS 1 4 10 takes three SOURCE operands at unequal intervals (§2002:13.16.51.3 GR4) and leaves the horizontal counter at 11, so COLUMN PLUS 2 prints at 13. The --std 2002 run matched the derived lines."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.30.2-1",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.30@2002-EXP10-FUNCTION/g2-exp10-class-numeric-operands",
+ "notes": "§2002:15.30.2 AR1 requires argument-1 of class numeric (§2002:15.2 AR9: arithmetic expression or numeric data item); conformance:cases/15.30@2002-EXP10-FUNCTION/g2-exp10-class-numeric-operands passes literal, display, scaled, packed-decimal, national, BINARY-CHAR, FLOAT-LONG, expression and CD MESSAGE COUNT arguments, all accepted, with values derived from §2002:15.30.3 RV1; the --std 2002 run of the pinned build (dc1f2dcce8) matched the derived output."
+}

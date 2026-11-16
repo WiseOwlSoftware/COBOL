@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.44.3-1",
+ "rule-digest": "f33e720cba6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log10; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log10OnePlus",
+ "test-ref": "conformance:cases/15.44@2002-LOG10-FUNCTION/g2-log10-standard-arithmetic",
+ "notes": "§2002:15.44.3 RV1 under ARITHMETIC IS STANDARD (§2002:11.8.4.2 GR2, §2002:15.3.1): LOG10 of 1000, 2, 0.01, a 31-digit integer, a 31-digit fraction and a 32-digit product, COMPUTEd ROUNDED to 4 places, give the true logarithms (+03.0000 .. +31.0915); the --std 2002 run of the pinned build dc1f2dcce8 matched."
+}

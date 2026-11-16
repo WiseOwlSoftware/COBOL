@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.19.2-5",
+ "rule-digest": "5ed2752b8c28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn",
+ "test-ref": "conformance:cases/7.2.19@2002-TURN-DIRECTIVE/g2tn04_file_name_needs_ec_i_o; conformance:cases/7.2.19@2002-TURN-DIRECTIVE/g2tn03_file_name_after_ec_i_o",
+ "notes": "§2002:7.2.19.2 SR5 'If file-name-1 is specified, exception-name-1 shall begin with the COBOL characters EC-I-O': at --std 2002 >>TURN EC-SIZE F1 is refused COBOL0719 at the directive line (25,8), and EC-I-O F1 / EC-I-O-AT-END F1 F2 compile and run (COMPILED), as derived."
+}
