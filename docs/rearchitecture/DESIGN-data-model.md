@@ -228,7 +228,7 @@ image-carried, which a promoted receiver is, and which a READ, a group move or I
 magnitude). The second clause is the closure: a promotion can make another store's sender a holder, so the arm runs to a
 fixed point, re-classifying after each round. A function-identifier sender, and a numeric-edited sender whose mask holds a
 sign (its de-edited value "which may be signed", §1985:VI.6.19.4 GR4b), may truncate to zero (their digit positions are not a
-numeric picture's). Everything outside the set keeps its native carrier, because no store can give it a negative zero: its sender is
+numeric picture's). A compiler temporary (the implementor's `temp` of GR2, a function value held for several receivers) is no receiving item the program declares and its consumers read its value, so it is never in the set. Everything outside the set keeps its native carrier, because no store can give it a negative zero: its sender is
 non-negative, or every digit the sender can have lands in the receiver and the sender cannot hold a negative zero, so the
 stored value is zero only when the sender's value is zero, whose sign is positive at every edition. At 2014 and 2023 the set
 is empty by construction (`SendersSignStore.Applies`).

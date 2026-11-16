@@ -22,7 +22,7 @@ Arithmetic statements store a value (§1985:VI.6.8.4 GR2) and are unchanged. A l
 because §1985:IV.4.2.2.2.2 does not decide whether `-0` is a negative operand.
 
 **What it costs.** Compiled at `--std 85` before and after, the 1985 programs of the conformance corpus (1,985) and the
-NIST programs (459) change 9 and 18 items from a native carrier to an image. Six of the 9 are in the new witness. All
+NIST programs (459) change 9 and 12 items from a native carrier to an image. Six of the 9 are in the new witness. (The first measurement counted 18 in NIST; six of them were EVALUATE sending temporaries, and the gate's first full run showed why a compiler temporary must stay native: four 2002 cases whose function-value temporary has a native consumer failed to compile. Compiler temporaries are now outside the set.) All
 other elementary fields stay native: 3,849 and 15,025 native fields before the change. The affected NIST programs and
 conformance cases still match their goldens.
 

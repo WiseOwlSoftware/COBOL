@@ -76,9 +76,11 @@ internal static class SendersSignStore
     /// sender may be negative AND either it can lose every non-zero digit in the store (<see cref="MayTruncateToZero"/>) or it
     /// can itself hold a negative zero (<see cref="HoldsNegativeZero"/>: the closure, since a negative zero moved on keeps the
     /// sending operand's sign). Any other store into a sign holder stores a zero only from a zero value, whose sign is
-    /// positive, so its receiver stays native.</summary>
+    /// positive, so its receiver stays native. A COMPILER TEMPORARY is no receiving item the program declares (the
+    /// implementor's 'temp' of GR2, a function value held for several receivers): its consumers read its VALUE, so it keeps
+    /// its native carrier, and a store out of it takes the sign of the value it holds.</summary>
     public static bool MayHandNegativeZero(BoundOperand sender, DataItem receiver) =>
-        IsSignHolder(receiver) && SenderMayBeNegative(sender)
+        IsSignHolder(receiver) && !receiver.IsCompilerTemp && SenderMayBeNegative(sender)
         && (MayTruncateToZero(sender, receiver) || sender is BoundFieldOperand f && HoldsNegativeZero(f.Place.Item));
 
     /// <summary>Can <paramref name="item"/> hold a negative zero now? An IMAGE-carried sign holder: its characters can be
