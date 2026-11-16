@@ -162,6 +162,12 @@ class Host:
         true withdraws its ticket and raises `QueueAbandoned` (kb/Work PB5322)."""
         return GateSlots.for_repo(self.repo).acquire(label, say=say, abandon=abandon)
 
+    def peak_commit(self) -> int | None:
+        """The peak commit of this gate's slot-held tree so far, in bytes (process_job.bound_peak_bytes, kb/Work PB5697):
+        the build and every test host, what the commit admission's threshold is measured from. None when no slot bound
+        a job (POSIX, or no slot taken)."""
+        return process_job.bound_peak_bytes()
+
     def record_growth(self, run: Path, tests_s: float, conformance: int) -> None:
         """Keep this GREEN code-lane gate's test phase where the growth trigger reads it (scripts/gate_growth.py, kb/Work
         PB4333): the run's verdict.json goes with its worktree, so a week of them is never on disk at once."""
