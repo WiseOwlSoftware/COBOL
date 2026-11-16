@@ -1,4 +1,4 @@
-## A USE BEFORE REPORTING procedure can no longer change a control data item through a REDEFINES or RENAMES of it
+## Entry 3787 — 2026-11-16 12:43 PST — A USE BEFORE REPORTING procedure can no longer change a control data item through a REDEFINES or RENAMES of it
 
 kb/Work PB5808. `MOVE "22" TO WS-RED`, where WS-RED REDEFINES the record that holds control item WS-GRP, compiled at every
 edition and changed the control item (the run printed `GRP=2`), while `MOVE 2 TO WS-GRP` was refused COBOL2378. The store
@@ -24,3 +24,4 @@ the whole item. Unit cases: a window or occurrence over the non-control byte is 
 subscript refused.
 
 Round 2 review (R2-1): StorageExtent.OfStore placed a Tier-B view window by its class-relative offset in the 01 record's coordinates, so a REDEFINES below level 01 whose original is not at record offset 0 was mis-placed (an overlay of the control item accepted, a disjoint store refused). The window is now placed by the view item's record position (OfEveryOccurrence) plus the offset past its first occurrence in its class (OfViewWindow). Witness: DeclarativesStructuralRulesTests.AStoreThroughANestedRedefines_IsPlacedInTheRecordNotTheClass, both ways.
+
