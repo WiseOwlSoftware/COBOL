@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-VII.2.8.4-1",
+ "rule-digest": "cc1ed48da0bc",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-221",
+  "sources": {
+   "reader": "028328aac0c5fcf9e3876475a14235cad7621e65d41413876f1c571e3854079a",
+   "refuter": "f6a98d0447bf8be2dcfc10143829e65c9104acad7229d11bfe1bd697d7a12542"
+  },
+  "imported": {
+   "reader": "4e2ef8e807c47c2d964a20142343e98430bc51057a32fc8b22aae7ca368cea41",
+   "refuter": "d881a5a637e9cf0ab1bfacaa275aa5a535f3206e58c2d23673629a5bc8debd37"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.8.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 whatever method frames a variable-length record on the external medium (STANDARD-1, an implementor-name, or the implementor's default) must stay out of the record area and out of the record size the program sees: a READ returns exactly the bytes written and the RECORD VARYING DEPENDING ON item gets the record's length.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrameHead; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#ReadFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NextFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsKeyword",
+    "switches": "RECORD, DELIMITER and STANDARD-1 are keywords by the per-edition reserved-word table; reserved at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of RecordFraming.cs and SequentialConnector.cs for Edition, Std, Version, CobolVersion (no hit); the runtime framing has no edition input. FileControlBinder#BindFileControl's RECORD DELIMITER arm calls EditionContext#Declined, which switches on Permissive only, not on the edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb292_record_delimiter_witness covers RECORD VARYING records under both arms and no clause; an OCCURS DEPENDING ON record and the failed OPEN were probed here",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/pb292_record_delimiter_witness-001",
+    "printed": "A1=00 LEN=03 [ABC] ... D2=00 LEN=08 [PQRSTUVW]; EXPECT: MATCH; data files hold 03 00 00 00 'ABC' 08 00 00 00 'ABCDEFGH' for both the STANDARD-1 file and the no-clause file",
+    "expected": "lengths 03 and 08 come back through DEPENDING ON and the record area shows only the record, the 4-byte prefix never"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/rd_odo_bytes-001",
+    "printed": "F1A 00 1AB [1AB] / F1B 00 3CDEFGH / F1C EOF 10 / F2A 00 1AB / F2B 00 3CDEFGH / F3A 00 1AB / F3B 00 3CDEFGH / F4 OPEN 35 / F4 READ 47",
+    "expected": "the OCCURS DEPENDING ON records read back as written under STANDARD-1, an implementor-name and no clause; a READ after a failed OPEN fails"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/pb292_record_delimiter_witness-002",
+    "printed": "identical stdout and the same three COBOL1778 warnings at --std 2023",
+    "expected": "no 1985-only arm on the path"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.8.4 GR1",
+    "check": "OK  §1985:VII.2.8.4 GR1  (║2.8.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
+   }
+  ],
+  "notes": "One framing (RecordFraming) serves every sequential file whatever the clause says, and it strips the 4-byte length word before the record area is filled. With no RECORD clause an OCCURS DEPENDING ON record is written fixed at its maximum (7 bytes, no prefix): §1985:II.2.1.4.3 leaves fixed or variable to the implementor in that case, so that is not a breach of this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.8.4-1",
+  "refutation": "DOUBTFUL",
+  "classes": "a,c,e",
+  "evidence": "Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-221/runs, all --std 85. What the reader did not try, and passes: rd_sizes-002 (a) RECORD VARYING without DEPENDING ON over two record sizes, READ INTO W12 -> [ABCDEFGH    ] then [XYZ         ] (group move of the current record, not the frame); DEPENDING ON long/short/long -> L=10/02/05 with the area and INTO exact; Format 3 RECORD CONTAINS 3 TO 8 (implementor-defined variable) -> same; STANDARD-1 over DEPENDING ON with READ INTO -> L=07 [PQRSTUV], L=01 [Z]. rd_reversed-001 (c, 1985-only) OPEN EXTEND then OPEN INPUT ... REVERSED of a no-clause file and a STANDARD-1 file -> XY/0123456789/ABC with L=02/10/03, then EOF 10; (e) a reader FD of max 4 over a 10-byte record -> 04, L=04 [0123]; READ after OPEN 35 -> 47, DEPENDING ON item unchanged (77). THE FAILURE: rd_print-001 (and rd_linage2-001) FC = RECORD DELIMITER IS STANDARD-1, RECORD VARYING DEPENDING ON LC, LINAGE IS 20 LINES, written with BEFORE ADVANCING 2 LINES (legal: §1985:VII.4.7.3 SR3 bars only ADVANCING mnemonic-name under LINAGE) -> W 00, then OPEN INPUT of the same file through the same FD -> 39, READ -> 47: the program never gets back any record its own clause framed. RDPC.DAT = 41 42 20 20 0d 0a 0d 0a 43 44 45 0d 0a 0d 0a (unframed text, DOC-A.1-146 (c')). --std 2023 identical (rd_print-002). Cause: SequentialConnector.cs#FixedAttributeConflict answers 39 whenever a RECORD VARYING file fails RecordFraming.StreamFramingParses, and a print stream is not a framed stream; 39 is defined only for a conflict between the fixed file attributes and the program's (§1985:VII.1.3.5 item f), and here the FD is the one that created the file. cite.py: 'OK  §1985:VII.2.8.4 GR1  (║2.8.4 General Rules║)  the text is in GR1'; 'OK  §1985:II.2.1.4  (2.1.4 Logical Records)  the text is in the clause'; 'OK  §1985:VII.4.7.4 GR16  (4.7.4 General Rules)  the text is in GR16'; 'OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.3f'; 'OK  §1985:VII.3.8.4 GR11  (3.8.4 General Rules)  the text is in GR11'. DOUBTFUL, the reading stated: GR1 constrains what a SUCCESSFUL read shows (the method absent from the record area and size), and every successful read probed conforms; the defect is that the read never succeeds for a variable-length file written as a print representation (LINAGE / ADVANCING). The reader's own requirement sentence ('a READ returns exactly the bytes written and the DEPENDING ON item gets the record's length') is falsified by FC; whether that failure belongs to GR1 or to OPEN/GR4 is a reading the text does not settle. kb/Work: no note found (grep of kb/Work for print stream / StreamFramingParses / 39: PB1664, PB2509, PB484, PB2754 treat the write form and torn tails, not this read-back).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause: DialectBehavior.RecordContainsRangeBindsRecordSize (2002 on) decides whether a Format 3 range bounds a WRITE; at 85 Format 3 still frames as variable-length, so the length method applies to it with unenforced bounds"
+  ],
+  "corrected": ""
+ }
+}

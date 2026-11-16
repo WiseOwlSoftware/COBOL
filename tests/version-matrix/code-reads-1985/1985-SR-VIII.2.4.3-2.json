@@ -2,57 +2,125 @@
  "rule-id": "1985-SR-VIII.2.4.3-2",
  "rule-digest": "3efb99490562",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-065",
+  "pin": "3fd4a31c0d578fb436193f57d03b4df4b8ff0553",
+  "slice": "1985-228",
   "sources": {
-   "reader": "66f332126c0c206103e030806e532fcfacdaf4b7490128589ff01dd02a46e1c6",
-   "refuter": "f825c12005b3e32f1ec902150273b86d6da02878634e3a8cde542efec0612be3"
+   "reader": "1c0c5ae5a3b12639b78648b2fbf0646f57542f822ed1e3cd386b0ead35bbfe42",
+   "refuter": "2b214cd0b6ad6c66137a5ccb571ef3c1821ba5b3c099d9b430284fe38f77c1d4"
   },
   "imported": {
-   "reader": "d7b226b8dd5072d64f87a2d4470902d74f5482fc6337378a848d5c5b0f2862bf",
-   "refuter": "a978e085fc9c48f810eca933a55188a7765cc4b81cacb9d367d0e1e5ec24a23c"
+   "reader": "9e68a63560a1cc5705505ed8991e1cb48b0e495e9c7dd82f4ef1f958faa56b94",
+   "refuter": "366f84a0b196881ca66a7e6129a84a0ab07bd64cfe39cec866197c6ff4261878"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VIII.2.4.3-2",
   "verdict": "CONFORMS",
-  "requirement": "The RELATIVE KEY data-name-1 (in any access mode) must reference an unsigned integer data item without PICTURE symbol P; a signed, scaled, P-bearing, alphanumeric, edited or group item (or an index data item, which is no integer data item with a PICTURE) is refused, and an unsigned integer of any usage is accepted.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Operands",
+  "requirement": "At --std 85 the RELATIVE KEY operand of a relative file (any access mode) must be a numeric, unsigned, integer data item whose PICTURE has no P (leading or trailing); signed, fractional, P-scaled, alphanumeric, alphabetic, edited, group, index and condition-name operands must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules1985; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/ClauseOperandRules1985.cs#RelativeKeyUnsignedInteger",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
-    "switches": "below 2002 the table is Rules85 (Rules minus rows Rules1985 supersedes, plus Rules1985); the SR-12.4.5.13.3-2 row is kept unchanged",
-    "same-arm-as-latest": true
+    "switches": "DialectLevel < 2002 selects Rules85: the 1985 rows (RelativeKeyUnsignedInteger, TableElementSubscripted, RelativeKeyNotInRecord) REPLACE SR-12.4.5.13.3-1/-2/-3",
+    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness covers only a signed key; scaled, P on either side, alphanumeric, group, edited, signed COMP, index item, and the accepted COMP and qualified forms were not exercised",
+  "edition-search": "grep DialectLevel|Supersedes in FileControlKeyRules.cs; the 1985 row's predicate (Pic is {Category Numeric, Scale 0, Signed false}) is the same as the 2023 row it supersedes, only the message/citation differ.",
+  "behaviour-differs-by-edition": "no: the 1985 row's predicate equals the 2023 SR2 row's; at 2002 only the OCCURS row differs (subscripts admitted), not this rule.",
+  "witnesses-cover": "part: pb5627 signed and pb5801 level 66; not exercised: P-scaled, fractional, alphanumeric, group, index, edited, OCCURS, the legal COMP form at run time.",
   "probes": [
    {
-    "class": "b,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p4a.cob (run p4a-001)",
-    "printed": "COBOL0863 on each of S9(4), 9(3)V9, 99PP, P99, X(4), group, ZZZ9, S9(4) COMP, USAGE INDEX",
-    "expected": "all nine refused"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk01.cob",
+    "printed": "COBOL0863 RELATIVE KEY 'KS' must reference an unsigned integer data item ... (ANSI §1985:VIII.2.4.3 SR2)",
+    "expected": "refused: signed"
    },
    {
-    "class": "f,e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p4b.cob (run p4b-001)",
-    "printed": "ZERO-INVALID / R7=SEVEN / N1=FIRST K=000000001 / N2=LARGE K=000000999",
-    "expected": "9(4) COMP random and qualified 9(9) dynamic keys accepted; key 0 is an invalid key; READ NEXT updates the key"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk02.cob",
+    "printed": "COBOL0863 'KP' (PIC 9P)",
+    "expected": "refused: symbol P"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk03.cob",
+    "printed": "COBOL0863 'KQ' (PIC P9)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk13.cob",
+    "printed": "COBOL0863 'KPP' (PIC 9(3)PP)",
+    "expected": "refused: symbol P"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk04.cob",
+    "printed": "COBOL0863 'KV' (PIC 99V9)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk05.cob",
+    "printed": "COBOL0863 'KX' (PIC XX)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk11.cob",
+    "printed": "COBOL0863 'KA' (PIC AA)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk06.cob",
+    "printed": "COBOL0863 'KG' (group)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk07.cob",
+    "printed": "COBOL0863 'KI' (USAGE INDEX)",
+    "expected": "refused: index item is not a numeric integer data item"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk08.cob",
+    "printed": "COBOL0863 'KE' (PIC ZZ9)",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk09.cob",
+    "printed": "COBOL0863 'KT' is subject to an OCCURS clause ... (ANSI §1985:IV.4.3.8.2.3 SR4)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk12.cob",
+    "printed": "COBOL1639 'K88' is declared as a condition-name",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk10.cob",
+    "printed": "compiles (PIC 9(5) COMP, RANDOM)",
+    "expected": "legal"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/rk20.cob",
+    "printed": "0003 CCCC 00 / IK 23 / 0001 AAAA 00 / 0003 CCCC 00 / EOF 10 (DYNAMIC: random READ, failed READ, START, READ NEXT updating the key)",
+    "expected": "legal; record 2 absent gives invalid key 23; sequential READ NEXT returns the relative record number in RK"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VIII.2.4.3 SR2",
-    "check": "OK  §1985:VIII.2.4.3 SR2  (2.4.3 Syntax Rules)  the text is in SR2"
-   },
-   {
-    "cite": "§1985:VIII.2.4.3 SR1",
-    "check": "OK  §1985:VIII.2.4.3 SR1  (2.4.3 Syntax Rules)  the text is in SR1"
+    "check": "python scripts/spec/cite.py --check \"§1985:VIII.2.4.3 SR2\" \"must reference an unsigned integer data item whose description does not contain the PICTURE symbol\" -> OK §1985:VIII.2.4.3 SR2"
    }
   ],
-  "notes": "The row asks Pic is { Category: Numeric, Scale: 0, Signed: false }, so any P (nonzero scale), sign, decimal, non-numeric or picture-less item is refused, and the row runs at 85 through Rules85 unchanged. The wording of §2023:12.4.5.13.3 SR2 is the same as 1985's; the message cites 2023.",
+  "notes": "The 1985 row ClauseOperandRules1985.RelativeKeyUnsignedInteger replaces the 2023 SR2 row below 2002 with the same predicate (numeric, scale 0 so no P either side and no fraction, unsigned); every refusal form was refused and the legal COMP key drives RANDOM, DYNAMIC, START and READ NEXT correctly.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -64,16 +132,10 @@
  },
  "refuter": {
   "rule-id": "1985-SR-VIII.2.4.3-2",
-  "refutation": "OVERTURNED",
+  "refutation": "UPHELD",
   "classes": "b,d,e",
-  "evidence": "Refusal half holds: r4a at --std 85 refused PIC 9(4) BLANK WHEN ZERO (numeric edited in 1985) COBOL0863, an OCCURS element COBOL0863, a level-88 COBOL1639; r4b refused S9(3) SIGN LEADING SEPARATE. The admitting half fails: r4b/r4c key '66 K-REN RENAMES K-E' where K-E is PIC 9(3) (a RENAMES of one elementary item is that elementary item, an unsigned integer data item) passes the syntax check but the compile CRASHES: r4c-001 at --std 85 exit 1 'Unhandled exception: System.InvalidOperationException: no Place was built for data item 'K-REN' when binding finished' at PlaceTable.Of <- PlaceTable.RelativeKeyOf <- KeyedIoEmitter.Rrn <- EmitWrite. Same at --std 2023 (r4c-002). RENAMES itself works (r4d: MOVE 6 TO K-REN prints 006 006). PACKED-DECIMAL 9(5) and BINARY 9(18) keys accepted. cite.py: OK §1985:VIII.2.4.3 SR2 (2.4.3 Syntax Rules) the text is in SR2. kb/Work search (RENAMES with RELATIVE KEY, RelativeKeyOf, 'no Place was built'): no note for this; PB5602 only names RelativeKeyOf.",
+  "evidence": "Probes at --std 85: rkbwz (PIC 9(4) BLANK WHEN ZERO, numeric edited per §1985:VI.5.4.4 GR2) COBOL0863; rksgn (S9(4) SIGN LEADING SEPARATE) COBOL0863; rkseqs (SEQUENTIAL access, S9(4)) COBOL0863, so the screen covers the optional SEQUENTIAL RELATIVE KEY too; rk66 (66 RENAMES THRU, a group) COBOL0863; rkpk (PACKED-DECIMAL) and rkseqbin (BINARY, DYNAMIC) compile, both 1985 usages; rkseqrun (SEQUENTIAL access, PACKED-DECIMAL key, WRITE x2 then READ x3) MATCH 'W 0001 00 / W 0002 00 / R 0001 AAAA 00 / R 0002 BBBB 00 / EOF 10'. cite.py --check \"§1985:VIII.2.4.3 SR2\" \"unsigned integer data item whose description does not contain\" -> OK.",
   "edition-sites-missed": [],
-  "corrected": "NON-CONFORMING (crashes / rejects-legal-source), cause (b): a level-66 RENAMES of an unsigned integer elementary item is a legal data-name-1, but DataBinder.PlaceableItems (AllItems plus linkage) gives PlaceTablePass no level-66 alias, so PlaceTable.RelativeKeyOf throws during code generation at every edition. Repro: src/r4c.cob under refute-1985-065. Sweep the siblings that go through OccurrenceOf/Of by item: FILE STATUS (FileStatusOf), ASSIGN USING, DEPENDING ON."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "THE COMPILER CRASHES ON LEGAL SOURCE. A level 66 item that renames one elementary item, named as FILE STATUS, LINAGE, DEPENDING ON, RELATIVE KEY or a report CONTROL, ends the compiler with an unhandled `System.InvalidOperationException` (\"no Place was built for data item\"), at 85 and at 2023, with no COBOL diagnostic. Each use is legal: \"all of the data attributes of data-name-2 become the data attributes for data-name-1\" (`§1985:VI.5.11.4 GR2`). I ran the FILE STATUS case. Not probed: SORT and MERGE keys, SUM operands, RECORD KEY. For `1985-SR-XIII.3.7.3-2` the row's own check is right for every operand that compiles.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
- },
- "work": "PB5801"
+  "corrected": ""
+ }
 }

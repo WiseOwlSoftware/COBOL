@@ -2,83 +2,133 @@
  "rule-id": "1985-SR-VII.3.8.3-4",
  "rule-digest": "54305dd7b230",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-063",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-236",
   "sources": {
-   "reader": "744802b4a1638c5c431fb1f76c34b64e12b58abc808032548c8227e0f0587f59",
-   "refuter": "d5e9c43dcd3ea7e29f71d48982b13f6c75fb4801c66b52167ec1743c03a77248"
+   "reader": "512c02f56c3a47c611830738fee062815aa4c177a4ec0c46758af157f304ad13",
+   "refuter": "59706be367945bed95443e558b94e18db15415727de8a491eb7471c0e48eb036"
   },
   "imported": {
-   "reader": "a35d22d56e451c0c70aa827cb843f2555bf0e339a06d24cc49a86e990e120df4",
-   "refuter": "0589810a4870490bcede4b4b20d228bea4d6ff662c68f37d1071e619294adf30"
+   "reader": "2134664763b126fec71ad95fbb02eff8c8c4112da981ca8d0e020b46d19d3d96",
+   "refuter": "10862d83778282aa7349dfdf56db2adb1d901d2fd80321a542779e7e725ff4de"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VII.3.8.3-4",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, the RECORD VARYING DEPENDING ON data-name-1 must be refused unless it is an elementary unsigned integer described in the Working-Storage or Linkage Section: a group, a signed, fractional, alphanumeric, numeric-edited or index item, and an item of the File or Communication Section are each refused.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Sr6Sentence",
+  "requirement": "At --std 85, the data-name-1 of a sequential file's RECORD IS VARYING ... DEPENDING ON phrase must describe an elementary unsigned integer in the Working-Storage or Linkage Section: a group, a signed, non-integer, alphanumeric or index item, and an item of the File or Communication Section, are refused; an unsigned integer of any usage there (and a level-66 renaming one) is accepted and carries the record length.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#PlaceableItems",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#RecordClauseRule.AppliesAt",
-    "switches": "Since 85 on the three DependingOperand rows: all apply at 85",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt",
+    "switches": "edition.DialectLevel >= Since; the three DEPENDING-operand rows have Since = 85, so they apply at 85 exactly as at 2023",
     "same-arm-as-latest": true
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Sr6Sentence",
-    "switches": "message wording: 'working-storage or linkage section' below 2002, three sections otherwise",
+    "switches": "message text only: below 2002 the sentence names working-storage or linkage, from 2002 it adds local-storage",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#RecordClauseRule.CitationAt",
-    "switches": "citation text: VII.3.8.3 SR4 below 2002",
-    "same-arm-as-latest": true
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#CitationAt",
+    "switches": "the citation printed: Of1985 (§1985:VII.3.8.3 SR4) at 85, §2023:13.18.43.3 SR6 otherwise",
+    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "Read the three SR6 rows; the section predicate admits LocalStorage at every edition, which is moot at 85 (no LOCAL-STORAGE SECTION).",
-  "behaviour-differs-by-edition": "no (wording only)",
-  "witnesses-cover": "part: l1c23_record_varying_bounds_depending is a legal-side witness; the refusal classes are the probes",
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: the section row admits LOCAL-STORAGE, which exists from 2002; at 85 the LOCAL-STORAGE SECTION itself is refused (COBOL0900), so the admitted set is Working-Storage and Linkage as the 1985 text says; the decision predicates are otherwise the same",
+  "witnesses-cover": "part: the witnesses cover bounds/DEPENDING at large and a level-66 data-name-1; signed, non-integer, alphanumeric, group, index, table-element, File Section and Communication Section operands and a Linkage operand are exercised only by the probes here",
   "probes": [
    {
-    "class": "b,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/rec_sr4_bad.cob",
-    "printed": "COBOL2922 x7 citing ANSI §1985:VII.3.8.3 SR4: G-LEN 'is a group item'; S-LEN, V-LEN, A-LEN, E-LEN, I-LEN 'is not an unsigned integer'; F-LEN 'is described in the file section'",
-    "expected": "each refused"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_ws1.cob",
+    "printed": "COBOL2922 ... DEPENDING ON 'L' is not an unsigned integer ... (ANSI §1985:VII.3.8.3 SR4)",
+    "expected": "refused: PIC S9(3) is signed"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_ws2.cob",
+    "printed": "COBOL2922 ... is not an unsigned integer",
+    "expected": "refused: PIC 9V9 is not an integer"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_ws3.cob",
+    "printed": "COBOL2922 ... is not an unsigned integer",
+    "expected": "refused: PIC X(3) is not numeric"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_ws4.cob",
+    "printed": "COBOL2922 ... is a group item",
+    "expected": "refused: not elementary"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_ws5.cob",
+    "printed": "COBOL2922 ... is not an unsigned integer",
+    "expected": "refused: USAGE INDEX is not an integer data item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_ws6.cob",
+    "printed": "COBOL2270 ... subject to an OCCURS clause ... must be subscripted (ANSI §1985:IV.4.3.8.2.3 SR4)",
+    "expected": "refused: a table element cannot be named by an unsubscripted data-name-1"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_ws7.cob",
+    "printed": "COMPILED",
+    "expected": "accepted: PIC 9(3) COMP unsigned integer in Working-Storage"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_ws8.cob",
+    "printed": "COMPILED",
+    "expected": "accepted: PIC 99P is an integer (no positions right of the assumed decimal point)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_fs.cob",
+    "printed": "COBOL2922 ... is described in the file section",
+    "expected": "refused: not Working-Storage or Linkage"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_cd.cob",
+    "printed": "COBOL2922 ... is described in the communication section",
+    "expected": "refused: not Working-Storage or Linkage"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/rec_sr4_cd.cob",
-    "printed": "COBOL2922 'C-LEN is described in the communication section'",
-    "expected": "refused: 1985 admits only Working-Storage or Linkage"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_ls.cob",
+    "printed": "COBOL0900: the LOCAL-STORAGE SECTION requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: 1985 has no Local-Storage Section"
    },
    {
-    "class": "a,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/rec_sr4_ok.cob",
-    "printed": "LEN 0005 [HELLO] (qualified COMP unsigned data-name-1; WRITE with 5, READ sets 5)",
-    "expected": "accepted; GR10a/GR11 lengths"
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c5_lk.cob",
+    "printed": "LK=003 R=ABC / LK=007 R=ABCDEFG",
+    "expected": "accepted: Linkage COMP counter in a contained program; records of 3 and 7 written and read back, the counter set to each record's length (§1985:VII.3.8.4)"
    },
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/rec_sr4_bad.cob (--std 2023)",
-    "printed": "the same 7 COBOL2922",
-    "expected": "same arm"
+    "class": "a",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VII.3.8@1985-RECORD-CLAUSE/pb5801_record_depending_level66_85.cob",
+    "printed": "LEN 03 ABC / LEN 05 VWXYZ",
+    "expected": "accepted: level-66 renaming of a PIC 99 item; lengths 3 and 5"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VII.3.8.3 SR4",
     "check": "OK  §1985:VII.3.8.3 SR4  (3.8.3 Syntax Rules)  the text is in SR4"
-   },
-   {
-    "cite": "§1985:IV.4.3.8.2.3 SR4",
-    "check": "OK  §1985:IV.4.3.8.2.3 SR4  (4.3.8.2.3 Syntax Rules)  the text is in SR4"
    }
   ],
-  "notes": "The rule's three obligations are three rows, all at 85. SIBLING LEAD (not this rule): DEPENDING ON an unsubscripted table element compiles clean at 85 and 2023 (rec_sr4_occ.cob: 05 T-LEN PIC 99 OCCURS 3 TIMES; exit 0), though §1985:IV.4.3.8.2.3 SR4 requires every table element reference to be subscripted; ResolveFiles resolves VaryingDependingItem with no IsSubjectToOccurs check, unlike ResolveLinage. No kb/Work note found.",
+  "notes": "SR4 ships as three table rows (elementary, unsigned integer, section) in RecordClauseRules, each with a 1985 citation; the operand is resolved in FileControlBinder.ResolveFiles and a table element is refused there (COBOL2270). All refusals name the 1985 rule at --std 85, and the legal forms run with correct record lengths. A probe-side PIC mismatch (outer DISPLAY item passed to a COMP linkage item) printed garbage for the outer item and is not a compiler fault.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "same refusals; the unsubscripted-table-element lead also compiles at 2023",
+  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -86,18 +136,10 @@
  },
  "refuter": {
   "rule-id": "1985-SR-VII.3.8.3-4",
-  "refutation": "OVERTURNED",
-  "classes": "b,c,d,e",
-  "evidence": "refute-1985-063/rec4_bad2.cob --std 85 --compile-only: BLANK WHEN ZERO PIC 99, PIC PP9, PIC S99 (in an SD), PIC S99 SIGN TRAILING SEPARATE each refused COBOL2922 citing ANSI §1985:VII.3.8.3 SR4. refute-1985-063/rec4_ren.cob (FD F1 RECORD IS VARYING IN SIZE FROM 1 TO 20 DEPENDING ON RN-LEN; 01 L-GRP. 05 L-LEN PIC 9(4). 66 RN-LEN RENAMES L-LEN. in WORKING-STORAGE; WRITE then READ) --std 85 --run: EXIT 1, 'no Place was built for data item 'RN-LEN' when binding finished' at SequentialIoEmitter.VaryingDepending (line 1027) from EmitWrite; identical at --std 2023 (rec4_ren-002). cite.py: OK §1985:VII.3.8.3 SR4 'must describe an elementary unsigned integer in the Working-Storage or Linkage Section'; OK §1985:VI.5.11.4 GR2. The reader's own lead also stands: DEPENDING ON an unsubscripted table element compiles clean (work-1985-063/rec_sr4_occ.cob).",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#PlaceableItems: omits a level-66 RENAMES item, so a RECORD DEPENDING ON data-name that resolves to one has no Place"
-  ],
-  "corrected": "NON-CONFORMING (crashes, rejects-legal-source; cause b, same at 2023): a DEPENDING ON data-name-1 that is a Working-Storage 66 RENAMES of one elementary unsigned integer is legal (SR4 with VI.5.11.4 GR2) and passes the screen, but the first WRITE crashes code generation in SequentialIoEmitter.VaryingDepending via PlaceTable.Of. Same mechanism as the LINAGE case (one root: PlaceableItems omits RENAMES items that a file clause names; FILE STATUS and the other FileModel.ClauseOperandItems are likely siblings). Repro: refute-1985-063/rec4_ren.cob. No kb/Work note found."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "THE COMPILER CRASHES ON LEGAL SOURCE. A level 66 item that renames one elementary item, named as FILE STATUS, LINAGE, DEPENDING ON, RELATIVE KEY or a report CONTROL, ends the compiler with an unhandled `System.InvalidOperationException` (\"no Place was built for data item\"), at 85 and at 2023, with no COBOL diagnostic. Each use is legal: \"all of the data attributes of data-name-2 become the data attributes for data-name-1\" (`§1985:VI.5.11.4 GR2`). I ran the FILE STATUS case. Not probed: SORT and MERGE keys, SUM operands, RECORD KEY. For `1985-SR-XIII.3.7.3-2` the row's own check is right for every operand that compiles.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
- },
- "work": "PB5801"
+  "refutation": "UPHELD",
+  "classes": "a,b,d,e",
+  "evidence": "Probes at --std 85 under refute-1985-236/runs: refused -- PIC PP9 (not an integer, COBOL2922 citing §1985:VII.3.8.3 SR4), PIC 9(3) BLANK WHEN ZERO (numeric edited by §1985:VI.5.4.4 GR2, COBOL2922), a level-88 condition-name (COBOL1639), an unqualified ambiguous L (COBOL1639 uniqueness); accepted -- level-77 PIC 9(3), qualified L OF G2, an item of an EXTERNAL Working-Storage record; r5_nested: a contained program's FD RECORD VARYING DEPENDING ON a container's GLOBAL Working-Storage counter compiles, writes a 4-character record and READ sets L=004 (1985 SR4 asks only Working-Storage or Linkage, no same-Data-Division clause). cite.py: 'OK  §1985:VII.3.8.3 SR4  (3.8.3 Syntax Rules)  the text is in SR4'. RecordClauseRules applies the rows at Since=85 with the 1985 sentence and citation; no missed edition site found. 'OK  §1985:VI.5.4.4 GR2' (the BLANK WHEN ZERO category rule; a first try at VI.5.3.4 failed and was corrected).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-IX.4.2.4-7",
+ "rule-digest": "a86ce0c1b4a9",
+ "read": {
+  "pin": "1712645b4772cda5433a5a24f9b7d597298915e6",
+  "slice": "1985-229",
+  "sources": {
+   "reader": "f5081c2e6e45c84bcdd5c0f7a240f2fb217fe751699cc6f6751d3f1db55eeeaf",
+   "refuter": "d4cc1110df77fe77780a50cdb915af235d4469c622c06c4ebe041d9c013c1ef3"
+  },
+  "imported": {
+   "reader": "af65b00f79413798dcb99b1d1d06a2e3e72a265d5a9978791a23e77995fff5c4",
+   "refuter": "d8c3649972fdc76ddba55e4700e0119315a1a0628af9a376414bff67eb18d8a8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.2.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a CLOSE naming several files (indexed here, mixable with other organizations) must behave as one separate CLOSE per file-name-1 in the written order: each file gets its own close, its own phrase (WITH LOCK), its own I-O status, and its own USE procedure at its turn before the next file is closed, including a file named twice or one whose OPEN failed.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitCloseStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "Constructs.CloseWithLockRemoved2023: the per-file WITH LOCK phrase is accepted at 1985 and refused at 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The series itself (BindClose builds BoundImplicitSeries of one BoundClose per phrase, in source order; EmitClose/EmitCloseStatement store each file's status and run its USE hook inside each iteration) has no edition branch: grep for CobolVersion/ConstructRegistry/IsAtLeast in SequentialIoBinder.BindClose and SequentialIoEmitter finds none; the only gate on the statement is the WITH LOCK row in VersionConformancePass.",
+  "behaviour-differs-by-edition": "no: the one-CLOSE-per-file series is the same at every edition; only the WITH LOCK phrase a 1985 program may write per file is removed at 2023",
+  "witnesses-cover": "part: g85_bf18_07 covers several organizations and access modes, status per file, re-OPEN, and the order with a not-open file under USE; not a per-file WITH LOCK phrase, the same file named twice, or a file whose OPEN failed",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/cls1.cob",
+    "printed": "C1 00 00; USE-A 38 B=00; C2 reopen-locked 38; C3 reopen-unlocked 00 (CLOSE XA WITH LOCK XB)",
+    "expected": "the LOCK phrase belongs to XA's own implicit CLOSE: XA re-OPEN gives 38 (§1985 status 38), XB opens 00"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/cls1.cob",
+    "printed": "USE-B 42 A=38; C4 42 (CLOSE XB XB)",
+    "expected": "as two CLOSE statements: the first closes XB (00), the second finds it not open (42) and runs XB's USE procedure"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/cls1.cob",
+    "printed": "USE-M 35 (failed OPEN of a missing file); then CLOSE XM XB: USE-M 42 A=38 B=99; C6 42 00",
+    "expected": "after a failed OPEN, XM's CLOSE gets 42 and its USE procedure runs BEFORE XB is closed (XB still 99), then XB closes 00"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.2.4 GR7",
+    "check": "OK  §1985:IX.4.2.4 GR7  (4.2.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "BindClose turns the statement into a BoundImplicitSeries of single-file BoundClose nodes in source order, each carrying its own phrase, and the emitter's per-file iteration stores that file's status and runs its USE hook before the next, which is the separate-CLOSE semantics. Probes confirm per-file LOCK, a duplicated file, and a failed-OPEN file. The run continuing after a 4x status with a USE procedure is the documented implementor choice (docs/conformance/3.5).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.2.4-7",
+  "refutation": "UPHELD",
+  "classes": "e,f",
+  "evidence": "cl2.cob at --std 85 mixes INDEXED (dynamic and random), RELATIVE and SEQUENTIAL files. (1) In CLOSE XA XB with XA not open, XA's USE procedure itself closes XB: output 'USE-A 42 B=99', 'USE-A closed XB 00', then the implicit second CLOSE finds XB closed: 'USE-B 42 A=42', 'C1 42 42'. The series is evaluated file by file at execution, with no pre-captured open state, exactly as separate statements would be. (2) In CLOSE XR WITH LOCK XA XS WITH LOCK, each phrase stays with its file: C2 00 00 00, and the re-OPEN gives C3 38 00 38. (3) In CLOSE XS XR with neither open and no USE procedure for either (only FILE STATUS), both get 42 and the run continues (C4 42 42), so a failure on the first file does not skip the second. That continuation is the documented implementor choice the reader cites. The only edition consult I found in SequentialIoEmitter (DialectBehavior.SelectWhenOnlyForFilePhraseStatements, NamedRecordEntry) is on the WRITE/REWRITE record-selection path, not CLOSE. cite.py: OK §1985:IX.4.2.4 GR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

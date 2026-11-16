@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-10",
+ "rule-digest": "d73658bdbba6",
+ "read": {
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-233",
+  "sources": {
+   "reader": "d5767a4d1b8f183c1b26f5da0e39f022e8e9cd05a366a0ffb799105169a627dc",
+   "refuter": "0791f68cd40c59737f5d0cc5aedbe62476dc3b7f692de925a6495b580da8532f"
+  },
+  "imported": {
+   "reader": "65c2346f7ede899998586b492e2349680f6bdb92e0be6e71920cdaa6f638177c",
+   "refuter": "800c60d61dd1329d83e02b436bd9aa1c079c51875f800f717ae3dd79a474bc19"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.3.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "An explicit or implicit CANCEL executes a plain implicit CLOSE (storing the I-O status) for every file in the open mode whose internal file connector belongs to the cancelled program (and, through GR4, to each program it contains), skips files not open and every EXTERNAL connector, and executes no USE procedure for those closes; this holds for sequential, relative and indexed files.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#InstanceForClose; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitProgramClass; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitImplicitClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitCloseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+    "switches": "DialectBehavior.CancelRefusesEveryActiveProgram (from 2002): which programs GR5 refuses to cancel; at 85 the never-called active main program is a no-op. It decides whether the cancel proceeds, not what the implicit CLOSE does",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|CobolVersion|DialectBehavior|ConstructRegistry in ProgramTable.cs, ProgramEmitter.cs CloseFiles block, SequentialIoEmitter.cs: the implicit-close path (CloseFiles -> EmitImplicitClose -> EmitCloseStatement with no USE hook) is edition-free; the one switch on the CANCEL path is GR5's.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb5847 covers a sequential file's status store, a file not in the open mode, the reopen after CANCEL and a contained program's file; not exercised: an EXTERNAL file connector (must stay open), a container's GLOBAL file used by the cancelled contained program (not its connector, must stay open), relative and indexed organizations",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/c_ext.cob",
+    "printed": "sub opened ext=00 int=00 / after cancel internal=00 external=99 / main write external=00 / main close external=00 / rec1=SUBE / rec2=MAIN",
+    "expected": "the internal file is closed (status 00 stored over 99); the EXTERNAL connector is not internal, so it is not closed (status untouched) and the main program's WRITE continues it"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/c_glob.cob",
+    "printed": "after cancel OS=99 / outer write OS=00 / rec1=INNR / rec2=OUTR",
+    "expected": "the container's GLOBAL file is the container's connector, not the cancelled contained program's: it stays open and the outer WRITE continues the file"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/c_org.cob",
+    "printed": "sub open idx=00 rel=00 / after cancel idx=00 rel=00 / sub open idx=00 rel=00 (no USE FIRED line)",
+    "expected": "indexed and relative files are closed by the CANCEL (00 stored, the reCALL's OPEN gives 00 not 41) and the program's USE AFTER ERROR procedure is not executed"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.3.4 GR10",
+    "check": "OK  §1985:X.5.3.4 GR10  (║5.3.4 General Rules║)  the text is in GR10"
+   }
+  ],
+  "notes": "CloseFiles is emitted over the program's own declared files, skipping EXTERNAL and SD entries, each through the one CLOSE sequence with no USE hook, guarded by an is-open test; the runtime cancels contained programs first and runs CloseFiles even when no instance is cached. No probe could make an implicit CLOSE fail, so the no-USE half is witnessed by the emitted null hook and by no USE firing on a successful close.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.3.4-10",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe c_two3.cob at --std 85 (E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-233/src; run c_two3-001): the main program and the called program CTS each have their own FD on the same physical file ct.dat; CTS declares SF GLOBAL and its contained program CTC opens and reads it. After CANCEL \"CTS\" the main program's own connector is untouched (READ gives R002, MS=00), and on the re-CALL CTC's OPEN INPUT SF returns 00 (not 41) and reads R001 from the start: the file CTS's grandchild opened through CTS's GLOBAL FD is CTS's internal connector and was implicitly closed. With the reader's c_ext (EXTERNAL connector stays open), c_glob (a container's GLOBAL file stays open when the contained program is cancelled) and c_org (relative and indexed, no USE fired), no refuting form found. cite.py: OK §1985:X.5.3.4 GR10 the text is in GR10; OK §1985:X.5.3.4 GR4 the text is in GR4. The no-USE half on a FAILED implicit close stays unwitnessed by any run (no close could be made to fail), as the reader stated.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

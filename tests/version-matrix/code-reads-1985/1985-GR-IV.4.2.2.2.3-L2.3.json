@@ -2,95 +2,110 @@
  "rule-id": "1985-GR-IV.4.2.2.2.3-L2.3",
  "rule-digest": "b76aca5aebdb",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-087",
+  "pin": "1712645b4772cda5433a5a24f9b7d597298915e6",
+  "slice": "1985-229",
   "sources": {
-   "reader": "3a7372f623de84840730f25aaafe908e16fb6758ef274e8caa8bdd291c3ea2e4",
-   "refuter": "cb9bea7e3745bb11813da4e72dddd8f9d0adbb7f310aeaf95a0c9b612192d5d5"
+   "reader": "f5081c2e6e45c84bcdd5c0f7a240f2fb217fe751699cc6f6751d3f1db55eeeaf",
+   "refuter": "d4cc1110df77fe77780a50cdb915af235d4469c622c06c4ebe041d9c013c1ef3"
   },
   "imported": {
-   "reader": "a85de5ad2a40c024a279f1d6bc8560f847831a46ff88bd1e22295db5815ce0e4"
+   "reader": "37edfc0013e6171b89034efcbd09900c9a41a960cf17a89d525fee744471aa60",
+   "refuter": "b715b8b2a418127563ff380f86067ea057f8e941b7b6e58963db83117a17aafe"
   }
  },
  "reader": {
   "rule-id": "1985-GR-IV.4.2.2.2.3-L2.3",
-  "verdict": "PARTIAL",
-  "requirement": "At --std 85 the figurative ALL literal not associated with another data item (a DISPLAY operand; an ALPHABET literal-phrase operand of SPECIAL-NAMES, per the 1985 Annex's change note) is exactly the literal, once; and (the row's trailing sentence) a figurative constant may stand wherever a format writes 'literal', subject to the listed exceptions and each statement's own bans (STOP, STRING, UNSTRING and INSPECT refuse a figurative beginning with ALL). The witnesses exercise only DISPLAY ALL \"AB\"/ALL \"XYZ\".",
-  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundAllLiteral; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#SpecialNamesFigurative; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#AllLiteralCharacters; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#literal; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#stopStatement",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the figurative constant ALL literal, where it is not associated with a data item (DISPLAY, which 1985 newly permits it in; the ALPHABET and CLASS literal phrases of SPECIAL-NAMES), must stand for the literal exactly once (its own length), and a figurative constant must be admitted wherever 'literal' appears in a format, subject to the listed exceptions (numeric-restricted positions take only ZERO; multi-character ALL literal with a numeric item is obsolete; ALL before a non-literal figurative is redundant) and to each statement's own bars (STOP, STRING, UNSTRING, INSPECT refuse a figurative beginning with ALL).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundAllLiteral; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#SpecialNamesFigurative; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#AllLiteralCharacters; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr3; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BeginsWithAllWord",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral",
-    "switches": "ConstructRegistry.IsAvailable(StopLiteralRemoved2002): STOP SR1 (no ALL figurative) is asked only at 85",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr3",
+    "switches": "ConstructRegistry.Check(AllLiteralMulticharNumericRemoved2002): a multi-character ALL literal associated with a numeric item is accepted at 1985 (obsolete) and refused COBOL0902 from 2002 (exception 2 of the lead-in)",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStopStatement",
-    "switches": "Check(StopLiteralRemoved2002): STOP literal admitted at 85, refused 2002+",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric",
+    "switches": "ConstructRegistry.Check(FigurativeAllZeroNumericRemoved2002): ALL ZERO in a numeric position is accepted at 1985 (ALL redundant, exception 3) and refused from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral",
+    "switches": "ConstructRegistry.IsAvailable(StopLiteralRemoved2002): STOP ALL literal refused by §1985:VI.6.24.3 SR1 only where STOP literal exists",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep Edition/ConstructRegistry/CobolVersion/IsAvailable over OperandText.cs, SpecialNamesBinder.Literals.cs, StringUnstringBinder.cs, ConcatFolder.cs: the DISPLAY ALL-literal arm (AsStringVisitor.Visit(BoundAllLiteral)) and the SPECIAL-NAMES ALL-literal decoding consult no edition (Edition there is only the diagnostic sink).",
-  "behaviour-differs-by-edition": "no for the ALL-literal length (same code at every edition); yes only in that STOP literal exists at 85 alone.",
-  "witnesses-cover": "part: g85_bf02_01 and 1985-GR-IV_4_2_2_2_3-L2_3 cover DISPLAY only; not the ALPHABET clause, one-character or quote-bearing literals, the refusals of ALL in STOP/STRING/UNSTRING, or the trailing 'may be used whenever literal appears' sentence.",
+  "edition-search": "The length-of-literal rendering itself (OperandText AsStringVisitor.Visit(BoundAllLiteral): the literal once; SpecialNamesBinder.AllLiteralCharacters: literal-1 itself) consults no edition (grep CobolVersion/Edition/ConstructRegistry in OperandText.cs, FigurativeConstants.cs, SpecialNamesBinder.Literals.cs: only EditionContext.Error for diagnostics). The edition is consulted only by the exception gates listed.",
+  "behaviour-differs-by-edition": "yes: not for the length of an unassociated ALL literal (same at 2023: DISPLAY ALL \"AB\" prints AB), but the lead-in's exceptions differ: MOVE ALL \"12\" TO a numeric item runs at 85 (1212) and is refused COBOL0902 at 2023; ALL ZERO as a numeric operand likewise; STOP ALL literal is a 1985-only refusal",
+  "witnesses-cover": "part: g85_bf02_01 covers DISPLAY ALL \"AB\" / ALL \"XYZ\"; not the ALPHABET or CLASS literal phrases (the context the 1985 substantive change (1) was written for), the exceptions, or the per-statement ALL bars",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/fig1.cob",
-    "printed": "L23[AB][X][XYZ]",
-    "expected": "each ALL literal displayed as the literal once"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/all1.cob",
+    "printed": "A1 [AB][XYZ][Q] (DISPLAY ALL \"AB\", ALL \"XYZ\", ALL \"Q\")",
+    "expected": "the length of the string is the length of the literal (GRL2.3)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/all1.cob",
+    "printed": "A2 ZYX-FIRST (ALPHABET COL-SEQ IS ALL \"ZYX\" as PROGRAM COLLATING SEQUENCE: Z<Y<X<A); A3 CAB IN CLASS, A4 ABD NOT IN CLASS (CLASS CL-ABC IS ALL \"ABC\")",
+    "expected": "1985 changed the SPECIAL-NAMES reading (Substantive change (1), B-142): ALL \"ZYX\" is all three characters, not the leftmost one"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/all2.cob",
-    "printed": "[A\"B] / [\"] / [A\"BA\"BA] (VALUE ALL, associated) / XYZ (NO ADVANCING)",
-    "expected": "length of the literal unassociated; repeated and cut when associated (L2.1)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/all1.cob",
+    "printed": "A5 [A  ][BXC] 02 (UNSTRING DELIMITED BY ALL \"XX\"); A6 1212 (MOVE ALL \"12\" TO PIC 9(4)); A7 ABA (MOVE ALL \"AB\" TO PIC X(3))",
+    "expected": "associated uses repeat to the receiver (GRL2.1); exception 2 is obsolete but legal at 1985"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/alph1.cob",
-    "printed": "ALPHABET SEQ-A IS ALL \"ZYX\" as PCS: Z<Y, Y<X, X<A (same as alph2.cob with \"ZYX\")",
-    "expected": "the 1985 Annex: in the alphabet-name clause 'the length of the string is the length of the literal' (not the 1974 leftmost character), so Y<X"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/all1.cob",
+    "printed": "at --std 2023: COBOL0902 on MOVE ALL \"12\" TO N4 (AllLiteralMulticharNumericRemoved2002); the DISPLAY and SPECIAL-NAMES lines compile",
+    "expected": "the exception-2 element was deleted by 2002; the length rule unchanged"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/all2.cob",
+    "printed": "B1 IN (CLASS IS SPACE \"A\"); B2 [0 0] (INSPECT REPLACING ALL \"A\" BY ZERO); B3 ALL-0SP (EVALUATE WHEN ALL \"0 \"); B4 005 (ADD ZERO, ADD ALL ZEROS)",
+    "expected": "a figurative constant may be used whenever 'literal' appears; ALL before ZERO redundant at 1985"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/strall.cob",
-    "printed": "COBOL1757 STRING sending operand 'ALL \"AB\"' ... ; COBOL1757 STRING DELIMITED BY 'ALL \"B\"' ...",
-    "expected": "refused: §1985 STRING SR 'Literal-1 or literal-2 must not be a figurative constant that begins with the word ALL'"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/stopall.cob",
-    "printed": "COBOL6817: STOP ALL \"AB\": the literal breaks §1985:VI.6.24.3 SR1",
-    "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/unsall.cob",
-    "printed": "UNSTRING DELIMITED BY ALL \"XY\" (the ALL phrase): [AB ][CD ][---]",
-    "expected": "ALL phrase over literal \"XY\", contiguous delimiters collapsed"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/stop4.cob",
-    "printed": "STOP STAR (symbolic-character): error COBOL5506 unexpected '.' ... expected '&'",
-    "expected": "accepted: 'A figurative constant may be used whenever literal appears in a format' and STOP SR1 bars only ALL"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/all3.cob",
+    "printed": "COBOL0844 on ADD SPACE TO N; COBOL6817 on STOP ALL \"AB\" (§1985:VI.6.24.3 SR1); COBOL1757 on INSPECT ... FOR ALL ALL \"A\"; UNSTRING DELIMITED BY ALL SPACES accepted",
+    "expected": "exception 1 (only ZERO in a numeric-restricted position) and the statements' own ALL bars refused; the UNSTRING ALL phrase is not the figurative ALL"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IV.4.2.2.2.3 GRL2.3",
-    "check": "OK  §1985:IV.4.2.2.2.3 GRL2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in GRL2.3 (quoted: the length of the string is the length of the literal)"
+    "check": "OK  §1985:IV.4.2.2.2.3 GRL2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in GRL2.3"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR4",
+    "check": "OK  §1985:VI.4.5.4 GR4  (4.5.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VI.6.24.3 SR1",
+    "check": "OK  §1985:VI.6.24.3 SR1  (6.24.3 Syntax Rules)  the text is in SR1"
    }
   ],
-  "notes": "The ALL-literal length itself conforms at 85: DISPLAY renders BoundAllLiteral as the literal once and SpecialNamesFigurative gives an ALPHABET operand literal-1's full characters; STOP/STRING refuse ALL by their own 1985 SRs. The row's trailing sentence ('A figurative constant may be used whenever literal appears in a format') is broken by STOP symbolic-character, a parse error - the same single defect recorded on 1985-GR-IV.4.2.2.2.3-L2.2 (grammar `literal` has no symbolic-character arm), so this row is PARTIAL on that sentence alone.",
+  "notes": "An ALL literal binds to BoundAllLiteral; in a string position OperandText renders its literal once, and in an ALPHABET/CLASS literal phrase SpecialNamesBinder takes literal-1 itself, so both unassociated contexts give the literal's own length at 1985, which the probes show. The exceptions of the lead-in are gated per edition through ConstructRegistry rows that keep the 1985 forms legal. INSPECT's refusal of ALL ALL \"A\" cites §2023:14.9.22.3 SR3 at --std 85 (diagnostic citation only; 1985 INSPECT SR3 says the same).",
   "seeded": true,
-  "harm": "rejects-legal-source",
-  "cause": "c",
-  "at-2023": "same COBOL5506 parse error (STOP literal is removed from 2002, so refusal is the right outcome there)",
-  "repro": "SPECIAL-NAMES. SYMBOLIC CHARACTERS STAR IS 43. ... PROCEDURE DIVISION. P. STOP STAR. STOP RUN.",
-  "expected": "§1985:IV.4.2.2.2.3: 'A figurative constant may be used whenever literal appears in a format'; STOP SR1 restricts only figuratives beginning with ALL",
-  "observed": "error COBOL5506: unexpected '.'. The separator period is not expected here: expected '&'",
-  "known_note": "none (same defect as the L2.2 record; no kb/Work note found)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5809"
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-L2.3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "I attacked the lead-in ('A figurative constant may be used whenever literal appears in a format') at literal positions the reader did not probe. al4.cob at --std 85 accepts and runs each one: CLASS IS LOW-VALUE THRU \"B\" (native-lowest per §1985:VI.4.5.4 GR7, so space is in the class); CLASS IS SPACE QUOTE ZERO; PADDING CHARACTER IS SPACE on a sequential file (OPEN/WRITE/CLOSE ran); 88 VALUE LOW-VALUE THRU \"M\" / VALUE ALL \"AB\" / VALUE SPACE (all TRUE as expected); INITIALIZE G REPLACING ALPHANUMERIC BY ALL \"AB\" NUMERIC BY ZERO gives [ABA00]; COMPUTE N2 = ZERO - 3 gives -03; PERFORM VARYING FROM ZERO gives 03. Exceptions: al6 CURRENCY SIGN IS QUOTE -> COBOL0892 (§1985:VI.4.5.3 SR12). Class c: al5 CALL USING BY CONTENT SPACE (a 2002 literal argument; the 1985 BY CONTENT takes identifier-2 only) -> COBOL0900. Unassociated ALL literal: 1985 has no legal context beyond DISPLAY and the SPECIAL-NAMES literal phrases (the reader probed those). rel1.cob 'IF ALL \"AB\" = \"ABAB\"' prints EQ, which extends the ALL literal to the other literal's length, but the program breaks §1985:VI.6.3.1.1 ('must contain at least one reference to a variable'); the compiler warns COBOL3146, already tracked in kb/Work PB5481/PB5826, so this is not conforming source and does not count against GRL2.3. cite.py: OK §1985:IV.4.2.2.2.3 GRL2.3 (both the length sentence and the lead-in sentence); OK §1985:VI.4.5.3 SR12; OK §1985:VI.4.5.4 GR7; OK §1985:VI.6.3.1.1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-VIII.4.2.4-7",
+ "rule-digest": "a86ce0c1b4a9",
+ "read": {
+  "pin": "1712645b4772cda5433a5a24f9b7d597298915e6",
+  "slice": "1985-230",
+  "sources": {
+   "reader": "cb3be01a78846309688098d11baa3d09e17121eaadae4196bf7c132343a631e8",
+   "refuter": "025c5d214ae191eb324d267335fc86df1d6e8dd720161061dd4841a11927f046"
+  },
+  "imported": {
+   "reader": "23cc6c5843d21e31e85eb0f3eec35b622f0879657b9f2818f252c2f111dc81c3",
+   "refuter": "b3ac851dc61a1bf85a21f2e983820511eaf911433ef0043422ee7e663d42c818"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.2.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a CLOSE naming several relative (or mixed) files, each with or without WITH LOCK, must execute as a separate CLOSE for each file-name-1 in the written order: each file's own I-O status updated, each removed from the open mode, each WITH LOCK applied only to its own file, and a failing member (status 42) must not stop the later members.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundImplicitSeries; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitCloseStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "CLOSE WITH LOCK admitted at 85 (removed at 2023, COBOL0902); the per-file series itself is edition-agnostic",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for CLOSE in VersionConformancePass.cs and every BoundClose consumer; BindClose and EmitClose read ctx.Edition only to stamp a BoundRejected, never to switch behaviour",
+  "behaviour-differs-by-edition": "yes: only the WITH LOCK phrase per file-name-1 is admitted at 85 and refused at 2023; the one-CLOSE-per-file series is the same at every edition",
+  "witnesses-cover": "part: g85_bf18_05 covers order, per-file status and reopen for plain CLOSE across all three relative access modes; not exercised: WITH LOCK on some members only, the same file named twice",
+  "probes": [
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c1lock.cob",
+    "printed": "CL1 00 00 00 / OP-F1 38 / OP-F2 00 / OP-F3 38 / CL2 42 / OP-F4 35 / CL4 42",
+    "expected": "CLOSE F1 WITH LOCK F2 F3 WITH LOCK = three CLOSEs: all 00, F1 and F3 locked (reopen 38), F2 reopens 00; CLOSE F2 F2 = 00 then 42; CLOSE after a failed OPEN = 42"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c1ref.cob",
+    "printed": "error COBOL1693: CLOSE 'F2' with the REEL/UNIT phrase - the phrase may be used only with a sequential-organization file",
+    "expected": "the Relative I-O CLOSE format admits only WITH LOCK; REEL/NO REWIND on a relative file refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c1lock.cob (--std 2023)",
+    "printed": "error COBOL0902: the CLOSE WITH LOCK phrase was removed in COBOL-2023",
+    "expected": "later edition refuses WITH LOCK; 85 admits it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.2.4 GR7",
+    "check": "OK  §1985:VIII.4.2.4 GR7  (4.2.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VIII.4.2.4 GR2",
+    "check": "OK  §1985:VIII.4.2.4 GR2  (4.2.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VIII.4.2.4 GR6",
+    "check": "OK  §1985:VIII.4.2.4 GR6  (4.2.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "BindClose builds one BoundClose per file-name-1 and wraps them in BoundImplicitSeries, so each member is a whole CLOSE with its own status store and USE hook in source order. The mixed WITH LOCK probe shows the lock applies per member and the duplicate-name probe shows the second member sees the first one's result. The witness covers the order clause with a USE procedure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.2.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "refute-1985-230/r1a.cob at --std 85 (relative seq/random/dynamic, FILE STATUS, one USE AFTER STANDARD ERROR on all three): CLOSE F1 F2 F3 with F1 unopened printed 'CL1 42 00 00 TR=U429999/' (USE runs after member 1 while F2,F3 still 99, later members still close); CLOSE F1 F2 WITH LOCK F3 WITH LOCK with F2 unopened printed 'CL2 00 42 00 TR=U004299/' (USE sees F1 already closed, F3 not yet); reopen F1 00, F3 38 (lock only on its own member). r1b.cob: 'CLOSE F1, F2 LOCK; F3 LOCK.' (LOCK without WITH, comma/semicolon separators) gives the same output. cite.py: OK  §1985:VIII.4.2.4 GR7  (4.2.4 General Rules)  the text is in GR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

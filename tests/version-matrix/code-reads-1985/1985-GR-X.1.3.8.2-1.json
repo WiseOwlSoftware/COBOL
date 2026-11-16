@@ -2,80 +2,65 @@
  "rule-id": "1985-GR-X.1.3.8.2-1",
  "rule-digest": "e621188ec6e7",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-031",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-233",
   "sources": {
-   "reader": "c483a0a7abaab3fed39c53ce0790c2b589619f0a6304599e1414a759780b8b38",
-   "refuter": "a60a1852ac7f090aaba1d031ca11da70996c6b1ccb0bce18cf63bebe43108ba8"
+   "reader": "d5767a4d1b8f183c1b26f5da0e39f022e8e9cd05a366a0ffb799105169a627dc",
+   "refuter": "0791f68cd40c59737f5d0cc5aedbe62476dc3b7f692de925a6495b580da8532f"
   },
   "imported": {
-   "reader": "7644fc67908925f414a6d6beb6f0780910c65ca50b2f886ab7561b7c4f9d7a36",
-   "refuter": "d8d8c2994dc078ea5b37b2dc236f7ac511c0e39d4fe962ef54cca840c3939b51"
+   "reader": "5741511fd745d0506588d0203d65c73054884f1aea939b67140f0b12911f8782",
+   "refuter": "a999fbd965373bb1a84b8c4c6eb13de6eea2af11ecdb25ac81eb5883114e00d2"
   }
  },
  "reader": {
   "rule-id": "1985-GR-X.1.3.8.2-1",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, when a contained program B references a condition-name, data-name, file-name, record-name or report-name, the candidate set must be every name defined in B plus only the GLOBAL names of its container A and of every program containing A (a container's non-global names, even when spelled alike, are not in the set), with the normal qualification and uniqueness rules then applied over that whole set.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#Seed; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#ContainerGlobalRootsOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritContainerGlobalData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ReserveInheritedMemberNames; src/WiseOwl.Cobol.Compiler/Binding/InheritedGlobals.cs#AddContainerFiles; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
+  "requirement": "In a contained program B, the candidate set for a condition-name, data-name, file-name, record-name or report-name reference is B's own names plus the GLOBAL names of every directly or indirectly containing program (never a container's non-global names), and qualification is applied over that whole set.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#Seed; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#ContainerGlobalRootsOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritContainerGlobalData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#TryResolve; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#NearestDeclaring; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ReportUnidentified",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.NameUniqueness.cs#ScreenGlobalNameUniqueness",
-    "switches": "the COBOL6862 message cites §1985:IV.4.3.8.1 / X.4.6.3 SR2 below 2002 and §2023:8.4.2.1 from 2002; the refusal itself is the same at every edition",
-    "same-arm-as-latest": true
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.NameUniqueness.cs#ScreenIndexNameUniqueness",
-    "switches": "below 2002 an index-name must be unique within its program (§1985:VI.5.8.3 SR14); from 2002 index-names may be qualified. Not part of this rule's name classes; it bounds the index-names that join the set",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ReportUnidentified",
+    "switches": "only the citation text of the ambiguity diagnostic (DialectLevel < 2002 cites §1985:IV.4.3.8.1 SRL2.1); the candidate set and the refusal are the same code",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep Edition|DialectLevel|CobolVersion|ConstructRegistry over InheritStep.cs, InheritedGlobals.cs, SymbolTable.cs, ForestSlice.cs and DataBinder.cs#InheritGlobalSubtree: the set's construction never consults the edition; the declaration-side uniqueness screens in DataBinder.NameUniqueness.cs are the only edition reads on the path.",
+  "edition-search": "grep EditionContext|CobolVersion|DialectLevel|ConstructRegistry in SymbolTable.cs, InheritStep.cs, InheritedGlobals.cs, DataBinder.NonDataNames.cs, ReportScope.cs: none; the inheritance and nearest-tier narrowing are edition-free. The GLOBAL clause itself is admitted at --std 85 (every probe compiled).",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness covers data-names, condition-names and index-names with a GLOBAL redeclaration in the middle program; not exercised there: a container's NON-global same-spelled name being excluded from the set, file-names, record-names and report-names",
+  "witnesses-cover": "part: pb1047 covers data-names, condition-names and index-names inherited from two container levels; not exercised: a container's NON-global name of the same spelling (excluded from the set), a global FILE-name and record-name against a contained program's own file of the same name, and the refusal of a reference to a container's non-global name",
   "probes": [
    {
-    "class": "b,d,e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p6_scope_set.cob",
-    "printed": "IN X=OUT / IN C=TRUE / IN T= Q  / IN Y=LOY YH=MDY YQ=LOY / IN FS1=00 / OUT F1REC=INNR",
-    "expected": "the middle program's NON-global X, 88 C, data-name IX, FD F1 and record F1REC are not in B's set, so B reaches the outer's global X, C (true), index IX, file F1 and record F1REC; qualification Y OF H reaches the middle's GLOBAL H, unqualified Y is B's own"
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/g1set.cob",
+    "printed": "M X=MNX K=MNK / I X=OGX / I YG=OGY / I K=OHK / I KH=OHK / I ZG=IGZ / O Y=NEW K=NWK",
+    "expected": "the middle program's non-global X and H.K are not in the inner program's set, so X and K name the outer GLOBAL items; Y OF G is qualified over the whole set (the inner G holds no Y) and names the outer Y; the MOVEs write the outer items"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p7c_qual_skips_local.cob",
-    "printed": "X=LOC XG=OUT XL=LOC",
-    "expected": "qualification over the whole set: X OF G selects the container's global X although B declares X"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p7b_two_outer.cob",
-    "printed": "error COBOL6862 ... (ISO §1985:IV.4.3.8.1) ... (ISO §1985:X.4.6.3 SR2) / error COBOL1639: 'X' does not uniquely identify a data item — 2 declarations",
-    "expected": "§1985:IV.4.3.8.1 SR4: 'The same data-name must not be used as the name of an item possessing the global attribute and as the name of any other data item described in the program which describes that global data item' — refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/g1nonglobal.cob",
+    "printed": "error COBOL1639: 'Q' is not defined",
+    "expected": "the outer program's non-global Q is not in the contained program's set: the reference identifies nothing and is refused"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p8_report_name_scope.cob",
-    "printed": "IN LINE-COUNTER=0000000002 / OUT LINE-COUNTER=0000000002; P8OUT.RPT holds OUT, OUT",
-    "expected": "the middle's non-global RD R-1 is not in B's set: B's GENERATE DET-1 and LINE-COUNTER reach the outer GLOBAL report"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/g1file.cob",
+    "printed": "O R=GLBJ / O R=EOF; g1fi.dat holds LOCI, g1fo.dat holds GLBJ",
+    "expected": "the contained program with its own FD F writes its own file; the one without writes the container's GLOBAL F and its record R"
    },
    {
-    "class": "witness",
-    "file": "conformance-suite/cases/8.4.6.2-Local-and-global-names/pb1047_nearest_declaring_element.cob",
-    "printed": "EXPECT: MATCH",
-    "expected": "the .out"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/g3amb.cob",
+    "printed": "error COBOL1639: 'X' does not uniquely identify a data item (ISO §1985:IV.4.3.8.1 SRL2.1)",
+    "expected": "two local X plus a global X: qualification over the set leaves more than one object local to B, so the reference is not unique"
    }
   ],
   "citations": [
    {
     "cite": "§1985:X.1.3.8.2 GR1",
     "check": "OK  §1985:X.1.3.8.2 GR1  (1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names)  the text is in GR1"
-   },
-   {
-    "cite": "§1985:IV.4.3.8.1 SR4",
-    "check": "OK  §1985:IV.4.3.8.1 SR4 (the p7b expectation)"
    }
   ],
-  "notes": "InheritStep.ContainerGlobalRootsOf lists only GlobalRoots of each container, InheritedGlobals.AddContainerFiles admits only GLOBAL file-names, and reports only IsGlobal ones, so the set is exactly B's names plus the containers' global names; qualification runs over that set before the nearest-element narrowing. Every name class the rule lists was probed at 85 and behaved as the text requires.",
+  "notes": "Every container's GLOBAL roots (and their subordinates, condition-names, RENAMES and index-names) are inherited with their containment depth after the unit's own names; a container's non-global names never enter the set. Qualification runs over the whole set before the nearest-tier narrowing (GR3), so Y OF G reaches the outer G's Y past a local G without it. The only edition consultation is the citation in the ambiguity text.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -87,16 +72,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-X.1.3.8.2-1",
-  "refutation": "OVERTURNED",
-  "classes": "b,c,d,e",
-  "evidence": "Rule 1's set is ALL names defined in B (every class) plus the containers' global names, and §1985:X.1.3.8 says a reference 'even when it is a different type of user-defined word, is to the object which that program describes'. Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-031/: r4d_local_file_hides_global_data_witness: outer declares 01 FX GLOBAL PIC X(4) VALUE 'GLOB'; contained B declares FD FX (its own file) and executes MOVE 'LOCL' TO FX. It compiles and runs: OUT BEFORE FX=GLOB / OUT AFTER FX=LOCL. B's own file-name FX was left out of the set for a data reference, so one object (the container's) was identified (GR2) and written. r4b_local_data_hides_global_file: the reverse; container has FD GX GLOBAL, B declares 01 GX PIC X(4); B's OPEN OUTPUT GX / CLOSE GX compile and run against the container's file (IN GX=DATA). Both are nonconforming programs (B's FX is a file, B's GX a data item) that the compiler admits and binds to the container's object. Same at --std 2023 (r4d-002: OUT AFTER FX=LOCL; r4b-002: IN GX=DATA), cause b. Code: src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#NearestDeclaringData hides the tier only for a nearer report entry or condition-name, not for a nearer file-name (its twin NearestDeclaringConditions asks DataBinder.NonConditionDeclarationHides, which includes file-names). Passing probes: r3a_global_rec_local_file (01 NREC GLOBAL under non-global FD NF: OPEN NF refused COBOL1639, NREC reachable); r4c (B's data-name CC hides the container's global 88 CC: IF CC refused COBOL2318). Side lead, not counted: r3a's WRITE NREC refused COBOL1757 citing §2023:14.9.51.3 SR21, which has no 1985 counterpart (the 1985 WRITE SRs, §1985:VII.4.7.3, carry none); defensible only by reading X.1.3.7's list as exhaustive. cite.py: OK §1985:X.1.3.8; OK §1985:X.1.3.8.2 GR1; OK §1985:X.1.3.8.2 GR2. kb/Work: no note found (grep 'different type of user-defined word', 'cross-class', 'hides.*file-name'); the nearest is PB4219 (landed, APPLY COMMIT / I-O-CONTROL arm only).",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 (E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-233/src): g_rpt2.cob: a container's GLOBAL RD RPT (with GLOBAL FD) is reached by INITIATE/GENERATE/TERMINATE in a contained program with no RD (gro.txt holds OUTR), and a sibling's local RD RPT is its own (grl.txt holds LOCL): report-names are in the set. g_sib.cob: a GLOBAL item of a sibling (not a container) is refused COBOL1639 'SX' is not defined. g_down.cob: the container cannot reference its contained program's GLOBAL item (COBOL1639). g_cond.cob: B's local record-name R (FD record) hides the container's global data-name R (MOVE writes B's, outer R stays OWR). The reader's g1set/g1nonglobal/g1file cover non-global exclusion and file-names. cite.py: OK §1985:X.1.3.8.2 GR1 the text is in GR1; OK §1985:IV.4.2.2.1.1 the text is in the clause (condition-names, data-names, and record-names form one set). Wording only: COBOL1639 at --std 85 cites §2023:8.4.2.1, not a 1985 rule.",
   "edition-sites-missed": [],
-  "corrected": "NONCONFORMING (under-rejects, wrong-answer): the candidate set for a data reference in B omits B's own file-names (and the set for a file reference omits B's own data-names), so a container's GLOBAL object of another class is reached. Repro r4d: expected a refusal (B's FX is the referenced object and is a file-name, not a MOVE receiver); observed compile and run writing the container's FX. Cause b (same at 2023)."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "A contained program's own file-name does not hide its container's GLOBAL data-name of the same word (and the reverse): `MOVE \"LOCL\" TO FX` in the contained program, where FX is its file, changes the container's item. `§1985:X.1.3.8.2 GR3a`. I ran it. 2023 rows `GR-8.4.6.2.1-1`, `GR-8.4.6.2.1-3`.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
- },
- "work": "PB5786"
+  "corrected": ""
+ }
 }
