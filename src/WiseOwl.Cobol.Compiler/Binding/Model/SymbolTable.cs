@@ -127,6 +127,7 @@ public sealed class SymbolTable
         if (tier.Count == 0) return tier;
         int depth = _data.State.Forest.DeclaringDepth(tier[0]);
         return _data.State.Reports.NearerEntryHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
+            || _data.NearerFileNameHides(name, qualifiers, depth)
             ? []
             : tier;
     }

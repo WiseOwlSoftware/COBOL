@@ -26,7 +26,7 @@ internal static class BackendContract
             "Bound.IntrinsicCarrierRules.SdidiQuotientFunctions", "Bound.IntrinsicCarrierRules.StandardArgumentKeepsAllDigits",
             "Model.ApplyCommitModel.Identifiers", "Model.IndexNameRegistry._byName",
             // the file-names visible in a source element, its own and its containers' GLOBAL ones (kb/Work PB2296)
-            "Model.FileNameScope._inherited", "Model.FileNameScope._own",
+            "Model.FileNameScope._hidden", "Model.FileNameScope._inherited", "Model.FileNameScope._own",
             "Model.ItemCategory.CategoryName()", "Model.ItemCategory.Spell()", "Model.ItemCategory.Sr14PhraseOf()",
             "Model.ItemCategory.Sr4PhraseOf()", "Model.RecordLayout.CategoryOfItem()",
             "Model.StrongTypeModel.DeclaredTypeName()", "Model.StrongTypeModel+TypeRestriction.Name",
