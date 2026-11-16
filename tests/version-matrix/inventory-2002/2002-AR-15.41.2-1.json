@@ -2,7 +2,7 @@
  "rule-id": "2002-AR-15.41.2-1",
  "rule-digest": "db56e53e38e8",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#LOCALE-DATE",
- "test-ref": "conformance:cases/15.41@2002-LOCALE-DATE-FUNCTION/g2ldt02-argument-class-length",
- "notes": "§2002:15.41.2 AR1 (class alphanumeric or national, 8 character positions) with §2002:8.5.2 Table 3: X(8), an alphanumeric literal and group, Z(7)9 of usage display, N(8), a national literal and Z(7)9 USAGE NATIONAL are each accepted and give 19/08/2026 under fr-FR; PIC 9(8) USAGE NATIONAL (class numeric, PB5625 reading B) and N(7) are refused with COBOL1627 (g2ldt03, g2ldt04). Pinned build at --std 2002 matched."
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#LOCALE-DATE; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Editions/EditionInfo.cs#AlphabeticIsAlphanumeric",
+ "test-ref": "conformance:cases/15.41@2002-LOCALE-DATE-FUNCTION/g2ldt02-argument-class-length; conformance:cases/15.41@2002-LOCALE-DATE-FUNCTION/pb5615-locale-date-alphabetic-argument-2002",
+ "notes": "§2002:15.41.2 AR1 (class alphanumeric or national, 8 character positions) with §2002:8.5.2 Table 3: X(8), an alphanumeric literal and group, Z(7)9 of usage display, N(8), a national literal and Z(7)9 USAGE NATIONAL are each accepted and give 19/08/2026 under fr-FR; PIC 9(8) USAGE NATIONAL (class numeric, PB5625 reading B) and N(7) are refused with COBOL1627 (g2ldt03, g2ldt04). Pinned build at --std 2002 matched. With §2002:8.5.2.1, an alphabetic argument stands as alphanumeric: FUNCTION LOCALE-DATE(D FR) over D PIC A(8) VALUE '20260819' compiles (COBOL1627 before kb/Work PB5615) and formats the date 19/08/2026 in fr-FR (DESIGN-locale-facility DETERMINATION L10). IntrinsicArgumentRules.Violation takes the edition: a position whose class set holds alphanumeric admits class alphabetic when EditionInfo.AlphabeticIsAlphanumeric. From 2014 the argument is refused (§2014:E.2): pb5615-locale-date-alphabetic-argument-refused."
 }

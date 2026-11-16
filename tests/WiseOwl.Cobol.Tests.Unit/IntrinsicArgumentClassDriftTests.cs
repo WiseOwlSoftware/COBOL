@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -468,7 +469,7 @@ public sealed class IntrinsicArgumentClassDriftTests
             + "shape changed and this guard has gone blind; fix the walk, do not lower the floor.");
 
         var admitted = positions
-            .Where(x => IntrinsicArgumentRules.Violation(x.Rule, op) is null)
+            .Where(x => IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest) is null)
             .Select(x => $"FUNCTION {x.Fn} argument-{x.Ordinal}")
             .Order()
             .ToList();
@@ -497,8 +498,8 @@ public sealed class IntrinsicArgumentClassDriftTests
             .SelectMany(kv => kv.Value.Positions
                 .Select((r, i) => (Fn: kv.Key, Ordinal: i + 1, Rule: r))
                 .Concat(kv.Value.Tail is { } t ? [(kv.Key, kv.Value.Positions.Length + 1, t)] : []))
-            .Where(x => x.Rule.Kind == 'i' && IntrinsicArgumentRules.Violation(x.Rule, op) is { } why)
-            .Select(x => $"FUNCTION {x.Fn} argument-{x.Ordinal}: {IntrinsicArgumentRules.Violation(x.Rule, op)}")
+            .Where(x => x.Rule.Kind == 'i' && IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest) is { } why)
+            .Select(x => $"FUNCTION {x.Fn} argument-{x.Ordinal}: {IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest)}")
             .Order()
             .ToList();
         Assert.True(rejected.Count == 0,
@@ -602,8 +603,8 @@ public sealed class IntrinsicArgumentClassDriftTests
                     if (IntrinsicArgumentRules.TableTwoClass(ca) != IntrinsicArgumentRules.TableTwoClass(cb)) continue;
                     // …and only pairs the PER-POSITION screen already admits, so this fact measures the cross
                     // screen alone and never re-litigates §15.x.3 r1.
-                    if (RuleAt(schema, 0) is not { } r0 || IntrinsicArgumentRules.Violation(r0, opA) is not null) continue;
-                    if (RuleAt(schema, 1) is not { } r1 || IntrinsicArgumentRules.Violation(r1, opB) is not null) continue;
+                    if (RuleAt(schema, 0) is not { } r0 || IntrinsicArgumentRules.Violation(r0, opA, EditionInfo.Latest) is not null) continue;
+                    if (RuleAt(schema, 1) is not { } r1 || IntrinsicArgumentRules.Violation(r1, opB, EditionInfo.Latest) is not null) continue;
                     exercised++;
                     if (IntrinsicArgumentRules.CrossViolation(schema, [opA, opB]) is { } why)
                         rejected.Add($"FUNCTION {fn}({ca} {cb}): {why}");

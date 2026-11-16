@@ -4,6 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
+*> kb/Work PB5615: at --std 2002 §2002:8.5.2.1 lets an alphabetic item stand wherever an elementary alphanumeric one is permitted as an operand, so this source is refused at 2014 and 2023 only (the 2002 twins are the pb5615-* cases).
       *> kb/Work PB1452 — the negative twin of 2002/pb1452_program_address_identifier_operands. §2023:8.4.3.13.3 SR1
       *> "Identifier-1 shall be of category alphanumeric or national": a PIC A item is category ALPHABETIC (§2023:8.5.2.1
       *> Table 2 lists alphabetic as its own category), outside SR1's list, though the storage model folds it into
