@@ -34,3 +34,5 @@ earlier code-location and test-ref kept.
 **Found on the way, not fixed.** `python scripts/semgrep/verify.py` fails on main already: it lists `IntrinsicArgumentRules.cs`,
 `VersionConformancePass.cs` and `DiagnosticCatalog.cs` as files semgrep cannot read, unnamed in `WHOLE_FILE_UNREADABLE`; the same three
 appear with `IntrinsicArgumentRules.cs` restored to the base.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 27,748/27,748 ran · Unit 41,097/41,097 ran · RepoDrift 175/175 ran · Characterization 37/37 ran (skipped 0)` at f17b8057b0 (run `000001-20261116T213014Z`); the 56 `pb5832` cases of `Conformance.trx` all Passed.
