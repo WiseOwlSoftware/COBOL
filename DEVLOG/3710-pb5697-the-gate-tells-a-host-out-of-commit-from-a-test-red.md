@@ -1,4 +1,4 @@
-## PB5697: the gate tells a host out of commit from a test red, and a gate waits for the commit it needs
+## Entry 3710 — 2026-11-15 17:51 PST — PB5697: the gate tells a host out of commit from a test red, and a gate waits for the commit it needs
 
 **What was wrong.** Three whole-population gates at once, beside two probe fleets, ran this host out of commit on
 2026-11-15. One gate (run 000004-20261115T203340Z of the golden-2002-3 integrator) went `RED` with 24 failed cases, none
@@ -32,3 +32,4 @@ ERROR_NOT_ENOUGH_QUOTA (1816); its message is ERROR_PAGEFILE_QUOTA (1454) and ER
   is removed and stored again (`CompiledProgramCacheDriftTests.ABlobThatDoesNotDecode_Misses_AndCompilesForReal`).
 
 **The measurement** is in kb/Work/PB5697's addendum.
+
