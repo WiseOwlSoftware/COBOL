@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.2.2-1",
+ "rule-digest": "4948353a6b21",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+ "test-ref": "conformance:cases/_unassigned/pb5642-composite-counts-float-literal-2002; conformance:cases/_unassigned/pb5642-composite-leaves-out-float-literal-2014",
+ "notes": "§2002:14.6.6 rule 2 a) excludes only intrinsic functions and the binary and floating-point usages from the composite of operands, so at COBOL-2002 a floating-point literal counts (by the digits of its significand) and the 36-digit composite of ADD 1.234567890123456789E0 TO X is refused COBOL0805; kb/Work PB5642. From COBOL-2014 the literal is excluded (§2014:14.7.6 rule 2)."
+}

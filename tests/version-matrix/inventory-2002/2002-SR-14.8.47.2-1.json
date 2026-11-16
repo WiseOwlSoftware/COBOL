@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-1",
+ "rule-digest": "a76cedc3ac31",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ResolveWriteRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindWrite",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_indexed_write_rewrite_keys_2002; conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5579_write_file_sequential_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.47.2 SR1: each WRITE writes to the file whose record it names (two indexed files, each read back with only its own records) or the file the FILE phrase names."
+}

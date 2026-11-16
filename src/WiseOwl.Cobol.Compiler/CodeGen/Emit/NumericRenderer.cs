@@ -449,7 +449,16 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             : null;
     }
 
-    public NumX Visit(BoundIntrinsicCall n) => Intrinsics.RenderNum(n);   // FUNCTION call (ISO §15)
+    public NumX Visit(BoundIntrinsicCall n) => FunctionValue(Intrinsics.RenderNum(n));   // FUNCTION call (ISO §15)
+
+    /// <summary>A numeric or integer function's returned value as its consumer reads it: under ARITHMETIC IS STANDARD "the
+    /// returned value for numeric and integer functions is contained in a temporary standard intermediate data item"
+    /// (§2002:15.3.1), so a decimal value is that item, 32 digits (<c>CobolDec.ToSidi</c>; kb/Work PB5575): FUNCTION PI is
+    /// 3.1415926535897932384626433832795, the value of its equivalent arithmetic expression (§2002:15.60.2 RV1), and an
+    /// implementor-defined value (SIN, LOG) is its 34-digit approximation truncated to 32. A fixed-point value is an operand
+    /// the operation reading it lifts (<see cref="SidiOperand"/>).</summary>
+    private NumX FunctionValue(NumX x) =>
+        StandardIntermediate && x.Dec ? x with { Expr = RuntimeApi.DecToSidi(x.Expr, IntermediateMode), WithPrecision = null } : x;
     public NumX Visit(BoundExprError n) => new(EmitText.LoudValue("long", n.Feature), 0);
 
     /// <summary>A per-evaluation operand window (ISO §2023:14.9.28.4 GR12; kb/Work PB437) reaching a rendering site
@@ -962,6 +971,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     internal string IntermediateMode => StandardIntermediate && ctx.CurrentOptions.IntermediateRounding != CobolRounding.Prohibited
         ? $"CobolRounding.{CobolRounding.Truncation}"
         : $"CobolRounding.{ctx.CurrentOptions.IntermediateRounding}";
+
+    /// <summary>The arithmetic an intrinsic function's decimal body evaluates its equivalent arithmetic expression in: the standard
+    /// intermediate data item under ARITHMETIC IS STANDARD (§2002:8.8.1.3; the returned value "shall equal the value of the
+    /// equivalent arithmetic expression", §2002:15.3.1), else the SDIDI, each operation at <see cref="IntermediateMode"/>.</summary>
+    internal string DecArithmetic => RuntimeApi.DecArithmeticOf(IntermediateMode, StandardIntermediate);
 
     /// <summary>The rounding a standard intermediate data item takes where §2002:8.8.1.3.1.3 rounds it to 31 digits — "as described
     /// for the ROUNDED phrase", so NEAREST-AWAY-FROM-ZERO — or, in 2014, the INTERMEDIATE ROUNDING mode in effect

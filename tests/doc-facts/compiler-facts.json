@@ -105,6 +105,11 @@
       "changedIn": 2002
     },
     {
+      "id": "integer-argument-rounded-under-standard-arithmetic",
+      "vcrRow": "7.81",
+      "changedIn": 2014
+    },
+    {
       "id": "integer-date-form-bounded-9999",
       "vcrRow": "7.61",
       "changedIn": 2002
@@ -992,6 +997,7 @@
     "COBOL7354",
     "COBOL7355",
     "COBOL7363",
+    "COBOL7369",
     "COBOL7390",
     "COBOL7391",
     "COBOL7441"

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.48.3-1",
+ "rule-digest": "1e30294dc327",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#MeanDec; src/WiseOwl.Cobol.Runtime/Values/Numeric/DecArithmetic.cs#DecArithmetic",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-std-arith-function-values",
+ "notes": "kb/Work PB5575. §2002:15.48.3 RV1: MEAN (1 2 2) is 5 / 3 truncated to 32 digits; (MEAN * 3 - 5) * 10 ** 31 is -2."
+}

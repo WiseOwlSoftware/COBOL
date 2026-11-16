@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-15",
+ "rule-digest": "c03135a0623f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#SelectedIsNational; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/pb5578_sort_merge_short_record_select_when_fill; conformance:cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill",
+ "notes": "kb/Work PB5578: §2002:14.8.36.3 GR15: a short record returned to a fixed-length GIVING file is filled by the GIVING file's descriptions (the printed file-name-2 read as the GIVING file, D-SMF reading b); with SELECT WHEN on a CODE-SET file the selected description decides (SG)."
+}
