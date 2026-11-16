@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c31_string_operand_roles
       *> rules: [SR-14.9.43.3-10]
-      *> accept: [2002]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
