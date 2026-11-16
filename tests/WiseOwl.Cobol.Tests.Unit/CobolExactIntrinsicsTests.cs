@@ -195,10 +195,10 @@ public sealed class CobolExactIntrinsicsTests
         CobolExact tiny = Sdidi("1", -6000), huge = Sdidi("1", 100);
         CobolExact[] list = [Fixed(1), tiny, Fixed(3)];
         CobolDec[] images = [D("1"), new CobolDec(1, -6000), D("3")];
-        Assert.Equal(CobolIntrinsics.SumDec(Away, images), CobolIntrinsics.SumExact(Away, list).Image);
-        Assert.Equal(CobolIntrinsics.MeanDec(Away, images), CobolIntrinsics.MeanExact(Away, list).Image);
-        Assert.Equal(CobolIntrinsics.VarianceDec(Away, images), CobolIntrinsics.VarianceExact(Away, list).Image);
-        Assert.Equal(CobolIntrinsics.ModDec(Away, D("5"), new CobolDec(1, 100)), CobolIntrinsics.ModExact(Away, Fixed(5), huge));
+        Assert.Equal(CobolIntrinsics.SumDec(DecArithmetic.Sdidi(Away), images), CobolIntrinsics.SumExact(Away, list).Image);
+        Assert.Equal(CobolIntrinsics.MeanDec(DecArithmetic.Sdidi(Away), images), CobolIntrinsics.MeanExact(Away, list).Image);
+        Assert.Equal(CobolIntrinsics.VarianceDec(DecArithmetic.Sdidi(Away), images), CobolIntrinsics.VarianceExact(Away, list).Image);
+        Assert.Equal(CobolIntrinsics.ModDec(DecArithmetic.Sdidi(Away), D("5"), new CobolDec(1, 100)), CobolIntrinsics.ModExact(Away, Fixed(5), huge));
         // A rate of 70 places: the powers of 10^70 leave the wide form at two periods, and the value is formed exactly on the
         // arbitrary-precision form (kb/Work PB4750): 2 / (1 + r) + 3 / (1 + r)^2 = 5 - 8r + ..., rounded away at 34 digits to 5.
         CobolExact rate = CobolExact.From(1, 70);

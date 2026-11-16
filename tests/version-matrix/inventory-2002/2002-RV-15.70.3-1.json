@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.70.3-1",
+ "rule-digest": "032537504fec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#StdDevDec; src/WiseOwl.Cobol.Runtime/Values/Numeric/DecArithmetic.cs#DecArithmetic",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-std-arith-function-values",
+ "notes": "kb/Work PB5575. §2002:15.70.3 RV1: STANDARD-DEVIATION (1 2 2) is SQRT (VARIANCE), .47140452079103168293389624140321."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.8.3-1",
+ "rule-digest": "26097429aaf8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#AnnuityDec; src/WiseOwl.Cobol.Runtime/Values/Numeric/DecArithmetic.cs#DecArithmetic",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-std-arith-function-values",
+ "notes": "kb/Work PB5575. §2002:15.8.3 RV1: ANNUITY (1 2) is 1 / (1 - (1 + 1) ** -2) evaluated in 32-digit standard arithmetic, 1.3333333333333333333333333333333 (the 34-digit model differs)."
+}

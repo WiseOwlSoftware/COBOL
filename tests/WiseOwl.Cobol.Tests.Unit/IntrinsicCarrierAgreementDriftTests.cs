@@ -63,8 +63,8 @@ public sealed class IntrinsicCarrierAgreementDriftTests
 
             // The SDIDI (CobolDec) carrier — this arm named the WRONG function's rule (kb/Work PB304).
             var dec = Assert.Throws<CobolFatalException>(() => fn == "MOD"
-                ? CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, CobolDec.From(11, 0), CobolDec.From(0, 0))
-                : CobolIntrinsics.RemDec(CobolRounding.NearestAwayFromZero, CobolDec.From(11, 0), CobolDec.From(0, 0)));
+                ? CobolIntrinsics.ModDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), CobolDec.From(11, 0), CobolDec.From(0, 0))
+                : CobolIntrinsics.RemDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), CobolDec.From(11, 0), CobolDec.From(0, 0)));
 
             // The native SDIDI lane's exact-argument body (kb/Work PB4568) and the exact wide body (kb/Work PB3953).
             var exactValue = Assert.Throws<CobolFatalException>(() => fn == "MOD"
@@ -99,7 +99,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
         try
         {
             Assert.Equal(0, (double)CobolIntrinsics.ModScaled(11, 0));
-            Assert.Equal(0, CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, CobolDec.From(11, 0), CobolDec.From(0, 0)).ToDouble());
+            Assert.Equal(0, CobolIntrinsics.ModDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), CobolDec.From(11, 0), CobolDec.From(0, 0)).ToDouble());
             Assert.Equal(0, CobolIntrinsics.ModExact(CobolRounding.NearestAwayFromZero, CobolExact.From(11, 0), CobolExact.From(0, 0)).ToDouble());
             Assert.Equal(0, CobolIntrinsics.RemExact(CobolRounding.NearestAwayFromZero, CobolExact.From(11, 0), CobolExact.From(0, 0)).ToDouble());
             Assert.Equal(0, (double)CobolIntrinsics.RemScaled(11, 0));
@@ -451,7 +451,7 @@ public sealed class IntrinsicCarrierAgreementDriftTests
             """"));
         Assert.Empty(SdidiIntegerOffenders(
             """"
-            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
             """"));
         Assert.Empty(SdidiIntegerOffenders("""// the Annuity arm once read "Annuity" => … IntArg(ic, 1)"""));
     }

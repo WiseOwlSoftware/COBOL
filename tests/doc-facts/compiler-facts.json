@@ -105,6 +105,11 @@
       "changedIn": 2002
     },
     {
+      "id": "integer-argument-rounded-under-standard-arithmetic",
+      "vcrRow": "7.80",
+      "changedIn": 2014
+    },
+    {
       "id": "integer-date-form-bounded-9999",
       "vcrRow": "7.61",
       "changedIn": 2002

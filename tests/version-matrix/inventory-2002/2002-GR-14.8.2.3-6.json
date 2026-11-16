@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.2.3-6",
+ "rule-digest": "c020a5715644",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitGiving",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-std-arith-function-values",
+ "notes": "kb/Work PB5575. §2002:14.8.2.3 GR6 points to 14.6.3 (ROUNDED) and 14.6.6 (arithmetic statements: storing a standard intermediate data item follows the MOVE rules, ROUNDED applying only to that move); the GIVING form now rounds at the transfer as COMPUTE does, witnessed by ADD H TO N GIVING R2."
+}

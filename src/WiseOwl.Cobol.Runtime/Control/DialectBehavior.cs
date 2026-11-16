@@ -285,6 +285,13 @@ public enum DialectBehavior
     /// specified", so at <c>--std 2002</c> every such statement selects its entry by the conditions (kb/Work PB5578; VCR row 7.78). Both editions are
     /// QUOTED. The consumer is <c>SequentialIoEmitter</c>'s record-entry argument of the governed WRITE and REWRITE.</summary>
     SelectWhenOnlyForFilePhraseStatements = 23,
+    /// <summary>§2014:8.8.1.3.1.3.1 situation 2 — under ARITHMETIC IS STANDARD a standard intermediate data item "is the argument of a
+    /// function and there is no equivalent arithmetic expression defined for the rules of the function" is rounded to 31 digits, and
+    /// the 2014 INTEGER function (§2014:15.40.3 RV1) has no equivalent expression and no exception, so its argument is rounded.
+    /// §2002:15.34.3 RV1 is that exception at 2002: "When standard arithmetic is specified, argument-1 is not rounded", so at
+    /// <c>--std 2002</c> FUNCTION INTEGER (1 - 1 / 10 ** 32) is 0 and from 2014 it is 1 (kb/Work PB5575; VCR row 7.80). Both editions
+    /// are QUOTED. The consumer is <c>IntrinsicRenderer</c>'s argument intake.</summary>
+    IntegerArgumentRoundedUnderStandardArithmetic = 24,
 }
 
 /// <summary>
@@ -417,6 +424,11 @@ public static class DialectBehaviors
             "the SELECT WHEN clauses of the file section select a record description entry for a WRITE or REWRITE only when the "
             + "statement has the FILE phrase, from COBOL-2014; COBOL-2002 evaluates them for every WRITE and REWRITE of the file, "
             + "so a record-name-1 statement there is formatted by the entry the conditions select"),
+        new(DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic, "integer-argument-rounded-under-standard-arithmetic", 2014,
+            "7.80", "§2014:8.8.1.3.1.3.1", "§2002:15.34.3 RV1",
+            "under ARITHMETIC IS STANDARD the argument of FUNCTION INTEGER that is a standard intermediate data item is rounded to 31 "
+            + "digits, as every argument of a function with no equivalent arithmetic expression is, only from COBOL-2014; COBOL-2002 "
+            + "says that argument-1 is not rounded, so INTEGER (1 - 1 / 10 ** 32) is 0 there and 1 from 2014"),
     ];
 
     static DialectBehaviors()
