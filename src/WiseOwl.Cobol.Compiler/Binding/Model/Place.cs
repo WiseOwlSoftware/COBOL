@@ -51,6 +51,22 @@ public abstract record Place
     /// than a silent inherit.</para></summary>
     public virtual DataItem? DenotedItem => DenotesAs ?? Item;
 
+    /// <summary>⛔ <b>THE DATA ITEM THE REFERENCE'S NAME DENOTES, UNDER EVERY DECORATION</b> (kb/Work PB5801 review R1-1) —
+    /// the data-name the program wrote, whatever reference modification, subscripting, qualification or operand view
+    /// decorates it: the level-66 alias when the resolver recorded one (<see cref="DenotesAs"/>, at any layer), else the
+    /// item underneath the decorations. Never null.
+    /// <para>It is a THIRD question beside <see cref="Item"/> (attributes and storage) and <see cref="DenotedItem"/> (the
+    /// whole declared data item the reference is, null for a reference-modified slice, which is a unique data item of its
+    /// own, §2023:8.4.3.3.4 GR5). A rule worded over what a statement REFERENCES by name asks this one:
+    /// §1985:XIII.3.20.3 SR5's "USE statements must not reference" a control data item or a group containing one —
+    /// <c>DISPLAY WS-KEY (1:1)</c> references WS-KEY, and <c>DISPLAY RX</c> of the alias RX references RX, not the item it
+    /// renames; INITIALIZE's "shall not contain a RENAMES clause" (§2023:14.9.20.3 SR5) asked of a reference-modified alias;
+    /// USE FOR DEBUGGING's "explicitly references" (X3.23-1985). Asked of <see cref="DenotedItem"/>, a reference-modified
+    /// operand escaped; asked of <see cref="Item"/>, an alias was read as the item it renames.
+    /// <c>PlaceNamedItemDriftTests</c> refuses a second hand-written answer (a decorator unwrap or a read of
+    /// <see cref="DenotesAs"/> outside this type).</para></summary>
+    public DataItem NamedItem => DenotesAs ?? (this is PlaceDecorator d ? d.Inner.NamedItem : Item);
+
     /// <summary>⛔ <b>THE DATA ITEM WHOSE DESCRIPTION THIS REFERENCE HAS</b> — <see cref="Item"/> when the reference is to a
     /// whole declared data item, <see langword="null"/> when it denotes a data item no data description entry declares
     /// (a reference-modified view, §2023:8.4.3.3.4 GR5: its unique data item is elementary alphanumeric or national whatever
