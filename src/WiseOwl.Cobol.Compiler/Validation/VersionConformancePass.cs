@@ -110,6 +110,9 @@ internal sealed class VersionConformancePass
         //    let that withdrawn report suppress the same word in the written tree's or a group-placed expansion's text, and the report
         //    the group answers for was lost; per text, each text reports as its own compilation would. ──
         foreach (var text in group.Texts) new ParseArm(pass, reservedWords, group.Session.CobolWords, group.Session.Edition.ClientWritten).VisitPositioned(text);
+        // ⛔ A COPY STATEMENT'S TEXT-NAME AND LIBRARY-NAME REACH NO TREE (the preprocessor consumes the statement), so the walk above never
+        // asks the reserved-word rule of them (kb/Work PB5848): the preprocessor's own record of them is asked here, once.
+        pass.FlagCopyNameReservedWords(group.Session.Edition, reservedWords);
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
         //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
@@ -143,6 +146,42 @@ internal sealed class VersionConformancePass
             pass.WalkProgram(skeleton.FactoryBound);
         }
     }
+
+    /// <summary>⛔ A TEXT-NAME OR LIBRARY-NAME THAT IS A RESERVED WORD IS REFUSED (kb/Work PB5848; COBOL0901, the code of every other reserved
+    /// word written as a user-defined word). Below COBOL-2002 both are user-defined words (§1985:IV.4.2.2.1.1 items 9 and 19), and "Reserved
+    /// words form disjoint sets with user-defined words" (§1985:IV.4.2.2.1 SR1); the COBOL words LENGTH, RANDOM and SUM "may not be used as
+    /// a system-name or as a user-defined word regardless of context" (SR2). From 2002 both are system-names (§2023:8.3.2.3.1) and
+    /// "Reserved words shall not be used as system-names or user-defined words" (§2023:8.3.2.4.1). The verdict is the ONE reserved-word
+    /// table's, of the edition under compile (<see cref="ReservedWordSet.RejectsAt"/>), so a word reserved at 2023 and not at 85 is a legal
+    /// text-name at 85. Only a name written as a COBOL word is recorded (<c>CopyNameUse</c>): a literal is no word and is never asked.
+    /// Reported at the COPY statement, once per distinct word, like every §2023:8.9 report.</summary>
+    private void FlagCopyNameReservedWords(EditionContext context, ReservedWordSet reserved)
+    {
+        HashSet<string>? flagged = null;
+        foreach (var use in context.CopyNames)
+        {
+            string word = CobolNames.UpperFold(use.Name);
+            if (!reserved.RejectsAt(word, _edition.Year) || !(flagged ??= []).Add(word)) continue;
+            int line = context.LineMap?.ResultantLineOf(use.At) is > 0 and var found ? found : use.At.Line;
+            using var _ = _sink.At(line, 0);
+            string kind = use.IsLibraryName ? "library-name" : "text-name";
+            ReportReservedWord(reserved, word,
+                $"'{CobolKeywords.Spelling(use.Name)}' is a reserved word in COBOL-{_edition.Year} and cannot be the {kind} of a COPY statement: "
+                + (_edition.CopyNamesAreUserDefinedWords
+                    ? $"a {kind} is a user-defined word, and reserved words form disjoint sets with user-defined words "
+                      + "(§1985:IV.4.2.2.1 SR1, SR2; §1985:IV.4.2.2.1.1)"
+                    : $"a {kind} is a system-name, and reserved words shall not be used as system-names (ISO §2023:8.3.2.4.1)"));
+        }
+    }
+
+    /// <summary>⛔ THE ONE REPORT OF A RESERVED WORD WRITTEN AS A USER-DEFINED WORD OR A SYSTEM-NAME (§2023:8.9; COBOL0901): the code, the severity (the
+    /// word's own reservation interval through the one edition policy) and the clause, whichever stage found the word — a tree walk's word
+    /// (<c>ParseArm.FlagReservedUserWord</c>) or a COPY statement's name (<see cref="FlagCopyNameReservedWords"/>). The caller has asked
+    /// <see cref="ReservedWordSet.RejectsAt"/> and the once-per-word question, and owns the sentence.</summary>
+    private void ReportReservedWord(ReservedWordSet reserved, string word, string message) =>
+        _sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
+            EditionSeverityPolicy.For(reserved.UserWordVerdictAt(word, _edition.Year), _edition),
+            "edition-reserved-word", message, "", "ISO §2023:8.9"));
 
     private void WalkProgram(BoundProgram? prog)
     {
@@ -3717,11 +3756,8 @@ internal sealed class VersionConformancePass
             var reserved = token.Type == CobolLexer.IDENTIFIER && !IsSynonymOfAFreedWord(word, token)
                 ? _reservedWords : _reservedWords.KeywordToken;
             if (!reserved.RejectsAt(word, _p._edition.Year) || !(_flaggedWords ??= []).Add(word)) return;
-            _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                EditionSeverityPolicy.For(reserved.UserWordVerdictAt(word, _p._edition.Year), _p._edition),
-                "edition-reserved-word",
-                ReservedWordSet.UserWordViolationMessage(CobolKeywords.Spelling(WrittenSource.Of(token)), _cobolWords, _p._edition.Year),
-                "", "ISO §2023:8.9"));
+            _p.ReportReservedWord(reserved, word,
+                ReservedWordSet.UserWordViolationMessage(CobolKeywords.Spelling(WrittenSource.Of(token)), _cobolWords, _p._edition.Year));
         }
 
         /// <summary>True when <paramref name="token"/>, an <c>IDENTIFIER</c> whose Annex C fold is <paramref name="word"/>, is the
