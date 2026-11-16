@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.36.1",
+ "rule-digest": "e86be9979dea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#NarrowToDataDivisionFormats; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportOccursOf",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-fmt-cd-record-data-clauses; conformance:cases/13.16.36@2002-OCCURS-CLAUSE/g2-occurs-fmt3-report",
+ "notes": "OCCURS formats 1 and 2 (§2002:13.16.36.1), in a CD record and in working-storage: SEARCH ALL finds each key at the derived occurrence, and LENGTH of the ODO group follows WN, 02 then 03 (§2002:15.39.3 RV4b). Format 3 in a report (g2-occurs-fmt3-report): STEP on an absolute COLUMN (§2002:13.16.36.3 GR12a), the form with no phrase on a relative COLUMN and a relative LINE (GR10a, GR10c), and DEPENDING both inside and outside its range (GR13). Both cases ran at --std 2002 (pinned dc1f2dcce8) and their output equals the derived .out."
+}

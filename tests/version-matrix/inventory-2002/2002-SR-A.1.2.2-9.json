@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-A.1.2.2-9",
+ "rule-digest": "7af0d50cb20a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CheckRecords",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-SR-A_1_2_2-9; conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-SR-A_1_2_2-9-value",
+ "notes": "§2002:A.1.2.2 SR9: three 23-position records (§2002:A.1.2.3 GR16) under one output CD share its area and only the first carries VALUEs, so OREC2 reads [00010005000DESTA       ], OREC3's 9(8) 00010005, and moves through OREC2/OREC3 show in OREC1 (ZZ, 1234 5678); matched at --std 2002. A VALUE in the second record is refused COBOL6169 at --std 2002."
+}

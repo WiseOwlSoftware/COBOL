@@ -14,7 +14,7 @@
       *> expectation does not depend on which name INVOKE resolves.
       *> Expected: METHOD-ID AS ACCEPTED.
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2MID02.
+       PROGRAM-ID. G2MID03.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
@@ -27,7 +27,7 @@
            INVOKE G2MIDC "NEW" RETURNING O.
            DISPLAY "METHOD-ID AS ACCEPTED".
            STOP RUN.
-       END PROGRAM G2MID02.
+       END PROGRAM G2MID03.
 
        IDENTIFICATION DIVISION.
        CLASS-ID. G2MIDC INHERITS FROM BASE.

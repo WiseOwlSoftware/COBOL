@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.38.1",
+ "rule-digest": "dc087113e6cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeLocaleEdited",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-fmt-cd-record-data-clauses",
+ "notes": "Format 1 as PIC and as PICTURE IS (P1 PICTURE IS 9(3) receives 125; RN3 shows 125XYZ); format 2 as PIC $9 LOCALE SIZE 2 and PICTURE IS ZZ9 LOCALE IS FR SIZE IS 6: \"The number of character positions in the item is specified by integer-1\" (§2002:13.16.38.3 GR16), so LENGTH is 02 and 06. Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}

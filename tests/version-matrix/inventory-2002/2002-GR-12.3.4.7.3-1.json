@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.7.3-1",
+ "rule-digest": "ce79766aee02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSuccessfulTransfer; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile",
+ "test-ref": "conformance:cases/12.3.4.7@2002-FILE-STATUS-CLAUSE/g2fsu01_status_updated_per_statement",
+ "notes": "§2002:12.3.4.7.3 GR1: data-name-1 is updated with the connector's I-O status on each input-output statement, and (NOTE) for a global file with a local data-name-1 also by references in contained programs. Values from the 2002 list: OPEN OUTPUT 00 (§2002:9.1.12.1), READ 1 00 ONE, contained-program READ at end 10 (§2002:9.1.12.3 1a) stored in the outer local item, READ after an unsuccessful READ 46 (§2002:9.1.12.6 6b), CLOSE 00, CLOSE again 42 (§2002:9.1.12.6 2), CLOSE WITH LOCK 00 then OPEN 38 (§2002:9.1.12.5 6, a 2002-only value). EC-I-O checking off: no link to exceptions (§2002:14.5.12.1)... run at --std 2002 on the pinned build: exit 0, 8 lines equal the derived .out (MATCH). Built from the reader's fs_update.cob and fs_38.cob, which showed the same values."
+}

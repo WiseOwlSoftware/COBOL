@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.1.1",
+ "rule-digest": "f7db596b2c89",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#alignedClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#ALIGNED",
+ "test-ref": "conformance:cases/13.16.1@2002-ALIGNED-CLAUSE/g2-aligned-cd-record-bit-items; conformance:cases/13.18.1-ALIGNED/pb487_aligned_bit_layout",
+ "notes": "§2002:13.16.1.1 ALIGNED, written on elementary bit items and on a bit group in record entries after a CD (§2002:A.1.1.2), is accepted and takes effect (ALIGNED=02, TABLE=03, BITGROUP=10). The --std 2002 run matched the golden."
+}

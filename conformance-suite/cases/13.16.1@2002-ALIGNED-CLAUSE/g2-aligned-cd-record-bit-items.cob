@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: g2-aligned-cd-record-bit-items
-      *> rules: [2002-SR-13.16.1.2-1, 2002-GR-13.16.1.3-2]
+      *> rules: [2002-SR-13.16.1.2-1, 2002-GR-13.16.1.3-2,
+      *>    2002-FMT-13.16.1.1, 2002-GR-13.16.1.3-1, 2002-GR-13.16.1.3-3]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
@@ -30,6 +31,13 @@
       *>  boolean positions (3 + 2 = 5 without ALIGNED).
       *> The CD's records implicitly redefine one area (§2002:A.1.1.2),
       *> so each record is set and checked before the next is used.
+      *> §2002:13.16.1.1 - the format ALIGNED is written in CD records
+      *> (B2, T, BSUB) and accepted.  §2002:13.16.1.3 GR1 pins
+      *> ALIGNED=02 (B2 starts byte 2) and BITGROUP=10 (5 implicit
+      *> filler bits before BSUB).  §2002:13.16.1.3 GR3 - without
+      *> ALIGNED, bit items align per 8.5.1.5.3: B1 then U(1..3) at the
+      *> next bit position, NOTABLE=02 (12 bits padded to 16).
+      *> 8 bits per character position is the implementor choice.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. G2ALG01.
        DATA DIVISION.

@@ -1,4 +1,4 @@
-## The 2002 golden lane, sixth landing: 129 witnesses at --std 2002 for 14 wave-u files, 2002 GAP 1,899 to 1,805
+## The 2002 golden lane, sixth landing: 129 witnesses at --std 2002 for 14 wave-u files, 94 more 2002 rows closed (GAP 1,805 to 1,711)
 
 The gl2002 lane (kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`. This landing integrates the
 first 14 "wave u" files: rows a 2002 read left needs-own-witness, undecided or uninterpretable. They cover floating
@@ -17,14 +17,14 @@ the Format 5 screen leg of 2002-FMT-8.4.1.1.1 stays with kb/Work PB5581).
 - Three existing cases (g2rct01, g2_class_truth_values, g2_sign_condition) gained 2002 ids in their `rules` header.
 - pb5600-flag-native-arithmetic-onoff no longer lists 2002-GR-7.2.12.3-4 and -5: it specifies ARITHMETIC IS STANDARD
   and its last directive implies ON, so neither the native-in-effect nor the no-directive branch is reached.
-- 14 PROGRAM-IDs collided with earlier cases and were renumbered; no expectation changed. The drafts arrived CRLF and
+- 16 PROGRAM-IDs collided with earlier cases (two of them with golden-2002-7's, after the merge) and were renumbered; no expectation changed. The drafts arrived CRLF and
   were written LF.
 - `docs/conformance/3/D-ARITHMETIC-MODE.md` said the 2002 compile-time mode used 34-digit intermediates rounded
   NEAREST-AWAY-FROM-ZERO. The 2002 text (§2002:8.8.1.3.1.1, §2002:8.8.1.3.2 to .5) gives 32 digits, each operation
   truncated, which is what the compiler does; g2cta01, g2cce10 and g2def01 now pin it at 2002.
 
 **Records.** `record_verdicts.py --edition 2002` wrote 95 store files: CONFORMS 94 and PARTIAL 1. The 2002 GAP went from
-1,899 to 1,805. The PARTIAL row, 2002-SR-11.3.2-2, is witnessed for single inheritance; its multiple-inheritance branch
+1,899 to 1,805 on the branch's base, and from 1,805 to 1,711 on main with golden-2002-7 merged in. The PARTIAL row, 2002-SR-11.3.2-2, is witnessed for single inheritance; its multiple-inheritance branch
 waits on kb/Work PB5580. Every test-ref was checked to run at 2002 on this tree, and a refusal-only witness was
 admitted only for an SR or FMT rule that grants no form (9 records).
 

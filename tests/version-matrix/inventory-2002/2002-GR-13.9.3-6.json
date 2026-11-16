@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.9.3-6",
+ "rule-digest": "43d850967668",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/ItemLength.cs#Positions; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.DescriptionCompletion.cs#CompleteDescriptionAhead; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantLength",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2002_constant_entries_under_cd",
+ "notes": "§2002:13.9.3 GR6: LENGTH OF X(5) = 5, OF N(3) = 3 national positions, OF an ODO group = the maximum 14, constants under a CD, KA used as PIC X(KA). The --std 2002 run with the pinned compiler (dc1f2dcce8) matched the derived output."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.4.3-3",
+ "rule-digest": "75715c626902",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#InitialStateBackground; src/WiseOwl.Cobol.Compiler/Binding/Passes/RouteStaticUnitStoragePass.cs#RouteStaticUnitStoragePass",
+ "test-ref": "conformance:cases/13.4@2002-WORKING-STORAGE-SECTION/g2-ws-value-initialization",
+ "notes": "§2002:13.4.3 GR3 defers to §2002:13.16.61.3 GR4: VALUE at initial state (W1=WSV1 W2=042 WG=AB07, pointer and object NULL), on INITIALIZE (ordinary and external items), on ALLOCATE INITIALIZED (based), static reset only first time and after CANCEL, initial program every call (§2002:14.5.2.1.2.1). The --std 2002 run printed the 11 derived lines."
+}

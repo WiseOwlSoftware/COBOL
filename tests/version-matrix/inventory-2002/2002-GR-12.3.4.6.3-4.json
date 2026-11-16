@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.6.3-4",
+ "rule-digest": "120b71fd501c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveKeyCollating",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/l1c03_file_collating_native_default",
+ "notes": "§2002:12.3.4.6.3 GR4: with no alphabet-name-1 in the file control entry, the native alphanumeric sequence applies to every alphanumeric record key not named in a key-level COLLATING SEQUENCE format. l1c03 sets PROGRAM COLLATING SEQUENCE IS REV; KF has only 'COLLATING SEQUENCE OF KF-KEY IS REV', so its ALTERNATE KF-ALT is native: 'KF ALT   Z/A A/M M/Z' (alternates A<M<Z); NF has no COLLATING SEQUENCE clause, so its prime is native: 'NF PRIME A/M M/Z Z/A'. A program sequence leaking to the keys would reverse both. l1c03_file_collating_native_default run at --std 2002 on the pinned build: PASS."
+}
