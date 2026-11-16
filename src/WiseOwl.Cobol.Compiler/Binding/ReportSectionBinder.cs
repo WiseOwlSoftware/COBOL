@@ -4632,6 +4632,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// ambiguity's wording counts it too.</summary>
     internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
     {
+        // Free for a unit with no report: the data-name lookup (DataBinder.QualifiedCandidates) asks it for EVERY reference (kb/Work PB5775).
+        if (_scope.Visible.Count == 0) return 0;
         var entries = _scope.EntriesNamed(name, qualifiers);
         return entries.Count != 0 && dataItems.Any(item => _d.State.Forest.DeclaringDepth(item) == _scope.Depth(entries[0].Report))
             ? entries.Count
