@@ -433,7 +433,10 @@ internal static class RecordLayout
         // without that test offset 0 in ANY 01 anywhere — WORKING-STORAGE included — collided with offset 0 in
         // the record (kb/Work PB354 part 1).
         if (!IsInRecordOfFile(file, operand) || OffsetOf(operand, occurrence) is not { } off) return null;
-        return KeyIndexAtOffset(file, off, key => key.ByteWidth == operand.ByteWidth);
+        // The implicit key is "specified as a record key" only if it can be one: the item shares the key's class,
+        // category and usage (§1985:IX.2.7.3 SR2 makes every key alphanumeric; §2023:14.9.41.3 SR6b), so a numeric
+        // item of the same width at the key's positions is no key (kb/Work PB5794).
+        return KeyIndexAtOffset(file, off, key => key.ByteWidth == operand.ByteWidth && SameClassCategoryUsage(operand, key));
     }
 
     /// <summary>ISO §2023:14.9.41.3 SR6 b) — START's GENERIC key: a data item that is not itself a record key but

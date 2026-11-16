@@ -183,7 +183,8 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// <summary>UNSTRING (ISO §2023:14.9.48): the sender's image and the delimiter values are read at initiation and
     /// AGAIN before each later receiving area wherever a store of the statement can reach them (operand overlap is
     /// undefined, GR18 — the in-place model of docs/CONFORMANCE.md D-UNS1/D-UNS2, <see cref="LiveReads"/>), the
-    /// pointer initializes from the POINTER item or 1 (GR11a) and the TALLYING item receives its content AT THE
+    /// pointer initializes from the POINTER item or 1 (GR11a; at <c>--std 85</c> a statement with no POINTER phrase has no
+    /// pointer to test, §1985:VI.6.27.4 GR17a is the phrase's alone) and the TALLYING item receives its content AT THE
     /// END plus the count of receiving areas acted upon (GR14 — the statement ADDS to it; D-UNS3). An initiation pointer
     /// outside [1, size(sender)] is the GR15a overflow and TERMINATES the operation before any transfer (GR16a); otherwise each receiving area gets
     /// one <c>UnstringExtract</c> (GR11b–f), its result stored per the MOVE rules (GR11c — so two
@@ -216,8 +217,9 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // neither the ON nor the NOT ON OVERFLOW imperative runs (GR17 acts "after completion of the transfer of
         // data", and none takes place); the pointer and the tally are untouched. The rest of the statement is this
         // guard's scope.
-        // §1985:VI.6.27.4 has no such rule (GR17 makes the pointer of 1 past a size of 0 an overflow), so the guard is the
-        // 2002+ rule's alone (kb/Work PB5816, DialectBehavior.UnstringZeroLengthSenderTerminates).
+        // §1985:VI.6.27.4 has no such rule (GR17a makes a WRITTEN pointer of 1 past a size of 0 an overflow), so the guard is the
+        // 2002+ rule's alone (kb/Work PB5816, DialectBehavior.UnstringZeroLengthSenderTerminates); at 85 a statement with no
+        // POINTER phrase from a sender of size 0 is no overflow and its first transfer happens (kb/Work PB5858, below).
         using var zeroLengthSender = DialectBehaviors.IsActive(DialectBehavior.UnstringZeroLengthSenderTerminates, ctx.Data.DialectLevel)
             ? (CodeWriter.BlockScope?)w.Block($"if ({src}.Length != 0)") : null;
         if (s.Delimiters.Count > 0)
@@ -243,9 +245,16 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         w.Line($"Int128 {tly} = 0;");
         w.Line($"bool {ovf} = false;");
         var live = LiveReads.Of(s);
-        using (w.Block($"if ({ptr} < 1 || {ptr} > {src}.Length)"))
-            w.Line($"{ovf} = true;");                                                 // GR15a; GR16a terminates — no transfer
-        using (w.Block("else"))
+        // §1985:VI.6.27.4 GR17a is the POINTER phrase's: "the value in the data item referenced by identifier-7 is less than 1 or
+        // greater than the size of the data item referenced by identifier-1" has no identifier-7 to test when the phrase is
+        // absent, and GR13a only starts the examination "with the leftmost character position" (kb/Work PB5858). Without a
+        // POINTER phrase the sender of size 0 at --std 85 therefore starts the first transfer of GR13 (UnstringExtract's
+        // `initiating`) and GR17b finds no unexamined character; from 2002 the GR2 guard above already ended the statement,
+        // and a non-empty sender holds the implicit position 1, so the test could never fire.
+        if (s.Pointer is not null)
+            using (w.Block($"if ({ptr} < 1 || {ptr} > {src}.Length)"))
+                w.Line($"{ovf} = true;");                                             // GR15a; GR16a terminates — no transfer
+        using (s.Pointer is not null ? (CodeWriter.BlockScope?)w.Block("else") : null)
         {
             // GR11 b)'s examination size is read only when it can govern: with no DELIMITED phrase, or when every
             // delimiter is an IDENTIFIER — GR9: "When neither literal-1 nor literal-2 is specified and all data items
@@ -267,7 +276,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 // before every receiving area after the first, so it is seen as the previous area's INTO, DELIMITER IN
                 // and COUNT IN stores left it. The first area needs none: nothing has been stored yet.
                 if (k > 0) EmitReread(live, s, src, dels);
-                w.Line($"long {cnt} = {RuntimeApi.UnstringExtract(src, dels, size, ptr, fld, dlm, di)};");
+                w.Line($"long {cnt} = {RuntimeApi.UnstringExtract(src, dels, size, ptr, fld, dlm, di, initiating: k == 0)};");
                 using (w.Block($"if ({cnt} >= 0)"))                                   // −1: not acted upon (GR11g)
                 {
                     // GR11 c): the examined characters ARE the conceptual elementary item, moved "according to
