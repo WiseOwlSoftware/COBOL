@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-6.1.2.1-7",
+ "rule-digest": "f3008f48424f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#TryFloatingDebugging",
+ "test-ref": "conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2-floating-debugging-indicator-after-spaces-mode; conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2-floating-debugging-indicator-after-spaces-no-mode; conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2-floating-debugging-indicator-after-text-refused",
+ "notes": "§2002:6.1.2.1 SR7 lets >>D be preceded only by spaces, and §2002:12.2.4.3 GR4/GR5 compile such a debugging line as code with DEBUGGING MODE and as a comment without it. At --std 2002 the fixed-form mode case printed BEFORE/D-ZERO/D-SPACES/AFTER, the free-form no-mode case BEFORE/AFTER, and >>D after program text was refused (COBOL2269), all as derived."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.2.4.2-3",
+ "rule-digest": "cc99c80546f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNegatedAbbreviatedRelation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#partialExpression",
+ "test-ref": "conformance:cases/8.8.4.2.4@2002-ABBREVIATED-COMBINED-RELATION-CONDITIONS/pb5123-not-is-not-operator-2002; conformance:cases/8.8.4.2.4@2002-ABBREVIATED-COMBINED-RELATION-CONDITIONS/g2-abbrev-not-not-2002",
+ "notes": "§2002:8.8.4.2.4.2 SR3 forbids NOT followed by NOT or IS NOT; at --std 2002 pb5123-not-is-not-operator-2002 is refused with COBOL0902 and g2-abbrev-not-not-2002 with COBOL0001."
+}

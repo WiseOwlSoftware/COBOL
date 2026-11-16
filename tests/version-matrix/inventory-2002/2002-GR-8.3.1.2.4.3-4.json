@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.3.1.2.4.3-4",
+ "rule-digest": "14e47425f8fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#DecodeHexGroups; docs/CONFORMANCE.md#DOC-A.1-97; docs/CONFORMANCE.md#DOC-A.1-98",
+ "test-ref": "conformance:cases/8.3.1.2.4@2002-NATIONAL-LITERALS/g2002_national_literal_forms",
+ "notes": "GR4: each 4-digit group is one national character of that bit configuration (UTF-16 code unit, DOC-A.1-97): NX\"00410042\" = AB, NX'0043' = C (line 2); N3 from NX equals N\"AB\" and N2 from N\"AB\" equals NX\"00410042\" (line 3).. cobol.exe (pinned dc1f2dcce8) --std 2002 --run: lines 2-3 MATCH. Equals derivation."
+}

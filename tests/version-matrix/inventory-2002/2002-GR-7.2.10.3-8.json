@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.10.3-8",
+ "rule-digest": "3a620ec3f58c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateCceText; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateCce",
+ "test-ref": "conformance:cases/7.2.10@2002-EVALUATE-DIRECTIVE/g2ev21_cce_formation_truth",
+ "notes": "§2002:7.2.10.3 GR8 evaluates each WHEN per 2002 7.2.7, whose arithmetic is standard (§2002:7.2.5.2 GR1). 2/3*3 is 1, so WHEN 2/3*3 = 1 is the first TRUE WHEN and only its text-1 is kept; a later TRUE WHEN and WHEN OTHER are omitted (G-STD-ONE). Matched at --std 2002."
+}

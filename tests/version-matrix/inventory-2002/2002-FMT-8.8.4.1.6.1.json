@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.8.4.1.6.1",
+ "rule-digest": "ab6b0de76238",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSignConditionOn",
+ "test-ref": "conformance:cases/8.8.4.1.6@2002-SIGN-CONDITION/g2_sign_condition",
+ "notes": "§2002:8.8.4.1.6.1 takes any arithmetic-expression-1 IS [NOT] POSITIVE|NEGATIVE|ZERO; g2_sign_condition tests identifiers and compound expressions (P + N, P - 10, P * N, (N * N) / 25) under §2002:8.8.4.1.6.2 GR1; --std 2002 run matched its .out."
+}

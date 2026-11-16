@@ -1217,6 +1217,13 @@ public sealed record BoundRejected : BoundStatement
 
     private BoundRejected(string? code) => Code = code;
 
+    /// <summary>For a refused SORT or MERGE whose sort-merge file was resolved: that file. The statement's INPUT/OUTPUT PROCEDURE ranges are
+    /// unknown once it is refused, so the placement of a RELEASE or RETURN of the file cannot be judged (kb/Work PB5496).</summary>
+    public FileModel? RefusedSortMergeFile { get; private init; }
+
+    /// <summary>This refusal, marked as the refusal of a SORT or MERGE statement for <paramref name="file"/>.</summary>
+    public BoundRejected RefusingSortMergeFile(FileModel file) => this with { RefusedSortMergeFile = file };
+
     /// <summary>A refusal whose diagnostic a CALLEE already reported — a file-name or procedure-name resolution, an
     /// operand screen, a placement rule (kb/Work PB1029: ~100 sites wrote <c>return new BoundNop();</c> after such a
     /// call, where nothing checked that the callee had in fact reported). The refusal is put on the ledger, and the

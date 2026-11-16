@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.9.2-3",
+ "rule-digest": "320bbef2b5f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateOperandText",
+ "test-ref": "conformance:cases/7.2.9@2002-DEFINE-DIRECTIVE/g2def01_arith_operand_value",
+ "notes": "§2002:7.2.9.2 SR3 forms the DEFINE operand per 7.2.5 (standard intermediate range, fixed-point literals); g2def01's DEFINEs with 31-digit operands, 32/33-digit intermediates and fractional operands are accepted at --std 2002 and print the derived values, and exponentiation, division by zero and a floating literal (g2def02-04) are refused COBOL1619."
+}
