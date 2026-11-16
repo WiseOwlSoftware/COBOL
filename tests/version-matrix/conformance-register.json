@@ -1058,6 +1058,13 @@
    "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
   },
   {
+   "key": "DRV-1985-GR-X.2.3.3-3",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of 1985 language elements by which a program can address, replace or separate object code is empty: a program reaches another program only through its program-name in CALL and CANCEL, under scope and CANCEL rules of their own; the one element that observes loading, the ON OVERFLOW or ON EXCEPTION phrase of CALL, reports an availability decided by object time resources the implementor defines, so it fixes no output either way",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-XI.4.1.4-10",
    "arm": "definitional",
    "names": "defines a constraint on the USER's program (no statement executed in a MERGE output procedure, or in a USE procedure the MERGE invokes, may manipulate file-name-2, file-name-3 or file-name-4 or access their record areas), with no I-O status and no result, so §1985:I.1.6 leaves a violation undefined and the implementation is obliged to nothing",
