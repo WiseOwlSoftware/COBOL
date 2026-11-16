@@ -112,7 +112,9 @@ internal sealed class VersionConformancePass
         foreach (var text in group.Texts) new ParseArm(pass, reservedWords, group.Session.CobolWords, group.Session.Edition.ClientWritten).VisitPositioned(text);
         // ⛔ A COPY STATEMENT'S TEXT-NAME AND LIBRARY-NAME REACH NO TREE (the preprocessor consumes the statement), so the walk above never
         // asks the reserved-word rule of them (kb/Work PB5848): the preprocessor's own record of them is asked here, once.
-        pass.FlagCopyNameReservedWords(group.Session.Edition, reservedWords);
+        // The EDITION's own table, never the group's composed one: "A COBOL-WORDS directive does not affect any Compiler directing
+        // statements or Compiler directives" (§2023:7.3.10.4 GR6), and a COPY statement is one.
+        pass.FlagCopyNameReservedWords(group.Session.Edition, ReservedWordSet.Default);
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
         //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
