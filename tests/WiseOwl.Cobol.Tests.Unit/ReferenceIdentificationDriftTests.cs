@@ -77,9 +77,52 @@ public sealed class ReferenceIdentificationDriftTests
                    "ResolveQualified(", "ResolveUnqualified(", "ReportUnidentified(", "ScreenLinkageReference(", "ReadSubscripts(" })
             Assert.True(identify.Contains(screen, StringComparison.Ordinal),
                 $"ReferenceResolver.Identify no longer asks {screen} — the screen moved out of the one identification step.");
-        // §2023:13.7.3 SR4 is asked at exactly two sites of the resolver — the identification step (every identifier) and the
-        // reported lookup of a TABLE name (FindReportedItem) — besides the definition.
-        Assert.Equal(3, Regex.Matches(Code(ReferenceResolver), @"\bScreenLinkageReference\(").Count);
+        // §2023:13.7.3 SR4 is asked at exactly three sites of the resolver — the identification step (every identifier), the
+        // reported lookup of a TABLE name (FindReportedItem) and the queued screen of a subscript or reference-modification
+        // data-name (SubscriptBinder.BindPosition, kb/Work PB5846) — besides the definition.
+        Assert.Equal(4,Regex.Matches(Code(ReferenceResolver), @"\bScreenLinkageReference\(").Count);
+    }
+
+    /// <summary>⛔ A NAME LOOKUP THAT REACHES A DATA ITEM FROM THE PROCEDURE DIVISION ASKS THE LINKAGE SCREEN, AND THE SET OF
+    /// FILES THAT LOOK A NAME UP IS CLOSED (kb/Work PB5846). <c>SubscriptBinder.ResolveSubscriptName</c> resolved a subscript
+    /// or reference-modification data-name through <c>Names.ResolveUnqualified</c> and never reached
+    /// <c>ScreenLinkageReference</c>, so a LINKAGE item the procedure division may not reference (§1985:X.5.1 GR4,
+    /// §2023:13.7.3 SR4) compiled as <c>T (L2-N)</c> though <c>DISPLAY L2-N</c> was refused. A source file of the binder that
+    /// calls <c>FindItem</c>, <c>ResolveUnqualified</c> or <c>ResolveQualified</c> is therefore either one that asks the screen
+    /// (<c>ScreenLinkageReference</c> / <c>FindReportedItem</c> / <c>Identify</c>) or one named here with the reason its
+    /// lookups are no procedure-division reference; a new file with such a lookup is red until it is one or the other.</summary>
+    [Fact]
+    public void EveryBinderFileThatLooksANameUp_AsksTheLinkageScreenOrIsNamedWithWhy()
+    {
+        var noProcedureReference = new Dictionary<string, string>
+        {
+            ["ConstantEntryBinder.cs"] = "data-division constant entries resolve other entries' names, never a procedure-division operand",
+            ["CounterResolver.cs"] = "probes whether a name is also a data-name (an ambiguity count); the counter's own subscripts go through ReadSubscripts",
+            ["ObjectPropertyResolver.cs"] = "probes whether a qualified head resolves, to choose the property-chain reading; the head is identified through Identify",
+            ["PtrBindBasedAndAddressablesPass.cs"] = "the whole-unit storage-claim scan of ADDRESS OF targets, which reads a declaration's depth, not a reference",
+        };
+        string root = TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding");
+        var lookup = new Regex(@"\.(FindItem|ResolveUnqualified|ResolveQualified)\(");
+        foreach (string file in Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
+        {
+            string name = Path.GetFileName(file);
+            if (name == "NameResolution.cs") continue;   // the definitions and FindReportedItem itself
+            string code = Code(File.ReadAllText(file));
+            if (!lookup.IsMatch(code)) continue;
+            bool asksScreen = code.Contains("ScreenLinkageReference(", StringComparison.Ordinal)
+                              || code.Contains("FindReportedItem(", StringComparison.Ordinal)
+                              || code.Contains("Identify(", StringComparison.Ordinal);
+            if (noProcedureReference.ContainsKey(name))
+            {
+                Assert.False(asksScreen, $"{name} is named as a file whose lookups are no procedure-division reference, yet it asks the linkage screen: drop it from the list.");
+                continue;
+            }
+            Assert.True(asksScreen,
+                $"{name} looks a data-name up (FindItem / ResolveUnqualified / ResolveQualified) and neither asks "
+                + "NameResolution.ScreenLinkageReference nor looks the item up through FindReportedItem / Identify: a LINKAGE item the "
+                + "procedure division may not reference (§1985:X.5.1 GR4, §2023:13.7.3 SR4) would compile through it as a subscript or "
+                + "reference-modification operand did (kb/Work PB5846). Ask the screen, or name the file in the closed list with why.");
+        }
     }
 
     [Fact]

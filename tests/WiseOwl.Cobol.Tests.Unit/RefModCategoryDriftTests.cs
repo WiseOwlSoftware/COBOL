@@ -113,4 +113,26 @@ public sealed class RefModCategoryDriftTests
             "the nonexistent clause §8.4.2.4 is cited again (reference modification is §2023:8.4.3.3.4 GR6):\n  "
             + string.Join("\n  ", offenders));
     }
+
+    /// <summary>⛔ AN OPERAND RULE THAT NAMES CLASS NUMERIC ASKS THE OPERAND AS REFERENCED, NEVER THE BASE ITEM'S PICTURE (kb/Work PB5859,
+    /// PB5734). A reference-modified numeric item is class and category alphanumeric (§2023:8.4.3.3.4 GR6; §1985:IV.4.3.8.4.4 GR5),
+    /// so <c>place.Item.Pic is { Category: PicCategory.Numeric }</c> over a PLACE is the base item's answer and sees through the slice:
+    /// STRING / UNSTRING (PB5734) and then INSPECT TALLYING (PB5859) took <c>N (1:2)</c> as a numeric counter and the generated C# did
+    /// not compile. The verbs and the statement validation ask <c>ItemCategory.IsElementaryNumericReference</c> /
+    /// <c>IntrinsicResultType.IsIntegerOperand</c> (both over the place); this scan keeps the raw form out of them.</summary>
+    [Fact]
+    public void NoVerbRuleAsksTheBaseItemsPictureForClassNumeric()
+    {
+        var raw = new Regex(@"\.Item\.Pic\??(\s+is\s*\{[^}]*Category:\s*PicCategory\.Numeric\b|\??\.Category\s*(==|is)\s*PicCategory\.Numeric\b)");
+        var offenders = new List<string>();
+        foreach (string dir in new[] { Path.Combine("Binding", "Procedure", "Verbs"), Path.Combine("Binding", "Validation") })
+            foreach (string f in Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Compiler", dir), "*.cs", SearchOption.AllDirectories))
+                foreach (string line in File.ReadAllLines(f))
+                    if (!line.TrimStart().StartsWith("//", StringComparison.Ordinal) && raw.IsMatch(line))
+                        offenders.Add($"{Path.GetFileName(f)}: {line.Trim()}");
+        Assert.True(offenders.Count == 0,
+            "a verb or validation rule reads the BASE item's PICTURE for class numeric, which a reference-modified operand "
+            + "(class and category alphanumeric, §2023:8.4.3.3.4 GR6) passes; ask ItemCategory.IsElementaryNumericReference or "
+            + "IntrinsicResultType.IsIntegerOperand over the place:\n  " + string.Join("\n  ", offenders));
+    }
 }

@@ -76,8 +76,8 @@ public static partial class CobolNum
     /// <see cref="DisplayDecimal(Int128, in NumProfile, bool)"/>; ISO/IEC 1989:2023 §2023:14.9.1.4 GR1 — "Any conversion of data
     /// required between the device and the data item referenced by identifier-1 is defined by the implementor";
     /// docs/CONFORMANCE.md DOC-A.1-1). It converts the characters an ACCEPT of a fixed-point numeric item transferred
-    /// (<paramref name="window"/>: the item's own size for a character-form item, the whole record for a binary or
-    /// packed one, <c>AcceptSource.DeviceNumeric</c>) to the item's UNSCALED value, exactly as GnuCOBOL 3.2.0 does
+    /// (<paramref name="window"/>: the item's own size in characters, whatever its usage, <c>AcceptSource.DeviceNumeric</c>;
+    /// §2023:14.9.1.4 GR4b, kb/Work PB5856) to the item's UNSCALED value, exactly as GnuCOBOL 3.2.0 does
     /// (measured 2026-10-23, the precedence tiebreaker of CLAUDE.md rule 1):
     /// <list type="bullet">
     ///   <item>leading spaces, then an optional sign (<c>+</c> or <c>-</c>; an unsigned item drops it), then the number:
@@ -97,7 +97,7 @@ public static partial class CobolNum
     ///         that many integer digits;</item>
     ///   <item>an item whose characters ARE the window (<see cref="NumericByteForm.Zoned"/>, DISPLAY and NATIONAL) is read
     ///         only until its last digit position is filled, so whatever follows is never examined (<c>12.50CR</c> into
-    ///         <c>PIC 9(5)V99</c> is 12.50); a binary or packed item reads the whole text, so the same <c>CR</c> is invalid.</item>
+    ///         <c>PIC 9(5)V99</c> is 12.50); a binary or packed item is read through to the end of its window, so the same <c>CR</c>, inside its window, is invalid.</item>
     /// </list>
     /// A P-scaled item is read by VALUE: <c>PIC 9(3)PP</c> given 1200 holds 12 (its digits are the hundreds), and a
     /// packed <c>PIC PP9(3)</c> given .00123 holds 123 (a DISPLAY one is cut by its three-character window first).</summary>
