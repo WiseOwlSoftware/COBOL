@@ -73,19 +73,27 @@ public static class CobolStringOps
     /// exactly <paramref name="receiverSize"/> characters are examined — the receiving area's size in character
     /// positions, one less when its sign occupies a separate position (GR11b, computed by the binder) — or fewer
     /// when the sender ends first.</para>
+    /// <para><paramref name="initiating"/> marks the first receiving area of the statement (GR13: "When the UNSTRING statement is
+    /// initiated, the current receiving area is the data item referenced by identifier-4. Data is transferred"): it is acted upon even
+    /// when the sender has no character to examine.</para>
     /// <para>On return <paramref name="pointer"/> has advanced by every character examined INCLUDING the one
     /// consumed delimiter occurrence (GR13).</para>
     /// </summary>
     public static int UnstringExtract(
         string? source, string[] delimiters, int receiverSize,
-        ref long pointer, out string field, out string delimiter, out int matched)
+        ref long pointer, out string field, out string delimiter, out int matched, bool initiating)
     {
         source ??= "";
         field = "";
         delimiter = "";
         matched = -1;
         int pos = (int)(pointer - 1);
-        if (pos >= source.Length) return -1;                         // GR11g — sender exhausted: not acted upon
+        if (pos >= source.Length)
+            // GR11g — sender exhausted: not acted upon. The INITIATING receiving area is the exception: §1985:VI.6.27.4 GR13 makes the
+            // transfer at initiation unconditional, so a sender of size 0 with no POINTER phrase (the one way the initiation
+            // reaches here; a written pointer past the end is the GR17a overflow, 2002+ ends at GR2) examines ZERO characters,
+            // delimited by the end of the sender, and the receiving area is acted upon with an empty field (kb/Work PB5858).
+            return initiating ? 0 : -1;
 
         bool anyDelim = false;                                       // GR9 — all zero-length ⇒ as if DELIMITED absent
         for (int d = 0; d < delimiters.Length; d++)
