@@ -307,7 +307,13 @@ public sealed class FileRegistry
         string? selectName = null, int edition = 2023)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
-            return;   // §2023:13.18.22.4 GR4a
+        {
+            // §2023:13.18.22.4 GR4a: the connector exists; this describer's alternate keys are the same keys
+            // (§2023:12.4.5.3 GR1, refused when they differ), so its AddAlternateKey calls must not append them again.
+            _alternateKeysDescribed = cobolName;
+            return;
+        }
+        _alternateKeysDescribed = null;
         CloseDisplaced(cobolName);
         _files[cobolName] = new IndexedConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             (KeyedAccess)accessMode, primeKey, varyMin, varyMax, primeCollation)
@@ -317,11 +323,16 @@ public sealed class FileRegistry
         };
     }
 
+    /// <summary>The external indexed connector whose later describing program's ALTERNATE RECORD KEY registrations (the calls
+    /// that follow its <see cref="RegisterIndexed"/>) are already on the shared connector, or null (§2023:12.4.5.3 GR1).</summary>
+    private string? _alternateKeysDescribed;
+
     /// <summary>Register one ALTERNATE RECORD KEY (§2023:12.4.5.6) by its byte windows, in declaration order, with its
     /// optional §2023:12.4.5.7 collating-weight table (null = native ordinal) and §2023:12.4.5.6.4 GR6 SUPPRESS WHEN value.</summary>
     public void AddAlternateKey(string name, KeySegment[] key, bool duplicates, CobolCollation? collation = null,
         string? suppress = null)
     {
+        if (name == _alternateKeysDescribed) return;
         if (_files.TryGetValue(name, out var c) && c is IndexedConnector ix)
             ix.AddAlternateKey(key, duplicates, collation, suppress);
     }
