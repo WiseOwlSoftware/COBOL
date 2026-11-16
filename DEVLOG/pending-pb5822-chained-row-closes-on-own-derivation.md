@@ -50,3 +50,14 @@ edition, and at 1985 it would have made the OCCURS DEPENDING ON rule `1985-GR-VI
 not imply" glosses a rule with observable results), so the pattern names the clause as the subject. With it the new
 key makes exactly `1985-GR-X.4.5.4-3` diagnosable; at 2002 and 2023 none (the EXTERNAL rules say "may be accessed" in
 the same rule). Planted cases in `test_reads.py` case 05d; the row and its refusal case are the registrar's.
+
+The registrar then recorded the rows these two rules let close. Twelve derivations went on record under the new
+`claude: 2026-11-16` signature, each as `docs/conformance/8/DRV-<rule-id>.md` with its record: six on the
+`unpopulatable-antecedent` arm, four on `undefined-in-rule`, one `definitional`, one `indistinguishable-consequent`
+(seven rows of the 1985 text and five of the 1989 amendment: `1989-RV-A.2.11.3-2`, `-3`, `1989-RV-A.2.22.4-3`,
+`1989-RV-A.2.46.3-3` and `1989-RV-A.2.19.4-3`). The refuter's pass read fifteen argued rows: ten upheld, two
+overturned (one of them with a witness the refuter wrote, which becomes a test) and three doubtful; all fifteen lines
+stay in `tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl`, the refused ones as the record that those
+derivations were refused. One refusal witness closes `1985-GR-X.4.5.4-3`: `g85_bf31_07`, refused with COBOL1639 at
+`--std 85`. The 1985 line moved from "102 GAP (77 inherited, no own-edition witness · 1 never adjudicated · 24 open)" to
+"89 GAP (64 inherited, no own-edition witness · 1 never adjudicated · 24 open)".

@@ -1556,6 +1556,12 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // device is line-oriented, section 3.3), each on the UPHELD record of
             // tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl.
             "1985-GR-XIV.3.6.4-17", "1985-GR-XIV.3.6.4-18",
+            // ⚙ Twelve more, added deliberately (kb/Work PB5822, signature `claude: 2026-11-16`): the first derivations on
+            // chained rows, each argued one standing on the UPHELD record of an independent cobol-refuter pass,
+            // tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl (§8 DRV-1985-… and DRV-1989-RV-…).
+            "1985-GR-VI.6.17.4-7", "1985-GR-XI.4.4.4-4", "1985-GR-VI.6.25.4-12", "1985-GR-VI.6.27.4-21",
+            "1985-GR-VI.6.10.4-10", "1989-RV-A.2.11.3-2", "1989-RV-A.2.11.3-3", "1989-RV-A.2.22.4-3",
+            "1989-RV-A.2.46.3-3", "1985-GR-XI.4.1.4-10", "1985-GR-XIII.3.21.4-1", "1989-RV-A.2.19.4-3",
         ];
 
         var s = LoadSchema();
