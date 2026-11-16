@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.8.3-1",
  "rule-digest": "b2dfa80df179",
+ "test-ref": "conformance:cases/14.9.8-COMPUTE/pb128-compute-alphanumeric-receiver",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

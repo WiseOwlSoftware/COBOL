@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.4.4-1",
  "rule-digest": "8306ab139b35",
+ "test-ref": "conformance:cases/14.5.3.2-Explicit-scope-termination/l1c31_scope_termination; conformance:cases/14.5.3.2-Explicit-scope-termination/l1_if_nested_else_endif_match; conformance:cases/14.5.3.3-Implicit-scope-termination/pb3830_phrase_association; conformance:cases/14.5.3.3-Implicit-scope-termination/pb3830_phrase_format_selectors",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

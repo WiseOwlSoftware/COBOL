@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VII.3.7.3-4",
  "rule-digest": "6c88673842e9",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/l1_linage_zero_margins",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
