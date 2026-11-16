@@ -509,12 +509,14 @@ public sealed class ReferenceResolver(DataBinder data)
             if (suffix.qualification() is { } q)
             {
                 (qualifiers ??= []).Add(q.cobolWord().Name());
-                if (q.subscriptPart() is [var qs, ..]) subCtx ??= qs;
+                if (q.subscriptPart() is [{ GivenToNextItem: false } qs, ..]) subCtx ??= qs;
                 refModCount += q.refModPart().Length;
                 if (q.refModPart().Length > 0) cleanRef ??= q.refModPart()[0];
             }
             else if (suffix.refModPart() is { } rmp) { refModCount++; cleanRef ??= rmp; }
-            else if (suffix.subscriptPart() is { } s) subCtx ??= s;
+            // A paren the declarations gave to the next item of the list the reference stands in is not its subscript list
+            // (kb/Work PB136, PB5781: SubscriptBinder.GiveAwayClosingList), so the reference is read without it.
+            else if (suffix.subscriptPart() is { GivenToNextItem: false } s) subCtx ??= s;
             else if (suffix.propertyObject() is { } po)
             {
                 propertyObject ??= po;

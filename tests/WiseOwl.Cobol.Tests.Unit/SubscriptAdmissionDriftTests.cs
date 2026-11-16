@@ -67,6 +67,33 @@ public sealed class SubscriptAdmissionDriftTests
                 + "a name belongs to that name; writing the test a second time is how PB877 happened.");
     }
 
+    /// <summary>⛔ AN ARGUMENT LIST IS READ BY THE SAME DECLARATION-INFORMED LIST READER AS A SUBSCRIPT LIST (kb/Work PB5781).
+    /// An argument list separates its arguments by a space exactly as a subscript list does (§2023:8.3.5 SR1), so the '('
+    /// after a name that cannot be subscripted begins the next argument — <c>FUNCTION MIN (A (- B))</c> is two arguments
+    /// (§1985:VI.6.2.3 SR4). The subscript arm had the rule since kb/Work PB136 and the argument arms did not: the
+    /// FUNCTION-keyword form bound <c>functionArgList</c>'s items as parsed and refused the legal 1985 program COBOL2096.
+    /// This pins both function-identifier forms to the ONE reader, <c>SubscriptBinder.GiveAwayClosingList</c>, with the
+    /// one SR2 predicate.</summary>
+    [Fact]
+    public void EveryArgumentListReader_AsksTheOneListReader()
+    {
+        string intrinsic = File.ReadAllText(Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs"));
+        Assert.Matches(@"SubscriptBinder\.GiveAwayClosingList\(arg, ctx\.Refs\.Subscripts\.CannotBeSubscripted, out var given\)", intrinsic);
+        // The FUNCTION-keyword form's list and the keyword-omitted form's list both reach that reader.
+        Assert.Matches(@"ArgumentsOf\(fc\.functionArgList\(\)\?\.functionArgument\(\) \?\? \[\]\)", intrinsic);
+        Assert.Matches(@"return ArgumentsOf\(args\);", intrinsic);
+        // No binder reads an argument list's items around it.
+        foreach (string file in Directory.EnumerateFiles(Path.Combine(TestRepo.Root, "src", "WiseOwl.Cobol.Compiler", "Binding"),
+                     "*.cs", SearchOption.AllDirectories))
+        {
+            if (Path.GetFileName(file) is "StorageClaimScan.cs") continue;   // names the head word of a by-reference operand only
+            foreach (Match m in Regex.Matches(File.ReadAllText(file), @"functionArgList\(\)[^;]*?\.functionArgument\(\)"))
+                Assert.True(m.Value.Contains("?? []", StringComparison.Ordinal) && file.EndsWith("IntrinsicBinder.cs", StringComparison.Ordinal),
+                    $"{Path.GetFileName(file)} reads a function argument list's items itself ('{m.Value}'): read them through "
+                    + "IntrinsicBinder.ArgumentsOf, which gives a '(' no name may own to the next argument (kb/Work PB5781).");
+        }
+    }
+
     /// <summary>The predicate asks SR2's WHOLE question. <c>IsTable</c> in this position is the defect itself.</summary>
     [Fact]
     public void TheSr2Predicate_AsksIsTableElement_NotIsTable()

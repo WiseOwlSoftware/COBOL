@@ -3282,7 +3282,9 @@ all-or-nothing):**
   argument list; a bare COMMA parses so SeparatorRule names it, COBOL2631). `SubscriptBinder.SegmentsOf` takes one
   token segment per item and applies PB136's declaration-informed cut on the TREE (a dataReference at the item's own
   level whose name cannot be subscripted gives its paren to a new subscript). Each segment carries its parse node, which
-  the second half's position walk reads (kb/Work PB2151).
+  the second half's position walk reads (kb/Work PB2151). The cut is ONE list reader shared with the argument lists
+  (`SubscriptBinder.GiveAwayClosingList`, kb/Work PB5781), and the paren it gives away is marked on the parse node
+  (`SubscriptPartContext.GivenToNextItem`) so every reader of the reference agrees (DESIGN-binder-bound-tree.md §3.9.2).
 - **D10.4** — the keyword-omitted channel binds the parsed `functionArgument` items (`IntrinsicBinder.ArgumentsOf`);
   `FunctionArgFragment`, `functionArgListFragment` and the lexer's `PrimeFunctionArgs` are deleted. The
   `functionArgList` / `argumentList` reunification is kb/Work PB2114's.

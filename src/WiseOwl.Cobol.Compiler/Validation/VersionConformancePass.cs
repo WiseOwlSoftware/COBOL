@@ -1166,11 +1166,14 @@ internal sealed class VersionConformancePass
         /// take §1985:III.2's default, "neither signed nor zero". So <c>ELEM (1.5)</c>, <c>ELEM (-1)</c> and
         /// <c>ELEM (I + 0)</c> are no 1985 subscript: each is an arithmetic expression, the 2002 form. SR5's other
         /// half, a data-name-2 that is "a numeric elementary item representing an integer", needs the item's
-        /// description and is asked by the binder (<c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c>); both ask <see cref="Cobol85OperandForms"/>.</para></summary>
+        /// description and is asked by the binder (<c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c>); both ask <see cref="Cobol85OperandForms"/>.</para>
+        /// <para>A paren the declarations gave to the next item of its list (<c>GivenToNextItem</c>, kb/Work PB5781) is no
+        /// subscript list of the reference it follows: in <c>FUNCTION MIN (A (- B))</c> with A no table it is the second
+        /// argument, legal at COBOL-85 (§1985:VI.6.2.3 SR4), so it is not asked the subscript forms.</para></summary>
         public override object? VisitSubscriptPart(CobolParserCore.SubscriptPartContext ctx)
         {
             if (ctx.Parent is CobolParserCore.DataReferenceSuffixContext or CobolParserCore.QualificationContext
-                && ctx.subscriptList() is { } list)
+                && !ctx.GivenToNextItem && ctx.subscriptList() is { } list)
                 foreach (var item in list.subscriptItem())
                     if (!Cobol85OperandForms.IsSubscript(item))
                     {
