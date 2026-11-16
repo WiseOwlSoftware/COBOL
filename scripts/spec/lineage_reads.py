@@ -440,6 +440,7 @@ def _order() -> tuple[str, ...]:
     return tuple(inventory_schema.load_schema().editions)
 
 
+@functools.cache
 def format_problem(source_format: str, spelling: str) -> str | None:
     """THE ONE PREDICATE OF A WITNESS'S TEXT (kb/Work PB5754; DESIGN-spec-conformance-review.md section 10.6): a
     conformance-suite case witnesses a row at an edition only when its text is written in a reference format that

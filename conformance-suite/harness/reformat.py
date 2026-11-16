@@ -102,15 +102,17 @@ class Segment:
 
 @dataclasses.dataclass
 class Converted:
-    """One text converted: its new text and, for each original line number, the segments its characters went to."""
+    """One text converted: its new text, for each original line number the segments its characters went to, and the
+    text's path (as a refusal names it)."""
     text: str
     moved: dict[int, list[Segment]]
+    path: str = ""
 
     def position(self, line: int, col: int) -> tuple[int, int]:
         """Where the original position (`line`, `col`) is in the converted text."""
         segs = self.moved.get(line)
         if not segs:
-            raise Refused(UNREADABLE, "", line, f"a position names line {line}, which the conversion did not carry")
+            raise Refused(UNREADABLE, self.path, line, f"a position names line {line}, which the conversion did not carry")
         seg = next((s for s in segs if s.start <= col < s.end), segs[0] if col < segs[0].start else segs[-1])
         return seg.line, seg.col + (col - seg.start)
 
@@ -327,7 +329,7 @@ def convert_text(text: str, path: str, reserved: dict[str, frozenset[str]], edit
             original = next((n for n, segs in moved.items() if any(s.line == number for s in segs)), number)
             raise Refused(UNDECIDED, path, original, f"the converted line {number} begins at column {at}, where the "
                                                      f"layout does not put it (area {place})")
-    return Converted(new, moved)
+    return Converted(new, moved, path)
 
 
 @dataclasses.dataclass
@@ -378,7 +380,11 @@ def plan_case(cob: Path, suite: Path = generate.SUITE, reserved: dict[str, froze
         moved = _AT_LINE.sub(lambda m: f"at line {case.position(int(m['line']), 1)[0]}", moved)
         if moved != expect:
             raw = entry_path.read_text(encoding="utf-8")
-            new_entry = (entry_path, raw.replace(json.dumps(expect)[1:-1], json.dumps(moved)[1:-1], 1))
+            text = raw.replace(json.dumps(expect, ensure_ascii=False)[1:-1], json.dumps(moved, ensure_ascii=False)[1:-1], 1)
+            if json.loads(text).get("expect") != moved:
+                raise Refused(UNREADABLE, rel, 1, f"its refusal entry {entry_path.name} does not spell its expectation "
+                                                  "as written here, so the moved position cannot be written into it")
+            new_entry = (entry_path, text)
     return Plan(files, new_entry)
 
 
