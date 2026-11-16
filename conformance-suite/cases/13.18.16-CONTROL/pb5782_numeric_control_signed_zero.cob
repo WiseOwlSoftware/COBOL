@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5782_numeric_control_signed_zero
-      *> rules: [GR-13.18.16.4-3, 1985-GR-XIII.3.7.4-3]
+      *> rules: [GR-13.18.16.4-3]
       *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified

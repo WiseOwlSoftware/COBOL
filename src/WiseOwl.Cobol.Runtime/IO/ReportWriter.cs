@@ -645,7 +645,10 @@ public sealed class CobolReport(
     /// GENERATE-driven one fail identically.</summary>
     private void Accumulate(int sumId, Func<Int128, Int128> apply)
     {
-        if (!_sums[sumId].Add(apply))
+        // The addition always sets the entry's size error indicator (SumEntry.Add). Raising at the addition is the 2014 and
+        // later rule; §2002:13.16.52.3 GR3 stops at the indicator and GR4 raises when the item is presented (SumPresentable;
+        // kb/Work PB5643, DialectBehavior.SumSizeErrorRaisedAtAddition).
+        if (!_sums[sumId].Add(apply) && DialectBehaviors.IsActive(DialectBehavior.SumSizeErrorRaisedAtAddition, Edition))
             ExceptionState.ReportSumSizeError($"report {Name}: an addition into sum counter {sumId + 1} is a size "
                 + "error (ISO §2023:13.18.54.4 GR3)");
     }
@@ -1193,7 +1196,12 @@ public sealed class CobolReport(
         // (§2023:13.18.37.4 GR4a 3) — the ordinary GR5 placement otherwise.
         long? firstTarget = null;
         bool advanced = false;   // a page advance was processed for THIS group (its §2023:14.9.16.4 GR6 c) evaluated the CODE)
-        if (_nextGroupSave != 0)
+        // From 2002 the save location forces the page advance whatever the page-fit test would say
+        // (DialectBehavior.SavedNextGroupForcesPageAdvance, kb/Work PB5823). §1985:XIII.3.10.8 GR3 consults the saved
+        // integer only AFTER a page advance: while a body group has been presented on the current page (the one whose
+        // NEXT GROUP filled the save) the ordinary fit test 3a/3b/3c decides, and only a group that does not fit takes
+        // the advance and meets the saved integer. An OR PAGE reprint is not a fit-tested group and keeps the save arm.
+        if (_nextGroupSave != 0 && (reprint || DialectBehaviors.IsActive(DialectBehavior.SavedNextGroupForcesPageAdvance, Edition)))
         {
             firstTarget = PlaceAfterSavedNextGroup(group, first, LowerLimit(group));   // always advances first (GR4a)
             advanced = true;
@@ -1225,7 +1233,10 @@ public sealed class CobolReport(
             }
             if (!fit)
             {
-                AdvancePage(group);   // §2023:13.18.35.4 GR4 tail → the §2023:14.9.16.4 GR6 sequence
+                // §2023:13.18.35.4 GR4 tail → the §2023:14.9.16.4 GR6 sequence; at --std 85 with the save location set,
+                // the page advance of rule 3a/3b/3c is followed by the saved-integer arm (PlaceAfterSavedNextGroup).
+                if (_nextGroupSave != 0) firstTarget = PlaceAfterSavedNextGroup(group, first, LowerLimit(group));
+                else AdvancePage(group);
                 advanced = true;
             }
         }

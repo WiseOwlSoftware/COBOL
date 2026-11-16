@@ -285,6 +285,22 @@ public enum DialectBehavior
     /// specified", so at <c>--std 2002</c> every such statement selects its entry by the conditions (kb/Work PB5578; VCR row 7.78). Both editions are
     /// QUOTED. The consumer is <c>SequentialIoEmitter</c>'s record-entry argument of the governed WRITE and REWRITE.</summary>
     SelectWhenOnlyForFilePhraseStatements = 23,
+    /// <summary>§2023:13.18.37.4 GR4 a) — the integer placed in the save location by an absolute NEXT GROUP lets LINE-COUNTER
+    /// be set to FOOTING, "causing a page advance to take place just before any other non-dummy body group is printed for
+    /// the report"; the 2002 text (13.16.35.3 GR4 a) words it the same. §1985:XIII.3.10.8 GR3 consults the saved integer
+    /// only after a page advance the fit test took: rule 3b's first paragraph applies the trial sum while "a body group has
+    /// been presented on the page", and its "If no body group has yet been presented on the page" paragraph reads the save
+    /// location. So at <c>--std 85</c> a body group whose trial sum does not pass its lower limit (a control footing of
+    /// LINE PLUS 0 after FOOTING was reached) stays on the current page and the save location is left for a later group
+    /// (kb/Work PB5823; VCR row 7.80). Both editions are QUOTED. The consumer is <c>CobolReport.PresentBody</c>.</summary>
+    SavedNextGroupForcesPageAdvance = 24,
+    /// <summary>§2014:13.18.54.3 GR3 and §2023:13.18.54.4 GR3 — "Each addition is tested for size error; if a size error occurs,
+    /// the EC-REPORT-SUM-SIZE exception condition is set to exist", at the addition. §2002:13.16.52.3 GR3 says the addition
+    /// sets "the associated size error indicator" and nothing else, and its GR4 raises the exception condition when the
+    /// item is presented, so at <c>--std 2002</c> a GENERATE whose addition overflows raises nothing and the condition
+    /// is raised when the entry is presented (kb/Work PB5643; VCR row 7.81). Both editions are QUOTED; 1985 has no
+    /// exception conditions. The consumer is <c>CobolReport.Accumulate</c>.</summary>
+    SumSizeErrorRaisedAtAddition = 25,
 }
 
 /// <summary>
@@ -417,6 +433,15 @@ public static class DialectBehaviors
             "the SELECT WHEN clauses of the file section select a record description entry for a WRITE or REWRITE only when the "
             + "statement has the FILE phrase, from COBOL-2014; COBOL-2002 evaluates them for every WRITE and REWRITE of the file, "
             + "so a record-name-1 statement there is formatted by the entry the conditions select"),
+        new(DialectBehavior.SavedNextGroupForcesPageAdvance, "saved-next-group-forces-page-advance", 2002,
+            "7.80", "13.18.37.4 GR4 a", "§1985:XIII.3.10.8 GR3 b",
+            "the integer an absolute NEXT GROUP saved forces a page advance before the next non-dummy body group only from "
+            + "COBOL-2002; COBOL-85 applies the page fit test to that group first and consults the saved integer only after "
+            + "the advance a failed fit takes, so a group that fits stays on the page"),
+        new(DialectBehavior.SumSizeErrorRaisedAtAddition, "sum-size-error-raised-at-addition", 2014,
+            "7.81", "§2014:13.18.54.3 GR3", "§2002:13.16.52.3 GR3",
+            "a size error in an addition into a SUM counter raises EC-REPORT-SUM-SIZE at the addition only from COBOL-2014; "
+            + "COBOL-2002 only sets the size error indicator there and raises the condition when the entry is presented"),
     ];
 
     static DialectBehaviors()
