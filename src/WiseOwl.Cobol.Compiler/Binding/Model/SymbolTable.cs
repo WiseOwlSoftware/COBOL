@@ -127,9 +127,12 @@ public sealed class SymbolTable
         if (tier.Count == 0) return tier;
         int depth = _data.State.Forest.DeclaringDepth(tier[0]);
         return _data.State.Reports.NearerEntryHides(name, qualifiers, depth) || NearerConditionNameHides(name, qualifiers, depth)
+            || _data.NearerFileNameHides(name, qualifiers, depth)
             ? []
             : tier;
     }
+
+
 
     /// <summary>The condition-name twin of <see cref="NearestDeclaringData"/>: the nearest declaring source element's
     /// condition-names, or none when a data-name (or a report entry) of the spelling is declared nearer

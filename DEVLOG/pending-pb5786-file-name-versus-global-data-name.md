@@ -1,0 +1,9 @@
+## A contained program's own file-name hides its container's GLOBAL data-name, and the reverse (PB5786)
+
+kb/Work PB5786. A contained program B's `SELECT FX` did not hide its container A's `01 FX GLOBAL`: `MOVE "LOCL" TO FX` in B changed A's item (the probe printed `A FX=LOCL`). The reverse: B's own `01 GX` did not hide A's GLOBAL file GX, so B's `OPEN OUTPUT GX` opened A's file (`A GXR=WROT`). Both at every edition; §2023:8.4.6.2.1 3) a) and §1985:X.1.3.8.2 GR3a rank a name by the source element that declares it, whatever its class.
+
+Re-probe on this build before the fix reproduced both (exit 0). The rule was applied per class: `SymbolTable.NearestDeclaringData` knew a nearer report entry or condition-name, not a nearer file-name, and the file lookup (`DataBindState.VisibleFiles`) knew no nearer data-name.
+
+Fix: `DataBinder.NearerFileNameHides` (asked by `SymbolTable.NearestDeclaringData`) joins the ranking `NearestDeclaringData` already makes (no survivor, so the caller's unidentified-reference verdict words "declared as a file-name", COBOL1639); `InheritedGlobals.DropShadowed`, which already drops an inherited constant a nearer name hides through `DataBinder.DeclaredNearerThan`, now drops an inherited GLOBAL file the same way (OPEN of the data item: COBOL1639 "not defined as a file"). After the fix both repros are refused at `--std 85` and `--std 2023`.
+
+Goldens (`conformance-suite/cases/8.4.6.2-Local-and-global-names/pb5786_*`): two refusals (`pb5786_own_file_name_hides_container_global_data_item`, `pb5786_own_data_item_hides_container_global_file_name`, COBOL1639 at every edition) and one accepted control (own file FX used as a file beside A's GLOBAL item: `OPENED`, `A FX=GLOB`). Rows `GR-8.4.6.2.1-1` and `GR-8.4.6.2.1-3` re-recorded PARTIAL to CONFORMS (GAP 32 to 30). Design: INTERPROGRAM_DESIGN nested-name paragraph.
