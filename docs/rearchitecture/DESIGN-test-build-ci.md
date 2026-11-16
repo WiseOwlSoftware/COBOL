@@ -1788,6 +1788,32 @@ carried as byte-identical to passed cases at harness key <12> (program different
 carried selection hides no red: a case that runs and fails is RED, and the population check is the one of kb/Work PB5099.
 A differential gate writes no growth sample (it is not a whole-population measurement).
 
+*What a case's compile and run read beyond its digest* (the independent review of 2026-11-16,
+`HUNT-gate-differential.md`, F1 to F3; each rule below has a self-test arm that fails with it removed):
+- *The compile's ambient inputs.* Their one record is the compiler's own, `Frontend.CompilationInputs` (the record the
+  compiled-program cache keys and replays on). A compile that read the environment (a `>>DEFINE … AS PARAMETER`,
+  §2023:7.3.11.4 GR4: `g2df04_parameter_environment`, `pb1367_define_general_format_alternatives`), the external
+  repository, or the content of any file outside its own scratch directory, or that found anything a probe asked there, is
+  `ambient` (`ArchOracle.Ambient`): its program has no digest, and it is never carried.
+- *What a compile did NOT find.* The default library searches the working directory first, so the capture compiles in the
+  directory VSTest starts the Conformance test host in (its assembly's output directory), and each compile's absent probes
+  outside its scratch directory are part of its row: a case one of whose absent probes now exists is not carried, as the
+  cache's replay refuses it.
+- *What the run reads.* Every test host and the capture start from ONE environment, `gate_host.product_clear_env`: the
+  scrubbed environment less every product variable (`COBOL*`, `WISEOWL_COBOL_*`: the sort budget, the fixed clock, key
+  checks, collation and CLDR directories, the cache switch). That closes the hole for the whole-target store too: a shell
+  variable can no longer make a pass stand for a run its key does not name. The installed .NET runtimes (a compiled
+  program's runtimeconfig rolls forward to the newest 10.0 patch) and the process's locale are in the harness key
+  (`Host.run_facts`); the whole-target key does not yet name the runtime, a residue registered with the landing. The
+  calendar is in no key, for a carried case as for an up-to-date target: a verdict that depends on the day a case runs is
+  that test's defect, and it reddens a whole run as well.
+
+*On Windows a carried case runs NOWHERE at the landed tree.* The merge group's Linux leg runs every Conformance case in
+Release, but its Windows leg accepts the pass the landing published at the Conformance key and runs nothing of it. So for
+Windows behaviour the carry rule is the only thing standing between a wrong key and main: a key that leaves out an input
+is a Windows-only false green that only a later full run would expose. That is why every input a carried case reads is
+either in a digest or makes the case uncarriable, and why "in doubt, `everything`".
+
 *The landing and the merge group.* `enqueue.py land` reads a GREEN record at the tip, and a differential GREEN is one. The
 pass it records stands at the Conformance key, so the merge group's Windows leg accepts it like any other: THE RULE (CLAUDE.md
 Testing) becomes "every case the merge group runs on Windows already ran green at the pushed head on this host, OR is

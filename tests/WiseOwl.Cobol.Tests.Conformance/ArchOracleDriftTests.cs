@@ -108,4 +108,47 @@ public sealed class ArchOracleDriftTests
             }
         }
     }
-}
+
+    /// <summary>THE PROGRAM DIGEST the differential carries a case on (kb/Work PB4333; scripts/gate_differential.py), over
+    /// fresh compiles (never the cache): one program compiled in two directories is one digest, two programs are two; a
+    /// compile that read the clock (FUNCTION WHEN-COMPILED) is named <see cref="ArchOracle.ClockProgram"/>, and one that
+    /// read the environment (a <c>&gt;&gt;DEFINE … AS PARAMETER</c>, §2023:7.3.11.4 GR4) <see cref="ArchOracle.AmbientProgram"/>,
+    /// so neither is ever carried; a compile's absent probes outside its directory are recorded, portably.</summary>
+    [Fact]
+    public void TheProgramDigest_NamesTheProgram_AndRefusesAnAmbientCompile()
+    {
+        static string Program(string id, string data, string body) =>
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. " + id + ".\n" + data
+            + "       PROCEDURE DIVISION.\n" + body + "           STOP RUN.\n";
+        const string ws = "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 WS-A PIC X(5) VALUE \"PLAIN\".\n";
+        string plain = Program("PB4333A", ws, "           DISPLAY WS-A.\n");
+        string other = Program("PB4333A", ws, "           DISPLAY WS-A WS-A.\n");
+        string clock = Program("PB4333C", "", "           DISPLAY FUNCTION WHEN-COMPILED.\n");
+        string ambient = "       >>DEFINE PB4333-NO-SUCH-VARIABLE AS PARAMETER\n" + Program("PB4333E", "", "           DISPLAY \"E\".\n");
+        var dirs = new List<string>();
+        ArchOracle.Observation Observe(string source)
+        {
+            string dir = ScratchDirectory.Create("pb4333-");
+            dirs.Add(dir);
+            string src = Path.Combine(dir, "prog.cob");
+            File.WriteAllText(src, source);
+            var r = CompiledProgramCache.CompileCold(new CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"), DialectLevel: 2023));
+            return ArchOracle.Observe(dir, r);
+        }
+
+        try
+        {
+            var first = Observe(plain);
+            var again = Observe(plain);
+            Assert.Matches("^[0-9a-f]{64}$", first.Program!);
+            Assert.Equal(first.Program, again.Program);
+            Assert.NotEqual(first.Program, Observe(other).Program);
+            Assert.Equal(ArchOracle.ClockProgram, Observe(clock).Program);
+            Assert.Equal(ArchOracle.AmbientProgram, Observe(ambient).Program);
+            Assert.All(first.Absent ?? [], p => Assert.DoesNotContain(TestRepo.Root, p, StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            foreach (string d in dirs) ScratchDirectory.Remove(d);
+        }
+    }}

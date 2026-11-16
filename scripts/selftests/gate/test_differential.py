@@ -20,6 +20,7 @@ from gate_host import ONLY_CASES  # noqa: E402
 
 NAMES = FakeHost.DIFFERENTIAL_POPULATION
 HAND = "N.Conf.Hand"
+ABSENT = "<repo>/tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net10.0/T1LIB.cpy"
 
 
 def _world():
@@ -35,8 +36,10 @@ def _world():
     blobs = {f"conformance-suite/cases/c/{n}": f"{i:040x}" for i, n in enumerate(
         [*(f"t{i}.{e}" for i in range(1, 7) for e in ("cob", "out")), "r5.cob"], start=1)}
     blobs.update({"src/WiseOwl.Cobol.Runtime/Move.cs": "a" * 40, "src/WiseOwl.Cobol.Compiler/Emit.cs": "b" * 40,
-                  "tests/WiseOwl.Cobol.Tests.Conformance/ConformanceSuiteRunner.cs": "c" * 40})
+                  "tests/WiseOwl.Cobol.Tests.Conformance/ConformanceSuiteRunner.cs": "c" * 40,
+                  "scripts/gate_differential.py": "5" * 40})
     oracle = {f"suite/2023/t{i}": (f"cs{i}", f"dg{i}", f"pg{i}") for i in range(1, 7)}
+    oracle["suite/2023/t1"] = ("cs1", "dg1", "pg1", ABSENT)   # its compile probed the working directory and found nothing
     oracle["refusal/r5@2023"] = ("-", "dg5", "-")
     return manifest, blobs, oracle
 
@@ -47,12 +50,12 @@ def case_00_the_differential_carries_exactly_the_unchanged_cases(expect):
     sink: list[str] = []
     n = [0]
 
-    def gate(plant=frozenset(), change=None, new_case=False):
+    def gate(plant=frozenset(), change=None, new_case=False, tools="dotnet-sdk 10.0.403, python 3.15.2"):
         """One gate in the worktree `d` at a tree of its own (so Conformance is never up to date at its key), its suite
         planted, `change` editing the planted world first."""
         n[0] += 1
         tree = f"tree-{n[0]}"
-        host = FakeHost(d, d / "gate.lock", plant={"differential", *plant}, trees=[tree],
+        host = FakeHost(d, d / "gate.lock", plant={"differential", *plant}, trees=[tree], tools=tools,
                         keys={tree: {"Unit": "u", "RepoDrift": "r", "Characterization": "c"}})
         host.suite_manifest, host.blobs, host.oracle = _world()
         if new_case:
@@ -90,7 +93,7 @@ def case_00_the_differential_carries_exactly_the_unchanged_cases(expect):
 
     def program(host):   # a compiler change, after which it emits other bytes for t1
         host.blobs["src/WiseOwl.Cobol.Compiler/Emit.cs"] = "d" * 40
-        host.oracle["suite/2023/t1"] = ("cs1", "dg1", "pg1-changed")
+        host.oracle["suite/2023/t1"] = ("cs1", "dg1", "pg1-changed", ABSENT)
     changed, h3, ran3 = gate(change=program)
     expect("a changed PROGRAM is selected: after a compiler change every compile is made again (a new compiler key), and t1, "
            "whose program digest differs, runs, with the case of no family",
@@ -121,6 +124,50 @@ def case_00_the_differential_carries_exactly_the_unchanged_cases(expect):
     expect("a compiler change whose programs and diagnostics are byte-identical carries them all: the compiler is of the "
            "`program` class, out of the harness key",
            compiler.verdict == "GREEN" and ran7 == [HAND] and compiler.differential.get("carried") == 5, f"{ran7}")
+
+    def entry(host):   # t3's manifest entry gains a WiseOwl option; its files are unchanged
+        host.suite_manifest["editions"]["2023"][2]["options"] = {"flag": "on"}
+    entried, he, ran_e = gate(change=entry)
+    expect("a changed manifest ENTRY is selected: t3, whose entry alone changed, runs, and only its compile is made again",
+           entried.verdict == "GREEN" and ran_e == sorted([t(3), HAND]) and he.compiled == ["suite/2023/t3"], f"{ran_e} {he.compiled}")
+
+    def ambient(host):   # the compiler now reads the environment for t4 (a >>DEFINE ... AS PARAMETER)
+        host.blobs["src/WiseOwl.Cobol.Compiler/Emit.cs"] = "4" * 40
+        host.oracle["suite/2023/t4"] = ("cs4", "dg4", gate_differential.AMBIENT)
+    ambiented, _, ran_a = gate(change=ambient)
+    expect("a compile that read an AMBIENT input is never carried: t4 runs, its reason named (kb/Work PB4333 F1)",
+           ambiented.verdict == "GREEN" and ran_a == sorted([t(4), HAND])
+           and any("an ambient input" in r for r in ambiented.differential.get("ran", {})), f"{ran_a} {ambiented.differential}")
+
+    def stray_library(host):   # a library text now sits where t1's compile probed the working directory and found none
+        host.present = {ABSENT}
+    strayed, hs, ran_s = gate(change=stray_library)
+    expect("a path the compile probed and did not find that now EXISTS is selected: t1 runs (kb/Work PB4333 F2), though "
+           "its capture row is reused unchanged",
+           strayed.verdict == "GREEN" and ran_s == sorted([t(1), HAND]) and "suite/2023/t1" not in hs.compiled,
+           f"{ran_s} {hs.compiled}")
+
+    def generator(host):   # the suite manifest's non-case content changes
+        host.suite_manifest["generator"] = "conformance-suite/harness/generate2.py"
+    generated, hg, ran_g = gate(change=generator)
+    expect("a change of the manifest's NON-CASE content runs everything: a new harness key",
+           generated.verdict == "GREEN" and ran_g == sorted(hg.POPULATION["Conformance"]), f"{ran_g}")
+
+    def own(host):   # the differential's own code changes
+        host.blobs["scripts/gate_differential.py"] = "3" * 40
+    owned, ho, ran_o = gate(change=own)
+    expect("a change of the differential's OWN inputs runs everything: a new harness key",
+           owned.verdict == "GREEN" and ran_o == sorted(ho.POPULATION["Conformance"]), f"{ran_o}")
+
+    retooled, hrt, ran_t = gate(tools="dotnet-sdk 10.0.500, python 3.15.2")
+    expect("another TOOLCHAIN (a facet) runs everything: a new harness key",
+           retooled.verdict == "GREEN" and ran_t == sorted(hrt.POPULATION["Conformance"]), f"{ran_t}")
+
+    def runtime_update(host):   # a .NET runtime patch is installed: every program now rolls forward to it
+        host.run_facts_text = "runtimes Microsoft.NETCore.App 10.0.5"
+    updated, hu, ran_u = gate(change=runtime_update)
+    expect("another installed .NET RUNTIME runs everything: the run's facts are in the harness key (kb/Work PB4333 F3)",
+           updated.verdict == "GREEN" and ran_u == sorted(hu.POPULATION["Conformance"]), f"{ran_u}")
 
     def harness(host):
         host.blobs["tests/WiseOwl.Cobol.Tests.Conformance/ConformanceSuiteRunner.cs"] = "9" * 40
@@ -186,12 +233,13 @@ def case_02_a_case_the_rule_cannot_name_exactly_runs(expect):
     manifest, blobs, oracle = _world()
     manifest["editions"]["2023"][1]["build"] = [{"file": "cases/c/t2.cob", "output": "T2"}]   # a multi-unit test
     del blobs["conformance-suite/cases/c/t3.out"]                                                # a named file untracked
-    oracle["suite/2023/t4"] = ("!", "!", "!")                                                     # its compile threw
-    oracle["suite/2023/t6"] = ("cs6", "dg6", gate_differential.CLOCK)                         # WHEN-COMPILED
+    oracle["suite/2023/t4"] = ("!", "!", "!", "")                                                 # its compile threw
+    oracle["suite/2023/t6"] = ("cs6", "dg6", gate_differential.CLOCK, "")                     # WHEN-COMPILED
     truncated = NAMES[0].replace('id: "t1")', 'id: "t1"...)')
     clock = NAMES[0].replace('"t1"', '"t6"')
     listed = Counter({NAMES[0]: 1, NAMES[1]: 1, NAMES[2]: 1, NAMES[3]: 1, NAMES[4]: 2, truncated: 1, HAND: 1, clock: 1})
-    got = gate_differential.case_digests(gate_differential.case_inputs(listed, manifest, blobs), oracle)
+    oracle = {i: (*v, "")[:4] for i, v in oracle.items()}
+    got = gate_differential.case_digests(gate_differential.case_inputs(listed, manifest, blobs), oracle, lambda p: False)
     expect("only t1 has a digest: a multi-unit entry, an untracked named file, a capture that threw, a program that reads "
            "the compile clock, a name listed twice, a truncated display name and a case of no family each have none, by "
            "their reasons",
@@ -216,6 +264,26 @@ def case_03_a_set_no_gate_wrote_for_three_weeks_is_pruned(expect):
     store.record(recent, ["e" * 64])
     expect("the set not written for PRUNE_DAYS before the one just written is pruned; the written one keeps every digest",
            store.lookup(old) is None and store.lookup(recent) == frozenset({"d" * 64, "e" * 64}), str(store.lookup(recent)))
+
+
+def case_04_no_product_variable_of_the_shell_reaches_a_test_host(expect):
+    """THE RUN'S ENVIRONMENT IS THE GATE'S (kb/Work PB4333 F3): a product variable the operator's shell holds (a sort
+    budget, a fixed clock, a collation directory) reaches neither a test host nor the capture, so no pass, whole or per
+    case, stands for a run under an environment its key does not name; the gate's own channels are added after."""
+    import os
+    from gate_host import host_env, product_clear_env
+    planted = {"WISEOWL_COBOL_SORT_MEMORY": "1", "COBOL_COLLATION_DIR": "x", "WiseOwl_Cobol_Clock": "2026"}
+    saved = {k: os.environ.get(k) for k in planted}
+    os.environ.update(planted)
+    try:
+        env, clear = host_env(None, Path("obs.log")), product_clear_env()
+    finally:
+        for k, v in saved.items():
+            os.environ.pop(k, None) if v is None else os.environ.__setitem__(k, v)
+    expect("no product variable (any case) is in a test host's environment or the capture's; PATH and the gate's own "
+           "harness log are",
+           not any(k.upper() in {p.upper() for p in planted} for k in [*env, *clear]) and "PATH" in {k.upper() for k in env}
+           and env.get("WISEOWL_COBOL_HARNESS_LOG") == "obs.log", sorted(k for k in env if "COBOL" in k.upper()))
 
 
 if __name__ == "__main__":

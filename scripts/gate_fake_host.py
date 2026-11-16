@@ -78,6 +78,8 @@ class FakeHost(Host):
         self.oracle: dict[str, tuple[str, str, str]] = {}
         self.captures = 0
         self.compiled: list[str] = []
+        self.run_facts_text = "runtimes Microsoft.NETCore.App 10.0.4"   # what `run_facts` reports
+        self.present: set[str] = set()   # the portable paths `portable_exists` finds
         if "differential" in plant:
             self.POPULATION = {**self.POPULATION, "Conformance": list(self.DIFFERENTIAL_POPULATION)}
 
@@ -108,6 +110,12 @@ class FakeHost(Host):
     def output_digest(self, generation):
         return generation.outputs if "differential" in self.plant else super().output_digest(generation)
 
+    def run_facts(self) -> str:
+        return self.run_facts_text
+
+    def portable_exists(self, path: str) -> bool:
+        return path in self.present
+
     def tree_entries(self, tree):
         """The planted measured tree (`blobs`), as `git ls-tree` entries."""
         return [(f"100644 blob {b}\t{p}".encode(), p) for p, b in sorted(self.blobs.items())]
@@ -120,7 +128,8 @@ class FakeHost(Host):
             raise OSError("planted: `WiseOwl.Cobol.ArchOracle digests` exited 4")
         ids = set(Path(only).read_text(encoding="utf-8").split()) if only is not None else set(self.oracle)
         self.compiled += sorted(ids & set(self.oracle))
-        out.write_text("".join(f"{i}\tpop\t{c}\t{d}\t{p}\n" for i, (c, d, p) in sorted(self.oracle.items()) if i in ids),
+        out.write_text("".join(f"{i}\tpop\t{c}\t{d}\t{p}\t{a}\n" for i, (c, d, p, a) in
+                               ((i, (*v, "")[:4]) for i, v in sorted(self.oracle.items())) if i in ids),
                        encoding="utf-8", newline="\n")
         return out
 
