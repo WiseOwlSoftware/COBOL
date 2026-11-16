@@ -53,9 +53,6 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression. The seventh
   golden-lane landing (golden-2002-7, 16 wave-u slugs: rows the 2002 read left needs-own-witness, undecided or
   uninterpretable) records 97 own-edition CONFORMS and takes it to **1,805 GAP** (1,787 never adjudicated, 18 open).
-  The ninth landing, golden-2002-9 (11 wave-u files), records 98 own-edition CONFORMS and takes it to
-  **1,707 GAP** (1,689 never adjudicated, 18 open; main 111a265843 merged); its two defect rows wait on kb/Work
-  PB5762 and PB5763.
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary` computes every figure).** Two lines of work close it: the
   own-edition witnesses (a 1985 case that witnesses a 1985 rule, kb/Work PB5675), and the code read of every KEPT row at `--std 85`
   (kb/Work PB5683, sized by PB5692); a row a read contradicts gets its own defect note, and a non-conforming row waits on that
