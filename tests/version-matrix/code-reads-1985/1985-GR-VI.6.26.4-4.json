@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.6.26.4-4",
+ "rule-digest": "ae76ab1eb541",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-114",
+  "sources": {
+   "reader": "32db31cf70df4d7ef171121d99fc690dc0e1d97df0cddda97380269810bbef58",
+   "refuter": "aa64710d97213766196ce98602e344723f873c20e8a0d1c2c55173f6ebd4c986"
+  },
+  "imported": {
+   "reader": "12b963ec7c3c546925ba14ad3516d5a006c5f57f915297337d856d64b2c33e7e",
+   "refuter": "4146698c0be1b1eae36e91f02036712dc21dc5dbffd5ed9fb3ef75fd57181792"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.26.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every SUBTRACT format carries enough digits in its temporary sum and result that no significant digit is lost before the final store: a sum of several 18-digit operands that needs 19 or more digits, mixed scales up to the 18-digit composite, P-scaled operands, and rounding decided on the exact result.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Fold; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Combine; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineAdditive; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitGiving",
+  "edition-consulted": [],
+  "edition-search": "grep of DialectLevel|MaxDigits|Edition.Year|DialectBehaviors over NumericRenderer.cs: no edition switch (the carrier is chosen by digit bounds, WideMaxDigits, at every edition). The only edition switches on the SUBTRACT path are EmitArith's size-error arm and CheckComposite's cap, neither of which changes the carried precision.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f14_03 covers a decimal intermediate; not exercised: 19-digit temporary sums of 18-digit operands, COMP/COMP-3 18-digit operands, rounding that depends on the ninth fraction digit, P scaling.",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subgr4.cob",
+    "printed": "P1 -999999999.999999999; P4 -999999999999999999; P5 SIZE / P5 -999999999999999999; P6 SIZE / P6 +999999999999999999; P7 -000000000.000000001",
+    "expected": "exact 18-digit mixed-scale result; K1+K2+K3 (19-digit partial sum) cancels exactly; 19-digit results detected as size errors with the receiver unchanged; smallest fraction kept"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subgr4.cob",
+    "printed": "P2 +0; P3 +1",
+    "expected": "1-0.500000001=0.499999999 ROUNDED 0; 1-0.499999999=0.500000001 ROUNDED 1 (rounding on the exact result)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subgr1.cob",
+    "printed": "G7 -999999999999999999; G8 400; G9 500",
+    "expected": "two 18-digit literals summed to 19 digits exactly; PIC 9PP 500 minus VPP9 .003 = 499.997, truncated 400, ROUNDED 500"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.26.4 GR4",
+    "check": "OK  §1985:VI.6.26.4 GR4  (6.26.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The renderer folds in Int128 or the wide exact carrier by digit bounds, so 19-digit temporaries and mixed scales stay exact; every probe result is the exact arithmetic value before the receiver's truncation or rounding.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.26.4-4",
+  "refutation": "UPHELD",
+  "classes": "f,c",
+  "evidence": "Probes at --std 85 (rsub1-001) aimed at a carrier that would wrap: 20 x S9(18) COMP 999999999999999999 (sum 1.99999e19, beyond Int64 and beyond 2^64 modulo would fit 18 digits) FROM 0 -> SIZE, receiver unchanged +0 (S11); same into GIVING COMP-3 -> SIZE (S12); FROM -999999999999999999 -> SIZE, unchanged (S13); 20 x S9(18) COMP-3 -> SIZE (S14). No significant digit lost in the temporary. The 18-digit operand cap (COBOL0802) and composite cap (COBOL0805) are refused at 85, so no larger form reaches the rule. cite.py: OK §1985:VI.6.26.4 GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
