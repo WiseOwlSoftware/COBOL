@@ -1,4 +1,4 @@
-## STRING / UNSTRING pointer operands judged as bound and sized; a national group triggers INSPECT SR4 (PB5734, PB5607, PB5646)
+## Entry 3720 — 2026-11-15 20:11 PST — STRING / UNSTRING pointer operands judged as bound and sized; a national group triggers INSPECT SR4 (PB5734, PB5607, PB5646)
 
 Three defects in two binders, each a rule asked of the wrong thing.
 
@@ -40,3 +40,4 @@ bit-or-national predicate beside `IsElementaryReference`; no C# text in a bound 
 `cite.py --check`. Duplication: STRING and UNSTRING share `PointerTooSmall`.
 
 Review round 1 (R1-1): INSPECT SR2 (identifier-3..n) asked `IsElementaryReference`, so a GROUP-USAGE NATIONAL group as a TALLYING/REPLACING operand was refused COBOL0847 while SR4 in the same statement already treated it as an elementary national item (§2023:13.18.29.4 GR2b). `StatementValidation.IsInspectElementaryCharacterItem` (the one elementary arm of SR1 and SR2) now asks `ItemCategory.IsElementaryOrBitNationalGroupReference`; a bit group stays refused by the usage half. Golden `pb5646-inspect-national-group-operand` (output 03). R1-2 (lead): golden `pb5607-string-pointer-binary-container` reaches the `CanHoldUnscaledValue` container arm (COMP-5 PIC 99 and BINARY-CHAR UNSIGNED pointers over PIC X(200)).
+
