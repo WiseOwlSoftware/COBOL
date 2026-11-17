@@ -2374,7 +2374,12 @@ sets none, SR4 bounding only the written string, SR14 only a numeric item's digi
 carrying no maximum-item-size item — the entry draws **COBOL2148**. Before this, `PIC X(-3)` left the binder
 as an unhandled `ArgumentOutOfRangeException` and `PIC X(2000000000)` as an `OutOfMemoryException`: a compiler
 crash with no diagnostic and no source location. PICTURE format 2's SIZE obeys the same cap (§2023:13.18.40.4 GR17
-makes integer-1 a character-position count), asked at the one place the limit lives.
+makes integer-1 a character-position count), asked at the one place the limit lives. The cap is the limit on ONE DATA
+ITEM, elementary or group (`RecordLayout.MaxCharacterPositions`, determination D-ITEM-SIZE): a group whose subordinates
+and OCCURS counts make its image longer draws **COBOL7641** (`CheckStorageLimitsPass`, after the SIGN clauses are
+inherited and before any REDEFINES pass reads a width; kb/Work PB5695), and `RecordLayout.ImageWidth` and `PhysicalWidth`
+sum in `long` and saturate, so an item past the limit never wraps (`05 E PIC X(1000) OCCURS 2000000000` used to read as
+−1,454,759,936 and compile).
 
 **The extended editing sign control symbols are a SET, and two rules are stated over it (kb/Work PB530, PB855).**
 SR24's and SR25's SECOND sentences are the two the matrix cannot reach (they order one currency-like symbol against

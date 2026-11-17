@@ -7000,6 +7000,21 @@ public static class DiagnosticCatalog
         + "factors other than lack of conformance of a compilation group', and its NOTE names 'the limits of an "
         + "implementation'. The limit is documented in docs/CONFORMANCE.md §3 'Integer operands and host carriers'.",
         "ISO §2023:4.5");
+
+    /// <summary>COBOL7641 — a data item's character image is longer than 134,217,728 (2^27) character positions, this
+    /// implementation's limit on the size of one data item, elementary or group (<c>RecordLayout.MaxCharacterPositions</c>, the
+    /// limit COBOL2148 holds an elementary item's PICTURE to; docs/CONFORMANCE.md §3 D-ITEM-SIZE). Each integer-n of the entry is
+    /// within COBOL2427's limit, but their product is not: <c>05 E PIC X(1000) OCCURS 2000000000</c> is 2,000,000,000,000
+    /// positions. Before it the size wrapped in the compiler's 32-bit model and the program allocated until the host ran out of
+    /// memory (kb/Work PB5695). Asked once per item by <c>CheckStorageLimitsPass</c>, at every edition: no edition's text bounds
+    /// the size of a data item, and §2023:4.5 admits the limits of an implementation.</summary>
+    public static readonly DiagnosticDescriptor DataItemBeyondSizeLimit = new(
+        "COBOL7641", "data-item-beyond-size-limit", EditionSeverity.Error,
+        "⚠ IMPLEMENTOR-DEFINED LIMIT. A data item's size exceeds this implementation's limit of 134,217,728 character positions "
+        + "for one data item, elementary or group (the limit COBOL2148 holds a PICTURE to). ISO §2023:4.5: 'Translation may be "
+        + "unsuccessful due to factors other than lack of conformance of a compilation group', and its NOTE names 'the limits of "
+        + "an implementation'. The limit is documented in docs/CONFORMANCE.md §3 D-ITEM-SIZE.",
+        "ISO §2023:4.5");
     /// <summary>§2023:14.9.16.3 SR3/SR4, §2023:14.9.21.3 SR2, §2023:14.9.46.3 SR2 — a contained program's GENERATE, INITIATE or
     /// TERMINATE names a GLOBAL report (§2023:13.18.27.3 SR1 e)) of a containing program whose file description entry
     /// is not GLOBAL (kb/Work PB369). The report is visible; the statement drives output to its file, which the

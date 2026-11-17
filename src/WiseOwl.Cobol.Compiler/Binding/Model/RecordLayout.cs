@@ -43,12 +43,43 @@ internal static class RecordLayout
     /// there made a group MOVE copy fewer characters than the sending group's image holds, so the trailing
     /// members were lost (kb/Work PB1665: <c>MOVE G5 TO G6</c> left <c>B</c> as spaces). Every consumer of a group's
     /// character-image width — MOVE, the receiving store, the boundary windows, ref-mod positions, LENGTH folds,
-    /// the Tier-B strides — reads this one answer, so none restates the unit.</para></summary>
-    public static int ImageWidth(DataItem item) =>
-        item.IsElementary ? item.ElementaryImageWidth
+    /// the Tier-B strides — reads this one answer, so none restates the unit.</para>
+    /// <para>⛔ AN ITEM PAST <see cref="MaxCharacterPositions"/> NEVER WRAPS (kb/Work PB5695). The answer is <see cref="ExactImageWidth"/>
+    /// saturated at <see cref="int.MaxValue"/>: such an item is refused (COBOL7641, <see cref="ExceedsSizeLimit"/>) before any
+    /// program is emitted, and the binder's other readers keep their out-of-range answers meanwhile. The int product used to
+    /// wrap: <c>05 E PIC X(1000) OCCURS 2000000000</c> was 2,000,000,000,000 positions, read as −1,454,759,936.</para></summary>
+    public static int ImageWidth(DataItem item) => (int)Math.Min(ExactImageWidth(item), int.MaxValue);
+
+    /// <summary>⚠ THE IMPLEMENTOR-DEFINED MAXIMUM number of character positions in ONE DATA ITEM, elementary or group (docs/conformance
+    /// determination D-ITEM-SIZE). No edition sets one: §2023:13.18.40.3 SR4 bounds only the WRITTEN character-string, SR14 bounds only
+    /// a numeric or fixed-point numeric-edited item's DIGIT positions (1 through 31), an OCCURS integer bounds only its own count, and
+    /// Annex A.1 carries no maximum-item-size item, so neither an alphanumeric, alphabetic, national or boolean string nor a group is
+    /// bounded by the standard. 2^27 is the largest power of two whose UTF-16 image — two bytes per character position, for
+    /// alphanumeric and national alike — stays inside .NET's single-object ceiling, and an item's image is one such string (an
+    /// elementary item's value, a group's <c>AsImage</c>). Two screens ask it, each where its size is first known: the PICTURE
+    /// expansion of an elementary item (COBOL2148; past it the expansion used to die with an OutOfMemoryException instead of naming
+    /// the source line, kb/Work PB531) and the size of a group (COBOL7641, <see cref="ExceedsSizeLimit"/>; past it the size wrapped
+    /// in the compiler's 32-bit model and the program allocated until the host ran out of memory, kb/Work PB5695).</summary>
+    internal const int MaxCharacterPositions = 1 << 27;
+
+    /// <summary>⛔ THE ONE DECIDER of "this data item is larger than this implementation's limit" over a laid-out item (kb/Work
+    /// PB5695): its <see cref="ExactImageWidth"/> exceeds <see cref="MaxCharacterPositions"/>. <paramref name="width"/> is that
+    /// width, for the diagnostic.</summary>
+    public static bool ExceedsSizeLimit(DataItem item, out long width) => (width = ExactImageWidth(item)) > MaxCharacterPositions;
+
+    /// <summary><see cref="ImageWidth"/>'s rule, computed in <see cref="long"/> and saturated at <see cref="long.MaxValue"/>, so
+    /// the true size of an item past every limit is known and never wraps.</summary>
+    public static long ExactImageWidth(DataItem item)
+    {
+        if (item.IsElementary) return item.ElementaryImageWidth;
         // D19/PB43 — a bit-bearing subtree is laid out by the ONE §2023:8.5.1.6.3 walk, never summed.
-        : item.HasBitDescendant ? BitLayout.Characters(BitLayout.ExtentBits(item))
-        : item.Children.Where(c => c.RedefinesTargetName is null).Sum(c => ImageContribution(item, c) * (c.Occurs ?? 1));
+        if (item.HasBitDescendant) return BitLayout.Characters(BitLayout.ExtentBits(item));
+        long sum = 0;
+        foreach (var c in item.Children)
+            if (c.RedefinesTargetName is null)
+                sum = TableValuePlan.SaturatingAdd(sum, TableValuePlan.SaturatingMultiply(ImageContribution(item, c), c.Occurs ?? 1));
+        return sum;
+    }
 
     /// <summary>The character positions EVERY occurrence of <paramref name="item"/> occupies — <see cref="ImageWidth"/> (one occurrence)
     /// times the occurrences of each table level on its path: the most a reference that names the item without subscripts (a whole
@@ -69,10 +100,10 @@ internal static class RecordLayout
     /// <summary>ONE occurrence of <paramref name="child"/> in the character positions of its enclosing
     /// <paramref name="group"/> — see <see cref="ImageWidth"/>: its own width, doubled to storage characters when
     /// the enclosing group is alphanumeric and the child is of class national.</summary>
-    private static int ImageContribution(DataItem group, DataItem child)
+    private static long ImageContribution(DataItem group, DataItem child)
     {
-        int w = ImageWidth(child);
-        return !InNationalGroup(group) && IsNationalClass(child) ? w * PicInfo.BytesPerPositionOf(Usage.National) : w;
+        long w = ExactImageWidth(child);
+        return !InNationalGroup(group) && IsNationalClass(child) ? TableValuePlan.SaturatingMultiply(w, PicInfo.BytesPerPositionOf(Usage.National)) : w;
     }
 
     /// <summary>A national item is an elementary item of usage national or a national group
@@ -113,7 +144,9 @@ internal static class RecordLayout
         // a group is not reachable here: D-N2's byte≠char containment already refuses a sub-byte overlay, and
         // PB43 records the sub-byte redefiner as explicitly OUT of scope and loud rather than rounded.
         if (item.HasBitDescendant) return BitLayout.Characters(BitLayout.ExtentBits(item));
-        int w = 0;
+        // Summed in long and saturated, as ImageWidth is: an item past MaxCharacterPositions is refused (COBOL7641) and never wraps here
+        // meanwhile (kb/Work PB5695).
+        long w = 0;
         foreach (var c in item.Children)
         {
             // The class-backing substitution applies ONLY where the child is a top-level class MEMBER (the
@@ -124,14 +157,14 @@ internal static class RecordLayout
             // the target) — contributes the ONE backing at class-max width; other members contribute nothing.
             if (c.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(c))
             {
-                if (c.IsCanonical) w += cls.Width;
+                if (c.IsCanonical) w = TableValuePlan.SaturatingAdd(w, cls.Width);
                 continue;
             }
             if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
                 continue;   // a forwarded view
-            w += PhysicalOccurrenceWidth(c) * (c.Occurs ?? 1);
+            w = TableValuePlan.SaturatingAdd(w, TableValuePlan.SaturatingMultiply(PhysicalOccurrenceWidth(c), c.Occurs ?? 1));
         }
-        return w;
+        return (int)Math.Min(w, int.MaxValue);
     }
 
     /// <summary>ONE OCCURRENCE of <paramref name="item"/> on the PHYSICAL (codec, byte) basis — the per-child

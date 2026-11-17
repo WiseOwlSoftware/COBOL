@@ -3343,29 +3343,41 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // A reference modifier written AFTER the subscript group is part of the shape (kb/Work PB5209): the identifier
         // format prints `[ ( {subscript} ... ) ] [ reference-modifier ]` (§1985:IV.4.3.8.5.2), and "If an ALL subscript
         // is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of
-        // the table" (§1985:IV.4.3.8.4.4 GR3; §2023:15.3: "the effect is as if each table element associated with that
+        // the table" (§1985:IV.4.3.8.4.4 GR3a; §2023:15.3: "the effect is as if each table element associated with that
         // subscript position were specified", each one the identifier with its modifier). It is admitted below through
         // the one reference-modification tail. A modifier BEFORE the subscripts is not this shape.
-        // A qualifier written AFTER the subscripts (`TE (ALL) OF TT`) is ExpressionFormationPass's COBOL2776 at every edition
-        // (§2023:8.4.2.3.2 Format 1: the subscripts follow the whole qualified name); like every other reader of a reference
-        // the ALL bind flattens it into the qualifier list, so that one diagnostic is the whole report — handing the argument to
-        // the ordinary bind instead drew a second, COBOL2363, claiming the ALL itself was misplaced (kb/Work PB5485, PB5509).
+        // A qualifier written AFTER the subscripts (`TE (ALL) OF TT`, `TE (ALL) OF TT (2:2)`) is ExpressionFormationPass's
+        // COBOL2776 at every edition (§2023:8.4.2.3.2 Format 1 and §1985:IV.4.3.8.5.2: the subscripts follow the whole
+        // qualified name); like every other reader of a reference (ReferenceResolver.ReadWritten) the ALL bind flattens it into
+        // the qualifier list, so that one diagnostic is the whole report — handing the argument to the ordinary bind instead
+        // drew a second, COBOL2363, claiming the ALL itself was misplaced (kb/Work PB5485, PB5509, PB5544).
+        // ⛔ ONE RULE FOR EVERY WRITTEN PART, wherever the grammar hangs it (a suffix of the name, or a part of a qualification:
+        // `qualification : (OF|IN) cobolWord (subscriptPart|refModPart)*`), in written order: a subscript group is the first
+        // and only one, and a reference modifier stands after it. The walk was a chain of arms per position, and the arm for a
+        // qualifier that carries a modifier and no subscripts refused it even when the subscript group came before that
+        // qualifier (kb/Work PB5544).
         var quals = new List<string>();
         Core.SubscriptPartContext? sp = null;
-        foreach (var suffix in dref.dataReferenceSuffix())
+        bool Admit(Antlr4.Runtime.ParserRuleContext part)
         {
-            if (suffix.refModPart() is not null) { if (sp is null) return false; continue; }
-            if (suffix.subscriptPart() is { } direct) { if (sp is not null) return false; sp = direct; continue; }
-            if (suffix.qualification() is not { } q || q.cobolWord() is not { } qw) return false;
-            quals.Add(qw.GetText());
-            if (q.subscriptPart().Length > 1) return false;
-            if (q.subscriptPart() is [{ } trailing])
+            if (part is Core.SubscriptPartContext group)
             {
                 if (sp is not null) return false;                // a second subscript group — not the shape
-                if (q.refModPart() is [{ } first, ..] && first.Start.TokenIndex < trailing.Start.TokenIndex) return false;
-                sp = trailing;
+                sp = group;
+                return true;
             }
-            else if (q.refModPart().Length > 0) return false;
+            return sp is not null;                               // a reference modifier: after the subscript group only
+        }
+        foreach (var suffix in dref.dataReferenceSuffix())
+        {
+            if (suffix.refModPart() is { } rm) { if (!Admit(rm)) return false; continue; }
+            if (suffix.subscriptPart() is { } direct) { if (!Admit(direct)) return false; continue; }
+            if (suffix.qualification() is not { } q || q.cobolWord() is not { } qw) return false;
+            quals.Add(qw.GetText());
+            foreach (var part in q.children)
+                if (part is Antlr4.Runtime.ParserRuleContext writtenPart and (Core.SubscriptPartContext or Core.RefModPartContext)
+                    && !Admit(writtenPart))
+                    return false;
         }
         if (sp is null) return false;
 

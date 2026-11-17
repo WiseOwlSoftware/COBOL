@@ -12,28 +12,38 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// COBOL2776 at every edition. The ALL bind of a function argument used to give the argument up for it, so the ordinary bind then refused
 /// the ALL itself as COBOL2363 — a message saying ALL is permitted only in a function argument, about an ALL that sits in one. The conformance
 /// suite's refusal file asserts a diagnostic is reported but cannot assert another is NOT, so this is the test of the absence.
+/// <para>The same holds when the qualifier written after the ALL subscript carries a reference modifier (TE (ALL) OF TT (1:1),
+/// kb/Work PB5544): the walk refused a qualifier with a modifier and no subscripts even when the subscript group came before it. The
+/// ALL subscript is in the 1985 edition too (Amendment 1, §1985:IV.4.3.8.2.3 SR7), and its identifier format puts the subscripts after
+/// the qualifiers as 2023's does (§1985:IV.4.3.8.5.2), so each spelling is asked at 85 and at 2023.</para>
 /// </summary>
 public sealed class AllSubscriptQualifierAfterSubscriptTests : WiseOwlCobolTestBase
 {
     [Theory]
-    [InlineData(85)]
-    [InlineData(2023)]
-    public void AQualifierAfterAnAllSubscript_IsCobol2776Alone(int edition)
+    [InlineData(85, "COMPUTE W = FUNCTION MAX (TE (ALL) OF TT)")]
+    [InlineData(2023, "COMPUTE W = FUNCTION MAX (TE (ALL) OF TT)")]
+    [InlineData(85, "MOVE FUNCTION MAX (TE (ALL) OF TT (1:1)) TO R")]
+    [InlineData(2023, "MOVE FUNCTION MAX (TE (ALL) OF TT (1:1)) TO R")]
+    [InlineData(85, "MOVE FUNCTION MAX (TE (ALL) OF G OF TT (1:1)) TO R")]
+    [InlineData(2023, "MOVE FUNCTION MAX (TE (ALL) OF G OF TT (1:1)) TO R")]
+    public void AQualifierAfterAnAllSubscript_IsCobol2776Alone(int edition, string statement)
     {
-        const string source = """
+        string source = $"""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. PB5485N.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 TT.
-               05 TE PIC 9 OCCURS 3.
+               02 G.
+                  05 TE PIC 9 OCCURS 3.
             01 W PIC 9(4).
+            01 R PIC X.
             PROCEDURE DIVISION.
             MAIN.
-                COMPUTE W = FUNCTION MAX (TE (ALL) OF TT)
+                {statement}
                 STOP RUN.
             """;
-        string srcPath = Path.Combine(TempDir, $"pb5485n{edition}.cob");
+        string srcPath = Path.Combine(TempDir, $"pb5485n{edition}-{statement.Length}.cob");
         File.WriteAllText(srcPath, source);
         var compiled = CompilerDriver.Compile(new CompilerDriver.Options(
             srcPath, Path.ChangeExtension(srcPath, ".dll"), DialectLevel: edition, SourceFormat: InitialReferenceFormat.Free));
