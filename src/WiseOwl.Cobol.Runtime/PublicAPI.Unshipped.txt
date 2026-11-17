@@ -331,6 +331,14 @@ WiseOwl.Cobol.Runtime.IO.RecordStepKind.NationalNumeric = 3 -> WiseOwl.Cobol.Run
 WiseOwl.Cobol.Runtime.IO.RecordStepKind.Numeric = 4 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
 WiseOwl.Cobol.Runtime.IO.RecordStepKind.Raw = 0 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
 WiseOwl.Cobol.Runtime.IO.RecordStepKind.Zoned = 2 -> WiseOwl.Cobol.Runtime.IO.RecordStepKind
+WiseOwl.Cobol.Runtime.IO.ReportLinePlacement
+WiseOwl.Cobol.Runtime.IO.ReportPageRegions
+WiseOwl.Cobol.Runtime.IO.ReportPageRegions.FirstDetail.get -> int
+WiseOwl.Cobol.Runtime.IO.ReportPageRegions.Footing.get -> int
+WiseOwl.Cobol.Runtime.IO.ReportPageRegions.Heading.get -> int
+WiseOwl.Cobol.Runtime.IO.ReportPageRegions.Paged.get -> bool
+WiseOwl.Cobol.Runtime.IO.ReportPageRegions.ReportPageRegions() -> void
+WiseOwl.Cobol.Runtime.IO.ReportPageRegions.ReportPageRegions(bool paged, int heading, int firstDetail, int footing) -> void
 WiseOwl.Cobol.Runtime.ManagedPointer<T>.Watch(WiseOwl.Cobol.Runtime.ManagedPointer! area) -> void
 WiseOwl.Cobol.Runtime.MessageOutcome
 WiseOwl.Cobol.Runtime.MessageOutcome.Deconstruct(out bool Successful, out WiseOwl.Cobol.Runtime.MessageTag Tag, out string? Image, out WiseOwl.Cobol.Runtime.RecordExtents? Extents, out WiseOwl.Cobol.Runtime.MessageSlot[]? Slots, out long? Length, out string? Raised, out bool RaisedFatal, out string? Detail) -> void
@@ -1233,6 +1241,11 @@ static WiseOwl.Cobol.Runtime.IO.KeySegment.operator !=(WiseOwl.Cobol.Runtime.IO.
 static WiseOwl.Cobol.Runtime.IO.KeySegment.operator ==(WiseOwl.Cobol.Runtime.IO.KeySegment left, WiseOwl.Cobol.Runtime.IO.KeySegment right) -> bool
 static WiseOwl.Cobol.Runtime.IO.RecordStep.operator !=(WiseOwl.Cobol.Runtime.IO.RecordStep left, WiseOwl.Cobol.Runtime.IO.RecordStep right) -> bool
 static WiseOwl.Cobol.Runtime.IO.RecordStep.operator ==(WiseOwl.Cobol.Runtime.IO.RecordStep left, WiseOwl.Cobol.Runtime.IO.RecordStep right) -> bool
+static WiseOwl.Cobol.Runtime.IO.ReportLinePlacement.AfterHeadingOrFootingNextGroup(WiseOwl.Cobol.Runtime.IO.ReportNextGroup? nextGroup, long lastLine) -> long
+static WiseOwl.Cobol.Runtime.IO.ReportLinePlacement.AnchorSeed(WiseOwl.Cobol.Runtime.IO.ReportLineKind kind, int value, long target) -> long
+static WiseOwl.Cobol.Runtime.IO.ReportLinePlacement.FirstLine(WiseOwl.Cobol.Runtime.IO.ReportGroupKind group, WiseOwl.Cobol.Runtime.IO.ReportLineKind kind, int value, int relativeBase, bool nextPage, WiseOwl.Cobol.Runtime.IO.ReportPageRegions page, long? preceding) -> long
+static WiseOwl.Cobol.Runtime.IO.ReportLinePlacement.RelativeOperand(WiseOwl.Cobol.Runtime.IO.ReportLineKind kind, int value, int relativeBase) -> int
+static WiseOwl.Cobol.Runtime.IO.ReportLinePlacement.SubsequentLine(WiseOwl.Cobol.Runtime.IO.ReportLineKind kind, int value, int relativeBase, long previous, long anchor) -> long
 static WiseOwl.Cobol.Runtime.IO.StartKeyLength.OfDec(WiseOwl.Cobol.Runtime.CobolDec value, int unitWidth) -> WiseOwl.Cobol.Runtime.IO.StartKeyLength
 static WiseOwl.Cobol.Runtime.ManagedPointer<T>.OverStorage(System.Func<T>! get, System.Action<T, WiseOwl.Cobol.Runtime.ReceivingReferences?>! store) -> WiseOwl.Cobol.Runtime.ManagedPointer<T>!
 static WiseOwl.Cobol.Runtime.MessageOutcome.operator !=(WiseOwl.Cobol.Runtime.MessageOutcome left, WiseOwl.Cobol.Runtime.MessageOutcome right) -> bool

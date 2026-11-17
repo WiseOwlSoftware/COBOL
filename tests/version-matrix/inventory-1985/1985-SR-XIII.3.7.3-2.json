@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.3.7.3-2",
  "rule-digest": "f578c5587023",
- "test-ref": "conformance:cases/13.18.16-CONTROL/pb205-control-operand-not-unique",
+ "test-ref": "conformance:cases/13.18.16-CONTROL/pb205-control-operand-not-unique; conformance:cases/XIII.3.7@1985-CONTROL-CLAUSE/pb5866-controls-renames-one-item-85; conformance:cases/XIII.3.7@1985-CONTROL-CLAUSE/pb5866_controls_distinct_items_85",
  "next": {
   "kind": "KEPT",
   "to": [

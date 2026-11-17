@@ -1259,7 +1259,10 @@ public static class DiagnosticCatalog
         + "lines not in increasing numerical order, b) lines that overlap, and e) an absolute line described after a "
         + "relative one each need a different PRESENT WHEN clause; c) \"no line appears above the upper limit or below "
         + "the lower limit allowed for the report group\", the limits being those of the TYPE clause's general rules; "
-        + "d) relative lines after unconditional absolute ones shall not carry the group past its lower limit.",
+        + "d) relative lines after unconditional absolute ones shall not carry the group past its lower limit. At "
+        + "COBOL-85 the code also carries the page's presentation limits: a group that cannot be presented on one page "
+        + "(§1985:XIII.3.8.3 SR9), a report heading or page heading that reaches FIRST DETAIL (§1985:XIII.3.8.4 GR1c), and "
+        + "a line presented outside the vertical subdivision of the page (§1985:XIII.3.15.3 SR1).",
         "ISO §2023:13.18.35.3 SR3/SR4/SR5/SR6/SR7/SR8/SR10");
 
     // ── COBOL2247 — the §2023:13.15.3 CLAUSE-PRESENCE family of a report group description entry, one code for
