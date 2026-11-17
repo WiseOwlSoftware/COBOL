@@ -1060,8 +1060,10 @@ word that heads a later edition's construct (`OBJECT-COMPUTER. CLASS-ID.` at 85 
 second witness never saw the word. The predicate is left-edge and migration-blind: where the edition reserves the word the
 slot is skipped for the construct it heads (`OBJECT-COMPUTER.` then `REPOSITORY.` at 2023). The one name check the
 paragraphs make beyond the parse is 1985's: a computer-name spelled as one of this implementation's implementor-names
-(the `ImplementorNames` and `ImplementorCodeNames` tables) is COBOL7624 below 2002 (§1985:IV.4.2.2.1.2's disjoint
-system-name sets; kb/Work PB5795), asked by `VersionConformancePass.GateComputerName` from both paragraph visitors.
+(a row of `ImplementorNameRegistry`, the one registry of every implementor-name the implementation specifies, assembled
+from the SPECIAL-NAMES, ALPHABET code-name, ASSIGN device class and RECORD DELIMITER tables; kb/Work PB5884) is COBOL7624
+below 2002 (§1985:IV.4.2.2.1.2's disjoint system-name sets; kb/Work PB5795), asked by
+`VersionConformancePass.GateComputerName` from both paragraph visitors. The implementation specifies no language-name.
 
 ### 3.4 Delete dead grammars; quarantine JSON/XML (D5)
 

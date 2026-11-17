@@ -366,9 +366,12 @@ public static class ExceptionCatalog
 
     /// <summary>True when the I-O status value indicates a FATAL EC-I-O exception condition (ISO §2023:9.1.13.1:
     /// "any that begin with the digit 3, 4, or 7, and any that begin with the digit 9 that the implementor
-    /// defines as fatal" — this implementation defines 9x as fatal, the loud-failure doctrine).</summary>
+    /// defines as fatal"). Every 9x the runtime produces at COBOL-2002 and later ('90', '91') is fatal, the loud-failure
+    /// doctrine; the 9x values a COBOL-85 program is told for a condition 1985 does not list are fatal exactly when that
+    /// condition is (§1985:VII.1.3.5's "any that begin with the digit 9 that the implementor defines as critical";
+    /// <c>IO.IoStatus1985.IsCritical</c>, kb/Work PB5882), so a '5x' or '6x' reported as '93' to '98' stays continuable.</summary>
     public static bool IsFatalIoStatus(string status) =>
-        status.Length > 0 && status[0] is '3' or '4' or '7' or '9';
+        status.Length > 0 && (status[0] is '3' or '4' or '7' || status[0] == '9' && IO.IoStatus1985.IsCritical(status));
 
     /// <summary>The EC-I-O level-3 names a file connector can set to exist, in THE canonical mask-bit order — the
     /// compiler's per-statement enable mask (bit i = name i) and the generated <c>__IoCheckEc</c> consult this

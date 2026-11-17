@@ -2,43 +2,50 @@
  "rule-id": "1985-GR-VII.2.8.4-3",
  "rule-digest": "33f196fade57",
  "read": {
-  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
-  "slice": "1985-221",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-238",
   "sources": {
-   "reader": "028328aac0c5fcf9e3876475a14235cad7621e65d41413876f1c571e3854079a",
-   "refuter": "f6a98d0447bf8be2dcfc10143829e65c9104acad7229d11bfe1bd697d7a12542"
+   "reader": "bd51bd42dc7eae79d677c61d04c699dbba6c55fdded09335f78d837e80675e3e",
+   "refuter": "b1986a107a45a96ed6025d8e93ac905af98a87ec7189304b319f653500884522"
   },
   "imported": {
-   "reader": "276f4728abc62cf9eff65a35ec57375a4d6032e20e68754552b86ff2cf005856"
+   "reader": "d6d0c5d51136bd13d27d852603c3ef6ee34ad9ae38b8512bbc52b6a73c83570d",
+   "refuter": "ea7b361ac59841cadfe80f0c1a924f37e4e8b97291c54e38f343c735d6ef9372"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.2.8.4-3",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "requirement": "At 85 RECORD DELIMITER IS implementor-name-1 must frame variable-length records by the method the implementor associates with that implementor-name; the set of implementor-names is the implementor's, and WiseOwl defines none, so the antecedent names nothing it provides.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, RECORD DELIMITER IS implementor-name-1 on a variable-length sequential file makes the length of each variable-length record on the medium determined by the method the implementor associates with that name; a word the implementor associates no method with is not implementor-name-1.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ApplyRecordDelimiter; src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#TryMethod; src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#IsName; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ScreenRecordDelimiter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsKeyword",
-    "switches": "DELIMITER reserved at all four editions; the operand is any cobolWord at every edition",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ScreenRecordDelimiter",
+    "switches": "Edition.Cite picks the edition's citation text in the COBOL7598/COBOL7599 messages only; the check and the method are edition-independent",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "as for GR2: Declined switches on Permissive only; no edition gate on recordDelimiterClause in Validation, Editions or ConstructRegistry.",
+  "edition-search": "grep RecordDelimiter over src (non-generated): no ConstructRegistry construct, no VersionConformancePass visitor, no DialectBehavior; SequentialConnector consults DialectBehavior only for LINAGE; the DialectLevel passed by EmitFileRegistration does not reach framing",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "all of the rule's range at this edition: file B of pb292 writes an implementor-name",
+  "witnesses-cover": "part: pb5844 covers the two names; not the bytes on the medium for each name, trailing-space record lengths under LINE-SEQUENTIAL, the fixed-length refusal",
   "probes": [
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/pb292_record_delimiter_witness-001",
-    "printed": "warning COBOL1778 on F2 (RECORD DELIMITER IS PB292-TAPE-FORMAT); B1=00 LEN=03 [XYZ] B2=00 LEN=08 [STUVWXYZ]",
-    "expected": "declined by name, file framed by the documented default method"
+    "class": "a,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/rdel1.cob",
+    "printed": "1 B 03 [ABC] L 03 [ABC] N 03 [ABC]; 2 B 08 [DEFGHIJK] L 08 N 08 the same; RDELB.DAT and RDELN.DAT = 03 00 00 00 'ABC' 08 00 00 00 'DEFGHIJK'; RDELL.DAT = 'ABC' CR LF 'DEFGHIJK' CR LF",
+    "expected": "BINARY-SEQUENTIAL and no clause: the documented 4-byte length prefix; LINE-SEQUENTIAL: the line delimiter; record lengths read back unchanged"
    },
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/rd_odo_bytes-001",
-    "printed": "warning COBOL1778 on F2 (RECORD DELIMITER IS VARREC); RDO2.DAT byte-identical to the no-clause RDO3.DAT",
-    "expected": "same disposition over an OCCURS DEPENDING ON record"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/rdel2.cob",
+    "printed": "FL1 00 04 [AB] FL2 00 05 [WXYZ1]",
+    "expected": "LINE-SEQUENTIAL keeps a 4-character record with trailing spaces at length 4 (method not reflected in the record size, GR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/rdel3.cob",
+    "printed": "COBOL7598 RECORD DELIMITER IS NO-SUCH-METHOD names no method (§1985:VII.2.8.4 GR3); COBOL7599 BINARY-SEQUENTIAL specified for fixed-length records (§1985:VII.2.8.3 SR1); COBOL1778 warning STANDARD-1 declined",
+    "expected": "a word with no implementor method refused; SR1 refuses the clause on fixed-length records"
    }
   ],
   "citations": [
@@ -47,15 +54,31 @@
     "check": "OK  §1985:VII.2.8.4 GR3  (║2.8.4 General Rules║)  the text is in GR3"
    }
   ],
-  "notes": "WiseOwl specifies no implementor-name for the clause (docs/conformance/7/DOC-A.1-150.md: 'Not provided'), and a name written anyway draws COBOL1778 and the default framing. At 85 the 2023 A.1 'optional' ground does not exist; the ground here is that the implementor-name set is the implementor's and is documented empty, and the warning is the 1985 extension flag (§1985:I.1.5.2.5.2). Verdict by the kb/Work PB5373 class-3 decision, as for GR6. A stricter reading would refuse an undefined implementor-name as a non-word; accepting it inert with a named warning changes nothing a program can observe (GR1).",
+  "notes": "RecordDelimiterNames holds the two implementor-names (GnuCOBOL's, per the R13 precedence) and each selects a documented method (docs/conformance/7/DOC-A.1-151); the file bytes match. LINE-SEQUENTIAL makes the file line sequential at 85 as well (FileModel.LineSequentialByDelimiter), which is the method the implementor associates with that name.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "same: COBOL1778, identical output",
+  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
-  "known_note": "PB292; PB5373; PB280"
+  "known_note": ""
  },
- "work": "PB5844"
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.8.4-3",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,e",
+  "evidence": "Probe refute-1985-238/rdely.cob (runs/rdely-001) at --std 85 (rdelx.cob, the X\"0A\" form, is refused at 85 COBOL0900 as a 2002 literal, so the LF byte comes from SYMBOLIC CHARACTERS LFC IS 11). ORGANIZATION SEQUENTIAL + RECORD DELIMITER IS LINE-SEQUENTIAL: OPEN I-O 00, READ 00 06, REWRITE 00, re-read 'UNO   ' 06 and 'TWO' 03: the sequential file keeps its I-O mode and its lengths. But a legal 5-character variable-length record 'AB'+LF+'CD' WRITE gives I-O status 71 ('LFW 71'), nothing written ('LF1 10'). The method the implementor associates with LINE-SEQUENTIAL cannot determine the length of a record that holds the delimiter character, and the failure is reported with 71, a value 1985 does not define: §1985:VII.1.3.5 lists 00-49 and confines implementor conditions to 9x (the same arm gives 06 and 09 on READ, also not 1985 values). The path consults no edition: the LINE-SEQUENTIAL name sets FileModel.LineSequentialByDelimiter at every edition and the runtime takes the 2023 line sequential arm (§2023 '71' rule) wholesale. Reading for UPHELD: GR3 leaves the method wholly to the implementor, and DOC-A.1-115's line character set is that method's documented domain, so the 71 is a defect of the 1985 I-O status rule, not of GR3. Reading for OVERTURNED: GR3 with GR1 ('Any method used will not be reflected in the record area or the record size used within the program') requires the method to determine the length of every legal variable-length record, and this one restricts record content. No kb/Work note found (grep for 71 with 1985). cite.py: OK  §1985:VII.2.8.4 GR3 the text is in GR3; OK  §1985:VII.2.8.4 GR1 the text is in GR1. OK  §1985:VII.1.3.5 the text is in the clause; it lies in GRL2.5a ('I-O Status = 9x ... must not duplicate any condition specified by the I-O status values 00 through 49').",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ApplyRecordDelimiter: LineSequentialByDelimiter set at every edition, so 85 inherits the 2023 line sequential runtime arm",
+   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteRecord: _lineSequential arm returns 71 (LineRecordInvalidChar) with no edition consulted",
+   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord: _lineSequential arm returns 09/06 with no edition consulted"
+  ],
+  "corrected": "If GR3 is read with GR1: non-conforming at 85 (wrong-answer, I-O status 71 for a legal record, cause a: the 85 path takes the 2023 line sequential arm). Otherwise CONFORMS for GR3 with a separate defect against the 1985 I-O status values (VII.1.3.5) to file."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The doubt is rejected: the rule leaves the method to the implementor. The I-O status 71 the method returns at --std 85 is a separate defect against the 1985 status values (kb/Work PB5882), not against this rule.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
+ }
 }

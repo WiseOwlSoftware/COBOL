@@ -148,6 +148,16 @@ public abstract class FileConnector
     }
     private string _status = FileStatusCode.Success;
 
+    /// <summary>⛔ THE I-O STATUS THE PROGRAM IS TOLD (kb/Work PB5882; docs/FILES_DESIGN.md D33): <see cref="Status"/> is the
+    /// runtime's CONDITION, in its one vocabulary, and every rule inside the runtime reads it; this is what the FILE STATUS
+    /// item, the AT END and INVALID KEY hooks and the USE selection receive, through <c>FileRegistry.Status</c>. From COBOL-2002
+    /// it is the condition itself; at COBOL-85, whose modules list their own values (§1985:VII.1.3.5, §1985:VIII.1.3.4,
+    /// §1985:IX.1.3.4), it is the 1985 value that names the condition or the condition's documented 9x
+    /// (<see cref="IoStatus1985.Report"/>, <see cref="DialectBehavior.IoStatusValuesOutside1985Lists"/>).</summary>
+    public string ProgramStatus =>
+        DialectBehaviors.IsActive(DialectBehavior.IoStatusValuesOutside1985Lists, Edition) ? _status
+            : IoStatus1985.Report(_status, DeclaredOrganization);
+
     /// <summary>⛔ THE PERMANENT ERROR IN EFFECT (kb/Work PB1541; ISO §2023:9.1.13.1: <i>"The permanent error condition
     /// remains in effect for all subsequent input-output operations on the file unless an implementor-defined
     /// technique is invoked to correct the permanent error condition"</i>; Annex A.1 item 105, which is optional and

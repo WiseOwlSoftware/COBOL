@@ -2477,23 +2477,21 @@ internal sealed class VersionConformancePass
         /// <summary>⛔ §1985:IV.4.2.2.1.2 — AT COBOL-85 A COMPUTER-NAME IS NO IMPLEMENTOR-NAME (kb/Work PB5795; COBOL7624). "Computer-name is
         /// a system-name." (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1), and the three types of system-name, computer-name, implementor-name and
         /// language-name, "form disjoint sets; a given system-name may belong to one and only one of them". This implementation's
-        /// computer-names are every well-formed system-name (DOC-A.1-198) but its implementor-names, which are the names its two tables
-        /// specify: the SPECIAL-NAMES device-, feature- and switch-names (<see cref="ImplementorNames"/>) and the ALPHABET code-names
-        /// (<see cref="ImplementorCodeNames"/>, X3.23-1985's implementor-name-2 of the ALPHABET clause); it specifies no language-name
-        /// (§1985:VI.6.12.3 SR1, kb/Work PB5308). The rule is 1985's alone: §2002:8.3.1.1.2 and §2023:8.3.2.3.1 keep the disjointness for
-        /// device-name, feature-name and switch-name, and computer-name is not among them.</summary>
+        /// computer-names are every well-formed system-name (DOC-A.1-198) but its implementor-names, which are every name it specifies
+        /// at any position, read from the ONE registry of them (<see cref="ImplementorNameRegistry"/>, kb/Work PB5884): the SPECIAL-NAMES
+        /// device-, feature- and switch-names, the ALPHABET code-names (X3.23-1985's implementor-name-2 of the ALPHABET clause), the
+        /// ASSIGN device classes and the RECORD DELIMITER names. It specifies no language-name (§1985:VI.6.12.3 SR1: the ENTER
+        /// statement is not provided, kb/Work PB5308), so no word is refused as one. The rule is 1985's alone: §2002:8.3.1.1.2 and
+        /// §2023:8.3.2.3.1 keep the disjointness for device-name, feature-name and switch-name, and computer-name is not among them.</summary>
         private void GateComputerName(CobolParserCore.ComputerNameContext? name, string paragraph)
         {
             if (_p._edition.Year >= 2002 || name is null) return;
             string word = name.GetText();
-            string? kind = ImplementorNames.Lookup(word) is { } row ? ImplementorNames.KindWord(row.Kind)
-                : ImplementorCodeNames.Find(word, national: false) is not null || ImplementorCodeNames.Find(word, national: true) is not null
-                    ? "code-name" : null;
-            if (kind is null) return;
+            if (ImplementorNameRegistry.Lookup(word) is not { } row) return;
             using var _ = Sink.At(name);
             _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.ComputerNameIsImplementorName.Code, EditionSeverity.Error,
                 DiagnosticCatalog.ComputerNameIsImplementorName.Id,
-                $"the {paragraph} computer-name {CobolNames.UpperFold(word)} is one of this implementation's {kind}s, an implementor-name"
+                $"the {paragraph} computer-name {CobolNames.UpperFold(word)} is one of this implementation's implementor-names ({row.Description})"
                 + " — §1985:IV.4.2.2.1.2: \"Within a given implementation these three types of system-names form disjoint "
                 + "sets; a given system-name may belong to one and only one of them.\"", CobolNames.UpperFold(word),
                 DiagnosticCatalog.ComputerNameIsImplementorName.IsoSection));

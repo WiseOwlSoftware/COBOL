@@ -45,7 +45,8 @@ internal static class AssignTargetRule
 {
     /// <summary>The device classes a two-operand TO phrase may lead with. Each denotes a file of the host file
     /// system named by the operand that follows. KEYBOARD / DISPLAY-style console devices are NOT provided: a
-    /// file connector here is always a host file, so such a word would promise a device it cannot deliver.</summary>
+    /// file connector here is always a host file, so such a word would promise a device it cannot deliver. Each is an
+    /// implementor-name, so the table is a source of <see cref="ImplementorNameRegistry"/> (kb/Work PB5884).</summary>
     internal static readonly IReadOnlySet<string> DeviceClasses =
         new HashSet<string>(CobolNames.Comparer) { "DISK", "PRINTER" };
 

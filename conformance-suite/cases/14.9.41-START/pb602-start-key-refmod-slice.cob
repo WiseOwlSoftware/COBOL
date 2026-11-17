@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb602-start-key-refmod-slice
-*> rules: [SR-14.9.41.3-5]
+*> rules: [SR-14.9.41.3-4, SR-8.4.3.3.3-5]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -14,6 +14,9 @@
       *> two characters spell, where ISO 12.4.5.13.4 GR1 makes 1 the first legal relative record number. A silent
       *> wrong answer at every edition.
       *> The positive control is conformance-suite/cases/14.9.41-START/pb602_start_key_identity.cob.
+      *> kb/Work PB5883: the reference-modifier is now refused first, by the one shape screen every KEY
+      *> phrase asks (COBOL2024): "where data-name-n is used in a general format or syntax rule, then
+      *> reference-modification is not permitted" (ISO 8.4.3.3.3 NOTE).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB602NEGSLICE.
        ENVIRONMENT DIVISION.

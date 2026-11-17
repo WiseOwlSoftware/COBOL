@@ -9,6 +9,8 @@
 *> on an OCCURS ancestor, and it reported SR6's message - a sentence that is FALSE of IX-ELEM (1),
 *> which DOES begin at the record key's leftmost character position and IS shorter than it. SR4 now
 *> has its own named check ahead of the position walk, so the reported reason is the real one.
+*> kb/Work PB5883: the SUBSCRIPT is now refused first, by the one shape screen every KEY phrase asks
+*> (COBOL2024); its message quotes 14.9.41.3 SR4 at 2023, 14.9.37.2 SR4 at 2014, IX.4.7.3 SR2 at 1985.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. P354OCIX.
 ENVIRONMENT DIVISION.

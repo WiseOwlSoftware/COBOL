@@ -783,7 +783,7 @@ internal sealed class LinkageBinder(DataBinder data)
         // connector's externalized name (GR4b/GR5's first alternative), already resolved at the FD entry.
         _externalBackings.Add(new CallExternalBacking(
             cls.BackingClrName, cls.BackingCellClrName,
-            externalName ?? item.ExternalizedAs ?? CobolNames.UpperFold(item.CobolName!),
+            externalName ?? item.ExternalizedRecordName(),
             cls.Width, item));
     }
 

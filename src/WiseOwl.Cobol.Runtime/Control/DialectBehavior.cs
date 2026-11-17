@@ -332,6 +332,14 @@ public enum DialectBehavior
     /// consumers are <c>SendersSignStore.Applies</c>, which <c>StorageFormPass</c>'s promotion of the receivers that can be handed a
     /// negative zero and <c>MoveEmitter.ConvertSource</c>'s numeric store both ask.</summary>
     MoveSignIsTheValuesSign = 29,
+    /// <summary>§2002:9.1.12 and every later edition's I-O status clause list values the 1985 text does not have (§2002:9.1.12.7 —
+    /// "I-O status = 51. The input-output statement is unsuccessful due to an attempt to access a record that is currently locked by
+    /// another file connector"), and 2023 adds more ('06', '09', '71'). §1985:VII.1.3.5, §1985:VIII.1.3.4 and §1985:IX.1.3.4 give
+    /// "a list of the values placed in the I-O status for the previously named conditions" for each module and an implementor's
+    /// condition the form 9x. So at <c>--std 85</c> the program's I-O status is the runtime's condition projected onto those
+    /// lists (<c>IoStatus1985.Report</c>; kb/Work PB5882; VCR row 7.86; docs/FILES_DESIGN.md D33), and from 2002 it is the
+    /// condition itself. Both editions are QUOTED. The consumer is <c>FileConnector.ProgramStatus</c>.</summary>
+    IoStatusValuesOutside1985Lists = 30,
 }
 
 /// <summary>
@@ -494,6 +502,11 @@ public static class DialectBehaviors
             "a signed numeric receiving item of a MOVE takes the sign of the value it stores, so a sender truncated to zero stores a "
             + "positive zero, only from COBOL-2014; COBOL-85 and COBOL-2002 place the sign of the sending operand, so MOVE -100 TO S99 "
             + "stores a negative zero"),
+        new(DialectBehavior.IoStatusValuesOutside1985Lists, "io-status-values-outside-1985-lists", 2002,
+            "7.86", "§2002:9.1.12", "§1985:VII.1.3.5",
+            "the program's I-O status takes values the 1985 module lists do not have (the record operation and file sharing "
+            + "conflicts, the record identification failure, the line sequential conditions) only from COBOL-2002; at COBOL-85 "
+            + "each condition is reported by the 1985 value that names it or by its own documented 9x"),
     ];
 
     static DialectBehaviors()

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIII.4.5.4-18",
  "rule-digest": "b8fce584c65f",
+ "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/pb5819_record_sizes_kept_after_extend_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

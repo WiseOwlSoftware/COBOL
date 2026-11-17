@@ -2,38 +2,49 @@
  "rule-id": "1985-GR-VII.4.7.4-12",
  "rule-digest": "bb70572a740c",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-126",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-239",
   "sources": {
-   "reader": "20e9170bc5f4459a0cadc85ee07856342193ac4a9994c0f1a7c4d2bffcfdb769",
-   "refuter": "36f42f5698e704443f96abc322584ae83c422491de9c6ccc64124a0dc2d3e306"
+   "reader": "204c971910d5f4e0cd8912654dcb31898d6ac9326064d9505c11d20a5e430ec5",
+   "refuter": "4ad490973e8fa4e395708d8252f64188831a4b7a7ae00917e7c4884df49a0e68"
   },
   "imported": {
-   "reader": "aec63d656f3a9471f22517fd4bda119a411e281a68b39cd2aad6475938cf4b13",
-   "refuter": "c235ecfd8094b486f8dcd4c891748201ae1f9e9096f547abdf237f9d34d23b6c"
+   "reader": "c5c3bb7659d6d819f0f0453a465958250dccbcdc0331e8b51999925707e53295",
+   "refuter": "f9d82e8ea1bce01fd73400023e1dc0b9ff6c81bda97bb493d62c9d7a435825be"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.4.7.4-12",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, the order in which WRITE statements execute while a sequential file is created (OPEN OUTPUT) is the order a later READ returns the records, for fixed and variable-length records; that order changes only when records are added at the end (OPEN EXTEND), and a new OPEN OUTPUT starts the relationship over.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#CountRecords",
-  "edition-consulted": [],
-  "edition-search": "grep Dialect|Edition|CobolVersion|Std in SequentialConnector.cs: none. The OUTPUT arm of OpenCore truncates (FileMode.Create) and restarts the shared ordinal mint at 0; WRITE appends to the writer stream in execution order; nothing reorders.",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_bf21_02 covers fixed-length records, REWRITE in place and one EXTEND; not exercised: variable-length (RECORD VARYING / OCCURS DEPENDING ON) records, repeated EXTENDs, and a second OPEN OUTPUT re-creating the file",
-  "probes": [
+  "requirement": "At --std 85 the order in which a sequential file's records are read back must be the order in which the WRITE statements that created it executed, unchanged by a REWRITE, extended only by records added at the end (OPEN EXTEND, including on a created optional file), and established afresh when OPEN OUTPUT creates the file again; this holds for fixed, variable-length (RECORD VARYING / ODO) and multi-description records.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReleaseBufferedRecords; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#CountRecords; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OtherConnectorsMayShare; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
+  "edition-consulted": [
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr12.cob",
-    "printed": "V LEN 05 [30CCC] / 12 [10AAAAAAAAAA] / 03 [20B] / 04 [05EE] / 02 [99] / 09 [01FFFFFFF]",
-    "expected": "the creation order 30,10,20 (not key or collating order), then the EXTEND records in their WRITE order, each at its own length"
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OtherConnectorsMayShare",
+    "switches": "SharingFacilityInEffect: from 2002 every WRITE is flushed to the medium; at 85 a connector buffers while it is the only connector on the physical file and flushes per record once a sibling is open",
+    "same-arm-as-latest": false
    },
    {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr12.cob",
-    "printed": "OPT EXTEND ABSENT 05; after OPEN OUTPUT re-creates O and one EXTEND: O [NEW001] / O [NEW002]",
-    "expected": "a new creation establishes a new successor relationship; the earlier records are gone"
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "at 85 (no sharing facility) each connector already open on the file releases its buffered records before an incoming OPEN's body runs",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep SharingFacilityInEffect/Edition/DialectBehavior over SequentialConnector.cs, FileConnector.cs and FileRegistry.cs on the WRITE and OPEN EXTEND paths",
+  "behaviour-differs-by-edition": "no for the order of records; yes for when a WRITE reaches the medium (85 buffers a lone connector's records), which the 85 arm compensates for at a sibling's OPEN",
+  "witnesses-cover": "part: g85_bf21_02 covers fixed-length records, REWRITE in place and EXTEND on an existing and an empty file; variable-length records, multi-description FDs, an optional file created by EXTEND, re-creation by OUTPUT and two connectors appending to one file (the 85 buffering arm) are not exercised",
+  "probes": [
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/p12a.cob",
+    "printed": "LAST WRITE 00 / RW 00 / V 5 E 06 / V 1 Z 02 / V 8 H 09 / V 3 C 04 / W LONGONE / W S01GONE / W LONGTWO / W S02GTWO / X OPEN 05 / X N01",
+    "expected": "write order kept for variable-length records with their lengths, REWRITE in place, EXTEND at the end; FD with two record lengths keeps order; optional file created by EXTEND (05); OUTPUT re-creates the file with a new relationship"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/p12b.cob",
+    "printed": "FB OPEN 00 / A R01 / A R02 / A R03 / A R04 / A R05",
+    "expected": "two connectors appending to one physical file at 85 (the buffering arm): records read back in the order of the WRITE executions"
    }
   ],
   "citations": [
@@ -42,7 +53,7 @@
     "check": "OK  §1985:VII.4.7.4 GR12  (4.7.4 General Rules)  the text is in GR12"
    }
   ],
-  "notes": "The OUTPUT arm truncates and the writer appends in statement order; variable-length frames keep order and length. The edition-dependent sharing arm (DialectBehavior.FileSharingFacility) decides only when a buffered record is flushed, not its place in the file.",
+  "notes": "The one 85-specific arm on this path is the release policy (buffer while alone, release before a sibling's OPEN, flush per record while a sibling is open); the probe with two appending connectors shows the order of execution survives it. A first probe run without setting the DEPENDING ON item failed its WRITEs (VL=0 below the minimum), a probe error and not a finding.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -54,19 +65,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-VII.4.7.4-12",
-  "refutation": "DOUBTFUL",
-  "classes": "a,c,e",
-  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-126/src/rw13b.cob (run rw13b-001, --std 85): a fixed 4-byte sequential file F receives only PLAIN WRITEs (AAAA, BBBB, CCCC, DDDD) in OPEN OUTPUT; a WRITE F AFTER ADVANCING 1 LINE exists in the program but is never executed (IF SW = 1). Read back: six records, '[LF AAA] 00 / [A LF BB] 00 / [BB LF C] 00 / [CCC LF] 00 / [DDDD] 00 / [LF + 3 spaces] 04', five of them never written; the file bytes are LF AAAA LF BBBB LF CCCC LF DDDD LF. Without the dead ADVANCING statement the same WRITEs read back as the four records (reader wrgr12). Probe rw12.cob (rw12-001): a file written AFTER ADVANCING 1 then EXTENDed reads back 7 misaligned records for 5 written. Same at --std 2023 (rw13b-002). Cause: SequentialIoBinder.BindWrite sets FileModel.WrittenWithAdvancing from ANY WRITE of the file in the program (kb/Work PB5201, a deliberate reading of §1985:VII.4.7.4 GR16, OK cite 'automatic advancing will be provided by the implementor to act as if the user had specified AFTER ADVANCING 1 LINE'), and SequentialConnector.IsRecordPrintStream then frames every record with a line feed that READ returns as record data. Reading: GR12 (OK §1985:VII.4.7.4 GR12 'The successor relationship of a sequential file is established by the order of execution of WRITE statements') ties the records a READ returns to the records the WRITEs released; here a READ returns records no WRITE released, decided by a statement that never executed. It is upheld only if a file subject to GR16 advancing is a print representation that need not read back, which the 1985 text neither says nor denies.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite: sets FileModel.WrittenWithAdvancing from any WRITE ADVANCING of the file, executed or not, which turns every record of the file into a print line (not an edition switch)",
-   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#IsRecordPrintStream: selects the print-line framing that READ does not strip"
-  ],
-  "corrected": "If the reading holds: NONCONFORMING (wrong-answer, cause b, same at 2023): a sequential file written only by plain WRITEs does not read back as those records when the program also contains a WRITE ADVANCING of that file, even one never executed."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "The mechanism of kb/Work PB5815 by another trigger: one WRITE ... ADVANCING that never executes makes the file a print file, and two plain records then read back as three wrong ones. I ran it. Lead for the fix: the compiler classifies the file from the source text, while `docs/conformance/7/DOC-A.1-146.md` (c') says \"written with an ADVANCING phrase\".",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-7.md"
- },
- "work": "PB5815"
+  "refutation": "UPHELD",
+  "classes": "a,b,c,e",
+  "evidence": "q4a.cob (runs/q4a-001): RECORD VARYING 2..6 DEPENDING ON VL. OUTPUT A1,B22, a WRITE below the minimum (44, adds nothing), C333; CLOSE WITH NO REWIND (07); EXTEND D4444; I-O REWRITE of record 2 to b22; EXTEND E55555. Forward read: A1 2, b22 3, C333 4, D4444 5, E55555 6, then 10. The 1985-only OPEN INPUT ... REVERSED (obsolete, level 2) reads the same relationship backwards: E55555, D4444, C333, b22, A1, then 10. The order is the WRITE order, unchanged by REWRITE and by the failed WRITE, extended only at the end. Citations: OK §1985:VII.4.7.4 GR12 (the text is in GR12).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

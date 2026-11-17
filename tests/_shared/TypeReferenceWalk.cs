@@ -37,7 +37,8 @@ internal readonly record struct MemberKey(string Type, string Member)
 /// <remarks>
 /// <para>
 /// <b>Population.</b> The C# compiler's synthesized types are not authored, by the census's population rule
-/// (<c>tools/ArchCensus/CompiledPopulation.cs</c>): <c>&lt;Module&gt;</c> and every type carrying
+/// (<c>tools/ArchCensus/CompiledPopulation.cs</c>): every type whose name begins with <c>&lt;</c> (which no source can
+/// declare: <c>&lt;Module&gt;</c>, a collection expression's <c>&lt;&gt;y__InlineArrayN</c>) and every type carrying
 /// <c>[CompilerGenerated]</c>, with the types nested in them. A closure, an iterator or an async state machine nested
 /// in a type is that type's code, so its references fold into it. A type is GENERATED only when every document that
 /// declares it is a generated output (<see cref="GeneratedDocument"/>); a partial with one hand-written document is
@@ -524,7 +525,9 @@ internal sealed class TypeReferenceWalk
 
         /// <summary>The full name of the outermost type of a definition, or null for <c>&lt;Module&gt;</c> and a type
         /// the compiler synthesized at the top level (<c>&lt;PrivateImplementationDetails&gt;</c>, an anonymous type, an
-        /// embedded attribute).</summary>
+        /// embedded attribute, or an inline array a collection expression needs, <c>&lt;&gt;y__InlineArrayN</c>, which
+        /// carries no <c>[CompilerGenerated]</c>): a top-level name that begins with <c>&lt;</c> is one no source can
+        /// declare, so the compiler made it.</summary>
         public string? OutermostOf(TypeDefinitionHandle h)
         {
             if (outermost.TryGetValue(h, out string? cached))
@@ -539,7 +542,7 @@ internal sealed class TypeReferenceWalk
             }
 
             TypeDefinition top = md.GetTypeDefinition(root);
-            string? name = md.GetString(top.Name) == "<Module>" || CompilerGenerated(top) ? null : FullName(root);
+            string? name = md.GetString(top.Name).StartsWith('<') || CompilerGenerated(top) ? null : FullName(root);
             outermost[h] = name;
             return name;
         }

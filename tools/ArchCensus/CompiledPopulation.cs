@@ -9,9 +9,11 @@ namespace WiseOwl.Cobol.Tools.ArchCensus;
 /// The other half of the population check: the type definitions of a project's BUILT assembly, read from its
 /// metadata tables with <c>System.Reflection.Metadata</c> — a reader independent of the Roslyn workspace, so a
 /// project, a document or a source generator the workspace failed to load shows up as a difference instead of as a
-/// smaller census. Types the C# compiler synthesizes are not authored and are left out by ONE stated rule: the
-/// <c>&lt;Module&gt;</c> pseudo-type and any type carrying <c>[CompilerGenerated]</c> (closures, iterators, async
-/// state machines, anonymous types, <c>&lt;PrivateImplementationDetails&gt;</c>, the embedded attributes).
+/// smaller census. Types the C# compiler synthesizes are not authored and are left out by ONE stated rule: a type
+/// whose name begins with <c>&lt;</c>, which no source can declare (<c>&lt;Module&gt;</c>, and the inline arrays a
+/// collection expression needs, <c>&lt;&gt;y__InlineArrayN</c>, which carry no attribute), and any type carrying
+/// <c>[CompilerGenerated]</c> (closures, iterators, async state machines, anonymous types,
+/// <c>&lt;PrivateImplementationDetails&gt;</c>, the embedded attributes), with the types nested in them.
 /// Names are full metadata names (<c>Ns.Outer+Nested`1</c>), matching <see cref="SymbolKeys.MetadataName"/>.
 /// </summary>
 internal static class CompiledPopulation
@@ -44,7 +46,7 @@ internal static class CompiledPopulation
         for (TypeDefinitionHandle h = handle; !h.IsNil; h = md.GetTypeDefinition(h).GetDeclaringType())
         {
             TypeDefinition t = md.GetTypeDefinition(h);
-            if (md.GetString(t.Name) == "<Module>" || IsCompilerGenerated(md, t))
+            if (md.GetString(t.Name).StartsWith('<') || IsCompilerGenerated(md, t))
             {
                 return false;
             }

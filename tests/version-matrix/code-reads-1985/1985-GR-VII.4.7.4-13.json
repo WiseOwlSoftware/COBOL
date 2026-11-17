@@ -68,5 +68,10 @@
   ],
   "corrected": "If the reading holds: NONCONFORMING (wrong-answer, cause b): on a print-stream sequential file, OUTPUT + CLOSE + OPEN EXTEND yields one more line than OUTPUT alone for the same WRITEs."
  },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The 1985 text does not say where the page stands after a CLOSE; GnuCOBOL's CLOSE ends the line a WRITE AFTER left open (libcob/fileio.c), as the compiler's does; recorded as the determination D-PRINT-CLOSE-ENDS-THE-LINE.",
+  "ref": "kb/Work/PB5683/2026-11-16-ruling-extend-after-close.md"
+ },
  "work": "PB5815"
 }

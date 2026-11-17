@@ -2208,8 +2208,13 @@ file name as the clause's data-name and died at OPEN naming a word the programme
   where a general format prints `data-name-n`: the SORT KEY phrase of both formats (§2023:14.9.40.2; §2023:14.9.40.3
   SR14 b) *"Key data names shall not be subscripted"*) and the MERGE KEY phrase (§2023:14.9.24.2). Those keys used to
   keep the base item and drop a reference-modifier, so a table SORT on `K(4:3)` sorted on all of K (kb/Work
-  PB481). READ's KEY operand (§2023:14.9.30.3 SR11) and START's (§2023:14.9.41.3 SR5/SR6) are identity rules and ask
-  `Place.DenotedItem`, which a reference-modified slice never is (kb/Work PB602, PB481).
+  PB481). READ's and START's KEY operand is a data-name that may be qualified and nothing more (§2023:14.9.30.3
+  SR12, §2023:14.9.41.3 SR4; §1985:IX.4.5.3 SR3, §1985:IX.4.7.3 SR2), so both ask this screen first, through
+  `KeyedIoBinder.ScreenKeyOperandShape`, before the operand is read as a record-key-name or as data-name-1: before it,
+  READ asked no shape question and `READ IXF KEY IS IX-T (1)`, a table element over the prime key's positions in
+  another record, read by the prime key (kb/Work PB5883). COBOL-2002 alone keeps an integer-literal subscript
+  (§2002:5.1.3, kb/Work PB5602). The identity rules that follow (§2023:14.9.30.3 SR11, §2023:14.9.41.3 SR5/SR6) ask
+  `Place.DenotedItem` (kb/Work PB602, PB481).
 - **`ScreenReferenceModifier(dref, face, edition)`** — the NOTE's reference-modifier arm alone, for the one
   `data-name-n` operand that must carry a subscript: SEARCH ALL Format 2's `data-name-1` and every `data-name-2`
   (§2023:14.9.37.2; §2023:14.9.37.3 SR8 requires the first index-name subscript). `SearchAllFormat2Rules.CheckKeySide` asks it,
@@ -2494,7 +2499,7 @@ every edition (COBOL6847 at the first entry that differs from the first describe
 (`FileEntryIdentity.Of`, the segments joined into `FileModel.SelectFingerprint`). A segment added for a new clause is checked by both,
 and a clause an edition does not have leaves its segment empty in every entry, so no row carries an edition window. The externality
 conjunct reads `DataItem.ExternalItemIdentity` (a model member, so the emitter no longer calls the binder driver): RELATIVE KEY at
-every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The identity is the item's STORAGE as well as its name (kb/Work PB5857): the name path from its EXTERNAL root, its character offset in the external record (`RecordLayout.OffsetOf`, the offset the RECORD KEY segment carries) and its width, because the items "shall refer to the same corresponding storage" (`§2023:14.8.4.2`; `§1985:VIII.2.4.4 GR8`'s "that same external data item"); a same-named item at other character positions is another item, refused at compile time and mismatched at run time alike. The PADDING CHARACTER clause
+every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The identity is the item's STORAGE as well as its name (kb/Work PB5857): the external record (its externalized name, `DataItem.ExternalizedRecordName`, §2023:13.18.22.4 GR5) and the item's own name, never the names of the groups between them, which each program may describe its own way (§1985:X.4.5.4 GR2; kb/Work PB5888), its character offset in the external record (`RecordLayout.OffsetOf`, the offset the RECORD KEY segment carries) and its width, because the items "shall refer to the same corresponding storage" (`§2023:14.8.4.2`; `§1985:VIII.2.4.4 GR8`'s "that same external data item"); a same-named item at other character positions is another item, refused at compile time and mismatched at run time alike. The PADDING CHARACTER clause
 is captured (`FileModel.Padding`, `FileControlBinder.CapturePadding`) for its syntax rules and its segment; it changes no I-O. **The file DESCRIPTION
 entries** (kb/Work PB5300): `FileDescriptionIdentity.Rules` is the same table for the FD, one row per 1985 clause that states its own
 agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 GR5, CODE-SET §1985:VII.3.4.4 GR3, LINAGE §1985:VII.3.7.4 GR11, RECORD §1985:VII.3.8.4 GR2 (kb/Work PB5387), VALUE OF
@@ -2507,6 +2512,48 @@ RECORD DELIMITER the implementor's method (DOC-A.1-164, DOC-A.1-151), so they ag
 (STANDARD-1 or an implementor-name), at compile and run time; two WRITTEN RECORD DELIMITER clauses agree only when they say the same thing (DOC-A.1-149;
 kb/Work PB5844).
 Witnesses: `12.4.5-File-control/pb5069_*` and `pb5069-*`, `pb5070_padding_one_character` and the two `pb5070-padding-*` refusals.
+
+### D33. At COBOL-85 the program's I-O status is the runtime's condition PROJECTED onto the 1985 lists, decided once, where the program reads it (kb/Work PB5882)
+
+**The problem.** The connectors speak one status vocabulary at every edition, the 2023 one (`FileStatusCode`), so a
+`--std 85` program received values its edition does not have: '71' from a WRITE under `RECORD DELIMITER IS
+LINE-SEQUENTIAL` (kb/Work PB5844's implementor-name), '06' and '09' from the same file's READ. 1985 lists, module by
+module, "the values placed in the I-O status for the previously named conditions" (`§1985:VII.1.3.5`, `§1985:VIII.1.3.4`,
+`§1985:IX.1.3.4`) and gives a condition the implementor adds the form 9x, an "Implementor-Defined Condition With
+Unsuccessful Completion" that "must not duplicate any condition specified by the I-O status values 00 through 49", the value
+of x the implementor's (`§1985:C.2` item 48).
+
+**The decision.** The connector keeps its CONDITION in the runtime's one vocabulary (`FileConnector.Status`, which every
+internal rule reads: the '43' gate, the permanent error in effect, the RETRY class rule, the returned statuses whose class
+steers a phrase), and the program is told `FileConnector.ProgramStatus`: the condition itself from 2002, and at COBOL-85
+the 1985 value that names it (`IoStatus1985.Report`, through `DialectBehavior.IoStatusValuesOutside1985Lists`, VCR row
+7.86). `FileRegistry.Status` (the FILE STATUS store, the AT END / INVALID KEY hooks, the USE and declarative selection,
+the uncovered-fatal termination), `FileRegistry.IoConditionName` and `FileRegistry.ExceptionFile` read it; nothing else
+answers a program. The projection, as data (`IoStatus1985`), in this order:
+- a condition no 1985 module names has its own 9x, one per condition: '45' record identification failure → '92', '51'
+  → '93', '52' → '94', '53' → '95', '54' → '96' (the record operation conflicts), '61' → '97', '62' → '98' (the file
+  sharing conflicts), '71' line sequential record content → '99'. '90' (LINAGE) and '91' (no byte image) are already 9x;
+- a condition 1985 names under another value is reported by that value, because a 9x "must not duplicate" it: '06' (an
+  over-length line, truncated) is the record length conflict of `§1985:VII.4.4.4 GR13`, "the READ statement is successful
+  and an I-O status is set indicating a record length conflict has occurred", '04'; '09' (a successful READ whose line holds
+  a character outside the line set) is a successful completion of which 1985 says no more, '00'; '31' (the dynamic
+  assignment's permanent error) is "A permanent error exists and no further information is available", '30';
+- a value the file's own module lists is itself;
+- a value 1985 lists only for another organization's module: a '0x' or '3x' is that module's "no further information"
+  value of its class ('07' or '02' on a file whose module does not list it → '00', '34' on a relative or indexed file →
+  '30'); a '1x' or '2x' is a condition of a key only the listing module's file has, so it stays the 1985 text's own value.
+Every projection keeps the value's CLASS (successful, at end, invalid key, other) and its criticality, so the phrase a
+returned status steers inside the runtime and the hook that reads the program's status always agree. 1985 makes a 9x
+critical only where "the implementor defines as critical" (`§1985:VII.1.3.5`): '90', '91', '92' and '99' are, as the
+'4x' and '7x' conditions they report are; '93' to '98' are not, as '5x' and '6x' are continuable
+(`IoStatus1985.IsCritical`, which `ExceptionCatalog.IsFatalIoStatus` asks for a '9x').
+**Why here and not in each statement.** Every statement's status already passes the one `Status` setter, and every
+program-visible read already passes the registry; a projection at the producers would be a second copy of the rule per
+statement, and a status added later would leak until someone remembered it. `IoStatus1985Tests` enumerates every
+`FileStatusCode` constant by reflection and requires each, on each organization, to report a value of the 1985 lists or a
+documented 9x of the same class, so a new constant fails the build until it has its 1985 answer. The 9x values are the
+conformance statement's section 3.13. 2002 and later report the condition unprojected (2002 is the owner's frozen edition:
+its own lists are not judged here).
 
 ## C# mapping
 
@@ -2631,10 +2678,11 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   all) and 14.9.41.3 SR6 a) ask. `RecordLayout.GenericKeyIndex` answers SR6 b) alone, and enforces all three
   of its conditions: leftmost-coincident *within a record of the file* (b 1.), the same class, category and
   usage as that key (b 2. — via the ONE 8.5.2.1 Table-2 classifier), and no longer than it (b 3.). SR4's
-  "shall not be subject to any OCCURS clauses" is its OWN named check on BOTH organization arms, through
-  `RecordLayout.IsSubjectToOccurs`, ahead of the position walk — it used to be a side effect of the offset
-  walk bailing out, reported under SR6's message, and the relative arm had no such check at all. The same
-  predicate supplies the three key clauses' identical bans (12.4.5.12.3 SR1 RECORD KEY, 12.4.5.6.3 SR1
+  "shall not be subject to any OCCURS clauses" is answered on BOTH organization arms by the KEY phrase's shape
+  screen (`KeyedIoBinder.ScreenKeyOperandShape`, quoting SR4): an item under an OCCURS clause is a table element,
+  so its reference is subscripted (refused there) or not (refused by the resolver, §2023:8.4.2.3.3 SR5). kb/Work
+  PB354 had given SR4 a named check through `RecordLayout.IsSubjectToOccurs`; once the shape screen came first it
+  could no longer fire and was removed (kb/Work PB5883 review R1-3). `RecordLayout.IsSubjectToOccurs` supplies the three key clauses' identical bans (12.4.5.12.3 SR1 RECORD KEY, 12.4.5.6.3 SR1
   ALTERNATE RECORD KEY, 12.4.5.13.3 SR1 RELATIVE KEY) in `KeyedIoBinder.KeyedValidateFile`.
 - **⛔ START'S SEARCH KEY IS CUT OUT OF THE RECORD AREA, AND THE THREE KEY-VALUED VERBS CUT IT THE SAME WAY**
   (kb/Work PB355). 14.9.41.4 GR17 a) — *"The specified key is set up by moving the relevant parts of the record

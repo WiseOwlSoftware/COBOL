@@ -193,6 +193,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.InspectBeforeFromFirstEligiblePosition = 1
 WiseOwl.Cobol.Runtime.DialectBehavior.InspectFormat3LengthIdentifiedOnce = 7 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic = 25 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IntegerDateFormBounded = 11 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.IoStatusValuesOutside1985Lists = 30 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.LinageViolatingOpenLeavesFileOpen = 28 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.MoveSignIsTheValuesSign = 29 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.NegativeBaseRequiresIntegerExponent = 17 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -234,8 +235,10 @@ WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.Action.get -> int
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.File.get -> string!
 WiseOwl.Cobol.Runtime.Exceptions.SortTerminationSignal.SortTerminationSignal(string! file, int action) -> void
-WiseOwl.Cobol.Runtime.ExternalDescriptor.Deconstruct(out string! Kind, out int ByteCount, out string? ValueImage, out string? StrongTypeKey, out bool ConstantRecord, out string? FileStatusRef, out string? RelativeKeyRef, out string? LinageRef, out string? SelectFingerprint, out string? RecordDelimiter) -> void
-WiseOwl.Cobol.Runtime.ExternalDescriptor.ExternalDescriptor(string! Kind, int ByteCount = 0, string? ValueImage = null, string? StrongTypeKey = null, bool ConstantRecord = false, string? FileStatusRef = null, string? RelativeKeyRef = null, string? LinageRef = null, string? SelectFingerprint = null, string? RecordDelimiter = null) -> void
+WiseOwl.Cobol.Runtime.ExternalDescriptor.Deconstruct(out string! Kind, out int ByteCount, out string? ValueImage, out string? StrongTypeKey, out bool ConstantRecord, out string? FileStatusRef, out string? RelativeKeyRef, out string? LinageRef, out string? SelectFingerprint, out string? RecordDelimiter, out bool NonExternalItem) -> void
+WiseOwl.Cobol.Runtime.ExternalDescriptor.ExternalDescriptor(string! Kind, int ByteCount = 0, string? ValueImage = null, string? StrongTypeKey = null, bool ConstantRecord = false, string? FileStatusRef = null, string? RelativeKeyRef = null, string? LinageRef = null, string? SelectFingerprint = null, string? RecordDelimiter = null, bool NonExternalItem = false) -> void
+WiseOwl.Cobol.Runtime.ExternalDescriptor.NonExternalItem.get -> bool
+WiseOwl.Cobol.Runtime.ExternalDescriptor.NonExternalItem.init -> void
 WiseOwl.Cobol.Runtime.ExternalDescriptor.RecordDelimiter.get -> string?
 WiseOwl.Cobol.Runtime.ExternalDescriptor.RecordDelimiter.init -> void
 WiseOwl.Cobol.Runtime.FigurativeSender
@@ -254,6 +257,7 @@ WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGr
 WiseOwl.Cobol.Runtime.IO.CobolReport.Edition.get -> int
 WiseOwl.Cobol.Runtime.IO.CobolReport.Edition.init -> void
 WiseOwl.Cobol.Runtime.IO.CobolReport.GenerateSummary(string? detailName, System.Func<int, bool>? beforeReporting = null) -> void
+WiseOwl.Cobol.Runtime.IO.FileConnector.ProgramStatus.get -> string!
 WiseOwl.Cobol.Runtime.IO.FileConnector.RecordLengthConflicts(int length) -> bool
 WiseOwl.Cobol.Runtime.IO.FileConnector.StartPositioned() -> string!
 WiseOwl.Cobol.Runtime.IO.FileConnector.Unsuccessful(string! status) -> string!

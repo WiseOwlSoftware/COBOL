@@ -2,129 +2,111 @@
  "rule-id": "1985-GR-XIII.3.10.10-2",
  "rule-digest": "4022f80b103d",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-035",
+  "pin": "1554cc5debb003cdbdf62be59cb1efb910488540",
+  "slice": "1985-244",
   "sources": {
-   "reader": "bd7eed66aebdc546ae845b67f23f0ee080e2d60df4ccadf33495768b8aca753e",
-   "refuter": "6bd50bc9f68399c732b68e4db6a56e29eec3f3c5a38de9d729df0ee82c561943"
+   "reader": "385c7bc3ee2aae5786ce90e5e7e7d6958f2ecefab8e6c9049618cb10d9a8eb42",
+   "refuter": "455816caa4b2ed7f71897a6320ba4eb474838ff6f4a33c98005ec5227e9a8fe0"
   },
   "imported": {
-   "reader": "716b4a8139deaa41f94c8813ff3034c36129e182e18ee4cd308aa4bf272751c8"
+   "reader": "383fb5752b53201579866d974b9482c20ad6c0160c2b3f39dacdb72f07532b9a",
+   "refuter": "a2056428c27686eeab7b0fc4aaecafe15e30e9e948ea68f0d7feec2db216ae24"
   }
  },
  "reader": {
   "rule-id": "1985-GR-XIII.3.10.10-2",
-  "verdict": "PARTIAL",
-  "requirement": "At --std 85, in a report with a PAGE clause, no line of the report footing may be presented below the page limit (integer-1), whatever positions it: an absolute LINE, relative lines placed from FOOTING when no page footing precedes it, or relative lines placed from the final LINE-COUNTER the page footing establishes (its last line, or its NEXT GROUP setting) when one does (§1985:XIII.3.10.10 GR3 b); a description that would do so is in error (§1985:XIII.3.15.3 SR1, §1985:XIII.3.8.3 SR8 f).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup",
+  "verdict": "CONFORMS",
+  "requirement": "In a report with a PAGE clause no line of the report footing report group may be presented below PAGE LIMIT integer-1, for every Table 5 row (A R, R placed from FOOTING or from the page footing's final LINE-COUNTER, NP R); since every 1985 placement is fixed by the description (no PRESENT WHEN), the compiler must refuse a description that places a line past integer-1 (with §1985:XIII.3.15.3 SR1) and present a footing that reaches exactly integer-1.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RelativeGroupLowerLimit; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Cobol85FinalLineCounter; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
-    "switches": "year < 2002: the report footing's UPPER limit is the page footing's final LINE-COUNTER (Cobol85FinalLineCounter) + 1; the LOWER limit (the page limit) is not edition-switched",
-    "same-arm-as-latest": true
-   },
-   {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
-    "switches": "passes Edition.DialectLevel to GroupLimits; the relative-only lower-limit screen (MinimumLastLine with no seed) is the same code at every edition",
+    "switches": "passes Edition.DialectLevel to GroupLimits, Cobol85FinalLineCounter and RelativeGroupLowerLimit",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitChildren",
-    "switches": "ConstructRegistry gates on the LINE clause forms (multiple LINE, NEXT PAGE without integer: 2002) refused at 85",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+    "switches": "report footing UPPER limit: year<2002 seeds from the page footing's final LINE-COUNTER (NEXT GROUP included), else the page footing's last line; the LOWER limit is model.PageLimit at every edition",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine",
-    "switches": "nothing: the page-limit test raises EC-REPORT-PAGE-LIMIT only when checking is on, the same code at every edition",
-    "same-arm-as-latest": true
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Cobol85FinalLineCounter",
+    "switches": "year>=2002 returns null; at 85 the walk of a relative report footing starts from the page footing's final LINE-COUNTER",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RelativeGroupLowerLimit",
+    "switches": "year<2002 report footing returns PageLimit with 1985 rule words; later editions return the same lower (PageLimit) with 2023 words",
+    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "read GroupLimits / ScreenReportGroupLines / MinimumLastLine for year or DialectLevel; grep Edition in ReportWriter.cs (only DialectBehaviors unrelated to footing placement)",
-  "behaviour-differs-by-edition": "no for the lower limit: rf4c and rf4f print the report footing on line 13 of a 12-line page at --std 85 and at --std 2023 alike",
-  "witnesses-cover": "part: pb1270 places the report footing on line 11 of 12 only; nothing reaches the page limit or passes it",
+  "edition-search": "grep year<2002 / Edition.DialectLevel in ReportSectionBinder.cs; runtime ReportWriter.cs#LowerLimit covers body groups only (no report footing arm)",
+  "behaviour-differs-by-edition": "yes: at 85 a relative report footing is placed from the page footing's final LINE-COUNTER (its NEXT GROUP counts) and the refusal names §1985 rules; the lower limit itself (integer-1) is the same",
+  "witnesses-cover": "part: the R row after a page footing (refused and legal); not exercised: an absolute line past integer-1, the A R and NP R rows, R with no page footing",
   "probes": [
    {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4a.cob",
-    "printed": "P01 L04 [D1] L10 [PF] L12 [RF]",
-    "expected": "RF LINE 12 on the page limit is legal and printed there"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/rf1.cob",
+    "printed": "COBOL2199 integer-1 13 exceeds the page limit 12; and LINE 13 lies below the lower limit 12",
+    "expected": "refused: line 13 past integer-1 12 (GR2, §1985:XIII.3.15.3 SR1)"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4b.cob",
-    "printed": "COBOL2199 integer-1 13 exceeds the page limit 12; COBOL2199 LINE 13 below the lower limit 12",
-    "expected": "refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/rf2.cob",
+    "printed": "COBOL2199 the relative lines at the end of report footing report group 'RFG' carry its last line to line 13, past the group's lower limit 12",
+    "expected": "refused (A R row, last line 13 > 12)"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4i.cob",
-    "printed": "COBOL2199 the relative lines of report footing 'RF1' reach line 13, past the lower limit 12",
-    "expected": "refused (FOOTING 9 + 4, no page footing)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/rf3.cob",
+    "printed": "COBOL2199 ... carry its last line to line 13, past the group's lower limit 12",
+    "expected": "refused (NP R row)"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4e.cob",
-    "printed": "COBOL2199 the relative lines at the end of report footing 'RF1' carry its last line to line 13",
-    "expected": "refused (LINE 11 then PLUS 2)"
-   },
-   {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4d.cob",
-    "printed": "P01 L10 [PF] L12 [RF]",
-    "expected": "PF LINE 10, RF LINE PLUS 2 -> line 12, legal"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4c.cob",
-    "printed": "compiles clean; P01 L04 [D1] L10 [PF] L13 [RF]",
-    "expected": "refused: PF LINE 10 then RF LINE PLUS 3 puts the RF's only line on 13, below the page limit 12 (GR3 b, GR2)"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4f.cob",
-    "printed": "compiles clean; P01 L10 [PF] L13 [RF]",
-    "expected": "refused: PF NEXT GROUP PLUS 1 sets LINE-COUNTER 11 (§1985:XIII.3.10.9 GR5 b), RF LINE PLUS 2 -> 13"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/rf4.cob",
+    "printed": "COBOL2199 the relative lines of report footing report group 'RFG' reach line 13, past the page limit 12 (ISO §1985:XIII.3.10.10 GR2 ...)",
+    "expected": "refused: FOOTING 9 + 4 = 13 (GR3b) > 12"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4g.cob",
-    "printed": "P01 L06 [D1] / P02 L12 [RF]",
-    "expected": "RF LINE 12 ON NEXT PAGE (the 1985 form) on its own page at the page limit"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/rf6.cob",
+    "printed": "COBOL2199 reach line 13, placed after the page footing's final LINE-COUNTER setting 11, past the page limit 12",
+    "expected": "refused: PF NEXT GROUP 11 sets LINE-COUNTER 11 (§1985:XIII.3.10.9 GR5a), RF PLUS 2 = 13 > 12"
    },
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4h.cob",
-    "printed": "COBOL2199 integer-1 13 exceeds the page limit 12",
-    "expected": "refused"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/rf5.cob",
+    "printed": "runs; RF5.TXT has DE on line 4, R1 on line 10, R2 on line 12; AFTER TERMINATE 12",
+    "expected": "legal edge: last line exactly integer-1 12; final LINE-COUNTER 12 (GR4a)"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.3.10.10 GR2",
-    "check": "OK  §1985:XIII.3.10.10 GR2  the text is in GR2"
-   },
-   {
-    "cite": "§1985:XIII.3.10.10 GR3b",
-    "check": "OK  §1985:XIII.3.10.10 GR3b  the text is in GR3b"
+    "check": "OK  §1985:XIII.3.10.10 GR2  (3.10.10 Report Footing Presentation Rules)  the text is in GR2"
    },
    {
     "cite": "§1985:XIII.3.15.3 SR1",
-    "check": "OK  §1985:XIII.3.15.3 SR1  the text is in SR1"
-   },
-   {
-    "cite": "§1985:XIII.3.8.3 SR8f",
-    "check": "OK  §1985:XIII.3.8.3 SR8f  the text is in SR8f"
+    "check": "OK  §1985:XIII.3.15.3 SR1  (3.15.3 Syntax Rules)  the text is in SR1"
    }
   ],
-  "notes": "Absolute report-footing lines and relative ones placed from FOOTING are held to the page limit at compile time. A report footing of relative lines after a page footing is checked only from the FOOTING seed: ScreenReportGroupLines calls MinimumLastLine(g, model) with no seed, though at 85 the page footing always prints first on that page (no PRESENT WHEN) and GR3 b places the footing after its final LINE-COUNTER. The description compiles and the RWCS prints the footing below the page limit.",
+  "notes": "Every Table 5 row with a PAGE clause is refused once any line passes integer-1, and a footing ending on integer-1 prints there. The absolute-line and A R/NP R refusals cite §2023 (SR6 c/d) at --std 85 and rf4's message mentions the page footing's LINE-COUNTER where none exists: wording only, the limit applied is the 1985 one.",
   "seeded": true,
-  "harm": "under-rejects; wrong-answer (a report line printed on line 13 of a 12-line page)",
-  "cause": "b",
-  "at-2023": "rf4c and rf4f compile clean at --std 2023 and print RF on line 13 too (EC-REPORT-PAGE-LIMIT is raised only with checking on)",
-  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rf4c.cob: RD R1 PAGE LIMIT IS 12 LINES HEADING 2 FIRST DETAIL 4 LAST DETAIL 8 FOOTING 9; 01 PF1 TYPE PF LINE 10; 01 RF1 TYPE RF LINE PLUS 3; INITIATE, GENERATE D1, TERMINATE",
-  "expected": "§1985:XIII.3.10.10 GR2: \"The last line number on which the report footing report group can be presented is the line number specified by integer-1 of the PAGE clause\"; by GR3 b the footing's line is 10 + 3 = 13, so the description is in error (§1985:XIII.3.15.3 SR1) and must be refused",
-  "observed": "compiles with no diagnostic; the run prints PF on line 10 and RF on line 13 of page 1",
-  "known_note": "none (PB5244, landed, fixed the sibling upper-limit arm; PB1270 the compile-time limits; neither covers a relative report footing seeded from the page footing)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB1003"
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.10-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Read §1985:XIII.3.10.10 GR1-GR4 and Table 5, §1985:XIII.3.10.9 GR5 and §1985:XIII.3.8.4 GR2 (implied FOOTING) and ReportSectionBinder.cs GroupLimits/Cobol85FinalLineCounter/RelativeGroupLowerLimit/ScreenReportGroupLines. Probes at --std 85 (runs under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-244/runs): r1a (PAGE LIMIT 12 HEADING 1 FIRST DETAIL 2, no LAST DETAIL/FOOTING so integer-5 = integer-1 = 12 by GR2c; RF LINE PLUS 1, no PF) -> COBOL2199 reach line 13, past the page limit 12 (refused, as the empty RF region requires); r1b (PF LINE 10 NEXT GROUP PLUS 1, final LINE-COUNTER 11 by §1985:XIII.3.10.9 GR5b; RF LINE PLUS 2) -> COBOL2199 reach line 13 placed after the page footing's final LINE-COUNTER setting 11; r1c (same, RF LINE PLUS 1) -> runs, RF on line 12, LINE-COUNTER 12; r1d (LAST DETAIL 10, FOOTING implied 10 by GR2e; RF LINE PLUS 2, no PF) -> runs, RF on line 12. Every form tried that would put a report footing line past integer-1 is refused and the boundary forms print on integer-1. cite.py: 'OK  §1985:XIII.3.10.10 GR2  (3.10.10 Report Footing Presentation Rules)  the text is in GR2'; 'OK  §1985:XIII.3.8.4 GR2c  (3.8.4 General Rules)  the text is in GR2c'; 'OK  §1985:XIII.3.10.9 GR5b  (3.10.9 Page Footing Presentation Rules)  the text is in GR5b'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

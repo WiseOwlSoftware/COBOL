@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>Every write goes through <see cref="FileStatusCode.PhraseOnNonReelMedium"/>, and a second spelling of the
 /// value is a second setter nobody is guarding, so the test reads both: the named constant may be used only inside
 /// <c>FileRegistry.CloseCell</c> (Table 14's symbols e and g, §2023:14.9.6.4 GR3) and
-/// <c>FileRegistry.NoRewindPhraseEffect</c> (§2023:14.9.27.4 GR11), and the string <c>"07"</c> appears in the runtime and the
+/// <c>FileRegistry.NoRewindPhraseEffect</c> (§2023:14.9.27.4 GR11), and read beside them only by the 1985 sequential module list of <c>IoStatus1985</c> (no setter), and the string <c>"07"</c> appears in the runtime and the
 /// code generator nowhere but the constant's own declaration. A new medium or organization that needs the status
 /// changes those two dispatches, never a third site.</para>
 /// </summary>
@@ -65,8 +65,10 @@ public sealed class IoStatus07SetterDriftTests
             .Order(StringComparer.Ordinal)
             .ToList();
 
+        // IoStatus1985 is no setter: it names the value in the 1985 sequential module's list, which the I-O status a
+        // COBOL-85 program is told is checked against (kb/Work PB5882); it assigns no connector's status.
         Assert.Equal(
-            ["FileRegistry.cs:CloseCell", "FileRegistry.cs:NoRewindPhraseEffect"],
+            ["FileRegistry.cs:CloseCell", "FileRegistry.cs:NoRewindPhraseEffect", "IoStatus1985.cs:IoStatus1985"],
             sites);
     }
 
