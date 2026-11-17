@@ -1153,15 +1153,31 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             : dref.PAGE_COUNTER() is not null ? "PAGE-COUNTER" : null;
         if (register is not null)
         {
+            // ⛔ EVERY ARM OF THIS SCREEN NAMES THE RULE OF THE EDITION IT REFUSES AT (kb/Work PB5883 review R1-2).
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
-                $"{clauseFace} '{WrittenText(dref)}': the clause's general format prints data-name-n, which is a "
-                + "qualified-data-name (ISO §2023:8.4.2.2.2 Format 1); "
-                + $"{register} is a special register — an identifier of §2023:8.4.3.1 "
-                + $"Format {(register == "LINAGE-COUNTER" ? "10" : "11")} — and "
+                $"{clauseFace} '{WrittenText(dref)}': the clause's general format prints data-name-n"
+                + edition.Cite("", "", ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1)", "")
+                + $"; {register} is a special register"
+                + edition.Cite("", "", $" — an identifier of §2023:8.4.3.1 Format {(register == "LINAGE-COUNTER" ? "10" : "11")}", "")
+                + " — and "
                 + (register == "LINAGE-COUNTER"
-                    ? "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2023:8.4.3.14.3 SR1)"
-                    : "may be referenced only in a report-section SOURCE clause or in the procedure division "
-                      + "(ISO §2023:8.4.3.15.3 SR1)"));
+                    ? edition.Cite(
+                        "\"LINAGE-COUNTER may be referenced only in Procedure Division statements\" (ISO §1985:VII.1.3.7)",
+                        "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2002:8.4.2.13.2 SR1)",
+                        "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2023:8.4.3.14.3 SR1)",
+                        "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2014:8.4.2.14.2 SR1)")
+                    : edition.Cite(
+                        register == "PAGE-COUNTER"
+                            ? "\"PAGE-COUNTER may be referenced only in the SOURCE clause of the Report Section and in Procedure "
+                              + "Division statements\" (ISO §1985:XIII.1.2.2)"
+                            : "\"In the Report Section a reference to LINE-COUNTER can only appear in a SOURCE clause\" "
+                              + "(ISO §1985:XIII.3.5.6 SR2)",
+                        "\"In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause\" "
+                            + "(ISO §2002:8.4.2.14.2 SR1)",
+                        "may be referenced only in a report-section SOURCE clause or in the procedure division "
+                            + "(ISO §2023:8.4.3.15.3 SR1)",
+                        "\"In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause\" "
+                            + "(ISO §2014:8.4.2.15.2 SR1)")));
             return false;   // one true sentence: the operand is not a data-name, so its suffixes say nothing more
         }
         // A subscript or a reference-modifier may be written on the base word OR on a qualifier (`qualification`
@@ -1193,9 +1209,16 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         }
         if (subscripted)
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
-                $"{clauseFace} '{WrittenText(dref)}' is written with a subscript; the clause's general format prints "
-                + "data-name-n, which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1) and carries no subscript "
-                + "— subscripting is §2023:8.4.2.3's qualified-data-name-with-subscripts, an identifier form, and "
+                $"{clauseFace} '{WrittenText(dref)}' is written with a subscript; the clause's general format prints data-name-n"
+                + edition.Cite(
+                    ", not identifier, which alone is \"a syntactically correct combination of a data-name, with its qualifiers, "
+                        + "subscripts, and reference modifiers\" (ISO §1985:III.2, Identifier), and ",
+                    // At COBOL-2002 a data-name-n includes subscription (§2002:5.1.3); what refuses it here is the caller's own rule.
+                    ", and ",
+                    ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1) and carries no subscript "
+                        + "— subscripting is §2023:8.4.2.3's qualified-data-name-with-subscripts, an identifier form, and ",
+                    ", whose subscripting each clause's own rule restricts (ISO §2014:E.2 item 25, \"Restrictions for "
+                        + "Qualification and Subscripting of data-name-n\"), and ")
                 + subscriptRule);
         else if (refModified)
             ReportReferenceModified(dref, clauseFace, edition);
@@ -1265,9 +1288,19 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// for a data-name-n operand (<see cref="ScreenDataNameShape"/> and <see cref="ScreenReferenceModifier"/>).
     /// The caller has already established that the reference is reference-modified and set the edition's position.</summary>
     private static void ReportReferenceModified(Core.DataReferenceContext dref, string clauseFace, EditionContext edition) =>
+        // The rule of the edition refused at (kb/Work PB5883 review R1-2): the older texts say where reference modification IS
+        // allowed, an identifier, and the general format prints data-name-n, which is none.
         edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
-            $"{clauseFace} '{WrittenText(dref)}' is reference-modified; \"where data-name-n is used in a general "
-            + "format or syntax rule, then reference-modification is not permitted\" (ISO §2023:8.4.3.3.3 NOTE)");
+            $"{clauseFace} '{WrittenText(dref)}' is reference-modified; "
+            + edition.Cite(
+                "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
+                    + "data item of the class alphanumeric is permitted\" (ISO §1985:IV.4.3.8.4.3 SR3)",
+                "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
+                    + "data item of class alphanumeric, boolean, or national is permitted\" (ISO §2002:8.4.2.3.2 SR5)",
+                "\"where data-name-n is used in a general format or syntax rule, then reference-modification is not permitted\" "
+                    + "(ISO §2023:8.4.3.3.3 NOTE)",
+                "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
+                    + "data item of class alphanumeric, boolean, or national is permitted\" (ISO §2014:8.4.2.3.2 SR5)"));
 
     /// <summary>⛔ ISO §2023:8.4.3.14.3 SR1 — "LINAGE-COUNTER may be referenced only in procedure division statements", for
     /// every DATA DIVISION operand that is not a data-name-n clause position (those are

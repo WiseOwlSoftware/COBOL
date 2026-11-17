@@ -2208,8 +2208,13 @@ file name as the clause's data-name and died at OPEN naming a word the programme
   where a general format prints `data-name-n`: the SORT KEY phrase of both formats (§2023:14.9.40.2; §2023:14.9.40.3
   SR14 b) *"Key data names shall not be subscripted"*) and the MERGE KEY phrase (§2023:14.9.24.2). Those keys used to
   keep the base item and drop a reference-modifier, so a table SORT on `K(4:3)` sorted on all of K (kb/Work
-  PB481). READ's KEY operand (§2023:14.9.30.3 SR11) and START's (§2023:14.9.41.3 SR5/SR6) are identity rules and ask
-  `Place.DenotedItem`, which a reference-modified slice never is (kb/Work PB602, PB481).
+  PB481). READ's and START's KEY operand is a data-name that may be qualified and nothing more (§2023:14.9.30.3
+  SR12, §2023:14.9.41.3 SR4; §1985:IX.4.5.3 SR3, §1985:IX.4.7.3 SR2), so both ask this screen first, through
+  `KeyedIoBinder.ScreenKeyOperandShape`, before the operand is read as a record-key-name or as data-name-1: before it,
+  READ asked no shape question and `READ IXF KEY IS IX-T (1)`, a table element over the prime key's positions in
+  another record, read by the prime key (kb/Work PB5883). COBOL-2002 alone keeps an integer-literal subscript
+  (§2002:5.1.3, kb/Work PB5602). The identity rules that follow (§2023:14.9.30.3 SR11, §2023:14.9.41.3 SR5/SR6) ask
+  `Place.DenotedItem` (kb/Work PB602, PB481).
 - **`ScreenReferenceModifier(dref, face, edition)`** — the NOTE's reference-modifier arm alone, for the one
   `data-name-n` operand that must carry a subscript: SEARCH ALL Format 2's `data-name-1` and every `data-name-2`
   (§2023:14.9.37.2; §2023:14.9.37.3 SR8 requires the first index-name subscript). `SearchAllFormat2Rules.CheckKeySide` asks it,
@@ -2494,7 +2499,7 @@ every edition (COBOL6847 at the first entry that differs from the first describe
 (`FileEntryIdentity.Of`, the segments joined into `FileModel.SelectFingerprint`). A segment added for a new clause is checked by both,
 and a clause an edition does not have leaves its segment empty in every entry, so no row carries an edition window. The externality
 conjunct reads `DataItem.ExternalItemIdentity` (a model member, so the emitter no longer calls the binder driver): RELATIVE KEY at
-every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The identity is the item's STORAGE as well as its name (kb/Work PB5857): the name path from its EXTERNAL root, its character offset in the external record (`RecordLayout.OffsetOf`, the offset the RECORD KEY segment carries) and its width, because the items "shall refer to the same corresponding storage" (`§2023:14.8.4.2`; `§1985:VIII.2.4.4 GR8`'s "that same external data item"); a same-named item at other character positions is another item, refused at compile time and mismatched at run time alike. The PADDING CHARACTER clause
+every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The identity is the item's STORAGE as well as its name (kb/Work PB5857): the external record (its externalized name, `DataItem.ExternalizedRecordName`, §2023:13.18.22.4 GR5) and the item's own name, never the names of the groups between them, which each program may describe its own way (§1985:X.4.5.4 GR2; kb/Work PB5888), its character offset in the external record (`RecordLayout.OffsetOf`, the offset the RECORD KEY segment carries) and its width, because the items "shall refer to the same corresponding storage" (`§2023:14.8.4.2`; `§1985:VIII.2.4.4 GR8`'s "that same external data item"); a same-named item at other character positions is another item, refused at compile time and mismatched at run time alike. The PADDING CHARACTER clause
 is captured (`FileModel.Padding`, `FileControlBinder.CapturePadding`) for its syntax rules and its segment; it changes no I-O. **The file DESCRIPTION
 entries** (kb/Work PB5300): `FileDescriptionIdentity.Rules` is the same table for the FD, one row per 1985 clause that states its own
 agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 GR5, CODE-SET §1985:VII.3.4.4 GR3, LINAGE §1985:VII.3.7.4 GR11, RECORD §1985:VII.3.8.4 GR2 (kb/Work PB5387), VALUE OF
@@ -2631,10 +2636,11 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   all) and 14.9.41.3 SR6 a) ask. `RecordLayout.GenericKeyIndex` answers SR6 b) alone, and enforces all three
   of its conditions: leftmost-coincident *within a record of the file* (b 1.), the same class, category and
   usage as that key (b 2. — via the ONE 8.5.2.1 Table-2 classifier), and no longer than it (b 3.). SR4's
-  "shall not be subject to any OCCURS clauses" is its OWN named check on BOTH organization arms, through
-  `RecordLayout.IsSubjectToOccurs`, ahead of the position walk — it used to be a side effect of the offset
-  walk bailing out, reported under SR6's message, and the relative arm had no such check at all. The same
-  predicate supplies the three key clauses' identical bans (12.4.5.12.3 SR1 RECORD KEY, 12.4.5.6.3 SR1
+  "shall not be subject to any OCCURS clauses" is answered on BOTH organization arms by the KEY phrase's shape
+  screen (`KeyedIoBinder.ScreenKeyOperandShape`, quoting SR4): an item under an OCCURS clause is a table element,
+  so its reference is subscripted (refused there) or not (refused by the resolver, §2023:8.4.2.3.3 SR5). kb/Work
+  PB354 had given SR4 a named check through `RecordLayout.IsSubjectToOccurs`; once the shape screen came first it
+  could no longer fire and was removed (kb/Work PB5883 review R1-3). `RecordLayout.IsSubjectToOccurs` supplies the three key clauses' identical bans (12.4.5.12.3 SR1 RECORD KEY, 12.4.5.6.3 SR1
   ALTERNATE RECORD KEY, 12.4.5.13.3 SR1 RELATIVE KEY) in `KeyedIoBinder.KeyedValidateFile`.
 - **⛔ START'S SEARCH KEY IS CUT OUT OF THE RECORD AREA, AND THE THREE KEY-VALUED VERBS CUT IT THE SAME WAY**
   (kb/Work PB355). 14.9.41.4 GR17 a) — *"The specified key is set up by moving the relevant parts of the record

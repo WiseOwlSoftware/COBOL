@@ -108,7 +108,8 @@ internal static class ExternalFileConnectorRules
 
             // RELATIVE KEY: for an external RELATIVE file, every corresponding SELECT names the same external data item, which is
             // the same storage (§2023:14.8.4.2 "shall refer to the same corresponding storage"): ExternalItemIdentity carries the
-            // item's character positions in the external record beside its name path (kb/Work PB5857).
+            // item's character positions in the external record beside the record and the item's own name (kb/Work PB5857), and
+            // never the names of the groups between them (kb/Work PB5888).
             if (conns.Any(f => f.Organization == FileOrganization.Relative) && conns.Any(f => f.RelativeKeyName is not null))
                 SameItem(edition, conns, f => f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts), f => f.ClauseOrEntryAt(f.RelativeKeyAt),
                     DiagnosticCatalog.ExternalRelativeKeyConsistency, EditionSeverity.Error,
@@ -209,14 +210,15 @@ internal static class ExternalFileConnectorRules
 
     /// <summary>"If any specifies it, all shall, naming the same item": report the first describer that names no external
     /// item, else the first whose item differs from the first describer's.</summary>
-    private static void SameItem(EditionContext edition, List<FileModel> conns, Func<FileModel, string?> identity,
+    private static void SameItem(EditionContext edition, List<FileModel> conns, Func<FileModel, ExternalDataItemIdentity?> identity,
         Func<FileModel, Editions.DiagnosticCursor> at, DiagnosticDescriptor code, EditionSeverity severity, string message,
         string cite, string externalName)
     {
+        // The identities are values compared part by part (record equality of ExternalDataItemIdentity, kb/Work PB5888 R1-1).
         var ids = conns.Select(identity).ToList();
-        if (!ids.Any(id => id is null) && ids.Distinct(StringComparer.Ordinal).Count() <= 1) return;
+        if (!ids.Any(id => id is null) && ids.Distinct().Count() <= 1) return;
         int odd = ids.FindIndex(id => id is null);
-        if (odd < 0) odd = ids.FindIndex(id => !string.Equals(id, ids[0], StringComparison.Ordinal));
+        if (odd < 0) odd = ids.FindIndex(id => id != ids[0]);
         using (edition.At(at(conns[odd])))
             edition.Report(new EditionDiagnostic(code.Code, severity, code.Id, message, $"external file '{externalName}'", cite));
     }
