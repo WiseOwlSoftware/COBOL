@@ -1,106 +1,82 @@
 {
  "rule-id": "1985-SR-XIII.3.20.3-2",
- "rule-digest": "249a30ce83b7",
+ "rule-digest": "2e70a738f678",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-076",
+  "pin": "a05cc533dc71b8875b14f48db632f610014f78ec",
+  "slice": "1985-251",
   "sources": {
-   "reader": "44d586d8cbb609dc61eae27ec31793c5b4679cf8d37209f3730c08e0b61c9851",
-   "refuter": "307ebb4f8f6956d0aa6a0cfddbf9be187b3fea3168a1a1de989118716ae224c9"
+   "reader": "0153a19a0d59809b4d6da97ba41ad424947b03c4dcd9e8ad7e4fc89428bf98fe",
+   "refuter": "58f0cb94399d708290dc160eafffdfacc77db0f06e8a3a23a154823c5850dcc5"
   },
   "imported": {
-   "reader": "0f2831e9880a43e9a704cf55d7ffa9074228528e57c396f0b0b31ea2374c2960",
-   "refuter": "8b6402d22b1b8eced07329585fddbe48dbfa1a481f92f7bd2d7137e8ab97b795"
+   "reader": "141c6501e1142e406205feb213e373f6a00da1b60a90b0c5dd90cc4ab339a79c",
+   "refuter": "c40c0cf8a1ae3066a3d58932e321eaa0bff8ce05dfa21ff54f9f02959eb03b93"
   }
  },
  "reader": {
   "rule-id": "1985-SR-XIII.3.20.3-2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the operand of TYPE CONTROL HEADING / CONTROL FOOTING (a data-name or FINAL, required by the 1985 format, with no ON/FOR and no OR PAGE) must be refused unless it is one of the data-names or FINAL of the same RD's CONTROL clause, including when the RD has no CONTROL clause.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindGroupType; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlLevelOf; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportGroupType; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportControlName",
-  "edition-consulted": [
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportGroupType",
-    "switches": "Constructs.ReportControlOperandForms2002: refuses at 85 a CH/CF with no operand and the OR PAGE phrase (COBOL0900)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportControlName",
-    "switches": "refuses the ON/FOR word at 85 (COBOL0900); GateCobol85ControlName refuses a reference-modified operand at 85 (ReportControlReferenceModification2002)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
-    "switches": "no edition test in the CH/CF level resolution; the omitted-operand arm (Controls.Count == 1 ? 0) is reached only where the 2002 form is admitted",
-    "same-arm-as-latest": true
-   }
-  ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "yes: at 2002+ the operand may be omitted with a one-operand CONTROL clause, may be preceded by ON/FOR, and a control heading may carry OR PAGE; at 85 each is refused by COBOL0900. The SR2 membership test (COBOL0899) is the same code at every edition.",
-  "witnesses-cover": "part: pb205-type-control-operand-other-slice exercises a reference-modified mismatch (itself a 2002 form, and written in free format so it is not run fixed here); the unqualified mismatch, FINAL not in CONTROL, no CONTROL clause, a group item, and the 85-only refusals are covered by these probes only",
+  "requirement": "At --std 85 the compiler must refuse a report description that writes more than one REPORT HEADING, PAGE HEADING, CONTROL HEADING FINAL, CONTROL FOOTING FINAL, PAGE FOOTING or REPORT FOOTING group, whichever spelling (full or abbreviation) each occurrence uses, in paged and unpaged reports alike; one of each is legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupCensus; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupKindOf; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindGroupType",
+  "edition-consulted": [],
+  "edition-search": "Read ScreenReportGroupCensus, GroupKindOf, BindGroupType and the CH/CF level loop of ResolveReports: the only Edition members used are Edition.At and Edition.Error (EditionContext#Error records the diagnostic with no edition test). Grepped VersionConformancePass for ReportGroupType/OrPage/census: only VisitReportGroupType (operand forms, SR4's path), nothing on group counts.",
+  "behaviour-differs-by-edition": "no: 1985 SR2 lists CH FINAL and CF FINAL with the singleton groups; 2023 moves them to SR14 (one per control level), which the one census enforces identically by counting FINAL as a control level.",
+  "witnesses-cover": "part: witnesses cover RH, CH FINAL and CF FINAL twice and a legal census; PH, PF and RF twice, mixed full/abbreviated spellings and an unpaged report were not exercised (probed here).",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p3a_ch_not_control.cob",
-    "printed": "EXIT 65; error COBOL0899: RD 'R1': the TYPE CH operand 'WS-J' shall be the same as one of the operands of the CONTROL clause",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/ph2.cob",
+    "printed": "error COBOL2749: report group 'PH2' is a second PAGE HEADING ('PH1' is the first)",
+    "expected": "refused: PAGE HEADING may appear no more than once"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/pf2.cob",
+    "printed": "error COBOL2749: 'PF2' is a second PAGE FOOTING",
     "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p3b_cf_final_not_control.cob",
-    "printed": "EXIT 65; error COBOL0899: the TYPE CF operand shall be the same as one of the operands of the CONTROL clause",
-    "expected": "refused: FINAL not specified in CONTROL"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/rf2.cob",
+    "printed": "error COBOL2749: 'RF2' is a second REPORT FOOTING",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/rhmix.cob",
+    "printed": "error COBOL2749: 'RH2' (TYPE RH) is a second REPORT HEADING ('RH1', TYPE REPORT HEADING, is the first)",
+    "expected": "refused: RH is an abbreviation for REPORT HEADING (SR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/chfmix.cob",
+    "printed": "error COBOL2749: 'CH2' (CH FINAL) is a second CONTROL HEADING for control 'FINAL' after CONTROL HEADING FINAL",
+    "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p3i_ch_no_control_clause.cob",
-    "printed": "EXIT 65; error COBOL0899 for 'WS-K'",
-    "expected": "refused: no CONTROL clause at all"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/nopage_rh2.cob",
+    "printed": "error COBOL2749: 'RH2' is a second REPORT HEADING (report without PAGE clause)",
+    "expected": "refused"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p3h_cf_group_not_control.cob",
-    "printed": "EXIT 65; error COBOL0899 for 'WS-G' (the group containing the control WS-K)",
-    "expected": "refused: a group containing a control is not the same data-name"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p3c_ch_omitted.cob",
-    "printed": "EXIT 65; error COBOL0900: ... TYPE CH without its control operand",
-    "expected": "refused at 85: the 1985 format braces {data-name-1 | FINAL}"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p3d_ch_on.cob",
-    "printed": "EXIT 65; error COBOL0900: the word ON before a TYPE clause's control operand",
-    "expected": "refused at 85"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p3e_ch_orpage.cob",
-    "printed": "EXIT 65; error COBOL0900: the OR PAGE phrase of TYPE CONTROL HEADING",
-    "expected": "refused at 85"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p3f_qualified.cob",
-    "printed": "EXIT 0; G1 D1",
-    "expected": "CONTROL WS-K OF WS-G with TYPE CH WS-K OF WS-G accepted; CH presented before the detail"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p3g_cf_final_legal.cob",
-    "printed": "EXIT 0; D1 G1",
-    "expected": "CF FINAL with CONTROLS ARE FINAL WS-K accepted; final footing presented at TERMINATE"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/sr2legal.cob",
+    "printed": "EXIT 0, DONE; report file RH1 PH1 CHF CHK 1 CFK CHK 2 CFK CFF ... PF1 RF1 (one of each group, each printed once)",
+    "expected": "legal: one of each type compiles and each group is presented"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.3.20.3 SR2",
-    "check": "OK  §1985:XIII.3.20.3 SR2  (3.20.3 Syntax Rules)  the text is in SR2 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+    "check": "OK  §1985:XIII.3.20.3 SR2  (3.20.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XIII.3.20.3 SR7",
+    "check": "OK  §1985:XIII.3.20.3 SR7  (3.20.3 Syntax Rules)  the text is in SR7"
    }
   ],
-  "notes": "Every operand that the 1985 format admits is resolved against the CONTROL hierarchy and refused with COBOL0899 when it is not one of its entries; the 2002 forms are refused at 85 by VersionConformancePass before the shared omitted-operand arm can be reached. Minor: COBOL0899 is positioned at the RD line, not the group entry (p3a reports (15,8) for the entry on line 16).",
+  "notes": "One census keyed by (group kind, control level) refuses every second singleton group and every second CH/CF FINAL at all editions; the 1985 text has no edition-specific form for this rule. The message cites §2023:13.18.57.3 SR13/SR14 rather than the 1985 clause (cosmetic). The census's body-group check (SR15 in 2023) is also 1985's own SR7.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -114,7 +90,7 @@
   "rule-id": "1985-SR-XIII.3.20.3-2",
   "refutation": "UPHELD",
   "classes": "b,c,d",
-  "evidence": "Read ReportSectionBinder.cs#ControlLevelOf (spelling match first, then the resolved item by ReferenceEquals). Probes at --std 85: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r3e_ctl_qual_ch_unqual.cob (CONTROL WS-P OF WS-Q; CH WS-P; CF WS-P IN WS-Q) -> EXIT 0, R3E.RPT holds G1 D1 G2 G1 D1 G2 (break after MOVE 2 TO WS-P is detected on the same item); E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r3f_ctl_unqual_ch_qual.cob (the converse) -> EXIT 0; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r3b_ch_other_qual.cob (CONTROL WS-K OF WS-G, CH WS-K OF WS-H: same spelling, other item) -> EXIT 65 COBOL0899; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r3c_ch_other_rd_control.cob (CH WS-M where WS-M is the CONTROL of another RD R2 only) -> EXIT 65 COBOL0899. cite.py: OK  §1985:XIII.3.20.3 SR2 ... [RECONSTRUCTED: kb/Work PB4952]. The printed §1985:XIII.3.20.4 GR4 ('at the beginning of a control group for a designated control data-name') agrees with the reconstructed rule.",
+  "evidence": "Read ReportSectionBinder#ScreenReportGroupCensus (keyed per ReportModel by (kind, control level); DETAIL skipped) and its call in ResolveReports after the CH/CF level resolution. Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-251/runs: tworpt.cob (two RDs, each with RH, PH, CH FINAL, DE, CF FINAL, PF, RF, one spelled abbreviated and the other in full) EXIT 0, both report files carry RHn PHn HFn 1 FFn PFn RFn: the census is per report, not per program. unnamedrh2.cob (two unnamed 01 TYPE RH / TYPE REPORT HEADING groups) refused COBOL2749 'second REPORT HEADING'. twode.cob (two DETAIL groups, GENERATE data-name only) EXIT 0, D1 D2 D1: DETAIL is not counted, as SR2 does not list it. cite.py: 'OK  §1985:XIII.3.20.3 SR2  (3.20.3 Syntax Rules)  the text is in SR2'. Cosmetic only: an unnamed 1985 group is named 'FILLER' in the message (FILLER is a 2002 report-group form) and the message cites §2023 SR13.",
   "edition-sites-missed": [],
   "corrected": ""
  }

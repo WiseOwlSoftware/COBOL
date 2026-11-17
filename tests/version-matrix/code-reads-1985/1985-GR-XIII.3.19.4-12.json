@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-XIII.3.19.4-12",
+ "rule-digest": "2fa21cb643a2",
+ "read": {
+  "pin": "a05cc533dc71b8875b14f48db632f610014f78ec",
+  "slice": "1985-250",
+  "sources": {
+   "reader": "e0eed3f705dfb2a90fe0df9dd236ea3a447256afca7a34f6a550a7cba6a9d917",
+   "refuter": "13b851ab30b0140c836035bcb153c21ff86be64ba419c7a2ad35d678f68935a5"
+  },
+  "imported": {
+   "reader": "731ef084b297499a0ad3dab278af3254b8575c4d7ab0d8db5609b85b76a552ca",
+   "refuter": "42793942e9c280c3dec2eb3b0c7cb2aaf73acac97235a00c41ef8c9a5457bd9a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.19.4-12",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a sum counter without RESET is set to zero when its own control footing is processed (also when that footing is SUPPRESSed); with RESET ON data-name-2 or FINAL it is set to zero when that control level is processed, whether or not a control footing is defined for the level; and INITIATE sets every sum counter to zero.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#EndOfGroupSumReset; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenResetLevel",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenResetLevel",
+    "switches": "DialectLevel < 2002: RESET ON may name the footing's own level (must not be lower, §1985:XIII.3.19.3 SR4); from 2002 it must be higher",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EndOfGroupSumReset, ProcessControlFootings and Initiate read no edition (grep Edition|DialectBehavior in ReportWriter.cs)",
+  "behaviour-differs-by-edition": "yes: RESET ON the footing's own control is accepted at 85 and behaves as the default reset (p6c), refused at 2023 (COBOL6824)",
+  "witnesses-cover": "part: g85_bf09_09 covers RESET ON a higher control; not exercised: RESET ON a level with no control footing defined, RESET ON FINAL, a SUPPRESSed footing's reset, INITIATE zeroing a counter the procedure division altered, RESET ON the footing's own level",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p6a.cob",
+    "printed": "CF A1B1 suppressed; CF 12: 4 7 7; CF 21: 8 8 15; F 15; AFTER TERMINATE 0 0 0; ALTERED 50 50 50 50; AFTER INITIATE 0 0 0 0; run 2 CF 21: 16 16 16; F 16",
+    "expected": "S1 reset at its own (suppressed) CF: 4; S2 RESET ON A reset at A level though no CF A: 7 then 8; S3 RESET ON FINAL: 15; INITIATE zeroes altered counters"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p6b.cob",
+    "printed": "COBOL6824 RESET ON B is a lower level control than 'FINAL' (§1985:XIII.3.19.3 SR4)",
+    "expected": "refused: SR4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p6c.cob",
+    "printed": "at 85: same report as p6a; at 2023: COBOL6824 not a higher level control",
+    "expected": "1985 permits RESET ON the footing's own control (not lower), reset at that level"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.19.4 GR12",
+    "check": "OK  §1985:XIII.3.19.4 GR12  (3.19.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR10f",
+    "check": "OK  §1985:XIII.3.20.4 GR10f  (3.20.4 General Rules)  the text is in GR10f"
+   }
+  ],
+  "notes": "A counter with no RESET carries level -1 and is reset at the end of its own group's processing (EndOfGroupSumReset, reached also from BeginGroup for a suppressed group); a RESET level is reset in ProcessControlFootings for every level from minor to the break, declared footing or not. Classes a, d, e, f do not apply to reset timing.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.19.4-12",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:XIII.3.19.4 GR12, XIII.3.20.4 GR10b/10f and XIII.4.7.4 GR2. r6a: S2 in CF B with RESET ON A, rolled into S3 in CF A. CB printed 1, 3, 4 (no reset at B) and CA printed 4, 4, so the cumulative S2 rolls forward each time and resets at level A. After TERMINATE, S2 and S3 are 0 0. INITIATE, MOVE 50/60 to the counters, TERMINATE with no GENERATE left them 50 60: the TERMINATE did no CF processing and no reset, which XIII.4.7.4 GR2 requires. Class c (r6c): at 85, RESET ON FINAL in CF FINAL is accepted (not a lower level) and SUM in a DETAIL is refused COBOL6763 citing §1985:XIII.3.19.3 SR3; at 2023, RESET ON FINAL is refused COBOL6824. Runs r6a-001, r6c-001, r6c-002. cite.py: 'OK  §1985:XIII.3.19.4 GR12  (3.19.4 General Rules)  the text is in GR12'; 'OK  §1985:XIII.4.7.4 GR2  (4.7.4 General Rules)  the text is in GR2'; 'OK  §1985:XIII.3.19.3 SR3  (3.19.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
