@@ -1969,7 +1969,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The CONTROL HEADING / CONTROL FOOTING operand of the TYPE clause (ISO §2023:13.18.57.2 Format 2; kb/Work
-        /// PB5116). §1985:XIII.3.9.2 Format 1 braces it, {CONTROL HEADING | CH} {data-name-1 | FINAL}, so at COBOL-85 the
+        /// PB5116). §1985:XIII.3.20.2 (the TYPE clause, printed folio XIII-55) braces it, {CONTROL HEADING | CH} {data-name-1 | FINAL}, so at COBOL-85 the
         /// operand is required and OR PAGE does not exist (ISO/IEC 1989:2002 Annex F.2 item 87 adds it); the ON / FOR word
         /// is <see cref="VisitReportControlName"/>'s. Fires once per written form; report-section-exclusive rule.</summary>
         public override object? VisitReportGroupType(CobolParserCore.ReportGroupTypeContext ctx)
@@ -1987,7 +1987,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>The optional word ON or FOR before a TYPE clause's control operand (ISO §2023:13.18.57.2 Format 2):
-        /// §1985:XIII.3.9.2 Format 1 prints the operand alone (kb/Work PB5116).</summary>
+        /// §1985:XIII.3.20.2 prints the operand alone (kb/Work PB5116).</summary>
         public override object? VisitReportControlName(CobolParserCore.ReportControlNameContext ctx)
         {
             if ((ctx.ON() ?? ctx.FOR()) is { } word)
@@ -2010,15 +2010,17 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>⛔ THE 1985 FORM OF A CONTROL NAME, ASKED IN ONE PLACE FOR BOTH CLAUSES THAT WRITE ONE (kb/Work PB5573,
-        /// PB5910): the CONTROL clause's data-name-1 and the TYPE clause's CONTROL HEADING / CONTROL FOOTING operand. §1985:III.2:
-        /// a 'data-name' "must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of
-        /// the format". The CONTROL clause permits qualification (§1985:XIII.3.7.3 SR1, "Data-name-1 may be qualified"); the
-        /// printed TYPE clause (folio XIII-55) permits nothing, its §1985:XIII.3.20.3 SR4 asking only that the operand "must be
-        /// specified in the CONTROL clause of the corresponding report description entry", so <paramref name="mayBeQualified"/>
-        /// is the clause's answer. ISO/IEC 1989:2002 adds reference modification to both (13.16.15.2 SR4, 13.16.55.2 SR10) and
-        /// qualification to the TYPE operand (13.16.55.2 SR10; §2014:13.18.57.2 SR10 and §2023:13.18.57.3 SR10 the same). So the
-        /// reference modifier and the TYPE operand's qualifier are 2002 forms, read where every reference reads them
+        /// <summary>⛔ THE 1985 FORM OF A CONTROL NAME, ASKED IN ONE PLACE FOR EVERY CLAUSE THAT WRITES ONE (kb/Work PB5573,
+        /// PB5910): the CONTROL clause's data-name-1, the TYPE clause's CONTROL HEADING / CONTROL FOOTING operand and the SUM
+        /// clause's RESET ON operand. §1985:III.2: a 'data-name' "must not be reference-modified, subscripted, or qualified unless
+        /// specifically permitted by the rules of the format". The CONTROL clause permits qualification (§1985:XIII.3.7.3 SR1,
+        /// "Data-name-1 may be qualified"); the printed TYPE clause (folio XIII-55) permits nothing, its §1985:XIII.3.20.3 SR4
+        /// asking only that the operand "must be specified in the CONTROL clause of the corresponding report description entry",
+        /// and neither does the SUM clause (§1985:XIII.3.19.3 SR4: "Data-name-2 must be one of the data-names specified in the
+        /// CONTROL clause for this report"), so <paramref name="mayBeQualified"/> is the clause's answer. ISO/IEC 1989:2002 adds
+        /// reference modification to all three (13.16.15.2 SR4, 13.16.55.2 SR10, 13.16.52.2 SR7) and qualification to the TYPE
+        /// and RESET operands (13.16.55.2 SR10, 13.16.52.2 SR7; §2023:13.18.57.3 SR10 and §2023:13.18.54.3 SR8 the same). So the
+        /// reference modifier and a qualifier where the clause permits none are 2002 forms, read where every reference reads them
         /// (<c>ReferenceResolver.ReadWritten</c>: a modifier on the word or on a qualifier, <c>WS-KEY OF WS-REC (1:1)</c>). A
         /// subscript is not asked: a subscripted control name is refused at every edition (COBOL1699, COBOL0899), so a 2002
         /// refusal beside it would name an edition that does not admit it either.</summary>
@@ -2029,7 +2031,17 @@ internal sealed class VersionConformancePass
             if (written.IsReferenceModified)
                 _p.Check(Constructs.ReportControlReferenceModification2002, $"the reference-modified {where} {WrittenSource.Of(name)}");
             if (!mayBeQualified && written.Qualifiers.Count > 0)
-                _p.Check(Constructs.ReportTypeOperandQualification2002, $"the qualified {where} {WrittenSource.Of(name)}");
+                _p.Check(Constructs.ReportControlNameQualification2002, $"the qualified {where} {WrittenSource.Of(name)}");
+        }
+
+        /// <summary>The RESET ON operand of the SUM clause (§1985:XIII.3.19.2 data-name-2; kb/Work PB5910), a control name asked
+        /// by <see cref="GateCobol85ControlName"/> with no qualification permitted (§1985:XIII.3.19.3 SR4 gives none). RESET ON
+        /// FINAL names no data item and is not asked.</summary>
+        public override object? VisitReportSumReset(CobolParserCore.ReportSumResetContext ctx)
+        {
+            if (ctx.dataReference() is { } name)
+                GateCobol85ControlName(name, "SUM clause's RESET operand (report group description)", mayBeQualified: false);
+            return base.VisitChildren(ctx);
         }
 
         /// <summary>The '+' symbol for PLUS in a relative LINE or NEXT GROUP operand (ISO §2023:13.18.35.3 SR1, §2023:13.18.37.3

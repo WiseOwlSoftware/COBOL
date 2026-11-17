@@ -224,6 +224,7 @@ public static class Constructs
     public const string ReplaceAnywhere2002 = "replace-anywhere-2002";
     public const string ReplacingPartialWord2002 = "replacing-partial-word-2002";
     public const string ReportCodeIs2002 = "report-code-is-2002";
+    public const string ReportControlNameQualification2002 = "report-control-name-qualification-2002";
     public const string ReportControlOperandForms2002 = "report-control-operand-forms-2002";
     public const string ReportControlReferenceModification2002 = "report-control-reference-modification-2002";
     public const string ReportFiller2002 = "report-filler-2002";
@@ -241,7 +242,6 @@ public static class Constructs
     public const string ReportSourceExpression2002 = "report-source-expression-2002";
     public const string ReportSourceRounded2002 = "report-source-rounded-2002";
     public const string ReportSumForms2002 = "report-sum-forms-2002";
-    public const string ReportTypeOperandQualification2002 = "report-type-operand-qualification-2002";
     public const string ReportValueForms2002 = "report-value-forms-2002";
     public const string ReportVarying2002 = "report-varying-2002";
     public const string RepositoryClass2002 = "repository-class-2002";
