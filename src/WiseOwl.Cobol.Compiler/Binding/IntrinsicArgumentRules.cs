@@ -1869,10 +1869,12 @@ internal static class IntrinsicArgumentRules
         + "so the value it computes is not shown to be an integer — " + TypeSixExpressionRule;
 
     /// <summary>Is the exponent a non-negative integer for every valuation: a literal fold that is a non-negative integer the arithmetic
-    /// keeps exactly, or an unsigned integer data item? An integer base to such a power is an integer.</summary>
+    /// keeps exactly, or an unsigned integer data item under an even number of negations (<c>- (- U)</c> is U)? An integer base to
+    /// such a power is an integer.</summary>
     private static bool IsNonNegativeIntegerExponent(BoundExpr exponent) => exponent switch
     {
         _ when ExactValue(exponent) is { } v => v is { IsInteger: true, Sign: >= 0 } && QuotientsAreExact(exponent),
+        BoundNegate { Operand: BoundNegate { Operand: var inner } } => IsNonNegativeIntegerExponent(inner),
         BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Signed: false } p } } => !AdmitsNonIntegralValue(p),
         _ => false,
     };

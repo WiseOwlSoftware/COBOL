@@ -17,8 +17,8 @@
       *> 14.9.25.4 OK), so the two forms may not differ.
       *>
       *> A COUNTER REGISTER is an unsigned integer data item (§2023:8.4.3.14.4 GR1), so ABS(LINAGE-COUNTER OF F + 1) is an Integer function
-      *> too, and the product with 0 is 0 whatever the counter holds (FACTORIAL(0) = 1). ABS(S2) equals S2 for every value of an
-      *> UNSIGNED S2, so S2 - FUNCTION ABS(S2) is always 0, an integer (§2023:15.3 item 6), and FACTORIAL(0) = 1.
+      *> too, and the product with 0 is 0 whatever the counter holds (FACTORIAL(0) = 1). (S2 - FUNCTION ABS(S2)) over a scaled S2 is
+      *> refused since kb/Work PB5886: ABS of a scaled item is a numeric function, not an integer term (pb5886-numeric-function-terms).
       *>
       *> EXPECTED VALUES, I2 = 3: ABS(3 + 1) = 4; ABS(1.5 + 0.5) = 2; MAX(3 + 1, 1) = 4; ABS(3 * 2) = 6; SUM(3 + 1, 1) = 5;
       *> ABS(ABS(3 + 1) * 2) = 8; ABS(4 / 2) = 2; MIN(3 ** 2, 3) = 3; ABS(1 + 3) = 4; ABS(-2 * 3) = 6; FACTORIAL(ABS(3 - 3 + 1)) = 1.
@@ -36,7 +36,6 @@
        01 R    PIC X(10).
        WORKING-STORAGE SECTION.
        01 I2   PIC 9(2) VALUE 3.
-       01 S2   PIC 9V9 VALUE 2.5.
        01 A3   PIC X(3).
        01 A3B  PIC X(3).
        01 T    PIC 9(4).
@@ -69,7 +68,5 @@
            COMPUTE T = FUNCTION FACTORIAL(
                FUNCTION ABS(LINAGE-COUNTER OF F + 1) * 0)
            DISPLAY "COUNTER=" T
-           COMPUTE T = FUNCTION FACTORIAL(S2 - FUNCTION ABS(S2))
-           DISPLAY "OPAQUE=" T
            STOP RUN.
        END PROGRAM PB4709SCALEZERO.

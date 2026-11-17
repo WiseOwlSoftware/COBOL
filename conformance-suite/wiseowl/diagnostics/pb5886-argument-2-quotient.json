@@ -1,0 +1,1 @@
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "FUNCTION MOD argument-2 is an arithmetic expression that divides FUNCTION ORD (A) by the literal 4"}

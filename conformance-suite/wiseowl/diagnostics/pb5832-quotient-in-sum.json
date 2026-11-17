@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "net factor 0.5"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "divides data item 'WN' by the literal 2"}

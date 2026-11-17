@@ -38,13 +38,11 @@
 *> with each product cut to 32 digits, 8.1591528324789773434561126959604E+47
 *> (the exact 40! is 8.15915283247897734345611269596115894272E+47), so
 *> divided by 10 ** 18 and less 815915283247897734345611269596 it is .04.
-*> Situation 2 of §2002:8.8.1.3.1.3 rounds to 31 digits an
-*> argument with no equivalent arithmetic expression: DATE-OF-INTEGER
-*> (145732 + 1 / K * K) receives 145732.99999999999999999999999999
-*> rounded, 145733, the date 20000102, and DAY-OF-INTEGER of it the
-*> Julian date 2000002; INTEGER-OF-DATE (20000100 + 1 / K * K) receives
-*> 20000100.999999999999999999999999 rounded, the date 20000101, whose
-*> integer date is 145732; INTEGER-PART has an equivalent
+*> An integer argument written over 1 / K * K (145732 + 1 / K * K, which
+*> this arithmetic makes 145732.99999999999999999999999999) is refused
+*> at compile time since kb/Work PB5886, a quotient over an item being
+*> no integer term, so no leg passes it to DATE-OF-INTEGER, DAY-OF-INTEGER
+*> or INTEGER-OF-DATE. INTEGER-PART has an equivalent
 *> expression and keeps .99999999999999999999999999999999, so 0. The
 *> INTEGER function's argument "is not rounded" at 2002 (§2002:15.34.3
 *> RV1), so INTEGER (1 / K * K) is 0, and 2014 has no such rule, so its
@@ -101,12 +99,6 @@ PROCEDURE DIVISION.
     DISPLAY "EXP10 " D
     COMPUTE F = (FUNCTION FACTORIAL (40) / 10 ** 18 - 815915283247897734345611269596) * 100
     DISPLAY "FACTORIAL " F
-    COMPUTE I = FUNCTION DATE-OF-INTEGER (145732 + 1 / K * K)
-    DISPLAY "DATE-OF-INTEGER " I
-    COMPUTE I = FUNCTION DAY-OF-INTEGER (145732 + 1 / K * K)
-    DISPLAY "DAY-OF-INTEGER " I
-    COMPUTE I = FUNCTION INTEGER-OF-DATE (20000100 + 1 / K * K)
-    DISPLAY "INTEGER-OF-DATE " I
     COMPUTE I = FUNCTION INTEGER-PART (1 / K * K)
     DISPLAY "INTEGER-PART " I
     COMPUTE I = FUNCTION INTEGER (1 / K * K)
