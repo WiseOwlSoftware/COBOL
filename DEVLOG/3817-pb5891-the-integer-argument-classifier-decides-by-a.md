@@ -1,4 +1,4 @@
-## PB5891: the integer-argument classifier decides by a polynomial normal form, so N * (N + 1) / 2 is an integer argument
+## Entry 3817 — 2026-11-17 01:48 PST — PB5891: the integer-argument classifier decides by a polynomial normal form, so N * (N + 1) / 2 is an integer argument
 
 **Re-probe.** The refuter's `fn_edge.cob` (slice 1985-247) was refused COBOL1627 at `--std 85` and `--std 2023` on main cdc9601608:
 `FACTORIAL (N * (N + 1) / 2)`, `MOD (N * (N + 1) / 2 4)`, `CHAR (N * (N - 1) / 2 + 65)` and `RANDOM (N * (N + 1) / 2)` over N PIC 99.
@@ -68,3 +68,4 @@ into PIC 9V9(17)); only an argument at a type 6 (integer) position drops the res
 value moves (`pb5891_argument_receiver_scale` prints main's values). The renderer asserts an argument in the context it uses; the
 classifier reads scale 0, never less exact (pinned by a unit test). The carrier prediction `FunctionValueLane` moved to the bound layer,
 reading a call's catalog facts as data (`IntrinsicCarrierFacts`, compiler.model) instead of through a forwarder.
+
