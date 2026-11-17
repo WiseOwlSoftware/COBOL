@@ -92,6 +92,11 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         ("N - FUNCTION MAX (N)", false, "PB5886 round 2: MAX of integer arguments is an integer function (its type table)"),
         ("FUNCTION SUM (N U) / 2 * 2", false, "SUM of integer arguments is an integer function, under the net factor 1"),
         ("FUNCTION ABS (M) + 1", false, "ABS of an integer argument is an integer function"),
+        // PB5886 round 2, R2-1: a function's type takes its argument's type from the SAME classifier as the screen.
+        ("FUNCTION MAX (N / 2 * 2)", false, "N / 2 * 2 is an integer argument, so MAX of it is an integer function"),
+        ("FUNCTION MAX (K * 10) - 12", false, "K * 10 is an integer argument, so MAX of it is an integer function"),
+        ("FUNCTION MAX (FUNCTION MIN (N / 2 * 2), 1)", false, "two functions deep: MIN of an integer argument, then MAX of integers"),
+        ("FUNCTION MAX (N / 2)", true, "N / 2 is no integer argument, so MAX of it is a numeric function"),
         ("FUNCTION INTEGER (N) / FUNCTION INTEGER (U)", true, "PB5886: a quotient of two integer functions"),
         ("N * N * N / 2", true, "PB5886: a quotient over a product of items"),
         ("1 / 3 * 3", true, "a literal quotient the arithmetic does not keep exactly (PB4758)"),

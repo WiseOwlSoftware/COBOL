@@ -1761,6 +1761,12 @@ internal static class IntrinsicArgumentRules
     /// (kb/Work PB5889, a recorded decision). The verdict is the same at every edition (the requirement is the same in both texts).</summary>
     private static string? NotAlwaysIntegral(BoundExpr expr) => NotAlwaysIntegral(expr, quotientDigits: 0);
 
+    /// <summary>⛔ THE ONE ANSWER TO "IS THIS ARITHMETIC EXPRESSION ALWAYS AN INTEGER" (kb/Work PB5886 round 2, R2-1): the type 6 screen
+    /// refuses an argument exactly when this is false, and <c>IntrinsicResultType.IsIntegerArgument</c> reads it for the type tables of the
+    /// functions whose type depends on their arguments, so <c>FUNCTION MAX (WN / 2 * 2)</c> is an integer function as <c>WN / 2 * 2</c> is
+    /// an integer argument (§2023:15.3 AR6; §1989:A.2.2 AR4).</summary>
+    internal static bool IsAlwaysIntegral(BoundExpr expr) => NotAlwaysIntegral(expr) is null;
+
     /// <summary><see cref="NotAlwaysIntegral(BoundExpr)"/> of a subexpression evaluated under quotients by literals whose reciprocals
     /// already spend <paramref name="quotientDigits"/> fraction digits (see <see cref="CollectAdditive"/>).</summary>
     private static string? NotAlwaysIntegral(BoundExpr expr, int quotientDigits)
@@ -1994,6 +2000,21 @@ internal static class IntrinsicArgumentRules
     /// (<see cref="PicInfo.ScaledCarrierDigits"/>): the argument cannot be given a scale-0 literal, so it is not an Integer argument.</summary>
     internal static BoundExpr? IntegralForm(BoundExpr e)
     {
+        if (LiteralScaleZeroForm(e) is not { } form) return null;
+        // ⛔ AN ARGUMENT THE TYPE 6 CLASSIFIER ADMITS BY A LITERAL FACTOR OR A QUOTIENT BY A LITERAL (kb/Work PB5886 round 2, R2-1) is an
+        // integer by VALUE but is computed at a scale above 0 (`S * 10` at S's scale, `WN / 2 * 2` at the quotient's): its scale-0 form is
+        // FUNCTION INTEGER-PART of it, the integer function whose value is the integer part (§2023:15.49.1), which an exact integral value
+        // keeps unchanged. A form ProvablyIntegral reads is at scale 0 already.
+        if (ProvablyIntegral(form)) return form;
+        if (!IntrinsicCatalog.TryGet("INTEGER-PART", out var integerPart))
+            throw new InvalidOperationException("the intrinsic catalog has no INTEGER-PART row, which the scale-0 form of an integer argument needs");
+        return new BoundIntrinsicCall(integerPart, [new BoundComputedOperand(form)], PicCategory.Numeric);
+    }
+
+    /// <summary>The literal half of <see cref="IntegralForm"/>: every integral-valued subtree written with fraction digits replaced by the
+    /// integer literal of its exact value, walking the +, −, ×, unary − and ** spine; null when such a value is wider than the carrier.</summary>
+    private static BoundExpr? LiteralScaleZeroForm(BoundExpr e)
+    {
         // ⛔ A SUBTREE THAT NEEDS NO REWRITE IS RETURNED AS THE INSTANCE IT WAS: the binder's evaluation-order analysis
         // (ArgumentOrder, §2023:8.4.3.2.4 GR2) holds an argument by reference, and a rebuilt-but-equal node made it lose
         // the frozen value of `FUNCTION SUM(WS-B * WS-B, FUNCTION RVBMP(WS-B))` (pb3974_expression_subject_frozen_past_carrier);
@@ -2008,17 +2029,17 @@ internal static class IntrinsicArgumentRules
         {
             case BoundBinary b:
             {
-                if (IntegralForm(b.Left) is not { } left || IntegralForm(b.Right) is not { } right) return null;
+                if (LiteralScaleZeroForm(b.Left) is not { } left || LiteralScaleZeroForm(b.Right) is not { } right) return null;
                 return ReferenceEquals(left, b.Left) && ReferenceEquals(right, b.Right) ? b : b with { Left = left, Right = right };
             }
             case BoundNegate n:
             {
-                if (IntegralForm(n.Operand) is not { } operand) return null;
+                if (LiteralScaleZeroForm(n.Operand) is not { } operand) return null;
                 return ReferenceEquals(operand, n.Operand) ? n : n with { Operand = operand };
             }
             case BoundPower pw:
             {
-                if (IntegralForm(pw.Base) is not { } @base || IntegralForm(pw.Exp) is not { } exponent) return null;
+                if (LiteralScaleZeroForm(pw.Base) is not { } @base || LiteralScaleZeroForm(pw.Exp) is not { } exponent) return null;
                 return ReferenceEquals(@base, pw.Base) && ReferenceEquals(exponent, pw.Exp) ? pw : pw with { Base = @base, Exp = exponent };
             }
             default:

@@ -31,6 +31,14 @@
       *>   7 / 7 + N (a literal quotient of 1)    = 2
       *>   N ** 2 + FUNCTION ORD (A)              = 68
       *>   - FUNCTION ORD (A) + 100               = 33
+      *> A function whose type depends on its arguments' types takes
+      *> an argument's type from the same reading (kb/Work PB5886
+      *> review round 2, R2-1): MAX of integer arguments is an
+      *> integer function (§2023:15.59.1), and WN / 2 * 2 and S * 10
+      *> are integer arguments. With WN = 3 and S = 1.5:
+      *>   FUNCTION MAX (WN / 2 * 2)              = 3
+      *>   FACTORIAL (FUNCTION MAX (S * 10) - 12) = 3! = 6
+      *>   FUNCTION MAX (FUNCTION MIN (WN / 2 * 2), 1) = 3
       *> A screen that refused a function term for its shape, or a
       *> literal quotient that is an integer, fails here.
        IDENTIFICATION DIVISION.
@@ -39,6 +47,8 @@
        WORKING-STORAGE SECTION.
        01  A  PIC X VALUE "B".
        01  N  PIC 9 VALUE 1.
+       01  WN PIC 9 VALUE 3.
+       01  S  PIC 9V9 VALUE 1.5.
        01  R  PIC 9(4).
        PROCEDURE DIVISION.
        MAIN-PARA.
@@ -59,5 +69,12 @@
            COMPUTE R = FUNCTION MOD (N ** 2 + FUNCTION ORD (A), 1000).
            DISPLAY R.
            COMPUTE R = FUNCTION MOD (- FUNCTION ORD (A) + 100, 1000).
+           DISPLAY R.
+           COMPUTE R = FUNCTION MOD (FUNCTION MAX (WN / 2 * 2), 1000).
+           DISPLAY R.
+           COMPUTE R = FUNCTION FACTORIAL (FUNCTION MAX (S * 10) - 12).
+           DISPLAY R.
+           COMPUTE R = FUNCTION MOD (FUNCTION MAX
+               (FUNCTION MIN (WN / 2 * 2), 1), 1000).
            DISPLAY R.
            STOP RUN.

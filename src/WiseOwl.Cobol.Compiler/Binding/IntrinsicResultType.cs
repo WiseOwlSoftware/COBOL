@@ -347,8 +347,10 @@ internal static class IntrinsicResultType
     /// <summary>The §2023:15.3 type-6 reading of one ARGUMENT for the result-type rows: <see cref="IsIntegerOperand(BoundOperand)"/>,
     /// and any ARITHMETIC EXPRESSION the intrinsic binder makes a computed operand of (<c>ABS((I2))</c> kb/Work PB4635,
     /// <c>ABS(I2 + 1)</c>, <c>ABS(- I2)</c>, <c>MAX(I2 + 1 1)</c> kb/Work PB4709) — "an arithmetic expression that will always
-    /// result in an integer value" (§2023:15.3 item 6) — when <see cref="IntrinsicArgumentRules.ProvablyIntegral"/>, the ONE reading of
-    /// "always", proves it and <see cref="IntrinsicArgumentRules.IntegralForm"/> can give it the scale-0 value the Integer row needs, so the
+    /// result in an integer value" (§2023:15.3 AR6; at COBOL-85 §1989:A.2.2 AR4, "An arithmetic expression which will always result in an
+    /// integer value") — when <see cref="IntrinsicArgumentRules.IsAlwaysIntegral"/>, the ONE reading of "always" that the type 6 screen also
+    /// asks (kb/Work PB5886 round 2, R2-1: <c>MAX (WN / 2 * 2)</c> is Integer exactly as <c>WN / 2 * 2</c> is an integer argument), admits it
+    /// and <see cref="IntrinsicArgumentRules.IntegralForm"/> can give it the scale-0 value the Integer row needs, so the
     /// function keeps the Integer row it has when the argument is a bare integer item or literal (the per-function tables of §2023:15.7.1 and
     /// its siblings, summarized by §2023:15.6 Table 21: "Both Int and Num are listed in the arguments column when the type of the argument
     /// determines the type of the function"). A parenthesized sole LITERAL is read as the bare literal is, by its FORM
@@ -360,7 +362,7 @@ internal static class IntrinsicResultType
         IsIntegerOperand(op) || op switch
         {
             BoundComputedOperand { EnclosedOperand: BoundNumericLiteral enclosed } => IsIntegerOperand(enclosed),
-            BoundComputedOperand { Expr: var expr } => IntrinsicArgumentRules.ProvablyIntegral(expr) && IntrinsicArgumentRules.IntegralForm(expr) is not null,
+            BoundComputedOperand { Expr: var expr } => IntrinsicArgumentRules.IsAlwaysIntegral(expr) && IntrinsicArgumentRules.IntegralForm(expr) is not null,
             _ => false,
         };
 
