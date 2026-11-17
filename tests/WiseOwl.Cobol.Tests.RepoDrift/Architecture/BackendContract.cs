@@ -203,7 +203,7 @@ internal static class BackendContract
             "Model.EditionCite.At()", "Model.EditionCite.Iso2023", "Model.EditionCite.Sequential1985",
             "Model.EditionCite.Relative1985", "Model.EditionCite.Indexed1985",
             "Model.DescriptionClauses.AlignedOrDynamicLengthMismatch()", "Model.DescriptionCopyAttribute.Reason",
-            "Model.ItemCategory.Face()", "Model.RecordClauseFacts.FormatFace", "Model.RecordClauseFacts.LowerName",
+            "Model.ItemCategory.Face()", "Model.RecordClauseFacts.LowerName",
             "Model.RecordClauseFacts.UpperName", "Model.SectionDataItem.NonSectionKind()", "Model.TierCIsland.Reason()",
             "Model.UsageFamilies.NoValueClauseRule()", "Model.UsagePhraseRule.AdmittedOn", "Model.UsagePhraseRule.Rule",
             "Model.UsagePhraseRule.Words", "Model.VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup()",
