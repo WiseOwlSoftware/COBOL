@@ -15,6 +15,9 @@ using Core = CobolParserCore;
 using ReportEntryLocation = WiseOwl.Cobol.Binding.DataBinder.ReportEntryLocation;
 using ReportNextGroup = WiseOwl.Cobol.Runtime.IO.ReportNextGroup;
 using ReportNextGroupKind = WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind;
+using ReportLineKind = WiseOwl.Cobol.Runtime.IO.ReportLineKind;
+using ReportLinePlacement = WiseOwl.Cobol.Runtime.IO.ReportLinePlacement;
+using ReportPageRegions = WiseOwl.Cobol.Runtime.IO.ReportPageRegions;
 using WiseOwl.Cobol.Runtime;
 
 /// <summary>
@@ -535,7 +538,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the item a recurrence identifies, never how it is spelled (SR1 lets a name be qualified), so it is asked of the RESOLVED
     /// items: <c>CONTROLS WS-A WS-A OF WS-G</c> names one item twice. COBOL-2002 and later ask the written reference instead
     /// (§2023:13.18.16.3 SR6, <see cref="BindReportDescriptionClauses"/>), whose second sentence lets two operands refer to the
-    /// same item. An operand whose lookup failed has no item and was reported by its own rule.</summary>
+    /// same item. An operand whose lookup failed has no item and was reported by its own rule.
+    /// <para>The data item a name identifies is its <see cref="DataItem.AttributeItem"/> (kb/Work PB5866): a level-66 entry
+    /// without THROUGH is another name of the item it renames, whose data attributes it takes (§1985:VI.5.11.4 GR2), so
+    /// <c>CONTROLS B R66</c> with <c>66 R66 RENAMES B</c> names one item twice. A level-66 entry WITH THROUGH is a group of its
+    /// own, and an item that REDEFINES another has a description of its own: neither is the item it overlays.</para></summary>
     private void ScreenControlItemsDistinct(ReportModel model)
     {
         if (Edition.DialectLevel >= 2002) return;
@@ -544,11 +551,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // A reference-modified operand identifies a part of its item, not the item (§2023:8.4.3.3.4 GR5), so only
             // whole-item operands are compared.
             if (model.Controls[i] is not { Item: { } later, Operand: { RefModStart: null } laterOp }) continue;
+            var identified = later.AttributeItem;
             for (int j = 0; j < i; j++)
-                if (ReferenceEquals(model.Controls[j].Item, later) && model.Controls[j].Operand is { RefModStart: null })
+                if (model.Controls[j] is { Item: { } earlier, Operand: { RefModStart: null } earlierOp }
+                    && ReferenceEquals(earlier.AttributeItem, identified))
                 {
                     Edition.Error(DiagnosticCatalog.ReportControlOperandShape, $"RD '{model.Name}': CONTROL operand '{laterOp}' "
-                        + $"identifies the data item '{later.CobolName}' that '{model.Controls[j].Operand}' already identifies; each "
+                        + $"identifies the data item '{identified.CobolName}' that '{earlierOp}' already identifies; each "
                         + "recurrence of data-name-1 must identify a different data item (ISO §1985:XIII.3.7.3 SR2)");
                     break;
                 }
@@ -980,42 +989,103 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         }
     }
 
-    /// <summary>The MINIMUM LAST LINE NUMBER of a report heading or page footing (ISO §2023:13.18.37.3 SR6a/SR6c/SR7):
-    /// the §2023:13.18.35.4 GR5/GR7 placement walked over the group's UNCONDITIONAL lines only — first line absolute →
-    /// integer-1, relative → HEADING + integer-2 − 1 (GR5b1, report heading) or FOOTING + integer-2 (GR5b4, page
-    /// footing); later lines absolute → integer-1, relative → the previous line + integer-2, and a §2023:13.18.38.4
-    /// GR12c/GR12d STEP line → its anchor + its displacement, the anchors seeded as the engine seeds them. Null
-    /// when every line can be absent. <paramref name="present"/> names the lines to walk instead — the §2023:13.18.35.3 SR6 d)
+    /// <summary>The MINIMUM LAST LINE NUMBER of a report group (ISO §2023:13.18.37.3 SR6a/SR6c/SR7): the placement of
+    /// §2023:13.18.35.4 GR5/GR7 and §2023:13.18.38.4 GR12c/GR12d walked over the group's UNCONDITIONAL lines only, each line
+    /// placed by <see cref="ReportLinePlacement"/>, the arithmetic the run-time engine places the same lines by (kb/Work
+    /// PB1003), the anchors seeded as the engine seeds them. Null when every line can be absent and there is no
+    /// <paramref name="seed"/>. <paramref name="present"/> names the lines to walk instead — the §2023:13.18.35.3 SR6 d)
     /// screen asks it for a presentation in which a chosen set of conditional lines is present (null: the
-    /// unconditional lines, the floor no presentation can lift). <paramref name="seed"/> is the last line of the group
-    /// printed BEFORE this one in the same run of groups, when there is one (a control heading below an OR PAGE heading
-    /// follows it, §2023:13.18.57.4 GR7 d) 2.): the walk starts from that line, so a relative first line is placed after it
-    /// instead of at FIRST DETAIL, and with no walked line the seed is the answer.</summary>
+    /// unconditional lines, the floor no presentation can lift). <paramref name="seed"/> is the final LINE-COUNTER of the
+    /// group GR5 places this one after, when the description fixes it: an OR PAGE control heading above a control
+    /// heading (§2023:13.18.57.4 GR7 d) 2.), and at COBOL-85 the report heading before the page heading and the page
+    /// footing before the report footing (<see cref="Cobol85FinalLineCounter"/>); with no walked line the seed is
+    /// the answer.</summary>
     private static int? MinimumLastLine(ReportGroupModel g, ReportModel model, Func<ReportLineModel, bool>? present = null, int? seed = null)
     {
-        int? pos = seed;
-        var anchors = new Dictionary<int, int>();
+        long? pos = null;
+        var anchors = new Dictionary<int, long>();
+        var regions = new ReportPageRegions(model.Paged, model.Heading, model.FirstDetail, model.Footing);
+        var groupKind = g.Kind.ToRuntime();
         foreach (var l in g.Lines)
         {
             if (present is null ? l.PresentWhenCtxs.Count > 0 || l.RepetitionGuards.Count > 0 : !present(l)) continue;   // may be absent
-            int relative = l.Kind == ReportLineKindModel.Step ? l.RelativeBase : l.Value;
-            int target = l.Kind == ReportLineKindModel.Absolute ? l.Value
-                // The bare ON NEXT PAGE of a report footing starts the footing on a page by itself, at the upper limit
-                // §2023:13.18.57.4 GR7 f) gives it, the HEADING integer (the run-time engine's determination, docs/CONFORMANCE.md).
-                : pos is null && g.Kind == ReportGroupKindModel.ReportFooting && l.NextPage ? model.Heading
-                : pos is null ? g.Kind switch
-                {
-                    ReportGroupKindModel.ReportHeading or ReportGroupKindModel.PageHeading => model.Heading + relative - 1,   // GR5b1, GR5b2
-                    ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting => model.Footing + relative,       // GR5b4, GR5b5
-                    _ => model.FirstDetail,   // GR5b3 — the first body group on a page, whatever integer-2 says
-                }
-                : l.Kind == ReportLineKindModel.Step && anchors.TryGetValue(l.Anchor, out int a) ? a + l.Value
-                : pos.Value + relative;
-            if (l.Anchor != 0 && (l.Kind != ReportLineKindModel.Step || !anchors.ContainsKey(l.Anchor)))
-                anchors[l.Anchor] = target - (l.Kind == ReportLineKindModel.Step ? l.Value : 0);
+            var kind = l.Kind.ToRuntime();
+            long target = pos is null
+                ? ReportLinePlacement.FirstLine(groupKind, kind, l.Value, l.RelativeBase, l.NextPage, regions, seed)
+                : ReportLinePlacement.SubsequentLine(kind, l.Value, l.RelativeBase, pos.Value, anchors.GetValueOrDefault(l.Anchor));
+            if (l.Anchor != 0 && (kind != ReportLineKind.Step || !anchors.ContainsKey(l.Anchor)))
+                anchors[l.Anchor] = ReportLinePlacement.AnchorSeed(kind, l.Value, target);
             pos = target;
         }
-        return pos;
+        return pos is { } last ? (int)last : seed;
+    }
+
+    /// <summary>THE lower limit a heading or footing of relative lines is held to, with the words of the rule that sets it —
+    /// ONE answer, so the screen refuses a group by the same limit and rule it then names (kb/Work PB1003 review R1-1).
+    /// <paramref name="lower"/> is <see cref="GroupLimits"/>' lower limit. At COBOL-85 each group type's printed rule:
+    /// a report heading with NEXT GROUP NEXT PAGE, alone on the first page, the page limit (§1985:XIII.3.10.6 GR2b); any
+    /// other report heading and a page heading, the line before FIRST DETAIL (§1985:XIII.3.10.6 GR2a, §1985:XIII.3.8.4
+    /// GR1c); a page footing and a report footing, the page limit (§1985:XIII.3.10.9 GR2, §1985:XIII.3.10.10 GR2), each
+    /// line past it presented outside the vertical subdivision of the page (§1985:XIII.3.15.3 SR1). A report heading
+    /// bounded above FIRST DETAIL by an absolute page heading line, and every group from COBOL-2002, take the
+    /// §2023:13.18.57.4 GR8 limit and §2023:13.18.39.4's words.</summary>
+    private static (int Limit, string Words) RelativeGroupLowerLimit(ReportGroupModel g, ReportModel model, int year, int lower)
+    {
+        const string Sr1 = "; neither integer-1 nor integer-2 may be specified in such a way as to cause any line of a report "
+            + "group to be presented outside the vertical subdivision of the page";
+        string headingWords(string rules) => $"line {model.FirstDetail - 1}, the line before the FIRST DETAIL integer "
+            + $"{model.FirstDetail}: report heading (without NEXT GROUP NEXT PAGE) and page heading report groups may not be "
+            + $"presented on or beyond the line number specified by integer-3 (ISO {rules})";
+        if (year < 2002)
+            switch (g.Kind)
+            {
+                case ReportGroupKindModel.ReportHeading when g.NextGroup?.Kind == ReportNextGroupKind.NextPage:
+                    return (model.PageLimit, $"the page limit {model.PageLimit}, the last line on which a report heading "
+                        + "with NEXT GROUP NEXT PAGE, presented by itself on the first page, can be presented (ISO "
+                        + "§1985:XIII.3.10.6 GR2b)" + Sr1 + " (ISO §1985:XIII.3.15.3 SR1)");
+                case ReportGroupKindModel.ReportHeading when lower == model.FirstDetail - 1:
+                    return (lower, headingWords("§1985:XIII.3.8.4 GR1c; §1985:XIII.3.10.6 GR2a"));
+                case ReportGroupKindModel.PageHeading:
+                    return (lower, headingWords("§1985:XIII.3.8.4 GR1c"));
+                case ReportGroupKindModel.PageFooting:
+                    return (model.PageLimit, $"the page limit {model.PageLimit}, the last line on which the page footing can "
+                        + "be presented (ISO §1985:XIII.3.10.9 GR2)" + Sr1 + " (ISO §1985:XIII.3.15.3 SR1)");
+                case ReportGroupKindModel.ReportFooting:
+                    return (model.PageLimit, $"the page limit {model.PageLimit}, the last line on which the report footing can "
+                        + "be presented (ISO §1985:XIII.3.10.10 GR2; a relative first line follows the page footing's final "
+                        + "LINE-COUNTER, GR3b)" + Sr1 + " (ISO §1985:XIII.3.15.3 SR1)");
+            }
+        return (lower, $"the group's lower limit {lower}, on every page "
+            + (g.Kind is ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting
+                ? "(ISO §2023:13.18.39.4 GR1, GR2 a): no report line will appear below the page limit"
+                : "(ISO §2023:13.18.39.4 GR1, GR2 d): each report group shall be confined within its region of the page")
+            + "; limits per §2023:13.18.57.4 GR8)");
+    }
+
+    /// <summary>The final LINE-COUNTER setting of the report group a COBOL-85 page heading or report footing is placed after,
+    /// which at COBOL-85 the description fixes: 1985 has no PRESENT WHEN, so the report heading always precedes the page
+    /// heading on the first page and the page footing always precedes the report footing on the last. A relative report
+    /// footing is placed from "the final LINE-COUNTER setting established by the page footing report group"
+    /// (§1985:XIII.3.10.10 GR3b), which the page footing's NEXT GROUP clause sets (§1985:XIII.3.10.9 GR5); a relative page
+    /// heading after the report heading is placed from the report heading's (§1985:XIII.3.10.6 GR5; §1985:XIII.3.16.4 GR4:
+    /// "The NEXT GROUP clause of a report heading report group can affect the location at which the page heading report
+    /// group is presented"), as the engine places it (§2023:13.18.35.4 GR5b2). The arithmetic is
+    /// <see cref="ReportLinePlacement.AfterHeadingOrFootingNextGroup"/>, the engine's. Null for any other group, for a
+    /// report heading alone on its page (its NEXT GROUP NEXT PAGE), and from
+    /// COBOL-2002, where PRESENT WHEN makes the preceding group conditional and an over-long group is a run-time
+    /// EC-REPORT-PAGE-LIMIT matter (§2023:13.18.35.4 GR2).</summary>
+    private static int? Cobol85FinalLineCounter(ReportGroupModel g, ReportModel model, int year)
+    {
+        if (year >= 2002) return null;
+        var before = g.Kind switch
+        {
+            ReportGroupKindModel.PageHeading => model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.ReportHeading),
+            ReportGroupKindModel.ReportFooting => model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.PageFooting),
+            _ => null,
+        };
+        if (before is null || before.NextGroup?.Kind == ReportNextGroupKind.NextPage) return null;
+        return MinimumLastLine(before, model) is { } last
+            ? (int)ReportLinePlacement.AfterHeadingOrFootingNextGroup(before.NextGroup, last) : null;
     }
 
     /// <summary>⛔ THE UPPER AND LOWER LIMIT OF A REPORT GROUP (ISO §2023:13.18.57.4 GR7 and GR8), computed once the whole
@@ -1102,23 +1172,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 if (g.Lines is [{ NextPage: true }, ..]) return (model.Heading, model.PageLimit);
                 var pageFooting = model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.PageFooting);
-                int below = pageFooting is not null && MinimumLastLine(pageFooting, model) is { } last
-                    ? (year < 2002 ? Cobol85FinalLineCounter(pageFooting, last) : last) + 1
-                    : model.Footing + 1;
-                return (below, model.PageLimit);
+                int? below = year < 2002 ? Cobol85FinalLineCounter(g, model, year)
+                    : pageFooting is not null ? MinimumLastLine(pageFooting, model) : null;
+                return ((below ?? model.Footing) + 1, model.PageLimit);
             }
         }
     }
-
-    /// <summary>The final LINE-COUNTER setting a COBOL-85 page footing whose last line is <paramref name="last"/>
-    /// establishes (§1985:XIII.3.10.9 GR5): a. its absolute NEXT GROUP integer; b. that line plus its NEXT GROUP PLUS
-    /// integer; c. with no NEXT GROUP clause, that line.</summary>
-    private static int Cobol85FinalLineCounter(ReportGroupModel pageFooting, int last) => pageFooting.NextGroup switch
-    {
-        { Kind: WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.Absolute, Value: var v } => v,
-        { Kind: WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.Relative, Value: var v } => last + v,
-        _ => last,
-    };
 
     /// <summary>⛔ THE CENSUS OF A REPORT'S GROUPS (ISO §2023:13.18.57.3 SR13–SR15; kb/Work PB1299), asked once every CH/CF
     /// has its control level (<see cref="ControlLevelOf"/>, SR10/SR11):
@@ -1254,8 +1313,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // only has no absolute line for SR6 c) to bound, but where §2023:13.18.35.4 GR5 b puts its first line is a
             // number the description fixes: HEADING + integer-2 − 1 (a report heading, a page heading with no report
             // heading before it), FOOTING + integer-2 (a page footing, a report footing with no page footing before
-            // it) — the seeds MinimumLastLine walks, from below only: a page heading after a report heading, a report
-            // footing after a page footing, start LOWER (the previous line's number plus integer-2). So each of the two
+            // it) — the seeds MinimumLastLine walks. A page heading after a report heading, a report footing after a page
+            // footing, start LOWER (the previous group's final LINE-COUNTER plus integer-2); at COBOL-85 the description
+            // fixes that preceding group, so the walk starts from it (Cobol85FinalLineCounter, kb/Work PB1003); from
+            // COBOL-2002 PRESENT WHEN makes it conditional and the walk starts from the region. So each of the two
             // questions is answered on every page the group is printed on:
             //   - its LAST line against the lower limit — GR2 d) "any report heading (when not on a page by itself) or
             //     page heading shall be defined so that it terminates before" FIRST DETAIL; GR2 a) "No report line will
@@ -1267,17 +1328,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (g.Kind is ReportGroupKindModel.ReportHeading or ReportGroupKindModel.PageHeading
                     or ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting)
             {
+                int? preceding = Cobol85FinalLineCounter(g, model, Edition.DialectLevel);
+                var bound = RelativeGroupLowerLimit(g, model, Edition.DialectLevel, lower);
                 if (!g.Lines.Exists(l => l.Kind == ReportLineKindModel.Absolute)
-                    && MinimumLastLine(g, model) is { } relativeEnd && relativeEnd > lower)
+                    && MinimumLastLine(g, model, null, preceding) is { } relativeEnd && relativeEnd > bound.Limit)
                 {
                     var last = g.Lines[^1];
                     using var at = Edition.At(last.Entry);
                     Violation(last, $"the relative lines of {ReportGroupTypeWords(g.Kind).ToLowerInvariant()} report group "
-                        + $"'{g.Name ?? "FILLER"}' reach line {relativeEnd}, past the group's lower limit {lower}, on every page "
-                        + (g.Kind is ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting
-                            ? "(ISO §2023:13.18.39.4 GR1, GR2 a): no report line will appear below the page limit"
-                            : "(ISO §2023:13.18.39.4 GR1, GR2 d): each report group shall be confined within its region of the page")
-                        + "; limits per §2023:13.18.57.4 GR8)");
+                        + $"'{g.Name ?? "FILLER"}' reach line {relativeEnd}"
+                        + (preceding is { } p ? $", placed after the {(g.Kind == ReportGroupKindModel.PageHeading
+                            ? "report heading" : "page footing")}'s final LINE-COUNTER setting {p}" : "")
+                        + $", past {bound.Words}");
                 }
 
                 // The candidates for the group's first line: a relative line is first when every line above it may be

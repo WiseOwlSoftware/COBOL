@@ -353,6 +353,32 @@ public sealed class ReportGroupModel
 /// The names and the meanings are the runtime <c>ReportLineKind</c>'s; the model is what the emitter copies.</summary>
 public enum ReportLineKindModel { Absolute, Relative, Step }
 
+/// <summary>The runtime's names for the model's report kinds, which the emitter writes by name
+/// (<c>ReportWriterEmitter</c>: <c>ReportGroupKind.{kind}</c>, <c>ReportLineKind.{kind}</c>), for the one line placement the
+/// binder's screens share with the engine (<see cref="WiseOwl.Cobol.Runtime.IO.ReportLinePlacement"/>, kb/Work PB1003).</summary>
+internal static class ReportKindsOfRuntime
+{
+    public static WiseOwl.Cobol.Runtime.IO.ReportGroupKind ToRuntime(this ReportGroupKindModel kind) => kind switch
+    {
+        ReportGroupKindModel.ReportHeading => WiseOwl.Cobol.Runtime.IO.ReportGroupKind.ReportHeading,
+        ReportGroupKindModel.PageHeading => WiseOwl.Cobol.Runtime.IO.ReportGroupKind.PageHeading,
+        ReportGroupKindModel.ControlHeading => WiseOwl.Cobol.Runtime.IO.ReportGroupKind.ControlHeading,
+        ReportGroupKindModel.Detail => WiseOwl.Cobol.Runtime.IO.ReportGroupKind.Detail,
+        ReportGroupKindModel.ControlFooting => WiseOwl.Cobol.Runtime.IO.ReportGroupKind.ControlFooting,
+        ReportGroupKindModel.PageFooting => WiseOwl.Cobol.Runtime.IO.ReportGroupKind.PageFooting,
+        ReportGroupKindModel.ReportFooting => WiseOwl.Cobol.Runtime.IO.ReportGroupKind.ReportFooting,
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a report group kind the runtime does not name"),
+    };
+
+    public static WiseOwl.Cobol.Runtime.IO.ReportLineKind ToRuntime(this ReportLineKindModel kind) => kind switch
+    {
+        ReportLineKindModel.Absolute => WiseOwl.Cobol.Runtime.IO.ReportLineKind.Absolute,
+        ReportLineKindModel.Relative => WiseOwl.Cobol.Runtime.IO.ReportLineKind.Relative,
+        ReportLineKindModel.Step => WiseOwl.Cobol.Runtime.IO.ReportLineKind.Step,
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a report line kind the runtime does not name"),
+    };
+}
+
 /// <summary>One report line: its LINE clause, its printable fields in declaration order, and its effective
 /// PRESENT WHEN chain (ISO §2023:13.18.41 Format 1) — every condition on the entry that opened the line AND on its
 /// ancestors up to the 01 (GR2b: an absent ancestor makes every subordinate absent, so the line is present iff
