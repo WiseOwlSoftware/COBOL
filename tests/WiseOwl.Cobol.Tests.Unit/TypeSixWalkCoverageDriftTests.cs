@@ -18,7 +18,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// rounded base). Each walk now names every kind in an explicit arm and refuses in its default; this test enumerates the concrete
 /// kinds by reflection and requires each walk's body to name each one, so a kind added later fails here until every walk decides it.</para>
 /// </remarks>
-[Trait("Sweep", "tree")]
 public sealed class TypeSixWalkCoverageDriftTests
 {
     /// <summary>The proof walks of the type 6 screen, by the text that opens each one's declaration in IntrinsicArgumentRules.cs.</summary>
