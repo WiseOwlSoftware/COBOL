@@ -11,7 +11,7 @@
       *> "The NOT is interpreted as a logical operator". In AND NOT NOT
       *> < 5 the word after the first NOT is NOT, so the first is the
       *> logical operator and NOT < the relational operator: A > 1 AND
-      *> NOT (A NOT < 5). The stated operator is carried on (GR1), and
+      *> NOT (A NOT < 5). The stated operator is carried on (SR2), and
       *> SR2's table 1 bars only two LOGICAL NOTs. A = 3:
       *>   S1 AND NOT NOT > 5            NOT (3 NOT > 5)  = F
       *>   S2 AND NOT NOT GREATER THAN 2 NOT (3 NOT > 2)  = T

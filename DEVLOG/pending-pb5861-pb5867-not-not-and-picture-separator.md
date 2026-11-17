@@ -7,7 +7,7 @@ note's expected `C1 T`, `C2 F`, `U1 T` at 85, and COBOL0902 (not the generic COB
 mechanism found a batch earlier on row `1985-GR-VI.6.3.3-L2.1`, had landed in 9878a25d08; PB5861 was read at a pin before
 that landing. No code changed. The branch adds the witnesses the brief asked for: an 85 sweep
 (`pb5861_not_not_relation_sweep_85`: the six words after the second NOT, OR, the form mid-condition and at the end,
-parentheses, EVALUATE, PERFORM UNTIL, SEARCH WHEN, each value from `§1985:VI.6.3.3` GRL2.1, GRL2.2 and GR1) and a refusal
+parentheses, EVALUATE, PERFORM UNTIL, SEARCH WHEN, each value from `§1985:VI.6.3.3` GRL2.1, GRL2.2 and SR2) and a refusal
 at 2014 and 2023 (`pb5861-not-not-relational-operator-2023`, COBOL0902, `§2023:8.8.4.12.2` and the `§2023:8.8.4.12.4 GR1`
 note). The 2002 text bars the form too (`§2002:8.8.4.2.4.2 SR3`, "The word NOT shall not be followed immediately by the
 word NOT or the words IS NOT").
