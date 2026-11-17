@@ -1,70 +1,108 @@
 {
  "rule-id": "1985-GR-XIII.3.10.7-3",
- "rule-digest": "e72b00feb986",
+ "rule-digest": "6e68346aca7f",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-145",
+  "pin": "a05cc533dc71b8875b14f48db632f610014f78ec",
+  "slice": "1985-250",
   "sources": {
-   "reader": "16e919ad61b91578bb140064b907ea9ff6d5d12879721f44f2a8c615382a2e89",
-   "refuter": "153581c84afa9119e551cb7b435a919dd398b725151cddf496a9c8dfbb7013b9"
+   "reader": "e0eed3f705dfb2a90fe0df9dd236ea3a447256afca7a34f6a550a7cba6a9d917",
+   "refuter": "13b851ab30b0140c836035bcb153c21ff86be64ba419c7a2ad35d678f68935a5"
   },
   "imported": {
-   "reader": "33f2222857ff7b0763f736e5623d24728396c2abda51a1dad2f692cc26c01dac",
-   "refuter": "a3045e815d9f2fc03375ee8eeb1c6509b67e229fce0c4a2d5c0b516e0a580c25"
+   "reader": "b5430fdf39243f91570e6b725a84df37a5f42cec04c401b462d51df579cc7f6f",
+   "refuter": "4b406660be54cbf3df94d95c180b7e404341371d6d17006484d3239602e2f5e0"
   }
  },
  "reader": {
   "rule-id": "1985-GR-XIII.3.10.7-3",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 a page heading's first print line is its absolute LINE integer (a); for a relative first LINE it is the report heading's final LINE-COUNTER plus the integer when a report heading was presented on the current page, otherwise the integer plus HEADING minus 1 (b); a page heading with no LINE NUMBER clause is not presented (c). The rule text is the transcription's reconstruction of the missing folio XIII-30 (kb/Work PB4952); b's first arm is backed by the printed §1985:XIII.3.16.4 GR4.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
+  "requirement": "At --std 85 the page heading's first print line goes on (a) its absolute LINE integer; (b) for a relative first line, the report heading's final LINE-COUNTER plus the integer when a report heading was presented on that page, otherwise HEADING integer-2 minus 1 plus the integer; (c) a page heading with no LINE NUMBER clause is not presented; on every page the page heading is presented, including pages after a NEXT GROUP NEXT PAGE report heading.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportLinePlacement.cs#FirstLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
-    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues: which control values a page heading reached by a control footing's page advance sees (current at 85, prior at 2002+); not the line placement",
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#Entries",
+    "switches": "row report-present-when-2002: PRESENT WHEN on a report group entry refused below 2002 (COBOL0900), so the 1985 page heading's lines are unconditional",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "FirstLineTarget, PresentPageHeading, PresentLines and PageFeed consult no edition (grep 'Edition|DialectBehavior' in ReportWriter.cs). The only consult on the path is AdvancePage's WithPageGroupControlValues wrapper, which does not affect placement.",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_bf36_01 covers a, b (both arms, including after RH NEXT GROUP NEXT PAGE on page 2) and c; it does not exercise a relative page heading on a page reached by an ordinary body-group page advance, or an absolute page heading after a report heading with NEXT GROUP",
+  "edition-search": "the run-time placement path (PresentPageHeading, FirstLineTarget, ReportLinePlacement.FirstLine, ApplyNextGroup, PageFeed) reads no edition: grep Edition|DialectBehavior in ReportWriter.cs hits only lines 654, 751, 981, 1097, 1209, 1505 (sums, group indicate, saved NEXT GROUP, control values), and ReportLinePlacement.cs has none",
+  "behaviour-differs-by-edition": "no: the placement arithmetic is one arm at every edition; only the 2002 PRESENT WHEN phrase is refused at 85",
+  "witnesses-cover": "part: g85_bf36_01 and pb5789 cover rule b after a report heading and rule c; not exercised by witnesses: rule b on a later page with no report heading, a relative report heading before it, a SUPPRESSed report heading (not presented), and a page after a NEXT GROUP NEXT PAGE report heading",
   "probes": [
    {
-    "class": "a..f witness",
-    "file": "conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01.cob",
-    "printed": "EXPECT: MATCH (g85_bf36_01.out)",
-    "expected": "PH at 6, 6, page 2 line 3, 5, 3"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p2a.cob",
+    "printed": "page 1: RH line 2, PHA 04 on line 4, PHB line 5 (BEFORE PH LC 03); page 2: PHA 02 on line 2, PHB line 3",
+    "expected": "RH NEXT GROUP 3 leaves LC 3 so PH first line 3 + 1 = 4; page 2 has no RH: HEADING 2 - 1 + 1 = 2"
    },
    {
-    "class": "d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p1_rh_ph.cob",
-    "printed": "R-H: PH LINE PLUS 1 at page 1 line 8 (RH final LC 7) and, after the 10th detail's page advance, page 2 line 01 (HEADING 1 + 1 - 1); R-J: PH LINE 9 at line 9 after RH LC 5",
-    "expected": "b first arm 7+1=8; b Otherwise arm 1+1-1=1 on page 2 (no RH there); a: 9"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p2b.cob",
+    "printed": "PHA on line 4, PHB line 5 on page 1 and page 2",
+    "expected": "rule a: absolute LINE 4 on every page"
    },
    {
-    "class": "b,c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r3_ph_ng.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r8_ph_nextpage.cob",
-    "printed": "COBOL2284 (NEXT GROUP not in a page heading); COBOL2199 (NEXT PAGE not in a page heading) plus COBOL0900 for the 2002 LINE NEXT PAGE form",
-    "expected": "Table 2 has no NEXT GROUP column entry and no NP row"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p2c.cob",
+    "printed": "page 1: RH alone on line 3; page 2: PH on line 3 (BEFORE PH LC 00 PC 02), DE on 6",
+    "expected": "RH NEXT GROUP NEXT PAGE is alone on page 1; page 2 has no RH, PH LINE PLUS 2 at HEADING 2 - 1 + 2 = 3"
    },
    {
-    "class": "c (latest)",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p1_rh_ph.cob --std 2023",
-    "printed": "stdout identical to the --std 85 run",
-    "expected": "same placement"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p2d.cob",
+    "printed": "PH USE runs (BEFORE PH LC 03 PC 01) but no PH line printed; BEFORE DE LC 03",
+    "expected": "rule c: a page heading with no LINE NUMBER clause is not presented"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p2e.cob",
+    "printed": "RH suppressed; PH on line 3 (BEFORE PH LC 00)",
+    "expected": "no report heading presented on the page: HEADING 2 - 1 + 2 = 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p2f.cob",
+    "printed": "RH line 2, PH line 4",
+    "expected": "relative RH at HEADING 2 - 1 + 1 = 2 (final LC 2), PH 2 + 2 = 4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p2h.cob",
+    "printed": "COBOL0900: PRESENT WHEN (report group description) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "the 2002 PRESENT WHEN clause is not in the 1985 report group format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p2g.cob",
+    "printed": "COBOL2284 the NEXT GROUP clause shall not be specified in a page heading or report footing",
+    "expected": "refused, §1985:XIII.3.16.3 SR5 (Table 2 has no NEXT GROUP entry)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p2i.cob",
+    "printed": "COBOL2199 the NEXT PAGE phrase may appear only in the description of a body group or a report footing, not a PAGE HEADING",
+    "expected": "refused, §1985:XIII.3.15.3 SR7 (NP is not a Table 2 sequence)"
    }
   ],
   "citations": [
    {
-    "cite": "§1985:XIII.3.10.7 GR3",
-    "check": "OK  §1985:XIII.3.10.7 GR3  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR3 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+    "cite": "§1985:XIII.3.10.7 GR3a",
+    "check": "OK  §1985:XIII.3.10.7 GR3a  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR3a"
    },
    {
-    "cite": "§1985:XIII.3.16.4 GR4",
-    "check": "OK  §1985:XIII.3.16.4 GR4  (3.16.4 General Rules)  the text is in GR4"
+    "cite": "§1985:XIII.3.10.7 GR3b",
+    "check": "OK  §1985:XIII.3.10.7 GR3b  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR3b"
+   },
+   {
+    "cite": "§1985:XIII.3.10.7 GR3c",
+    "check": "OK  §1985:XIII.3.10.7 GR3c  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR3c"
+   },
+   {
+    "cite": "§1985:XIII.3.16.3 SR5",
+    "check": "OK  §1985:XIII.3.16.3 SR5  (3.16.3 Syntax Rules)  the text is in SR5"
    }
   ],
-  "notes": "FirstLineTarget's PageHeading arm is _rhOnThisPage ? LINE-COUNTER + integer : HEADING + integer - 1, and absolute lines return integer-1. _rhOnThisPage is set after the RH's lines and cleared by PageFeed, so an RH with NEXT GROUP NEXT PAGE leaves the next page on the HEADING arm. The rule's text is reconstructed (cite.py flags RECONSTRUCTED), so the verdict holds against the reconstruction and the printed XIII.3.16.4 GR4.",
+  "notes": "The report heading's presence on the page is _rhOnThisPage, set only when the report heading actually presented lines and cleared by PageFeed, so a suppressed or NEXT PAGE report heading correctly leaves the page heading at the HEADING-based position. The refusal diagnostics for NEXT GROUP and NEXT PAGE cite §2023 numbers though the 1985 rules (XIII.3.16.3 SR5, XIII.3.15.3 SR7) say the same. Classes a, d, e, f do not apply to first-line placement.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -76,16 +114,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-XIII.3.10.7-3",
-  "refutation": "DOUBTFUL",
-  "classes": "b,c,d",
-  "evidence": "The code agrees with the rule as transcribed: probe q3_rh_ph.cob (runs/q3_rh_ph-001, --std 85): R-P two-line relative PH after an RH whose final LC is 6: PH1/PH2 at page 1 lines 7, 8 (3b first arm, 6+1); after the third detail's page advance, page 2 lines 3, 4 (3b Otherwise arm, HEADING 3 + 1 - 1); R-Q absolute PH LINE 7 after RH NEXT GROUP 6: line 7 (3a). But the rule is not the standard's text: cite.py prints 'OK  §1985:XIII.3.10.7 GR3  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR3 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]': folios XIII-30/31 are missing from our copy, and the transcription marks its own confidence low. Only the first arm of 3b has printed support ('OK  §1985:XIII.3.16.4 GR4 ... the text is in GR4': the RH's NEXT GROUP 'can affect the location at which the page heading report group is presented'). The Otherwise arm's 'HEADING minus 1 plus integer' and the absolute arm are the reconstruction's reading, modelled on §1985:XIII.3.10.6 GR3b.",
+  "refutation": "UPHELD",
+  "classes": "b",
+  "evidence": "Read §1985:XIII.3.10.7 GR3a-c. Probed the relative PH on a page reached by page overflow with its lines on 02-level entries (r1c, HEADING 3, LINE PLUS 2 / LINE PLUS 1): PHA on line 4 and PHB on line 5 on page 1 and again on page 2 (HEADING 3 - 1 + 2 = 4), DE resumes on FIRST DETAIL 6. Read the RPT form feeds line by line. r1a: page 2 after an RH NEXT GROUP NEXT PAGE, PH LINE PLUS 2 on line 3 = HEADING 2 - 1 + 2. Both match GR3b's second paragraph. Runs r1a-001, r1c-001. cite.py: 'OK  §1985:XIII.3.10.7 GR3b  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR3b'. Class c is covered by the reader's PRESENT WHEN, NEXT GROUP and NEXT PAGE refusals.",
   "edition-sites-missed": [],
-  "corrected": "The verdict rests on a reconstruction, not on 1985 text: CONFORMS to the reconstruction (and to the printed XIII.3.16.4 GR4 for the RH-on-page arm), not decidable against the standard until folio XIII-30 is obtained (kb/Work PB4952). The reading used: when no report heading is on the page, a relative first PH line is placed as a relative first RH line is (HEADING - 1 + integer)."
- },
- "adjudication": {
-  "verdict": "CONFORMS",
-  "reason": "The first line of a page heading after a report heading conforms to rule 3 of §1985:XIII.3.10.7 as the tree holds it (kb/Work PB5830). Confirmed against the placeholder text of folio XIII-30 (owner decision 2026-11-09, kb/Work PB4952); read again when the printed folio arrives.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-open-readings.md"
- },
- "work": "PB5830"
+  "corrected": ""
+ }
 }
