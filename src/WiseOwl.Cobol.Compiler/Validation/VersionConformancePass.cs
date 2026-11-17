@@ -2016,10 +2016,10 @@ internal sealed class VersionConformancePass
         /// modifier is the 2002 form, read where every reference reads it (<c>ReferenceResolver.ReadWritten</c>: on the word or on
         /// a qualifier, <c>WS-KEY OF WS-REC (1:1)</c>). A subscript is not asked: a subscripted control name is refused at every
         /// edition (COBOL1699, COBOL0899), so a 2002 refusal beside it would name an edition that does not admit it either.
-        /// ⚖ A QUALIFIED TYPE operand stays COBOL-85: the printed folio XIII-55 is missing from our copy (kb/Work PB4952), and the
-        /// rule its reconstruction carries back, that each operand "shall be the same as one of the operands of the CONTROL clause"
-        /// (§2002:13.16.55.2 SR10), asks for the spelling SR1 permits there, qualifiers included; refusing it would leave a control
-        /// name that needs qualification to be unique with no control heading or footing at all.</summary>
+        /// ⚖ A QUALIFIED TYPE operand stays COBOL-85 (kb/Work PB5573): §1985:XIII.3.20.3 SR4, "Data-name-1, data-name-2, and
+        /// FINAL, if present, must be specified in the CONTROL clause of the corresponding report description entry", asks for
+        /// the spelling SR1 permits there, qualifiers included; refusing it would leave a control name that needs qualification
+        /// to be unique with no control heading or footing at all.</summary>
         private void GateCobol85ControlName(CobolParserCore.DataReferenceContext name, string where)
         {
             if (!ReferenceResolver.ReadWritten(name).IsReferenceModified) return;

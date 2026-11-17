@@ -9,7 +9,8 @@
       *>   declared twice, so the CONTROL clause qualifies it, and the TYPE clause's
       *>   CONTROL HEADING and CONTROL FOOTING operands name the same control the same
       *>   way (OF and IN). The qualified TYPE operand is COBOL-85 by the reading
-      *>   kb/Work PB5573 records (folio XIII-55 is missing from our copy, kb/Work PB4952);
+      *>   kb/Work PB5573 records: §1985:XIII.3.20.3 SR4 asks only that "Data-name-1,
+      *>   data-name-2, and FINAL, if present, must be specified in the CONTROL clause";
       *>   only the reference-modified control name is refused at 85.
       *> DERIVATION. The USE BEFORE REPORTING procedures display the control value as
       *>   each group is presented; §1985:XIII.3.20.4 GR13: "any references to control

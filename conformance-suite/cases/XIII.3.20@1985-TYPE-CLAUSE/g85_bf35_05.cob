@@ -28,7 +28,7 @@
       *> the group is processed, §1985:XIII.3.20.4 GR9 a). Page 1: RH
       *> on line 1 (§1985:XIII.3.10.6 GR3 a), final LINE-COUNTER 1 (GR5
       *> d); PH second, on 1 + 1 = line 2 (GR3 b; §1985:XIII.3.10.7 GR3
-      *> b, a reconstructed paragraph, kb/Work PB4952); details on
+      *> b, folio XIII-31, kb/Work PB5789); details on
       *> lines 3 to 6 (the first on FIRST DETAIL, §1985:XIII.3.10.8 GR4
       *> b, then LINE-COUNTER + 1, GR4 d). The fifth detail's trial sum
       *> 7 exceeds LAST DETAIL 6, so a page advance (§1985:XIII.3.10.8

@@ -1228,26 +1228,23 @@ kb/Work PB5256), its change records do not yet.
   the appendices open no rule block: a rule-block heading there is reported.
 - **The scan's own defects.** The scan prints folios X-11 and X-12 twice (PDF pages 527-528); the transcription keeps
   both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat.
-- **A reconstruction fills a scan gap, and its rows are provisional** (owner 2026-11-09, kb/Work PB4952). The scan lacks
-  printed pages XIII-30, XIII-31 (paragraph 3.10.7, the page heading group presentation rules), XIII-54 (the SUM clause's
-  general rules after 9 a) and XIII-55 (the TYPE clause's heading, format and syntax rules 1 to 4). Until the printed
-  pages are obtained, each gap holds a RECONSTRUCTION: editorial text between a `cite.RECONSTRUCTED` note, which names
-  the folios, the sources and the confidence, and a `cite.RECONSTRUCTED_END` note. The catalog reads it as text, so its
-  headings open their blocks and a rule continues across it as across a page break (the TYPE clause's printed syntax rules
-  5 to 7 on folio XIII-56 are `§1985:XIII.3.20.3 SR5` to `SR7`), and every row carries `provisional`: `none`, `part`
-  (SUM GR9, whose items b and c are reconstructed) or `whole`, with the folio it reconstructs. The mark travels to the
-  inventory row (`inventory_view.py --check` counts them), to the audit's requests (`audit_batch.quoted_rule` and
-  `rule_block`), and to `cite.py --check`, which marks a quotation it verifies inside a reconstruction; the figure sweep
-  draws no format from one (`sweep_figures.drawn_figures`). `verify_publishable.check_reconstructions` (the SPEC
-  CORRECTIONS 1985 audit) accepts the reconstructions as editorial and holds them to the folios: each is closed and
-  sourced, and the folios it names are exactly those the transcription's printed folios skip where it stands, so a gap
-  nobody filled is refused and so is a reconstruction whose printed page has since been transcribed. That replacement
-  changes the rows' text, and the store records adjudicated against the reconstruction are refused by their
-  `rule-digest` until they are decided again against the printed text.
+- **The scan's missing pages come from another scan** (kb/Work PB4952, PB5789). Our scan lacks printed pages XIII-30,
+  XIII-31 (paragraph 3.10.7, the page heading group presentation rules), XIII-54 (the SUM clause's general rules after
+  9 a) and XIII-55 (the TYPE clause's heading, format and syntax rules 1 to 4). Their verbatim text is transcribed from a
+  public scan of the standard on GovInfo (its PDF pages 608, 609, 632 and 633), at the top of the PDF page of our scan
+  that follows each gap, after a `cite.SOURCE` note that names the folios and that scan. The note is editorial
+  (`cite.EDITORIAL_NOTE`); the text is the standard's, read like any other. A folio line ends a printed page, so the
+  catalog skips the running header after it inside a PDF page, and a rule is on the first folio below it on its page.
+  `verify_publishable.check_reconstructions` (the SPEC CORRECTIONS 1985 audit) counts the folios a SOURCE note names as
+  printed and requires each as a folio line below the note, so a gap in the printed folios is refused unless a SOURCE
+  note or a reconstruction fills it. From 2026-11-09 until then each gap held a RECONSTRUCTION (editorial text between
+  a `cite.RECONSTRUCTED` note and a `cite.RECONSTRUCTED_END` note, its rows marked `provisional` in the catalog, the
+  inventory, the audit's requests, `cite.py --check` and the figure sweep); none remains, and the store records decided
+  against one were withdrawn when the printed text replaced it (their `rule-digest` no longer matched).
 
 The catalog is written to `docs/rearchitecture/spec-rule-catalog-1985.json` and held by the gate's RULE CATALOGS
 audit (`--held --check`, every held edition; for 1985 no finding, and the committed catalog is this run's). On the reconciled file it counts
-2,274 rows from 669 blocks (SR 660, GR 1,256, AR 65, RV 80, FMT 213), 12 of them provisional, and no finding; the
+2,275 rows from 669 blocks (SR 660, GR 1,257, AR 65, RV 80, FMT 213), none of them provisional, and no finding; the
 content-keyed scan measures 89 paragraphs (777 ordinals, an upper bound), of which the manifest admits 52 (255 rows) and
 records 37 as not rules.
 
