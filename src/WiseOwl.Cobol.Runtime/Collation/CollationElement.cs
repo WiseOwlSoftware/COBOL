@@ -33,12 +33,6 @@ namespace WiseOwl.Cobol.Runtime.Collation;
 /// cref="Collator"/>); under <see cref="AlternateHandling.Shifted"/> it refines the "no variable here" weight.</param>
 public readonly record struct CollationElement(int Primary, int Secondary, int Tertiary, bool IsVariable = false, ElementCase Case = ElementCase.Lower, int Quaternary = 0)
 {
-    /// <summary>Convenience: the case bits say uppercase.</summary>
-    public bool IsUpper => Case == ElementCase.Upper;
-
-    /// <summary>The element every level ignores — controls, most format characters, U+0000.</summary>
-    public static readonly CollationElement Ignorable = new(0, 0, 0);
-
     /// <summary>The DUCET tertiary weights of the UPPERCASE variants — 0008 (upper), 0009 (wide upper), 000A (compat
     /// upper), 000B (font upper), 000C (circled upper). The generator (<c>generate-collation-table.py</c>,
     /// <c>UPPER_TERTIARIES</c>) sets the case bit of every root element by this rule; a numeric <c>.tailor</c> element
@@ -47,9 +41,6 @@ public readonly record struct CollationElement(int Primary, int Secondary, int T
 
     /// <summary>True when every level is zero: the element contributes nothing at any level.</summary>
     public bool IsCompletelyIgnorable => Primary == 0 && Secondary == 0 && Tertiary == 0;
-
-    /// <summary>True when the primary is zero: an accent-like element that only distinguishes at level 2/3.</summary>
-    public bool IsPrimaryIgnorable => Primary == 0;
 
     public override string ToString() =>
         $"[{(IsVariable ? '*' : '.')}{Primary:X4}.{Secondary:X4}.{Tertiary:X4}{(Quaternary == 0 ? "" : $".{Quaternary:X}")}{Case switch { ElementCase.Upper => "^", ElementCase.Mixed => "~", _ => "" }}]";
