@@ -534,7 +534,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// a group that contains it, into an item subordinate to it (a MOVE to the record that holds the control
     /// field alters the field), or into a REDEFINES or RENAMES that shares a byte with it (kb/Work PB5808). A store the
     /// statement makes through a file connector without naming the item is a store too: a READ into the record area that
-    /// holds the control data item, a FILE STATUS, RELATIVE KEY or DEPENDING ON item (kb/Work PB5885). A CALL BY REFERENCE
+    /// holds the control data item, a FILE STATUS, RELATIVE KEY or DEPENDING ON item (kb/Work PB5885). A statement that stores
+    /// into SELECTED items of the group it names (MOVE, ADD and SUBTRACT CORRESPONDING; INITIALIZE) is asked for those items, not
+    /// for the group (<see cref="StoreView.Storage"/>, kb/Work PB5890): INITIALIZE G REPLACING NUMERIC DATA leaves an alphanumeric
+    /// control data item of G unaltered, as a CORRESPONDING statement leaves one with no corresponding item. A CALL BY REFERENCE
     /// is not refused: whether the called program alters the argument is not known from this source element.
     /// "Any control data item" is literal — the control data items of every report of the source element, not only the report whose group the procedure names.</para></summary>
     /// <returns>True HAVING REPORTED a violation.</returns>

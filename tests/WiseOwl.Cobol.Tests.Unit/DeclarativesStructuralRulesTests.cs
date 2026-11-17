@@ -305,6 +305,45 @@ public sealed class DeclarativesStructuralRulesTests
         Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§1985:XIII.4.9.3 SR4"));
     }
 
+    /// <summary>A CORRESPONDING statement stores only the receiving item of each corresponding pair (§1985:VI.6.19.4 GR1), and
+    /// INITIALIZE ... REPLACING only the elementary items of the category it names (§1985:VI.6.17.4 GR2): neither alters WS-CCTL,
+    /// the alphanumeric control data item of the group they name, which has no corresponding item in WS-CSRC (kb/Work PB5890).
+    /// The same at 85 and 2023.</summary>
+    [Theory]
+    [InlineData("MOVE CORRESPONDING WS-CSRC TO WS-CGRP", 85)]
+    [InlineData("MOVE CORRESPONDING WS-CSRC TO WS-CGRP", 2023)]
+    [InlineData("ADD CORRESPONDING WS-CSRC TO WS-CGRP", 85)]
+    [InlineData("ADD CORRESPONDING WS-CSRC TO WS-CGRP", 2023)]
+    [InlineData("SUBTRACT CORRESPONDING WS-CSRC FROM WS-CGRP", 85)]
+    [InlineData("SUBTRACT CORRESPONDING WS-CSRC FROM WS-CGRP", 2023)]
+    [InlineData("INITIALIZE WS-CGRP REPLACING NUMERIC DATA BY 7", 85)]
+    [InlineData("INITIALIZE WS-CGRP REPLACING NUMERIC DATA BY 7", 2023)]
+    [InlineData("MOVE CORRESPONDING WS-CGRP TO WS-CSRC2", 85)]      // the control data item is a SENDING item of a pair
+    [InlineData("MOVE CORRESPONDING WS-CGRP TO WS-CSRC2", 2023)]
+    public void ACorrespondingOrInitializeThatStoresNoControlItemOfItsGroup_IsAccepted(string statement, int level)
+    {
+        var d = BindDiagnostics(CorrespondingReportProgram(statement), level);
+        Assert.DoesNotContain(d, x => x.Contains("COBOL2378"));
+    }
+
+    /// <summary>The refusals that stay (kb/Work PB5890): a corresponding pair whose receiving item IS the control data item; an
+    /// INITIALIZE whose expansion stores it (no REPLACING phrase sets an alphanumeric item to spaces, §1985:VI.6.17.4 GR5; REPLACING
+    /// ALPHANUMERIC selects it, GR2); a MOVE to the group that holds it.</summary>
+    [Theory]
+    [InlineData("MOVE CORRESPONDING WS-CSRC2 TO WS-CGRP", 85, "§1985:XIII.4.9.3 SR4")]
+    [InlineData("MOVE CORRESPONDING WS-CSRC2 TO WS-CGRP", 2023, "§2023:14.9.49.3 SR11")]
+    [InlineData("INITIALIZE WS-CGRP", 85, "§1985:XIII.4.9.3 SR4")]
+    [InlineData("INITIALIZE WS-CGRP", 2023, "§2023:14.9.49.3 SR11")]
+    [InlineData("INITIALIZE WS-CGRP REPLACING ALPHANUMERIC DATA BY \"X\"", 85, "§1985:XIII.4.9.3 SR4")]
+    [InlineData("INITIALIZE WS-CGRP REPLACING ALPHANUMERIC DATA BY \"X\"", 2023, "§2023:14.9.49.3 SR11")]
+    [InlineData("MOVE SPACES TO WS-CGRP", 85, "§1985:XIII.4.9.3 SR4")]
+    [InlineData("MOVE SPACES TO WS-CGRP", 2023, "§2023:14.9.49.3 SR11")]
+    public void ACorrespondingOrInitializeThatStoresTheControlItem_IsRefused(string statement, int level, string citation)
+    {
+        var d = BindDiagnostics(CorrespondingReportProgram(statement), level);
+        Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains(citation));
+    }
+
     /// <summary>The control: an I-O statement that stores none of its file's connector items that is a control data item alters
     /// none.</summary>
     [Theory]
@@ -418,6 +457,51 @@ public sealed class DeclarativesStructuralRulesTests
 
     /// <summary>A report whose CONTROL is WS-GRP (subordinate to WS-CTL-REC, with WS-GRP-LO subordinate to it) and
     /// a USE BEFORE REPORTING procedure whose one paragraph holds <paramref name="statement"/>.</summary>
+    /// <summary>A report whose control data item WS-CCTL (alphanumeric) is the first item of the group WS-CGRP (kb/Work PB5890).
+    /// WS-CSRC corresponds to WS-CGRP in WS-OTH and WS-OTA only; WS-CSRC2 corresponds in WS-CCTL and WS-OTH.</summary>
+    private static string CorrespondingReportProgram(string statement) => $$"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. BRCORR.
+                   ENVIRONMENT DIVISION.
+                   INPUT-OUTPUT SECTION.
+                   FILE-CONTROL.
+                       SELECT RPT ASSIGN TO "brcorr.rpt".
+                   DATA DIVISION.
+                   FILE SECTION.
+                   FD RPT REPORT IS R-1.
+                   WORKING-STORAGE SECTION.
+                   01 WS-CGRP.
+                      02 WS-CCTL PIC X(2) VALUE "AA".
+                      02 WS-OTH PIC 9(4) VALUE 0.
+                      02 WS-OTA PIC X(3) VALUE "ZZZ".
+                   01 WS-CSRC.
+                      02 WS-OTH PIC 9(4) VALUE 5.
+                      02 WS-OTA PIC X(3) VALUE "QQQ".
+                   01 WS-CSRC2.
+                      02 WS-CCTL PIC X(2) VALUE "BB".
+                      02 WS-OTH PIC 9(4) VALUE 6.
+                   REPORT SECTION.
+                   RD R-1 CONTROL IS WS-CCTL OF WS-CGRP
+                       PAGE LIMIT IS 20 LINES.
+                   01 DET-A TYPE DE LINE PLUS 1.
+                      02 COLUMN 1 PIC X(2) SOURCE IS WS-CCTL OF WS-CGRP.
+                   PROCEDURE DIVISION.
+                   DECLARATIVES.
+                   BR-SEC SECTION.
+                       USE BEFORE REPORTING DET-A.
+                   BR-P.
+                       {{statement}}.
+                   END DECLARATIVES.
+                   MAIN SECTION.
+                   M1.
+                       OPEN OUTPUT RPT.
+                       INITIATE R-1.
+                       GENERATE DET-A.
+                       TERMINATE R-1.
+                       CLOSE RPT.
+                       STOP RUN.
+            """;
+
     private static string ReportProgram(string statement) => $$"""
                    IDENTIFICATION DIVISION.
                    PROGRAM-ID. BRSTRUCT.
