@@ -4287,8 +4287,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (Edition.DialectLevel < 2002 && data is not ReportSumFamily)
         {
             Edition.Error(DiagnosticCatalog.ReportSumAddendNotSumCounter, $"{where} names the entry '{data.Name}', a SOURCE or "
-                + "VALUE entry of the report section; if identifier-1 is defined in the Report Section, it must reference a "
-                + "sum counter (ISO §1985:XIII.3.19.3 SR1)");
+                + "VALUE entry of the report section: \"If identifier-1 is defined in the Report Section, identifier-1 must "
+                + "reference a sum counter\" (ISO §1985:XIII.3.19.3 SR1)");
             return null;
         }
         // SR4 — "If it is associated with an OCCURS clause, it shall be specified without the subscripting normally

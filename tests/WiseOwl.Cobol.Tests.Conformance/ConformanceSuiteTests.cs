@@ -79,6 +79,9 @@ public abstract class ConformanceSuiteTestsBase<TSlot>
         string? elided = result.Errors.Concat(result.Warnings).FirstOrDefault(e => ElidedMessageOpening.Rendered.IsMatch(e));
         Assert.True(elided is null,
             $"[{edition}/{id}] a diagnostic OPENS with a statement whose phrase it elided (kb/Work PB4160): {elided}");
+        // ⛔ AND AT --std 85 EVERY DIAGNOSTIC CITES THE 1985 RULE (kb/Work PB4950): the net under every producer that
+        // spells a later edition's rule where the edition in force has its own.
+        EditionCitationNet.AssertCitesTheEditionInForce([.. result.Errors, .. result.Warnings], edition, id, $"[{edition}/{id}]");
     }
 }
 

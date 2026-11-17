@@ -546,7 +546,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                     : DataBinder.WrittenText(wba.integerLiteral());
                 ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingOperand,
                     $"WRITE ADVANCING integer-1 '{text}' shall be an unsigned integer literal, positive or zero ("
-                    + ctx.Edition.Cite(
+                    + ctx.Edition.Edition.Cite(
                         y1985: "ISO §1985:VII.4.7.3 SR5; §1985:III.2 — an integer \"must be neither signed nor zero unless "
                             + "explicitly allowed by the rules for that format\"), or identifier-2 an integer data item (SR4)",
                         y2002: "ISO §2002:14.8.47.2 SR15; §2002:5.4 — integer-n \"shall be unsigned and non-zero unless "

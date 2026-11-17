@@ -24,7 +24,9 @@ public interface IClock
 /// date-time, e.g. <c>2026-06-10T14:30:45.67</c>, optionally carrying an explicit UTC offset,
 /// <c>2026-06-10T14:30:45.67+02:30</c> — without one the machine-local offset is assumed) so a test run can
 /// pin the clock ACROSS PROCESSES — the deterministic-clock path the temporal conformance goldens use —
-/// falling back to the local system clock.</summary>
+/// and reads the local system clock when the variable is unset or empty. ⛔ A PIN THAT DOES NOT PARSE STOPS THE RUN
+/// (kb/Work PB5839): it is an input the runtime cannot resolve, and answering with the real clock let a test whose pin
+/// was mistyped run against wall time with no message, a false green or a flake by the hour it ran.</summary>
 public sealed class SystemClock : IClock
 {
     /// <summary>The environment variable that pins the clock (<c>WISEOWL_COBOL_CLOCK</c>; see the class summary).
@@ -35,9 +37,13 @@ public sealed class SystemClock : IClock
     public static readonly SystemClock Instance = new();
 
     /// <inheritdoc/>
-    public DateTimeOffset Now() =>
-        Environment.GetEnvironmentVariable(PinVariable) is { Length: > 0 } pin
-        && DateTimeOffset.TryParse(pin, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTimeOffset pinned)
+    public DateTimeOffset Now()
+    {
+        if (Environment.GetEnvironmentVariable(PinVariable) is not { Length: > 0 } pin) return DateTimeOffset.Now;
+        return DateTimeOffset.TryParse(pin, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTimeOffset pinned)
             ? pinned
-            : DateTimeOffset.Now;
+            : throw new Exceptions.CobolImplementorFatalException(
+                $"{PinVariable}='{pin}' is not a date-time this runtime can read (an invariant-culture date-time such as "
+                + "2026-06-10T14:30:45.67, optionally with a UTC offset such as +02:30); unset it to read the system clock");
+    }
 }

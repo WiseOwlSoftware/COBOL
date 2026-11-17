@@ -1156,17 +1156,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // ⛔ EVERY ARM OF THIS SCREEN NAMES THE RULE OF THE EDITION IT REFUSES AT (kb/Work PB5883 review R1-2).
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
                 $"{clauseFace} '{WrittenText(dref)}': the clause's general format prints data-name-n"
-                + edition.Cite("", "", ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1)", "")
+                + edition.Edition.Cite("", "", ", which is a qualified-data-name (ISO §2023:8.4.2.2.2 Format 1)", "")
                 + $"; {register} is a special register"
-                + edition.Cite("", "", $" — an identifier of §2023:8.4.3.1 Format {(register == "LINAGE-COUNTER" ? "10" : "11")}", "")
+                + edition.Edition.Cite("", "", $" — an identifier of §2023:8.4.3.1 Format {(register == "LINAGE-COUNTER" ? "10" : "11")}", "")
                 + " — and "
                 + (register == "LINAGE-COUNTER"
-                    ? edition.Cite(
+                    ? edition.Edition.Cite(
                         "\"LINAGE-COUNTER may be referenced only in Procedure Division statements\" (ISO §1985:VII.1.3.7)",
                         "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2002:8.4.2.13.2 SR1)",
                         "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2023:8.4.3.14.3 SR1)",
                         "\"LINAGE-COUNTER may be referenced only in procedure division statements\" (ISO §2014:8.4.2.14.2 SR1)")
-                    : edition.Cite(
+                    : edition.Edition.Cite(
                         register == "PAGE-COUNTER"
                             ? "\"PAGE-COUNTER may be referenced only in the SOURCE clause of the Report Section and in Procedure "
                               + "Division statements\" (ISO §1985:XIII.1.2.2)"
@@ -1210,7 +1210,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (subscripted)
             edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
                 $"{clauseFace} '{WrittenText(dref)}' is written with a subscript; the clause's general format prints data-name-n"
-                + edition.Cite(
+                + edition.Edition.Cite(
                     ", not identifier, which alone is \"a syntactically correct combination of a data-name, with its qualifiers, "
                         + "subscripts, and reference modifiers\" (ISO §1985:III.2, Identifier), and ",
                     // At COBOL-2002 a data-name-n includes subscription (§2002:5.1.3); what refuses it here is the caller's own rule.
@@ -1292,7 +1292,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // allowed, an identifier, and the general format prints data-name-n, which is none.
         edition.Error(DiagnosticCatalog.ClauseOperandNotADataName,
             $"{clauseFace} '{WrittenText(dref)}' is reference-modified; "
-            + edition.Cite(
+            + edition.Edition.Cite(
                 "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
                     + "data item of the class alphanumeric is permitted\" (ISO §1985:IV.4.3.8.4.3 SR3)",
                 "the general format prints data-name-n, and \"reference modification is allowed anywhere an identifier referencing a "
@@ -1474,6 +1474,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §2023:13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions) and SR2's CLASS half.
+        // ONE FAULT, ONE VERDICT (kb/Work PB5636): a fixed-point literal written in more digits than this compiler allows at the
+        // edition (§1985:IV.4.2.2.2.2 "The implementor must allow for numeric literals of 1 through 18 digits in length", the
+        // limit at 85; §2023:8.3.3.3.2's 31 from 2002) is refused by the literal screen as a literal (COBOL0801 / COBOL0802), the
+        // fault of the literal itself, so no PICTURE range is asked of it here as well. The test is the screen's own: the one
+        // count and the one capacity decider.
+        string written = raw.Trim();
+        bool overCapacity = NumericLiteral.IsFixedPointLiteralForm(written)
+            && Edition.Edition.DigitCapacityExcess(NumericLiteral.WrittenDigits(written)) is not null;
         raw = ValidateValueCategory(pic, raw, where, subject);
         // VALUE-clause range/sign conformance for a fixed-point NUMERIC subject (ISO §2023:13.18.63.3 SR2/SR3): a numeric
         // VALUE literal must be a permissible value in the PICTURE range, representable WITHOUT truncation of a
@@ -1482,7 +1490,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // unsigned-magnitude, so absent this bind-time gate an out-of-range / wrong-sign VALUE silently seeds an
         // out-of-range native field (COBOL1625). A NUMERIC-EDITED subject's numeric literal rides the same check
         // (SR6 — converted per the MOVE rules "such that no truncation of digits or sign is required"; kb/Work PB97).
-        if (pic is { Category: PicCategory.Numeric, IsFloat: false } or { Category: PicCategory.NumericEdited })
+        if (!overCapacity && pic is { Category: PicCategory.Numeric, IsFloat: false } or { Category: PicCategory.NumericEdited })
             ValidateNumericValue(pic, raw, where);
         // (⛔ ALL of §2023:13.18.63.3 SR6 — the literal-FORM rule AND the edition on which a numeric literal became
         // writable at all — is <see cref="ScreenNumericEditedNumericLiteral"/>'s, reached from

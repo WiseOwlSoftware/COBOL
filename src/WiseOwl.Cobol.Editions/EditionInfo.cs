@@ -122,6 +122,16 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// user-defined words, and do not have to be different from user-defined words" (§2002:F.2, item 135).</summary>
     public bool CopyNamesAreUserDefinedWords => Year < 2002;
 
+    /// <summary>⛔ THE ONE CHOICE OF A RULE'S CITATION BY EDITION (kb/Work PB4950, the owner's decision of 2026-11-07: "a
+    /// diagnostic cite the rule of the edition the program was compiled under"): <paramref name="y1985"/> at COBOL-85,
+    /// <paramref name="y2002"/> at COBOL-2002, <paramref name="y2014"/> at COBOL-2014 (the 2002 citation where a caller gives
+    /// none) and <paramref name="y2023"/> at COBOL-2023, so a message sends the reader to the text of the edition they compile
+    /// at. Every per-edition message asks it; no site spells its own <c>Year &lt; 2002 ? ... : ...</c> between citations.
+    /// Each argument is a citation in the edition form of kb/Work PB4887 (<c>§1985:VI.6.22.3 SR1</c>), checked by
+    /// <c>scripts/spec/audit_code_citations.py</c>.</summary>
+    public string Cite(string y1985, string y2002, string y2023, string? y2014 = null) =>
+        Year < 2002 ? y1985 : Year < 2014 ? y2002 : Year < 2023 ? y2014 ?? y2002 : y2023;
+
     /// <summary>True when the targeted edition is at or after <paramref name="introducedIn"/> — the one
     /// predicate behind the grammar's <c>{isXXXX()}?</c> introduction gates and every version-varying bind
     /// decision.</summary>

@@ -551,7 +551,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         DataBinder.ScreenDataNameShape(dref, face, ctx.Edition, subscriptRule, admitsSubscript2002: true);
 
     /// <summary>The READ KEY phrase's own rule about the operand's shape, in the targeted edition's text (kb/Work PB5883).</summary>
-    private string ReadKeyShapeRule => ctx.Edition.Cite(
+    private string ReadKeyShapeRule => ctx.Edition.Edition.Cite(
         "data-name-1 may be qualified (ISO §1985:IX.4.5.3 SR3), and a table element reference is subscripted "
             + "(ISO §1985:IV.4.3.8.2.3 SR4), so no table element is data-name-1",
         "data-name-1 or record-key-name-1 may be qualified (ISO §2002:14.8.29.2 SR11)",
@@ -559,7 +559,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         "data-name-1 or record-key-name-1 may be qualified (ISO §2014:14.9.29.2 SR10) and carries no subscript");
 
     /// <summary>The START KEY phrase's own rule about the operand's shape, in the targeted edition's text (kb/Work PB5883).</summary>
-    private string StartKeyShapeRule(FileModel file) => ctx.Edition.Cite(
+    private string StartKeyShapeRule(FileModel file) => ctx.Edition.Edition.Cite(
         $"data-name-1 may be qualified (ISO §1985:{(file.Organization == FileOrganization.Relative ? "VIII" : "IX")}.4.7.3 SR2), "
             + "and a table element reference is subscripted (ISO §1985:IV.4.3.8.2.3 SR4), so no table element is data-name-1",
         "data-name-1 or record-key-name-1 may be qualified (ISO §2002:14.8.37.2 SR4)",

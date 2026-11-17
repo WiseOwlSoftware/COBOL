@@ -147,7 +147,7 @@ public static class LiteralScreen
     /// rule counts digit positions.</summary>
     private static bool ScreenDigitCapacity(ParserRuleContext node, string text, EditionInfo edition, IDiagnosticSink sink)
     {
-        int digits = text.Count(char.IsAsciiDigit);
+        int digits = NumericLiteral.WrittenDigits(text);
         if (edition.DigitCapacityExcess(digits) is not { } excess) return true;
         using var _ = sink.At(ExpansionToken.CursorOf(node.Start));
         string written = WrittenSource.Of(node);
