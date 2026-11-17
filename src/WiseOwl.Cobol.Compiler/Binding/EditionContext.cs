@@ -504,7 +504,9 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// descriptor's severity itself.</para></summary>
     public void Declined(DiagnosticDescriptor descriptor, string? seen = null)
     {
-        string message = seen is null ? descriptor.Title : $"{seen}: {descriptor.Title}";
+        // The descriptor's words in the edition in force: at 85 its 1985 ground when it has one (kb/Work PB4950, PB5875).
+        string title = Edition.Cite(descriptor.Title1985 ?? descriptor.Title, descriptor.Title, descriptor.Title);
+        string message = seen is null ? title : $"{seen}: {title}";
         if (Refuses(descriptor)) Error(descriptor.Code, message);
         else Warning(descriptor.Code, message);
     }

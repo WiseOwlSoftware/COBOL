@@ -53,6 +53,11 @@ public static class NumericLiteral
     /// decimal point). Either separator counts — the text may be as written (a ',' under DECIMAL-POINT IS COMMA) or
     /// canonical. Read by the compiler's integer classifier (<c>IntrinsicResultType.IsIntegerOperand</c>) and the
     /// compile-time boolean-shift count (kb/Work PB1413), so the two lanes answer §2023:5.5 2) a) the same way.</summary>
+    /// <summary>The digits a fixed-point numeric literal is WRITTEN in, leading zeros included, the way the PICTURE rule counts digit
+    /// positions: the one count of the digit capacity (EditionInfo.DigitCapacityExcess), asked by the literal screen, which reports an
+    /// excess, and by the VALUE binder, which then asks no range of a literal already refused (kb/Work PB5529, PB5636).</summary>
+    public static int WrittenDigits(string text) => text.Count(char.IsAsciiDigit);
+
     public static bool IsIntegerLiteralForm(string text) => !text.Contains('.') && !text.Contains(',');
 
     /// <summary>⛔ THE ONE "written without a sign" test — ISO §2023:8.3.3.3.2 SR2: "If a sign is used, it shall appear as the

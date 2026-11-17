@@ -76,6 +76,10 @@ public enum DeclinedAnnex
 /// force, and where that edition has none, the edition where the rule begins). <see langword="null"/> for a diagnostic
 /// whose rule 1985 has: at 85 its message cites the 1985 rule, which the conformance suite's
 /// <c>EditionCitationNet</c> asks of every refusal it compiles at 85.</param>
+/// <param name="Title1985">For a diagnostic whose <see cref="Title"/> IS its message (a decline composed by
+/// <c>EditionContext.Declined</c>), the message at <c>--std 85</c>, citing the 1985 ground where <see cref="Title"/> cites
+/// a later edition's (kb/Work PB4950, PB5875). <see langword="null"/> when <see cref="Title"/> serves every edition.
+/// <c>EditionInfo.Cite</c> chooses between them, the one choice of a citation by edition.</param>
 public sealed record DiagnosticDescriptor(
     string Code,
     string Id,
@@ -85,7 +89,8 @@ public sealed record DiagnosticDescriptor(
     string? SuppressKey = null,
     bool PermissiveInert = false,
     DeclinedAnnex Annex = DeclinedAnnex.None,
-    string? No1985Rule = null)
+    string? No1985Rule = null,
+    string? Title1985 = null)
 {
     /// <summary>The effective <c>--suppress</c> family key: <see cref="SuppressKey"/> when set, else
     /// <see cref="Code"/>.</summary>

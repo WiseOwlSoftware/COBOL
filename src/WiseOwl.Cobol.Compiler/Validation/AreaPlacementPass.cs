@@ -198,7 +198,11 @@ internal static class AreaPlacementPass
         // ── Paragraph headers ────────────────────────────────────────────────────────────────────────────────
         public override object? VisitIdentificationParagraph(Core.IdentificationParagraphContext ctx) => Paragraph(ctx);
         public override object? VisitOptionsParagraph(Core.OptionsParagraphContext ctx) => Paragraph(ctx);
-        public override object? VisitConfigurationParagraph(Core.ConfigurationParagraphContext ctx) => Paragraph(ctx);
+        // The grammar's last alternative, `unrecognizedClause DOT`, is no paragraph: ClosedFormatPass refuses it by name
+        // (COBOL1971), and it heads no area-A item, so a literal or a number written after SOURCE-COMPUTER draws that one
+        // verdict and not a second, area-A one about a header nobody wrote (kb/Work PB5905).
+        public override object? VisitConfigurationParagraph(Core.ConfigurationParagraphContext ctx) =>
+            ctx.unrecognizedClause() is null ? Paragraph(ctx) : VisitChildren(ctx);
         public override object? VisitFileControlParagraph(Core.FileControlParagraphContext ctx) => Paragraph(ctx);
         public override object? VisitIoControlParagraph(Core.IoControlParagraphContext ctx) => Paragraph(ctx);
         public override object? VisitParagraphDefinition(Core.ParagraphDefinitionContext ctx) => Paragraph(ctx);

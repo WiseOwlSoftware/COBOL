@@ -57,6 +57,38 @@ public sealed class CurrentDateOffsetPinTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    /// <summary>⛔ A PIN THE RUNTIME CANNOT READ STOPS THE RUN (kb/Work PB5839): it used to fall back to the real clock with no
+    /// message, so a test that mistyped its pin ran against wall time. The run fails, and its message names the variable and
+    /// the value.</summary>
+    [Fact]
+    public void UnparseablePin_StopsTheRun_NamingTheVariable()
+    {
+        string dir = ScratchDirectory.Create("cdbad");
+        try
+        {
+            string src = CompiledProgramCache.StageSource(Path.Combine(dir, "DDCDBAD.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. DDCDBAD.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 D PIC 9(6).
+                PROCEDURE DIVISION.
+                MAIN.
+                    ACCEPT D FROM DATE
+                    DISPLAY D
+                    STOP RUN.
+                """);
+            string dll = Path.Combine(dir, "DDCDBAD.dll");
+            var compiled = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 85, SourceFormat: InitialReferenceFormat.Auto));
+            Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
+            var (ok, stdout, detail) = CutRunner.Run(dll, dir, null,
+                new Dictionary<string, string?> { [WiseOwl.Cobol.Runtime.IO.SystemClock.PinVariable] = "not-a-date" });
+            Assert.False(ok, $"an unparseable pin ran to completion, printing [{stdout}]");
+            Assert.Contains("WISEOWL_COBOL_CLOCK='not-a-date'", detail, StringComparison.Ordinal);
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
     [Fact]
     public void CurrentDate_PlusFourteen_ReportsTrueOffset_PinnedToSpec() =>
         // Pacific/Kiritimati. §2023:15.21.3 r1 positions 18-19 admit only "00 through 13" under a '+' sign, and the

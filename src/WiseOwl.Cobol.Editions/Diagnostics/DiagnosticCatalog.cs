@@ -3810,7 +3810,13 @@ public static class DiagnosticCatalog
         + "§2023:12.4.5.11.4 GR1 keeps that method out of the record area and the record size, so no program-visible "
         + "value changes. See docs/CONFORMANCE.md §2 row 26.",
         "ISO §2023:4.2.6 ¶3 / Annex A.3 item 26 / §2023:12.4.5.11.4 GR2", RecognizedNotImplemented,
-        Annex: DeclinedAnnex.A3);
+        Annex: DeclinedAnnex.A3,
+        Title1985: "the STANDARD-1 phrase of the RECORD DELIMITER clause (ISO §1985:VII.2.8) is a hardware dependent "
+        + "language element (§1985:I.1.5.2.5.1; §1985:C.3 item 6, \"dependent upon a reel type of device\") whose "
+        + "§1985:VII.2.8.3 SR2 medium is a magnetic tape file, and WiseOwl COBOL provides no reel device. The phrase is "
+        + "ACCEPTED and has no effect: the file's variable-length records keep the implementor's method (the 4-byte length "
+        + "prefix of BINARY-SEQUENTIAL), and §1985:VII.2.8.4 GR1 keeps that method out of the record area and the record "
+        + "size, so no program-visible value changes. See docs/CONFORMANCE.md §2 row 26.");
 
     /// <summary>COBOL7598 — the RECORD DELIMITER clause names a word that is no implementor-name of the clause, or one whose
     /// method the file cannot have (kb/Work PB5844).</summary>

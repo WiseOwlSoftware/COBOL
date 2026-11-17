@@ -1474,6 +1474,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     {
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §2023:13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions) and SR2's CLASS half.
+        // ONE FAULT, ONE VERDICT (kb/Work PB5636): a fixed-point literal written in more digits than this compiler allows at the
+        // edition (§1985:IV.4.2.2.2.2 "The implementor must allow for numeric literals of 1 through 18 digits in length", the
+        // limit at 85; §2023:8.3.3.3.2's 31 from 2002) is refused by the literal screen as a literal (COBOL0801 / COBOL0802), the
+        // fault of the literal itself, so no PICTURE range is asked of it here as well. The test is the screen's own: the one
+        // count and the one capacity decider.
+        string written = raw.Trim();
+        bool overCapacity = NumericLiteral.IsFixedPointLiteralForm(written)
+            && Edition.Edition.DigitCapacityExcess(NumericLiteral.WrittenDigits(written)) is not null;
         raw = ValidateValueCategory(pic, raw, where, subject);
         // VALUE-clause range/sign conformance for a fixed-point NUMERIC subject (ISO §2023:13.18.63.3 SR2/SR3): a numeric
         // VALUE literal must be a permissible value in the PICTURE range, representable WITHOUT truncation of a
@@ -1482,7 +1490,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // unsigned-magnitude, so absent this bind-time gate an out-of-range / wrong-sign VALUE silently seeds an
         // out-of-range native field (COBOL1625). A NUMERIC-EDITED subject's numeric literal rides the same check
         // (SR6 — converted per the MOVE rules "such that no truncation of digits or sign is required"; kb/Work PB97).
-        if (pic is { Category: PicCategory.Numeric, IsFloat: false } or { Category: PicCategory.NumericEdited })
+        if (!overCapacity && pic is { Category: PicCategory.Numeric, IsFloat: false } or { Category: PicCategory.NumericEdited })
             ValidateNumericValue(pic, raw, where);
         // (⛔ ALL of §2023:13.18.63.3 SR6 — the literal-FORM rule AND the edition on which a numeric literal became
         // writable at all — is <see cref="ScreenNumericEditedNumericLiteral"/>'s, reached from
