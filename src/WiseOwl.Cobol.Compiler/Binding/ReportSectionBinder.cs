@@ -535,7 +535,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the item a recurrence identifies, never how it is spelled (SR1 lets a name be qualified), so it is asked of the RESOLVED
     /// items: <c>CONTROLS WS-A WS-A OF WS-G</c> names one item twice. COBOL-2002 and later ask the written reference instead
     /// (§2023:13.18.16.3 SR6, <see cref="BindReportDescriptionClauses"/>), whose second sentence lets two operands refer to the
-    /// same item. An operand whose lookup failed has no item and was reported by its own rule.</summary>
+    /// same item. An operand whose lookup failed has no item and was reported by its own rule.
+    /// <para>The data item a name identifies is its <see cref="DataItem.AttributeItem"/> (kb/Work PB5866): a level-66 entry
+    /// without THROUGH is another name of the item it renames, whose data attributes it takes (§1985:VI.5.11.4 GR2), so
+    /// <c>CONTROLS B R66</c> with <c>66 R66 RENAMES B</c> names one item twice. A level-66 entry WITH THROUGH is a group of its
+    /// own, and an item that REDEFINES another has a description of its own: neither is the item it overlays.</para></summary>
     private void ScreenControlItemsDistinct(ReportModel model)
     {
         if (Edition.DialectLevel >= 2002) return;
@@ -544,11 +548,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // A reference-modified operand identifies a part of its item, not the item (§2023:8.4.3.3.4 GR5), so only
             // whole-item operands are compared.
             if (model.Controls[i] is not { Item: { } later, Operand: { RefModStart: null } laterOp }) continue;
+            var identified = later.AttributeItem;
             for (int j = 0; j < i; j++)
-                if (ReferenceEquals(model.Controls[j].Item, later) && model.Controls[j].Operand is { RefModStart: null })
+                if (model.Controls[j] is { Item: { } earlier, Operand: { RefModStart: null } earlierOp }
+                    && ReferenceEquals(earlier.AttributeItem, identified))
                 {
                     Edition.Error(DiagnosticCatalog.ReportControlOperandShape, $"RD '{model.Name}': CONTROL operand '{laterOp}' "
-                        + $"identifies the data item '{later.CobolName}' that '{model.Controls[j].Operand}' already identifies; each "
+                        + $"identifies the data item '{identified.CobolName}' that '{earlierOp}' already identifies; each "
                         + "recurrence of data-name-1 must identify a different data item (ISO §1985:XIII.3.7.3 SR2)");
                     break;
                 }
