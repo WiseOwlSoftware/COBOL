@@ -1,4 +1,4 @@
-## PB5861 discharged by PB5784, and PB5867: a comma or semicolon separator between PICTURE and its character-string
+## Entry 3806 — 2026-11-16 18:49 PST — PB5861 discharged by PB5784, and PB5867: a comma or semicolon separator between PICTURE and its character-string
 
 Wave 20262095, group A: two legal 1985 source forms the front end refused.
 
@@ -27,3 +27,4 @@ the unit theory `LexerTotalityDriftTests.ASeparatorCommaOrSemicolonBeforeThePict
 **Rows.** `1985-SR-VI.6.3.3-2` and `1985-SR-IV.4.2.1-2` close (each note's `closes_rows`) and gain their witnesses; both
 are now owed their re-read (`code_reads.py plan`). `SR-8.3.5-2` (CONFORMS), `GR-8.8.4.12.4-1` and `FMT-8.8.4.12.2` gain
 witnesses. GAP unchanged (1985: 6, 2023: 5).
+
