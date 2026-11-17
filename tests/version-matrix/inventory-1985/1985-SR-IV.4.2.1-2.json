@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.2.1-2",
  "rule-digest": "51c05b292f56",
- "test-ref": "conformance:cases/8.3.5-Separators/w73a_separator_context_conforming; conformance:cases/IV.4.2@1985-LANGUAGE-STRUCTURE/pb5793_list_separator_where_space",
+ "test-ref": "conformance:cases/8.3.5-Separators/w73a_separator_context_conforming; conformance:cases/IV.4.2@1985-LANGUAGE-STRUCTURE/pb5793_list_separator_where_space; conformance:cases/IV.4.2@1985-LANGUAGE-STRUCTURE/pb5867_picture_separator_85",
  "notes": "kb/Work PB5793 landed. §1985:IV.4.2.1 SR2: the comma and semicolon followed by a space 'are separators that may be used anywhere the separator space is used'; SR9 lets a space follow '(' and SR8 lets one precede ')'. Inside a list region (a subscript list, a reference modifier, an argument list) the lexer kept the separator as the FNARG_SEPARATOR token wherever it stood, and the grammar admits it only between two items, so W-E (I +, 1), W-E (, I) and W-E (I, ) were COBOL0001 at every edition. The lexer now keeps it only at a boundary between two items (CobolLexer.ListItemBoundary: the token before it ends an item and the character after it begins one) and skips it as the space elsewhere. Probed at --std 85: pb5793_list_separator_where_space prints every line as derived.",
  "next": {
   "kind": "KEPT",

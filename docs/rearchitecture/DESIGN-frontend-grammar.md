@@ -954,6 +954,13 @@ never a diagnosis of the source), a fragment lex `FragmentParse`'s flag and the 
 counter. `LexerDfaCacheDriftTests`' warm-up lex of the suite's sources runs through `LexerErrorListener` and holds
 the lexer to reporting nothing on them (the one suite lex for both questions, branch review R1-2);
 `LexerTotalityDriftTests` holds the PICMODE period and the listener.
+**PICMODE's separators are the separator space's (kb/Work PB5867).** Before the character-string `PIC_WS` skips the
+separator space in each of its spellings: a space, a line end, and a comma or semicolon immediately followed by one
+(§1985:IV.4.2.1 SR2, §2023:8.3.5 SR2: they "may be used anywhere the separator space is used"), so `PICTURE; 9(3)` and
+`PIC, 999` lex the string after the separator, while `PIC ,999` (no space after the comma) is the string `,999`.
+After it `PIC_STRING`'s action (`OnPictureString`) gives back a trailing separator, and when what is left is the word
+IS (`PICTURE IS, X(2)`, where the match `IS,` outran `PIC_IS`) hands it to `OnPictureIs`, the one decision about an IS
+in the mode. `LexerTotalityDriftTests.ASeparatorCommaOrSemicolonBeforeThePicture_IsTheSeparatorSpace` holds both.
 
 **3.3e ⛔ The lexer carries NO semantic predicate — context the lexer needs goes in an ACTION (kb/Work PB1715).**
 ANTLR 4.13.2 caches a mode's start state only when no predicate is in its closure (`LexerATNSimulator.MatchATN`),

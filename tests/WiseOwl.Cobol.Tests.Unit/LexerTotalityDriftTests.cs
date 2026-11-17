@@ -63,6 +63,35 @@ public sealed class LexerTotalityDriftTests
         Assert.All(tokens.Skip(at + 1), t => Assert.NotEqual(CobolLexer.PIC_STRING, t.Type));   // the mode ended there
     }
 
+    /// <summary>A comma or semicolon IMMEDIATELY FOLLOWED BY A SPACE between PIC / PICTURE (and its IS) and the
+    /// character-string is the separator space (kb/Work PB5867; §1985:IV.4.2.1 SR2, §2023:8.3.5 SR2: such a separator
+    /// "may be used anywhere the separator space is used"), so the string is the one after it. The test is the following
+    /// space: in <c>PIC ,999</c> and <c>PIC IS ,999</c> the comma is the string's first character, and a second IS with
+    /// its separator is still the character-string (kb/Work PB5213), which ends the mode.</summary>
+    [Theory]
+    [InlineData("01 X PIC, X(3).\n", "X(3)", new[] { "PIC", "X(3)", "." })]
+    [InlineData("01 X PICTURE; 9(3).\n", "9(3)", new[] { "PICTURE", "9(3)", "." })]
+    [InlineData("01 X PICTURE , 9(3).\n", "9(3)", new[] { "PICTURE", "9(3)", "." })]
+    [InlineData("01 X PICTURE IS, X(2).\n", "X(2)", new[] { "PICTURE", "IS", "X(2)", "." })]
+    [InlineData("01 X PIC IS; 99.\n", "99", new[] { "PIC", "IS", "99", "." })]
+    [InlineData("01 X pic is, x(2).\n", "x(2)", new[] { "pic", "is", "x(2)", "." })]
+    [InlineData("01 X PIC,\n    9(2).\n", "9(2)", new[] { "PIC", "9(2)", "." })]
+    [InlineData("01 X PIC IS,\n    9(2).\n", "9(2)", new[] { "PIC", "IS", "9(2)", "." })]
+    [InlineData("01 X PIC ,999.\n", ",999", new[] { "PIC", ",999", "." })]
+    [InlineData("01 X PIC IS ,999.\n", ",999", new[] { "PIC", "IS", ",999", "." })]
+    [InlineData("01 X PIC IS IS, X.\n", "IS", new[] { "PIC", "IS", "IS", "X", "." })]
+    public void ASeparatorCommaOrSemicolonBeforeThePicture_IsTheSeparatorSpace(string text, string picture, string[] words)
+    {
+        var (errors, tokens) = Lex(text);
+        Assert.Empty(errors);
+        int pic = tokens.FindIndex(t => t.Type == CobolLexer.PIC);
+        Assert.Equal(words, tokens.Skip(pic).Select(t => t.Text).ToArray());
+        int at = tokens[pic + 1].Type == CobolLexer.IS ? pic + 2 : pic + 1;
+        Assert.Equal(CobolLexer.PIC_STRING, tokens[at].Type);
+        Assert.Equal(picture, tokens[at].Text);
+        Assert.All(tokens.Skip(at + 1), t => Assert.NotEqual(CobolLexer.PIC_STRING, t.Type));   // the mode ended there
+    }
+
     /// <summary>A period a picture character follows stays inside the picture character-string: the separator-period
     /// rule takes only what PIC_STRING cannot.</summary>
     [Theory]
