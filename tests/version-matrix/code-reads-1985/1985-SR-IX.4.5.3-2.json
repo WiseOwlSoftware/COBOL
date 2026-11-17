@@ -120,5 +120,10 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#SameClassCategoryUsage: consults no edition; the class, category and usage condition on an implicit key comes from the 2023 START generic-key rule and is applied unchanged at 85, where the text states none"
   ],
   "corrected": "CONFORMS only under the unstated reading that an implicit key item must itself qualify as a key under §1985:IX.2.7.3 SR2; under either plain reading (strict or positional) one arm is wrong. The reading needs an adjudication note."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The doubt is rejected: an item at the record key's character positions in another record description is an implicit key (§1985:IX.2.7.4 GR3) when a key could be it (alphanumeric, §1985:IX.2.7.3 SR2); a group twin is, numeric, edited and prefix twins are not. The reading is kb/Work PB354's and PB5794's.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-19.md"
  }
 }

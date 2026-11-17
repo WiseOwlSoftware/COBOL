@@ -89,5 +89,11 @@
   "evidence": "fn_edge.cob at --std 85: MOVE FUNCTION CHAR(N * (N - 1) / 2 + 65) TO C refused, 'error COBOL1627: FUNCTION CHAR argument-1 is an arithmetic expression whose term (N * (N - 1)) is an integer under the net factor 0.5 ...'; N * (N - 1) is always even, so the argument always results in an integer value and §1989:A.2.9.3 AR1 with §1989:A.2.2 AR4 makes it legal. Same at --std 2023. Admitted and correct: CHAR(ORD-MAX(1 2) + 64) = A and CHAR(PP * 6 + 6) over PIC 9P = A (fn_legal2.cob). Refused correctly: CHAR(MIDRANGE(64 66)), CHAR(MEDIAN(64 66)). cite.py: OK §1989:A.2.9.3 AR1 'Argument-1 must be an integer'; OK §1989:A.2.2 AR4.",
   "edition-sites-missed": [],
   "corrected": "PARTIAL: rejects-legal-source; cause (b). IntrinsicArgumentRules.cs#NotAlwaysIntegral refuses CHAR(N * (N - 1) / 2 + 65) at every edition. Known: kb/Work PB5889 (class), form not listed."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "FUNCTION CHAR (N * (N - 1) / 2 + 65) with N PIC 99 is refused COBOL1627 at --std 85 and 2023 (fn_edge.cob), though the argument always results in an integer value (§1989:A.2.2 AR4).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-20.md"
+ },
+ "work": "PB5891"
 }

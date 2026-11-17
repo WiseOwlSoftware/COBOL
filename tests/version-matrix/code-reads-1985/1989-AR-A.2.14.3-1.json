@@ -101,5 +101,11 @@
   "evidence": "fn_edge.cob at --std 85: COMPUTE R = FUNCTION FACTORIAL(N * (N + 1) / 2) with N PIC 99 is refused, EXIT 65, 'error COBOL1627: FUNCTION FACTORIAL argument-1 is an arithmetic expression whose term (N * (N + 1)) is an integer under the net factor 0.5, which is not a whole number, so the sum does not always result in an integer value'. N * (N + 1) is the product of two consecutive integers, always even, so the expression always results in an integer value for every valuation of N, exact under any intermediate precision; §1989:A.2.2 AR4 asks only that the expression 'will always result in an integer value' and sets no proof method, so this is legal source the compiler rejects. Same refusal at --std 2023 (fn_edge-002). The project records this class as debt itself: kb/Work PB5889 (decision, status open, rejects_legal_source: true) refuses integer arguments that are integers only by identity; this form is a sibling not listed there (integer terms under a non-whole net factor, not cancellation of non-integer terms). The rest of the reader's claim holds: fn_legal2.cob admits MAX(3 4), SUM(1 2), RANGE(1 5) (integer by argument types), a P-scaled PIC 9P item (10! = 3628800), 2 ** N, with correct values; fn_refuse2.cob refuses MAX(3 4.5), SUM(1 0.5), PIC P9, N ** -1; fn_float.cob refuses the 2002 floating literal 1.0E1 at 85 (COBOL0900). cite.py: OK §1989:A.2.2 AR4 'An arithmetic expression which will always result in an integer value must be specified'; OK §1989:A.2.14.3 AR1 'Argument-1 must be an integer greater than or equal to zero'.",
   "edition-sites-missed": [],
   "corrected": "PARTIAL: rejects-legal-source; cause (b), the same at every edition. src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NotAlwaysIntegral (via CollectAdditive) refuses an always-integral argument it cannot show integral by types and literal coefficients, e.g. FACTORIAL(N * (N + 1) / 2). Known: kb/Work PB5889 (the debt class, open)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "FUNCTION FACTORIAL (N * (N + 1) / 2) with N PIC 99 is refused COBOL1627 at --std 85 and 2023 (fn_edge.cob), though the argument always results in an integer value (§1989:A.2.2 AR4).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-20.md"
+ },
+ "work": "PB5891"
 }

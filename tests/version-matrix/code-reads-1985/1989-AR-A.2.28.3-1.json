@@ -101,5 +101,11 @@
   "evidence": "fn_edge.cob at --std 85: COMPUTE RS = FUNCTION MOD(N * (N + 1) / 2 4) refused, 'error COBOL1627: FUNCTION MOD argument-1 is an arithmetic expression whose term (N * (N + 1)) is an integer under the net factor 0.5 ...'; the argument always results in an integer value (product of consecutive integers is even), so §1989:A.2.28.3 AR1 with §1989:A.2.2 AR4 makes it legal. Same at --std 2023. Admitted and correct: MOD(INTEGER-PART(SC) 2) = 0, MOD(K LENGTH(X)) with K = -7 gives 3, MOD(-11 ORD-MIN(9 5 1 7 3)) = 1 (fn_legal2.cob). Refused correctly: MOD(N (1:1) 2) (reference modification is alphanumeric), MOD(NUMVAL(\"5\") 2), MOD(7 FUNCTION RANDOM) (fn_refuse2.cob). cite.py: OK §1989:A.2.28.3 AR1 'Argument-1 and argument-2 must be integers'; OK §1989:A.2.2 AR4.",
   "edition-sites-missed": [],
   "corrected": "PARTIAL: rejects-legal-source; cause (b). IntrinsicArgumentRules.cs#NotAlwaysIntegral refuses MOD(N * (N + 1) / 2 4) at every edition. Known: kb/Work PB5889 (class), form not listed."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "FUNCTION MOD (N * (N + 1) / 2 4) with N PIC 99 is refused COBOL1627 at --std 85 and 2023 (fn_edge.cob), though the argument always results in an integer value (§1989:A.2.2 AR4).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-20.md"
+ },
+ "work": "PB5891"
 }

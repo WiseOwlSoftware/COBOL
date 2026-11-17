@@ -97,5 +97,11 @@
   "evidence": "fn_edge.cob at --std 85: COMPUTE F = FUNCTION RANDOM(N * (N + 1) / 2) refused, 'error COBOL1627: FUNCTION RANDOM argument-1 is an arithmetic expression whose term (N * (N + 1)) is an integer under the net factor 0.5 ...'; for N PIC 99 the seed is always a zero-or-positive integer, so §1989:A.2.35.3 AR1 with §1989:A.2.2 AR4 makes it legal. Same at --std 2023. Admitted: RANDOM(FUNCTION LENGTH(X)) = 0.33836984. Refused correctly: RANDOM(MEAN(1 2)), RANDOM(REM(7 2)) (numeric functions). cite.py: OK §1989:A.2.35.3 AR1 'it must be zero or a positive integer'; OK §1989:A.2.2 AR4.",
   "edition-sites-missed": [],
   "corrected": "PARTIAL: rejects-legal-source; cause (b). IntrinsicArgumentRules.cs#NotAlwaysIntegral refuses RANDOM(N * (N + 1) / 2) at every edition. Known: kb/Work PB5889 (class), form not listed."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "FUNCTION RANDOM (N * (N + 1) / 2) with N PIC 99 is refused COBOL1627 at --std 85 and 2023 (fn_edge.cob), though the argument always results in an integer value (§1989:A.2.2 AR4).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-20.md"
+ },
+ "work": "PB5891"
 }
