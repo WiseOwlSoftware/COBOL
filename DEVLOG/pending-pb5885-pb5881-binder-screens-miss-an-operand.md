@@ -15,7 +15,10 @@ READ and WRITE store (§2023:14.9.40.4 GR9). The property-temp and debug-trigger
 BY REFERENCE stays uncounted, since whether the callee stores is not known from the source element. After: exit 65, COBOL2378 at
 both READs. Goldens `14.9.49-USE/pb5885-read-control-record-area` and `XIII.4.9@1985-.../pb5885-read-control-record-area-85`;
 13 new `DeclarativesStructuralRulesTests` cases (the ten refusals go red with the connector disabled). SR-14.9.49.3-11 stays
-CONFORMS with its notes restated and three witnesses; 1985-SR-XIII.4.9.3-4 gained its 85 witness.
+CONFORMS with its notes restated and three witnesses; 1985-SR-XIII.4.9.3-4 gained its 85 witnesses. Branch review R1-1: the
+first cut counted the RELATIVE KEY item as stored by every READ, refusing a legal random READ; only a format 1 (sequential)
+READ stores it (§1985:VIII.4.5.4 GR14, §2023:14.9.30.4 GR25), with accepted unit cases for the random and dynamic forms and
+the conformance case `pb5885-random-read-relative-key-control-85`.
 
 **PB5881.** `IF AB (1:2) NUMERIC` (AB PIC A) compiled at --std 85 (re-probed exit 0), where §1985:IV.4.3.8.4.4 GR5 keeps the
 slice alphabetic and §1985:VI.6.3.1.2 bars the NUMERIC test on it. The class condition read the alphabetic fact off the base
