@@ -258,7 +258,9 @@ if ($gatedTokens.Count -lt 1) {
 [void]$sb.AppendLine('// §2023:8.9 leaves it free AND a user-defined-word slot below matched it. Where §2023:8.9 reserves it, the match')
 [void]$sb.AppendLine('// stands and VersionConformancePass.VisitReservedGatedWord — the ONE funnel arm — answers COBOL0901: every')
 [void]$sb.AppendLine('// use of this rule is a user-defined-word slot (every definition slot, and procedureName, references')
-[void]$sb.AppendLine('// included; kb/Work PB4206), so a new slot needs no new C#.')
+[void]$sb.AppendLine('// included; kb/Work PB4206), so a new slot needs no new C#. The one system-name slot that offers it, computerName')
+[void]$sb.AppendLine('// (§2023:8.3.2.1 SR1 bars a reserved word from a system-name too), takes it only where §2023:8.9 leaves the word free,')
+[void]$sb.AppendLine('// so the funnel never answers there (kb/Work PB5804).')
 [void]$sb.AppendLine('reservedGatedWord')
 for ($i = 0; $i -lt $gatedTokens.Count; $i++) {
     $sep = if ($i -eq 0) { ': (' } else { '  |' }
