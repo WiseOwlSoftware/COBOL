@@ -253,7 +253,10 @@ public static partial class ReferenceFormatProcessor
                 isDirective = true;
                 readFixed = !current;
             }
-            if (!isDirective) continue;
+            // ⛔ COBOL-85 HAS NO COMPILER DIRECTIVE LINES (kb/Work PB5803; §1985:III.2 item 3): a line there that begins `>>` is
+            // text-words, so it switches no format and is not discarded here. Where it is a directive the conditional-compilation
+            // loop still gates it (kb/Work PB725); inside COPY/REPLACE pseudo-text it stays the text it is.
+            if (!isDirective || gates is { HasCompilerDirectives: false }) continue;
             if (DirectiveStackOp.TryParse(d, i + 1, out var op))
             {
                 directiveLines.Add(i + 1);
