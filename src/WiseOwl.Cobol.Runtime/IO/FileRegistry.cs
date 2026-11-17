@@ -720,14 +720,6 @@ public sealed class FileRegistry
     public bool EndOfPage(string name) =>
         _files.TryGetValue(name, out var c) && c is SequentialConnector f && f.EndOfPage;
 
-    /// <summary>The AT END condition for a sequential file (status 10).</summary>
-    public bool AtEnd(string name) =>
-        _files.TryGetValue(name, out var c) && c is SequentialConnector f && f.AtEnd;
-
-    /// <summary>True when the last operation on a sequential file was unsuccessful (status not 00).</summary>
-    public bool Failed(string name) =>
-        _files.TryGetValue(name, out var c) && c is SequentialConnector f && f.Status != FileStatusCode.Success;
-
     // ── Organization-neutral accessors (ONE polymorphic read — the registry win) ────────────────────────────
 
     /// <summary>The file's current FILE STATUS two-character code (ISO §2023:9.1.13). An unknown name is LOUD — the
@@ -882,20 +874,6 @@ public sealed class FileRegistry
             RelativeConnector r => r.ReadNext(out image),
             IndexedConnector ix => ix.ReadNext(out image),
             var other => throw MisroutedVerb("keyed READ NEXT", name, other),   // the PB140 sweep's missed arm
-        };
-    }
-
-    /// <summary>Sequential keyed READ PREVIOUS (§2023:14.9.30 F1, COBOL-2002+; compiler edition-gated).</summary>
-    public string ReadKeyedPrevious(string name, out string image)
-    {
-        image = "";
-        var c = Require(name);
-        using var statement = c.BeginStatement();   // kb/Work PB2660
-        return c switch
-        {
-            RelativeConnector r => r.ReadPrevious(out image),
-            IndexedConnector ix => ix.ReadPrevious(out image),
-            var other => throw MisroutedVerb("keyed READ PREVIOUS", name, other),
         };
     }
 

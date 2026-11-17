@@ -22,9 +22,6 @@ public static class CobolFile
     /// <summary>Mint a UNIQUE per-object connector key for an instance file (M2-OO-1i, ISO §2023:9.1.4).</summary>
     public static string MintInstanceKey(string baseKey) => _reg.MintInstanceKey(baseKey);
 
-    /// <summary>Close and remove a per-object instance-file connector (M2-OO-1i, ISO §2023:9.1.4).</summary>
-    public static void CloseAndDrop(string key) => _reg.CloseAndDrop(key);
-
     /// <summary>Register a SELECTed sequential file (emitted at program start, one per SELECT); the host path is
     /// resolved from the ASSIGN target by <see cref="ResolveHostPath"/>. See <see cref="FileRegistry.Register"/>.</summary>
     public static void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
@@ -232,15 +229,6 @@ public static class CobolFile
     /// not <see cref="OpenModeOf"/>.</summary>
     public static FileOpenMode? OpenModeIfOpen(string name) => _reg.OpenModeIfOpen(name);
 
-    /// <summary>The AT END condition for a file (status 10).</summary>
-    public static bool AtEnd(string name) => _reg.AtEnd(name);
-
-    /// <summary>True when the last operation was unsuccessful (status not 00).</summary>
-    public static bool Failed(string name) => _reg.Failed(name);
-
-    /// <summary>Close every open file (emitted at run-unit termination, ISO §2023:14.6).</summary>
-    public static void CloseAll() => _reg.CloseAll();
-
     /// <summary>Stage the RELATIVE KEY item's value for the next keyed verb.</summary>
     public static void SetRelativeKey(string name, long rrn) => _reg.SetRelativeKey(name, rrn);
 
@@ -249,22 +237,6 @@ public static class CobolFile
 
     /// <summary>Keyed WRITE (§2023:14.9.51) — returns the I-O status.</summary>
     public static string WriteKeyed(string name, string image, int length = -1) => _reg.WriteKeyed(name, image, length);
-
-    /// <summary>Keyed REWRITE (§2023:14.9.35) — returns the I-O status.</summary>
-    public static string RewriteKeyed(string name, string image, int length = -1) => _reg.RewriteKeyed(name, image, length);
-
-    /// <summary>DELETE RECORD (§2023:14.9.10 F1).</summary>
-    public static string DeleteRecord(string name, string keyedRecordImage) => _reg.DeleteRecord(name, keyedRecordImage);
-
-    /// <summary>Sequential keyed READ [NEXT] (§2023:14.9.30 F1).</summary>
-    public static string ReadKeyedNext(string name, out string image) => _reg.ReadKeyedNext(name, out image);
-
-    /// <summary>Sequential keyed READ PREVIOUS (§2023:14.9.30 F1, COBOL-2002+).</summary>
-    public static string ReadKeyedPrevious(string name, out string image) => _reg.ReadKeyedPrevious(name, out image);
-
-    /// <summary>Random keyed READ (§2023:14.9.30 F2).</summary>
-    public static string ReadKeyed(string name, int keyIndex, string keyedRecordImage, out string image)
-        => _reg.ReadKeyed(name, keyIndex, keyedRecordImage, out image);
 
     /// <summary>START on a relative file (§2023:14.9.41 GR8–GR12).</summary>
     public static string StartRelative(string name, string op, long rrn) => _reg.StartRelative(name, op, rrn);
