@@ -7,26 +7,30 @@
       *>---
       *> kb/Work PB5345, PB5886 - the complement of the literal-base
       *> arm of the §2023:15.3 type 6 power screen: a literal integer
-      *> base to an unsigned integer item is an integer argument.
+      *> base to an unsigned integer item, and the literal 1 to any
+      *> integer item, are integer arguments.
       *>
       *> §2023:15.3 type 6 (cite.py --check): "An arithmetic
       *> expression that will always result in an integer value or
       *> an integer data item shall be specified"; §1989:A.2.2 AR4
       *> the same. A literal base to an unsigned integer item is an
-      *> integer (2 ** 2 is 4, MOD (4, 7) is 4). Since kb/Work
-      *> PB5886 the screen fails closed, so 1024 ** K over a scaled K
-      *> and 1 ** M over a signed M (integers at every valuation, but
-      *> not by the shapes the screen admits) are refused
+      *> integer (2 ** 2 is 4, MOD (4, 7) is 4); 1 ** M is 1 for
+      *> every integer M (MOD (1, 7) is 1). Since kb/Work PB5886
+      *> the screen fails closed, so 1024 ** K over K PIC 9V9 (an
+      *> exponent that is not an integer term) is refused
       *> (pb5886-power-shapes). A screen that refused a literal base
       *> for its shape alone fails here.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5345A.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
+       01  M PIC S9 VALUE -2.
        01  U PIC 9 VALUE 2.
        01  R PIC 9(4).
        PROCEDURE DIVISION.
        MAIN-PARA.
            COMPUTE R = FUNCTION MOD (2 ** U, 7).
+           DISPLAY R.
+           COMPUTE R = FUNCTION MOD (1 ** M, 7).
            DISPLAY R.
            STOP RUN.

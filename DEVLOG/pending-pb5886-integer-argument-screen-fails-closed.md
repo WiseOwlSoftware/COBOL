@@ -18,10 +18,17 @@ whole. A function term is judged by its type. The witness machinery is deleted (
 "divides FUNCTION ORD (A) by the literal 2; a quotient is an integer term only when both operands are literals ...".
 
 **Goldens.** Ten refusals `pb5886-*` (85, 2002, 2014, 2023) and the complement `pb5886_integer_term_shapes`. Shapes that always give an
-integer but not by an admitted shape (`WN / 2 * 2`, `A / A`, `S / 0.1`, `SQRT (N) - SQRT (N) + 5`, `S2 - FUNCTION MAX (S2)`,
-`1024 ** K`) are refused now: four complement goldens were narrowed to their admitted rows, the 2002 `pb5575-std-arith-function-values`
+integer but not by an admitted shape (`SQRT (N) - SQRT (N) + 5`, `S2 - FUNCTION MAX (S2)` over a scaled S2) are refused now: four complement goldens were narrowed to their admitted rows, the 2002 `pb5575-std-arith-function-values`
 lost its three integer-argument legs, and `pb4795_identity_difference_legal` and the two `pb1526_*` run-time goldens were deleted.
 `IntrinsicTypeSixPowerShapesDriftTests` holds 45 shapes with their verdicts.
+
+**Review round 2.** The review found the screen refusing what types and literal values decide; the ruling kept fail-closed and
+added: a function term takes the type of its definition's table (the screen already read `BoundIntrinsicCall.ResultType`, which
+`IntrinsicResultType.Resolve` sets from that one table, so `N - FUNCTION MAX (N)` over an integer N was already admitted and is now a
+row of the shape table); `E / c` with a literal c whose reciprocal terminates is `E * (1/c)` (`WN / 2 * 2`, `S / 0.1`, `U * 4 / 2`
+admitted again, `WN / 3 * 3` refused); the literal 1 to any integer exponent is an integer (`1 ** M`). The pb124, pb5345 and pb5832
+complement legs those rules admit are restored. Forms that are integers only by an identity between numeric function terms stay
+refused as recorded debt, kb/Work PB5889, whose refusal `pb5889-identity-difference` replaces `pb4795_identity_difference_legal`.
 
 **Rows.** 1985: the four rows of the note take the new refusals as witnesses; `1989-AR-A.2.2-4` restated CONFORMS. 2023:
 `AR-15.3-6` gains the witnesses; `GR-5.5-3` and `DOC-A.1-124` retire the deleted goldens. NIST: 403 NIST tests green.

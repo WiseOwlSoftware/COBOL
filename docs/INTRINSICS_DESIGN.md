@@ -964,26 +964,31 @@ argument only when it SHOWS the expression is an integer for every valuation; §
 the program, and COBOL-85 has no EC-ARGUMENT-FUNCTION, so the screen that refused only on a witness valuation (PB124, PB617, PB5208,
 PB5345, PB5832) let `FUNCTION FACTORIAL (FUNCTION ORD (A) / 2)` compile there and return 33! for 33.5. What it shows:
 - an INTEGER TERM (`ProvablyIntegral`): an integer literal or exact integral literal fold, an integer data item, an INTEGER-type
-  function (judged by the function's type, never by this reference's value — the reading §2023:8.4.3.2.3 SR11 gives a numeric function),
-  a counter register, an index-name, a report VARYING counter, an OCCURS DEPENDING extent, and +, −, ×, unary − over integer terms; a
-  power is an integer term when its base is shown integral and its exponent is a non-negative integer literal or an unsigned integer
-  data item (through an even number of negations);
-- a QUOTIENT only as a literal fold whose value is an integer the arithmetic keeps exactly (`QuotientsAreExact`, PB4758): a quotient
-  with an item, a function or an expression for an operand is no integer term, whatever its divisor (`WN / 2 * 2`, `A / A`,
-  `362880 / D9` and `S / 0.1` are refused — the dispatching ruling on PB5886);
+  function (the type its definition's table gives for the argument types written, read from the one table `IntrinsicResultType.Resolve`
+  that `IntrinsicResultTypeDriftTests` holds to the standard's §15.x.1 tables, so MAX, MIN, SUM, RANGE and ABS of integer arguments
+  are integer terms; never by this reference's value — the reading §2023:8.4.3.2.3 SR11 gives a numeric function), a counter register,
+  an index-name, a report VARYING counter, an OCCURS DEPENDING extent, and +, −, ×, unary − over integer terms; a power is an integer
+  term when its base is shown integral and its exponent cannot be negative (a non-negative integer literal, or an unsigned integer data
+  item through an even number of negations), and the literal 1 to any integer exponent is one (`IsIntegerPower`; `1 ** M`);
+- a QUOTIENT by a nonzero literal c whose reciprocal terminates is the product by 1/c (PB5886 round 2), while the fraction digits of
+  the reciprocals on the path stay within the digits a nested quotient keeps (`ExactFractionDigits`): `WN / 2 * 2`, `S / 0.1` and
+  `U * 4 / 2` are admitted, `WN / 3 * 3` refused (the arithmetic truncates `WN / 3`); a literal fold is a constant kept exactly or not
+  (`QuotientsAreExact`, PB4758); a quotient by an item, a function or an expression is no integer term (`A / A` is a size error at 0);
 - a SUM of items under LITERAL FACTORS (`CollectAdditive` over a `LinearSum`): a product by a literal is exact in decimal arithmetic, so
   an item's net coefficient decides, and `coefficient × 10^(−scale)` must be a whole number (`S * 10`, `WN * 0.5 + WN * 0.5` and `S - S`
   are admitted; `WN * 0.5` is refused); a floating-point item's net coefficient must be zero (PB248); the literal terms must sum to an
   integer (PB617: `CHAR (1.5 + 1)` is refused, `CHAR (1.5 + 0.5)` admitted); a product of two non-literal terms is an integer term when
   each is shown integral on its own and its coefficient is whole.
-Everything else is refused with COBOL1627 at every edition: a numeric function term (`SQRT (N) - SQRT (N) + 5`, `S2 - FUNCTION MAX (S2)`),
-an integer term under a fractional net factor (`FUNCTION MOD (N 3) * 0.5`), a power outside the rule above (`N ** -1`, `1024 ** K`,
-`4 ** 0.5`) and a term no rule classifies. `IntrinsicTypeSixPowerShapesDriftTests` holds the node verdict table (a new `BoundExpr`
+Everything else is refused with COBOL1627 at every edition: a numeric function term, an integer term under a fractional net factor
+(`FUNCTION ORD (A) / 2`, `FUNCTION MOD (N 3) * 0.5`), a power outside the rule above (`N ** -1`, `1024 ** K`, `4 ** 0.5`) and a term no
+rule classifies. A form that is an integer only by an algebraic identity between terms that are not integer terms (`SQRT (N) - SQRT (N)
++ 5`, `S2 - FUNCTION MAX (S2)` over a scaled S2) is refused too: the screen decides by types and literal values, not by algebra, and
+the refusal of that legal source is recorded debt (kb/Work PB5889, refusal `pb5889-identity-difference`). `IntrinsicTypeSixPowerShapesDriftTests` holds the node verdict table (a new `BoundExpr`
 node needs a verdict) and the shape table (each shape refused or admitted, with its reason); `IntegerArgumentConstantWitnessTests` holds
 the literal-constant rows.
 Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`, `pb5345-power-literal-base`,
 `pb5832-product-by-literal`, `-quotient-in-sum`, `-item-quotient`, `-numeric-function-term`, `-date-of-integer-function-term`,
-`-day-of-integer-function-term`, the ten `pb5886-*` refusals; complements `pb5208_power_integral_exponents`,
+`-day-of-integer-function-term`, the ten `pb5886-*` refusals, `pb5889-identity-difference`; complements `pb5208_power_integral_exponents`,
 `pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`.
 
 ### An argument rule that differs by edition is one edition arm, never a second copy (PB5130, PB5161, PB5162).
