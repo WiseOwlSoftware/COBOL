@@ -50,7 +50,7 @@ internal sealed class ExceptionPhraseRequirement(BinderContext ctx)
         if (!InForce || Written(file, verb, phrases)) return true;
         if (!Rule.TryGet(verb, file, out var rule) || HasApplicableUse(file)) return true;
         ctx.Edition.Error(DiagnosticCatalog.IoExceptionPhraseRequired,
-            $"{rule.Statement} of {file.Organization.ToString().ToLowerInvariant()} file '{file.CobolName}' specifies no "
+            $"{rule.Statement} of {(file.IsSequential ? "sequential" : file.Organization.ToString().ToLowerInvariant())} file '{file.CobolName}' specifies no "
             + $"{rule.Phrase} phrase, and no applicable USE AFTER STANDARD EXCEPTION procedure is specified for the file "
             + $"({rule.Cite}: \"{rule.Words}\")");
         return false;
@@ -63,7 +63,7 @@ internal sealed class ExceptionPhraseRequirement(BinderContext ctx)
         bool atEnd = ConditionalPhrases.Find(phrases, new(ConditionalPhraseFamily.AtEnd, Negated: false)) is not null;
         bool invalidKey = ConditionalPhrases.Find(phrases, new(ConditionalPhraseFamily.InvalidKey, Negated: false)) is not null;
         return verb == InvalidKeyVerb.Read
-            ? atEnd || (invalidKey && file.Organization != FileOrganization.Sequential)
+            ? atEnd || (invalidKey && !file.IsSequential)
             : invalidKey;
     }
 
@@ -98,18 +98,19 @@ internal sealed class ExceptionPhraseRequirement(BinderContext ctx)
 
         /// <summary>The row for <paramref name="verb"/> on <paramref name="file"/>, or false where the 1985 module prints no
         /// requirement: a WRITE, REWRITE or START of a sequential file (no invalid-key condition exists), a REWRITE or
-        /// DELETE in sequential access mode (the phrase cannot be written, <see cref="IoPhraseAdmission.AdmitsInvalidKey"/>),
-        /// and LINE SEQUENTIAL, which X3.23-1985 does not define.</summary>
+        /// DELETE in sequential access mode (the phrase cannot be written, <see cref="IoPhraseAdmission.AdmitsInvalidKey"/>).
+        /// A LINE SEQUENTIAL file is a file of the 1985 Sequential I-O module like any other: X3.23-1985 has no ORGANIZATION
+        /// phrase for it, so at --std 85 one exists only by RECORD DELIMITER IS LINE-SEQUENTIAL, an implementor-name of
+        /// that module's own clause (kb/Work PB5844), and its READ owes the AT END phrase as a record sequential READ does.</summary>
         public static bool TryGet(InvalidKeyVerb verb, FileModel file, out Rule rule)
         {
             rule = null!;
             var org = file.Organization;
-            if (org is FileOrganization.LineSequential) return false;
             if (verb != InvalidKeyVerb.Read && !IoPhraseAdmission.AdmitsInvalidKey(verb, file)) return false;
             bool indexed = org == FileOrganization.Indexed;
             rule = verb switch
             {
-                InvalidKeyVerb.Read when org == FileOrganization.Sequential => new("READ", "AT END", "§1985:VII.4.4.3 SR2",
+                InvalidKeyVerb.Read when file.IsSequential => new("READ", "AT END", "§1985:VII.4.4.3 SR2",
                     $"The AT END phrase must be specified {UseIfNone}."),
                 InvalidKeyVerb.Read => new("READ", "INVALID KEY or AT END", indexed ? "§1985:IX.4.5.3 SR7" : "§1985:VIII.4.5.3 SR5",
                     $"The INVALID KEY phrase or the AT END phrase must be specified {UseIfNone}."),

@@ -146,7 +146,7 @@ internal sealed class ResolveRecordFormatPass : IBindPass
         // ── FORMAT ───────────────────────────────────────────────────────────────────────────────────────────────────
         using var at = edition.At(file.FormatAt);
         // The file description entry's rule: "If the FORMAT clause is specified, variable-length records shall be specified for the file."
-        if (!file.RecordSizeVaries && file.Organization != FileOrganization.LineSequential)
+        if (!file.HasVariableLengthRecords)
             edition.Error(DiagnosticCatalog.FormatClauseViolation,
                 $"file '{file.CobolName}' has a FORMAT clause and its records are not variable-length: the RECORD clause shall say they vary, as RECORD IS VARYING or RECORD "
                 + $"CONTAINS … TO … ({RecordFormatCitations.VariableLength(level)})");

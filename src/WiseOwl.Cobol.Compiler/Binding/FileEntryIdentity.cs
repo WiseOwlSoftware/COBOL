@@ -79,13 +79,16 @@ internal static class FileEntryIdentity
             new("ASSIGN", "the ASSIGN clause", f.AssignTarget.ToUpperInvariant()),
             new("USING", "the ASSIGN clause's USING phrase",
                 CobolNames.UpperFold(string.Join(" OF ", new[] { f.AssignUsingName ?? "" }.Concat(f.AssignUsingQualifiers)))),
-            // c) "Either the STANDARD-1 phrase or a consistent value of feature-name-1" — consistency rule: the same
-            // phrase (the clause is declined accept-inert, kb/Work PB292, so the written phrase is all there is).
-            // The entries are compared on what they SPECIFY for the connector, so an omitted clause is the implementor's value, not an absent one
-            // (kb/Work PB5311; docs/CONFORMANCE.md §3.7.1): an omitted RECORD DELIMITER is the implementor's one method, which STANDARD-1 names too
-            // (§1985:VII.2.8.4 GR4, A.1 item 151), and an omitted RESERVE is the implementor's one area, which RESERVE 1 AREA writes
-            // (§1985:VII.2.9.3 GR1, A.1 item 164). The organization and the access mode are read the same way.
-            new("DELIM", "the RECORD DELIMITER clause", f.RecordDelimiter ?? StandardDelimiter),
+            // c) "Either the STANDARD-1 phrase or a consistent value of feature-name-1" (§1985:VII.2.8.4 GR6: "the same
+            // specifications"): the clause's WRITTEN arm, STANDARD-1 or the implementor-name, which names its method one to one
+            // (RecordDelimiterNames; docs/CONFORMANCE.md DOC-A.1-149, kb/Work PB5844), or null when the entry writes no clause.
+            // Its agreement is NOT an equality: an omitted clause agrees with every arm (kb/Work PB5311: it has the implementor's
+            // method, which STANDARD-1 leaves in force and BINARY-SEQUENTIAL names), while STANDARD-1 and an implementor-name
+            // disagree. So it is the one OmittedAgrees segment, compared pairwise by ExternalDescriptor.RecordDelimitersAgree and
+            // carried beside the fingerprint (Of leaves it out) as the descriptor's own RecordDelimiter. An omitted RESERVE is
+            // the implementor's one area, which RESERVE 1 AREA writes (§1985:VII.2.9.3 GR1, A.1 item 164): an equality, read as
+            // the effective value. The organization and the access mode are read the same way.
+            new("DELIM", "the RECORD DELIMITER clause", f.RecordDelimiter, OmittedAgrees: true),
             new("RESERVE", "the RESERVE clause", $"{f.ReserveAreas ?? DefaultReserveAreas}"),
             new("ORG", "the organization", $"{f.Organization}"),
             new("ACC", "the access mode", $"{f.AccessMode}"),
@@ -111,17 +114,24 @@ internal static class FileEntryIdentity
         ];
     }
 
-    /// <summary>The record-delimiting method an entry that writes no RECORD DELIMITER clause has (DOC-A.1-151: the clause is declined whole, so
-    /// every file takes the implementor's method, the one STANDARD-1 names).</summary>
-    private const string StandardDelimiter = "STANDARD-1";
-
     /// <summary>The number of input-output areas an entry that writes no RESERVE clause has (DOC-A.1-164: one area).</summary>
     private const int DefaultReserveAreas = 1;
 
-    /// <summary>The identity as one string (<see cref="FileModel.SelectFingerprint"/>), the segments joined in order.</summary>
-    public static string Of(FileModel f) => string.Join("|", Segments(f).Select(s => $"{s.Key}={s.Value}"));
+    /// <summary>The identity as one string (<see cref="FileModel.SelectFingerprint"/>): the segments whose agreement is an equality,
+    /// joined in order. The <see cref="FileEntrySegment.OmittedAgrees"/> segment is not in it: the descriptor carries it as its
+    /// own field (<c>ExternalDescriptor.RecordDelimiter</c>, the value <see cref="FileModel.RecordDelimiter"/>), compared pairwise.</summary>
+    public static string Of(FileModel f) =>
+        string.Join("|", Segments(f).Where(s => !s.OmittedAgrees).Select(s => $"{s.Key}={s.Value}"));
 }
 
 /// <summary>One §2023:12.4.5.3 GR1 item of an external file control entry's identity: its key in the fingerprint, the
-/// clause it is (for a diagnostic), and its value as the entry specifies it.</summary>
-internal readonly record struct FileEntrySegment(string Key, string Clause, string Value);
+/// clause it is (for a diagnostic), and its value as the entry specifies it. <paramref name="OmittedAgrees"/> marks the
+/// item whose clause, when the entry omits it (a null value), agrees with every specification of it: GR1 c), the RECORD
+/// DELIMITER clause (kb/Work PB5844). Every other item agrees by equality.</summary>
+internal readonly record struct FileEntrySegment(string Key, string Clause, string? Value, bool OmittedAgrees = false)
+{
+    /// <summary>Whether this entry's item and <paramref name="other"/>'s (the same item of another entry) agree.</summary>
+    public bool Agrees(FileEntrySegment other) => OmittedAgrees
+        ? WiseOwl.Cobol.Runtime.ExternalDescriptor.RecordDelimitersAgree(Value, other.Value)
+        : string.Equals(Value, other.Value, StringComparison.Ordinal);
+}

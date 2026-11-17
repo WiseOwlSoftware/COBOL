@@ -13,9 +13,13 @@
       *> the implementor's is one area, DOC-A.1-164), so an entry with no
       *> RESERVE clause and one that writes RESERVE 1 AREA specify the
       *> same connector, and so do an omitted RECORD DELIMITER clause and
-      *> STANDARD-1 (§1985:VII.2.8.4 GR4, the implementor's one method).
+      *> STANDARD-1, which is declined and leaves the implementor's
+      *> method in force (§1985:VII.2.8.4 GR4; kb/Work PB5844).
       *> MAIN writes the relative file with neither clause; SUBPGM reads
-      *> it with both written. Both compile and run.
+      *> it with both written. Both compile and run. The sequential
+      *> file's RECORD CONTAINS 1 TO 4 clause gives it variable length
+      *> records (Annex A.1 item 148), the only records the clause "may
+      *> be specified" for (§1985:VII.2.8.3 SR1).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5311MAIN.
        ENVIRONMENT DIVISION.
@@ -30,7 +34,8 @@
        FILE SECTION.
        FD  REL-FILE IS EXTERNAL.
        01  REL-REC PIC X(4).
-       FD  SEQ-FILE IS EXTERNAL.
+       FD  SEQ-FILE IS EXTERNAL
+           RECORD CONTAINS 1 TO 4 CHARACTERS.
        01  SEQ-REC PIC X(4).
        WORKING-STORAGE SECTION.
        01  REL-KEY PIC 9(4) EXTERNAL.
@@ -68,7 +73,8 @@
        FILE SECTION.
        FD  REL-FILE IS EXTERNAL.
        01  REL-REC PIC X(4).
-       FD  SEQ-FILE IS EXTERNAL.
+       FD  SEQ-FILE IS EXTERNAL
+           RECORD CONTAINS 1 TO 4 CHARACTERS.
        01  SEQ-REC PIC X(4).
        WORKING-STORAGE SECTION.
        01  REL-KEY PIC 9(4) EXTERNAL.

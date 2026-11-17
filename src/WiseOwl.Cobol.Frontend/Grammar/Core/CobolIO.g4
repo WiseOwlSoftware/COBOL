@@ -184,14 +184,13 @@ paddingCharacterClause
 // ISO §2023:12.4.5.11 RECORD DELIMITER clause: RECORD DELIMITER IS {STANDARD-1 | feature-name-1}. The general
 // format (§2023:12.4.5.11.2, verified against the printed page) underlines RECORD, DELIMITER and STANDARD-1 and
 // leaves IS unmarked, so IS is the only optional word and exactly one alternative of the brace shall be
-// written — which is this rule verbatim. `cobolWord` is feature-name-1's permissive surface.
-// ⛔ PARSED AND *DIAGNOSED*, NOT PARSED AND IGNORED (kb/Work PB292). Until 2026-09-05 nothing anywhere read
-// this rule and the clause compiled clean at every edition on BOTH arms, which left docs/CONFORMANCE.md §2
-// row 26's "Not claimed" unobservable and §2023:4.2.6 ¶3's MANDATORY compile-time warning mechanism unbuilt. The
-// decline now lands at FileControlBinder.BindFileControl as COBOL1778 (accept-inert Warning) — Annex A.3 item 26
-// for STANDARD-1, Annex A.1 item 150 for feature-name-1. Variable-length records keep the §2023:12.4.5.11.4 GR5
-// implementor framing (4-byte length prefix, Annex A.1 item 151), which §2023:12.4.5.11.4 GR1 keeps invisible to
-// the record area and the record size.
+// written — which is this rule verbatim. §1985:VII.2.8.2 prints the same brace with implementor-name-1.
+// `cobolWord` is the operand's surface, and it stays a plain word: the implementor-names this implementation
+// defines, BINARY-SEQUENTIAL and LINE-SEQUENTIAL, are recognized by FileControlBinder.BindFileControl from the
+// word's text against RecordDelimiterNames (kb/Work PB5844), so neither is a reserved word and a program may
+// still use either spelling as a user-defined word. Any other word is refused there (COBOL7598); STANDARD-1 is
+// declined accept-inert (COBOL1778, Annex A.3 item 26, kb/Work PB292); and the clause on a file with fixed-length
+// records is refused post-build (§2023:12.4.5.11.3 SR1, COBOL7599).
 recordDelimiterClause
     : RECORD DELIMITER IS? (STANDARD_1 | cobolWord)
     ;

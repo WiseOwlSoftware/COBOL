@@ -19,6 +19,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 ///   XXXXX056     — SPECIAL-NAMES display output device implementor-name
 ///   XXXXX057     — SPECIAL-NAMES accept input device implementor-name
 ///   XXXXX073     — SPECIAL-NAMES WRITE ADVANCING feature-name (→ CSP)
+///   XXXXX070     — RECORD DELIMITER clause implementor-name (→ BINARY-SEQUENTIAL)
 ///   XXXXX058     — Control card file ASSIGN target
 ///   XXXXX068     — OBJECT-COMPUTER MEMORY SIZE value (obsolete clause)
 ///   XXXXX069     — Implementor's own ADDITIONAL FILE DESCRIPTION clause — DELETED (kb/Work PB829)
@@ -181,6 +182,12 @@ public static class NistPreprocessor
         // current line). Substituted since kb/Work PB862: the unsubstituted placeholder used to bind as a "device"
         // only because the SPECIAL-NAMES binder accepted any word as a system-name (§2023:12.3.7.3 SR8 now refuses it).
         source = Literal(source, "XXXXX073", "CSP");
+
+        // XXXXX070: the implementor-name of a RECORD DELIMITER clause (SQ219A, "RECORD DELIMITER IS IMPLEMENTOR-NAME").
+        // BINARY-SEQUENTIAL is this implementation's name for the record sequential file's own method, the 4-byte length
+        // prefix (docs/CONFORMANCE.md §7, Annex A.1 item 150), so the program's file is framed as it was before. Substituted
+        // since kb/Work PB5844: the unsubstituted placeholder used to compile only because any word was accepted there.
+        source = Literal(source, "XXXXX070", "BINARY-SEQUENTIAL");
 
         // ── CONFIGURATION ──
 

@@ -259,7 +259,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// "escaped from <c>Call</c>" an exact test for GR3i's "the program was successfully called" (kb/Work
     /// PB233). The main-program entry (<c>Activate</c>) calls it itself. A complete-record REDEFINES
     /// contributes nothing (GR6's explicit exemption — the descriptor is built from the base record only).
-    /// The file connector's §2023:12.4.5.3 GR1 identity is the bound <see cref="FileModel.SelectFingerprint"/>.</summary>
+    /// The file connector's §2023:12.4.5.3 GR1 identity is the bound <see cref="FileModel.SelectFingerprint"/> and, for item c),
+    /// whose agreement is not an equality, the written <see cref="FileModel.RecordDelimiter"/> (kb/Work PB5844).</summary>
     /// <param name="data">The describing element's data.</param>
     /// <param name="unitPath">The describer's run-unit identity (the program's path, or the class half's
     /// <see cref="OoClassSymbol.HalfKey"/>, both rooted at the EXTERNALIZED name; kb/Work PB2920).</param>
@@ -295,7 +296,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(f.ExternalName!)}, "
                     + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts))}, "
                     + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts))}, LinageRef: {linage}, "
-                    + $"SelectFingerprint: {CsLiteral(f.SelectFingerprint ?? throw new InvalidOperationException($"OoEmitter: the EXTERNAL file '{f.ExternalName}' has no bound entry identity (BackendAnswers writes one for every EXTERNAL file)"))}), {selfMask});   // §2023:14.8.4.2 / §2023:14.8.4.4 / §2023:12.4.5.3 GR1");
+                    + $"SelectFingerprint: {CsLiteral(f.SelectFingerprint ?? throw new InvalidOperationException($"OoEmitter: the EXTERNAL file '{f.ExternalName}' has no bound entry identity (BackendAnswers writes one for every EXTERNAL file)"))}, "
+                    + $"RecordDelimiter: {(f.RecordDelimiter is { } rd ? CsLiteral(rd) : "null")}), {selfMask});   // §2023:14.8.4.2 / §2023:14.8.4.4 / §2023:12.4.5.3 GR1");
             }
         }
     }

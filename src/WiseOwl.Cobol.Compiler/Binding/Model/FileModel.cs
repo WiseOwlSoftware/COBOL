@@ -320,6 +320,7 @@ public sealed class FileModel
     /// SEQUENTIAL phrase and the entry is described by an SD — so it says what it is instead.</summary>
     public string OrganizationFace =>
         IsSortMerge ? "a sort-merge file (described by a sort-merge file description entry)"
+        : LineSequentialByDelimiter ? "LINE SEQUENTIAL, by its RECORD DELIMITER IS LINE-SEQUENTIAL clause"
         : !OrganizationWritten ? "record sequential by default, the ORGANIZATION clause being omitted (ISO §2023:12.4.5.10.3 GR6)"
         : Organization switch
         {
@@ -696,12 +697,44 @@ public sealed class FileModel
     /// same value for integer-1 in the RESERVE clause" (<c>FileEntryIdentity.Of</c>, kb/Work PB1079).</summary>
     public int? ReserveAreas { get; set; }
 
-    /// <summary>The RECORD DELIMITER clause's phrase as written — <c>STANDARD-1</c> or the uppercased
-    /// feature-name-1 (ISO §2023:12.4.5.11) — or null when the entry writes no such clause. The clause is declined
-    /// accept-inert (kb/Work PB292; it changes no framing), so its one reader is the external file connector's
-    /// entry identity: §2023:12.4.5.3 GR1 c) requires "Either the STANDARD-1 phrase or a consistent value of
-    /// feature-name-1 in the RECORD DELIMITER clause" (<c>FileEntryIdentity.Of</c>, kb/Work PB1079).</summary>
+    /// <summary>The RECORD DELIMITER clause's phrase as written — <c>STANDARD-1</c> or the uppercased implementor-name
+    /// (§1985:VII.2.8.2) or feature-name-1 (§2023:12.4.5.11.2) — or null when the entry writes no such clause. What the
+    /// phrase selects is <see cref="RecordDelimiterNames"/>' one table (kb/Work PB5844): BINARY-SEQUENTIAL the length
+    /// prefix every record sequential file already has, LINE-SEQUENTIAL the line sequential file
+    /// (<see cref="LineSequentialByDelimiter"/>); STANDARD-1 is declined (COBOL1778). Its readers: the binder that
+    /// applies it, the §2023:12.4.5.11.3 SR1 screen (<c>FileControlBinder.ScreenRecordDelimiter</c>), the format marker of
+    /// <c>FileControlKeyRules</c>, and the external file connector's identity, whose item c) is this written arm, null
+    /// agreeing with every arm (<c>FileEntryIdentity.Segments</c>, <c>ExternalDescriptor.RecordDelimitersAgree</c>).</summary>
     public string? RecordDelimiter { get; set; }
+
+    /// <summary>The source position of the RECORD DELIMITER clause's operand, where the clause's post-build rule
+    /// (§2023:12.4.5.11.3 SR1, §1985:VII.2.8.3 SR1) reports; unset when the entry writes no such clause.</summary>
+    public WiseOwl.Cobol.Editions.DiagnosticCursor RecordDelimiterAt { get; set; }
+
+    /// <summary>True when the file is LINE SEQUENTIAL because its RECORD DELIMITER clause names LINE-SEQUENTIAL, the
+    /// implementor-name whose method is the line sequential file's (<see cref="RecordDelimiterNames"/>; kb/Work PB5844),
+    /// and not because the entry writes the LINE SEQUENTIAL phrase of the ORGANIZATION clause. The file is then line
+    /// sequential in every respect the statements and the runtime see (<see cref="Organization"/>); only the syntax
+    /// rules whose subject is the WRITTEN phrase ask <see cref="LineSequentialPhraseWritten"/> instead.</summary>
+    public bool LineSequentialByDelimiter { get; set; }
+
+    /// <summary>True when the entry writes the LINE SEQUENTIAL phrase of the ORGANIZATION clause — the subject of
+    /// §2023:12.4.5.2 SR12 and §2023:13.4.5.3 SR4 ("If the LINE SEQUENTIAL phrase of the ORGANIZATION clause … is
+    /// specified") and of the format marker that names the phrase, none of which a file made line sequential by its
+    /// RECORD DELIMITER clause writes.</summary>
+    public bool LineSequentialPhraseWritten => Organization is FileOrganization.LineSequential && !LineSequentialByDelimiter;
+
+    /// <summary>⛔ THE ONE ANSWER to "are this file's records variable-length", which §2023:12.4.5.11.3 SR1 (the RECORD
+    /// DELIMITER clause), §1985:VII.2.8.3 SR1 and the FORMAT clause's rule ("variable-length records shall be specified
+    /// for the file") ask: the RECORD clause's variable formats and the implied Format 2 (<see cref="RecordSizeVaries"/>,
+    /// the determinations of A.1 items 147 and 148), or a LINE SEQUENTIAL file, whose record's length is "the number of
+    /// characters between the preceding line delimiter and the following line delimiter" (§2023:9.1.7.2) — unless its
+    /// entry writes a format 1 RECORD clause, which "is used to specify fixed-length records" (§2023:13.18.43.4 GR6,
+    /// §1985:VII.3.8.4 GR3) whatever the organization. (A file whose ORGANIZATION clause writes LINE SEQUENTIAL cannot
+    /// write one, §2023:13.4.5.3 SR4; a file made line sequential by its RECORD DELIMITER clause can, and that
+    /// clause is then on fixed-length records.)</summary>
+    public bool HasVariableLengthRecords =>
+        RecordSizeVaries || (Organization is FileOrganization.LineSequential && RecordContains is null);
 
     /// <summary>The PADDING CHARACTER clause as written (§1985:VII.2.7, §2002:12.3.4.10; deleted from 2014), or null when
     /// the entry writes none (kb/Work PB5069, PB5070). WiseOwl COBOL has no blocking model, so the padding character
