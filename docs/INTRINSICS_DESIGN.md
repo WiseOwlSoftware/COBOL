@@ -1017,7 +1017,7 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    every nested quotient keeps beyond its operands' (`ExactFractionDigits`, `CobolNum.NestedQuotientScale`): `WN / 3 * 3` is refused
    because `WN / 3` is not exact, and `N * (N + 1) * (N + 2) / 6` is exact because its quotient is an integer; and the LANE the code
    generator evaluates the operation on keeps its digits. ⛔ **The lane is ONE function of the bound node** (reviews R1-3, R3-1):
-   `NumericLanes.LaneOf(BoundExpr, LaneContext)` (`Binding/NumericLaneOf.cs`, memoized per node) states, for every numeric node, the
+   `NumericLanes.LaneOf(BoundExpr, LaneContext)` (`Binding/Bound/NumericLaneOf.cs`, in the bound layer the binder and the code generator both read; memoized per node; a function value's carrier is the call's own fact, `BoundIntrinsicCall.ValueLane`, decided with its type) states, for every numeric node, the
    carriers the code generator may hold it on (the Int128 lane, its wide form, the run-time exact form, the SDIDI, binary64, an
    engine's approximation) and, where the node's facts decide one Int128 or wide carrier, its scale and digit bound, by the
    generator's own rules (`CombineCore` through `NumericLanes.Combine`, `CombineAdditive`, `Multiply`, `Divide`, `Power`, `FieldNum`,

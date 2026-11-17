@@ -1,13 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Runtime.CompilerServices;
-using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.Binding.Procedure;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Runtime;
 
-namespace WiseOwl.Cobol.Binding;
+namespace WiseOwl.Cobol.Binding.Bound;
 
 /// <summary>The receiver facts an expression's lanes depend on (numeric design D16 and D2): a floating-point receiver takes every
 /// operation onto binary64, the receiver's scale sets a nested quotient's working scale, and a floating-point numeric-edited receiver
@@ -104,12 +102,13 @@ internal static partial class NumericLanes
         };
     }
 
-    /// <summary>A function value: the carrier the bind-time prediction gives it (<see cref="FunctionValueLane"/>), its scale and digit
-    /// bound the code generator's alone. An exact value may be on the Int128 lane or its wide and run-time-scaled forms.</summary>
+    /// <summary>A function value: the carrier the call carries (<see cref="BoundIntrinsicCall.ValueLane"/>, decided once when the call is
+    /// bound, from its function and the carriers of its arguments), its scale and digit bound the code generator's alone. An exact value
+    /// may be on the Int128 lane or its wide and run-time-scaled forms.</summary>
     private static NodeLane CallLane(BoundIntrinsicCall call, LaneContext ctx) =>
         ctx.DecimalEngine
             ? NodeLane.Any(NumericLane.Scaled, NumericLane.Wide, NumericLane.Exact, NumericLane.Sdidi)
-            : FunctionValueLane.LaneOf(call) switch
+            : call.ValueLane switch
             {
                 NumericLane.Scaled => NodeLane.Any(NumericLane.Scaled, NumericLane.Wide, NumericLane.Exact),
                 NumericLane.Sdidi => NodeLane.Any(NumericLane.Sdidi, NumericLane.Exact, NumericLane.Wide, NumericLane.Scaled),

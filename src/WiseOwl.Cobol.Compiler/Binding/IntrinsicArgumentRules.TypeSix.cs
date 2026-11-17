@@ -29,6 +29,9 @@ internal static partial class IntrinsicArgumentRules
     /// requirement is the same in both texts); the ARITHMETIC in force decides which intermediates are exact.</para></summary>
     private static string? NotAlwaysIntegral(BoundExpr expr, ArithmeticMode arithmetic)
     {
+        // ARITHMETIC IS STANDARD-BINARY is declined at bind (COBOL0806, ArithmeticModes): no expression is evaluated under it, so nothing
+        // more is said of an argument; asking its intermediate precision crashed the compiler (kb/Work PB5891 review R4-2).
+        if (arithmetic is ArithmeticMode.StandardBinary) return null;
         var ctx = new TypeSixContext(arithmetic);
         var built = Build(expr, ctx);
         if (built.Why is { } why) return why;

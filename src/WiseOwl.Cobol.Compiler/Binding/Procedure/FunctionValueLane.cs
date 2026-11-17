@@ -160,10 +160,10 @@ internal static class FunctionValueLane
         return CarrierKind.Fixed;
     }
 
-    /// <summary>⛔ THE LANE A LEAF OF AN ARITHMETIC EXPRESSION ARRIVES ON UNDER NATIVE ARITHMETIC (kb/Work PB5891 review R1-3): the type 6
-    /// classifier's input to <see cref="NumericLanes.Combine"/>, read by the same visitor that predicts a function's carrier, so a
-    /// literal, an item and a function value are classified once. A function whose SDIDI body returns a whole exact value is the SDIDI
-    /// here (<see cref="NativeSdidiBodiesWithWholeResult"/>), the more lossy of the two lanes its consumer may read it on.</summary>
+    /// <summary>The carrier an expression's value arrives on under native arithmetic, as this prediction reads it: the source of a call's
+    /// <see cref="BoundIntrinsicCall.ValueLane"/> (<c>IntrinsicResultType.ValueLane</c>), the fact <see cref="NumericLanes.LaneOf"/> reads of
+    /// a function value (kb/Work PB5891 reviews R3-1, R4). A function whose SDIDI body returns a whole exact value is the SDIDI here
+    /// (<see cref="NativeSdidiBodiesWithWholeResult"/>); <c>NumericLanes.LaneOf</c> allows the exact lanes beside it.</summary>
     internal static NumericLane LaneOf(BoundExpr leaf) => LaneOf(leaf.Accept(ArgumentCarrier.Instance).Kind);
 
     private static NumericLane LaneOf(CarrierKind kind) => kind switch

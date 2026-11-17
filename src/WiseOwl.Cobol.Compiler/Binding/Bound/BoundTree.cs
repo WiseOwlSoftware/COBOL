@@ -520,8 +520,21 @@ public sealed record BoundIntrinsicCall(
     public required ArithmeticMode Arithmetic
     {
         get => _arithmetic;
-        init { _arithmetic = value; _resultType ??= IntrinsicResultType.Resolve(Sig, Args, value); }
+        init
+        {
+            _arithmetic = value;
+            _resultType ??= IntrinsicResultType.Resolve(Sig, Args, value);
+            _valueLane ??= IntrinsicResultType.ValueLane(this);
+        }
     }
+
+    /// <summary>⛔ THE CARRIER THE CALL'S RETURNED VALUE ARRIVES ON UNDER NATIVE ARITHMETIC, DECIDED ONCE WITH ITS TYPE (kb/Work PB5891 review
+    /// R4): the bind-time prediction of <c>IntrinsicRenderer.RenderNum</c>'s carrier (the binder's <c>FunctionValueLane</c>), from the
+    /// arguments as written, so <see cref="NumericLanes.LaneOf"/> reads it as a fact of the bound node.</summary>
+    internal NumericLane ValueLane => _valueLane
+        ?? throw new InvalidOperationException($"FUNCTION {Sig.Name} was bound without the arithmetic in force, so its value lane is undecided");
+
+    private readonly NumericLane? _valueLane;
 
     private readonly ArithmeticMode _arithmetic;
     private readonly IntrinsicType? _resultType;

@@ -56,3 +56,9 @@ ran with it armed). The wide-exponent form is refused (`pb5891-wide-exponent-pow
 (`pb5891_scaled_product_exponent`). Making the function pure exposed a wrong answer already on main: a COMP-2 resultant took a
 function's argument onto binary64 (672 for 41); arguments now render without the resultant's floating-point facts
 (`pb5891_argument_float_receiver`).
+
+**Review round 4 and the gate's preflight.** The lane rule moved to the compiler.bound layer (`Binding/Bound/NumericLanes.cs`,
+`NumericLaneOf.cs`), which the binder and the code generator both read, so the code generator gains no dependency on the binder
+(`ArchitectureEdgesDriftTests`); a function value's carrier is the call's own fact, `BoundIntrinsicCall.ValueLane`, decided with its type.
+An argument is rendered and asserted at scale 0, the context the classifier reads. ARITHMETIC IS STANDARD-BINARY no longer crashes the
+classifier: the mode's own COBOL0806 is reported (`pb5891-standard-binary-argument`).

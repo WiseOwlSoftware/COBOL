@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding;
+using WiseOwl.Cobol.Binding.Model;
+
+namespace WiseOwl.Cobol.Binding.Bound;
 
 /// <summary>⛔ THE CARRIER AN ARITHMETIC VALUE IS HELD ON WHILE AN EXPRESSION IS EVALUATED (kb/Work PB5891 review R1-3), as the
 /// code generator's <c>NumericRenderer</c> holds it (<c>NumX</c>'s flags) and the type 6 classifier predicts it. The lane decides
@@ -70,7 +72,7 @@ internal static partial class NumericLanes
     internal static int? SignificantDigits(NumericLane lane, int? decimalCap) => lane switch
     {
         NumericLane.Scaled or NumericLane.Wide or NumericLane.Exact => decimalCap,
-        NumericLane.Sdidi => decimalCap ?? Model.ArithmeticModes.SdidiDigits,
+        NumericLane.Sdidi => decimalCap ?? ArithmeticModes.SdidiDigits,
         NumericLane.Binary64 or NumericLane.Approximation => null,
         _ => throw new InvalidOperationException($"no precision for the lane {lane}"),
     };

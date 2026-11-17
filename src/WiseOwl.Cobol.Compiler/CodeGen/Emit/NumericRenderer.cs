@@ -120,9 +120,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// with none of its floating-point facts. An argument is an arithmetic expression of its own, evaluated "individually"
     /// (§2023:8.4.3.2.4 GR2), whose value is the function's input and never the resultant's: a COMP-2 resultant took the argument of
     /// <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored 672 for 41. Its lanes are therefore
-    /// <see cref="NumericLanes.LaneOf"/> of the argument as the type 6 classifier reads them (no floating-point receiver). The receiver's
-    /// scale is kept: it only widens a nested quotient's working scale, which keeps more digits than the classifier assumes.</summary>
-    internal ReceiverContext ArgumentReceiver => _rcv with { Real = false, FloatEdited = false, Single = false, FloatSignificandDigits = 0 };
+    /// <see cref="NumericLanes.LaneOf"/> of the argument as the type 6 classifier reads them: no floating-point receiver and scale 0, so the
+    /// renderer asserts an argument's nodes in the very context the classifier reads, <see cref="LaneContext.Argument"/> (review R4-1).</summary>
+    internal ReceiverContext ArgumentReceiver => _rcv with { Scale = 0, Real = false, FloatEdited = false, Single = false, FloatSignificandDigits = 0 };
 
     /// <summary>Whether the value now being rendered IS the value transferred to a single resultant identifier —
     /// <see cref="_outermost"/>, read by the mutually-recursive <see cref="IntrinsicRenderer"/> (kb/Work PB647:
@@ -889,7 +889,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         bool agrees = expected.Lanes.Contains(got)
             && (!expected.Known || got is not (NumericLane.Scaled or NumericLane.Wide) || (x.Scale == expected.Scale && x.Digits == expected.Digits));
         return agrees ? x : throw new InvalidOperationException(
-            $"INTERNAL COMPILER ERROR (kb/Work PB5891 R3-1): the {node.GetType().Name} {IntrinsicArgumentRules.ExprText(node)} is rendered on the {got} lane (scale {x.Scale}, "
+            $"INTERNAL COMPILER ERROR (kb/Work PB5891 R3-1): a {node.GetType().Name} ({(node is BoundBinary b ? $"operator {b.Op}" : "its operation")}) is rendered on the {got} lane (scale {x.Scale}, "
             + $"digits {x.Digits}), but its lane is {string.Join(" or ", expected.Lanes.Order())}"
             + (expected.Known ? $" (scale {expected.Scale}, digits {expected.Digits})" : "") + operands
             + " — NumericLanes.LaneOf and the renderer disagree");

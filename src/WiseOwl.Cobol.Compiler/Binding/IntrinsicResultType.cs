@@ -156,6 +156,11 @@ internal static class IntrinsicResultType
     /// <see cref="IntrinsicResultRule.Fixed"/> row, otherwise the type its §15.x.1 table selects for these
     /// arguments.
     /// </summary>
+    /// <summary>The carrier <paramref name="call"/>'s returned value arrives on under native arithmetic — the binder's prediction of the code
+    /// generator's (<see cref="Procedure.FunctionValueLane.LaneOf(BoundExpr)"/>) — decided once, with the call's type, when its arithmetic is
+    /// set (<see cref="BoundIntrinsicCall.ValueLane"/>; kb/Work PB5891 review R4).</summary>
+    internal static NumericLane ValueLane(BoundIntrinsicCall call) => Procedure.FunctionValueLane.LaneOf(call);
+
     public static IntrinsicType Resolve(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args, ArithmeticMode arithmetic) => sig.Result switch
     {
         // The §15.x.1 "Argument type National → National" row, read through the ONE class-or-usage reader: for the
