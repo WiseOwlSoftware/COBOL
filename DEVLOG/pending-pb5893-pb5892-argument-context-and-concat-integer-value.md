@@ -12,11 +12,15 @@ a floating-point argument still takes binary64) and the receiver takes the funct
 `NumericRenderer.ArgumentReceiver` (the receiver without its floating-point facts, at its scale) is now the one context of every
 argument render in `IntrinsicRenderer`: `ReceiverFor` is deleted, and the nine intakes that rendered under `num.Receiver`
 (`PresentValueBase`, `DomainArg`, `DecOf`, `ExactValueOf`, `DblOf`, the table(ALL) enumerations of `RenderWide`, `AlignedArgs`
-and `RawArgPairs`) and the argument landing `Landed` pass it. `IntrinsicArgumentIntakeContractDriftTests.EveryArgument_RendersInTheArgumentReceiver`
-holds every `num.AsNum(` and `num.Landed(` of the renderer to it. After the fix every line of the probe prints the derived value
-(`runs-br/rcv23-001`). One golden line moves by the rule: `COMPUTE F2 = FUNCTION ABS (A / 3)` (A = 7) prints 2.33333333333333,
-the nested quotient at 14 guard digits as under a scale-0 fixed resultant, where main printed the binary64 2.3333333333333335
-(`pb5891_argument_receiver_scale` line 15).
+and `RawArgPairs`) pass it. `IntrinsicArgumentIntakeContractDriftTests.EveryArgument_RendersInTheArgumentReceiver`
+holds every `num.AsNum(` of the renderer to it. After the fix every line of the probe prints the derived value
+(`runs-br/rcv23-001`). The argument context's scale is one rule, `NumericLanes.ArgumentScale`: the receiver's scale, and under a
+floating-point receiver at least the 17 significant digits of binary64, so a nested quotient keeps 31 fraction digits and its
+value reaches the binary64 receiver whole (the coordinator's ruling; `LaneOf` reads the same scale).
+
+**A sibling of PB5892 (rejects legal source).** The STOP and GOBACK status operand (§2023:14.9.42.3 SR2, §2023:14.9.18.3 SR6) asked
+`Scale: 0` for "an integer data item", so `STOP RUN WITH NORMAL STATUS U` over U PIC 99P COMP was refused COBOL1704; it asks
+`NumericLanes.IsIntegerByValue` (case `pb5892_status_p_scaled_integer`; the run passes 40 to the operating system for U = 40).
 
 **PB5892 (rejects legal source, 2023).** CONCAT asked `Scale != 0` of a numeric argument, the spelling, so `CONCAT ("A" U)` over
 U PIC 99P was refused COBOL1627. It asks `NumericLanes.IsIntegerByValue` now and returns "A04" (§2023:15.18.4 RV1, the P positions

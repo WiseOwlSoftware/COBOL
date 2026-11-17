@@ -124,14 +124,20 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// its own operands (an argument that renders as floating-point takes binary64 by DOC-A.1-92b) and never by the receiver's usage. A
     /// COMP-2 resultant took the argument of <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored
     /// 672 for 41 (an integer position, review R3-1), and <c>FUNCTION REM</c>'s numeric argument-1 the same (kb/Work PB5893); the
-    /// receiver then takes the function's value by the ordinary rules (<see cref="ReceiverContext.FloatLanding"/>). The receiver's SCALE is kept:
-    /// a nested quotient's working scale reads it (<c>CobolNum.NestedQuotientScale</c>), so <c>COMPUTE RR = FUNCTION ABS (A / 3)</c> into
-    /// PIC 9V9(17) keeps all 17 places (review R5-1; <c>pb5891_argument_receiver_scale</c>). <see cref="AssertLane"/> checks an argument's
+    /// receiver then takes the function's value by the ordinary rules (<see cref="ReceiverContext.FloatLanding"/>). Its SCALE is
+    /// <see cref="NumericLanes.ArgumentScale"/>'s, the one rule: a fixed-point receiver's own scale, which a nested quotient's working
+    /// scale reads (<c>CobolNum.NestedQuotientScale</c>), so <c>COMPUTE RR = FUNCTION ABS (A / 3)</c> into PIC 9V9(17) keeps all 17
+    /// places (review R5-1; <c>pb5891_argument_receiver_scale</c>); under a floating-point receiver at least the binary64 significant
+    /// digits, so <c>COMPUTE F2 = FUNCTION ABS (A / 3)</c> stores the double <c>A / 3</c> stores. <see cref="AssertLane"/> checks an argument's
     /// nodes in THIS context; the type 6 classifier reads <see cref="LaneContext.Argument"/> (scale 0). A larger receiver scale only
     /// widens a quotient's working scale, so a node the classifier sees on the Int128 lane may be wide here and an SDIDI operation beside
     /// it exact here, never the reverse: the renderer's lane is never less exact than the classifier's
     /// (<c>NumericLaneDriftTests.AnArgumentsLane_AtAReceiverScale_IsNeverLessExactThanAtScaleZero</c>).</summary>
-    internal ReceiverContext ArgumentReceiver => _rcv with { Real = false, FloatEdited = false, Single = false, FloatSignificandDigits = 0 };
+    internal ReceiverContext ArgumentReceiver => _rcv with
+    {
+        Scale = NumericLanes.ArgumentScale(_rcv.Scale, _rcv.Real), Real = false, FloatEdited = false, Single = false,
+        FloatSignificandDigits = 0,
+    };
 
     /// <summary>Whether the value now being rendered IS the value transferred to a single resultant identifier —
     /// <see cref="_outermost"/>, read by the mutually-recursive <see cref="IntrinsicRenderer"/> (kb/Work PB647:

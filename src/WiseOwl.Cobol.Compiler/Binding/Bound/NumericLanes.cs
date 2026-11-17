@@ -55,6 +55,24 @@ internal static partial class NumericLanes
         return @base == NumericLane.Binary64 || exponent == NumericLane.Binary64 ? NumericLane.Binary64 : NumericLane.Approximation;
     }
 
+    /// <summary>The significant decimal digits that identify every IEEE binary64 value (the shortest decimal that round-trips any
+    /// double has at most 17), and so the digits an exact value must keep for its conversion to binary64 to be the correctly rounded
+    /// double of the value.</summary>
+    internal const int Binary64SignificantDigits = 17;
+
+    /// <summary>⛔ THE WORKING SCALE OF AN INTRINSIC FUNCTION'S ARGUMENT (kb/Work PB5893, the coordinator's ruling): the scale of the
+    /// context <c>NumericRenderer.ArgumentReceiver</c> renders every argument in, which a nested quotient in the argument reads
+    /// (<c>CobolNum.NestedQuotientScale</c>), and which <c>LaneOf</c> therefore reads too (<c>LaneContext.ReceiverScale</c>), so the
+    /// renderer's lane assertion and the lane rule cannot disagree. Under a fixed-point receiver it is the receiver's scale. Under a
+    /// floating-point receiver the argument is still evaluated exactly in the fixed family (its operands decide its technique, never
+    /// the receiver), and its value is delivered to a binary64 or binary32 item: the scale is then at least
+    /// <see cref="Binary64SignificantDigits"/>, so a nested quotient keeps 17 fraction digits beside its guard digits (31 in all) and
+    /// at least 17 significant digits of any quotient of magnitude 10^-14 or more survive. The value the receiver then takes is the
+    /// correctly rounded double of the exact value, as the plain expression gives it: <c>COMPUTE F2 = FUNCTION ABS (A / 3)</c> stores
+    /// 2.3333333333333335, as <c>COMPUTE F2 = A / 3</c> does.</summary>
+    internal static int ArgumentScale(int receiverScale, bool floatReceiver) =>
+        floatReceiver ? Math.Max(receiverScale, Binary64SignificantDigits) : receiverScale;
+
     /// <summary>⛔ THE ONE QUESTION "IS THIS CARRIER AN INTEGER BY ITS VALUE" (kb/Work PB5891 review R2-1, R2-2; PB272's value-not-spelling
     /// rule): an Int128-lane value whose scale is 0 or NEGATIVE holds an integer (a P-scaled item, PIC 99P, is its unscaled digits
     /// times a power of ten). The renderer's exact power asks it of its exponent, the bind-time carrier prediction states a leaf's

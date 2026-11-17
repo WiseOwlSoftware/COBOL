@@ -923,7 +923,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// route a <c>Dec</c> operand takes. So there is ONE landing here, not a second mechanism beside the first,
     /// and the exact Int128 family evaluates the EAE as §2023:15.4.1 r1 requires.</para>
     /// </remarks>
-    private NumX Landed(NumX x) => num.Landed(x, num.ArgumentReceiver);   // the ONE landing (NumericRenderer.Landed — kb/Work PB84)
+    /// <remarks>The landing of an argument already rendered in the argument context (<c>NumericRenderer.ArgumentReceiver</c>): it reads
+    /// only the receiver's scale and integer-digit headroom (<see cref="ReceiverContext.WorkingScale"/>), never a lane fact, so it keeps
+    /// the statement's receiver; the argument context's wider scale under a floating-point receiver (<c>NumericLanes.ArgumentScale</c>)
+    /// would put a large SDIDI value past the carrier there, a headroom a floating-point receiver does not state.</remarks>
+    private NumX Landed(NumX x) => num.Landed(x, num.Receiver);   // the ONE landing (NumericRenderer.Landed — kb/Work PB84)
 
     // ── The STANDARD-DECIMAL body dispatch (fix-queue PB56) ──────────────────────────────────────────────────
 

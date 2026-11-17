@@ -779,7 +779,11 @@ function's ONE native body (`VarianceExact` / `StdDevExact` / `PresentValueExact
 PRESENT-VALUE's §2023:15.74.3 r2 is then decided where every native evaluation of it decides it — `PresentValueExact`'s exact
 test of the discount base through the one `PresentValueDomain` raise site — which is also what lets a leading table(ALL)
 rate stay one `CobolExact[]` enumeration. A list with a floating argument keeps the binary64 body (its EAE is evaluated in
-binary64, CONFORMANCE.md DOC-A.1-92b); an SDIDI or wide argument is routed to the same native bodies by `RenderNum`'s native
+binary64, CONFORMANCE.md DOC-A.1-92b; an all-fixed-point argument is evaluated exactly whatever the receiver, kb/Work PB5893, at the
+working scale `NumericLanes.ArgumentScale` states once: the receiver's scale, and under a floating-point receiver at least
+`NumericLanes.Binary64SignificantDigits` (17), so a nested quotient keeps 17 fraction digits beside its 14 guard digits and at least
+17 significant digits of any quotient of magnitude 10^-14 or more reach the binary64 receiver; `LaneOf` reads the same scale through
+the argument context, so the lane assertion holds); an SDIDI or wide argument is routed to the same native bodies by `RenderNum`'s native
 Dec arm (PB69, PB4111), which returns the value on the SDIDI. `WholeRangeBodiesDriftTests` requires every variadic Float
 catalog row to be a member and pins each overload. Pinned by `conformance-suite/cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list`.
 

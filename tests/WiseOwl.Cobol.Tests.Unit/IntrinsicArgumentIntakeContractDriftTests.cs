@@ -115,16 +115,17 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
     /// is an expression evaluated individually (§2023:8.4.3.2.4 GR2) whose evaluation technique its own operands decide, never the
     /// statement's receiver: an intake that rendered an argument under <c>num.Receiver</c> took an all-fixed-point argument onto
     /// binary64 beneath a COMP-2 resultant (<c>COMPUTE F = FUNCTION REM ((Y * 100 - X * 10.25) * 4, 1000)</c> stored 672 for 41).
-    /// So every <c>num.AsNum(</c> and <c>num.Landed(</c> in the renderer passes <c>num.ArgumentReceiver</c> (or the receiver-less
-    /// <c>ReceiverContext.None</c>, which has no floating-point facts either), and the count of calls read is asserted.
+    /// So every <c>num.AsNum(</c> in the renderer passes <c>num.ArgumentReceiver</c> (or the receiver-less
+    /// <c>ReceiverContext.None</c>, which has no floating-point facts either), and the count of calls read is asserted. (The landing
+    /// <c>Landed</c> of an argument already rendered reads only the receiver's scale headroom, and keeps the receiver.)
     /// </summary>
     [Fact]
     public void EveryArgument_RendersInTheArgumentReceiver()
     {
-        // Every call of the two entries sits on one line of code; a comment line explaining the contract is not a call.
+        // Every call of the entry sits on one line of code; a comment line explaining the contract is not a call.
         var calls = RendererSource().Split('\n')
             .Where(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal))
-            .Where(l => Regex.IsMatch(l, @"num\.(?:AsNum|Landed)\("))
+            .Where(l => l.Contains("num.AsNum(", StringComparison.Ordinal))
             .Select(l => l.Trim())
             .ToList();
         Assert.True(calls.Count >= 12, $"expected at least 12 argument renders in IntrinsicRenderer, found {calls.Count}: the scan is blind");

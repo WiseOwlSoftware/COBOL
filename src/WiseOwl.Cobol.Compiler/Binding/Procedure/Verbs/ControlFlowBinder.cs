@@ -279,7 +279,10 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         if (p is RefModPlace) return usage is Usage.Display or Usage.National;
         // An INTEGER data item (any usage — BINARY, PACKED, COMP-5 …) is the first alternative. A group has no
         // operand PICTURE, so it can only ever reach the usage alternative below — which is where §2023:8.5.2.1 put it.
-        if (p.Item.OperandPic is { Category: PicCategory.Numeric, Scale: 0, IsFloat: false }) return true;
+        // An integer BY VALUE, not by spelling (kb/Work PB5892's sibling; PB272): a P-scaled item (PIC 99P COMP, scale below 0) holds
+        // an integer, the one question NumericLanes.IsIntegerByValue asks of a fixed-point description's scale.
+        if (p.Item.OperandPic is { Category: PicCategory.Numeric, IsFloat: false } integer
+            && NumericLanes.IsIntegerByValue(NumericLane.Scaled, integer.Scale)) return true;
         // …or a data item WITH USAGE DISPLAY OR NATIONAL, whatever its category (this is the alternative that
         // makes `WS-CODE PIC X(3)` legal, and the one the arithmetic funnel could not express).
         return usage is Usage.Display or Usage.National;
