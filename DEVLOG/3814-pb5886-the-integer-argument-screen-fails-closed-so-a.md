@@ -1,4 +1,4 @@
-## PB5886: the integer-argument screen fails closed, so a quotient with a function term is refused
+## Entry 3814 — 2026-11-16 21:57 PST — PB5886: the integer-argument screen fails closed, so a quotient with a function term is refused
 
 **Re-probe.** The note's `open3.cob` compiled and ran at `--std 85` and `--std 2023` on main ed7d9b6d97 (exit 0):
 `FACTORIAL (FUNCTION ORD (A) / 2)` returned 33! for 33.5, and `MOD (7, FUNCTION ORD (A) / 4)`, `MOD (N * N * N / 2, 7)`,
@@ -48,3 +48,4 @@ second line of `pb5886_native_quotient_chain` (0999). The same shared code appli
 
 **Rows.** 1985: the four rows of the note take the new refusals as witnesses; `1989-AR-A.2.2-4` restated CONFORMS. 2023:
 `AR-15.3-6` gains the witnesses; `GR-5.5-3` and `DOC-A.1-124` retire the deleted goldens. NIST: 403 NIST tests green.
+
