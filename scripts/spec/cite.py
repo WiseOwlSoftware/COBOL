@@ -120,8 +120,13 @@ CORRECTION_NOTE = re.compile(r"^>\s*⚠\s*\*\*CORRECTED")
 #: the rows `provisional`, `--check` marks a citation it verifies there, the figure sweep has no printed drawing to read.
 RECONSTRUCTED = re.compile(r"^>\s*⚠\s*\*\*RECONSTRUCTED — not printed in our copy \(folios? (?P<folios>[^)]+)\)\.\*\*")
 RECONSTRUCTED_END = re.compile(r"^>\s*⚠\s*\*\*END RECONSTRUCTED \(folios? (?P<folios>[^)]+)\)\.\*\*")
-#: An editorial note of either kind: never rule text, and a blockquote paragraph that ends at its blank line.
-EDITORIAL_NOTE = re.compile(r"^>\s*⚠\s*\*\*(?:CORRECTED|RECONSTRUCTED — |END RECONSTRUCTED )")
+#: ⛔ PRINTED PAGES OUR SCAN LACKS, TRANSCRIBED FROM ANOTHER SCAN (kb/Work PB4952, PB5789). Where our copy lacks printed
+#: pages and another printing supplies them, their verbatim text stands where the gap is, after a note that names the
+#: folios, the other scan and its pages; the text runs to the last folio it names. It is the standard's text, read like
+#: any other: only the note is editorial. `verify_publishable.check_reconstructions` counts the folios it names as printed.
+SOURCE = re.compile(r"^>\s*⚠\s*\*\*SOURCE — folios? (?P<folios>.+?), not in our copy\.\*\*")
+#: An editorial note of any kind: never rule text, and a blockquote paragraph that ends at its blank line.
+EDITORIAL_NOTE = re.compile(r"^>\s*⚠\s*\*\*(?:CORRECTED|RECONSTRUCTED — |END RECONSTRUCTED |SOURCE — )")
 #: The mark `--check` and `--find` print on a quotation found inside a reconstruction.
 RECONSTRUCTED_MARK = "[RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
 
@@ -977,11 +982,15 @@ def self_test() -> int:
          not v("§1985:VII.5.3.1", "A data description entry specifies the characteristics").ok),
         ("1989 (Amendment 1): a returned-value rule resolves in its own section, a missing one fails",
          v("§1989:A.2.5.4 RV1").ok and fails("§1989:A.2.5.4 RV99", None, "no-ordinal")),  # citation-audit: example
-        # kb/Work PB4952: a quotation of a reconstruction passes MARKED; the printed text beside it carries no mark.
-        ("marks a citation verified against a reconstruction (TYPE SR1, folio XIII-55)",
-         RECONSTRUCTED_MARK in v("§1985:XIII.3.20.3 SR1", "RH is an abbreviation for REPORT HEADING").message
-         and RECONSTRUCTED_MARK in v("§1985:XIII.3.20.3", "RH is an abbreviation for REPORT HEADING").message),
-        ("does not mark the printed text after a reconstruction (TYPE SR7, folio XIII-56)",
+        # kb/Work PB5789: the printed pages our scan lacks stand transcribed from another scan after a SOURCE note; they
+        # are the standard's text, so a quotation of them passes unmarked, and the note is editorial, never rule text.
+        ("passes a citation of a page transcribed from another scan unmarked (TYPE SR2, folio XIII-55)",
+         (r := v("§1985:XIII.3.20.3 SR2", "may each appear no more than once in the description of a report")).ok
+         and RECONSTRUCTED_MARK not in r.message),
+        ("reads a SOURCE note as editorial, naming its folios",
+         EDITORIAL_NOTE.match(n := "> ⚠ **SOURCE — folios XIII-54 and XIII-55, not in our copy.** Planted.") is not None
+         and (m := SOURCE.match(n)) is not None and folios_of(m["folios"]) == ["XIII-54", "XIII-55"]),
+        ("does not mark the printed text after those pages (TYPE SR7, folio XIII-56)",
          RECONSTRUCTED_MARK not in v("§1985:XIII.3.20.3", "The description of a report must include at least one body group").message),
         ("pairs the notes, and reports an unclosed opening and an unopened closing",
          [(r.start, r.end) for r in reconstructions(planted_notes)] == [(1, 3), (5, None)]

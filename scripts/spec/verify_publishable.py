@@ -472,7 +472,9 @@ def check_reconstructions(lines: list[str], edition: int) -> list[str]:
     **Sources:** and its **Confidence:**, and each note stands alone (a line after it would render inside it). The folios
     a reconstruction names are exactly those the transcription's folio sequence skips where it stands, so a scan gap
     nobody filled is refused, and so is a reconstruction whose printed page has since been transcribed: its verbatim
-    text replaces the reconstruction, and the rule catalog's provisional rows go with it."""
+    text replaces the reconstruction, and the rule catalog's provisional rows go with it. A gap may instead hold the
+    printed pages transcribed from another scan, after a `cite.SOURCE` note naming their folios (kb/Work PB5789): those
+    folios count as printed, and each must stand as a folio line below the note on its page."""
     failures: list[str] = []
     print("\nreconstructions — each fills exactly the printed folios the scan lacks where it stands:")
     recons = cite.reconstructions(lines)
@@ -501,15 +503,28 @@ def check_reconstructions(lines: list[str], edition: int) -> list[str]:
     if folio is not None:
         # A page's folio is the LAST folio-shaped line of the page (`## Page N`): an Index entry's continuation line
         # (`      VI-73`) is folio-shaped too, and every page that prints a folio prints it last.
+        # Printed pages our scan lacks, transcribed from another scan (cite.SOURCE, kb/Work PB5789), stand at the top of
+        # the page after the gap: the folios their note names are printed there, before the page's own, and each must
+        # stand on the page as a folio line below the note.
         printed: list[tuple[int, str]] = []
         last: tuple[int, str] | None = None
+        sourced: list[tuple[int, str]] = []
+        seen: set[str] = set()
         for i, ln in enumerate(lines + ["## Page 0"]):
             if spec_pdf.PAGE_HEADING.match(ln):
+                for at, f in sourced:
+                    if f not in seen:
+                        failures.append(f"line {at + 1}: the note names folio {f}, which no folio line below it on "
+                                        "its page prints")
+                printed.extend(sourced)
                 if last is not None:
                     printed.append(last)
-                last = None
+                last, sourced, seen = None, [], set()
+            elif (m := cite.SOURCE.match(ln)) is not None:
+                sourced.extend((i, f) for f in cite.folios_of(m["folios"]))
             elif (m := folio.match(ln.strip())) is not None:
                 last = (i, m.group(1))
+                seen.add(m.group(1))
         placed: set[int] = set()
         for (i, a), (j, b) in zip(printed, printed[1:]):
             (sa, na), (sb, nb) = a.rsplit("-", 1), b.rsplit("-", 1)
@@ -780,6 +795,14 @@ def self_test() -> int:
                                       else ln for ln in filled], 1985))
           and any("no **Sources:**" in f for f in quietly(
               check_reconstructions, [opening.split(" **Sources:**")[0] if ln == opening else ln for ln in filled], 1985)))
+    # kb/Work PB5789: the gap may instead hold the printed pages from another scan, after a SOURCE note naming them.
+    source = "> ⚠ **SOURCE — folios XIII-30 and XIII-31, not in our copy.** Planted: from another scan."
+    sourced = ["## Page 1", "", "text", "", "XIII-29", "", "## Page 2", "", source, "", "(1) A rule.", "", "XIII-30", "",
+               "(2) A rule.", "", "XIII-31", "", "Report Writer - Body", "", "XIII-32", ""]
+    check("printed pages from another scan, named by a SOURCE note, fill the gap; a named folio no line prints is refused",
+          quietly(check_reconstructions, sourced, 1985) == []
+          and any("names folio XIII-31, which no folio line" in f
+                  for f in quietly(check_reconstructions, [ln for ln in sourced if ln != "XIII-31"], 1985)))
     check("a reconstruction note followed by text with no blank line is refused",
           any("followed by text" in f for f in quietly(
               check_reconstructions, [ln for k, ln in enumerate(filled) if k != 9], 1985)))
