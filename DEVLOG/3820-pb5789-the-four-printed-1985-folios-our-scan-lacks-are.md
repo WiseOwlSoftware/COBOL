@@ -1,4 +1,4 @@
-## PB5789: the four printed 1985 folios our scan lacks are transcribed from a public scan, and their 13 rows are decided again against the printed text
+## Entry 3820 — 2026-11-17 10:57 PST — PB5789: the four printed 1985 folios our scan lacks are transcribed from a public scan, and their 13 rows are decided again against the printed text
 
 **The source.** Our scan of X3.23-1985 lacks folios XIII-30, XIII-31, XIII-54 and XIII-55 (kb/Work PB4952). Since 2026-11-09 the
 transcription had held three RECONSTRUCTED blocks in their place. The owner approved finding a public scan on 2026-11-17. GovInfo
@@ -52,3 +52,4 @@ kb/Work PB5789 is landed: its row is CONFORMS on its own witness, `pb5789_page_h
 **New witnesses.** Ten 1985 conformance cases (`pb5789_*`, `pb5789-*`) witness the printed rules. Two accepted cases
 cover the page heading after a report heading's NEXT GROUP and a nonprintable page heading. Two cover GENERATE report-name subtotalling
 with no detail group and with one. Six refusals cover TYPE SR2, SR3 and SR4.
+
