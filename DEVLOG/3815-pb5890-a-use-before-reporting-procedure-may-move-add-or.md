@@ -1,4 +1,4 @@
-## PB5890: a USE BEFORE REPORTING procedure may MOVE, ADD or SUBTRACT CORRESPONDING, or INITIALIZE ... REPLACING, into a group whose control data item they do not store
+## Entry 3815 — 2026-11-16 22:01 PST — PB5890: a USE BEFORE REPORTING procedure may MOVE, ADD or SUBTRACT CORRESPONDING, or INITIALIZE ... REPLACING, into a group whose control data item they do not store
 
 Wave 20262099 group A: the store answer kb/Work PB5885 made the one answer to "what does this statement store into" answered
 for the operand a CORRESPONDING statement or an INITIALIZE names, not for the items it stores.
@@ -24,3 +24,4 @@ witnesses; 1985-SR-XIII.4.9.3-4 gained its 85 witness. No 2002 verdict (frozen).
 
 No NIST program uses USE BEFORE REPORTING, and none names a CORRESPONDING or INITIALIZE operand in a USE FOR DEBUGGING program.
 Gate: run by the dispatching session.
+
