@@ -343,7 +343,7 @@ internal sealed record ArgSchema(ArgRule[] Positions, ArgRule? Tail, CrossArgRul
 /// inventory row that a later pass revisits. The asymmetry is deliberate.
 /// </para>
 /// </remarks>
-internal static class IntrinsicArgumentRules
+internal static partial class IntrinsicArgumentRules
 {
     /// <summary>The ISO §2023:8.5.2.1 Table-2 class of an operand, or <see langword="null"/> when it is not statically
     /// decidable (an index item and other PIC-less leaves included — those are simply not screened).</summary>
@@ -1591,9 +1591,10 @@ internal static class IntrinsicArgumentRules
     /// <summary>
     /// ⛔ THE ONE PRIMITIVE behind every §2023:15.3 type 6 screen: the reason this ITEM's DESCRIPTION admits a value
     /// that is not an integer, or <see langword="null"/> when the description admits only integers (kb/Work
-    /// PB248). Every §2023:15.3 type-6 site reads THIS — the bare-operand arm of <see cref="IntegerViolation"/>, the
-    /// additive-spine walk in <see cref="CollectAdditive"/> and the opaque-marking walk in
-    /// <see cref="NumericItemsBeneath"/> — so a shape none of them can see cannot be fixed in one of the three.
+    /// PB248). Every §2023:15.3 type-6 site reads THIS — the bare-operand arm of <see cref="IntegerViolation"/>, and the item atoms of
+    /// the type 6 classifier through <see cref="PicInfo.IsIntegerDescription"/>, the predicate it states (an item admitting a
+    /// non-integral value is a scaled integer atom or a real atom there, <see cref="Build"/>) — so no type-6 site can see an item
+    /// shape the others do not.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -1732,287 +1733,6 @@ internal static class IntrinsicArgumentRules
         _ => null,
     };
 
-    /// <summary>⛔ THE TYPE 6 SCREEN OF AN ARITHMETIC-EXPRESSION ARGUMENT FAILS CLOSED (kb/Work PB5886): the reason the expression is
-    /// not SHOWN to result in an integer for every valuation of the items it references, or null when it is.
-    /// <para>§2023:15.3 AR6: "An arithmetic expression that will always result in an integer value or an integer data item shall be
-    /// specified"; §1989:A.2.2 AR4: "An arithmetic expression which will always result in an integer value must be specified" (both
-    /// cite.py --check OK). The requirement is on the PROGRAM, so an expression the compiler cannot show to be always integral is not one
-    /// it may admit. The screen this replaced refused only where it could name a valuation with a non-integer value and admitted every
-    /// other shape; COBOL-85 has no EC-ARGUMENT-FUNCTION run-time check, so <c>FUNCTION FACTORIAL (FUNCTION ORD (A) / 2)</c> compiled
-    /// there and returned 33! for 33.5 (kb/Work PB5886, after PB124, PB617, PB5208, PB5345 and PB5832 had each added another witness).</para>
-    /// <para>What the screen SHOWS, and so admits (the dispatching session's ruling on PB5886, owner-delegated):</para>
-    /// <list type="bullet">
-    /// <item>an INTEGER TERM: an integer literal, an integer data item, an integer function (by the type its definition gives for the
-    /// argument types written, the one table <see cref="IntrinsicResultType.Resolve"/> reads and <c>IntrinsicResultTypeDriftTests</c>
-    /// holds to the standard's tables, never by this reference's value, as §2023:8.4.3.2.3 SR11 judges a numeric function), a counter
-    /// register, an index-name, a sum, difference, product or negation of integer terms, an integer term to an exponent that cannot be
-    /// negative, and the literal 1 to any integer exponent (<see cref="ProvablyIntegral"/>, <see cref="IsIntegerPower"/>);</item>
-    /// <item>a quotient by a nonzero literal c whose reciprocal terminates, read as the product by 1/c (the arithmetic keeps the quotient
-    /// exactly, <see cref="ExactFractionDigits"/>), and a literal fold whose value is an integer the arithmetic keeps exactly
-    /// (<see cref="QuotientsAreExact"/>); a quotient with any other divisor is not an integer term (<c>WN / 3 * 3</c> stores 0.99…);</item>
-    /// <item>a sum of items under LITERAL FACTORS whose net coefficient the items' granularity makes whole: a product by a literal is
-    /// exact in decimal arithmetic, so <c>S * 10</c> and <c>S / 0.1</c> over <c>S PIC 9V9</c>, <c>WN / 2 * 2</c> and
-    /// <c>WN * 0.5 + WN * 0.5</c> always result in an integer (<see cref="CollectAdditive"/>).</item>
-    /// </list>
-    /// Everything else is refused: a numeric function term, a quotient by an item or a function, a power the rules above do not cover, a
-    /// fixed-point item whose net coefficient leaves a fraction, a floating-point item with a nonzero coefficient and a non-integral
-    /// constant. A form that is an integer only by an algebraic identity between terms that are not integer terms
-    /// (<c>FUNCTION SQRT (N) - FUNCTION SQRT (N) + 5</c>) is refused too: the screen decides by types and literal values, not by algebra
-    /// (kb/Work PB5889, a recorded decision). The verdict is the same at every edition (the requirement is the same in both texts).</summary>
-    /// <para>⛔ AND UNDER THE ARITHMETIC IN FORCE (kb/Work PB5886 review R3-1). Every intermediate of the expression must be the exact
-    /// value the walk reasons about. A nested quotient keeps its operands' fraction digits plus the guard digits of
-    /// <see cref="CobolNum.NestedQuotientScale"/> in every mode (the walk's <c>quotientDigits</c>), and a standard-decimal or
-    /// standard intermediate data item also keeps only <see cref="ArithmeticModes.IntermediateSignificantDigits"/> significant digits
-    /// (§2023:8.8.1.5.2: 34 for STANDARD-DECIMAL; §2002:8.8.1.3.1.1: 32 for the 2002 STANDARD), rounding or truncating the rest
-    /// (<see cref="IntermediateDigitsWhy"/>). So <c>B27 / 0.0001 / 16384 * 16384 * 0.0001</c> over a 27-digit item is an integer under
-    /// native arithmetic and is refused under ARITHMETIC IS STANDARD-DECIMAL, where its quotient B27 × 0.6103515625 needs up to 37 significant digits, 10 of them fraction digits.</para></summary>
-    private static string? NotAlwaysIntegral(BoundExpr expr, ArithmeticMode arithmetic) =>
-        NotAlwaysIntegral(expr, quotientDigits: 0) ?? IntermediateDigitsWhy(expr, arithmetic);
-
-    /// <summary>⛔ THE ONE ANSWER TO "IS THIS ARITHMETIC EXPRESSION ALWAYS AN INTEGER" (kb/Work PB5886 round 2, R2-1): the type 6 screen
-    /// refuses an argument exactly when this is false, and <c>IntrinsicResultType.IsIntegerArgument</c> reads it for the type tables of the
-    /// functions whose type depends on their arguments, so <c>FUNCTION MAX (WN / 2 * 2)</c> is an integer function as <c>WN / 2 * 2</c> is
-    /// an integer argument (§2023:15.3 AR6; §1989:A.2.2 AR4).</summary>
-    internal static bool IsAlwaysIntegral(BoundExpr expr, ArithmeticMode arithmetic) => NotAlwaysIntegral(expr, arithmetic) is null;
-
-    /// <summary><see cref="NotAlwaysIntegral(BoundExpr, ArithmeticMode)"/>'s walk of a subexpression evaluated under quotients by literals whose reciprocals
-    /// already spend <paramref name="quotientDigits"/> fraction digits (see <see cref="CollectAdditive"/>).</summary>
-    private static string? NotAlwaysIntegral(BoundExpr expr, int quotientDigits)
-    {
-        var sum = new LinearSum();
-        if (CollectAdditive(expr, ExactRational.One, sum, quotientDigits) is { } termWhy) return termWhy;
-        foreach (var (item, (coeff, scale, isFloat)) in sum.Items)
-        {
-            if (coeff.Sign == 0) continue;
-            // A fixed-point item of scale s holds every multiple of 10^(−s) its digits allow, so a net coefficient c moves the sum by
-            // c × 10^(−s) between neighbouring values: an integer for every valuation iff that step is whole (a negative s is a P-scaled
-            // item). A floating-point item is finer than any decimal step (§2023:14.6.8.3, kb/Work PB248), so a nonzero c never is.
-            if (!isFloat && (coeff * ExactRational.FromScaled(1, -scale)).IsInteger) continue;
-            return $"is an arithmetic expression whose term '{item.CobolName}' "
-                + (isFloat ? "is a floating-point numeric data item"
-                    : coeff.IsInteger ? "has digits to the right of the decimal point"
-                    : $"is multiplied by a literal to the net factor {coeff}, which the item's granularity does not make a whole number")
-                + ", so the sum does not always result in an integer value — " + TypeSixExpressionRule;
-        }
-        if (!sum.Constant.IsInteger)
-            return $"is an arithmetic expression whose literal terms sum to {sum.Constant} and whose every other term is an integer, "
-                + "so its value is never an integer — " + TypeSixExpressionRule;
-        return null;
-    }
-
-    /// <summary>The rule every type 6 expression refusal cites.</summary>
-    private const string TypeSixExpressionRule =
-        "ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in an integer value";
-
-    /// <summary>What <see cref="CollectAdditive"/> learns about an argument: the net coefficient of every numeric data item that is a
-    /// term of the sum (a rational, the product of the signs and literal factors on its path), and the exact sum of its literal terms.
-    /// Every other term has already been shown to be an integer term under a whole factor, so it adds an integer.</summary>
-    private sealed class LinearSum
-    {
-        public readonly Dictionary<DataItem, (ExactRational Coeff, int Scale, bool Float)> Items = new();
-        public ExactRational Constant = ExactRational.Zero;
-    }
-
-    /// <summary>Walk the argument as a sum of terms under literal factors (<paramref name="factor"/>, a rational), recording each numeric
-    /// item's net coefficient and each literal term in <paramref name="sum"/>; the reason the first term that is neither of those nor an
-    /// integer term under a whole factor makes the expression not shown integral, or null (see <see cref="NotAlwaysIntegral(BoundExpr, ArithmeticMode)"/>).
-    /// <paramref name="quotientDigits"/> is the sum of the fraction digits of the reciprocals of the literal divisors the term sits under: a
-    /// nested quotient is kept at no fewer than <see cref="ExactFractionDigits"/> digits beyond its operands' own, so the chain of quotients
-    /// is exact only while that sum stays within them.</summary>
-    private static string? CollectAdditive(BoundExpr e, ExactRational factor, LinearSum sum, int quotientDigits)
-    {
-        // A LITERAL-ONLY SUBTREE is a constant term at its exact fold — trusted as a VALUE only when the arithmetic stores every quotient
-        // in it exactly (kb/Work PB4758: `1 / 3 * 3` folds to 1 and the arithmetic stores 0.9999).
-        if (ExactValue(e) is { } constant)
-        {
-            if (!QuotientsAreExact(e)) return InexactLiteralWhy(constant);
-            sum.Constant += factor * constant;
-            return null;
-        }
-        switch (e)
-        {
-            case BoundBinary { Op: '+' } b:
-                return CollectAdditive(b.Left, factor, sum, quotientDigits) ?? CollectAdditive(b.Right, factor, sum, quotientDigits);
-            case BoundBinary { Op: '-' } b:
-                return CollectAdditive(b.Left, factor, sum, quotientDigits) ?? CollectAdditive(b.Right, -factor, sum, quotientDigits);
-            case BoundNegate n:
-                return CollectAdditive(n.Operand, -factor, sum, quotientDigits);
-            // A PRODUCT BY A LITERAL scales the term (kb/Work PB5832): `E * c` and `c * E` are E under the factor c, and decimal
-            // multiplication is exact, so the item's net coefficient stays the whole story. A zero factor makes the term the constant 0.
-            case BoundBinary { Op: '*', Left: var left, Right: var right } when ExactValue(left) is not null || ExactValue(right) is not null:
-            {
-                var (literal, other) = ExactValue(left) is not null ? (left, right) : (right, left);
-                if (!QuotientsAreExact(literal)) return InexactLiteralWhy(ExactValue(literal)!.Value);
-                var k = ExactValue(literal)!.Value;
-                return k.Sign == 0 ? null : CollectAdditive(other, factor * k, sum, quotientDigits);
-            }
-            // A PRODUCT OF TWO TERMS NEITHER OF WHICH IS A LITERAL is an integer term when each factor is shown integral on its own and its
-            // coefficient is whole: half of an integer product is no integer (`A * B * 0.5` at A = B = 1).
-            case BoundBinary { Op: '*', Left: var left, Right: var right }:
-                return NotAlwaysIntegral(left, quotientDigits) ?? NotAlwaysIntegral(right, quotientDigits) ?? FractionalFactorWhy(e, factor);
-            // ⛔ A QUOTIENT BY A LITERAL WHOSE RECIPROCAL TERMINATES IS THE PRODUCT BY THAT RECIPROCAL (kb/Work PB5886 round 2, R1-1): `E / c`
-            // is E under the factor 1/c, decided as `E * (1/c)` is, because the arithmetic keeps a quotient by such a c exactly while the
-            // reciprocals' digits stay within ExactFractionDigits. `WN / 2 * 2` and `S / 0.1` are admitted; `FUNCTION ORD (A) / 2` is an
-            // integer term under 1/2 and refused.
-            case BoundBinary { Op: '/', Left: var dividend, Right: var divisor } when ExactValue(divisor) is { Sign: not 0 } c
-                && QuotientsAreExact(divisor) && (ExactRational.One / c).FractionDigits is { } digits
-                && quotientDigits + digits <= ExactFractionDigits:
-                return CollectAdditive(dividend, factor / c, sum, quotientDigits + digits);
-            // ⛔ ANY OTHER QUOTIENT IS NOT AN INTEGER TERM (kb/Work PB5886): a divisor that is an item, a function or an expression moves
-            // with the valuation (A / A is a size error at A = 0), and a literal whose reciprocal does not terminate (WN / 3) is truncated
-            // by the arithmetic, so `WN / 3 * 3` stores a fraction.
-            case BoundBinary { Op: '/', Left: var dividend, Right: var divisor }:
-                return $"is an arithmetic expression that divides {TermText(dividend)} by {TermText(divisor)}; a quotient is an integer "
-                    + "term only by a literal whose reciprocal the arithmetic keeps exactly, so the expression is not shown to "
-                    + "always result in an integer value — " + TypeSixExpressionRule;
-            case BoundPower pw:
-                return NotAlwaysIntegral(pw.Base, quotientDigits)
-                    ?? (IsIntegerPower(pw.Base, pw.Exp, NotAlwaysIntegral(pw.Exp, quotientDigits) is null) ? FractionalFactorWhy(e, factor)
-                    : $"is an arithmetic expression that raises {TermText(pw.Base)} to the power {TermText(pw.Exp)}, which can be "
-                      + "negative or is not an integer, so its value is not shown to be an integer — " + TypeSixExpressionRule);
-            case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } and { } item }:
-                sum.Items[item] = sum.Items.TryGetValue(item, out var prior)
-                    ? (prior.Coeff + factor, p.Scale, p.IsFloat) : (factor, p.Scale, p.IsFloat);
-                return null;
-            // ⛔ A FUNCTION TERM IS JUDGED BY THE FUNCTION'S OWN TYPE (kb/Work PB5886): an integer function is an integer term
-            // (ProvablyIntegral below), and any other is not, even where a particular reference yields an integer value — the standard's
-            // own reading of a numeric function where an integer is required (§2023:8.4.3.2.3 SR11; §1989:A.2.3 GR2 at COBOL-85).
-            case BoundIntrinsicCall { ResultType: not IntrinsicType.Integer } call:
-                return $"is an arithmetic expression with the term {TermText(call)}, a numeric function, whose value is not an integer "
-                    + "term by the function's type, so the expression is not shown to always result in an integer value — "
-                    + TypeSixExpressionRule;
-            // The windows that carry a user function's activations hold the expression they evaluate.
-            case BoundUdfEvaluatedExpr udf:
-                return CollectAdditive(udf.Inner, factor, sum, quotientDigits);
-            // An operand already refused where it was bound: its site reported the rule it breaks.
-            case BoundExprError:
-                return null;
-            // The integer terms that are no item, literal or operation: an integer function (the call arm above took every other), a
-            // counter register, an index-name, a report VARYING counter and an OCCURS DEPENDING extent (ProvablyIntegral's own arms).
-            case BoundIntrinsicCall or BoundIndexRef or BoundLinageCounterRef or BoundReportCounterRef or BoundReportVaryingRef or BoundOdoExtent
-                when ProvablyIntegral(e):
-                return FractionalFactorWhy(e, factor);
-            // ⛔ THE DEFAULT REFUSES (review R4-1): a BoundNumRef that is no numeric item, a BoundNumLiteral the fold cannot read, an
-            // operator this walk does not know, and any node kind added later are not shown to be integers.
-            case BoundNumRef or BoundNumLiteral or BoundIndexRef or BoundLinageCounterRef or BoundReportCounterRef or BoundReportVaryingRef
-                or BoundOdoExtent:
-            default:
-                return $"is an arithmetic expression with {TermText(e)}, a term that is not shown to be an integer, so the expression is "
-                    + "not shown to always result in an integer value — " + TypeSixExpressionRule;
-        }
-    }
-
-    /// <summary>⛔ THE SIGNIFICANT-DIGIT HALF OF "EXACT IN THE ARITHMETIC IN FORCE" (kb/Work PB5886 review R3-1): null under an arithmetic
-    /// whose intermediates keep every integer digit (native: <see cref="ArithmeticModes.IntermediateSignificantDigits"/> is null), and under a
-    /// standard arithmetic null only when every intermediate of the expression that carries fraction digits fits that many significant
-    /// digits. An intermediate with no fraction digits may lose low integer digits to the rounding and stays an integer, so it is not
-    /// asked; one with fraction digits that does not fit is rounded or truncated, and the value is no longer the exact one the walk
-    /// showed integral (<c>B27 / 0.0001 / 16384</c>, B27 × 0.6103515625: up to 27 integer and 10 fraction digits against the SDIDI's 34, §2023:8.8.1.5.2).</summary>
-    private static string? IntermediateDigitsWhy(BoundExpr expr, ArithmeticMode arithmetic)
-    {
-        if (ArithmeticModes.IntermediateSignificantDigits(arithmetic) is not { } cap) return null;
-        return DigitBound(expr, cap).Overflow is { } at
-            ? $"is an arithmetic expression whose intermediate {at} needs more than the {cap} significant digits an intermediate keeps "
-              + $"under ARITHMETIC IS {(arithmetic is ArithmeticMode.Standard ? "STANDARD" : "STANDARD-DECIMAL")}, so its fraction digits "
-              + "are not kept and the value is not shown to be an integer — " + TypeSixExpressionRule
-            : null;
-    }
-
-    /// <summary>The decimal positions <paramref name="e"/>'s nonzero digits can occupy, as exponents: every digit lies at 10^Lo or above and
-    /// the value is below 10^Hi, so it has at most Hi − Lo significant digits and carries fraction digits only when Lo is negative; and the
-    /// first intermediate (as written) that carries fraction digits and needs more than <paramref name="cap"/> significant digits. An
-    /// item of scale s and d digits spans [−s, d − s); a literal its own digits; a product the sums of its factors' bounds (a quotient by a
-    /// literal c is the product by 1/c); a sum the outer bounds of its terms and one more position. A term whose magnitude the walk does
-    /// not know (a function, a register, an index) spans [0, cap): it is an integer of up to cap digits.</summary>
-    /// <para>⛔ EVERY <see cref="BoundExpr"/> KIND IS NAMED, AND THE DEFAULT REFUSES (kb/Work PB5886 review R4-1): a power fell to a
-    /// default that bounded it as an integer, so <c>(B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1</c> slipped past the bound its base
-    /// fails. A kind the walk does not name is not proven, and <c>TypeSixWalkCoverageDriftTests</c> holds every proof walk to naming
-    /// every concrete kind.</para></summary>
-    private static (int Lo, int Hi, string? Overflow) DigitBound(BoundExpr e, int cap)
-    {
-        if (ExactValue(e) is { } literal) return LiteralDigits(literal, cap);
-        switch (e)
-        {
-            case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric, IsFloat: false } p } }:
-                return (-p.Scale, p.Digits - p.Scale, null);
-            case BoundNumRef:
-                return NotBounded(e, cap);   // a floating-point item, or an operand an extension admits
-            case BoundNumLiteral:
-                return NotBounded(e, cap);   // a literal ExactValue could not read
-            case BoundNegate n:
-                return DigitBound(n.Operand, cap);
-            case BoundUdfEvaluatedExpr udf:
-                return DigitBound(udf.Inner, cap);
-            case BoundBinary b:
-            {
-                var l = DigitBound(b.Left, cap);
-                if (l.Overflow is not null) return l;
-                var r = b.Op == '/'
-                    ? (ExactValue(b.Right) is { Sign: not 0 } c ? LiteralDigits(ExactRational.One / c, cap) : NotBounded(b.Right, cap))
-                    : DigitBound(b.Right, cap);
-                if (r.Overflow is not null) return r;
-                (int lo, int hi) = b.Op switch
-                {
-                    '+' or '-' => (Math.Min(l.Lo, r.Lo), Math.Max(l.Hi, r.Hi) + 1),
-                    '*' or '/' => (l.Lo + r.Lo, l.Hi + r.Hi),
-                    _ => (-cap, cap),
-                };
-                return (lo, hi, lo < 0 && hi - lo > cap ? ExprText(e) : null);
-            }
-            // A POWER IS BOUNDED BY ITS BASE AND EXPONENT (review R4-1): an integer exponent n >= 0 multiplies the base's positions by n
-            // (the power is a product of n bases); a power of an integer base to an unsigned integer item is an integer of unknown size;
-            // the literal 1 to any integer exponent is 1. Any other power is not bounded.
-            case BoundPower pw:
-            {
-                var bound = DigitBound(pw.Base, cap);
-                if (bound.Overflow is not null) return bound;
-                if (ExactValue(pw.Exp) is { IsInteger: true, Sign: >= 0 } n && QuotientsAreExact(pw.Exp))
-                {
-                    long times = (long)System.Numerics.BigInteger.Min(n.Numerator, cap + 1);
-                    long lo = bound.Lo * times, hi = bound.Hi * times;
-                    if (lo < 0 && hi - lo > cap) return (-cap, cap, ExprText(e));
-                    return ((int)Math.Max(lo, -cap - 1), (int)Math.Min(hi, cap + 1), null);
-                }
-                if (IsLiteralOne(pw.Base)) return (0, 1, null);
-                return bound.Lo >= 0 && IsNonNegativeIntegerExponent(pw.Exp) ? (0, cap, null) : NotBounded(e, cap);
-            }
-            // An INTEGER term whose magnitude the walk does not know: an integer of up to cap digits, no fraction digits.
-            case BoundIntrinsicCall { ResultType: IntrinsicType.Integer }:
-            case BoundIndexRef or BoundLinageCounterRef or BoundReportCounterRef or BoundReportVaryingRef or BoundOdoExtent:
-                return (0, cap, null);
-            case BoundIntrinsicCall:
-                return NotBounded(e, cap);   // a numeric function's value carries any digits
-            // An operand already refused where it was bound: its site reported the rule it breaks, and nothing more is said of it.
-            case BoundExprError:
-                return (0, 0, null);
-            default:
-                return NotBounded(e, cap);
-        }
-    }
-
-    /// <summary>The bound of a term the walk does not show bounded: it is refused where it stands (its own text as the overflow), so
-    /// no intermediate it is part of, and no argument it is, is admitted (review R4-1: the fail-closed default).</summary>
-    private static (int Lo, int Hi, string? Overflow) NotBounded(BoundExpr e, int cap) => (-cap, cap, ExprText(e));
-
-    /// <summary>The positions of an exact literal value's nonzero digits (see <see cref="DigitBound"/>); a value with no terminating
-    /// decimal expansion spans [−cap, cap), so any intermediate holding it overflows.</summary>
-    private static (int Lo, int Hi, string? Overflow) LiteralDigits(ExactRational v, int cap)
-    {
-        if (v.Sign == 0) return (0, 0, null);
-        if (v.FractionDigits is not { } k) return (-cap, cap, null);
-        // v × 10^k is the integer N; its digits sit at 10^(−k) … 10^(len(N) − k − 1), less its trailing zeros at the bottom.
-        string digits = System.Numerics.BigInteger.Abs(v.Numerator * System.Numerics.BigInteger.Pow(10, k) / v.Denominator)
-            .ToString(System.Globalization.CultureInfo.InvariantCulture);
-        int trailingZeros = digits.Length - digits.TrimEnd('0').Length;
-        return (trailingZeros - k, digits.Length - k, null);
-    }
-
-    /// <summary>Null when an integer term <paramref name="e"/> stands under a whole <paramref name="factor"/>; otherwise the reason the
-    /// product is not an integer for every valuation (an integer times a fraction is one only for some values).</summary>
-    private static string? FractionalFactorWhy(BoundExpr e, ExactRational factor) => factor.IsInteger ? null
-        : $"is an arithmetic expression whose term {TermText(e)} is an integer under the net factor {factor}, which is not a whole "
-          + "number, so the sum does not always result in an integer value — " + TypeSixExpressionRule;
-
     /// <summary>The reason a literal term whose exact value the arithmetic does not store is refused (kb/Work PB4758).</summary>
     private static string InexactLiteralWhy(ExactRational value) =>
         $"is an arithmetic expression with a literal quotient of the exact value {value}, which the arithmetic does not store exactly, "
@@ -2072,8 +1792,8 @@ internal static class IntrinsicArgumentRules
     /// integer-type function-identifier, a counter register, an index-name, a report VARYING counter and the run-time extent of an
     /// OCCURS DEPENDING table (each a scale-0 integer by its definition), and +, −, ×, unary − over such terms and such a term to a
     /// non-negative integer power (<see cref="IsNonNegativeIntegerExponent"/>). A quotient over an item, a numeric function and every
-    /// other shape answer false. The type 6 screen (<see cref="NotAlwaysIntegral"/>) reads it for every term that is not a sum, a
-    /// product, a quotient, a power or a numeric item, and refuses the argument when it answers false (kb/Work PB5886).
+    /// other shape answer false. The type 6 classifier reads it only for a product or power whose expansion passes
+    /// <see cref="Polynomial.MaxMonomials"/> (kb/Work PB5891: the node is then an integer atom when this answers true).
     /// <para>It is also what <see cref="IntegralForm"/> reads to know a form is already at scale 0. Whether an expression is an integer
     /// ARGUMENT is <see cref="IsAlwaysIntegral"/>'s question, for the screen and for the result-type rows alike (kb/Work PB5886 R2-1).</para>
     /// <para>A COUNTER REGISTER is an unsigned integer data item (§2023:8.4.3.14.4 GR1, §2023:8.4.3.15.4 GR1), so it answers true as
@@ -2260,76 +1980,6 @@ internal static class IntrinsicArgumentRules
     /// <summary>The largest literal exponent <see cref="ExactValue"/> folds — a bound on the fold's work, never on
     /// what the source may say: a larger exponent is left unfolded, so a power beyond it is no literal fold.</summary>
     private const int MaxFoldedExponent = 64;
-
-    /// <summary>An exact rational in lowest terms with a positive denominator — the carrier of
-    /// <see cref="ExactValue"/>'s fold. A decimal literal is num/10^k; a quotient of literals may leave any
-    /// denominator, which is why this is not a scaled decimal.</summary>
-    private readonly record struct ExactRational
-    {
-        public System.Numerics.BigInteger Numerator { get; }
-        public System.Numerics.BigInteger Denominator { get; }
-
-        private ExactRational(System.Numerics.BigInteger num, System.Numerics.BigInteger den)
-        {
-            if (den.Sign < 0) { num = -num; den = -den; }
-            var g = System.Numerics.BigInteger.GreatestCommonDivisor(num, den);
-            if (!g.IsZero && !g.IsOne) { num /= g; den /= g; }
-            Numerator = num;
-            Denominator = num.IsZero ? System.Numerics.BigInteger.One : den;
-        }
-
-        public static ExactRational Zero => new(0, 1);
-        public static ExactRational One => new(1, 1);
-
-        /// <summary>significand × 10^exp10 — <see cref="TryLiteralValue"/>'s decomposition of a literal.</summary>
-        public static ExactRational FromScaled(System.Numerics.BigInteger significand, int exp10) => exp10 >= 0
-            ? new(significand * System.Numerics.BigInteger.Pow(10, exp10), 1)
-            : new(significand, System.Numerics.BigInteger.Pow(10, -exp10));
-
-        public bool IsInteger => Denominator.IsOne;
-
-        /// <summary>The fraction digits of the value as a finite decimal (a denominator of 2s and 5s only: the larger of the
-        /// two exponents), or null when the expansion does not terminate.</summary>
-        public int? FractionDigits
-        {
-            get
-            {
-                var den = Denominator;
-                int twos = 0, fives = 0;
-                while (den.IsEven) { den /= 2; twos++; }
-                while (den % 5 == 0) { den /= 5; fives++; }
-                return den.IsOne ? Math.Max(twos, fives) : null;
-            }
-        }
-        public int Sign => Numerator.Sign;
-
-        public static ExactRational operator -(ExactRational a) => new(-a.Numerator, a.Denominator);
-        public static ExactRational operator +(ExactRational a, ExactRational b) =>
-            new(a.Numerator * b.Denominator + b.Numerator * a.Denominator, a.Denominator * b.Denominator);
-        public static ExactRational operator -(ExactRational a, ExactRational b) => a + -b;
-        public static ExactRational operator *(ExactRational a, ExactRational b) =>
-            new(a.Numerator * b.Numerator, a.Denominator * b.Denominator);
-        /// <summary>Division; the caller guarantees a nonzero divisor.</summary>
-        public static ExactRational operator /(ExactRational a, ExactRational b) =>
-            new(a.Numerator * b.Denominator, a.Denominator * b.Numerator);
-
-        /// <summary>this^n for |n| ≤ <see cref="MaxFoldedExponent"/>; the caller guarantees a nonzero base when
-        /// n &lt; 0.</summary>
-        public ExactRational Pow(int n) => n >= 0
-            ? new(System.Numerics.BigInteger.Pow(Numerator, n), System.Numerics.BigInteger.Pow(Denominator, n))
-            : new(System.Numerics.BigInteger.Pow(Denominator, -n), System.Numerics.BigInteger.Pow(Numerator, -n));
-
-        /// <summary>The value as the diagnostic prints it: a decimal numeral when the denominator is a product of
-        /// 2s and 5s (every sum of decimal literals), otherwise the fraction.</summary>
-        public override string ToString()
-        {
-            if (FractionDigits is not { } k) return $"{Numerator}/{Denominator}";
-            var scaled = System.Numerics.BigInteger.Abs(Numerator * System.Numerics.BigInteger.Pow(10, k) / Denominator);
-            string digits = scaled.ToString().PadLeft(k + 1, '0');
-            string text = k == 0 ? digits : $"{digits[..^k]}.{digits[^k..]}";
-            return Numerator.Sign < 0 ? "-" + text : text;
-        }
-    }
 
     /// <summary>
     /// ⛔ THE ONE EXACT DECODE both literal screens read — <see cref="WiseOwl.Cobol.Common.NumericLiteral.TryParseExact"/>,

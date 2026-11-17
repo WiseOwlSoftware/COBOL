@@ -20,11 +20,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </remarks>
 public sealed class TypeSixWalkCoverageDriftTests
 {
-    /// <summary>The proof walks of the type 6 screen, by the text that opens each one's declaration in IntrinsicArgumentRules.cs.</summary>
+    /// <summary>The proof walks of the type 6 classifier, by the text that opens each one's declaration in the two files of
+    /// <c>IntrinsicArgumentRules</c> (kb/Work PB5891: the polynomial builder and the term comparer joined the walks).</summary>
     private static readonly string[] Walks =
     [
-        "private static string? CollectAdditive(",
-        "private static (int Lo, int Hi, string? Overflow) DigitBound(",
+        "private static Built Build(",
+        "internal static bool SameTerm(",
         "internal static bool ProvablyIntegral(",
         "private static ExactRational? ExactValue(",
     ];
@@ -32,7 +33,8 @@ public sealed class TypeSixWalkCoverageDriftTests
     [Fact]
     public void EveryProofWalk_NamesEveryBoundExpressionKind()
     {
-        string source = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicArgumentRules.cs"));
+        string source = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicArgumentRules.cs"))
+            + "\n" + File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "IntrinsicArgumentRules.TypeSix.cs"));
         var kinds = typeof(BoundExpr).Assembly.GetTypes()
             .Where(t => t is { IsAbstract: false, IsClass: true } && t.IsSubclassOf(typeof(BoundExpr)))
             .Select(t => t.Name).Order(StringComparer.Ordinal).ToList();
@@ -54,7 +56,7 @@ public sealed class TypeSixWalkCoverageDriftTests
     private static string BodyOf(string source, string declaration)
     {
         int start = source.IndexOf(declaration, StringComparison.Ordinal);
-        Assert.True(start >= 0, $"IntrinsicArgumentRules.cs declares no '{declaration}' - the walk was renamed; update Walks");
+        Assert.True(start >= 0, $"IntrinsicArgumentRules declares no '{declaration}' - the walk was renamed; update Walks");
         var close = new Regex(@"^    \};?\s*$", RegexOptions.Multiline);
         var end = close.Match(source, start);
         Assert.True(end.Success, $"no closing brace for '{declaration}'");

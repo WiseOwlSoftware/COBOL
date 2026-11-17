@@ -84,7 +84,8 @@ public readonly record struct IntrinsicResultLength(int? Positions, bool OfArgum
 /// <paramref name="Float"/> marks the §2023:15.4.1 floating-math family (computes in double; the emitter quantizes via
 /// the one <c>FromDouble</c>). <paramref name="IntroducedIn"/>/<paramref name="RemovedIn"/> are the D8 edition
 /// window (85 = the 1989 Intrinsic Function Module amendment, part of the CCVS-85 corpus), enforced by the binder
-/// against <c>--std</c> with a per-edition diagnostic.
+/// against <c>--std</c> with a per-edition diagnostic. <paramref name="ValueSource"/> says what fixes the returned value
+/// (<see cref="IntrinsicValueSource"/>; kb/Work PB5891).
 /// </summary>
 public readonly record struct IntrinsicSig(
     string Name, IntrinsicType Type, IntrinsicArity Arity, int MinArgs, int MaxArgs,
@@ -93,7 +94,8 @@ public readonly record struct IntrinsicSig(
     IntrinsicResultRule Result = IntrinsicResultRule.Fixed,
     IntrinsicDomain Domain = IntrinsicDomain.None, string? DomainRule = null,
     FunctionDeviceForm DeviceForm = FunctionDeviceForm.Value, int DeviceDigits = 0,
-    IntrinsicResultLength Length = default)
+    IntrinsicResultLength Length = default,
+    IntrinsicValueSource ValueSource = IntrinsicValueSource.Arguments)
 {
     /// <summary>Is the function an intrinsic-function-name of the edition <paramref name="dialectLevel"/> — inside
     /// its D8 window [<see cref="IntroducedIn"/>, <see cref="RemovedIn"/>)? The REPOSITORY's <c>FUNCTION ALL
@@ -159,6 +161,24 @@ public readonly record struct IntrinsicSig(
     };
 }
 
+/// <summary>⛔ WHAT FIXES A FUNCTION'S RETURNED VALUE (kb/Work PB5891): the type 6 classifier reads two references of a function as ONE
+/// term only when its arguments fix its value (<c>IntrinsicArgumentRules.SameTerm</c>), so <c>FUNCTION SQRT (N) - FUNCTION SQRT (N)</c>
+/// cancels and <c>FUNCTION RANDOM - FUNCTION RANDOM</c> does not. Every catalogued function is held to a reviewed source by
+/// <c>IntrinsicValueSourceDriftTests</c>, so a function added later states it.</summary>
+public enum IntrinsicValueSource
+{
+    /// <summary>The arguments fix the value: two references over the same arguments return the same value.</summary>
+    Arguments,
+
+    /// <summary>The arguments fix the value only when argument-3 is written: an omitted argument-3 is the current year
+    /// (§2023:15.100.3 AR5; DATE-TO-YYYYMMDD and DAY-TO-YYYYDDD by reference to it).</summary>
+    ArgumentsOrCurrentYear,
+
+    /// <summary>The run unit's state fixes the value, which can differ between two references in one statement: RANDOM's sequence,
+    /// the clock, the time of compilation and the last exception raised.</summary>
+    RunUnitState,
+}
+
 /// <summary>
 /// The ONE declarative intrinsic-function table (ISO §2023:15.6 summary of functions; deep-dive D2 — replaces the
 /// legacy's ad-hoc AlphanumericFunctions set + scattered special cases). Adding a function is one row. Every
@@ -199,7 +219,7 @@ public static class IntrinsicCatalog
         Add(new("LOG10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Log10", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.Positive, DomainRule: "§2023:15.56.3 rule 2"));         // §2023:15.56
         Add(new("ANNUITY", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ni", "Annuity", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.NonNegative, DomainRule: "§2023:15.9.3 rule 2"));    // §2023:15.9
         Add(new("PRESENT-VALUE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 2, inf, "n", "PresentValue", IntrinsicBind.Runtime, true, 85, Domain: IntrinsicDomain.AboveMinusOne, DomainRule: "§2023:15.74.3 rule 2")); // §2023:15.74
-        Add(new("RANDOM", IntrinsicType.Numeric, IntrinsicArity.OptionalTrailing, 0, 1, "i", "Random", IntrinsicBind.Runtime, true, 85));      // §2023:15.75
+        Add(new("RANDOM", IntrinsicType.Numeric, IntrinsicArity.OptionalTrailing, 0, 1, "i", "Random", IntrinsicBind.Runtime, true, 85, ValueSource: IntrinsicValueSource.RunUnitState));      // §2023:15.75
         Add(new("STANDARD-DEVIATION", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "StandardDeviation", IntrinsicBind.Runtime, true, 85)); // §2023:15.86
         Add(new("VARIANCE", IntrinsicType.Numeric, IntrinsicArity.Variadic, 1, inf, "n", "Variance", IntrinsicBind.Runtime, true, 85));          // §2023:15.98
 
@@ -230,8 +250,8 @@ public static class IntrinsicCatalog
         Add(new("REVERSE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "Reverse", IntrinsicBind.Runtime, false, 85, Result: IntrinsicResultRule.FollowsArgument1, Length: IntrinsicResultLength.SameAsArgument1)); // §2023:15.78.1
 
         // Date/time family (CobolDate; integer date form §2023:15.5.2).
-        Add(new("CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "CurrentDate", IntrinsicBind.Runtime, false, 85, Length: IntrinsicResultLength.Fixed(21))); // §2023:15.21
-        Add(new("WHEN-COMPILED", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "WhenCompiled", IntrinsicBind.Fold, false, 85, Length: IntrinsicResultLength.Fixed(21)));  // §2023:15.99 (compile-time constant, r2)
+        Add(new("CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "CurrentDate", IntrinsicBind.Runtime, false, 85, Length: IntrinsicResultLength.Fixed(21), ValueSource: IntrinsicValueSource.RunUnitState)); // §2023:15.21
+        Add(new("WHEN-COMPILED", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "WhenCompiled", IntrinsicBind.Fold, false, 85, Length: IntrinsicResultLength.Fixed(21), ValueSource: IntrinsicValueSource.RunUnitState));  // §2023:15.99 (compile-time constant, r2)
         Add(new("DATE-OF-INTEGER", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "DateOfInteger", IntrinsicBind.Runtime, false, 85, DeviceForm: FunctionDeviceForm.FixedDigits, DeviceDigits: 8)); // §2023:15.22
         Add(new("DAY-OF-INTEGER", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "DayOfInteger", IntrinsicBind.Runtime, false, 85, DeviceForm: FunctionDeviceForm.FixedDigits, DeviceDigits: 7));   // §2023:15.24
         Add(new("INTEGER-OF-DATE", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "IntegerOfDate", IntrinsicBind.Runtime, false, 85)); // §2023:15.46
@@ -268,26 +288,26 @@ public static class IntrinsicCatalog
         // composite pair is defined BY REFERENCE to it (§2023:15.23.4 r1 / §2023:15.25.4 r1). The window is ALWAYS 100
         // years ending at maximum-year = argument-2 + argument-3 (argument-2 = a SIGNED offset, default 50 —
         // NOT a window size; argument-3 defaults to the year at EXECUTION time, §2023:15.100.3 r5).
-        Add(new("DATE-TO-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "DateToYyyymmdd", IntrinsicBind.Runtime, false, 2002)); // §2023:15.23
-        Add(new("DAY-TO-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "DayToYyyyddd", IntrinsicBind.Runtime, false, 2002));   // §2023:15.25
-        Add(new("YEAR-TO-YYYY", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "YearToYyyy", IntrinsicBind.Runtime, false, 2002));     // §2023:15.100
+        Add(new("DATE-TO-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "DateToYyyymmdd", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.ArgumentsOrCurrentYear)); // §2023:15.23
+        Add(new("DAY-TO-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "DayToYyyyddd", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.ArgumentsOrCurrentYear));   // §2023:15.25
+        Add(new("YEAR-TO-YYYY", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "YearToYyyy", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.ArgumentsOrCurrentYear));     // §2023:15.100
         // DISPLAY-OF (§2023:15.26) / NATIONAL-OF (§2023:15.66) — the sanctioned national↔alphanumeric repertoire pair
         // (P10 national wave). Argument-2 is a one-character SUBSTITUTION CHARACTER (§2023:15.26.3 r2 / §2023:15.66.3 r2 —
         // the 2023 text names no codeset facility), so both argument forms are fully implemented.
         Add(new("DISPLAY-OF", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "DisplayOf", IntrinsicBind.Runtime, false, 2002));   // §2023:15.26
         Add(new("NATIONAL-OF", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "NationalOf", IntrinsicBind.Runtime, false, 2002));     // §2023:15.66
-        Add(new("EXCEPTION-FILE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "EcFile", IntrinsicBind.Runtime, false, 2002)); // §2023:15.28 (no-arg form r1; the 2023 file-connector-arg form renders loud — VCR row 68)
+        Add(new("EXCEPTION-FILE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "EcFile", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.RunUnitState)); // §2023:15.28 (no-arg form r1; the 2023 file-connector-arg form renders loud — VCR row 68)
         // The EXCEPTION-* family renders the runtime last-exception register (EcFunctions, the §11 EC model).
         // The -N national twins — EXCEPTION-FILE-N §2023:15.29 / EXCEPTION-LOCATION-N §2023:15.31, the ONLY two ISO
         // defines (no -N exists for EXCEPTION-STATEMENT/-STATUS) — are the same renderings projected national
         // through the ONE NationalOf repertoire translator (P10 Step-11 EC-N wave); their National type rows
         // carry the category-national result. EXCEPTION-FILE-N's 2023 file-connector-argument form (§2023:15.29.4
         // r2, E.3.3 item 26) renders loud like the base's — VCR row 69, PHASE-13 Step 9.
-        Add(new("EXCEPTION-FILE-N", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 0, 1, "s", "EcFileN", IntrinsicBind.Runtime, false, 2002));   // §2023:15.29
-        Add(new("EXCEPTION-LOCATION", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcLocation", IntrinsicBind.Runtime, false, 2002));  // §2023:15.30
-        Add(new("EXCEPTION-LOCATION-N", IntrinsicType.National, IntrinsicArity.Fixed, 0, 0, "", "EcLocationN", IntrinsicBind.Runtime, false, 2002));   // §2023:15.31
-        Add(new("EXCEPTION-STATEMENT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatement", IntrinsicBind.Runtime, false, 2002)); // §2023:15.32
-        Add(new("EXCEPTION-STATUS", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatus", IntrinsicBind.Runtime, false, 2002));    // §2023:15.33
+        Add(new("EXCEPTION-FILE-N", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 0, 1, "s", "EcFileN", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.RunUnitState));   // §2023:15.29
+        Add(new("EXCEPTION-LOCATION", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcLocation", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.RunUnitState));  // §2023:15.30
+        Add(new("EXCEPTION-LOCATION-N", IntrinsicType.National, IntrinsicArity.Fixed, 0, 0, "", "EcLocationN", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.RunUnitState));   // §2023:15.31
+        Add(new("EXCEPTION-STATEMENT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatement", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.RunUnitState)); // §2023:15.32
+        Add(new("EXCEPTION-STATUS", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatus", IntrinsicBind.Runtime, false, 2002, ValueSource: IntrinsicValueSource.RunUnitState));    // §2023:15.33
         Add(new("HIGHEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002, Result: IntrinsicResultRule.IntegerFollowsArgument1)); // §2023:15.43.1 (compile-time PICTURE fold)
         Add(new("LOWEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002, Result: IntrinsicResultRule.IntegerFollowsArgument1));  // §2023:15.58.1 (compile-time PICTURE fold)
         Add(new("INTEGER-OF-BOOLEAN", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "IntegerOfBoolean", IntrinsicBind.Runtime, false, 2002)); // §2023:15.45 — the unsigned MSB-first value of the bit configuration (r1)
@@ -320,7 +340,7 @@ public static class IntrinsicCatalog
         // BOTH among "the intrinsic functions ... introduced in this committee draft International Standard"
         // (the draft of ISO 1989:2014). They were previously windowed 2002, over-accepting at --std 2002.
         Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "nl", "TimeFromSeconds", IntrinsicBind.Runtime, false, 2014)); // §2023:15.54 (A.4.9 item 5) — LIVE (PB64 T4)
-        Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "SecondsPastMidnight", IntrinsicBind.Runtime, false, 2014)); // §2023:15.80 — NUMERIC (fractional seconds); the RunUnit.Clock seam, scale 7
+        Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "SecondsPastMidnight", IntrinsicBind.Runtime, false, 2014, ValueSource: IntrinsicValueSource.RunUnitState)); // §2023:15.80 — NUMERIC (fractional seconds); the RunUnit.Clock seam, scale 7
         // STANDARD-COMPARE (§2023:15.85.2: `FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ]
         // [ argument-4 ] )`) — LIVE since kb/Work PB101 T7 (BindStandardCompare + CobolIntrinsics.StandardCompare).
         // ⛔ THE ARGKINDS COLUMN WAS `"ssis"`, WHICH IS THE FORMAT READ BACKWARDS: position 3 is the
@@ -364,7 +384,7 @@ public static class IntrinsicCatalog
         // ⚠ The FORMATTED-* family's result type follows argument-1 — the FORMAT literal (§2023:15.38.1/§2023:15.39.1/
         // §2023:15.40.1/§2023:15.41.1) — so FUNCTION FORMATTED-DATE(N"YYYYMMDD" D) is a NATIONAL function even though the
         // date it renders is an integer. §2023:15.38.3 r1 and siblings admit "a national or alphanumeric literal".
-        Add(new("FORMATTED-CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "FormattedCurrentDate", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1)); // §2023:15.38.1
+        Add(new("FORMATTED-CURRENT-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "FormattedCurrentDate", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1, ValueSource: IntrinsicValueSource.RunUnitState)); // §2023:15.38.1
         Add(new("FORMATTED-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 2, 2, "si", "FormattedDate", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1));        // §2023:15.39.1
         Add(new("FORMATTED-DATETIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 3, 4, "sinn", "FormattedDatetime", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1)); // §2023:15.40.1 (a4 = optional offset minutes)
         Add(new("FORMATTED-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "snn", "FormattedTime", IntrinsicBind.Runtime, false, 2014, Result: IntrinsicResultRule.FollowsArgument1));      // §2023:15.41.1 (a3 = optional offset minutes)
