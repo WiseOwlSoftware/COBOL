@@ -1,0 +1,114 @@
+      *>--- conformance-case
+      *> id: pb5893_argument_float_receiver_every_position
+      *> rules: [GR-8.4.3.2.4-2]
+      *> accept: [2014, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> kb/Work PB5893 - a function argument's evaluation technique
+      *> is decided by the argument, never by the statement's
+      *> receiver: an all-fixed-point argument at ANY position
+      *> evaluates under a COMP-1 or COMP-2 resultant exactly as under
+      *> a fixed-point one, and the resultant takes the function's
+      *> value by the ordinary rules.
+      *>
+      *> §2023:8.4.3.2.4 GR2 (cite.py --check): "its arguments are
+      *> evaluated individually in the order specified". DOC-A.1-92b
+      *> makes a function binary64 only when an ARGUMENT renders as
+      *> floating-point (§2023:15.4.1, cite.py --check: "the
+      *> characteristics and representation of the returned value are
+      *> defined by the implementor").
+      *> EXPECTED, derived: E = (Y * 100 - X * 10.25) * 4 with
+      *> X = 10**31 - 1 and Y = 2.05 * 10**30 is
+      *> 4 * (2.05E32 - (1.025E32 - 10.25)) = 4.1E32 + 41, so
+      *> REM (E, 1000) (§2023:15.77.4 RV1, cite.py --check: "The
+      *> equivalent arithmetic expression is") and MOD (E, 1000) are
+      *> 41, and E - Z * 100 with Z = 4.1 * 10**30 is 41: ABS 41,
+      *> MAX (41, 1) 41, SUM (41, 1) 42, MEAN (41, 3) 22, and
+      *> ANNUITY (0.5, 2) = 0.5 / (1 - 1 / 2.25) = 0.9 (0.9000 to 4
+      *> places, ROUNDED). Each value is held exactly by COMP-1 and
+      *> COMP-2 and moved ROUNDED to W or D4, so the three receivers
+      *> print one value. Before the fix a floating-point resultant
+      *> took every argument but MOD's onto binary64 and printed REM
+      *> 672, ABS 0, MAX 1, SUM 1, MEAN 2 and ANNUITY 0.
+      *> The control (DOC-A.1-92b, unchanged): FG COMP-2 VALUE 0.1
+      *> makes FG * 3 a binary64 argument, 0.30000000000000004 in
+      *> IEEE binary64, so REM (FG * 3, 1) is that double under both
+      *> receivers, 0.30000000000000004 to 17 places.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB5893A.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  X   PIC 9(31) VALUE 9999999999999999999999999999999.
+       01  Y   PIC 9(31) VALUE 2050000000000000000000000000000.
+       01  Z   PIC 9(31) VALUE 4100000000000000000000000000000.
+       01  F2  COMP-2.
+       01  F1  COMP-1.
+       01  FG  COMP-2 VALUE 0.1.
+       01  W   PIC S9(4).
+       01  D4  PIC S9V9(4).
+       01  R17 PIC 9V9(17).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           COMPUTE F2 = FUNCTION REM ((Y * 100 - X * 10.25) * 4, 1000)
+           COMPUTE W ROUNDED = F2  DISPLAY "REM2 " W
+           COMPUTE F1 = FUNCTION REM ((Y * 100 - X * 10.25) * 4, 1000)
+           COMPUTE W ROUNDED = F1  DISPLAY "REM1 " W
+           COMPUTE W = FUNCTION REM ((Y * 100 - X * 10.25) * 4, 1000)
+           DISPLAY "REMX " W
+           COMPUTE F2 = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)
+           COMPUTE W ROUNDED = F2  DISPLAY "MOD2 " W
+           COMPUTE F1 = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)
+           COMPUTE W ROUNDED = F1  DISPLAY "MOD1 " W
+           COMPUTE W = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)
+           DISPLAY "MODX " W
+           COMPUTE F2 = FUNCTION ABS ((Y * 100 - X * 10.25) * 4
+               - Z * 100)
+           COMPUTE W ROUNDED = F2  DISPLAY "ABS2 " W
+           COMPUTE F1 = FUNCTION ABS ((Y * 100 - X * 10.25) * 4
+               - Z * 100)
+           COMPUTE W ROUNDED = F1  DISPLAY "ABS1 " W
+           COMPUTE W = FUNCTION ABS ((Y * 100 - X * 10.25) * 4
+               - Z * 100)
+           DISPLAY "ABSX " W
+           COMPUTE F2 = FUNCTION MAX ((Y * 100 - X * 10.25) * 4
+               - Z * 100, 1)
+           COMPUTE W ROUNDED = F2  DISPLAY "MAX2 " W
+           COMPUTE F1 = FUNCTION MAX ((Y * 100 - X * 10.25) * 4
+               - Z * 100, 1)
+           COMPUTE W ROUNDED = F1  DISPLAY "MAX1 " W
+           COMPUTE W = FUNCTION MAX ((Y * 100 - X * 10.25) * 4
+               - Z * 100, 1)
+           DISPLAY "MAXX " W
+           COMPUTE F2 = FUNCTION SUM ((Y * 100 - X * 10.25) * 4
+               - Z * 100, 1)
+           COMPUTE W ROUNDED = F2  DISPLAY "SUM2 " W
+           COMPUTE F1 = FUNCTION SUM ((Y * 100 - X * 10.25) * 4
+               - Z * 100, 1)
+           COMPUTE W ROUNDED = F1  DISPLAY "SUM1 " W
+           COMPUTE W = FUNCTION SUM ((Y * 100 - X * 10.25) * 4
+               - Z * 100, 1)
+           DISPLAY "SUMX " W
+           COMPUTE F2 = FUNCTION MEAN ((Y * 100 - X * 10.25) * 4
+               - Z * 100, 3)
+           COMPUTE W ROUNDED = F2  DISPLAY "MEAN2 " W
+           COMPUTE F1 = FUNCTION MEAN ((Y * 100 - X * 10.25) * 4
+               - Z * 100, 3)
+           COMPUTE W ROUNDED = F1  DISPLAY "MEAN1 " W
+           COMPUTE W = FUNCTION MEAN ((Y * 100 - X * 10.25) * 4
+               - Z * 100, 3)
+           DISPLAY "MEANX " W
+           COMPUTE F2 = FUNCTION ANNUITY ((Y * 100 - X * 10.25) * 4
+               - Z * 100 - 40.5, 2)
+           COMPUTE D4 ROUNDED = F2  DISPLAY "ANN2 " D4
+           COMPUTE F1 = FUNCTION ANNUITY ((Y * 100 - X * 10.25) * 4
+               - Z * 100 - 40.5, 2)
+           COMPUTE D4 ROUNDED = F1  DISPLAY "ANN1 " D4
+           COMPUTE D4 ROUNDED = FUNCTION ANNUITY ((Y * 100 - X * 10.25)
+               * 4 - Z * 100 - 40.5, 2)
+           DISPLAY "ANNX " D4
+           COMPUTE F2 = FUNCTION REM (FG * 3, 1)
+           COMPUTE R17 = F2  DISPLAY "FARG2 " R17
+           COMPUTE R17 = FUNCTION REM (FG * 3, 1)
+           DISPLAY "FARGX " R17
+           STOP RUN.

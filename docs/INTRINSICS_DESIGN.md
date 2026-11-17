@@ -1026,11 +1026,14 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    receiver); the renderer asserts every operation it renders (`NumericRenderer.AssertLane`, at each binary, negation and power node
    that is not a statement's final transfer) lies in it, with the scale and digit bound it decides, and a disagreement is an internal
    compiler error in every build, so the whole conformance corpus is the drift test of the two; `NumericLaneDriftTests` is the
-   targeted one (every operand kind, P-scaled and wide exponents included, beside every partner). An argument at a type 6
-   (integer) position is evaluated without the resultant's floating-point facts (`IntrinsicRenderer.ReceiverFor`,
-   `NumericRenderer.ArgumentReceiver`): before it a COMP-2 resultant took `MOD ((Y * 100 - X * 10.25) * 4, 1000)` onto binary64 and
-   stored 672 for 41 (`pb5891_argument_float_receiver`); every other argument keeps the statement's receiver, so its value is
-   main's. Every argument keeps the receiver's SCALE (review R5-1: at scale 0, `ABS (A / 3)` into PIC 9V9(17) printed
+   targeted one (every operand kind, P-scaled and wide exponents included, beside every partner). Every argument, at
+   every position, is evaluated without the resultant's floating-point facts (`NumericRenderer.ArgumentReceiver`, the one context
+   every argument render in `IntrinsicRenderer` passes, held by `IntrinsicArgumentIntakeContractDriftTests`; kb/Work PB5891 review
+   R3-1 for an integer position, kb/Work PB5893 for every other): an argument's evaluation technique is decided by its own operands
+   (an argument that renders as floating-point takes binary64, DOC-A.1-92b), never by the statement's receiver, and the receiver takes
+   the function's value by the ordinary rules. Before it a COMP-2 resultant took `MOD ((Y * 100 - X * 10.25) * 4, 1000)` onto
+   binary64 and stored 672 for 41 (`pb5891_argument_float_receiver`), and `REM`'s numeric argument-1 the same
+   (`pb5893_argument_float_receiver_every_position`). Every argument keeps the receiver's SCALE (review R5-1: at scale 0, `ABS (A / 3)` into PIC 9V9(17) printed
    2.33333333333333000 for 2.33333333333333333, `pb5891_argument_receiver_scale`), and the renderer asserts an argument's nodes at
    that scale. ⛔ **Why the classifier may read scale 0 (`LaneContext.Argument`) while the renderer runs at the receiver's scale:**
    a receiver scale only widens a nested quotient's working scale (`CobolNum.NestedQuotientScale`), so a quotient on the Int128

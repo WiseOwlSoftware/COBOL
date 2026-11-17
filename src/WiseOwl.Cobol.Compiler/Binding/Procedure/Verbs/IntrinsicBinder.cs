@@ -1818,7 +1818,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 _ when IntrinsicArgumentRules.NumericFunctionResult(args[0]) is not null =>
                     IntrinsicArgumentRules.UnsignedIntegerViolation(args[0]) is not null,
                 BoundFieldOperand f0 => f0.Place.Item.Pic is { } p0
-                    && (p0.Category is PicCategory.NumericEdited || p0.Signed || p0.Scale > 0 || p0.IsFloat),
+                    && (p0.Category is PicCategory.NumericEdited || p0.Signed || p0.IsFloat
+                        || !NumericLanes.IsIntegerByValue(NumericLane.Scaled, p0.Scale)),   // an integer by value (kb/Work PB5892)
                 // An unsigned literal is one written without a sign (§2023:8.3.3.3.2 SR2), so '+101' is refused as '-101' is
                 // (kb/Work PB5805's sibling: this arm used to ask for '-' only, where CONCAT's asked for both).
                 BoundNumericLiteral nl0 => !NumericLiteral.IsIntegerLiteralForm(nl0.Text)
@@ -2190,7 +2191,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         + "requires a numeric argument to be usage display or national", a);
                     continue;
                 }
-                if (nSigned || nScale != 0)
+                // An integer BY VALUE, not by spelling (kb/Work PB5892; PB272): a P-scaled item (PIC 99P, scale below 0) holds an
+                // integer, so this is the one question NumericLanes.IsIntegerByValue asks of a fixed-point description's scale.
+                if (nSigned || !NumericLanes.IsIntegerByValue(NumericLane.Scaled, nScale))
                 {
                     report($"FUNCTION CONCAT argument-{i + 1} is a {(nSigned ? "signed" : "non-integer")} numeric item; "
                         + "ISO §2023:15.18.3 r3 requires a numeric argument to be an unsigned integer", a);

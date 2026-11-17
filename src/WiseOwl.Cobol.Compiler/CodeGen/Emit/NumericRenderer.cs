@@ -116,11 +116,15 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <see cref="IntrinsicRenderer"/> (an intrinsic's working scale/mode derive from the SAME receiver).</summary>
     internal ReceiverContext Receiver => _rcv;
 
-    /// <summary>⛔ THE CONTEXT AN INTRINSIC FUNCTION'S ARGUMENT AT A TYPE 6 (INTEGER) POSITION IS EVALUATED IN (kb/Work PB5891 reviews R3-1,
-    /// R5-1; <c>IntrinsicRenderer.ReceiverFor</c>; every other argument keeps the statement's receiver): the statement's receiver
+    /// <summary>⛔ THE CONTEXT EVERY INTRINSIC FUNCTION ARGUMENT IS EVALUATED IN, AT EVERY POSITION (kb/Work PB5891 reviews R3-1, R5-1;
+    /// kb/Work PB5893; every <c>num.AsNum</c> of an argument in <c>IntrinsicRenderer</c> passes it, which
+    /// <c>IntrinsicArgumentIntakeContractDriftTests.EveryArgument_RendersInTheArgumentReceiver</c> holds): the statement's receiver
     /// with none of its floating-point facts. An argument is an arithmetic expression of its own, evaluated "individually"
-    /// (§2023:8.4.3.2.4 GR2), whose value is the function's input and never the resultant's: a COMP-2 resultant took the argument of
-    /// <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored 672 for 41. The receiver's SCALE is kept:
+    /// (§2023:8.4.3.2.4 GR2), whose value is the function's input and never the resultant's, so its evaluation technique is decided by
+    /// its own operands (an argument that renders as floating-point takes binary64 by DOC-A.1-92b) and never by the receiver's usage. A
+    /// COMP-2 resultant took the argument of <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored
+    /// 672 for 41 (an integer position, review R3-1), and <c>FUNCTION REM</c>'s numeric argument-1 the same (kb/Work PB5893); the
+    /// receiver then takes the function's value by the ordinary rules (<see cref="ReceiverContext.FloatLanding"/>). The receiver's SCALE is kept:
     /// a nested quotient's working scale reads it (<c>CobolNum.NestedQuotientScale</c>), so <c>COMPUTE RR = FUNCTION ABS (A / 3)</c> into
     /// PIC 9V9(17) keeps all 17 places (review R5-1; <c>pb5891_argument_receiver_scale</c>). <see cref="AssertLane"/> checks an argument's
     /// nodes in THIS context; the type 6 classifier reads <see cref="LaneContext.Argument"/> (scale 0). A larger receiver scale only

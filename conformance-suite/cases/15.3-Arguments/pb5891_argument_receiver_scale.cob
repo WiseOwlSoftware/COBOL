@@ -15,6 +15,13 @@
       *> 2.33333333333333333 (lines 2, 3, 6, 14), and every other
       *> line as there. Rendering the arguments at scale 0 (the
       *> withdrawn ruling R4-1) printed 2.33333333333333000.
+      *> Line 15 (kb/Work PB5893): an argument is evaluated as under a
+      *> fixed-point resultant whatever the resultant's usage, so under
+      *> COMP-2 F2 (scale 0) A / 3 is the nested quotient at 0 + 14
+      *> guard digits, 2.33333333333333, truncated (numeric design D2),
+      *> and F2 holds the binary64 nearest it, which DISPLAY shows as
+      *> 2.33333333333333. Main took the argument onto binary64 and
+      *> printed 2.3333333333333335.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. S0.
        DATA DIVISION.
