@@ -268,6 +268,38 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// for.</para></summary>
     public Place? RecordArea(FileModel file) => file.AreaRecord is { } area ? ResolveItem(area) : null;
 
+    /// <summary>⛔ THE PLACES AN INPUT-OUTPUT STATEMENT STORES INTO THROUGH ITS FILE CONNECTOR, which the statement names
+    /// by its file and never by the item (kb/Work PB5885): <paramref name="store"/> of <paramref name="file"/>. Asked by
+    /// <c>BoundStores.StoresInto</c>, whose I-O arms say which of them each verb stores. Empty where the file has no such
+    /// item. The FILE STATUS and RELATIVE KEY items are the occurrence the clause wrote (<see cref="ResolveOccurrence"/>).</summary>
+    public IEnumerable<Place> ConnectorStores(FileModel file, FileConnectorStore store)
+    {
+        switch (store)
+        {
+            case FileConnectorStore.RecordArea:
+                // §2023:14.9.30.4 GR13: "the record is made available in the record area" — every record description of the
+                // file, which share one area (§2023:13.18.33.4 GR3), and those of a record-area SAME clause's files: the
+                // character area is one storage class, and each out-of-line record is a place of its own.
+                if (RecordArea(file) is { } area) yield return area;
+                foreach (var record in file.OutOfLineRecords)
+                    if (ResolveItem(record) is { } place) yield return place;
+                break;
+            case FileConnectorStore.Status:
+                if (file.FileStatusItem is { } status && ResolveOccurrence(status, file.FileStatusSubscripts) is { } sp) yield return sp;
+                break;
+            case FileConnectorStore.RelativeKey:
+                if (file.Organization == FileOrganization.Relative && file.RelativeKeyItem is { } key
+                    && ResolveOccurrence(key, file.RelativeKeySubscripts) is { } kp)
+                    yield return kp;
+                break;
+            case FileConnectorStore.Depending:
+                if (file is { Varying.DependingName: not null, VaryingDependingItem: { } d } && ResolveItem(d) is { } dp) yield return dp;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(store), store, "a file connector store this builder does not place");
+        }
+    }
+
     /// <summary>The STRUCTURAL access path to a Tier-B/Tier-C class's single stored backing field (the
     /// <see cref="RedefViewPlace"/> twin of the old string <c>BackingPath</c>). The backing is emitted in the
     /// canonical's containing struct, so a NESTED class reaches it through that struct's path

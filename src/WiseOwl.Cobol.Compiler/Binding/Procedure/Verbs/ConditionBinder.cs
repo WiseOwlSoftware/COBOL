@@ -1043,7 +1043,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // Both are the OPERAND's, never a raw Pic: a GROUP-USAGE BIT operand IS category boolean with as-if usage
         // bit (§2023:13.18.29.4 GR1a/b — raw Pic let `IF BIT-GROUP IS NUMERIC/ALPHABETIC` compile while the elementary
         // twin was rejected, kb/Work PB157's sweep), and a reference-modified slice has its ITEM's usage but the
-        // category §2023:8.4.3.3.4 GR6 c) gives it — alphanumeric (national when the usage is national) — so
+        // category §2023:8.4.3.3.4 GR6 gives it — a numeric item's slice alphanumeric (national when the usage is national) — so
         // `IF NUM (1:2) IS ALPHABETIC` is not an SR4 violation and `IF NUM (1:2) IS NEAREST-TO-ZERO` IS an SR6
         // one (kb/Work PB823, whose renderer half reads the same reader).
         // ⛔ EVERY OPERAND SHAPE IS CLASSIFIED, NOT ONLY A DATA-ITEM REFERENCE (kb/Work PB1401). §2023:8.5.2.12 items
@@ -1073,17 +1073,23 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // The edition's rule set: §1985:VI.6.3.1.2 at COBOL-85, §2023:8.8.4.4.3 (worded so from the 2002 text) after.
         var rules = alt.RulesAt(ctx.Edition.DialectLevel);
         // §1985:VI.6.3.1.2's NUMERIC bar reads two more facts of the operand's own DESCRIPTION (kb/Work PB5122): an item
-        // described as alphabetic, and a group holding an elementary item described with an operational sign. A
-        // reference-modified slice is neither (§2023:8.4.3.3.4 GR6 c). The group is walked only when the rule is asked.
-        // ⛔ A DESCRIPTION IS AN ATTRIBUTES QUESTION, so it reads the ONE operand-item reader (MoveTable16.OperandItem:
-        // Place.Item, null for a reference-modified slice), never the identity half: a no-THROUGH level-66 alias of a
-        // signed group has that group's attributes (§1985:VI.5.11.4 GR2) and a THROUGH alias is a group item of its own
-        // (GR1), and asked of Place.DenotedItem both escaped COBOL6917 (kb/Work PB5120 review R1-1).
+        // described as alphabetic, and a group holding an elementary item described with an operational sign.
+        // ⛔ ALPHABETIC IS A CATEGORY OF THE OPERAND AS REFERENCED (kb/Work PB5881), read off the ONE operand classifier
+        // (MoveTable16.SenderPosition: Table16Operand.Of(Place) for a data item), whose alphabetic rider keeps a
+        // reference-modified alphabetic item alphabetic: the slice has "the same class and category as that defined for the
+        // data item referenced by data-name-1" (§1985:IV.4.3.8.4.4 GR5; only numeric, numeric edited and alphanumeric
+        // edited become alphanumeric), so `AB (1:2) NUMERIC` is refused as `AB NUMERIC` is. Read off the base item's
+        // description (MoveTable16.OperandItem, null for a slice) it escaped COBOL6917.
+        // A slice is never a GROUP (§1985:IV.4.3.8.4.4 GR5: "an elementary data item"), so the signed-group fact reads the one
+        // operand-item reader, null for a slice. ⛔ A DESCRIPTION IS AN ATTRIBUTES QUESTION, never the identity half: a
+        // no-THROUGH level-66 alias of a signed group has that group's attributes (§1985:VI.5.11.4 GR2) and a THROUGH alias is
+        // a group item of its own (GR1), and asked of Place.DenotedItem both escaped COBOL6917 (kb/Work PB5120 review R1-1).
+        // The group is walked only when the rule is asked.
         var described = MoveTable16.OperandItem(op);
         bool signedGroup = described is not null && ItemCategory.IsGroupItem(described)
             && Array.IndexOf(rules, ClassOperandRule.NumericNotAlphabeticOrSignedGroup1985) >= 0
             && DataItem.SubordinatesOf(described).Any(i => i.Pic is { Signed: true });
-        var facts = new ClassOperandFacts(category, usage, function, described?.Pic is { IsAlphabetic: true }, signedGroup);
+        var facts = new ClassOperandFacts(category, usage, function, MoveTable16.SenderPosition(op).IsAlphabetic, signedGroup);
         foreach (var rule in rules)
             if (ClassConditionModel.Violates(rule, facts))
             {
