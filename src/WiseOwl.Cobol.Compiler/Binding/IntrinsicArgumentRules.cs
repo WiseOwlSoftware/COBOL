@@ -1738,23 +1738,31 @@ internal static class IntrinsicArgumentRules
     /// there and returned 33! for 33.5 (kb/Work PB5886, after PB124, PB617, PB5208, PB5345 and PB5832 had each added another witness).</para>
     /// <para>What the screen SHOWS, and so admits (the dispatching session's ruling on PB5886, owner-delegated):</para>
     /// <list type="bullet">
-    /// <item>an INTEGER TERM: an integer literal, an integer data item, an integer function (by the function's own type, §2023:15.2 5,
-    /// never by this reference's value, as §2023:8.4.3.2.3 SR11 judges a numeric function), a counter register, an index-name, and a
-    /// sum, difference, product or negation of integer terms, or an integer term to a non-negative integer power
-    /// (<see cref="ProvablyIntegral"/>);</item>
-    /// <item>a quotient only where both operands are literals whose quotient is an integer the arithmetic keeps exactly (the literal
-    /// fold, <see cref="QuotientsAreExact"/>); a quotient with any other operand is not an integer term, whatever its divisor;</item>
+    /// <item>an INTEGER TERM: an integer literal, an integer data item, an integer function (by the type its definition gives for the
+    /// argument types written, the one table <see cref="IntrinsicResultType.Resolve"/> reads and <c>IntrinsicResultTypeDriftTests</c>
+    /// holds to the standard's tables, never by this reference's value, as §2023:8.4.3.2.3 SR11 judges a numeric function), a counter
+    /// register, an index-name, a sum, difference, product or negation of integer terms, an integer term to an exponent that cannot be
+    /// negative, and the literal 1 to any integer exponent (<see cref="ProvablyIntegral"/>, <see cref="IsIntegerPower"/>);</item>
+    /// <item>a quotient by a nonzero literal c whose reciprocal terminates, read as the product by 1/c (the arithmetic keeps the quotient
+    /// exactly, <see cref="ExactFractionDigits"/>), and a literal fold whose value is an integer the arithmetic keeps exactly
+    /// (<see cref="QuotientsAreExact"/>); a quotient with any other divisor is not an integer term (<c>WN / 3 * 3</c> stores 0.99…);</item>
     /// <item>a sum of items under LITERAL FACTORS whose net coefficient the items' granularity makes whole: a product by a literal is
-    /// exact in decimal arithmetic, so <c>S * 10</c> over <c>S PIC 9V9</c> and <c>WN * 0.5 + WN * 0.5</c> always result in an integer
-    /// (<see cref="CollectAdditive"/>).</item>
+    /// exact in decimal arithmetic, so <c>S * 10</c> and <c>S / 0.1</c> over <c>S PIC 9V9</c>, <c>WN / 2 * 2</c> and
+    /// <c>WN * 0.5 + WN * 0.5</c> always result in an integer (<see cref="CollectAdditive"/>).</item>
     /// </list>
-    /// Everything else is refused: a numeric function term, a quotient over an item or a function, a power the rules above do not cover, a
+    /// Everything else is refused: a numeric function term, a quotient by an item or a function, a power the rules above do not cover, a
     /// fixed-point item whose net coefficient leaves a fraction, a floating-point item with a nonzero coefficient and a non-integral
-    /// constant. The verdict is the same at every edition (the requirement is the same in both texts).</summary>
-    private static string? NotAlwaysIntegral(BoundExpr expr)
+    /// constant. A form that is an integer only by an algebraic identity between terms that are not integer terms
+    /// (<c>FUNCTION SQRT (N) - FUNCTION SQRT (N) + 5</c>) is refused too: the screen decides by types and literal values, not by algebra
+    /// (kb/Work PB5889, a recorded decision). The verdict is the same at every edition (the requirement is the same in both texts).</summary>
+    private static string? NotAlwaysIntegral(BoundExpr expr) => NotAlwaysIntegral(expr, quotientDigits: 0);
+
+    /// <summary><see cref="NotAlwaysIntegral(BoundExpr)"/> of a subexpression evaluated under quotients by literals whose reciprocals
+    /// already spend <paramref name="quotientDigits"/> fraction digits (see <see cref="CollectAdditive"/>).</summary>
+    private static string? NotAlwaysIntegral(BoundExpr expr, int quotientDigits)
     {
         var sum = new LinearSum();
-        if (CollectAdditive(expr, ExactRational.One, sum) is { } termWhy) return termWhy;
+        if (CollectAdditive(expr, ExactRational.One, sum, quotientDigits) is { } termWhy) return termWhy;
         foreach (var (item, (coeff, scale, isFloat)) in sum.Items)
         {
             if (coeff.Sign == 0) continue;
@@ -1789,8 +1797,11 @@ internal static class IntrinsicArgumentRules
 
     /// <summary>Walk the argument as a sum of terms under literal factors (<paramref name="factor"/>, a rational), recording each numeric
     /// item's net coefficient and each literal term in <paramref name="sum"/>; the reason the first term that is neither of those nor an
-    /// integer term under a whole factor makes the expression not shown integral, or null (see <see cref="NotAlwaysIntegral"/>).</summary>
-    private static string? CollectAdditive(BoundExpr e, ExactRational factor, LinearSum sum)
+    /// integer term under a whole factor makes the expression not shown integral, or null (see <see cref="NotAlwaysIntegral(BoundExpr)"/>).
+    /// <paramref name="quotientDigits"/> is the sum of the fraction digits of the reciprocals of the literal divisors the term sits under: a
+    /// nested quotient is kept at no fewer than <see cref="ExactFractionDigits"/> digits beyond its operands' own, so the chain of quotients
+    /// is exact only while that sum stays within them.</summary>
+    private static string? CollectAdditive(BoundExpr e, ExactRational factor, LinearSum sum, int quotientDigits)
     {
         // A LITERAL-ONLY SUBTREE is a constant term at its exact fold — trusted as a VALUE only when the arithmetic stores every quotient
         // in it exactly (kb/Work PB4758: `1 / 3 * 3` folds to 1 and the arithmetic stores 0.9999).
@@ -1803,11 +1814,11 @@ internal static class IntrinsicArgumentRules
         switch (e)
         {
             case BoundBinary { Op: '+' } b:
-                return CollectAdditive(b.Left, factor, sum) ?? CollectAdditive(b.Right, factor, sum);
+                return CollectAdditive(b.Left, factor, sum, quotientDigits) ?? CollectAdditive(b.Right, factor, sum, quotientDigits);
             case BoundBinary { Op: '-' } b:
-                return CollectAdditive(b.Left, factor, sum) ?? CollectAdditive(b.Right, -factor, sum);
+                return CollectAdditive(b.Left, factor, sum, quotientDigits) ?? CollectAdditive(b.Right, -factor, sum, quotientDigits);
             case BoundNegate n:
-                return CollectAdditive(n.Operand, -factor, sum);
+                return CollectAdditive(n.Operand, -factor, sum, quotientDigits);
             // A PRODUCT BY A LITERAL scales the term (kb/Work PB5832): `E * c` and `c * E` are E under the factor c, and decimal
             // multiplication is exact, so the item's net coefficient stays the whole story. A zero factor makes the term the constant 0.
             case BoundBinary { Op: '*', Left: var left, Right: var right } when ExactValue(left) is not null || ExactValue(right) is not null:
@@ -1815,24 +1826,32 @@ internal static class IntrinsicArgumentRules
                 var (literal, other) = ExactValue(left) is not null ? (left, right) : (right, left);
                 if (!QuotientsAreExact(literal)) return InexactLiteralWhy(ExactValue(literal)!.Value);
                 var k = ExactValue(literal)!.Value;
-                return k.Sign == 0 ? null : CollectAdditive(other, factor * k, sum);
+                return k.Sign == 0 ? null : CollectAdditive(other, factor * k, sum, quotientDigits);
             }
             // A PRODUCT OF TWO TERMS NEITHER OF WHICH IS A LITERAL is an integer term when each factor is shown integral on its own and its
             // coefficient is whole: half of an integer product is no integer (`A * B * 0.5` at A = B = 1).
             case BoundBinary { Op: '*', Left: var left, Right: var right }:
-                return NotAlwaysIntegral(left) ?? NotAlwaysIntegral(right) ?? FractionalFactorWhy(e, factor);
-            // ⛔ A QUOTIENT THE FOLD DID NOT TAKE (an operand that is not a literal, or a zero divisor) IS NOT AN INTEGER TERM (kb/Work
-            // PB5886): its value moves with its operands and the screen does not show it whole, whatever the divisor.
+                return NotAlwaysIntegral(left, quotientDigits) ?? NotAlwaysIntegral(right, quotientDigits) ?? FractionalFactorWhy(e, factor);
+            // ⛔ A QUOTIENT BY A LITERAL WHOSE RECIPROCAL TERMINATES IS THE PRODUCT BY THAT RECIPROCAL (kb/Work PB5886 round 2, R1-1): `E / c`
+            // is E under the factor 1/c, decided as `E * (1/c)` is, because the arithmetic keeps a quotient by such a c exactly while the
+            // reciprocals' digits stay within ExactFractionDigits. `WN / 2 * 2` and `S / 0.1` are admitted; `FUNCTION ORD (A) / 2` is an
+            // integer term under 1/2 and refused.
+            case BoundBinary { Op: '/', Left: var dividend, Right: var divisor } when ExactValue(divisor) is { Sign: not 0 } c
+                && QuotientsAreExact(divisor) && (ExactRational.One / c).FractionDigits is { } digits
+                && quotientDigits + digits <= ExactFractionDigits:
+                return CollectAdditive(dividend, factor / c, sum, quotientDigits + digits);
+            // ⛔ ANY OTHER QUOTIENT IS NOT AN INTEGER TERM (kb/Work PB5886): a divisor that is an item, a function or an expression moves
+            // with the valuation (A / A is a size error at A = 0), and a literal whose reciprocal does not terminate (WN / 3) is truncated
+            // by the arithmetic, so `WN / 3 * 3` stores a fraction.
             case BoundBinary { Op: '/', Left: var dividend, Right: var divisor }:
                 return $"is an arithmetic expression that divides {TermText(dividend)} by {TermText(divisor)}; a quotient is an integer "
-                    + "term only when both operands are literals whose quotient is an integer, so the expression is not shown to "
+                    + "term only by a literal whose reciprocal the arithmetic keeps exactly, so the expression is not shown to "
                     + "always result in an integer value — " + TypeSixExpressionRule;
             case BoundPower pw:
-                return NotAlwaysIntegral(pw.Base)
-                    ?? (IsNonNegativeIntegerExponent(pw.Exp) ? FractionalFactorWhy(e, factor)
-                        : $"is an arithmetic expression that raises {TermText(pw.Base)} to the power {TermText(pw.Exp)}, which is not a "
-                          + "non-negative integer literal or an unsigned integer data item, so its value is not shown to be an integer — "
-                          + TypeSixExpressionRule);
+                return NotAlwaysIntegral(pw.Base, quotientDigits)
+                    ?? (IsIntegerPower(pw.Base, pw.Exp, NotAlwaysIntegral(pw.Exp, quotientDigits) is null) ? FractionalFactorWhy(e, factor)
+                    : $"is an arithmetic expression that raises {TermText(pw.Base)} to the power {TermText(pw.Exp)}, which can be "
+                      + "negative or is not an integer, so its value is not shown to be an integer — " + TypeSixExpressionRule);
             case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } and { } item }:
                 sum.Items[item] = sum.Items.TryGetValue(item, out var prior)
                     ? (prior.Coeff + factor, p.Scale, p.IsFloat) : (factor, p.Scale, p.IsFloat);
@@ -1846,7 +1865,7 @@ internal static class IntrinsicArgumentRules
                     + TypeSixExpressionRule;
             // The windows that carry a user function's activations hold the expression they evaluate.
             case BoundUdfEvaluatedExpr udf:
-                return CollectAdditive(udf.Inner, factor, sum);
+                return CollectAdditive(udf.Inner, factor, sum, quotientDigits);
             // An operand already refused where it was bound: its site reported the rule it breaks.
             case BoundExprError:
                 return null;
@@ -1868,9 +1887,17 @@ internal static class IntrinsicArgumentRules
         $"is an arithmetic expression with a literal quotient of the exact value {value}, which the arithmetic does not store exactly, "
         + "so the value it computes is not shown to be an integer — " + TypeSixExpressionRule;
 
+    /// <summary>⛔ THE ONE RULE OF AN INTEGER POWER (kb/Work PB5886 round 2): an integer base (the caller has shown it) to an exponent that
+    /// cannot be negative is an integer, and the literal 1 to any integer exponent is 1. <paramref name="exponentIntegral"/> says whether the
+    /// caller has shown the exponent an integer term. <c>1 ** M</c> over a signed M is admitted; <c>N ** M</c> is not (M = −1 gives 1/N).</summary>
+    private static bool IsIntegerPower(BoundExpr @base, BoundExpr exponent, bool exponentIntegral) =>
+        IsNonNegativeIntegerExponent(exponent) || (IsLiteralOne(@base) && exponentIntegral);
+
+    /// <summary>Is the expression the literal 1 (a fold whose exact value is 1)?</summary>
+    private static bool IsLiteralOne(BoundExpr e) => ExactValue(e) is { IsInteger: true } v && v.Numerator.IsOne && QuotientsAreExact(e);
+
     /// <summary>Is the exponent a non-negative integer for every valuation: a literal fold that is a non-negative integer the arithmetic
-    /// keeps exactly, or an unsigned integer data item under an even number of negations (<c>- (- U)</c> is U)? An integer base to
-    /// such a power is an integer.</summary>
+    /// keeps exactly, or an unsigned integer data item under an even number of negations (<c>- (- U)</c> is U)?</summary>
     private static bool IsNonNegativeIntegerExponent(BoundExpr exponent) => exponent switch
     {
         _ when ExactValue(exponent) is { } v => v is { IsInteger: true, Sign: >= 0 } && QuotientsAreExact(exponent),
@@ -1947,7 +1974,7 @@ internal static class IntrinsicArgumentRules
         // An index-name's value is an occurrence number (§2023:13.18.38), a report VARYING counter and an OCCURS DEPENDING extent are
         // scale-0 integers by construction (their node docs).
         BoundIndexRef or BoundReportVaryingRef or BoundOdoExtent => true,
-        BoundPower pw => ProvablyIntegral(pw.Base) && IsNonNegativeIntegerExponent(pw.Exp),
+        BoundPower pw => ProvablyIntegral(pw.Base) && IsIntegerPower(pw.Base, pw.Exp, ProvablyIntegral(pw.Exp)),
         _ => false,
     };
 

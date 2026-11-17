@@ -18,9 +18,8 @@
       *> quotient is an integer, a function term is judged by the
       *> function's own type, and a term it cannot show to be an
       *> integer is not one.
-      *> (I / 2) * 2 is I for every I, but the screen does not show
-      *> a quotient over an item to be an integer term, as the
-      *> dispatching ruling on kb/Work PB5886 decided: refused.
+      *> I / I is a quotient by an item, no integer term: at I = 0
+      *> it is a size error, not an integer.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5886H.
        DATA DIVISION.
@@ -29,5 +28,5 @@
        01  R  PIC S9(18).
        PROCEDURE DIVISION.
        MAIN-PARA.
-           COMPUTE R = FUNCTION MOD ((I / 2) * 2 + 60, 7).
+           COMPUTE R = FUNCTION MOD (I / I + 65, 7).
            STOP RUN.

@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "by the literal 2; a quotient is an integer term only when both operands are literals"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "is an integer under the net factor 0.5"}

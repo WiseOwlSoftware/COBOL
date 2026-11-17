@@ -56,10 +56,9 @@ public sealed class IntegerArgumentConstantWitnessTests
         // kb/Work PB5832 review R1-1: a product of two items (both at one granule) under a non-integral factor.
         { "W-S * W-S * 0.5", Bin(Bin(ScaledItem, '*', ScaledItem), '*', Lit("0.5")), true },
         { "W-I * W-I / 2", Bin(Bin(IntItem, '*', IntItem), '/', Lit("2")), true },
-        // kb/Work PB5886: the screen fails closed, and a quotient over an item is no integer term even where its value always is one,
-        // and a zero divisor gives no value at all.
-        { "W-I / 2 * 2", Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), true },
-        { "W-S / 0.1", Bin(ScaledItem, '/', Lit("0.1")), true },
+        // kb/Work PB5886: the screen fails closed; a zero divisor gives no value at all, and the reciprocal of 3 does not terminate.
+        { "W-I / 3 * 3", Bin(Bin(IntItem, '/', Lit("3")), '*', Lit("3")), true },
+        { "W-I / W-I", Bin(IntItem, '/', IntItem), true },
         { "1 / 0 + 0.5", Bin(Bin(Lit("1"), '/', Lit("0")), '+', Lit("0.5")), true },
         { "1 / 3 * 3", Bin(Bin(Lit("1"), '/', Lit("3")), '*', Lit("3")), true },
         // Admitted: the expression is shown to be an integer for every valuation.
@@ -73,6 +72,9 @@ public sealed class IntegerArgumentConstantWitnessTests
         { "W-I * 0.5 * 2", Bin(Bin(IntItem, '*', Lit("0.5")), '*', Lit("2")), false },
         { "W-I * 0.5 + W-I * 0.5", Bin(Bin(IntItem, '*', Lit("0.5")), '+', Bin(IntItem, '*', Lit("0.5"))), false },
         { "W-S * 10", Bin(ScaledItem, '*', Lit("10")), false },
+        // kb/Work PB5886 round 2: a quotient by a literal whose reciprocal terminates is the product by that reciprocal.
+        { "W-I / 2 * 2", Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), false },
+        { "W-S / 0.1", Bin(ScaledItem, '/', Lit("0.1")), false },
         { "W-I * 0", Bin(IntItem, '*', Lit("0")), false },
         { "W-I * W-I * 2", Bin(Bin(IntItem, '*', IntItem), '*', Lit("2")), false },
         { "W-I * W-I", Bin(IntItem, '*', IntItem), false },
