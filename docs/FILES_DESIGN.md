@@ -2508,6 +2508,48 @@ RECORD DELIMITER the implementor's method (DOC-A.1-164, DOC-A.1-151), so they ag
 kb/Work PB5844).
 Witnesses: `12.4.5-File-control/pb5069_*` and `pb5069-*`, `pb5070_padding_one_character` and the two `pb5070-padding-*` refusals.
 
+### D33. At COBOL-85 the program's I-O status is the runtime's condition PROJECTED onto the 1985 lists, decided once, where the program reads it (kb/Work PB5882)
+
+**The problem.** The connectors speak one status vocabulary at every edition, the 2023 one (`FileStatusCode`), so a
+`--std 85` program received values its edition does not have: '71' from a WRITE under `RECORD DELIMITER IS
+LINE-SEQUENTIAL` (kb/Work PB5844's implementor-name), '06' and '09' from the same file's READ. 1985 lists, module by
+module, "the values placed in the I-O status for the previously named conditions" (`§1985:VII.1.3.5`, `§1985:VIII.1.3.4`,
+`§1985:IX.1.3.4`) and gives a condition the implementor adds the form 9x, an "Implementor-Defined Condition With
+Unsuccessful Completion" that "must not duplicate any condition specified by the I-O status values 00 through 49", the value
+of x the implementor's (`§1985:C.2` item 48).
+
+**The decision.** The connector keeps its CONDITION in the runtime's one vocabulary (`FileConnector.Status`, which every
+internal rule reads: the '43' gate, the permanent error in effect, the RETRY class rule, the returned statuses whose class
+steers a phrase), and the program is told `FileConnector.ProgramStatus`: the condition itself from 2002, and at COBOL-85
+the 1985 value that names it (`IoStatus1985.Report`, through `DialectBehavior.IoStatusValuesOutside1985Lists`, VCR row
+7.86). `FileRegistry.Status` (the FILE STATUS store, the AT END / INVALID KEY hooks, the USE and declarative selection,
+the uncovered-fatal termination), `FileRegistry.IoConditionName` and `FileRegistry.ExceptionFile` read it; nothing else
+answers a program. The projection, as data (`IoStatus1985`), in this order:
+- a condition no 1985 module names has its own 9x, one per condition: '45' record identification failure → '92', '51'
+  → '93', '52' → '94', '53' → '95', '54' → '96' (the record operation conflicts), '61' → '97', '62' → '98' (the file
+  sharing conflicts), '71' line sequential record content → '99'. '90' (LINAGE) and '91' (no byte image) are already 9x;
+- a condition 1985 names under another value is reported by that value, because a 9x "must not duplicate" it: '06' (an
+  over-length line, truncated) is the record length conflict of `§1985:VII.4.4.4 GR13`, "the READ statement is successful
+  and an I-O status is set indicating a record length conflict has occurred", '04'; '09' (a successful READ whose line holds
+  a character outside the line set) is a successful completion of which 1985 says no more, '00'; '31' (the dynamic
+  assignment's permanent error) is "A permanent error exists and no further information is available", '30';
+- a value the file's own module lists is itself;
+- a value 1985 lists only for another organization's module: a '0x' or '3x' is that module's "no further information"
+  value of its class ('07' or '02' on a file whose module does not list it → '00', '34' on a relative or indexed file →
+  '30'); a '1x' or '2x' is a condition of a key only the listing module's file has, so it stays the 1985 text's own value.
+Every projection keeps the value's CLASS (successful, at end, invalid key, other) and its criticality, so the phrase a
+returned status steers inside the runtime and the hook that reads the program's status always agree. 1985 makes a 9x
+critical only where "the implementor defines as critical" (`§1985:VII.1.3.5`): '90', '91', '92' and '99' are, as the
+'4x' and '7x' conditions they report are; '93' to '98' are not, as '5x' and '6x' are continuable
+(`IoStatus1985.IsCritical`, which `ExceptionCatalog.IsFatalIoStatus` asks for a '9x').
+**Why here and not in each statement.** Every statement's status already passes the one `Status` setter, and every
+program-visible read already passes the registry; a projection at the producers would be a second copy of the rule per
+statement, and a status added later would leak until someone remembered it. `IoStatus1985Tests` enumerates every
+`FileStatusCode` constant by reflection and requires each, on each organization, to report a value of the 1985 lists or a
+documented 9x of the same class, so a new constant fails the build until it has its 1985 answer. The 9x values are the
+conformance statement's section 3.13. 2002 and later report the condition unprojected (2002 is the owner's frozen edition:
+its own lists are not judged here).
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /
