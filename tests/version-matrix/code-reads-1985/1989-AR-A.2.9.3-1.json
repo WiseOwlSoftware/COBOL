@@ -2,75 +2,81 @@
  "rule-id": "1989-AR-A.2.9.3-1",
  "rule-digest": "027f4ef0fa4d",
  "read": {
-  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
-  "slice": "1985-242",
+  "pin": "cdc9601608399d224cd2b9ffd6324d8f90df4796",
+  "slice": "1985-247",
   "sources": {
-   "reader": "2ad1f79cff7c4c92e213726248e74f627166f73ff8c5d5b3c390728c0ac7c90e",
-   "refuter": "56e712bb6a26c4cdabeef7d08e3953c9a41683ecd887ad4658d520c4df44760e"
+   "reader": "7307715f9589f86e41a2c6ac8b6c798328955ad77e2c0a95e4363e69bc6f9f85",
+   "refuter": "dc50e52f9fb8d7241a738e294de939e04ccc0f5692aa56588bc63153696fbdb5"
   },
   "imported": {
-   "reader": "4487b7a98357bcfc721b7ef2d0628098f4b85bd8ab61cf48bf5032d5d8504e52",
-   "refuter": "449535f6dafca910698f3ea6ae3c998fd21413944f0f1d8b9197371da5ac2be6"
+   "reader": "c32b00d6166e3c6a4d79e681ae52f198c23339e4bdf7b52bafc4577fc8ddb8f4",
+   "refuter": "33a5c1290b7a5c1321e9c4cc189b228aa2022145d10d0a2612342ddf1a40ef9b"
   }
  },
  "reader": {
   "rule-id": "1989-AR-A.2.9.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 CHAR's argument-1 must be an integer argument (§1989:A.2.2 AR4): a non-integral literal, a scaled or alphanumeric item, a not-always-integral expression and a numeric function (RANDOM, SQRT) are refused, and an integer literal, integer item, integer function or always-integral expression selects the ordinal position its value names.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NotAlwaysIntegral",
+  "requirement": "At --std 85 CHAR's argument-1 must be an integer argument (§1989:A.2.2 AR4) and every non-integer form is refused; an integer argument yields the character at that ordinal position of the program collating sequence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NotAlwaysIntegral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
-    "switches": "D8 window sig.IntroducedIn > DialectLevel: the 1989 Intrinsic Function Module rows carry IntroducedIn 85, so the function is admitted at --std 85",
+    "switches": "sig.IntroducedIn (85 for the 1989 Intrinsic Function module rows) against ctx.Edition.DialectLevel: the function is admitted at --std 85",
     "same-arm-as-latest": true
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation",
-    "switches": "EditionInfo.AlphabeticIsAlphanumeric widens an alphanumeric class position at 2002; inert for kind 'i' (Admissible('i') is class numeric only) and IntegerViolation takes no edition",
+    "switches": "edition.AlphabeticIsAlphanumeric (2002 only) widens a position whose admissible set holds class alphanumeric; an integer ('i') position admits only class numeric, so the arm is not reached",
     "same-arm-as-latest": true
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-    "switches": "ArgPredicate.AppliesAt(year) per-position predicates; a Uniform('i') row carries none, so nothing differs at 85",
+    "switches": "ArgPredicate.AppliesAt(year) gates per-position predicates; the Uniform('i') row of this function carries none",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of IntrinsicBinder.cs for Edition./CobolVersion/ConstructRegistry/DialectBehaviors/ReservedWords and of IntrinsicArgumentRules.cs for EditionInfo/edition: the integer screen (IntegerViolation, NonIntegralItemReason, NotAlwaysIntegral) takes no edition; the only consults on the path are the three listed",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness g85_f34_02 exercises only the acceptance half; the refusal half is unwitnessed",
+  "edition-search": "Read Violation, IntegerViolation, NonIntegralItemReason and the NotAlwaysIntegral walk, CheckArgumentClasses and BindFunctionResult; grepped IntrinsicArgumentRules.cs and IntrinsicBinder.cs for Edition/DialectLevel/CobolVersion/AppliesAt/IntroducedIn. ArithmeticMode (ctx.Options.Arithmetic) is Native at 85 (no OPTIONS paragraph), the 2023 default.",
+  "behaviour-differs-by-edition": "no: the same COBOL1627 refusals at --std 85 and --std 2023 (fn_refuse.cob)",
+  "witnesses-cover": "part: the witnesses cover a quotient argument and a NIST legal case; not exercised by them: scaled items, numeric functions, literals, groups, ALL literals",
   "probes": [
    {
-    "class": "b,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-242/mrc_ref.cob",
-    "printed": "COBOL1627 on CHAR(1.5), CHAR(D PIC 9V9), CHAR(FUNCTION SQRT (4)), CHAR(N / 4), CHAR(A PIC X), CHAR(FUNCTION RANDOM)",
-    "expected": "each non-integer argument refused"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/fn_refuse.cob",
+    "printed": "COBOL1627 for CHAR(SC), CHAR(65.5), CHAR(N / 3), CHAR(FUNCTION SQRT(4225)), CHAR(A), CHAR(G)",
+    "expected": "each refused"
    },
    {
-    "class": "a,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-242/mrc_ok.cob",
-    "printed": "CHARINTFN A (INTEGER(66.9)); CHAREXPR A (N*6+6); CHARODO B (EL(CNT)+1.0 = 67); CHAR66.0 A",
-    "expected": "native sequence: ordinal 66 is A, 67 is B (A.2.9.1)"
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/fn_legal.cob",
+    "printed": "C1 CHAR(66) [A], C2 CHAR(N * 10 + 18) with N = 2: [%], C3 CHAR(ORD(\"Z\")) [Z]",
+    "expected": "ordinal 66 is A and 38 is % in the native ASCII sequence; CHAR(ORD(x)) = x"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/fn_figref.cob",
+    "printed": "COBOL1627 for CHAR(ALL \"1\") and CHAR(\"65\")",
+    "expected": "refused: a nonnumeric or ALL literal is not an integer argument"
    }
   ],
   "citations": [
    {
     "cite": "§1989:A.2.9.3 AR1",
-    "check": "OK  §1989:A.2.9.3 AR1  the text is in the rule: Argument-1 must be an integer"
+    "check": "OK  §1989:A.2.9.3 AR1  (2.9.3 Arguments)  the text is in AR1"
    },
    {
     "cite": "§1989:A.2.2 AR4",
-    "check": "OK  §1989:A.2.2 AR4  the text is in the rule: An arithmetic expression which will always result in an integer value must be specified"
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
    },
    {
     "cite": "§1989:A.2.3 GR2",
-    "check": "OK  §1989:A.2.3 GR2  the text is in the rule: A numeric function may not be referenced where an integer operand is required"
+    "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
    }
   ],
-  "notes": "CHAR is screened by the same Uniform('i') row and edition-blind type-6 screen at --std 85 as at 2023; integer forms including an always-integral expression with a 1.0 literal and an ODO element select the right ordinal.",
+  "notes": "CHAR's argument-1 goes through the same integer screen at --std 85 as at 2023: scaled items, non-integral literals, numeric functions, quotients not provably integral, alphanumeric items, groups and ALL literals are refused, and integer items, expressions and integer functions are admitted with correct results. Diagnostics at --std 85 cite §2023:15.15.3 r1.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "fn_refuse.cob: the same 25 COBOL1627 refusals",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -79,18 +85,15 @@
  "refuter": {
   "rule-id": "1989-AR-A.2.9.3-1",
   "refutation": "OVERTURNED",
-  "classes": "b,c,d,f",
-  "evidence": "Probes at --std 85 (run_probe.py): E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-242/open1.cob (compile-only, runs/open1-001) refused N*M/2, S*S/2, N/M, (N+1)/2, (N+M)/2, N**0.5, SQRT(N)+1, REM(N 2), LENGTH(A)/2, an index data item (COBOL6979) and an index-name (COBOL1637), but gave NO diagnostic on FACTORIAL(FUNCTION ORD(A) / 2), FACTORIAL(FUNCTION MOD(N 3) * 0.5), FACTORIAL(FUNCTION INTEGER(N) / FUNCTION INTEGER(M)), FACTORIAL(FUNCTION ORD-MAX(N M) / 2), MOD(N * N * N / 2, 7), MOD(7, FUNCTION ORD(A) / 4), RANDOM(FUNCTION INTEGER-PART(N) / 3), CHAR(FUNCTION RANDOM(1) * 10). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-242/open3.cob (N=1, M=2, A='B'; runs/open3-001 at 85, open3-002 at 2023) compiled and ran EXIT 0 at both editions: ORDHALF (FACTORIAL(67/2=33.5)) 518194401280000000 = 33! truncated; MODHALF (FACTORIAL(0.5)) 1; INTQUOT (FACTORIAL(1/2)) 1; CUBEHALF (MOD(0.5,7)) 0; MODARG2 (MOD(7, 67/4=16.75)) 7; CHARHALF (CHAR(33.5)) blank; RANDHALF (RANDOM(33.5)) seeded silently. Each argument is provably not always an integer (INTEGER of an integer item is the item, so INTEGER(N)/INTEGER(M) is N/M, which the screen refuses; ORD of a one-character item takes consecutive values; MOD(N 3) is 1 at N=1; N*N*N/2 is 0.5 at N=1). Code read: IntrinsicArgumentRules.cs#NotAlwaysIntegral -> CollectAdditive default arm (factor not integer or term not ProvablyIntegral -> RestIntegral=false -> fail open) and WitnessOf (witness arms only for bare-item quotient/product, a power, MEAN/MEDIAN, 8 transcendental numeric functions). The screen takes no edition, and docs/INTRINSICS_DESIGN.md states the 85 arm relies on it because 85 has no EC-ARGUMENT-FUNCTION net. kb/Work/PB5832 (landed) and its 2026-11-16-residue.md record the fail-open residue and keep these rows CONFORMS; the residue list names numeric functions, A*B/C, 3+-factor products, two witness terms and powers under a coefficient, but NOT an integer-function term under a fractional literal factor nor a quotient of two integer functions, which are decidable siblings of the shapes PB5832 refused. CHAR-specific: CHAR(FUNCTION ORD(A) / 2) (33.5 for A='B', returns ordinal 33, a space) and CHAR(FUNCTION RANDOM(1) * 10) (a numeric function under a literal factor; §1989:A.2.3 bars a numeric function where an integer operand is required, and the product is not always integral) compile at 85 without a diagnostic. cite.py: OK §1989:A.2.2 AR4 'An arithmetic expression which will always result in an integer value must be specified'; cite.py: OK §1989:A.2.9.3 AR1 'Argument-1 must be an integer'.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CollectAdditive: default arm sets RestIntegral=false for an integer-function term under a non-integral literal factor (fail open), no edition switch",
-   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#WitnessOf: quotient witness only for two BARE items, product witness only for two bare items; integer-function terms have no witness arm"
-  ],
-  "corrected": "Non-conforming (under_rejects, wrong_answer; cause b): §1989:A.2.9.3 AR1 requires an integer argument (§1989:A.2.2 AR4); CHAR(FUNCTION ORD(A) / 2) compiles at --std 85 and silently selects ordinal 33 for 33.5. Same at 2023. Known note: kb/Work/PB5832 residue (shape not in its recorded list)."
+  "classes": "a,b,d",
+  "evidence": "fn_edge.cob at --std 85: MOVE FUNCTION CHAR(N * (N - 1) / 2 + 65) TO C refused, 'error COBOL1627: FUNCTION CHAR argument-1 is an arithmetic expression whose term (N * (N - 1)) is an integer under the net factor 0.5 ...'; N * (N - 1) is always even, so the argument always results in an integer value and §1989:A.2.9.3 AR1 with §1989:A.2.2 AR4 makes it legal. Same at --std 2023. Admitted and correct: CHAR(ORD-MAX(1 2) + 64) = A and CHAR(PP * 6 + 6) over PIC 9P = A (fn_legal2.cob). Refused correctly: CHAR(MIDRANGE(64 66)), CHAR(MEDIAN(64 66)). cite.py: OK §1989:A.2.9.3 AR1 'Argument-1 must be an integer'; OK §1989:A.2.2 AR4.",
+  "edition-sites-missed": [],
+  "corrected": "PARTIAL: rejects-legal-source; cause (b). IntrinsicArgumentRules.cs#NotAlwaysIntegral refuses CHAR(N * (N - 1) / 2 + 65) at every edition. Known: kb/Work PB5889 (class), form not listed."
  },
  "adjudication": {
   "verdict": "PARTIAL",
-  "reason": "An integer argument that is a quotient with an integer FUNCTION term (FUNCTION ORD(A) / 2) compiles and is truncated silently (open3.cob: FACTORIAL of 33.5 returns 33!), where the rule requires an expression that always results in an integer.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
+  "reason": "FUNCTION CHAR (N * (N - 1) / 2 + 65) with N PIC 99 is refused COBOL1627 at --std 85 and 2023 (fn_edge.cob), though the argument always results in an integer value (§1989:A.2.2 AR4).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-20.md"
  },
- "work": "PB5886"
+ "work": "PB5891"
 }

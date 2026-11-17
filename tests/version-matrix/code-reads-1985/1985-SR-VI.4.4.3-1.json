@@ -2,87 +2,151 @@
  "rule-id": "1985-SR-VI.4.4.3-1",
  "rule-digest": "07f0bdfa7fee",
  "read": {
-  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
-  "slice": "1985-240",
+  "pin": "6450516b5e6a2ed7b831a834d06b3e578d759c6b",
+  "slice": "1985-245",
   "sources": {
-   "reader": "6a7488f44fc7bd4ed1607d5a45e43f1fdbed8f1c9130ce7bd21b8575c9336943",
-   "refuter": "a344a720b1c84122382302525a8eabb35c655f2fc78389c837ea9e6f5b31ba52"
+   "reader": "f0212a8cf5971d2ef5b9d0ec64dfecc6248e7d9ba1caf7c4f8af1a6a61f639bc",
+   "refuter": "86e402484d178ca7f6b2e4663730e3d9d688c365aee89683a16116d007aa470e"
   },
   "imported": {
-   "reader": "2c81e15a40370e70e83444954b93dff22089efbec4c6da1ed66baca65845f824",
-   "refuter": "444ce7393fde54763fb584dc8043856244f6c03d667dd2bdb2e4927155ea63c6"
+   "reader": "023b7126c7626820523518eae078aa9ce9afa597b63bc4d60c240bc16c9a18e8",
+   "refuter": "6865d3fdeccbba0285620f9f2f1c31bc5da811199f8eba92542c98beca4f4652"
   }
  },
  "reader": {
+  "rule-id": "1985-SR-VI.4.4.3-1",
   "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 the computer-name of the OBJECT-COMPUTER paragraph must be a system-name: a COBOL word of at most 30 characters formed from A-Z (either case), 0-9 and hyphen (not first or last), not a reserved word of the 85 list (LENGTH, RANDOM and SUM included), and not one of this implementation's implementor-names or language-names, since the three types of system-name are disjoint; a literal or any other operand, and a clause written with no computer-name before it (85 nests the clauses inside the name's bracket), must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#computerName; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#gatedWordFreeHere; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateComputerName; src/WiseOwl.Cobol.Compiler/Binding/ImplementorNameRegistry.cs#Lookup; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#MaxLength; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateComputerName",
-    "switches": "at Year < 2002 refuses a computer-name that is one of this implementation's implementor-names (COBOL7624); returns at once from 2002",
+    "switches": "edition.Year < 2002 refuses (COBOL7624) a computer-name that is one of the implementation's implementor-names (the §1985:IV.4.2.2.1.2 disjointness); from 2002 the gate returns at once",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#gatedWordFreeHere",
-    "switches": "admits a reservation-gated word as the computer-name only when the targeted edition does not reserve it",
+    "switches": "the edition's reserved-word list: a word reserved only in a later edition (TYPEDEF, INTERFACE-ID) is free as a computer-name at 85; an 85 reserved word (FILE, SUM, RANDOM, LENGTH) is not",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#LengthViolation",
-    "switches": "COBOL word ceiling 30 at 85 (63 at 2023), COBOL1567",
+    "site": "src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#MaxLength",
+    "switches": "the COBOL word ceiling: 30 characters at 85, 63 at 2023 (COBOL1567)",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#CharacterViolation",
-    "switches": "underscore in a word refused before 2002 (COBOL0900)",
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph",
+    "switches": "Constructs.ComputerNameOptional2002: an OBJECT-COMPUTER clause (MEMORY SIZE, PROGRAM COLLATING SEQUENCE) without a computer-name is refused before 2002 (COBOL0900)",
     "same-arm-as-latest": false
    }
   ],
   "edition-search": "",
-  "behaviour-differs-by-edition": "yes: at 85 a computer-name may not be an implementor-name (device-, feature-, switch- or code-name), is at most 30 characters and has no underscore; the reserved-word set is the 1985 one, so words reserved only later are computer-names",
+  "behaviour-differs-by-edition": "yes: at 85 an implementor-name (C01, SWITCH-1, CONSOLE, DISK) is refused as a computer-name and accepted from 2002 (cn_feature printed RAN CNR8 at --std 2023); a clause with no computer-name before it is refused at 85 and legal from 2002; the reserved-word set and the word length differ by edition.",
+  "witnesses-cover": "part: the witnesses cover implementor-names and later-edition reserved words as computer-names and the clauses in sequence; not exercised by them: feature- and switch-names, 85 reserved words including SUM, RANDOM and LENGTH, function-names, the character set, the 30-character limit, a clause with no computer-name (probed here).",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-acc1.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-acc2.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-acc3.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-acc4.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-acc5.cob",
-    "printed": "EXIT 0, RAN: IBM-370 (also a data-name of the program), lowercase ibm-pc, 3090-X (leading digit), a 30-character name, function-names MAX and UPPER-CASE, X86 WITH DEBUGGING MODE, UPPER-CASE MEMORY SIZE 8 WORDS, CLASS-ID and TYPEDEF (reserved only after 1985)",
-    "expected": "accepted: system-names intersect user-defined words and function-names (IV.4.2.2.1 SR1b); later-edition reserved words are not 1985 reserved words"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_pos1.cob",
+    "printed": "RAN CNP1 (SOURCE-COMPUTER. ibm-370. OBJECT-COMPUTER. X86-64 MEMORY SIZE 8 WORDS PROGRAM COLLATING SEQUENCE IS ALPHA.)",
+    "expected": "accepted: lowercase letters are equivalent to uppercase; well-formed system-names"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-move.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-length.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-random.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-sum.cob",
-    "printed": "COBOL1971 (SOURCE-COMPUTER) and COBOL1970 (OBJECT-COMPUTER) for MOVE, LENGTH, RANDOM, SUM",
-    "expected": "refused: a reserved word is never a system-name (IV.4.2.2.1.3); LENGTH, RANDOM, SUM never a system-name (IV.4.2.2.1 SR2b)"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_pos2.cob",
+    "printed": "RAN CNP2 (MAX WITH DEBUGGING MODE / UPPER-CASE)",
+    "expected": "accepted: a function-name other than LENGTH, RANDOM, SUM may be used as a system-name (§1985:IV.4.2.2.1 SR1b)"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-31.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-trail.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-lit.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-num.cob",
-    "printed": "COBOL1567 31-character word exceeds the 30-character COBOL-85 maximum; COBOL2773 hyphen last; a nonnumeric literal and the all-digit 370 refused (COBOL1971/COBOL1970, with an extra COBOL3734 area-A message)",
-    "expected": "refused: a COBOL word is at most 30 characters, hyphen not first or last (IV.4.2.2.1, IV.4.2.2.1.2); an all-digit name is excluded by the documented implementor formation rule DOC-A.1-198"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-lower.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-feat.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-sysin2.cob; E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5795-computer-name-is-implementor-name-85.cob",
-    "printed": "COBOL7624 for console (device-name, lowercase), ebcdic (code-name), C01 (feature-name), SWITCH-1 (switch-name), SYSIN, SYSOUT",
-    "expected": "refused at 85: computer-name, implementor-name and language-name are disjoint sets within an implementation (IV.4.2.2.1.2)"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_pos3.cob",
+    "printed": "RAN CNP3 (370-XA / a 30-character name)",
+    "expected": "accepted: digit-led word; 30 characters is the maximum"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-under.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c2-r-lower.cob (also at --std 2023)",
-    "printed": "85: COBOL0900 the underscore in a COBOL word requires COBOL-2002; 2023: console/ebcdic accepted, RAN",
-    "expected": "85 refuses the underscore (not in the 1985 system-name character set) and implementor-name computer-names; later editions accept both"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_pos4.cob",
+    "printed": "RAN CNP4 (TYPEDEF / INTERFACE-ID)",
+    "expected": "accepted: reserved only in later editions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_reserved.cob",
+    "printed": "error COBOL0001: unexpected 'FILE'",
+    "expected": "refused: reserved words and system-names are disjoint"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_sum.cob",
+    "printed": "error COBOL1970: 'SUM' is not a clause of the OBJECT-COMPUTER paragraph",
+    "expected": "refused: SUM may not be a system-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_random.cob",
+    "printed": "error COBOL1970 (RANDOM)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_length.cob",
+    "printed": "error COBOL1971: cannot parse construct near 'LENGTH'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_literal.cob",
+    "printed": "error COBOL3734 and COBOL1971 at the literal \"IBM\"",
+    "expected": "refused: a literal is no system-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_underscore.cob",
+    "printed": "error COBOL0900: the underscore in a COBOL word requires COBOL-2002",
+    "expected": "refused: a character outside A-Z, 0-9 and hyphen"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_toolong.cob",
+    "printed": "error COBOL1567: 31 characters, exceeding the 30-character maximum for COBOL-85",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_trailing_hyphen.cob",
+    "printed": "error COBOL2773: the hyphen as its last character",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_feature.cob",
+    "printed": "error COBOL7624: the SOURCE-COMPUTER computer-name C01 is one of this implementation's implementor-names (SPECIAL-NAMES feature-name)",
+    "expected": "refused: the system-name types are disjoint"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_switch.cob",
+    "printed": "error COBOL7624: the OBJECT-COMPUTER computer-name SWITCH-1 ... (SPECIAL-NAMES switch-name)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/cn_noname_memory.cob",
+    "printed": "error COBOL0900: a SOURCE-COMPUTER or OBJECT-COMPUTER clause without computer-name-1 requires COBOL-2002 (at --std 2023: COBOL0902, MEMORY SIZE removed)",
+    "expected": "§1985:VI.4.4.2 hangs the clauses off a required computer-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/pb5795-computer-name-is-implementor-name-85.cob",
+    "printed": "error COBOL7624 at CONSOLE and at EBCDIC",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.4.4@1985-OBJECT-COMPUTER-PARAGRAPH/pb5804_later_reserved_words_as_computer_names_85.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "accepted"
    }
   ],
-  "seeded": true,
-  "harm": "",
-  "cause": "",
-  "at-2023": "",
-  "repro": "",
-  "expected": "",
-  "observed": "",
-  "known_note": "",
-  "rule-id": "1985-SR-VI.4.4.3-1",
-  "requirement": "At --std 85 the OBJECT-COMPUTER computer-name must be a system-name: a COBOL word of at most 30 characters from A-Z, 0-9 and hyphen (not first or last), not a 1985 reserved word nor LENGTH, RANDOM or SUM, and not one of the implementation's implementor-names (disjoint system-name types); it may coincide with a user-defined word or function-name.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#computerName; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#gatedWordFreeHere; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateComputerName; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#LengthViolation; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
-  "witnesses-cover": "part: witnesses exercise implementor-name refusal (EBCDIC), later-reserved words and INTERFACE-ID/REPOSITORY accepted, clause order; not the 1985 reserved words, LENGTH/RANDOM/SUM, the 30-character limit, the underscore, or function-name/data-name coincidence",
   "citations": [
    {
     "cite": "§1985:VI.4.4.3 SR1",
@@ -93,31 +157,26 @@
     "check": "OK  §1985:IV.4.2.2.1.2  (4.2.2.1.2 System-Names)  the text is in the clause"
    },
    {
-    "cite": "§1985:IV.4.2.2.1 SR2b",
-    "check": "OK  §1985:IV.4.2.2.1 SR2b  (4.2.2.1 COBOL Words)  the text is in SR2b"
-   },
-   {
-    "cite": "§1985:IV.4.2.2.1.3",
-    "check": "OK  §1985:IV.4.2.2.1.3  (4.2.2.1.3 Reserved Words)  the text is in the clause"
+    "cite": "§1985:IV.4.2.2.1 SR1a",
+    "check": "OK  §1985:IV.4.2.2.1 SR1a  (4.2.2.1 COBOL Words)  the text is in SR1a"
    }
   ],
-  "notes": "Same computerName rule and GateComputerName arm as SOURCE-COMPUTER, reached from VisitObjectComputerParagraph; a following 1985 MEMORY SIZE clause is undisturbed. A reserved word in the name slot is refused as an unrecognized OBJECT-COMPUTER clause (COBOL1970), wording only."
+  "notes": "System-name formation is implementor-defined within the character set (DOC-A.1-198: every well-formed system-name that is not an implementor-name is a computer-name); the 85 arm of GateComputerName reads the one ImplementorNameRegistry, and the reserved-word, length and character-set refusals come from the edition's word rules. Several refusals carry generic or §2023-cited diagnostics (COBOL0001, COBOL1970, COBOL3734), a wording matter only; every probe was accepted or refused as the text requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
  "refuter": {
   "rule-id": "1985-SR-VI.4.4.3-1",
-  "refutation": "OVERTURNED",
+  "refutation": "UPHELD",
   "classes": "b,c,d",
-  "evidence": "Same gate as SOURCE-COMPUTER (VisitObjectComputerParagraph -> GateComputerName). Probe src/r2-disk.cob: OBJECT-COMPUTER. PRINTER. compiles and runs at --std 85 (runs/r2-disk-001); src/r2-rdnames.cob: OBJECT-COMPUTER. BINARY-SEQUENTIAL. runs at 85. PRINTER is a documented ASSIGN implementor-name-1 device class (DOC-A.1-71) and BINARY-SEQUENTIAL a documented RECORD DELIMITER implementor-name-1 (DOC-A.1-150), so by 1985's disjoint system-name sets neither may be a computer-name. OBJECT-COMPUTER. RERUN. and MODULES. refused (COBOL1970, COBOL0901). cite.py: 'OK  §1985:VI.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:IV.4.2.2.1.2  (4.2.2.1.2 System-Names)  the text is in the clause'.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#DeviceClasses: implementor-names not asked by GateComputerName",
-   "src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#TryMethod: implementor-names not asked by GateComputerName"
-  ],
-  "corrected": "UNDER-REJECTS (cause c), same defect and repro as 1985-SR-VI.4.3.3-1 with OBJECT-COMPUTER. PRINTER. Known note: kb/Work/PB5795/2026-11-16-landed.md (open lead)."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "An implementor-name this implementation specifies (DISK, PRINTER, LINE-SEQUENTIAL, BINARY-SEQUENTIAL) is accepted as a computer-name at --std 85 (r2-disk.cob, r2-rdnames.cob), where the three types of system-names are disjoint sets.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
- },
- "work": "PB5884"
+  "evidence": "Probes at --std 85 (E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-245/src/): 1985-only reserved words as OBJECT-COMPUTER computer-name, each refused: co_alter, co_enter, co_disable COBOL0001; co_author, co_memory, co_modules, co_words, co_segment_limit, co_communication COBOL0901; co_remarks accepted; co_lc_ebcdic COBOL7624 (ALPHABET code-name); co_console (mixed case, with MEMORY SIZE) COBOL7624 (device-name). The 1985-only Segmentation clause: co_seglimit_ok.cob (OBJECT-COMPUTER. X86 SEGMENT-LIMIT IS 10.) accepted and ran; co_seglimit_noname.cob (SEGMENT-LIMIT with no computer-name) COBOL0900, requires COBOL-2002. cite: OK  §1985:VI.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1; OK  §1985:IV.4.2.2.1.2  (4.2.2.1.2 System-Names)  the text is in the clause; OK  §1985:IV.4.2.2.1.3  (4.2.2.1.3 Reserved Words)  the text is in the clause.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }
