@@ -524,7 +524,9 @@ internal sealed class TypeReferenceWalk
 
         /// <summary>The full name of the outermost type of a definition, or null for <c>&lt;Module&gt;</c> and a type
         /// the compiler synthesized at the top level (<c>&lt;PrivateImplementationDetails&gt;</c>, an anonymous type, an
-        /// embedded attribute).</summary>
+        /// embedded attribute, or an inline array a collection expression needs, <c>&lt;&gt;y__InlineArrayN</c>, which
+        /// carries no <c>[CompilerGenerated]</c>): a top-level name that begins with <c>&lt;</c> is one no source can
+        /// declare, so the compiler made it.</summary>
         public string? OutermostOf(TypeDefinitionHandle h)
         {
             if (outermost.TryGetValue(h, out string? cached))
@@ -539,7 +541,7 @@ internal sealed class TypeReferenceWalk
             }
 
             TypeDefinition top = md.GetTypeDefinition(root);
-            string? name = md.GetString(top.Name) == "<Module>" || CompilerGenerated(top) ? null : FullName(root);
+            string? name = md.GetString(top.Name).StartsWith('<') || CompilerGenerated(top) ? null : FullName(root);
             outermost[h] = name;
             return name;
         }
