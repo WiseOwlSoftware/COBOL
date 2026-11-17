@@ -2958,17 +2958,6 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return null;
     }
 
-    // ── Parse-layer edition-gate rendering (rearch PHASE 02) ──
-
-    /// <summary>Captures the single <see cref="EditionDiagnostic"/> a one-shot <see cref="ConstructRegistry.Check"/>
-    /// reports, so the parse-layer error strategy can reuse the ONE funnel's exact COBOL0900 text (display /
-    /// introduction edition / ISO citation all sourced from the construct's registry row, not hand-copied).</summary>
-    private sealed class CaptureSink : IDiagnosticSink
-    {
-        public string? Message { get; private set; }
-        public void Report(in EditionDiagnostic d) => Message = d.Message;
-    }
-
     // ── The explicit scope terminators (kb/Work PB2770) ──
 
     /// <summary>An explicit scope terminator (ISO §2023:14.5.3.2): its reserved word, the statement-name it is defined for
