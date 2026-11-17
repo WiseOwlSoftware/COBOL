@@ -2,32 +2,49 @@
  "rule-id": "1985-GR-VII.4.3.4-8",
  "rule-digest": "8612801d7aa2",
  "read": {
-  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
-  "slice": "1985-03",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-239",
   "sources": {
-   "reader": "9790cc467c3b586ac588730bbc505d6fcfb8b0adb29e0f59e38e179b812e39aa",
-   "refuter": "2a3fa4b37a43dcb87419e3ab5080c47f5ce8c630cb6c0d65e69e2ff546abdc45"
+   "reader": "204c971910d5f4e0cd8912654dcb31898d6ac9326064d9505c11d20a5e430ec5",
+   "refuter": "4ad490973e8fa4e395708d8252f64188831a4b7a7ae00917e7c4884df49a0e68"
   },
   "imported": {
-   "reader": "c4adc911eeb52746c645d0a55018efb5a3e4b27fb298ad0c57db0c4686a02fce",
-   "refuter": "3a64a60441dc56b7d65b438c103e8e926fa95853a5af69e4a127b46097dba79e"
+   "reader": "8d1bb41efb83ab0305c2655c24f30a34656d4452a68199307b2b5ef19a0a0760",
+   "refuter": "1b9bcc965e5161453d42ebd2cde9a8bee523feb1dc4a5485d7acc4831fa4580e"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.4.3.4-8",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, an OPEN (INPUT, I-O or EXTEND of an existing sequential file) whose program attributes conflict with the physical file's fixed file attributes in a way the implementor has chosen to validate is unsuccessful with I-O status '39' (the file is not opened, any applicable USE procedure runs); the implementor defines and documents the validated set, which may vary by organization and medium.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#IsKeyedStore; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#StreamFramingParses; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FixedAttributeConflict; docs/conformance/7/DOC-A.1-129.md",
-  "edition-consulted": [],
-  "edition-search": "grep Edition|IsActive|DialectLevel in FileConnector.cs (only SharingFacilityInEffect, read after the '39' arm for the sharing conflict), SequentialConnector.cs (only the sharing read at OPEN), RecordFraming.cs and FixedFileAttributes.cs (none). The '39' arm in FileConnector.Open and SequentialConnector.FixedAttributeConflict consult no edition: the same validated set applies at every --std.",
+  "requirement": "At --std 85, when an OPEN (any mode) meets a file attribute conflict among the fixed file attributes the implementor validates, the OPEN must be unsuccessful (I-O status 39, §1985:VII.1.3.5 f), leaving the file unaffected and the connector not open; which attributes are validated is the implementor's choice and may vary by organization.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#IsKeyedStore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FixedAttributeConflict",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "the sharing facility, CLOSE WITH LOCK and the 85 LINAGE refusal around the OPEN body; not the attribute comparison",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered",
+    "switches": "nothing for the '39' check: FixedAttributeConflict is asked for every non-OUTPUT OPEN of a present file at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition/DialectBehavior over FileConnector.cs, SequentialConnector.cs, KeyedConnector.cs, FixedFileAttributes.cs: no edition read in FixedAttributeConflict or Conflicts",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness covers relative and sequential subjects at 85 (record size, organization, record type, varying framing); not exercised: the sequential I-O and EXTEND modes over a keyed store, a READ and CLOSE after the failed OPEN, the USE procedure taking '39'",
+  "witnesses-cover": "part: open_fixed_attribute_conflict (accept 85, 2002) covers relative/sequential organization and record-size/type conflicts; it does not exercise OPEN I-O/EXTEND of a sequential description over a keyed store or the statement after the failed OPEN",
   "probes": [
    {
-    "class": "a,e",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r5/p5a.cob",
-    "printed": "RECORD VARYING description over a plain (unframed) file: OPEN INPUT 39, OPEN I-O 39, OPEN EXTEND 39 (USE ran each time); READ after failed OPEN 47; CLOSE 42 / fixed sequential over a relative store: INPUT 00 (layout notice on stderr), I-O 39, EXTEND 39 / fixed sequential over a framed varying file: OPEN 00, READ 04 / varying over varying: 00",
-    "expected": "VII.4.3.4 GR8 with the documented validated set (DOC-A.1-129): varying record type vs an unframed medium and organization in the writing modes are conflicts ('39', VII.1.3.5 status list 3 f); record sizes are not validated (the READ gives '04'); an unsuccessful OPEN leaves the file closed (READ '47', CLOSE '42')"
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/p08a.cob",
+    "printed": "SEQ I-O OVER RELATIVE 39 / READ AFTER FAILED OPEN 47 / SEQ EXTEND OVER RELATIVE 39 / SEQ INPUT OVER RELATIVE 00 / REL INPUT 00 REL READ R001 00 / VARY INPUT OVER FIXED 39 / VARY I-O OVER FIXED 39 / FIXED I-O 00 SF ABCDEFGHIJ 00",
+    "expected": "a validated conflict makes the OPEN unsuccessful (39), the connector is not open (READ 47), the file is unaffected (relative store still reads R001); an unvalidated attribute (sequential INPUT over a keyed store) is the implementor's latitude"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/p08a.cob",
+    "printed": "VARY INPUT OVER FIXED 39",
+    "expected": "RECORD VARYING description over a file whose bytes are not the implementor's length framing: conflict, 39"
    }
   ],
   "citations": [
@@ -36,19 +53,11 @@
     "check": "OK  §1985:VII.4.3.4 GR8  (4.3.4 General Rules)  the text is in GR8"
    },
    {
-    "cite": "§1985:VII.1.3.5 GRL2.3",
-    "check": "OK  §1985:VII.1.3.5 GRL2.3  (1.3.5 I-O Status)  the text is in GRL2.3"
-   },
-   {
-    "cite": "§1985:VII.1.3.5 GRL2.4",
-    "check": "OK  §1985:VII.1.3.5 GRL2.4  (1.3.5 I-O Status)  the text is in GRL2.4"
-   },
-   {
-    "cite": "§1985:III.2",
-    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.3f"
    }
   ],
-  "notes": "GR8 leaves the validated set to the implementor; the compiler's set is documented (DOC-A.1-129, written against the 2023 Annex item) and applied by one edition-free arm that runs before any organization work. At --std 85 every conflict in that set gave '39' with the file left unopened, and the cases outside it opened as documented.",
+  "notes": "The 1985 text (as amended by X3.23b-1993) leaves the validated set to the implementor; the compiler validates what each organization's format records (keyed meta pages; the sequential varying framing and a keyed store under a writing mode), documented as DOC-A.1-129. The check precedes OpenCore so a 39 leaves the file unaffected, and it is the same code at every edition.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -62,14 +71,8 @@
   "rule-id": "1985-GR-VII.4.3.4-8",
   "refutation": "UPHELD",
   "classes": "a,b,e",
-  "evidence": "r5/q1.cob at --std 85: OPEN INPUT VF OK in one statement, VF an OPTIONAL RECORD VARYING FD over an unframed file whose first prefix overruns the file: VF 39 with USE ON INPUT run, OK 00 and readable (each file opened separately), record area and DEPENDING ON item untouched; READ VF 47; OPEN EXTEND VF 39 with USE ON EXTEND; WRITE after failed EXTEND 48, medium unchanged (8 bytes). GR8 leaves the validated set to the implementor; the set the code applies is the documented one (docs/conformance/7/DOC-A.1-129.md), and every conflict in it was unsuccessful. cite.py: 'OK §1985:VII.4.3.4 GR8 ... the text is in GR8'.",
+  "evidence": "q2a.cob (runs/q2a-002): a RECORD VARYING OPTIONAL FD over a fixed 2x10-byte file: OPEN EXTEND 39 with the USE procedure run; WRITE after the failed OPEN 48; CLOSE after it 42; OPEN INPUT of the present optional file 39; the file then reads back unchanged under the fixed FD (ABCDEFGHIJ, KLMNOPQRST, then 10), so the unsuccessful EXTEND left it unaffected. The validated set is implementor-defined (amended GR8 text) and documented in docs/conformance/7/DOC-A.1-129.md; the 1985 fixed-attribute list (organization, code set, record sizes, record type, physical record size, padding character, record delimiter, keys) leaves every unvalidated one inside that latitude. Citation: OK §1985:VII.4.3.4 GR8 (the text is in GR8).",
   "edition-sites-missed": [],
   "corrected": ""
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "A variable-length record sequential file that a program writes with ADVANCING, or under LINAGE, cannot be read back through the file description that wrote it: OPEN INPUT answers 39 and the READ 47, at every edition.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10r.md"
- },
- "work": "PB5860"
+ }
 }

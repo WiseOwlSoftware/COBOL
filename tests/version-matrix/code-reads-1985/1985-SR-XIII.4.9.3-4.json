@@ -2,115 +2,49 @@
  "rule-id": "1985-SR-XIII.4.9.3-4",
  "rule-digest": "c7acdc68fa0a",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-080",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-241",
   "sources": {
-   "reader": "f703bafc36b3227b4c578b07a3e6a16ad81a96c464f4b30caf0eefd646b3f18b",
-   "refuter": "3df0a3407bf807dd061238dfffcd1f6710442b1e15c2b8d8c9e2d7232e6bc4ad"
+   "reader": "9db4f7c5d7dbf72cbfa3267006cfee1667d681ae12b6baa6dc9435216c71154b",
+   "refuter": "598865e6a2fcfa17a6c309c2a98c4298fe124dce14875e03b821d751dcc6daad"
   },
   "imported": {
-   "reader": "753d67bff0ba4c52c825bdb70695d51706e1324b21522e46c5d3230e0ebe7380"
+   "reader": "996439c594f569fa96206882435aba6a5cdfcb0978f63935c638e8ecdd6ac83b"
   }
  },
  "reader": {
   "rule-id": "1985-SR-XIII.4.9.3-4",
   "verdict": "PARTIAL",
-  "requirement": "At --std 85 the compiler must refuse any statement of a USE BEFORE REPORTING procedure that alters the value of a control data item of any report: a store into the item, a group containing it, an item subordinate to it, or any other data item sharing its storage (a REDEFINES of it or of a record that contains it, a RENAMES of it), by every storing verb.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataStores; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#SameStorageLine; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStores.cs#StoresInto; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement",
-  "edition-consulted": [],
-  "edition-search": "Read CheckControlDataStores and SameStorageLine: no Edition/DialectLevel test (the sibling CheckControlDataReferences is the 1985-only arm, DialectLevel < 2002, for XIII.3.20.3 SR5 and not this rule). The call site StatementBinder.BindStatement asks it under Ctx.Enclosing.InBeforeReportingProcedure only. Grepped ReportWriterBinder.cs for DialectLevel/Edition.Has: only RejectContainedReportFile and CheckControlDataReferences.",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: pb363_before_reporting_legal_store is only the legal shape (a store into a non-control item); no witness at 85 of any refusal, and none of a storage alias",
+  "requirement": "At --std 85 every statement of a USE BEFORE REPORTING procedure that alters the value of any control data item (of any report) must be refused, whatever the statement and whether the store reaches the item directly, through a containing group, a REDEFINES/reference-modified view, or a file record area that holds it; statements that alter no control data item are accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataStores; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#SameStorageLine; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStores.cs#StoresInto",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataStores",
+    "switches": "the diagnostic's wording (must/shall) and citation (§1985:XIII.4.9.3 SR4 below 2002); the detection itself is edition-blind",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read CheckControlDataStores, SameStorageLine, the BindStatement funnel and the BoundStores visitor arms for READ/RETURN/WRITE/REWRITE/ACCEPT/STRING/UNSTRING/INSPECT; grepped DialectLevel in ReportWriterBinder (the 85-only CheckControlDataReferences beside it is §1985:XIII.3.20.3 SR5, another rule).",
+  "behaviour-differs-by-edition": "no: only the message text differs",
+  "witnesses-cover": "part: pb363_before_reporting_legal_store covers only the legal store; the refusal half (each storing verb, group, REDEFINES, ref-mod, READ INTO) and the file-record-area store were probed here",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4a_move.cob",
-    "printed": "error COBOL2378: this statement alters control data item 'WS-GRP'",
-    "expected": "refuse MOVE 2 TO WS-GRP"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-241/ubr_bad.cob",
+    "printed": "COBOL2378 on MOVE to WK, MOVE to the group, MOVE to the REDEFINES, ADD/COMPUTE to WNK, INITIALIZE, SET cond TO TRUE, STRING, INSPECT REPLACING, MOVE to WS-RED(1:2), UNSTRING, READ INTO IN-REC, and the MOVE inside IF; NOT on line 43 'READ INF AT END ...' whose record area holds control item IN-KEY (exit 65)",
+    "expected": "every statement that alters a control data item refused"
    },
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4c_group.cob",
-    "printed": "error COBOL2378 (WS-GRP)",
-    "expected": "refuse MOVE ZEROS TO WS-REC, the group containing the control item"
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-241/ubr_read.cob",
+    "printed": "compiles clean at --std 85 and --std 2023 (exit 0); run at 85 with records AA001 AA002 BB003 CC004 prints report lines [BB 003] [CC 004]: the declarative's READs replaced IN-KEY before each group was presented",
+    "expected": "refused: READ INF and READ INF INTO WS-X each store a record into IN-REC, altering control data item IN-KEY"
    },
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4e_refmod.cob",
-    "printed": "error COBOL2378 (WS-GRP)",
-    "expected": "refuse MOVE \"2\" TO WS-GRP (1:1)"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4f_setcond.cob",
-    "printed": "error COBOL2378 (WS-GRP)",
-    "expected": "refuse SET GRP-TWO TO TRUE (88 of the control item)"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4i_other_report.cob",
-    "printed": "error COBOL2378 (WS-K2, control of the OTHER report R-2)",
-    "expected": "refuse: 'any control data item'"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4j_initialize.cob",
-    "printed": "error COBOL2378",
-    "expected": "refuse INITIALIZE WS-REC"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4k_inspect.cob",
-    "printed": "error COBOL2378",
-    "expected": "refuse INSPECT WS-GRP REPLACING"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4m_accept.cob",
-    "printed": "error COBOL2378",
-    "expected": "refuse ACCEPT WS-GRP FROM DATE"
-   },
-   {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4o_compute.cob",
-    "printed": "error COBOL2378 (with the unrelated subscripted-CONTROL errors of the first template)",
-    "expected": "refuse COMPUTE WS-GRP = 2"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4t_renames.cob",
-    "printed": "error COBOL2378 (WS-GRP) for MOVE 2 TO WS-REN (66 RENAMES WS-GRP)",
-    "expected": "refuse"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4r_perform_decl.cob",
-    "printed": "error COBOL2378 in BR2-SEC (a second USE BEFORE REPORTING section)",
-    "expected": "refuse"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4n_legal_other.cob",
-    "printed": "SEQ=1 GRP=1 (compiles, runs)",
-    "expected": "accept MOVE 3 TO WS-OTH, a sibling of the control item"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4d_redefines.cob",
-    "printed": "compiles clean, runs: SEQ=1 GRP=2",
-    "expected": "refuse MOVE \"22\" TO WS-RED (01 WS-RED REDEFINES WS-REC, which holds control WS-GRP): the store alters WS-GRP, as GRP=2 shows"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4l_string.cob",
-    "printed": "compiles clean, runs: SEQ=1 GRP=2",
-    "expected": "refuse STRING \"2\" DELIMITED BY SIZE INTO WS-RED"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4u_direct_redefines.cob",
-    "printed": "compiles clean, runs: SEQ=1 GRP=1",
-    "expected": "refuse MOVE \"2\" TO WS-AX (02 WS-AX REDEFINES WS-A, WS-A a control data item)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-241/ubr_ok.cob",
+    "printed": "002 TU; report [AA TU 001] [AA TU 002] (exit 0)",
+    "expected": "stores into non-control items, including a ref-mod window of a REDEFINES that touches only WOTH, accepted and executed before each DE1"
    }
   ],
   "citations": [
@@ -119,19 +53,22 @@
     "check": "OK  §1985:XIII.4.9.3 SR4  (4.9.3 Syntax Rules)  the text is in SR4"
    },
    {
-    "cite": "§1985:XIII.3.20.3 SR5",
-    "check": "OK  §1985:XIII.3.20.3 SR5  (3.20.3 Syntax Rules)  the text is in SR5"
+    "cite": "§1985:XIII.3.7.3 SR1",
+    "check": "OK  §1985:XIII.3.7.3 SR1  (3.7.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.4.9.4 GR4",
+    "check": "OK  §1985:XIII.4.9.4 GR4  (4.9.4 General Rules)  the text is in GR4"
    }
   ],
-  "notes": "Every storing verb into the control item, its containing group, a subordinate, its condition-name, a RENAMES of it, and another report's control item is refused (COBOL2378). A store through a REDEFINES alias - of the control item itself or of the record that holds it - is not related to the control item, because SameStorageLine walks only the Parent chain, so the procedure alters the control data item and compiles clean. The 1985 text itself treats 'a redefinition or renaming of any part of a control data item' as touching it (XIII.3.20.3 SR5 c).",
+  "notes": "Every explicit store is caught, but BoundStores' READ arm (Visit(BoundRead)) counts only the INTO target, never the file's record area, unlike its RETURN arm which counts RecordArea. A control data item may be in the File Section (§1985:XIII.3.7.3 SR1 bars only the Report Section), so a READ in the USE procedure alters it unrefused.",
   "seeded": true,
   "harm": "under-rejects",
   "cause": "b",
-  "at-2023": "same: p4d_redefines and p4l_string compile and print SEQ=1 GRP=2, p4u_direct_redefines compiles and prints SEQ=1 GRP=1 at --std 2023",
-  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p4d_redefines.cob: 01 WS-REC. 02 WS-GRP PIC 9 VALUE 1. 02 WS-OTH PIC 9. 01 WS-RED REDEFINES WS-REC PIC X(2). RD R-1 CONTROL IS WS-GRP ... DECLARATIVES. BR-SEC SECTION. USE BEFORE REPORTING DET-A. BR-P. MOVE \"22\" TO WS-RED. ...; cobol.exe --std 85 --source-format fixed --run",
-  "expected": "a compile-time refusal: \"A USE BEFORE REPORTING procedure must not alter the value of any control data item.\" (§1985:XIII.4.9.3 SR4)",
-  "observed": "no diagnostic; the run prints SEQ=1 GRP=2 (the control item WS-GRP was altered from 1 to 2 by the declarative)",
-  "known_note": "PB363 (landed) names this as its residual in its landing paragraph ('a store through a REDEFINES alias is not related to the control item'); no open kb/Work note carries it"
- },
- "work": "PB5808"
+  "at-2023": "compiles clean at --std 2023 too (exit 0); §2023:14.9.49.3 SR11 states the same rule",
+  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-241/ubr_read.cob: FD INF with 01 IN-REC / 05 IN-KEY; RD R1 CONTROL IS IN-KEY; DECLARATIVES U1 SECTION. USE BEFORE REPORTING DE1. U1-P. READ INF AT END MOVE 1 TO WEOF.",
+  "expected": "§1985:XIII.4.9.3 SR4: \"A USE BEFORE REPORTING procedure must not alter the value of any control data item.\" The READ stores the next record into IN-REC, altering IN-KEY, so the compile is refused (COBOL2378).",
+  "observed": "exit 0 at --std 85 and --std 2023; at run time the declarative's READ consumes records and the control data item changes before the group is presented",
+  "known_note": "none (kb/Work PB5808, landed, covers the REDEFINES overlap; PB363 the original screen; neither names a READ record area)"
+ }
 }

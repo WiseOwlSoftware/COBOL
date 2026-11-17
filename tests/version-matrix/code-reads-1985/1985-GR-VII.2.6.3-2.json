@@ -2,55 +2,44 @@
  "rule-id": "1985-GR-VII.2.6.3-2",
  "rule-digest": "458883fe73aa",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-119",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-238",
   "sources": {
-   "reader": "668292f5bea64a2ebda04368ea0c5b5116c23839c6b9a80a88be48d56cd05427",
-   "refuter": "263df7f3a8f35d39c4043566d15ccb2692c107760306ba31f7effb07a6212713"
+   "reader": "bd51bd42dc7eae79d677c61d04c699dbba6c55fdded09335f78d837e80675e3e",
+   "refuter": "b1986a107a45a96ed6025d8e93ac905af98a87ec7189304b319f653500884522"
   },
   "imported": {
-   "reader": "497be99053e2107992685bb68f240bf00d801e9d160ca40326ae0982ae7e4978",
-   "refuter": "8e50ecede3f9d343f569a683a6c27d217f86c2f2193065a1430ccfec94586f09"
+   "reader": "1664f60b561ae0664986766b944caf9244b2bcd224a21c3e0c0d6ace971394fe",
+   "refuter": "c69684c6c8849cd3e76b23def1a0d009312bd8f040dc35e4c7093ed52a6d022f"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.2.6.3-2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85, a sequential file's records are retrieved in the order they were placed in the file (OUTPUT then EXTEND appends after the last record; REWRITE replaces in place without moving it), for fixed and variable-length records alike.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
+  "requirement": "At 1985, a sequential file (ORGANIZATION IS SEQUENTIAL or no ORGANIZATION clause) identifies each record only by its predecessor-successor position fixed when it is written: records read back in the order written (OUTPUT then EXTEND appends), REWRITE keeps the position, for fixed and variable-length records.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationType; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
-    "switches": "refuses the 2023 RECORD SEQUENTIAL and LINE SEQUENTIAL phrases below 2023 (COBOL0900); bare SEQUENTIAL is legal at every edition",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration",
-    "switches": "connector Edition passed; SequentialConnector record ordering consults no edition",
+    "switches": "LINE SEQUENTIAL and RECORD SEQUENTIAL phrases gated to 2023 (COBOL0900 at 85); the bare SEQUENTIAL phrase is ungated",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep DialectBehaviors.IsActive|.Edition in src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs: none on the write/read ordering path",
-  "behaviour-differs-by-edition": "yes: only the spelling; 2023 adds RECORD SEQUENTIAL and LINE SEQUENTIAL, which --std 85 refuses; the record ordering is the same",
-  "witnesses-cover": "part: g85_bf21_01 covers OUTPUT then INPUT order for fixed records; not OPEN EXTEND, REWRITE in place, or variable-length records",
+  "edition-search": "grep Edition|Dialect in FileControlBinder.cs#MapOrganization (none) and SequentialConnector.cs (only DialectBehavior.LinageViolatingOpenLeavesFileOpen, LINAGE, unrelated)",
+  "behaviour-differs-by-edition": "no: the ordering is edition-independent; only the later LINE/RECORD SEQUENTIAL spellings are refused at 85",
+  "witnesses-cover": "part: g85_bf21_01 only; not EXTEND append order, REWRITE position, variable-length records, implied organization, failed OPEN",
   "probes": [
    {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p4org.cob",
-    "printed": "F1 D, B2, A, C (OUTPUT D,B; EXTEND A,C; REWRITE 2nd to B2); F2 D, B, A, C",
-    "expected": "predecessor-successor order as placed, rewrite in place"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p4org.cob",
-    "printed": "F3 07 [SEVENXX]; 01 [O]; 10 [TENTENTENT]; 03 [TWO]",
-    "expected": "variable-length records (RECORD VARYING DEPENDING ON, ODO record) read back in write order with their lengths"
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/seqo1.cob",
+    "printed": "REWRITE 00; F1 05 [FIRST] F1 02 [XY] F1 12 [THIRD-RECORD] F1 06 [FOURTH]; F1 END 10; F2 [3] [2] [1]; F3 OPEN 35; F3 READ 47",
+    "expected": "variable-length records in write order with the EXTEND record last and the rewritten record in place; implied-sequential F2 in write order 3,2,1; failed OPEN 35 then READ 47 without AT END"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p4orgref.cob",
-    "printed": "--std 85: COBOL0900 ORGANIZATION RECORD SEQUENTIAL requires COBOL-2023; COBOL0900 ORGANIZATION LINE SEQUENTIAL requires COBOL-2023. --std 2023: exit 0",
-    "expected": "the 1985 format is [ORGANIZATION IS] SEQUENTIAL only"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/seqo2.cob",
+    "printed": "COBOL0900 ORGANIZATION LINE SEQUENTIAL requires COBOL-2023; COBOL0900 ORGANIZATION RECORD SEQUENTIAL requires COBOL-2023",
+    "expected": "refused: the 1985 format is [ORGANIZATION IS] SEQUENTIAL only"
    }
   ],
   "citations": [
@@ -59,11 +48,11 @@
     "check": "OK  §1985:VII.2.6.3 GR2  (2.6.3 General Rules)  the text is in GR2"
    }
   ],
-  "notes": "Ordering is the SequentialConnector's append-only image; no edition arm on it. The 2023-only organization phrases are refused at 85 by VersionConformancePass.",
+  "notes": "The connector appends on WRITE and reads in physical order; OPEN EXTEND positions after the last record; REWRITE replaces in place. Also checked: READ without AT END is refused at 85 per VII.4.4.3 SR2 (COBOL6826).",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "RECORD/LINE SEQUENTIAL accepted; ordering path identical",
+  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -71,19 +60,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-VII.2.6.3-2",
-  "refutation": "OVERTURNED",
-  "classes": "e,c,b",
-  "evidence": "The reader never wrote a file with the ADVANCING phrase, which 1985 allows on every sequential file and implies on every WRITE (§1985:VII.4.7.4 GR16). src/r3ord.cob at --std 85: FA (no ORGANIZATION clause, PIC X(3)) written with WRITE A01 AFTER ADVANCING 2 LINES, WRITE A02 BEFORE ADVANCING PAGE, WRITE A03; CLOSE; OPEN INPUT FA; four READs printed 'FA [<LF><LF>A] 00', 'FA [01<CR>] 00', 'FA [A02] 00', 'FA [<FF><LF>A] 00' (od of r3ord-001/r3a.dat: \\n \\n A 0 1 \\r A 0 2 \\f \\n A 0 3 \\n). Three records were placed; four records, none but one equal to a record placed, were retrieved with status 00 and no at end. Same program at --std 2023: identical output. The ordering the reader probed (OUTPUT/EXTEND/REWRITE/RECORD VARYING, plain WRITEs only) holds, as do my own probes in r3ord: OPEN OUTPUT of an existing file restarts the sequence (FT N01 then END 10) and OPEN EXTEND on an absent OPTIONAL file creates it (05) and appends E01 E02 then E03 across two EXTEND opens. Cause: DOC-A.1-146 (c') makes a record sequential file written with any ADVANCING phrase a 'print stream' whose medium carries line-control bytes between the fixed records (SequentialConnector.IsRecordPrintStream, SelectLineEnd, AdvancingDeclared), and ReadRecord reads that stream back as fixed 3-byte blocks; kb/Work PB1190 states 'a print file is written, not re-read as framed records', a determination argued from §2023 text, not 1985's. At 1985 the implementor may refuse reading such a file (I-O status 37, 'the INPUT phrase is specified but the file will not support read operations') but may not return records never placed with 00. cite.py: OK §1985:VII.2.6.3 GR2 the text is in GR2; OK §1985:VII.4.7.4 GR12 the text is in GR12 ('The successor relationship of a sequential file is established by the order of execution of WRITE statements'); OK §1985:VII.4.7.4 GR16 the text is in GR16; OK §1985:VII.1.3.5 it lies in GRL2.3d.3 ('The INPUT phrase is specified but the file will not support read operations'). kb/Work: no note found for re-reading a print stream (searched print+advancing+read back/re-read/OPEN INPUT; PB1190, PB2509, PB1664 concern the write form only). Doubt worth stating: if one reads the print stream as a different physical file whose records the implementor need not map back, the verdict would be DOUBTFUL; but the OPEN INPUT and READs report 00, so the program is told the records are its own.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#IsRecordPrintStream: a record sequential file written with ADVANCING (FileModel.WrittenWithAdvancing -> AdvancingDeclared) is written as a print stream at every edition, and ReadRecord does not account for it",
-   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord: reads the print stream as fixed blocks"
-  ],
-  "corrected": "PARTIAL: wrong-answer, cause (b) (same at --std 2023). Repro: src/r3ord.cob's FA section. Expected per §1985:VII.2.6.3 GR2 and VII.4.7.4 GR12: READs return A01, A02, A03, then at end (10), or OPEN INPUT refused with 37. Observed: four records of mixed control bytes and data, all 00."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "A file written with ADVANCING or under LINAGE is opened INPUT or I-O with status 00 and then read as fixed blocks: records that were never written come back, a READ past the last record returns 00 with no AT END, and REWRITE overwrites a line end. The 1985 text allows the records as written or status 37 at OPEN, not this. `docs/conformance/7/DOC-A.1-146.md` (c') does not cover reading such a file back.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
- },
- "work": "PB5815"
+  "refutation": "UPHELD",
+  "classes": "a,c,e",
+  "evidence": "Probe refute-1985-238/rseq1.cob (runs/rseq1-001) at --std 85: implied organization, two 01 records of 3 and 8 characters (variable length with no RECORD clause); OPEN OUTPUT then OPEN OUTPUT again (recreates), OPEN EXTEND appends DDD then EEEEEEEE; INPUT reads 'R 00 [DDD..]' 'R 00 [EEEEEEEE]' 'END 10'; the 1985-only form OPEN INPUT F1 REVERSED (OPEN 00) reads 'V 00 [EEEEEEEE]' 'V 00 [DDD..]' 'END 10', i.e. the predecessor-successor order run backward. The positions past a 3-character record in the 8-character area are not set by the record (READ area beyond the record); not this rule. The READ after the AT END printed neither phrase (status 46 path, a READ rule, not this one). cite.py: OK  §1985:VII.2.6.3 GR2 the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

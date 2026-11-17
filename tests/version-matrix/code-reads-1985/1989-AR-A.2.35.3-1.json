@@ -2,89 +2,87 @@
  "rule-id": "1989-AR-A.2.35.3-1",
  "rule-digest": "97e5556356b1",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-171",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-242",
   "sources": {
-   "reader": "b9e1fb2dbadce3c7a5d8fb6b4c742c50d1f946596a6ce67df9c7c2055b5bf3a5",
-   "refuter": "cb6f0ea645b0cd3ae00802e52db865e1a5964587e93a9697ae35be5074b42c28"
+   "reader": "2ad1f79cff7c4c92e213726248e74f627166f73ff8c5d5b3c390728c0ac7c90e",
+   "refuter": "56e712bb6a26c4cdabeef7d08e3953c9a41683ecd887ad4658d520c4df44760e"
   },
   "imported": {
-   "reader": "5acba49701e6766a3f6f1e8def05b5a03c4db1e1209a814cb56ef66f20671f7e",
-   "refuter": "125dfa7455954444983e16fafec91b413e9b9f57ed9f3830001bace09ba04b97"
+   "reader": "6f9c9500e922e4dac79732c0d0f396d73c19ecd952bd06827b50f5a42c309749",
+   "refuter": "7953b9dcfdc56f02d0fc0651940bb7bf8771615eb9232944179377244c38eacd"
   }
  },
  "reader": {
   "rule-id": "1989-AR-A.2.35.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 argument-1 of FUNCTION RANDOM, when written, is an integer argument (Table 1 'I1'; §1989:A.2.2 type 4: an arithmetic expression that always results in an integer) whose value must be zero or positive, and is used as the seed: a non-integer literal, a scaled item, a numeric function (§1989:A.2.3), a non-integral expression, and any non-numeric operand must be refused; zero, positive integer literals, integer items of any usage, integer functions and always-integral expressions must be accepted and seed the sequence; a negative value at run time gives an undefined result (§1989:A.1.2.2). The witness covers 0, 17 and an item holding 32767; it does not cover the refusal half, other usages, expressions, integer functions or the largest seed.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#FloatBody; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Restart",
+  "requirement": "At --std 85 RANDOM's optional argument-1, when written, must be an integer argument (§1989:A.2.2 AR4) whose value zero or positive is the seed that starts a new repeatable sequence; non-integer arguments are refused and a negative value is outside the permissible range with an undefined result.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NotAlwaysIntegral; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
-    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: whether FUNCTION RANDOM exists at the edition",
+    "switches": "D8 window sig.IntroducedIn > DialectLevel: the 1989 Intrinsic Function Module rows carry IntroducedIn 85, so the function is admitted at --std 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation",
+    "switches": "EditionInfo.AlphabeticIsAlphanumeric widens an alphanumeric class position at 2002; inert for kind 'i' (Admissible('i') is class numeric only) and IntegerViolation takes no edition",
     "same-arm-as-latest": true
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-    "switches": "ArgPredicate.AppliesAt(edition year); the RANDOM row ('i') carries no predicate, so the integer screen is edition-free",
+    "switches": "ArgPredicate.AppliesAt(year) per-position predicates; a Uniform('i') row carries none, so nothing differs at 85",
     "same-arm-as-latest": true
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
-    "switches": "ConstructRegistry RepositoryFunction2002 for the keyword-omitted RANDOM form: at 85 the refusal names the REPOSITORY entry as a 2002 introduction",
-    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "Greps of IntrinsicBinder.cs, IntrinsicArgumentRules.cs, IntrinsicRenderer.cs, CobolIntrinsics.Float.cs and RandomSequence.cs for Edition/DialectLevel/ConstructRegistry/DialectBehavior/since:; the runtime seed path consults no edition (the negative-seed raise is gated by EC-ARGUMENT-FUNCTION checking, off by default).",
+  "edition-search": "grep of IntrinsicBinder.cs for Edition./CobolVersion/ConstructRegistry/DialectBehaviors/ReservedWords and of IntrinsicArgumentRules.cs for EditionInfo/edition: the integer screen (IntegerViolation, NonIntegralItemReason, NotAlwaysIntegral) takes no edition; the only consults on the path are the three listed",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: 0, 17 and a PIC 9(5) item holding 32767; not the refusal half, COMP/COMP-3 items, expressions, integer functions, subscripted items, ZERO or the 18-digit largest seed",
+  "witnesses-cover": "part: the witness g85_bf38_03 exercises literal and item seeds only; no witness refuses a non-integer seed or uses an expression or function seed",
   "probes": [
    {
-    "class": "b,c,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_refuse.cob",
-    "printed": "COBOL1627 on all nine: literal 1.5 (not an integer), PIC 9V9 item, FUNCTION SQRT (4) (numeric function barred from an integer position), \"5\", PIC X item, PIC Z9 item, W-N (1:1), W-N / 2 (not always integral), SPACE; the same nine at --std 2023",
-    "expected": "refused: integer argument (§1989:A.2.2 type 4) and numeric function not allowed where an integer operand is required (§1989:A.2.3)"
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-242/mrc_ref.cob",
+    "printed": "COBOL1627 on RANDOM(0.5), RANDOM(D PIC 9V9), RANDOM(FUNCTION SQRT (4)), RANDOM(N / 3), RANDOM(A PIC X)",
+    "expected": "each non-integer seed refused"
    },
    {
-    "class": "a,d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_accept.cob",
-    "printed": "SEED5=SAME x7 (literal 5 vs PIC 99, COMP, COMP-3, 2 + 3, FUNCTION INTEGER (5.7), W-E (W-I), W-N * 3 - 10); SEED6=DIFFERS; ZERO=SAME (ZERO vs 0); OUT-OF-RANGE=00 for seeds 32767 and 999999999999999999",
-    "expected": "each integer shape is a legal seed and the same seed value gives the same sequence (§1989:A.2.35.4 RV2); results in [0,1)"
-   },
-   {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_neg.cob",
-    "printed": "NEG-ITEM=+0.000000000; AFTER-NEG-NEXT-IN-RANGE=+0.049097318 (run unit survives)",
-    "expected": "undefined result for a value outside the constraint (§1989:A.1.2.2)"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_negl.cob",
-    "printed": "compiles; NEG-LIT=+0.000000000",
-    "expected": "the value constraint is a run-time one with an undefined result; no compile-time refusal is required"
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-242/mrc_ok.cob",
+    "printed": "RANDEXPR SAME (RANDOM(N*3) = RANDOM(30)); RANDP SAME (9PP item 0 = RANDOM(0)); RANDODO SAME (EL(CNT) = RANDOM(66)); RANDFN SAME (RANDOM(MOD(N 7)) = RANDOM(3))",
+    "expected": "each integer form is the seed: the same seed value gives the same first value (AR1, RV2)"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_nokw.cob",
-    "printed": "COBOL1543: 'RANDOM' is written without the word FUNCTION ... the REPOSITORY FUNCTION entry is a COBOL-2002 introduction (targeting COBOL-85)",
-    "expected": "refused: the 1989 function-identifier requires the word FUNCTION"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-242/edarm.cob",
+    "printed": "RANDOM(B\"1\"): COBOL0900 boolean literal requires COBOL-2002 and COBOL1627 class boolean",
+    "expected": "2002 boolean operand refused at 85"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-242/negval.cob",
+    "printed": "RANDOM(M) M=-1 -> 0.000000000 (CobolIntrinsics.Random raises EC-ARGUMENT-FUNCTION, checking off, returns 0)",
+    "expected": "undefined result (§1989:A.2.2); any result conforms"
    }
   ],
   "citations": [
    {
     "cite": "§1989:A.2.35.3 AR1",
-    "check": "OK  §1989:A.2.35.3 AR1  (2.35.3 Arguments)  the text is in AR1"
+    "check": "OK  §1989:A.2.35.3 AR1  the text is in the rule: it must be zero or a positive integer"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  the text is in the rule: An arithmetic expression which will always result in an integer value must be specified"
+   },
+   {
+    "cite": "§1989:A.2.3 GR2",
+    "check": "OK  §1989:A.2.3 GR2  the text is in the rule: A numeric function may not be referenced where an integer operand is required"
    },
    {
     "cite": "§1989:A.2.2",
-    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4 [\"An arithmetic expression which will always result in an integer value must be specified\"]"
-   },
-   {
-    "cite": "§1989:A.2.3",
-    "check": "OK  §1989:A.2.3  (2.3 TYPES OF FUNCTIONS)  the text is in the clause; it lies in GR2 [\"A numeric function may not be referenced where an integer operand is required\"]"
+    "check": "OK  §1989:A.2.2  the text is in the clause; it lies in AR4: then the result of such a reference is undefined"
    }
   ],
-  "notes": "RANDOM's Verified row is Uniform('i'): class numeric plus IntegerViolation (numeric function, scaled/float item, non-integral literal, provably non-integral quotient), all edition-free and matching §1989:A.2.2 type 4 and §1989:A.2.3. A negative value is caught at run time by CobolIntrinsics.Random(Int128), which returns 0 when EC checking is off; 1985 makes the result undefined, so that is within the rule.",
+  "notes": "The compile-time integer screen is the same edition-blind arm 2023 takes; the seed reaches CobolIntrinsics.Random(Int128), which restarts the run-unit sequence, so equal seeds from literal, P-scaled item, ODO element, expression and integer function give equal values. The negative seed is screened at run time only, which the undefined-result rule permits.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -98,14 +96,11 @@
   "rule-id": "1989-AR-A.2.35.3-1",
   "refutation": "OVERTURNED",
   "classes": "b,c,d,f",
-  "evidence": "Table 1 gives RANDOM argument type I1; §1989:A.2.2 type 4 requires 'An arithmetic expression which will always result in an integer value'. rr1.cob --std 85 --compile-only (runs/rr1-001): 14 of 16 shapes refused (2 ** -1, W-N ** -1, NUMVAL/REM/MEAN/RANDOM/PRESENT-VALUE as numeric functions, PIC PP9, USAGE INDEX item, index-name, ALL \"5\", a group, W-N + 0.5, 4 / 3), but FUNCTION RANDOM (W-SC * 2) with W-SC PIC 9V9 and FUNCTION RANDOM (W-N * 0.5) with W-N PIC 99 compile with no diagnostic. rr2.cob runs/rr2-001 (--std 85) and rr2-002 (--std 2023), identical: W-N = 5 gives RANDOM (2.5), whose value equals RANDOM (2) (HALF=0.771093898 = SEED2), and W-SC = 0.1 gives RANDOM (0.2), equal to RANDOM (0) (SCx2=0.726243269 = SEED0): the fraction is silently truncated. Cause in IntrinsicArgumentRules.cs#NotAlwaysIntegral: only a root item/literal quotient, an additive spine and a power arm have a witness; a product is treated as opaque and the check fails open, although a witness valuation exists (W-N = 1 gives 0.5, W-SC = 0.1 gives 0.2). cite.py: OK §1989:A.2.35.3 AR1 the text is in AR1 ['it must be zero or a positive integer']; OK §1989:A.2.2 the text lies in AR4 ['An arithmetic expression which will always result in an integer value must be specified'].",
-  "edition-sites-missed": [],
-  "corrected": "PARTIAL (under-rejects, cause b, the same at --std 2023): an argument-1 that is a product with a non-integral factor (an item with scale > 0 times an integer literal that does not cancel the scale, or an integer item times a non-integral literal) is not an always-integral arithmetic expression, so §1989:A.2.2 type 4 rejects it. The compiler admits it and truncates the value, though it refuses W-N / 2 and W-N + 0.5 on the same reading. Minimal repro: 01 W-N PIC 99 VALUE 5. ... COMPUTE W-R = FUNCTION RANDOM (W-N * 0.5) compiles and seeds with 2. No kb/Work note covers the product shape; the nearest are PB124, PB617, PB1526, PB5208 and PB5345 (sum, power and quotient arms, all landed)."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "At 85 an integer argument that is a product (`WN * 0.5`), a quotient of two items inside a larger argument list (`A / B`), or an expression holding a numeric function (`FUNCTION SQRT (N) + 64`) compiles and is silently truncated: FACTORIAL, MOD, RANDOM, CHAR. A quotient written alone is refused. See below. I ran it.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
- },
- "work": "PB5832"
+  "evidence": "Probes at --std 85 (run_probe.py): E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-242/open1.cob (compile-only, runs/open1-001) refused N*M/2, S*S/2, N/M, (N+1)/2, (N+M)/2, N**0.5, SQRT(N)+1, REM(N 2), LENGTH(A)/2, an index data item (COBOL6979) and an index-name (COBOL1637), but gave NO diagnostic on FACTORIAL(FUNCTION ORD(A) / 2), FACTORIAL(FUNCTION MOD(N 3) * 0.5), FACTORIAL(FUNCTION INTEGER(N) / FUNCTION INTEGER(M)), FACTORIAL(FUNCTION ORD-MAX(N M) / 2), MOD(N * N * N / 2, 7), MOD(7, FUNCTION ORD(A) / 4), RANDOM(FUNCTION INTEGER-PART(N) / 3), CHAR(FUNCTION RANDOM(1) * 10). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-242/open3.cob (N=1, M=2, A='B'; runs/open3-001 at 85, open3-002 at 2023) compiled and ran EXIT 0 at both editions: ORDHALF (FACTORIAL(67/2=33.5)) 518194401280000000 = 33! truncated; MODHALF (FACTORIAL(0.5)) 1; INTQUOT (FACTORIAL(1/2)) 1; CUBEHALF (MOD(0.5,7)) 0; MODARG2 (MOD(7, 67/4=16.75)) 7; CHARHALF (CHAR(33.5)) blank; RANDHALF (RANDOM(33.5)) seeded silently. Each argument is provably not always an integer (INTEGER of an integer item is the item, so INTEGER(N)/INTEGER(M) is N/M, which the screen refuses; ORD of a one-character item takes consecutive values; MOD(N 3) is 1 at N=1; N*N*N/2 is 0.5 at N=1). Code read: IntrinsicArgumentRules.cs#NotAlwaysIntegral -> CollectAdditive default arm (factor not integer or term not ProvablyIntegral -> RestIntegral=false -> fail open) and WitnessOf (witness arms only for bare-item quotient/product, a power, MEAN/MEDIAN, 8 transcendental numeric functions). The screen takes no edition, and docs/INTRINSICS_DESIGN.md states the 85 arm relies on it because 85 has no EC-ARGUMENT-FUNCTION net. kb/Work/PB5832 (landed) and its 2026-11-16-residue.md record the fail-open residue and keep these rows CONFORMS; the residue list names numeric functions, A*B/C, 3+-factor products, two witness terms and powers under a coefficient, but NOT an integer-function term under a fractional literal factor nor a quotient of two integer functions, which are decidable siblings of the shapes PB5832 refused. RANDOM-specific: RANDOM(FUNCTION ORD(A) / 2) (33.5 for A='B') and RANDOM(FUNCTION INTEGER-PART(N) / 3) compile at 85 without a diagnostic and seed the generator from a truncated value. cite.py: OK §1989:A.2.2 AR4 'An arithmetic expression which will always result in an integer value must be specified'; cite.py: OK §1989:A.2.35.3 AR1 'it must be zero or a positive integer'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CollectAdditive: default arm sets RestIntegral=false for an integer-function term under a non-integral literal factor (fail open), no edition switch",
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#WitnessOf: quotient witness only for two BARE items, product witness only for two bare items; integer-function terms have no witness arm"
+  ],
+  "corrected": "Non-conforming (under_rejects; cause b): §1989:A.2.35.3 AR1 requires a specified seed to be an integer (§1989:A.2.2 AR4: always-integral expression); RANDOM(FUNCTION ORD(A) / 2) compiles at --std 85 and is truncated silently. Same at 2023. Known note: kb/Work/PB5832 residue (shape not in its recorded list)."
+ }
 }

@@ -2,71 +2,50 @@
  "rule-id": "1985-GR-VI.6.6.4-3",
  "rule-digest": "30b7bcacbcb7",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-116",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-238",
   "sources": {
-   "reader": "801d4846124ac220b1bb6d8fe84b092470ef8cb2a20ab9c98f819dc3fc238061",
-   "refuter": "dfd9f2514c7aac4fd17adc5db6898145f3a8d752b7c419d5c6c57cb550382fda"
+   "reader": "bd51bd42dc7eae79d677c61d04c699dbba6c55fdded09335f78d837e80675e3e",
+   "refuter": "b1986a107a45a96ed6025d8e93ac905af98a87ec7189304b319f653500884522"
   },
   "imported": {
-   "reader": "3e4951e17a656afd8e3a39751a6642d89f38cab8db9df1d0fa5b12e37d7a0690",
-   "refuter": "437be423801ba81f23f50ffe21e2f604b44b9e3014feec9f0afed5f3cacf7679"
+   "reader": "adee75a91f952c0c21cda597b7701459ec8b2efe5f585cb285cb7931668f8e1c",
+   "refuter": "35824d8f8db8049fda0f0e5e456c8b2ae19d31deee71b1ef5bad009a9275c47a"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.6.6.4-3",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 ADD CORRESPONDING must add each elementary numeric item of identifier-1 to its corresponding item in identifier-2 (pairs chosen by §1985:VI.6.4.3: same name and qualifiers, both elementary numeric, the GR4 exclusions), as separate additions with the one ROUNDED phrase on every pair, an erring pair left unchanged while the others are still stored, and ON SIZE ERROR run only after all pairs; both operands must be groups (SR1) that are neither level 66 nor USAGE INDEX (GR3).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindAddCorresponding; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMembers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CorrespondingEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand",
+  "requirement": "At 1985, ADD CORRESPONDING identifier-1 TO identifier-2 adds each elementary numeric item of group identifier-1 to the corresponding item of group identifier-2 (correspondence per VI.6.4.3: same name and qualifiers, both elementary numeric, items with REDEFINES, RENAMES, OCCURS or USAGE INDEX and their subordinates ignored, FILLER excluded) and stores the sum there, with ROUNDED and SIZE ERROR applying per pair; both operands must be groups and not reference modified.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindAddCorresponding; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMatch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#CorrMembers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CorrespondingEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
-    "switches": "perPair = DialectLevel < 2002: no anchor hoist, each pair re-identifies the group operands (D-CORR85)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand",
-    "switches": "DialectLevel < 2002: refuses a level-66 or USAGE INDEX operand per §1985:VI.6.4.3 GR3",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
-    "switches": "UnphrasedSizeErrorIsFatal: unphrased pair overflow continues at 85",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRoundedPhrase",
-    "switches": "ROUNDED MODE IS refused below 2014",
-    "same-arm-as-latest": false
+    "switches": "perPair = MOVE and DialectLevel < 2002: per-pair group identification is MOVE-only below 2002; ADD at 85 takes the identify-once arm, the same as 2023",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep DialectLevel|IsActive in CorrespondingBinder.cs, CorrespondingEmitter.cs, ArithmeticEmitter.cs, StatementValidation.cs.",
-  "behaviour-differs-by-edition": "yes: 85 re-identifies the group operands per pair (2002+ once at the start), refuses a level-66/INDEX operand under GR3, and continues on an unphrased size error; the per-pair addition itself is the same code.",
-  "witnesses-cover": "part: pb228 (values, scaling, sign, a nested pair, alphanumeric namesake skipped), l1c04/pb229 (exclusions), g85_bf04_05/g85_bf15_03 at 85. Not exercised by them: ROUNDED across pairs, a size error on one pair with ON/NOT ON SIZE ERROR, zero pairs with NOT ON SIZE ERROR, a numeric-edited namesake, P scaling and COMP, subscripted operands, and the refusals.",
+  "edition-search": "grep Edition|DialectLevel|CobolVersion in CorrespondingBinder.cs and CorrespondingEmitter.cs (emitter: none)",
+  "behaviour-differs-by-edition": "no: addc2 prints the same at --std 85 and --std 2023 (identification once, per-pair size error)",
+  "witnesses-cover": "part: witnesses cover values, FILLER groups, OCCURS/REDEFINES subordinates and the subscript-once rule; not USAGE INDEX exclusion, numeric-edited/alphanumeric namesakes, scaled P items, ROUNDED, per-pair SIZE ERROR, 18-digit extremes, an ODO table operand",
   "probes": [
    {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add3.cob",
-    "printed": "C1 SE / C1 Z=5 A=+3.4 B=6 C=-004 K=42 L=4 E= 7 X=8 P=0250",
-    "expected": "ROUNDED 3.35 gives 3.4; B 6+5 overflows and stays 6 while every other pair is stored; SE once, after all pairs; numeric-edited E and alphanumeric-sourced X not paired; K/L paired across a reordered subgroup; COMP C -4; 9PP 200 added gives 250"
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/addc1.cob",
+    "printed": "SIZE ERROR; N1 +0087.50 N2 010 NE   4 ALF 005 N3 12 N4 24 T1 33 R1 55 R2 06 IX 07 P1 2.3 SC 0305 ONLY2 77 BIG 002; source unchanged; second ADD N2 017",
+    "expected": "signed/scaled/P pairs summed, ROUNDED 1.0+1.25=2.3, edited and alphanumeric namesakes, OCCURS, REDEFINES, FILLER and USAGE INDEX items ignored, BIG overflow leaves 002 and SIZE ERROR runs"
    },
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add3.cob",
-    "printed": "C2 Z=6 A=+4.6 B=1 C=-011 K=44 L=7 P=0450 / C3 NOSE / C4 +0.0 00 +1.2 05",
-    "expected": "no ROUNDED: truncation 4.65 to 4.6; B undefined (unphrased overflow); zero pairs: NOT ON SIZE ERROR runs; subscripted D2 TG (2) gets 1.25 truncated to 1.2 and 5, TG (1) unchanged"
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/addc2.cob",
+    "printed": "25 +000000000000000000; SE2; 15 -999999999999999999",
+    "expected": "R (I OF B) in an ODO table identified once (I 2, J 5), 18-digit +max + -max = 0; second ADD: BIGN and J overflow (size error, unchanged), I 1+0"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add3r.cob",
-    "printed": "COBOL1757 elementary 'N' as D1 and as D2; COBOL1757 'R1' is described with level-number 66 (§1985:VI.6.4.3 GR3); COBOL0803 ROUNDED MODE IS requires COBOL-2014",
-    "expected": "SR1 group operands; GR3 no level 66; a later-edition phrase refused"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.2-ADD/pb228_add_corresponding_values.cob",
-    "printed": "EXPECT: MATCH (also l1c04 MATCH, pb229 same lines)",
-    "expected": "witness goldens"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/addc3.cob",
+    "printed": "COBOL1757 'EL' is an elementary item; COBOL1757 'G1(1:2)' is reference-modified",
+    "expected": "refused: VI.6.6.3 SR1 each identifier a group item; VI.6.4.3 D1 not reference modified"
    }
   ],
   "citations": [
@@ -75,23 +54,15 @@
     "check": "OK  §1985:VI.6.6.4 GR3  (6.6.4 General Rules)  the text is in GR3"
    },
    {
-    "cite": "§1985:VI.6.6.3 SR1",
-    "check": "OK  §1985:VI.6.6.3 SR1  (6.6.3 Syntax Rules)  the text is in SR1"
-   },
-   {
     "cite": "§1985:VI.6.4.3 GR2",
     "check": "OK  §1985:VI.6.4.3 GR2  (║6.4.3 The CORRESPONDING Phrase║)  the text is in GR2"
-   },
-   {
-    "cite": "§1985:VI.6.4.2",
-    "check": "OK  §1985:VI.6.4.2  (6.4.2 The ON SIZE ERROR Phrase)  the text is in the clause; it lies in GR3"
    }
   ],
-  "notes": "CorrespondingEmitter.Emit runs each pair through the in-place store an explicit ADD uses, inside one EmitArith region, so the flag latches and the phrase runs once after all pairs, as §1985:VI.6.4.2 says for CORRESPONDING. Every probe matched. The 85 per-pair re-identification of a subscripted operand is the D-CORR85 implementor choice (1985 prints no identification time); it cannot be observed here because no pair stores into a group operand's subscript.",
+  "notes": "All pairs and exclusions match VI.6.4.3; the ADD arm is edition-independent and equals 2023 output. The refusal messages at --std 85 cite §2023 clauses rather than §1985 (cosmetic, not a conformance defect).",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "addc2 identical output",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -99,18 +70,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-VI.6.6.4-3",
-  "refutation": "OVERTURNED",
-  "classes": "c,f",
-  "evidence": "rc4.cob at --std 85 (rc4-001): TG OCCURS 4 (AA, JJ, BB); TG(1)=(100,1,200), TG(2)=(300,1,400); G2=(AA 0, JJ 1, BB 0); ADD CORRESPONDING TG (JJ OF G2) TO G2 printed 'Q1 AA=100 JJ=2 BB=400': the JJ pair stored 2 into the sending group's subscript and the later BB pair then added BB OF TG (2). At --std 2023 (rc4-002) the same program prints 'Q1 AA=100 JJ=2 BB=200'. The 1985 text with Amendment 1 applied fixes the identification time: 'OK  §1985:IV.4.3.8  (4.3.8 Uniqueness of Reference)  the text is in the clause' for 'Unless otherwise specified by the rules for a statement, any subscripting and reference modification are evaluated only once as the first operation of the execution of that statement.' The ADD rules print no exception for format 3 ('OK  §1985:VI.6.6.4 GR3 ... data items in identifier-1 are added to and stored in corresponding data items in identifier-2'), unlike MOVE CORRESPONDING, whose §1985:VI.6.19.4 GR1 'separate MOVE statements' sentence is such an exception; §1985:VI.6.4.6 does not help either, because even under its model a SENDING operand is part of the initial evaluation. So TG (1) is identified once and BB must be 200+0=200. The code comment at CorrespondingBinder.cs#Bind and docs/conformance/3/D-CORR85.md both say '§1985:VI.6.6.4 GR3 ... print no identification time, so the choice is the implementor's (GnuCOBOL)'; neither consults §1985:IV.4.3.8, so the GnuCOBOL precedence (CLAUDE.md rule 1) was applied where the spec controls. The witness conformance-suite/cases/VI.6.6@1985-ADD-STATEMENT/pb5185_add_corresponding_subscript_per_pair.out pins the wrong answer '27' (the text gives '25'). kb/Work/PB5185 (status landed) holds no reference to 4.3.8 or 'evaluated only once' (grep).",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind: perPair = DialectLevel < 2002 re-identifies the group operands per pair for ADD (and SUBTRACT) CORRESPONDING at 85; the reader listed the site but judged it unobservable and an implementor choice"
-  ],
-  "corrected": "NON-CONFORMING (wrong-answer), cause (a): at --std 85 the code takes its own per-pair arm, and that arm contradicts §1985:IV.4.3.8 (subscripts evaluated once as the first operation unless a statement's rules say otherwise; ADD's do not). Repro rc4.cob / pb5185_add_corresponding_subscript_per_pair.cob: expected 'Q1 AA=100 JJ=2 BB=200' (witness '25'), observed 'BB=400' (witness '27'); --std 2023 gives the expected answer. The SUBTRACT CORRESPONDING sibling (same perPair) is very likely the same; MOVE CORRESPONDING's per-pair arm is defended by §1985:VI.6.19.4 GR1. Known note: kb/Work/PB5185 (landed decision D-CORR85, which is the cause)."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "ADD CORRESPONDING at 85 evaluates the group operand's subscript afresh for each pair (`BB=400`); the 1985 text as amended requires once, at the start (`BB=200`, which 2023 prints). See below: this overturns part of the documented determination D-CORR85. SUBTRACT CORRESPONDING takes the same switch.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
- },
- "work": "PB5814"
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "Probes refute-1985-238/raddc1.cob (runs/raddc1-002) and raddc2.cob (runs/raddc2-001) at --std 85. raddc1 printed 'N5 01 N6 02 XR 03 NB -00036 N7 35 N11 56': an item under SUBA in G1 against a same-name item directly in G2 and under SUBB are not corresponding (VI.6.4.3 rule 1, same qualifiers), a level-66 RENAMES of G1 is ignored (rule 4), COMP to COMP-3 and the same-named SUBC.N11 add; subscripted D1/D2 'E1 33 +06 E2 22 +09' and ADD CORR ENT (2) TO ENT (2) doubled 'E2 44 +18'. raddc2 (D1 subscripted by K OF CTL, which the ADD itself changes as a corresponding item of D2) printed 'K 2 N8 10': the subscript is evaluated once as the first operation, which ADD CORR at 85 requires (it states no per-pair exception, unlike MOVE CORR VI.6.19.4 GR2). Edition site re-read: CorrespondingBinder.cs#Bind perPair = MOVE and DialectLevel < 2002, ADD takes the identify-once arm; the reader listed it. cite.py: OK  §1985:VI.6.6.4 GR3 the text is in GR3; OK  §1985:VI.6.4.3 the text is in the clause; it lies in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }
