@@ -1,5 +1,5 @@
 - **D-PRINT-CLOSE-ENDS-THE-LINE — the CLOSE of a record sequential print file ends the line a WRITE AFTER ADVANCING left
-  open (kb/Work PB5683).** This entry speaks for COBOL-85 and later, beside `docs/conformance/7/DOC-A.1-146.md`'s account
+  open (kb/Work PB5683).** This entry speaks for COBOL-85 and later, beside A.1 item 146's account
   of how lines are advanced. When a record sequential print file is closed after a WRITE with the AFTER ADVANCING phrase,
   the CLOSE ends the line that WRITE left open (one line feed). A file then opened EXTEND begins on a new line, so its
   first WRITE AFTER ADVANCING 1 LINE leaves one empty line after the last line of the earlier OPEN. The 1985 text fixes
