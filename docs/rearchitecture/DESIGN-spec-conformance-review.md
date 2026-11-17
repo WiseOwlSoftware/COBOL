@@ -1240,7 +1240,7 @@ kb/Work PB5256), its change records do not yet.
   note or a reconstruction fills it. From 2026-11-09 until then each gap held a RECONSTRUCTION (editorial text between
   a `cite.RECONSTRUCTED` note and a `cite.RECONSTRUCTED_END` note, its rows marked `provisional` in the catalog, the
   inventory, the audit's requests, `cite.py --check` and the figure sweep); none remains, and the store records decided
-  against one were withdrawn when the printed text replaced it (their `rule-digest` no longer matched).
+  against one are refused by their `rule-digest` until they are decided again against the printed text.
 
 The catalog is written to `docs/rearchitecture/spec-rule-catalog-1985.json` and held by the gate's RULE CATALOGS
 audit (`--held --check`, every held edition; for 1985 no finding, and the committed catalog is this run's). On the reconciled file it counts

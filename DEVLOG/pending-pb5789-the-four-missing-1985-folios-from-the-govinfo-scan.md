@@ -20,9 +20,9 @@ ends at its own folio line. The Preface says so. What the printed text changes:
 - Each has a planted self-test.
 
 **The rows.** `extract_rule_catalog.py --edition 1985` regenerated the catalog: 2,275 rows (adds `1985-GR-XIII.3.19.4-12`), none
-provisional. The 11 store records decided against reconstructed text no longer matched their digests, and `record_verdicts.py
---edition 1985` withdrew them. The 1985 inventory went from 0 GAP to 12 GAP, rows owed a new decision. PB1003's `closes_rows` gives up
-`1985-GR-XIII.3.10.7-2` with its reason. Nine stored code reads are stale; none was edited.
+provisional. Eleven store records were decided against reconstructed text, and their `rule-digest` no longer matches. The view
+refuses them until they are decided again against the printed text. They keep their witnesses and notes for that decision. Nine
+stored code reads are stale; none was edited.
 
 **The citations.** g85_bf09_09 cites the printed GR12 and names its row. Four other cases, `VersionConformancePass`, a derivation
 entry and the design's section 10.1 stop citing a reconstruction. `audit_code_citations` and `audit_doc_citations` report no finding.
