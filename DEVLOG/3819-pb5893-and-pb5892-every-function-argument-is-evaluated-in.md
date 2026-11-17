@@ -1,4 +1,4 @@
-## PB5893 and PB5892: every function argument is evaluated in the argument context, and CONCAT tests an integer by its value
+## Entry 3819 — 2026-11-17 06:28 PST — PB5893 and PB5892: every function argument is evaluated in the argument context, and CONCAT tests an integer by its value
 
 **PB5893 (wrong answer, every edition with a floating-point usage).** A function argument's evaluation technique followed the
 statement's RECEIVER at every position but an integer one.
@@ -96,3 +96,4 @@ U PIC 99P was refused COBOL1627.
 - `pb5893_argument_fixed_receiver_85` (85, 2014, 2023): 1985 has no floating-point usage, so it shows the fixed-resultant values only.
 - `pb5892_concat_p_scaled_integer` (2023).
 - The refusal `pb5892-concat-p-scaled-fraction` (V PIC P9 holds .05, still COBOL1627).
+
