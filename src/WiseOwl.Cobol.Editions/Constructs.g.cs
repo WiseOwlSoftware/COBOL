@@ -224,6 +224,7 @@ public static class Constructs
     public const string ReplaceAnywhere2002 = "replace-anywhere-2002";
     public const string ReplacingPartialWord2002 = "replacing-partial-word-2002";
     public const string ReportCodeIs2002 = "report-code-is-2002";
+    public const string ReportControlNameQualification2002 = "report-control-name-qualification-2002";
     public const string ReportControlOperandForms2002 = "report-control-operand-forms-2002";
     public const string ReportControlReferenceModification2002 = "report-control-reference-modification-2002";
     public const string ReportFiller2002 = "report-filler-2002";
