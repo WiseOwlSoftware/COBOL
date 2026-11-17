@@ -91,5 +91,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape: the edition-aware data-name-n shape screen (subscript/refmod, admitsSubscript2002) that the READ KEY data-name-1 arm of KeyedIoBinder.BindRead does not call"
   ],
   "corrected": "UNDER-REJECTS (cause b: same at --std 2023). Minimal repro: READ IXF KEY IS IX-T (1) where IX-T PIC X(4) OCCURS 2 sits at the prime key's positions in a second 01 of the file; expected refusal (data-name-1 may only be qualified, §1985:IX.4.5.3 SR3; a table element is no record key, SR2); observed EXIT 0 and the read by the prime key. Known note: none for READ KEY (sibling of PB5499's PADDING CHARACTER fix)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "READ ... KEY IS a subscripted table element that lies over the record key compiles and runs (r1-sub-run.cob), where the KEY phrase takes a data-name that may only be qualified.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
+ },
+ "work": "PB5883"
 }

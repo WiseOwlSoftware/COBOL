@@ -70,5 +70,6 @@
   "expected": "§1985:XIII.4.9.3 SR4: \"A USE BEFORE REPORTING procedure must not alter the value of any control data item.\" The READ stores the next record into IN-REC, altering IN-KEY, so the compile is refused (COBOL2378).",
   "observed": "exit 0 at --std 85 and --std 2023; at run time the declarative's READ consumes records and the control data item changes before the group is presented",
   "known_note": "none (kb/Work PB5808, landed, covers the REDEFINES overlap; PB363 the original screen; neither names a READ record area)"
- }
+ },
+ "work": "PB5885"
 }

@@ -83,5 +83,6 @@
   "expected": "refused: 'The NUMERIC test cannot be used with an item whose data description describes the item as alphabetic' (§1985:VI.6.3.1.2 GR5), the slice having 'the same class and category as that defined for the data item referenced by data-name-1' (§1985:IV.4.3.8.4.4 GR5)",
   "observed": "compiles with no diagnostic (exit 0); IF AB NUMERIC unsliced is refused COBOL6917",
   "known_note": "none for the class condition; sibling PB5813 (INITIALIZE REPLACING on an alphabetic slice, landed) names the same mechanism and leads at MoveOverlap.cs and ExpressionBinder.cs"
- }
+ },
+ "work": "PB5881"
 }

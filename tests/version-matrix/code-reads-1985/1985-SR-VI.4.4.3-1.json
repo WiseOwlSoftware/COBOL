@@ -113,5 +113,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#TryMethod: implementor-names not asked by GateComputerName"
   ],
   "corrected": "UNDER-REJECTS (cause c), same defect and repro as 1985-SR-VI.4.3.3-1 with OBJECT-COMPUTER. PRINTER. Known note: kb/Work/PB5795/2026-11-16-landed.md (open lead)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "An implementor-name this implementation specifies (DISK, PRINTER, LINE-SEQUENTIAL, BINARY-SEQUENTIAL) is accepted as a computer-name at --std 85 (r2-disk.cob, r2-rdnames.cob), where the three types of system-names are disjoint sets.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
+ },
+ "work": "PB5884"
 }

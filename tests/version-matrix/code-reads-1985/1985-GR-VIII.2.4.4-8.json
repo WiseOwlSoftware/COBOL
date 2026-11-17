@@ -106,5 +106,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ExternalItemIdentity: no edition switch; its name-path component is the defect, at every edition"
   ],
   "corrected": "NONCONFORMING (harm rejects-legal-source, cause b: same at --std 2023). Minimal repro r1-group-differ.cob: REL-KEY at the same characters of the same external record EXT-KEYS in both describers, reached through differently named intermediate groups, is refused COBOL1575 although it is the same external data item under 1985 X.4.5.4 GR1/GR2 and kb/Work PB5857's storage reading. ExternalItemIdentity should identify a corresponding external data item by record name + storage (offset, width), not by the subordinate names, which 1985 does not require to agree. Whether a differently named item at the same storage (r1-name-differ) is 'that same' item is the same storage reading; it too is refused."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "RELATIVE KEY naming the same external data item (the same name at the same character positions of the same external record) is refused COBOL1575 when the two programs reach it through differently named groups (r1-group-differ.cob), where the entries subordinate to an external record may differ between programs.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17b.md"
+ },
+ "work": "PB5888"
 }

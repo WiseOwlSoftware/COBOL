@@ -75,5 +75,10 @@
    "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord: _lineSequential arm returns 09/06 with no edition consulted"
   ],
   "corrected": "If GR3 is read with GR1: non-conforming at 85 (wrong-answer, I-O status 71 for a legal record, cause a: the 85 path takes the 2023 line sequential arm). Otherwise CONFORMS for GR3 with a separate defect against the 1985 I-O status values (VII.1.3.5) to file."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The doubt is rejected: the rule leaves the method to the implementor. The I-O status 71 the method returns at --std 85 is a separate defect against the 1985 status values (kb/Work PB5882), not against this rule.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
  }
 }

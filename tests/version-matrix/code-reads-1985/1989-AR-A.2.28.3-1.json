@@ -86,5 +86,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#WitnessOf: quotient witness only for two BARE items, product witness only for two bare items; integer-function terms have no witness arm"
   ],
   "corrected": "Non-conforming (under_rejects, wrong_answer; cause b): §1989:A.2.28.3 AR1 requires both arguments to be integers (always-integral expressions per §1989:A.2.2 AR4); MOD(7, FUNCTION ORD(A) / 4) and MOD(N * N * N / 2, 7) compile at --std 85 and are truncated silently. Same at 2023. Known note: kb/Work/PB5832 residue (the 3-factor product is listed there; the integer-function quotient is not)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "An integer argument that is a quotient with an integer FUNCTION term (FUNCTION ORD(A) / 2) compiles and is truncated silently (open3.cob: FACTORIAL of 33.5 returns 33!), where the rule requires an expression that always results in an integer.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
+ },
+ "work": "PB5886"
 }

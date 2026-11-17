@@ -95,5 +95,10 @@
    "src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#WordText: reads a declared symbolic-character as implementor-name-1 at every edition; the constant-name reading (LiteralEnvironment.ReadConstant) has no symbolic-character twin"
   ],
   "corrected": "Reading: if the program's declaration wins (as DOC-A.1-71 rules for constant-names), ASSIGN TO <symbolic-character> is a figurative constant and must be refused (UNDER-REJECTS, cause b, same at 2023); if the implementor-name reading wins, the verdict stands but the choice is undocumented. Needs a recorded determination."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The doubt is rejected: the 1985 text does not say whether a word in the ASSIGN clause that the program declares as a symbolic-character is the implementor-name or the figurative constant; GnuCOBOL 3.2.0 takes it as the file's name (measured), which is what the compiler does. A register sentence in DOC-A.1-71 records it.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
  }
 }

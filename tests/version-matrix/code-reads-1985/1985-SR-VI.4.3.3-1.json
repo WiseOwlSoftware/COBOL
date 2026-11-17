@@ -113,5 +113,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#TryMethod: BINARY-SEQUENTIAL and LINE-SEQUENTIAL, RECORD DELIMITER implementor-names at 85 that GateComputerName does not ask"
   ],
   "corrected": "UNDER-REJECTS (cause c: the 1985 disjointness covers every implementor-name this implementation specifies, and the 85-only gate reads two of its four fixed tables). Repro: SOURCE-COMPUTER. DISK. (or LINE-SEQUENTIAL.) at --std 85; expected refusal per §1985:IV.4.2.2.1.2; observed EXIT 0. At 2023 accepted, rightly (the rule is 1985's). Known note: kb/Work/PB5795/2026-11-16-landed.md 'Left open' lead names the ASSIGN / RECORD DELIMITER positions as an open determination; since PB5844 and DOC-A.1-71 those names are a fixed documented list, so the lead is now a defect for those names."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "An implementor-name this implementation specifies (DISK, PRINTER, LINE-SEQUENTIAL, BINARY-SEQUENTIAL) is accepted as a computer-name at --std 85 (r2-disk.cob, r2-rdnames.cob), where the three types of system-names are disjoint sets.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
+ },
+ "work": "PB5884"
 }
