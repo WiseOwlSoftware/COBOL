@@ -1,18 +1,21 @@
 {
  "rule-id": "1985-SR-XIII.3.20.3-2",
- "rule-digest": "249a30ce83b7",
- "test-ref": "conformance:cases/13.18.57-TYPE/pb205-type-control-operand-other-slice",
+ "rule-digest": "2e70a738f678",
+ "test-ref": "conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/pb5789-type-ch-final-twice-85; conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/pb5789-type-cf-final-twice-85; conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/pb5789-type-rh-twice-85; conformance:cases/13.18.57-TYPE/pb1299_report_group_census_legal",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). Every one of the six group kinds the printed rule lists is refused the second time at 85. New refusals pb5789-type-ch-final-twice-85, -cf-final-twice-85 and -rh-twice-85 (COBOL2749); legal side pb1299_report_group_census_legal (85). retired-witness: conformance:cases/13.18.57-TYPE/pb205-type-control-operand-other-slice (the printed SR2 is the once-only rule; pb205 tested the CONTROL-operand rule, now SR4, and at 85 it is refused for 2002 syntax (ruling, kb/Work PB5683))",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.18.57.3-10"
+   "SR-13.18.57.3-13",
+   "SR-13.18.57.3-14"
   ],
   "bridge": true,
-  "reason": "PROVISIONAL (a reconstruction of folio XIII-55, kb/Work PB4952). Each data-name-1, data-name-2 and FINAL is a CONTROL clause operand; 2023 SR10's last sentence states it. The qualification and reference modification SR10 allows, and SR11's omitted operand, are later additions that leave a 1985 TYPE clause valid.",
-  "source": "adjudication kb/Work PB4952",
+  "reason": "REPORT HEADING, PAGE HEADING, PAGE FOOTING and REPORT FOOTING once: SR13; CONTROL HEADING FINAL and CONTROL FOOTING FINAL once: SR14 ('for each control data item or FINAL'). The withdrawn record's SR10 was the reconstruction's SR2 (the CONTROL-operand rule), now printed SR4.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
   "digests": {
-   "SR-13.18.57.3-10": "175b564e2af5"
+   "SR-13.18.57.3-13": "70de0e5c3100",
+   "SR-13.18.57.3-14": "dbd0684be112"
   }
  }
 }

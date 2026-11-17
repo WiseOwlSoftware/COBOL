@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-GR-XIII.3.19.4-10",
- "rule-digest": "578a78da21de",
+ "rule-digest": "ae579e101636",
  "test-ref": "conformance:cases/XIII.3.19@1985-SUM-CLAUSE/g85_bf09_09",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). g85_bf09_09 (85) names WS-A twice in one SUM clause and the detail D1 twice in its UPON phrase, and prints 16 for 4 x (1 + 3).",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
@@ -9,8 +10,8 @@
    "GR-13.18.54.4-7"
   ],
   "bridge": true,
-  "reason": "PROVISIONAL (a reconstruction of folio XIII-54, kb/Work PB4952). An addend named twice is added twice, and a detail named twice in UPON adds twice per GENERATE; the paragraph that closes 2023 GR7 states the same.",
-  "source": "adjudication kb/Work PB4952",
+  "reason": "unchanged from the withdrawn record: the paragraph that closes 2023 GR7 states the same.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
   "digests": {
    "GR-13.18.54.4-7": "0090a48bcc09"
   }

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: g85_bf09_09
       *> rules: [1985-GR-XIII.3.19.4-3, 1985-GR-XIII.3.19.4-8,
-      *>    1985-GR-XIII.3.19.4-10, 1985-GR-XIII.3.19.4-11]
+      *>    1985-GR-XIII.3.19.4-10, 1985-GR-XIII.3.19.4-12]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
@@ -14,7 +14,7 @@
       *> §1985:XIII.3.19.4 GR10 - an addend named twice is added twice,
       *> and a detail named twice in UPON increments twice (S10: 4 x
       *> WS-A per D1).
-      *> §1985:XIII.3.19.4 GR11 - INITIATE sets the counters to zero;
+      *> §1985:XIII.3.19.4 GR12 - INITIATE sets the counters to zero;
       *> without RESET a counter is reset when its own control footing
       *> is processed (S3 S8 S10 S11B); RESET ON FINAL resets it at the
       *> FINAL level (S11).
@@ -23,25 +23,24 @@
       *>   cite.py: OK  §1985:XIII.3.19.4 GR8 "The UPON phrase provides
       *>     the capability to accomplish selective subtotalling"
       *>   cite.py: OK  §1985:XIII.3.19.4 GR10 "the incrementing occurs
-      *>     as many times as the data-name appears in the UPON phrase"
-      *>   cite.py: OK  §1985:XIII.3.19.4 GR11 "Sum counters are
+      *>     repeatedly, as many times as data-name appears in the UPON
+      *>     phrase"
+      *>   cite.py: OK  §1985:XIII.3.19.4 GR12 "Sum counters are
       *>     initially set to zero by the report writer control system
       *>     during the execution of the INITIATE statement"
-      *>   (GR10 and GR11 are text the transcription reconstructs,
-      *>     kb/Work PB4952; the printed §1985:XIII.4.4.4 GR1 "All sum
-      *>     counters are set to zero" and §1985:XIII.3.20.4 GR10 a-f
-      *>     state the same times.)
+      *>   (§1985:XIII.4.4.4 GR1 "All sum counters are set to zero" and
+      *>     §1985:XIII.3.20.4 GR10 a-f state the same times.)
       *>   cite.py: OK  §1985:XIII.3.19.4 GR7 "Subtotalling is
       *>     accomplished only during execution of GENERATE statements
       *>     and after any control break processing"
       *> DERIVATION. Every counter is set to 500 before INITIATE;
-      *> INITIATE zeroes them (GR11), so no 5nn appears. GENERATEs (key,
+      *> INITIATE zeroes them (GR12), so no 5nn appears. GENERATEs (key,
       *> detail, A, B): (1,D1,1) (1,D2,2,10) (1,D1,3) (2,D2,4,20)
       *> (2,D1,5). Key group 1: S3 = 1 + 10 + 3 = 14 (A on D1, B on D2,
       *> one counter: GR3); S8 = 1 + 3 = 4 (GR8); S10 = 4 x (1 + 3) = 16
       *> (GR10); S11 = S11B = 1 + 2 + 3 = 6. The 4th GENERATE breaks:
       *> CF-K's USE (§1985:XIII.3.20.4 GR10 c) shows 014 004 016 006
-      *> 006, then S3 S8 S10 S11B reset and S11 does not (GR11). Its
+      *> 006, then S3 S8 S10 S11B reset and S11 does not (GR12). Its
       *> subtotalling follows the break (GR7): S3 = 20, S11 = 10, S11B =
       *> 4; the 5th adds A 5 on D1: S3 25, S8 5, S10 20, S11 15, S11B 9.
       *> TERMINATE processes CF-K (025 005 020 015 009) and then CF-F,

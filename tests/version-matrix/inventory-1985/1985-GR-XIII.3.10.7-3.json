@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-GR-XIII.3.10.7-3",
- "rule-digest": "e72b00feb986",
- "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01",
+ "rule-digest": "6e68346aca7f",
+ "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_01; conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/g85_bf35_05; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_relative_after_rh_85; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_nonprintable_85",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). 3a absolute line and 3b both arms (after a report heading, and HEADING - 1 on a later page) in g85_bf36_01 and g85_bf35_05; 3b after an absolute NEXT GROUP in new pb5789_page_heading_relative_after_rh_85; 3c in new pb5789_page_heading_nonprintable_85. The PB5830 ruling against the placeholder holds on the printed text (the wording change does not change the placement).",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
@@ -11,8 +12,8 @@
    "GR-8.4.3.15.4-3"
   ],
   "bridge": true,
-  "reason": "PROVISIONAL (a reconstruction of folio XIII-30, kb/Work PB4952). The first line is printed at an absolute LINE integer, or relative to the report heading's last line or to the HEADING integer minus 1; a nonprintable group prints none. 2023 places the first line the same way, as for the report heading (1985-GR-XIII.3.10.6-3, KEPT into the same rules).",
-  "source": "adjudication kb/Work PB4952",
+  "reason": "unchanged from the withdrawn record: 2023 places the first line the same way.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
   "digests": {
    "GR-13.18.35.4-5": "8d7c40e355c7",
    "GR-13.18.35.4-1": "8b6991986b24",

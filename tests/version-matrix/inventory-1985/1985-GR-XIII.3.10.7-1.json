@@ -1,16 +1,19 @@
 {
  "rule-id": "1985-GR-XIII.3.10.7-1",
- "rule-digest": "a52c43ec04db",
- "test-ref": "conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries",
+ "rule-digest": "9552474f92ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb1270_report_page_region_boundaries; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_relative_after_rh_85; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb1003_page_heading_after_report_heading_85; conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/g85_bf35_05",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). §1985:XIII.3.10.7 GR1: the first line on which the page heading report group can be presented is \"one greater than the final LINE-COUNTER setting established by the report heading\" when a report heading has been presented on the same page, otherwise the HEADING line. CONFORMS on its own witness pb5789_page_heading_relative_after_rh_85 (RH LINE 3 NEXT GROUP 4, final LINE-COUNTER 4 by §1985:XIII.3.10.6 GR5a; a relative PH LINE PLUS 1 is presented on line 5, GR1's first line: BEFORE PH 04, BEFORE DE 05), with pb1270 (no NEXT GROUP, PH LINE 3 on the limit), pb1003_page_heading_after_report_heading_85 and g85_bf35_05 (the HEADING arm on page 2). A program whose absolute page heading line lies above the limit violates a general rule, and §1985:I.1.6 makes the results of violating the formats or rules undefined, so the compiler's placement of it (gr1abs.cob: PH LINE 4 printed on line 4) is not a defect (the ruling's lead: a COBOL2199 for the upper limit would be consistent; COBOL2199 cites §2023:13.18.35.3 SR6c at --std 85). The link to GR-13.18.57.4-7 is CHANGED: 2023 GR7 b) bounds the page heading by the line following the report heading's last line, which differs when the report heading has NEXT GROUP.",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-13.18.57.4-7"
   ],
   "bridge": true,
-  "reason": "PROVISIONAL (a reconstruction of folio XIII-30, kb/Work PB4952). The page heading's upper limit is the HEADING line, or the line after a report heading presented on the same page; 2023 GR7 a) and b) state the same.",
-  "source": "adjudication kb/Work PB4952",
+  "reason": "1985 GR1 bounds the page heading by one greater than the report heading's final LINE-COUNTER setting, which includes its NEXT GROUP (§1985:XIII.3.10.6 GR5a/b); §2023:13.18.57.4 GR7b bounds it by 'the line following the last line of the report heading'. They differ exactly when the report heading has a NEXT GROUP clause, so the old KEPT record is wrong.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
   "digests": {
    "GR-13.18.57.4-7": "e6482a3bdd53"
   }

@@ -241,13 +241,16 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     paragraphs it admits are rule blocks of their declared kind."""
     cat = Catalog(declared=dict(manifest or {}))
     admitted = admitted_kinds(cat.declared)
-    folio_of: dict[int, str] = {}
-    page = 0
-    for line in lines:
-        if PAGE_HEADING.match(line):
-            page = int(line.split()[-1])
-        elif (f := FOLIO_85.match(line)) is not None:
-            folio_of[page] = f.group(1)
+    # A rule is on the printed page whose folio is the first one below it on its `## Page`: one per page, but where
+    # printed pages from another scan stand inside a page (cite.SOURCE, kb/Work PB5789), each closes with its own.
+    folio_below: list[str] = [""] * len(lines)
+    below = ""
+    for at in range(len(lines) - 1, -1, -1):
+        if PAGE_HEADING.match(lines[at]):
+            below = ""
+        elif (f := FOLIO_85.match(lines[at])) is not None:
+            below = f.group(1)
+        folio_below[at] = below
 
     section: str | None = None        # the Roman section, or "A"; None outside every section
     appendix: str | None = None       # the appendix of Section XVII being read, its letter the locator's (`§1985:C.2`)
@@ -273,7 +276,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
         loc, kind, para = block
         kind = start.get("kind", kind)   # a rule an admitted paragraph types by its ordinal (rule_kind)
         text = re.sub(r"[ \t]+", " ", "\n".join(buf)).strip() if kind != "FMT" else "\n".join(buf).strip()
-        year, folio = YEAR_OF[document], start["folio"] or folio_of.get(start["page"], "")
+        year, folio = YEAR_OF[document], start["folio"]
         add_row(cat, document=document, section=section, paragraph=para, kind=kind, n=start["n"],
                 sublist=start["sublist"], text=text, page=start["page"], folio=folio,
                 band=start["band"], subject=titles.get(para.rsplit(".", 1)[0], ""),
@@ -337,6 +340,9 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             repeat = True
             continue
         if FOLIO_85.match(line):
+            # A folio ends a printed page. It is the last line of a `## Page` but where printed pages from another scan
+            # stand inside one (cite.SOURCE, kb/Work PB5789), and the next printed page opens with its running header.
+            page_top = True
             continue
         if page_top:
             page_top = False
@@ -412,7 +418,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             if kind is not None:
                 open_block(loc, kind, num, admitted_as)
                 if kind == "FMT":
-                    start = {"n": 0, "sublist": 1, "page": page, "band": "", "folio": recon_folio[at]}
+                    start = {"n": 0, "sublist": 1, "page": page, "band": "", "folio": recon_folio[at] or folio_below[at]}
                     buf, drawn_from = [], set()
                     block_rules = 1
             elif RULE_SHAPED.search(title):
@@ -452,7 +458,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             if kind is None:   # the manifest's map does not name this rule: reported, never guessed
                 cat.untyped.append((f"§{YEAR_OF[document]}:{block[0]}", sublist, n))
                 kind = block[1]
-            start = {"n": n, "sublist": sublist, "page": page, "band": band, "kind": kind, "folio": recon_folio[at]}
+            start = {"n": n, "sublist": sublist, "page": page, "band": band, "kind": kind, "folio": recon_folio[at] or folio_below[at]}
             buf, drawn_from = [m.group("box") + m.group("text")], {inside[at]}
         elif buf:
             buf.append(line.strip())
@@ -1017,6 +1023,19 @@ def self_test() -> int:
           and by["1985-SR-XIII.3.20.3-1"]["text"] == "A planted reconstructed TYPE rule."
           and by["1985-GR-XIII.3.20.4-1"]["provisional"] == "none"
           and not any(loc.startswith("XIII") for loc, _n, _l in cat.unexplained))
+    # kb/Work PB5789: printed pages our scan lacks, transcribed from another scan after a SOURCE note, stand inside the
+    # `## Page` after the gap, each closed by its own folio: the note is no rule text, each running header is skipped,
+    # and each rule is on the folio below it.
+    sourced = {r["id"]: r for r in parse(
+        "# SECTION XIII: REPORT WRITER MODULE\n\n## Page 611\n\n#### 3.10.6 General Rules\n\n(1) A planted printed rule.\n\n"
+        "XIII-29\n\n## Page 612\n\n> ⚠ **SOURCE — folio XIII-30, not in our copy.** Planted: from another scan.\n\n"
+        "Report Writer - Planted\n\n(2) A planted rule from another scan.\n\nXIII-30\n\nReport Writer - Planted\n\n"
+        "(3) A planted printed rule.\n\nXIII-32\n".splitlines()).rules}
+    check("a page from another scan inside a PDF page: the SOURCE note and every running header are no rule text, and "
+          "each rule is on the folio below it",
+          [(r["text"], r["folio"], r["provisional"]) for r in sourced.values()]
+          == [("A planted printed rule.", "XIII-29", "none"), ("A planted rule from another scan.", "XIII-30", "none"),
+              ("A planted printed rule.", "XIII-32", "none")])
     check("an adjudication the text no longer has is reported, one it has is not",
           any(s.startswith("XIII.3.10:") for s in cat.stale) and not any(s.startswith("IV.3:") for s in cat.stale))
     check("THE shared measure counts lists, ascending items and the longest run, and no stray ordinal",

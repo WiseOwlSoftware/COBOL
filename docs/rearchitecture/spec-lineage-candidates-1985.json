@@ -10,12 +10,12 @@
  "next": 2023,
  "bridge": true,
  "counts": {
-  "rules": 2274,
+  "rules": 2275,
   "paired": 0,
   "exact": 0,
   "normalized": 0,
   "ambiguous": 0,
-  "unpaired": 2274
+  "unpaired": 2275
  },
  "pairs": [],
  "unpaired": [
@@ -1790,6 +1790,7 @@
   "1985-GR-XIII.3.19.4-9",
   "1985-GR-XIII.3.19.4-10",
   "1985-GR-XIII.3.19.4-11",
+  "1985-GR-XIII.3.19.4-12",
   "1985-FMT-XIII.3.20.2",
   "1985-SR-XIII.3.20.3-1",
   "1985-SR-XIII.3.20.3-2",

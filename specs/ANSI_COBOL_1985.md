@@ -60,10 +60,10 @@ publications.
 > stay where the page prints them. The page furniture that is not the standard's (the reseller's per-copy stamp) is
 > removed. The scan prints folios X-11 and X-12 twice (PDF pages 525-526 and 527-528); both copies
 > are transcribed, and the repeat is marked with a comment where it begins. The scan also lacks four printed
-> pages of the Report Writer module, folios XIII-30, XIII-31, XIII-54 and XIII-55. Until they are obtained, each gap
-> holds a **reconstruction**: editorial text, not the standard's words, between a `> ⚠ **RECONSTRUCTED — not printed
-> in our copy (folios …).**` note, which names its sources and its confidence, and a `> ⚠ **END RECONSTRUCTED …**`
-> note. The printed pages' verbatim text will replace each one.
+> pages of the Report Writer module, folios XIII-30, XIII-31, XIII-54 and XIII-55. They are transcribed from another
+> scan of the same standard, which prints them: each pair stands at the top of the page of our scan that follows the
+> gap, after a `> ⚠ **SOURCE — folios …, not in our copy.**` note that names that scan and its pages, and ends at its
+> own last folio line (kb/Work PB4952, PB5789).
 >
 > **Notation.** A key word the standard underlines is underlined (`<u>…</u>`, or the drawn underline of a general
 > format); the general formats are drawn as the printed page draws them, in the house style
@@ -23095,44 +23095,37 @@ XIII-29
 
 ## Page 612
 
-> ⚠ **RECONSTRUCTED — not printed in our copy (folios XIII-30 and XIII-31).** The scan lacks the printed pages XIII-30 and XIII-31: PDF page 611 ends at folio XIII-29 and this page opens at folio XIII-32. Until those pages are obtained (kb/Work PB4952), the text from here to the closing note is editorial: the transcription's reconstruction, not the standard's words. The contents and the Index place the page heading group presentation rules at XIII-30, and §1985:XIII.3.10.8 places Table 3 at XIII-33, so the two pages hold paragraph 3.10.7 and its Table 2. **Sources:** the sibling paragraphs §1985:XIII.3.10.6 (report heading), §1985:XIII.3.10.9 (page footing) and §1985:XIII.3.10.10 (report footing), whose wording each rule follows; §1985:XIII.3.16.3 SR5 (no NEXT GROUP clause in a page heading report group) and §1985:XIII.3.15.3 SR7 (no NEXT PAGE phrase in its LINE NUMBER clause), which fix the table's rows; §1985:XIII.3.16.4 GR4 (the NEXT GROUP clause of a report heading report group can affect where the page heading report group is presented); the TYPE clause's syntax rule 3, reconstructed on folio XIII-55 below (a page heading report group needs a PAGE clause); §1985:XIII.3.8.3 SR8 b (a page heading report group is presented from the HEADING line to the line before the FIRST DETAIL line); and §2023:13.18.57.4 GR7 and GR8, which state the same upper and lower limits. **Confidence: low.** The substance follows from those sources; the wording, the lettering and the table's layout are not known, and 2002 and 2023 dropped the presentation rules tables, so no later edition prints this text.
+> ⚠ **SOURCE — folios XIII-30 and XIII-31, not in our copy.** Our scan lacks these two printed pages: PDF page 611 ends at folio XIII-29 and this page opens at folio XIII-32. The text from here to folio XIII-31 is transcribed from a public scan of X3.23-1985 on GovInfo (https://www.govinfo.gov/content/pkg/GOVPUB-C13-d0cd47d3539e1d225361316057506135/pdf/GOVPUB-C13-d0cd47d3539e1d225361316057506135.pdf, its PDF pages 608 and 609), which prints them; kb/Work PB4952, PB5789.
+
+Report Writer - Page Heading Group Presentation Rules
 
 ### 3.10.7 Page Heading Group Presentation Rules
 
-Table 2 on page XIII-31 points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a page heading report group. The page heading group presentation rules are as follows:
-
-(1) Upper limit rule:
-
-If a report heading report group has been presented on the page to which the report is currently positioned, then the first line number on which the page heading report group can be presented is one greater than the final LINE-COUNTER setting established by the report heading report group. Otherwise the first line number on which the page heading report group can be presented is the line number specified by the HEADING phrase of the PAGE clause.
-
-(2) Lower limit rule:
-
-The last line number on which the page heading report group can be presented is the line number that is obtained by subtracting 1 from the value of integer-3 of the FIRST DETAIL phrase of the PAGE clause.
-
-(3) First print line position rules:
-
-a. The first print line of the page heading report group is presented on the line number specified by the integer of its LINE NUMBER clause.
-
-b. If a report heading report group has been presented on the page to which the report is currently positioned, then the sum of the final LINE-COUNTER setting established by the report heading report group and the integer of the first LINE NUMBER clause of the page heading report group defines the line number on which the first print line of the page heading report group is presented. Otherwise the sum of the integer of the first LINE NUMBER clause of the page heading report group and the value obtained by subtracting 1 from the value of integer-2 of the HEADING phrase of the PAGE clause defines the line number on which the first print line of the page heading report group is presented.
-
-c. The page heading report group is not presented.
-
-(4) Final LINE-COUNTER setting rules:
-
-a. The final LINE-COUNTER setting is the line number on which the final print line of the page heading report group was presented.
-
-b. LINE-COUNTER is unaffected by the processing of a nonprintable report group.
+Table 2 shown below points to the appropriate presentation rules for all permissible combinations of LINE NUMBER and NEXT GROUP clauses in a page heading report group.
 
 <table>
-<tr><th colspan="2" rowspan="2">**</th><th colspan="5">Applicable Rules ***</th></tr>
-<tr><th colspan="5">If the PAGE clause is specified ****</th></tr>
-<tr><th>Sequence of LINE NUMBER clauses*</th><th>NEXT GROUP clause</th><th>Upper Limit</th><th>Lower Limit</th><th>First Print Line Position</th><th>Next Group</th><th>Final LINE-COUNTER Setting</th></tr>
+<tr>
+<td colspan="2" rowspan="2">**</td>
+<td colspan="5">Applicable Rules ***</td>
+</tr>
+<tr>
+<td colspan="5">If the PAGE clause is specified ****</td>
+</tr>
+<tr>
+<td>Sequence of LINE NUMBER clauses*</td>
+<td>NEXT GROUP clause</td>
+<td>Upper Limit</td>
+<td>Lower Limit</td>
+<td>First Print Line Position</td>
+<td>Next Group</td>
+<td>Final LINE-COUNTER Setting</td>
+</tr>
 <tr><td>A R</td><td></td><td>1</td><td>2</td><td>3a</td><td></td><td>4a</td></tr>
 <tr><td>R</td><td></td><td>1</td><td>2</td><td>3b</td><td></td><td>4a</td></tr>
 <tr><td></td><td></td><td></td><td></td><td>3c</td><td></td><td>4b</td></tr>
 </table>
 
-Table 2: Page Heading Group Presentation Rules Table.
+Table 2: Page Heading Group Presentation Rules Table
 
 \* See page XIII-25, LINE NUMBER Clause Notation, for a description of the abbreviations used in column 1.
 
@@ -23142,7 +23135,39 @@ Table 2: Page Heading Group Presentation Rules Table.
 
 \*\*\*\* If the PAGE clause is omitted from the report description entry, then a page heading report group may not be defined. (See page XIII-55, The TYPE Clause.)
 
-> ⚠ **END RECONSTRUCTED (folios XIII-30 and XIII-31).** The printed text resumes below at folio XIII-32.
+The page heading group presentation rules are as follows:
+
+(1) Upper limit rule:
+
+If a report heading report group has been presented on the page on which the page heading report group is to be presented, then the first line number on which the page heading report group can be presented is one greater than the final LINE-COUNTER setting established by the report heading.
+
+Otherwise the first line number on which the page heading report group can be presented is the line number specified by the HEADING phrase of the PAGE clause.
+
+XIII-30
+
+Report Writer - Page Heading Group Presentation Rules
+
+(2) Lower limit rule:
+
+The last line number on which the page heading report group can be presented is the line number that is obtained by subtracting one from the value of integer-3 of the FIRST DETAIL phrase of the PAGE clause.
+
+(3) First print line position rules:
+
+a. The first print line of the page heading report group is presented on the line number specified by the integer of its LINE NUMBER clause.
+
+b. If a report heading report group has been presented on the page on which the page heading report group is to be presented, then the sum of the final LINE-COUNTER setting established by the report heading report group and the integer of the first LINE NUMBER clause of the page heading report group defines the line number on which the first print line of the page heading report group is presented.
+
+Otherwise the sum of the integer of the first LINE NUMBER clause of the page heading report group and the value obtained by subtracting one from the value of integer-2 of the HEADING phrase of the PAGE clause defines the line number on which the first print line of the page heading report group is presented.
+
+c. The page heading report group is not presented.
+
+(4) Final LINE-COUNTER setting rules:
+
+a. The final LINE-COUNTER setting is the line number on which the final print line of the page heading report group was presented.
+
+b. LINE-COUNTER is unaffected by the processing of a nonprintable report group.
+
+XIII-31
 
 Report Writer - Body Group Presentation Rules
 
@@ -23835,29 +23860,35 @@ XIII-53
 
 ## Page 634
 
-> ⚠ **RECONSTRUCTED — not printed in our copy (folio XIII-54).** The scan lacks the printed pages XIII-54 and XIII-55: PDF page 633 ends at folio XIII-53 and this page opens at folio XIII-56. Until those pages are obtained (kb/Work PB4952), the text from here to the closing note is editorial: the transcription's reconstruction, not the standard's words. Folio XIII-53 ends inside general rule 9 of the SUM clause, after item a, and the contents place the TYPE clause at XIII-55, so this page holds the rest of the SUM clause's general rules. **Sources:** §1985:XIII.3.19.4 GR7, which names the three categories of sum counter incrementing (subtotalling, crossfooting and rolling forward) and says when subtotalling is done, and GR9 a, whose wording items b and c follow; §1985:XIII.3.20.4 GR10 a, b and f (crossfooting and rolling forward when a control footing report group is processed, and the resetting of sum counters at a level of the control hierarchy); §1985:XIII.4.4.4 GR1 (INITIATE sets every sum counter to zero); §1985:XIII.3.19.3 SR4 (the RESET phrase's operand); and §2023:13.18.54.4 GR2 and GR7, which state the same times of addition and of resetting. **Confidence: low.** 2002 and 2023 rewrote the SUM clause, so no later edition prints this text; the rules after 9 and their number are not known.
+> ⚠ **SOURCE — folios XIII-54 and XIII-55, not in our copy.** Our scan lacks these two printed pages: PDF page 633 ends at folio XIII-53 and this page opens at folio XIII-56. The text from here to folio XIII-55 is transcribed from a public scan of X3.23-1985 on GovInfo (https://www.govinfo.gov/content/pkg/GOVPUB-C13-d0cd47d3539e1d225361316057506135/pdf/GOVPUB-C13-d0cd47d3539e1d225361316057506135.pdf, its PDF pages 632 and 633), which prints them; kb/Work PB4952, PB5789.
 
-b. When the addend is a sum counter defined in a lower level control footing report group, then the accumulation of that addend into the sum counter is termed rolling forward.
+Report Writer - SUM
 
-Rolling forward occurs when a control break takes place and at the time the lower level control footing report group is processed.
+Crossfooting is performed according to the sequence in which sum counters are defined within the control footing report group. That is, all crossfooting into the first sum counter defined in the control footing report group is completed, and then all crossfooting into the second sum counter defined in the control footing report group is completed. This procedure is repeated until all crossfooting operations are completed.
 
-c. When the addend is not a sum counter, then the accumulation of that addend into the sum counter is termed subtotalling.
+When one of the addends is the sum counter defined by the data description entry in which that SUM clause appears, the initial value of that sum counter at the time of summation is used in the summing operation.
 
-If the SUM clause contains the UPON phrase, the addends are subtotalled when a GENERATE statement for a detail report group named in the UPON phrase is executed. If the SUM clause does not contain the UPON phrase, the addends are subtotalled when any GENERATE data-name statement is executed for the report in which the SUM clause appears.
+b. When the addend is a sum counter defined in a lower level control footing report group, then the accumulation of that addend into the sum counter is termed rolling forward. A sum counter in a lower level control footing report group is rolled forward when a control break occurs and at the time that the lower level control footing report group is processed.
 
-(10) If two or more of the identifiers specify the same addend, then the addend is added into the sum counter as many times as the addend is referenced in the SUM clause. It is permissible for two or more of the data-names in the UPON phrase to specify the same detail report group. When a GENERATE data-name statement for such a detail report group is executed, the incrementing occurs as many times as the data-name appears in the UPON phrase.
+c. When the addend is not a sum counter the accumulation into a sum counter of such an addend is called subtotalling. If the SUM clause contains the UPON phrase, the addends are subtotalled when a GENERATE statement for the designated detail report group is executed. If the SUM clause does not contain the UPON phrase, the addends which are not sum counters are subtotalled when any GENERATE data-name statement is executed for the report in which the SUM clause appears.
 
-(11) In the absence of a RESET phrase, the report writer control system sets a sum counter to zero at the time that it processes the control footing report group within which the sum counter is defined. If a RESET phrase is specified, the report writer control system sets the sum counter to zero at the time that it processes the designated level of the control hierarchy. (See page XIII-55, The TYPE Clause.) Sum counters are initially set to zero by the report writer control system during the execution of the INITIATE statement for the report containing the sum counter.
+(10) If two or more of the identifiers specify the same addend, then the addend is added into the sum counter as many times as the addend is referenced in the SUM clause. It is permissible for two or more of the data-names to specify the same detail report group. When a GENERATE data-name statement for such a detail report group is given, the incrementing occurs repeatedly, as many times as data-name appears in the UPON phrase.
 
-> ⚠ **END RECONSTRUCTED (folio XIII-54).** The reconstruction of folio XIII-55 follows.
+(11) The subtotalling that occurs when a GENERATE report-name statement is executed is discussed in the appropriate paragraph. (See page XIII-66, The GENERATE Statement.)
 
-> ⚠ **RECONSTRUCTED — not printed in our copy (folio XIII-55).** The contents place the TYPE clause at XIII-55, and this page opens at folio XIII-56 with its syntax rule 5, so folio XIII-55 holds the TYPE clause's heading, function, general format and syntax rules 1 to 4. Until the page is obtained (kb/Work PB4952), the text from here to the closing note is editorial: the transcription's reconstruction, not the standard's words. **Sources:** the general format is the TYPE clause of §1985:XIII.3.9.2 Format 1, which prints the whole clause, its operands named data-name-1 and data-name-2 as the syntax rules here name them; the syntax rules are §2023:13.18.57.3 SR9, SR10, SR12, SR13 and SR14 in that order, without what a later edition added (the qualification and reference modification of data-name-1 and data-name-2, the omission of the operand, the OR PAGE phrase); §2002:13.16.55.2 SR9, SR10, SR12, SR13 and SR14 (`specs/ISO_COBOL_2002.md`) print the same rules in the same words, and §2002:F.1, the edition's list of the changes that can affect an existing program, names no change to them; and the footnote of Table 4 in §1985:XIII.3.10.9 (if the PAGE clause is omitted, a page footing report group may not be defined; "See page XIII-55, The TYPE Clause") agrees with rule 3. The printed syntax rules 5 to 7 below match §2023:13.18.57.3 SR15 and SR16 and their neighbours. **Confidence: high in substance**: the four rules are the requirements the later editions keep; their 1985 wording and order, and so their numbers, are not known.
+(12) In the absence of an explicit RESET phrase, the report writer control system will set a sum counter to zero at the time that the report writer control system is processing the control footing report group within which the sum counter is defined. If an explicit RESET phrase is specified, then the report writer control system will set the sum counter to zero at the time that the report writer control system is processing the designated level of the control hierarchy. (See page XIII-55, The TYPE Clause.)
+
+Sum counters are initially set to zero by the report writer control system during the execution of the INITIATE statement for the report containing the sum counter.
+
+XIII-54
+
+Report Writer - TYPE
 
 ### 3.20 THE TYPE CLAUSE
 
 #### 3.20.1 Function
 
-The TYPE clause specifies the type of the report group that is described by this entry, and so the circumstances under which the report writer control system processes it.
+The TYPE clause specifies the particular type of report group that is described by this entry and indicates the time at which the report group is to be processed by the report writer control system.
 
 #### 3.20.2 General Format
 
@@ -23865,27 +23896,21 @@ The TYPE clause specifies the type of the report group that is described by this
         ╭ ╭ <u>REPORT</u> <u>HEADING</u> ╮                  ╮
         │ ┤                ├                  │
         │ ╰ <u>RH</u>             ╯                  │
-        │                                     │
         │ ╭ <u>PAGE</u> <u>HEADING</u> ╮                    │
         │ ┤              ├                    │
         │ ╰ <u>PH</u>           ╯                    │
-        │                                     │
         │ ╭ <u>CONTROL</u> <u>HEADING</u> ╮ ╭ data-name-1 ╮ │
         │ ┤                 ├ ┤             ├ │
         │ ╰ <u>CH</u>              ╯ ╰ <u>FINAL</u>       ╯ │
-        │                                     │
         │ ╭ <u>DETAIL</u> ╮                          │
 <u>TYPE</u> IS ┤ ┤        ├                          ├
         │ ╰ <u>DE</u>     ╯                          │
-        │                                     │
         │ ╭ <u>CONTROL</u> <u>FOOTING</u> ╮ ╭ data-name-2 ╮ │
         │ ┤                 ├ ┤             ├ │
         │ ╰ <u>CF</u>              ╯ ╰ <u>FINAL</u>       ╯ │
-        │                                     │
         │ ╭ <u>PAGE</u> <u>FOOTING</u> ╮                    │
         │ ┤              ├                    │
         │ ╰ <u>PF</u>           ╯                    │
-        │                                     │
         │ ╭ <u>REPORT</u> <u>FOOTING</u> ╮                  │
         │ ┤                ├                  │
         ╰ ╰ <u>RF</u>             ╯                  ╯
@@ -23907,13 +23932,13 @@ PF is an abbreviation for PAGE FOOTING.
 
 RF is an abbreviation for REPORT FOOTING.
 
-(2) Data-name-1, data-name-2, and FINAL, if specified, must be the same as one of the data-names or FINAL specified in the CONTROL clause of the corresponding report description entry.
+(2) Report groups specified by REPORT HEADING, PAGE HEADING, CONTROL HEADING FINAL, CONTROL FOOTING FINAL, PAGE FOOTING, and REPORT FOOTING may each appear no more than once in the description of a report.
 
-(3) PAGE HEADING and PAGE FOOTING report groups may be specified only if a PAGE clause is specified in the corresponding report description entry.
+(3) Page heading and page footing report groups may be specified only if a PAGE clause is specified in the corresponding report description entry.
 
-(4) REPORT HEADING, PAGE HEADING, PAGE FOOTING, and REPORT FOOTING report groups may each appear no more than once in the description of a report. At most one control heading report group and at most one control footing report group may be specified for each data-name or FINAL in the CONTROL clause of the report description entry. Either or both of the control heading and control footing report groups may be omitted for any given level of control.
+(4) Data-name-1, data-name-2, and FINAL, if present, must be specified in the CONTROL clause of the corresponding report description entry. At most, one control heading report group and one control footing report group can be specified for each data-name or FINAL in the CONTROL clause of the report description entry. However, neither a control heading report group nor a control footing report group is required for a data-name or FINAL specified in the CONTROL clause of the report description entry.
 
-> ⚠ **END RECONSTRUCTED (folio XIII-55).** The printed text resumes below at folio XIII-56.
+XIII-55
 
 Report Writer - TYPE
 

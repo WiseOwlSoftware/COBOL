@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-SR-XIII.3.20.3-3",
- "rule-digest": "a2ba9ff0a907",
- "test-ref": "conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/g85_f30_06",
+ "rule-digest": "cc91db295163",
+ "test-ref": "conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/g85_f30_06; conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/pb5789-page-heading-without-page-85",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). Legal side g85_f30_06 (85); refusal side new pb5789-page-heading-without-page-85.",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
@@ -9,8 +10,8 @@
    "SR-13.18.57.3-12"
   ],
   "bridge": true,
-  "reason": "PROVISIONAL (a reconstruction of folio XIII-55, kb/Work PB4952). PAGE HEADING and PAGE FOOTING need a PAGE clause; 2023 SR12 states it, and adds the OR PAGE phrase to the same condition.",
-  "source": "adjudication kb/Work PB4952",
+  "reason": "unchanged: 2023 SR12 states it and adds OR PAGE to the same condition.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
   "digests": {
    "SR-13.18.57.3-12": "a37249bee499"
   }

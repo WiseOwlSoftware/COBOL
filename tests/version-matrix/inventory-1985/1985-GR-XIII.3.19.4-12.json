@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-GR-XIII.3.19.4-12",
+ "rule-digest": "2fa21cb643a2",
+ "test-ref": "conformance:cases/XIII.3.19@1985-SUM-CLAUSE/g85_bf09_09",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). g85_bf09_09 (85) witnesses all three arms: INITIATE zeroing, reset after the counter's own control footing, and RESET ON FINAL.",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.54.4-2"
+  ],
+  "bridge": true,
+  "reason": "the content of the withdrawn record of 1985-GR-XIII.3.19.4-11: zeroed at INITIATE, reset after its own control footing or, with RESET, at the named level; 2023 GR2 states the same and adds the size error indicator.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
+  "digests": {
+   "GR-13.18.54.4-2": "5c2c5e2ba47c"
+  }
+ }
+}

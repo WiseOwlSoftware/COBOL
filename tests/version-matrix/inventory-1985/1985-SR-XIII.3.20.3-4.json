@@ -1,19 +1,20 @@
 {
  "rule-id": "1985-SR-XIII.3.20.3-4",
- "rule-digest": "4ae2e820150e",
- "test-ref": "conformance:cases/13.18.57-TYPE/pb1299_report_group_census_legal",
+ "rule-digest": "2bba838dd1ac",
+ "test-ref": "conformance:cases/13.18.57-TYPE/pb1299_report_group_census_legal; conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/pb5789-type-operand-not-a-control-85; conformance:cases/XIII.3.20@1985-TYPE-CLAUSE/pb5789-type-ch-twice-85",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). All three sentences: the operand not a control refused (new pb5789-type-operand-not-a-control-85, and pb205 at 85); a second CH for one control refused (new pb5789-type-ch-twice-85); controls with no heading or footing accepted (pb1299, sr4none).",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.18.57.3-13",
+   "SR-13.18.57.3-10",
    "SR-13.18.57.3-14"
   ],
   "bridge": true,
-  "reason": "PROVISIONAL (a reconstruction of folio XIII-55, kb/Work PB4952). Report and page headings and footings at most once per report, at most one control heading and one control footing per control, either optional; 2023 SR13 and SR14 state the same.",
-  "source": "adjudication kb/Work PB4952",
+  "reason": "the CONTROL-operand sentence is SR10's last sentence; at most one CH and CF per control, and neither required, is SR14. The withdrawn record's SR13 (RH/PH/RF/PF once) belongs to SR2.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
   "digests": {
-   "SR-13.18.57.3-13": "70de0e5c3100",
+   "SR-13.18.57.3-10": "175b564e2af5",
    "SR-13.18.57.3-14": "dbd0684be112"
   }
  }

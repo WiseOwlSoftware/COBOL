@@ -29,13 +29,13 @@
       *    same page "the sum of the final LINE-COUNTER setting
       *    established by the report heading report group and the
       *    integer of the first LINE NUMBER clause of the page heading
-      *    report group", "Otherwise" integer + HEADING - 1. (The rule
-      *    is the transcription's reconstruction of folio XIII-30,
-      *    kb/Work PB4952; cite.py marks it RECONSTRUCTED. Its b. is
-      *    what the printed §1985:XIII.3.16.4 GR4 and §1985:XIII.3.10.6
-      *    GR5 require: "The NEXT GROUP clause of a report heading
-      *    report group can affect the location at which the page
-      *    heading report group is presented".) §1985:XIII.3.10.7 GR4 a:
+      *    report group", "Otherwise" integer + HEADING - 1. (Folio
+      *    XIII-31 is transcribed from the GovInfo scan, kb/Work
+      *    PB5789. Its b. is also what §1985:XIII.3.16.4 GR4 and
+      *    §1985:XIII.3.10.6 GR5 require: "The NEXT GROUP clause of a
+      *    report heading report group can affect the location at
+      *    which the page heading report group is presented".)
+      *    §1985:XIII.3.10.7 GR4 a:
       *    the page heading's final LINE-COUNTER is its final print
       *    line.
       *  Body groups: §1985:XIII.3.10.8 GR4 b, LINE-COUNTER below FIRST

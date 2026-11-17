@@ -1,6 +1,6 @@
 {
  "generated_from": "specs/ANSI_COBOL_1985.md",
- "rule_count": 2274,
+ "rule_count": 2275,
  "blocks": 669,
  "rules": [
   {
@@ -37132,8 +37132,8 @@
    "page": 612,
    "folio": "XIII-30",
    "band": "",
-   "text": "Upper limit rule:\nIf a report heading report group has been presented on the page to which the report is currently positioned, then the first line number on which the page heading report group can be presented is one greater than the final LINE-COUNTER setting established by the report heading report group. Otherwise the first line number on which the page heading report group can be presented is the line number specified by the HEADING phrase of the PAGE clause.",
-   "provisional": "whole"
+   "text": "Upper limit rule:\nIf a report heading report group has been presented on the page on which the page heading report group is to be presented, then the first line number on which the page heading report group can be presented is one greater than the final LINE-COUNTER setting established by the report heading.\nOtherwise the first line number on which the page heading report group can be presented is the line number specified by the HEADING phrase of the PAGE clause.",
+   "provisional": "none"
   },
   {
    "id": "1985-GR-XIII.3.10.7-2",
@@ -37152,10 +37152,10 @@
    "amended_by": [],
    "status": "normal",
    "page": 612,
-   "folio": "XIII-30",
+   "folio": "XIII-31",
    "band": "",
-   "text": "Lower limit rule:\nThe last line number on which the page heading report group can be presented is the line number that is obtained by subtracting 1 from the value of integer-3 of the FIRST DETAIL phrase of the PAGE clause.",
-   "provisional": "whole"
+   "text": "Lower limit rule:\nThe last line number on which the page heading report group can be presented is the line number that is obtained by subtracting one from the value of integer-3 of the FIRST DETAIL phrase of the PAGE clause.",
+   "provisional": "none"
   },
   {
    "id": "1985-GR-XIII.3.10.7-3",
@@ -37174,10 +37174,10 @@
    "amended_by": [],
    "status": "normal",
    "page": 612,
-   "folio": "XIII-30",
+   "folio": "XIII-31",
    "band": "",
-   "text": "First print line position rules:\na. The first print line of the page heading report group is presented on the line number specified by the integer of its LINE NUMBER clause.\nb. If a report heading report group has been presented on the page to which the report is currently positioned, then the sum of the final LINE-COUNTER setting established by the report heading report group and the integer of the first LINE NUMBER clause of the page heading report group defines the line number on which the first print line of the page heading report group is presented. Otherwise the sum of the integer of the first LINE NUMBER clause of the page heading report group and the value obtained by subtracting 1 from the value of integer-2 of the HEADING phrase of the PAGE clause defines the line number on which the first print line of the page heading report group is presented.\nc. The page heading report group is not presented.",
-   "provisional": "whole"
+   "text": "First print line position rules:\na. The first print line of the page heading report group is presented on the line number specified by the integer of its LINE NUMBER clause.\nb. If a report heading report group has been presented on the page on which the page heading report group is to be presented, then the sum of the final LINE-COUNTER setting established by the report heading report group and the integer of the first LINE NUMBER clause of the page heading report group defines the line number on which the first print line of the page heading report group is presented.\nOtherwise the sum of the integer of the first LINE NUMBER clause of the page heading report group and the value obtained by subtracting one from the value of integer-2 of the HEADING phrase of the PAGE clause defines the line number on which the first print line of the page heading report group is presented.\nc. The page heading report group is not presented.",
+   "provisional": "none"
   },
   {
    "id": "1985-GR-XIII.3.10.7-4",
@@ -37196,10 +37196,10 @@
    "amended_by": [],
    "status": "normal",
    "page": 612,
-   "folio": "XIII-30",
+   "folio": "XIII-31",
    "band": "",
-   "text": "Final LINE-COUNTER setting rules:\na. The final LINE-COUNTER setting is the line number on which the final print line of the page heading report group was presented.\nb. LINE-COUNTER is unaffected by the processing of a nonprintable report group.\n<table>\n<tr><th colspan=\"2\" rowspan=\"2\">**</th><th colspan=\"5\">Applicable Rules ***</th></tr>\n<tr><th colspan=\"5\">If the PAGE clause is specified ****</th></tr>\n<tr><th>Sequence of LINE NUMBER clauses*</th><th>NEXT GROUP clause</th><th>Upper Limit</th><th>Lower Limit</th><th>First Print Line Position</th><th>Next Group</th><th>Final LINE-COUNTER Setting</th></tr>\n<tr><td>A R</td><td></td><td>1</td><td>2</td><td>3a</td><td></td><td>4a</td></tr>\n<tr><td>R</td><td></td><td>1</td><td>2</td><td>3b</td><td></td><td>4a</td></tr>\n<tr><td></td><td></td><td></td><td></td><td>3c</td><td></td><td>4b</td></tr>\n</table>\nTable 2: Page Heading Group Presentation Rules Table.\n\\* See page XIII-25, LINE NUMBER Clause Notation, for a description of the abbreviations used in column 1.\n\\*\\* A blank entry in column 1 or column 2 indicates that the named clause is totally absent from the report group description entry.\n\\*\\*\\* A blank entry in an applicable rules column indicates the absence of the named rule for the given combination of LINE NUMBER and NEXT GROUP clauses.\n\\*\\*\\*\\* If the PAGE clause is omitted from the report description entry, then a page heading report group may not be defined. (See page XIII-55, The TYPE Clause.)",
-   "provisional": "whole"
+   "text": "Final LINE-COUNTER setting rules:\na. The final LINE-COUNTER setting is the line number on which the final print line of the page heading report group was presented.\nb. LINE-COUNTER is unaffected by the processing of a nonprintable report group.",
+   "provisional": "none"
   },
   {
    "id": "1985-GR-XIII.3.10.8-1",
@@ -39092,8 +39092,8 @@
    "page": 633,
    "folio": "XIII-53",
    "band": "",
-   "text": "The report writer control system adds each individual addend into the sum counter at a time that depends upon the characteristics of the addend.\na. When the addend is a sum counter defined in the same control footing report group, then the accumulation of that addend into the sum counter is termed crossfooting.\nCrossfooting occurs when a control break takes place and at the time the control footing report group is processed.\nb. When the addend is a sum counter defined in a lower level control footing report group, then the accumulation of that addend into the sum counter is termed rolling forward.\nRolling forward occurs when a control break takes place and at the time the lower level control footing report group is processed.\nc. When the addend is not a sum counter, then the accumulation of that addend into the sum counter is termed subtotalling.\nIf the SUM clause contains the UPON phrase, the addends are subtotalled when a GENERATE statement for a detail report group named in the UPON phrase is executed. If the SUM clause does not contain the UPON phrase, the addends are subtotalled when any GENERATE data-name statement is executed for the report in which the SUM clause appears.",
-   "provisional": "part"
+   "text": "The report writer control system adds each individual addend into the sum counter at a time that depends upon the characteristics of the addend.\na. When the addend is a sum counter defined in the same control footing report group, then the accumulation of that addend into the sum counter is termed crossfooting.\nCrossfooting occurs when a control break takes place and at the time the control footing report group is processed.\nCrossfooting is performed according to the sequence in which sum counters are defined within the control footing report group. That is, all crossfooting into the first sum counter defined in the control footing report group is completed, and then all crossfooting into the second sum counter defined in the control footing report group is completed. This procedure is repeated until all crossfooting operations are completed.\nWhen one of the addends is the sum counter defined by the data description entry in which that SUM clause appears, the initial value of that sum counter at the time of summation is used in the summing operation.\nb. When the addend is a sum counter defined in a lower level control footing report group, then the accumulation of that addend into the sum counter is termed rolling forward. A sum counter in a lower level control footing report group is rolled forward when a control break occurs and at the time that the lower level control footing report group is processed.\nc. When the addend is not a sum counter the accumulation into a sum counter of such an addend is called subtotalling. If the SUM clause contains the UPON phrase, the addends are subtotalled when a GENERATE statement for the designated detail report group is executed. If the SUM clause does not contain the UPON phrase, the addends which are not sum counters are subtotalled when any GENERATE data-name statement is executed for the report in which the SUM clause appears.",
+   "provisional": "none"
   },
   {
    "id": "1985-GR-XIII.3.19.4-10",
@@ -39114,8 +39114,8 @@
    "page": 634,
    "folio": "XIII-54",
    "band": "",
-   "text": "If two or more of the identifiers specify the same addend, then the addend is added into the sum counter as many times as the addend is referenced in the SUM clause. It is permissible for two or more of the data-names in the UPON phrase to specify the same detail report group. When a GENERATE data-name statement for such a detail report group is executed, the incrementing occurs as many times as the data-name appears in the UPON phrase.",
-   "provisional": "whole"
+   "text": "If two or more of the identifiers specify the same addend, then the addend is added into the sum counter as many times as the addend is referenced in the SUM clause. It is permissible for two or more of the data-names to specify the same detail report group. When a GENERATE data-name statement for such a detail report group is given, the incrementing occurs repeatedly, as many times as data-name appears in the UPON phrase.",
+   "provisional": "none"
   },
   {
    "id": "1985-GR-XIII.3.19.4-11",
@@ -39136,8 +39136,30 @@
    "page": 634,
    "folio": "XIII-54",
    "band": "",
-   "text": "In the absence of a RESET phrase, the report writer control system sets a sum counter to zero at the time that it processes the control footing report group within which the sum counter is defined. If a RESET phrase is specified, the report writer control system sets the sum counter to zero at the time that it processes the designated level of the control hierarchy. (See page XIII-55, The TYPE Clause.) Sum counters are initially set to zero by the report writer control system during the execution of the INITIATE statement for the report containing the sum counter.",
-   "provisional": "whole"
+   "text": "The subtotalling that occurs when a GENERATE report-name statement is executed is discussed in the appropriate paragraph. (See page XIII-66, The GENERATE Statement.)",
+   "provisional": "none"
+  },
+  {
+   "id": "1985-GR-XIII.3.19.4-12",
+   "citation": "§1985:XIII.3.19.4 GR12",
+   "document": "X3.23-1985",
+   "section": "XIII",
+   "paragraph": "3.19.4",
+   "locator": "XIII.3.19.4",
+   "module": "Report Writer",
+   "subject": "THE SUM CLAUSE",
+   "kind": "GR",
+   "ordinal": 12,
+   "sublist": 1,
+   "box": "none",
+   "level": 1,
+   "amended_by": [],
+   "status": "normal",
+   "page": 634,
+   "folio": "XIII-54",
+   "band": "",
+   "text": "In the absence of an explicit RESET phrase, the report writer control system will set a sum counter to zero at the time that the report writer control system is processing the control footing report group within which the sum counter is defined. If an explicit RESET phrase is specified, then the report writer control system will set the sum counter to zero at the time that the report writer control system is processing the designated level of the control hierarchy. (See page XIII-55, The TYPE Clause.)\nSum counters are initially set to zero by the report writer control system during the execution of the INITIATE statement for the report containing the sum counter.",
+   "provisional": "none"
   },
   {
    "id": "1985-FMT-XIII.3.20.2",
@@ -39158,8 +39180,8 @@
    "page": 634,
    "folio": "XIII-55",
    "band": "",
-   "text": "<pre style=\"line-height:1\">\n        ╭ ╭ <u>REPORT</u> <u>HEADING</u> ╮                  ╮\n        │ ┤                ├                  │\n        │ ╰ <u>RH</u>             ╯                  │\n        │                                     │\n        │ ╭ <u>PAGE</u> <u>HEADING</u> ╮                    │\n        │ ┤              ├                    │\n        │ ╰ <u>PH</u>           ╯                    │\n        │                                     │\n        │ ╭ <u>CONTROL</u> <u>HEADING</u> ╮ ╭ data-name-1 ╮ │\n        │ ┤                 ├ ┤             ├ │\n        │ ╰ <u>CH</u>              ╯ ╰ <u>FINAL</u>       ╯ │\n        │                                     │\n        │ ╭ <u>DETAIL</u> ╮                          │\n<u>TYPE</u> IS ┤ ┤        ├                          ├\n        │ ╰ <u>DE</u>     ╯                          │\n        │                                     │\n        │ ╭ <u>CONTROL</u> <u>FOOTING</u> ╮ ╭ data-name-2 ╮ │\n        │ ┤                 ├ ┤             ├ │\n        │ ╰ <u>CF</u>              ╯ ╰ <u>FINAL</u>       ╯ │\n        │                                     │\n        │ ╭ <u>PAGE</u> <u>FOOTING</u> ╮                    │\n        │ ┤              ├                    │\n        │ ╰ <u>PF</u>           ╯                    │\n        │                                     │\n        │ ╭ <u>REPORT</u> <u>FOOTING</u> ╮                  │\n        │ ┤                ├                  │\n        ╰ ╰ <u>RF</u>             ╯                  ╯\n</pre>",
-   "provisional": "whole"
+   "text": "<pre style=\"line-height:1\">\n        ╭ ╭ <u>REPORT</u> <u>HEADING</u> ╮                  ╮\n        │ ┤                ├                  │\n        │ ╰ <u>RH</u>             ╯                  │\n        │ ╭ <u>PAGE</u> <u>HEADING</u> ╮                    │\n        │ ┤              ├                    │\n        │ ╰ <u>PH</u>           ╯                    │\n        │ ╭ <u>CONTROL</u> <u>HEADING</u> ╮ ╭ data-name-1 ╮ │\n        │ ┤                 ├ ┤             ├ │\n        │ ╰ <u>CH</u>              ╯ ╰ <u>FINAL</u>       ╯ │\n        │ ╭ <u>DETAIL</u> ╮                          │\n<u>TYPE</u> IS ┤ ┤        ├                          ├\n        │ ╰ <u>DE</u>     ╯                          │\n        │ ╭ <u>CONTROL</u> <u>FOOTING</u> ╮ ╭ data-name-2 ╮ │\n        │ ┤                 ├ ┤             ├ │\n        │ ╰ <u>CF</u>              ╯ ╰ <u>FINAL</u>       ╯ │\n        │ ╭ <u>PAGE</u> <u>FOOTING</u> ╮                    │\n        │ ┤              ├                    │\n        │ ╰ <u>PF</u>           ╯                    │\n        │ ╭ <u>REPORT</u> <u>FOOTING</u> ╮                  │\n        │ ┤                ├                  │\n        ╰ ╰ <u>RF</u>             ╯                  ╯\n</pre>",
+   "provisional": "none"
   },
   {
    "id": "1985-SR-XIII.3.20.3-1",
@@ -39181,7 +39203,7 @@
    "folio": "XIII-55",
    "band": "",
    "text": "RH is an abbreviation for REPORT HEADING.\nPH is an abbreviation for PAGE HEADING.\nCH is an abbreviation for CONTROL HEADING.\nDE is an abbreviation for DETAIL.\nCF is an abbreviation for CONTROL FOOTING.\nPF is an abbreviation for PAGE FOOTING.\nRF is an abbreviation for REPORT FOOTING.",
-   "provisional": "whole"
+   "provisional": "none"
   },
   {
    "id": "1985-SR-XIII.3.20.3-2",
@@ -39202,8 +39224,8 @@
    "page": 634,
    "folio": "XIII-55",
    "band": "",
-   "text": "Data-name-1, data-name-2, and FINAL, if specified, must be the same as one of the data-names or FINAL specified in the CONTROL clause of the corresponding report description entry.",
-   "provisional": "whole"
+   "text": "Report groups specified by REPORT HEADING, PAGE HEADING, CONTROL HEADING FINAL, CONTROL FOOTING FINAL, PAGE FOOTING, and REPORT FOOTING may each appear no more than once in the description of a report.",
+   "provisional": "none"
   },
   {
    "id": "1985-SR-XIII.3.20.3-3",
@@ -39224,8 +39246,8 @@
    "page": 634,
    "folio": "XIII-55",
    "band": "",
-   "text": "PAGE HEADING and PAGE FOOTING report groups may be specified only if a PAGE clause is specified in the corresponding report description entry.",
-   "provisional": "whole"
+   "text": "Page heading and page footing report groups may be specified only if a PAGE clause is specified in the corresponding report description entry.",
+   "provisional": "none"
   },
   {
    "id": "1985-SR-XIII.3.20.3-4",
@@ -39246,8 +39268,8 @@
    "page": 634,
    "folio": "XIII-55",
    "band": "",
-   "text": "REPORT HEADING, PAGE HEADING, PAGE FOOTING, and REPORT FOOTING report groups may each appear no more than once in the description of a report. At most one control heading report group and at most one control footing report group may be specified for each data-name or FINAL in the CONTROL clause of the report description entry. Either or both of the control heading and control footing report groups may be omitted for any given level of control.",
-   "provisional": "whole"
+   "text": "Data-name-1, data-name-2, and FINAL, if present, must be specified in the CONTROL clause of the corresponding report description entry. At most, one control heading report group and one control footing report group can be specified for each data-name or FINAL in the CONTROL clause of the report description entry. However, neither a control heading report group nor a control footing report group is required for a data-name or FINAL specified in the CONTROL clause of the report description entry.",
+   "provisional": "none"
   },
   {
    "id": "1985-SR-XIII.3.20.3-5",
