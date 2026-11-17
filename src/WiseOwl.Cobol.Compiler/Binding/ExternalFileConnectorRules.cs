@@ -108,7 +108,8 @@ internal static class ExternalFileConnectorRules
 
             // RELATIVE KEY: for an external RELATIVE file, every corresponding SELECT names the same external data item, which is
             // the same storage (§2023:14.8.4.2 "shall refer to the same corresponding storage"): ExternalItemIdentity carries the
-            // item's character positions in the external record beside its name path (kb/Work PB5857).
+            // item's character positions in the external record beside the record and the item's own name (kb/Work PB5857), and
+            // never the names of the groups between them (kb/Work PB5888).
             if (conns.Any(f => f.Organization == FileOrganization.Relative) && conns.Any(f => f.RelativeKeyName is not null))
                 SameItem(edition, conns, f => f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts), f => f.ClauseOrEntryAt(f.RelativeKeyAt),
                     DiagnosticCatalog.ExternalRelativeKeyConsistency, EditionSeverity.Error,
