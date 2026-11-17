@@ -1,4 +1,4 @@
-## PB4950: a diagnostic at --std 85 cites the 1985 rule — one decider, a net over every 85 refusal, and eight notes of the 1985 triage
+## Entry 3829 — 2026-11-17 14:36 PST — PB4950: a diagnostic at --std 85 cites the 1985 rule — one decider, a net over every 85 refusal, and eight notes of the 1985 triage
 
 **What.** The owner's decision of 2026-11-07 (kb/Work PB4950) is that a diagnostic cites the rule of the edition the program is
 compiled under. This change gives that decision one mechanism and a net, and fixes the 1985 diagnostic-text notes the 85 triage
@@ -23,3 +23,4 @@ confirmed.
   the SUM RESET operand's rules and write their 2002 rules in the edition form (PB5910 review lead R2-1).
 
 **Goldens changed:** `1985-SR-VI_4_3_3-1` expects COBOL1971 (it pinned the extra COBOL3734). No other expected output changed.
+
