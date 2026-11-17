@@ -4,5 +4,6 @@
   refuses `RENAMES A THRU A` and accepts `RENAMES A OF G1 THRU A OF G2`, two different items that share a word, as GnuCOBOL
   does (`cobc/field.c#cb_validate_renames_item` compares the two resolved items; 3.3-dev, source read, not run). Decided by
   the precedence of CLAUDE.md rule 1 (the text leaves the choice, GnuCOBOL decides). Source: `kb/Work/PB5870.md`, item 2.
-  Witnesses: `conformance:cases/13.18.45-RENAMES/pb1283_renames_legal` is the row's own case; none tracked pins the two-item
-  arm.
+  Witnesses: `conformance:cases/VI.5.11@1985-RENAMES-CLAUSE/pb5870_renames_same_word_two_items_85` (the ruling's probe
+  `r4c.cob`, made a case) pins the two-item arm; `conformance:cases/13.18.45-RENAMES/pb1283_renames_legal` is the row's own
+  case.

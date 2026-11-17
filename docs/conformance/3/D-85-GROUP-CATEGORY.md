@@ -6,4 +6,5 @@
   every field that has subordinate items the category alphanumeric; `cobc/typeck.c#validate_file_status` accepts a
   two-character item of that category; 3.3-dev, source read, not run). Decided by the precedence of CLAUDE.md rule 1 (the
   text leaves the choice, GnuCOBOL decides). Source: `kb/Work/PB5870.md`, item 1. Witnesses:
-  `conformance:cases/VII.2.5@1985-FILE-STATUS-CLAUSE/g85_y94` is the row's own case; none tracked pins the group item.
+  `conformance:cases/VII.2.5@1985-FILE-STATUS-CLAUSE/pb5870_file_status_group_item_85` (the refuter's probe `fsnum9.cob`,
+  made a case) pins the group item; `conformance:cases/VII.2.5@1985-FILE-STATUS-CLAUSE/g85_y94` is the row's own case.

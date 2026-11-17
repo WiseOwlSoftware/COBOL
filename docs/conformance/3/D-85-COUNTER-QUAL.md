@@ -11,7 +11,8 @@
   (`§1985:X.4.4.4 GR1`: "the special registers LINE-COUNTER and PAGE-COUNTER are global names" in the report description
   entry that contains the GLOBAL clause) are the two readings the sentence settles; the compiler does what it says
   (`CounterResolver.ReportOf`: the enclosing report description first, then the nearest visible report, exactly one or
-  COBOL2729). Source: `kb/Work/PB5683/2026-11-16-rulings-open-readings.md`, section 7. Witnesses: no tracked conformance
-  case exercises the contained-program arms yet; the rulings' probes (one report description in the container and a second
-  in the contained program; a GLOBAL report in the container and the contained program's own) are the lane's scratch
-  programs.
+  COBOL2729). Source: `kb/Work/PB5683/2026-11-16-rulings-open-readings.md`, section 7. Witnesses (the rulings' probes `lc1.cob`
+  and `lc2.cob`, made cases): `conformance:cases/IV.4.3.8@1985-Uniqueness-of-Reference/pb5800_line_counter_contained_report_85`
+  (one report description in the container and a second in the contained program) and
+  `conformance:cases/IV.4.3.8@1985-Uniqueness-of-Reference/pb5800_line_counter_own_report_over_global_85` (a GLOBAL report
+  in the container and the contained program's own).
