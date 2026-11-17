@@ -37,7 +37,8 @@ internal readonly record struct MemberKey(string Type, string Member)
 /// <remarks>
 /// <para>
 /// <b>Population.</b> The C# compiler's synthesized types are not authored, by the census's population rule
-/// (<c>tools/ArchCensus/CompiledPopulation.cs</c>): <c>&lt;Module&gt;</c> and every type carrying
+/// (<c>tools/ArchCensus/CompiledPopulation.cs</c>): every type whose name begins with <c>&lt;</c> (which no source can
+/// declare: <c>&lt;Module&gt;</c>, a collection expression's <c>&lt;&gt;y__InlineArrayN</c>) and every type carrying
 /// <c>[CompilerGenerated]</c>, with the types nested in them. A closure, an iterator or an async state machine nested
 /// in a type is that type's code, so its references fold into it. A type is GENERATED only when every document that
 /// declares it is a generated output (<see cref="GeneratedDocument"/>); a partial with one hand-written document is
