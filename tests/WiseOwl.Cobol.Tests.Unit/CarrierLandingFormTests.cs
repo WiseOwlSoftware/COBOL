@@ -259,9 +259,9 @@ public sealed class CarrierLandingFormTests
 
     /// <summary>A RECEIVER-BOUND alignment has its own spelling with NO default form — <c>NumRescaleStore</c>,
     /// whose two arms are <c>RescaleStoreCap</c> and <c>RescaleChecked</c> — and <c>ArithmeticEmitter</c> renders
-    /// nothing else. <c>RuntimeApi.NumRescale</c> (the plain wrapping <c>CobolNum.Rescale</c>) carried a
-    /// <c>checkedPath = false</c> DEFAULT, the arithmetic store's edited landing took it, and a widening past the
-    /// carrier wrapped in binary before any capacity rule ran (kb/Work PB639). This is the same guard shape
+    /// nothing else. The plain-rescale helper (wrapping <c>CobolNum.Rescale</c>) carried a <c>checkedPath = false</c>
+    /// DEFAULT, the arithmetic store's edited landing took it, and a widening past the carrier wrapped in binary before
+    /// any capacity rule ran (kb/Work PB639); the helper lost its last caller and was deleted (kb/Work PB2181). This is the same guard shape
     /// <see cref="FloatToScaled_TakesTheLandingForm_WithNoDefault"/> puts on the float carrier.</summary>
     [Fact]
     public void EveryReceiverBoundAlignment_NamesItsLandingForm()
@@ -270,9 +270,7 @@ public sealed class CarrierLandingFormTests
         Assert.Matches(new Regex(@"public static string NumRescaleStore\(string value, string fromScale, "
             + @"string toScale, CobolRounding mode, bool checkedPath\)"), api);
         Assert.Contains("nameof(CobolNum.RescaleStoreCap)", api);
-        // …and the plain rescale may never regrow a landing-form default.
-        Assert.Matches(new Regex(@"public static string NumRescale\(string value, string fromScale, "
-            + @"string toScale, CobolRounding mode\)"), api);
+        // …and no helper may regrow a landing-form default.
         Assert.DoesNotContain("bool checkedPath = ", api);
 
         // The edited receiver's landing is ONE helper (kb/Work PB2163: the masked and LOCALE arms of StoreArith each
@@ -280,7 +278,6 @@ public sealed class CarrierLandingFormTests
         // both edited arms, checked and unchecked, call it.
         string ae = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Verbs", "ArithmeticEmitter.cs"));
         string nr = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "NumericRenderer.cs"));
-        Assert.DoesNotContain("RuntimeApi.NumRescale(", ae);
         Assert.DoesNotContain("RuntimeApi.NumRescaleStore(", ae);
         Assert.Single(Regex.Matches(nr, @"RuntimeApi\.NumRescaleStore\("));
         Assert.Equal(4, Regex.Matches(ae, @"NumericRenderer\.EditedLanding\(").Count);

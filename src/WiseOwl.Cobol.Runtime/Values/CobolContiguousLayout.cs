@@ -96,9 +96,6 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
         extents is not null && Odo.CountFrom(extents.Count, FixedAt.Length) is int n && AtCount(n) is var at
             && at.Recorded(record, extents) is not null ? at : null;
 
-    /// <summary>Component k's DYNAMIC LENGTH STRUCTURE, or null when it has none (see the type summary).</summary>
-    public CobolDynStructure? StructureOf(int k) => _structure?[k];
-
     /// <summary>Does any component of this layout have a DYNAMIC LENGTH STRUCTURE — is its MEDIUM image different
     /// from its contiguous one.</summary>
     public bool HasStructure => _structure is not null;

@@ -81,9 +81,6 @@ public sealed record BackendArtifact(bool Success, IReadOnlyList<BackendDiagnost
 /// </summary>
 internal interface ICodeGenBackend
 {
-    /// <summary>Which backend this is.</summary>
-    BackendId Id { get; }
-
     /// <summary>Render <paramref name="program"/> and produce the executable per <paramref name="options"/>.</summary>
     BackendArtifact Emit(BoundCompilation program, BackendOptions options);
 }

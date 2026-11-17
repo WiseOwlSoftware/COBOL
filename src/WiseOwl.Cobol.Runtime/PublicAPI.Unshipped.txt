@@ -195,6 +195,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.IntegerArgumentRoundedUnderStandardArithme
 WiseOwl.Cobol.Runtime.DialectBehavior.IntegerDateFormBounded = 11 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IoStatusValuesOutside1985Lists = 30 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.LinageViolatingOpenLeavesFileOpen = 28 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.LineSequentialFileRules = 32 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.MoveSignIsTheValuesSign = 29 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.NegativeBaseRequiresIntegerExponent = 17 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 12 -> WiseOwl.Cobol.Runtime.DialectBehavior

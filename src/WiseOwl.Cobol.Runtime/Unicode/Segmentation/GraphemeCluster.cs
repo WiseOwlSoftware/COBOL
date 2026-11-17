@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Text;
-
 namespace WiseOwl.Cobol.Runtime.Unicode.Segmentation;
 
 /// <summary>
@@ -9,7 +7,7 @@ namespace WiseOwl.Cobol.Runtime.Unicode.Segmentation;
 /// its combining marks, a Hangul syllable written as conjoining jamo, an emoji with its modifiers and ZWJ sequence, a
 /// regional-indicator pair, CR+LF, an Indic conjunct …): the slice of the source text it occupies
 /// (<see cref="Source"/>, <see cref="Start"/>, <see cref="Length"/> in UTF-16 code units), read as
-/// <see cref="Span"/> / <see cref="Memory"/> / <see cref="ToString"/>, and its code points
+/// <see cref="Span"/> / <see cref="ToString"/>, and its code points
 /// (<see cref="EnumerateCodePoints"/> allocation-free, <see cref="CodePoints"/> as an array). Produced by
 /// <see cref="GraphemeBreaker"/> / <see cref="GraphemeEnumerator"/>; a value type, no allocation per cluster.
 /// </summary>
@@ -41,9 +39,6 @@ public readonly struct GraphemeCluster : IEquatable<GraphemeCluster>
 
     /// <summary>The cluster's text, without allocating.</summary>
     public ReadOnlySpan<char> Span => Source.AsSpan(Start, Length);
-
-    /// <summary>The cluster's text as memory, without allocating.</summary>
-    public ReadOnlyMemory<char> Memory => Source.AsMemory(Start, Length);
 
     /// <summary>The number of code points in the cluster (an unpaired surrogate counts as one).</summary>
     public int CodePointCount
@@ -79,23 +74,12 @@ public readonly struct GraphemeCluster : IEquatable<GraphemeCluster>
     /// <summary>The cluster's text as a new string.</summary>
     public override string ToString() => Source.Substring(Start, Length);
 
-    /// <summary>The cluster's Unicode scalar values as <see cref="Rune"/>s (unpaired surrogates become U+FFFD).</summary>
-    public IEnumerable<Rune> EnumerateRunes()
-    {
-        foreach (int cp in EnumerateCodePoints())
-            yield return Rune.IsValid(cp) ? new Rune(cp) : Rune.ReplacementChar;
-    }
-
     public bool Equals(GraphemeCluster other) => ReferenceEquals(Source, other.Source) && Start == other.Start && Length == other.Length
         || Span.SequenceEqual(other.Span);
 
     public override bool Equals(object? obj) => obj is GraphemeCluster c && Equals(c);
 
     public override int GetHashCode() => string.GetHashCode(Span);
-
-    public static bool operator ==(GraphemeCluster left, GraphemeCluster right) => left.Equals(right);
-
-    public static bool operator !=(GraphemeCluster left, GraphemeCluster right) => !left.Equals(right);
 
     internal static int CodePointAt(string s, int index)
     {

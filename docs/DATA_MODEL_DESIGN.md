@@ -1228,9 +1228,7 @@ divergence and on a PROHIBITED-inexact significand, §2023:14.7.4.3 rule 7),
 `DeEditFloat(image, picture, …, blankWhenZero) → CobolDec` (an all-spaces image of a BLANK WHEN ZERO item is zero,
 §2023:13.18.8.4 GR3; under EC-DATA-INCOMPATIBLE checking the de-edited value is re-rendered through `FormatFloatCore` with the
 item's BLANK WHEN ZERO and must reproduce the image — the fixed-point `DeEdit`'s round trip, so an un-normalized
-significand, a zero with an exponent and any misplaced character are one mismatch; kb/Work PB2643),
-`FloatExtremeImage` (the pinned overflow image, also the
-HIGHEST/LOWEST-ALGEBRAIC value's image). (7) store = normalize EXACTLY (integer arithmetic to the
+significand, a zero with an exponent and any misplaced character are one mismatch; kb/Work PB2643). (7) store = normalize EXACTLY (integer arithmetic to the
 mask's integer-digit count), round the dropped digits through the ONE `CobolNum.RoundDiv` kernel by the landing's
 mode (TRUNCATION for a MOVE, §2023:14.6.8.4 rule 2; the receiver's ROUNDED [MODE] for an arithmetic store, §2023:14.7.4.3 rules
 3-10 — a carry out of the last digit renormalizes and the exponent is tested AFTER it, §2023:14.7.5 case 3 "after … any

@@ -176,15 +176,6 @@ public static partial class CobolEdit
         return outcome == FloatStoreOutcome.Ok;
     }
 
-    /// <summary>The image of the mask's positive extreme (all-nines significand at the maximum exponent) — the value
-    /// FUNCTION HIGHEST-ALGEBRAIC names (§2023:15.43.4 r2) and the pinned overflow content.</summary>
-    public static string FloatExtremeImage(string picture, bool negative, bool commaMode = false, EditRule[]? edits = null)
-    {
-        var m = FloatMask.Parse(picture, commaMode, edits);
-        string img = RenderFloat(m, negative, new string('9', m.SigDigits), m.MaxExp);
-        return commaMode ? SwapSeparators(img) : img;
-    }
-
     /// <summary>The core: normalize (§2023:14.6.8.4 GR1) by exact integer arithmetic to the mask's significand digit
     /// count, round the dropped digits by <paramref name="mode"/> through the ONE rounding kernel
     /// (<see cref="CobolNum.RoundDiv{T}"/>), decide the outcome against the exponent's capacity, render

@@ -125,16 +125,13 @@ public static partial class CobolNum
     public static ulong StoreImage(string image, in NumProfile item, ulong current) =>
         unchecked((ulong)ParseImage(image, item));
 
-    /// <summary>The unsigned READ twins of <see cref="ParseImage"/> (the Step D arm-1 dissolution, kb/Work
-    /// PB164): a ulong/UInt128-carried BinaryCapacity item read through a byte-form WINDOW must decode to
-    /// its unsigned container value — the signed lane's Int128 result reinterprets bit-identically, exactly
-    /// as the unsigned StoreImage lanes above do (the two's-complement bytes of the reinterpreted value ARE
-    /// the unsigned magnitude bytes). Without these, a wide unsigned COMP-5 window decoded SIGNED — a silent
-    /// wrong answer above Int128.MaxValue's bit pattern.</summary>
-    public static ulong ParseImageU(string image, in NumProfile item) =>
-        unchecked((ulong)ParseImage(image, item));
-
-    /// <inheritdoc cref="ParseImageU(string, in NumProfile)"/>
+    /// <summary>The unsigned READ of <see cref="ParseImage"/> (the Step D arm-1 dissolution, kb/Work PB164): a
+    /// UInt128-carried BinaryCapacity item read through a byte-form WINDOW must decode to its unsigned container
+    /// value — the signed lane's Int128 result reinterprets bit-identically, exactly as the unsigned StoreImage
+    /// lanes above do (the two's-complement bytes of the reinterpreted value ARE the unsigned magnitude bytes).
+    /// Without it, a wide unsigned COMP-5 window decoded SIGNED — a silent wrong answer above Int128.MaxValue's
+    /// bit pattern. A ulong-carried item needs no twin: the signed lane already returns its full width as a
+    /// non-negative Int128 (the ulong twin had no emitter and was deleted, kb/Work PB2181).</summary>
     public static UInt128 ParseImageU128(string image, in NumProfile item) =>
         unchecked((UInt128)ParseImage(image, item));
 

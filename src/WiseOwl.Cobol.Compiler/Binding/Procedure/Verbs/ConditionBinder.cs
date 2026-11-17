@@ -1104,11 +1104,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private static string OperandName(BoundOperand op) =>
         op is BoundFieldOperand f ? f.Place.Item.CobolName ?? "identifier-1" : "identifier-1";
 
-    /// <summary>⛔ THE ONE class-condition body (ISO §2023:8.8.4.4), over an operand the CALLER names. THREE callers
+    /// <summary>⛔ THE ONE class-condition body (ISO §2023:8.8.4.4), over an operand the CALLER names. TWO callers
     /// ask the same question about different spellings of the same condition: <see cref="BindComparison"/> for
     /// the written form <c>identifier-1 IS [NOT] class</c>, <see cref="BindPartialComparison"/> for
-    /// §2023:14.9.13.3 SR5's "class condition without the identifier", and <see cref="BindClassCondition"/> for the
-    /// EVALUATE selection subject's own class test. Extracted rather than copied because FIVE rules live in
+    /// §2023:14.9.13.3 SR5's "class condition without the identifier" (the EVALUATE selection subject's own class test
+    /// reaches it through the latter). Extracted rather than copied because FIVE rules live in
     /// it — the §2023:8.8.4.4.3 operand screen, the SR2 LOCALE-alphabet refusal, the §2023:12.3.7 user-class membership
     /// and the §2023:8.8.4.4.4 GR3 a) coded-set class — and a second copy is five chances for the spellings to
     /// diverge. It WAS copied: <c>EvaluateBinder.SubjectAsCondition</c> carried its own kind decode over its
@@ -1117,9 +1117,6 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <para><paramref name="operand"/> is a thunk so the operand is bound only on the arms that reach it: the
     /// LOCALE refusal reports a rule about the CLASS-NAME and must not also drag the operand's own diagnostics
     /// into the same statement.</para></summary>
-    public BoundCondition BindClassCondition(Core.ClassConditionNameContext cls, bool not, System.Func<BoundOperand> operand) =>
-        BindClassConditionOn(cls, not, operand, new AbbrevCarry());
-
     private BoundCondition BindClassConditionOn(Core.ClassConditionNameContext cls, bool not,
         System.Func<BoundOperand> operand, AbbrevCarry carry)
     {

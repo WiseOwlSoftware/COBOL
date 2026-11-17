@@ -1036,6 +1036,14 @@ public sealed partial class SequentialConnector : FileConnector
     /// <inheritdoc/>
     protected override bool LineSequential => _lineSequential;
 
+    /// <summary>⛔ THE ONE ANSWER TO "DOES THIS LINE-FRAMED FILE FOLLOW THE LINE SEQUENTIAL FILE'S RULES?" (kb/Work PB5903):
+    /// true for a line sequential connector of a COBOL-2023 compilation, where a WRITE drops the record's trailing
+    /// spaces (§2023:14.9.51.4 GR21) and a READ pads a short line and continues a long one at the next READ
+    /// (§2023:14.9.30.4 GR15); false for one of an earlier edition, whose file the line delimiter only frames
+    /// (§1985:VII.2.8.4 GR1, <see cref="DialectBehavior.LineSequentialFileRules"/>). Both line arms ask it.</summary>
+    private bool LineSequentialFileRules =>
+        _lineSequential && DialectBehaviors.IsActive(DialectBehavior.LineSequentialFileRules, Edition);
+
     /// <summary>The line end of a RECORD SEQUENTIAL print stream that has neither a LINAGE clause nor a report
     /// description: a record sequential file written with an ADVANCING phrase. A line feed on every host
     /// (<see cref="SelectLineEnd"/> carries the determination).</summary>
@@ -1593,19 +1601,20 @@ public sealed partial class SequentialConnector : FileConnector
         // A LINE SEQUENTIAL record goes out as its characters alone: a line is plain text (§2023:12.4.5.10.3 GR2), so
         // `extents` has nowhere to live and is deliberately not consulted by either line arm below — the READ splits
         // the line by the take step (docs/CONFORMANCE.md §3 D-FRA (x); kb/Work PB1563).
-        if (IsVarying)
+        if (_lineSequential)
+            // §2023:14.9.51.4 GR21 drops a line sequential record's trailing spaces; before 2023 the line delimiter only
+            // frames the record, which keeps its size (§1985:VII.2.8.4 GR1; LineSequentialFileRules, kb/Work PB5903).
+            EmitRecordLine(LineSequentialFileRules
+                ? TrimRecordEnd(IsVarying ? FitRecord(image, len, national) : image, national)
+                : FitRecord(image, len, national), national);
+        else if (IsVarying)
         {
-            if (_lineSequential) EmitRecordLine(TrimRecordEnd(FitRecord(image, len, national), national), national);
-            else
-            {
-                // The table describes the image the group composed; a record sent at another length (GR13 a) is
-                // not that image, so it goes without one rather than with a table that would misdescribe it.
-                string record = FitRecord(image, len, national);
-                EmitFrameHead(len, Framed(record, image, extents).Extents);
-                EmitRecord(record, national);
-            }
+            // The table describes the image the group composed; a record sent at another length (GR13 a) is
+            // not that image, so it goes without one rather than with a table that would misdescribe it.
+            string record = FitRecord(image, len, national);
+            EmitFrameHead(len, Framed(record, image, extents).Extents);
+            EmitRecord(record, national);
         }
-        else if (_lineSequential) EmitRecordLine(TrimRecordEnd(image, national), national);
         else EmitRecord(Fit(image), national);
         ReleaseRecord();   // §2023:14.9.51.4 GR12 — released to the operating environment, and numbered there
         return WriteSucceeded();
@@ -1886,8 +1895,9 @@ public sealed partial class SequentialConnector : FileConnector
         }
 
         // §2023:14.9.30 GR14 (READ) / §2023:9.1.13.2 item 3: a RECORD-sequential physical record whose length is outside the file's
-        // min/max record size is a SUCCESSFUL read with status '04' (the record is still delivered). Line-sequential
-        // is excluded — its short/long conditions are '06'/'09', never '04'.
+        // min/max record size is a SUCCESSFUL read with status '04' (the record is still delivered). A 2023 line
+        // sequential file is excluded — its long line is '06', its short one no conflict — and a line-framed file of an
+        // earlier edition is not (LineSequentialFileRules, kb/Work PB5903).
         bool shortLong = false;
         bool lineTooLong = false;
         bool lineBadChar = false;
@@ -1909,28 +1919,44 @@ public sealed partial class SequentialConnector : FileConnector
             else return ReadUnsuccessful(FileStatusCode.AtEnd);   // GR24 b)
             // The bound is the maximum size the RECORD DESCRIPTIONS specify (GR15's own words), which is the
             // record area's width except for a variable-length record (MaxRecordSize — kb/Work PB981).
-            if (line.Length > MaxRecordSize)
+            bool truncated = line.Length > MaxRecordSize;
+            if (truncated)
             {
-                _lineRemainder = line[MaxRecordSize..];
                 NoteRecordRead(line[..MaxRecordSize], null);   // a line carries no extent table
                 image = Fit(CurrentRecord);
-                lineTooLong = true;
             }
             else { NoteRecordRead(line, null); image = Fit(line); }   // §2023:14.9.30.4 GR15 fill — national-aware (kb/Work PB327)
-            // §2023:14.9.30.4 GR16: "If the execution of the READ statement is successful but the record area
-            // contains one or more characters not in the implementor-defined character set for a line
-            // sequential file, the I-O status in the read file connector is set to '09'" (§2023:9.1.13.2 item 7).
-            // ⛔ Tested on the DELIVERED record area, which is what GR16 names — so a character in the unread
-            // remainder of an over-length line belongs to the READ that DELIVERS it, not to this one. GR16 is
-            // stated after GR15 and asks only that the read be successful, so it also lands on a truncated
-            // ('06') read; the status arbitration below follows that order (kb/Work PB329).
-            // ⛔ The delivered record area of a variable-length group is the WHOLE contiguous line (D-FRA (x)), not
-            // just its RecordWidth fixed run, so the set is asked of the delivered line at its own width: a control
-            // character in a dynamic member past the fixed run is '09', as the WRITE's GR23 and the REWRITE's GR17 d)
-            // answer '71' for it (kb/Work PB1563 review R1-1). For every other record the delivered line is at most
-            // RecordWidth wide, so the fitted image is the same subject as before.
-            string delivered = lineTooLong ? CurrentRecord : line;
-            lineBadChar = RecordAreaOutsideLineCharacterSet(Format is not null ? onMedium ?? "" : delivered.Length > RecordWidth ? delivered : image, NationalRecordArea && Format is null);
+            if (!LineSequentialFileRules)
+            {
+                // ⛔ BEFORE 2023 THE LINE IS ONLY THE RECORD'S FRAME (LineSequentialFileRules, kb/Work PB5903): the record read
+                // is the line, and §1985:VII.4.4.4 GR13 (§2002:14.8.29.3 GR13, §2014:14.9.29.3 GR14) makes a record shorter
+                // than the minimum or longer than the maximum size a record length conflict — "the record is truncated on
+                // the right to the maximum size", the READ successful with '04' — and the next READ reads the next record,
+                // so no remainder is kept. The line sequential character set (GR16's '09') is a 2023 line sequential rule.
+                shortLong = RecordLengthConflicts(line.Length);
+            }
+            else
+            {
+                if (truncated)
+                {
+                    _lineRemainder = line[MaxRecordSize..];
+                    lineTooLong = true;
+                }
+                // §2023:14.9.30.4 GR16: "If the execution of the READ statement is successful but the record area
+                // contains one or more characters not in the implementor-defined character set for a line
+                // sequential file, the I-O status in the read file connector is set to '09'" (§2023:9.1.13.2 item 7).
+                // ⛔ Tested on the DELIVERED record area, which is what GR16 names — so a character in the unread
+                // remainder of an over-length line belongs to the READ that DELIVERS it, not to this one. GR16 is
+                // stated after GR15 and asks only that the read be successful, so it also lands on a truncated
+                // ('06') read; the status arbitration below follows that order (kb/Work PB329).
+                // ⛔ The delivered record area of a variable-length group is the WHOLE contiguous line (D-FRA (x)), not
+                // just its RecordWidth fixed run, so the set is asked of the delivered line at its own width: a control
+                // character in a dynamic member past the fixed run is '09', as the WRITE's GR23 and the REWRITE's GR17 d)
+                // answer '71' for it (kb/Work PB1563 review R1-1). For every other record the delivered line is at most
+                // RecordWidth wide, so the fitted image is the same subject as before.
+                string delivered = lineTooLong ? CurrentRecord : line;
+                lineBadChar = RecordAreaOutsideLineCharacterSet(Format is not null ? onMedium ?? "" : delivered.Length > RecordWidth ? delivered : image, NationalRecordArea && Format is null);
+            }
         }
         else if (NextFrame(out _, out RecordExtents? extents) is { } physicalRecord)
         {
@@ -2384,7 +2410,4 @@ public sealed partial class SequentialConnector : FileConnector
         _lastReadLinePartial = false;
         _readOrdinal = ordinalBefore;
     }
-
-    /// <summary>The AT END condition (ISO §2023:14.9.30): true only at end-of-file (status 10).</summary>
-    public bool AtEnd => Status == FileStatusCode.AtEnd;
 }

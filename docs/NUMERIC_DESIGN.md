@@ -1173,7 +1173,7 @@ family, §2023:13.18.60.4 GR12 / DOC-A.1-208) takes the CONTAINER's two's-comple
 modulo 2^128, which 2^bits divides — so that arm keeps `Rescale` and is exact as it stands. `StoreU` has had this
 split since R10 (its cap argument is the binary modulus or the decimal one); `Store` was the unfixed arm — the
 [[two_arm_dispatch]] shape again. The emitter names this landing too: `RuntimeApi.NumRescaleStore(…, bool
-checkedPath)` has NO default, `RuntimeApi.NumRescale` is now only the value-semantics narrowing helper, and
+checkedPath)` has NO default, the plain-rescale helper that carried the default is deleted (kb/Work PB2181), and
 `CarrierLandingFormTests.EveryReceiverBoundAlignment_NamesItsLandingForm` greps the sites. Goldens
 `pb639_store_landing_low_order_digits` at 2002 / 2014 / 2023 (eight rows; six are red on the pre-fix compiler and
 the two that are not are the COMP-5 pin and the in-capacity control).

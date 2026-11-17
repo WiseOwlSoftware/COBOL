@@ -176,11 +176,6 @@ public sealed record BoundInvokeNull : BoundStatement;
 /// <summary>One universal-dispatch argument: the storage and its description (kb/Work PB480).</summary>
 public sealed record BoundUniversalArg(Place? Source, WiseOwl.Cobol.Runtime.ActivationDescription Description)
 {
-    /// <summary>A spelled OMITTED argument (ISO §2023:14.9.23.2; kb/Work PB757) — no source; its description is
-    /// <see cref="WiseOwl.Cobol.Runtime.ActivationDescription.Omitted"/>, and the callee's switch admits it only against an
-    /// OPTIONAL formal (§2023:9.3.6 match rule 3 b), checked at runtime through a universal receiver.</summary>
-    public bool Omitted => Source is null && Address is null;
-
     /// <summary>An ADDRESS-IDENTIFIER argument (ISO §2023:14.9.23.3 SR9; kb/Work PB1137): no <see cref="Source"/> — the
     /// pointer VALUE §2023:8.4.3.11.4 GR1 / §2023:8.4.3.13.4 GR1 create crosses in the box under its class-pointer
     /// <see cref="Description"/>, and SR19 makes it a SENDING operand, so the box is never copied back.</summary>

@@ -1333,14 +1333,6 @@ public readonly record struct RecordClauseFacts(
         RecordClauseFormat.FixedOrVariable => "integer-5",
         _ => "integer-1",
     };
-
-    /// <summary>The clause as the standard heads its general format, for a diagnostic's first clause.</summary>
-    public string FormatFace => Format switch
-    {
-        RecordClauseFormat.Varying => "RECORD IS VARYING IN SIZE (ISO §2023:13.18.43.2 Format 2)",
-        RecordClauseFormat.FixedOrVariable => "RECORD CONTAINS integer-4 TO integer-5 (ISO §2023:13.18.43.2 Format 3)",
-        _ => "RECORD CONTAINS integer-1 (ISO §2023:13.18.43.2 Format 1)",
-    };
 }
 
 /// <summary>One report-name-1 of an FD's REPORT clause (ISO §2023:13.18.46.2) and where it is written, so the rules over the

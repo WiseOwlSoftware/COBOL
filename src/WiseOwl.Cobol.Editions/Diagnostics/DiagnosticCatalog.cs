@@ -1117,17 +1117,6 @@ public static class DiagnosticCatalog
         + "argument model has no counterpart.",
         "ISO §2023:14.9.4.2 Formats 1 and 2", RecognizedNotImplemented);
 
-    // ── COBOL0899 — the staged-loud standard-arithmetic leg (P10 Step 12) ─────────────────────────────
-    public static readonly DiagnosticDescriptor ArithmeticStandardIntrinsic = new(
-        NotImplemented, "arithmetic-standard-intrinsic",  EditionSeverity.Error,
-        "Under ARITHMETIC IS STANDARD / STANDARD-DECIMAL, ISO §2023:15.4.1 r1 requires this function's returned "
-        + "value to EQUAL its equivalent arithmetic expression evaluated in the standard-decimal intermediate "
-        + "(SDIDI, §2023:8.8.1.5) — the ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION equivalent "
-        + "expressions carry inexact divisions, and the native IEEE-double engine (§2023:15.4.1's native-arithmetic "
-        + "approximation license) cannot honor that equality; staged loud until the CobolDec evaluations land "
-        + "so a program depending on standard-decimal function results never silently gets native ones.",
-        "ISO §2023:15.4.1 / §2023:8.8.1.5.1", RecognizedNotImplemented);
-
     // ── COBOL1958 — the prototype-pointer RESTRICTION OPERAND, one rule over two carriers ─────────────
     // ⛔ THIS REPLACED TWO 0899 STAGED-LOUD DESCRIPTORS (`usage-function-pointer`, `program-pointer-restricted`,
     // P10 Step 7), which are DELETED rather than kept inert: both asserted that the construct was "not yet
@@ -1496,10 +1485,6 @@ public static class DiagnosticCatalog
         NotImplemented, "usage-keyword-unmapped-internal", EditionSeverity.Error,
         "Internal: a grammar-accepted USAGE keyword has no ParseUsage mapping (a compiler defect).",
         "ISO §2023:13.18.60", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor ConstructStagedNotImplemented = new(
-        NotImplemented, "construct-staged-not-implemented", EditionSeverity.Error,
-        "A registry-recognized construct is available at this edition but not yet implemented (staged loud).",
-        "COMPLETION_ROADMAP_COUNCIL", RecognizedNotImplemented);
 
     // ── COBOL0899 — Report Writer, deferred features ──────────────────────────────────────────────
     // ⛔ `ReportGlobalClause` (`report-global-clause`) LIVED HERE AND IS GONE (kb/Work PB369): the GLOBAL clause on

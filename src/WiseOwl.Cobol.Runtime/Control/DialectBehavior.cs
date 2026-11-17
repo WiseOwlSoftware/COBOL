@@ -351,6 +351,18 @@ public enum DialectBehavior
     /// editions are QUOTED. The consumers are <c>ReportWriterEmitter.RegisterCrossEngineAdditions</c> (the order) and
     /// <c>ReportSectionBinder.ScreenRolledChains</c>'s call (the refusal).</summary>
     SumAdditionsInDependencyOrder = 31,
+    /// <summary>§2023:14.9.30.4 GR15 and §2023:14.9.51.4 GR21 — a READ of a line sequential file pads a line shorter than the
+    /// minimum record size with trailing spaces (no record length conflict) and truncates an over-length one with '06', after
+    /// which "the file position indicator will reference the next unread character in the record", so the next READ continues
+    /// the line; and a WRITE does not transfer the record's trailing spaces. Every earlier edition has no line
+    /// sequential file: a file whose RECORD DELIMITER clause names LINE-SEQUENTIAL (Annex A.1 item 150) is a sequential file
+    /// whose variable-length records the line delimiter frames, and "Any method used will not be reflected in the record area
+    /// or the record size used within the program" (§1985:VII.2.8.4 GR1), so a WRITE writes the record at its size, and a READ
+    /// of a line outside the minimum and maximum record size is the record length conflict of §1985:VII.4.4.4 GR13, "the
+    /// record is truncated on the right to the maximum size" with the I-O status '04' and no remainder (§2002:14.8.29.3 GR13
+    /// and §2014:14.9.29.3 GR14 the same; kb/Work PB5903; VCR row 7.88). Both editions are QUOTED. The consumers are
+    /// <c>SequentialConnector.ReadRecord</c> and <c>SequentialConnector.WriteRecord</c>.</summary>
+    LineSequentialFileRules = 32,
 }
 
 /// <summary>
@@ -523,6 +535,12 @@ public static class DialectBehaviors
             "a report group's rolled additions run in dependency order, and a chain of SUM references that never terminates "
             + "(a counter that is its own addend included) is refused, only from COBOL-2002; COBOL-85 crossfoots in the order "
             + "the counters are defined, and a counter that is its own addend adds its value at the time of summation"),
+        new(DialectBehavior.LineSequentialFileRules, "line-sequential-file-rules", 2023,
+            "7.88", "14.9.30.4 GR15", "§2014:14.9.29.3 GR14",
+            "a file the line delimiter frames follows the line sequential file's rules (a WRITE drops the record's trailing "
+            + "spaces, a short line is padded with no length conflict, and an over-length line's remainder is the next READ's) "
+            + "only from COBOL-2023; before, its records keep their size, and a READ of a line shorter than the minimum or longer "
+            + "than the maximum record size is a record length conflict, '04', the long line truncated with no remainder"),
     ];
 
     static DialectBehaviors()
