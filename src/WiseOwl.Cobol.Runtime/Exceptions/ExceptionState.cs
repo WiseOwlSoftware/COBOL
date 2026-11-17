@@ -1930,9 +1930,6 @@ public static class ExceptionState
         set => E.ProgramArgOmittedChecking = value;
     }
 
-    /// <inheritdoc cref="ExceptionEngine.ProgramArgOmittedError"/>
-    public static void ProgramArgOmittedError(string detail) => E.ProgramArgOmittedError(detail);
-
     /// <inheritdoc cref="ExceptionEngine.FunctionArgOmittedChecking"/>
     public static bool FunctionArgOmittedChecking
     {
@@ -1940,18 +1937,12 @@ public static class ExceptionState
         set => E.FunctionArgOmittedChecking = value;
     }
 
-    /// <inheritdoc cref="ExceptionEngine.FunctionArgOmittedError"/>
-    public static void FunctionArgOmittedError(string detail) => E.FunctionArgOmittedError(detail);
-
     /// <inheritdoc cref="ExceptionEngine.OoArgOmittedChecking"/>
     public static bool OoArgOmittedChecking
     {
         get => E.OoArgOmittedChecking;
         set => E.OoArgOmittedChecking = value;
     }
-
-    /// <inheritdoc cref="ExceptionEngine.OoArgOmittedError"/>
-    public static void OoArgOmittedError(string detail) => E.OoArgOmittedError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.OoResourceChecking"/>
     public static bool OoResourceChecking
@@ -2460,9 +2451,6 @@ public static class ExceptionState
         get => E.ExternalFileMismatchChecking;
         set => E.ExternalFileMismatchChecking = value;
     }
-
-    /// <inheritdoc cref="ExceptionEngine.ExternalActivatingMask"/>
-    public static int ExternalActivatingMask => E.ExternalActivatingMask;
 
     /// <inheritdoc cref="ExceptionEngine.ActivatorExternalMask"/>
     public static int ActivatorExternalMask

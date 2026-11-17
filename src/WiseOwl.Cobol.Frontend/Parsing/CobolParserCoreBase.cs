@@ -1298,7 +1298,6 @@ public abstract class CobolParserCoreBase : Parser
         return reservedHere(keyword);
     }
 
-    protected CobolParserCoreBase(ITokenStream input) : base(input) { }
     protected CobolParserCoreBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
         : base(input, output, errorOutput) { }
 
