@@ -9,8 +9,8 @@
    "SR-13.18.57.3-9"
   ],
   "bridge": true,
-  "reason": "PROVISIONAL (a reconstruction of folio XIII-55, kb/Work PB4952). The seven abbreviations; 2023 SR9 states them word for word.",
-  "source": "adjudication kb/Work PB4952",
+  "reason": "The seven abbreviations, printed on folio XIII-55 (from the GovInfo scan, kb/Work PB5789); 2023 SR9 states them word for word.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
   "digests": {
    "SR-13.18.57.3-9": "6ed254b899a1"
   }

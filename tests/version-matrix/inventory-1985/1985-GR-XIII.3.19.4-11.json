@@ -1,18 +1,19 @@
 {
  "rule-id": "1985-GR-XIII.3.19.4-11",
- "rule-digest": "9f8b241569c1",
- "test-ref": "conformance:cases/XIII.3.19@1985-SUM-CLAUSE/g85_bf09_09",
+ "rule-digest": "6e972fcbf0c2",
+ "test-ref": "conformance:cases/XIII.3.19@1985-SUM-CLAUSE/pb5789_generate_report_name_no_detail_85; conformance:cases/XIII.3.19@1985-SUM-CLAUSE/pb5789_generate_report_name_one_detail_85; conformance:cases/13.18.54-SUM/pb5249_generate_report_name_sum_upon; conformance:cases/14.9.49-USE/pb5337_generate_report_name_runs_detail_use",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). Yes, the compiler subtotals the addends that are not sum counters on GENERATE report-name, with no detail group (TYPE GR11 step 11a 'as though the description of the report included exactly one detail report group'), with one detail group (11a, 11d) and with UPON naming the only detail (pb5249). New pb5789_generate_report_name_no_detail_85 and _one_detail_85, pb5249_generate_report_name_sum_upon (85) and pb5337_generate_report_name_runs_detail_use (85). retired-witness: conformance:cases/XIII.3.19@1985-SUM-CLAUSE/g85_bf09_09 (the printed GR11 is the GENERATE report-name subtotalling pointer; g85_bf09_09 witnesses the reset rule, now GR12 (kb/Work PB5789))",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.54.4-2"
+   "GR-14.9.16.4-2"
   ],
   "bridge": true,
-  "reason": "PROVISIONAL (a reconstruction of folio XIII-54, kb/Work PB4952). A sum counter is zeroed at INITIATE, and reset after its own control footing or, with RESET, at the named control level; 2023 GR2 states the same, and adds the size error indicator.",
-  "source": "adjudication kb/Work PB4952",
+  "reason": "GR11 points at the GENERATE statement's summary processing; §2023:14.9.16.4 GR2 gives GENERATE report-name 'the same processing as for a GENERATE data-name statement', subtotalling included.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
   "digests": {
-   "GR-13.18.54.4-2": "5c2c5e2ba47c"
+   "GR-14.9.16.4-2": "5c30de9c4b4d"
   }
  }
 }

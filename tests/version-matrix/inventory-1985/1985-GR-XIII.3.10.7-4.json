@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-GR-XIII.3.10.7-4",
- "rule-digest": "667dde8a8f86",
- "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85; conformance:cases/8.4.3.15-Report-counters/l1m8_counters_dummy_suppressed",
+ "rule-digest": "b5df2da673da",
+ "test-ref": "conformance:cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85; conformance:cases/8.4.3.15-Report-counters/l1m8_counters_dummy_suppressed; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_relative_after_rh_85; conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/pb5789_page_heading_nonprintable_85",
+ "notes": "Ruled 2026-11-17 (kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md) against the printed folios transcribed from the GovInfo scan (kb/Work PB5789). Text unchanged except its folio. New pb5789_page_heading_relative_after_rh_85 (4a) and pb5789_page_heading_nonprintable_85 (4b) observe LINE-COUNTER in a page heading itself; the withdrawn record's witnesses (pb1247_line_placement_unpaged_85, l1m8_counters_dummy_suppressed, both 85) witness the LINE-COUNTER rules generally, not a page heading (pb1247 is unpaged), so I propose the new cases first.",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
@@ -10,8 +11,8 @@
    "GR-8.4.3.15.4-5"
   ],
   "bridge": true,
-  "reason": "PROVISIONAL (a reconstruction of folio XIII-30, kb/Work PB4952). A page heading has no NEXT GROUP clause (§1985:XIII.3.16.3 SR5), so LINE-COUNTER ends at its last line printed, and a nonprintable group leaves it unchanged; 2023 states both for LINE-COUNTER.",
-  "source": "adjudication kb/Work PB4952",
+  "reason": "unchanged from the withdrawn record.",
+  "source": "adjudication kb/Work PB5789 (rulings kb/Work/PB5683/2026-11-17-rulings-pb5789-folios.md)",
   "digests": {
    "GR-8.4.3.15.4-4": "cf9c288b45e0",
    "GR-8.4.3.15.4-5": "3c235b0d53d8"
