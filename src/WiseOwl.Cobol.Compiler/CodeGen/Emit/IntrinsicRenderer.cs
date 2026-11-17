@@ -684,7 +684,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// INTAKE(EXACT) for an exact carrier; INTAKE(APPROXIMATED) for a float one, whose binary64 IS the argument.</remarks>
     private string PresentValueBase(BoundIntrinsicCall ic, BoundOperand a)
     {
-        NumX x = num.AsNum(a, num.Receiver);
+        NumX x = num.AsNum(a, num.ArgumentReceiver);
         return RuntimeApi.Intrinsic("PresentValueBase", x.Real ? DomainArg(ic, x) : ExactArg(ic, x));
     }
 
@@ -693,7 +693,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// no domain takes the plain <see cref="DblOf"/>. ⛔ The screen is the ONLY place such a rule is decided: the
     /// runtime bodies carry no second test on the double (a legal argument rounded onto a bound would trip it).</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier, after an EXACT domain test on that carrier.</remarks>
-    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) => DomainArg(ic, num.AsNum(a, num.Receiver));
+    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) => DomainArg(ic, num.AsNum(a, num.ArgumentReceiver));
 
     private static string DomainArg(BoundIntrinsicCall ic, NumX x) =>
         ic.Sig.Domain is IntrinsicDomain.None
@@ -1009,7 +1009,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     private NumX RawWideArg(BoundIntrinsicCall ic, int i)
     {
-        NumX x = num.AsNum(ic.Args[i], num.Receiver, keepWide: true);
+        NumX x = num.AsNum(ic.Args[i], num.ArgumentReceiver, keepWide: true);
         x = StandardArgument(ic, x);
         if (!(x.Real || x.Dec || x.Exact || x.Scale != 0) || !IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i)) return x;
         if (x.Wide)
@@ -1057,7 +1057,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     private string IntArgWideSaturating(BoundIntrinsicCall ic, int i)
     {
-        NumX x = num.AsNum(ic.Args[i], num.Receiver);
+        NumX x = num.AsNum(ic.Args[i], num.ArgumentReceiver);
         return x.Real ? RuntimeApi.IntegerArgSaturatingReal(x.Expr)
             : x.Dec ? RuntimeApi.IntegerArgSaturatingDec(x.Expr)
             : AsIntWide(x);
@@ -1079,7 +1079,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <summary>One operand lifted to a <c>CobolDec</c> from its RAW carrier — the per-operand form of <see cref="DecArg"/>
     /// (a table(ALL) element renders here inside its enumeration lambda).</summary>
     /// <remarks>INTAKE(LIFTED) — the per-operand form of <see cref="DecArg"/> — same contract.</remarks>
-    private string DecOf(BoundOperand a) => num.DecOperand(num.AsNum(a, num.Receiver));
+    private string DecOf(BoundOperand a) => num.DecOperand(num.AsNum(a, num.ArgumentReceiver));
 
     /// <summary>⛔ AN ARGUMENT AS ITS EXACT VALUE (<c>CobolExact</c>; kb/Work PB4111, PB4568): the position intake keeping the wide form
     /// (<see cref="RawWideArg"/>, so a §2023:15.3 type-6 position is still its integer), then <see cref="NumericRenderer.ExactOperand"/> —
@@ -1100,12 +1100,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     {
         for (int i = 0; i < ic.Args.Count; i++)
             if (ReferenceEquals(ic.Args[i], a)) return ExactValueArg(ic, i);
-        return num.ExactOperand(num.AsNum(a, num.Receiver));
+        return num.ExactOperand(num.AsNum(a, num.ArgumentReceiver));
     }
 
     /// <summary>One operand as a C# double from its RAW carrier — the per-operand form of <see cref="Dbl"/>.</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier — exactness past 2^53 is surrendered. §2023:15.4.1's native latitude permits that for an equivalent-arithmetic-expression function; a standard mode and a value-fixing definition do not.</remarks>
-    private string DblOf(BoundOperand a) => NumericRenderer.Real(num.AsNum(a, num.Receiver));
+    private string DblOf(BoundOperand a) => NumericRenderer.Real(num.AsNum(a, num.ArgumentReceiver));
 
     // ── table(ALL) arguments — the enumeration seam (ISO §2023:15.3; kb/Work PB62) ─────────────────────────────
 
@@ -1526,7 +1526,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         {
             for (int i = 0; i < ic.Args.Count; i++)
                 if (ReferenceEquals(ic.Args[i], a)) return Aligned(i);
-            return NumericRenderer.WideAligned(num.AsNum(a, num.Receiver), s);
+            return NumericRenderer.WideAligned(num.AsNum(a, num.ArgumentReceiver), s);
         }
         string List() => ArgArray(ic, 0, "CobolWide", Element) ?? string.Join(", ", xs.Select((_, i) => Aligned(i)));
         // A table(ALL) argument stands for an unknown number of elements, so SUM charges it nine more digits (as
@@ -1673,7 +1673,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // the list itself enumerates through ArgArray (kb/Work PB62).
         var xs = Operands(ic).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
-        string list = ArgArray(ic, 0, "Int128", a => NumericRenderer.Align(num.AsNum(a, num.Receiver), s))
+        string list = ArgArray(ic, 0, "Int128", a => NumericRenderer.Align(num.AsNum(a, num.ArgumentReceiver), s))
                       ?? string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s)));
         return (list, s);
     }
@@ -1689,9 +1689,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
         // A table(ALL) argument enumerates (kb/Work PB62): its elements share one scale, so the scales array
         // enumerates the same ranges with a constant selector.
-        string vals = ArgArray(ic, 0, "Int128", a => { var x = num.AsNum(a, num.Receiver); return NumericRenderer.Align(x, x.Scale); })
+        string vals = ArgArray(ic, 0, "Int128", a => { var x = num.AsNum(a, num.ArgumentReceiver); return NumericRenderer.Align(x, x.Scale); })
                       ?? $"new Int128[] {{ {string.Join(", ", xs.Select(x => NumericRenderer.Align(x, x.Scale)))} }}";
-        string scales = ArgArray(ic, 0, "int", a => num.AsNum(a, num.Receiver).Scale.ToString())
+        string scales = ArgArray(ic, 0, "int", a => num.AsNum(a, num.ArgumentReceiver).Scale.ToString())
                         ?? $"new int[] {{ {string.Join(", ", xs.Select(x => x.Scale))} }}";
         return (vals, scales, s);
     }

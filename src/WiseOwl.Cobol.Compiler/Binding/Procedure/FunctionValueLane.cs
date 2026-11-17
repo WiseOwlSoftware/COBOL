@@ -166,10 +166,6 @@ internal static class FunctionValueLane
     /// here (<see cref="NativeSdidiBodiesWithWholeResult"/>), the more lossy of the two lanes its consumer may read it on.</summary>
     internal static NumericLane LaneOf(BoundExpr leaf) => LaneOf(leaf.Accept(ArgumentCarrier.Instance).Kind);
 
-    /// <summary>Is the expression's carrier an integer BY VALUE on the Int128 lane (<see cref="NumericLanes.IsIntegerByValue"/>): the
-    /// exponent question <c>NumericRenderer.Power</c> asks, for the type 6 classifier (kb/Work PB5891 review R2-1).</summary>
-    internal static bool IsIntegerCarrier(BoundExpr e) => e.Accept(ArgumentCarrier.Instance) is { Kind: CarrierKind.Fixed, Integral: true };
-
     private static NumericLane LaneOf(CarrierKind kind) => kind switch
     {
         CarrierKind.Fixed => NumericLane.Scaled,

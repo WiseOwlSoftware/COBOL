@@ -4,19 +4,19 @@ namespace WiseOwl.Cobol.Binding;
 
 /// <summary>⛔ THE CARRIER AN ARITHMETIC VALUE IS HELD ON WHILE AN EXPRESSION IS EVALUATED (kb/Work PB5891 review R1-3), as the
 /// code generator's <c>NumericRenderer</c> holds it (<c>NumX</c>'s flags) and the type 6 classifier predicts it. The lane decides
-/// the PRECISION of every operation: <see cref="Scaled"/> and <see cref="Exact"/> keep every digit (the native Int128 lane, the wide
-/// and run-time-scaled exact forms), <see cref="Sdidi"/> rounds each result to the SDIDI's 34 significant digits (§2023:8.8.1.5.2;
+/// the PRECISION of every operation: <see cref="Scaled"/>, <see cref="Wide"/> and <see cref="Exact"/> keep every digit (the native
+/// Int128 lane, its 256-bit wide form at a compile-time scale, and the run-time-scaled exact form), <see cref="Sdidi"/> rounds each result to the SDIDI's 34 significant digits (§2023:8.8.1.5.2;
 /// under native arithmetic DOC-A.1-82's published lane determination), and <see cref="Binary64"/> is IEEE binary64 (numeric design
 /// D16). <see cref="Approximation"/> is a binary64 an engine produced (a function's returned value, a non-integer power): beside
 /// operands that are not floating-point items it enters the SDIDI (kb/Work PB1641).</summary>
-internal enum NumericLane { Scaled, Exact, Sdidi, Binary64, Approximation }
+internal enum NumericLane { Scaled, Wide, Exact, Sdidi, Binary64, Approximation }
 
 /// <summary>⛔ THE ONE RULE OF WHICH LANE AN OPERATION TAKES (kb/Work PB5891 review R1-3: the screen and the code generator ask one
 /// question). <c>NumericRenderer.CombineCore</c> dispatches on <see cref="Combine"/>'s answer, and the type 6 classifier
 /// (<c>IntrinsicArgumentRules.Intermediate</c>) bounds an intermediate's exactness by the precision of the same answer; the bind-time
 /// carrier prediction <c>FunctionValueLane</c> folds through it too. <c>NumericLaneDriftTests</c> renders every operand kind beside
 /// every other through the renderer and holds the rendered carrier to this rule's answer.</summary>
-internal static class NumericLanes
+internal static partial class NumericLanes
 {
     /// <summary>The lane of one binary operation (+, -, *, /) over operands on <paramref name="left"/> and <paramref name="right"/>,
     /// with a floating-point receiver (<paramref name="floatReceiver"/>) or none, under a decimal-engine arithmetic
@@ -35,7 +35,7 @@ internal static class NumericLanes
             right = Lifted(right);
         }
         if (floatReceiver || IsBinary64(left) || IsBinary64(right)) return NumericLane.Binary64;
-        if (left == NumericLane.Exact || right == NumericLane.Exact) return NumericLane.Exact;
+        if (left is NumericLane.Exact or NumericLane.Wide || right is NumericLane.Exact or NumericLane.Wide) return NumericLane.Exact;
         if (left == NumericLane.Sdidi || right == NumericLane.Sdidi) return NumericLane.Sdidi;
         return NumericLane.Scaled;
     }
@@ -69,7 +69,7 @@ internal static class NumericLanes
     /// 34 for STANDARD-DECIMAL), null under native arithmetic, whose SDIDI lane keeps the SDIDI's 34.</summary>
     internal static int? SignificantDigits(NumericLane lane, int? decimalCap) => lane switch
     {
-        NumericLane.Scaled or NumericLane.Exact => decimalCap,
+        NumericLane.Scaled or NumericLane.Wide or NumericLane.Exact => decimalCap,
         NumericLane.Sdidi => decimalCap ?? Model.ArithmeticModes.SdidiDigits,
         NumericLane.Binary64 or NumericLane.Approximation => null,
         _ => throw new InvalidOperationException($"no precision for the lane {lane}"),

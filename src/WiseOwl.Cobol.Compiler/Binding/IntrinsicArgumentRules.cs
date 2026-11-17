@@ -1768,7 +1768,7 @@ internal static partial class IntrinsicArgumentRules
 
     /// <summary>An arithmetic expression in COBOL notation for a diagnostic, every operation parenthesized but the outermost; an
     /// argument of a nested call that is not an item or a literal prints as "...".</summary>
-    private static string ExprText(BoundExpr e) => e switch
+    internal static string ExprText(BoundExpr e) => e switch
     {
         BoundNumRef { Place.Item: { } item } => $"{item.CobolName}",
         BoundNumLiteral l => l.Text,

@@ -993,7 +993,9 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    and its exponent cannot be negative (an unsigned integer item through an even number of negations), or its base is the literal 1 and
    its exponent is shown integral (`IsIntegerPower`; `N ** U`, `1 ** M`), AND the code generator computes it exactly: its exponent's
    carrier is an integer by value (`NumericLanes.IsIntegerByValue`: the Int128 lane at scale 0 or below, so `3 ** U` over `U PIC 99P`
-   is the exact power, review R2-2, `pb5891_p_scaled_exponent`), which `NumericRenderer.Power` and the classifier ask through the one
+   is the exact power, review R2-2, `pb5891_p_scaled_exponent`; and a wide exponent is not, `1 ** (X * X)` refused,
+   `pb5891-wide-exponent-power`, while `1 ** (K * PZ)` at scale 0 is, `pb5891_scaled_product_exponent`, review R3-1), which
+   `NumericRenderer.Power` and the classifier ask through the one
    `NumericLanes.Power` (review R2-1); an exponent integer by value but not by its carrier (`2 ** (U / 2 * 2)`) is a binary64
    approximation and refused. Otherwise it is not proven (`N ** -1`, `1024 ** K`, `4 ** 0.5`). An expansion is held to 1024 monomials; a larger one is not expanded, and is an integer atom when its structure alone
    makes it an integer term (`ProvablyIntegral`), otherwise not proven.
@@ -1014,11 +1016,18 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    do not fit (a negation is exact whatever it negates); (b) a quotient's own polynomial has `FractionDigits` within the 14 guard digits
    every nested quotient keeps beyond its operands' (`ExactFractionDigits`, `CobolNum.NestedQuotientScale`): `WN / 3 * 3` is refused
    because `WN / 3` is not exact, and `N * (N + 1) * (N + 2) / 6` is exact because its quotient is an integer; and the LANE the code
-   generator evaluates the operation on keeps its digits. ⛔ **The lane is ONE answer** (review R1-3): `NumericLanes.Combine` (and
-   `NumericLanes.Power`) say which carrier an operation takes, `NumericRenderer.CombineCore` dispatches on `Combine`'s answer, and the
-   classifier reads the same function over the leaves' carriers (`FunctionValueLane.LaneOf`, the bind-time carrier prediction):
-   `NumericLaneDriftTests` compiles every operand kind beside every partner and holds the lane the generated C# shows to the lane the
-   classifier predicts. The Int128 and exact lanes keep every digit; (c) on binary64 (an operation with a floating-point item beneath
+   generator evaluates the operation on keeps its digits. ⛔ **The lane is ONE function of the bound node** (reviews R1-3, R3-1):
+   `NumericLanes.LaneOf(BoundExpr, LaneContext)` (`Binding/NumericLaneOf.cs`, memoized per node) states, for every numeric node, the
+   carriers the code generator may hold it on (the Int128 lane, its wide form, the run-time exact form, the SDIDI, binary64, an
+   engine's approximation) and, where the node's facts decide one Int128 or wide carrier, its scale and digit bound, by the
+   generator's own rules (`CombineCore` through `NumericLanes.Combine`, `CombineAdditive`, `Multiply`, `Divide`, `Power`, `FieldNum`,
+   `LiteralNum`). The classifier bounds each intermediate by EVERY lane in it (an argument's context, `LaneContext.Argument`: no
+   receiver); the renderer asserts every operation it renders (`NumericRenderer.AssertLane`, at each binary, negation and power node
+   that is not a statement's final transfer) lies in it, with the scale and digit bound it decides, and a disagreement is an internal
+   compiler error in every build, so the whole conformance corpus is the drift test of the two; `NumericLaneDriftTests` is the
+   targeted one (every operand kind, P-scaled and wide exponents included, beside every partner). An intrinsic function's argument
+   is evaluated in a context without the resultant's floating-point facts (`NumericRenderer.ArgumentReceiver`): before it a COMP-2
+   resultant took `MOD ((Y * 100 - X * 10.25) * 4, 1000)` onto binary64 and stored 672 for 41 (`pb5891_argument_float_receiver`). The Int128 and exact lanes keep every digit; (c) on binary64 (an operation with a floating-point item beneath
    it, NumericRenderer D16) the polynomial must be integer-valued (`F - F + 1` admitted, `(F - F + N * 0.1) * 10` refused); and (d) on
    the SDIDI an intermediate whose polynomial carries fraction digits fits its significant digits (`NumericLanes.SignificantDigits`:
    under a decimal engine `ArithmeticModes.IntermediateSignificantDigits`, 32 for the 2002 STANDARD and 34 for STANDARD-DECIMAL,
@@ -1050,7 +1059,7 @@ literal-constant rows; `ArgumentPolynomialTests` holds the grid test, the cap an
 Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`, `pb5345-power-literal-base`,
 `pb5832-product-by-literal`, `-quotient-in-sum`, `-item-quotient`, `-numeric-function-term`, `-date-of-integer-function-term`,
 `-day-of-integer-function-term`, the ten `pb5886-*` refusals, `pb5891-not-integer-valued`, `-impure-identity`, `-degree-over-cap`, `-table-subscripts`, `-table-two-subscripts`, `-sdidi-lane-identity`; complements `pb5208_power_integral_exponents`,
-`pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`, `pb5891_polynomial_integer_arguments`, `pb5891_standard_decimal_identity`, `pb5891_native_exact_lane`, `pb5891_p_scaled_exponent`, `pb5891_p_scaled_exponent_85`.
+`pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`, `pb5891_polynomial_integer_arguments`, `pb5891_standard_decimal_identity`, `pb5891_native_exact_lane`, `pb5891_p_scaled_exponent`, `pb5891_p_scaled_exponent_85`, `pb5891_scaled_product_exponent`, `pb5891_argument_float_receiver`; refusal `pb5891-wide-exponent-power`.
 
 ### An argument rule that differs by edition is one edition arm, never a second copy (PB5130, PB5161, PB5162).
 

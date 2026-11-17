@@ -116,6 +116,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <see cref="IntrinsicRenderer"/> (an intrinsic's working scale/mode derive from the SAME receiver).</summary>
     internal ReceiverContext Receiver => _rcv;
 
+    /// <summary>⛔ THE CONTEXT AN INTRINSIC FUNCTION'S ARGUMENT IS EVALUATED IN (kb/Work PB5891 review R3-1): the statement's receiver
+    /// with none of its floating-point facts. An argument is an arithmetic expression of its own, evaluated "individually"
+    /// (§2023:8.4.3.2.4 GR2), whose value is the function's input and never the resultant's: a COMP-2 resultant took the argument of
+    /// <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored 672 for 41. Its lanes are therefore
+    /// <see cref="NumericLanes.LaneOf"/> of the argument as the type 6 classifier reads them (no floating-point receiver). The receiver's
+    /// scale is kept: it only widens a nested quotient's working scale, which keeps more digits than the classifier assumes.</summary>
+    internal ReceiverContext ArgumentReceiver => _rcv with { Real = false, FloatEdited = false, Single = false, FloatSignificandDigits = 0 };
+
     /// <summary>Whether the value now being rendered IS the value transferred to a single resultant identifier —
     /// <see cref="_outermost"/>, read by the mutually-recursive <see cref="IntrinsicRenderer"/> (kb/Work PB647:
     /// a float returned value's quantization is the final transfer's rounding exactly when this is true, and
@@ -385,7 +393,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         var l = n.Left.Accept(this);
         var r = n.Right.Accept(this);
         _outermost = outer;
-        return CombineCore(l, n.Op.ToString(), r);
+        return AssertLane(n, CombineCore(l, n.Op.ToString(), r), outer,
+            $"; its operands are rendered on {LaneOf(l)} (scale {l.Scale}, digits {l.Digits}) and {LaneOf(r)} (scale {r.Scale}, digits {r.Digits})");
     }
     // ⛔ EVERY recursion clears _outermost, not only BoundBinary's (kb/Work PB129 — GR-8.8.1.2-1): a division
     // under a unary minus, an exponent base, or a computed-operand wrapper is NOT the final transfer, so it
@@ -401,7 +410,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         _outermost = outer;
         // Under a standard mode an unsigned-wide operand is an SDIDI operand like any other (§2023:8.8.1.5.2 r1, kb/Work PB2966):
         // lifted by DecOperand's rounding twin, not narrowed through the native Widen funnel Negate applies.
-        return Negate(StandardDecimal && v.U ? new NumX(DecOperand(v), 0, Dec: true) : v);
+        return AssertLane(n, Negate(StandardDecimal && v.U ? new NumX(DecOperand(v), 0, Dec: true) : v), outer);
     }
     public NumX Visit(BoundPower n)
     {
@@ -410,7 +419,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         var b = IntegerValuedLiteral(n.Base) ?? n.Base.Accept(this);
         var e = IntegerValuedLiteral(n.Exp) ?? n.Exp.Accept(this);
         _outermost = outer;
-        return Power(b, e, IntegerLiteralValue(n.Exp), n.NegativeBaseRealRoots);
+        return AssertLane(n, Power(b, e, IntegerLiteralValue(n.Exp), n.NegativeBaseRealRoots), outer);
     }
 
     /// <summary>A numeric LITERAL whose algebraic VALUE is an integer the native carrier can hold, as a scale-0
@@ -585,9 +594,15 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
                 ? RuntimeApi.FloatSending(RuntimeApi.NumParseImageFloat(image, item.ProfileName, binary32Carrier: false))
                 : RuntimeApi.NumParseImageFloat(image, item.ProfileName, binary32Carrier: false),
             0, Real: true, Approximate: item.HoldsApproximation),
+        // ⛔ A WINDOWED READ STATES THE ITEM'S DIGIT BOUND, AS A FIELD READ DOES (kb/Work PB5891 review R3-1): the value decoded from the
+        // image is the item's value, so its bound is the description's (PicInfo.UnscaledDigitBound), whether storage holds it as a field
+        // or as an image. The bound used to be dropped here, so a product's lane depended on a storage decision the expression's lane
+        // (NumericLanes.LaneOf, read before storage is laid out) cannot see.
         { IsUnsignedWideBinary: true } =>
-            new NumX(RuntimeApi.NumParseImageU128(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale, U: true),
-        _ => new NumX(RuntimeApi.NumParseImage(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale),
+            new NumX(RuntimeApi.NumParseImageU128(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale, U: true,
+                Digits: pic.Category is PicCategory.Numeric ? pic.UnscaledDigitBound : 0),
+        _ => new NumX(RuntimeApi.NumParseImage(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale,
+            Digits: pic.Category is PicCategory.Numeric ? pic.UnscaledDigitBound : 0),
     };
 
     /// <summary>The context-free numeric read of a place (every branch of <see cref="FieldNum"/> except the
@@ -853,8 +868,33 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     internal static NumericLane LaneOf(NumX x) =>
         x.Real ? (x.Approximate ? NumericLane.Approximation : NumericLane.Binary64)
         : x.Dec ? NumericLane.Sdidi
-        : x.Wide || x.Exact ? NumericLane.Exact
+        : x.Wide ? NumericLane.Wide
+        : x.Exact ? NumericLane.Exact
         : NumericLane.Scaled;
+
+    /// <summary>The receiver facts the lane of an expression rendered now depends on (<see cref="LaneContext"/>).</summary>
+    private LaneContext CurrentLaneContext => new(ctx.CurrentOptions.Arithmetic, _rcv.Real, _rcv.Scale, _rcv.FloatEdited);
+
+    /// <summary>⛔ THE RENDERED CARRIER AGREES WITH THE NODE'S LANE, OR THE COMPILATION STOPS (kb/Work PB5891 review R3-1): the lane of
+    /// every numeric node is <see cref="NumericLanes.LaneOf"/>, the one function the type 6 classifier also reads, and a node the
+    /// renderer carries on a lane outside it is an internal compiler error in every build, so the whole conformance corpus is the drift
+    /// test of the two. Where the node's facts decide one Int128 or wide carrier, its scale and digit bound must agree as well (the
+    /// later lane decisions read them). A node that is a statement's final transfer (<c>_outermost</c>) lands at the receiver and is
+    /// not a lane of the expression.</summary>
+    private NumX AssertLane(BoundExpr node, NumX x, bool outermost, string operands = "")
+    {
+        if (outermost) return x;
+        var expected = NumericLanes.LaneOf(node, CurrentLaneContext);
+        var got = LaneOf(x);
+        bool agrees = expected.Lanes.Contains(got)
+            && (!expected.Known || got is not (NumericLane.Scaled or NumericLane.Wide) || (x.Scale == expected.Scale && x.Digits == expected.Digits));
+        return agrees ? x : throw new InvalidOperationException(
+            $"INTERNAL COMPILER ERROR (kb/Work PB5891 R3-1): the {node.GetType().Name} {IntrinsicArgumentRules.ExprText(node)} is rendered on the {got} lane (scale {x.Scale}, "
+            + $"digits {x.Digits}), but its lane is {string.Join(" or ", expected.Lanes.Order())}"
+            + (expected.Known ? $" (scale {expected.Scale}, digits {expected.Digits})" : "") + operands
+            + " — NumericLanes.LaneOf and the renderer disagree");
+
+    }
 
     /// <summary>One operation on the SDIDI lane at the program's INTERMEDIATE ROUNDING mode — the operands lifted by
     /// <see cref="DecOperand"/> (a fixed-point value exactly, a float by its exact value rounded once, an exact wide

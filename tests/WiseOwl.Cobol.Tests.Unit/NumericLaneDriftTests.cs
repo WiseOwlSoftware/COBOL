@@ -27,7 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// integer function, an exact power, an SDIDI-valued function, powers over P-scaled exponents of 9P and 99P and over an exponent that
 /// is an integer by its value but not by its carrier, review R2-1) beside a fixed-point literal, a floating-point literal and a
 /// floating-point item: it compiles <c>COMPUTE R = L + P</c> for each pair, reads the lane of the root operation from the generated
-/// C#, and requires the classifier's <c>ArgumentLane</c> of the same bound expression to name it.</para>
+/// C#, and requires <c>NumericLanes.LaneOf</c> of the same bound expression (the lanes the classifier bounds) to hold it.</para>
 /// </remarks>
 public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
 {
@@ -40,6 +40,8 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
 
     // kb/Work PB5891 review R2-1: P-scaled exponents, integers by value whose carrier scale is below 0.
     private static readonly DataItem P1 = Item("P1", new PicInfo(PicCategory.Numeric, Usage.Display, Length: 1, Digits: 1, Scale: -1, Signed: false));
+    private static readonly DataItem X = Item("X", new PicInfo(PicCategory.Numeric, Usage.Display, Length: 31, Digits: 31, Scale: 0, Signed: false));
+    private static readonly DataItem K = Item("K", new PicInfo(PicCategory.Numeric, Usage.Display, Length: 2, Digits: 2, Scale: 1, Signed: false));
     private static readonly DataItem P2 = Item("P2", new PicInfo(PicCategory.Numeric, Usage.Display, Length: 2, Digits: 2, Scale: -1, Signed: false));
 
     private static Place PlaceOf(DataItem item) => new MemberPlace(new AccessPath([new RootFieldSegment(item.ClrName)]), item);
@@ -62,6 +64,11 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
         ("FUNCTION NUMVAL (A)", () => Call("NUMVAL", new BoundFieldOperand(PlaceOf(A)))),
         ("3 ** P1", () => new BoundPower(new BoundNumLiteral("3"), new BoundNumRef(PlaceOf(P1)), NegativeBaseRealRoots: false)),
         ("3 ** P2", () => new BoundPower(new BoundNumLiteral("3"), new BoundNumRef(PlaceOf(P2)), NegativeBaseRealRoots: false)),
+        // kb/Work PB5891 review R3-1: a wide exponent (31 + 31 digits) and a scale-0 product of a scaled and a P-scaled item.
+        ("1 ** (X * X)", () => new BoundPower(new BoundNumLiteral("1"),
+            new BoundBinary(new BoundNumRef(PlaceOf(X)), '*', new BoundNumRef(PlaceOf(X))), NegativeBaseRealRoots: false)),
+        ("1 ** (K * P1)", () => new BoundPower(new BoundNumLiteral("1"),
+            new BoundBinary(new BoundNumRef(PlaceOf(K)), '*', new BoundNumRef(PlaceOf(P1))), NegativeBaseRealRoots: false)),
         ("3 ** (N / 2 * 2)", () => new BoundPower(new BoundNumLiteral("3"),
             new BoundBinary(new BoundBinary(new BoundNumRef(PlaceOf(N)), '/', new BoundNumLiteral("2")), '*', new BoundNumLiteral("2")),
             NegativeBaseRealRoots: false)),
@@ -86,7 +93,7 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
         string value = store[(at + Store.Length)..].TrimStart('(');
         var lanes = new (string Prefix, NumericLane Lane)[]
         {
-            ("CobolDec.", NumericLane.Sdidi), ("CobolFloat.", NumericLane.Binary64), ("CobolWide.", NumericLane.Exact),
+            ("CobolDec.", NumericLane.Sdidi), ("CobolFloat.", NumericLane.Binary64), ("CobolWide.", NumericLane.Wide),
             ("CobolExact.", NumericLane.Exact), ("Int128)", NumericLane.Scaled),
         };
         foreach (var (prefix, lane) in lanes)
@@ -112,6 +119,8 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
             01 B PIC X VALUE "B".
             01 P1 PIC 9P VALUE 20.
             01 P2 PIC 99P VALUE 40.
+            01 X PIC 9(31) VALUE 3.
+            01 K PIC 9V9 VALUE 0.5.
             01 R PIC 9(5)V9(5).
             PROCEDURE DIVISION.
             {proc}    STOP RUN.
@@ -129,8 +138,9 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
         {
             var (o, p) = pairs[i];
             var rendered = RenderedLane(stores[i]);
-            var predicted = IntrinsicArgumentRules.ArgumentLane(new BoundBinary(o.Bound(), '+', p.Bound()), ArithmeticMode.Native);
-            if (rendered != predicted) wrong.Add($"{o.Cobol} + {p.Cobol}: rendered on {rendered}, classified on {predicted}");
+            var predicted = NumericLanes.LaneOf(new BoundBinary(o.Bound(), '+', p.Bound()), LaneContext.Argument(ArithmeticMode.Native)).Lanes;
+            if (!predicted.Contains(rendered))
+                wrong.Add($"{o.Cobol} + {p.Cobol}: rendered on {rendered}, LaneOf {string.Join(" or ", predicted.Order())}");
         }
         Assert.True(wrong.Count == 0, "the classifier's lane is not the code generator's (kb/Work PB5891 R1-3):\n  " + string.Join("\n  ", wrong));
     }

@@ -47,3 +47,12 @@ VALUE 40` took the binary64 approximation and stored 12157665459056929000 for 12
 801). The one question is now `NumericLanes.IsIntegerByValue` (scale 0 or below), asked by the renderer's exact power, the carrier
 prediction and the classifier; R2-1: `NumericRenderer.Power` dispatches on `NumericLanes.Power`, and the classifier refuses a power
 evaluated as a binary64 approximation. Cases `pb5891_p_scaled_exponent` and `pb5891_p_scaled_exponent_85`.
+
+**Review round 3.** R3-1 (a wrong answer): the classifier and the code generator still derived a power's exponent facts twice, so
+`1 ** (X * X)` over a 31-digit X was classified exact and rendered as a binary64 approximation (0040 for 41). The lane of every numeric
+node is now one pure function of the bound node, `NumericLanes.LaneOf(BoundExpr, LaneContext)`, memoized: the classifier checks every
+lane it allows, and the renderer asserts every rendered operation lies in it (an internal compiler error otherwise; the whole corpus
+ran with it armed). The wide-exponent form is refused (`pb5891-wide-exponent-power`); `1 ** (K * PZ)` at scale 0 is exact
+(`pb5891_scaled_product_exponent`). Making the function pure exposed a wrong answer already on main: a COMP-2 resultant took a
+function's argument onto binary64 (672 for 41); arguments now render without the resultant's floating-point facts
+(`pb5891_argument_float_receiver`).

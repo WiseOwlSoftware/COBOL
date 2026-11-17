@@ -60,14 +60,9 @@ internal static partial class IntrinsicArgumentRules
         public readonly int? Cap = ArithmeticModes.IntermediateSignificantDigits(arithmetic);
         public readonly bool DecimalEngine = ArithmeticModes.IsDecimalEngine(arithmetic);
 
-        /// <summary>The lane a leaf arrives on: the SDIDI under a decimal engine, else the bind-time carrier of the leaf
-        /// (<see cref="FunctionValueLane.LaneOf(BoundExpr)"/>).</summary>
-        public NumericLane LeafLane(BoundExpr leaf) => DecimalEngine ? NumericLane.Sdidi : FunctionValueLane.LaneOf(leaf);
-
-        /// <summary>The lane of an operation over operands on <paramref name="left"/> and <paramref name="right"/> (an argument has no
-        /// receiver).</summary>
-        public NumericLane Combine(NumericLane left, NumericLane right) =>
-            NumericLanes.Combine(left, right, floatReceiver: false, DecimalEngine);
+        /// <summary>The lanes the code generator may evaluate <paramref name="e"/> on: <see cref="NumericLanes.LaneOf"/>, the one function
+        /// of the bound node the renderer asserts its carrier against (kb/Work PB5891 review R3-1), for an argument (no receiver).</summary>
+        public IReadOnlySet<NumericLane> LanesOf(BoundExpr e) => NumericLanes.LaneOf(e, LaneContext.Argument(arithmetic)).Lanes;
 
         /// <summary>The SDIDI lane as a diagnostic names it: the ARITHMETIC clause in force, or native arithmetic's SDIDI lane.</summary>
         public readonly string LaneName = arithmetic switch
@@ -115,16 +110,11 @@ internal static partial class IntrinsicArgumentRules
         }
     }
 
-    /// <summary>What <see cref="Build"/> learns of a node: its value polynomial, or the reason it is not shown; and the lane the code
-    /// generator evaluates it on (<see cref="NumericLanes"/>, the one rule <c>NumericRenderer.CombineCore</c> dispatches on).</summary>
-    private readonly record struct Built(Polynomial? Value, string? Why, NumericLane Lane)
+    /// <summary>What <see cref="Build"/> learns of a node: its value polynomial, or the reason it is not shown.</summary>
+    private readonly record struct Built(Polynomial? Value, string? Why)
     {
-        public static Built Fail(string why, NumericLane lane) => new(null, why, lane);
+        public static Built Fail(string why) => new(null, why);
     }
-
-    /// <summary>The lane the code generator evaluates <paramref name="expr"/>'s root operation on, as the classifier predicts it (kb/Work
-    /// PB5891 review R1-3): the hook <c>NumericLaneDriftTests</c> holds to the lane the rendered C# shows.</summary>
-    internal static NumericLane ArgumentLane(BoundExpr expr, ArithmeticMode arithmetic) => Build(expr, new TypeSixContext(arithmetic)).Lane;
 
     /// <summary>⛔ THE POLYNOMIAL OF A NODE (docs/INTRINSICS_DESIGN.md, the type-6 intake, rules 1 and 2): every concrete
     /// <see cref="BoundExpr"/> kind is named, and the default refuses (<c>TypeSixWalkCoverageDriftTests</c>).</summary>
@@ -133,25 +123,23 @@ internal static partial class IntrinsicArgumentRules
         // A LITERAL-ONLY SUBTREE is a constant at its exact fold, trusted only when the arithmetic stores every quotient in it exactly
         // (kb/Work PB4758: `1 / 3 * 3` folds to 1 and the arithmetic stores 0.9999).
         if (ExactValue(e) is { } constant)
-            return QuotientsAreExact(e) ? new(Polynomial.Constant(constant), null, ctx.LeafLane(e)) : Built.Fail(InexactLiteralWhy(constant), ctx.LeafLane(e));
+            return QuotientsAreExact(e) ? new(Polynomial.Constant(constant), null) : Built.Fail(InexactLiteralWhy(constant));
         switch (e)
         {
             case BoundBinary { Op: '+' or '-' } b:
             {
                 var (l, r) = (Build(b.Left, ctx), Build(b.Right, ctx));
-                var lane = ctx.Combine(l.Lane, r.Lane);
-                if (l.Why is not null) return l with { Lane = lane };
-                if (r.Why is not null) return r with { Lane = lane };
+                if (l.Why is not null) return l;
+                if (r.Why is not null) return r;
                 var k = b.Op == '-' ? -ExactRational.One : ExactRational.One;
-                return Intermediate(e, l.Value!.Add(r.Value!, k), lane, quotient: false, ctx);
+                return Intermediate(e, l.Value!.Add(r.Value!, k), quotient: false, ctx);
             }
             case BoundBinary { Op: '*' } b:
             {
                 var (l, r) = (Build(b.Left, ctx), Build(b.Right, ctx));
-                var lane = ctx.Combine(l.Lane, r.Lane);
-                if (l.Why is not null) return l with { Lane = lane };
-                if (r.Why is not null) return r with { Lane = lane };
-                return l.Value!.Multiply(r.Value!) is { } product ? Intermediate(e, product, lane, quotient: false, ctx) : Unexpanded(e, lane, ctx);
+                if (l.Why is not null) return l;
+                if (r.Why is not null) return r;
+                return l.Value!.Multiply(r.Value!) is { } product ? Intermediate(e, product, quotient: false, ctx) : Unexpanded(e, ctx);
             }
             // ⛔ A QUOTIENT BY A NONZERO LITERAL c IS THE PRODUCT BY 1/c, exact when its own value keeps within the guard digits a nested
             // quotient keeps (Intermediate): `WN / 2 * 2` and `N * (N + 1) / 2` are admitted, `WN / 3 * 3` refused.
@@ -160,16 +148,16 @@ internal static partial class IntrinsicArgumentRules
             {
                 var d = Build(dividend, ctx);
                 if (d.Why is not null) return d;
-                return Intermediate(e, d.Value!.Scale(ExactRational.One / c), ctx.Combine(d.Lane, ctx.LeafLane(divisor)), quotient: true, ctx);
+                return Intermediate(e, d.Value!.Scale(ExactRational.One / c), quotient: true, ctx);
             }
             // ⛔ ANY OTHER QUOTIENT IS NO POLYNOMIAL (kb/Work PB5886): a divisor that is an item, a function or an expression moves with
             // the valuation (A / A is a size error at A = 0).
             case BoundBinary { Op: '/', Left: var dividend, Right: var divisor }:
                 return Built.Fail($"is an arithmetic expression that divides {TermText(dividend)} by {TermText(divisor)}; a quotient "
                     + "is a polynomial only by a nonzero literal, so the expression is not shown to always result in an integer value — "
-                    + TypeSixExpressionRule, ctx.LeafLane(e));
+                    + TypeSixExpressionRule);
             case BoundBinary:
-                return Built.Fail(NotShownWhy(e), ctx.LeafLane(e));
+                return Built.Fail(NotShownWhy(e));
             // A negation is exact whatever it negates.
             case BoundNegate n:
             {
@@ -182,10 +170,8 @@ internal static partial class IntrinsicArgumentRules
             {
                 var b = Build(pw.Base, ctx);
                 if (b.Why is not null) return b;
-                // The renderer reads an integer-valued literal exponent as a scale-0 Int128 operand (NumericRenderer.IntegerValuedLiteral).
-                var lane = NumericLanes.Power(b.Lane, NumericLane.Scaled, exponentIsIntegerByValue: true, literalOne: n.Numerator.IsOne, ctx.DecimalEngine);
                 return b.Value!.Power((int)n.Numerator) is { } power
-                    ? Intermediate(e, power, lane, quotient: false, ctx) : Unexpanded(e, lane, ctx);
+                    ? Intermediate(e, power, quotient: false, ctx) : Unexpanded(e, ctx);
             }
             // ⛔ THE ONE RULE OF ANY OTHER INTEGER POWER (kb/Work PB5886 round 2): an integer-valued base to an exponent that cannot be
             // negative, or the literal 1 to an integer exponent, is an integer atom (`N ** U`, `1 ** M`); any other power is not shown.
@@ -193,51 +179,49 @@ internal static partial class IntrinsicArgumentRules
             {
                 var b = Build(pw.Base, ctx);
                 if (b.Why is not null) return b;
-                var x = Build(pw.Exp, ctx);
-                bool exponentIntegral = x is { Why: null, Value: { } xv } && IsIntegerValued(xv, ctx);
-                // ⛔ THE LANE ASKS THE EXPONENT'S CARRIER, AS THE RENDERER DOES (kb/Work PB5891 review R2-1): an exponent integer by its
-                // polynomial but not by its carrier (`N ** (U / 2 * 2)`) is evaluated as the engine's binary64 approximation, which no
-                // integer atom may stand for.
-                var lane = NumericLanes.Power(b.Lane, x.Lane, !ctx.DecimalEngine && FunctionValueLane.IsIntegerCarrier(pw.Exp),
-                    literalOne: false, ctx.DecimalEngine);
-                if (IsIntegerValued(b.Value!, ctx) && IsIntegerPower(pw.Base, pw.Exp, exponentIntegral) && !NumericLanes.IsBinary64(lane))
-                    return new(Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One), null, lane);
-                if (NumericLanes.IsBinary64(lane) && exponentIntegral && IsIntegerValued(b.Value!, ctx))
+                bool exponentIntegral = Build(pw.Exp, ctx) is { Why: null, Value: { } xv } && IsIntegerValued(xv, ctx);
+                // ⛔ THE POWER'S LANE IS THE NODE'S (kb/Work PB5891 review R3-1): NumericLanes.LaneOf of the power node, the function the
+                // renderer asserts its carrier against. A power the renderer may evaluate as a binary64 approximation (an exponent integer
+                // by its polynomial but not by its carrier, `N ** (U / 2 * 2)`, or a wide one, `1 ** (X * X)`) is no integer atom.
+                bool approximate = ctx.LanesOf(e).Any(NumericLanes.IsBinary64);
+                if (IsIntegerValued(b.Value!, ctx) && IsIntegerPower(pw.Base, pw.Exp, exponentIntegral) && !approximate)
+                    return new(Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One), null);
+                if (approximate && exponentIntegral && IsIntegerValued(b.Value!, ctx))
                     return Built.Fail($"is an arithmetic expression that raises {TermText(pw.Base)} to the power {TermText(pw.Exp)}, an "
-                        + "integer whose carrier is not one, which native arithmetic evaluates as a binary64 approximation, so its value "
-                        + "is not shown to be an integer — " + TypeSixExpressionRule, lane);
+                        + "integer the code generator evaluates as a binary64 approximation (its exponent's carrier is not an integer at "
+                        + "scale 0 or below on the Int128 lane), so its value is not shown to be an integer — " + TypeSixExpressionRule);
                 return Built.Fail($"is an arithmetic expression that raises {TermText(pw.Base)} to the power {TermText(pw.Exp)}, which can "
-                    + "be negative or is not an integer, so its value is not shown to be an integer — " + TypeSixExpressionRule, ctx.LeafLane(e));
+                    + "be negative or is not an integer, so its value is not shown to be an integer — " + TypeSixExpressionRule);
             }
             // A FIXED-POINT ITEM of scale s is 10^(−s) × x, x an integer atom below 10^digits; a FLOATING-POINT item is a real atom (its
             // declared value set holds non-integers, §2023:14.6.8.3, kb/Work PB248) and puts its operation on the binary64 lane.
             case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } } item:
                 return p.IsFloat
-                    ? new(Polynomial.OfAtom(ctx.AtomOf(item, integer: false, digits: null, scale: 0), ExactRational.One), null, ctx.LeafLane(item))
+                    ? new(Polynomial.OfAtom(ctx.AtomOf(item, integer: false, digits: null, scale: 0), ExactRational.One), null)
                     : new(Polynomial.OfAtom(ctx.AtomOf(item, integer: true, p.Usage is Usage.Index ? null : p.Digits, p.Scale),
-                        ExactRational.FromScaled(1, -p.Scale)), null, ctx.LeafLane(item));
+                        ExactRational.FromScaled(1, -p.Scale)), null);
             // ⛔ A FUNCTION IS A TERM, judged by its type (kb/Work PB5886): an integer function is an integer atom, any other a real atom
             // that must cancel (§2023:8.4.3.2.3 SR11 reads a numeric function's value as no integer, whatever this reference yields).
             case BoundIntrinsicCall { ResultType: IntrinsicType.Integer } call:
-                return new(Polynomial.OfAtom(ctx.AtomOf(call, integer: true, digits: null, scale: 0), ExactRational.One), null, ctx.LeafLane(call));
+                return new(Polynomial.OfAtom(ctx.AtomOf(call, integer: true, digits: null, scale: 0), ExactRational.One), null);
             case BoundIntrinsicCall call:
-                return new(Polynomial.OfAtom(ctx.AtomOf(call, integer: false, digits: null, scale: 0), ExactRational.One), null, ctx.LeafLane(call));
+                return new(Polynomial.OfAtom(ctx.AtomOf(call, integer: false, digits: null, scale: 0), ExactRational.One), null);
             // An index-name's value is an occurrence number (§2023:13.18.38); a report VARYING counter and an OCCURS DEPENDING extent are
             // scale-0 integers by construction; a counter register is an unsigned integer data item (§2023:8.4.3.14.4 GR1).
             case BoundIndexRef or BoundReportVaryingRef or BoundOdoExtent:
             case BoundLinageCounterRef or BoundReportCounterRef when AlgebraicRanges.IsCounterRegister(e):
-                return new(Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One), null, ctx.LeafLane(e));
+                return new(Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One), null);
             // The windows that carry a user function's activations hold the expression they evaluate.
             case BoundUdfEvaluatedExpr udf:
                 return Build(udf.Inner, ctx);
             // An operand already refused where it was bound: its site reported the rule it breaks, and nothing more is said of it.
             case BoundExprError:
-                return new(Polynomial.Zero, null, NumericLane.Scaled);
+                return new(Polynomial.Zero, null);
             // ⛔ THE DEFAULT REFUSES (review R4-1): a BoundNumRef that is no numeric item, a BoundNumLiteral the fold cannot read, a
             // register that is no counter register, and any node kind added later are not shown.
             case BoundNumRef or BoundNumLiteral or BoundLinageCounterRef or BoundReportCounterRef:
             default:
-                return Built.Fail(NotShownWhy(e), ctx.LeafLane(e));
+                return Built.Fail(NotShownWhy(e));
         }
     }
 
@@ -251,37 +235,38 @@ internal static partial class IntrinsicArgumentRules
     /// fraction digits fits the lane's significant digits (<see cref="NumericLanes.SignificantDigits"/>), and an integer that does not
     /// is rounded to an integer. An integer the arithmetic rounds is a fresh integer atom from here up: its value is SOME integer, no
     /// longer the polynomial. The integer-valued test runs only where (b), (c) or (d) reads it (review R1-2), once per polynomial.</summary>
-    private static Built Intermediate(BoundExpr e, Polynomial value, NumericLane lane, bool quotient, TypeSixContext ctx)
+    private static Built Intermediate(BoundExpr e, Polynomial value, bool quotient, TypeSixContext ctx)
     {
-        if (value.FirstRealAtom(ctx.IsReal) is { } real) return Built.Fail(RealIntermediateWhy(e, ctx.Atoms[real].Term), lane);
-        bool binary64 = NumericLanes.IsBinary64(lane);
-        int? cap = NumericLanes.SignificantDigits(lane, ctx.Cap);
-        if (!quotient && !binary64 && cap is null) return new(value, null, lane);
+        if (value.FirstRealAtom(ctx.IsReal) is { } real) return Built.Fail(RealIntermediateWhy(e, ctx.Atoms[real].Term));
+        var lanes = ctx.LanesOf(e);
+        bool binary64 = lanes.Any(NumericLanes.IsBinary64);
+        var caps = lanes.Select(lane => NumericLanes.SignificantDigits(lane, ctx.Cap)).OfType<int>().Distinct().Order().ToList();
+        if (!quotient && !binary64 && caps.Count == 0) return new(value, null);
         int? digits = value.FractionDigits(out var witness);
         if (quotient && (digits is null || digits > ExactFractionDigits))
             return Built.Fail($"is an arithmetic expression whose quotient {ExprText(e)} has a value with more than the "
                 + $"{ExactFractionDigits} fraction digits a nested quotient is certain to keep, or no finite decimal value"
                 + (witness is { Count: > 0 } ? $" (at {ctx.PointText(witness)} it is {value.Evaluate(witness)})" : "")
-                + ", so the arithmetic does not compute it exactly and the value is not shown to be an integer — " + TypeSixExpressionRule, lane);
+                + ", so the arithmetic does not compute it exactly and the value is not shown to be an integer — " + TypeSixExpressionRule);
+        bool rounded = false;
+        int? high = value.DigitHigh(ctx.DigitsOf);
         if (binary64)
         {
             if (digits != 0)
                 return Built.Fail($"is an arithmetic expression whose intermediate {ExprText(e)} is computed in binary64 (a floating-point "
                     + "operand is beneath it) and is not always an integer, which binary64 does not hold exactly, so the value is not "
-                    + "shown to be an integer — " + TypeSixExpressionRule, lane);
-            return value.DigitHigh(ctx.DigitsOf) is { } high && high <= Binary64ExactDigits
-                ? new(value, null, lane) : new(Polynomial.OfAtom(ctx.FreshInteger(e), ExactRational.One), null, lane);
+                    + "shown to be an integer — " + TypeSixExpressionRule);
+            rounded |= !(high is { } h && h <= Binary64ExactDigits);
         }
-        if (cap is { } kept)
+        foreach (int kept in caps)
         {
-            int? high = value.DigitHigh(ctx.DigitsOf);
             if (digits != 0 && (digits is null || high is null || high + digits > kept))
                 return Built.Fail($"is an arithmetic expression whose intermediate {ExprText(e)} needs more than the {kept} significant "
                     + $"digits an intermediate keeps {ctx.LaneName}, so its fraction digits are not kept and the value is not shown to be "
-                    + "an integer — " + TypeSixExpressionRule, lane);
-            if (digits == 0 && (high is null || high > kept)) return new(Polynomial.OfAtom(ctx.FreshInteger(e), ExactRational.One), null, lane);
+                    + "an integer — " + TypeSixExpressionRule);
+            rounded |= digits == 0 && (high is null || high > kept);
         }
-        return new(value, null, lane);
+        return rounded ? new(Polynomial.OfAtom(ctx.FreshInteger(e), ExactRational.One), null) : new(value, null);
     }
 
     /// <summary>The integer digits binary64 holds exactly: every integer below 10^15 is below 2^53.</summary>
@@ -289,10 +274,10 @@ internal static partial class IntrinsicArgumentRules
 
     /// <summary>A product or power past <see cref="Polynomial.MaxMonomials"/>: an integer atom when its structure alone shows it an
     /// integer term (<see cref="ProvablyIntegral"/>), otherwise not shown.</summary>
-    private static Built Unexpanded(BoundExpr e, NumericLane lane, TypeSixContext ctx) => ProvablyIntegral(e)
-        ? new(Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One), null, lane)
+    private static Built Unexpanded(BoundExpr e, TypeSixContext ctx) => ProvablyIntegral(e) && !ctx.LanesOf(e).Any(NumericLanes.IsBinary64)
+        ? new(Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One), null)
         : Built.Fail($"is an arithmetic expression whose product {ExprText(e)} expands past {Polynomial.MaxMonomials} terms and is "
-            + "not an integer term by its structure, so its value is not shown to be an integer — " + TypeSixExpressionRule, lane);
+            + "not an integer term by its structure, so its value is not shown to be an integer — " + TypeSixExpressionRule);
 
     /// <summary>Is the polynomial in integer atoms alone and integer-valued?</summary>
     private static bool IsIntegerValued(Polynomial value, TypeSixContext ctx) =>

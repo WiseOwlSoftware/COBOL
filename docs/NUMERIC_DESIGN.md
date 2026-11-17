@@ -1390,7 +1390,11 @@ ON is 23:59:60 in FORMATTED-TIME, FORMATTED-DATETIME and LOCALE-TIME-FROM-SECOND
 `CobolNumDivideAlignmentTests`, `CobolDateSecondsLandingTests` and `IntrinsicCarrierAgreementDriftTests`.
 
 
-**The lane of an operation is ONE function (kb/Work PB5891 review R1-3).** `NumericLanes.Combine` (`Binding/NumericLanes.cs`) states
+**The lane of an operation is ONE function, and the lane of a node is ONE function of the bound node (kb/Work PB5891 reviews R1-3,
+R3-1).** `NumericLanes.LaneOf(BoundExpr, LaneContext)` (`Binding/NumericLaneOf.cs`) states every numeric node's possible carriers and,
+where its facts decide them, its scale and digit bound, by the rules below; `NumericRenderer.AssertLane` holds every rendered binary,
+negation and power node that is not a final transfer to it (an internal compiler error otherwise), and the type 6 classifier reads it.
+An intrinsic function's argument renders without the resultant's floating-point facts (`NumericRenderer.ArgumentReceiver`). A read of an item stored as an image states the description's digit bound as a field read does (`NumericRenderer.WindowedNum`), so no lane depends on a storage decision made after binding. `NumericLanes.Combine` (`Binding/NumericLanes.cs`) states
 which carrier a binary operation takes, from the lanes of its operands (`NumericLane`: Int128, wide or exact, SDIDI, binary64, an
 engine's binary64 approximation), a floating-point receiver and the arithmetic mode; `NumericLanes.Power` the same for `**`, which
 `NumericRenderer.Power` dispatches on: its exact arm takes an exponent that is an integer BY VALUE (`NumericLanes.IsIntegerByValue`, the
