@@ -437,14 +437,25 @@ public sealed class DataItem
         "ExpandType / ExpandSameAs write it under ISO §2023:13.18.22.4 GR3 with the GR2 level-1 check — a derived effect, never a verbatim copy")]
     public bool ExternalFromType { get; set; }
 
-    /// <summary>The "corresponding external data item" identity of this item (ISO §2023:14.8.4.2; §1985:VIII.2.4.4 GR8's "that
-    /// same external data item"): the dotted qualified path from its EXTERNAL root (the root carries the EXTERNAL clause or an
-    /// external TYPE), i.e. the externalized name plus the sub-path; null when the item is NOT an external data item. Two
-    /// file-referencing items are the SAME corresponding external item iff their identities are equal. Keyed by the
-    /// data-name, as the run-unit ExternalStore cell key is (the rare AS-literal externalized name is not honored there
-    /// either). Read by the external file connector rules (<c>ExternalFileConnectorRules</c>), the entry identity
-    /// (<c>FileEntryIdentity</c>) and the emitted external descriptor (<c>OoEmitter</c>; kb/Work PB2418).</summary>
-    public string? ExternalItemIdentity()
+    /// <summary>The "corresponding external data item" identity of this item (ISO §2023:14.8.4.2: the file status, linage and
+    /// relative key data items "shall refer to the same corresponding storage in each runtime element"; §1985:VIII.2.4.4 GR8's
+    /// "that same external data item"): the dotted qualified path from its EXTERNAL root (the root carries the EXTERNAL clause
+    /// or an external TYPE), i.e. the externalized name plus the sub-path, AND the storage it occupies in the external record,
+    /// its character offset (<see cref="RecordLayout.OffsetOf(DataItem, IReadOnlyList{int})"/>, the offset the RECORD KEY
+    /// identity <c>FileEntryIdentity.KeyEntry</c> carries) and its width; null when the item is NOT an external data item.
+    /// Two file-referencing items are the SAME corresponding external item iff their identities are equal, so a same-named
+    /// item at other character positions of the record is another item (kb/Work PB5857: an external record is storage the
+    /// run unit's programs share, and two programs that took the relative record number from different characters shared a
+    /// file connector undetected). Read by the external file connector rules (<c>ExternalFileConnectorRules</c>), the entry
+    /// identity (<c>FileEntryIdentity</c>) and the emitted external descriptor (<c>OoEmitter</c>; kb/Work PB2418), so the
+    /// compile-time and the run-time agreement ask one identity.</summary>
+    public string? ExternalItemIdentity() => ExternalItemIdentity([]);
+
+    /// <summary>The identity of ONE OCCURRENCE of this item, for a COBOL-2002 clause operand written with integer-literal
+    /// subscripts (<c>RELATIVE KEY IS RK(2)</c>, §2002:5.1.3; kb/Work PB5602): the name path, the occurrence the subscripts
+    /// select, and that occurrence's storage, so two occurrences of one external table are two items. No subscripts is the
+    /// item's own identity (<see cref="ExternalItemIdentity()"/>).</summary>
+    public string? ExternalItemIdentity(IReadOnlyList<int> occurrence)
     {
         var path = new List<string>();
         var r = this;
@@ -452,15 +463,11 @@ public sealed class DataItem
         if (!(r.HasExternalClause || r.ExternalFromType)) return null;   // root is not an external data item
         path.Add(r.CobolName ?? "?");
         path.Reverse();
-        return CobolNames.UpperFold(string.Join(".", path));
+        string name = CobolNames.UpperFold(string.Join(".", path));
+        string selected = occurrence.Count == 0 ? name : $"{name}({string.Join(",", occurrence)})";
+        string offset = RecordLayout.OffsetOf(this, occurrence)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?";
+        return $"{selected}@{offset}:{ByteWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
     }
-
-    /// <summary>The identity of ONE OCCURRENCE of this item, for a COBOL-2002 clause operand written with integer-literal
-    /// subscripts (<c>RELATIVE KEY IS RK(2)</c>, §2002:5.1.3; kb/Work PB5602): <see cref="ExternalItemIdentity()"/> and the
-    /// occurrence the subscripts select, so two occurrences of one external table are two items. No subscripts is the item's
-    /// own identity.</summary>
-    public string? ExternalItemIdentity(IReadOnlyList<int> occurrence) =>
-        ExternalItemIdentity() is { } id ? occurrence.Count == 0 ? id : $"{id}({string.Join(",", occurrence)})" : null;
 
     /// <summary>True when this level-01 entry carries a CONSTANT RECORD clause (ISO §2023:13.18.15) — a STRUCTURED
     /// CONSTANT: its content is that of an INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT (§2023:13.18.15.4 GR1),
