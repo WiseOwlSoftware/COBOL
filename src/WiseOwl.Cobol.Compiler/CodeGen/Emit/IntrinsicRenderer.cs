@@ -922,21 +922,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// conversion, the one <c>CombineCore</c> and <c>Power</c> already use — and then lands by the identical
     /// route a <c>Dec</c> operand takes. So there is ONE landing here, not a second mechanism beside the first,
     /// and the exact Int128 family evaluates the EAE as §2023:15.4.1 r1 requires.</para>
-    /// </remarks>
-    /// <remarks>The landing of an argument already rendered in the argument context (<c>NumericRenderer.ArgumentReceiver</c>): it reads
+    /// <para>The landing of an argument already rendered in the argument context (<c>NumericRenderer.ArgumentReceiver</c>): it reads
     /// only the receiver's scale and integer-digit headroom (<see cref="ReceiverContext.WorkingScale"/>), never a lane fact, so it keeps
     /// the statement's receiver; the argument context's wider scale under a floating-point receiver (<c>NumericLanes.ArgumentScale</c>)
-    /// would put a large SDIDI value past the carrier there, a headroom a floating-point receiver does not state.</remarks>
+    /// would put a large SDIDI value past the carrier there, a headroom a floating-point receiver does not state.</para>
+    /// </remarks>
     private NumX Landed(NumX x) => num.Landed(x, num.Receiver);   // the ONE landing (NumericRenderer.Landed — kb/Work PB84)
 
     // ── The STANDARD-DECIMAL body dispatch (fix-queue PB56) ──────────────────────────────────────────────────
-
-    /// <summary>⛔ THE CONTEXT ARGUMENT <paramref name="i"/> IS RENDERED IN (kb/Work PB5891 reviews R3-1, R5-1): a §2023:15.3 type 6 (integer)
-    /// position takes <see cref="NumericRenderer.ArgumentReceiver"/>, the receiver without its floating-point facts, so the integer the type 6
-    /// classifier admitted is the one computed (a COMP-2 resultant took <c>MOD ((Y * 100 - X * 10.25) * 4, 1000)</c>'s argument onto binary64
-    /// and stored 672 for 41); every other position keeps the statement's receiver, as it always has, so no other argument's value moves.</summary>
-    private ReceiverContext ReceiverFor(BoundIntrinsicCall ic, int i) =>
-        IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i) ? num.ArgumentReceiver : num.Receiver;
 
     /// <summary>
     /// ⛔ AN ARGUMENT AS ITS POSITION TAKES IT, WITHOUT THE UNSCALED LANDING — the one indexed entry every numeric-channel
