@@ -124,7 +124,7 @@ internal static class FunctionValueLane
     /// exact value and main store 7. Every other value keeps the receiver's mode on every digit: an exact fixed-family value
     /// (<c>COMPUTE F2 = R</c>, kb/Work PB4730) and an SDIDI value that IS exact (a floating-point literal, NUMVAL's parse, whose truncation
     /// landing kb/Work PB1196 and PB3839 determine). Native arithmetic only (a decimal engine's SDIDI is the arithmetic's own intermediate,
-    /// §2023:14.7.4.3). <c>NumericRenderer.Render</c> asks it of a statement's final transfer, in the context it renders in.</summary>
+    /// the standard-decimal intermediate data item of §2023:8.8.1.5.2, which the receiver's ROUNDED mode rounds). <c>NumericRenderer.Render</c> asks it of a statement's final transfer, in the context it renders in.</summary>
     internal static bool DeliversByNearest(BoundExpr value, LaneContext ctx) =>
         !ctx.DecimalEngine && value.Accept(new ArgumentCarrier(ctx)) is { Kind: CarrierKind.Dec, Approximation: true };
 
@@ -275,15 +275,22 @@ internal static class FunctionValueLane
             // as that operand is.
             if (n.Op == '/' && c.Kind == CarrierKind.Fixed && ctx.FinalQuotient(n.Right))
                 return new Carrier(CarrierKind.Dec, Significance: true, Approximation: true);
-            if (c.Kind != CarrierKind.Dec) return c;
-            return c with
-            {
-                Significance = l.Significance || r.Significance,
-                Approximation = l.Approximation || r.Approximation || n.Op == '/' && !NumericLanes.TerminatesWithinGuardDigits(n.Right),
-            };
+            // An SDIDI quotient whose divisor may not terminate is an approximation of its own.
+            var marked = Marked(c, l, r);
+            return marked.Kind == CarrierKind.Dec && n.Op == '/' && !NumericLanes.TerminatesWithinGuardDigits(n.Right)
+                ? marked with { Approximation = true }
+                : marked;
         }
-        public Carrier Visit(BoundNegate n) => n.Operand.Accept(this);
-        public Carrier Visit(BoundPower n) => Power(n.Base.Accept(this), n.Exp.Accept(this));
+        public Carrier Visit(BoundNegate n)
+        {
+            Carrier o = n.Operand.Accept(this);
+            return Marked(o, o);
+        }
+        public Carrier Visit(BoundPower n)
+        {
+            Carrier b = n.Base.Accept(this), e = n.Exp.Accept(this);
+            return Marked(Power(b, e), b, e);
+        }
         public Carrier Visit(BoundIntrinsicCall n) => Of(n, ctx);
         public Carrier Visit(BoundExprError n) => Carrier.Exact(true);
         public Carrier Visit(BoundUdfEvaluatedExpr n) => Carrier.Exact(true);
@@ -355,6 +362,19 @@ internal static class FunctionValueLane
         /// operand is exact and lands on the SDIDI (or its wide form, which the renderer settles onto the SDIDI as an
         /// operand); every other exponentiation is an implementor-defined binary64 approximation, which is a float
         /// ITEM's content only when an operand is one.</summary>
+        /// <summary>⛔ THE MARKS OF A VALUE COMPUTED FROM <paramref name="inputs"/> (kb/Work PB5893 review R5-1): an SDIDI result is an
+        /// approximation (and keeps significance) when any input is one, through every node kind (a binary operation, a negation, a power;
+        /// a function, in <c>Of</c>), so the delivery to a floating-point receiver (<see cref="DeliversByNearest"/>) sees it however it was
+        /// reached: <c>ABS ((A / 3 * 3) ** 2)</c> lost the mark at the power and landed 48.99999999999999 by truncation.
+        /// <c>FunctionValueLaneDriftTests.EveryArgumentCarrierArm_DecidesTheApproximationMark</c> holds every arm to deciding it.</summary>
+        private static Carrier Marked(Carrier result, params Carrier[] inputs) =>
+            result.Kind != CarrierKind.Dec ? result
+            : result with
+            {
+                Significance = result.Significance || inputs.Any(i => i.Significance),
+                Approximation = result.Approximation || inputs.Any(i => i.Approximation),
+            };
+
         private static Carrier Power(Carrier b, Carrier e)
         {
             if (!b.IsReal && !e.IsReal && e.Kind != CarrierKind.Dec && e.Integral) return new Carrier(CarrierKind.Dec);

@@ -51,6 +51,14 @@ rules.
 - Now SUM (A / 3 x3) and ABS (A / 3 * 3) are 7, the MOVE gives 7, and ABS (A / 3), MAX (A / 3, 1) and MEAN (A / 3, 1) print main's
   2.3333333333333335 and 1.6666666666666667 again (`pb5891_argument_receiver_scale` line 15 is main's value again).
 - kb/Work PB5893's dated evidence file states the rule and why exact SDIDI values keep truncation.
+- Review R5-1: the approximation mark now passes through every node kind (`FunctionValueLane.Marked`, power and negation included).
+  `FunctionValueLaneDriftTests.EveryArgumentCarrierArm_DecidesTheApproximationMark` holds every arm of the walk to deciding it.
+  `ABS ((A / 3 * 3) ** 2)` is 49 into COMP-2, as on main, where the power arm had dropped the mark and printed 48.99999999999999; a
+  fixed-point receiver gives 048.99999.
+- Review R5-2 (the coordinator's ruling): under COMP-2 a function discontinuous at the exact value (REM, INTEGER, FRACTION-PART, SIGN
+  of `A / 3 * 3`) now agrees with main's own fixed receivers' decimal truncation (6.99999, 6, .99999, -1), landed by nearest. Main's
+  0, 7, 0, 0 under COMP-2 came from binary64 rounding 7/3 * 3 back to 7.
+- Review R5-3: `COMPUTE F2 = R` with R = .1 prints 0.09999999999999999 on main, so `ABS (O / 10)`, an exact quotient, lands so too.
 
 **One decider of a call's family** (review R3-1, the coordinator's ruling).
 - `FunctionValueLane` reads a call's arguments in the renderer's argument context, and DOC-A.1-92b is stated there

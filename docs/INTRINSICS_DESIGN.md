@@ -796,7 +796,13 @@ T = 3E24 to 3.333333E-25 and `1 / C / C` over an 18-digit C to 0. An argument at
 quotient the type 6 classifier proved exact. The function's value then lands by the ordinary rules: an exact value in a binary64
 receiver by its mode, truncation without ROUNDED (`COMPUTE F2 = R`), and an SDIDI approximation (one into which a quotient that kept
 significance or an SDIDI quotient that may not terminate went) by round-to-nearest-even, as a binary64 operation's result, so `ABS (A / 3)`
-stores 2.3333333333333335 and `SUM (A / 3, A / 3, A / 3)` 7 (`FunctionValueLane.DeliversByNearest`, kb/Work PB5893 review R4-1); an SDIDI or wide argument is routed to the same native bodies by `RenderNum`'s native
+stores 2.3333333333333335 and `SUM (A / 3, A / 3, A / 3)` 7 (`FunctionValueLane.DeliversByNearest`, kb/Work PB5893 review R4-1). ⛔ A
+function discontinuous at the exact value now takes, under a floating-point receiver, the value a fixed-point receiver's arithmetic gives
+the same argument (the coordinator's ruling on review R5-2): COBOL truncates a non-terminating quotient in decimal, so `A / 3 * 3` is
+6.99999 under main's own fixed receivers, `REM (A / 3 * 3, 7)` 6.99999, `INTEGER (A / 3 * 3)` 6 and `FRACTION-PART (A / 3 * 3)` .99999
+there; under COMP-2 the branch's REM is 7 (6.99...9 on the SDIDI, landing by nearest) and INTEGER 6, where main's 0 and 7 came from
+binary64 rounding 7/3 * 3 back to 7, the very evaluation PB5893 removes (probe `E:/COBOL-coord/scratch/my-20261115/b5893-check/rx.cob`);
+an SDIDI or wide argument is routed to the same native bodies by `RenderNum`'s native
 Dec arm (PB69, PB4111), which returns the value on the SDIDI. `WholeRangeBodiesDriftTests` requires every variadic Float
 catalog row to be a member and pins each overload. Pinned by `conformance-suite/cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list`.
 
