@@ -5,8 +5,8 @@ heading: "### 3.13 The I-O status values a COBOL-85 program is told (kb/Work PB5
 
 | Condition (the value COBOL-2002 and later report) | Reported at `--std 85` | Critical |
 |---|---|---|
-| '90' the LINAGE value rules (DOC-A.1-110) | 90 | yes |
-| '91' a character with no byte image in the file's coded character set (DOC-A.1-110) | 91 | yes |
+| '90' the LINAGE value rules (A.1 item 110) | 90 | yes |
+| '91' a character with no byte image in the file's coded character set (A.1 item 110) | 91 | yes |
 | '45' record identification failure (FORMAT and SELECT WHEN) | 92 | yes |
 | '51' the record is locked by another file connector | 93 | no |
 | '52' the implementor-detected deadlock | 94 | no |
@@ -14,7 +14,7 @@ heading: "### 3.13 The I-O status values a COBOL-85 program is told (kb/Work PB5
 | '54' the file connector holds its maximum number of record locks | 96 | no |
 | '61' an OPEN's file sharing conflict | 97 | no |
 | '62' a DELETE FILE's file sharing conflict | 98 | no |
-| '71' a WRITE or REWRITE of a file framed by the implementor-name LINE-SEQUENTIAL whose record holds a character outside the line character set (DOC-A.1-115), such as the line delimiter | 99 | yes |
+| '71' a WRITE or REWRITE of a file framed by the implementor-name LINE-SEQUENTIAL whose record holds a character outside the line character set (A.1 item 115), such as the line delimiter | 99 | yes |
 | '06' a line longer than the maximum record size, truncated | 04, the record length conflict of §1985:VII.4.4.4 GR13 | no |
 | '09' a successful READ of a line holding a character outside the line character set | 00 | no |
 | '31' the dynamic assignment's permanent error | 30 | yes |
