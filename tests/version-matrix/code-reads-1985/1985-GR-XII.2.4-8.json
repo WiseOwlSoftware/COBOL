@@ -2,78 +2,68 @@
  "rule-id": "1985-GR-XII.2.4-8",
  "rule-digest": "0b2e58f8a250",
  "read": {
-  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
-  "slice": "1985-04",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-239",
   "sources": {
-   "reader": "be50138e22430c137194b3f2f7f1a377dea341308564b9fff83f02392d22c913",
-   "refuter": "ad6e92f9e4d13e42c5e99b7b2fb70a7ba31f653b0e440e19c502cb8f119c6201"
+   "reader": "204c971910d5f4e0cd8912654dcb31898d6ac9326064d9505c11d20a5e430ec5",
+   "refuter": "4ad490973e8fa4e395708d8252f64188831a4b7a7ae00917e7c4884df49a0e68"
   },
   "imported": {
-   "reader": "03ba89f162868175a3c2707d2988ae0da2e44b19b241384c08a4392373745d82",
-   "refuter": "4745e28d046607432bb0f1ae07186d9ef2f754e25f09d7ccdcd418ff1f37dcd9"
+   "reader": "6a4ae8aaa3b7cbb5a34108e517fea5448e2484a3f57e7edbd581775cd24e6830",
+   "refuter": "7746905bd18719ca9fe688a5cf2200bc09c299ef7ec232b9d086e5976ecc8e12"
   }
  },
  "reader": {
   "rule-id": "1985-GR-XII.2.4-8",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the compiler must not judge library text on its own: COPY (and REPLACE) are fully processed first, and syntax is checked only on the resultant program, so library text that is a fragment, or not COBOL until REPLACING/REPLACE rewrites it, is accepted when the result is valid and diagnosed when it is not.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#Preprocess; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#LexAndParse; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+  "requirement": "At --std 85 the compiler must not judge library text's syntax on its own: a library text that is a syntactic fragment (part of a statement, a data entry, or text valid only after REPLACING or a REPLACE statement) must be accepted when the resultant program is valid, and the program's syntax (other than the COPY and REPLACE statements themselves) must be judged only on the text produced after every COPY and REPLACE is processed, so an error appears exactly when the resultant text is invalid.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#CopyProcessor; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#EndsCharacterString",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
-    "switches": "library text containing a COPY statement is refused below 2002 (Constructs.CopyNestedLibraryText2002, §1985:XII.2.4 GR12); from 2002 nesting is allowed without REPLACING",
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#CopyProcessor",
+    "switches": "edition.Has(2002): at 85 any COPY in library text is refused (§1985:XII.2.4 GR12, via ConstructRegistry CopyNestedLibraryText2002); from 2002 only COPY with REPLACING over nested COPY is refused",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
-    "switches": "REPLACE scope and the 1985 'preceded by a separator period' rule (EditionInfo); the manipulation-before-parse order is the same",
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#CopyProcessor",
+    "switches": "edition.MaxTextWordLength (322 at 85) and edition.HasCompilerDirectives in the library-text word scan: lexical limits, not syntax",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "Frontend.Preprocess runs COPY/REPLACE (ConditionalCompilationProcessor.Manipulate) to completion before LexAndParse at every DialectLevel; grep of EditionInfo/dialectLevel in CopyProcessor shows only syntax-rule gates (nesting, REPLACE placement, word length), none that parses library text independently.",
-  "behaviour-differs-by-edition": "yes: at 85 library text may not itself contain COPY (GR12), allowed from 2002; the expand-then-parse order this rule requires is the same",
-  "witnesses-cover": "part: the witness exercises REPLACING/REPLACE over text words; not exercised: library text that is a syntactic fragment completed by the source after the COPY, library text that is not COBOL until replaced, an empty member, an invalid result",
+  "edition-search": "grep Edition.Has/HasCompilerDirectives/MaxTextWordLength/DialectBehaviors in Preprocessor/CopyProcessor.cs; none of the switches makes a syntactic judgment of library text alone (GR12's nested-COPY check is a COPY-statement check, which GR8 excepts)",
+  "behaviour-differs-by-edition": "no for GR8 itself; the nested-COPY rule beside it differs (85 GR12 refuses any COPY in produced text)",
+  "witnesses-cover": "part: pb1350 and pb5732 cover text-word scanning and REPLACING that produces a comment-entry or leaves a nested COPY; library text that is a statement or data-entry fragment, text valid only after REPLACING or REPLACE, a REPLACE match spanning the library/source boundary and the error half (resultant text invalid) are not exercised",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c4/p4.cob",
-    "printed": "X=1 W=5 FROM-REPLACE AA=ABC",
-    "expected": "fragment 'MOVE 1' + source 'TO X.'; 'XVERB 5 TO W.' made valid by REPLACING; 'ZDISP ... ZEND.' made valid by REPLACE; '01 AA PIC' completed by the source; a non-COBOL member replaced by empty pseudo-text; an empty member: all accepted"
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/copy/p08c.cob",
+    "printed": "IF TRUE ABC / W=7 / VIA REPLACE",
+    "expected": "an incomplete IF, a data entry missing its VALUE literal, MOVE ++ (valid only after REPLACING ==++== BY ==7==) and BOGUS-VERB (valid only after REPLACE) are all accepted because the resultant program is valid"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c4/p4r.cob",
-    "printed": "BAD1.cpy(1,17): error COBOL5506: cannot parse construct near 'TO'",
-    "expected": "an invalid resultant program is diagnosed"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c4/p4f.cob",
-    "printed": "X=7",
-    "expected": "the same invalid library text made valid by REPLACING is accepted"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/copy/p08d.cob",
+    "printed": "FRAGREP.cpy(1,18): error COBOL5506 unexpected '+' / FRAGPLAIN.cpy(1,12): error COBOL5506 unexpected 'DISPLAY'",
+    "expected": "the same fragments without the completing replacement, or copied where the resultant text is invalid, are refused, located in the library text"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-04/c4/p4n.cob",
-    "printed": "--std 85: error COBOL0900: library text that contains a COPY statement requires COBOL-2002; --std 2002: X=1",
-    "expected": "§1985:XII.2.4 GR12 at 85"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/copy/p08e.cob",
+    "printed": "HEAD SPANNED",
+    "expected": "REPLACE works on the resultant text, so pseudo-text matching the last library word and the next source word is replaced"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XII.2.4 GR8",
-    "check": "OK  §1985:XII.2.4 GR8  (cite.py --check \"the syntactic correctness of the entire COBOL source program cannot be determined until all COPY\")"
+    "check": "OK  §1985:XII.2.4 GR8  (2.4 General Rules)  the text is in GR8"
    },
    {
     "cite": "§1985:XII.2.4 GR1",
-    "check": "OK  §1985:XII.2.4 GR1  (cite.py --check \"logically equivalent to processing all COPY statements prior to the processing of the resultant source program\")"
-   },
-   {
-    "cite": "§1985:XII.2.4 GR12",
-    "check": "OK  §1985:XII.2.4 GR12  (cite.py --check \"must not contain a COPY statement\")"
+    "check": "OK  §1985:XII.2.4 GR1  (2.4 General Rules)  the text is in GR1"
    }
   ],
-  "notes": "The frontend expands every COPY and REPLACE before lexing and parsing, so library text is only ever judged inside the resultant program. Probes with fragments, replaced-away non-COBOL text and an invalid result all behave as GR8 requires.",
+  "notes": "COPY and REPLACE are processed by the preprocessor into one resultant text before the parser runs; the only checks on library text alone are lexical (text-word length) and the COPY-statement checks GR8 excepts. Diagnostics on the resultant text keep the library file and line, which is correct attribution.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -85,18 +75,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-XII.2.4-8",
-  "refutation": "OVERTURNED",
-  "classes": "b,c",
-  "evidence": "Code: src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy computes `libraryHoldsCopy = FindStatementKeyword(normalized, 0, \"COPY\")` on the library text BEFORE ApplyReplacements, and at !edition.Has(2002) raises Constructs.CopyNestedLibraryText2002 (COBOL0900) citing §1985:XII.2.4 GR12, whose text judges 'The text produced as a result of the complete processing of a COPY statement', i.e. AFTER REPLACING. So at --std 85 the library text's correctness IS determined independently, which GR8 says cannot be done. Probe refute-1985-04/c4/r4a.cob at --std 85: library NESTZ.cpy = 'COPY ZZZ.'; source 'COPY NESTZ REPLACING ==COPY ZZZ== BY ==MOVE 3 TO X==.' The produced text is 'MOVE 3 TO X.' (no COPY), valid; the compiler prints COBOL0900 'library text that contains a COPY statement requires COBOL-2002 ... COPY NESTZ' (plus COBOL2451, below). Probes that UPHOLD the rest: r4b (COPY inside a literal and a comment line in library text) runs and prints 'COPY ZZZ.'; r4e (COPY in an AUTHOR comment-entry inside library text, §1985:XII.2.3 SR10) runs; r4c (a REPLACE statement in library text, then applied to later source) prints AFTER-REPLACE; r4d (REPLACING ==XX== BY ==COPY== producing a COPY statement) is refused, as GR12 requires. THE READING this rests on: pseudo-text ==COPY ZZZ== carrying no separator period is not 'a COPY statement' (§1985:XII.2.3 SR2 makes the period part of one), so SR7 does not bar it, and SR6 excludes COPY only as word-1/word-2. The compiler also refuses that pseudo-text on its own (r4g: a REPLACING ==COPY ZZZ== that matches nothing gives COBOL2451 citing §2023:7.2.3.3 SR1); if SR7 is read to bar it, no legal 1985 program reaches the pre-replacement check and the verdict would stand. cite.py: OK §1985:XII.2.4 GR8 ('The syntactic correctness of the library text cannot be independently determined'); OK §1985:XII.2.4 GR12 ('The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement'); OK §1985:XII.2.3 SR2 ('terminated by the separator period'); OK §1985:XII.2.3 SR6 ('any single COBOL word except'); OK §1985:XII.2.3 SR7 ('a COPY statement must not occur within a COPY statement'). Known note: kb/Work/PB5126 (landed) introduced this 85 gate for library text that holds a COPY; it does not treat a COPY that REPLACING removes.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy: the reader listed it for the GR12 gate but not that the gate's 85 arm tests the pre-REPLACING library text (`normalized`), not the produced text; at 2002+ the same test feeds the REPLACING+nested-COPY refusal (COBOL1640), which 2023's GR10 states on the library text"
-  ],
-  "corrected": "PARTIAL (rejects-legal-source, cause a): at --std 85 the GR12 nested-COPY gate must examine the text produced after REPLACING, not the library text alone; a COPY in library text that REPLACING replaces away is refused (COBOL0900), so the library text is judged independently, contrary to GR8. At --std 2023 the same program is refused by COBOL1640/COBOL2451, which the 2023 text (7.2.3.4 GR10) does state on the library text. Companion item (separate rule §1985:XII.2.3 SR7): COBOL2451 refuses the word COPY inside pseudo-text."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "Mechanism 2 UPHELD, cause (a): at --std 85 the nested-COPY gate judges the library text before REPLACING, where §1985:XII.2.4 GR12 judges the produced text; GR8's row is PARTIAL for the same mechanism (the adjudication file's own words).",
-  "ref": "kb/Work/PB5692/2026-11-15-adjudication-of-the-sample.md"
- },
- "work": "PB5732"
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "q6a.cob (runs/q6a-002): library text that is a data entry cut after PIC, completed by the source line after the COPY; an empty library text; a comment-only library text; and a library text that IS a 1985 REPLACE statement (§1985:XII.3.4 GR4: REPLACE is processed after COPY), whose replacement then makes the source verb XSHOW a DISPLAY; REPLACE OFF after it. Compiled and ran: 'AFTER LIBRARY REPLACE WPX' / 'END'. q6b.cob (runs/q6b-002): one DISPLAY statement split across two COPY statements (verb in HALF1, operands in HALF2), and a COPY inside an IF: 'TWO HALVESZZ9' / 'TWO HALVESQQQ' / 'IN IF'. The two refusals met while writing the probes were resultant-text errors of my own (END-IF after a period; a text-name reused as a data-name, refused under the 1985 disjoint-sets rule, a COPY-statement check GR8 excepts). Citations: OK §1985:XII.2.4 GR8 (the text is in GR8); OK §1985:XII.3.4 GR4 (the text is in GR4).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

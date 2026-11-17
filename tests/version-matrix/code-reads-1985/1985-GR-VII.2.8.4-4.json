@@ -2,51 +2,47 @@
  "rule-id": "1985-GR-VII.2.8.4-4",
  "rule-digest": "293766be4fe0",
  "read": {
-  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
-  "slice": "1985-221",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-238",
   "sources": {
-   "reader": "028328aac0c5fcf9e3876475a14235cad7621e65d41413876f1c571e3854079a",
-   "refuter": "f6a98d0447bf8be2dcfc10143829e65c9104acad7229d11bfe1bd697d7a12542"
+   "reader": "bd51bd42dc7eae79d677c61d04c699dbba6c55fdded09335f78d837e80675e3e",
+   "refuter": "b1986a107a45a96ed6025d8e93ac905af98a87ec7189304b319f653500884522"
   },
   "imported": {
-   "reader": "aa2d680b11da6173c4ecffd8ec0b343673a5e384c457f377807faa44073a5404",
-   "refuter": "a3462051e383e658ac46b42421325d646c7ff2d99a9cb59f0127292ad0744ab4"
+   "reader": "c9ff0215a7546959b3fc5007926e424c7d4c168d01ccbadef36d0f9225984f2e",
+   "refuter": "8976965534d5590c6b3116723f761054677cdc55105b87404046f8b54fb21616"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.2.8.4-4",
   "verdict": "CONFORMS",
-  "requirement": "At 85, with no RECORD DELIMITER clause, a variable-length record's length on the medium is determined by the implementor's method, which the implementor must specify; WiseOwl specifies a 4-byte little-endian length prefix per record and must write and read by it.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrame; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrameHead; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#ReadFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NextFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+  "requirement": "At 1985, a sequential file whose entry has no RECORD DELIMITER clause determines the length of each variable-length record on the medium by a method the implementor specifies.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrameHead; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrame; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#ReadFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NextFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration",
   "edition-consulted": [],
-  "edition-search": "grep of RecordFraming.cs and SequentialConnector.cs for Edition, Std, Version, CobolVersion, DialectBehavior: no hit; the runtime framing takes no edition input.",
+  "edition-search": "grep RecordDelimiter over src (non-generated): no ConstructRegistry construct, no VersionConformancePass visitor, no DialectBehavior; SequentialConnector consults DialectBehavior only for LINAGE; the DialectLevel passed by EmitFileRegistration does not reach framing; RecordFraming.cs has no edition reference",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: file D of pb292 (RECORD VARYING, no clause); the on-medium bytes were checked here",
+  "witnesses-cover": "part: pb292 covers the prefix round trip; not a variable-length file with no RECORD DELIMITER clause read through its DEPENDING ON item at several lengths",
   "probes": [
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/pb292_record_delimiter_witness-001",
-    "printed": "D1=00 LEN=03 [PQR] D2=00 LEN=08 [PQRSTUVW]; pb292rd1d.dat = 03 00 00 00 50 51 52 08 00 00 00 50..57",
-    "expected": "the documented method (docs/conformance/7/DOC-A.1-151.md: 4-byte little-endian length prefix) on the medium, the lengths back through DEPENDING ON"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/rdel1.cob",
+    "printed": "FN (no clause): RDELN.DAT = 03 00 00 00 'ABC' 08 00 00 00 'DEFGHIJK'; read back N 03 [ABC], N 08 [DEFGHIJK]; third READ FN EOF",
+    "expected": "the documented method (DOC-A.1-151: 4-byte little-endian length prefix), lengths 3 and 8 returned in the DEPENDING ON item, prefix absent from the record area"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/rd_odo_bytes-001",
-    "printed": "F3A 00 1AB / F3B 00 3CDEFGH; RDO3.DAT = '1AB    3CDEFGH' (two 7-byte records, no prefix); F4 OPEN 35 / F4 READ 47",
-    "expected": "with no RECORD clause fixed or variable is the implementor's (§1985:II.2.1.4.3); records written fixed at maximum read back as written"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-238/rdel2.cob",
+    "printed": "FB1 00 04 [AB] FB2 00 05 [WXYZ1]",
+    "expected": "binary-framed records round trip with trailing spaces kept"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VII.2.8.4 GR4",
     "check": "OK  §1985:VII.2.8.4 GR4  (║2.8.4 General Rules║)  the text is in GR4"
-   },
-   {
-    "cite": "§1985:II.2.1.4.3",
-    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
    }
   ],
-  "notes": "The determination is documented (DOC-A.1-151) and the probe's file bytes match it. An FD with no RECORD clause over an OCCURS DEPENDING ON record yields fixed records at the maximum size, an implementor choice §1985:II.2.1.4.3 allows; this rule then has no variable-length record to speak of.",
+  "notes": "The method is specified in docs/conformance/7/DOC-A.1-151 (a 4-byte length prefix for record sequential, the line delimiter for line sequential). That entry cites only the 2023 rule, but the method is the same at every edition and the 1985 run writes exactly that frame.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -58,16 +54,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-VII.2.8.4-4",
-  "refutation": "OVERTURNED",
-  "classes": "a,c,e",
-  "evidence": "The reader's requirement: with no RECORD DELIMITER clause WiseOwl specifies its method (DOC-A.1-151: 4-byte little-endian length prefix; DOC-A.1-146 (b)/(c'): a RECORD VARYING record of a record sequential print stream is 'framed exactly as in (b)' with the print controls written between records, a LINAGE file is unframed text) 'and must write and read by it'. Probe rd_print-001 (--std 85, E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-221/runs/rd_print-001): FB = RECORD IS VARYING IN SIZE FROM 1 TO 10 DEPENDING ON LB, no LINAGE, no RECORD DELIMITER, written WRITE FB-REC AFTER ADVANCING 1 LINE twice (L=4 'AB  ', L=3 'CDE') -> 'W 00 00 00'; CLOSE; OPEN INPUT FB through the same FD -> 39; READ -> 47 (stdout 'OPEN INPUT 39 39 39', 'LAST 47 47 47'). RDPB.DAT = 0a 04 00 00 00 41 42 20 20 0a 03 00 00 00 43 44 45 0a: the documented prefix IS written, with LF controls between frames, and the reader refuses its own method's output. FA (LINAGE, no clause, no ADVANCING phrase) and rd_linage2-001 (LINAGE, DEPENDING ON) the same: OPEN INPUT 39. --std 2023 identical (rd_print-002): cause (b). Non-print variable-length files read back correctly (rd_sizes-002, rd_reversed-001 incl. 1985 REVERSED and EXTEND), so the defect is the print-stream arm of the method. Code: SequentialConnector.cs#FixedAttributeConflict returns 39 when IsVarying && !RecordFraming.StreamFramingParses(HostPath); its own remarks say 'writing a print, report or extract file and reading it back ... is exactly the idiom' the 04/06/09 statuses exist for. 39 is defined only as a conflict between the fixed file attributes and the program's (§1985:VII.1.3.5 item f); the FD that created the file has none. cite.py: 'OK  §1985:VII.2.8.4 GR4  (║2.8.4 General Rules║)  the text is in GR4'; 'OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.3f'; 'OK  §1985:VII.4.7.4 GR16  (4.7.4 General Rules)  the text is in GR16'; 'OK  §1985:VII.3.8.4 GR11  (3.8.4 General Rules)  the text is in GR11'. Fixed-length sibling (outside this rule, same mechanism family): rd_print_fixed-002 reads CR/LF control bytes into the record area and misaligns records (§1985:II.2.1.4). kb/Work: none found (PB1664, PB2509 cover the print-stream write form; PB2754 torn tails).",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "Probe refute-1985-238/rdelz.cob (runs/rdelz-001) at --std 85: a variable-length file with no RECORD DELIMITER clause writes a 6-character record holding an LF and a NUL byte and a 1-character record: 'W1 00' 'W2 00', read back 'R1 00 06' 'R1 SAME' 'R2 00 01 [Z]'; medium bytes 06 00 00 00 'AB' LF NUL '  ' 01 00 00 00 'Z': the 4-byte length prefix of DOC-A.1-151 (a documented implementor method), any byte content, prefix not in the record area. Also rseq1 (two 01s, no RECORD clause) keeps lengths 3 and 8. cite.py: OK  §1985:VII.2.8.4 GR4 the text is in GR4.",
   "edition-sites-missed": [],
-  "corrected": "NON-CONFORMING (wrong-answer), cause b: the implementor's no-clause method for a variable-length record sequential file written with ADVANCING or LINAGE (DOC-A.1-146 (b)/(c')) is not the method used to determine record length on input: OPEN INPUT of the file through the FD that wrote it answers 39 and no record is read. Repro: FD F RECORD IS VARYING IN SIZE FROM 1 TO 10 CHARACTERS DEPENDING ON L; OPEN OUTPUT F; MOVE 4 TO L; WRITE F-REC AFTER ADVANCING 1 LINE; CLOSE F; OPEN INPUT F -> FILE STATUS 39 (expected 00, then READ 00 with L=04). Same at --std 2023."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "A variable-length record sequential file that a program writes with ADVANCING, or under LINAGE, cannot be read back through the file description that wrote it: OPEN INPUT answers 39 and the READ 47, at every edition.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10r.md"
- },
- "work": "PB5860"
+  "corrected": ""
+ }
 }

@@ -2,68 +2,56 @@
  "rule-id": "1985-SR-IX.4.5.3-2",
  "rule-digest": "a31557f3fc1c",
  "read": {
-  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
-  "slice": "1985-235",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-240",
   "sources": {
-   "reader": "4fb59c7dee2bfd90d7da9fd052e20da4e4adc03242010c0c08b12cf3e52acf98",
-   "refuter": "941565f694152392a807690337899f49132bf6018cec07c01a9d85c2e2208b33"
+   "reader": "6a7488f44fc7bd4ed1607d5a45e43f1fdbed8f1c9130ce7bd21b8575c9336943",
+   "refuter": "a344a720b1c84122382302525a8eabb35c655f2fc78389c837ea9e6f5b31ba52"
   },
   "imported": {
-   "reader": "e3e6ed3d900b03f0a9c4a4bd73a1689e741f40be410fb018b99b504794c00e79",
-   "refuter": "d0a7c849fed6eb2a1ade48b0041f868ff2f742b95902fe376a9c71837d24545f"
+   "reader": "2d8e4b5a9120ddd4bf42c73ade9dc739ac222c4f3cd00d8ab9ff8c5fe7c1b27a",
+   "refuter": "5ade0306e7334c9c148f0bb1df337a687ac5296d94b26b979f85ac2c6c2a4ea3"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IX.4.5.3-2",
   "verdict": "CONFORMS",
-  "requirement": "At 1985 the KEY IS data-name-1 of a Format 2 READ on an indexed file must name the prime or an alternate record key of file-name-1 (possibly qualified, SR3; an item at the key's identical character positions in another record description of the file is implicitly that key, IX.2.7.4 GR3); any other data item (non-key field, group, working-storage item, another file's key, a shorter item at the key's leftmost position, a reference-modified key) is refused. The witness covers only the reference-modified operand and was written for the 2023 rule.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadKeyOrganization; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadKeyFormat",
-  "edition-consulted": [],
-  "edition-search": "grep for Edition, Year, CobolVersion, DialectBehavior in KeyedIoBinder.cs and RecordLayout.cs KeyIndexOfKeyItem: the only uses of ctx.Edition on the READ KEY path are the diagnostic sink (BoundRejected.Report(ctx.Edition, ...), severity routing, not a rule switch); the record-key-name arm (RecordKeyNameOf) is reachable only from a 2023 SOURCE-form key, which a 1985 program cannot declare. The rule is one edition-invariant identity check.",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: only the reference-modified operand; non-key items, groups, another file's key, alternate and qualified keys, the implicit key of a second record description and the runtime read by the named key are not exercised",
+  "requirement": "At --std 85 the KEY IS data-name-1 operand of a Format-2 READ on an indexed file must be refused unless it names the file's RECORD KEY or an ALTERNATE RECORD KEY data item (qualified or not), or the item at the identical character positions in another record description entry of that file (§1985:IX.2.7.4 GR3 / IX.2.5.4 GR4 implicit keys; every key is category alphanumeric per IX.2.7.3 SR2).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#SameClassCategoryUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyIndexAtOffset; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
+    "switches": "refuses the post-1985 SOURCE-form record key (construct record-key-source-2002, COBOL0900) so READ's record-key-name-1 arm is unreachable at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of KeyedIoBinder.cs for Edition/Version: ctx.Edition appears only as the diagnostic sink; RecordLayout.KeyIndexOfKeyItem and KeyIndexAtOffset consult no edition. The SR check itself is one arm for every edition.",
+  "behaviour-differs-by-edition": "no: the data-name-1 identity/implicit-key screen is one arm; only the 2002+ record-key-name-1 (SOURCE key) form is refused at 85, which 1985 has no syntax for",
+  "witnesses-cover": "part: witnesses exercise refmod, numeric twin and own-record REDEFINES refusals; not the accept half (prime/alternate/qualified/implicit twin read at run time), a key of another file, a WORKING-STORAGE item, a subordinate prefix of the key, or a shorter same-position item",
   "probes": [
    {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c3-pos.cob",
-    "printed": "PRIME TWO 00 / ALT THREE 00 / QUAL ONE 00 / IMPLICIT THREE 00 / INV-5 / MISS 23 / NEXT 46 (same at --std 2023)",
-    "expected": "READ KEY IS the prime, an alternate, a qualified key and the second record's item at the prime key's positions each compile and read by that key; a missing alternate value takes INVALID KEY (23)"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c1-accept.cob",
+    "printed": "R1 TWO / R2 ONE / R3 TWO / R4 TWO / INV-5 (group prime key qualified, alternate key, implicit twin of prime and of alternate in second 01 all read the right record; missing key takes INVALID KEY)",
+    "expected": "all accepted; reads by the named key (SR2, IX.2.7.4 GR3, IX.2.5.4 GR4)"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c3-n1-nonkey.cob",
-    "printed": "error COBOL0864: READ KEY IS IX-DATA on 'IXF': the operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file",
-    "expected": "a non-key field of the record refused"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c3-n2-refmod.cob",
-    "printed": "error COBOL0864: READ KEY IS IX-KEY(1:3)",
-    "expected": "a reference-modified key is not the key's name: refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c3-n3-ws.cob",
-    "printed": "error COBOL0864: READ KEY IS FS",
-    "expected": "a working-storage item refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c1-r-data.cob (also c1-r-ws, c1-r-other, c1-r-sub, c1-r-short, c1-r-refmod)",
+    "printed": "error COBOL0864 for each: non-key record item, WORKING-STORAGE item, key of another file, subordinate prefix IX-K1 of the group key, X(3) at the key position in another 01, refmod IX-KEY(1:4)",
+    "expected": "refused: not a data item specified as a record key of file-name-1"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c3-n4-group.cob",
-    "printed": "error COBOL0864: READ KEY IS IX-REC",
-    "expected": "the group containing the key refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/w-5794.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/w-5877.cob",
+    "printed": "error COBOL0864 for PIC 9(4) twin and for REDEFINES of the key in its own record",
+    "expected": "refused: a numeric item is no alphanumeric key; GR3 reaches other record entries only"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c3-n5-otherfile.cob",
-    "printed": "error COBOL0864: READ KEY IS G-KEY on 'IXF'",
-    "expected": "another file's record key refused (associated with file-name-1)"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c3-n6-shorter.cob",
-    "printed": "error COBOL0864: READ KEY IS IX3-PART on 'IXF'",
-    "expected": "a shorter item at the key's leftmost position (START's SR4b generic form, not READ's) refused"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c1-srckey.cob",
+    "printed": "error COBOL0900: the SOURCE phrase of the RECORD KEY ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: 1985 RECORD KEY format is RECORD KEY IS data-name-1 only"
    }
   ],
   "citations": [
@@ -72,15 +60,19 @@
     "check": "OK  §1985:IX.4.5.3 SR2  (4.5.3 Syntax Rules)  the text is in SR2"
    },
    {
-    "cite": "§1985:IX.4.5.3 SR3",
-    "check": "OK  §1985:IX.4.5.3 SR3  (4.5.3 Syntax Rules)  the text is in SR3"
-   },
-   {
     "cite": "§1985:IX.2.7.4 GR3",
     "check": "OK  §1985:IX.2.7.4 GR3  (2.7.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IX.2.5.4 GR4",
+    "check": "OK  §1985:IX.2.5.4 GR4  (║2.5.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:IX.2.7.3 SR2",
+    "check": "OK  §1985:IX.2.7.3 SR2  (2.7.3 Syntax Rules)  the text is in SR2"
    }
   ],
-  "notes": "KeyedIoBinder.BindRead asks RecordLayout.KeyIndexOfKeyItem, an identity-or-identical-position match against the declared keys, and refuses everything else with COBOL0864. Accepting an item at the prime key's identical positions in a second record rests on §1985:IX.2.7.4 GR3 ('implicitly referenced as keys'); that is the one interpretive point. The diagnostic cites §2023:14.9.30.3 SR11 rather than the 1985 rule, which is wording only.",
+  "notes": "One identity-or-implicit-key screen serves every edition and matches the 1985 text, whose RECORD KEY GR3 and ALTERNATE RECORD KEY GR4 give the same implicit keys the 2023 code comments cite. The COBOL0864 message cites §2023:14.9.30.3 SR11 even at --std 85 (cosmetic: the refusal is right).",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -93,15 +85,17 @@
  "refuter": {
   "rule-id": "1985-SR-IX.4.5.3-2",
   "refutation": "OVERTURNED",
-  "classes": "b,d",
-  "evidence": "r3-redef.cob: in the key's own record, 05 IX-KR REDEFINES IX-KEY PIC X(4); READ IXF KEY IS IX-KR compiles at --std 85 (EXIT 0) and at --std 2023 (EXIT 0). IX-KR is not specified in a RECORD KEY or ALTERNATE RECORD KEY clause, and GR3's implicit keys reach only OTHER record description entries. A level-05 REDEFINES is in the same record description entry: the glossary says 'Record Description Entry. The total set of data description entries associated with a particular record' (cite.py: 'OK §1985:III.2 the text is in the clause'). cite.py: 'OK §1985:IX.4.5.3 SR2' ('must be the name of a data item specified as a record key associated with file-name-1'); 'OK §1985:IX.2.7.4 GR3' ('are implicitly referenced as keys for all other record description entries of that file'). RecordLayout.KeyIndexOfKeyItem says it admits 'a REDEFINES of the key, or a same-position item in a secondary 01' as GR4's other-record implicit key. That is how the REDEFINES gets through. Side observations: r3-altother (an other-record item at the alternate key's positions) compiles, which is correct under GR3. r3-numother (PIC 9(4) at the prime key's positions in IX-REC2) is refused (COBOL0864) under PB5794's 'shares class/category' reading. Under GR3 those positions are implicitly keys, so this refusal is a second reading point. kb/Work: PB354 (landed) covers START, and no note covers the same-record REDEFINES.",
-  "edition-sites-missed": [],
-  "corrected": "NON-CONFORMING (under-rejects), cause (b), the same at --std 2023. RecordLayout.KeyIndexOfKeyItem's positional arm accepts any identical-width item in a record of the file, including a REDEFINES inside the key's own record description entry, where §1985:IX.4.5.3 SR2 with IX.2.7.4 GR3 admits only the declared key or an item in ANOTHER record description entry. Repro: r3-redef.cob; expected a refusal (SR2); observed exit 0. No kb/Work note."
+  "classes": "a,b,c,d",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-240/src/r1-sub-run.cob (FD IXF RECORD KEY IX-KEY PIC X(4); second 01 IX-REC2 with 05 IX-T PIC X(4) OCCURS 2): READ IXF KEY IS IX-T (1) compiles and runs at --std 85, printing 'R1 TWO' (runs/r1-sub-run-001); the same at --std 2023 (runs/r1-sub-run-002). The 1985 format prints KEY IS data-name-1 and SR3 lets it be qualified only; a table element must be subscripted (IV.4.3.8.2.3 SR4, no READ KEY exception), so an item under OCCURS has no legal reading as data-name-1 and is never 'a data item specified as a record key'. Same reading the tree took for PADDING CHARACTER in kb/Work PB5499. KeyedIoBinder.BindRead reads the operand through ResolveSending + KeyIndexOfKeyItem(keyOccurrence) and never calls DataBinder.ScreenDataNameShape (COBOL2024), which it does call for the record-key-name arm (RecordKeyNameOf). Other probes upheld the reader: group twin and file-name qualification IX-KEY OF IXF accepted and read right (r1-grp-twin: R1 TWO, R2 ONE); alphanumeric-edited twin refused COBOL0864 (r1-edit-twin); condition-name refused COBOL1639 (r1-cond). cite.py: 'OK  §1985:IX.4.5.3 SR2  (4.5.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:IX.4.5.3 SR3  (4.5.3 Syntax Rules)  the text is in SR3'; 'OK  §1985:IV.4.3.8.2.3 SR4  (4.3.8.2.3 Syntax Rules)  the text is in SR4'; 'OK  §1985:IX.2.7.4 GR3  (2.7.4 General Rules)  the text is in GR3'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape: the edition-aware data-name-n shape screen (subscript/refmod, admitsSubscript2002) that the READ KEY data-name-1 arm of KeyedIoBinder.BindRead does not call"
+  ],
+  "corrected": "UNDER-REJECTS (cause b: same at --std 2023). Minimal repro: READ IXF KEY IS IX-T (1) where IX-T PIC X(4) OCCURS 2 sits at the prime key's positions in a second 01 of the file; expected refusal (data-name-1 may only be qualified, §1985:IX.4.5.3 SR3; a table element is no record key, SR2); observed EXIT 0 and the read by the prime key. Known note: none for READ KEY (sibling of PB5499's PADDING CHARACTER fix)."
  },
  "adjudication": {
   "verdict": "PARTIAL",
-  "reason": "READ ... KEY IS a REDEFINES of the record key in the key's own record description entry compiles (r3-redef.cob), where the rule admits only a data item specified as a record key, and the implicit keys reach other record description entries only.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-16.md"
+  "reason": "READ ... KEY IS a subscripted table element that lies over the record key compiles and runs (r1-sub-run.cob), where the KEY phrase takes a data-name that may only be qualified.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
  },
- "work": "PB5877"
+ "work": "PB5883"
 }

@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-VI.6.23.4-3",
+ "rule-digest": "0eb3e64b95ec",
+ "read": {
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-237",
+  "sources": {
+   "reader": "10c46923cc936bd474f98b0987fa57e51be9d7397412d2b1ff469c6396ce500a",
+   "refuter": "e49db95ee4b953357c139c91667ace20327d46fd8a6d68769553324f37de35b7"
+  },
+  "imported": {
+   "reader": "e98e73a97dde002ec1465061c106c278de5623ce1586ce835b08eb9f297311c1",
+   "refuter": "d4f9805412eda85729322075aaf2a53c545f9e2131906cb48b3a3bee119c8ced"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.23.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 SET format 1 sets index-name-1 to the occurrence number of index-name-2 (converted across tables, unconverted within one), of an integer identifier-2, or of a positive integer-1; sets an index data item only from index-name-2 or another index data item without conversion; sets an integer identifier-1 only from index-name-2 (identifier-2 and integer-1 refused); and for several receivers uses the sender's value from the start of the statement while evaluating each receiver's subscripts just before that receiver is changed.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#IndexAssignmentSenderOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#GateCobol85IndexAmount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#Cobol85AmountRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetTo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#StoreSetTarget",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#GateCobol85IndexAmount",
+    "switches": "ConstructRegistry set-arithmetic-expression-2002: below 2002 a Format 1 sender that is an arithmetic expression, a non-integer, or a zero or negative integer is refused (COBOL0900); 2002+ admits arithmetic-expression-1",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of SetBinder.cs and SetEmitter.cs for DialectLevel, Edition gates, Permissive and Constructs.Set*: the one edition gate is GateCobol85IndexAmount; ScreenIndexAssignmentReceiver's Permissive is the severity axis, not the edition; the emitter has no edition switch.",
+  "behaviour-differs-by-edition": "yes: 2002+ admits an arithmetic expression (and so zero, negative or non-integer values) as the sender; 1985 admits only index-name-2, an integer identifier-2 or a positive integer-1",
+  "witnesses-cover": "part: the witnesses cover receiver identification at store and operand class screens; conversion across tables, index data items, the sender-at-start rule, receiver subscripts evaluated at store, and the GR3c refusals are not all exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/st1.cob",
+    "printed": "SET X1 TO X2 (X2 on a 3-byte table at 4) -> E1(X1)=[DDDDD]; SET X1 TO N (2) -> [BBBBB]; SET X1 TO X1B (same table, 6) -> [FFFFF]; SET IDA TO X1, SET X1B TO IDA -> [FFFFF]; SET K TO X2 [0004], S9(4) [+0006], 9(18) [000000000000000006]; SET X1 X2 TO 5 -> [EEEEE] [eee]",
+    "expected": "occurrence numbers carried across tables (GR3a), index data items without conversion (GR3b), integer receivers from index-name-2 (GR3c)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/st1.cob",
+    "printed": "SET XA XB TO DI(XA) with XA=1, DI(1)=occ 3, DI(3)=occ 2 -> XA 3, XB 3; SET K TII(K) TO X2 with K=1, X2=3 -> K 3, TI [0000030000]",
+    "expected": "the sender as it was at the start (XB gets DI(1), not DI(3)); identifier-1's subscript evaluated just before its store (TII(3) set) (GR3d)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/st2.cob",
+    "printed": "--std 85: COBOL2326 SET K TO N, SET K TO 5, SET K TO IDA (integer receiver needs index-name-2); COBOL2326 SET IDA TO 5, SET IDA TO N; COBOL0900 SET X1 TO 0, SET X1 TO -1, SET X1 TO NV (9V9); COBOL2326 SET G (group) and SET NV (non-integer) TO X1",
+    "expected": "refused: GR3c, GR3b, SR4 (integer-1 positive), SR2 (integer or index data item)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/st2.cob",
+    "printed": "--std 2023: the SET X1 TO 0 / -1 / NV refusals disappear (arithmetic-expression-1 admitted); the GR3b/GR3c-shaped refusals remain",
+    "expected": "1985 refuses the later edition's arithmetic sender"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.23.4 GR3a",
+    "check": "OK  §1985:VI.6.23.4 GR3a  (6.23.4 General Rules)  the text is in GR3a"
+   },
+   {
+    "cite": "§1985:VI.6.23.4 GR3b",
+    "check": "OK  §1985:VI.6.23.4 GR3b  (6.23.4 General Rules)  the text is in GR3b"
+   },
+   {
+    "cite": "§1985:VI.6.23.4 GR3c",
+    "check": "OK  §1985:VI.6.23.4 GR3c  (6.23.4 General Rules)  the text is in GR3c"
+   },
+   {
+    "cite": "§1985:VI.6.23.4 GR3d",
+    "check": "OK  §1985:VI.6.23.4 GR3d  (6.23.4 General Rules)  the text is in GR3d"
+   },
+   {
+    "cite": "§1985:VI.6.23.3 SR4",
+    "check": "OK  §1985:VI.6.23.3 SR4  (6.23.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "Indexes are typed occurrence numbers, so conversion across tables is automatic and an index data item carries the occurrence number unchanged. Every probed form matched; the refusal messages cite §2023:14.9.39.3 SR3/SR4 even at --std 85 (wording only; the 1985 rule is GR3b/GR3c).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.23.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read §1985:VI.6.23 whole (SR2 integer or index data item, SR4 'Integer-1 and integer-2 may be signed. Integer-1 must be positive.', GR2, GR3a-d). The attack was the operand forms the reader's probes did not reach, at --std 85. stA: SET X1 TO +3 (signed positive integer-1, SR4 admits it) -> E1(X1)=[CCCCC]; identifier-2 PIC 9(4) COMP 3 -> [CCCCC]; identifier-2 S9(4) BINARY 4 -> [DDDDD]; a subscripted identifier-2 TNE(3)=5 -> [EEEEE]; integer receiver S9(4) COMP from X2 at 6 -> [+0006]; SET TKE(J) TO X1 -> TKE(2)=02; SET J TKE(J) TO X2 with J=2, X2=5 -> J=5 and TKE(5)=05 (the receiver's subscript evaluated just before its own store, GR3d). stB refusals: SET X1 TO ZERO, TO 1.0, TO +0, TO X1 + 1, SET K TO 0 -> COBOL0900 each (and COBOL2326 for the integer receiver from integer-1, GR3c). Every form matches GR3 at 1985. cite.py: 'OK  §1985:VI.6.23.4 GR3d  the text is in GR3d'; 'OK  §1985:VI.6.23.3 SR4  the text is in SR4'; 'OK  §1985:VI.6.23.3 SR2  the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

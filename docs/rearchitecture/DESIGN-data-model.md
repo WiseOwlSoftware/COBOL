@@ -775,7 +775,9 @@ usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause
    from `Analyze` so the written-clause path and the inherited path run the SAME code, plus §2023:13.16.3 SR8's
    prohibition over the ONE set `UsageFamilies.IsPictureless` and §2023:13.18.60.3 SR2's equality check
    (`COBOL1927`, against the nearest enclosing WRITTEN clause, comparing resolved `Usage` members so SR6's
-   COMP/COMPUTATIONAL abbreviation and this implementation's BINARY identification are already folded).
+   COMP/COMPUTATIONAL abbreviation and this implementation's BINARY identification are already folded). The fold of
+   COMPUTATIONAL into BINARY for SR2's "same usage" is the register's determination, at every edition
+   (`docs/conformance/7/DOC-A.1-208.md`: one manner of representation is one usage; `§1985:VI.5.14.3 SR2`; kb/Work PB5849).
 4. **the clause's PHRASES** — `ApplyEffectiveNoSign`, the §2023:13.18.60.2 `PACKED-DECIMAL [ WITH NO SIGN ]` phrase.
    ⛔ **A phrase is part of the USAGE clause, not a clause of its own**, so GR1 hands it down with the word and
    the SAME site adjudicates both spellings: §2023:13.18.40.3 SR31's `'S'` prohibition (`COBOL1566`) and

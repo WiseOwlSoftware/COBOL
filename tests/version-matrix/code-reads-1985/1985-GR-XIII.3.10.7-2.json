@@ -2,72 +2,83 @@
  "rule-id": "1985-GR-XIII.3.10.7-2",
  "rule-digest": "80edc1e8a50f",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-036",
+  "pin": "1554cc5debb003cdbdf62be59cb1efb910488540",
+  "slice": "1985-244",
   "sources": {
-   "reader": "a8cd36742693e897f4ab17c78d39d8e2b59bc1a271a69b1141dc57a86556cb87",
-   "refuter": "3eb1ee443fcc50694c7ce72e44016ac954866b635f8bd2cf935cc173b0b2cb78"
+   "reader": "385c7bc3ee2aae5786ce90e5e7e7d6958f2ecefab8e6c9049618cb10d9a8eb42",
+   "refuter": "455816caa4b2ed7f71897a6320ba4eb474838ff6f4a33c98005ec5227e9a8fe0"
   },
   "imported": {
-   "reader": "49ae8ff52e0d70d9f279a5e9e35c64c2af5b614b2c7bcd9fd59165370bbfa7fa"
+   "reader": "3e817066ba8f0e0cefffb5867fcef840efdae59666e71af46cdfbf7cbf77b3e3",
+   "refuter": "8288aaaea34c5ff658c2eeed91f719d7f03e4193523b2f388f10c62a25931c94"
   }
  },
  "reader": {
   "rule-id": "1985-GR-XIII.3.10.7-2",
-  "verdict": "PARTIAL",
-  "requirement": "At --std 85 no line of a page heading report group may be presented on or after FIRST DETAIL integer-3 (last permitted line integer-3 - 1), for an absolute PH, a relative PH placed from HEADING, and a relative PH placed after a report heading on the same page (rule 3b, from the RH's final LINE-COUNTER); since 1985 has no PRESENT WHEN and no run-time report exception, every such placement is fixed by the description and is a syntax-rule violation (XIII.3.15.3 SR1, XIII.3.8.3 SR8b). Witness pb1270 covers only the absolute PH on the boundary.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading",
+  "verdict": "CONFORMS",
+  "requirement": "No line of a page heading report group may be presented on or past FIRST DETAIL integer-3 (last permitted line integer-3 - 1), for both Table 2 rows (A R; R placed from HEADING or after the report heading's final LINE-COUNTER); since 1985 placements are fixed by the description, the compiler must refuse a description whose page heading reaches integer-3 and present one ending on integer-3 - 1. (The rule's text is the transcription's reconstruction of missing folios XIII-30/31, matching §1985:XIII.3.8.3 SR8b.)",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RelativeGroupLowerLimit; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Cobol85FinalLineCounter; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
-    "switches": "the year parameter (Edition.DialectLevel) changes only the report footing's upper limit (XIII.3.10.10 GR1a, Cobol85FinalLineCounter); the page heading arm (Heading, FirstDetail-1) is edition-blind",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
+    "switches": "passes Edition.DialectLevel to GroupLimits, Cobol85FinalLineCounter and RelativeGroupLowerLimit",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
-    "switches": "Edition.DialectLevel < 2002 adds the XIII.3.8.3 SR9 relative body-group screen; the heading/footing relative-reach screen is the same code at every edition",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+    "switches": "page heading arm (HEADING, FIRST DETAIL - 1) is edition-independent",
     "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Cobol85FinalLineCounter",
+    "switches": "year<2002: a relative page heading is walked from the report heading's final LINE-COUNTER (NEXT GROUP included); from 2002 null",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RelativeGroupLowerLimit",
+    "switches": "year<2002 page heading: limit FIRST DETAIL - 1 with §1985:XIII.3.8.4 GR1c words; later the same limit with 2023 words",
+    "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep DialectLevel/DialectBehavior/IsActive/CobolVersion over ReportSectionBinder.cs and ReportWriter.cs; FirstLineTarget, PresentPageHeading, PresentLines, PresentLine and MinimumLastLine consult no edition",
-  "behaviour-differs-by-edition": "no: the same screen and placement run at 85 and 2023; at 1985 the rule is fully static (no PRESENT WHEN, no EC-REPORT conditions), at 2023 the layout determination leaves a page-1-only break to the run",
-  "witnesses-cover": "part: only an absolute PH on the FD-1 boundary; not a relative PH, not a relative PH after a report heading",
+  "edition-search": "grep year<2002 / Edition.DialectLevel in ReportSectionBinder.cs; ReportWriter.cs#LowerLimit is the body-group page-fit only",
+  "behaviour-differs-by-edition": "yes: at 85 a relative page heading after the report heading is checked from the report heading's final LINE-COUNTER (its NEXT GROUP counts); the lower limit is the same",
+  "witnesses-cover": "part: an absolute line on FIRST DETAIL and a relative heading after the report heading; not exercised: A R ending on FIRST DETAIL, R with no report heading past the limit, the report heading's NEXT GROUP pushing the page heading over",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/r1_ph_abs_on_fd.cob",
-    "printed": "COBOL2199 absolute line LINE 5 of page heading 'PH1' lies below the lower limit 4",
-    "expected": "refused: PH may not be presented on or beyond integer-3 (FD 5)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ph1.cob",
+    "printed": "COBOL2199 the absolute line LINE 4 of page heading report group 'PHG' lies below the lower limit 3",
+    "expected": "refused: line 4 = FIRST DETAIL, last permitted 3"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/r2_ph_rel_on_fd.cob",
-    "printed": "COBOL2199 relative lines of page heading 'PH1' reach line 5, past the lower limit 4",
-    "expected": "refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ph2.cob",
+    "printed": "COBOL2199 ... carry its last line to line 4, past the group's lower limit 3",
+    "expected": "refused (A R row)"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/r3_rh_then_rel_ph.cob",
-    "printed": "compiles, exit 0: LINE 02 [RA], LINE 03 [RB], LINE 04 [PA], LINE 05 [DB05] (PH's PB on FIRST DETAIL line 5, overprinted by the detail)",
-    "expected": "refused (XIII.3.15.3 SR1 / XIII.3.8.3 SR8b): RH ends on 3, PH 3b places PA on 4 and PB on 5 = integer-3, past the lower limit 4"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/l3_rh_then_rel_ph_ok.cob",
-    "printed": "LINE 02 RA, 03 RB, 04 PA, detail on 05",
-    "expected": "legal: PH ends on FD-1 = 4"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/p1_ph_lc.cob",
-    "printed": "PH relative on 2 and 4 (=FD-1), detail at FD 5",
-    "expected": "legal boundary"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ph3.cob",
+    "printed": "COBOL2199 the relative lines of page heading report group 'PHG' reach line 4, past line 3 (ISO §1985:XIII.3.8.4 GR1c)",
+    "expected": "refused: HEADING 2 + 3 - 1 = 4"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/u1_ph_unpaged.cob",
-    "printed": "COBOL0899 TYPE PageHeading requires a PAGE clause",
-    "expected": "refused (Table 2 footnote ****: no PH without PAGE)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ph4.cob",
+    "printed": "COBOL2199 reach line 4, placed after the report heading's final LINE-COUNTER setting 3, past line 3",
+    "expected": "refused: RH NEXT GROUP PLUS 1 sets 3 (§1985:XIII.3.10.6 GR5b), PH PLUS 1 = 4"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ph5.cob",
+    "printed": "runs; RH line 2, PH line 3, DE 4-8; page 2 PH line 2, DE line 4",
+    "expected": "legal edge: PH on integer-3 - 1 = 3 after RH; on page 2 from HEADING"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ph6.cob",
+    "printed": "runs; P1 line 2, P2 line 3, DE line 4",
+    "expected": "legal A R ending on 3"
    }
   ],
   "citations": [
@@ -76,31 +87,30 @@
     "check": "OK  §1985:XIII.3.10.7 GR2  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR2 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
    },
    {
-    "cite": "§1985:XIII.3.10.7 GR3b",
-    "check": "OK  §1985:XIII.3.10.7 GR3b  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR3b [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
-   },
-   {
     "cite": "§1985:XIII.3.8.3 SR8b",
     "check": "OK  §1985:XIII.3.8.3 SR8b  (3.8.3 Syntax Rules)  the text is in SR8b"
    },
    {
     "cite": "§1985:XIII.3.8.4 GR1c",
     "check": "OK  §1985:XIII.3.8.4 GR1c  (3.8.4 General Rules)  the text is in GR1c"
-   },
-   {
-    "cite": "§1985:XIII.3.15.3 SR1",
-    "check": "OK  §1985:XIII.3.15.3 SR1  (3.15.3 Syntax Rules)  the text is in SR1"
    }
   ],
-  "notes": "Absolute and HEADING-seeded relative page headings are held to FIRST DETAIL - 1 at compile time. MinimumLastLine walks a relative page heading from the HEADING seed only (no seed from the report heading's final LINE-COUNTER), so a relative PH after a report heading that reaches FIRST DETAIL compiles, and the run presents it there (FirstLineTarget: LineCounter + integer-2) where the first detail overprints it. The 3.10.7 text is reconstructed (PB4952); the printed XIII.3.8.3 SR8b and XIII.3.8.4 GR1c state the same limit.",
+  "notes": "All forms are refused at compile time once a page heading line reaches FIRST DETAIL, and legal headings ending on FIRST DETAIL - 1 print there. The rule's own text is reconstructed (kb/Work PB4952); the printed SR8b states the same subdivision. Absolute and A R refusals cite §2023 rules at --std 85 (wording only).",
   "seeded": true,
-  "harm": "under-rejects (and the accepted program prints the PH's last line on FIRST DETAIL, overprinted by the first detail line)",
-  "cause": "a",
-  "at-2023": "same: compiles and prints LINE 05 [DB05] at --std 2023 (there the layout determination of docs/conformance/4/REPORT-LAYOUT-SCREENS.md leaves a break on page 1 only to the run, EC-REPORT-LINE-OVERLAP; 1985 has no PRESENT WHEN and no run-time condition, so it needs a static arm and has none)",
-  "repro": "RD R1 PAGE LIMIT 12 HEADING 2 FIRST DETAIL 5 LAST DETAIL 9 FOOTING 9. 01 RH1 TYPE RH. 03 LINE 2 ... 03 LINE PLUS 1 ... 01 PH1 TYPE PH. 03 LINE PLUS 1 ... 03 LINE PLUS 1 ... 01 D1 TYPE DE. 03 LINE PLUS 1 ...; INITIATE, GENERATE D1 (file r3_rh_then_rel_ph.cob)",
-  "expected": "refused: 'page heading report groups may not be presented on or beyond the line number specified by integer-3' (§1985:XIII.3.8.4 GR1c); the last line for a PH is integer-3 minus 1 (§1985:XIII.3.10.7 GR2)",
-  "observed": "exit 0; page heading line PB printed on line 5 (= FIRST DETAIL) and the detail merged over it: LINE 05 [DB05]",
-  "known_note": "none covers it; related: kb/Work PB1270 (landed; its determination point 5 places a relative PH after a report heading 'lower' and screens only the HEADING-seeded walk), PB4952 (the reconstructed folio)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB1003"
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.7-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Read §1985:XIII.3.10.7 (reconstructed folios; its GR2 lower limit integer-3 - 1 agrees with the printed §1985:XIII.3.8.4 GR1c and the Table 1 page regions of §1985:XIII.3.8.5), §1985:XIII.3.10.6 GR4/GR5 (report heading NEXT GROUP) and §1985:XIII.3.8.4 GR2b (FIRST DETAIL implied = integer-2), and GroupLimits/Cobol85FinalLineCounter/RelativeGroupLowerLimit. Probes at --std 85: p2a (PAGE LIMIT 12 only: integer-2 = integer-3 = 1, PH LINE 1) -> COBOL2199 below the lower limit 0; p2b (same, PH LINE PLUS 1 -> line 1) -> COBOL2199 reach line 1, past line 0; p2c (RH LINE 2 NEXT GROUP 3, absolute, final LINE-COUNTER 3; PH LINE PLUS 1 -> 4 = FIRST DETAIL) -> COBOL2199 placed after the report heading's final LINE-COUNTER setting 3, past line 3; p2d (RH NEXT GROUP NEXT PAGE, PH LINE PLUS 3 from HEADING 2 -> 4) -> COBOL2199 reach line 4, past line 3 (the NEXT PAGE report heading correctly seeds nothing); p2e (same, PH LINE PLUS 2) -> runs; bytes CRLF 'RH' FF CRLF CRLF 'PH' CRLF 'DE': RH alone on page 1 line 2, PH on page 2 line 3 = integer-3 - 1, DE on line 4. cite.py: 'OK  §1985:XIII.3.10.7 GR2  (3.10.7 Page Heading Group Presentation Rules)  the text is in GR2 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]'; 'OK  §1985:XIII.3.8.4 GR2b  (3.8.4 General Rules)  the text is in GR2b'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

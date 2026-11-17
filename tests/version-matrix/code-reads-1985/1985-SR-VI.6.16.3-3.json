@@ -2,70 +2,73 @@
  "rule-id": "1985-SR-VI.6.16.3-3",
  "rule-digest": "828f7a3f2da1",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-056",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-240",
   "sources": {
-   "reader": "f2dd6fd8e2e40a47ca74a6f7d089ea8c9258f8b656f86bf05a13ce26348ba623",
-   "refuter": "6bd2a26383e715570a1b5dcd4381651eee54858e79ebb475849f6c924646def3"
+   "reader": "6a7488f44fc7bd4ed1607d5a45e43f1fdbed8f1c9130ce7bd21b8575c9336943",
+   "refuter": "a344a720b1c84122382302525a8eabb35c655f2fc78389c837ea9e6f5b31ba52"
   },
   "imported": {
-   "reader": "61c7ed5377ffe92c610a9f6c8e9d3561594e5add6270a28d2031c4def269f9bb"
+   "reader": "9d7dab22efd8788ef58c72131ba8161023c182825e3959e2e0519b19feca4e26",
+   "refuter": "c16dffca998b2aa3c98f6a150674385ac97a67fd4f1a553be1dcc2a461b8e98e"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.6.16.3-3",
-  "verdict": "DIVERGES",
-  "requirement": "At --std 85, an IF statement written with END-IF must not have the NEXT SENTENCE phrase in either position (IF c NEXT SENTENCE ... END-IF, IF c statement-1 ELSE NEXT SENTENCE END-IF): the compiler must refuse it at compile time. The witness (pb396-if-empty-consequent) does not exercise this rule at all.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#IsNextSentenceArm; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an IF statement whose own scope is closed by END-IF must be refused when NEXT SENTENCE is its THEN or ELSE phrase; NEXT SENTENCE in an IF with no END-IF of its own (including one nested inside an END-IF'd IF's arm whose END-IF pairs elsewhere) stays legal and transfers to the next sentence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIfStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#NextSentenceWithEndIf",
   "edition-consulted": [
    {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIfStatement",
+    "switches": "COBOL7486 is raised only when Year < 2002 and the IF has END_IF and a statement of either arm is a nextSentenceStatement",
+    "same-arm-as-latest": false
+   },
+   {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement",
-    "switches": "Constructs.NextSentenceArchaic2023: a COBOL0903 archaic warning at 2023, nothing at 85; it never refuses and never looks at END-IF",
+    "switches": "archaic warning COBOL0903 at 2023 only (construct next-sentence-archaic-2023)",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "Grepped src for NextSentenceStatementContext / nextSentenceStatement() (StatementBinder.BindStatement, EcBinder.ExceptionPerform, VersionConformancePass) and END_IF() (only the generated parser): no binder or validator asks whether an IF carrying NEXT SENTENCE also carries END-IF. ifStatement's END_IF? admits it by design (the PB396 determination comment on the rule, and IsNextSentenceArm's doc: 'IF Format 2's arms under an END-IF are admitted here').",
-  "behaviour-differs-by-edition": "no: accepted at 85 silently and at 2023 with only the archaic NEXT SENTENCE warning",
-  "witnesses-cover": "part: no witness exercises SR3; the cited witness is about an empty consequent",
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 NEXT SENTENCE with END-IF on the same IF is an error (COBOL7486); at 2023 the same source draws only the archaic warning COBOL0903, the later editions printing no such rule",
+  "witnesses-cover": "part: the witness covers the THEN and ELSE arms with END-IF and the legal form without; not THEN keyword, NEXT SENTENCE in an inner END-IF'd IF, an inner IF whose END-IF pairs with it under an outer NEXT SENTENCE IF, or the run-time transfer",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/if_ns_endif.cob",
-    "printed": "exit 0, stdout NEXT-1 / NEXT-2, no diagnostic",
-    "expected": "refused at compile time: 'If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified' (both the THEN NEXT SENTENCE and the ELSE NEXT SENTENCE forms)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c4-refuse.cob",
+    "printed": "85: COBOL7486 at each of THEN NEXT SENTENCE END-IF, NEXT SENTENCE ELSE ... END-IF, ... ELSE NEXT SENTENCE END-IF, inner IF B NEXT SENTENCE END-IF, and DISPLAY + NEXT SENTENCE END-IF (that last also COBOL2269); 2023: only COBOL0903 warnings (and COBOL2269 for the mixed arm)",
+    "expected": "refused at 85 per SR3 for every IF that specifies END-IF and NEXT SENTENCE"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/if_ns_endif23.cob",
-    "printed": "--std 2023: exit 0, NEXT-1 / NEXT-2, two COBOL0903 warnings (NEXT SENTENCE archaic) only",
-    "expected": "(2023 comparison) no 2023 format prints NEXT SENTENCE with END-IF"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gl_ns.cob",
-    "printed": "P4 (exit 0)",
-    "expected": "the legal 85 forms IF c NEXT SENTENCE. and IF c NEXT SENTENCE ELSE NEXT SENTENCE. (no END-IF) compile and run"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c4-accept.cob",
+    "printed": "85 and 2023 EXIT 0: N1 N2 INNER AFTER-INNER E1 N3 (SKIPPED-1, SKIPPED-2 not shown; nested IF ... END-IF in the ELSE of a NEXT SENTENCE IF accepted)",
+    "expected": "accepted: no IF here specifies both END-IF and NEXT SENTENCE; NEXT SENTENCE transfers past the sentence"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.6.16.3 SR3",
     "check": "OK  §1985:VI.6.16.3 SR3  (6.16.3 Syntax Rules)  the text is in SR3"
-   },
-   {
-    "cite": "§1985:VI.6.16.4 GR2b",
-    "check": "OK  §1985:VI.6.16.4 GR2b  (6.16.4 General Rules)  the text is in GR2b"
    }
   ],
-  "notes": "The 1985 general format prints END-IF as an alternative after statement-1 or NEXT SENTENCE and SR3 is the only thing that forbids the combination; the compiler has no check for it, so IF c NEXT SENTENCE END-IF compiles and transfers to the next sentence. PB396 recorded acceptance as a 2023 cross-format latitude determination; at 85 there is no latitude because the edition's own syntax rule forbids it.",
+  "notes": "The grammar admits END-IF beside NEXT SENTENCE at every edition and the 85-only arm of VisitIfStatement refuses it, asking only the IF's own two statement blocks so a nested IF's phrase is judged by that IF. Probes of both arms, nesting and the legal transfer behave as the 1985 text requires.",
   "seeded": true,
-  "harm": "under-rejects",
-  "cause": "a",
-  "at-2023": "accepted, exit 0, prints NEXT-1 / NEXT-2 with two COBOL0903 archaic-NEXT-SENTENCE warnings; acceptance at 2023 is the recorded PB396 determination (no 2023 format prints the combination)",
-  "repro": "       PROCEDURE DIVISION.\n       MAIN.\n           IF WS-A = 1 NEXT SENTENCE END-IF\n           DISPLAY \"AFTER-IF-1\".\n           DISPLAY \"NEXT-1\".\n           STOP RUN.   (WS-A PIC 9 VALUE 1; --std 85 --source-format fixed)",
-  "expected": "a compile-time refusal: §1985:VI.6.16.3 SR3 'If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.'",
-  "observed": "compiles with no diagnostic, runs, prints NEXT-1 (control went to the next sentence)",
-  "known_note": "kb/Work/PB396 (its DETERMINATION paragraph accepts IF X = 1 NEXT SENTENCE END-IF as a 2023 cross-format latitude, owner-overturnable; it does not address §1985:VI.6.16.3 SR3). No note found for the 1985 rule (grepped kb/Work for '6.16.3', 'NEXT SENTENCE END-IF')."
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5798"
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.16.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe src/r4-double.cob: IF A = 1 NEXT SENTENCE ELSE IF B = 1 DISPLAY \"X\" END-IF END-IF -> COBOL7486 at the outer IF at 85 (the second END-IF closes the NEXT SENTENCE IF). Probe src/r4-search.cob: a SEARCH ... WHEN ... NEXT SENTENCE inside IF ... END-IF (the NEXT SENTENCE phrase is SEARCH's, not the IF's) is accepted at 85 and transfers past the sentence (prints only AFTER). With the reader's probes (both arms, nesting both ways, the legal transfer) the arm of VisitIfStatement matches SR3 at this edition. cite.py: 'OK  §1985:VI.6.16.3 SR3  (6.16.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

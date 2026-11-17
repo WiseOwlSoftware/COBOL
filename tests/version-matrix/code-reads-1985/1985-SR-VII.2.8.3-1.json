@@ -2,43 +2,56 @@
  "rule-id": "1985-SR-VII.2.8.3-1",
  "rule-digest": "292416a01477",
  "read": {
-  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
-  "slice": "1985-223",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-240",
   "sources": {
-   "reader": "84716e4119386c189ba9d3e72cbd7112564a9de256d94eb36424ba20cec228e7",
-   "refuter": "71aa1d520b40d70e8bd38f10f4c2067a0bd1de296f5285cdafc3ec0dbdaf19b0"
+   "reader": "6a7488f44fc7bd4ed1607d5a45e43f1fdbed8f1c9130ce7bd21b8575c9336943",
+   "refuter": "a344a720b1c84122382302525a8eabb35c655f2fc78389c837ea9e6f5b31ba52"
   },
   "imported": {
-   "reader": "1c27e325336cd78c6cb6030f4a5400a76ad23bc4e0988410d8a25e761e1a9f8f"
+   "reader": "6963f06511f8db28b7cea6e144a0087de83310d78110f6040ac387ce41828367",
+   "refuter": "0cee7401777b8e1454b0d71a3f55bf7a6094e44f8b580c16dbf68cba946cf1d7"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VII.2.8.3-1",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "requirement": "At --std 85 the RECORD DELIMITER clause (either STANDARD-1 or implementor-name-1) may be written only for a file whose records are variable length (RECORD IS VARYING; a Format 1 RECORD CONTAINS n CHARACTERS file is explicitly fixed, a file with no RECORD clause or Format 3 is implementor-defined), so the clause on an explicitly fixed file is not conforming source.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause",
-  "edition-consulted": [],
-  "edition-search": "Read FileControlBinder.BindFileControl's recordDelimiterClause arm and EditionContext.Declined (severity of the descriptor and --permissive only; no edition test). Grepped src for RecordDelimiter/recordDelimiterClause: FileControlKeyRules (Format 3 organization rule), FileEntryIdentity (external connector identity) and FileModel; none consults the edition. rd1.cob gives the same three COBOL1778 warnings and the same output at --std 85 and --std 2023.",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: pb292_record_delimiter_witness writes the clause only on RECORD IS VARYING files (the legal half); the clause on an explicitly fixed (Format 1 RECORD clause) file, the half SR1 forbids, is not exercised",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a RECORD DELIMITER clause in a sequential file control entry must be refused when the file's records are fixed length: a format 1 RECORD clause (VII.3.8.4 GR3) always, and no RECORD clause or a format 3 clause according to the implementor's documented record type (II.2.1.4.3, VII.3.8.4 GR13); a format 2 RECORD IS VARYING file (GR4) always admits it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ScreenRecordDelimiter; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#HasVariableLengthRecords; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ImpliesVariableFormat; src/WiseOwl.Cobol.Compiler/Binding/RecordDelimiterNames.cs#TryMethod; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterOnFixedLengthRecords",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Cite",
+    "switches": "chooses the 1985 citation text in the COBOL7599 message; no behaviour",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read ScreenRecordDelimiter, HasVariableLengthRecords, RecordSizeVaries and ImpliesVariableFormat: none compares DialectLevel or Year; grep of FileControlBinder.cs RECORD DELIMITER arm shows only Edition.Cite/Edition.Error/Edition.Declined. DialectBehavior.RecordContainsRangeBindsRecordSize changes format 3 bounds enforcement at 85, not whether the records are variable length.",
+  "behaviour-differs-by-edition": "no: one screen at every edition; only the cited clause numbers differ",
+  "witnesses-cover": "part: the 1985 witness covers format 1 with STANDARD-1; not no RECORD clause, two record sizes without a RECORD clause, an ODO record, format 3, format 2 accepted, or the implementor-names BINARY-SEQUENTIAL and LINE-SEQUENTIAL",
   "probes": [
    {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c6-a-vary.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c6-a-fmt3.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c6-a-ls.cob",
+    "printed": "EXIT 0, GOT [AAAAAAAAAA] for RECORD IS VARYING FROM 4 TO 10, RECORD CONTAINS 4 TO 10 (format 3), and LINE-SEQUENTIAL with no RECORD clause",
+    "expected": "accepted: variable length records (GR4; format 3 and the line sequential method variable by documented determinations DOC-A.1-148, DOC-A.1-150)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c6-a-vary-dep.cob",
+    "printed": "compiled; run: I-O status 44 on WRITE (the probe left the DEPENDING item SZ at zero)",
+    "expected": "accepted at compile time; a record size below the minimum makes the WRITE unsuccessful (VII.3.8.4 GR10)"
+   },
+   {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rd1.cob",
-    "printed": "warning COBOL1778 on FV (VARYING, STANDARD-1), FF (RECORD CONTAINS 10 CHARACTERS, STANDARD-1) and FN (RECORD CONTAINS 10 CHARACTERS, MYDELIM); EXIT 0; '03 ABC 0123456789 XYZ'",
-    "expected": "FF and FN violate SR1 (Format 1 is fixed length, §1985:II.2.1.4.1); the compiler gives the same decline warning as for the legal FV and does not name SR1"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c6-r-fmt1.cob (also c6-r-none, c6-r-two, c6-r-odo-fmt1, c6-r-ls-fmt1)",
+    "printed": "COBOL7599 RECORD DELIMITER ... is specified for fixed-length records, for format 1, no RECORD clause with one or two fixed record sizes, an ODO record under format 1, and LINE-SEQUENTIAL under format 1",
+    "expected": "refused: SR1, the records being fixed length by GR3 or by the documented implied format 1 (DOC-A.1-147)"
    },
    {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rd2.cob",
-    "printed": "warning COBOL1778 and error COBOL2912: file 'FR' is RELATIVE, but its file control entry specifies the sequential format (a RECORD DELIMITER clause)",
-    "expected": "the 1985 clause is Sequential I-O only; a relative file entry refuses it"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rd1.cob",
-    "printed": "at --std 2023: 3 x warning COBOL1778, same output",
-    "expected": "edition-blind decline"
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-240/src/c6-a-odo.cob",
+    "printed": "COBOL7599: no RECORD clause and no record description of it is variable-length ... fixed-length records (§1985:II.2.1.4.3; A.1 item 147)",
+    "expected": "implementor-defined at 85 (II.2.1.4.3); DOC-A.1-147 (b) documents an ODO record without a RECORD clause as implied format 1 counted at its maximum, so the refusal follows the documented determination"
    }
   ],
   "citations": [
@@ -47,19 +60,23 @@
     "check": "OK  §1985:VII.2.8.3 SR1  (║2.8.3 Syntax Rules║)  the text is in SR1"
    },
    {
-    "cite": "§1985:II.2.1.4.1",
-    "check": "OK  §1985:II.2.1.4.1  (2.1.4.1 Fixed Length Records)  the text is in the clause"
+    "cite": "§1985:VII.3.8.4 GR3",
+    "check": "OK  §1985:VII.3.8.4 GR3  (3.8.4 General Rules)  the text is in GR3"
    },
    {
-    "cite": "§1985:I.1.5.2.5.1",
-    "check": "OK  §1985:I.1.5.2.5.1  (1.5.2.5.1 Hardware Dependent Language Elements)  the text is in the clause"
+    "cite": "§1985:VII.3.8.4 GR4",
+    "check": "OK  §1985:VII.3.8.4 GR4  (3.8.4 General Rules)  the text is in GR4"
    },
    {
-    "cite": "§1985:C.3",
-    "check": "OK  §1985:C.3  (3. <u>HARDWARE DEPENDENT LANGUAGE ELEMENT LIST</u>)  the text is in the clause"
+    "cite": "§1985:VII.3.8.4 GR13",
+    "check": "OK  §1985:VII.3.8.4 GR13  (3.8.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
    }
   ],
-  "notes": "The whole clause is declined accept-inert with COBOL1778 at every edition (docs/conformance/2/26.md, DOC-A.1-150; kb/Work PB292), and DiagnosticCatalog records the decision not to enforce SR1 inside the declined clause, citing §2023:4.2.6 para 3. DOUBT: at 1985 the licence is §1985:I.1.5.2.5.1 with §1985:C.3 item 6, which reaches the STANDARD-1 phrase only; 1985 has no sentence excusing syntax errors in unsupported syntax, so the implementor-name-1 arm on a fixed file (FN) is flagged only by the generic decline warning. Since this implementation defines no implementor-name, that arm is never conforming source and is warned; an adjudicator who wants SR1 named would rate it DIVERGES (under-rejects, cause c).",
+  "notes": "ScreenRecordDelimiter asks the one HasVariableLengthRecords predicate after the file description is bound and refuses with COBOL7599 for every fixed-length shape probed; the two implementor-defined cases of 1985 (no RECORD clause, format 3) follow DOC-A.1-147/148/150. The ODO-without-RECORD case is refused as fixed under DOC-A.1-147 (b), though 1985 II.2.1.4.2 describes such a record's length as affected by the DEPENDING phrase; the text leaves the record type to the implementor, so this is a documented choice, not a defect.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -67,7 +84,14 @@
   "repro": "",
   "expected": "",
   "observed": "",
-  "known_note": "PB292 (landed: the decline itself)"
+  "known_note": ""
  },
- "work": "PB5844"
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.8.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,b",
+  "evidence": "Probes at 85: src/r6-v1.cob (RECORD IS VARYING IN SIZE, no FROM/TO, one 01 X(10)) accepted and reads back [AAAAAAAAAA]: format 2 is variable by GR4 even with one record size; src/r6-vto.cob (VARYING ... TO 12 only) accepted; src/r6-f3same.cob (RECORD CONTAINS 10 TO 10, format 3) accepted per DOC-A.1-148 (format 3 is variable here, GR13's latitude); src/r6-f1eq.cob (format 1 with two record sizes) refused COBOL7599 citing §1985:VII.3.8.4 GR3 and VII.2.8.3 SR1. FileModel.RecordSizeVaries keys on Varying (set for formats 2 and 3), so the record sizes do not override the clause's format. The no-RECORD-clause and ODO cases follow the documented DOC-A.1-147 (b) choice under II.2.1.4.3. cite.py: 'OK  §1985:VII.2.8.3 SR1  (║2.8.3 Syntax Rules║)  the text is in SR1'; 'OK  §1985:VII.3.8.4 GR4  (3.8.4 General Rules)  the text is in GR4'; 'OK  §1985:VII.3.8.4 GR13  (3.8.4 General Rules)  the text is in GR13'; 'OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

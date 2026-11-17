@@ -2,49 +2,54 @@
  "rule-id": "1985-GR-VII.4.3.4-17",
  "rule-digest": "2dd0d296e8c9",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-122",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-239",
   "sources": {
-   "reader": "e080077ceb22eb3ac6c92be5015810d857cc8d3cf6a696bc9fa190575cf5ea16",
-   "refuter": "e0d8f312c8a0bd9394cb49e16d45a1cd9d915e81877ed8cb4981c381cd08e34a"
+   "reader": "204c971910d5f4e0cd8912654dcb31898d6ac9326064d9505c11d20a5e430ec5",
+   "refuter": "4ad490973e8fa4e395708d8252f64188831a4b7a7ae00917e7c4884df49a0e68"
   },
   "imported": {
-   "reader": "33b151ca4ebe315532d2c620774b86c343b5f567b00f38ebe63ffbc48441ebc4",
-   "refuter": "df0d81de9ac9517e7d822161e184aab6b9c1ba5652ca8a07ee33d5696af27b46"
+   "reader": "04f2ef5e5b5ec16f3352f159c04c1e6dfc6f6696f337bb87c9c2597de1776ca2",
+   "refuter": "befbec375a5ba6e78d81e7cab778933c709bed5cca5c1c2cac49b8b497499a71"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.4.3.4-17",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 OPEN I-O must refuse a file that cannot support sequential I-O-mode operations (status 37, VII.1.3.5 3d2). A successful OPEN I-O must allow both READ and REWRITE: WRITE is refused 48, REWRITE with no preceding READ is 43, and a REWRITE of a RECORD VARYING record to a different size is 44.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#PermitsWrite; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenReader; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#PermissionDenied",
+  "requirement": "At --std 85 an OPEN I-O of a sequential file that supports READ and REWRITE must succeed and leave the file open for both input and output, and an OPEN I-O of a file that will not support the I-O-mode operations must be unsuccessful with I-O status 37 (§1985:VII.1.3.5 d.2).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SupportsReadOperations; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#SupportsReadOperations; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#IsRecordSequentialPrintFile; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#PermitsWrite; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#Probe; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered",
-    "switches": "SharingFacilityInEffect picks '61' (2002+) or '30' (85) for a host sharing refusal; the GR16/GR17 write-capability '37' is the same at every edition",
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "SharingFacilityInEffect (DialectBehavior.FileSharingFacility): Table 19 arbitration and buffer release; ClosedWithLock (CloseWithLockLocksFileConnector); LinageViolatingOpenLeavesFileOpen for OUTPUT only. None of them touches the I-O support question.",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
-    "switches": "Table 19 arbitration, skipped at 85",
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the default sharing mode (ALL OTHER at 85, no Table 19)",
     "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered",
+    "switches": "only the catch for a host sharing refusal ('30' at 85, '61' from 2002); the GR17 checks (SupportsReadOperations, PermitsWrite) are edition-independent",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "HostFile.PermitsWrite and the IO arm of SequentialConnector.OpenCore read no edition; grep for Edition and DialectBehavior in FileSupport.cs found none",
-  "behaviour-differs-by-edition": "no: for this rule the I-O open's capability test and its READ and REWRITE mode are the same code at 85 and 2023",
-  "witnesses-cover": "part: g85_f19_01 covers OPEN I-O then READ and REWRITE on a fixed file; it does not cover the 37 refusal of a read-only file, WRITE in I-O mode (48), REWRITE without READ (43), RECORD VARYING REWRITE sizes (44), or a READ after the failed OPEN I-O",
+  "edition-search": "grep Edition/DialectBehavior/SharingFacilityInEffect over Runtime/IO FileConnector.cs and FileRegistry.cs on the OPEN path",
+  "behaviour-differs-by-edition": "no: the GR17 status decisions are the same code at every edition; only the sharing facility around them differs",
+  "witnesses-cover": "part: g85_f19_01 covers the successful OPEN I-O with READ and REWRITE; the refusal half (a file that will not support I-O) is not exercised",
   "probes": [
    {
-    "class": "b,e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p17a.cob",
-    "printed": "IO-OPEN=00 / IO-WRITE=48 / IO-READ=00 AAAAAA / IO-REWRITE=00 / IO-REWRITE2=43 / IO-ATEND 10 / Q A2A2A2 / Q BBBBBB / IN-REWRITE=49 / V-REW-SAME=00 / RO-IO=37 / RO-READ-AFTER-FAIL=47 / RO-IN=00 / RO RORORO",
-    "expected": "I-O open 00, WRITE 48, READ and REWRITE 00, the second REWRITE 43, REWRITE in input mode 49; a read-only physical file (attrib +R, passed with --with) gives 37 for I-O, then 47 for a READ, while INPUT opens it 00"
+    "class": "a,b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/p17a.cob",
+    "printed": "IO SA 00 / READ2 BBBB 00 / REWRITE 00 / R1 AAAA R2 ZZZZ / USE ENTERED IO PRINT 37 / IO OPTIONAL ABSENT 05 / OP AT END 10 / USE ENTERED IO ABSENT 35 / IO VA 00 VA READ 00 04 3 / VA REWRITE 00 / VA AFTER XQX",
+    "expected": "I-O open 00 with READ and REWRITE working (GR17); a print file (WRITE ADVANCING) will not support input: 37 (VII.1.3.5 d.2); optional absent created 05 then AT END; non-optional absent 35 (Table 1); RECORD VARYING/ODO record read and rewritten in I-O mode"
    },
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p17b.cob",
-    "printed": "V-REW-DIFF=44 / V-NEXT=04 DEFG 00 / V-REW-SAME=00 / V 03 ABC / V 04 WXYZ",
-    "expected": "a RECORD VARYING REWRITE of a different size is 44 (VII.1.3.5 4d2) and leaves the record; one of the same size replaces it"
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-239/src/p17r.cob",
+    "printed": "USE ENTERED / IO READONLY 37 / INPUT READONLY 00 / READ AAAA 00",
+    "expected": "a read-only host file will not support output operations: OPEN I-O 37, OPEN INPUT 00"
    }
   ],
   "citations": [
@@ -57,7 +62,7 @@
     "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.3d.2"
    }
   ],
-  "notes": "The write-capability question is asked once above the organizations: FileConnector.OpenOnceEntered calls HostFile.PermitsWrite for a present file in any mode but INPUT and answers '37'. The I-O arm opens a ReadWrite reader, so READ and REWRITE share one stream. The probe's read-only file was copied into the run directory with its read-only attribute kept.",
+  "notes": "The I-O support question is asked once above the organizations in FileConnector.OpenOnceEntered: SupportsReadOperations (false for a record sequential print file) and HostFile.PermitsWrite on a present file, both returning '37'. Probes show the success half (READ/REWRITE in I-O mode, including a variable-length ODO record) and both refusal causes. 1985 defines no LINE SEQUENTIAL, so the print-file arm reached at 85 is the ADVANCING/LINAGE file.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -69,16 +74,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-VII.4.3.4-17",
-  "refutation": "OVERTURNED",
+  "refutation": "UPHELD",
   "classes": "b,c,e",
-  "evidence": "r17c.cob at --std 85: FD FL LINAGE IS 5 LINES (a level-2 SEQ form of 1985), OPEN OUTPUT, WRITE 'LIN001' and 'LIN002', CLOSE, OPEN I-O FL printed L-IO=00, then READ printed L-READ=00 '\\r\\nLIN0' (not LIN001), REWRITE 'REW001' printed L-REW=00, and a later OPEN INPUT read L-R1=00 REW001 / L-R2=00 '01\\r\\nLI'. od -c of the file after: 'REW0010 1\\r\\nLIN002\\r\\n' - the REWRITE overwrote the first line end and half of record 1, corrupting the file. Same bytes at --std 2023 (r17c-002). The mechanism: SequentialConnector.SelectLineEnd / IsRecordPrintStream make a LINAGE file (and any file written with ADVANCING) a text print stream (DOC-A.1-146 (c'); kb/Work PB1190 landing: 'a print file is written, not re-read as framed records'), while the I-O arm of OpenCore opens it as a fixed-record ReadWrite file with no test of that shape. r14d.cob shows the same for a non-LINAGE file written AFTER ADVANCING: IO-OPEN=00, IO-1=00 '[\\nADV00]', REWRITE 00, file now 'REW0011\\nADV002\\n'. GR17 requires that OPEN I-O 'must reference a file that supports the input and output operations that are permitted for a sequential file when opened in the I-O mode' and places it in open mode for both; VII.1.3.5 3d2 gives 37 for a file that does not. The implementation does neither: it admits OPEN I-O (00) on a medium whose READ does not deliver the written record and whose REWRITE does not replace it. The reader's probes used only plain fixed and RECORD VARYING files, never a LINAGE or ADVANCING-written file. kb/Work search (LINAGE/print with READ/I-O/REWRITE/read back): no note files this; PB1190 only asserts print files are not re-read. cite.py: OK §1985:VII.4.3.4 GR17 (the text is in GR17); OK §1985:VII.1.3.5 (GRL2.3d.2); OK §1985:VII.1.3.5 (GRL2.3d.3). Doubt stated: the READ misread is also visible on OPEN INPUT, so the root may be filed against READ / the print-stream representation; the GR17 failure is that OPEN I-O succeeds and REWRITE corrupts the file.",
+  "evidence": "q1a.cob (runs/q1a-001): OPEN I-O 00; a second OPEN I-O 41; READ 00, REWRITE 00, REWRITE again without READ 43, REWRITE of a changed record (alnum + S9(4) COMP) 00, WRITE in I-O mode 48 (Table 2: WRITE not permitted in I-O), READ to end 10 via USE; read back INPUT shows the rewritten record in place (2XYZ -0193). q1b.cob: OPEN I-O FA WITH NO REWIND refused (COBOL1803; the 1985 format admits NO REWIND only on INPUT/OUTPUT; its message cites §2023, a wording point). q1c.cob: a file whose only WRITE ADVANCING is never executed, written plainly, then OPEN I-O: 37, READ 47. That is the implementor's print-file classification (SequentialConnector.IsRecordSequentialPrintFile), documented in docs/conformance/7/DOC-A.1-146.md (c') with an 85 case pb5815_print_file_not_read_back_85; under §1985:VII.4.7.4 GR16 every sequential WRITE gets implicit AFTER ADVANCING 1 LINE so the standard draws no print-file line itself, but GR17 makes 'supports' a property of the file the implementor's medium decides, and 37 is the status §1985:VII.1.3.5 assigns. Not decisive against the verdict. Citations: OK §1985:VII.4.3.4 GR17 (the text is in GR17); OK §1985:VII.4.3.4 GR4 (the text is in GR4); OK §1985:VII.4.7.4 GR16 (the text is in GR16).",
   "edition-sites-missed": [],
-  "corrected": "PARTIAL (harm wrong-answer, data corruption; cause b, same at --std 2023): OPEN I-O of a sequential file with a LINAGE clause, or one written with an ADVANCING phrase, returns 00 although the implementation's text print stream cannot support sequential I-O-mode READ and REWRITE; READ delivers bytes that straddle line ends and REWRITE overwrites them. Either the open must be refused 37 (VII.1.3.5 3d2) for a print-stream medium, or READ and REWRITE must work by line. Repro: r17c.cob / r14d.cob under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-122/."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "A file written with ADVANCING or under LINAGE is opened INPUT or I-O with status 00 and then read as fixed blocks: records that were never written come back, a READ past the last record returns 00 with no AT END, and REWRITE overwrites a line end. The 1985 text allows the records as written or status 37 at OPEN, not this. `docs/conformance/7/DOC-A.1-146.md` (c') does not cover reading such a file back.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
- },
- "work": "PB5815"
+  "corrected": ""
+ }
 }

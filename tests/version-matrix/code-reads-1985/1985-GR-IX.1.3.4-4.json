@@ -2,54 +2,55 @@
  "rule-id": "1985-GR-IX.1.3.4-4",
  "rule-digest": "36833954591f",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-089",
+  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
+  "slice": "1985-237",
   "sources": {
-   "reader": "7beb12d3af4b4cc13253dcfcf5d99df71f5f22e784b35157e4ec7656dfef52f5",
-   "refuter": "194fe694038fc7e73d79f71bc520c5893469ca42b3581e0d0993925b138ca55b"
+   "reader": "10c46923cc936bd474f98b0987fa57e51be9d7397412d2b1ff469c6396ce500a",
+   "refuter": "e49db95ee4b953357c139c91667ace20327d46fd8a6d68769553324f37de35b7"
   },
   "imported": {
-   "reader": "2bf112cc2042dd526da82c0a861edf1df1ce9e07413ef0f4d0bd5fad2f06b9e4"
+   "reader": "8cb7b9e00b5ed9faa7bc0fe9cecee2eedc2471fb669146576ba17aa2a5b8ba0d",
+   "refuter": "06129134ff0c7780a97f2103930d571f047e759ea45cabeb966efaf64c0f7217"
   }
  },
  "reader": {
   "rule-id": "1985-GR-IX.1.3.4-4",
-  "verdict": "DIVERGES",
-  "requirement": "At --std 85, an indexed-file input-output statement is a permanent error (status 30, 35, 37, 38 or 39 for indexed files, per GRL2.4) only when an error precludes further processing of the file. Any applicable USE procedure runs, and on an open connector the condition stays in effect for every later input-output operation until an implementor-defined technique clears it. A condition the 1985 text does not class as an error must not be turned into one. The witness covers OPEN 38 and 35 with the USE procedure; it does not cover persistence on an open connector or variable-length (ODO) records.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PermanentErrorReplay; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReadExceedsRecordMaximum; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#OdoRecordExceedsMaximum; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 an input-output statement on an indexed file that meets a permanent error (status 30, 35, 37, 38, 39) is unsuccessful, sets the I-O status, executes any applicable USE AFTER STANDARD ERROR procedure, and the condition persists for every later input-output operation on the file (each later statement also fails and runs the procedure) until an implementor-defined technique corrects it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FileNotFound; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock / #ClosedWithLock",
-    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (2002): at 85 CLOSE WITH LOCK locks the physical file, so any later OPEN through any file-name answers 38",
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 1985 the PHYSICAL file is locked (status 38 through every file-name), from 2002 the connector",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
-    "switches": "DialectBehavior.FileSharingFacility (2002): at 85 there is no sharing facility at OPEN",
+    "switches": "DialectBehavior.FileSharingFacility: off at 1985 (no status 61 sharing conflicts), on from 2002",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "OdoRecordExceedsMaximum (SequentialIoEmitter.cs lines 1306-1327) and its callers KeyedIoEmitter.cs:273, SequentialIoEmitter.cs:1103 and SortEmitter.cs:278 contain no DialectLevel, Edition or DialectBehaviors test. Neither does FileConnector.Status's permanent-error latch (line 146).",
-  "behaviour-differs-by-edition": "yes: the ODO READ's '34' exists only in §2023:9.1.13.6 GR4b. Of the 2002, 2014 and 2023 transcriptions, only 2023 contains that text. The 1985 READ reads such a record successfully (§1985:IX.4.5.4 GR18), and 1985 has no 34 for indexed files. The compiler raises 34 at every edition.",
-  "witnesses-cover": "part: g85_f15_03 covers OPEN 35 and 38 only. It does not reach persistence on an open connector, and no witness has a variable-length record.",
+  "edition-search": "grep of src/WiseOwl.Cobol.Runtime/IO for Edition and DialectBehaviors.IsActive; the status-class test in the emitted __IoCheck (DispatchEmitter.EmitUseMachinery) is edition-invariant.",
+  "behaviour-differs-by-edition": "yes: status 38 at 1985 answers an OPEN through any file-name of the physical file closed with lock (and CLOSE WITH LOCK is removed at 2023); the permanent-error persistence and USE dispatch are the same",
+  "witnesses-cover": "part: the witnesses cover 35 and 38 on OPEN repeated; 39, 37, the statements after a failed OPEN (READ, random READ, START, WRITE, CLOSE), the correcting technique, and the no-USE no-status path are not exercised",
   "probes": [
    {
-    "class": "e,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-089/p3pe30.cob",
-    "printed": "OPEN-IX 00 / RD1 00 / (same physical file truncated through a sequential SELECT) / USE-IX 30 / RD399 30 / USE-IX 30 / RD1B 30 / CLOSE-IX 00",
-    "expected": "30 runs the USE procedure, does not take INVALID KEY, and persists for the later READ of a record that was readable before. CLOSE is the documented technique that clears it (DOC-A.1-105). Matches."
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/pe1.cob",
+    "printed": "OPEN INPUT missing indexed: 35 + USE; READ NEXT 47 + USE; random READ 47 + USE; START 47 + USE; WRITE 48 + USE; CLOSE 42 + USE; OPEN I-O 35 + USE; OPEN OUTPUT 00 (corrects); OPEN with mismatched key/record 39 + USE, READ 47 + USE, reopen 39 again; OPEN over a 40-byte sequential file 39 + USE, READ 47, CLOSE 42",
+    "expected": "each statement after the permanent error is unsuccessful and runs the USE procedure; the condition persists until corrected (here by OPEN OUTPUT creating the file)"
    },
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-089/p2pe.cob",
-    "printed": "W1 00 / W2 00 / OPEN-RDF 00 / USE-RDF 34 / RD-A002 34 9 / USE-RDF 34 / RD-A001 34 9 / CLOSE 00",
-    "expected": "RD-A002 00 9 and RD-A001 00 2. Both records (14 and 7 characters) lie within RDF's 7..15 range, so each READ is successful (§1985:IX.4.5.4 GR18). No permanent error exists, and 34 is not a 1985 indexed status (§1985:IX.1.3.4 GRL2.4)."
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/pe2.cob",
+    "printed": "OPEN OUTPUT on a directory: 37 + USE; OPEN I-O: 35 + USE; missing file with no FILE STATUS and no USE: 'abnormal run-unit termination: EC-I-O-PERMANENT-ERROR (fatal): I-O status 35', exit 1",
+    "expected": "37 for an open mode the file cannot support; with no USE the implementor determines the action"
    },
    {
-    "class": "witness",
-    "file": "conformance-suite/cases/IX.1.3@1985-LANGUAGE-CONCEPTS/g85_f15_03.cob",
-    "printed": "EXPECT: MATCH",
-    "expected": "g85_f15_03.out"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/pe3.cob",
+    "printed": "--std 85: CLOSE FA WITH LOCK 00; OPEN INPUT FB (same physical file) 38 + USE; READ FB 47 + USE; OPEN I-O FA 38 + USE. --std 2023: COBOL0902 CLOSE WITH LOCK removed",
+    "expected": "1985 locks the physical file, so 38 through every file-name, persisting"
    }
   ],
   "citations": [
@@ -58,27 +59,26 @@
     "check": "OK  §1985:IX.1.3.4 GR4  (1.3.4 I-O Status)  the text is in GR4"
    },
    {
-    "cite": "§1985:IX.1.3.4 GRL2.4",
-    "check": "OK  §1985:IX.1.3.4 GRL2.4  (1.3.4 I-O Status)  the text is in GRL2.4"
-   },
-   {
-    "cite": "§1985:IX.4.5.4 GR18",
-    "check": "OK  §1985:IX.4.5.4 GR18  (4.5.4 General Rules)  the text is in GR18"
-   },
-   {
-    "cite": "§2023:9.1.13.6 GR4b",
-    "check": "OK  §2023:9.1.13.6 GR4b  (Permanent error condition with unsuccessful completion)  the text is in GR4b"
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.4d"
    }
   ],
-  "notes": "The permanent-error class itself is implemented: the USE procedure runs, INVALID KEY is not taken, 30 persists on an open connector, and CLOSE clears it. The divergence is that at --std 85 the compiler applies 2023's ODO rule (§2023:9.1.13.6 GR4b) to the keyed READ: it turns a successful 1985 READ into permanent error 34, and the latch then fails every later statement on the file, including READs of valid records. The rows most directly affected are §1985:IX.4.5.4 GR18 and GRL2.4, so the same fix closes them. Siblings: the sequential READ and the SORT/MERGE USING transfer use the same predicate (SequentialIoEmitter.cs:1103, SortEmitter.cs:278), and the 2002 and 2014 texts lack the rule as well.",
+  "notes": "The connector refuses every statement on a file whose OPEN failed (47/48/42) and the emitted __IoCheck runs the USE procedure for every non-successful status, so the permanent error persists as unsuccessful completions; a later OPEN that can succeed (OPEN OUTPUT creating the file) is the implementor-defined correction. Status 30 (a mid-stream device error) cannot be produced on this host without damaging it; a garbage file answers 39, which the implementor may choose. Minor: the no-USE termination message cites §2023:9.1.13.1 at --std 85.",
   "seeded": true,
-  "harm": "wrong-answer",
-  "cause": "a",
-  "at-2023": "p2pe23 at --std 2023 prints the same 34 lines, which is correct there (§2023:9.1.13.6 GR4b). --std 2002 prints the same, which is wrong for 2002 as well.",
-  "repro": "Two SELECTs, WF and RDF, ASSIGN \"p2pe.dat\" ORGANIZATION INDEXED ACCESS DYNAMIC. WF record: key X(4), W-CNT 9, X OCCURS 2 TO 10 DEPENDING ON W-CNT. RDF record: key X(4), R-CNT 9, XX OCCURS 1 TO 5 DEPENDING ON R-CNT, so both are 7..15 characters. WF writes A001 (cnt 2) and A002 (cnt 9, 14 characters). RDF is opened INPUT and random-READ A002, then A001. (E:/COBOL-coord/scratch/coderead-1985/out/work-1985-089/p2pe.cob)",
-  "expected": "RD-A002 00 9 / RD-A001 00 2: each READ is successful and no USE procedure runs (§1985:IX.4.5.4 GR18: \"the READ statement is successful\"; 34 is not in the indexed list, §1985:IX.1.3.4 GRL2.4)",
-  "observed": "USE-RDF 34 / RD-A002 34 9 / USE-RDF 34 / RD-A001 34 9: the READ is unsuccessful, the USE procedure runs, and the permanent error persists, so the valid A001 cannot be read",
-  "known_note": "none for the edition gate. kb/Work/PB1513 (landed) added the 2023 producer, and PB1541 added the permanent-error latch. Neither restricts the rule to 2023."
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5811"
+ "refuter": {
+  "rule-id": "1985-GR-IX.1.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "The reader's probes reached only a permanent error raised by an OPEN (35/37/38/39), after which the file is closed and later statements fail with logic-error statuses. The attack was the case they left open: status 30 raised on an indexed file that is OPEN, where GR4 requires the condition to persist across every later operation. IndexedConnector.ReadSequential/ReadRandom answer '30' for an undecodable frame and leave the file open; the persistence is FileConnector.Status (setter latches _permanentError for a '3x' status while IsOpen) with PermanentErrorReplay asked by ReadOpenModeGuard, StartOpenModeGuard, MutationOpenModeGuard, Open, and FileRegistry.Unlock/DELETE FILE; CLOSE clears it (the implementor-defined technique, docs/CONFORMANCE.md DOC-A.1-105). Probe at --std 85: peW wrote a 200-record indexed file; a scratch copy had one record frame's length prefix overwritten (corrupt/pe.idx); peR opened it I-O with a USE AFTER STANDARD ERROR declarative counting entries: OPEN 00; READ 0099 30 U=01; READ 0100 30 U=02; READ 0001 (a sound record) 30 U=03; READ NEXT 30 U=04; WRITE 30 U=05; START 30 U=06; DELETE 30 U=07; CLOSE 00; reopen READ 0001 00. peR2 added INVALID KEY/NOT INVALID KEY and AT END/NOT AT END phrases while the error was in effect: neither imperative ran, the USE procedure did. The condition persists for all later operations, each runs the exception procedure, until CLOSE. cite.py: 'OK  §1985:IX.1.3.4 GR4  the text is in GR4'; 'OK  §1985:IX.1.3.4  the text is in the clause; it lies in GRL2.4a' (status 30).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

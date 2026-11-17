@@ -2,111 +2,93 @@
  "rule-id": "1985-SR-XIII.3.7.3-2",
  "rule-digest": "f578c5587023",
  "read": {
-  "pin": "3fd4a31c0d578fb436193f57d03b4df4b8ff0553",
-  "slice": "1985-228",
+  "pin": "1554cc5debb003cdbdf62be59cb1efb910488540",
+  "slice": "1985-244",
   "sources": {
-   "reader": "1c0c5ae5a3b12639b78648b2fbf0646f57542f822ed1e3cd386b0ead35bbfe42",
-   "refuter": "2b214cd0b6ad6c66137a5ccb571ef3c1821ba5b3c099d9b430284fe38f77c1d4"
+   "reader": "385c7bc3ee2aae5786ce90e5e7e7d6958f2ecefab8e6c9049618cb10d9a8eb42",
+   "refuter": "455816caa4b2ed7f71897a6320ba4eb474838ff6f4a33c98005ec5227e9a8fe0"
   },
   "imported": {
-   "reader": "bc845775cfb67f9f87865c1caf66d720dcd19063c2c4b345b9a1855930ac1f6b",
-   "refuter": "8895f0f87ae42aa32e79e6c582ba3284b04cf7673710fdbf438a317ee56fb0e9"
+   "reader": "12e98d873f4caf149ea1f0b0bda1de2a445604989672e84858678aea2ca34bce",
+   "refuter": "9ef69737c91cca273bfa36403931fe4c20db35b42aa3be79de458160371e5de7"
   }
  },
  "reader": {
   "rule-id": "1985-SR-XIII.3.7.3-2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the CONTROL clause must be refused when two of its data-name-1 operands, however spelled or qualified, resolve to the same data item; operands naming distinct items (same name under different qualifiers, a group and its subordinate, a level-66 rename) are legal.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenControlItemsDistinct; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef",
+  "requirement": "The compiler must refuse a CONTROL clause in which two recurrences of data-name-1 (each possibly qualified) identify the same data item, judged by the item identified (a level 66 without THROUGH identifies the item it renames), and accept recurrences that identify different items: same name in different groups, a group and its subordinate, a REDEFINES item, a level 66 with THROUGH.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenControlItemsDistinct; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenControlItemsDistinct",
-    "switches": "returns at DialectLevel >= 2002: the resolved-item comparison runs only below 2002",
+    "switches": "returns at DialectLevel >= 2002; at 85 compares the resolved AttributeItem of every pair of whole-item operands (COBOL1699, §1985 words)",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
-    "switches": "the written-reference uniqueness check (§2023:13.18.16.3 SR6) runs only at DialectLevel >= 2002",
+    "switches": "the §2023:13.18.16.3 SR6 written-reference uniqueness screen runs only at DialectLevel >= 2002",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#Entries",
-    "switches": "report-control-reference-modification-2002 refuses a reference-modified CONTROL operand at 85 (COBOL0900)",
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
+    "switches": "a reference-modified CONTROL operand requires COBOL-2002 (COBOL0900 at 85), so the refmod exemption in ScreenControlItemsDistinct is unreachable at 85",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep DialectLevel in ReportSectionBinder.cs around the CONTROL clause binding and ScreenControlItemsDistinct (called from ResolveReports, line 3679).",
-  "behaviour-differs-by-edition": "yes: at 85 'CONTROLS B B OF G' (same item, two spellings) is refused; at 2023 the check is of the written reference, so only an identical spelling ('N N') is refused (verified at --std 2023: c02 compiles, c11 refused under §2023:13.18.16.3 SR6).",
-  "witnesses-cover": "part: pb205-control-operand-not-unique is the 2023-shaped repeat; not exercised at 85: two spellings of one item, same name under different qualifiers, group and subordinate, FINAL with operands, a run.",
+  "edition-search": "grep DialectLevel and COBOL1699/ReportControlOperandShape in ReportSectionBinder.cs and DiagnosticCatalog.cs",
+  "behaviour-differs-by-edition": "yes: at 85 'CONTROLS FINAL B B OF G1' (one item, two spellings) is refused with COBOL1699 citing §1985:XIII.3.7.3 SR2; at 2023 it is accepted (SR6 asks only the written reference), and an identical spelling twice is refused by SR6",
+  "witnesses-cover": "part: the 66 RENAMES of an elementary item and the legal REDEFINES/THROUGH side; not exercised: the same spelling twice, one item spelled qualified and unqualified, a 66 renaming a group, same name in two groups, a group with its subordinate",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c01.cob",
-    "printed": "COBOL1699 CONTROL operand 'A OF G' identifies the data item 'A' that 'A OF G' already identifies (ISO §1985:XIII.3.7.3 SR2)",
-    "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c02.cob",
-    "printed": "COBOL1699 'B OF G' identifies the data item 'B' that 'B' already identifies",
-    "expected": "refused: same item, different spelling"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c10.cob",
-    "printed": "COBOL1699 (A OF G, B, A OF G: non-adjacent repeat)",
-    "expected": "refused"
-   },
-   {
-    "class": "f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c11.cob",
-    "printed": "COBOL1699 'N' identifies the data item 'N' that 'N' already identifies",
-    "expected": "refused"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c03.cob",
-    "printed": "compiles and runs (A OF G, A OF H)",
-    "expected": "legal: different items"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c04.cob",
-    "printed": "compiles and runs (G, A OF G)",
-    "expected": "legal: group and subordinate are different items"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c05.cob",
-    "printed": "compiles and runs (FINAL A OF G B)",
-    "expected": "legal"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c08.cob",
-    "printed": "compiles; report file 'A B 1' / 'X B 1' (B and R66 RENAMES B)",
-    "expected": "accepted (see notes)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ctl1.cob",
+    "printed": "COBOL1699 CONTROL operand 'A OF G1' identifies the data item 'A' that 'A OF G1' already identifies (ISO §1985:XIII.3.7.3 SR2)",
+    "expected": "refused: one item twice"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c06.cob",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ctl2.cob",
+    "printed": "85: COBOL1699 'B OF G1' identifies the data item 'B' that 'B' already identifies; 2023: no control diagnostic",
+    "expected": "85 refused: B and B OF G1 identify one item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ctl7.cob",
+    "printed": "COBOL1699 CONTROL operand 'RG' identifies the data item 'SG' that 'SG' already identifies",
+    "expected": "refused: 66 RG RENAMES SG (no THROUGH) is SG (§1985:VI.5.11.4 GR2)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ctl3.cob",
+    "printed": "runs: B 1|B 2|CFB|C 3|CFB|CFF",
+    "expected": "legal: A OF G1 and A OF G2 are different items"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ctl4.cob",
+    "printed": "runs: B 1|B 2|CFB|C 3|CFB|CFF",
+    "expected": "legal: group G1 and its subordinate B are different items"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ctl5.cob",
+    "printed": "runs: B 1|B 2|CFB|C 3|CFB|CFF",
+    "expected": "legal: E REDEFINES B is another item"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-244/src/ctl6.cob",
     "printed": "COBOL0900 a reference-modified control name requires COBOL-2002",
-    "expected": "refused at 85: data-name-1 may only be qualified"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-228/src/c02.cob",
-    "printed": "at --std 2023: compiles, exit 0",
-    "expected": "2023 SR6 asks the written reference; the 85 arm differs as designed"
+    "expected": "refused at 85: data-name-1 is a data-name (qualification only)"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.3.7.3 SR2",
-    "check": "python scripts/spec/cite.py --check \"§1985:XIII.3.7.3 SR2\" \"Each recurrence of data-name-1 must identify a different data item\" -> OK §1985:XIII.3.7.3 SR2"
+    "check": "OK  §1985:XIII.3.7.3 SR2  (3.7.3 Syntax Rules)  the text is in SR2"
    }
   ],
-  "notes": "ScreenControlItemsDistinct compares the resolved items (ReferenceEquals) at 85 only, so a repeat in any spelling or position is refused and distinct items pass; 2002+ use the written-reference check instead, as their own text says. A level-66 rename of an operand is accepted as a different data item (its own entry, §1985:VI.5.11); the 1985 text does not settle whether a rename identifies 'a different data item', so this is the one reading-dependent edge.",
+  "notes": "The 85 arm compares resolved items (AttributeItem), so spelling differences and a 66 without THROUGH are caught and distinct items pass; the 2023 written-reference screen is switched off at 85. The edition gate refuses reference modification at 85 before the item screen could exempt it.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -120,14 +102,13 @@
   "rule-id": "1985-SR-XIII.3.7.3-2",
   "refutation": "DOUBTFUL",
   "classes": "b,c,d",
-  "evidence": "Probes at --std 85: cfinal (CONTROLS ARE FINAL B A B OF G) COBOL1699, so FINAL and an intervening operand do not hide the repeat; ctwo (RD RPT CONTROLS B C with C REDEFINES G, plus a second RD CONTROL IS B) compiles and runs, so the screen is per report and overlapping-but-different items pass. Read ReportSectionBinder.cs#ScreenControlItemsDistinct: ReferenceEquals on the resolved items, below 2002 only. cite.py --check \"§1985:XIII.3.7.3 SR2\" \"Each recurrence of data-name-1 must identify a different data item\" -> OK. The reader's c08 (CONTROLS ARE B R66, R66 RENAMES B) compiles. The 1985 glossary defines Data Item as 'A unit of data (excluding literals) defined by a COBOL program' and RENAMES as 'alternative, possibly overlapping, groupings of elementary items' (§1985:VI.5.11): under the reading that 66 R66 RENAMES B names the same unit of data as B, the two recurrences identify one data item and c08 must be refused (under-rejects); under the reader's reading (a separate entry is a different data item) it conforms. The text does not decide it.",
+  "evidence": "Read §1985:XIII.3.7.2-3.7.3, §1985:VI.5.11 (RENAMES) and §1985:IV.4.3.2.1, and ReportSectionBinder.cs#ScreenControlItemsDistinct (85 arm compares AttributeItem). Probes at --std 85: c1 (G1 with S/B and A; 66 R1 RENAMES A; 66 R2 RENAMES A; CONTROLS R1 R2 B OF G1 B OF S OF G1) -> COBOL1699 'R2' identifies the data item 'A' that 'R1' already identifies, and COBOL1699 'B OF S OF G1' identifies 'B' that 'B OF G1' already identifies (a COBOL2692 from my own name clash of R1 with the report-name is incidental); c3 (CONTROL IS A in one RD and FINAL A G2 RT in another, 66 RT RENAMES A THRU C occupying exactly G2's characters) -> compiles and runs, control footing on the break, 'DONE'. The identical-item and spelled-twice halves are decided and correct. THE DOUBT: every refusal of a level-66 entry without THROUGH (reader ctl7, my c1 R1/R2) rests on reading 'identify a different data item' so that such a 66 entry IS the item it renames. The 1985 text does not say that: GR2 transfers 'all of the data attributes of data-name-2' to data-name-1 (it does not equate them), §1985:IV.4.3.2.1 counts a 66 entry among 'Entries that specify elementary items or groups introduced by a RENAMES clause' (the entry specifies its own item), and §1985:VI.5.11.1 calls RENAMES 'alternative, possibly overlapping, groupings'. The compiler treats as DIFFERENT items a REDEFINES item (ctl5) and a 66 THRU entry covering exactly another group's characters (c3, RT beside G2), yet as the SAME item a 66 entry without THRU: the line is drawn by the reading, not by the text. Under the other reading CONTROLS SG RG (RG RENAMES SG) and CONTROLS R1 R2 are legal and the compiler rejects legal source. cite.py: 'OK  §1985:XIII.3.7.3 SR2  (3.7.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:VI.5.11.4 GR2  (5.11.4 General Rules)  the text is in GR2'; 'OK  §1985:VI.5.11.1  (5.11.1 Function)  the text is in the clause'; 'OK  §1985:IV.4.3.2.1  (4.3.2.1 Level-Numbers)  the text is in the clause; it lies in GR1'.",
   "edition-sites-missed": [],
-  "corrected": ""
+  "corrected": "CONFORMS on the reading that a level-66 entry without THROUGH identifies the item it renames (GR2); that reading needs an adjudication recorded in docs/conformance/ (a one-file entry) before the verdict closes, since the alternative reading (a 66 entry specifies its own data item, §1985:IV.4.3.2.1) makes the ctl7 and c1 refusals rejects-legal-source."
  },
  "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "At --std 85 CONTROLS ARE B R66, where 66 R66 RENAMES B, compiles: the two names identify one data item and the rule requires each recurrence to identify a different one.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-14.md"
- },
- "work": "PB5866"
+  "verdict": "CONFORMS",
+  "reason": "The doubt is rejected: a level-66 entry without THROUGH takes all of the data attributes of the item it renames (§1985:VI.5.11.4 GR2) and has no description of its own, so it identifies that item; a REDEFINES item and a level-66 entry WITH THROUGH (a group of its own, GR1) identify different items. The reading is kb/Work PB5866's (landed). GnuCOBOL 3.2.0 has no check of the rule and settles nothing.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-18.md"
+ }
 }

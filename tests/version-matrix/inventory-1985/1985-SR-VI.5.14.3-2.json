@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.14.3-2",
  "rule-digest": "404528413dd8",
- "test-ref": "conformance:cases/VI.5.14@1985-USAGE-CLAUSE/g85_f10_01",
+ "test-ref": "conformance:cases/VI.5.14@1985-USAGE-CLAUSE/g85_f10_01; conformance:cases/VI.5.14@1985-USAGE-CLAUSE/pb5849_comp_under_binary_group_85; conformance:cases/VI.5.14@1985-USAGE-CLAUSE/pb5849_packed_under_binary_group_refused_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
