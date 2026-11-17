@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb481-read-key-refmod
-      *> rules: [SR-14.9.30.3-11]
+      *> rules: [SR-14.9.30.3-12, SR-8.4.3.3.3-5]
       *> source-format: fixed
       *> portable: unverified
       *>---

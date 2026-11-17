@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb602-start-key-refmod-slice
-*> rules: [SR-14.9.41.3-5]
+*> rules: [SR-14.9.41.3-4, SR-8.4.3.3.3-5]
 *> source-format: free
 *> portable: unverified
 *>---

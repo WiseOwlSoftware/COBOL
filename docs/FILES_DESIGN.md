@@ -2636,10 +2636,11 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   all) and 14.9.41.3 SR6 a) ask. `RecordLayout.GenericKeyIndex` answers SR6 b) alone, and enforces all three
   of its conditions: leftmost-coincident *within a record of the file* (b 1.), the same class, category and
   usage as that key (b 2. — via the ONE 8.5.2.1 Table-2 classifier), and no longer than it (b 3.). SR4's
-  "shall not be subject to any OCCURS clauses" is its OWN named check on BOTH organization arms, through
-  `RecordLayout.IsSubjectToOccurs`, ahead of the position walk — it used to be a side effect of the offset
-  walk bailing out, reported under SR6's message, and the relative arm had no such check at all. The same
-  predicate supplies the three key clauses' identical bans (12.4.5.12.3 SR1 RECORD KEY, 12.4.5.6.3 SR1
+  "shall not be subject to any OCCURS clauses" is answered on BOTH organization arms by the KEY phrase's shape
+  screen (`KeyedIoBinder.ScreenKeyOperandShape`, quoting SR4): an item under an OCCURS clause is a table element,
+  so its reference is subscripted (refused there) or not (refused by the resolver, §2023:8.4.2.3.3 SR5). kb/Work
+  PB354 had given SR4 a named check through `RecordLayout.IsSubjectToOccurs`; once the shape screen came first it
+  could no longer fire and was removed (kb/Work PB5883 review R1-3). `RecordLayout.IsSubjectToOccurs` supplies the three key clauses' identical bans (12.4.5.12.3 SR1 RECORD KEY, 12.4.5.6.3 SR1
   ALTERNATE RECORD KEY, 12.4.5.13.3 SR1 RELATIVE KEY) in `KeyedIoBinder.KeyedValidateFile`.
 - **⛔ START'S SEARCH KEY IS CUT OUT OF THE RECORD AREA, AND THE THREE KEY-VALUED VERBS CUT IT THE SAME WAY**
   (kb/Work PB355). 14.9.41.4 GR17 a) — *"The specified key is set up by moving the relevant parts of the record

@@ -388,18 +388,12 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             && (operand = keyAnswer.Place) is null)
             return keyAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
 
-        // §2023:14.9.41.3 SR4 — "Data-name-1 or record-key-name-1 shall not be subject to any OCCURS clauses."
-        // ⛔ ITS OWN NAMED CHECK, AHEAD OF BOTH ORGANIZATION ARMS (kb/Work PB354 part 2/3). It used to have no
-        // site at all: the indexed arm rejected an OCCURS operand only as a SIDE EFFECT of RecordLayout.OffsetOf
-        // bailing out, under SR6's message — a sentence that is FALSE of an item which does begin at the key's
-        // leftmost position — and the relative arm, which never calls OffsetOf, did not reject it at all.
-        // COBOL-2002 prints no such rule (§2002:14.8.37.2 SR4 says only "may be qualified"): its operand names a table element by its
-        // subscripts (§2002:5.1.3), which the key identity below compares (kb/Work PB5602).
-        bool operandUnderOccurs = operand is not null && !ctx.Edition.SubscriptedClauseOperands
-            && Model.RecordLayout.IsSubjectToOccurs(operand.Item);
-        if (operandUnderOccurs)
-            ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': '{operand!.Item.CobolName}' is subject to an "
-                + "OCCURS clause; data-name-1 shall not be (ISO §2023:14.9.41.3 SR4)");
+        // §2023:14.9.41.3 SR4 — "Data-name-1 or record-key-name-1 shall not be subject to any OCCURS clauses." ANSWERED BY THE
+        // SHAPE SCREEN ABOVE, both organization arms at once (kb/Work PB354 gave it a named check; kb/Work PB5883 review R1-3
+        // removed that check as unreachable): an item subject to an OCCURS clause is a table element, so a reference to it is
+        // either subscripted, refused by ScreenKeyOperandShape quoting SR4, or not, refused by the resolver (§2023:8.4.2.3.3 SR5,
+        // COBOL2270) before an operand exists. COBOL-2002 prints no such rule (§2002:14.8.37.2 SR4 says only "may be qualified"):
+        // its operand names a table element by its subscripts (§2002:5.1.3), which the key identity below compares (kb/Work PB5602).
 
         // §2023:14.9.41.3 SR2 — "If the organization of the file referenced by file-name-1 is sequential, either the
         // FIRST or the LAST phrase shall be specified." The general format makes FIRST / KEY / LAST mutually
@@ -411,9 +405,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IoStatementOperandRule, $"START on sequential-organization file '{name}': either the "
                 + "FIRST or the LAST phrase shall be specified (ISO §2023:14.9.41.3 SR2)");
         }
-        // The SR4 violation is reported; the key screens below cannot run on an operand with no single fixed
-        // position, so the statement stops here rather than reporting a second, wrong reason.
-        if (operandUnderOccurs || shapeRefused) return BoundRejected.Reported(ctx.Edition);
+        // A refused shape is reported; the key screens below have no operand to read, so the statement stops here.
+        if (shapeRefused) return BoundRejected.Reported(ctx.Edition);
 
         if (file.Organization == FileOrganization.Relative)
         {
