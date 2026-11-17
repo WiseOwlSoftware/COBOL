@@ -530,7 +530,14 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                     DataBinder.WrittenText((Antlr4.Runtime.ParserRuleContext?)wba.functionCall()
                         ?? (Antlr4.Runtime.ParserRuleContext?)wba.inlineMethodInvocation() ?? wba.dataReference()!));
                 return;
-            case BoundNumericLiteral n when IntrinsicResultType.IsIntegerOperand(n) && !n.Text.TrimStart().StartsWith('-'):
+            // integer-1 is UNSIGNED (kb/Work PB5805): the integer of a general format "must be neither signed nor zero
+            // unless explicitly allowed by the rules for that format" (§1985:III.2), "unsigned and nonzero unless
+            // otherwise specified" (§2023:5.5; §2002:5.4, §2014:5.5 the same), and the rule of this format allows ZERO
+            // only ("Integer-1 may be positive or zero, but must not be negative", §1985:VII.4.7.3 SR5; "Integer-1 shall
+            // be positive or zero", §2023:14.9.51.3 SR15). Where the standard allows a sign it says so ("Integer-1 may be
+            // signed", §1985:IV.4.3.8.2.3 SR6), so a written '+' is refused as a written '-' is, at every edition.
+            case BoundNumericLiteral n when IntrinsicResultType.IsIntegerOperand(n)
+                                            && WiseOwl.Cobol.Common.NumericLiteral.IsUnsignedForm(n.Text):
             case BoundFigurative { Kind: 'Z' }:   // ZERO read numerically is the integer 0 (§2023:8.3.3.6.4 GR4)
                 return;
             default:
@@ -538,9 +545,16 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                     : wba.literal() is { } l ? DataBinder.WrittenText(l)
                     : DataBinder.WrittenText(wba.integerLiteral());
                 ctx.Edition.Error(DiagnosticCatalog.WriteAdvancingOperand,
-                    $"WRITE ADVANCING integer-1 '{text}' shall be an integer literal that is positive or zero "
-                    + "(ISO §2023:14.9.51.3 SR15; §2023:8.3.3.3.2 — \"An integer literal is a fixed-point numeric literal that "
-                    + "contains no decimal point\"), or identifier-2 an integer data item (SR14)");
+                    $"WRITE ADVANCING integer-1 '{text}' shall be an unsigned integer literal, positive or zero ("
+                    + ctx.Edition.Cite(
+                        y1985: "ISO §1985:VII.4.7.3 SR5; §1985:III.2 — an integer \"must be neither signed nor zero unless "
+                            + "explicitly allowed by the rules for that format\"), or identifier-2 an integer data item (SR4)",
+                        y2002: "ISO §2002:14.8.47.2 SR15; §2002:5.4 — integer-n \"shall be unsigned and non-zero unless "
+                            + "otherwise specified\"), or identifier-2 an integer data item (SR14)",
+                        y2014: "ISO §2014:14.9.47.2 SR15; §2014:5.5 — integer-n \"shall be unsigned and nonzero unless "
+                            + "otherwise specified\"), or identifier-2 an integer data item (SR14)",
+                        y2023: "ISO §2023:14.9.51.3 SR15; §2023:5.5 — integer-n \"shall be unsigned and nonzero unless "
+                            + "otherwise specified\"), or identifier-2 an integer data item (SR14)"));
                 return;
         }
     }
