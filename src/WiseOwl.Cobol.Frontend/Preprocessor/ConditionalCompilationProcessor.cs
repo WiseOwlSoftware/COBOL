@@ -36,8 +36,8 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// and the conditional-compilation directives alike. kb/Work PB725: the roster used to be a flat name set with no
 /// edition column, so eleven directives compiled clean at <c>--std 85</c>, an edition with no compiler directives
 /// at all, while the five with their own per-stage gate were correctly rejected. <c>&gt;&gt;SOURCE FORMAT</c> is
-/// the sole exception and gates in <see cref="ReferenceFormatProcessor"/>, which consumes its line before this
-/// driver runs — same row, same COBOL0900 producer, one stage earlier.
+/// gated here too: at an edition without compiler directives <see cref="ReferenceFormatProcessor"/> recognizes no
+/// directive line (kb/Work PB5803), so the line reaches this driver; from 2002 that stage consumes it and checks the operand.
 ///
 /// A FOURTH job, the one thing a directive does here that is not a change to the text or to a table: (4) THE DISPLAY
 /// DIRECTIVE (§2023:7.3.12, kb/Work PB807 / PB1538 — <c>ConditionalCompilationProcessor.Display.cs</c>). Its operands are read

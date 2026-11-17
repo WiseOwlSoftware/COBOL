@@ -319,12 +319,17 @@ copies, and removed `dialectLevel`/`permissive` from four stage signatures that 
 question. PB794 then removed the diagnostic channel itself from the PROPAGATE and REF-MOD-ZERO-LENGTH stages,
 which no longer report anything at all.
 
-**`>>SOURCE FORMAT` is the documented exception, and there is exactly one.** `ReferenceFormatProcessor` consumes
-its line before the conditional-compilation driver runs — it must, because the following segment's reference
-format depends on it — so that stage carries the gate, keyed on `Constructs.SourceFormatDirective2002`, and the
-operand check with it. Same row, same producers, one stage earlier; it recognizes the directive by its WORD, so a
-malformed operand is diagnosed and the line still consumed (the reference format in effect carries on unchanged,
-because the directive selected none). `CompilerDirectiveCatalogDriftTests` re-derives the roster from the
+**`>>SOURCE FORMAT` is the documented exception, and there is exactly one — and it is gated by the driver like its
+siblings.** `ReferenceFormatProcessor` consumes the line wherever the edition has compiler directives
+(`EditionInfo.HasCompilerDirectives`, 2002 on) — it must, because the following segment's reference format depends on
+it — and there it carries the OPERAND check (COBOL1911, `OnSourceFormatDirective`), keyed on
+`Constructs.SourceFormatDirective2002`; it recognizes the directive by its WORD, so a malformed operand is diagnosed
+and the line still consumed (the reference format in effect carries on unchanged, because the directive selected none).
+At an edition without directives (`--std 85`) `FormatSegments` recognizes NO directive line (kb/Work PB5803: a `>>`
+line is ordinary text there, so pseudo-text may begin with one), the line reaches the conditional-compilation driver,
+and the driver emits the introduction gate (COBOL0900) and the operand check as for every other directive word. The
+COBOL0900 edge is therefore asked in ONE place, the driver; `OnSourceFormatDirective` never gates at 85 because it is
+not reached there, and a drift test that exempted SOURCE from the driver gate would reintroduce the PB725 under-rejection. `CompilerDirectiveCatalogDriftTests` re-derives the roster from the
 `#### 7.3.N <WORD> directive` headings of `specs/ISO_COBOL_2023.md`, checks each row cites its own clause, asserts
 `Frontend.LeftDirectives` is a subset of the catalog, and drives the real stage to prove every recognized word is
 rejected at 85 — so "one site, complete roster" stays true rather than being remembered.

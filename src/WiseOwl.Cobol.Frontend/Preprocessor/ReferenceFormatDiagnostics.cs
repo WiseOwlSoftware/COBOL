@@ -298,11 +298,11 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     }
 
     /// <summary>
-    /// The <c>&gt;&gt;SOURCE FORMAT</c> directive's edition gate (ISO §2023:7.3.24; registry row
-    /// <c>source-format-directive-2002</c>) — the §2023:7.3 compiler-directive facility is a COBOL-2002
-    /// introduction, so a <c>&gt;&gt;</c> line cannot occur in a conforming COBOL-85 source. It emits HERE
-    /// rather than at the shared directive-recognition point because this stage consumes the line before the
-    /// conditional-compilation driver can see it: same ONE producer, one stage earlier (kb/Work PB725).
+    /// The <c>&gt;&gt;SOURCE FORMAT</c> directive's operand check and row check (ISO §2023:7.3.24; registry row
+    /// <c>source-format-directive-2002</c>). This stage consumes the line only where the edition has compiler
+    /// directives (2002 on, <c>EditionInfo.HasCompilerDirectives</c>); below that the line is ordinary text
+    /// (kb/Work PB5803) and the conditional-compilation driver emits the COBOL0900 introduction gate, so the row check
+    /// here passes in every case it is reached (kb/Work PB725).
     /// Every occurrence is reported — a format switch is not a once-per-file fact like the continuation gates.
     /// <para>The OPERAND is checked here for the same reason and from the same row (kb/Work PB794): §2023:7.3.24.2
     /// admits FIXED or FREE and nothing else, and this is the only stage that sees the line. One producer
