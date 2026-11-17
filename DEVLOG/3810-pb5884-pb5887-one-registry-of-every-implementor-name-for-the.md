@@ -1,4 +1,4 @@
-## PB5884, PB5887: one registry of every implementor-name for the COBOL-85 computer-name gate, and a debugging line of REPLACE pseudo-text-2 stays one
+## Entry 3810 — 2026-11-16 20:27 PST — PB5884, PB5887: one registry of every implementor-name for the COBOL-85 computer-name gate, and a debugging line of REPLACE pseudo-text-2 stays one
 
 Wave 20262097, group C: two 1985 mechanisms from read pass 17, each re-probed on the branch's base build (main ed7d9b6d97) before it was touched.
 
@@ -9,3 +9,4 @@ Wave 20262097, group C: two 1985 mechanisms from read pass 17, each re-probed on
 **Self-review.** Architecture: one registry query point, no name spelled twice, dependency direction kept (the registry is in the compiler and reads the Editions table). Code: the gate implements §1985:IV.4.2.2.1.2 against every specified name; the REPLACE arm now agrees with the COPY arm. Performance: the registry is a frozen dictionary built once. Duplication: the edition-specific REPLACE flag was a second rule for the same lines and is gone. No diagnostic code allocated or used.
 
 **Gate.** Run by the dispatching session (this branch returns READY-TO-GATE).
+
