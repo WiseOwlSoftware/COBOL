@@ -1,4 +1,4 @@
-## Four 1985 code-read defects: an unsigned ADVANCING count, implicit LINKAGE references, the USE mode order, external items by storage
+## Entry 3804 — 2026-11-16 17:44 PST — Four 1985 code-read defects: an unsigned ADVANCING count, implicit LINKAGE references, the USE mode order, external items by storage
 
 This branch also carries kb/Work PB5844 (RECORD DELIMITER, merged from its branch) and the records-1985-code-reads-3
 commits (cherry-picked; the PB5860 commit and its revert were skipped as a pair, net zero), each with its own pending entry.
@@ -38,3 +38,4 @@ KEY (COBOL1575), FILE STATUS (COBOL1573), PADDING and run-time descriptor agreem
 pb5876-linkage-odo-object-not-referenceable / -using-operand / -search, pb5878_use_both_modes_open_mode_runs,
 pb5878-report-file-both-modes-85, pb5857-external-relative-key-other-positions-85 / -same-positions-85,
 pb5857-external-file-status-other-positions. No new diagnostic codes (COBOL7633 to COBOL7635 returned).
+
