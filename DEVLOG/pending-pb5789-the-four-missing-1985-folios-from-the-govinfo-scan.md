@@ -27,3 +27,7 @@ stored code reads are stale; none was edited.
 **The citations.** g85_bf09_09 cites the printed GR12 and names its row. Four other cases, `VersionConformancePass`, a derivation
 entry and the design's section 10.1 stop citing a reconstruction. `audit_code_citations` and `audit_doc_citations` report no finding.
 kb/Work PB5789 stays open for the code read of GR1.
+
+**New witnesses.** Ten 1985 conformance cases (`pb5789_*`, `pb5789-*`) witness the printed rules. Two accepted cases
+cover the page heading after a report heading's NEXT GROUP and a nonprintable page heading. Two cover GENERATE report-name subtotalling
+with no detail group and with one. Six refusals cover TYPE SR2, SR3 and SR4.
