@@ -2,48 +2,61 @@
  "rule-id": "1985-GR-VI.6.17.4-2",
  "rule-digest": "cef5ffa5e49d",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-108",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-231",
   "sources": {
-   "reader": "c4d8ea3f55533cfd9c7fc21d4a5f675ed97b33f34413b57b8c9128bcff9d8b8c",
-   "refuter": "7a42d0b149501cc49f783fe50cd656d1bdc95f450fc95f3cd24d2ca0b6437430"
+   "reader": "43c580eb16d629a336024563d073f2700bfc4ffb6812f3ef39b97d8486aac256",
+   "refuter": "74ffba6c4e5da9fb0ab8d159b0adbcca4ae86cfa089f48501e4fd7e33d78f9db"
   },
   "imported": {
-   "reader": "7635bb3cdafe7ab85a404b2172d5771a7013fa4624973b87b04fe96ac078a996",
-   "refuter": "014550dbbfd8e763d182a008b4fdc23916cb3bf8d8a5262fac192ad2caf60036"
+   "reader": "8eb7baba783e372daff10d17720ec35234491e9b3dca9c6e2792acd925fbb548",
+   "refuter": "8d42dea7d3fdf0272952793630672682e9ddec8b2d5d0c7b72431f379033e38f"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VI.6.17.4-2",
   "verdict": "CONFORMS",
-  "requirement": "At 1985, with REPLACING, every elementary item under (or equal to) identifier-1 of a named category, every occurrence of tables in the group included, receives an implicit elementary MOVE from identifier-2 or literal-1 (with MOVE truncation, sign handling and editing); items of other categories are untouched, and only the GR3 and GR4 items are excepted.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Qualify; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#SenderFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ReplacementFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Store; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#TableCount; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InitializeEmitter.cs#EmitAction",
-  "behaviour-differs-by-edition": "no for the 1985 form: the 2002+ VALUE/DEFAULT arms of Qualify are unreachable at 85 because their phrases are refused; ODO under identifier-1 is refused at 85 only",
-  "witnesses-cover": "part: g85_bf13_05 covers REPLACING on a group; an elementary identifier-1 of a non-matching category, identifier-2 senders, an ALL literal, truncation, negative values into signed BINARY/PACKED-DECIMAL, a reference-modified identifier-1 and two-level tables were added by the probes",
+  "requirement": "At --std 85 INITIALIZE acts as a series of elementary MOVEs: with REPLACING, each elementary item of identifier-1 (or identifier-1 itself if elementary) of a named category receives identifier-2/literal-1 by an implicit MOVE, every occurrence of every table included, excepting index data items, elementary FILLER and items subordinate to a REDEFINES within identifier-1 (GR3, GR4); identifier-1 may itself redefine.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ReplacementFor; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InitializeEmitter.cs#EmitAction; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85VariableOccurrence; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeStatement",
+    "switches": "WITH FILLER, TO VALUE, TO DEFAULT, THEN REPLACING are 2002 phrases refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85VariableOccurrence",
+    "switches": "ConstructRegistry.IsAvailable(initialize-variable-occurrence-2002): an ODO item under identifier-1 refused at 85 (SR4)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|DialectBehavior|IsActive|Edition. in InitializeBinder.cs, BoundInitialize.cs, InitializeEmitter.cs: only ctx.Edition.Error diagnostic sinks, no switch; expansion and MOVE emission are the same code at every edition",
+  "behaviour-differs-by-edition": "yes: only admission (2002 phrases and ODO under identifier-1 refused at 85); the expansion of an admitted 1985 statement is the same code as at 2023",
+  "witnesses-cover": "part: g85_bf13_05 covers a flat group with one table and literal/identifier senders; not nested tables, FILLER and REDEFINES exclusion, index data items, JUSTIFIED and edited receivers from a signed scaled sender, ALL literal and figurative senders, a group sender, subscripted identifier-1, identifier-1 that itself REDEFINES, 18-digit values",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ini1.cob",
-    "printed": "T1 NUMERIC BY 7: GN 007 GS +007 GB +0007 GP +00007 GT 777, GBZ (BLANK WHEN ZERO) 456 and every non-numeric item unchanged; T2 ALPHABETIC: only GA 'Q  '; T3 ALPHANUMERIC: only GX 'Z  '; T4 ALPHANUMERIC-EDITED 'ABCD': GAE 'AB/CD', GAB(AAB) 'AB '; T5 NUMERIC-EDITED 12.5: GNE ' 12.50', GBZ '012'; T6 PIC X by NUMERIC unchanged 'ppp'; T7 004; T8 two items 001/K; T9 BY SRC 'HEL'; T10 ALL \"AB\" 'ABA' and 12345 truncated 345/+345/+2345/+12345; T11 -6: 006/-006/-0006/-00006; T12 W-X(2:1) 'pMp'; T13 W-N(2:1) REPLACING NUMERIC unchanged 004 (a ref-modified item is alphanumeric)",
-    "expected": "only items of the named category receive an implicit MOVE of the sender (GR1, GR2a/b); BLANK WHEN ZERO numeric is numeric edited (VI.5.4.4 GR2); AAB is alphanumeric edited (VI.5.9.4 GR5a)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/ini2.cob",
+    "printed": "NUMERIC BY -12.34 into S9V9 LEADING SEPARATE in nested OCCURS 2 x 3: -23 in every occurrence, ZZ.99- 12.34-; ALL 'ab' into X(4) abab and JUSTIFIED X(5) ababa; FILLER=fff kept; R1 abab (subordinate REDEFINES R2N not stored); index data item IX=7 kept; T1(K) BY group SRCG -> SG in occurrence 2 only; T2N(K,3) BY 9.99 -> +99 and T1A(1) BY ZERO -> 00; INITIALIZE HR (01 REDEFINES H) REPLACING ALPHANUMERIC -> [Q  55]",
+    "expected": "GR2 implicit MOVEs over all occurrences; GR3 FILLER and index untouched; GR4 subordinate REDEFINES excluded, identifier-1 may redefine"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/in18.cob",
+    "printed": "-999999999999999999 99 [999999999999999999-] then +000000000000000000 00 [                 0 ]",
+    "expected": "MOVE of an 18-digit signed value to S9(18) COMP, 99 (truncation, unsigned) and Z(17)9-; then zero"
    },
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ini6.cob",
-    "printed": "T1[0000] T2[    ] T3[3][0030] T4[7z7z7z7z7z7z] T5[0 0 0 0 0 0 ] T6[zz0 zz0 0 0 ] T7[    ] T8[  00]",
-    "expected": "identifier-1s set left to right so the last one on shared storage wins (GR6); INITIALIZE I TE(I) sets I first and TE(3) after it, as GR2's series of MOVEs; every occurrence of a two-level table in definition order"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/inodo.cob",
+    "printed": "COBOL0900 INITIALIZE of an item with or containing an OCCURS DEPENDING ON clause requires COBOL-2002 (cites §1985:VI.6.17.3 SR4)",
+    "expected": "SR4 forbids ODO under identifier-1 at 1985"
    },
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/inic6.cob",
-    "printed": "error COBOL0900: INITIALIZE of an item with or containing an OCCURS DEPENDING ON clause requires COBOL-2002 ... (§1985:VI.6.17.3 SR4)",
-    "expected": "1985 SR4 forbids DEPENDING under identifier-1: refused"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/inic1.cob",
-    "printed": "error COBOL0830: INITIALIZE WITH FILLER requires COBOL-2002 (targeting COBOL-85)",
-    "expected": "the 1985 format has no WITH FILLER: refused"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/insr2.cob",
+    "printed": "COBOL2031 ALPHABETIC DATA BY 5: a numeric sending operand does not move to an alphabetic receiver",
+    "expected": "SR2 refusal"
    }
   ],
   "citations": [
@@ -52,43 +65,23 @@
     "check": "OK  §1985:VI.6.17.4 GR2  (║6.17.4 General Rules║)  the text is in GR2"
    },
    {
-    "cite": "§1985:VI.6.19.4 GR3",
-    "check": "OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3"
+    "cite": "§1985:VI.6.17.4 GR3",
+    "check": "OK  §1985:VI.6.17.4 GR3  (║6.17.4 General Rules║)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.17.4 GR4",
+    "check": "OK  §1985:VI.6.17.4 GR4  (║6.17.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VI.6.17.3 SR4",
+    "check": "OK  §1985:VI.6.17.3 SR4  (║6.17.3 Syntax Rules║)  the text is in SR4"
    }
   ],
-  "notes": "The receiver walk enters every occurrence through InitializeLoop, filters by Qualify's REPLACING arm and binds each store through MoveBinder.BindMoveOf, so the implicit MOVE is the explicit MOVE's code. Probe T13 (REPLACING NUMERIC on W-N(2:1) left unchanged) follows from a reference-modified item being alphanumeric.",
-  "edition-consulted": [
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeStatement",
-    "switches": "refuses WITH FILLER (COBOL0830), TO VALUE (COBOL0831), TO DEFAULT (COBOL0832) and THEN REPLACING (COBOL0833) below 2002; the plain REPLACING form passes untouched",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName",
-    "switches": "refuses the eight post-85 category words (NATIONAL, BOOLEAN, the pointer words...) below their edition; the five 1985 words are ungated",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem",
-    "switches": "refuses a REPLACING item naming more than one category below 2002 (PB5180)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85VariableOccurrence",
-    "switches": "refuses identifier-1 described with or containing OCCURS DEPENDING ON below 2002 (1985 SR4)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateInitialize",
-    "switches": "the figurative-to-numeric MOVE edition rows per REPLACING NUMERIC/NUMERIC-EDITED sender",
-    "same-arm-as-latest": true
-   }
-  ],
-  "edition-search": "grep Edition|ConstructRegistry|CobolVersion|Constructs. in InitializeBinder.cs, BoundInitialize.cs and InitializeEmitter.cs: ctx.Edition there is only the diagnostic sink; the expansion, qualification, sender choice and emitter are edition-blind, and the edition is consulted only by VersionConformancePass's post-85 surface gates.",
+  "notes": "The expansion visits every occurrence of nested tables, skips FILLER, index data items and subordinate REDEFINES, and stores through the MOVE converter (editing, scaling, sign, justification, ALL literals). The 2002-only forms are refused at 85 by VersionConformancePass, the only edition switch on the path.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "ini1, ini4, ini5 and ini6 print the same output at --std 2023",
+  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -96,16 +89,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-VI.6.17.4-2",
-  "refutation": "OVERTURNED",
-  "classes": "c,d",
-  "evidence": "Same repro as GR1 (rini3-001 at 85, rini3-002 at 2023): GR2b 'If identifier-1 references an elementary item, that item is initialized only if it belongs to the category specified in the REPLACING phrase' fails both ways for WA (2:1) of an alphabetic WA: not initialized under ALPHABETIC (M1[abc]), initialized under ALPHANUMERIC (M2[aQc]). cite.py: OK  §1985:VI.6.17.4 GR2 'that item is initialized only if it belongs to the category specified in the REPLACING phrase'; OK  §1985:IV.4.3.8.4.4 GR5. Everything else in the GR2 range probed and correct: rini2-001 every occurrence of a table with a subordinate REDEFINES D3[qq4qqq], REPLACING NUMERIC on a group holding a REDEFINES D7[qqqq] / on the redefining group D8[8qqq]; rini1-002 FILLER group's named items F3[Q0Q], REPLACING ALPHANUMERIC-EDITED / ALPHANUMERIC / NUMERIC-EDITED with editing and truncation E2, E3, E4. Cause site: InitializeBinder.cs#BindInitializeTarget RefModPlace arm.",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "Attack: GR2 says a series of MOVE statements, so a subscript of a later identifier-1 that an earlier identifier-1 changes is evaluated at its own MOVE. rini2-001 (--std 85): K=1, INITIALIZE K TE(K) REPLACING NUMERIC DATA BY 2 -> K=2 T=929 (TE(2) set); BY 3 -> K=3 T=993; four-category REPLACING on a group (ALPHANUMERIC BY identifier, NUMERIC BY 7, ALPHABETIC BY 'Q', NUMERIC-EDITED BY -5 into ZZ9) -> [xy07Q   5] (the edited receiver drops the sign as MOVE does); INITIALIZE G without REPLACING -> [  00    0] (GR5). Same at --std 2023. cite.py: OK §1985:VI.6.17.4 GR2 (\"all operations are performed as if a series of MOVE statements had been written\").",
   "edition-sites-missed": [],
-  "corrected": "Non-conforming (wrong-answer, cause b): with REPLACING, a reference-modified elementary identifier-1 is always judged alphanumeric, so the GR2b category test is wrong for an alphabetic data-name-1 (1985 ref-mod GR5 keeps it alphabetic)."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "INITIALIZE ... REPLACING treats a reference-modified alphabetic item as alphanumeric, so the wrong REPLACING phrase applies (`M2[aQc]` where `abc` is right). Both editions keep the item's category. Leads: the same \"a reference-modified slice is always alphanumeric\" assumption is written in `MoveOverlap.cs` and `ExpressionBinder.cs`, not probed.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
- },
- "work": "PB5813"
+  "corrected": ""
+ }
 }

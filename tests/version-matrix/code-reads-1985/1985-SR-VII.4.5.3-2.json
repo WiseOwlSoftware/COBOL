@@ -1,0 +1,115 @@
+{
+ "rule-id": "1985-SR-VII.4.5.3-2",
+ "rule-digest": "439e82672dd2",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-223",
+  "sources": {
+   "reader": "84716e4119386c189ba9d3e72cbd7112564a9de256d94eb36424ba20cec228e7",
+   "refuter": "71aa1d520b40d70e8bd38f10f4c2067a0bd1de296f5285cdafc3ec0dbdaf19b0"
+  },
+  "imported": {
+   "reader": "b0a27c5fa2d18b689c1c38339498094cd18803985fdcd78d55c1a55124273d0d",
+   "refuter": "49e07e907637e042059fefbf4fc6b4449f7d389d5d1b5459aae52a667c135eb0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.5.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the REWRITE operand record-name-1 must be the name of a level-01 logical record of a file description entry in the File Section, written alone or qualified (e.g. by file-name), so a working-storage item, a subordinate item of a record, a reference-modified record, a sort-merge record, a file-name, an ambiguous unqualified name, and the 2002 FILE file-name-1 and RECORD-word forms are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ResolveRewriteRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#FileWhoseRecordIs; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rewriteStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "GateFilePhrase: REWRITE FILE file-name-1 (construct write-rewrite-file-phrase-2002) and the word RECORD after record-name (rewrite-record-word-2002) refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: the FILE file-name-1 alternative and the RECORD word are 2002 forms, refused at 85 (COBOL0900) and legal at 2023; the record-name identity check itself is the same code at every edition",
+  "witnesses-cover": "part: pb347_record_name_identity is a RELEASE case sharing ResolveRecordName; REWRITE's own refusal arms (working-storage, subordinate, ref-modified, sort record, file-name, qualification) and the 85 edition arms are not exercised by it",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rw1.cob",
+    "printed": "AAAXYZ NEWVAL",
+    "expected": "REWRITE REC OF F1 (sequential) and REWRITE REC IN F2 FROM WS (relative, sequential access) with the same record-name under two FDs, each qualified by its file-name, replace the records read"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rwbad1.cob",
+    "printed": "error COBOL1757: REWRITE 'WS' ... 'WS' is not a logical record of any file description entry",
+    "expected": "working-storage item refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rwbad2.cob",
+    "printed": "error COBOL1757: ... 'KOFRECOFF1' is subordinate to 'REC', which is the logical record of 'F1'",
+    "expected": "subordinate item refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rwbad3.cob",
+    "printed": "error COBOL1757: ... record-name-1 is a record-name, not an identifier, so it shall not be reference-modified",
+    "expected": "reference-modified record refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rwbad4.cob",
+    "printed": "error COBOL1692: REWRITE may not name the sort-merge file 'S1'",
+    "expected": "SD record refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rwbad7.cob",
+    "printed": "error COBOL1639: 'REC' does not uniquely identify a data item",
+    "expected": "ambiguous record-name must be qualified"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rwbad8.cob",
+    "printed": "error COBOL1639: 'F1' is declared as a file-name ... not as a data item",
+    "expected": "file-name in the record-name position refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rwbad5.cob",
+    "printed": "error COBOL0900: the FILE phrase of a WRITE or REWRITE statement requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "REWRITE FILE F1 is not a 1985 format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rwbad6.cob",
+    "printed": "error COBOL0900: the word RECORD after the record-name of a REWRITE statement requires COBOL-2002",
+    "expected": "REWRITE REC OF F1 RECORD is not a 1985 format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.3 SR2",
+    "check": "OK  §1985:VII.4.5.3 SR2  (4.5.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VII.4.5.2",
+    "check": "OK  §1985:VII.4.5.2  (4.5.2 General Format)  the text is in the clause"
+   }
+  ],
+  "notes": "ResolveRewriteRecord resolves the (qualified) reference and asks ResolveRecordName, whose identity test is FileModel.Records containment (level-01 of an FD, inherited GLOBAL FDs included), before the organization reroute, so sequential, relative and indexed REWRITE share it. Cosmetic: the subordinate-item message prints the qualified name without spaces ('KOFRECOFF1', rn.GetText()).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.5.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85: rw1 REWRITE R1 OF F2 (R1 belongs to F1) -> COBOL1639 not under qualifier F2; rw2 nested program REWRITE of a non-GLOBAL FD record of the container -> COBOL1639 not defined; rw3 CD record (Communication Section, a 1985-only section) -> COBOL1757 not a logical record of any FD; rw4 Linkage 01 -> COBOL1757; rw6 66 RENAMES RK THRU RV under an FD record -> COBOL1757 subordinate to R1; rw5 positive: second 01 of an FD (implicit redefinition) and REWRITE R1 IN F1 replace the records read, printed AAAXYZ / QQQQQQ. Reader's 2002 FILE/RECORD arms re-read in VersionConformancePass. cite.py: OK  §1985:VII.4.5.3 SR2  (4.5.3 Syntax Rules)  the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

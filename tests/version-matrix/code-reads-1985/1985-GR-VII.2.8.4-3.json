@@ -1,0 +1,61 @@
+{
+ "rule-id": "1985-GR-VII.2.8.4-3",
+ "rule-digest": "33f196fade57",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-221",
+  "sources": {
+   "reader": "028328aac0c5fcf9e3876475a14235cad7621e65d41413876f1c571e3854079a",
+   "refuter": "f6a98d0447bf8be2dcfc10143829e65c9104acad7229d11bfe1bd697d7a12542"
+  },
+  "imported": {
+   "reader": "276f4728abc62cf9eff65a35ec57375a4d6032e20e68754552b86ff2cf005856"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.8.4-3",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "requirement": "At 85 RECORD DELIMITER IS implementor-name-1 must frame variable-length records by the method the implementor associates with that implementor-name; the set of implementor-names is the implementor's, and WiseOwl defines none, so the antecedent names nothing it provides.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsKeyword",
+    "switches": "DELIMITER reserved at all four editions; the operand is any cobolWord at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "as for GR2: Declined switches on Permissive only; no edition gate on recordDelimiterClause in Validation, Editions or ConstructRegistry.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "all of the rule's range at this edition: file B of pb292 writes an implementor-name",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/pb292_record_delimiter_witness-001",
+    "printed": "warning COBOL1778 on F2 (RECORD DELIMITER IS PB292-TAPE-FORMAT); B1=00 LEN=03 [XYZ] B2=00 LEN=08 [STUVWXYZ]",
+    "expected": "declined by name, file framed by the documented default method"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/rd_odo_bytes-001",
+    "printed": "warning COBOL1778 on F2 (RECORD DELIMITER IS VARREC); RDO2.DAT byte-identical to the no-clause RDO3.DAT",
+    "expected": "same disposition over an OCCURS DEPENDING ON record"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.8.4 GR3",
+    "check": "OK  §1985:VII.2.8.4 GR3  (║2.8.4 General Rules║)  the text is in GR3"
+   }
+  ],
+  "notes": "WiseOwl specifies no implementor-name for the clause (docs/conformance/7/DOC-A.1-150.md: 'Not provided'), and a name written anyway draws COBOL1778 and the default framing. At 85 the 2023 A.1 'optional' ground does not exist; the ground here is that the implementor-name set is the implementor's and is documented empty, and the warning is the 1985 extension flag (§1985:I.1.5.2.5.2). Verdict by the kb/Work PB5373 class-3 decision, as for GR6. A stricter reading would refuse an undefined implementor-name as a non-word; accepting it inert with a named warning changes nothing a program can observe (GR1).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same: COBOL1778, identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "PB292; PB5373; PB280"
+ },
+ "work": "PB5844"
+}

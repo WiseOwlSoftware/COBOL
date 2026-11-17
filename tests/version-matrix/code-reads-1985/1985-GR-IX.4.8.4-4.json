@@ -83,5 +83,10 @@
   "edition-sites-missed": [],
   "corrected": "Undecided between two readings: if GR4 binds across programs, C-INPUT is wrong (expected OUTER-GF-NAMED 23) and the verdict is non-conforming (wrong-answer, cause b: UseTierEmitter.EmitScopeTiers selects the program's own tiers before the GLOBAL walk at every edition). If GR4 is scoped to its own Procedure Division, CONFORMS stands."
  },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "A contained program's own USE ON INPUT runs, not the container's USE GLOBAL ON the file (kb/Work PB5812). Decided by the 1985 text: §1985:IX.4.8.3 SR3, word for word the same as §1985:VII.4.6.3 SR3, scope the USE statements to one Procedure Division, so GR4 and GR5b speak of one Procedure Division's statements, and §1985:X.5.5.4 GR1 orders the programs (the contained program's own declarative first).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-open-readings.md"
+ },
  "work": "PB5812"
 }

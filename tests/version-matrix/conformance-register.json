@@ -847,6 +847,11 @@
   }
  ],
  "determinations": [
+  "D-85-COUNTER-QUAL",
+  "D-85-GROUP-CATEGORY",
+  "D-85-RENAMES-SAME-NAME",
+  "D-85-SPACE-CLASS",
+  "D-85-TERMINATE-BREAK",
   "D-ADDRNF",
   "D-ALR1",
   "D-ARGEXPR",

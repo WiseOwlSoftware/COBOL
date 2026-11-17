@@ -78,5 +78,10 @@
   ],
   "corrected": "Unsettled: if XIII.4.7.4 GR1's 'most major control data-name' fixes TERMINATE's break level, then at --std 85 the NEXT GROUP of the most major data-name's control footing applies at TERMINATE whether or not FINAL is written, and a CF FINAL's NEXT GROUP is ignored (ngfin.cob should place RFOOT on 11, as ngnof.cob does). The verdict stands only on the reading that FINAL is the highest break level at TERMINATE."
  },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "TERMINATE's control break is at FINAL when FINAL is a control (kb/Work PB5824): a recorded determination (register entry D-85-TERMINATE-BREAK). The text admits two readings and GnuCOBOL does not model the rule, so the lane decided it.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-open-readings.md"
+ },
  "work": "PB5824"
 }

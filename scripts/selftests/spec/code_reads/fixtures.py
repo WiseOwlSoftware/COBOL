@@ -46,8 +46,9 @@ def tree():
     return repo, repo.git("rev-parse", "HEAD").strip()
 
 
-def context(root, digest="0b2e58f8a250"):
-    return C.Context(ED, SCHEMA, {r["rule-id"]: r for r in rows(digest)}, root)
+def context(root, digest="0b2e58f8a250", shared=None):
+    """The context of the planted rows; `shared` is the verdict each chained row shares with its chain (none by default)."""
+    return C.Context(ED, SCHEMA, {r["rule-id"]: r for r in rows(digest)}, root, shared or {})
 
 
 def read(rid, verdict="CONFORMS", **kw):
@@ -60,7 +61,7 @@ def read(rid, verdict="CONFORMS", **kw):
             "citations": [{"cite": CITES.get(rid, "§1985:XII.2.4 GR8"), "check": "OK"}],
             "notes": "planted", "seeded": True, "harm": "", "cause": "", "at-2023": "", "repro": "", "expected": "",
             "observed": "", "known_note": ""}
-    if verdict != "CONFORMS":
+    if verdict not in SCHEMA.resolving:   # a documented decline carries no defect fields (kb/Work PB5865)
         base.update({"harm": "wrong-answer", "cause": "a", "repro": "r.cob", "expected": "X=3", "observed": "X=4",
                      "known_note": "none"})
     return {**base, **kw}

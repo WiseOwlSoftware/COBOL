@@ -2,50 +2,86 @@
  "rule-id": "1985-SR-VI.5.6.3-1",
  "rule-digest": "b897480ed4e1",
  "read": {
-  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
-  "slice": "1985-224",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-235",
   "sources": {
-   "reader": "aa6484067af501a770f0cf1e656244237b0a05020b2ebf52ceb9691dc936915e",
-   "refuter": "4cb51058433e09b56135cfce4d3601e3e5dee9d7ed95fd9cf4ef2f3ec627315f"
+   "reader": "4fb59c7dee2bfd90d7da9fd052e20da4e4adc03242010c0c08b12cf3e52acf98",
+   "refuter": "941565f694152392a807690337899f49132bf6018cec07c01a9d85c2e2208b33"
   },
   "imported": {
-   "reader": "4f2c58158780bd92134807724177d96c34d59670029ad9a78dd712ace4d92485",
-   "refuter": "15c4c2c61735f3aa1dadc64840926419405825efa16b13d54d246f6429e7c781"
+   "reader": "68fad544462275adb67912e8d9c741f2c93fded73279f971c4e6d22823d54354",
+   "refuter": "98721ef58d06cfc7660942cf09adf1243ef88a17d4499eac65b529fa34982e8b"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.5.6.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 JUSTIFIED (or JUST, with or without RIGHT) must be accepted on an elementary item at any level (01-49, 77), including one with subordinate 88 entries or an OCCURS, and refused on any group item (an entry with subordinate data description entries), at any level.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#CheckElementaryOnlyClauses; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#ElementaryOnlyClausesOn; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.PictureRequired.cs#HasNoSubordinates",
+  "requirement": "At 1985 the JUSTIFIED clause is accepted only on an elementary data description entry (any section, any level 01-49 or 77, under OCCURS or not) and on an elementary report group entry (§1985:XIII.3.9.4 GR2 makes the Report Writer clause the Nucleus one); a JUSTIFIED written on any group entry (01 or subordinate, with OCCURS or REDEFINES, in WORKING-STORAGE, LINKAGE, FILE, COMMUNICATION or REPORT SECTION) is refused. The witnesses cover the elementary working-storage case and the report-section group and element; the other sections and group shapes are not exercised.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#CheckElementaryOnlyClauses; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#ElementaryOnlyClausesOn; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryFormats",
   "edition-consulted": [],
-  "edition-search": "Grepped CheckPictureRequiredPass.cs and DataBinder.ClausePlacement.cs for CobolVersion, IsAtLeast, Edition.Is, ConstructRegistry, DialectBehavior, Std: none; the ElementaryOnly row has no edition field and binder.Edition.Error is edition-independent.",
+  "edition-search": "grep for Year, DialectLevel, CobolVersion, EditionContext in CheckPictureRequiredPass.cs, DataBinder.ClausePlacement.cs (the ClausePlacementRules table) and ReportSectionBinder.ScreenReportEntryFormats' group-entry JUSTIFIED arm: none switches the rule (binder.Edition.Error is the diagnostic sink only); the nearby Edition.DialectLevel < 2002 test in ReportSectionBinder belongs to the SUM-clause rule, not this one.",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_f07_03 covers the accepted elementary half in working-storage; it does not exercise the refusal on a group, an OCCURS group, 77, the file section or an elementary item with 88 entries",
+  "witnesses-cover": "part: elementary JUSTIFIED in WORKING-STORAGE and the report-section group/element; group entries in WORKING-STORAGE, LINKAGE, FILE and COMMUNICATION SECTIONs, a group under OCCURS or REDEFINES, and the 77 level are not exercised",
   "probes": [
    {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c5-pos.cob",
+    "printed": "[   ABC][   ABC][   ABC][ ABC][   ABC] / [CDEFGH]",
+    "expected": "elementary JUSTIFIED on 01, 77, 05, an OCCURS element and an alphabetic item accepted and right-justified, truncating on the left when longer"
+   },
+   {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/j1a.cob",
-    "printed": "COBOL2403 x3: 01 G1 JUSTIFIED RIGHT (group), 05 S2 JUST (subgroup), 05 T2 JUSTIFIED OCCURS 3 (group table)",
-    "expected": "each refused: not an elementary item"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c5-n1-01group.cob",
+    "printed": "error COBOL2403: data item 'G': the JUSTIFIED clause may be specified only at the elementary level",
+    "expected": "01 group with JUSTIFIED refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c5-n2-05group.cob",
+    "printed": "error COBOL2403: data item 'H'",
+    "expected": "subordinate group with JUST refused"
    },
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/j1b.cob",
-    "printed": "[    ZZZZ   Q] for PIC X(4) JUST OCCURS 1 TO 5 DEPENDING ON CNT with CNT=3",
-    "expected": "accepted on an elementary ODO table; each occurrence right-justified"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c5-n3-occgroup.cob",
+    "printed": "error COBOL2403: data item 'H'",
+    "expected": "group under OCCURS with JUSTIFIED refused"
    },
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/j1b.cob",
-    "printed": "[   AB][CDEFGH][   OK] / JC-OK / [00000] (77 JUST RIGHT, PIC A JUSTIFIED, elementary with an 88, MOVE ZERO)",
-    "expected": "accepted; right alignment per §1985:VI.5.6.4 GR1; the 88 does not make JC a group"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c5-n4-linkage.cob",
+    "printed": "error COBOL2403: data item 'G'",
+    "expected": "LINKAGE group refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c5-n5-redefgroup.cob",
+    "printed": "error COBOL2403: data item 'G'",
+    "expected": "REDEFINES group refused"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/j1b.cob",
-    "printed": "[    XY] after WRITE and READ of an FD record whose elementary FJ is JUSTIFIED RIGHT",
-    "expected": "accepted in the file section"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c5-n6-fdgroup.cob",
+    "printed": "error COBOL2403: data item 'R'",
+    "expected": "FILE SECTION record group refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c5-n7-cdgroup.cob",
+    "printed": "error COBOL2403: data item 'CDREC'",
+    "expected": "COMMUNICATION SECTION (a 1985-only section) record group refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.5.6@1985-JUSTIFIED-CLAUSE/pb5850-report-group-justified.cob",
+    "printed": "error COBOL2247: RD 'RPT' entry 'FILLER' is a group entry and writes JUSTIFIED",
+    "expected": "report group entry with JUSTIFIED refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.5.6@1985-JUSTIFIED-CLAUSE/pb5850-report-element-justified.cob",
+    "printed": "EXPECT: MATCH (pb5850-report-element-justified.out)",
+    "expected": "elementary report entry with JUSTIFIED accepted"
    }
   ],
   "citations": [
@@ -54,11 +90,11 @@
     "check": "OK  §1985:VI.5.6.3 SR1  (5.6.3 Syntax Rules)  the text is in SR1"
    },
    {
-    "cite": "§1985:VI.5.6.4 GR1",
-    "check": "OK  §1985:VI.5.6.4 GR1  (5.6.4 General Rules)  the text is in GR1"
+    "cite": "§1985:XIII.3.9.4 GR2",
+    "check": "OK  §1985:XIII.3.9.4 GR2  (3.9.4 General Rules)  the text is in GR2"
    }
   ],
-  "notes": "One table row (ElementaryOnly: JUSTIFIED and BLANK WHEN ZERO) is screened over every bound entry with children; condition-names are not children, so an elementary item with 88s keeps JUSTIFIED. Edition-invariant; the message cites §2023:13.16.3 SR11, which states the same requirement.",
+  "notes": "One table row (ClausePlacementRules, ElementaryOnly: JUSTIFIED | BLANK WHEN ZERO) drives CheckElementaryOnlyClauses over every written data entry, and ReportSectionBinder.ScreenReportEntryFormats refuses a report group entry below 01 that writes JUSTIFIED (level 01 is refused by the format-1 screen). Every section and group shape probed is refused and every elementary form accepted at --std 85. Diagnostics cite §2023:13.16.3 SR11 for the data-entry case (wording only).",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -71,15 +107,9 @@
  "refuter": {
   "rule-id": "1985-SR-VI.5.6.3-1",
   "refutation": "UPHELD",
-  "classes": "b,c,d,e",
-  "evidence": "cite.py: OK  §1985:VI.5.6.3 SR1  (5.6.3 Syntax Rules)  the text is in SR1. Probes at --std 85: j5c.cob refuses JUSTIFIED RIGHT on an SD group record, JUSTIFIED on a working-storage group whose only child is FILLER, and JUST on a linkage group (COBOL2403 x3); j5a.cob refuses JUSTIFIED on an 88 entry (COBOL1747); j5b.cob refuses JUSTIFIED on a 66 RENAMES entry (COBOL0001 unexpected 'JUSTIFIED'); j5d.cob refuses JUSTIFIED LEFT, which no 1985 format has (COBOL1941); j5e.cob accepts JUST RIGHT on an elementary 01 REDEFINES and JUSTIFIED on 01 PIC X(3) and gives [    AB] [CDE] [ZZZ] [  Q] (left truncation, right alignment, ALL literal, per §1985:VI.5.6.4 GR1). No edition site in CheckPictureRequiredPass.cs or DataBinder.ClausePlacement.cs (grep for CobolVersion/IsAtLeast/Edition.Is/ConstructRegistry/DialectBehavior/ReservedWords: none).",
+  "classes": "b,d,e",
+  "evidence": "r5-elem88.cob at --std 85 (EXIT 0): JUSTIFIED on elementary items that carry level-88 entries (01 E1 JUST with 88, 05 E2 JUSTIFIED with 88 and a 66 RENAMES of it, 77 E4 PIC A(4) JUST RIGHT with 88) and on an elementary 01 record of a FILE SECTION FD printed '[   ABC][    XY][  AB][    QQ]' and 'COND-OK'. An 88 subordinate does not make an entry a group, and the right-justification and condition values agree. r5-grp88.cob (01 G JUSTIFIED RIGHT with an 88 and a 05) is refused with COBOL2403 ('this entry has 1 subordinate entry'): the 88 is not counted and the 05 is. cite.py: 'OK §1985:VI.5.6.3 SR1 the text is in SR1' ('The JUSTIFIED clause can be specified only at the elementary item level').",
   "edition-sites-missed": [],
   "corrected": ""
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "JUSTIFIED, and BLANK WHEN ZERO, on a report group entry that has subordinates compiles at 85; 2023 refuses it.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
- },
- "work": "PB5850"
+ }
 }

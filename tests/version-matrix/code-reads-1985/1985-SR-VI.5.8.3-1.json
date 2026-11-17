@@ -128,5 +128,10 @@
   "edition-sites-missed": [],
   "corrected": "NONCONFORMING (under-rejects), cause (c): at 1985 the III.2 definition makes every item subordinate to an ODO entry a variable occurrence data item, so an OCCURS entry inside an ODO table that has any subordinate entry must be refused; the compiler admits it at --std 85 (and at 2023). Repro refute-1985-05/c5/g1.cob."
  },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "An item below an OCCURS DEPENDING ON entry is not itself a variable occurrence data item in the rules (kb/Work PB5737). Decided by the 1985 text: §1985:VI.5.8.3 SR1b cannot use the term for every subordinate item, and §1985:VI.5.15.6 GR5 lists the two cases apart; with that meaning the compiler's refusals and acceptances conform.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-open-readings.md"
+ },
  "work": "PB5737"
 }

@@ -2071,8 +2071,11 @@ empty list needs `edition-search`), `behaviour-differs-by-edition`, `witnesses-c
 `file`, `printed`, `expected`), `citations` (non-empty, each `{cite, check}`, its `cite` parsed by `citation.py`, of a held
 edition and checked by `cite.resolve` in that edition's text; at least one of the rule's own edition, of the edition the
 catalog's own citation of the rule names, or the amendment's `§1989:`: see the third acceptance below), `notes`, `seeded` (a boolean); and for a non-conforming read `harm`, `cause` (a, b or c), `repro`,
-`expected`, `observed`, `known_note`, and `at-2023` for cause (b). The refuter's: `refutation` (UPHELD, OVERTURNED,
-DOUBTFUL), `classes`, `evidence`, `edition-sites-missed` (a list), and `corrected` for an overturn or a doubt.
+`expected`, `observed`, `known_note`, and `at-2023` for cause (b): the defect fields are required of a verdict that does not resolve
+(the schema's `resolves` flag, `Schema.resolving`), so a read whose verdict is DOCUMENTED-NON-SUPPORT carries none of them
+(it says the implementation declines the element and says so: there is no harm to state and nothing to reproduce; kb/Work
+PB5865). The refuter's: `refutation` (UPHELD, OVERTURNED, DOUBTFUL), `classes`, `evidence`, `edition-sites-missed` (a list),
+and `corrected` for an overturn only: a DOUBTFUL gives its reason in `evidence` and no invented verdict.
 
 **Three acceptances beyond the inventory's shape** (the Mythos lane's decisions of 2026-11-15, after the first import refused
 four of the sample's ten slices: nothing is read twice, and no fact is dropped; the third of 2026-11-16, kb/Work PB5842,
@@ -2102,10 +2105,15 @@ refuses, naming the slice, the rule and the text.
    (`code_reads.citation_problems`). A citation of an edition the repository does not hold is refused.
 
 **The outcome, one function** (`code_read_store.outcome`; the audit, the view and the planner ask it): `confirmed` (reader
-CONFORMS and refuter UPHELD, or an adjudication of CONFORMS); `contradicted` (reader not CONFORMS, or an adjudication of
-another verdict; it names its `work`); `undecided` (an overturn or a doubt, or a reader's UNDECIDED, nobody has
-adjudicated); `stale` (the rule's
-catalog digest is no longer the record's), which counts as no read.
+CONFORMS and refuter UPHELD; or reader's verdict resolves, as a documented decline does, and is the verdict the row SHARES;
+or an adjudication of CONFORMS); `contradicted` (reader's verdict does not resolve, or resolves and differs from the verdict
+the row shares, a decline read of a row whose chain conforms among them; or an adjudication of another verdict; it names its
+`work`); `undecided` (an overturn or a doubt, a reader's UNDECIDED, or a decline read of a row whose chain shares no
+verdict; nobody has adjudicated); `stale` (the rule's catalog digest is no longer the record's), which counts as no read.
+THE VERDICT A ROW SHARES (kb/Work PB5865) is `lineage.chain_verdict`: the verdict every rule the KEPT row carries into holds
+at the next held edition, none when the targets differ or hold none; `code_read_store.shared_verdicts` computes it for an
+edition's rows, `Context.shared` carries it, and every asker of the outcome passes it. The store reads the inventory's rows and
+never kb/Work. A record adjudicated CONFORMS only to say "the documented decline stands" keeps its adjudication.
 
 **The commands.** `import --edition YEAR --reads DIR --pin COMMIT [--record DIR] [--replace]` takes each `<slice>.json`
 whose own `edition` is the year with its `<slice>-refute.json`, as the pipeline writes them; every problem of every slice
