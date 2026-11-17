@@ -259,6 +259,9 @@ public sealed class CobolReport(
     private readonly int _lastDetail = lastDetail;
     private readonly int _footing = footing;
 
+    /// <summary>The regions the one line placement reads (<see cref="ReportLinePlacement"/>, kb/Work PB1003).</summary>
+    private readonly ReportPageRegions _regions = new(paged, heading, firstDetail, footing);
+
     /// <summary>The report's LINE-COUNTER (ISO §2023:8.4.3.15): an unsigned integer; 0 after INITIATE (GR3), set to
     /// each line's number as it is printed (§2023:13.18.35.4 GR6), reset to 0 at every page advance (GR3).</summary>
     public long LineCounter { get => _lineCounter; private set => _lineCounter = value & CounterMask; }
@@ -1320,8 +1323,9 @@ public sealed class CobolReport(
             case ReportGroupKind.ReportHeading:
                 switch (ng.Kind)
                 {
-                    case ReportNextGroupKind.Absolute: LineCounter = ng.Value; break;    // GR3a
-                    case ReportNextGroupKind.Relative: LineCounter += ng.Value; break;   // GR3b
+                    case ReportNextGroupKind.Absolute or ReportNextGroupKind.Relative:   // GR3a, GR3b
+                        LineCounter = ReportLinePlacement.AfterHeadingOrFootingNextGroup(ng, LineCounter);
+                        break;
                     default:
                         // GR3c — "the report heading is printed on the first page of the report as the only report
                         // group on that page and LINE-COUNTER is then set equal to zero"; §2023:14.9.16.4 GR4a — "an
@@ -1339,8 +1343,7 @@ public sealed class CobolReport(
                 // GR5 — the clause "affects any report footing defined in the current report using only relative
                 // LINE clauses": the footing is placed from LINE-COUNTER (§2023:13.18.35.4 GR5b5), so moving it here IS
                 // the effect. (SR5 forbids NEXT PAGE in a page footing.)
-                if (ng.Kind == ReportNextGroupKind.Absolute) LineCounter = ng.Value;         // GR5a
-                else if (ng.Kind == ReportNextGroupKind.Relative) LineCounter += ng.Value;   // GR5b
+                LineCounter = ReportLinePlacement.AfterHeadingOrFootingNextGroup(ng, LineCounter);   // GR5a, GR5b
                 break;
             case ReportGroupKind.ControlHeading or ReportGroupKind.Detail or ReportGroupKind.ControlFooting:
                 switch (ng.Kind)
@@ -1373,20 +1376,8 @@ public sealed class CobolReport(
     /// heading/footing) reach it, so the STEP arm cannot be live in one of them and missing in the others —
     /// the two-arm dispatch this repo keeps paying for was here as FOUR copies of
     /// <c>LineCounter + l.Value</c>.</summary>
-    private long SubsequentTarget(ReportGroupLine l) => l.Kind switch
-    {
-        ReportLineKind.Absolute => l.Value,                                 // GR7a
-        // GR12c/GR12d — integer-3 lines beneath the line this one occupies in the preceding occurrence. An
-        // unseeded anchor means that occurrence was absent (GR2b), and RelativeValue then re-anchors here.
-        ReportLineKind.Step when Anchor(l.Anchor) > 0 => Anchor(l.Anchor) + l.Value,
-        _ => LineCounter + RelativeValue(l),                                // GR7b
-    };
-
-    /// <summary>The relative operand a line places by when it is measured from LINE-COUNTER: its own integer-2,
-    /// or — for a <see cref="ReportLineKind.Step"/> line whose anchor was never seeded — the integer-2 written
-    /// on the entry (see <see cref="ReportGroupLine.RelativeBase"/>).</summary>
-    private static int RelativeValue(ReportGroupLine l) =>
-        l.Kind == ReportLineKind.Step ? l.RelativeBase : l.Value;
+    private long SubsequentTarget(ReportGroupLine l) =>
+        ReportLinePlacement.SubsequentLine(l.Kind, l.Value, l.RelativeBase, LineCounter, Anchor(l.Anchor));
 
     /// <summary>The step anchors of the presentation in progress (ISO §2023:13.18.38.4 GR12), indexed by
     /// <see cref="ReportGroupLine.Anchor"/>; 0 = not yet seeded (a page line number is always ≥ 1). Cleared at
@@ -1656,37 +1647,32 @@ public sealed class CobolReport(
         if (!BeginGroup(group, out int first)) return;
         bool ownPage = _paged && group.Kind == ReportGroupKind.ReportFooting && group.Lines[first].NextPage;
         if (ownPage) PageFeed();                                                                   // GR5a
-        // §2023:13.18.57.4 GR7f for a relative first line on a page by itself; §2023:13.18.35.4 GR5a / GR5b1 / GR5b5 / GR5c otherwise.
-        bool whole = PresentLines(group, ownPage && group.Lines[first].Kind != ReportLineKind.Absolute ? _heading : null);
+        // §2023:13.18.35.4 GR5a / GR5b1 / GR5b5 / GR5c, and §2023:13.18.57.4 GR7f for a relative first line on a page by
+        // itself: all in ReportLinePlacement.FirstLine.
+        bool whole = PresentLines(group);
         if (group.Kind == ReportGroupKind.ReportHeading) _rhOnThisPage = true;
         if (!whole) return;   // a raised EC-REPORT-PAGE-LIMIT — resume at the next report group
         ApplyNextGroup(group);   // §2023:13.18.37.4 GR3 (a report footing carries none — §2023:13.18.37.3 SR4)
         EndOfGroupSumReset(group);   // §2023:13.18.54.4 GR2 — a report footing's own counters (§2023:13.18.54.3 SR4)
     }
 
-    /// <summary>⛔ THE ONE §2023:13.18.35.4 GR5 RULE — the line number of a report group's FIRST (present) line, for
-    /// every group type (kb/Work PB1247). It was written out four times, once per presentation method, and the
-    /// UNPAGED arm (GR5 c)) existed only in the body-group copy, so an unpaged report's report heading and report
-    /// footing were placed by the PAGED formulas over the RD's zero page regions. The callers keep only what is
-    /// genuinely theirs: a body group's §2023:13.18.37.4 GR4a save-location placement and a report footing on a page by
-    /// itself (§2023:13.18.57.4 GR7f).</summary>
+    /// <summary>The line number of a report group's FIRST (present) line: the one §2023:13.18.35.4 GR5 rule
+    /// (<see cref="ReportLinePlacement.FirstLine"/>, which the binder's compile-time screens ask too, kb/Work PB1003),
+    /// asked with the final LINE-COUNTER of the group GR5 places this one after when that group is on the page: the
+    /// report heading before a page heading (GR5b2), the page footing before a report footing (GR5b5), an earlier body
+    /// group before a body group (GR5b3), and every earlier group of a report not divided into pages (GR5c). All four
+    /// presentation methods ask it (kb/Work PB1247); a body group's §2023:13.18.37.4 GR4a save-location placement stays
+    /// its caller's.</summary>
     private long FirstLineTarget(ReportGroup group, ReportGroupLine l)
     {
-        if (l.Kind == ReportLineKind.Absolute) return l.Value;                           // GR5a — integer-1
-        long relative = RelativeValue(l);
-        if (!_paged) return LineCounter + relative;                                       // GR5c — not divided into pages
-        return group.Kind switch
+        long? preceding = !_paged ? LineCounter : group.Kind switch
         {
-            ReportGroupKind.ReportHeading => _heading + relative - 1,                     // GR5b1
-            ReportGroupKind.PageHeading => _rhOnThisPage
-                ? LineCounter + relative                                                  // GR5b2, an RH on this page
-                : _heading + relative - 1,                                                // GR5b2
-            ReportGroupKind.PageFooting => _footing + relative,                           // GR5b4
-            ReportGroupKind.ReportFooting => _pfOnThisPage
-                ? LineCounter + relative                                                  // GR5b5, a PF on this page
-                : _footing + relative,                                                    // GR5b5
-            _ => _firstBodyOnPage ? _firstDetail : LineCounter + relative,                // GR5b3 — a body group
+            ReportGroupKind.PageHeading => _rhOnThisPage ? LineCounter : null,
+            ReportGroupKind.ReportFooting => _pfOnThisPage ? LineCounter : null,
+            ReportGroupKind.ReportHeading or ReportGroupKind.PageFooting => null,
+            _ => _firstBodyOnPage ? null : LineCounter,
         };
+        return ReportLinePlacement.FirstLine(group.Kind, l.Kind, l.Value, l.RelativeBase, l.NextPage, _regions, preceding);
     }
 
     /// <summary>The most recent report line, composed but NOT YET WRITTEN, and the physical page line it will
@@ -1744,7 +1730,7 @@ public sealed class CobolReport(
         // occurrence was absent, §2023:13.18.41.4 GR2b) — otherwise its Value is the displacement FROM the seed, and
         // moving the seed would compound it.
         if (line.Anchor != 0 && (line.Kind != ReportLineKind.Step || Anchor(line.Anchor) == 0))
-            SeedAnchor(line.Anchor, target - (line.Kind == ReportLineKind.Step ? line.Value : 0));
+            SeedAnchor(line.Anchor, ReportLinePlacement.AnchorSeed(line.Kind, line.Value, target));
         long device = DeviceLine;
         bool overprint = false;
         if (device != 0 && target <= device)
