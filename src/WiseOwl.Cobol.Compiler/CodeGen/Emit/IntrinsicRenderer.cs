@@ -931,6 +931,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     // ── The STANDARD-DECIMAL body dispatch (fix-queue PB56) ──────────────────────────────────────────────────
 
+    /// <summary>⛔ THE CONTEXT ARGUMENT <paramref name="i"/> IS RENDERED IN (kb/Work PB5891 reviews R3-1, R5-1): a §2023:15.3 type 6 (integer)
+    /// position takes <see cref="NumericRenderer.ArgumentReceiver"/>, the receiver without its floating-point facts, so the integer the type 6
+    /// classifier admitted is the one computed (a COMP-2 resultant took <c>MOD ((Y * 100 - X * 10.25) * 4, 1000)</c>'s argument onto binary64
+    /// and stored 672 for 41); every other position keeps the statement's receiver, as it always has, so no other argument's value moves.</summary>
+    private ReceiverContext ReceiverFor(BoundIntrinsicCall ic, int i) =>
+        IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i) ? num.ArgumentReceiver : num.Receiver;
+
     /// <summary>
     /// ⛔ AN ARGUMENT AS ITS POSITION TAKES IT, WITHOUT THE UNSCALED LANDING — the one indexed entry every numeric-channel
     /// intake and lane predicate reads (<see cref="Arg"/>, <see cref="Dbl"/>, <see cref="DecArg"/>, <see cref="IntArg"/>,

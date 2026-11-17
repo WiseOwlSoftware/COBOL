@@ -2,54 +2,49 @@
  "rule-id": "1989-RV-A.2.24.4-2",
  "rule-digest": "990c5ee6d1d2",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-180",
+  "pin": "d77571151bfc10ec6bd98abded49dce0af3aa121",
+  "slice": "1985-248",
   "sources": {
-   "reader": "b5874b3639f0d78b2869cfd0326da0530db24cab4e135f6db89df4567e71ba0b",
-   "refuter": "bbae1edda13178c47e7bf070f2019b28f1f8b3a3c1be48f6bd6c487443c94d19"
+   "reader": "13575cc1dc18e7200f5aaef3437816fa490024f525b89815d551d8d1384372ab",
+   "refuter": "4a04a818b47cb6d8dbbd16c99317b77ed2918e597b6a15b3b66f127effd6bbc9"
   },
   "imported": {
-   "reader": "1025097e0e1adb3fb9bff5e8fa85a690b575f22efb8a7f99f71df340fec711c9",
-   "refuter": "83a393eeab547abeb503952492b64b86389ea2a1b55cc87b30ed1adf93d8aab1"
+   "reader": "8af3d809b37772895d2b081f241ed4b9bb404f8cc7786987c62f20130c98f285",
+   "refuter": "ba1a4a911a36eb349136fbc8479c3a6331de23eb08004c5567f1930307180854"
   }
  },
  "reader": {
   "rule-id": "1989-RV-A.2.24.4-2",
   "verdict": "CONFORMS",
-  "requirement": "FUNCTION MEAN returns the sum of the argument-1 series divided by the number of occurrences argument-1 references, an ALL subscript counting each implied element (the ODO object's current value fixing an ODO range), without losing sign, fraction or the intermediate sum's high-order digits.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#SdidiQuotientFunctions; src/WiseOwl.Cobol.Compiler/Binding/Procedure/FunctionValueLane.cs#Of; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#MeanDec; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument",
+  "requirement": "At COBOL-85 the MEAN value must equal the sum of the argument-1 series divided by the number of occurrences the series references: the divisor counts each written argument and each element an ALL subscript implies (an ODO table at its current count), never the table's maximum.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#MeanExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#MeanDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#SdidiQuotientFunctions",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
-    "switches": "the function's IntroducedIn (85 for MAX, MEAN, MEDIAN) against DialectLevel: COBOL1502 before it",
+    "switches": "the IntroducedIn / RemovedIn window; MEAN's row carries 85",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
-    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands is refused (COBOL0900); inside an arithmetic expression it is not consulted",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StandardDecimal",
-    "switches": "OPTIONS ARITHMETIC mode; at 85 no ARITHMETIC clause exists so Options.Arithmetic is Native, the latest edition's default arm",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#RoundsStandardArgument",
+    "switches": "edition year matters only for INTEGER under standard arithmetic; not on MEAN's 1985 path",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior over IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs, CobolIntrinsics.Exact.cs, CobolIntrinsics.Dec.cs, CobolIntrinsics.ExactValue.cs and CobolTable.cs found none on the MAX/MEAN/MEDIAN arms; the edition is read only in IntrinsicBinder (availability window, identifier-placement screen, argument predicates) and through the arithmetic mode",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_bf40_02 covers a fixed 4-element ALL and two explicit occurrences; not exercised there are ODO current counts, ALL ALL and partial ALL counts, and a 13-term divisor (probed here)",
+  "edition-search": "As for RV1. MeanDec is ar.Div(SumDec(ar, xs), xs.Length): the divisor is the runtime argument count after ALL expansion, with no edition input.",
+  "behaviour-differs-by-edition": "no: identical output at --std 85 and --std 2023.",
+  "witnesses-cover": "part: g85_bf40_02 covers a fixed list. The divisor under an ALL subscript over an ODO table at different counts, and with two ALL subscripts, is exercised only by the probe.",
   "probes": [
    {
-    "class": "a,d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/mean.cob",
-    "printed": "E1= 000000001.66666666 E2= 000000002.46000000 E3= 000000003.00000000 E4= 000000003.50000000 E5= 000000005.00000000 E6= 999999999999999999 E7=-333333333333333333 E8= 000000150.00250000 E9= 000000002.58333333 EA= 000000000.00000000 EB=-000000007.00000000 EC=SIZE ED=4 EE= 000000000.92307692 EF=+0000000003.99999999 EG= 500000000000000000",
-    "expected": "E1 5/3 truncated 1.66666666; E2 12.3/5=2.46; E3 ODO N=3 9/3=3; E4 21/6=3.5; E5 15/3=5; E6 two 18-digit maxima 999999999999999999; E7 -333333333333333333; E8 (300+0.005)/2=150.0025; E9 (-12.25+7+13)/3=2.58333333; EA 0; EB -7; EC size error; ED (1+4+7)/3=4; EE 12/13; EF 4/3*3 (implementor-defined precision, §1989:A.2.3); EG 5E17"
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-248/mean.cob",
+    "printed": "M6 (ODO count 3, elements 1 2 6) 3.0; M7 (count 5, adds -9.99 0.99) 0.0; M8 (count 1 plus literal 4) 2.5; M9 (2x3 ALL ALL) 4; M10 (2 ALL) 6",
+    "expected": "sum / occurrences: 9/3, 0/5, 5/2, 24/6, 18/3"
    },
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxlater.cob",
-    "printed": "COBOL0900 floating-point numeric literal 1.5E1 requires COBOL-2002 (lines 9, 11, 12); COBOL0900 national literal N\"AB\" requires COBOL-2002 plus COBOL1627 class mismatch (line 10)",
-    "expected": "a floating-point literal argument (2002) is refused at --std 85"
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-248/mean.cob",
+    "printed": "M2 1.333333333333; M11 999999999999999998; M12 999999999999999999; M16 1.666666666666",
+    "expected": "4/3, (2*10^18-4)/2, 3*(10^18-1)/3, 5/3"
    }
   ],
   "citations": [
@@ -58,15 +53,15 @@
     "check": "OK  §1989:A.2.24.4 RV2  (2.24.4 Returned Values)  the text is in RV2"
    },
    {
-    "cite": "§1989:A.2.2 AR4",
-    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4 [quote: the range of values is determined by the object of the OCCURS DEPENDING ON clause]"
    }
   ],
-  "notes": "The divisor is the runtime argument count after CobolTable.AllArgs expansion: E3 divides by the ODO object's current value 3, E4 by 6 for T2C(ALL ALL), E5 by 3 for T2C(2 ALL), EE by 13. Same output at --std 2023.",
+  "notes": "The divisor is the count of expanded arguments at run time, so an ODO table at count 1, 3 and 5 divides by 1+1, 3 and 5 respectively. The sum is exact before the one division.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "identical output",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -74,12 +69,15 @@
  },
  "refuter": {
   "rule-id": "1989-RV-A.2.24.4-2",
-  "refutation": "UPHELD",
-  "classes": "a,b,c,d,f",
-  "evidence": "Divisor is the run-time occurrence count: meanctx2-001 CC (4 ALL elements) 2.35, CE (two ALL ranges, 2 + 3 = 5 occurrences) 7.2, CF eleven explicit 18-digit arguments K (sum of 20 digits, no wrap); degen-001 G3 one occurrence. The sum is formed exactly (CobolIntrinsics.MeanExact: Total then one Quotient), so no high-order digit is lost; the one 34-digit rounding of the quotient (meanprec2-001 P1 500000000000000000 for 499999999999999999.99...95) is the implementor's representation of a numeric function (cite.py OK §1985:IV.4.3.4 'The implementor specifies the representation of integer and numeric functions'), documented in docs/conformance/7/DOC-A.1-123.md, same at 2023. cite.py: OK §1989:A.2.24.4 RV2 'the sum of the argument-1 series divided by the number of occurrences referenced by argument-1'.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec: native arm 'MeanScaled when !num.StandardDecimal' => MeanExact is the 85 path, not MeanDec"
-  ],
+  "refutation": "DOUBTFUL",
+  "classes": "a,d,f",
+  "evidence": "Probes at --std 85: rmean.cob (rmean-002) exact on all-fixed-point lists: MEAN(99999999999999999 .000000000000000001)=49999999999999999.5, MEAN(.000000000000000003 .000000000000000001)=.000000000000000002, 9PP item 150, VP9 item .025, COMP-3 -0.5, TE(ALL K) 3.85, TE OF TR(ALL ALL) with 0 -> 2.0428 (14.3/7), ROUNDED 5/3 1.6667, ZERO arg 1.5. BUT X8 MEAN(TE(K ALL) TE(1 1) FUNCTION SQRT(4)) printed 2.1599, not 2.16; rmix.cob isolates it: Y1 MEAN(-4.4 5.5 6.6 1.1 2)=2.1600, Y2 MEAN(-4.4 5.5 6.6 1.1 FUNCTION SQRT(4))=2.1599, while rsqrt.cob shows SQRT(4) is exactly 2.00000000000000 and 8.8 + SQRT(4) = 10.8000; same at --std 2023. Cause read in code: CobolIntrinsics.ExactValue.cs#MeanExact calls TryBinary64Body, which evaluates the WHOLE mean in binary64 (MeanReal) once any argument is binary64 (an approximate function such as SQRT), so the exact decimals -4.4..1.1 are converted to doubles and the sum is 10.799999999999999; the reader's note 'the sum is exact before the one division' misses this arm. This is documented as an implementor determination (docs/conformance/7/DOC-A.1-92b.md). Cites: OK §1989:A.2.24.4 RV2 'the sum of the argument-1 series divided by the number of occurrences referenced by argument-1'; OK §1985:IV.4.3.4 'Each implementor will indicate the techniques used in evaluating integer and numeric functions'; §1989:A.2.40.4 RV1 (SQRT is an approximation; cite.py corrected my A.2.41.4 to A.2.40.4). READING: the verdict holds only if §1985:IV.4.3.4's technique latitude (and SQRT being an approximation) licenses evaluating MEAN over EXACT decimal arguments in binary64 when one argument is approximate; against it, RV2 defines the value as sum/count of the argument values, and the compiler's own native expression 8.8 + SQRT(4) stays exact. If the latitude does not stretch that far, the verdict is wrong-answer (truncation to 2.1599), cause (b) same at every edition.",
+  "edition-sites-missed": [],
   "corrected": ""
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The doubt is rejected: §1985:IV.4.3.4 leaves the techniques used in evaluating integer and numeric functions to the implementor, and the register entry DOC-A.1-92b indicates this one (binary64 once any argument is floating-point or an approximation); the entry gains its 1985 sentence.",
+  "ref": "kb/Work/PB5683/2026-11-17-rulings-code-reads-batch-21.md"
  }
 }
