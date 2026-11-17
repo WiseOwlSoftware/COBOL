@@ -52,6 +52,23 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// not an error (the position is a RECEIVING one, §2023:14.9.43.3 SR10, so §2023:8.4.3.9.3 SR3 asks nothing of it).</summary>
 public enum StoreKind { None, Write, ReadWrite, WriteInPart }
 
+/// <summary>What a store query asks of a statement that names one operand and stores into SELECTED items within it
+/// (MOVE, ADD and SUBTRACT CORRESPONDING; INITIALIZE): the operand the statement WROTE, or the items it actually stores
+/// (kb/Work PB5890). Every other statement stores what it names, and both views agree on it.</summary>
+internal enum StoreView
+{
+    /// <summary>The receiving operand as written: the receiving group of a CORRESPONDING statement, identifier-1 of INITIALIZE.
+    /// The property-temp query asks it (the temp IS the written operand) and the debug query asks it (X3.23-1985 USE FOR
+    /// DEBUGGING general rule 6 c "explicitly references"; rule 9: a group reference does not reference its subordinates).</summary>
+    Operands,
+
+    /// <summary>The storage the statement alters: the receiving item of each corresponding pair (§1985:VI.6.19.4 GR1 "selected
+    /// items within identifier-1 are moved to selected items within identifier-2"), and the elementary stores INITIALIZE's
+    /// expansion makes after its category selection, exclusions and default (§1985:VI.6.17.4 GR2 to GR5). The control-data
+    /// query asks it (§1985:XIII.4.9.3 SR4 "must not alter the value of any control data item").</summary>
+    Storage,
+}
+
 public static class BoundStores
 {
     /// <summary>The store polarity of <paramref name="item"/> in <paramref name="s"/> —
@@ -61,7 +78,7 @@ public static class BoundStores
     /// total.</summary>
     public static StoreKind StoreKindOf(BoundStatement s, DataItem item)
     {
-        var visitor = new StoreKindVisitor(p => ReferenceEquals(p.Item, item), crossingsStore: true);
+        var visitor = new StoreKindVisitor(p => ReferenceEquals(p.Item, item), StoreView.Operands, crossingsStore: true);
         var kind = s.Accept(visitor);
         // A whole-receiver arm answered Write for a store into a WINDOW of the item: only that subset is a receiving
         // item (§2023:8.4.3.3.4 GR5), so the rest of the item is kept, which is the same polarity STRING's GR7 gives.
@@ -89,10 +106,13 @@ public static class BoundStores
     /// names only the file (kb/Work PB5885): <paramref name="connector"/> places them (<see cref="FileConnectorStore"/>) and
     /// each I-O arm says which its verb makes, so a READ alters its record area, the FILE STATUS item, the RELATIVE KEY item
     /// and the DEPENDING ON item as a MOVE to one of them does. The other two queries ask about the operands a statement
-    /// writes and pass none.</para></summary>
+    /// writes and pass none.</para>
+    /// <para>It asks the <see cref="StoreView.Storage"/> view (kb/Work PB5890): a CORRESPONDING statement or an INITIALIZE stores
+    /// the items it selects within the operand it names, not the whole operand, so an item of the group it selects none of keeps
+    /// its value.</para></summary>
     public static bool StoresInto(BoundStatement s, Func<Place, bool> matches,
         Func<FileModel, FileConnectorStore, IEnumerable<Place>> connector) =>
-        s.Accept(new StoreKindVisitor(matches, crossingsStore: false, connector: connector)) is not StoreKind.None;
+        s.Accept(new StoreKindVisitor(matches, StoreView.Storage, crossingsStore: false, connector: connector)) is not StoreKind.None;
 
     /// <summary>The place through which <paramref name="s"/> ITSELF — never a statement nested in it — stores into
     /// <paramref name="item"/>, or null when it does not. The third client (X3.23-1985 USE FOR DEBUGGING general rule 6 c, which
@@ -104,14 +124,15 @@ public static class BoundStores
     {
         // "explicitly references": the data-name the operand is written with, under any decoration (Place.NamedItem, kb/Work
         // PB5801 review R1-1), so a store through a level-66 alias is a store referencing the alias, not the item it renames.
-        var visitor = new StoreKindVisitor(p => ReferenceEquals(p.NamedItem, item), crossingsStore: false, direct: true);
+        var visitor = new StoreKindVisitor(p => ReferenceEquals(p.NamedItem, item), StoreView.Operands, crossingsStore: false, direct: true);
         return s.Accept(visitor) is StoreKind.None ? null : visitor.FirstHit;
     }
 
     /// <summary>The per-node store classification (the former <c>StoreKindOf</c> switch, one arm per leaf) —
     /// the exhaustive <see cref="IBoundStatementVisitor{T}"/> over the bound statements, carrying the target
-    /// <paramref name="item"/> so recursion is <c>child.Accept(this)</c>.</summary>
-    private sealed class StoreKindVisitor(Func<Place, bool> matches, bool crossingsStore, bool direct = false,
+    /// <paramref name="item"/> so recursion is <c>child.Accept(this)</c>. <paramref name="view"/> says whether a statement that
+    /// stores into selected items of the operand it names answers for the operand or for those items.</summary>
+    private sealed class StoreKindVisitor(Func<Place, bool> matches, StoreView view, bool crossingsStore, bool direct = false,
         Func<FileModel, FileConnectorStore, IEnumerable<Place>>? connector = null) : IBoundStatementVisitor<StoreKind>
     {
         /// <summary>The first <see cref="Place"/> a matching store went through, or null (<see cref="DirectStoreOf"/> reads it).</summary>
@@ -302,12 +323,19 @@ public static class BoundStores
         public StoreKind Visit(BoundCompute n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
         public StoreKind Visit(BoundComputeBoolean n) => n.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None;   // §2023:14.9.8 F2 — no size-error phrase
         public StoreKind Visit(BoundPositionValue n) => Hit(n.Temp) ? StoreKind.Write : StoreKind.None;
-        public StoreKind Visit(BoundCorresponding n) => StoreOrKids(n.Pairs.Any(p => Hit(p.Target)) | Hit(n.ReceivingGroup),
+        // The operand view asks the receiving group the statement wrote; the storage view asks the receiving item of each corresponding pair,
+        // the only items the statement stores (§1985:VI.6.19.4 GR1; ADD and SUBTRACT CORRESPONDING store their numeric pairs alike), so an item
+        // of the group with no corresponding item keeps its value (kb/Work PB5890).
+        public StoreKind Visit(BoundCorresponding n) => StoreOrKids(
+            view is StoreView.Operands ? Hit(n.ReceivingGroup) : n.Pairs.Any(p => Hit(p.Target)),
             n.Verb == CorrVerb.Move ? StoreKind.Write : StoreKind.ReadWrite,
             n.SizeError?.OnError, n.SizeError?.NotOnError);
-        // identifier-1 as written is a store of its own (INITIALIZE G changes G, which no elementary store below names); the direct query
-        // (the debug triggers) stops there: a group reference does not reference or change its subordinates (X3.23-1985 USE FOR DEBUGGING rule 9).
-        public StoreKind Visit(BoundInitialize n) => Hit(n.Written) || (!direct && InitStores(n.Actions)) ? StoreKind.Write : StoreKind.None;
+        // The operand view asks identifier-1 as written (INITIALIZE G changes G, which no elementary store of the expansion names; the debug
+        // triggers stop there: a group reference does not reference or change its subordinates, X3.23-1985 USE FOR DEBUGGING rule 9). The storage
+        // view asks the expansion's stores, which are the items the statement initializes after its category selection, its exclusions and its
+        // default (§1985:VI.6.17.4 GR2 to GR5), so an item of another category than REPLACING names keeps its value (kb/Work PB5890).
+        public StoreKind Visit(BoundInitialize n) =>
+            (view is StoreView.Operands ? Hit(n.Written) : InitStores(n.Actions)) ? StoreKind.Write : StoreKind.None;
 
         // VALIDATE reads its operand and stores nothing in stage one (§2023:14.9.50.4 GR5: the content of an invalid item does not change); DEFAULT and DESTINATION (stages S2) will.
         public StoreKind Visit(BoundValidate n) => StoreKind.None;
