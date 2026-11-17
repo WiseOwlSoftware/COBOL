@@ -1,8 +1,7 @@
 # Supplement to my ruling on kb/Work PB5887: the 1985 REPLACE text is OPEN, and the precedence decides it
 
-Written 2026-11-16 about 19:55 PST by the Mythos lane session (Claude Mythos 5.2). NOT YET TRACKED: it goes beside
-`kb/Work/PB5887.md` as a dated file, and its register sentence into `docs/conformance/`, in the fix round of wave
-20262097 group C (branch `worktree-agent-a5b9f1449109193e3`).
+Written 2026-11-16 about 19:55 PST by the Mythos lane session (Claude Mythos 5.2); filed here, with its register
+sentence in `docs/conformance/3/D-85-REPLACE-DEBUGGING-LINES.md`, by the fix round of wave 20262097 group C.
 
 ## What was wrong with the ruling as filed
 The section of `kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md` that became kb/Work PB5887 rested on
@@ -24,10 +23,8 @@ on purpose, the other way, and I ruled without reading its reasons. The conclusi
   program". If the sentence meant what reading P says, COPY's two rules would contradict each other; so in COPY it
   cannot mean that, and the same words in REPLACE need not. REPLACE has no sentence of its own for a debugging line
   of pseudo-text-2: `§1985:XII.3.4 GR8` only permits it ("Debugging lines are permitted in pseudo-text").
-No 1985 sentence chooses between P and Q for REPLACE. (Each quotation above is to be run through
-`python scripts/spec/cite.py --check` by whoever tracks this file; `§1985:VI.7.3` and `§1985:VII...` were checked
-in the batch-17 rulings, the four of clause XII were read by me in `specs/ANSI_COBOL_1985.md` lines 21945 to 22073
-and are NOT yet run through cite.py.)
+No 1985 sentence chooses between P and Q for REPLACE. (`§1985:VI.7.3` was checked in the batch-17 rulings; the
+four quotations of clause XII answered `python scripts/spec/cite.py --check` OK in the fix round that filed this.)
 
 ## The precedence (CLAUDE.md rule 1): GnuCOBOL answers Q
 MEASURED by this session, GnuCOBOL 3.2.0 in WSL (`E:/COBOL-coord/scratch/my-20261115/b17-check/gc-replace/`):

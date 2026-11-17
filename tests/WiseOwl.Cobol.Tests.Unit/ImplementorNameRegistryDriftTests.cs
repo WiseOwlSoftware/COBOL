@@ -20,20 +20,23 @@ namespace WiseOwl.Cobol.Tests.Unit;
 public sealed class ImplementorNameRegistryDriftTests
 {
     /// <summary>Each clause table, by the position (an <c>ImplementorNamePosition</c> member's name) its names take in the
-    /// registry.</summary>
+    /// registry. Each table's names are sorted: they are part of the case's display name, which the gate lists before
+    /// the run and matches after it, and a dictionary's or a set's order is not stable between the two processes.</summary>
     public static TheoryData<string, string[]> ClauseTables() => new()
     {
         { nameof(ImplementorNamePosition.DeviceName), Names(SystemNameKind.Device) },
         { nameof(ImplementorNamePosition.FeatureName), Names(SystemNameKind.Feature) },
         { nameof(ImplementorNamePosition.SwitchName), Names(SystemNameKind.Switch) },
-        { nameof(ImplementorNamePosition.AlphanumericCodeName), [.. ImplementorCodeNames.All.Where(r => !r.National).Select(r => r.Name)] },
-        { nameof(ImplementorNamePosition.NationalCodeName), [.. ImplementorCodeNames.All.Where(r => r.National).Select(r => r.Name)] },
-        { nameof(ImplementorNamePosition.AssignDeviceClass), [.. AssignTargetRule.DeviceClasses] },
-        { nameof(ImplementorNamePosition.RecordDelimiterName), [.. RecordDelimiterNames.Names] },
+        { nameof(ImplementorNamePosition.AlphanumericCodeName), Sorted(ImplementorCodeNames.All.Where(r => !r.National).Select(r => r.Name)) },
+        { nameof(ImplementorNamePosition.NationalCodeName), Sorted(ImplementorCodeNames.All.Where(r => r.National).Select(r => r.Name)) },
+        { nameof(ImplementorNamePosition.AssignDeviceClass), Sorted(AssignTargetRule.DeviceClasses) },
+        { nameof(ImplementorNamePosition.RecordDelimiterName), Sorted(RecordDelimiterNames.Names) },
     };
 
     private static string[] Names(SystemNameKind kind) =>
-        [.. ImplementorNames.All.Values.Where(r => r.Kind == kind).Select(r => r.Name)];
+        Sorted(ImplementorNames.All.Values.Where(r => r.Kind == kind).Select(r => r.Name));
+
+    private static string[] Sorted(IEnumerable<string> names) => [.. names.Order(StringComparer.Ordinal)];
 
     /// <summary>The registry's rows at a position are exactly the names of that position's clause table.</summary>
     [Theory]
