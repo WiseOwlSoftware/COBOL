@@ -116,13 +116,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <see cref="IntrinsicRenderer"/> (an intrinsic's working scale/mode derive from the SAME receiver).</summary>
     internal ReceiverContext Receiver => _rcv;
 
-    /// <summary>⛔ THE CONTEXT AN INTRINSIC FUNCTION'S ARGUMENT IS EVALUATED IN (kb/Work PB5891 review R3-1): the statement's receiver
+    /// <summary>⛔ THE CONTEXT AN INTRINSIC FUNCTION'S ARGUMENT AT A TYPE 6 (INTEGER) POSITION IS EVALUATED IN (kb/Work PB5891 reviews R3-1,
+    /// R5-1; <c>IntrinsicRenderer.ReceiverFor</c>; every other argument keeps the statement's receiver): the statement's receiver
     /// with none of its floating-point facts. An argument is an arithmetic expression of its own, evaluated "individually"
     /// (§2023:8.4.3.2.4 GR2), whose value is the function's input and never the resultant's: a COMP-2 resultant took the argument of
-    /// <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored 672 for 41. Its lanes are therefore
-    /// <see cref="NumericLanes.LaneOf"/> of the argument as the type 6 classifier reads them: no floating-point receiver and scale 0, so the
-    /// renderer asserts an argument's nodes in the very context the classifier reads, <see cref="LaneContext.Argument"/> (review R4-1).</summary>
-    internal ReceiverContext ArgumentReceiver => _rcv with { Scale = 0, Real = false, FloatEdited = false, Single = false, FloatSignificandDigits = 0 };
+    /// <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored 672 for 41. The receiver's SCALE is kept:
+    /// a nested quotient's working scale reads it (<c>CobolNum.NestedQuotientScale</c>), so <c>COMPUTE RR = FUNCTION ABS (A / 3)</c> into
+    /// PIC 9V9(17) keeps all 17 places (review R5-1; <c>pb5891_argument_receiver_scale</c>). <see cref="AssertLane"/> checks an argument's
+    /// nodes in THIS context; the type 6 classifier reads <see cref="LaneContext.Argument"/> (scale 0). A larger receiver scale only
+    /// widens a quotient's working scale, so a node the classifier sees on the Int128 lane may be wide here and an SDIDI operation beside
+    /// it exact here, never the reverse: the renderer's lane is never less exact than the classifier's
+    /// (<c>NumericLaneDriftTests.AnArgumentsLane_AtAReceiverScale_IsNeverLessExactThanAtScaleZero</c>).</summary>
+    internal ReceiverContext ArgumentReceiver => _rcv with { Real = false, FloatEdited = false, Single = false, FloatSignificandDigits = 0 };
 
     /// <summary>Whether the value now being rendered IS the value transferred to a single resultant identifier —
     /// <see cref="_outermost"/>, read by the mutually-recursive <see cref="IntrinsicRenderer"/> (kb/Work PB647:

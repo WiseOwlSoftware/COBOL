@@ -145,6 +145,58 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
         Assert.True(wrong.Count == 0, "the classifier's lane is not the code generator's (kb/Work PB5891 R1-3):\n  " + string.Join("\n  ", wrong));
     }
 
+    /// <summary>The precision rank of a lane: binary64 (0), the SDIDI (1), the Int128, wide and exact forms that keep every digit (2).</summary>
+    private static int Rank(NumericLane lane) => lane switch
+    {
+        NumericLane.Binary64 or NumericLane.Approximation => 0,
+        NumericLane.Sdidi => 1,
+        _ => 2,
+    };
+
+    /// <summary>⛔ AN ARGUMENT'S LANE AT A RECEIVER'S SCALE IS NEVER LESS EXACT THAN AT SCALE 0 (kb/Work PB5891 review R5-1). The renderer
+    /// evaluates an argument at the statement's receiver scale (<c>NumericRenderer.ArgumentReceiver</c>) and asserts its nodes in that
+    /// context; the type 6 classifier reads scale 0 (<c>LaneContext.Argument</c>). A receiver scale only widens a nested quotient's working
+    /// scale, so the quotient may be wide where it was on the Int128 lane, and an SDIDI operation beside it exact (the wide-beside-SDIDI
+    /// rule); nothing becomes binary64 or less exact. So for every argument shape, at every sample scale, the least exact lane allowed is
+    /// at least as exact as at scale 0, and the binary64 lanes are the same: the classifier's answer stays sound.</summary>
+    [Fact]
+    public void AnArgumentsLane_AtAReceiverScale_IsNeverLessExactThanAtScaleZero()
+    {
+        BoundExpr n = new BoundNumRef(PlaceOf(N));
+        BoundExpr x = new BoundNumRef(PlaceOf(X));
+        BoundExpr Lit(string t) => new BoundNumLiteral(t);
+        BoundExpr Bin(BoundExpr l, char op, BoundExpr r) => new BoundBinary(l, op, r);
+        var shapes = new (string Text, BoundExpr Expr)[]
+        {
+            ("N / 3", Bin(n, '/', Lit("3"))),
+            ("N / 3 + 1.5E0", Bin(Bin(n, '/', Lit("3")), '+', Lit("1.5E0"))),
+            ("X / 3 + 1.5E0", Bin(Bin(x, '/', Lit("3")), '+', Lit("1.5E0"))),
+            ("N * 10.25", Bin(n, '*', Lit("10.25"))),
+            ("X * 10.25 + 1.5E0", Bin(Bin(x, '*', Lit("10.25")), '+', Lit("1.5E0"))),
+            ("N * (N + 1) / 2", Bin(Bin(n, '*', Bin(n, '+', Lit("1"))), '/', Lit("2"))),
+            ("SQRT (N) - SQRT (N) + 5", Bin(Bin(Call("SQRT", new BoundFieldOperand(PlaceOf(N))), '-',
+                Call("SQRT", new BoundFieldOperand(PlaceOf(N)))), '+', Lit("5"))),
+            ("F - F + 1", Bin(Bin(new BoundNumRef(PlaceOf(F)), '-', new BoundNumRef(PlaceOf(F))), '+', Lit("1"))),
+            ("N ** 2 / 3", Bin(new BoundPower(n, Lit("2"), NegativeBaseRealRoots: false), '/', Lit("3"))),
+            ("1 ** (K * P1)", new BoundPower(Lit("1"), Bin(new BoundNumRef(PlaceOf(K)), '*', new BoundNumRef(PlaceOf(P1))),
+                NegativeBaseRealRoots: false)),
+        };
+        var wrong = new List<string>();
+        foreach (var (text, expr) in shapes)
+        {
+            var atZero = NumericLanes.LaneOf(expr, LaneContext.Argument(ArithmeticMode.Native)).Lanes;
+            foreach (int scale in new[] { 1, 2, 6, 17, 31 })
+            {
+                var at = NumericLanes.LaneOf(expr, new LaneContext(ArithmeticMode.Native, false, scale, false)).Lanes;
+                if (at.Min(Rank) < atZero.Min(Rank) || at.Any(l => Rank(l) == 0) != atZero.Any(l => Rank(l) == 0))
+                    wrong.Add($"{text} at scale {scale}: {string.Join(" or ", at.Order())}, at scale 0: {string.Join(" or ", atZero.Order())}");
+            }
+        }
+        Assert.True(wrong.Count == 0,
+            "an argument's lane at a receiver scale is less exact than the classifier's at scale 0:" + Environment.NewLine + "  "
+            + string.Join(Environment.NewLine + "  ", wrong));
+    }
+
     /// <summary>The renderer's operation dispatch reads its lane from <see cref="NumericLanes.Combine"/> alone: the per-flag lane
     /// predicates it used to spell out for itself are gone, so a lane rule changed in one place changes both readers.</summary>
     [Fact]

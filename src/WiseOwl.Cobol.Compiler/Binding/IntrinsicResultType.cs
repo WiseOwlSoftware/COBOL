@@ -151,16 +151,23 @@ public enum IntrinsicResultRule
 /// </remarks>
 internal static class IntrinsicResultType
 {
+    /// <summary>⛔ THE CATALOG FACTS OF A CALL THAT DECIDE ITS CARRIER (kb/Work PB5891 review R5-2): the function's name, runtime body and
+    /// floating-math membership (its catalog row), its resolved type, and, for the arguments written, which positions are §2023:15.3 type 6
+    /// (integer) positions and whether the run is numeric-only (its argument schema). The bound layer's carrier rules read them as data
+    /// (<see cref="IntrinsicCarrierFacts"/>, on <see cref="BoundIntrinsicCall.CarrierFacts"/>), decided once with the call's type.</summary>
+    public static IntrinsicCarrierFacts CarrierFacts(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args, IntrinsicType type)
+    {
+        string name = sig.Name;
+        return new IntrinsicCarrierFacts(name, sig.RuntimeMethod, sig.Float, type is IntrinsicType.Integer,
+            [.. Enumerable.Range(0, args.Count).Select(i => IntrinsicArgumentRules.IsIntegerPosition(name, i))],
+            IntrinsicArgumentRules.ArgumentRunIsAllNumeric(name, args.Count));
+    }
+
     /// <summary>
     /// The §2023:15.2 type of this call: the row's declared <see cref="IntrinsicSig.Type"/> for a
     /// <see cref="IntrinsicResultRule.Fixed"/> row, otherwise the type its §15.x.1 table selects for these
     /// arguments.
     /// </summary>
-    /// <summary>The carrier <paramref name="call"/>'s returned value arrives on under native arithmetic — the binder's prediction of the code
-    /// generator's (<see cref="Procedure.FunctionValueLane.LaneOf(BoundExpr)"/>) — decided once, with the call's type, when its arithmetic is
-    /// set (<see cref="BoundIntrinsicCall.ValueLane"/>; kb/Work PB5891 review R4).</summary>
-    internal static NumericLane ValueLane(BoundIntrinsicCall call) => Procedure.FunctionValueLane.LaneOf(call);
-
     public static IntrinsicType Resolve(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args, ArithmeticMode arithmetic) => sig.Result switch
     {
         // The §15.x.1 "Argument type National → National" row, read through the ONE class-or-usage reader: for the

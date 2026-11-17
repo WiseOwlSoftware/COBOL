@@ -524,17 +524,17 @@ public sealed record BoundIntrinsicCall(
         {
             _arithmetic = value;
             _resultType ??= IntrinsicResultType.Resolve(Sig, Args, value);
-            _valueLane ??= IntrinsicResultType.ValueLane(this);
+            _carrierFacts ??= IntrinsicResultType.CarrierFacts(Sig, Args, _resultType.Value);
         }
     }
 
-    /// <summary>⛔ THE CARRIER THE CALL'S RETURNED VALUE ARRIVES ON UNDER NATIVE ARITHMETIC, DECIDED ONCE WITH ITS TYPE (kb/Work PB5891 review
-    /// R4): the bind-time prediction of <c>IntrinsicRenderer.RenderNum</c>'s carrier (the binder's <c>FunctionValueLane</c>), from the
-    /// arguments as written, so <see cref="NumericLanes.LaneOf"/> reads it as a fact of the bound node.</summary>
-    internal NumericLane ValueLane => _valueLane
-        ?? throw new InvalidOperationException($"FUNCTION {Sig.Name} was bound without the arithmetic in force, so its value lane is undecided");
+    /// <summary>⛔ THE CATALOG FACTS THAT DECIDE THE CALL'S CARRIER, DECIDED ONCE WITH ITS TYPE (kb/Work PB5891 review R5-2): the data the
+    /// bound layer's carrier prediction (<see cref="FunctionValueLane"/>) and lane rule (<see cref="NumericLanes.LaneOf"/>) read of a call,
+    /// from the arguments as written (a frozen argument's temporary keeps them, as it keeps <see cref="ResultType"/>).</summary>
+    internal IntrinsicCarrierFacts CarrierFacts => _carrierFacts
+        ?? throw new InvalidOperationException($"FUNCTION {Sig.Name} was bound without the arithmetic in force, so its carrier facts are undecided");
 
-    private readonly NumericLane? _valueLane;
+    private readonly IntrinsicCarrierFacts? _carrierFacts;
 
     private readonly ArithmeticMode _arithmetic;
     private readonly IntrinsicType? _resultType;

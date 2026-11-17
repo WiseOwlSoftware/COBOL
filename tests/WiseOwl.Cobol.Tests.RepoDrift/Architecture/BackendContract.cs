@@ -24,6 +24,8 @@ internal static class BackendContract
             // intrinsic-function-names as their catalog rows spell them (kb/Work PB4370)
             "Bound.IntrinsicCarrierRules.CrossAligningFunctions", "Bound.IntrinsicCarrierRules.ExactParseFunctions",
             "Bound.IntrinsicCarrierRules.SdidiQuotientFunctions", "Bound.IntrinsicCarrierRules.StandardArgumentKeepsAllDigits",
+            // a call's catalog facts the bound layer's carrier prediction reads (kb/Work PB5891 review R5-2)
+            "Model.IntrinsicCarrierFacts.Name",
             "Model.ApplyCommitModel.Identifiers", "Model.IndexNameRegistry._byName",
             // the file-names visible in a source element, its own and its containers' GLOBAL ones (kb/Work PB2296)
             "Model.FileNameScope._hidden", "Model.FileNameScope._inherited", "Model.FileNameScope._own",
@@ -218,6 +220,10 @@ internal static class BackendContract
         new(NeutralKind.IdentityKey,
         [
             "Model.DataItem.PointerRestrictionIdentity", "Model.PictureClauseIdentity.Key",
+            // runtime-body names the bound layer's carrier prediction keys its sets on, never emitted (kb/Work PB5891 review R5-2)
+            "Bound.FunctionValueLane.NativeSdidiBodies", "Bound.FunctionValueLane.NativeSdidiBodiesWithExactResult",
+            "Bound.FunctionValueLane.NativeSdidiBodiesWithWholeResult", "Bound.FunctionValueLane.Selections",
+            "Model.IntrinsicCarrierFacts.RuntimeMethod",
             // the corresponding external data item an external file's clauses name, compared across describers (kb/Work PB2418)
             // a value whose parts stay apart (kb/Work PB5888 review R1-1): the external record's externalized name, the item's own
             // name, the selected occurrence, and the length-prefixed Key the run-time descriptor carries

@@ -1017,7 +1017,8 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    every nested quotient keeps beyond its operands' (`ExactFractionDigits`, `CobolNum.NestedQuotientScale`): `WN / 3 * 3` is refused
    because `WN / 3` is not exact, and `N * (N + 1) * (N + 2) / 6` is exact because its quotient is an integer; and the LANE the code
    generator evaluates the operation on keeps its digits. ⛔ **The lane is ONE function of the bound node** (reviews R1-3, R3-1):
-   `NumericLanes.LaneOf(BoundExpr, LaneContext)` (`Binding/Bound/NumericLaneOf.cs`, in the bound layer the binder and the code generator both read; memoized per node; a function value's carrier is the call's own fact, `BoundIntrinsicCall.ValueLane`, decided with its type) states, for every numeric node, the
+   `NumericLanes.LaneOf(BoundExpr, LaneContext)` (`Binding/Bound/NumericLaneOf.cs`, in the bound layer the binder and the code generator both read; memoized per node; a function value's carrier is the bound layer's carrier prediction `FunctionValueLane` over the call's catalog facts,
+   `BoundIntrinsicCall.CarrierFacts` (`IntrinsicCarrierFacts`, compiler.model), decided once with its type) states, for every numeric node, the
    carriers the code generator may hold it on (the Int128 lane, its wide form, the run-time exact form, the SDIDI, binary64, an
    engine's approximation) and, where the node's facts decide one Int128 or wide carrier, its scale and digit bound, by the
    generator's own rules (`CombineCore` through `NumericLanes.Combine`, `CombineAdditive`, `Multiply`, `Divide`, `Power`, `FieldNum`,
@@ -1025,9 +1026,18 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    receiver); the renderer asserts every operation it renders (`NumericRenderer.AssertLane`, at each binary, negation and power node
    that is not a statement's final transfer) lies in it, with the scale and digit bound it decides, and a disagreement is an internal
    compiler error in every build, so the whole conformance corpus is the drift test of the two; `NumericLaneDriftTests` is the
-   targeted one (every operand kind, P-scaled and wide exponents included, beside every partner). An intrinsic function's argument
-   is evaluated in a context without the resultant's floating-point facts (`NumericRenderer.ArgumentReceiver`): before it a COMP-2
-   resultant took `MOD ((Y * 100 - X * 10.25) * 4, 1000)` onto binary64 and stored 672 for 41 (`pb5891_argument_float_receiver`). The Int128 and exact lanes keep every digit; (c) on binary64 (an operation with a floating-point item beneath
+   targeted one (every operand kind, P-scaled and wide exponents included, beside every partner). An argument at a type 6
+   (integer) position is evaluated without the resultant's floating-point facts (`IntrinsicRenderer.ReceiverFor`,
+   `NumericRenderer.ArgumentReceiver`): before it a COMP-2 resultant took `MOD ((Y * 100 - X * 10.25) * 4, 1000)` onto binary64 and
+   stored 672 for 41 (`pb5891_argument_float_receiver`); every other argument keeps the statement's receiver, so its value is
+   main's. Every argument keeps the receiver's SCALE (review R5-1: at scale 0, `ABS (A / 3)` into PIC 9V9(17) printed
+   2.33333333333333000 for 2.33333333333333333, `pb5891_argument_receiver_scale`), and the renderer asserts an argument's nodes at
+   that scale. ⛔ **Why the classifier may read scale 0 (`LaneContext.Argument`) while the renderer runs at the receiver's scale:**
+   a receiver scale only widens a nested quotient's working scale (`CobolNum.NestedQuotientScale`), so a quotient on the Int128
+   lane at scale 0 may be on its wide form at a larger scale, and an SDIDI operation beside a wide value is exact (the
+   wide-beside-SDIDI rule): the lane FAMILY can change (`N / 3 + 1.5E0` is on the SDIDI at scale 0 and exact at scale 31), but only
+   toward MORE exact, and no binary64 lane appears or disappears. So the classifier's answer, made on the least exact of the two,
+   stays sound; `NumericLaneDriftTests.AnArgumentsLane_AtAReceiverScale_IsNeverLessExactThanAtScaleZero` pins it. The Int128 and exact lanes keep every digit; (c) on binary64 (an operation with a floating-point item beneath
    it, NumericRenderer D16) the polynomial must be integer-valued (`F - F + 1` admitted, `(F - F + N * 0.1) * 10` refused); and (d) on
    the SDIDI an intermediate whose polynomial carries fraction digits fits its significant digits (`NumericLanes.SignificantDigits`:
    under a decimal engine `ArithmeticModes.IntermediateSignificantDigits`, 32 for the 2002 STANDARD and 34 for STANDARD-DECIMAL,

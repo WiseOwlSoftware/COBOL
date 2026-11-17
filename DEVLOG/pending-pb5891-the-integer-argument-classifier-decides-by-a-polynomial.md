@@ -62,3 +62,9 @@ function's argument onto binary64 (672 for 41); arguments now render without the
 (`ArchitectureEdgesDriftTests`); a function value's carrier is the call's own fact, `BoundIntrinsicCall.ValueLane`, decided with its type.
 An argument is rendered and asserted at scale 0, the context the classifier reads. ARITHMETIC IS STANDARD-BINARY no longer crashes the
 classifier: the mode's own COBOL0806 is reported (`pb5891-standard-binary-argument`).
+
+**Review round 5.** Arguments are rendered at the receiver's scale again (rendering them at scale 0 changed printed values: `ABS (A / 3)`
+into PIC 9V9(17)); only an argument at a type 6 (integer) position drops the resultant's floating-point facts, so no other argument's
+value moves (`pb5891_argument_receiver_scale` prints main's values). The renderer asserts an argument in the context it uses; the
+classifier reads scale 0, never less exact (pinned by a unit test). The carrier prediction `FunctionValueLane` moved to the bound layer,
+reading a call's catalog facts as data (`IntrinsicCarrierFacts`, compiler.model) instead of through a forwarder.

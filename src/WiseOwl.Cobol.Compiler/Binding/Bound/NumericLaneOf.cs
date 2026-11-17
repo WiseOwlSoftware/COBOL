@@ -102,13 +102,13 @@ internal static partial class NumericLanes
         };
     }
 
-    /// <summary>A function value: the carrier the call carries (<see cref="BoundIntrinsicCall.ValueLane"/>, decided once when the call is
-    /// bound, from its function and the carriers of its arguments), its scale and digit bound the code generator's alone. An exact value
-    /// may be on the Int128 lane or its wide and run-time-scaled forms.</summary>
+    /// <summary>A function value: the carrier the bind-time prediction gives it (<see cref="FunctionValueLane"/>, from the call's catalog
+    /// facts and the carriers of its arguments), its scale and digit bound the code generator's alone. An exact value may be on the Int128
+    /// lane or its wide and run-time-scaled forms.</summary>
     private static NodeLane CallLane(BoundIntrinsicCall call, LaneContext ctx) =>
         ctx.DecimalEngine
             ? NodeLane.Any(NumericLane.Scaled, NumericLane.Wide, NumericLane.Exact, NumericLane.Sdidi)
-            : call.ValueLane switch
+            : FunctionValueLane.LaneOf(call) switch
             {
                 NumericLane.Scaled => NodeLane.Any(NumericLane.Scaled, NumericLane.Wide, NumericLane.Exact),
                 NumericLane.Sdidi => NodeLane.Any(NumericLane.Sdidi, NumericLane.Exact, NumericLane.Wide, NumericLane.Scaled),
