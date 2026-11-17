@@ -16,7 +16,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <para>Most rules speak of the CLAUSES the entries write ("all LABEL RECORDS clauses in the run unit which are associated with this file connector"), so an
 /// entry that writes none has nothing to disagree with and is skipped (the RECORD-LENGTH row is the one exception: an entry that writes no RECORD clause is compared, with the others that write none, by the
 /// sizes of its record descriptions, the clause's own second sentence). Two rules speak of EVERY entry instead, and a row says so by its <see cref="Rule.AbsentCite"/>:
-/// LINAGE, whose entries "must have: a. A LINAGE clause, if any file description entry has a LINAGE clause" (§1985:VII.3.7.4 GR11a; kb/Work PB5638), and REPORT,
+/// LINAGE, whose entries "must have: a. A LINAGE clause, if any file description entry has a LINAGE clause" (§1985:VII.3.7.4 GR11; kb/Work PB5638), and REPORT,
 /// "every file description entry in the run unit which is associated with that file connector must describe it as a report file" (§1985:XIII.3.3.4 GR3). The later
 /// editions state none of these rules for their descendants of the clauses (their text names the FORMAT clause alone, §2023:13.18.24.4 GR12, a clause this compiler
 /// declines), so the rows are asked at COBOL-85 only.</para>

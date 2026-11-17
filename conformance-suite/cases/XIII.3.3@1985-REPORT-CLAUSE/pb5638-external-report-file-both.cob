@@ -17,10 +17,10 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT RF ASSIGN TO "p5638r2.dat".
+           SELECT XF ASSIGN TO "p5638r2.dat".
        DATA DIVISION.
        FILE SECTION.
-       FD  RF IS EXTERNAL
+       FD  XF IS EXTERNAL
            REPORT IS RA.
        REPORT SECTION.
        RD  RA
@@ -38,10 +38,10 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT RF ASSIGN TO "p5638r2.dat".
+           SELECT XF ASSIGN TO "p5638r2.dat".
        DATA DIVISION.
        FILE SECTION.
-       FD  RF IS EXTERNAL
+       FD  XF IS EXTERNAL
            REPORT IS RB.
        REPORT SECTION.
        RD  RB
