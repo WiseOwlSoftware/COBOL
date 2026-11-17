@@ -65,9 +65,6 @@ public sealed class LocaleInfo
     /// majority of locales; a <c>[caseLevel on]</c>, a <c>-u-kn-true</c>, a quaternary relation …).</summary>
     public IReadOnlyList<string> Unsupported => Resolved.Unsupported;
 
-    /// <summary>Informational notes from the builder (canonical closure, renumbering, prefix contexts).</summary>
-    public IReadOnlyList<string> Notes => Resolved.Notes;
-
     /// <summary>The engine's collator for this locale at its own settings (determination L11: the CLDR default of
     /// tertiary strength / non-ignorable variables unless the locale's CLDR collation says otherwise).</summary>
     public Collator Collator => Resolved.Collator;
