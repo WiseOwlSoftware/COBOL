@@ -1,0 +1,2 @@
+The re-read of read pass 17 (slice 1985-240) found the lead this note's landing file leaves open still wrong: `SOURCE-COMPUTER. DISK.`, `OBJECT-COMPUTER. PRINTER.`, `SOURCE-COMPUTER. LINE-SEQUENTIAL.` and `OBJECT-COMPUTER. BINARY-SEQUENTIAL.` compile at `--std 85`, because the gate reads two of the four tables that hold this implementation's implementor-names.
+The lead is its own note, kb/Work PB5884; this note is not reopened.
