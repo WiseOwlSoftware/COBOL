@@ -302,11 +302,12 @@ public static class UsageFamilies
     /// §2023:13.16.3 SR10, which names the class. One sentence for both sites that screen the rule (the entry's own
     /// USAGE clause in <c>BindEntry</c>, and the usage an elementary item ACQUIRES from its group under
     /// §2023:13.18.60.4 GR1 in <c>UsageInheritancePass</c>), so the two spellings of one item cannot cite differently.</summary>
-    public static string NoValueClauseRule(Usage u) => u switch
+    public static string NoValueClauseRule(Usage u, EditionInfo edition) => u switch
     {
         Usage.FunctionPointer or Usage.MessageTag or Usage.ObjectReference or Usage.ProgramPointer
             => "ISO §2023:13.18.63.3 SR9; §2023:13.16.3 SR10",
-        Usage.Index => "a data item of class index — ISO §2023:13.16.3 SR10",
+        // COBOL-85 states the index exclusion in the USAGE clause's own rules (kb/Work PB4950).
+        Usage.Index => "a data item of class index — ISO " + edition.Cite("§1985:VI.5.14.3 SR6", "§2023:13.16.3 SR10", "§2023:13.16.3 SR10"),
         _ => "a data item of class pointer — ISO §2023:13.16.3 SR10",
     };
 

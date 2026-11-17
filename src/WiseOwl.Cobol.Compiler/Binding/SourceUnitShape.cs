@@ -67,10 +67,13 @@ internal static class SourceUnitShape
     {
         var format = FormatOf(kind);
 
-        void Refuse(ParserRuleContext at, string requirement)
+        // The 1985 rule a program-definition arm rests on is the end program header's (§1985:X.2.5.4): GR2 says what the header
+        // ends, GR1 where it is required (kb/Work PB4950).
+        void Refuse(ParserRuleContext at, string requirement, string rule1985 = "§1985:X.2.5.4 GR2")
         {
             using var _ = edition.At(at);
-            edition.Error(DiagnosticCatalog.SourceUnitFormat, $"{what}: {requirement} (ISO §2023:10.6.1)");
+            edition.Error(DiagnosticCatalog.SourceUnitFormat,
+                $"{what}: {requirement} (ISO {edition.Edition.Cite(rule1985, "§2023:10.6.1", "§2023:10.6.1")})");
         }
 
         // Positioned on the identification division: a CONTAINED unit's context is the synthetic programUnit
@@ -99,7 +102,7 @@ internal static class SourceUnitShape
         {
             if (format.EndMarkerRequired)
                 Refuse(at, $"the end marker is required — the {format.Noun} format prints "
-                    + $"END {(format.EndsWithProgram ? "PROGRAM" : "FUNCTION")} unbracketed");
+                    + $"END {(format.EndsWithProgram ? "PROGRAM" : "FUNCTION")} unbracketed", "§1985:X.2.5.4 GR1");
         }
         else if ((end.PROGRAM() is not null) != format.EndsWithProgram)
             Refuse(end, $"END {(format.EndsWithProgram ? "FUNCTION" : "PROGRAM")} cannot close a {format.Noun} — its "

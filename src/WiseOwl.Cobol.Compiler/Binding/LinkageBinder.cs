@@ -407,7 +407,7 @@ internal sealed class LinkageBinder(DataBinder data)
                 // §2023:14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
                     $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
-                    + "(ISO §2023:14.2.2 SR1)");
+                    + $"(ISO {data.Edition.Edition.Cite("§1985:X.5.1", "§2023:14.2.2 SR1", "§2023:14.2.2 SR1")})");
                 pos++;
                 continue;
             }

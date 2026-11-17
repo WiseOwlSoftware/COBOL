@@ -315,6 +315,13 @@ the edition in force has no such rule, the message cites the edition where the r
   fails until it is lowered; one at 0 fails until its entry is removed; an entry whose refusal is not compiled at 85 fails
   `EditionCitationNetDriftTests`. It was laid at 301 codes (1656 lines of the 2459 refusals at 85); 298 codes, 1482 entries and
   1638 lines remain after the first fixes.
+- **Where a family of sites shares one rule, the 1985 arm lives with the rule, not at the sites** (kb/Work PB4950 slice 1):
+  `UniqueReferenceRule` (Compiler/Binding) writes the §1985:IV.4.3.8 / §2023:8.4.2.1 "a reference identifies one resource"
+  citation and quotation once, through `Cite`, for every undefined-name, wrong-kind-of-name and unidentified-procedure message;
+  a table row carries its 1985 text as data (`ClausePlacementRule.Rule1985`/`Sentence1985`, `OperandPosition.Rule1985`,
+  `PlacementRules.SequenceRule.Cite1985`/`Shall1985`, `LiteralPosition`'s `Cite1985`), so the next row of a table is cited by
+  adding its 1985 fields. A refusal's `expect` in `conformance-suite/wiseowl/diagnostics` names a phrase every edition's
+  message holds, never a citation of one edition.
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
   1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
   `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.

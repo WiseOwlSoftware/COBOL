@@ -71,7 +71,7 @@ public static class SeparatorRule
 
     /// <summary>Every §2023:8.3.5 rule 2 / 3 / 5 violation in <paramref name="tokens"/> (all channels, in source order),
     /// judged against <paramref name="text"/>, the exact character sequence the tokens were lexed from.</summary>
-    public static IEnumerable<Violation> Violations(string text, IList<IToken> tokens)
+    public static IEnumerable<Violation> Violations(string text, IList<IToken> tokens, EditionInfo edition)
     {
         int reportedCloseStop = -2;   // a literal's closing-delimiter violation already covers the boundary after it
         for (int i = 0; i < tokens.Count; i++)
@@ -87,15 +87,15 @@ public static class SeparatorRule
                 case CobolLexer.COMMA or CobolLexer.SEMICOLON:
                     if (!IsSeparatorSpace(CharAt(text, t.StopIndex + 1)) && !IsDecimalComma(text, t))
                         yield return new(t, DiagnosticCatalog.SeparatorCommaWithoutSpace,
-                            $"the {Name(t)} is not immediately followed by a space, so it is not a separator — ISO §2023:8.3.5 "
-                            + "rule 2 makes a comma or semicolon a separator only when a space follows it; write a space "
+                            $"the {Name(t)} is not immediately followed by a space, so it is not a separator — ISO "
+                            + $"{edition.Cite("§1985:IV.4.2.1 SR2", "§2023:8.3.5 rule 2", "§2023:8.3.5 rule 2")} makes a comma or semicolon a separator only when a space follows it; write a space "
                             + "after it");
                     break;
                 case CobolLexer.DOT:
                     if (!IsSeparatorSpace(CharAt(text, t.StopIndex + 1)))
                         yield return new(t, DiagnosticCatalog.SeparatorPeriodWithoutSpace,
-                            "the period is not followed by a space, so it is not a separator period — ISO §2023:8.3.5 rule 3 "
-                            + "makes a period a separator only when a space follows it; write a space after it");
+                            $"the period is not followed by a space, so it is not a separator period — ISO "
+                            + $"{edition.Cite("§1985:IV.4.2.1 SR3", "§2023:8.3.5 rule 3", "§2023:8.3.5 rule 3")} makes a period a separator only when a space follows it; write a space after it");
                     break;
                 default:
                     if (!LiteralTokens.Types.Contains(t.Type)) break;
@@ -103,14 +103,14 @@ public static class SeparatorRule
                         && !IsOperatorTouching(tokens, i - 1, t.StartIndex - 1))
                         yield return new(t, DiagnosticCatalog.SeparatorLiteralDelimiter,
                             $"the literal {Abbreviated(t.Text)} begins immediately after '{(char)CharAt(text, t.StartIndex - 1)}' — "
-                            + "ISO §2023:8.3.5 rule 5 requires an opening delimiter to be immediately preceded by a space, a "
+                            + $"ISO {edition.Cite("§1985:IV.4.2.1 SR5", "§2023:8.3.5 rule 5", "§2023:8.3.5 rule 5")} requires an opening delimiter to be immediately preceded by a space, a "
                             + "left parenthesis or an opening pseudo-text delimiter");
                     if (!ClosingDelimiterSeparated(text, t.StopIndex) && !IsOperatorTouching(tokens, i + 1, t.StopIndex + 1))
                     {
                         reportedCloseStop = t.StopIndex;
                         yield return new(t, DiagnosticCatalog.SeparatorLiteralDelimiter,
                             $"the literal {Abbreviated(t.Text)} is immediately followed by '{(char)CharAt(text, t.StopIndex + 1)}' — "
-                            + "ISO §2023:8.3.5 rule 5 requires a closing delimiter to be immediately followed by a space, "
+                            + $"ISO {edition.Cite("§1985:IV.4.2.1 SR5", "§2023:8.3.5 rule 5", "§2023:8.3.5 rule 5")} requires a closing delimiter to be immediately followed by a space, "
                             + "comma, semicolon, period, right parenthesis or closing pseudo-text delimiter");
                     }
                     break;

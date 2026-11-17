@@ -120,14 +120,12 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // alphabet is an extension no edition admits), a constant-name (kb/Work PB3287: `ADDRESS OF C`), a type-name or
         // a type declaration's member (kb/Work PB1906, §2023:13.18.58.4 GR1/GR2) — identifies no data item (§2023:8.4.2.1).
         if (nonData is { Kind: NonDataDeclarationKind.ConditionName })
-            msg = MisqualifiedConditionText(text, name, qualifiers);
+            msg = MisqualifiedConditionText(text, name, qualifiers, data.Edition.Edition);
         else if (nonData is { } declared)
-            msg = $"'{text}' {declared.DeclaredAs(text, name)}, so this reference identifies no data item (ISO "
-                + "§2023:8.4.2.1: \"a statement shall contain a reference that uniquely identifies that resource\").";
+            msg = $"'{text}' {declared.DeclaredAs(text, name)}, so this reference identifies no data item ({data.Edition.Edition.Quoted()}).";
         else if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates))
             msg = $"'{text}' is not defined — no declaration in this source element gives the name '{name}', so "
-                + "the statement's reference identifies no resource (ISO §2023:8.4.2.1: \"a statement shall contain a "
-                + "reference that uniquely identifies that resource\"). Check the spelling, or declare the item.";
+                + $"the statement's reference identifies no resource ({data.Edition.Edition.Quoted()}). Check the spelling, or declare the item.";
         else if (qualifiers.Count == 0)
             msg = $"'{text}' does not uniquely identify a data item — {candidates.Count + reportEntries} declarations share the "
                 + $"name{ReportEntriesWording(reportEntries)} and no qualification distinguishes them ({rule} — "
@@ -157,16 +155,16 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// conditional variable may be qualified" — in SR4's order of successively more inclusive levels. So a
     /// qualifier the conditional variable is not subordinate to, or ancestors written in reversed order, identify
     /// NO condition-name. Unqualified, the word is a condition-name written where a data item is required.</summary>
-    internal static string MisqualifiedConditionText(string text, string name, IReadOnlyList<string> qualifiers) =>
+    internal static string MisqualifiedConditionText(string text, string name, IReadOnlyList<string> qualifiers, EditionInfo edition) =>
         qualifiers.Count == 0
             ? $"'{text}' is a condition-name (a level-88 entry), which identifies no data item, and this "
-              + "reference requires one (ISO §2023:8.4.2.1: \"a statement shall contain a reference that uniquely "
-              + "identifies that resource\")."
+              + $"reference requires one ({edition.Quoted()})."
             : $"'{text}' does not identify a condition-name — '{name}' is declared as a condition-name, but none "
               + $"is subordinate to the given qualifier{(qualifiers.Count > 1 ? "s" : "")} "
               + $"({string.Join(" OF ", qualifiers)}): a condition-name is qualified only by its conditional "
-              + "variable and that variable's containing groups, innermost first (ISO §2023:13.16.3 SR23; "
-              + "§2023:8.4.2.2.3 SR4, SR5).";
+              + "variable and that variable's containing groups, innermost first (ISO "
+              + edition.Cite("§1985:IV.4.3.8.1 SRL2.4", "§2023:13.16.3 SR23; §2023:8.4.2.2.3 SR4, SR5", "§2023:13.16.3 SR23; §2023:8.4.2.2.3 SR4, SR5")
+              + ").";
 
     /// <summary>What a named CAPACITY register is, as the noun phrase <see cref="HiddenConditionText"/> says (the register
     /// is no data item of the name table, so <see cref="NonDataDeclaration.ClassPhrase"/> does not cover it).</summary>
@@ -179,11 +177,14 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     /// the reference names that item, so it is neither a misqualified condition-name nor an undeclared word, and saying
     /// either states the opposite of the facts. <paramref name="nearer"/> is what the nearer declaration is ("a data
     /// item", <see cref="NonDataDeclaration.ClassPhrase"/>, <see cref="CapacityRegisterClassPhrase"/>).</summary>
-    internal static string HiddenConditionText(string text, string name, string nearer) =>
+    internal static string HiddenConditionText(string text, string name, string nearer, EditionInfo edition) =>
         $"'{text}' names {nearer}, not a condition-name, and this position requires a condition-name: '{name}' is "
         + "declared in a source element nearer than the containing program whose GLOBAL condition-name "
-        + $"'{name}' it hides (ISO §2023:8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source "
-        + "element B is the referenced item\").";
+        + $"'{name}' it hides (ISO "
+        + edition.Cite("§1985:X.1.3.8.2 GR3a: \"If the name is declared in program B, the object in program B is the referenced object\"",
+            "§2023:8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source element B is the referenced item\"",
+            "§2023:8.4.6.2.1 3) a): \"If the name is declared in source element B, the item in source element B is the referenced item\"")
+        + ").";
 
     /// <summary>⛔ ISO §2023:13.7.3 SR4 FOR A DATA-NAME REFERENCE (kb/Work PB1249): the procedure division may reference a
     /// linkage item "if, and only if" it is a header operand, under one, a redefinition or renaming of one, or BASED

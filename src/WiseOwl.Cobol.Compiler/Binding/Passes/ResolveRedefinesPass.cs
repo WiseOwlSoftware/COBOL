@@ -117,7 +117,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     binder.Edition.Removed(DiagnosticCatalog.RedefinesOfRedefinition.Code,
                         $"'{item.CobolName ?? "FILLER"}' REDEFINES '{viaRedefiner.CobolName ?? "FILLER"}', which is itself "
                         + "a redefinition — data-name-2 shall be the entry that originally defined the storage area "
-                        + "(ISO §2023:13.18.44.3 SR7)");
+                        + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR8", "§2023:13.18.44.3 SR7", "§2023:13.18.44.3 SR7")})");
                 // §2023:13.18.44.3 SR16: data-name-2 (the redefined item) shall not be described with the ANY
                 // LENGTH clause — a runtime-length item has no fixed storage area a redefiner could overlay.
                 if (written && item.RedefinesTarget is { IsAnyLength: true })

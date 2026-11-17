@@ -452,7 +452,10 @@ public static class DiagnosticCatalog
         + "§2023:14.9.5.3 syntax rule 3: \"Program-prototype-name-1 shall be a program prototype specified in the "
         + "REPOSITORY paragraph.\" §2023:8.4.6.8 admits one further spelling — the program-name of a CONTAINING "
         + "program definition — and this check accepts that too.",
-        "ISO §2023:14.9.4.3 SR16 / §2023:14.9.5.3 SR3 / §2023:12.3.8.2 / §2023:8.4.6.8");
+        "ISO §2023:14.9.4.3 SR16 / §2023:14.9.5.3 SR3 / §2023:12.3.8.2 / §2023:8.4.6.8",
+        No1985Rule: "The REPOSITORY paragraph, the program-specifier and the program prototype are not in ANSI X3.23-1985: its "
+            + "CALL names a literal or an identifier and it has no Repository paragraph, so there is no 1985 rule to cite "
+            + "(the facility begins in COBOL-2002, kb/Work PB4950).");
     public static readonly DiagnosticDescriptor RepositoryProgramSpecifier = new(
         "COBOL1761", "repository-program-specifier", EditionSeverity.Error,
         "A REPOSITORY specifier's declaration rules (ISO §2023:12.3.8.3, ALL SPECIFIERS) — asked of the class, interface, "
@@ -3207,7 +3210,10 @@ public static class DiagnosticCatalog
         "COBOL2496", "floating-indicator-split", EditionSeverity.Error,
         "A continuation line completes a floating indicator (*> or >>) begun at the end of the line it continues. "
         + "ISO §2023:6.2.3.2 SR3: \"All the characters forming a multiple-character floating indicator shall be specified "
-        + "on the same line.\" Write the whole indicator on one line.", "ISO §2023:6.2.3.2 SR3");
+        + "on the same line.\" Write the whole indicator on one line.", "ISO §2023:6.2.3.2 SR3",
+        No1985Rule: "The floating comment indicator (*>) and floating directive indicator (>>) are not in ANSI X3.23-1985, whose "
+            + "reference format knows only the column-7 comment indicator, so there is no 1985 rule to cite; the facility "
+            + "begins in COBOL-2002 (kb/Work PB4950).");
 
     /// <summary>COBOL2616 — the indicator area of a fixed-form line holds a character that is not a fixed indicator
     /// (kb/Work PB1494). §2023:6.2.2 lists <c>*</c>, <c>/</c>, <c>-</c> and space (and COBOL-85's debugging indicator
@@ -3952,7 +3958,11 @@ public static class DiagnosticCatalog
         + "screen handling module (§2023:4.2.7; Annex A.4.2), for which WiseOwl COBOL claims no support — A.4.1 admits "
         + "an optional element's syntax only when support is claimed, so it is refused by name rather than "
         + "silently accepted and dropped. The facility exists from COBOL-2002. See docs/CONFORMANCE.md §5.",
-        "ISO §2023:4.2.7 / Annex A.4.1 / Annex A.4.2 / §2023:13.9 / §2023:13.17 / §2023:12.3.7", Annex: DeclinedAnnex.A4);
+        "ISO §2023:4.2.7 / Annex A.4.1 / Annex A.4.2 / §2023:13.9 / §2023:13.17 / §2023:12.3.7", Annex: DeclinedAnnex.A4,
+        No1985Rule: "The screen facility (SCREEN SECTION, screen description entries, SPECIAL-NAMES CURSOR and CRT STATUS) is not in "
+            + "ANSI X3.23-1985: its Data Division has no Screen Section and its SPECIAL-NAMES paragraph no CURSOR or CRT STATUS "
+            + "clause (§1985:VI.4.5.2), so there is no 1985 rule to cite; the message names the edition where the facility begins "
+            + "(COBOL-2002), kb/Work PB4950.");
     /// <summary>COBOL1707 — the A.4.2 PROCEDURE-division surface: ACCEPT format 3 (screen, §2023:14.9.1), DISPLAY
     /// format 2 (screen, §2023:14.9.11 — A.4.2 item 9 misprints the cross-reference as 14.9.10, which is DELETE),
     /// SET format 6 (attribute, §2023:14.9.39), and the EC-SCREEN exception-names in the six contexts A.4.2 item 10
@@ -5356,7 +5366,10 @@ public static class DiagnosticCatalog
         + "is no value to place, and the standard states no default (NOTE 3 on GR20: \"The WHEN SET TO FALSE "
         + "phrase specifies just one of possibly many false values\", so the processor cannot choose one). Add "
         + "'WHEN SET TO FALSE IS literal-4' to the condition-name's VALUE clause.",
-        "ISO §2023:14.9.39.3 SR7 / §2023:14.9.39.4 GR7 / §2023:13.18.63.4 GR20");
+        "ISO §2023:14.9.39.3 SR7 / §2023:14.9.39.4 GR7 / §2023:13.18.63.4 GR20",
+        No1985Rule: "SET condition-name TO FALSE and the WHEN SET TO FALSE phrase of the VALUE clause are not in ANSI X3.23-1985, whose "
+            + "SET statement sets a condition-name TO TRUE only, so there is no 1985 rule to cite (the phrase begins in "
+            + "COBOL-2002, kb/Work PB4950).");
 
     // ── COBOL2096/2097 — §2023:8.4.2.3.3 SR2 and SR3, the two rules about a WRITTEN subscript list, screened at
     //    the one reference-resolution site (kb/Work PB877). Both were decidable there and neither was decided:
@@ -6304,7 +6317,9 @@ public static class DiagnosticCatalog
         + "VARYING phrase or a TEST BEFORE or TEST AFTER phrase. §2023:14.9.28.3 SR8: \"The UNTIL EXIT phrase shall not be "
         + "specified in a PERFORM statement with or under a PERFORM statement with the VARYING phrase or either the "
         + "TEST BEFORE or TEST AFTER phrase.\"",
-        "ISO §2023:14.9.28.3 SR8");
+        "ISO §2023:14.9.28.3 SR8",
+        No1985Rule: "The UNTIL EXIT phrase of the PERFORM statement is not in ANSI X3.23-1985, whose PERFORM has no EXIT phrase, so "
+            + "there is no 1985 rule to cite; the phrase begins in COBOL-2002 (kb/Work PB4950).");
 
     /// <summary>COBOL2297 — an UNSUCCESSFUL <c>&gt;&gt;POP directive-name</c>: the named directive's state was
     /// never saved by a PUSH in this compilation group, or every saved state was already restored. ISO §2023:7.3.20.4
@@ -9184,7 +9199,9 @@ public static class DiagnosticCatalog
         "A PICTURE containing S is specified with PACKED-DECIMAL WITH NO SIGN. §2023:13.18.40.3 SR31: \"The symbol 'S' shall "
         + "not be specified in character-string-1 when the NO SIGN phrase of the USAGE Clause is specified for the subject "
         + "of the entry.\"",
-        "ISO §2023:13.18.40.3 SR31");
+        "ISO §2023:13.18.40.3 SR31",
+        No1985Rule: "The NO SIGN phrase of the USAGE clause, and so the rule that a PICTURE with S shall not be specified with it, "
+            + "are not in ANSI X3.23-1985, whose PACKED-DECIMAL has no such phrase: there is no 1985 rule to cite (kb/Work PB4950).");
 
     /// <summary>COBOL1585 — value format 1 single literal (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor ValueFormat1SingleLiteral = new(
@@ -9352,7 +9369,10 @@ public static class DiagnosticCatalog
         "COBOL0865", "delete-record-on-sequential-file", EditionSeverity.Error,
         "A DELETE statement names a file of sequential organization. §2023:14.9.10.3 SR1: \"The DELETE RECORD statement shall "
         + "not be specified for a file with sequential organization.\"",
-        "ISO §2023:14.9.10.3 SR1");
+        "ISO §2023:14.9.10.3 SR1",
+        No1985Rule: "ANSI X3.23-1985 defines the DELETE statement only in the relative I-O module (§1985:VIII.4.3.1) and the indexed "
+            + "I-O module (§1985:IX.4.3.1); the sequential I-O module (§1985:VII) has no DELETE statement and so states no rule about "
+            + "one on a sequential file (kb/Work PB4950).");
 
     /// <summary>COBOL0866 — an INVOKE through a universal object reference, or by a dynamic method name (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor InvokeUniversalReferenceRule = new(

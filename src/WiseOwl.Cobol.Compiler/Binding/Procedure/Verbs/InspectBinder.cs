@@ -53,7 +53,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                         ? "CONVERTS it (ISO §2023:14.9.22.2 Format 4, which §2023:14.9.22.4 GR20 executes as a Format 2 "
                           + "over the same identifier-1)"
                         : "REPLACES characters in it (ISO §2023:14.9.22.2 Format 2/3, §2023:14.9.22.4 GR7)")
-                    + " — a receiving operand, which ISO §2023:8.4.3.2.3 SR1 bars a function-identifier from. A "
+                    + $" — a receiving operand, which ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR3a", "§2023:8.4.3.2.3 SR1", "§2023:8.4.3.2.3 SR1")} bars a function-identifier from. A "
                     + "function-identifier IS legal as INSPECT identifier-1 in Format 1 (TALLYING only)");
             }
             // Format 1: identifier-1 is only READ. It binds as an ordinary sending operand and flows to the
@@ -282,7 +282,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     && ctx.Data.SpecialNames.IsAlphabetName(w))
                     ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
                         $"INSPECT CONVERTING references the ALPHABET-name '{w}' — Format 4's operands are "
-                        + "an identifier or a literal (ISO §2023:14.9.22.2), and an alphabet-name is neither "
+                        + $"an identifier or a literal (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.18.3 SR3", "§2023:14.9.22.2", "§2023:14.9.22.2")}), and an alphabet-name is neither "
                         + "(the CONVERTING-alphabet form is a GnuCOBOL extension). Write the character "
                         + "strings, or a data item holding them");
             var from = InspectCharOperand(conv.sendingOperand(0));

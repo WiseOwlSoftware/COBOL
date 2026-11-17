@@ -323,7 +323,7 @@ public sealed partial class SpecialNamesBinder
         Edition.Error(DiagnosticCatalog.AlphabetCodeNameUnsupported, $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")} "
             + $"IS {cw.GetText()}: not a supported code-name — the {(national ? "code-name-2" : "code-name-1")} "
             + $"names this implementation supports are: {ImplementorCodeNames.Spellings(national)} "
-            + $"(ISO §2023:12.3.7.3 SR15; the {(national ? "national coded character set keywords are NATIVE, UCS-4, UTF-8, and UTF-16" : "alphanumeric coded character set keywords are NATIVE, STANDARD-1, and STANDARD-2")})");
+            + $"(ISO {Edition.Edition.Cite("§1985:VI.4.5.4 GR4c", "§2023:12.3.7.3 SR15", "§2023:12.3.7.3 SR15")}; the {(national ? "national coded character set keywords are NATIVE, UCS-4, UTF-8, and UTF-16" : "alphanumeric coded character set keywords are NATIVE, STANDARD-1, and STANDARD-2")})");
         return CodeNameOutcome.Refused;
     }
 

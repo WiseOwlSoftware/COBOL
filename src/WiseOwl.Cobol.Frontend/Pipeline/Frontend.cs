@@ -550,11 +550,11 @@ public sealed class Frontend
             sr7.SyntaxError(TextWriter.Null, null!, t, t.Line, t.Column, $"[{descriptor.Code}] {message}", null!));
         foreach (var pic in PictureSeparatorPeriodRule.Violations(text, tokens.GetTokens()))
             sr7.SyntaxError(TextWriter.Null, null!, pic, pic.Line, pic.Column,
-                $"[{Diagnostics.DiagnosticDescriptors.COBOL2419.Code}] {PictureSeparatorPeriodRule.Message(pic)}", null!);
+                $"[{Diagnostics.DiagnosticDescriptors.COBOL2419.Code}] {PictureSeparatorPeriodRule.Message(pic, edition)}", null!);
         // ISO §2023:8.3.5 rules 2, 3 and 5 — the separator context of every comma, semicolon, period and literal, decided from
         // the same characters and reported the same way (kb/Work PB1394). Hidden-channel tokens included: a ';' with no
         // space after it reaches the token stream only there.
-        foreach (var v in SeparatorRule.Violations(text, tokens.GetTokens()))
+        foreach (var v in SeparatorRule.Violations(text, tokens.GetTokens(), edition))
             sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
                 $"[{v.Descriptor.Code}] {v.Message}", null!);
 

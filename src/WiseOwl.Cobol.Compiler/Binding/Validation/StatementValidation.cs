@@ -225,8 +225,7 @@ internal sealed class StatementValidation(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"'{name}' is not defined as a file — {verb} names file-name-1 in its general format, and no SELECT "
             + "or file description entry in this source element gives that name, so the statement's reference "
-            + "identifies no resource (ISO §2023:8.4.2.1: \"a statement shall contain a reference that uniquely "
-            + "identifies that resource\"). Check the spelling, or add the file to the FILE-CONTROL paragraph.");
+            + $"identifies no resource ({data.Edition.Edition.Quoted()}). Check the spelling, or add the file to the FILE-CONTROL paragraph.");
         return false;
     }
 
@@ -291,10 +290,11 @@ internal sealed class StatementValidation(DataBinder data)
         bool isDataName = data.Symbols.TryResolve(head, data.ActiveScope, out _);
         data.Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"{verb} '{refText}' names no procedure: no paragraph or section in this source element carries "
-            + "that name, so the reference identifies no resource (ISO §2023:8.4.2.1 — \"In order to use a resource, "
-            + "a statement shall contain a reference that uniquely identifies that resource\"; §2023:8.4.6.1 — a "
-            + "paragraph-name or section-name \"may be referenced only by statements in the source element in "
-            + "which the user-defined word is declared\")"
+            + $"that name, so the reference identifies no resource (ISO {data.Edition.Edition.QuotedDash()}; "
+            + data.Edition.Edition.Cite("§1985:IV.4.3.8.1 SRL2.6 — a paragraph-name or section-name \"may not be referenced from any other program\"",
+                "§2023:8.4.6.1 — a paragraph-name or section-name \"may be referenced only by statements in the source element in which the user-defined word is declared\"",
+                "§2023:8.4.6.1 — a paragraph-name or section-name \"may be referenced only by statements in the source element in which the user-defined word is declared\"")
+            + ")"
             + (isDataName
                 ? $"; '{head}' is declared as a DATA ITEM, and a procedure-name is a different class of "
                   + "user-defined word (§2023:8.3.2.2)"
@@ -513,7 +513,7 @@ internal sealed class StatementValidation(DataBinder data)
                 or NonDataDeclarationKind.TypeName or NonDataDeclarationKind.TypeDeclarationMember })
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
                 $"{set} — '{refText}' {declared.Value.DeclaredAs(refText, name)}, so the reference "
-                + "identifies no resource (ISO §2023:8.4.2.1), and §2023:14.9.39.3 SR6 requires a condition-name associated with "
+                + $"identifies no resource (ISO {data.Edition.Edition.Citation()}), and {SetConditionRule(data.Edition.Edition)} requires a condition-name associated with "
                 + "a conditional variable.");
         else if (switchName is not null)
             data.Edition.Error(DiagnosticCatalog.StatementOperandRule,
@@ -527,10 +527,15 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.UndefinedReference,
                 $"{set} — '{refText}' is not a condition-name: no level-88 entry and no "
                 + "SPECIAL-NAMES switch-status name in this source element declares it, so the reference "
-                + "identifies no resource (ISO §2023:8.4.2.1), and §2023:14.9.39.3 SR6 requires a condition-name "
+                + $"identifies no resource (ISO {data.Edition.Edition.Citation()}), and {SetConditionRule(data.Edition.Edition)} requires a condition-name "
                 + "associated with a conditional variable.");
         return false;
     }
+
+    /// <summary>SET Format 4's rule that condition-name-1 is associated with a conditional variable, in the edition's own
+    /// text (kb/Work PB4950).</summary>
+    private static string SetConditionRule(EditionInfo edition) =>
+        edition.Cite("§1985:VI.6.23.3 SR6", "§2023:14.9.39.3 SR6", "§2023:14.9.39.3 SR6");
 
     /// <summary>The CORRESPONDING group-operand rule, ONE screen for its three spellings (kb/Work PB236), each
     /// asked as ITS OWN <see cref="CorrespondingOperandRule"/> row rather than as a shared approximation:

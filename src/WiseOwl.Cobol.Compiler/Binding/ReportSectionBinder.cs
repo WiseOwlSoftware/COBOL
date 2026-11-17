@@ -2703,7 +2703,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // division's CheckClauseSubjects, and these are its predicates, not a second copy of them (kb/Work
                 // PB507, PB1288). The clause is cleared on a violation, as the data division clears it, so nothing
                 // downstream applies it to an item it may not describe.
-                if (blankWhenZero && DataBinder.BlankWhenZeroViolation(pic) is { } bwzFault)
+                if (blankWhenZero && DataBinder.BlankWhenZeroViolation(pic, Edition.Edition) is { } bwzFault)
                 {
                     // A recovery profile (the PICTURE refused by its own rule) has no category to judge (kb/Work PB5191).
                     if (!pic.IsRecovery)
@@ -2711,7 +2711,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                             $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {bwzFault}");
                     blankWhenZero = false;
                 }
-                if (justified && DataBinder.JustifiedViolation(pic) is { } justifiedFault)
+                if (justified && DataBinder.JustifiedViolation(pic, Edition.Edition) is { } justifiedFault)
                 {
                     Edition.Error(DiagnosticCatalog.ClauseSubjectCategory,
                         $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': {justifiedFault}");
@@ -3650,11 +3650,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (!rdNames.Contains(name))
                     Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"file '{file.CobolName}': the REPORT clause names "
                         + $"'{name}', which is not the subject of a report description entry in the report section: each "
-                        + "report-name-1 shall be (ISO §2023:13.18.46.3 SR1)");
+                        + $"report-name-1 shall be (ISO {Edition.Edition.Cite("§1985:XIII.3.3.3 SR1", "§2023:13.18.46.3 SR1", "§2023:13.18.46.3 SR1")})");
                 else if (firstClause.TryGetValue(name, out var first))
                     Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"file '{file.CobolName}': the REPORT clause names "
                         + $"'{name}', which is already named by the REPORT clause of file '{first.CobolName}': each "
-                        + "report-name-1 may appear in only one REPORT clause (ISO §2023:13.18.46.3 SR2; §2023:13.14.3 SR1)");
+                        + $"report-name-1 may appear in only one REPORT clause (ISO {Edition.Edition.Cite("§1985:XIII.3.3.3 SR2", "§2023:13.18.46.3 SR2; §2023:13.14.3 SR1", "§2023:13.18.46.3 SR2; §2023:13.14.3 SR1")})");
                 else
                     firstClause[name] = file;
             }
@@ -3705,7 +3705,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (model.File is null)
                 Edition.Error(DiagnosticCatalog.ReportClauseNameRule, $"RD '{model.Name}' is not named in any file description "
                     + "entry's REPORT clause: there shall be one and only one REPORT clause specifying report-name-1 "
-                    + "(ISO §2023:13.14.3 SR1)");
+                    + $"(ISO {Edition.Edition.Cite("§1985:XIII.3.5.3 SR1", "§2023:13.14.3 SR1", "§2023:13.14.3 SR1")})");
 
             foreach (var ctl in model.Controls)
                 if (!ctl.IsFinal && ctl.Operand is { } op)

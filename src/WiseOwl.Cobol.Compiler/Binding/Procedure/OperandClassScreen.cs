@@ -36,9 +36,12 @@ internal enum OperandClasses
 /// <remarks>⚠ <see cref="Statement"/> is spelled WITHOUT an ellipsis: the diagnostic renderer transliterates U+2026
 /// to ASCII, and a message opening "SET … TO" printed a statement nobody wrote (kb/Work PB388,
 /// <c>SetDiagnosticNamesReceiversDriftTests</c>); the operand the program wrote is named in the message itself.</remarks>
+/// <remarks>⛔ <see cref="Rule1985"/> is the rule's 1985 citation where ANSI X3.23-1985 states it: a program compiled at
+/// <c>--std 85</c> reads it instead of <see cref="Rule"/> (kb/Work PB4950); null where the 1985 text has no such rule, and the
+/// 2023 citation then stands.</remarks>
 internal sealed record OperandPosition(
     string Statement, string Operand, string Rule, string Requirement, OperandClasses Admits,
-    DiagnosticDescriptor Diagnostic);
+    DiagnosticDescriptor Diagnostic, string? Rule1985 = null);
 
 /// <summary>⛔ THE REGISTER OF CLASS-CLOSED IDENTIFIER POSITIONS (kb/Work PB210 · PB211 · PB212). Every statement
 /// operand whose syntax rule reads "identifier-n shall reference a data item of class …" is a row HERE and is
@@ -59,7 +62,7 @@ internal static class OperandPositions
     public static readonly OperandPosition GoToDependingSelector = new(
         "GO TO DEPENDING ON", "identifier-1", "§2023:14.9.17.3 SR1",
         "a numeric elementary data item that is an integer",
-        OperandClasses.IntegerItem, DiagnosticCatalog.GoToDependingSelectorClass);
+        OperandClasses.IntegerItem, DiagnosticCatalog.GoToDependingSelectorClass, Rule1985: "§1985:VI.6.15.3 SR1");
 
     /// <summary>ISO §2023:14.9.37.3 SR5 first sentence — SEARCH … VARYING identifier-2 (kb/Work PB211). The rule's second
     /// sentence is a subscript prohibition, not a class, and is asked by <c>SearchBinder</c> under the same
@@ -189,7 +192,7 @@ internal static class OperandClassScreen
 
     private static void Report(EditionContext edition, OperandPosition pos, string text, string what) =>
         edition.Error(pos.Diagnostic,
-            $"{pos.Statement} {pos.Operand} '{text}' shall reference {pos.Requirement} (ISO {pos.Rule}); "
+            $"{pos.Statement} {pos.Operand} '{text}' shall reference {pos.Requirement} (ISO {edition.Edition.Cite(pos.Rule1985 ?? pos.Rule, pos.Rule, pos.Rule)}); "
             + $"'{text}' is {what}");
 
     private static string Describe(Place p)

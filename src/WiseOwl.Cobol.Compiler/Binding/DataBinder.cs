@@ -915,8 +915,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 if (item.Level is not (1 or 77))
                     Edition.Error(DiagnosticCatalog.LevelNumberHierarchy, $"'{item.CobolName ?? "FILLER"}': level-number "
                         + $"{item.Level} opens no record — the first entry of a record description shall have level-number 1 "
-                        + "(ISO §2023:13.11.1, §2023:13.18.33.4 GR1), and a level-77 item is not itself subdivided "
-                        + "(ISO §2023:8.5.1.3.2); a level-number 2 through 49 entry shall follow an entry it can be subordinate to");
+                        + $"(ISO {Edition.Edition.Cite("§1985:VI.5.7.4 GR1", "§2023:13.11.1, §2023:13.18.33.4 GR1", "§2023:13.11.1, §2023:13.18.33.4 GR1")}), and a level-77 item is not itself subdivided "
+                        + $"(ISO {Edition.Edition.Cite("§1985:IV.4.3.2.1", "§2023:8.5.1.3.2", "§2023:8.5.1.3.2")}); a level-number 2 through 49 entry shall follow an entry it can be subordinate to");
                 renamesBegun = false;   // a new record (or 77): the previous record's RENAMES entries are over
                 // A METHOD's record or type declaration is the method's from here on (kb/Work PB3192): every name
                 // declared under it joins the method's own scope (NameScopeOf), never the class's.
@@ -984,7 +984,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (memberLevel is not { } first || first == level) return;
         Edition.Error(DiagnosticCatalog.LevelNumberHierarchy, $"{subject}: level-number {level} is not the level-number "
             + $"{first} of the other items immediately subordinate to {group} — all items immediately subordinate to a "
-            + "given group item shall be described using numerically equal level-numbers (ISO §2023:8.5.1.3.2)");
+            + $"given group item shall be described using numerically equal level-numbers (ISO {Edition.Edition.Cite("§1985:IV.4.3.2.1", "§2023:8.5.1.3.2", "§2023:8.5.1.3.2")})");
     }
 
     /// <summary>Register a TYPEDEF type declaration (ISO §2023:13.18.58; data-model D17): a named level-01 template.
@@ -1359,13 +1359,11 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         Edition.Error(DiagnosticCatalog.UndefinedReference,
             $"{clauseFace} '{written}': the clause's data-name references no data item — "
               + (nonData is { } declared
-                  ? $"'{written}' {declared.DeclaredAs(written, name)} (ISO §2023:8.4.2.1: \"a statement shall "
-                    + "contain a reference that uniquely identifies that resource\")"
+                  ? $"'{written}' {declared.DeclaredAs(written, name)} ({Edition.Edition.Quoted()})"
                   : Symbols.TryResolve(name, Model.Scope.Program, out _)
                   ? $"'{name}' is declared, but not under the given qualifier{(quals.Count == 1 ? "" : "s")} "
                     + "(ISO §2023:8.4.2.2 — qualification shall establish uniqueness)"
-                  : $"no declaration in this source element gives the name '{name}' (ISO §2023:8.4.2.1: \"a statement "
-                    + "shall contain a reference that uniquely identifies that resource\")"));
+                  : $"no declaration in this source element gives the name '{name}' ({Edition.Edition.Quoted()})"));
         return null;
     }
 
@@ -2151,7 +2149,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         Edition.Error(DiagnosticCatalog.UserWordWithoutLetter,
             $"the {kind.Spelling()} '{word}' contains no letter — with the exception of section-names, paragraph-names "
             + "and level-numbers, each user-defined word shall contain at least one basic letter or extended letter "
-            + "(ISO §2023:8.3.2.2)");
+            + $"(ISO {Edition.Edition.Cite("§1985:IV.4.2.2.1.1", "§2023:8.3.2.2", "§2023:8.3.2.2")})");
     }
 
     /// <summary>Declare the unit's OWN name — the program-name of a PROGRAM-ID paragraph or the user-function-name of
@@ -4024,7 +4022,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                         Edition.Error(DiagnosticCatalog.ValueFormatRequiresLevel88, $"{valueWhere}: {only} "
                             + "belongs to the VALUE clause's condition-name / content-validation formats, which "
                             + $"may be specified only on a level-88 entry; this entry is level {level} "
-                            + "(ISO §2023:13.18.63.3 SR33)");
+                            + $"(ISO {Edition.Edition.Cite("§1985:VI.5.15.5 GR2", "§2023:13.18.63.3 SR33", "§2023:13.18.63.3 SR33")})");
                     else if (value.valueClauseTablePhrase() is { Length: > 0 } tphrases)
                     {
                         CheckValueConnective(value, pairedConnective: true, valueWhere);
@@ -4180,7 +4178,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (UsageFamilies.AdmitsNoValueLiteral(entryUsage) && valueClauseWritten)
         {
             Edition.Error(DiagnosticCatalog.ValueOnNonLiteralUsage, $"{entryWhere}: the VALUE clause shall not be "
-                + $"specified with USAGE {UsageFamilies.UsageWord(entryUsage)} ({UsageFamilies.NoValueClauseRule(entryUsage)})");
+                + $"specified with USAGE {UsageFamilies.UsageWord(entryUsage)} ({UsageFamilies.NoValueClauseRule(entryUsage, Edition.Edition)})");
             rawValue = null;
             tableValues = null;
         }
@@ -4804,14 +4802,18 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<see cref="RawValueOperandText"/>): the VALUE clause's literal-n, since kb/Work PB778 the PICTURE
     /// EDITING phrase's literal-1/-2/-3, and since kb/Work PB1072 the ALTERNATE RECORD KEY clause's SUPPRESS WHEN
     /// literal-1. The screen, the substitutions and the diagnostic codes are one.</summary>
-    internal sealed record LiteralPosition(string Operand, string Format)
+    internal sealed record LiteralPosition(string Operand, string Words, string Cite1985, string Cite2023)
     {
         public static readonly LiteralPosition Value = new("the VALUE operand",
-            "every format of the VALUE clause writes literal-n (ISO §2023:13.18.63.2)");
+            "every format of the VALUE clause writes literal-n", "§1985:VI.5.15.2", "§2023:13.18.63.2");
+        // The EDITING phrase and SUPPRESS WHEN begin after 1985: their one citation is the edition where each begins.
         public static readonly LiteralPosition Editing = new("the PICTURE EDITING operand",
-            "the EDITING phrase writes literal-1, literal-2 and literal-3 (ISO §2023:13.18.40.2 Format 1)");
+            "the EDITING phrase writes literal-1, literal-2 and literal-3", "§2023:13.18.40.2 Format 1", "§2023:13.18.40.2 Format 1");
         public static readonly LiteralPosition SuppressWhen = new("the SUPPRESS WHEN operand",
-            "the ALTERNATE RECORD KEY clause writes SUPPRESS WHEN literal-1 (ISO §2023:12.4.5.6.2)");
+            "the ALTERNATE RECORD KEY clause writes SUPPRESS WHEN literal-1", "§2023:12.4.5.6.2", "§2023:12.4.5.6.2");
+
+        /// <summary>The format's words and its citation in the edition in force (kb/Work PB4950).</summary>
+        public string Format(EditionInfo edition) => $"{Words} (ISO {edition.Cite(Cite1985, Cite2023, Cite2023)})";
     }
 
     /// <summary>The RAW single-literal text of a VALUE operand — the data path's currency (decoded at emit
@@ -4958,7 +4960,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         using var _ = Edition.At(op);
         if (op.nonNumericLiteral()?.predefinedNull() is not null)
         {
-            PredefinedNullRule.Report(Edition, $"{position.Operand} of {where}, where {position.Format},");
+            PredefinedNullRule.Report(Edition, $"{position.Operand} of {where}, where {position.Format(Edition.Edition)},");
             return;
         }
         if (op.nonNumericLiteral()?.figurativeConstant()?.cobolWord() is { } symWord)
@@ -4967,7 +4969,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 + $"'ALL {symWord.GetText()}' names no symbolic character and no constant-name — symbolic-character-1 "
                 + "shall be specified in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph (ISO §2023:8.3.3.6.3 "
                 + "SR4), and the only other word ALL may precede is a constant-name standing for literal-1 (§2023:13.10.3 "
-                + "SR2), so the operand identifies no resource (ISO §2023:8.4.2.1).");
+                + $"SR2), so the operand identifies no resource (ISO {Edition.Edition.Citation()}).");
             return;
         }
         // Signs in front of a numeric literal that do not make ONE literal (`--5`, `+-5`, `- 5`, a sign at the end
@@ -4979,7 +4981,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             Edition.Error(DiagnosticCatalog.SignedLiteralSignNotAdjacent, $"{where}: {position.Operand} "
                 + $"'{WrittenText(op)}' is not a literal — {why}: "
                 + WiseOwl.Cobol.Frontend.Expressions.ArithmeticFormationRules.SignRuleQuote
-                + $"; and {position.Format}, which admits no arithmetic expression.");
+                + $"; and {position.Format(Edition.Edition)}, which admits no arithmetic expression.");
             return;
         }
         // The BARE-word arm only (the SAME accessor the predicate used): a SIGNED or suffixed operand is not a
@@ -4994,15 +4996,14 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             string hint = State.Forest.ByName.ContainsKey(word)
                 ? $" ('{word}' is declared as a data item; a data item is not a literal.)" : "";
             Edition.Error(DiagnosticCatalog.UndefinedReference, $"{where}: {position.Operand} '{word}' is not a "
-                + $"literal — {position.Format}, and the only "
+                + $"literal — {position.Format(Edition.Edition)}, and the only "
                 + "words a literal position admits are a constant-name (ISO §2023:13.10.3 SR2) and a "
                 + "symbolic-character (ISO §2023:8.3.3.6.2 Format 7). '" + word + "' is neither, so the operand "
-                + "identifies no resource (ISO §2023:8.4.2.1: \"a statement shall contain a reference that uniquely "
-                + $"identifies that resource\"). Check the spelling, or define the constant.{hint}");
+                + $"identifies no resource ({Edition.Edition.Quoted()}). Check the spelling, or define the constant.{hint}");
             return;
         }
         Edition.Error(DiagnosticCatalog.ValueOperandNotALiteral, $"{where}: {position.Operand} "
-            + $"'{WrittenText(op)}' is not a literal — {position.Format}. A figurative constant (ISO §2023:8.3.3.6.3 SR1), a constant-name (ISO §2023:13.10.3 SR2) "
+            + $"'{WrittenText(op)}' is not a literal — {position.Format(Edition.Edition)}. A figurative constant (ISO §2023:8.3.3.6.3 SR1), a constant-name (ISO §2023:13.10.3 SR2) "
             + "and a symbolic-character (ISO §2023:8.3.3.6.2 Format 7) stand where a literal stands, each written "
             + "as a BARE word; an arithmetic expression, a function-identifier and a qualified, subscripted or "
             + "reference-modified reference do not.");
@@ -5512,7 +5513,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         {
             Edition.Error(DiagnosticCatalog.ValueOnNonLiteralUsage, $"data item '{name}': the VALUE clause shall not "
                 + $"be specified with USAGE {UsageFamilies.UsageWord(effective)}, inherited from its group "
-                + $"'{fromGroup.FromName ?? "FILLER"}' ({UsageFamilies.NoValueClauseRule(effective)}; §2023:13.18.60.4 GR1)");
+                + $"'{fromGroup.FromName ?? "FILLER"}' ({UsageFamilies.NoValueClauseRule(effective, Edition.Edition)}; §2023:13.18.60.4 GR1)");
             item.RawValue = null;
             item.TableValues = null;
         }

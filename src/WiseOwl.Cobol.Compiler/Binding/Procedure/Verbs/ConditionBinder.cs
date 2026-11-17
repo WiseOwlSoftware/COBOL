@@ -1237,8 +1237,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // below 2002) at 85.
         ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, $"class condition '{word}': the word names "
             + "neither an alphabet-name nor a class-name declared in the SPECIAL-NAMES paragraph — the class "
-            + "condition's only user-defined-word alternatives (ISO §2023:8.8.4.4.2; §2023:8.4.2.1 — \"In order to use a "
-            + "resource, a statement shall contain a reference that uniquely identifies that resource\")");
+            + $"condition's only user-defined-word alternatives (ISO §2023:8.8.4.4.2; {ctx.Edition.Edition.QuotedDash()})");
         return Refused($"class condition '{word}'");
     }
 
@@ -1465,9 +1464,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// IS and the rule it breaks through here, so the §2023:8.8.4.2.1 list of the simple conditions is written once.</summary>
     private void ReportNotACondition(string text, string what) =>
         ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,
-            $"'{text}' is used as a condition, but it is {what}: a conditional expression is a relation, boolean, class, "
-            + "condition-name, switch-status, sign or omitted-argument condition, or a combination of them "
-            + "(ISO §2023:8.8.4.2.1; §2023:8.8.4.1)");
+            $"'{text}' is used as a condition, but it is {what}: a conditional expression is "
+            + ctx.Edition.Edition.Cite(
+                "a relation, class, condition-name, switch-status or sign condition, or a combination of them (ISO §1985:VI.6.3.1)",
+                "a relation, boolean, class, condition-name, switch-status, sign or omitted-argument condition, or a combination of them "
+                + "(ISO §2023:8.8.4.2.1; §2023:8.8.4.1)",
+                "a relation, boolean, class, condition-name, switch-status, sign or omitted-argument condition, or a combination of them "
+                + "(ISO §2023:8.8.4.2.1; §2023:8.8.4.1)"));
 
     /// <summary>⛔ THE ONE CONSTRUCTION SITE OF <see cref="BoundConditionError"/> (kb/Work PB982). An error node in a
     /// condition position is lowered by the emitter to a run-time <c>NotImplemented</c> throw, so a refusal that
@@ -1966,8 +1969,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.ConditionNameReferenceModified,
                 $"the condition-name '{DataBinder.WrittenText(dref)}' is written with a reference modifier; a "
                 + "condition-name reference is condition-name-1, qualified and subscripted, with no reference "
-                + "modifier (ISO §2023:8.4.4.2; §2023:8.8.4.5.2), and §2023:8.4.3.3.3 SR5 allows reference modification only on an "
-                + "identifier referencing a data item");
+                + "modifier (ISO "
+                + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.6", "§2023:8.4.4.2; §2023:8.8.4.5.2", "§2023:8.4.4.2; §2023:8.8.4.5.2")
+                + "), and "
+                + ctx.Edition.Edition.Cite("§1985:IV.4.3.8.4.3 SR3", "§2023:8.4.3.3.3 SR5", "§2023:8.4.3.3.3 SR5")
+                + " allows reference modification only on an identifier referencing a data item");
         }
         // ONE report per SOURCE reference (the ReferenceResolver.Diagnosed discipline, kb/Work PB70/PB443): a
         // reference is now resolved here more than once — the SEARCH ALL Format-2 screen asks which level-88 a
@@ -1988,13 +1994,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.UndefinedReference,
                     $"the condition-name '{DataBinder.WrittenText(dref)}' matches {matches.Count} level-88 declarations{others} "
-                    + "(ISO §2023:8.4.2.2 — qualification shall establish uniqueness); --permissive resolves to "
+                    + $"(ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1 SRL2.1", "§2023:8.4.2.2", "§2023:8.4.2.2")} — qualification shall establish uniqueness); --permissive resolves to "
                     + "the first declaration");
             else
                 ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
                     $"the condition-name '{DataBinder.WrittenText(dref)}' does not uniquely identify a level-88 — "
                     + $"{candidates} declarations match{(switchCompetes ? " (the level-88 and a SPECIAL-NAMES switch condition-name, which takes no qualifier, ISO §2023:8.8.4.6.2)" : "")}"
-                    + " (ISO §2023:8.4.2.2 Format 2 — qualification shall establish uniqueness). Qualify by the conditional "
+                    + $" (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.1 SRL2.1", "§2023:8.4.2.2 Format 2", "§2023:8.4.2.2 Format 2")} — qualification shall establish uniqueness). Qualify by the conditional "
                     + "variable or its containing groups");
         }
         // §2023:13.7.3 SR4 e): a condition-name of a linkage item is referenceable exactly when its conditional variable
@@ -2022,16 +2028,16 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // kb/Work PB4219 review R1-1: the condition lookup leaves the container's GLOBAL condition-name no survivor), so
         // the reference names that data item where this position admits only a condition-name.
         if (NamesHidingDataItem(dref))
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, "a data item"));
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, "a data item", ctx.Edition.Edition));
         // ... and so is a constant-name, index-name, CAPACITY register or file-name of a nearer one (kb/Work PB4432 review
         // R1-1): this position names THAT, not the container's level-88.
         else if (HidingClassPhrase(dref) is { } hider)
-            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, hider));
+            ctx.Edition.Error(DiagnosticCatalog.UndefinedReference, NameResolution.HiddenConditionText(text, name, hider, ctx.Edition.Edition));
         // A report entry of a NEARER source element is the referenced item the same way (kb/Work PB4196), and the
         // report-item refusal names it.
         else if (!ctx.Data.ReportSection.ReportEntryReferenceRefused(default, $"'{text}'", name, qualifiers))
             ctx.Edition.Error(DiagnosticCatalog.UndefinedReference,
-                NameResolution.MisqualifiedConditionText(text, name, qualifiers));
+                NameResolution.MisqualifiedConditionText(text, name, qualifiers, ctx.Edition.Edition));
         return true;
     }
 

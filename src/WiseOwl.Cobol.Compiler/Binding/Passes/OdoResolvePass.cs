@@ -51,8 +51,11 @@ internal sealed class OdoResolvePass : IBindPass
             using var _ = binder.Edition.At(table.ReferenceSite);
             binder.Edition.Error(DiagnosticCatalog.TableNestingTooDeep,
                 $"table '{table.CobolName ?? table.ClrName}' is nested under seven other OCCURS entries: a reference to "
-                + "it needs eight subscripts, and \"as long as the number of subscripts required does not exceed "
-                + "seven\" (ISO §2023:13.18.38.3 SR10) — at most seven subscripts may be specified (§2023:8.4.2.3.3 SR3)"
+                + "it needs eight subscripts, and "
+                + binder.Edition.Edition.Cite(
+                    "\"One through seven subscripts are permitted in level 2\" (ISO §1985:VI.1.3.4)",
+                    "\"as long as the number of subscripts required does not exceed seven\" (ISO §2023:13.18.38.3 SR10) — at most seven subscripts may be specified (§2023:8.4.2.3.3 SR3)",
+                    "\"as long as the number of subscripts required does not exceed seven\" (ISO §2023:13.18.38.3 SR10) — at most seven subscripts may be specified (§2023:8.4.2.3.3 SR3)")
                 + DataBinder.ViaReference(table));
         }
 
@@ -142,8 +145,7 @@ internal sealed class OdoResolvePass : IBindPass
                 if (nonData is { DeclarationRefused: true }) continue;
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectUndefined, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
                     + (nonData is { } declared
-                        ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName)} (ISO §2023:8.4.2.1: \"a statement "
-                          + "shall contain a reference that uniquely identifies that resource\")"
+                        ? $"'{writtenDep}' {declared.DeclaredAs(writtenDep, depName)} ({binder.Edition.Edition.Quoted()})"
                         : spec.DependingQualifiers.Count > 0
                         ? "is not defined under the given qualifiers (ISO §2023:8.4.2.2.1: uniqueness shall be established "
                           + "through qualification)"
@@ -252,7 +254,7 @@ internal sealed class OdoResolvePass : IBindPass
             if (inTableRange && !DeclarationFact(dep))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectInTableRange, $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not occupy a byte position within the range from the table's first byte "
-                    + "position to the last byte position of its record (ISO §2023:13.18.38.3 SR20)"
+                    + $"position to the last byte position of its record (ISO {binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR7", "§2023:13.18.38.3 SR20", "§2023:13.18.38.3 SR20")})"
                     + (ReferenceEquals(dep.Root, item.Root) ? ""
                         : $" — '{dep.Root.CobolName}' and '{item.Root.CobolName}' are one storage area") + via);
         }

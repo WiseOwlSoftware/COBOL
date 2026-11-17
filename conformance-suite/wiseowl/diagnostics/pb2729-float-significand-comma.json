@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "§2023:8.3.5 rule 2"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "is not immediately followed by a space, so it is not a separator"}

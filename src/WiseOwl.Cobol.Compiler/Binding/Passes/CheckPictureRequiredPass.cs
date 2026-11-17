@@ -52,9 +52,12 @@ internal sealed class CheckPictureRequiredPass : IBindPass
                 int n = item.Children.Count;
                 using var _ = binder.Edition.At(item);
                 binder.Edition.Error(rule.Code, $"data item '{item.CobolName ?? "FILLER"}': the {DataClauseKinds.Name(present)} "
-                    + $"clause may be specified only at the elementary level (ISO {rule.Rule}) — this entry has {n} "
-                    + $"subordinate {(n == 1 ? "entry" : "entries")}, so it is not an elementary item (§2023:8.5.1.3.1: the "
-                    + "elementary items are the subdivisions \"not further subdivided\"). Remove "
+                    + $"clause may be specified only at the elementary level (ISO {rule.RuleIn(binder.Edition.Edition)}) — this entry has {n} "
+                    + $"subordinate {(n == 1 ? "entry" : "entries")}, so it is not an elementary item ("
+                    + binder.Edition.Edition.Cite("§1985:III.2: an elementary item is a data item \"described as not being further logically subdivided\"",
+                        "§2023:8.5.1.3.1: the elementary items are the subdivisions \"not further subdivided\"",
+                        "§2023:8.5.1.3.1: the elementary items are the subdivisions \"not further subdivided\"")
+                    + "). Remove "
                     + (present == DataClauseKind.Picture && item.PictureText is { } pt
                         ? $"PICTURE {pt}" : $"the {DataClauseKinds.Name(present)} clause")
                     + " from this entry, or remove the subordinate entries");

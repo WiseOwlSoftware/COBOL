@@ -1083,7 +1083,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             {
                 using var duplicateAt = ctx.Edition.At(target);   // the repeating USE statement's operand (kb/Work PB5090)
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': this open mode already "
-                    + "has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR7)");
+                    + $"has a USE procedure in this procedure division (ISO {new EditionCite("§2023:14.9.49.3 SR7", "§1985:VII.4.6.3 SR6").At(ctx.Edition.Edition.Year, FileOrganization.Sequential)})");
             }
             return new DeclScope([], m, global, null);
         }
@@ -1117,7 +1117,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 case ConstructOperand.Duplicate:
                     using (ctx.Edition.At(fn))   // the file-name that repeats (kb/Work PB5090)
                         ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': file '{fname}' "
-                            + "already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)");
+                            + $"already has a USE procedure in this procedure division (ISO {new EditionCite("§2023:14.9.49.3 SR8", "§1985:VII.4.6.3 SR3", "§1985:VIII.4.8.3 SR3", "§1985:IX.4.8.3 SR3").At(ctx.Edition.Edition.Year, file.Organization)})");
                     continue;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the file
             }
             files.Add(file);

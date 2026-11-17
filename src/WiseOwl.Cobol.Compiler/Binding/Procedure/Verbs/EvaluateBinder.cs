@@ -389,7 +389,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
                     $"the two operands of the range-expression '{DataBinder.WrittenText(range)}' are of class "
                     + $"{IntrinsicArgumentRules.ClassNameOf(lo, lc)} and class {IntrinsicArgumentRules.ClassNameOf(hi, hc)}; ISO "
-                    + "§2023:14.9.13.3 SR4 requires them to be of the same class (§2023:8.5.2.1 Table 2 — CLASS, not "
+                    + ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4", "§2023:14.9.13.3 SR4")
+                    + " requires them to be of the same class (§2023:8.5.2.1 Table 2 — CLASS, not "
                     + "category, so alphabetic and alphanumeric are two classes)");
             }
         }
@@ -403,7 +404,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
                 $"the two operands of the range-expression '{DataBinder.WrittenText(range)}' are of class "
                 + $"{IntrinsicArgumentRules.DescribeClasses(lo)} and class {IntrinsicArgumentRules.DescribeClasses(hi)}, "
-                + "which share no class; ISO §2023:14.9.13.3 SR4 requires them to be of the same class (a figurative "
+                + "which share no class; ISO "
+                + ctx.Edition.Edition.Cite("§1985:VI.6.13.3 SR4", "§2023:14.9.13.3 SR4", "§2023:14.9.13.3 SR4")
+                + " requires them to be of the same class (a figurative "
                 + "constant other than ZERO represents a character value, §2023:8.3.3.6.4 GR1)");
         }
         // SR9 — a variable-length group is §2023:8.5.1.12.1's: "a group item whose data description has at least one

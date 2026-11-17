@@ -139,10 +139,10 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
         string usageRule = report
             ? "all data in that file must be described as USAGE IS DISPLAY (ISO §1985:VII.3.4.3 SR1)"
             : $"all elementary data items of all record description entries shall be described as usage {usage} "
-                + $"(ISO §2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")})";
+                + $"(ISO {binder.Edition.Edition.Cite("§1985:VII.3.4.3 SR1", $"§2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")}", $"§2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")}")})";
         string signRule = report
             ? "must be described with the SIGN IS SEPARATE clause (ISO §1985:VII.3.4.3 SR1)"
-            : $"shall be described with the SIGN IS SEPARATE clause (ISO §2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")}; §2023:13.18.52.3 SR3)";
+            : $"shall be described with the SIGN IS SEPARATE clause (ISO {binder.Edition.Edition.Cite("§1985:VII.3.4.3 SR1", $"§2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")}; §2023:13.18.52.3 SR3", $"§2023:13.18.13.3 SR3 {(wantNational ? "b" : "a")}; §2023:13.18.52.3 SR3")})";
         bool right = !wantNational && pic.Usage is Usage.Display || wantNational && pic.Usage is Usage.National;
         if (!right)
             binder.Edition.Error(DiagnosticCatalog.CodeSetClauseViolation,

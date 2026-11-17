@@ -602,7 +602,7 @@ public sealed partial class FileControlBinder
             if (set.Medium is CodeSetMedium.NotProvided)
                 Edition.Error(DiagnosticCatalog.CodeSetClauseViolation, $"CODE-SET {name}: the {set.Phrase} coded "
                     + "character set's on-medium representation differs from the native encoding, and this processor "
-                    + "does not provide alternate device code sets (Annex A §2023:A.3 item 27 — documented non-support, "
+                    + $"does not provide alternate device code sets ({Edition.Edition.Cite("§1985:C.3 item 8", "Annex A §2023:A.3 item 27", "Annex A §2023:A.3 item 27")} — documented non-support, "
                     + "CONFORMANCE.md §2 row 27); NATIVE, STANDARD-1, STANDARD-2, UTF-16 and the ASCII code-name "
                     + "convert as the identity, and the EBCDIC code-name converts through its GR7 i correspondence");
             else if (set.Medium is CodeSetMedium.Translated)
@@ -640,7 +640,7 @@ public sealed partial class FileControlBinder
             if (record.CobolName is not null) continue;
             using var _ = Edition.At(record);
             Edition.Error(rule.Code, $"a record description entry of file '{file.CobolName}' has no data-name, and "
-                + $"the file description entry contains the {clause} clause. \"{rule.Sentence}\" (ISO {rule.Rule})");
+                + $"the file description entry contains the {clause} clause. \"{rule.SentenceIn(Edition.Edition)}\" (ISO {rule.RuleIn(Edition.Edition)})");
         }
     }
 }

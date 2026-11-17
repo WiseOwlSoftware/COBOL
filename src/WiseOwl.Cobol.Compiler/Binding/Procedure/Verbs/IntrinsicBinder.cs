@@ -205,7 +205,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.Edition.Error(DiagnosticCatalog.RefModFunctionResultClass,
                 $"'{display}' is not an alphanumeric, boolean, or national function, so its result cannot be "
-                + "reference-modified (ISO §2023:8.4.3.3.3 SR2).");
+                + $"reference-modified (ISO {ctx.Edition.Edition.Cite("§1985:IV.4.3.8.3.3 SR2", "§2023:8.4.3.3.3 SR2", "§2023:8.4.3.3.3 SR2")}).");
             return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
         }
         if (spec is not { } rm) return BoundExprError.Refused(ctx.Edition, $"reference modification of {display}");
