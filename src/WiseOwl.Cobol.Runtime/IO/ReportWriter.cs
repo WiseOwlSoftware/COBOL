@@ -1660,9 +1660,9 @@ public sealed class CobolReport(
     /// (<see cref="ReportLinePlacement.FirstLine"/>, which the binder's compile-time screens ask too, kb/Work PB1003),
     /// asked with the final LINE-COUNTER of the group GR5 places this one after when that group is on the page: the
     /// report heading before a page heading (GR5b2), the page footing before a report footing (GR5b5), an earlier body
-    /// group before a body group (GR5b3), and every earlier group of a report not divided into pages (GR5c). It was
-    /// written out four times once, one per presentation method (kb/Work PB1247); a body group's §2023:13.18.37.4 GR4a
-    /// save-location placement stays its caller's.</summary>
+    /// group before a body group (GR5b3), and every earlier group of a report not divided into pages (GR5c). All four
+    /// presentation methods ask it (kb/Work PB1247); a body group's §2023:13.18.37.4 GR4a save-location placement stays
+    /// its caller's.</summary>
     private long FirstLineTarget(ReportGroup group, ReportGroupLine l)
     {
         long? preceding = !_paged ? LineCounter : group.Kind switch
