@@ -732,8 +732,9 @@ public sealed class FileRegistry
 
     /// <summary>The file's current FILE STATUS two-character code (ISO §2023:9.1.13). An unknown name is LOUD — the
     /// old fail-open '00' told the program a statement SUCCEEDED whose own branch local held '30' (kb/Work
-    /// PB140; the reachable case was an unregistered SD file, now a bind-time rejection).</summary>
-    public string Status(string name) => Require(name).Status;
+    /// PB140; the reachable case was an unregistered SD file, now a bind-time rejection). It is the status the PROGRAM is
+    /// told, <see cref="FileConnector.ProgramStatus"/> (kb/Work PB5882: at COBOL-85, the 1985 value of the condition).</summary>
+    public string Status(string name) => Require(name).ProgramStatus;
 
     /// <summary>⛔ THE ONE PLACE THE EC-I-O CONDITION OF THE LAST I-O OPERATION IS DECIDED (ISO §2023:9.1.13.1;
     /// kb/Work PB526) — the level-3 exception-name set to exist by the operation just executed on
@@ -750,7 +751,7 @@ public sealed class FileRegistry
     public string? IoConditionName(string name)
     {
         var c = Require(name);
-        return c.IoConditionName ?? Exceptions.ExceptionCatalog.IoEcOfStatus(c.Status);
+        return c.IoConditionName ?? Exceptions.ExceptionCatalog.IoEcOfStatus(c.ProgramStatus);
     }
 
     /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §2023:15.28.4 r2): two alphanumeric spaces when the
@@ -762,7 +763,7 @@ public sealed class FileRegistry
     public string ExceptionFile(string name)
     {
         if (!_files.TryGetValue(name, out var c) || !c.EverAccessed) return "  ";
-        return c.Status + c.SelectName;
+        return c.ProgramStatus + c.SelectName;
     }
 
     /// <summary>The length of the most recently read record (ISO §2023:13.18.43 GR15).</summary>
