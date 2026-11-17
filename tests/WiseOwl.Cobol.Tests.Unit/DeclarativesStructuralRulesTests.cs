@@ -290,6 +290,7 @@ public sealed class DeclarativesStructuralRulesTests
     [InlineData("READ RELF NEXT RECORD AT END MOVE 1 TO WS-N")]   // the RELATIVE KEY item WS-RK
     [InlineData("WRITE RELF-REC INVALID KEY MOVE 1 TO WS-N")]     // sequential access: the RELATIVE KEY item WS-RK
     [InlineData("READ VARF AT END MOVE 1 TO WS-N")]               // the DEPENDING ON item WS-LEN
+    [InlineData("READ RELD NEXT RECORD AT END MOVE 1 TO WS-N")]   // dynamic access, NEXT: a format 1 READ stores WS-RK3
     public void AStoreThroughAFileConnectorIntoAControlDataItem_IsRefused(string statement)
     {
         var d = BindDiagnostics(FileReportProgram(statement), 2023);
@@ -304,12 +305,23 @@ public sealed class DeclarativesStructuralRulesTests
         Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§1985:XIII.4.9.3 SR4"));
     }
 
-    /// <summary>The control: an I-O statement on a file none of whose connector items is a control data item alters none.</summary>
+    /// <summary>The control: an I-O statement that stores none of its file's connector items that is a control data item alters
+    /// none.</summary>
     [Theory]
     [InlineData("READ OTF AT END MOVE 1 TO WS-N")]
     [InlineData("OPEN INPUT OTF")]
     [InlineData("CLOSE OTF")]
     [InlineData("READ OTF INTO WS-X AT END MOVE 1 TO WS-N")]
+    // A random READ takes the RELATIVE KEY item as its input and stores nothing into it (§1985:VIII.4.5.4 GR14 and
+    // §2023:14.9.30.4 GR25 move the record number only on a format 1, sequential, READ; kb/Work PB5885 review R1-1).
+    [InlineData("READ RELR INVALID KEY MOVE 1 TO WS-N")]
+    [InlineData("READ RELD INVALID KEY MOVE 1 TO WS-N")]         // dynamic access without NEXT: a random read
+    // A random or dynamic WRITE reads the key (§2023:14.9.51.4 GR29 b)); START, DELETE and REWRITE store no key; RELR and
+    // RELD have no FILE STATUS item.
+    [InlineData("WRITE RELR-REC INVALID KEY MOVE 1 TO WS-N")]
+    [InlineData("START RELD KEY IS EQUAL TO WS-RK3 INVALID KEY MOVE 1 TO WS-N")]
+    [InlineData("DELETE RELD RECORD INVALID KEY MOVE 1 TO WS-N")]
+    [InlineData("REWRITE RELD-REC INVALID KEY MOVE 1 TO WS-N")]
     public void AnIoStatementOnAFileWithNoControlItem_IsAccepted(string statement)
     {
         var d = BindDiagnostics(FileReportProgram(statement), 2023);
@@ -466,6 +478,10 @@ public sealed class DeclarativesStructuralRulesTests
                        SELECT STF ASSIGN TO "brfiles-stf.dat" FILE STATUS IS WS-FS.
                        SELECT RELF ASSIGN TO "brfiles-relf.dat" ORGANIZATION IS RELATIVE
                            ACCESS MODE IS SEQUENTIAL RELATIVE KEY IS WS-RK.
+                       SELECT RELR ASSIGN TO "brfiles-relr.dat" ORGANIZATION IS RELATIVE
+                           ACCESS MODE IS RANDOM RELATIVE KEY IS WS-RK2.
+                       SELECT RELD ASSIGN TO "brfiles-reld.dat" ORGANIZATION IS RELATIVE
+                           ACCESS MODE IS DYNAMIC RELATIVE KEY IS WS-RK3.
                        SELECT VARF ASSIGN TO "brfiles-varf.dat".
                        SELECT OTF ASSIGN TO "brfiles-otf.dat".
                    I-O-CONTROL.
@@ -482,6 +498,10 @@ public sealed class DeclarativesStructuralRulesTests
                    01 ST-REC PIC X(5).
                    FD RELF.
                    01 RELF-REC PIC X(5).
+                   FD RELR.
+                   01 RELR-REC PIC X(5).
+                   FD RELD.
+                   01 RELD-REC PIC X(5).
                    FD VARF RECORD IS VARYING IN SIZE FROM 1 TO 9 CHARACTERS DEPENDING ON WS-LEN.
                    01 VAR-REC PIC X(9).
                    FD OTF.
@@ -491,10 +511,12 @@ public sealed class DeclarativesStructuralRulesTests
                    01 WS-FS PIC XX.
                    01 WS-RK PIC 9(4).
                    01 WS-LEN PIC 9(4).
+                   01 WS-RK2 PIC 9(4).
+                   01 WS-RK3 PIC 9(4).
                    01 WS-X PIC X(5).
                    01 WS-N PIC 9 VALUE 0.
                    REPORT SECTION.
-                   RD R-1 CONTROLS ARE IN-KEY WS-FS WS-RK WS-LEN
+                   RD R-1 CONTROLS ARE IN-KEY WS-FS WS-RK WS-LEN WS-RK2 WS-RK3
                        PAGE LIMIT IS 20 LINES.
                    01 DET-A TYPE DE LINE PLUS 1.
                       02 COLUMN 1 PIC 9 SOURCE IS WS-N.

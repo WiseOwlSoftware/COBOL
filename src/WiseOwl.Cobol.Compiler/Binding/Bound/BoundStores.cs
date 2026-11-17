@@ -157,10 +157,14 @@ public static class BoundStores
         private bool StatusHit(IEnumerable<FileModel> files) => connector is not null && files.Any(f => ConnectorHit(f, FileConnectorStore.Status));
 
         /// <summary>What a READ stores through the connector of <paramref name="file"/>, on both organizations' arms: the record
-        /// area (§2023:14.9.30.4 GR13), the FILE STATUS item, the RELATIVE KEY item (§2023:14.9.30.4 GR25) and the DEPENDING ON item
-        /// (§2023:13.18.43.4 GR15).</summary>
-        private bool ReadHit(FileModel file) => ConnectorHit(file, FileConnectorStore.RecordArea, FileConnectorStore.Status,
-            FileConnectorStore.RelativeKey, FileConnectorStore.Depending);
+        /// area (§2023:14.9.30.4 GR13), the FILE STATUS item (every input-output statement, §2023:9.1.13.1) and the DEPENDING ON item
+        /// (§2023:13.18.43.4 GR15: "after the successful execution of a READ or RETURN statement"); and the RELATIVE KEY item only
+        /// for a SEQUENTIAL read (<paramref name="sequential"/>): §1985:VIII.4.5.4 GR14 moves the relative record number into it on
+        /// "the execution of a format 1 READ statement", and §2023:14.9.30.4 GR25 is the same rule, while a random read takes the
+        /// item as its input (kb/Work PB5885 review R1-1).</summary>
+        private bool ReadHit(FileModel file, bool sequential) =>
+            ConnectorHit(file, FileConnectorStore.RecordArea, FileConnectorStore.Status, FileConnectorStore.Depending)
+            || (sequential && ConnectorHit(file, FileConnectorStore.RelativeKey));
 
         // The statements NESTED in this one — a conditional phrase's imperative statements, an IF or EVALUATE arm, an inline
         // PERFORM body: each is a statement of its own. A found store dominates (the temp occurs exactly once). A DIRECT query
@@ -253,7 +257,7 @@ public static class BoundStores
         /// relative file, the RELATIVE KEY item.</summary>
         private bool SortTransferHit(IReadOnlyList<FileModel> usingFiles, IReadOnlyList<FileModel> givingFiles) =>
             connector is not null
-            && (usingFiles.Any(ReadHit) || givingFiles.Any(f => ConnectorHit(f, FileConnectorStore.Status, FileConnectorStore.RelativeKey)));
+            && (usingFiles.Any(f => ReadHit(f, sequential: true)) || givingFiles.Any(f => ConnectorHit(f, FileConnectorStore.Status, FileConnectorStore.RelativeKey)));
         // The table SORT reads the table and places its occurrences back (ISO/IEC 1989:2023 §2023:14.9.40.4 GR24): data-name-2 and every
         // key data-name it writes are changed in place (kb/Work PB4855). Its storage is reached through n.Storage, the same table.
         public StoreKind Visit(BoundTableSort n)
@@ -362,11 +366,11 @@ public static class BoundStores
         // omitting the lists here is the same two-arm disagreement kb/Work PB334 was about.
         // A READ stores its INTO operand and, through the connector, what ReadHit names: the statement names only the file
         // (kb/Work PB5885).
-        public StoreKind Visit(BoundRead n) => StoreOrKids(IntoHit(n.IntoMove) || ReadHit(n.File), StoreKind.Write,
+        public StoreKind Visit(BoundRead n) => StoreOrKids(IntoHit(n.IntoMove) || ReadHit(n.File, sequential: true), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
         public StoreKind Visit(BoundRewrite n) => StoreOrKids((n.FromMove is not null && Hit(n.Record)) || StatusHit([n.File]),
             StoreKind.ReadWrite, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);   // the --permissive pair (PB691)
-        public StoreKind Visit(BoundKeyedRead n) => StoreOrKids(IntoHit(n.IntoMove) || ReadHit(n.File), StoreKind.Write,
+        public StoreKind Visit(BoundKeyedRead n) => StoreOrKids(IntoHit(n.IntoMove) || ReadHit(n.File, sequential: n.Kind != ReadKind.Random), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
         // A sequential-access WRITE of a relative file moves the number of the record released into the RELATIVE KEY item
         // (§2023:14.9.51.4 GR29 a)); under random or dynamic access the item is the WRITE's input (GR29 b)).
