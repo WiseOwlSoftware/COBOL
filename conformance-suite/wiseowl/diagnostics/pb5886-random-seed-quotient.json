@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "FUNCTION RANDOM argument-1 is an arithmetic expression whose term FUNCTION ORD (A) is an integer under the net factor 0.5"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "FUNCTION RANDOM argument-1 is an arithmetic expression whose value is not an integer for every value of its terms: at FUNCTION ORD (A) = 1 it is 0.5"}

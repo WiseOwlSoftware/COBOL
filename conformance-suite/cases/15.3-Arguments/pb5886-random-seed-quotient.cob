@@ -13,11 +13,13 @@
       *> or an integer data item shall be specified"; §1989:A.2.2
       *> AR4 (cite.py --check): "An arithmetic expression which
       *> will always result in an integer value must be specified".
-      *> The screen fails closed (kb/Work PB5886): a quotient is an
-      *> integer term only by a literal whose reciprocal terminates
-      *> (it is the product by that reciprocal), a function term is
-      *> judged by the type its definition gives for its arguments,
-      *> and a term it cannot show to be an integer is not one.
+      *> The screen fails closed and decides exactly (kb/Work
+      *> PB5886, PB5891): the argument's value is a polynomial in
+      *> its terms (a quotient by a nonzero literal is the product
+      *> by its reciprocal; a function is a term, of the type its
+      *> definition gives for its arguments), and it is admitted
+      *> only when every intermediate is exact and the polynomial is
+      *> an integer for every value of its terms.
       *> ORD (A) / 2 is 33.5 for A = "B"; a seed is an integer
       *> argument.
        IDENTIFICATION DIVISION.

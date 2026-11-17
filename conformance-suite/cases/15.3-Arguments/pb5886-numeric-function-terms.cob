@@ -13,14 +13,17 @@
       *> or an integer data item shall be specified"; §1989:A.2.2
       *> AR4 (cite.py --check): "An arithmetic expression which
       *> will always result in an integer value must be specified".
-      *> The screen fails closed (kb/Work PB5886): a quotient is an
-      *> integer term only by a literal whose reciprocal terminates
-      *> (it is the product by that reciprocal), a function term is
-      *> judged by the type its definition gives for its arguments,
-      *> and a term it cannot show to be an integer is not one.
-      *> MAX of a scaled item is a numeric function, which is no
-      *> integer term by its type (§2023:8.4.3.2.3 SR11 judges a
-      *> numeric function where an integer is required by type).
+      *> The screen fails closed and decides exactly (kb/Work
+      *> PB5886, PB5891): the argument's value is a polynomial in
+      *> its terms (a quotient by a nonzero literal is the product
+      *> by its reciprocal; a function is a term, of the type its
+      *> definition gives for its arguments), and it is admitted
+      *> only when every intermediate is exact and the polynomial is
+      *> an integer for every value of its terms.
+      *> MAX of a scaled item is a numeric function, a real term.
+      *> S2 - FUNCTION MAX (S2) is 0 for every S2, but MAX (S2) and
+      *> S2 are two terms, equal only by MAX's meaning, so the real
+      *> term does not cancel (the residue of kb/Work PB5889).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5886I.
        DATA DIVISION.

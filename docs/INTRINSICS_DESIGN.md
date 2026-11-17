@@ -966,9 +966,9 @@ and §1989:A.2.2 AR4 put the requirement on the program and set no method of pro
 screen that refused only on a witness valuation (PB124, PB617, PB5208, PB5345, PB5832) let `FUNCTION FACTORIAL (FUNCTION ORD (A) / 2)`
 compile there and return 33! for 33.5 (PB5886), and the screen of shapes that replaced it refused `FUNCTION FACTORIAL (N * (N + 1) / 2)`,
 an integer for every N because a product of two consecutive integers is even (PB5891). The classifier lists no shapes: it computes the
-expression's VALUE as a polynomial and decides the integer-ness of that polynomial exactly. It lives in
-`Binding/IntegerArgumentPolynomial.cs` (`ArgumentPolynomials`, `Polynomial`, `ExactRational`); `IntrinsicArgumentRules` keeps the entry
-points and the reasons.
+expression's VALUE as a polynomial and decides the integer-ness of that polynomial exactly. The classifier is
+`Binding/IntrinsicArgumentRules.TypeSix.cs` (`Build`, `Intermediate`, `SameTerm`); the polynomial, its integer-valued test and its digit
+bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `ExactRational`).
 
 1. **The atoms and purity.** Every leaf of the expression is a constant or an ATOM. A literal fold (`ExactValue`) is a rational constant,
    trusted only when the arithmetic stores every quotient in it exactly (`QuotientsAreExact`, PB4758, PB4794). A fixed-point numeric item
@@ -977,7 +977,7 @@ points and the reasons.
    argument types written), an index-name, a counter register (`AlgebraicRanges.IsCounterRegister`), a report VARYING counter and an
    OCCURS DEPENDING extent are integer atoms of unknown magnitude. A floating-point item (§2023:14.6.8.3, PB248) and a numeric-type
    function are REAL atoms. Two occurrences are ONE atom when they are the same PURE term, compared as bound trees
-   (`ArgumentPolynomials.SameTerm`): the same item reference (the same place, its subscripts included), or the same function with the
+   (`IntrinsicArgumentRules.SameTerm`): the same item reference (the same place, its subscripts included), or the same function with the
    same arguments. A function whose value is not fixed by its arguments is never one atom with another: the catalog column
    `IntrinsicSig.ValueSource` says which (`IntrinsicValueSource.RunUnitState`: RANDOM, SECONDS-PAST-MIDNIGHT, CURRENT-DATE,
    FORMATTED-CURRENT-DATE, WHEN-COMPILED and the EXCEPTION- family; `ArgumentsOrCurrentYear`: DATE-TO-YYYYMMDD, DAY-TO-YYYYDDD and
@@ -995,7 +995,7 @@ points and the reasons.
    makes it an integer term (`ProvablyIntegral`), otherwise not proven.
 3. **Integer-valued, exactly.** Like terms are collected. A monomial that holds a real atom must have coefficient zero, so `SQRT (N) -
    SQRT (N) + 5` and `0 * FUNCTION SQRT (N) + 5` are the constant 5. What is left is a polynomial P in integer atoms, and
-   `FractionDigits(P)` is the least f for which `10^f · P` is integer-valued on the integers. A polynomial of degree at most d_i in atom i
+   `Polynomial.FractionDigits(P)` is the least f for which `10^f · P` is integer-valued on the integers. A polynomial of degree at most d_i in atom i
    is integer-valued on Z^n exactly when it is an integer on the grid {0..d1} x ... x {0..dn} (its coefficients in the binomial basis
    `C(x1, k1) ... C(xn, kn)` are integer combinations of its grid values), so f is the most fraction digits P takes on that grid,
    evaluated exactly in rationals; when every coefficient is a multiple of `10^-f` the grid is not needed. ⛔ **The cap:** the grid is
@@ -1011,18 +1011,20 @@ points and the reasons.
    every nested quotient keeps beyond its operands' (`ExactFractionDigits`, `CobolNum.NestedQuotientScale`): `WN / 3 * 3` is refused
    because `WN / 3` is not exact, and `N * (N + 1) * (N + 2) / 6` is exact because its quotient is an integer; (c) on the binary64 lane
    (an operation with a floating-point item or a floating literal carrier beneath it, which native arithmetic evaluates in IEEE
-   binary64, NumericRenderer D16) its polynomial is integer-valued and below 10^15, which binary64 holds exactly (`F - F + 1` admitted,
-   `F - F + N * 0.1` refused); and (d) under a standard arithmetic (`ArithmeticModes.IntermediateSignificantDigits`: 32 for the 2002
-   STANDARD, 34 for STANDARD-DECIMAL, §2023:8.8.1.5.2) an intermediate whose polynomial carries fraction digits fits that many
-   significant digits: its digits lie in `[-FractionDigits(P), hi)`, hi the largest monomial's magnitude bound plus the carry of the
-   monomial count (`Polynomial.DigitSpan`). So the one quantity `FractionDigits` decides both questions: f = 0 for the answer, f <= 14
+   binary64, NumericRenderer D16) its polynomial is integer-valued (`F - F + 1` admitted, `(F - F + N * 0.1) * 10` refused); and (d)
+   under a standard arithmetic (`ArithmeticModes.IntermediateSignificantDigits`: 32 for the 2002 STANDARD, 34 for STANDARD-DECIMAL,
+   §2023:8.8.1.5.2) an intermediate whose polynomial carries fraction digits fits that many significant digits: its digits lie in
+   `[-FractionDigits(P), hi)`, hi the largest monomial's magnitude bound plus the carry of the monomial count (`Polynomial.DigitHigh`).
+   An INTEGER the arithmetic rounds (on the binary64 lane at 10^15 or more, under a standard arithmetic past its digits) stays an
+   integer, but no longer the polynomial's value, so from that node up it is a fresh integer atom (`X * Y + 1` stays admitted, and
+   `X * Y / 2 * 2` over items whose product passes the digits is refused). So the one quantity `FractionDigits` decides both questions: f = 0 for the answer, f <= 14
    for a quotient, and -f is the low digit of every intermediate. `B27 / 0.0001 / 16384 * 16384 * 0.0001` over a 27-digit item is
    admitted natively (`pb5886_native_quotient_chain`) and refused under STANDARD-DECIMAL (`pb5886-standard-decimal-intermediate`), where
    its quotient (B27 x 0.6103515625) needs up to 37 significant digits, 10 of them fraction digits; `(...) ** 1` does not hide its base
    (`pb5886-standard-decimal-power`). The INTEGER-PART wrap of an Integer-row argument (`IntegralForm`) is therefore a no-op on every
    argument it is given.
-5. **One classifier, every node kind named.** The node walks (the polynomial builder `ArgumentPolynomials.Build`, the term comparer
-   `ArgumentPolynomials.SameTerm`, `ProvablyIntegral` and the fold `ExactValue`) name every concrete `BoundExpr` kind in an explicit arm and
+5. **One classifier, every node kind named.** The node walks (the polynomial builder `Build`, the term comparer `SameTerm`,
+   `ProvablyIntegral` and the fold `ExactValue`) name every concrete `BoundExpr` kind in an explicit arm and
    refuse in their default; `TypeSixWalkCoverageDriftTests` enumerates the kinds by reflection and holds each walk to naming them.
 
 Everything else is refused with COBOL1627 at every edition: a quotient by a non-literal, a power outside rule 2, a real term that does not

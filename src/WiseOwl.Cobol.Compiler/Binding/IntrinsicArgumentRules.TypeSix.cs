@@ -28,19 +28,23 @@ internal static partial class IntrinsicArgumentRules
     /// requirement is the same in both texts); the ARITHMETIC in force decides which intermediates are exact.</para></summary>
     private static string? NotAlwaysIntegral(BoundExpr expr, ArithmeticMode arithmetic)
     {
-        var ctx = new TypeSixContext(ArithmeticModes.IntermediateSignificantDigits(arithmetic));
+        var ctx = new TypeSixContext(ArithmeticModes.IntermediateSignificantDigits(arithmetic), arithmetic);
         var built = Build(expr, ctx);
         if (built.Why is { } why) return why;
         var value = built.Value!;
         if (value.FirstRealAtom(ctx.IsReal) is { } real) return RealTermWhy(ctx.Atoms[real].Term);
         int? digits = value.FractionDigits(out var witness);
         if (digits == 0) return null;
-        return witness is null
-            ? "is an arithmetic expression whose value the classifier cannot show to be an integer: its fractional coefficients would "
-              + $"need the integer-valued test past its cap (degree {Polynomial.MaxGridDegree} in a term, {Polynomial.MaxGridPoints} "
-              + "points) — " + TypeSixExpressionRule
-            : $"is an arithmetic expression whose value is not an integer for every value of its terms: at {ctx.PointText(witness)} it "
-              + $"is {value.Evaluate(witness)} — " + TypeSixExpressionRule;
+        return witness switch
+        {
+            null => "is an arithmetic expression whose value the classifier cannot show to be an integer: its fractional coefficients "
+                + $"would need the integer-valued test past its cap (degree {Polynomial.MaxGridDegree} in a term, "
+                + $"{Polynomial.MaxGridPoints} points) — " + TypeSixExpressionRule,
+            { Count: 0 } => $"is an arithmetic expression whose literal terms sum to {value.Evaluate(witness)} and whose every other term "
+                + "cancels or is an integer, so its value is never an integer — " + TypeSixExpressionRule,
+            _ => $"is an arithmetic expression whose value is not an integer for every value of its terms: at {ctx.PointText(witness)} "
+                + $"it is {value.Evaluate(witness)} — " + TypeSixExpressionRule,
+        };
     }
 
     /// <summary>The rule every type 6 expression refusal cites.</summary>
@@ -48,10 +52,13 @@ internal static partial class IntrinsicArgumentRules
         "ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in an integer value";
 
     /// <summary>The atoms of one classification and the arithmetic's significant-digit cap (null for native arithmetic).</summary>
-    private sealed class TypeSixContext(int? cap)
+    private sealed class TypeSixContext(int? cap, ArithmeticMode arithmetic)
     {
         public readonly List<PolynomialAtom> Atoms = [];
         public readonly int? Cap = cap;
+
+        /// <summary>The ARITHMETIC clause in force as a diagnostic names it.</summary>
+        public readonly string ArithmeticName = arithmetic is ArithmeticMode.Standard ? "STANDARD" : "STANDARD-DECIMAL";
 
         public bool IsReal(int atom) => !Atoms[atom].Integer;
 
@@ -199,11 +206,12 @@ internal static partial class IntrinsicArgumentRules
     private static Built Intermediate(BoundExpr e, Polynomial value, bool lane, bool quotient, TypeSixContext ctx)
     {
         if (value.FirstRealAtom(ctx.IsReal) is { } real) return Built.Fail(RealIntermediateWhy(e, ctx.Atoms[real].Term));
-        int? digits = value.FractionDigits(out _);
+        int? digits = value.FractionDigits(out var witness);
         if (quotient && (digits is null || digits > ExactFractionDigits))
             return Built.Fail($"is an arithmetic expression whose quotient {ExprText(e)} has a value with more than the "
-                + $"{ExactFractionDigits} fraction digits a nested quotient is certain to keep, or no finite decimal value, so the arithmetic "
-                + "does not compute it exactly and the value is not shown to be an integer — " + TypeSixExpressionRule);
+                + $"{ExactFractionDigits} fraction digits a nested quotient is certain to keep, or no finite decimal value"
+                + (witness is { Count: > 0 } ? $" (at {ctx.PointText(witness)} it is {value.Evaluate(witness)})" : "")
+                + ", so the arithmetic does not compute it exactly and the value is not shown to be an integer — " + TypeSixExpressionRule);
         if (lane)
         {
             if (digits != 0)
@@ -218,7 +226,7 @@ internal static partial class IntrinsicArgumentRules
             int? high = value.DigitHigh(ctx.DigitsOf);
             if (digits != 0 && (digits is null || high is null || high + digits > cap))
                 return Built.Fail($"is an arithmetic expression whose intermediate {ExprText(e)} needs more than the {cap} significant "
-                    + "digits an intermediate keeps under the standard arithmetic in force, so its fraction digits are not kept and the "
+                    + $"digits an intermediate keeps under ARITHMETIC IS {ctx.ArithmeticName}, so its fraction digits are not kept and the "
                     + "value is not shown to be an integer — " + TypeSixExpressionRule);
             if (digits == 0 && (high is null || high > cap)) return new(Polynomial.OfAtom(ctx.FreshInteger(e), ExactRational.One), null, false);
         }
@@ -261,7 +269,8 @@ internal static partial class IntrinsicArgumentRules
     private static string RealIntermediateWhy(BoundExpr e, BoundExpr term) =>
         $"is an arithmetic expression whose intermediate {ExprText(e)} holds the term {TermText(term)}, "
         + (term is BoundIntrinsicCall ? "a numeric function" : "a floating-point numeric data item")
-        + ", whose digits the arithmetic does not show it keeps, so the value is not shown to be an integer — " + TypeSixExpressionRule;
+        + ", which does not cancel there, so neither the intermediate's exact value nor an integer value is shown — "
+        + TypeSixExpressionRule;
 
     /// <summary>⛔ ARE TWO TERMS ONE PURE TERM (docs/INTRINSICS_DESIGN.md, the type-6 intake, rule 1; kb/Work PB5891)? Compared as bound
     /// trees: the same item reference (<see cref="SamePlace"/>), the same function whose value its arguments fix
