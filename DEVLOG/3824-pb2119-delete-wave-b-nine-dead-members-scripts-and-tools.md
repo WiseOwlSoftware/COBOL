@@ -1,4 +1,4 @@
-## PB2119 Delete wave B: nine dead members, scripts and tools removed
+## Entry 3824 — 2026-11-17 13:27 PST — PB2119 Delete wave B: nine dead members, scripts and tools removed
 
 The Delete program's second Frontend, Editions and Runtime wave removed code a re-measure against main of 2026-11-17 found
 unreferenced, with no change to any compiled program.
@@ -16,3 +16,4 @@ empty `>>COBOL-WORDS` plan, and ANTLR reports lexer errors through the listener.
 nothing threw. The test is not kept. A lexer defect now surfaces as an internal compiler error, as `Frontend.ParsePass` already does.
 
 Proof: `dotnet build WiseOwl.Cobol.sln -c Debug` 0 warnings, 0 errors; the 37 Characterization snapshots pass unchanged.
+
