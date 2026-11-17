@@ -42,6 +42,10 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
 
     private EditionInfo Edition => EditionInfo.Of(dialectLevel, permissive);
 
+    /// <summary>Whether the edition has compiler directive lines (<see cref="EditionInfo.HasCompilerDirectives"/>), which decides
+    /// whether a line that begins <c>&gt;&gt;</c> is a directive line or text (kb/Work PB5803).</summary>
+    public bool HasCompilerDirectives => Edition.HasCompilerDirectives;
+
     private static Common.SourceLocation At(string file, int line, int column = 0) =>
         new SourceOrigin(file, line).ToLocation(column);
 

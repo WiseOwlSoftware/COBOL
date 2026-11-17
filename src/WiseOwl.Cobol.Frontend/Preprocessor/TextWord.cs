@@ -146,11 +146,11 @@ internal static class TextWordScanner
     // Unicode calls white space — is CobolSpace's: a text-word ends where the lexer's word ends (kb/Work PB1543, PB1660).
 
     /// <summary>Every text-word of <paramref name="text"/>, in order.</summary>
-    public static List<TextWord> Scan(string text)
+    public static List<TextWord> Scan(string text, bool directiveLines)
     {
         var words = new List<TextWord>();
         int pos = 0;
-        while (TryNext(text, ref pos, out var word)) words.Add(word);
+        while (TryNext(text, ref pos, out var word, directiveLines)) words.Add(word);
         return words;
     }
 
@@ -158,17 +158,18 @@ internal static class TextWordScanner
     /// separator comma and semicolon, which "is considered to be a single space" (§2023:7.2.3.4 9) c) 1. /
     /// §2023:7.2.4.4 8) c) 1.), and every compiler directive line, which "is treated as a single space" (c) 5.) — so,
     /// like the spaces around them, neither is a word to compare (<see cref="TextWord.IsSpaceForMatching"/>).</summary>
-    public static List<TextWord> MatchWords(string text)
+    public static List<TextWord> MatchWords(string text, bool directiveLines)
     {
-        var words = Scan(text);
+        var words = Scan(text, directiveLines);
         words.RemoveAll(w => w.IsSpaceForMatching);
         return words;
     }
 
     /// <summary>The next text-word at or after <paramref name="pos"/> (which must not lie inside a literal or a
     /// comment), skipping spaces and carried comment-entry lines; <paramref name="pos"/> advances past it. False at the end of the
-    /// text.</summary>
-    public static bool TryNext(string text, ref int pos, out TextWord word)
+    /// text. A line that begins <c>&gt;&gt;</c> is a <see cref="TextWordKind.DirectiveLine"/> only where <paramref name="directiveLines"/>
+    /// says the edition has compiler directives (<see cref="EditionInfo.HasCompilerDirectives"/>); at COBOL-85 it is ordinary text-words (kb/Work PB5803).</summary>
+    public static bool TryNext(string text, ref int pos, out TextWord word, bool directiveLines)
     {
         int n = text.Length;
         while (pos < n)
@@ -189,7 +190,7 @@ internal static class TextWordScanner
 
             int start = pos;
             TextWordKind kind;
-            if (c == '>' && DirectiveLineEnd(text, pos) is var directiveEnd and >= 0)
+            if (c == '>' && directiveLines && DirectiveLineEnd(text, pos) is var directiveEnd and >= 0)
             {
                 kind = TextWordKind.DirectiveLine;
                 pos = directiveEnd;
@@ -251,10 +252,10 @@ internal static class TextWordScanner
     /// conversion before text manipulation began, so in text a COPY or REPLACE replacing action produces a comment can only
     /// be one the replacement SPELLED — a partial-word result such as <c>*&gt;1</c> (kb/Work PB1356; §2023:7.2.3.4 GR13 /
     /// §2023:7.2.4.4 GR9). That text is read as it is written, so the indicator is a text-word, or part of a character-string.</summary>
-    public static bool HoldsComment(string text)
+    public static bool HoldsComment(string text, bool directiveLines)
     {
         int pos = 0;
-        while (TryNext(text, ref pos, out var word))
+        while (TryNext(text, ref pos, out var word, directiveLines))
             if (word.Kind == TextWordKind.CharacterString
                 && word.Value.Contains(CobolSourceText.CommentIndicator, StringComparison.Ordinal))
                 return true;
@@ -337,10 +338,10 @@ internal static class TextWordScanner
 public static class TextWordSequence
 {
     /// <summary>True when <paramref name="a"/> and <paramref name="b"/> are the same text-words in the same order.</summary>
-    public static bool Matches(string a, string b)
+    public static bool Matches(string a, string b, bool directiveLines)
     {
-        var x = TextWordScanner.MatchWords(a);
-        var y = TextWordScanner.MatchWords(b);
+        var x = TextWordScanner.MatchWords(a, directiveLines);
+        var y = TextWordScanner.MatchWords(b, directiveLines);
         if (x.Count != y.Count) return false;
         for (int i = 0; i < x.Count; i++)
             if (!x[i].MatchesForReplacing(y[i])) return false;

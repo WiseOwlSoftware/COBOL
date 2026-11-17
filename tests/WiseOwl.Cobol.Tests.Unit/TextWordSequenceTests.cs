@@ -25,7 +25,7 @@ public sealed class TextWordSequenceTests
     [InlineData("X\"4a\"", "X\"4A\"")]
     // a numeric literal with a comma decimal separator is ONE text-word (the comma is not followed by a space).
     [InlineData("1,5", "1,5")]
-    public void SameSpecification(string a, string b) => Assert.True(TextWordSequence.Matches(a, b));
+    public void SameSpecification(string a, string b) => Assert.True(TextWordSequence.Matches(a, b, directiveLines: true));
 
     [Theory]
     // kb/Work PB1230 — the forms SR9 must tell apart although they denote one value.
@@ -37,5 +37,5 @@ public sealed class TextWordSequenceTests
     [InlineData("\"A\" & \"B\"", "\"AB\"")]    // c) 2. — a concatenation's operands and operator are text-words
     // c) 3. — the non-hexadecimal alphanumeric format keeps its letter case.
     [InlineData("\"ab\"", "\"AB\"")]
-    public void DifferentSpecification(string a, string b) => Assert.False(TextWordSequence.Matches(a, b));
+    public void DifferentSpecification(string a, string b) => Assert.False(TextWordSequence.Matches(a, b, directiveLines: true));
 }

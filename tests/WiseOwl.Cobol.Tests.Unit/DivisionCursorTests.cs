@@ -80,7 +80,7 @@ public sealed class DivisionCursorTests
     [Fact] // the cursor carries across the blocks of one text: a COPY after a directive line is judged by the text before it
     public void Cursor_CarriesItsStateAcrossTheBlocksOfOneText()
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         string block1 = "PROCEDURE DIVISION.\nMAIN-PARA.";
         Assert.False(cursor.InIdentificationDivisionAt(block1, block1.Length));
         cursor.Finish(block1);
@@ -98,7 +98,7 @@ public sealed class DivisionCursorTests
     [InlineData("COPY BOOK REPLACING DIVISION BY X.\nREMARKS.")]
     public void CopyOrReplaceStatement_IsNotReadAsText(string text)
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true, CobolWordsMap.Empty);   // the finished text's reader
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true, CobolWordsMap.Empty);   // the finished text's reader
         Assert.True(cursor.InIdentificationDivisionAt(text, text.Length));
     }
 
@@ -112,7 +112,7 @@ public sealed class DivisionCursorTests
     [InlineData("REPLACE ==A== BY ==PROGRAM-ID. P.==.\nREMARKS.")]
     public void CopyOrReplaceStatement_NamingAWordTheCursorReads_MakesTheDivisionUnknown(string text)
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         Assert.Null(cursor.InIdentificationDivisionAt(text, text.Length));
     }
 
@@ -122,27 +122,27 @@ public sealed class DivisionCursorTests
     [InlineData("COPY CUSTOMER-ID.\nREMARKS.")]
     public void CopyOrReplaceStatement_NamingNoSuchWord_MovesNothing(string text)
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         Assert.True(cursor.InIdentificationDivisionAt(text, text.Length));
     }
 
     [Fact] // the statement ends at its period: the text after it is read again
     public void TextAfterACopyStatement_IsRead()
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         Assert.False(cursor.InIdentificationDivisionAt("COPY BOOK. PROCEDURE DIVISION.", 30));
     }
 
     [Fact] // line by line, as the converters feed it: the state of a statement carries across lines
     public void CopyStatement_CarriesAcrossLines()
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         cursor.Read("COPY BOOK");
         cursor.Read("REPLACING ==A== BY ==X==.");
         Assert.True(cursor.InIdentificationDivision);
         cursor.Read("PROCEDURE DIVISION.");
         Assert.False(cursor.InIdentificationDivision);
-        var naming = new DivisionCursor(startsInIdentificationDivision: true);
+        var naming = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         naming.Read("COPY BOOK");
         naming.Read("REPLACING ==PROCEDURE DIVISION== BY ==X==.");
         Assert.Null(naming.InIdentificationDivision);
@@ -151,8 +151,8 @@ public sealed class DivisionCursorTests
     [Fact] // the library text's own end state is adopted
     public void Adopt_TakesTheLibraryTextsDivision()
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
-        var library = new DivisionCursor(startsInIdentificationDivision: true);
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
+        var library = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         library.Finish("PROCEDURE DIVISION.");
         cursor.Adopt(library);
         Assert.False(cursor.InIdentificationDivision);
@@ -194,7 +194,7 @@ public sealed class DivisionCursorTests
         Assert.True(CommentEntryCarrier.Is(lines[3]));
         Assert.True(CommentEntryCarrier.Is(lines[4]));
         string[] finished = CommentEntryResolver.Resolve(MappedText.Identity(string.Join('\n', lines), "t.cob"),
-            CobolWordsMap.Empty, null).Text.Text.Split('\n');
+            CobolWordsMap.Empty, EditionInfo.Of(2023), null).Text.Text.Split('\n');
         Assert.Equal("INSTALLATION. .", finished[3]);
         Assert.Equal("SECURITY. .", finished[4]);
     }
@@ -218,7 +218,7 @@ public sealed class DivisionCursorTests
     [InlineData(true, ">>IF X|PROCEDURE DIVISION.|>>ELSE|ID DIVISION.|>>END-IF|PROCEDURE DIVISION.", false)]   // a division word after the group settles it again
     public void ConditionalGroup_CountsOnlyWhenEveryBranchAgrees(bool startsInIdentification, string lines, bool? expected)
     {
-        var cursor = new DivisionCursor(startsInIdentification);
+        var cursor = new DivisionCursor(startsInIdentification, directiveLines: true);
         foreach (string line in lines.Split('|')) cursor.Read(line);
         Assert.Equal(expected, cursor.InIdentificationDivision);
     }
@@ -227,7 +227,7 @@ public sealed class DivisionCursorTests
            // words AS WRITTEN cannot learn: from there on it knows no division, whatever it reads
     public void CobolWordsDirective_MakesTheDivisionUnknown_ForAReaderOfTheWordsAsWritten()
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         cursor.Read(">>COBOL-WORDS EQUATE \"DIVISION\" WITH \"DIV\"");
         Assert.Null(cursor.InIdentificationDivision);
         cursor.Read("PROCEDURE DIV.");
@@ -252,7 +252,7 @@ public sealed class DivisionCursorTests
     [InlineData("EQUATE LITERAL-VAR WITH \"SHOW\"", true)]                   // a compilation-variable-name: its value is not known here (§2023:7.3.11.4 1))
     public void CobolWordsDirective_MakesTheDivisionUnknown_OnlyWhenItNamesAWordTheCursorReads(string operand, bool unknown)
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: false);
+        var cursor = new DivisionCursor(startsInIdentificationDivision: false, directiveLines: true);
         cursor.Read(">>COBOL-WORDS " + operand);
         Assert.Equal(unknown, cursor.InIdentificationDivision is null);
         if (!unknown) Assert.False(cursor.InIdentificationDivision);
@@ -261,10 +261,10 @@ public sealed class DivisionCursorTests
     [Fact] // the merged driver's blocks end at a directive line, so the driver tells its cursor of the directive itself
     public void NoteCobolWordsDirective_MakesTheDivisionUnknown_ButNotForAReaderOfTheFinishedText()
     {
-        var driver = new DivisionCursor(startsInIdentificationDivision: true);
+        var driver = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         driver.NoteCobolWordsDirective("EQUATE \"DIVISION\" WITH \"DIV\"");
         Assert.Null(driver.InIdentificationDivision);
-        var finished = new DivisionCursor(startsInIdentificationDivision: true, CobolWordsMap.Empty);
+        var finished = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true, CobolWordsMap.Empty);
         finished.NoteCobolWordsDirective("EQUATE \"DIVISION\" WITH \"DIV\"");
         Assert.True(finished.InIdentificationDivision);
     }
@@ -272,8 +272,8 @@ public sealed class DivisionCursorTests
     [Fact] // … and a library text that held the directive casts the same doubt on the text it was spliced into
     public void Adopt_TakesTheLibraryTextsDoubtAboutRespelledWords()
     {
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true);
-        var library = new DivisionCursor(startsInIdentificationDivision: true);
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
+        var library = new DivisionCursor(startsInIdentificationDivision: true, directiveLines: true);
         library.Read(">>COBOL-WORDS EQUATE \"DIVISION\" WITH \"DIV\"");
         cursor.Adopt(library);
         cursor.Read("PROCEDURE DIVISION.");
@@ -289,7 +289,7 @@ public sealed class DivisionCursorTests
     public void GivenTheGroupsWordMap_TheCursorReadsRespelledWords(string directive, bool startsInIdentification, string line, bool expected)
     {
         var map = CobolWordsMap.FromDirectiveText(">>COBOL-WORDS " + directive + "\n")!;
-        var cursor = new DivisionCursor(startsInIdentification, map);
+        var cursor = new DivisionCursor(startsInIdentification, directiveLines: true, map);
         cursor.Read(line);
         Assert.Equal(expected, cursor.InIdentificationDivision);
     }
@@ -305,7 +305,7 @@ public sealed class DivisionCursorTests
         Assert.True(CommentEntryCarrier.Is(lines[6]));   // REMARKS.
         Assert.True(CommentEntryCarrier.Is(lines[7]));   // DISPLAY "X". — a line of the candidate until it is decided
         string compiled = string.Join('\n', lines.Select((l, i) => i is 3 or 4 or 5 ? "" : l));   // conditional compilation omits the branch
-        var resolved = CommentEntryResolver.Resolve(MappedText.Identity(compiled, "t.cob"), CobolWordsMap.Empty, null);
+        var resolved = CommentEntryResolver.Resolve(MappedText.Identity(compiled, "t.cob"), CobolWordsMap.Empty, EditionInfo.Of(2023), null);
         string[] finished = resolved.Text.Text.Split('\n');
         Assert.Contains(finished, l => l.Trim() == "REMARKS.");
         Assert.Contains(finished, l => l.Trim() == "DISPLAY \"X\".");

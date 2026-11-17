@@ -31,7 +31,7 @@ internal static class SurvivingFloatingComments
         if (gates.FixedFormReadsFloatingComments) return;
         string source = text.Text;
         int pos = 0;
-        while (TextWordScanner.TryNext(source, ref pos, out var word))
+        while (TextWordScanner.TryNext(source, ref pos, out var word, gates.HasCompilerDirectives))
         {
             if (word.Kind != TextWordKind.CharacterString) continue;
             int at = word.Value.IndexOf(CobolSourceText.CommentIndicator, StringComparison.Ordinal);
