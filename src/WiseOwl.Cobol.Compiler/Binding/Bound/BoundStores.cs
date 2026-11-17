@@ -157,7 +157,7 @@ public static class BoundStores
         private bool StatusHit(IEnumerable<FileModel> files) => connector is not null && files.Any(f => ConnectorHit(f, FileConnectorStore.Status));
 
         /// <summary>What a READ stores through the connector of <paramref name="file"/>, on both organizations' arms: the record
-        /// area (§2023:14.9.30.4 GR13), the FILE STATUS item, the RELATIVE KEY item (GR25) and the DEPENDING ON item
+        /// area (§2023:14.9.30.4 GR13), the FILE STATUS item, the RELATIVE KEY item (§2023:14.9.30.4 GR25) and the DEPENDING ON item
         /// (§2023:13.18.43.4 GR15).</summary>
         private bool ReadHit(FileModel file) => ConnectorHit(file, FileConnectorStore.RecordArea, FileConnectorStore.Status,
             FileConnectorStore.RelativeKey, FileConnectorStore.Depending);
