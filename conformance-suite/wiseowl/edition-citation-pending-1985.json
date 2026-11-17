@@ -1,303 +1,2084 @@
 {
- "about": "The codes whose diagnostics at --std 85 still cite only a later edition's rule, read by EditionCitationNet (tests/WiseOwl.Cobol.Tests.Conformance). Each entry is kb/Work PB4950's open work; the change that makes a code cite the 1985 rule removes its entry. A code not listed here that cites only a later edition at 85 fails the conformance suite.",
+ "about": "THE 1985 CITATION RATCHET (kb/Work PB4950, read by EditionCitationNet in tests/WiseOwl.Cobol.Tests.Conformance): code -> refusal id -> the exact number of diagnostic lines that refusal draws at --std 85 under that code which cite only a later edition's rule. A count that grows fails (a new site); one that shrinks fails until it is lowered here; an entry at 0 is removed. Measured 2026-11-17; it only shrinks.",
+ "owner": "kb/Work PB4950",
  "pending": {
-  "COBOL0313": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0801": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0808": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0809": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0813": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0814": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0817": "kb/Work PB4950: 6 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0818": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0819": "kb/Work PB4950: 14 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0823": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0827": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0834": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0835": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0844": "kb/Work PB4950: 39 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0847": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0850": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0851": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0852": "kb/Work PB4950: 6 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0853": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0855": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0856": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0857": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0860": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0861": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0862": "kb/Work PB4950: 16 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0863": "kb/Work PB4950: 12 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0864": "kb/Work PB4950: 6 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0865": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0869": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0881": "kb/Work PB4950: 10 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0887": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0888": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0892": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0895": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0897": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0898": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0899": "kb/Work PB4950: 10 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL0901": "kb/Work PB4950: 27 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1501": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1504": "kb/Work PB4950: 9 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1505": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1507": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1511": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1526": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1539": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1543": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1547": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1548": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1559": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1560": "kb/Work PB4950: 9 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1565": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1566": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1567": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1570": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1581": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1582": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1585": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1588": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1625": "kb/Work PB4950: 20 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1626": "kb/Work PB4950: 18 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1627": "kb/Work PB4950: 61 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1629": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1630": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1632": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1633": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1634": "kb/Work PB4950: 8 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1637": "kb/Work PB4950: 10 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1639": "kb/Work PB4950: 103 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17); its sites are kb/Work PB5627's (DataBinder.UniqueOrReportAmbiguous)",
-  "COBOL1643": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1645": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1646": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1647": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1648": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1651": "kb/Work PB4950: 22 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1654": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1655": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1656": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1657": "kb/Work PB4950: 9 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1670": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1671": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1672": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1675": "kb/Work PB4950: 7 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1681": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1689": "kb/Work PB4950: 11 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1692": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1694": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1696": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1699": "kb/Work PB4950: 8 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1701": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1702": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1719": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1720": "kb/Work PB4950: 13 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1724": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1740": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1746": "kb/Work PB4950: 11 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1747": "kb/Work PB4950: 11 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1757": "kb/Work PB4950: 62 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1760": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1802": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1803": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1818": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1837": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1850": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1858": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1902": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1906": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1907": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1927": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1934": "kb/Work PB4950: 34 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1941": "kb/Work PB4950: 16 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1944": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1945": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1946": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1961": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1966": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1970": "kb/Work PB4950: 29 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1971": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1976": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1977": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1997": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL1998": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2012": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2013": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2026": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2030": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2031": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2045": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2046": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2048": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2049": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2072": "kb/Work PB4950: 13 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2073": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2075": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2096": "kb/Work PB4950: 8 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2097": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2102": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2104": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2106": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2107": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2117": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2119": "kb/Work PB4950: 7 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2120": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2121": "kb/Work PB4950: 6 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2122": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2141": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2144": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2145": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2146": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2147": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2148": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2155": "kb/Work PB4950: 7 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2158": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2159": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2167": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2168": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2172": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2173": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2176": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2177": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2186": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2191": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2197": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2198": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2199": "kb/Work PB4950: 38 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2200": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2202": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2210": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2213": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2214": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2240": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2241": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2242": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2243": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2247": "kb/Work PB4950: 10 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2256": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2269": "kb/Work PB4950: 43 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2270": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2274": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2284": "kb/Work PB4950: 12 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2309": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2315": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2318": "kb/Work PB4950: 11 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2324": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2325": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2326": "kb/Work PB4950: 11 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2353": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2363": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2364": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2365": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2371": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2372": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2376": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2377": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2378": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2403": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2404": "kb/Work PB4950: 8 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2405": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2406": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2409": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2418": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2419": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2421": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2422": "kb/Work PB4950: 12 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2423": "kb/Work PB4950: 15 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2427": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2449": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2451": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2495": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2496": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2532": "kb/Work PB4950: 14 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2533": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2552": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2561": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2563": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2572": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2573": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2574": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2577": "kb/Work PB4950: 7 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2578": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2604": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2616": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2631": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2632": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2633": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2634": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2635": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2636": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2645": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2646": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2648": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2653": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2670": "kb/Work PB4950: 6 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2684": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2688": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2692": "kb/Work PB4950: 8 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2693": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2700": "kb/Work PB4950: 6 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2708": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2709": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2710": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2713": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2714": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2729": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2730": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2731": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2738": "kb/Work PB4950: 16 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2739": "kb/Work PB4950: 9 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2740": "kb/Work PB4950: 14 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2744": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2745": "kb/Work PB4950: 11 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2749": "kb/Work PB4950: 14 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2750": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2751": "kb/Work PB4950: 5 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2770": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2771": "kb/Work PB4950: 7 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2773": "kb/Work PB4950: 15 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2776": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2787": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2788": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2789": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2793": "kb/Work PB4950: 9 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2796": "kb/Work PB4950: 47 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2797": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2870": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2876": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2897": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2904": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2912": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2915": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2954": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2961": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2966": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2967": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2968": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2972": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2987": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL2993": "kb/Work PB4950: 9 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL3317": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL3318": "kb/Work PB4950: 8 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL3407": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL3408": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL3473": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL3710": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL3983": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL4250": "kb/Work PB4950: 8 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL4733": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5434": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5506": "kb/Work PB4950: 52 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5563": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5701": "kb/Work PB4950: 3 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5716": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5788": "kb/Work PB4950: 4 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5818": "kb/Work PB4950: 13 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5842": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5848": "kb/Work PB4950: 1 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5962": "kb/Work PB4950: 18 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL5989": "kb/Work PB4950: 2 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)",
-  "COBOL6169": "kb/Work PB4950: 13 diagnostic(s) of the 85 refusals cite only a later edition's rule (measured 2026-11-17)"
+  "COBOL0313": {
+   "pb4604-entry-name-extension-word": 1
+  },
+  "COBOL0801": {
+   "numedit_digits_over31": 1,
+   "pb1687-report-entry-32-digits": 1,
+   "pb5529-value-over-31-digits": 1
+  },
+  "COBOL0808": {
+   "pb5173_currency_sign_lowercase_refused_at_85": 1,
+   "pb5174-lowercase-currency-letter-85": 1,
+   "pb5213-picture-is-written-twice": 1,
+   "pb5213-picture-is-written-twice-85": 1,
+   "pb5647-picture-long-s-no-currency": 1
+  },
+  "COBOL0809": {
+   "1985-SR-VI_5_14_3-5": 1,
+   "l1c04-implicit-index-move-target": 1
+  },
+  "COBOL0813": {
+   "pb2104_expand_skeleton_refused_at_85": 1,
+   "pb2104_import_class_refused_at_85": 1,
+   "pb4456_expansion_literals_refused_at_85": 1,
+   "pb987-property-per-evaluation-below-2002": 1
+  },
+  "COBOL0814": {
+   "pb1615-literal-above-160-below-2014": 1
+  },
+  "COBOL0817": {
+   "1985-SR-VI_4_5_3-2": 1,
+   "1985-SR-VI_6_10_3-1": 1,
+   "1985-SR-VI_6_5_3-1": 1,
+   "l1-accept-from-output-only-device": 1,
+   "l1-accept-from-undeclared-mnemonic": 1,
+   "l1-display-upon-input-only-device": 1
+  },
+  "COBOL0818": {
+   "pb139-accept-alphabetic-temporal": 1
+  },
+  "COBOL0819": {
+   "1985-GR-VI_6_19_4-3": 1,
+   "pb1007-numeric-function-two-character-receivers": 2,
+   "pb3605-move-space-numeric": 2,
+   "pb416-move-zero-to-alphabetic": 1,
+   "pb70-refmod-group-noninteger-numeric-sender": 1,
+   "pb71-all-national-figurative-below-2002": 1,
+   "pb72-move-alphabetic-to-numeric": 1,
+   "pb72-move-edited-to-numeric": 1,
+   "pb72-move-noninteger-to-alphanumeric": 1,
+   "pb72-move-numeric-to-alphabetic": 1,
+   "pb73-move-alphabetic-view-to-numeric": 1,
+   "pb73-move-numeric-function-to-alphanumeric": 1
+  },
+  "COBOL0823": {
+   "pb353-invoke-unbindable-target-names-its-edition": 1
+  },
+  "COBOL0827": {
+   "pb988-function-definition-85": 1
+  },
+  "COBOL0834": {
+   "l1-initialize-replacing-category-repeat": 1,
+   "pb415-initialize-category-repeated-word": 1
+  },
+  "COBOL0835": {
+   "pb416-initialize-target-renames": 1,
+   "pb966-initialize-level66-alias": 1
+  },
+  "COBOL0844": {
+   "1985-SR-IV_4_2_2_2_3-L3_1": 1,
+   "1985-SR-IV_4_3_8_2_3-5": 1,
+   "da6-alphanumeric-numeric-operand": 1,
+   "da6-group-numeric-operand": 1,
+   "da6-refmod-numeric-operand": 1,
+   "l1-subtract-sr2-format2-minuend-alphanumeric": 1,
+   "l1-subtract-sr2-sending-alphanumeric": 1,
+   "l1-subtract-sr3-literal1-nonnumeric": 1,
+   "l1-subtract-sr3-literal2-nonnumeric": 1,
+   "l1c04-bwz-not-numeric-operand": 1,
+   "l1c19-multiply-alphanumeric-literal": 1,
+   "l1c19-multiply-alphanumeric-literal-2": 1,
+   "pb1142-multiply-alphanumeric-function": 1,
+   "pb1544-symbolic-character-arithmetic-operand": 1,
+   "pb155-add-string-literal": 1,
+   "pb155-divide-figurative": 1,
+   "pb170-compute-index-data-item": 1,
+   "pb170-refmod-alphanumeric-bound": 1,
+   "pb170-subscript-alphanumeric-compound": 1,
+   "pb170-subscript-alphanumeric-edited": 1,
+   "pb170-subscript-alphanumeric-simple": 1,
+   "pb170-subscript-index-data-item": 1,
+   "pb171-sign-all-literal": 1,
+   "pb171-sign-alphanumeric-literal": 1,
+   "pb171-sign-figurative-space": 1,
+   "pb172-refmod-alphanumeric-function": 1,
+   "pb172-relation-compound-alphanumeric-function": 1,
+   "pb172-set-to-alphanumeric-function": 1,
+   "pb172-set-up-by-alphanumeric-function": 1,
+   "pb172-subscript-alphanumeric-function": 1,
+   "pb172-varying-by-alphanumeric-function": 1,
+   "pb172-varying-from-alphanumeric-function": 1,
+   "pb201-refmod-group-bound": 1,
+   "pb201-subscript-group-item": 1,
+   "pb2018-index-data-item-in-relation-expression": 1,
+   "pb215-perform-varying-index-data-item": 1,
+   "pb215-subscript-compound-index-data-item": 1,
+   "pb221-call-content-probed-subscript": 1,
+   "pb432-varying-from-nonnumeric-literal": 1
+  },
+  "COBOL0847": {
+   "1985-SR-VI_6_18_3-2": 1,
+   "pb3665-inspect-integer-function-operand": 1,
+   "pb3665-inspect-length-function-operand": 1,
+   "pb856-inspect-operand-binary-usage": 1
+  },
+  "COBOL0850": {
+   "g85_f07_05": 1,
+   "pb4463-odo-integer-1-not-less-than-integer-2": 1
+  },
+  "COBOL0851": {
+   "pb4432_odo_names_own_condition_name_hiding_container_global_index_name": 1
+  },
+  "COBOL0852": {
+   "pb201-odo-depending-not-integer": 1,
+   "pb3510-depending-on-containing-record": 1,
+   "pb3510-depending-on-each-others-record": 2,
+   "pb3510-depending-on-group-with-picture": 1,
+   "pb543-odo-depending-index-data-item": 1
+  },
+  "COBOL0853": {
+   "pb3510-depending-on-the-table-itself": 1
+  },
+  "COBOL0855": {
+   "pb1281-redefines-odo-in-redefinition": 1
+  },
+  "COBOL0856": {
+   "l1c20-odo-followed-by-sibling": 1
+  },
+  "COBOL0857": {
+   "pb1261-depending-in-sibling-fd-record": 1,
+   "pb3510-depending-on-containing-record": 1,
+   "pb3510-depending-on-group-with-picture": 1,
+   "pb3510-depending-on-the-table-itself": 1
+  },
+  "COBOL0860": {
+   "g85_f22_04": 1
+  },
+  "COBOL0861": {
+   "pb578-write-advancing-page-at-and-not-eop": 1
+  },
+  "COBOL0862": {
+   "1985-SR-VIII_2_4_3-5": 1,
+   "g85_f22_03": 1,
+   "pb236-start-relative-no-relative-key": 1,
+   "pb325-start-random-access": 2,
+   "pb352-start-length-non-indexed": 3,
+   "pb352-start-sequential-key-phrase": 1,
+   "pb352-start-sequential-no-phrase": 1,
+   "pb354-start-operand-class-mismatch": 1,
+   "pb354-start-operand-outside-record": 1,
+   "pb354-start-operand-too-long": 1,
+   "pb5794-start-key-numeric-twin": 1,
+   "pb602-start-key-renames-alias": 1,
+   "pb850-start-operand-alphanumeric-edited": 1
+  },
+  "COBOL0863": {
+   "1985-FMT-VIII_2_3_2": 1,
+   "1985-SR-IX_2_5_3-4": 1,
+   "pb1025-alternate-key-beyond-minimum": 1,
+   "pb1025-indexed-key-beyond-minimum": 1,
+   "pb1073-alternate-key-at-another-alternate-position": 2,
+   "pb1073-alternate-key-at-prime-key-position": 1,
+   "pb699-relative-key-required-entry-only": 1,
+   "pb742-alternate-key-on-line-sequential-file": 1,
+   "pb742-record-key-no-organization-clause": 1,
+   "pb742-record-key-on-sequential-file": 1,
+   "pb742-relative-key-on-sequential-file": 1
+  },
+  "COBOL0864": {
+   "pb334-read-key-sequential-org": 1,
+   "pb3569-read-key-sequential-access-default": 1,
+   "pb3569-read-key-sequential-access-written": 1,
+   "pb3569-read-next-key": 1,
+   "pb5794-read-key-numeric-twin": 1,
+   "pb5877-read-key-redefines-own-record": 1
+  },
+  "COBOL0865": {
+   "delete-record-sequential-org": 1,
+   "l1-delete-record-implicit-sequential-organization": 1,
+   "l1-delete-record-sequential-organization": 1
+  },
+  "COBOL0869": {
+   "pb4209-set-pointer-to-zero-expression": 1
+  },
+  "COBOL0881": {
+   "1985-SR-VI_5_14_3-6": 1,
+   "1985-SR-VI_5_3_3-3": 1,
+   "1985-SR-VI_5_9_3-5": 1,
+   "ca35_comp_alpha_picture": 1,
+   "ca35_packed_alpha_picture": 1,
+   "pb485-level-77-renames": 1,
+   "pb485-level-78-working-storage": 1,
+   "pb485-renames-not-level-66": 1,
+   "pb487-picture-required-elementary": 1,
+   "pb916-message-tag-inherited-picture": 1
+  },
+  "COBOL0887": {
+   "l1c21-common-outermost-program": 1
+  },
+  "COBOL0888": {
+   "pb4463-using-parameter-not-linkage-root": 1
+  },
+  "COBOL0892": {
+   "pb791-currency-figurative-literal-7-bare": 1
+  },
+  "COBOL0895": {
+   "pb2506-signed-comma-decimal-argument-without-comma-mode": 1,
+   "pb98-comma-float-literal-without-comma-mode": 2
+  },
+  "COBOL0897": {
+   "1985-SR-IX_4_8_3-3": 1,
+   "l1-use-format1-names-sort-file": 1,
+   "l1-use-input-phrase-twice": 1,
+   "l1-use-sr8-file-in-two-statements": 1,
+   "pb5090-use-file-twice-position": 1
+  },
+  "COBOL0898": {
+   "pb5416-condition-national-literal": 1
+  },
+  "COBOL0899": {
+   "1985-SR-XIII_4_3_3-2": 1,
+   "l1-generate-report-name-no-control": 1,
+   "l1-type-cf-operand-omitted-final-plus-one": 1,
+   "l1-type-ch-operand-omitted-two-controls": 1,
+   "pb1298-or-page-without-page-limit": 1,
+   "pb205-sum-reset-operand-other-slice": 1,
+   "pb205-type-control-operand-other-slice": 1,
+   "pb5789-page-heading-without-page-85": 1,
+   "pb5789-type-operand-not-a-control-85": 1,
+   "pb5910-type-operand-subscripted-85": 1
+  },
+  "COBOL0901": {
+   "1985-FMT-XIV_3_2_2": 1,
+   "1985-FMT-XIV_3_3_2": 1,
+   "l1c27-report-group-in-working-storage": 1,
+   "pb301-column-reserved-at-every-edition": 1,
+   "pb3794-message-reserved-85-2002": 1,
+   "pb3794-multiple-reserved-at-85": 1,
+   "pb3957-order-reserved-at-every-edition": 1,
+   "pb4206-go-to-reserved-verb-as-procedure-name": 1,
+   "pb4206-perform-reserved-verb-as-procedure-name": 1,
+   "pb4207-name-carries-the-sentence-past-the-next-verb": 1,
+   "pb4208-always-reserved-verb-as-operand": 1,
+   "pb4218-reserved-verb-whole-until-operand": 1,
+   "pb4229-procedure-name-reserved-at-every-edition": 1,
+   "pb4284-reserved-header-after-the-last-sentence": 1,
+   "pb4297-communication-reserved-85-2002": 1,
+   "pb4297-position-reserved-at-85": 1,
+   "pb4604-entry-name-reserved-non-verb": 1,
+   "pb4604-entry-name-reserved-verb": 1,
+   "pb4677-cd-name-reserved": 1,
+   "pb4677-reserved-words-85-2002": 1,
+   "pb4706-reserved-procedure-as-an-entry-name": 1,
+   "pb4903-debug-name-declared-85": 1,
+   "pb655-alter-dataname-85": 1,
+   "pb845-reserved-length-class-name": 2,
+   "user-word-end-receive": 1,
+   "user-word-receive": 1
+  },
+  "COBOL1501": {
+   "pb4124_held_function_argument_below_2002": 1
+  },
+  "COBOL1504": {
+   "1989-FMT-A_2_35_2": 1,
+   "g85_f38_03": 1,
+   "l1-integer-arity": 1,
+   "l1-integer-of-date-arity2": 1,
+   "l1-integer-part-arity": 1,
+   "l1-log10-two-arguments": 1,
+   "l1-sin-two-arguments": 1,
+   "l1-tan-two-arguments": 1,
+   "pb62-all-subscript-annuity": 1
+  },
+  "COBOL1505": {
+   "pb1100-class-repository-function-undefined": 1,
+   "pb1419-udf-float-returning-at-85": 1,
+   "pb1423-udf-argument-order-at-85": 1,
+   "pb892-operand-activation-below-2002": 1
+  },
+  "COBOL1507": {
+   "pb988-function-definition-85": 1
+  },
+  "COBOL1511": {
+   "pb1029-boolean-figurative-space": 1
+  },
+  "COBOL1526": {
+   "pb1629-same-as-dynamic-table-in-file-section": 1,
+   "pb1629-type-dynamic-table-in-file-section": 1
+  },
+  "COBOL1539": {
+   "pb1280-redefines-external-larger": 1
+  },
+  "COBOL1543": {
+   "pb5781-parenthesized-argument-not-an-expression": 1,
+   "pb61-sr6-function-keyword-refmod": 1,
+   "pb8-refmod-arg-permitting-function": 1
+  },
+  "COBOL1547": {
+   "1985-FMT-XIII_3_11_2": 1,
+   "pb4435-occurs-bound-data-name-at-85": 1
+  },
+  "COBOL1548": {
+   "pb1544-symbolic-character-as-receiver": 1
+  },
+  "COBOL1559": {
+   "pb1289-present-when-on-printless-group": 1,
+   "pb1295-sum-reset-between-groups": 1,
+   "pb1295-sum-rounded-between-groups": 1
+  },
+  "COBOL1560": {
+   "a42-screen-section-at-85": 3,
+   "pb4890-screen-entry-named-by-a-free-word-at-85": 2,
+   "pb4933-screen-section-with-an-item-named-screen": 4
+  },
+  "COBOL1565": {
+   "pb3517-no-sign-phrase-on-binary-usage": 1,
+   "pb3517-no-sign-phrase-on-report-item": 1
+  },
+  "COBOL1566": {
+   "pb570-group-no-sign-signed-picture": 1
+  },
+  "COBOL1567": {
+   "1985-SR-X_2_5_3-1": 1
+  },
+  "COBOL1570": {
+   "1985-SR-VI_5_15_3-3": 1,
+   "1985-SR-XIII_3_22_3-2": 1,
+   "pb4610-value-oversize-numeric-edited": 1
+  },
+  "COBOL1581": {
+   "l1c31-suppress-outside-use-before-reporting": 1
+  },
+  "COBOL1582": {
+   "pb742-collating-sequence-on-sequential-file": 1
+  },
+  "COBOL1585": {
+   "l1c10-quote-bounds-literal": 1
+  },
+  "COBOL1588": {
+   "pb505-table-value-subordinate-dynamic-no-to": 1
+  },
+  "COBOL1625": {
+   "1985-SR-VI_5_15_3-2": 1,
+   "1985-SR-XIII_3_22_3-1": 1,
+   "ca34_value_negative_unsigned": 1,
+   "ca34_value_range_over": 1,
+   "pb3567-value-plus-literal-unsigned-subject": 2,
+   "pb4113-value-comp5-above-container-band": 7,
+   "pb4113-value-comp5-trailing-digits": 1,
+   "pb586-level88-literal-out-of-range": 1,
+   "pb586-report-literal-out-of-range": 1,
+   "pb97-value-edited-truncation": 4
+  },
+  "COBOL1626": {
+   "1985-SR-VI_6_25_3-2": 1,
+   "1985-SR-VI_6_27_3-3": 1,
+   "da7-inspect-binary-operand": 1,
+   "da7-string-into-binary": 1,
+   "da7-unstring-into-binary": 1,
+   "pb1746-line-counter-string-sender": 1,
+   "pb1746-page-counter-string-sender": 1,
+   "pb177-string-into-windowed-comp": 1,
+   "pb3665-inspect-identifier1-integer-function": 1,
+   "pb3665-inspect-identifier1-length-function": 1,
+   "pb3665-string-boolean-function-sender": 1,
+   "pb3665-string-integer-function-delimiter": 1,
+   "pb3665-string-integer-function-sender": 1,
+   "pb3665-string-length-function-delimiter": 1,
+   "pb3665-string-length-function-sender": 1,
+   "pb3665-string-numeric-function-sender": 1,
+   "pb664-string-numeric-literal": 1,
+   "pb664-string-sender-usage": 1
+  },
+  "COBOL1627": {
+   "1985-SR-X_5_2_3-1": 1,
+   "1985-SR-X_5_3_3-1": 1,
+   "1989-AR-A_2_22_3-1": 1,
+   "1989-AR-A_2_23_3-1": 1,
+   "1989-AR-A_2_27_3-1": 1,
+   "1989-AR-A_2_30_3-4": 2,
+   "1989-AR-A_2_31_3-1": 1,
+   "1989-AR-A_2_32_3-1": 1,
+   "1989-AR-A_2_33_3-1": 1,
+   "1989-AR-A_2_38_3-1": 1,
+   "1989-AR-A_2_44_3-1": 1,
+   "g85_x03": 1,
+   "l1-cos-class-numeric": 1,
+   "l1-integer-class": 1,
+   "l1-log-class-numeric": 2,
+   "l1-log10-class-numeric": 2,
+   "l1-sin-class-numeric": 2,
+   "l1-tan-class-numeric": 2,
+   "pb1-integer-arg-numeric-edited": 1,
+   "pb1-numeric-arg-alphanumeric": 1,
+   "pb1-numeric-arg-family": 3,
+   "pb1-numeric-arg-numeric-edited": 1,
+   "pb1-numeric-arg-trig-family": 3,
+   "pb1-numeric-arg2-alphanumeric": 1,
+   "pb1-string-arg-numeric": 1,
+   "pb12-find-string-integer-position": 1,
+   "pb124-numval-alphabetic": 1,
+   "pb1398-length-of-arithmetic-expression": 1,
+   "pb1420-random-numeric-function-seed": 1,
+   "pb19-boolean-arg-alphanumeric": 1,
+   "pb19-numeric-arg-alphanumeric": 1,
+   "pb19-string-arg-numeric": 1,
+   "pb2074-upper-case-address-of": 1,
+   "pb248-integer-arg-float-item": 1,
+   "pb248-integer-arg-float-literal": 1,
+   "pb31-max-mixed-argument-classes": 1,
+   "pb40-numeric-function-in-integer-position": 1,
+   "pb40-scaled-item-in-integer-position": 1,
+   "pb48-figurative-all-numeric-argument": 1,
+   "pb48-figurative-space-numeric-argument": 1,
+   "pb52-intrinsic-argument-stage": 1,
+   "pb5833-max-all-refmod-numeric-mix": 1,
+   "pb5833-mean-all-refmod": 1,
+   "pb5833-median-all-refmod": 1,
+   "pb5833-midrange-all-refmod": 1,
+   "pb61-length-numeric-literal": 1,
+   "pb658-numval-numeric-edited-argument": 1,
+   "stat-mean-arg-class-numeric": 1,
+   "stat-median-arg-class-numeric": 1,
+   "stat-midrange-arg-class-numeric": 1,
+   "stat-standard-deviation-arg-class-numeric": 1,
+   "stat-variance-arg-class-numeric": 1
+  },
+  "COBOL1629": {
+   "1985-SR-IV_4_3_8_3_3-2": 1,
+   "1985-SR-IV_4_3_8_4_3-5": 1
+  },
+  "COBOL1630": {
+   "pb1943-sum-counter-ref-mod-of-ref-mod": 1,
+   "pb8-refmod-of-refmod-data": 1,
+   "pb8-refmod-of-refmod-function": 1
+  },
+  "COBOL1632": {
+   "pb10-inspect-fn-converting": 1,
+   "pb10-inspect-fn-replacing": 1,
+   "pb10-inspect-fn-tallying-replacing": 1
+  },
+  "COBOL1633": {
+   "pb11-offset-arg-local-format-datetime": 1,
+   "pb11-offset-arg-local-format-time": 1
+  },
+  "COBOL1634": {
+   "1985-SR-VI_6_13_3-6": 1,
+   "pb398-evaluate-partial-condition-subject": 1,
+   "pb398-evaluate-partial-true-subject": 1,
+   "pb4446-evaluate-refused-pair-object-subscript": 1,
+   "pb4446-evaluate-refused-range-object-undefined-name": 1,
+   "pb4606-evaluate-refused-pair-bare-operand-undefined-name": 1,
+   "pb4627-evaluate-refused-pair-abbreviated-relation-after-class-condition": 1,
+   "pb4627-evaluate-refused-pair-value-after-condition-name": 1
+  },
+  "COBOL1637": {
+   "display-index-name": 1,
+   "index-name-arithmetic": 1,
+   "move-index-name": 1,
+   "pb1266-index-name-in-add-and-call": 2,
+   "pb170-refmod-index-name": 1,
+   "pb2018-index-name-compound-relation-operand": 1,
+   "pb2018-index-name-in-evaluate-expression": 1,
+   "pb2018-index-name-in-relation-expression": 1,
+   "pb4432_if_names_own_index_name_hiding_container_global_condition_name": 1
+  },
+  "COBOL1639": {
+   "1985-FMT-XIII_3_22_2": 1,
+   "1985-SR-IV_4_3_8_1-3-paragraph-of-other-program": 1,
+   "1985-SR-VI_6_12_3-2": 1,
+   "1985-SR-XIV_3_6_3-4": 1,
+   "condition-name-ambiguous": 1,
+   "g85_bf31_07": 1,
+   "g85_y93": 1,
+   "inspect-converting-alphabet": 4,
+   "l1c10-quote-bounds-literal": 1,
+   "pb1030-alphabet-name-operand": 1,
+   "pb1071-pointer-member-image-85": 2,
+   "pb1314-set-false-operand-not-condition-name": 1,
+   "pb1551-self-undeclared-85": 1,
+   "pb1673-null-undeclared-at-85": 4,
+   "pb1673-set-null-undeclared-at-85": 2,
+   "pb2103_prototype_refused_at_85": 1,
+   "pb2113-keyword-omitted-arguments-85": 1,
+   "pb225-float-class-below-2014": 1,
+   "pb236-open-undeclared-file": 1,
+   "pb2463-universal-returning-set-match-below-2002": 1,
+   "pb2464-function-pointer-signature-type-below-2014": 1,
+   "pb2464-prototype-pointer-signature-type-below-2002": 1,
+   "pb2489_invoke_base_new_below_2002": 5,
+   "pb2985-active-class-returning-universal-invocation-below-2002": 1,
+   "pb3120-group-formal-pointer-type-below-2002": 5,
+   "pb3139-strong-vlg-pointer-at-2002": 1,
+   "pb3347-container-switch-condition-name-beside-global-level88": 1,
+   "pb3347-switch-condition-name-ambiguous-if": 1,
+   "pb3347-switch-condition-name-ambiguous-set": 1,
+   "pb353-read-advancing-on-lock-unbindable-names-its-edition": 1,
+   "pb353-read-previous-unbindable-file-names-its-edition": 1,
+   "pb353-start-with-length-unbindable-names-its-edition": 1,
+   "pb390-alter-unknown-destination": 1,
+   "pb390-goto-unknown-procedure": 1,
+   "pb390-perform-unknown-procedure-name-1": 1,
+   "pb390-perform-unknown-procedure-name-2": 1,
+   "pb4153-invoke-argument-self-undeclared-at-85": 1,
+   "pb4153-invoke-receiver-super-undeclared-at-85": 1,
+   "pb4153-property-of-self-undeclared-at-85": 1,
+   "pb4153-raise-self-undeclared-at-85": 1,
+   "pb4153-relation-self-undeclared-at-85": 1,
+   "pb4153-relation-super-undeclared-at-85": 1,
+   "pb4153-set-self-undeclared-at-85": 1,
+   "pb4153-set-super-undeclared-at-85": 1,
+   "pb4155-call-null-undeclared-at-85": 3,
+   "pb4206-go-to-reserved-verb-as-procedure-name": 1,
+   "pb4206-perform-reserved-verb-as-procedure-name": 1,
+   "pb4219_own_condition_name_hides_container_global_data_item": 1,
+   "pb4219_search_all_when_names_own_data_item_hiding_container_global_condition_name": 1,
+   "pb4219_set_names_own_data_item_hiding_container_global_condition_name": 1,
+   "pb4238-qualified-paragraph-header": 1,
+   "pb4238-qualified-section-header": 1,
+   "pb4363-debug-all-undeclared": 1,
+   "pb4432_if_names_own_file_name_hiding_container_global_condition_name": 1,
+   "pb4432_perform_varying_names_own_condition_name_hiding_container_global_index_name": 1,
+   "pb4432_set_to_true_names_own_index_name_hiding_container_global_condition_name": 1,
+   "pb4446-evaluate-refused-range-object-undefined-name": 1,
+   "pb4446-evaluate-surplus-object-undefined-name": 1,
+   "pb445-search-all-condition-name-as-receiving-operand": 1,
+   "pb4509-call-containing-name-85": 1,
+   "pb4509-cancel-own-name-85": 1,
+   "pb4606-evaluate-refused-pair-bare-operand-undefined-name": 1,
+   "pb4713-debug-all-cd-name": 1,
+   "pb4713-move-cd-name": 1,
+   "pb488-cond-var-none": 1,
+   "pb5277-replace-scope-ended": 1,
+   "pb5604-output-cd-pointer-records": 2,
+   "pb567-condition-name-misqualified": 1,
+   "pb5786_own_data_item_hides_container_global_file_name": 1,
+   "pb5786_own_file_name_hides_container_global_data_item": 1,
+   "pb590-boolean-class-condition-below-2002": 1,
+   "pb732-value-88-false-word": 1,
+   "pb732-value-88-thru-word": 1,
+   "pb732-value-88-word": 1,
+   "pb732-value-all-not-symbolic": 1,
+   "pb732-value-data-name": 1,
+   "pb732-value-report-word": 1,
+   "pb732-value-table-word": 1,
+   "pb732-value-word-alnum": 1,
+   "pb732-value-word-numeric": 1,
+   "pb758-merge-end-merge-is-not-a-terminator": 1,
+   "pb758-sort-end-sort-is-not-a-terminator": 1,
+   "pb987-property-per-evaluation-below-2002": 1,
+   "undefined-name-reference": 1
+  },
+  "COBOL1643": {
+   "config-section-in-contained-program": 1
+  },
+  "COBOL1645": {
+   "pb62-all-subscript-annuity": 1,
+   "pb62-all-subscript-integer-of-day": 1,
+   "pb62-all-subscript-log": 1,
+   "pb62-all-subscript-mod": 1
+  },
+  "COBOL1646": {
+   "pb248-perform-times-float": 1,
+   "pb5384-perform-times-refmod": 1,
+   "pb86-perform-times-non-integer-item": 1
+  },
+  "COBOL1647": {
+   "1985-SR-IV_4_3_8_4_3-1": 1,
+   "pb1380-renames-alias-binary-ref-mod": 1,
+   "pb70-refmod-binary-item": 1,
+   "pb70-refmod-index-item": 1
+  },
+  "COBOL1648": {
+   "pb461-level88-all-literal-zero-length": 1,
+   "pb71-all-literal-zero-length": 1
+  },
+  "COBOL1651": {
+   "1985-SR-VI_6_27_3-2": 1,
+   "pb1181-unstring-numeric-literal-delimiter": 1,
+   "pb1182-string-non-integer-sender": 1,
+   "pb1544-unstring-symbolic-character-sender": 1,
+   "pb1746-linage-counter-unstring-sender": 1,
+   "pb1746-page-counter-unstring-sender": 1,
+   "pb3665-unstring-length-function-delimiter": 1,
+   "pb543-string-pointer-index-data-item": 1,
+   "pb543-unstring-tallying-index-data-item": 1,
+   "pb5607-string-pointer-too-small": 1,
+   "pb5607-unstring-pointer-too-small": 1,
+   "pb5734-string-pointer-refmod": 1,
+   "pb5734-unstring-count-refmod": 1,
+   "pb5734-unstring-pointer-refmod": 1,
+   "pb5734-unstring-tallying-refmod": 1,
+   "pb88-string-into-edited": 2,
+   "pb88-string-into-refmod": 1,
+   "pb88-string-pointer-not-integer": 1,
+   "pb88-unstring-count-without-delimited": 1,
+   "pb88-unstring-pointer-not-integer": 1,
+   "pb88-unstring-sender-numeric": 1
+  },
+  "COBOL1654": {
+   "pb93-redefines-later-sibling": 1,
+   "pb93-redefines-undefined-target": 1
+  },
+  "COBOL1655": {
+   "pb93-renames-undefined-operand": 1
+  },
+  "COBOL1656": {
+   "pb93-redefines-of-redefinition": 1
+  },
+  "COBOL1657": {
+   "1985-GR-XIII_3_22_4-1": 1,
+   "pb206-group-value-numeric-literal": 1,
+   "pb208-table-value-alphanumeric-on-numeric": 1,
+   "pb5215-group-condition-name-numeric-literal": 1,
+   "pb5647-picture-long-s-no-currency": 1,
+   "pb917-report-group-picture-twice": 1,
+   "pb94-value-alphanumeric-on-numeric": 1,
+   "pb94-value-nonnumeric-on-numeric": 1,
+   "pb94-value-numeric-on-alphanumeric": 1
+  },
+  "COBOL1670": {
+   "1985-SR-VI_4_5_3-7": 1,
+   "pb110-symbolic-sr16": 1,
+   "pb1557-symbolic-ordinal-too-long": 1,
+   "pb4108-symbolic-trailing-name-without-ordinal": 1
+  },
+  "COBOL1671": {
+   "1985-SR-VI_4_5_3-11": 1,
+   "g85_f07_02": 1,
+   "pb1095-class-in-also-group-through": 1,
+   "pb110-class-ordinal-range": 1
+  },
+  "COBOL1672": {
+   "1985-SR-VII_3_4_3-1": 1,
+   "1985-SR-VII_3_4_3-2": 1,
+   "pb110-code-set-nonidentity": 1,
+   "pb536-code-set-signed-without-separate": 1
+  },
+  "COBOL1675": {
+   "compute-alphanumeric-receiver": 1,
+   "l1-subtract-sr2-receiver-numeric-edited": 1,
+   "l1-subtract-sr4-giving-alphanumeric": 1,
+   "l1c19-multiply-giving-alphanumeric": 1,
+   "pb128-compute-alphanumeric-receiver": 1,
+   "pb236-add-giving-alphanumeric": 1,
+   "pb236-add-giving-reference-modified": 1
+  },
+  "COBOL1681": {
+   "1985-SR-X_5_2_3-2": 1
+  },
+  "COBOL1689": {
+   "pb2144-add-to-literal-rounded": 1,
+   "pb2144-add-to-receiver-then-literal": 1,
+   "pb2144-add-to-two-giving": 1,
+   "pb2144-divide-by-rounded-giving": 1,
+   "pb2144-divide-by-two-giving": 1,
+   "pb2144-divide-by-two-remainder": 1,
+   "pb2144-divide-into-rounded-remainder": 1,
+   "pb2144-divide-into-two-giving": 1,
+   "pb2144-divide-into-two-remainder": 1,
+   "pb2144-subtract-from-two-giving": 1,
+   "pb5203-add-giving-one-operand": 1
+  },
+  "COBOL1692": {
+   "pb352-start-sort-merge-file": 1,
+   "pb353-start-first-unbindable-file-names-its-edition": 1
+  },
+  "COBOL1694": {
+   "pb148-display-index-item": 1
+  },
+  "COBOL1696": {
+   "1985-SR-X_5_3_3-2": 1,
+   "pb5240-cancel-numeric-function": 1
+  },
+  "COBOL1699": {
+   "pb177-control-occurs": 1,
+   "pb177-control-occurs-depending": 1,
+   "pb205-control-operand-report-section": 1,
+   "pb205-control-operand-subscripted": 2,
+   "pb205-control-ref-mod-not-literal": 1,
+   "pb3960-control-refmod-zero-length": 1,
+   "pb3960-control-refmod-zero-start": 1
+  },
+  "COBOL1701": {
+   "pb1030-reference-to-refused-redefines": 1,
+   "pb177-redefines-target-occurs": 1
+  },
+  "COBOL1702": {
+   "pb184-group-value-justified": 1,
+   "pb184-group-value-non-display": 1,
+   "pb184-group-value-subordinate-value": 1,
+   "pb207-bit-group-level-value": 1,
+   "pb485-level-78-working-storage": 1
+  },
+  "COBOL1719": {
+   "pb158-stacked-unary-identifier": 1,
+   "pb158-stacked-unary-literal": 1,
+   "pb1968-subscript-unary-unary": 1
+  },
+  "COBOL1720": {
+   "1985-SR-IX_4_5_3-4": 1,
+   "delete-record-invalid-key-sequential-access": 1,
+   "g85_f21_08": 1,
+   "g85_f21_09": 1,
+   "g85_f21_10": 1,
+   "pb334-read-not-invalid-key-sequential-org": 1,
+   "pb3569-read-invalid-key-sequential-access": 1,
+   "pb909-write-advancing-indexed": 1,
+   "read-phrase-random-access": 1,
+   "rewrite-invalid-key-relative-sequential": 1,
+   "rewrite-invalid-key-sequential-org": 1,
+   "write-invalid-key-sequential-org": 1,
+   "write-not-invalid-key-sequential-org": 1
+  },
+  "COBOL1724": {
+   "pb916-message-tag-inherited-picture": 2
+  },
+  "COBOL1740": {
+   "pb206-group-value-oversize": 1,
+   "pb206-value-oversize-elementary": 1,
+   "pb207-bit-group-level-value": 1
+  },
+  "COBOL1746": {
+   "1985-SR-VI_5_7_3-2": 1,
+   "1985-SR-XIII_3_9_3-3": 1,
+   "pb1246-level-number-three-digits": 1,
+   "pb4677-cd-level-77": 1,
+   "pb4717-cd-level-77-message": 1,
+   "pb485-level-50-linkage": 1,
+   "pb485-level-66-report-group": 1,
+   "pb485-level-77-file-section": 1,
+   "pb485-level-78-working-storage": 1,
+   "pb485-level-number-unparseable": 1,
+   "pb558-condition-name-in-report-section": 1
+  },
+  "COBOL1747": {
+   "pb485-level-66-not-renames": 1,
+   "pb485-level-77-filler": 1,
+   "pb485-level-77-renames": 1,
+   "pb485-level-77-unnamed": 1,
+   "pb485-level-88-not-condition-name": 1,
+   "pb485-renames-not-level-66": 1,
+   "pb488-usage-clause-on-level-88": 1,
+   "pb501-condition-name-entry-has-no-name": 1,
+   "pb849-condition-name-entry-filler": 1,
+   "pb849-renames-entry-has-no-name": 2
+  },
+  "COBOL1757": {
+   "1985-FMT-XI_4_1_2": 1,
+   "1985-SR-VI_6_19_3-3": 1,
+   "1985-SR-XI_4_1_3-5": 1,
+   "1985-SR-XI_4_4_3-6": 1,
+   "1985-SR-XI_4_4_3-9": 1,
+   "l1c18-merge-file-not-sort-merge": 1,
+   "l1c29-sort-file-not-sd": 1,
+   "pb1029-inspect-numeric-literal": 1,
+   "pb1029-string-all-literal": 1,
+   "pb1127-inspect-zero-length-delimiter": 1,
+   "pb1127-inspect-zero-length-literal": 1,
+   "pb1128-inspect-all-figurative-literal3": 1,
+   "pb1139-merge-file-in-using-and-giving": 1,
+   "pb1139-merge-file-repeated": 1,
+   "pb1139-merge-same-area": 1,
+   "pb1139-merge-same-record-area": 1,
+   "pb1139-sort-giving-same-area": 1,
+   "pb1139-sort-same-sort-area": 1,
+   "pb1173-merge-key-not-in-record": 1,
+   "pb1173-merge-key-occurs": 1,
+   "pb1173-merge-key-odo-group": 1,
+   "pb1173-sort-file-key-not-in-record": 1,
+   "pb1173-sort-file-key-occurs": 1,
+   "pb1173-sort-file-key-odo-group": 1,
+   "pb1180-string-all-figurative-sender": 1,
+   "pb1314-set-false-switch-status-condition-name": 1,
+   "pb236-add-corr-elementary": 1,
+   "pb236-release-record-not-sd": 1,
+   "pb236-return-file-not-sd": 1,
+   "pb347-release-refmod-record": 1,
+   "pb347-release-subordinate-item": 1,
+   "pb347-rewrite-refmod-record": 1,
+   "pb347-rewrite-subordinate-item": 1,
+   "pb347-write-record-of-no-file": 1,
+   "pb347-write-refmod-record": 1,
+   "pb347-write-subordinate-item": 1,
+   "pb369-contained-generate-non-global-report": 1,
+   "pb390-move-corr-elementary-operand": 1,
+   "pb390-move-corr-reference-modified": 1,
+   "pb390-set-switch-status-condition-name": 1,
+   "pb454-set-option2-switch-name": 1,
+   "pb5188-sort-merge-key-index-data-item": 2,
+   "pb5731_sort_giving_format3_odo_smaller_than_smallest": 1,
+   "pb600-rewrite-record-of-no-file": 1,
+   "pb846-sort-file-no-key": 1,
+   "pb994-merge-giving-indexed-first-key-descending": 1,
+   "pb994-merge-using-random-access": 1,
+   "pb994-sort-giving-indexed-descending-first-key": 1,
+   "pb994-sort-giving-indexed-key-not-prime-bytes": 1,
+   "pb994-sort-giving-random-access": 1,
+   "pb994-sort-using-random-access": 1,
+   "pb995-merge-record-size-using-giving": 4,
+   "pb995-sort-record-size-using-giving": 6
+  },
+  "COBOL1760": {
+   "pb5623-returning-omitted-formal-below-2002": 1,
+   "pb971-arg-omitted-below-2002": 1
+  },
+  "COBOL1802": {
+   "pb317-open-norewind-relative": 1
+  },
+  "COBOL1803": {
+   "pb317-open-norewind-extend": 1
+  },
+  "COBOL1818": {
+   "pb331-read-ignoring-with-lock": 1
+  },
+  "COBOL1837": {
+   "pb345-sd-no-record": 1
+  },
+  "COBOL1850": {
+   "pb350-return-reversed-not-only": 1,
+   "pb350-return-without-at-end": 1
+  },
+  "COBOL1858": {
+   "pb692-access-dynamic-organization-omitted": 1,
+   "pb692-access-dynamic-organization-sequential": 1,
+   "pb692-access-random-organization-sequential": 1
+  },
+  "COBOL1902": {
+   "pb732-value-not-a-literal-shape": 1
+  },
+  "COBOL1906": {
+   "g85_f07_01": 1,
+   "pb770-alphabet-duplicate-character": 1,
+   "pb770-alphabet-multichar-thru-operand": 1,
+   "pb770-alphabet-noninteger-literal": 1,
+   "pb770-alphabet-ordinal-out-of-range": 1
+  },
+  "COBOL1907": {
+   "pb770-alphabet-unsupported-code-name": 1
+  },
+  "COBOL1927": {
+   "pb495-sr2-contradicting-group-usage": 1,
+   "pb5849_packed_under_binary_group_refused_85": 1
+  },
+  "COBOL1934": {
+   "pb528-picture-composition": 16,
+   "pb528-picture-composition-decimal-comma": 3,
+   "pb529-picture-no-digit-position": 3,
+   "pb530-picture-floating-left-of-point": 7,
+   "pb535-picture-no-category": 4,
+   "pb960-invalid-picture-no-cascade": 1
+  },
+  "COBOL1941": {
+   "l1c08-entry-name-qualified": 1,
+   "l1c27-report-group-in-working-storage": 1,
+   "pb1252-linkage-entry-using-phrase": 1,
+   "pb1266-occurs-key-after-indexed-by": 1,
+   "pb2533-data-entry-reserved-word-clause": 1,
+   "pb2732-qualified-index-name": 1,
+   "pb2983-supplementary-letters-gate-error-column": 1,
+   "pb3373-data-entry-signed-and-concatenated-run": 1,
+   "pb3390-data-entry-level-number-after-run": 1,
+   "pb3391-data-entry-picture-locale-word": 1,
+   "pb4278-trailing-hyphen-in-a-word": 1,
+   "pb4301-misspelled-occurs-before-an-integer": 1,
+   "pb4645-clause-word-after-an-entry-name": 1,
+   "pb4770-foreign-run-ended-by-section-in-an-entry": 1,
+   "pb4845-foreign-run-ended-by-a-keyword-header-in-an-entry": 1,
+   "pb487-unrecognized-data-clause": 1
+  },
+  "COBOL1944": {
+   "pb505-table-value-no-occurs": 1
+  },
+  "COBOL1945": {
+   "pb505-table-value-subscript-count": 1
+  },
+  "COBOL1946": {
+   "pb1716-table-value-nested-dynamic-span": 1,
+   "pb505-table-value-dynamic-span-levels": 1
+  },
+  "COBOL1961": {
+   "g85_bf11_02": 1,
+   "pb1472-all-subscript-index-name-other-table": 1,
+   "pb4219_search_all_relation_names_own_data_item_hiding_container_global_condition_name": 1,
+   "pb4219_search_all_when_names_own_data_item_hiding_container_global_condition_name": 1,
+   "pb459-index-name-not-in-table": 1
+  },
+  "COBOL1966": {
+   "pb445-search-all-zero-length-literal": 1
+  },
+  "COBOL1970": {
+   "1985-SR-VI_4_4_3-1": 1,
+   "1985-SR-XVI_2_2_3-1": 1,
+   "l1c32-system-name-all-digits": 1,
+   "pb2533-sd-reserved-word-clause": 1,
+   "pb2533-special-names-reserved-word-clause": 1,
+   "pb2727-special-names-channel-entry": 1,
+   "pb2727-special-names-reserve-entry": 1,
+   "pb3370-object-computer-reserved-word-clause": 1,
+   "pb3370-source-computer-reserved-word-clause": 1,
+   "pb3373-object-computer-literal-clause": 1,
+   "pb3373-source-computer-literal-clause": 1,
+   "pb3373-source-computer-signed-literal-clause": 1,
+   "pb3390-object-computer-integer-clause": 1,
+   "pb3390-source-computer-comma-decimal-clause": 1,
+   "pb3391-object-computer-predicated-clause-word": 1,
+   "pb3391-special-names-locale-shape-word": 1,
+   "pb4301-misspelled-clause-keyword-is-named": 1,
+   "pb4770-foreign-run-ended-by-section-in-file-control": 1,
+   "pb489-linage-phrases-out-of-order": 1,
+   "pb716-special-names-bare-word": 1,
+   "pb721-record-contains-negative-minimum": 1,
+   "pb721-record-varying-negative-minimum": 1,
+   "pb829-fd-unrecognized-clause": 1,
+   "pb829-file-control-unrecognized-clause": 1,
+   "pb829-io-control-unrecognized-clause": 1,
+   "pb829-sd-unrecognized-clause": 1,
+   "pb829-special-names-unrecognized-clause": 1,
+   "pb830-object-computer-unrecognized-clause": 1,
+   "pb830-source-computer-unrecognized-clause": 1
+  },
+  "COBOL1971": {
+   "1985-SR-VI_4_3_3-1": 1,
+   "pb2533-identification-reserved-word-paragraph": 1,
+   "pb3245-free-comment-entry-ends-at-line-end": 1,
+   "pb829-configuration-unrecognized-paragraph": 1,
+   "pb829-identification-unrecognized-paragraph": 1
+  },
+  "COBOL1976": {
+   "pb488-cond-var-alphanumeric-group-usage": 1,
+   "pb488-cond-var-class-index": 1,
+   "pb488-cond-var-group-justified": 1,
+   "pb488-cond-var-group-synchronized-member": 1,
+   "pb488-cond-var-level-66": 1
+  },
+  "COBOL1977": {
+   "pb488-cond-var-none": 1
+  },
+  "COBOL1997": {
+   "pb398-range-alphabet-undeclared": 1,
+   "pb502-value-range-alphabet-undeclared": 1,
+   "pb983-range-trailing-word-not-alphabet": 1
+  },
+  "COBOL1998": {
+   "pb398-range-alphabet-numeric-operands": 1,
+   "pb502-value-range-alphabet-numeric-operands": 1,
+   "pb843-range-identifier-alphabet-numeric": 1
+  },
+  "COBOL2012": {
+   "pb506-report-value-not-repeating": 1,
+   "pb506-report-value-operand-count": 1
+  },
+  "COBOL2013": {
+   "pb506-report-source-operand-count": 1
+  },
+  "COBOL2026": {
+   "pb489-linage-counter-receiving": 1
+  },
+  "COBOL2030": {
+   "pb416-initialize-target-class-index": 1
+  },
+  "COBOL2031": {
+   "pb3605-initialize-replacing-numeric-by-space": 1,
+   "pb416-initialize-replacing-index-sender": 1,
+   "pb416-initialize-replacing-numeric-to-alphabetic": 1,
+   "pb416-initialize-replacing-zero-to-alphabetic": 1
+  },
+  "COBOL2045": {
+   "pb1830-report-sum-addend-index-item": 1,
+   "pb482-sum-addend-not-numeric": 1,
+   "pb482-sum-addend-ref-modified": 1
+  },
+  "COBOL2046": {
+   "1985-SR-XIII_3_19_3-2": 1,
+   "pb482-sum-upon-not-detail": 1,
+   "pb482-sum-upon-subscripted": 1,
+   "pb5090-sum-upon-non-detail-position": 1
+  },
+  "COBOL2048": {
+   "pb555-false-equals-value": 1,
+   "pb555-false-in-collated-range": 1
+  },
+  "COBOL2049": {
+   "pb555-set-false-no-phrase": 1
+  },
+  "COBOL2072": {
+   "pb396-if-empty-consequent": 1,
+   "pb4382-evaluate-when-group-without-statement": 1,
+   "pb4382-stray-end-if-after-an-empty-if": 1,
+   "pb4382-stray-end-if-after-an-enclosing-terminator": 1,
+   "pb4436-stray-end-if-after-an-else-of-a-left-if": 1,
+   "pb4436-stray-end-if-after-an-empty-if-in-an-if": 1,
+   "pb4437-stray-end-evaluate-after-an-if-first-in-a-when-group": 1,
+   "pb4438-stray-end-if-directly-after-a-recovered-end-if": 1,
+   "pb4447-stray-end-if-after-an-evaluate-in-an-if-holding-an-empty-if": 1,
+   "pb4447-stray-end-if-after-the-phrase-of-a-containing-if-ended-an-empty-if": 1,
+   "pb4447-stray-end-perform-after-an-if-ended-early-by-a-fault-inside-it": 1,
+   "pb4448-empty-if-after-a-statement-in-an-inline-perform": 1,
+   "pb4449-second-else-after-an-empty-if-in-an-if": 1
+  },
+  "COBOL2073": {
+   "pb396-evaluate-when-other-repeated": 1
+  },
+  "COBOL2075": {
+   "1985-SR-VI_6_22_3-1": 1,
+   "pb443-search-identifier-1-no-indexed-phrase": 1,
+   "pb443-search-identifier-1-not-a-table": 1,
+   "pb443-search-identifier-1-reference-modified": 1,
+   "pb443-search-identifier-1-subscripted": 1
+  },
+  "COBOL2096": {
+   "1985-SR-XIV_2_2_3-11": 1,
+   "pb4219_search_all_relation_names_own_data_item_hiding_container_global_condition_name": 1,
+   "pb4219_search_all_when_names_own_data_item_hiding_container_global_condition_name": 1,
+   "pb4433_evaluate_subscripts_own_scalar_data_item_hiding_container_global_condition_name": 1,
+   "pb4433_if_subscripts_own_scalar_data_item_hiding_container_global_condition_name": 1,
+   "pb4446-evaluate-refused-pair-object-subscript": 1,
+   "pb4606-evaluate-surplus-object-bare-operand-subscript": 1,
+   "pb877-subscript-on-non-table-item": 1
+  },
+  "COBOL2097": {
+   "pb1029-table-all-subscript-count": 1,
+   "pb877-subscript-count-mismatch": 1
+  },
+  "COBOL2102": {
+   "1985-SR-X_5_4_3-2": 1,
+   "pb404-exit-program-in-global-declarative": 1
+  },
+  "COBOL2104": {
+   "pb1507-program-id-attribute-repeated": 1
+  },
+  "COBOL2106": {
+   "pb399-evaluate-fewer-objects-than-subjects": 1,
+   "pb399-evaluate-more-objects-than-subjects": 1,
+   "pb4446-evaluate-surplus-object-undefined-name": 1,
+   "pb4606-evaluate-surplus-object-bare-operand-subscript": 1
+  },
+  "COBOL2107": {
+   "pb399-evaluate-range-class-mix": 1,
+   "pb5796_range_figurative_class_refused": 1,
+   "pb5796_range_figurative_high_value_refused": 1
+  },
+  "COBOL2117": {
+   "pb431-inline-head-two-control-phrases": 1
+  },
+  "COBOL2119": {
+   "pb3961-varying-by-all-zero-expression": 1,
+   "pb3961-varying-by-zero-expression": 1,
+   "pb432-varying-operand-expression": 2,
+   "pb4865-perform-varying-parenthesized-identifier": 1,
+   "pb4865-perform-varying-signed-identifier": 1,
+   "pb5177-varying-by-index-name": 1
+  },
+  "COBOL2120": {
+   "pb212-perform-varying-alphanumeric": 1,
+   "pb215-perform-varying-target-alphanumeric": 1,
+   "pb215-perform-varying-target-index-data-item": 1,
+   "pb432-varying-operand-rules": 1
+  },
+  "COBOL2121": {
+   "pb466-ambiguous-alter-85": 1,
+   "pb466-ambiguous-procedure-name": 3,
+   "pb466-ambiguous-section-name": 1,
+   "pb466-ambiguous-sort-procedure": 1
+  },
+  "COBOL2122": {
+   "1985-SR-IV_4_3_8_1-L2_6": 1,
+   "pb466-paragraph-name-duplicated-in-section": 1,
+   "pb5091-duplicate-paragraph-declaration-lines": 1
+  },
+  "COBOL2141": {
+   "pb852-source-expression-not-numeric": 1
+  },
+  "COBOL2144": {
+   "pb1292-source-names-report-section-item": 1,
+   "pb1295-sum-expression-subscripted-by-report-item": 1,
+   "pb429-counter-outside-source-clause": 1,
+   "pb883-sum-expression-report-section": 1
+  },
+  "COBOL2145": {
+   "1985-SR-XIII_3_19_3-5": 1,
+   "pb1454-sum-counter-qualifier-not-above": 1,
+   "pb3232-sum-counter-beside-data-item": 1,
+   "pb882-sum-counter-ambiguous": 1
+  },
+  "COBOL2146": {
+   "1985-SR-VI_5_9_3-4": 1,
+   "pb4304-picture-string-31-at-85": 1,
+   "pb4304-picture-string-51-below-2014": 1,
+   "pb532-picture-string-over-63": 1
+  },
+  "COBOL2147": {
+   "pb531-picture-repetition-factor-negative": 1,
+   "pb531-picture-repetition-factor-signed": 1,
+   "pb531-picture-repetition-factor-zero": 1
+  },
+  "COBOL2148": {
+   "pb531-picture-item-too-large": 1
+  },
+  "COBOL2155": {
+   "pb1445-add-decimal-sign-separated": 1,
+   "pb1445-condition-value-separated-sign": 1,
+   "pb1445-display-sign-separated": 1,
+   "pb1445-move-separated-sign": 1,
+   "pb1445-value-double-sign": 1,
+   "pb1445-value-mixed-signs": 1,
+   "pb1445-value-sign-separated": 1
+  },
+  "COBOL2158": {
+   "pb544-message-tag-usage-exclusive": 1
+  },
+  "COBOL2159": {
+   "1985-SR-X_4_5_3-2": 1
+  },
+  "COBOL2167": {
+   "pb556-value-through-at-non-88": 1,
+   "pb556-value-through-at-non-88-alphanumeric": 1
+  },
+  "COBOL2168": {
+   "pb515-value-on-index-item": 1
+  },
+  "COBOL2172": {
+   "pb412-go-to-depending-without-names": 1,
+   "pb412-go-to-names-without-depending": 1
+  },
+  "COBOL2173": {
+   "pb421-move-literal-then-corr": 1,
+   "pb421-move-sending-then-corresponding": 1
+  },
+  "COBOL2176": {
+   "pb890-value-alphabet-without-through": 1
+  },
+  "COBOL2177": {
+   "pb559-value-connective-crossed": 1,
+   "pb559-value-format1-values": 1
+  },
+  "COBOL2186": {
+   "pb433-perform-range-straddles-declaratives": 1,
+   "pb433-perform-range-two-declarative-sections": 1
+  },
+  "COBOL2191": {
+   "pb3510-depending-on-group-with-picture": 1,
+   "pb485-level-50-linkage": 1,
+   "pb485-level-78-working-storage": 1,
+   "pb527-picture-on-a-group": 1
+  },
+  "COBOL2197": {
+   "1985-SR-XIII_3_5_6-2": 1,
+   "pb429-line-counter-receiving": 1
+  },
+  "COBOL2198": {
+   "1985-FMT-XIII_3_21_2": 1,
+   "1985-SR-XIII_3_17_3-2": 1,
+   "1985-SR-XIII_3_21_3-3": 1,
+   "pb541-report-usage-comp": 1
+  },
+  "COBOL2199": {
+   "1985-FMT-XIII_3_15_2": 1,
+   "1985-GR-XIII_3_10_6-2": 1,
+   "1985-SR-XIII_3_15_3-1": 1,
+   "1985-SR-XIII_3_15_3-3": 1,
+   "1985-SR-XIII_3_15_3-4": 1,
+   "1985-SR-XIII_3_8_3-8": 1,
+   "pb1001-next-page-in-page-heading": 2,
+   "pb1001-next-page-not-first-line": 1,
+   "pb1002-line-beyond-page-limit": 2,
+   "pb1002-unpaged-absolute-line": 1,
+   "pb1002-unpaged-next-page": 1,
+   "pb1222-absolute-line-after-relative": 1,
+   "pb1222-line-out-of-order": 1,
+   "pb1222-line-overlap": 1,
+   "pb1222-relative-tail-past-lower-limit": 1,
+   "pb1248-or-page-heading-absolute-line": 1,
+   "pb1270-detail-above-first-detail": 1,
+   "pb1270-detail-below-last-detail": 1,
+   "pb1270-page-footing-above-footing-plus-1": 1,
+   "pb1270-page-footing-relative-zero-on-footing": 1,
+   "pb1270-page-heading-below-first-detail": 1,
+   "pb1270-page-heading-relative-zero-above-heading": 1,
+   "pb1270-report-footing-relative-zero-on-footing": 1,
+   "pb1270-report-heading-above-heading": 1,
+   "pb1270-report-heading-after-page-heading": 1,
+   "pb1270-report-heading-relative-zero-above-heading": 1,
+   "pb2513-cf-absolute-above-or-page-limit": 1,
+   "pb2513-detail-absolute-below-two-or-page": 1,
+   "pb5244_report_footing_above_page_footing_next_group": 1,
+   "pb558-condition-name-in-report-section": 1,
+   "pb565-report-line-in-line": 1,
+   "pb732-value-report-word": 1,
+   "pb853-report-group-entry-picture": 1,
+   "pb853-report-value-without-column": 1,
+   "pb957-next-group-in-page-heading": 1,
+   "pb978-report-control-ambiguous": 1
+  },
+  "COBOL2200": {
+   "pb571-class-condition-index-operand": 1
+  },
+  "COBOL2202": {
+   "pb1401-numeric-function-alphabet-name": 1
+  },
+  "COBOL2210": {
+   "1985-SR-VII_4_3_3-1": 1,
+   "pb668-open-reversed-organization": 1
+  },
+  "COBOL2213": {
+   "pb1404-external-file-and-external-data-one-name": 1,
+   "pb1404-program-and-external-data-one-name": 1,
+   "pb660-duplicate-outermost-externalized-name": 1
+  },
+  "COBOL2214": {
+   "pb660-duplicate-contained-program-name": 1
+  },
+  "COBOL2240": {
+   "pb2104_expand_skeleton_refused_at_85": 1,
+   "pb4456_expansion_literals_refused_at_85": 1,
+   "pb4650_unused_actual_expansion_refused_at_85": 1
+  },
+  "COBOL2241": {
+   "1985-SR-VI_4_5_3-2": 1,
+   "pb862-unavailable-device-name": 1
+  },
+  "COBOL2242": {
+   "pb790-alphabet-through-with-also": 1
+  },
+  "COBOL2243": {
+   "pb862-write-advancing-device-mnemonic": 1
+  },
+  "COBOL2247": {
+   "1985-FMT-XIII_3_9_2": 1,
+   "1985-GR-XIII_3_15_4-1": 1,
+   "pb1224-report-column-without-line": 1,
+   "pb1288-report-column-sibling-of-line": 1,
+   "pb1288-report-level1-no-type": 1,
+   "pb1288-report-source-no-picture": 1,
+   "pb1288-report-sum-no-picture": 1,
+   "pb1288-report-type-below-level1": 1,
+   "pb485-level-66-report-group": 1,
+   "pb853-report-group-entry-picture": 1
+  },
+  "COBOL2256": {
+   "pb829-assign-target-list": 1
+  },
+  "COBOL2269": {
+   "1985-FMT-VII_4_7_2": 1,
+   "l1c17-paren-extra-close": 1,
+   "pb1125-inspect-converting-after-twice": 1,
+   "pb1125-inspect-converting-before-twice": 1,
+   "pb1125-inspect-replacing-bare-pair-after-characters": 1,
+   "pb1125-inspect-tallying-second-for-same-counter": 1,
+   "pb1183-unstring-into-repeated": 1,
+   "pb1189-advancing-mnemonic-lines": 1,
+   "pb2499-accept-mnemonic-qualified": 1,
+   "pb2499-accept-mnemonic-refmod": 1,
+   "pb2499-accept-mnemonic-subscript": 1,
+   "pb2499-display-mnemonic-subscript": 1,
+   "pb2499-set-mnemonic-qualified": 1,
+   "pb2499-set-mnemonic-refmod": 1,
+   "pb2499-set-mnemonic-subscript": 1,
+   "pb2499-write-mnemonic-qualified": 1,
+   "pb2499-write-mnemonic-refmod": 1,
+   "pb2499-write-mnemonic-subscript": 1,
+   "pb2555-word-cut-by-margin-r": 1,
+   "pb331-read-key-before-lock": 1,
+   "pb331-read-record-word-twice": 1,
+   "pb331-read-two-from-one-lock-bracket": 1,
+   "pb331-rewrite-ignoring-lock": 1,
+   "pb331-write-ignoring-lock": 1,
+   "pb3830-call-not-on-overflow": 1,
+   "pb3830-compute-boolean-size-error": 1,
+   "pb3830-read-at-end-beside-invalid-key": 1,
+   "pb3830-read-key-at-end": 1,
+   "pb3830-read-next-invalid-key": 1,
+   "pb3830-second-on-size-error": 1,
+   "pb3830-write-advancing-invalid-key": 1,
+   "pb4449-second-else-after-an-empty-if-in-an-if": 1,
+   "pb446-next-sentence-inline-perform": 1,
+   "pb446-search-all-key-phrase": 1,
+   "pb446-search-all-second-when": 1,
+   "pb446-search-at-end-next-sentence": 1,
+   "pb446-search-when-next-sentence-mixed": 1,
+   "pb712-write-two-advancing-operands": 1,
+   "pb909-entry-statement": 1,
+   "pb909-inspect-replacing-trailing": 1,
+   "pb909-search-all-not-at-end": 2,
+   "pb909-search-not-at-end": 1
+  },
+  "COBOL2270": {
+   "1985-SR-IV_4_3_8_2_3-4": 1,
+   "1985-SR-XIV_2_2_3-12": 1,
+   "pb1271-sum-counter-occurrence-not-subscripted": 1,
+   "pb681-table-element-not-subscripted": 2
+  },
+  "COBOL2274": {
+   "pb1507-end-function-closes-program": 1
+  },
+  "COBOL2284": {
+   "1985-GR-XIII_3_10_6-4": 1,
+   "1985-GR-XIII_3_10_9-4": 1,
+   "pb957-next-group-absolute-unpaged": 1,
+   "pb957-next-group-body-outside-region": 1,
+   "pb957-next-group-exceeds-page-limit": 1,
+   "pb957-next-group-in-page-heading": 1,
+   "pb957-next-group-next-page-in-page-footing": 1,
+   "pb957-next-group-not-level-1": 1,
+   "pb957-next-group-page-footing-absolute": 1,
+   "pb957-next-group-page-footing-relative": 1,
+   "pb957-next-group-report-heading-absolute": 1,
+   "pb957-next-group-report-heading-relative": 1
+  },
+  "COBOL2309": {
+   "pb969-empty-parentheses-on-data-item": 1
+  },
+  "COBOL2315": {
+   "pb977-special-names-for-trailing": 1
+  },
+  "COBOL2318": {
+   "pb1464-parenthesized-non-condition": 1,
+   "pb1668-and-truth-word": 1,
+   "pb1668-if-truth-word": 1,
+   "pb4219_own_data_item_hides_container_global_condition_name": 1,
+   "pb4627-evaluate-refused-pair-value-after-condition-name": 1,
+   "pb4947-if-linage-counter": 1,
+   "pb4947-if-linage-counter-qualified": 1,
+   "pb4947-if-line-counter": 1,
+   "pb4947-if-page-counter": 1,
+   "pb982-class-name-as-condition": 1,
+   "pb982-data-item-as-condition": 1
+  },
+  "COBOL2324": {
+   "pb1421-goto-depending-numeric-function": 1,
+   "pb210-go-to-depending-noninteger": 1
+  },
+  "COBOL2325": {
+   "pb211-search-varying-noninteger": 1,
+   "pb211-search-varying-self-subscript": 1
+  },
+  "COBOL2326": {
+   "pb1399-set-numeric-receiver-index-function": 1,
+   "pb170-compute-index-data-item": 1,
+   "pb170-subscript-index-data-item": 1,
+   "pb212-set-index-data-from-literal": 1,
+   "pb212-set-numeric-from-literal": 1,
+   "pb212-set-receiver-noninteger": 1,
+   "pb215-perform-varying-index-data-item": 1,
+   "pb215-subscript-compound-index-data-item": 1,
+   "pb4209-set-to-zero-numeric-receiver": 1,
+   "pb488-cond-var-class-index": 1,
+   "pb571-class-condition-index-operand": 1
+  },
+  "COBOL2353": {
+   "pb1018-occurs-key-not-within-table": 1
+  },
+  "COBOL2363": {
+   "1985-SR-IV_4_3_8_2_3-7": 1,
+   "pb1030-all-subscript-outside-function": 1,
+   "pb1030-refmod-string-bound": 1,
+   "pb1030-string-literal-subscript": 1
+  },
+  "COBOL2364": {
+   "pb1030-reference-to-refused-redefines": 1
+  },
+  "COBOL2365": {
+   "pb1023-write-advancing-count": 2
+  },
+  "COBOL2371": {
+   "1985-SR-XIII_3_2_3-5": 1,
+   "1985-SR-XIII_3_3_3-3": 1,
+   "pb318-open-report-file-input": 2
+  },
+  "COBOL2372": {
+   "pb318-open-extend-access-linage": 2
+  },
+  "COBOL2376": {
+   "1985-SR-XV_3_2_3-4": 1,
+   "pb362-goto-into-declarative": 1
+  },
+  "COBOL2377": {
+   "pb361-use-outside-declaratives": 1
+  },
+  "COBOL2378": {
+   "1985-SR-XIII_4_9_3-3": 1,
+   "pb363-generate-in-before-reporting": 1
+  },
+  "COBOL2403": {
+   "1985-GR-VI_5_3_4-1": 1,
+   "pb512-justified-on-a-group": 1
+  },
+  "COBOL2404": {
+   "1985-SR-X_4_5_3-1": 1,
+   "1985-SR-X_4_6_3-1": 1,
+   "pb1260-occurs-at-level-01": 1,
+   "pb1260-occurs-at-level-77": 1,
+   "pb4677-cd-record-global": 1,
+   "pb518-external-fd-filler-record": 1,
+   "pb518-global-below-level-1": 1,
+   "pb519-external-redefines": 1
+  },
+  "COBOL2405": {
+   "1985-SR-VI_5_4_3-1": 1,
+   "1985-SR-VI_5_4_3-2": 1,
+   "pb1288-report-blank-when-zero-alphanumeric": 1,
+   "pb1288-report-justified-numeric": 1,
+   "pb507-blank-when-zero-binary": 1
+  },
+  "COBOL2406": {
+   "pb550-value-in-redefining-entry": 1
+  },
+  "COBOL2409": {
+   "pb444-search-all-end-search-next-sentence": 1,
+   "pb444-search-end-search-next-sentence": 1
+  },
+  "COBOL2418": {
+   "pb510-blank-when-zeros": 1,
+   "pb510-options-initialize-binary-zero": 1,
+   "pb510-sign-condition-zeroes": 1
+  },
+  "COBOL2419": {
+   "pb569-picture-comma-not-last": 1,
+   "pb569-picture-period-not-last": 1
+  },
+  "COBOL2421": {
+   "1985-FMT-XIII_3_5_2": 1,
+   "pb483-control-final-placement": 1
+  },
+  "COBOL2422": {
+   "1985-SR-VI_5_12_3-1": 1,
+   "1985-SR-VI_5_12_3-2": 1,
+   "1985-SR-XIII_3_17_3-1": 1,
+   "1985-SR-XIII_3_17_3-2": 1,
+   "pb537-sign-clause-subject": 8
+  },
+  "COBOL2423": {
+   "pb1295-sum-reset-between-groups": 1,
+   "pb1295-sum-rounded-between-groups": 1,
+   "pb1508-configuration-paragraph-repeated": 1,
+   "pb2532-comment-paragraph-repeated": 1,
+   "pb3133-object-computer-clause-repeated-85": 1,
+   "pb483-report-format-element-repeated": 1,
+   "pb486-sign-written-twice": 1,
+   "pb5171-currency-sign-twice-85": 1,
+   "pb5171-decimal-point-twice": 1,
+   "pb544-message-tag-usage-exclusive": 1,
+   "pb917-condition-value-twice": 1,
+   "pb917-data-usage-twice": 1,
+   "pb917-fd-block-contains-twice": 1,
+   "pb917-report-group-picture-twice": 1,
+   "pb917-select-reserve-twice": 1
+  },
+  "COBOL2427": {
+   "pb1058-integer-operand-beyond-limit": 3,
+   "pb1557-symbolic-ordinal-too-long": 1,
+   "pb1579-control-refmod-beyond-limit": 1
+  },
+  "COBOL2449": {
+   "1985-FMT-XII_2_2": 1,
+   "1985-SR-XII_2_3-2": 1,
+   "pb1354_copy_header_syntax": 1,
+   "pb1358-replace-not-preceded-by-space": 1
+  },
+  "COBOL2451": {
+   "1985-SR-XII_2_3-7": 1
+  },
+  "COBOL2495": {
+   "pb1493-floating-comment-not-separated": 1,
+   "pb2983-supplementary-letters-gate-error-column": 1
+  },
+  "COBOL2496": {
+   "pb1493-floating-indicator-split": 1
+  },
+  "COBOL2532": {
+   "1985-SR-VI_6_3_1_1_2-3": 1,
+   "pb1468-relation-numeric-not-integer": 1,
+   "pb1746-page-counter-alphanumeric-relation": 1,
+   "pb1935-evaluate-paren-object-character-subject": 1,
+   "pb1935-paren-comparand-character-subject": 1,
+   "pb3691-abbreviated-integer-function": 1,
+   "pb3691-evaluate-integer-function-object": 1,
+   "pb3691-perform-until-integer-function": 1,
+   "pb3691-relation-folded-length-function": 1,
+   "pb3691-relation-integer-function-literal": 1,
+   "pb3691-relation-literal-integer-function": 1,
+   "pb3691-relation-numeric-function-item": 1,
+   "pb3691-search-when-integer-function": 1,
+   "pb4765-alphanumeric-paren-counter": 1
+  },
+  "COBOL2533": {
+   "pb1468-relation-index-pair": 1,
+   "pb215-perform-varying-target-index-data-item": 1,
+   "pb4765-index-name-paren-counter": 1,
+   "pb4765-index-name-paren-function": 1
+  },
+  "COBOL2552": {
+   "pb1390-abbreviated-relation-without-subject": 1,
+   "pb4627-evaluate-refused-pair-abbreviated-relation-after-class-condition": 1
+  },
+  "COBOL2561": {
+   "pb1284-renames-odo-in-range": 2
+  },
+  "COBOL2563": {
+   "property_below_2002": 1
+  },
+  "COBOL2572": {
+   "1985-SR-XII_2_3-3": 1,
+   "1985-SR-XII_3_3-3": 1,
+   "pb1353-copy-operand-content": 1,
+   "pb1353-replace-operand-content": 1
+  },
+  "COBOL2573": {
+   "pb1353-pseudo-text-delimiter-glued": 1
+  },
+  "COBOL2574": {
+   "1985-GR-XII_3_4-5": 1,
+   "1985-SR-XII_2_3-7": 1,
+   "pb1356-replace-produces-replace": 1
+  },
+  "COBOL2577": {
+   "pb1171-report-fd-record-entry": 1,
+   "pb1171-report-file-io-reference": 4,
+   "pb1171-sort-merge-report-file": 2
+  },
+  "COBOL2578": {
+   "pb1171-report-fd-record-entry": 1
+  },
+  "COBOL2604": {
+   "pb1238-fd-file-control-clause": 2,
+   "pb1238-fd-linage-relative": 1,
+   "pb1238-report-fd-linage": 1,
+   "pb688-line-sequential-fd-site-below-2023": 1
+  },
+  "COBOL2616": {
+   "pb1494-indicator-not-fixed": 1,
+   "pb1803-nist-marker-outside-nist": 1
+  },
+  "COBOL2631": {
+   "pb1803-nist-marker-outside-nist": 2,
+   "pb2729-float-significand-comma": 1,
+   "w73a-comma-not-followed-by-space": 2
+  },
+  "COBOL2632": {
+   "pb2729-float-significand-point-argument": 1,
+   "pb2729-float-significand-point-compute": 1,
+   "pb2729-float-significand-point-value": 1,
+   "w73a-period-not-followed-by-space": 1
+  },
+  "COBOL2633": {
+   "1985-SR-IV_4_2_1-5": 1,
+   "w73a-literal-delimiter-not-separated": 3
+  },
+  "COBOL2634": {
+   "w73b-pb1077-select-twice": 1
+  },
+  "COBOL2635": {
+   "w73b-pb1077-select-without-fd": 1
+  },
+  "COBOL2636": {
+   "w73b-pb1237-fd-sd-without-select": 2
+  },
+  "COBOL2645": {
+   "pb1078-assign-literal-shape": 2
+  },
+  "COBOL2646": {
+   "pb1260-table-needs-eight-subscripts": 1,
+   "pb1629-type-table-needs-eight-subscripts": 1
+  },
+  "COBOL2648": {
+   "pb1145-procedure-header-formal-repeated": 1
+  },
+  "COBOL2653": {
+   "pb1496-free-form-line-256": 1,
+   "pb4281_long_free_form_line_in_omitted_branch_candidate": 1
+  },
+  "COBOL2670": {
+   "pb1706-control-refmod-out-of-range": 1,
+   "pb1707-refmod-literal-out-of-range": 1,
+   "pb3960-refmod-all-zero-start": 1,
+   "pb3960-refmod-zero-length": 1,
+   "pb3960-refmod-zero-start": 1,
+   "pb485-level-78-working-storage": 1
+  },
+  "COBOL2684": {
+   "pb1492-continuation-no-quotation-symbol": 1,
+   "pb1492-continuation-other-quotation-symbol": 1
+  },
+  "COBOL2688": {
+   "pb1492-pseudo-text-delimiter-split": 1
+  },
+  "COBOL2692": {
+   "1985-SR-VI_5_8_3-14": 1,
+   "pb3153-contained-program-paragraph-spells-an-inherited-class-it-uses": 1,
+   "pb5149-report-name-and-global-data-name": 1,
+   "pb990-alphabet-name-and-data-name": 1,
+   "pb990-class-name-and-paragraph-name": 1,
+   "pb990-data-name-and-condition-name": 1,
+   "pb990-file-name-and-record-name": 1,
+   "pb990-section-name-and-paragraph-name": 1
+  },
+  "COBOL2693": {
+   "pb1403-letterless-data-name": 1
+  },
+  "COBOL2700": {
+   "1985-SR-XI_4_1_3-1": 1,
+   "1985-SR-XI_4_4_3-1": 1,
+   "pb1139-merge-in-declarative": 1,
+   "pb1139-sort-in-declarative": 1,
+   "pb5275-sort-merge-in-debugging-section": 2
+  },
+  "COBOL2708": {
+   "pb1226-rd-without-report-group": 1
+  },
+  "COBOL2709": {
+   "pb1059-page-phrase-without-limit": 1
+  },
+  "COBOL2710": {
+   "pb1058-integer-operand-beyond-limit": 1,
+   "pb1059-column-beyond-assumed-page-width": 1,
+   "pb1059-column-beyond-page-width": 1
+  },
+  "COBOL2713": {
+   "pb1129-code-literal-numeric": 1,
+   "pb1129-code-not-on-every-report": 1
+  },
+  "COBOL2714": {
+   "pb1285-report-clause-undefined-name": 1,
+   "pb1285-report-in-no-clause": 1,
+   "pb1285-report-in-two-clauses": 1
+  },
+  "COBOL2729": {
+   "pb1049-unqualified-counter-two-reports": 1,
+   "pb1456-counter-qualified-by-report-group": 1
+  },
+  "COBOL2730": {
+   "pb1294-sum-data-name-group": 1,
+   "pb1294-sum-data-name-not-numeric": 1
+  },
+  "COBOL2731": {
+   "pb1294-sum-data-name-group-types": 1
+  },
+  "COBOL2738": {
+   "1985-FMT-IX_2_8_2": 1,
+   "1985-GR-XI_2_5_4-2": 1,
+   "1985-SR-VII_2_13_3-3": 1,
+   "1985-SR-XI_2_5_3-5": 1,
+   "pb1087-same-external-file": 1,
+   "pb1087-same-file-area-partly-in-record-area": 1,
+   "pb1087-same-file-area-partly-in-sort-area": 1,
+   "pb1087-same-file-not-in-file-control": 1,
+   "pb1087-same-one-file": 1,
+   "pb1087-same-plain-file-two-file-areas": 1,
+   "pb1087-same-plain-file-two-record-areas": 1,
+   "pb1087-same-sort-area-without-sort-file": 1,
+   "pb1087-same-sort-file-file-area": 1,
+   "pb1087-same-sort-file-two-record-areas": 1,
+   "pb1242-same-record-area-global-fd": 1,
+   "pb1242-same-record-area-global-record": 1
+  },
+  "COBOL2739": {
+   "1985-SR-VI_5_10_3-4": 1,
+   "pb1280-redefines-after-global": 1,
+   "pb1280-redefines-after-picture": 1,
+   "pb1280-redefines-level-01-file-section": 1,
+   "pb1280-redefines-level-77-target": 1,
+   "pb1281-redefines-qualified": 1,
+   "pb2518-redefines-past-intervening-storage": 1,
+   "pb2518-redefines-past-intervening-storage-roots": 1,
+   "pb4677-cd-redefines-level-1": 1
+  },
+  "COBOL2740": {
+   "1985-SR-VI_5_11_3-3": 1,
+   "1985-SR-VI_5_11_3-4": 1,
+   "pb1283-renames-after-77": 2,
+   "pb1283-renames-entry-mid-record": 1,
+   "pb1283-renames-level-01-record": 1,
+   "pb1283-renames-level-77-item": 2,
+   "pb1283-renames-occurs-ancestor": 1,
+   "pb1283-renames-occurs-operand": 1,
+   "pb1283-renames-thru-occurs-operand": 1,
+   "pb1283-renames-thru-precedes": 1,
+   "pb1283-renames-thru-redefinition": 1,
+   "pb1283-renames-thru-subordinate": 1
+  },
+  "COBOL2744": {
+   "pb1058-integer-operand-beyond-limit": 1,
+   "pb1270-page-footing-over-limit": 1,
+   "pb1270-page-heading-after-first-detail": 1,
+   "pb1270-page-last-detail-after-footing": 1,
+   "pb1270-page-limit-over-9999": 1
+  },
+  "COBOL2745": {
+   "1985-SR-XIII_3_11_3-2": 1,
+   "pb1059-column-beyond-assumed-page-width": 1,
+   "pb1059-column-beyond-page-width": 1,
+   "pb1222-column-out-of-order": 1,
+   "pb1222-column-overlap": 1,
+   "pb1222-column-past-page-width": 1,
+   "pb1222-multiple-column-not-increasing": 1,
+   "pb1222-multiple-column-with-occurs": 1,
+   "pb1222-relative-tail-past-page-width": 1,
+   "pb5251_group_indicate_out_of_order_refused_at_85": 1,
+   "pb5251_group_indicate_overlap_refused_at_85": 1
+  },
+  "COBOL2749": {
+   "pb1299-control-footing-final-and-omitted": 1,
+   "pb1299-control-heading-final-and-omitted": 1,
+   "pb1299-no-body-group-headings-and-footings": 1,
+   "pb1299-no-body-group-report-heading-only": 1,
+   "pb1299-two-control-footings-same-control": 1,
+   "pb1299-two-control-headings-same-control": 1,
+   "pb1299-two-page-footings": 1,
+   "pb1299-two-page-headings": 1,
+   "pb1299-two-report-footings": 1,
+   "pb1299-two-report-headings": 1,
+   "pb5789-type-cf-final-twice-85": 1,
+   "pb5789-type-ch-final-twice-85": 1,
+   "pb5789-type-ch-twice-85": 1,
+   "pb5789-type-rh-twice-85": 1
+  },
+  "COBOL2750": {
+   "1985-SR-XIII_3_19_3-1": 1,
+   "pb1295-sum-entry-alphabetic": 1,
+   "pb1295-sum-entry-unprintable-alphabetic": 1
+  },
+  "COBOL2751": {
+   "pb1295-sum-expression-subscripted-by-sum-counter": 1,
+   "pb1474-source-expression-subscripted-by-page-counter": 1,
+   "pb1474-source-subscripted-by-line-counter": 1,
+   "pb1474-sum-addend-subscripted-by-line-counter": 1,
+   "pb1474-sum-addend-subscripted-by-sum-counter": 1
+  },
+  "COBOL2770": {
+   "pb1293-source-alphabetic-to-numeric": 1,
+   "pb1293-source-numeric-to-alphabetic": 1,
+   "pb5188-source-index-data-item": 1
+  },
+  "COBOL2771": {
+   "pb1246-fd-first-entry-not-level-1": 1,
+   "pb1246-section-first-entry-not-level-1": 2,
+   "pb1246-subdivided-level-77": 1,
+   "pb1246-unequal-sibling-levels": 1,
+   "pb1954-report-unequal-line-levels": 1,
+   "pb1954-report-unequal-sibling-levels": 1
+  },
+  "COBOL2773": {
+   "1985-SR-VI_3_3_3-1": 1,
+   "1985-SR-X_3_1_3-1": 1,
+   "pb1402-not-an-annex-b-character": 1,
+   "pb1660-nbsp-only-line-is-not-blank": 1,
+   "pb3845-nbsp-word-unparseable": 1,
+   "pb4130-no-break-space-in-a-word": 1,
+   "pb4156-extended-letter-beside-euro-sign": 1,
+   "pb4234-leading-underscore-in-a-word": 1,
+   "pb4234-trailing-underscore-in-a-word": 1,
+   "pb4278-leading-hyphen-in-a-word": 1,
+   "pb4278-trailing-hyphen-in-a-word": 1,
+   "pb4279-copy-text-name-edge-hyphen": 1,
+   "pb4279-copy-text-name-edge-underscore": 1,
+   "pb5608-copy-replacing-identifier-non-cobol-character-refused-85": 1,
+   "pb5608-copy-replacing-word-non-cobol-character-refused-85": 1
+  },
+  "COBOL2776": {
+   "pb1455-subscript-before-qualifier": 3
+  },
+  "COBOL2787": {
+   "pb1263-occurs-key-is-table": 1
+  },
+  "COBOL2788": {
+   "pb1261-depending-not-external": 1,
+   "pb1261-depending-not-global": 1
+  },
+  "COBOL2789": {
+   "pb1265-occurs-depending-without-to": 1,
+   "pb1265-occurs-step-in-working-storage": 1,
+   "pb1265-occurs-to-without-depending": 1
+  },
+  "COBOL2793": {
+   "1985-GR-VI_2_3_3-2": 1,
+   "1985-GR-X_2_5_4-1": 1,
+   "1985-SR-X_2_3_2-1": 1,
+   "1985-SR-X_2_5_3-1": 1,
+   "pb988-end-program-missing-container": 1,
+   "pb988-end-program-missing-precedes": 1,
+   "pb988-end-program-name-mismatch": 1,
+   "pb988-end-program-order-reversed": 2
+  },
+  "COBOL2796": {
+   "1985-GR-IV_6_4_2_1_1-6": 1,
+   "1985-GR-IV_6_4_2_1_1-8": 1,
+   "1985-GR-IV_6_4_2_1_1_1-5": 1,
+   "g85_x04": 1,
+   "g85_x05": 1,
+   "g85_x06": 1,
+   "g85_x07": 1,
+   "g85_x08": 1,
+   "g85_x09": 1,
+   "g85_x10": 1,
+   "g85_x11": 1,
+   "g85_x12": 1,
+   "g85_x13": 1,
+   "g85_x14": 1,
+   "g85_x15": 1,
+   "g85_x16": 1,
+   "g85_x17": 1,
+   "g85_x18": 1,
+   "g85_x19": 1,
+   "g85_x20": 1,
+   "g85_x21": 1,
+   "g85_x22": 1,
+   "g85_x23": 1,
+   "g85_x24": 1,
+   "g85_x25": 1,
+   "g85_x26": 1,
+   "g85_x27": 1,
+   "g85_x28": 1,
+   "g85_x29": 1,
+   "g85_x30": 1,
+   "g85_x31": 1,
+   "g85_x32": 1,
+   "g85_x33": 1,
+   "g85_x34": 1,
+   "g85_x35": 1,
+   "pb351-return-at-end-conditional": 1,
+   "pb351-search-when-conditional": 1,
+   "pb3830-at-end-binds-inward": 1,
+   "pb3830-call-on-overflow-85": 1,
+   "pb3830-compute-zero-binds-inward": 1,
+   "pb3830-end-of-page-binds-inward": 1,
+   "pb3830-exception-binds-inward": 1,
+   "pb3830-invalid-key-binds-inward": 1,
+   "pb3830-overflow-binds-inward": 1,
+   "pb3830-search-at-end-binds-inward": 1,
+   "pb3830-size-error-binds-inward": 1,
+   "pb3830-size-error-reversed-binds-inward": 1
+  },
+  "COBOL2797": {
+   "pb1146-paragraph-after-declaratives": 1,
+   "pb1146-paragraph-before-section": 1,
+   "pb1146-second-declaratives": 1,
+   "pb1146-sentence-before-section": 1
+  },
+  "COBOL2870": {
+   "pb1425-object-view-below-2002": 1
+  },
+  "COBOL2876": {
+   "pb1407-ref-mod-leftmost-position-omitted": 3
+  },
+  "COBOL2897": {
+   "pb643-reserve-beyond-limit": 1
+  },
+  "COBOL2904": {
+   "pb1431-linage-counter-report-source-bare": 1,
+   "pb1431-linage-counter-report-source-expression": 1,
+   "pb1431-linage-counter-report-sum-addend": 1
+  },
+  "COBOL2912": {
+   "pb5565-padding-on-indexed-85": 1,
+   "pb5565-padding-on-relative-85": 1,
+   "pb773-record-delimiter-on-indexed-file": 1
+  },
+  "COBOL2915": {
+   "pb1281-redefines-qualified": 1
+  },
+  "COBOL2954": {
+   "pb434-varying-until-exit": 1
+  },
+  "COBOL2961": {
+   "1985-GR-VI_5_15_5-2": 1,
+   "pb5181-through-all-literal-descending": 1,
+   "pb5181-through-figurative-high-low": 1,
+   "pb5181-through-figurative-space-equal": 1
+  },
+  "COBOL2966": {
+   "1985-SR-VI_6_14_3-1": 1,
+   "pb397-exit-not-alone": 1
+  },
+  "COBOL2967": {
+   "pb397-go-to-not-last": 1
+  },
+  "COBOL2968": {
+   "1985-SR-VI_6_24_3-2": 1,
+   "pb397-stop-not-last": 1
+  },
+  "COBOL2972": {
+   "pb2040-open-qualified-file-name": 1,
+   "pb2040-sort-using-qualified-file-name": 1
+  },
+  "COBOL2987": {
+   "pb1508-configuration-paragraph-out-of-order": 1,
+   "pb2532-comment-paragraph-out-of-order": 1,
+   "pb3133-object-computer-clause-out-of-order-85": 1,
+   "pb5171-special-names-out-of-order-85": 1
+  },
+  "COBOL2993": {
+   "pb2017-binary-operator-no-space-after": 1,
+   "pb2017-binary-operator-no-spaces": 1,
+   "pb2017-operator-in-subscript": 1,
+   "pb2017-operator-touches-comma-decimal-point": 1,
+   "pb2017-unary-operator-no-space-after": 1,
+   "pb3981-compute-zero-touching-sign": 1,
+   "pb3981-relation-zero-touching-sign": 2,
+   "pb4120-set-up-by-zero-touching-sign": 1
+  },
+  "COBOL3317": {
+   "pb2468-condition-name-refmod-if": 1,
+   "pb2468-condition-name-refmod-search-all": 1,
+   "pb2468-condition-name-refmod-set": 1
+  },
+  "COBOL3318": {
+   "pb1935-class-condition-paren-subject": 1,
+   "pb1935-evaluate-class-paren-subject": 1,
+   "pb4763-class-condition-literal-subject": 3,
+   "pb4763-class-condition-paren-counter-subject": 1,
+   "pb4804-class-condition-evaluate-held-arithmetic-subject": 2
+  },
+  "COBOL3407": {
+   "pb2727-io-control-period-per-clause": 1,
+   "pb2727-special-names-period-per-clause": 1
+  },
+  "COBOL3408": {
+   "pb2727-io-control-period-missing": 1,
+   "pb2727-special-names-period-missing": 1,
+   "pb3370-object-computer-period-missing": 1,
+   "pb3370-source-computer-period-missing": 1
+  },
+  "COBOL3473": {
+   "pb2490-debugging-line-between-literal-parts-source": 1
+  },
+  "COBOL3710": {
+   "pb2722-evaluate-not-any": 1,
+   "pb2722-evaluate-not-false": 1,
+   "pb2722-evaluate-not-true": 1
+  },
+  "COBOL3983": {
+   "pb694-read-no-into-relative": 1,
+   "pb694-read-no-into-sequential": 1
+  },
+  "COBOL4250": {
+   "pb5307-cd-name-declared-twice-1985": 1,
+   "pb5307-report-name-declared-twice-1985": 1,
+   "pb5541-fd-declared-twice": 1,
+   "pb5631-case-fd-then-sd": 1,
+   "pb5631-case-sd-then-fd": 1,
+   "pb5631-fd-then-sd": 1,
+   "pb5631-sd-then-fd": 1,
+   "pb5631-sd-then-sd": 1
+  },
+  "COBOL4733": {
+   "pb3517-sign-phrase-on-non-binary-usage": 3,
+   "pb3517-sign-phrase-on-report-item": 1
+  },
+  "COBOL5434": {
+   "l1_encoding_marked_malformed_is_refused": 1
+  },
+  "COBOL5506": {
+   "1985-FMT-VII_3_9_2": 1,
+   "1985-FMT-VI_6_17_2": 1,
+   "1985-FMT-XIII_3_2_2": 1,
+   "1985-FMT-XIII_3_8_2": 1,
+   "1985-FMT-XIV_3_1_2": 1,
+   "1985-FMT-XIV_3_5_2": 1,
+   "1985-SR-XIII_3_5_3-3": 1,
+   "l1-abbrev-relation-insertion-not-not": 1,
+   "l1c17-paren-unclosed": 1,
+   "l1c19-numeric-literal-without-digit": 1,
+   "l1c24-reserve-missing-integer": 1,
+   "l1c27-report-group-in-working-storage": 1,
+   "pb1125-inspect-replacing-without-adjective": 1,
+   "pb1125-inspect-tallying-first-operand-without-adjective": 1,
+   "pb1507-program-id-global-attribute": 1,
+   "pb2024-required-word-omitted": 1,
+   "pb2555-statement-cut-at-margin-r": 1,
+   "pb2728-read-file-unprinted": 1,
+   "pb332-start-key-needs-operator": 1,
+   "pb332-start-length-word-required": 1,
+   "pb332-use-format1-needs-exception-or-error": 1,
+   "pb333-start-not-or-equal-operator": 1,
+   "pb3428-memory-size-unit-word": 1,
+   "pb3428-segment-limit-integer-omitted": 1,
+   "pb3751-page-limit-mixed-alternatives": 1,
+   "pb3845-extended-letter-unparseable-85": 1,
+   "pb3845-underscore-unparseable-85": 1,
+   "pb3861-set-index-to-alphanumeric-literal": 1,
+   "pb4134-fault-before-a-missing-period-then-a-malformed-end-marker": 1,
+   "pb4173-occurs-alphanumeric-literal-then-times": 1,
+   "pb4174-expected-words-are-the-editions-85": 1,
+   "pb4201-usage-literal-names-the-usages-85": 1,
+   "pb4224-literal-after-a-condition": 1,
+   "pb4224-literal-after-a-when-selection": 1,
+   "pb4224-literal-where-a-statement-begins": 1,
+   "pb4233-picture-clause-without-character-string": 1,
+   "pb4278-leading-hyphen-in-a-word": 1,
+   "pb4278-trailing-hyphen-in-a-word": 1,
+   "pb4299-move-fault-after-a-faulted-sentence-tail": 2,
+   "pb4300-evaluate-only-when-other-after-incomplete-display": 1,
+   "pb4372-statement-only-past-margin-r": 1,
+   "pb4412-vanished-statement-beside-debugging-line": 1,
+   "pb4425-literal-where-the-next-sentence-begins": 1,
+   "pb4426-literal-after-a-completed-selection-object": 1,
+   "pb4435-occurs-bound-omitted-at-85": 1,
+   "pb4677-cd-name-filler": 1,
+   "pb4677-cd-name-procedure": 1,
+   "pb5070-label-records-ignored": 1,
+   "pb5070-value-of-without-implementor-name": 1,
+   "pb5213-picture-is-written-three-times": 1,
+   "pb756-alternate-record-omitted": 1
+  },
+  "COBOL5563": {
+   "pb3245-literal-not-continued-fixed": 1,
+   "pb4176-copy-literal-not-closed": 1
+  },
+  "COBOL5701": {
+   "1985-FMT-IX_2_3_2": 1,
+   "pb4236-select-without-assign": 1,
+   "pb699-indexed-no-record-key-entry-only": 1
+  },
+  "COBOL5716": {
+   "pb4238-qualified-paragraph-header": 1,
+   "pb4238-qualified-section-header": 1
+  },
+  "COBOL5788": {
+   "pb2555-statement-cut-at-margin-r": 1,
+   "pb2555-word-cut-by-margin-r": 1,
+   "pb4372-statement-only-past-margin-r": 1,
+   "pb4412-vanished-statement-beside-debugging-line": 1
+  },
+  "COBOL5818": {
+   "pb4341-exec-sql-block-in-branches": 6,
+   "pb4341-exec-sql-block-refused": 4,
+   "pb4381-exec-sql-block-unterminated": 2,
+   "pb4384-exec-sql-semicolon-in-block": 1
+  },
+  "COBOL5842": {
+   "pb4381-exec-sql-block-unterminated": 1
+  },
+  "COBOL5848": {
+   "pb4363-debug-all-procedure-name": 1
+  },
+  "COBOL5962": {
+   "pb1100-class-repository-function-undefined": 1,
+   "pb1419-udf-float-returning-at-85": 1,
+   "pb1423-udf-argument-order-at-85": 1,
+   "pb2104_expand_skeleton_refused_at_85": 2,
+   "pb2104_import_class_refused_at_85": 1,
+   "pb2104_import_interface_refused_at_85": 2,
+   "pb3677_format1_sdidi_function_value_below_2002": 1,
+   "pb4456_expansion_literals_refused_at_85": 2,
+   "pb4650_unused_actual_expansion_refused_at_85": 2,
+   "pb5623-returning-omitted-formal-below-2002": 1,
+   "pb892-operand-activation-below-2002": 1,
+   "pb971-arg-omitted-below-2002": 1,
+   "pb987-property-per-evaluation-below-2002": 2
+  },
+  "COBOL5989": {
+   "pb1082-pcs-class-name-is-no-alphabet": 1,
+   "pb1082-pcs-undeclared-alphabet": 1
+  },
+  "COBOL6169": {
+   "1985-FMT-XIV_2_2_2": 1,
+   "1985-SR-XIV_2_2_3-2": 1,
+   "1985-SR-XIV_2_2_3-4": 1,
+   "1985-SR-XIV_2_2_3-8": 1,
+   "pb4677-cd-clause-of-another-format": 1,
+   "pb4677-cd-clause-twice": 1,
+   "pb4677-cd-filler-clause": 1,
+   "pb4677-cd-initial-twice": 1,
+   "pb4677-cd-initial-with-using": 1,
+   "pb4677-cd-no-area": 1,
+   "pb4677-cd-output-no-area": 1,
+   "pb4677-cd-series-length": 1,
+   "pb4677-cd-series-on-output": 1
+  }
  }
 }

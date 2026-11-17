@@ -21,14 +21,25 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// lacks has no 1985 rule, so the message cites the edition where it begins (the PB4950 design's edition-gate arm), or</item>
 /// <item>its descriptor records that the rule has no 1985 counterpart (<see cref="DiagnosticDescriptor.No1985Rule"/>,
 /// the reason written in the catalog), or</item>
-/// <item>its code is on the tracked allowlist <c>conformance-suite/wiseowl/edition-citation-pending-1985.json</c>,
-/// each entry a code the PB4950 sweep has not yet reached, measured when the net was laid. A NEW code that cites only
-/// a later edition at 85 fails at once; the change that fixes a listed code removes its entry.</item>
+/// <item>it is COUNTED on the RATCHET <c>conformance-suite/wiseowl/edition-citation-pending-1985.json</c>: code → refusal id
+/// → the exact number of such lines that refusal draws under that code, measured when the net was laid (kb/Work PB4950's
+/// remaining work; the file names that note as its owner).</item>
 /// </list>
+/// <para>⛔ THE RATCHET IS EXACT, PER REFUSAL AND CODE (kb/Work PB4950 review R1-1, after the tolerated rows of
+/// <c>docs/rearchitecture/architecture-edges.json</c>). A count that GROWS is a new offending site and fails; a count that
+/// SHRINKS fails until the file is lowered to it ("lower the count"), and a count that reaches 0 fails until the entry is
+/// removed; an entry whose refusal is no 85 refusal any more fails <see cref="StaleEntries"/>. So the file only shrinks, and a
+/// new later-edition-only citation under a LISTED code, in any refusal, fails as surely as one under a new code. The key is
+/// (refusal, code), not (code, printed citation): a refusal is one program, so a second site of a code within it raises
+/// that refusal's count, and keying by the citation would let a site that prints a citation already listed for the code
+/// elsewhere pass.</para>
 /// A 1985 citation is <c>§1985:</c> (the 1985 standard) or <c>§1989:</c> (its 1989 intrinsic-function amendment).
 /// </summary>
 public static class EditionCitationNet
 {
+    /// <summary>The ratchet file, relative to the suite.</summary>
+    private static readonly string[] RatchetPath = ["wiseowl", "edition-citation-pending-1985.json"];
+
     /// <summary>A citation of a rule of a later edition than 1985, in the edition form or the prose form.</summary>
     private static readonly Regex LaterEditionCitation =
         new(@"§(2002|2014|2023):|ISO/IEC 1989:(2002|2014|2023)\b", RegexOptions.Compiled);
@@ -42,8 +53,8 @@ public static class EditionCitationNet
     /// <summary>The emitted code of a rendered diagnostic line.</summary>
     private static readonly Regex Code = new(@"\b(?:error|warning) (COBOL\d{4}):", RegexOptions.Compiled);
 
-    /// <summary>The tracked allowlist: code → why it is still pending (each entry names kb/Work PB4950).</summary>
-    public static IReadOnlyDictionary<string, string> Pending { get; } = LoadPending();
+    /// <summary>The ratchet: code → refusal id → the counted lines still pending.</summary>
+    public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> Pending { get; } = LoadPending();
 
     /// <summary>The codes whose every descriptor records that its rule has no 1985 counterpart.</summary>
     public static IReadOnlySet<string> Exempt { get; } = DiagnosticCatalog.All
@@ -59,30 +70,67 @@ public static class EditionCitationNet
     /// <summary>The code of a rendered diagnostic, or <see langword="null"/> when the line carries none.</summary>
     public static string? CodeOf(string diagnostic) => Code.Match(diagnostic) is { Success: true } m ? m.Groups[1].Value : null;
 
-    /// <summary>Assert that every diagnostic of a refusal compiled at <c>--std 85</c> cites the 1985 rule, or is
-    /// exempt by its catalog row, or is pending on the tracked allowlist.</summary>
-    public static void AssertCitesTheEditionInForce(IEnumerable<string> diagnostics, string edition, string subject)
+    /// <summary>The ratchet's verdict for refusal <paramref name="id"/>: one line per code whose offending count differs from
+    /// the count the file records for that refusal (empty when every count matches).</summary>
+    public static IReadOnlyList<string> RatchetFindings(IEnumerable<string> diagnostics, string id)
     {
-        if (edition != "85") return;
-        var offenders = diagnostics.Where(CitesOnlyALaterEdition)
-            .Where(d => CodeOf(d) is not { } code || !(Exempt.Contains(code) || Pending.ContainsKey(code)))
-            .ToList();
-        Assert.True(offenders.Count == 0,
-            $"{subject}: {offenders.Count} diagnostic(s) at --std 85 cite only a later edition's rule (kb/Work PB4950): "
-            + "cite the 1985 rule through EditionContext.Cite, or record in the descriptor's No1985Rule why 1985 has "
-            + "none:\n" + string.Join("\n", offenders));
+        var offending = diagnostics.Where(CitesOnlyALaterEdition)
+            .Where(d => CodeOf(d) is not { } code || !Exempt.Contains(code))
+            .GroupBy(d => CodeOf(d) ?? "(no code)", StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.Ordinal);
+        var codes = offending.Keys
+            .Concat(Pending.Where(p => p.Value.ContainsKey(id)).Select(p => p.Key))
+            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal);
+        var findings = new List<string>();
+        foreach (string code in codes)
+        {
+            int actual = offending.TryGetValue(code, out var lines) ? lines.Count : 0;
+            int counted = Pending.TryGetValue(code, out var cases) && cases.TryGetValue(id, out int n) ? n : 0;
+            if (actual > counted)
+                findings.Add($"{code}: {actual} line(s) cite only a later edition's rule where the ratchet counts {counted} — a NEW "
+                    + "site: cite the 1985 rule through EditionInfo.Cite, or record in the descriptor's No1985Rule why 1985 has "
+                    + "none:\n  " + string.Join("\n  ", lines!));
+            else if (actual < counted)
+                findings.Add(actual == 0
+                    ? $"{code}: no line cites only a later edition any more, and the ratchet counts {counted}: remove the entry "
+                      + $"\"{id}\" of {code} from the ratchet"
+                    : $"{code}: {actual} line(s) cite only a later edition where the ratchet counts {counted}: lower the count of "
+                      + $"\"{id}\" under {code} to {actual}");
+        }
+        return findings;
     }
 
-    private static IReadOnlyDictionary<string, string> LoadPending()
+    /// <summary>Assert the ratchet for one refusal compiled at <c>--std 85</c> (nothing is asked at another edition).</summary>
+    public static void AssertCitesTheEditionInForce(IEnumerable<string> diagnostics, string edition, string id, string subject)
     {
-        string path = TestRepo.Suite("wiseowl", "edition-citation-pending-1985.json");
+        if (edition != "85") return;
+        var findings = RatchetFindings(diagnostics, id);
+        Assert.True(findings.Count == 0,
+            $"{subject}: the 1985 citation ratchet (kb/Work PB4950; {string.Join("/", RatchetPath)}):\n"
+            + string.Join("\n", findings));
+    }
+
+    /// <summary>The ratchet's entries that name no refusal of <paramref name="refusalsAt85"/> (the ids the wiseowl manifest
+    /// compiles at 85): an entry whose refusal is gone or no longer refused at 85 would otherwise never be asked.</summary>
+    public static IReadOnlyList<string> StaleEntries(IReadOnlySet<string> refusalsAt85) =>
+        [.. Pending.SelectMany(p => p.Value.Keys.Where(id => !refusalsAt85.Contains(id)).Select(id => $"{p.Key} / {id}"))
+            .Order(StringComparer.Ordinal)];
+
+    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> LoadPending()
+    {
+        string path = TestRepo.Suite(RatchetPath);
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
-        var pending = doc.RootElement.GetProperty("pending").EnumerateObject()
-            .ToDictionary(p => p.Name, p => p.Value.GetString()!, StringComparer.Ordinal);
-        // Every entry is tracked work: its reason names the note that owns it, so the list is never a register of its own.
-        string? untracked = pending.FirstOrDefault(p => !p.Value.Contains("kb/Work PB4950", StringComparison.Ordinal)).Key;
-        if (untracked is not null)
-            throw new InvalidDataException($"{path}: the pending entry {untracked} names no kb/Work PB4950");
+        // The file is tracked work: it names the note that owns it, so it is never a register of its own.
+        if (doc.RootElement.GetProperty("owner").GetString() != "kb/Work PB4950")
+            throw new InvalidDataException($"{path}: the ratchet's owner shall be kb/Work PB4950");
+        var pending = new Dictionary<string, IReadOnlyDictionary<string, int>>(StringComparer.Ordinal);
+        foreach (JsonProperty code in doc.RootElement.GetProperty("pending").EnumerateObject())
+        {
+            var cases = code.Value.EnumerateObject().ToDictionary(c => c.Name, c => c.Value.GetInt32(), StringComparer.Ordinal);
+            if (cases.Count == 0 || cases.Values.Any(n => n <= 0))
+                throw new InvalidDataException($"{path}: {code.Name} holds an empty entry or a count below 1; remove it");
+            pending[code.Name] = cases;
+        }
         return pending;
     }
 }
