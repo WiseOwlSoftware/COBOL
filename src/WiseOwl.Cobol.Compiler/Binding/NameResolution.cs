@@ -232,7 +232,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
                 $"'{DataBinder.WrittenText(dref)}' implicitly references '{depending.Item.CobolName}', its OCCURS DEPENDING ON "
                 + $"object (which fixes its length or its number of occurrences), and '{depending.Item.CobolName}' belongs to LINKAGE SECTION record '{record.CobolName}': the "
                 + "procedure division may not reference it ("
-                + data.Edition.Cite(
+                + data.Edition.Edition.Cite(
                     y1985: "ISO §1985:X.5.1 GR4; §1985:IV.4.4.1: an implicit reference \"occurs if and only if the data item "
                         + "contributes to the execution of the statement\"",
                     y2002: "ISO §2002:13.6.2 SR4; §2002:8.4.4: an implicit reference \"occurs if and only if the data item "
@@ -259,11 +259,11 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             + (data.Edition.DialectLevel < 2002
                 ? "reference (ISO §1985:X.5.1 GR4): the record is not an operand of the USING phrase of the Procedure "
                     + "Division header, nor a redefinition or renaming of one. Name it in the header."
-                : "reference (ISO " + data.Edition.Cite(y1985: "", y2002: "§2002:13.6.2 SR4", y2014: "§2014:13.7.2 SR4",
+                : "reference (ISO " + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.6.2 SR4", y2014: "§2014:13.7.2 SR4",
                         y2023: "§2023:13.7.3 SR4")
                     + "): the record is not an operand of the USING or RETURNING phrase of the procedure division header, "
                     + "not a redefinition or renaming of one, and not BASED. Name it in the header, or describe it BASED ("
-                    + data.Edition.Cite(y1985: "", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5", y2023: "§2023:13.18.5") + ")."));
+                    + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5", y2023: "§2023:13.18.5") + ")."));
 
     /// <summary>COBOL2364 — a reference to a name whose declaration the compiler REFUSED (a Tier-D REDEFINES
     /// view; a SCREEN SECTION name, the section being declined as COBOL1560; a constant-name whose entry yielded no

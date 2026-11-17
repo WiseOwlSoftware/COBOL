@@ -71,6 +71,11 @@ public enum DeclinedAnnex
 /// <see cref="DeclinedAnnex"/>: it is what <see cref="PostureClause"/> derives the licensing § from, so the clause
 /// cannot be written by hand at one site and contradicted at the next. <see cref="DeclinedAnnex.None"/> for every
 /// diagnostic that is not a decline.</param>
+/// <param name="No1985Rule">Why the rule this diagnostic enforces has NO counterpart in the 1985 standard, so its message
+/// may cite a later edition's rule at <c>--std 85</c> (kb/Work PB4950: a diagnostic cites the rule of the edition in
+/// force, and where that edition has none, the edition where the rule begins). <see langword="null"/> for a diagnostic
+/// whose rule 1985 has: at 85 its message cites the 1985 rule, which the conformance suite's
+/// <c>EditionCitationNet</c> asks of every refusal it compiles at 85.</param>
 public sealed record DiagnosticDescriptor(
     string Code,
     string Id,
@@ -79,7 +84,8 @@ public sealed record DiagnosticDescriptor(
     string IsoSection,
     string? SuppressKey = null,
     bool PermissiveInert = false,
-    DeclinedAnnex Annex = DeclinedAnnex.None)
+    DeclinedAnnex Annex = DeclinedAnnex.None,
+    string? No1985Rule = null)
 {
     /// <summary>The effective <c>--suppress</c> family key: <see cref="SuppressKey"/> when set, else
     /// <see cref="Code"/>.</summary>
