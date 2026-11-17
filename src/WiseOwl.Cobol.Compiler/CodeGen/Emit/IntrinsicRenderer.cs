@@ -160,6 +160,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // lowered to its 34-digit round-to-odd image, and ABS (BIG * BIG * K3) answered from the image (…100000 for …000999);
         // RenderWide evaluates the call on the same exact wide form the arithmetic statements keep (§2023:8.8.1.3, §2023:15.4.1, GnuCOBOL's
         // arbitrary-precision argument temporary by CLAUDE.md rule 1).
+        // ⛔ THE FAMILY OF THE CALL IS THE PREDICTION'S (kb/Work PB5893 review R3-1, the coordinator's ruling): FunctionValueLane.IsBinary64 is the
+        // one decider of whether the call is a binary64, in the context this render runs in, and NumericLanes.LaneOf reads the same answer.
+        // DOC-A.1-92b lives there: a binary64 argument makes the function binary64 even beside an argument that is on the SDIDI only because a
+        // floating-point receiver's argument keeps significance, which the SDIDI-argument arm below would otherwise take.
+        else if (FunctionValueLane.IsBinary64(ic, num.CurrentLaneContext))
+            return sig.Float ? RenderFloat(ic, sig.RuntimeMethod) : RenderFloat(ic, RealMethod(sig.RuntimeMethod));
         else if (RenderWide(ic) is { } wideExact)
             return wideExact;
         // ⛔ A CROSS-ALIGNING ARM WHOSE ALIGNED ARGUMENTS PROVABLY CANNOT STAY IN THE Int128 CARRIER TAKES THE SDIDI
@@ -684,7 +690,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// INTAKE(EXACT) for an exact carrier; INTAKE(APPROXIMATED) for a float one, whose binary64 IS the argument.</remarks>
     private string PresentValueBase(BoundIntrinsicCall ic, BoundOperand a)
     {
-        NumX x = num.AsNum(a, num.Receiver);
+        NumX x = num.AsNum(a, NumericArgument);
         return RuntimeApi.Intrinsic("PresentValueBase", x.Real ? DomainArg(ic, x) : ExactArg(ic, x));
     }
 
@@ -693,7 +699,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// no domain takes the plain <see cref="DblOf"/>. ⛔ The screen is the ONLY place such a rule is decided: the
     /// runtime bodies carry no second test on the double (a legal argument rounded onto a bound would trip it).</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier, after an EXACT domain test on that carrier.</remarks>
-    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) => DomainArg(ic, num.AsNum(a, num.Receiver));
+    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) => DomainArg(ic, num.AsNum(a, NumericArgument));
 
     private static string DomainArg(BoundIntrinsicCall ic, NumX x) =>
         ic.Sig.Domain is IntrinsicDomain.None
@@ -922,17 +928,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// conversion, the one <c>CombineCore</c> and <c>Power</c> already use — and then lands by the identical
     /// route a <c>Dec</c> operand takes. So there is ONE landing here, not a second mechanism beside the first,
     /// and the exact Int128 family evaluates the EAE as §2023:15.4.1 r1 requires.</para>
+    /// <para>The landing of an argument already rendered in the argument context (<c>NumericRenderer.ArgumentReceiver</c>): it reads
+    /// only the receiver's scale and integer-digit headroom (<see cref="ReceiverContext.WorkingScale"/>), which the argument context
+    /// shares with the statement's receiver, and never a lane fact, so it reads the statement's receiver.</para>
     /// </remarks>
     private NumX Landed(NumX x) => num.Landed(x, num.Receiver);   // the ONE landing (NumericRenderer.Landed — kb/Work PB84)
 
     // ── The STANDARD-DECIMAL body dispatch (fix-queue PB56) ──────────────────────────────────────────────────
-
-    /// <summary>⛔ THE CONTEXT ARGUMENT <paramref name="i"/> IS RENDERED IN (kb/Work PB5891 reviews R3-1, R5-1): a §2023:15.3 type 6 (integer)
-    /// position takes <see cref="NumericRenderer.ArgumentReceiver"/>, the receiver without its floating-point facts, so the integer the type 6
-    /// classifier admitted is the one computed (a COMP-2 resultant took <c>MOD ((Y * 100 - X * 10.25) * 4, 1000)</c>'s argument onto binary64
-    /// and stored 672 for 41); every other position keeps the statement's receiver, as it always has, so no other argument's value moves.</summary>
-    private ReceiverContext ReceiverFor(BoundIntrinsicCall ic, int i) =>
-        IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i) ? num.ArgumentReceiver : num.Receiver;
 
     /// <summary>
     /// ⛔ AN ARGUMENT AS ITS POSITION TAKES IT, WITHOUT THE UNSCALED LANDING — the one indexed entry every numeric-channel
@@ -992,6 +994,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// value (<see cref="ExactValueArg"/>, kb/Work PB4111, PB4568): VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE, and the exact
     /// family beside an SDIDI or binary64 argument, form their value from <c>CobolExact</c> arguments and round it once.</para>
     /// </remarks>
+    /// <summary>⛔ THE CONTEXT ARGUMENT <paramref name="i"/> IS RENDERED IN (kb/Work PB5891 review R3-1, kb/Work PB5893):
+    /// <see cref="NumericRenderer.ArgumentReceiver"/> at the argument's position, a §2023:15.3 type 6 (integer) position or not. Every
+    /// position renders without the receiver's floating-point facts; under a floating-point receiver a numeric position also keeps
+    /// significance (<c>NumericLanes.ArgumentKeepsSignificance</c>).</summary>
+    private ReceiverContext ReceiverFor(BoundIntrinsicCall ic, int i) =>
+        num.ArgumentReceiver(ic.CarrierFacts.IsIntegerPosition(i));
+
+    /// <summary>The context of an operand the intake reads without its index: an element of a table(ALL) argument or an argument of a
+    /// variadic numeric list, and the leading rate of PRESENT-VALUE and a binary64-family argument-1, each at a §2023:15.3 type 10
+    /// (numeric) position.</summary>
+    private ReceiverContext NumericArgument => num.ArgumentReceiver(integerPosition: false);
+
     private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));
 
     /// <summary>
@@ -1086,7 +1100,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <summary>One operand lifted to a <c>CobolDec</c> from its RAW carrier — the per-operand form of <see cref="DecArg"/>
     /// (a table(ALL) element renders here inside its enumeration lambda).</summary>
     /// <remarks>INTAKE(LIFTED) — the per-operand form of <see cref="DecArg"/> — same contract.</remarks>
-    private string DecOf(BoundOperand a) => num.DecOperand(num.AsNum(a, num.Receiver));
+    private string DecOf(BoundOperand a) => num.DecOperand(num.AsNum(a, NumericArgument));
 
     /// <summary>⛔ AN ARGUMENT AS ITS EXACT VALUE (<c>CobolExact</c>; kb/Work PB4111, PB4568): the position intake keeping the wide form
     /// (<see cref="RawWideArg"/>, so a §2023:15.3 type-6 position is still its integer), then <see cref="NumericRenderer.ExactOperand"/> —
@@ -1107,12 +1121,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     {
         for (int i = 0; i < ic.Args.Count; i++)
             if (ReferenceEquals(ic.Args[i], a)) return ExactValueArg(ic, i);
-        return num.ExactOperand(num.AsNum(a, num.Receiver));
+        return num.ExactOperand(num.AsNum(a, NumericArgument));
     }
 
     /// <summary>One operand as a C# double from its RAW carrier — the per-operand form of <see cref="Dbl"/>.</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier — exactness past 2^53 is surrendered. §2023:15.4.1's native latitude permits that for an equivalent-arithmetic-expression function; a standard mode and a value-fixing definition do not.</remarks>
-    private string DblOf(BoundOperand a) => NumericRenderer.Real(num.AsNum(a, num.Receiver));
+    private string DblOf(BoundOperand a) => NumericRenderer.Real(num.AsNum(a, NumericArgument));
 
     // ── table(ALL) arguments — the enumeration seam (ISO §2023:15.3; kb/Work PB62) ─────────────────────────────
 
@@ -1533,7 +1547,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         {
             for (int i = 0; i < ic.Args.Count; i++)
                 if (ReferenceEquals(ic.Args[i], a)) return Aligned(i);
-            return NumericRenderer.WideAligned(num.AsNum(a, num.Receiver), s);
+            return NumericRenderer.WideAligned(num.AsNum(a, NumericArgument), s);
         }
         string List() => ArgArray(ic, 0, "CobolWide", Element) ?? string.Join(", ", xs.Select((_, i) => Aligned(i)));
         // A table(ALL) argument stands for an unknown number of elements, so SUM charges it nine more digits (as
@@ -1680,7 +1694,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // the list itself enumerates through ArgArray (kb/Work PB62).
         var xs = Operands(ic).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
-        string list = ArgArray(ic, 0, "Int128", a => NumericRenderer.Align(num.AsNum(a, num.Receiver), s))
+        string list = ArgArray(ic, 0, "Int128", a => NumericRenderer.Align(num.AsNum(a, NumericArgument), s))
                       ?? string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s)));
         return (list, s);
     }
@@ -1696,9 +1710,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
         // A table(ALL) argument enumerates (kb/Work PB62): its elements share one scale, so the scales array
         // enumerates the same ranges with a constant selector.
-        string vals = ArgArray(ic, 0, "Int128", a => { var x = num.AsNum(a, num.Receiver); return NumericRenderer.Align(x, x.Scale); })
+        string vals = ArgArray(ic, 0, "Int128", a => { var x = num.AsNum(a, NumericArgument); return NumericRenderer.Align(x, x.Scale); })
                       ?? $"new Int128[] {{ {string.Join(", ", xs.Select(x => NumericRenderer.Align(x, x.Scale)))} }}";
-        string scales = ArgArray(ic, 0, "int", a => num.AsNum(a, num.Receiver).Scale.ToString())
+        string scales = ArgArray(ic, 0, "int", a => num.AsNum(a, NumericArgument).Scale.ToString())
                         ?? $"new int[] {{ {string.Join(", ", xs.Select(x => x.Scale))} }}";
         return (vals, scales, s);
     }

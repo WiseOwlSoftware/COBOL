@@ -51,10 +51,22 @@ namespace WiseOwl.Cobol.CodeGen;
 /// (<c>FloatResultant.FromExact</c>, kb/Work PB4730), never through a binary64 first. A SET of resultants carries no single answer and
 /// leaves it false; each receiver's own final transfer is rendered by <see cref="Of"/>.
 /// </param>
+/// <param name="KeepsSignificance">
+/// True for an intrinsic function's argument whose function value a floating-point receiver takes
+/// (<c>NumericLanes.ArgumentKeepsSignificance</c>, kb/Work PB5893): a quotient in it that may not terminate is the final quotient on the
+/// SDIDI (<c>NumericLanes.QuotientIsFinal</c>), so the argument keeps 34 significant digits at every magnitude. The argument context
+/// itself is never floating-point (<c>NumericRenderer.ArgumentReceiver</c>).
+/// </param>
 internal readonly record struct ReceiverContext(
     int Scale, bool Real, CobolRounding Rounding, SizeChecks Checks, int IntegerDigits = 0,
-    bool Receiverless = false, bool FloatEdited = false, bool Single = false, int FloatSignificandDigits = 0)
+    bool Receiverless = false, bool FloatEdited = false, bool Single = false, int FloatSignificandDigits = 0,
+    bool KeepsSignificance = false)
 {
+    /// <summary>⛔ THE ONE PREDICATE "THIS RESULTANT IS FLOATING-POINT": a binary64 or binary32 item (every FLOAT usage, COMP-1, COMP-2:
+    /// <see cref="Real"/>) or a floating-point numeric-edited item (<see cref="FloatEdited"/>). <see cref="RoundsAtItsScale"/> is its
+    /// complement among receivers, and an intrinsic function's argument asks it (<c>NumericRenderer.ArgumentReceiver</c>).</summary>
+    public bool IsFloatingPoint => Real || FloatEdited;
+
     /// <summary>The receiver-less context: scale 0, no capacity, not floating, TRUNCATION, no size-error checking.</summary>
     public static readonly ReceiverContext None =
         new(0, false, CobolRounding.Truncation, SizeChecks.None, 0, Receiverless: true);
@@ -263,7 +275,7 @@ internal readonly record struct ReceiverContext(
     /// (<c>IntrinsicRenderer</c>) and <see cref="FloatLanding"/> ask it; a floating-point edited receiver otherwise saw
     /// <c>COMPUTE FE = A * A</c> (A = 10^20) carried at its hint scale and wrapped to 0, and <c>1 / 3000000</c> truncated
     /// to 3.3E-07 (train 1039b review of kb/Work PB1900; golden 2023/pb1900_float_edited_resultant_scale).</summary>
-    public bool RoundsAtItsScale => !Receiverless && !Real && !FloatEdited;
+    public bool RoundsAtItsScale => !Receiverless && !IsFloatingPoint;
 
     /// <summary>⛔ THE ONE PREDICATE "A FINAL TRANSFER INTO THIS RESULTANT LANDS IN A BINARY64 (OR BINARY32) ITEM" (kb/Work PB4730): the
     /// float receiver that is neither receiver-less nor floating-point EDITED (whose store rounds a significand to the mask,

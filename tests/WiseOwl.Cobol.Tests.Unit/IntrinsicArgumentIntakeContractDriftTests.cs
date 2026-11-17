@@ -111,6 +111,36 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
     }
 
     /// <summary>
+    /// ⛔ EVERY ARGUMENT IS EVALUATED IN THE ONE ARGUMENT CONTEXT, AT EVERY POSITION (kb/Work PB5893, PB5891 review R3-1). An argument
+    /// is an expression evaluated individually (§2023:8.4.3.2.4 GR2) whose evaluation technique its own operands decide, never the
+    /// statement's receiver: an intake that rendered an argument under <c>num.Receiver</c> took an all-fixed-point argument onto
+    /// binary64 beneath a COMP-2 resultant (<c>COMPUTE F = FUNCTION REM ((Y * 100 - X * 10.25) * 4, 1000)</c> stored 672 for 41).
+    /// So every <c>num.AsNum(</c> in the renderer passes the argument context, <c>NumericRenderer.ArgumentReceiver</c> through
+    /// <c>ReceiverFor(ic, i)</c> (at its position) or <c>NumericArgument</c> (an operand read without its index, at a numeric position),
+    /// or the receiver-less <c>ReceiverContext.None</c>, which has no floating-point facts either; the count of calls read is asserted. (The landing
+    /// <c>Landed</c> of an argument already rendered reads only the receiver's scale headroom, and keeps the receiver.)
+    /// </summary>
+    [Fact]
+    public void EveryArgument_RendersInTheArgumentReceiver()
+    {
+        // Every call of the entry sits on one line of code; a comment line explaining the contract is not a call.
+        var calls = RendererSource().Split('\n')
+            .Where(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal))
+            .Where(l => l.Contains("num.AsNum(", StringComparison.Ordinal))
+            .Select(l => l.Trim())
+            .ToList();
+        Assert.True(calls.Count >= 12, $"expected at least 12 argument renders in IntrinsicRenderer, found {calls.Count}: the scan is blind");
+        var other = calls
+            .Where(c => !c.Contains("ReceiverFor(ic, i)", StringComparison.Ordinal)
+                        && !c.Contains("NumericArgument)", StringComparison.Ordinal)
+                        && !c.Contains("ReceiverContext.None", StringComparison.Ordinal))
+            .ToList();
+        Assert.True(other.Count == 0,
+            "these IntrinsicRenderer argument renders do not pass num.ArgumentReceiver, so a floating-point receiver would decide the "
+            + "argument's evaluation technique (kb/Work PB5893): " + string.Join(" | ", other));
+    }
+
+    /// <summary>
     /// ⛔ THE ONE INTAKE THAT CAN CHANGE A VALUE STAYS NAMED AS SUCH. <c>Arg</c> is the only intake that lands an
     /// SDIDI operand at a compile-time working scale, and PB251's defect was a function whose §2023:15.67.4 r1 value
     /// the definition FIXES being materialized through a receiver-derived scale. If <c>Arg</c> ever stops being

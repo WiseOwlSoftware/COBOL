@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Common;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Bound;
 
@@ -53,6 +55,41 @@ internal static partial class NumericLanes
         if (!IsBinary64(@base) && exponent == NumericLane.Scaled && exponentIsIntegerByValue)
             return literalOne && @base == NumericLane.Scaled ? NumericLane.Scaled : NumericLane.Exact;
         return @base == NumericLane.Binary64 || exponent == NumericLane.Binary64 ? NumericLane.Binary64 : NumericLane.Approximation;
+    }
+
+    /// <summary>⛔ DOES AN ARGUMENT KEEP SIGNIFICANCE (kb/Work PB5893, the coordinator's ruling "exactness where exact, significance where
+    /// not"): an argument at a §2023:15.3 type 10 (numeric) position of a function whose value a FLOATING-POINT receiver takes (COMP-1,
+    /// COMP-2, every FLOAT usage, and a floating-point numeric-edited item: <c>ReceiverContext.IsFloatingPoint</c>), or nested in one. Its
+    /// operations stay exact (the fixed family's lanes: an all-fixed-point argument is never taken onto binary64 by the receiver), and a
+    /// quotient that may not terminate is the final quotient on the SDIDI (<see cref="QuotientIsFinal"/>): 34 significant digits at every
+    /// magnitude, where a fixed working scale (the receiver has none to give) cut <c>1 / T</c> at 3E24 to 3.333333E-25 and
+    /// <c>1 / C / C</c> to 0. An argument at a type 6 (integer) position does not: its value is an integer the type 6 classifier proved
+    /// exact under the nested quotient (<c>LaneContext.Argument</c>), which an SDIDI quotient past 34 digits would round.</summary>
+    internal static bool ArgumentKeepsSignificance(bool floatingPointReceiver, bool integerPosition) =>
+        floatingPointReceiver && !integerPosition;
+
+    /// <summary>⛔ IS THIS QUOTIENT THE FINAL QUOTIENT (the SDIDI's 34 significant digits by round-to-odd, <c>NumericRenderer.ExactFinalQuotient</c>
+    /// and <c>DecBinary</c>) RATHER THAN THE NESTED ONE (truncated at <c>CobolNum.NestedQuotientScale</c>)? The one rule <c>LaneOf</c> and
+    /// the renderer's <c>NestedQuotient</c> both read. A floating-point numeric-edited receiver makes every quotient of its expression final
+    /// (it has no fraction scale to cut one at, kb/Work PB2638). In an argument that keeps significance
+    /// (<see cref="ArgumentKeepsSignificance"/>) a quotient is final unless its divisor is a literal it is certain to divide exactly within
+    /// the nested quotient's guard digits (<see cref="TerminatesWithinGuardDigits"/>), which keeps it exact:
+    /// <c>REM ((Y * 100 - X * 10.25) * 4 / 4, 1000)</c> is 10.25, where a 35-digit SDIDI quotient would round it.</summary>
+    internal static bool QuotientIsFinal(bool floatEditedReceiver, bool keepsSignificance, bool divisorTerminates) =>
+        floatEditedReceiver || (keepsSignificance && !divisorTerminates);
+
+    /// <summary>Is <paramref name="divisor"/> a fixed-point literal whose reciprocal terminates within the nested quotient's guard digits
+    /// (<see cref="CobolNum.NestedQuotientGuardDigits"/>): its unscaled digits are 2^a 5^b with a and b at most the guard? A quotient by it
+    /// is then exact at the nested working scale (which keeps the operands' fraction digits beside the guard).</summary>
+    internal static bool TerminatesWithinGuardDigits(BoundExpr divisor)
+    {
+        if (divisor is not BoundNumLiteral l || NumericLiteral.IsFloatingPointForm(l.Text)
+            || !NumericLiteral.TryUnscaledParts(l.Text, out string digits, out _)
+            || !System.Numerics.BigInteger.TryParse(digits.TrimStart('-', '+'), out var m) || m.IsZero) return false;
+        int twos = 0, fives = 0;
+        while (m.IsEven) { m /= 2; twos++; }
+        while (m % 5 == 0) { m /= 5; fives++; }
+        return m.IsOne && twos <= CobolNum.NestedQuotientGuardDigits && fives <= CobolNum.NestedQuotientGuardDigits;
     }
 
     /// <summary>⛔ THE ONE QUESTION "IS THIS CARRIER AN INTEGER BY ITS VALUE" (kb/Work PB5891 review R2-1, R2-2; PB272's value-not-spelling

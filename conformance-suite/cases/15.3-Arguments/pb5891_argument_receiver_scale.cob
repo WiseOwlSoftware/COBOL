@@ -15,6 +15,14 @@
       *> 2.33333333333333333 (lines 2, 3, 6, 14), and every other
       *> line as there. Rendering the arguments at scale 0 (the
       *> withdrawn ruling R4-1) printed 2.33333333333333000.
+      *> Line 15 (kb/Work PB5893 review R4-1, the coordinator's ruling):
+      *> under COMP-2 F2 the argument A / 3 keeps significance, the
+      *> SDIDI quotient 2.333...3 (34 digits), an approximation, and
+      *> ABS's value lands by round-to-nearest-even, the double nearest
+      *> 7/3, 2.3333333333333335, main's value. (An exact fixed-point
+      *> value lands by truncation without ROUNDED: COMPUTE F2 = R with
+      *> R = 2.333...3 prints 2.333333333333333; kb/Work PB5893's dated
+      *> evidence file.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. S0.
        DATA DIVISION.

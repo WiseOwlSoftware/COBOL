@@ -190,4 +190,41 @@ public sealed class FunctionValueLaneDriftTests
         // No other site decides it: the renderer flags a binary64 Approximate only from the predicate's answer.
         Assert.DoesNotContain("Real: true, Approximate: true);", renderer, StringComparison.Ordinal);
     }
+    /// <summary>
+    /// ⛔ EVERY ARM OF THE ARGUMENT-CARRIER WALK DECIDES THE APPROXIMATION MARK (kb/Work PB5893 review R5-1). The delivery of a value to a
+    /// floating-point receiver asks whether it is an SDIDI approximation (<c>FunctionValueLane.DeliversByNearest</c>), and the power arm
+    /// returned an SDIDI carrier without its base's mark, so <c>ABS ((A / 3 * 3) ** 2)</c> landed 48.99999999999999 by truncation for 49.
+    /// The visitor interfaces make every node kind an arm (a compile error otherwise); this test, over the kinds those interfaces name by
+    /// reflection, requires each arm's body to decide the mark by one of the walk's own forms: <c>Carrier.Exact(</c> (an exact value, never
+    /// an approximation), <c>Marked(</c> (the marks of its inputs), <c>=> n.Child.Accept(this);</c> alone (the child's carrier, marks and all),
+    /// <c>Of(n, ctx)</c> (a function: the marks of its arguments), <c>Literal(</c> or <c>OfPlace(</c> (a value read as it is stored, never
+    /// an approximation of one), or a <c>new Carrier(</c> that names <c>Approximation</c>.
+    /// </summary>
+    [Fact]
+    public void EveryArgumentCarrierArm_DecidesTheApproximationMark()
+    {
+        string source = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Bound", "FunctionValueLane.cs"));
+        int walk = source.IndexOf("private sealed class ArgumentCarrier(", StringComparison.Ordinal);
+        Assert.True(walk >= 0, "FunctionValueLane declares no ArgumentCarrier walk - it was renamed; update this test");
+        string body = source[walk..];
+        var kinds = new[] { typeof(IBoundExprVisitor<>), typeof(IBoundOperandVisitor<>) }
+            .SelectMany(i => i.GetMethods())
+            .Where(m => m.Name == "Visit")
+            .Select(m => m.GetParameters()[0].ParameterType.Name)
+            .Distinct().Order(StringComparer.Ordinal).ToList();
+        Assert.True(kinds.Count >= 20, $"expected at least 20 visited node kinds, found {kinds.Count}: the reflection is blind");
+        string[] decisions = ["Carrier.Exact(", "Marked(", "Of(n, ctx)", "Literal(", "OfPlace(", "Approximation"];
+        var passThrough = new Regex(@"^\s*=>\s*n\.\w+\.Accept\(this\);\s*$");
+        var undecided = new List<string>();
+        foreach (string kind in kinds)
+        {
+            var arm = Regex.Match(body, $@"public Carrier Visit\({kind} n\)(?<body>.*?)(?=\n\s*(public Carrier Visit|private static|///|// ──))",
+                RegexOptions.Singleline);
+            if (!arm.Success) { undecided.Add($"{kind}: no arm"); continue; }
+            string armBody = arm.Groups["body"].Value;
+            if (!passThrough.IsMatch(armBody) && !decisions.Any(d => armBody.Contains(d, StringComparison.Ordinal))) undecided.Add(kind);
+        }
+        Assert.True(undecided.Count == 0,
+            "these ArgumentCarrier arms do not decide the approximation mark (kb/Work PB5893 R5-1):\n  " + string.Join("\n  ", undecided));
+    }
 }
