@@ -115,6 +115,11 @@
       "changedIn": 2002
     },
     {
+      "id": "io-status-values-outside-1985-lists",
+      "vcrRow": "7.86",
+      "changedIn": 2002
+    },
+    {
       "id": "linage-violating-open-leaves-file-open",
       "vcrRow": "7.84",
       "changedIn": 2002

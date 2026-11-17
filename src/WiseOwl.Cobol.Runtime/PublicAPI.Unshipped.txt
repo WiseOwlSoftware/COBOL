@@ -193,6 +193,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.InspectBeforeFromFirstEligiblePosition = 1
 WiseOwl.Cobol.Runtime.DialectBehavior.InspectFormat3LengthIdentifiedOnce = 7 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic = 25 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IntegerDateFormBounded = 11 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.IoStatusValuesOutside1985Lists = 30 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.LinageViolatingOpenLeavesFileOpen = 28 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.MoveSignIsTheValuesSign = 29 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.NegativeBaseRequiresIntegerExponent = 17 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -256,6 +257,7 @@ WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGr
 WiseOwl.Cobol.Runtime.IO.CobolReport.Edition.get -> int
 WiseOwl.Cobol.Runtime.IO.CobolReport.Edition.init -> void
 WiseOwl.Cobol.Runtime.IO.CobolReport.GenerateSummary(string? detailName, System.Func<int, bool>? beforeReporting = null) -> void
+WiseOwl.Cobol.Runtime.IO.FileConnector.ProgramStatus.get -> string!
 WiseOwl.Cobol.Runtime.IO.FileConnector.RecordLengthConflicts(int length) -> bool
 WiseOwl.Cobol.Runtime.IO.FileConnector.StartPositioned() -> string!
 WiseOwl.Cobol.Runtime.IO.FileConnector.Unsuccessful(string! status) -> string!

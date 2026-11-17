@@ -798,7 +798,8 @@ product assemblies, not a source scan and not an MSBuild workspace, so it costs 
   hand partial declares only a member of its nested `CompilationUnitContext`, so without that rule every document the PDB
   names for `CobolParserCore` itself is generated and the walk disagreed with the census on exactly that type
   (kb/Work PB2417, measured at `c83f88901`). The synthesized types are the census's too (`CompiledPopulation.cs`:
-  `<Module>`, `[CompilerGenerated]` and the types nested in them); a closure or state machine folds into the type it is
+  a name beginning with `<`, which no source can declare, so `<Module>` and a collection expression's
+  `<>y__InlineArrayN`, which carries no attribute; `[CompilerGenerated]`; and the types nested in them); a closure or state machine folds into the type it is
   nested in. Its population test asserts the rule, not the snapshot: every type both the walk and the newest census record
   name agrees on generated-ness, and the walk reads at least nine in ten of the record's types (a type a landing added
   or deleted since the record is the next census's drift, never a disagreement of rules; equality with the snapshot would
