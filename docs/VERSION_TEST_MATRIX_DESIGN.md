@@ -291,6 +291,34 @@ untouched); `Program.cs` prints warnings to stderr always.
 Existing codes are KEPT where tests/history pin them: 0873 (DATA RECORDS, FD+SD), 0810/0811 (ALTER / bare
 GO TO), 0882 (CALL ON OVERFLOW).
 
+### P2.3a A diagnostic cites the rule of the edition in force (kb/Work PB4950)
+
+The owner's decision of 2026-11-07: "a diagnostic cite the rule of the edition the program was compiled under", in both
+directions: a construct valid in 1985 and 2023 cites the 2023 rule under `--std 2023` and the 1985 rule under `--std 85`. Where
+the edition in force has no such rule, the message cites the edition where the rule begins.
+
+- **One decider.** `EditionInfo.Cite(y1985, y2002, y2023, y2014)` (`src/WiseOwl.Cobol.Editions/EditionInfo.cs`) is the one choice
+  of a citation, or of the words a message quotes, by edition. A site never spells its own `DialectLevel < 2002 ? …` between two
+  citations. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
+  `SearchAllFormat2Rules.Rule`, which maps 2023's SR6 to SR13 of SEARCH to each edition's rule).
+- **Declines.** A descriptor whose `Title` is its message (a decline, composed by `EditionContext.Declined`) carries
+  `Title1985`, the message at 85 citing the 1985 ground; `Declined` renders it through `Cite`.
+- **No 1985 rule.** `DiagnosticDescriptor.No1985Rule` records, in the catalog, why a rule has no 1985 counterpart. An edition gate
+  (a refusal whose message names the edition it targets, "requires COBOL-2002 (targeting COBOL-85)") needs no such record: the
+  construct is not in 1985, so the message cites the edition where it begins.
+- **The net.** `EditionCitationNet` (Conformance) asks every diagnostic of every refusal the wiseowl manifest compiles at 85:
+  one that cites a rule of 2002, 2014 or 2023 (in the edition form, or the prose "ISO/IEC 1989:2002") and no rule of the 1985
+  standard or its 1989 amendment fails, unless it is
+  an edition gate, its code's descriptors record `No1985Rule`, or its code is on
+  `conformance-suite/wiseowl/edition-citation-pending-1985.json`. That file is a RATCHET owned by kb/Work PB4950: code → refusal
+  id → the exact number of offending lines. A count that grows fails (a new site, under a listed code too); one that shrinks
+  fails until it is lowered; one at 0 fails until its entry is removed; an entry whose refusal is not compiled at 85 fails
+  `EditionCitationNetDriftTests`. It was laid at 301 codes (1656 lines of the 2459 refusals at 85); 298 codes, 1482 entries and
+  1638 lines remain after the first fixes.
+- **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
+  1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
+  `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.
+
 ### P2.4 Per-edition reserved words (ISO §2023:8.9; the INV-2-inverted obligation)
 
 - **The funnel:** every user-defined word reaches the tree through the `cobolWord` rule (CobolParserCore.g4:25 —

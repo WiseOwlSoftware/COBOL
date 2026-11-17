@@ -73,9 +73,11 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (keys is null || keys.Count == 0)
         {
             data.Edition.Error(DiagnosticCatalog.SearchAllTableNoKeyPhrase,
-                $"SEARCH ALL '{table.CobolName}': the OCCURS clause associated with identifier-1 shall contain "
-                + "the KEY phrase (ISO §2023:14.9.37.3 SR7). Declare ASCENDING/DESCENDING KEY on the OCCURS clause, or "
-                + "use the serial SEARCH (Format 1), whose WHEN admits any conditional expression (SR6).");
+                $"SEARCH ALL '{table.CobolName}': "
+                + Words("the OCCURS clause associated with identifier-1 shall contain the KEY phrase",
+                        "\"The description of identifier-1 in format 2 must also contain the KEY IS phrase in its OCCURS clause\"")
+                + $" (ISO {Rule("SR7")}). Declare ASCENDING/DESCENDING KEY on the OCCURS clause, or "
+                + $"use the serial SEARCH (Format 1), whose WHEN admits any conditional expression ({Rule("SR6")}).");
             return false;
         }
 
@@ -94,9 +96,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(cond)} — the Format-2 WHEN phrase "
                 + "is `data-name-1 IS EQUAL TO {identifier-3 | literal-1 | arithmetic-expression-1}` or a "
-                + $"bare condition-name, repeated with AND (ISO §2023:14.9.37.2 Format 2); this WHEN specifies "
+                + $"bare condition-name, repeated with AND (ISO {Format2}); this WHEN specifies "
                 + $"{why}. The serial SEARCH (Format 1) is the form whose WHEN takes any conditional "
-                + "expression (§2023:14.9.37.3 SR6).");
+                + $"expression ({Rule("SR6")}).");
         bool ok = true;
         foreach (var ce in conjuncts)
             ok &= CheckConjunct(ce, table, keys, keyItems, firstIndex, referenced);
@@ -173,8 +175,8 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(ce)} — the Format-2 WHEN phrase is "
                 + "`data-name-1 IS EQUAL TO {identifier-3 | literal-1 | arithmetic-expression-1}` or a bare "
-                + $"condition-name (ISO §2023:14.9.37.2 Format 2); this operand specifies {shape}. The serial SEARCH "
-                + "(Format 1) is the form whose WHEN takes any conditional expression (§2023:14.9.37.3 SR6).");
+                + $"condition-name (ISO {Format2}); this operand specifies {shape}. The serial SEARCH "
+                + $"(Format 1) is the form whose WHEN takes any conditional expression ({Rule("SR6")}).");
 
         var ops = ce.comparisonOperand();
         if (ops.Length == 0) return true;   // an error node — every comparisonExpression alternative has one
@@ -218,8 +220,11 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
     {
         if (SoleDataReference(operand) is not { } dref)
             return Key(table, $"the WHEN phrase's receiving operand '{DataBinder.WrittenText(operand)}' is not a data-name; "
-                + "data-name-1 and all repetitions of data-name-2 \"shall be … referenced in the KEY phrase in "
-                + "the OCCURS clause associated with identifier-1\" (ISO §2023:14.9.37.3 SR8)");
+                + Words("data-name-1 and all repetitions of data-name-2 \"shall be … referenced in the KEY phrase in "
+                        + "the OCCURS clause associated with identifier-1\"",
+                        "each data-name-1, data-name-2 \"must be referenced in the KEY IS phrase in the OCCURS clause "
+                        + "referenced by identifier-1\"")
+                + $" (ISO {Rule("SR8")})");
 
         var item = refs.Probe(dref)?.Item;
         int pos = KeyPositionOf(item, keyItems);
@@ -243,12 +248,15 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(dref)} … — '{word}' is a "
                 + "condition-name, and Format 2 prints condition-name-1 as an ALTERNATIVE to the whole "
-                + "`data-name-1 IS EQUAL TO …` comparison, never as its receiving operand (ISO §2023:14.9.37.2 "
-                + $"Format 2). Write `WHEN {DataBinder.WrittenText(dref)}` alone, or compare the key data-name itself.");
+                + $"`data-name-1 IS EQUAL TO …` comparison, never as its receiving operand (ISO {Format2}). "
+                + $"Write `WHEN {DataBinder.WrittenText(dref)}` alone, or compare the key data-name itself.");
         if (pos < 0)
             return Key(table, $"'{DataBinder.WrittenText(dref)}' is not referenced in the KEY phrase of the OCCURS clause "
-                + $"associated with '{table.CobolName}' — data-name-1 and all repetitions of data-name-2 \"shall "
-                + $"be referenced in the KEY phrase\" (ISO §2023:14.9.37.3 SR8). The KEY phrase declares {KeyList(keys)}.");
+                + $"associated with '{table.CobolName}' — "
+                + Words("data-name-1 and all repetitions of data-name-2 \"shall be referenced in the KEY phrase\"",
+                        "each data-name-1, data-name-2 \"must be referenced in the KEY IS phrase in the OCCURS clause "
+                        + "referenced by identifier-1\"")
+                + $" (ISO {Rule("SR8")}). The KEY phrase declares {KeyList(keys)}.");
         referenced[pos] = true;
 
         // §2023:14.9.37.2 Format 2 prints data-name-1 / data-name-2, and §2023:8.4.3.3.3's NOTE says "where data-name-n is used
@@ -263,7 +271,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // group." The predicate is the ONE VariableLengthCompatibility module (§2023:8.5.1.12), never a second walk.
         if (VariableLengthCompatibility.IsVariableLength(item!))
             ok &= Key(table, $"'{DataBinder.WrittenText(dref)}' specifies a variable-length group; data-name-1 and data-name-2 "
-                + "\"shall not specify a variable-length group\" (ISO §2023:14.9.37.3 SR12)");
+                + $"\"shall not specify a variable-length group\" (ISO {Rule("SR12")})");
         return ok;
     }
 
@@ -284,7 +292,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 + (written.StartsWith('(')
                     ? "a parenthesized operand, where Format 2 prints a bare condition-name"
                     : "not a condition-name")
-                + " (ISO §2023:14.9.37.2 Format 2)");
+                + $" (ISO {Format2})");
         }
 
         // WrittenWordOf: a counter register's cobolWord() is its QUALIFIER, so `WHEN LINAGE-COUNTER OF F` would name F (kb/Work PB4154, PB4947).
@@ -293,7 +301,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             return validation.RejectStatementOperand(
                 $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(operand)} — '{name}' is not a condition-name, and "
                 + "a WHEN phrase written without a relational operator is Format 2's condition-name-1 alternative "
-                + "(ISO §2023:14.9.37.2 Format 2). Write `data-name-1 IS EQUAL TO …` to compare a key.");
+                + $"(ISO {Format2}). Write `data-name-1 IS EQUAL TO …` to compare a key.");
 
         // ⛔ WHICH level-88 THIS REFERENCE NAMES IS §2023:8.4.2.2 FORMAT 2's QUESTION, AND IT IS ANSWERED IN ONE PLACE
         // (kb/Work PB443). This used to pick `conds.FirstOrDefault(c => IsWithin(c.Parent, table)) ?? conds[0]` —
@@ -323,8 +331,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (cond.Values.Count != 1 || cond.Values[0].High is not null)
             ok &= Key(table, $"the condition-name '{name}' is defined with "
                 + (cond.Values.Count != 1 ? $"{cond.Values.Count} values" : "a THRU range")
-                + "; all referenced condition-names \"shall be defined as having only a single value\" "
-                + "(ISO §2023:14.9.37.3 SR9)");
+                + "; all referenced condition-names "
+                + Words("\"shall be defined as having only a single value\"", "\"must be defined as having only a single value\"")
+                + $" (ISO {Rule("SR9")})");
 
         // SR9 third clause — "The data-name associated with each condition-name shall be specified in the KEY
         // phrase in the OCCURS clause associated with identifier-1."
@@ -332,9 +341,11 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (pos < 0)
         {
             Key(table, $"the condition-name '{name}' is defined on '{cond.Parent.CobolName}', which is not "
-                + $"specified in the KEY phrase of the OCCURS clause associated with '{table.CobolName}' — \"the "
-                + "data-name associated with each condition-name shall be specified in the KEY phrase\" "
-                + $"(ISO §2023:14.9.37.3 SR9). The KEY phrase declares {KeyList(keys)}.");
+                + $"specified in the KEY phrase of the OCCURS clause associated with '{table.CobolName}' — "
+                + Words("\"the data-name associated with each condition-name shall be specified in the KEY phrase\"",
+                        "\"The data-name associated with a condition-name must appear in the KEY IS phrase in the OCCURS "
+                        + "clause referenced by identifier-1\"")
+                + $" (ISO {Rule("SR9")}). The KEY phrase declares {KeyList(keys)}.");
             return false;
         }
         referenced[pos] = true;
@@ -356,7 +367,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (operand.valueOperand()?.nonNumericLiteral() is { } nn)
             return !IsZeroLengthLiteral(nn) || Sending(table,
                 $"the sending operand {nn.GetText()} is a zero-length literal; \"neither literal-1 nor literal-2 "
-                + "shall be zero-length literals\" (ISO §2023:14.9.37.3 SR13)");
+                + $"shall be zero-length literals\" (ISO {Rule("SR13")})");
 
         if (operand.valueOperand()?.arithmeticExpression() is not { } ae) return true;
         if (SoleDataReference(ae) is { } sole)
@@ -369,7 +380,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
             // arithmetic expression are named by SR10 alone and SR12 does not reach them.
             if (item is { } si && VariableLengthCompatibility.IsVariableLength(si))
                 ok &= Sending(table, $"'{sole.GetText()}' specifies a variable-length group; identifier-3 and "
-                    + "identifier-4 \"shall not specify a variable-length group\" (ISO §2023:14.9.37.3 SR12)");
+                    + $"identifier-4 \"shall not specify a variable-length group\" (ISO {Rule("SR12")})");
             return ok;
         }
         // arithmetic-expression-1 / -2: SR10 names "identifiers specified in" it, so EVERY data reference the
@@ -392,15 +403,12 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         bool ok = true;
         if (KeyPositionOf(item, keyItems) >= 0)
             ok &= Sending(table, $"the sending operand '{DataBinder.WrittenText(dref)}' is referenced in the KEY phrase of the "
-                + $"OCCURS clause associated with '{table.CobolName}'; {role} \"shall be neither referenced in "
-                + "the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the first "
-                + "index-name associated with identifier-1\" (ISO §2023:14.9.37.3 SR10)");
+                + $"OCCURS clause associated with '{table.CobolName}'; {role} {Sr10Words} (ISO {Rule("SR10")})");
         if (table.Indexes.Count > 0 && refs.Subscripts.SubscriptNamesIndex(dref, table.Indexes[0]))
             ok &= Sending(table, $"the sending operand '{DataBinder.WrittenText(dref)}' is subscripted by '{firstIndex}', the "
-                + $"first index-name associated with '{table.CobolName}'; {role} \"shall be neither referenced "
-                + "in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted by the "
-                + "first index-name associated with identifier-1\" (ISO §2023:14.9.37.3 SR10) — the search varies that "
-                + "index, so such an operand moves with the probe instead of being compared against it");
+                + $"first index-name associated with '{table.CobolName}'; {role} {Sr10Words} (ISO {Rule("SR10")}) — "
+                + "the search varies that index, so such an operand moves with the probe instead of being compared "
+                + "against it");
         return ok;
     }
 
@@ -416,10 +424,13 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         for (int i = 0; i < last; i++)
             if (!referenced[i])
                 ok &= Key(table, $"the WHEN phrase references the key '{keys[last].Written}' but not the more "
-                    + $"significant key '{keys[i].Written}' that precedes it in the KEY phrase; when a key is "
-                    + "referenced, \"all preceding data-names in that KEY phrase or their associated "
-                    + "condition-names shall also be referenced\" (ISO §2023:14.9.37.3 SR11). The KEY phrase declares "
-                    + $"{KeyList(keys)}, in descending order of significance (§2023:13.18.38.4 GR3).");
+                    + $"significant key '{keys[i].Written}' that precedes it in the KEY phrase; when a key is referenced, "
+                    + Words("\"all preceding data-names in that KEY phrase or their associated condition-names shall also "
+                            + "be referenced\"",
+                            "\"all preceding data-names in the KEY IS phrase in the OCCURS clause referenced by identifier-1 "
+                            + "or their associated condition-names must also be referenced\"")
+                    + $" (ISO {Rule("SR11")}). The KEY phrase declares {KeyList(keys)}, in descending order of "
+                    + $"significance ({KeyOrderRule}).");
         return ok;
     }
 
@@ -435,16 +446,41 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         return -1;
     }
 
-    /// <summary>The citation of the subscript rule in force at the edition being compiled (kb/Work PB5193; the mismatch
-    /// kb/Work PB5352 closed for the file rules): the 2023 text's SR8 (a key) and SR9 (a condition-name) are SR6 and SR7
-    /// of §2002:14.8.34.2 and of §2014:14.9.34.2, and §1985:VI.6.22.3 SR4 states the key rule alone.</summary>
-    private string SubscriptRuleCite(string rule2023) => data.Edition.DialectLevel switch
+    /// <summary>⛔ THE RULE OF THE EDITION IN FORCE for a syntax rule of SEARCH Format 2, named by its 2023 number
+    /// (kb/Work PB4950, PB5530; the subscript arm was kb/Work PB5193's). The 2023 text's SR6 to SR11 are SR4 to SR9 of
+    /// §2002:14.8.34.2 and of §2014:14.9.34.2; its SR12 and SR13 begin in 2014 (§2014:14.9.34.2 SR10 and SR11), so at 85 and
+    /// 2002 those two cite the edition where they begin. The 1985 text holds Format 2's rules in three: §1985:VI.6.22.3 SR1
+    /// (the KEY IS phrase), SR3 (Format 1's any conditional expression) and SR4 (every rule on the WHEN phrase's operands,
+    /// its unnumbered last paragraph included). Each locator was checked with <c>cite.py --check</c>.</summary>
+    private string Rule(string sr2023)
     {
-        >= 2023 => $"ISO §2023:14.9.37.3 {rule2023}",
-        >= 2014 => $"ISO §2014:14.9.34.2 {(rule2023 == "SR8" ? "SR6" : "SR7")}",
-        >= 2002 => $"ISO §2002:14.8.34.2 {(rule2023 == "SR8" ? "SR6" : "SR7")}",
-        _ => "ISO §1985:VI.6.22.3 SR4",
-    };
+        int n = int.Parse(sr2023.AsSpan(2), System.Globalization.CultureInfo.InvariantCulture);
+        string y2014 = $"§2014:14.9.34.2 SR{n - 2}";
+        return data.Edition.Edition.Cite(
+            y1985: n switch { 6 => "§1985:VI.6.22.3 SR3", 7 => "§1985:VI.6.22.3 SR1", >= 12 => y2014, _ => "§1985:VI.6.22.3 SR4" },
+            y2002: n >= 12 ? y2014 : $"§2002:14.8.34.2 SR{n - 2}",
+            y2023: $"§2023:14.9.37.3 {sr2023}",
+            y2014: y2014);
+    }
+
+    /// <summary>Format 2's general format in the edition in force.</summary>
+    private string Format2 => data.Edition.Edition.Cite(
+        "§1985:VI.6.22.2 Format 2", "§2002:14.8.34.1 Format 2", "§2023:14.9.37.2 Format 2", "§2014:14.9.34.1 Format 2");
+
+    /// <summary>The rule that makes a KEY phrase's order its order of significance, in the edition in force.</summary>
+    private string KeyOrderRule => data.Edition.Edition.Cite(
+        "§1985:VI.5.8.4 GR4", "§2002:13.16.36.3 GR3", "§2023:13.18.38.4 GR3", "§2014:13.18.38.3 GR3");
+
+    /// <summary>The words a message quotes from the rule it cites: the 1985 text's at COBOL-85, the later editions'
+    /// (which share them) otherwise.</summary>
+    private string Words(string later, string y1985) => data.Edition.Edition.Cite(y1985, later, later);
+
+    /// <summary>SR10's words (§1985:VI.6.22.3 SR4's at 85).</summary>
+    private string Sr10Words => Words(
+        "\"shall be neither referenced in the KEY phrase of the OCCURS clause associated with identifier-1 nor subscripted "
+        + "by the first index-name associated with identifier-1\"",
+        "\"must not be referenced in the KEY IS phrase in the OCCURS clause referenced by identifier-1 or be subscripted "
+        + "by the first index-name associated with identifier-1\"");
 
     /// <summary>SR8's and SR9's shared subscript requirement, asked of the subscript AS WRITTEN: the position that
     /// selects identifier-1's occurrence shall be the first index-name associated with identifier-1, and "the
@@ -458,7 +494,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (toks.Count == 0)
             return Key(table, $"'{DataBinder.WrittenText(dref)}' is not subscripted by '{firstIndex}': it \"shall be "
                 + "subscripted by the first index-name associated with identifier-1 along with any subscripts "
-                + $"required to uniquely identify the data item\" ({SubscriptRuleCite(rule)})");
+                + $"required to uniquely identify the data item\" (ISO {Rule(rule)})");
         // The index-name may be written QUALIFIED (§2023:8.4.2.2.2 Format 3; §2023:8.4.2.2.3 SR6), and must be when another
         // table declares the same spelling (SR1) — so the qualifiers are consumed here and the reference is judged
         // by the DECLARATION it resolves to, never by its spelling alone (kb/Work PB919).
@@ -477,7 +513,7 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                 && !ReferenceEquals(ix.Decl, table.Indexes[0])))
             return Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where "
                 + $"the first index-name associated with '{table.CobolName}' — '{firstIndex}' — is required "
-                + $"({SubscriptRuleCite(rule)})");
+                + $"(ISO {Rule(rule)})");
         if (toks.Count == next) return true;
         toks = [toks[0], .. toks.Skip(next)];
         bool relative = toks[1].Type is Core.PLUS or Core.MINUS or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT;
@@ -487,9 +523,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         if (relative && data.Edition.DialectLevel < FirstEditionWithSubscriptSentences) return true;
         return relative
             ? Key(table, $"'{DataBinder.WrittenText(dref)}' writes '{Written(toks)}': \"the index-name subscript shall not be "
-                + $"followed by a '+' or a '–'\" ({SubscriptRuleCite(rule)})")
+                + $"followed by a '+' or a '–'\" (ISO {Rule(rule)})")
             : Key(table, $"'{DataBinder.WrittenText(dref)}' selects identifier-1's occurrence with '{Written(toks)}' where the "
-                + $"first index-name '{firstIndex}' alone is required ({SubscriptRuleCite(rule)})");
+                + $"first index-name '{firstIndex}' alone is required (ISO {Rule(rule)})");
     }
 
     /// <summary>ISO §2023:3.178 asked of a <c>nonNumericLiteral</c>: a figurative constant is never zero-length

@@ -101,7 +101,7 @@ public static class RuntimeConfig
         // ── clock (IO/Clock.cs — the run unit's clock seam) ──
         new(SystemClock.PinVariable, "clock",
             "pin the run unit's clock (every ACCEPT temporal source and now-intrinsic) for a deterministic run across processes — the temporal conformance goldens' path",
-            "an invariant-culture date-time, optionally with a UTC offset (\"2026-06-10T14:30:45.67\", \"…+02:30\"); unset = the system clock",
+            "an invariant-culture date-time, optionally with a UTC offset (\"2026-06-10T14:30:45.67\", \"…+02:30\"); unset or empty = the system clock; any other value that does not parse stops the run (kb/Work PB5839)",
             typeof(SystemClock), "IO/Clock.cs"),
 
         // ── the communication facility (Mcs/ and Communication/MessageStore.cs — ISO/IEC 1989:2002 Annex A; kb/Work PB4677) ──

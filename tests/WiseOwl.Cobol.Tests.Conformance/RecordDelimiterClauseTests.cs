@@ -100,7 +100,7 @@ public sealed class RecordDelimiterClauseTests
         AssertRefused(Program($"               RECORD DELIMITER IS {operand}", fd), edition, OnFixedLength, cited);
 
     /// <summary>Each refusal cites the rule in the text of the edition compiled (kb/Work PB5844 review R1-2,
-    /// <c>EditionContext.Cite</c>): COBOL7599's syntax rule and RECORD clause rule, and COBOL7598's names rule, at each of the four
+    /// <c>EditionInfo.Cite</c>): COBOL7599's syntax rule and RECORD clause rule, and COBOL7598's names rule, at each of the four
     /// editions. A message text only; no verdict of any edition rides on it.</summary>
     [Theory]
     [InlineData(85, "§1985:VII.2.8.3 SR1", "§1985:VII.3.8.4 GR3", "§1985:VII.2.8.4 GR3")]

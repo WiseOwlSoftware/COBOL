@@ -202,7 +202,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             else if (ind.EGI() is not null) indicator = SendIndicator.EndOfGroup;
             else
             {
-                indicatorItem = BindSendIdentifier(ind.sendIdentifier());
+                indicatorItem = BindSendDataOperand(ind.sendIdentifier());
                 // "a one-character integer without an operational sign" (§1985:XIV.3.6.3 SR2): an integer has no digit position right of the point, so a trailing P
                 // makes one, and "the scaling position character P is not counted in the size of the data item" (§1985:VI.5.9.4 GR8), so PIC 9P is one character
                 // (kb/Work PB5289).
@@ -230,6 +230,20 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         : identifier.inlineMethodInvocation() is { } invocation ? host.Oo.OoInlineInvocationOperand(invocation)
         : host.Expr.FieldOperand(identifier.dataReference());
 
+    /// <summary>⛔ ONE CAUSE, ONE REPORT (kb/Work PB5667): identifier-2 (SEND WITH) and identifier-3 (SEND ADVANCING) whose own binding
+    /// drew an error (a function-identifier at COBOL-85, refused by the function door's placement rule) come back REFUSED, so the rule
+    /// of the position, a property of a DATA ITEM (SR2's one-character integer, SR3's integer), is not asked of an operand that is
+    /// none. Identifier-1 (SEND FROM) keeps its own rule: §1985:XIV.3.6.3 SR6 is written about a function-identifier there ("If
+    /// identifier-1 is a function-identifier, it must reference an alphanumeric function"), the statement's own rule for that
+    /// operand.</summary>
+    private BoundOperand BindSendDataOperand(Core.SendIdentifierContext identifier)
+    {
+        int mark = ctx.Edition.ErrorsRecorded;
+        BoundOperand operand = BindSendIdentifier(identifier);
+        return ctx.Edition.ErrorsRecorded == mark || operand is BoundOperandError ? operand
+            : BoundOperandError.Refused(ctx.Edition, $"SEND operand '{DataBinder.WrittenText(identifier)}'");
+    }
+
     /// <summary>The ADVANCING phrase's operands (SR3 to SR5 at 85, SR4 to SR6 at 2002). This MCS's devices are oriented to variable-length messages, so vertical
     /// positioning "is not applicable" and "the MCS will ignore" it (A.2.6.3 GR12; docs/CONFORMANCE.md); the statement still has to be a legal one, so its operands
     /// are asked and nothing of them is kept.</summary>
@@ -249,7 +263,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
         }
         // "an integer data item" (kb/Work PB5289): a trailing-P item is one; an index data item, a symbolic-character (a figurative constant, and
         // no mnemonic-name "defined in the SPECIAL-NAMES paragraph", §1985:XIV.3.6.3 SR4), an index-name and a reference-modified item are not.
-        if (!IsIntegerItem(BindSendIdentifier(identifier), describedAs: null))
+        if (!IsIntegerItem(BindSendDataOperand(identifier), describedAs: null))
             ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {DataBinder.WrittenText(identifier)}: {Cite(SendIdentifier3)}");
     }
 
