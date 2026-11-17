@@ -2148,21 +2148,6 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         return (nn.STRINGLIT() ?? nn.NATLIT() ?? nn.HEXLIT()) is { } token ? CobolLiteral.Decode(token.GetText()) : null;
     }
 
-    /// <summary>The significant-digit count of a numeric literal rescaled to <paramref name="scale"/> (the
-    /// same string math as the emitter's <c>EmitText.UnscaledAtScale</c>, counting only — the bind-time
-    /// fits-the-formal check for literal arguments, §2023:14.8.2).</summary>
-    private static int OoUnscaledDigitCount(string raw, int scale)
-    {
-        string t = raw.Trim().TrimStart('+').TrimStart('-');
-        int dot = t.IndexOf('.');
-        string intPart = dot < 0 ? t : t[..dot];
-        string fracPart = dot < 0 ? "" : t[(dot + 1)..];
-        string digits = scale >= 0
-            ? intPart + (fracPart.Length < scale ? fracPart.PadRight(scale, '0') : fracPart[..scale])
-            : (intPart + fracPart) is var all && all.Length > -scale ? all[..^(-scale)] : "0";
-        return digits.TrimStart('0').Length;
-    }
-
     /// <summary>⛔ THE TYPED LANE'S VERDICT ON ONE BY REFERENCE ARGUMENT — the universal switch's relations over the
     /// SAME descriptions (kb/Work PB2077, decision PB3098; OO_DESIGN D6 item 6). §2023:14.9.23.4 GR7 b) locates the
     /// method for every INVOKE by §2023:9.3.6, and §2023:14.9.23.3 SR5 c) with §2023:14.8.1 asks §2023:14.8.2's conformance at compile time
