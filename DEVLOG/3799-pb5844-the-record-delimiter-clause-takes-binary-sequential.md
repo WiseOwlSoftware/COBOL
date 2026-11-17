@@ -1,4 +1,4 @@
-## PB5844: the RECORD DELIMITER clause takes BINARY-SEQUENTIAL or LINE-SEQUENTIAL, refuses every other word, and refuses a fixed-length file
+## Entry 3799 — 2026-11-16 16:22 PST — PB5844: the RECORD DELIMITER clause takes BINARY-SEQUENTIAL or LINE-SEQUENTIAL, refuses every other word, and refuses a fixed-length file
 
 **What was wrong.** `FileControlBinder.BindFileControl` read any word as the clause's implementor-name and declined
 the whole clause with warning COBOL1778, at every edition: `RECORD DELIMITER IS FOOBAR` and `RECORD DELIMITER IS F1`
@@ -46,3 +46,4 @@ DOCUMENTED-NON-SUPPORT to CONFORMS; FMT-12.4.5.11.2 and SR-12.4.5.11.3-2 restate
 CONFORMS; 1985-SR-VII.2.8.3-1, 1985-FMT-VII.2.8.2, 1985-GR-VII.2.8.4-3 and -5 given their witnesses. The register
 (docs/conformance/2/26.md, 7/DOC-A.1-149, -150, -151, 4/index.md) and docs/FILES_DESIGN.md say one thing.
 Codes COBOL7598 and COBOL7599.
+
