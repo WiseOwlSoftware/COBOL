@@ -1953,11 +1953,8 @@ internal static class IntrinsicArgumentRules
     /// non-negative integer power (<see cref="IsNonNegativeIntegerExponent"/>). A quotient over an item, a numeric function and every
     /// other shape answer false. The type 6 screen (<see cref="NotAlwaysIntegral"/>) reads it for every term that is not a sum, a
     /// product, a quotient, a power or a numeric item, and refuses the argument when it answers false (kb/Work PB5886).
-    /// <para>It is also the ONE reading of §2023:15.3 type 6's "arithmetic expression that will always result in an integer
-    /// value" for the result-type rows (<c>IntrinsicResultType.IsIntegerArgument</c>, kb/Work PB4709): an argument that
-    /// is such an expression keeps ABS, MAX, MIN, RANGE and SUM on their Integer row (the per-function result tables of
-    /// §2023:15.7.1 and its siblings, summarized by Table 21 in §2023:15.6), and <see cref="IntegralForm"/> then rewrites it to the
-    /// scale-0 form that row's value needs.</para>
+    /// <para>It is also what <see cref="IntegralForm"/> reads to know a form is already at scale 0. Whether an expression is an integer
+    /// ARGUMENT is <see cref="IsAlwaysIntegral"/>'s question, for the screen and for the result-type rows alike (kb/Work PB5886 R2-1).</para>
     /// <para>A COUNTER REGISTER is an unsigned integer data item (§2023:8.4.3.14.4 GR1, §2023:8.4.3.15.4 GR1), so it answers true as
     /// <c>IntrinsicResultType.IsIntegerOperand</c> does (kb/Work PB4709 review R1-3).</para></summary>
     internal static bool ProvablyIntegral(BoundExpr e) => e switch
