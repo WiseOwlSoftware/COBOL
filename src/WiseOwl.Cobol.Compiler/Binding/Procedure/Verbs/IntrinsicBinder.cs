@@ -3445,6 +3445,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // ordinary subscript reading asks (SubscriptBinder.ReadSubscripts), over the index-names the written
         // non-ALL segments carried (kb/Work PB1472). The ALL segments name none.
         ctx.Refs.Subscripts.ScreenIndexNameAssociation(item, indexNames);
+        // Each ALL level's OCCURS DEPENDING count is an implicit reference of the argument (§2023:15.3: every current
+        // occurrence): one in a LINKAGE record the header does not admit is refused (kb/Work PB5876).
+        ctx.Refs.Names.ScreenImplicitLinkageCounts(dref, counts);
         if ((counter is ({ } counterReport, { } counterFamily)
                 ? ctx.Refs.Counters.SumCounterPlace(counterReport, counterFamily, exprs)
                 : ctx.Refs.ResolveByName(name, quals, exprs)) is not { } element)

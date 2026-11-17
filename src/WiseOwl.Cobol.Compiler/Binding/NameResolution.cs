@@ -211,9 +211,17 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         if (data.Linkage.HasUnreferenceableLinkage) ScreenImplicitLinkageObjects(dref, OdoDependence.ExtentObjects(operand));
     }
 
+    /// <summary>The screen of <see cref="ScreenImplicitLinkageReferences"/> over the current occurrence counts a statement
+    /// ranges a table by (<see cref="PlaceBuilder.CurrentOccurrenceCount"/>), beside its operand's place: the Format-2 table
+    /// SORT, which sorts the table's current occurrences (§2023:14.9.40.4 GR20), and a table(ALL) argument, which stands for
+    /// every current occurrence (§2023:15.3). The data-name-1 of each OCCURS DEPENDING count is the object read
+    /// (kb/Work PB5876's sibling sweep: the two used to read it from a record the header does not admit).</summary>
+    internal void ScreenImplicitLinkageCounts(Core.DataReferenceContext dref, IEnumerable<AllCount> counts) =>
+        ScreenImplicitLinkageObjects(dref, counts.OfType<AllCount.Odo>().Select(odo => odo.Depending));
+
     /// <summary>The screen of <see cref="ScreenImplicitLinkageReferences"/> over OCCURS DEPENDING ON objects a statement
     /// reads beside its operand's place: the SEARCH statement's, whose search ends at the table's current number of
-    /// occurrences (<c>OdoModel.SearchDepending</c>).</summary>
+    /// occurrences (<c>OdoModel.SearchDepending</c>), and the counts of <see cref="ScreenImplicitLinkageCounts"/>.</summary>
     internal void ScreenImplicitLinkageObjects(Core.DataReferenceContext dref, IEnumerable<Place> objects)
     {
         if (!data.Linkage.HasUnreferenceableLinkage) return;
