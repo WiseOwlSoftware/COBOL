@@ -1385,7 +1385,7 @@ ON is 23:59:60 in FORMATTED-TIME, FORMATTED-DATETIME and LOCALE-TIME-FROM-SECOND
 
 **Pinned by** `2023/pb1143_native_product_beyond_scaled_int128`, `2023/pb621_statistics_beyond_the_aligned_carrier`,
 `2002/pb252_native_carrier_boundary` (case 2 is now the VALUE), `2023/pb1641_function_result_beside_decimal_operands`,
-`2023/pb1510_intermediate_rounding_*`, `2023/pb1686_sum_counter_adds_like_add`, `2023/pb1526_integer_argument_has_integral_value`,
+`2023/pb1510_intermediate_rounding_*`, `2023/pb1686_sum_counter_adds_like_add`,
 `2023/pb638_unsigned_wide_item_as_integer_argument`, `2023/pb1379_time_form_floor_float_carriers_*`, `CobolDecSignedTailTests`,
 `CobolNumDivideAlignmentTests`, `CobolDateSecondsLandingTests` and `IntrinsicCarrierAgreementDriftTests`.
 
