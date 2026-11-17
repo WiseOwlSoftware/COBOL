@@ -152,8 +152,10 @@ public static class MoveOverlap
         p is RefModPlace r ? IsCharacterPositioned(r.Inner, StorageExtent.Of(r.Inner) ?? e)
                            : p.Item.ImageWidth == e.Length;
 
-    /// <summary>An alphanumeric-family sender: a reference-modified slice (always alphanumeric, §2023:8.4.3.3.4 GR6), an
-    /// unedited alphanumeric or alphabetic DISPLAY item, or a group.</summary>
+    /// <summary>An alphanumeric-family sender: a reference-modified slice of category alphanumeric or alphabetic (a numeric
+    /// or edited item's slice is alphanumeric, an alphabetic item's stays alphabetic, §2023:8.4.3.3.4 GR6; both carry
+    /// <see cref="PicCategory.Alphanumeric"/>, kb/Work PB5881), an unedited alphanumeric or alphabetic DISPLAY item, or a
+    /// group.</summary>
     private static bool IsCharacterSender(Place from) =>
         from is RefModPlace { Inner.Item: var inner } r
             ? r.Category is PicCategory.Alphanumeric && inner.OperandPic is null or { Usage: Usage.Display }
@@ -164,7 +166,7 @@ public static class MoveOverlap
     private static bool IsPackedItem(Place from) =>
         from.DenotedItem is not null && from.Item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Packed, IsFloat: false };
 
-    /// <summary>A whole unedited numeric DISPLAY item (not a slice: a slice is alphanumeric, §2023:8.4.3.3.4 GR6).</summary>
+    /// <summary>A whole unedited numeric DISPLAY item (not a slice: a numeric item's slice is alphanumeric, §2023:8.4.3.3.4 GR6).</summary>
     private static bool IsNumericDisplayItem(Place from) =>
         from.DenotedItem is not null && from.Item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display };
 

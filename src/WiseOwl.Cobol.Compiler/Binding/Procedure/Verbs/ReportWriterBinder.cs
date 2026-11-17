@@ -532,7 +532,10 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// totality, never by a per-verb list here.
     /// <para>"Alter the value" is read over the storage the control data item occupies: a store into the item, into
     /// a group that contains it, into an item subordinate to it (a MOVE to the record that holds the control
-    /// field alters the field), or into a REDEFINES or RENAMES that shares a byte with it (kb/Work PB5808).
+    /// field alters the field), or into a REDEFINES or RENAMES that shares a byte with it (kb/Work PB5808). A store the
+    /// statement makes through a file connector without naming the item is a store too: a READ into the record area that
+    /// holds the control data item, a FILE STATUS, RELATIVE KEY or DEPENDING ON item (kb/Work PB5885). A CALL BY REFERENCE
+    /// is not refused: whether the called program alters the argument is not known from this source element.
     /// "Any control data item" is literal — the control data items of every report of the source element, not only the report whose group the procedure names.</para></summary>
     /// <returns>True HAVING REPORTED a violation.</returns>
     public bool CheckControlDataStores(BoundStatement core)
@@ -549,7 +552,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 foreach (var c in controls)
                     if (SameStorageLine(stored, c)) { hit = c; return true; }
                 return false;
-            }))
+            }, ctx.Refs.Places.ConnectorStores))
             return false;
         ctx.Edition.Error(DiagnosticCatalog.UseBeforeReportingRestriction,
             $"this statement alters control data item '{hit!.CobolName}' in USE BEFORE REPORTING declarative section "

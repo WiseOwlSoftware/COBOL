@@ -1090,7 +1090,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// group resultant compiled clean and died in StoreArith's run-time loud, where §2023:4.2.2 requires a
     /// compile-time mechanism (the SENDING side has had DA6's screen for a month). Also rejected here: an
     /// index DATA item (category numeric in the storage model, but §2023:13.18.60.3 SR10's closed reference list
-    /// has no arithmetic-resultant entry) and a ref-mod slice (§2023:8.4.3.3.4 GR6c — category alphanumeric).
+    /// has no arithmetic-resultant entry) and a ref-mod slice (§2023:8.4.3.3.4 GR6 — never category numeric).
     /// <para>⛔ WHY THIS IS NOT ROUTED THROUGH <c>IntrinsicArgumentRules.IsArithmeticOperandClass</c>, ASKED AND
     /// ANSWERED (cluster-B review, sweep 478 — "a surviving fourth class-answer copy"). It is not a fourth copy:
     /// it answers a DIFFERENT question on the OTHER side of the statement. <c>IsArithmeticOperandClass</c> is
@@ -1121,11 +1121,13 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         bool edited = elementary
             && pic is { AnalyzedCategory: PicCategory.NumericEdited };
         if (numeric || (edited && editedOk)) return p;
-        string actual = p is RefModPlace ? "a reference-modified slice (category alphanumeric, §2023:8.4.3.3.4 GR6c)"
+        // The category words are the place's own (ItemCategory.CategoryName): a slice has the category §2023:8.4.3.3.4 GR6 gives it,
+        // alphanumeric or national for a numeric or edited item and alphabetic for an alphabetic one (kb/Work PB5881).
+        string actual = p is RefModPlace ? $"a reference-modified slice (category {ItemCategory.CategoryName(p)}, §2023:8.4.3.3.4 GR6)"
             : p.Item.IsGroup ? "a group item"
             : pic is { Usage: Usage.Index } ? "an index data item (§2023:13.18.60.3 SR10)"
             : edited ? "a numeric-edited item, which this receiver position does not admit"
-            : $"of category {pic?.Category.ToString() ?? "unknown"}";
+            : $"of category {ItemCategory.CategoryName(p) ?? "unknown"}";
         ctx.Edition.Error(DiagnosticCatalog.ArithmeticResultantCategory,
             $"the arithmetic resultant '{refText}' is {actual}; ISO {clause} requires an elementary numeric"
             + (editedOk ? " or numeric-edited" : "") + " data item");
