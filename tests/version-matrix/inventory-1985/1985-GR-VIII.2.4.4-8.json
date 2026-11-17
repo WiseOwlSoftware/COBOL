@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.2.4.4-8",
  "rule-digest": "f727b086773b",
- "test-ref": "conformance:cases/12.4.5-File-control/pb5069_external_entries_agree",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb5069_external_entries_agree; conformance:cases/VIII.2.4@1985-ACCESS-MODE-CLAUSE/pb5857-external-relative-key-other-positions-85; conformance:cases/VIII.2.4@1985-ACCESS-MODE-CLAUSE/pb5857-external-relative-key-same-positions-85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

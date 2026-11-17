@@ -101,16 +101,20 @@ internal static class ExternalFileConnectorRules
                 SameItem(edition, conns, f => f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts), f => f.ClauseOrEntryAt(f.FileStatusAt),
                     DiagnosticCatalog.ExternalFileStatusConsistency, newIn2023,
                     $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
-                    + "specify FILE STATUS naming the same corresponding external data item "
+                    + "specify FILE STATUS naming the same corresponding external data item, the same name at the same "
+                    + "character positions of the external record "
                     + "(ISO §2023:12.4.5.3 GR1(i); Annex E.2 item 12)",
                     "ISO §2023:12.4.5.3 GR1(i) / §2023:14.8.4.2 / Annex E.2 item 12", externalName);
 
-            // RELATIVE KEY: for an external RELATIVE file, every corresponding SELECT names the same external data item.
+            // RELATIVE KEY: for an external RELATIVE file, every corresponding SELECT names the same external data item, which is
+            // the same storage (§2023:14.8.4.2 "shall refer to the same corresponding storage"): ExternalItemIdentity carries the
+            // item's character positions in the external record beside its name path (kb/Work PB5857).
             if (conns.Any(f => f.Organization == FileOrganization.Relative) && conns.Any(f => f.RelativeKeyName is not null))
                 SameItem(edition, conns, f => f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts), f => f.ClauseOrEntryAt(f.RelativeKeyAt),
                     DiagnosticCatalog.ExternalRelativeKeyConsistency, EditionSeverity.Error,
                     $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
-                    + "shall specify RELATIVE KEY naming the same external data item (ISO "
+                    + "shall specify RELATIVE KEY naming the same external data item, the same name at the same character "
+                    + "positions of the external record (ISO "
                     + edition.Cite("§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)") + ")",
                     edition.Cite("§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)"), externalName);
 

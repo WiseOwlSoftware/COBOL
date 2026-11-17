@@ -93,18 +93,36 @@ internal static class OdoDependence
         return reads;
     }
 
+    /// <summary>The DEPENDING ON places that SIZE the operand <paramref name="place"/> identifies: each occurs-depending group
+    /// extent its identification evaluates (§2023:13.18.38.4 GR8; §2023:14.6.4 step 6), in the order it reads them. The
+    /// GR7 bound tests an element reference may carry are left out: they ride the path only when the compilation group can
+    /// enable EC-BOUND-ODO (<see cref="FixedTableSegment.Odo"/>), so a rule about what the statement references cannot rest
+    /// on them. The same walk as <see cref="Rebind"/> (kb/Work PB5876: the §1985:X.5.1 GR4 / §2023:13.7.3 SR4 screen of an
+    /// implicit reference asks it).</summary>
+    public static IReadOnlyList<Place> ExtentObjects(Place place)
+    {
+        List<Place>? objects = null;
+        Rebind(place, extent: depending => { (objects ??= []).Add(depending); return depending; }, bound: static d => d);
+        return objects ?? (IReadOnlyList<Place>)[];
+    }
+
     /// <summary>The place with every DEPENDING ON place its identification reads replaced by <paramref name="pin"/>'s
     /// answer, in the order identification reads them (the group's own inner path before its extent).</summary>
-    public static Place Rebind(Place place, Func<Place, Place> pin) => (RoleOf(place), place) switch
+    public static Place Rebind(Place place, Func<Place, Place> pin) => Rebind(place, pin, pin);
+
+    /// <summary><see cref="Rebind(Place, Func{Place, Place})"/> with the two kinds of read apart: <paramref name="extent"/>
+    /// answers an occurs-depending group's extent (<see cref="Role.GroupExtent"/>), <paramref name="bound"/> an element
+    /// reference's GR7 bound test (<see cref="Role.AccessPath"/>).</summary>
+    private static Place Rebind(Place place, Func<Place, Place> extent, Func<Place, Place> bound) => (RoleOf(place), place) switch
     {
-        (Role.GroupExtent, OdoGroupPlace o) => o with { Inner = Rebind(o.Inner, pin), Depending = pin(o.Depending) },
-        (Role.Decoration, PlaceDecorator d) => d with { Inner = Rebind(d.Inner, pin) },
-        (Role.AccessPath, MemberPlace m) => m with { Path = RebindPath(m.Path, pin) },
-        (Role.AccessPath, DynTablePlace t) => t with { Path = RebindPath(t.Path, pin) },
+        (Role.GroupExtent, OdoGroupPlace o) => o with { Inner = Rebind(o.Inner, extent, bound), Depending = extent(o.Depending) },
+        (Role.Decoration, PlaceDecorator d) => d with { Inner = Rebind(d.Inner, extent, bound) },
+        (Role.AccessPath, MemberPlace m) => m with { Path = RebindPath(m.Path, bound) },
+        (Role.AccessPath, DynTablePlace t) => t with { Path = RebindPath(t.Path, bound) },
         (Role.AccessPath, RedefViewPlace v) => v with
         {
-            Backing = RebindPath(v.Backing, pin),
-            Cell = v.Cell is { } cell ? RebindPath(cell, pin) : null,
+            Backing = RebindPath(v.Backing, bound),
+            Cell = v.Cell is { } cell ? RebindPath(cell, bound) : null,
         },
         (Role.NoObject, _) => place,
         var (role, _) => throw new InvalidOperationException(

@@ -1046,6 +1046,9 @@
       "WiseOwl.Cobol.Binding.InheritStep",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass"
     ],
+    "WiseOwl.Cobol.Binding.LinkageBinder::HasUnreferenceableLinkage": [
+      "WiseOwl.Cobol.Binding.NameResolution"
+    ],
     "WiseOwl.Cobol.Binding.LinkageBinder::InheritedMemberNamesOf": [
       "WiseOwl.Cobol.Binding.InheritStep"
     ],
