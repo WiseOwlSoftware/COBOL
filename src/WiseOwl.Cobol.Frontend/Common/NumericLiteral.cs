@@ -55,6 +55,14 @@ public static class NumericLiteral
     /// compile-time boolean-shift count (kb/Work PB1413), so the two lanes answer §2023:5.5 2) a) the same way.</summary>
     public static bool IsIntegerLiteralForm(string text) => !text.Contains('.') && !text.Contains(',');
 
+    /// <summary>⛔ THE ONE "written without a sign" test — ISO §2023:8.3.3.3.2 SR2: "If a sign is used, it shall appear as the
+    /// leftmost character of the literal." A literal is UNSIGNED when no sign is written, whatever its value, so <c>+3</c>
+    /// and <c>+0</c> are signed literals and fail a rule that requires an unsigned integer (§2023:5.5 SR1's integer-n;
+    /// §1985:III.2's "neither signed nor zero unless explicitly allowed"; kb/Work PB5805). Read by every screen of an
+    /// operand position that requires an unsigned literal (WRITE ADVANCING integer-1, the CONCAT and BASECONVERT
+    /// argument rules), so a '+' is never admitted by one of them and refused by another.</summary>
+    public static bool IsUnsignedForm(string text) => text.TrimStart() is not ['+' or '-', ..];
+
     /// <summary>True when <paramref name="text"/> (canonical dot-decimal) has the FLOATING-POINT numeric literal form
     /// of ISO §2023:8.3.3.3.3: a fixed-point significand (optional sign, digits, at most one decimal point), the letter E,
     /// and an optionally signed integer exponent — <c>1.5E+3</c>, <c>-2.5E-2</c>. Fixed-point text and any

@@ -306,6 +306,8 @@ public sealed class ReferenceResolver(DataBinder data)
         PlaceGap gap = default;
         var inner = id.ImplicitPlace ?? Places.PlaceForItem(item, id.IndexExprs!, out gap);
         if (inner is null) return ItemFailure(dref, gap);
+        // The implicit half of the LINKAGE screen (kb/Work PB5876): an OCCURS DEPENDING ON object the operand's extent reads.
+        if (report) Names.ScreenImplicitLinkageReferences(dref, inner);
 
         if (cleanRef is null) return RefResolution.Resolved(inner, "");
         // identifier-1's DESCRIPTION is the item its place stands for, not the name as written: for a no-THROUGH
