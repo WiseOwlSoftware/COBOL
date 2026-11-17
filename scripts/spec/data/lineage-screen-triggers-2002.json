@@ -414,6 +414,14 @@
     "14.8.24"
    ],
    "why": "the MOVE statement, §2002:14.8.24, whose GR4b1 places the sign of the sending operand at 2002 (kb/Work PB5852, VCR row 7.85); every statement that stores by the MOVE rules sends its store through it"
+  },
+  "line-sequential-file-rules": {
+   "sections": [
+    "12.3.4.11",
+    "14.8.29",
+    "14.8.47"
+   ],
+   "why": "the RECORD DELIMITER clause, §2002:12.3.4.11, whose method frames a variable-length record; the READ statement, §2002:14.8.29, whose GR13 makes a record outside the minimum and maximum size a record length conflict; and the WRITE statement, §2002:14.8.47, which writes the record at its size: a file the line delimiter frames keeps those rules until 2023 (kb/Work PB5903, VCR row 7.88)"
   }
  },
  "holds": {
