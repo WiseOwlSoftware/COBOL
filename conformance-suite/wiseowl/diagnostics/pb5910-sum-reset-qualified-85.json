@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: a qualified control name in the TYPE clause or the SUM clause's RESET phrase (report group description) requires COBOL-2002 (targeting COBOL-85) — the qualified SUM clause's RESET operand"}
