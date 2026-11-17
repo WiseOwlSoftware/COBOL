@@ -575,6 +575,10 @@ internal sealed class LinkageBinder(DataBinder data)
             foreach (var formal in formalItems) _functionFormals.Add(formal);
     }
 
+    /// <summary>Whether this source element has a LINKAGE record the procedure division may not reference: the one count
+    /// test a screen asks before it walks an operand (kb/Work PB5876).</summary>
+    internal bool HasUnreferenceableLinkage => _unreferenceableLinkageRoots.Count != 0;
+
     /// <summary>The record of a LINKAGE item the procedure division may not reference (ISO §2023:13.7.3 SR4), or null when
     /// the reference is permitted — or the item is no linkage item of THIS source element (a GLOBAL linkage item a
     /// contained program inherits is reached through §2023:13.18.27.4 GR2, not through this rule).</summary>

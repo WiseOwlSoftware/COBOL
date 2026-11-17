@@ -196,18 +196,66 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
     }
 
+    /// <summary>⛔ THE SAME RULE FOR AN IMPLICIT REFERENCE (kb/Work PB5876). A reference is explicit or implicit, and "Such an
+    /// implicit reference occurs if and only if the data item contributes to the execution of the statement"
+    /// (§1985:IV.4.4.1; §2002:8.4.4 the same sentence; §2023:8.4.5: "it contributes to, or is affected by, the execution of
+    /// the statement"). The OCCURS DEPENDING ON object of a table on or beneath the operand contributes to every
+    /// statement that identifies it, since it fixes the operand's length (§2023:13.18.38.4 GR8): so an operand whose
+    /// extent is read from a LINKAGE item the header does not admit references that item within the procedure division,
+    /// which §1985:X.5.1 GR4 / §2023:13.7.3 SR4 forbid, and the program used to compile and read storage the caller never
+    /// passed (the length taken as zero). The objects asked are the ones the operand's PLACE evaluates
+    /// (<see cref="OdoDependence.ExtentObjects"/>), the reads the generated code makes; a reference already refused by
+    /// <see cref="ScreenLinkageReference"/> is not refused twice. A table no statement references is not refused.</summary>
+    internal void ScreenImplicitLinkageReferences(Core.DataReferenceContext dref, Place operand)
+    {
+        if (data.Linkage.HasUnreferenceableLinkage) ScreenImplicitLinkageObjects(dref, OdoDependence.ExtentObjects(operand));
+    }
+
+    /// <summary>The screen of <see cref="ScreenImplicitLinkageReferences"/> over OCCURS DEPENDING ON objects a statement
+    /// reads beside its operand's place: the SEARCH statement's, whose search ends at the table's current number of
+    /// occurrences (<c>OdoModel.SearchDepending</c>).</summary>
+    internal void ScreenImplicitLinkageObjects(Core.DataReferenceContext dref, IEnumerable<Place> objects)
+    {
+        if (!data.Linkage.HasUnreferenceableLinkage) return;
+        foreach (var depending in objects)
+        {
+            if (data.Linkage.UnreferenceableLinkageRecord(depending.Item) is not { } record || !refs.Diagnosed.Add(dref)) continue;
+            data.Edition.Error(DiagnosticCatalog.LinkageItemNotReferenceable,
+                $"'{DataBinder.WrittenText(dref)}' implicitly references '{depending.Item.CobolName}', its OCCURS DEPENDING ON "
+                + $"object (which fixes its length or its number of occurrences), and '{depending.Item.CobolName}' belongs to LINKAGE SECTION record '{record.CobolName}': the "
+                + "procedure division may not reference it ("
+                + data.Edition.Cite(
+                    y1985: "ISO §1985:X.5.1 GR4; an implicit reference \"occurs if and only if the data item contributes to the "
+                        + "execution of the statement\", §1985:IV.4.4.1",
+                    y2002: "ISO §2002:13.6.2 SR4; an implicit reference \"occurs if and only if the data item contributes to the "
+                        + "execution of the statement\", §2002:8.4.4",
+                    y2014: "ISO §2014:13.7.2 SR4; an implicit reference occurs when \"it contributes to, or is affected by, the "
+                        + "execution of the statement\", §2014:8.4.4",
+                    y2023: "ISO §2023:13.7.3 SR4; an implicit reference occurs when \"it contributes to, or is affected by, the "
+                        + "execution of the statement\", §2023:8.4.5")
+                + $"). Name '{record.CobolName}' in the procedure division header"
+                + (data.Edition.DialectLevel < 2002 ? "." : ", or describe it BASED."));
+            return;
+        }
+    }
+
     /// <summary>Whether <see cref="ScreenLinkageReference"/> would refuse a reference to <paramref name="item"/>: a caller that QUEUES the screen
     /// (the subscript walk, which reports only once it commits to a position, kb/Work PB5846) asks this before it allocates the entry.</summary>
     internal bool IsUnreferenceableLinkage(DataItem item) => data.Linkage.UnreferenceableLinkageRecord(item) is not null;
 
     /// <summary>The ONE wording of COBOL2746, whichever kind of name (data-name, condition-name, index-name) the
-    /// written reference is.</summary>
+    /// written reference is; it cites the rule of the edition compiled at (1985 has no BASED clause).</summary>
     internal void ReportUnreferenceableLinkage(string written, DataItem record) =>
         data.Edition.Error(DiagnosticCatalog.LinkageItemNotReferenceable,
             $"'{written}' belongs to LINKAGE SECTION record '{record.CobolName}', which the procedure division may not "
-            + "reference (ISO §2023:13.7.3 SR4): the record is not an operand of the USING or RETURNING phrase of the "
-            + "procedure division header, not a redefinition or renaming of one, and not BASED. Name it in the "
-            + "header, or describe it BASED (§2023:13.18.5).");
+            + (data.Edition.DialectLevel < 2002
+                ? "reference (ISO §1985:X.5.1 GR4): the record is not an operand of the USING phrase of the Procedure "
+                    + "Division header, nor a redefinition or renaming of one. Name it in the header."
+                : "reference (ISO " + data.Edition.Cite(y1985: "", y2002: "§2002:13.6.2 SR4", y2014: "§2014:13.7.2 SR4",
+                        y2023: "§2023:13.7.3 SR4")
+                    + "): the record is not an operand of the USING or RETURNING phrase of the procedure division header, "
+                    + "not a redefinition or renaming of one, and not BASED. Name it in the header, or describe it BASED ("
+                    + data.Edition.Cite(y1985: "", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5", y2023: "§2023:13.18.5") + ")."));
 
     /// <summary>COBOL2364 — a reference to a name whose declaration the compiler REFUSED (a Tier-D REDEFINES
     /// view; a SCREEN SECTION name, the section being declined as COBOL1560; a constant-name whose entry yielded no
