@@ -152,11 +152,6 @@ public readonly record struct ObjectRefDescriptor(ObjectRefKind Kind, string? Na
     /// which is equally true of every other shape.</summary>
     public bool IsUniversal => Kind is ObjectRefKind.Universal;
 
-    /// <summary>True when the item is statically bound to a named CLASS (not an interface, not universal) —
-    /// i.e. §2023:14.9.39.3's "described with an object-class-name". ACTIVE-CLASS is deliberately NOT included: the
-    /// rules treat it as its own alternative throughout (SR10 b vs c, SR12 a vs b, SR14).</summary>
-    public bool IsObjectClass => Kind is ObjectRefKind.ObjectClass;
-
     /// <summary>The emitted C# type of a reference with this description, WITHOUT the trailing <c>?</c>.
     /// Universal → <c>CobolObject</c> (D-U1). Otherwise the name mapping the ClassUnit emission convention
     /// uses (<c>DataItem.WordIdentifier</c> — two spellings of one COBOL word are one class, §2023:8.1.3.2 GR3), plus
