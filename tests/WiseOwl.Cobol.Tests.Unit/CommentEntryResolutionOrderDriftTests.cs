@@ -92,7 +92,7 @@ public sealed class CommentEntryResolutionOrderDriftTests
             string name = Path.GetFileName(file), code = Strip(File.ReadAllText(file));
             if (code.Contains("CommentEntryCarrier.Encode(", StringComparison.Ordinal)) made.Add(name);
             if (code.Contains("CommentEntryCarrier.Decode(", StringComparison.Ordinal)) read.Add(name);
-            if (name != "DivisionCursor.cs" && System.Text.RegularExpressions.Regex.IsMatch(code, @"new DivisionCursor\([^)]*,\s*\w+\)"))
+            if (name != "DivisionCursor.cs" && System.Text.RegularExpressions.Regex.IsMatch(code, @"new DivisionCursor\([^;]*,\s*(?:words|map|CobolWordsMap\.\w+)\)"))
                 mapped.Add(name);
         }
         Assert.Equal(["ReferenceFormatProcessor.LogicalConversion.cs"], made);

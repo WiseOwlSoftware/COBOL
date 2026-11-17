@@ -43,8 +43,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     private EditionInfo Edition => EditionInfo.Of(dialectLevel, permissive);
 
     /// <summary>Whether the edition has compiler directive lines (<see cref="EditionInfo.HasCompilerDirectives"/>), which decides
-    /// whether the division readers of the conversion see a line that begins <c>&gt;&gt;</c> as one or as text (kb/Work PB5803). A
-    /// conversion given no diagnostics knows no edition and reads it as one, as COBOL-2002 and later do.</summary>
+    /// whether a line that begins <c>&gt;&gt;</c> is a directive line or text (kb/Work PB5803).</summary>
     public bool HasCompilerDirectives => Edition.HasCompilerDirectives;
 
     private static Common.SourceLocation At(string file, int line, int column = 0) =>

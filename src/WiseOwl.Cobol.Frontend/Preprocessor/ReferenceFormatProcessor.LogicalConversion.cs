@@ -48,7 +48,7 @@ public static partial class ReferenceFormatProcessor
         /// DIVISION (kb/Work PB1494: a PROCEDURE DIVISION paragraph named REMARKS was dropped with every line after it). A
         /// source text starts in one (a program's IDENTIFICATION DIVISION header is where it begins), library text in the
         /// division its COPY statement stands in.</summary>
-        private readonly DivisionCursor _division = new(startsInIdentificationDivision, gates?.HasCompilerDirectives ?? true);
+        private readonly DivisionCursor _division = new(startsInIdentificationDivision, directiveLines: true);   // this stage precedes conditional compilation, which reads every >> line it meets as a directive and gates it at the edition (kb/Work PB725)
 
         /// <summary>Whether the text read so far ends in an IDENTIFICATION DIVISION (null: not known) — the state the next
         /// SOURCE FORMAT segment of the same text starts in.</summary>
@@ -295,7 +295,7 @@ public static partial class ReferenceFormatProcessor
 
         /// <summary>Which division the text read so far is in: the ONE rule (<see cref="DivisionCursor"/>), as in the
         /// fixed-form converter, because a comment-entry paragraph exists only in an IDENTIFICATION DIVISION.</summary>
-        private readonly DivisionCursor _division = new(startsInIdentificationDivision, gates?.HasCompilerDirectives ?? true);
+        private readonly DivisionCursor _division = new(startsInIdentificationDivision, directiveLines: true);   // this stage precedes conditional compilation, which reads every >> line it meets as a directive and gates it at the edition (kb/Work PB725)
 
         /// <summary>Whether the text read so far ends in an IDENTIFICATION DIVISION (null: not known) — the state the next
         /// SOURCE FORMAT segment of the same text starts in.</summary>
