@@ -1,4 +1,4 @@
-## PB5677 and PB5903: at 1985 a figurative constant whose character is a digit moves as a number, and a line-framed file keeps the record rules
+## Entry 3827 — 2026-11-17 14:05 PST — PB5677 and PB5903: at 1985 a figurative constant whose character is a digit moves as a number, and a line-framed file keeps the record rules
 
 Two 1985 wrong answers from the triage of 2026-11-17, fixed in one branch.
 
@@ -7,3 +7,4 @@ Two 1985 wrong answers from the triage of 2026-11-17, fixed in one branch.
 **PB5903.** PB5882 had made an over-length line '04' at 85, but a READ on a `RECORD DELIMITER IS LINE-SEQUENTIAL` file still took the 2023 line sequential arm. The rest of the long line came back as the next record (`REC=[KLMNOPQRST] ST=00`), a line shorter than the minimum answered '00', and the WRITE dropped the record's trailing spaces. 1985 has no line sequential file. Its delimiter only frames a variable-length record, and "Any method used will not be reflected in the record area or the record size used within the program" (§1985:VII.2.8.4 GR1). §1985:VII.4.4.4 GR13 makes a record outside the minimum and maximum size a record length conflict, '04', with a long one "truncated on the right to the maximum size". 2002 and 2014 say the same, so `DialectBehavior.LineSequentialFileRules` changes in 2023 (VCR row 7.88). `SequentialConnector.LineSequentialFileRules` is the one decider that both line arms ask. Before 2023 the WRITE keeps the record's size, and the READ applies `RecordLengthConflicts` and keeps no remainder. DOC-A.1-150 and docs/FILES_DESIGN.md now say so. The wiseowl case pb5844_rd_implementor_names gains an 85 golden: its fixed LINE-SEQUENTIAL records read back at their size, 6.
 
 Every expected value was derived from the rules before the run. Two new 85 cases cover this: pb5677_figurative_digit_to_noninteger_85 (seven receivers and the literal beside them) and pb5903_line_delimited_length_conflict_85 (long, short, trailing spaces kept, at end). The NIST corpus tests passed on the branch build, 395 of 395.
+
