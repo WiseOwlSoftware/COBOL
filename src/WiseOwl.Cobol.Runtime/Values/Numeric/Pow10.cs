@@ -16,12 +16,8 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 internal static class Pow10
 {
-    private static readonly long[] L = BuildLong();      // 10^0 .. 10^18 — the long-safe range
     private static readonly Int128[] W = BuildWide();    // 10^0 .. 10^38 — the wide-intermediate range (SSOT §18 #4)
     private static readonly Int128[] F = BuildFive();    // 5^0 .. 5^54 — 10^n's ODD COFACTOR (kb/Work PB623)
-
-    /// <summary>10^<paramref name="n"/> as a <see cref="long"/> (n in 0..18 — within long's range).</summary>
-    public static long AsLong(int n) => L[n];
 
     /// <summary>10^<paramref name="n"/> as an <see cref="Int128"/> (n in 0..38 — the wide intermediate range,
     /// DESIGN §18 #4; an out-of-range n throws — 10^39 does not fit the carrier and a negative power is
@@ -55,14 +51,6 @@ internal static class Pow10
     private static ArgumentOutOfRangeException OutOfTable(string method, int n, int max) =>
         new(nameof(n), n, $"Pow10.{method}: the exponent must be in 0..{max}; a wider power does not fit the Int128 carrier "
             + "and a negative one is not an integer, so the caller handles that case where the scale is known");
-
-    private static long[] BuildLong()
-    {
-        var t = new long[19];
-        long r = 1;
-        for (int i = 0; i < t.Length; i++) { t[i] = r; if (i < t.Length - 1) r *= 10; }
-        return t;
-    }
 
     private static Int128[] BuildWide()
     {
