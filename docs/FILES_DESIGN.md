@@ -2494,7 +2494,7 @@ every edition (COBOL6847 at the first entry that differs from the first describe
 (`FileEntryIdentity.Of`, the segments joined into `FileModel.SelectFingerprint`). A segment added for a new clause is checked by both,
 and a clause an edition does not have leaves its segment empty in every entry, so no row carries an edition window. The externality
 conjunct reads `DataItem.ExternalItemIdentity` (a model member, so the emitter no longer calls the binder driver): RELATIVE KEY at
-every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The PADDING CHARACTER clause
+every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The identity is the item's STORAGE as well as its name (kb/Work PB5857): the name path from its EXTERNAL root, its character offset in the external record (`RecordLayout.OffsetOf`, the offset the RECORD KEY segment carries) and its width, because the items "shall refer to the same corresponding storage" (`§2023:14.8.4.2`; `§1985:VIII.2.4.4 GR8`'s "that same external data item"); a same-named item at other character positions is another item, refused at compile time and mismatched at run time alike. The PADDING CHARACTER clause
 is captured (`FileModel.Padding`, `FileControlBinder.CapturePadding`) for its syntax rules and its segment; it changes no I-O. **The file DESCRIPTION
 entries** (kb/Work PB5300): `FileDescriptionIdentity.Rules` is the same table for the FD, one row per 1985 clause that states its own
 agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 GR5, CODE-SET §1985:VII.3.4.4 GR3, LINAGE §1985:VII.3.7.4 GR11, RECORD §1985:VII.3.8.4 GR2 (kb/Work PB5387), VALUE OF

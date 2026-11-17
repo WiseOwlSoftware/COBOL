@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-SR-VII.4.7.3-5",
  "rule-digest": "b1f157bba1d9",
- "test-ref": "conformance:cases/14.9.51-WRITE/pb1023_write_advancing_count",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb1023_write_advancing_count; conformance:cases/VII.4.7@1985-WRITE-STATEMENT/pb5805-write-advancing-plus-sign-85",
+ "notes": "Fixed by kb/Work PB5805. §1985:VII.4.7.3 SR5 (\"Integer-1 may be positive or zero, but must not be negative\") allows zero; §1985:III.2 makes every integer of a general format \"neither signed nor zero unless explicitly allowed by the rules for that format\", and SR5 allows no sign (where 1985 allows one it says so, §1985:IV.4.3.8.2.3 SR6). SequentialIoBinder.ScreenAdvancingCount admits an integer literal only when NumericLiteral.IsUnsignedForm holds, so +3, +0, -0 and -1 draw COBOL2365 (its text cites the 1985 rules at --std 85), and 0, 3 and ZERO compile (ZERO is a numeric literal of value zero by §1985:IV.4.2.2.2). The 1985 case pb5805-write-advancing-plus-sign-85 refuses +0.",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

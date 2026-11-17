@@ -1819,8 +1819,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     IntrinsicArgumentRules.UnsignedIntegerViolation(args[0]) is not null,
                 BoundFieldOperand f0 => f0.Place.Item.Pic is { } p0
                     && (p0.Category is PicCategory.NumericEdited || p0.Signed || p0.Scale > 0 || p0.IsFloat),
-                BoundNumericLiteral nl0 => nl0.Text.Contains('.') || nl0.Text.Contains(',')
-                    || nl0.Text.StartsWith('-'),
+                // An unsigned literal is one written without a sign (§2023:8.3.3.3.2 SR2), so '+101' is refused as '-101' is
+                // (kb/Work PB5805's sibling: this arm used to ask for '-' only, where CONCAT's asked for both).
+                BoundNumericLiteral nl0 => !NumericLiteral.IsIntegerLiteralForm(nl0.Text)
+                    || !NumericLiteral.IsUnsignedForm(nl0.Text),
                 _ => false,   // other computed results — the runtime digit screen owns their content
             };
             if (bad)
@@ -2199,7 +2201,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             }
             if (a is BoundNumericLiteral nl)
             {
-                if (nl.Text.StartsWith('-') || nl.Text.StartsWith('+') || nl.Text.IndexOfAny(['.', ',']) >= 0)
+                if (!NumericLiteral.IsUnsignedForm(nl.Text) || !NumericLiteral.IsIntegerLiteralForm(nl.Text))
                 {
                     report($"FUNCTION CONCAT argument-{i + 1} is the numeric literal {nl.Text}; ISO §2023:15.18.3 r3 "
                         + "requires a numeric argument to be an unsigned integer", a);
@@ -3443,6 +3445,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // ordinary subscript reading asks (SubscriptBinder.ReadSubscripts), over the index-names the written
         // non-ALL segments carried (kb/Work PB1472). The ALL segments name none.
         ctx.Refs.Subscripts.ScreenIndexNameAssociation(item, indexNames);
+        // Each ALL level's OCCURS DEPENDING count is an implicit reference of the argument (§2023:15.3: every current
+        // occurrence): one in a LINKAGE record the header does not admit is refused (kb/Work PB5876).
+        ctx.Refs.Names.ScreenImplicitLinkageCounts(dref, counts);
         if ((counter is ({ } counterReport, { } counterFamily)
                 ? ctx.Refs.Counters.SumCounterPlace(counterReport, counterFamily, exprs)
                 : ctx.Refs.ResolveByName(name, quals, exprs)) is not { } element)

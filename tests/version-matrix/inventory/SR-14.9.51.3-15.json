@@ -2,8 +2,8 @@
  "rule-id": "SR-14.9.51.3-15",
  "rule-digest": "2d0cc4add537",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ScreenAdvancingCount",
- "test-ref": "conformance:cases/14.9.51-WRITE/pb1023_write_advancing_count; conformance:cases/14.9.51-WRITE/pb1023-write-advancing-count",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ScreenAdvancingCount; src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#IsUnsignedForm",
+ "test-ref": "conformance:cases/14.9.51-WRITE/pb1023_write_advancing_count; conformance:cases/14.9.51-WRITE/pb1023-write-advancing-count; conformance:cases/14.9.51-WRITE/pb5805-write-advancing-plus-sign",
  "editions": "85,2002,2014,2023",
- "notes": "LANDED (kb/Work PB1023, the sibling arm of SR14's position): integer-1 is screened beside the identifier-2 row in SequentialIoBinder.ScreenAdvancingCount through the ONE integer classifier (IntrinsicResultType.IsIntegerOperand - 8.3.3.3.2 'An integer literal is a fixed-point numeric literal that contains no decimal point') plus the sign test SR15 names; 1.5, \"2\", -1 and a constant-name standing for 1.5 draw COBOL2365; ZERO and 0 are admitted. cite.py --check 14.9.51.3 \"Integer-1 shall be positive or zero\" -> OK 15)."
+ "notes": "LANDED (kb/Work PB1023, the sibling arm of SR14's position): integer-1 is screened beside the identifier-2 row in SequentialIoBinder.ScreenAdvancingCount through the ONE integer classifier (IntrinsicResultType.IsIntegerOperand - 8.3.3.3.2 'An integer literal is a fixed-point numeric literal that contains no decimal point'); 1.5, \"2\", -1 and a constant-name standing for 1.5 draw COBOL2365; ZERO and 0 are admitted. kb/Work PB5805: integer-1 is unsigned (§2023:5.5 SR1, 'unsigned and nonzero unless otherwise specified'; SR15 lifts the nonzero default only), so a written sign is refused whatever the value: +3 and +0 draw COBOL2365 through NumericLiteral.IsUnsignedForm (§2023:8.3.3.3.2 SR2), witnessed by pb5805-write-advancing-plus-sign."
 }

@@ -252,6 +252,9 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (ctx.Refs.Places.CurrentOccurrenceCount(table, outer) is not { } count)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                 $"SORT of table '{name}': its current number of occurrences cannot be addressed (ISO §2023:14.9.40.4 GR20)");
+        // That count's data-name-1 is an implicit reference of the statement: one in a LINKAGE record the header does not
+        // admit is refused, as SEARCH's is (kb/Work PB5876).
+        ctx.Refs.Names.ScreenImplicitLinkageCounts(operand, [count]);
 
         var keys = new List<BoundTableSortKey>();
         if (s.sortKeyPhrase().Length == 0)
