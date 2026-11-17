@@ -494,8 +494,12 @@ internal static class IntrinsicArgumentRules
         // the same). IntrinsicResultType.OperandCategory already peels it, so the two readers of one class now agree.
         if (p is TableAllPlace all)
             return ClassOfPlace(all.Element);
+        // A ref-modded GROUP is an elementary alphanumeric item (GR6; kb/Work PB70). A ref-modded ALPHABETIC item stays class
+        // alphabetic (GR6 rewrites only the edited and numeric categories; §1985:IV.4.3.8.4.4 GR5 the same): the storage model
+        // folds PIC A into PicCategory.Alphanumeric, so the category alone cannot answer and the ONE place classifier's
+        // alphabetic rider does, as ClassOfPic reads IsAlphabetic for the whole item (kb/Work PB5881).
         if (p is RefModPlace rmp)
-            return ClassOfCategory(rmp.Category);   // a ref-modded GROUP is an elementary alphanumeric item (GR6; kb/Work PB70)
+            return Table16Operand.Of(rmp).IsAlphabetic ? CobolClass.Alphabetic : ClassOfCategory(rmp.Category);
         return ClassOfItem(p.Item);
     }
 
