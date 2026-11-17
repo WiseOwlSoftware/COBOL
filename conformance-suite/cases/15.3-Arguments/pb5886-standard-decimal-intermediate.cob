@@ -12,12 +12,13 @@
       *> or an integer data item shall be specified". Under
       *> ARITHMETIC IS STANDARD-DECIMAL every intermediate is a
       *> standard-decimal intermediate data item (§2023:8.8.1.5.2)
-      *> of 34 significant digits. B27 / 0.0001 / 16384 has up to
-      *> 32 integer and 14 fraction digits, so its fraction is
+      *> of 34 significant digits. B27 / 0.0001 / 16384 is
+      *> B27 * 0.6103515625, up to 27 integer and 10 fraction
+      *> digits (37 in all), so its fraction is
       *> rounded away: at B27 = 999...9 the argument is
       *> ...998.9999, not an integer. The program is refused
       *> (COBOL1627). Its native twin, pb5886_native_quotient_chain,
-      *> keeps the 14 fraction digits and is admitted.
+      *> keeps every fraction digit and is admitted.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5886L.
        OPTIONS.

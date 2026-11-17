@@ -1765,7 +1765,7 @@ internal static class IntrinsicArgumentRules
     /// standard intermediate data item also keeps only <see cref="ArithmeticModes.IntermediateSignificantDigits"/> significant digits
     /// (§2023:8.8.1.5.2: 34 for STANDARD-DECIMAL; §2002:8.8.1.3.1.1: 32 for the 2002 STANDARD), rounding or truncating the rest
     /// (<see cref="IntermediateDigitsWhy"/>). So <c>B27 / 0.0001 / 16384 * 16384 * 0.0001</c> over a 27-digit item is an integer under
-    /// native arithmetic and is refused under ARITHMETIC IS STANDARD-DECIMAL, where its quotient needs 46 digits.</para></summary>
+    /// native arithmetic and is refused under ARITHMETIC IS STANDARD-DECIMAL, where its quotient B27 × 0.6103515625 needs up to 37 significant digits, 10 of them fraction digits.</para></summary>
     private static string? NotAlwaysIntegral(BoundExpr expr, ArithmeticMode arithmetic) =>
         NotAlwaysIntegral(expr, quotientDigits: 0) ?? IntermediateDigitsWhy(expr, arithmetic);
 
@@ -1899,7 +1899,7 @@ internal static class IntrinsicArgumentRules
     /// standard arithmetic null only when every intermediate of the expression that carries fraction digits fits that many significant
     /// digits. An intermediate with no fraction digits may lose low integer digits to the rounding and stays an integer, so it is not
     /// asked; one with fraction digits that does not fit is rounded or truncated, and the value is no longer the exact one the walk
-    /// showed integral (<c>B27 / 0.0001 / 16384</c>: 32 integer and 14 fraction digits against the SDIDI's 34, §2023:8.8.1.5.2).</summary>
+    /// showed integral (<c>B27 / 0.0001 / 16384</c>, B27 × 0.6103515625: up to 27 integer and 10 fraction digits against the SDIDI's 34, §2023:8.8.1.5.2).</summary>
     private static string? IntermediateDigitsWhy(BoundExpr expr, ArithmeticMode arithmetic)
     {
         if (ArithmeticModes.IntermediateSignificantDigits(arithmetic) is not { } cap) return null;
@@ -1910,18 +1910,19 @@ internal static class IntrinsicArgumentRules
             : null;
     }
 
-    /// <summary>A bound on the integer and fraction digits of <paramref name="e"/>'s value, and the first intermediate (as written) whose
-    /// bound carries fraction digits beyond <paramref name="cap"/> significant digits. A term whose magnitude the walk does not know (a
-    /// function, a register, an index) is bounded by <paramref name="cap"/> integer digits; a product is bounded by the sums of its
-    /// factors' digits, a quotient by a literal c by the product by 1/c, a sum by one more integer digit than its larger term.</summary>
-    private static (int Int, int Frac, string? Overflow) DigitBound(BoundExpr e, int cap)
+    /// <summary>The decimal positions <paramref name="e"/>'s nonzero digits can occupy, as exponents: every digit lies at 10^Lo or above and
+    /// the value is below 10^Hi, so it has at most Hi − Lo significant digits and carries fraction digits only when Lo is negative; and the
+    /// first intermediate (as written) that carries fraction digits and needs more than <paramref name="cap"/> significant digits. An
+    /// item of scale s and d digits spans [−s, d − s); a literal its own digits; a product the sums of its factors' bounds (a quotient by a
+    /// literal c is the product by 1/c); a sum the outer bounds of its terms and one more position. A term whose magnitude the walk does
+    /// not know (a function, a register, an index) spans [0, cap): it is an integer of up to cap digits.</summary>
+    private static (int Lo, int Hi, string? Overflow) DigitBound(BoundExpr e, int cap)
     {
+        if (ExactValue(e) is { } literal) return LiteralDigits(literal, cap);
         switch (e)
         {
-            case BoundNumLiteral or BoundNegate { Operand: BoundNumLiteral } when ExactValue(e) is { } v:
-                return LiteralDigits(v, cap);
             case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } }:
-                return p.IsFloat ? (cap, cap, null) : (Math.Max(p.Digits - p.Scale, 0), Math.Max(p.Scale, 0), null);
+                return p.IsFloat ? (-cap, cap, null) : (-p.Scale, p.Digits - p.Scale, null);
             case BoundNegate n:
                 return DigitBound(n.Operand, cap);
             case BoundUdfEvaluatedExpr udf:
@@ -1930,32 +1931,29 @@ internal static class IntrinsicArgumentRules
             {
                 var l = DigitBound(b.Left, cap);
                 if (l.Overflow is not null) return l;
-                (int Int, int Frac, string? Overflow) r;
-                if (b.Op == '/')
-                {
-                    if (ExactValue(b.Right) is not { Sign: not 0 } c || (ExactRational.One / c).FractionDigits is null) return (cap, cap, null);
-                    r = LiteralDigits(ExactRational.One / c, cap);
-                }
-                else
-                {
-                    r = DigitBound(b.Right, cap);
-                    if (r.Overflow is not null) return r;
-                }
-                (int i, int f) = b.Op is '+' or '-' ? (Math.Max(l.Int, r.Int) + 1, Math.Max(l.Frac, r.Frac)) : (l.Int + r.Int, l.Frac + r.Frac);
-                return (i, f, f > 0 && i + f > cap ? ExprText(e) : null);
+                var r = b.Op == '/'
+                    ? (ExactValue(b.Right) is { Sign: not 0 } c ? LiteralDigits(ExactRational.One / c, cap) : (-cap, cap, null))
+                    : DigitBound(b.Right, cap);
+                if (r.Overflow is not null) return r;
+                (int lo, int hi) = b.Op is '+' or '-' ? (Math.Min(l.Lo, r.Lo), Math.Max(l.Hi, r.Hi) + 1) : (l.Lo + r.Lo, l.Hi + r.Hi);
+                return (lo, hi, lo < 0 && hi - lo > cap ? ExprText(e) : null);
             }
             default:
-                return (cap, 0, null);
+                return (0, cap, null);
         }
     }
 
-    /// <summary>The integer and fraction digits of an exact literal value (a non-terminating one is bounded by <paramref name="cap"/>
-    /// of each, so any product with it overflows).</summary>
-    private static (int Int, int Frac, string? Overflow) LiteralDigits(ExactRational v, int cap)
+    /// <summary>The positions of an exact literal value's nonzero digits (see <see cref="DigitBound"/>); a value with no terminating
+    /// decimal expansion spans [−cap, cap), so any intermediate holding it overflows.</summary>
+    private static (int Lo, int Hi, string? Overflow) LiteralDigits(ExactRational v, int cap)
     {
-        if (v.FractionDigits is not { } frac) return (cap, cap, null);
-        var whole = System.Numerics.BigInteger.Abs(v.Numerator / v.Denominator);
-        return (whole.IsZero ? 0 : whole.ToString(System.Globalization.CultureInfo.InvariantCulture).Length, frac, null);
+        if (v.Sign == 0) return (0, 0, null);
+        if (v.FractionDigits is not { } k) return (-cap, cap, null);
+        // v × 10^k is the integer N; its digits sit at 10^(−k) … 10^(len(N) − k − 1), less its trailing zeros at the bottom.
+        string digits = System.Numerics.BigInteger.Abs(v.Numerator * System.Numerics.BigInteger.Pow(10, k) / v.Denominator)
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+        int trailingZeros = digits.Length - digits.TrimEnd('0').Length;
+        return (trailingZeros - k, digits.Length - k, null);
     }
 
     /// <summary>Null when an integer term <paramref name="e"/> stands under a whole <paramref name="factor"/>; otherwise the reason the

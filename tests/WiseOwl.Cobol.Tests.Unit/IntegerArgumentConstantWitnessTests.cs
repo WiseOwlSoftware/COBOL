@@ -100,7 +100,7 @@ public sealed class IntegerArgumentConstantWitnessTests
     private static readonly BoundExpr Big27 = Item("B27", 27, 0);
 
     /// <summary><c>B27 / 0.0001 / 16384 * 16384 * 0.0001</c> (kb/Work PB5886 review R3-1): B27 for every value in exact arithmetic. Its
-    /// quotient by 16384 has up to 32 integer and 14 fraction digits: the native quotient keeps its 14 fraction digits (the nested
+    /// quotient by 16384, B27 × 0.6103515625, has up to 27 integer and 10 fraction digits: the native quotient keeps its 14 fraction digits (the nested
     /// quotient's guard), a standard-decimal intermediate keeps 34 significant digits (§2023:8.8.1.5.2) and the 2002 standard one 32
     /// (§2002:8.8.1.3.1.1), so at B27 = 999…9 the value is …998.9999 under both standard arithmetics.</summary>
     private static readonly BoundExpr Big27Round =

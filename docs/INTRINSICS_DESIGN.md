@@ -979,7 +979,7 @@ PB5345, PB5832) let `FUNCTION FACTORIAL (FUNCTION ORD (A) / 2)` compile there an
   34 for STANDARD-DECIMAL, §2023:8.8.1.5.2): every intermediate carrying fraction digits must fit those significant digits, or its
   fraction is rounded away (`IntermediateDigitsWhy`). `B27 / 0.0001 / 16384 * 16384 * 0.0001` over a 27-digit item is admitted
   natively (`pb5886_native_quotient_chain`) and refused under STANDARD-DECIMAL (`pb5886-standard-decimal-intermediate`), where its
-  quotient needs 46 digits. So the INTEGER-PART wrap of an Integer-row argument is a no-op on every argument it is given;
+  quotient (B27 × 0.6103515625) needs up to 37 significant digits, 10 of them fraction digits. So the INTEGER-PART wrap of an Integer-row argument is a no-op on every argument it is given;
 - a SUM of items under LITERAL FACTORS (`CollectAdditive` over a `LinearSum`): a product by a literal is exact in decimal arithmetic, so
   an item's net coefficient decides, and `coefficient × 10^(−scale)` must be a whole number (`S * 10`, `WN * 0.5 + WN * 0.5` and `S - S`
   are admitted; `WN * 0.5` is refused); a floating-point item's net coefficient must be zero (PB248); the literal terms must sum to an

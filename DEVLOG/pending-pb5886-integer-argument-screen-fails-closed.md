@@ -31,7 +31,7 @@ complement legs those rules admit are restored. Forms that are integers only by 
 refused as recorded debt, kb/Work PB5889, whose refusal `pb5889-identity-difference` replaces `pb4795_identity_difference_legal`.
 
 **Review round 3.** The R2-1 wrap exposed a screen defect: under ARITHMETIC IS STANDARD-DECIMAL every intermediate keeps 34
-significant digits, so `B27 / 0.0001 / 16384 * 16384 * 0.0001` over a 27-digit item is not an integer there (the quotient needs 46
+significant digits, so `B27 / 0.0001 / 16384 * 16384 * 0.0001` over a 27-digit item is not an integer there (the quotient, B27 × 0.6103515625, needs up to 37
 digits; the reviewer measured ...998.9999), yet the screen admitted it. The arithmetic in force now reaches the classifier: the call node
 carries a required `Arithmetic`, `IntrinsicResultType.Resolve` and the screen take it, and `ArithmeticModes.IntermediateSignificantDigits`
 (one table: native none, 2002 STANDARD 32, STANDARD-DECIMAL 34) bounds every intermediate that carries fraction digits. The pair

@@ -15,7 +15,7 @@
       *> or an integer data item shall be specified". A quotient by
       *> a literal whose reciprocal terminates is the product by
       *> that reciprocal: B27 / 0.0001 is B27 * 10000, and the
-      *> quotient by 16384 has 14 fraction digits, which a native
+      *> reciprocal of 16384 has 14 fraction digits, which a native
       *> nested quotient keeps (the guard digits of the numeric
       *> design's quotient rule), so B27 / 0.0001 / 16384 * 16384 *
       *> 0.0001 is exactly B27. With B27 = 999...9 (27 nines),
