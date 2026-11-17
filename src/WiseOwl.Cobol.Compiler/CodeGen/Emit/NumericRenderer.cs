@@ -752,6 +752,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // the ISO text is silent, evaluates every intrinsic result as a decimal.
         // Every producer of an Approximate Real is IntrinsicRenderer.RenderFloatNative and Power's non-integer arm;
         // FloatItemLane is the ONE statement of "does a float operand own this lane".
+        // ⛔ THE LANE IS NumericLanes.Combine's ANSWER (kb/Work PB5891 review R1-3): the one rule the type 6 classifier bounds an
+        // intermediate's exactness by, so the screen and this dispatch cannot disagree on where an operation is evaluated. The arms
+        // below are the lane's forms (NumericLaneDriftTests holds every operand pairing to it).
+        var lane = NumericLanes.Combine(LaneOf(a), LaneOf(b), _rcv.Real, StandardDecimal);
         if (!StandardDecimal && !FloatItemLane(a, b))
         {
             a = LiftApproximation(a);
@@ -797,7 +801,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // digits under the INTERMEDIATE ROUNDING mode made `FUNCTION INTEGER (X) * FUNCTION INTEGER (Y) / 7 * 7` 2.000000
         // where `X * Y / 7 * 7` is 1.999999. A literal's notation does not change that rule either: `2.0E0 / 7 * 7` is
         // the same 1.999999.
-        if (StandardDecimal) return DecBinary(op, a, b);
+        if (lane == NumericLane.Sdidi && StandardDecimal) return DecBinary(op, a, b);
         // ⛔ AN EXACT WIDE INTERMEDIATE BESIDE AN SDIDI-CARRIED OPERAND KEEPS EVERY DIGIT (kb/Work PB4575; DOC-A.1-123). A nested
         // product past the Int128 carrier is exact on the wide form, and the sums, differences and products above it stay exact
         // (kb/Work PB1900) — but the wide form's scale is the compiler's and an SDIDI value's (a floating-point literal, a power,
@@ -811,14 +815,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // same carrier; a final-transfer quotient is the exact quotient of the exact values rounded once to 34 digits by round-to-odd
         // (ExactFinalQuotient, kb/Work PB4599), and a binary64 operation takes the value's image. A scaled Int128 operand beside an SDIDI one keeps the SDIDI lane: its digit bound is within the lane's
         // exact 38-digit operand and the 34-digit result is DOC-A.1-82's published lane determination (kb/Work PB274).
-        if (!a.Real && !b.Real && !_rcv.Real && (a.Exact || b.Exact || (a.Wide || b.Wide) && (a.Dec || b.Dec)))
+        if (lane == NumericLane.Exact && (a.Exact || b.Exact || a.Dec || b.Dec))
         {
             if (op is "+" or "-" or "*") return ExactBinary(op, a, b);
             if (op == "/") return NestedQuotient ? ExactQuotient(a, b) : ExactFinalQuotient(a, b, ctx.CurrentOptions.IntermediateRounding);
         }
         if (a.Exact) a = LowerWide(a);
         if (b.Exact) b = LowerWide(b);
-        if ((a.Dec || b.Dec) && !a.Real && !b.Real && !_rcv.Real)
+        if (lane != NumericLane.Binary64 && (a.Dec || b.Dec))
             return op == "/" && NestedQuotient
                 ? Divide(a, b)
                 : DecBinary(op, a, b);   // an UNSIGNED-WIDE operand enters here as it is: DecOperand rounds it (PB2966, below)
@@ -838,9 +842,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // single-precision operand widens exactly) — native COBOL float arithmetic is IEEE binary, never decimal
         // (§2023:8.8.1.3 implementor-defined; STANDARD-BINARY is obsolete, 2023 §2023:8.8.1.4.1 NOTE). +,-,*,/ are native
         // double ops.
-        if (a.Real || b.Real || _rcv.Real) return CombineReal(a, op, b);
+        if (lane == NumericLane.Binary64) return CombineReal(a, op, b);
         return CombineNative(a, op, b);
     }
+
+    /// <summary>⛔ THE LANE A RENDERED VALUE IS HELD ON (kb/Work PB5891 review R1-3), the input of <see cref="NumericLanes.Combine"/>:
+    /// an engine's binary64 approximation, a float item's binary64, the SDIDI, a wide or run-time-scaled exact value, or the Int128
+    /// lane (an unsigned-wide operand enters it through <see cref="DeU"/>).</summary>
+    internal static NumericLane LaneOf(NumX x) =>
+        x.Real ? (x.Approximate ? NumericLane.Approximation : NumericLane.Binary64)
+        : x.Dec ? NumericLane.Sdidi
+        : x.Wide || x.Exact ? NumericLane.Exact
+        : NumericLane.Scaled;
 
     /// <summary>One operation on the SDIDI lane at the program's INTERMEDIATE ROUNDING mode — the operands lifted by
     /// <see cref="DecOperand"/> (a fixed-point value exactly, a float by its exact value rounded once, an exact wide

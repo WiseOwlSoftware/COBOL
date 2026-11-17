@@ -160,6 +160,21 @@ internal static class FunctionValueLane
         return CarrierKind.Fixed;
     }
 
+    /// <summary>⛔ THE LANE A LEAF OF AN ARITHMETIC EXPRESSION ARRIVES ON UNDER NATIVE ARITHMETIC (kb/Work PB5891 review R1-3): the type 6
+    /// classifier's input to <see cref="NumericLanes.Combine"/>, read by the same visitor that predicts a function's carrier, so a
+    /// literal, an item and a function value are classified once. A function whose SDIDI body returns a whole exact value is the SDIDI
+    /// here (<see cref="NativeSdidiBodiesWithWholeResult"/>), the more lossy of the two lanes its consumer may read it on.</summary>
+    internal static NumericLane LaneOf(BoundExpr leaf) => LaneOf(leaf.Accept(ArgumentCarrier.Instance).Kind);
+
+    private static NumericLane LaneOf(CarrierKind kind) => kind switch
+    {
+        CarrierKind.Fixed => NumericLane.Scaled,
+        CarrierKind.Dec => NumericLane.Sdidi,
+        CarrierKind.Real => NumericLane.Binary64,
+        CarrierKind.ApproximateReal => NumericLane.Approximation,
+        _ => throw new InvalidOperationException($"no lane for the carrier {kind}"),
+    };
+
     /// <summary>The carrier of the value an SDIDI body returns (<c>RenderDec</c>'s arm for the function), as its consumer receives it: the
     /// SDIDI (also for <see cref="NativeSdidiBodiesWithWholeResult"/>, which lower to it), or an exact scale-0 value for
     /// <see cref="NativeSdidiBodiesWithExactResult"/>.</summary>
@@ -269,22 +284,17 @@ internal static class FunctionValueLane
             return Carrier.Exact(pic.ReceiverScale() == 0, bound);
         }
 
-        /// <summary><c>NumericRenderer.CombineCore</c> under NATIVE arithmetic: a binary64 that is the engine's own
-        /// approximation is lifted to the SDIDI beside operands that are not float ITEMS; an SDIDI operand takes the
-        /// operation onto the SDIDI unless a binary64 is also present (D16: the float lane keeps precedence).</summary>
-        private static Carrier Combine(Carrier left, char op, Carrier right)
-        {
-            bool floatItem = left.Kind == CarrierKind.Real || right.Kind == CarrierKind.Real;
-            if (!floatItem)
+        /// <summary><c>NumericRenderer.CombineCore</c> under NATIVE arithmetic, by the ONE lane rule both ask
+        /// (<see cref="NumericLanes.Combine"/>, kb/Work PB5891 review R1-3): a binary64 that is the engine's own approximation is
+        /// lifted to the SDIDI beside operands that are not float ITEMS; an SDIDI operand takes the operation onto the SDIDI unless a
+        /// binary64 is also present (D16: the float lane keeps precedence).</summary>
+        private static Carrier Combine(Carrier left, char op, Carrier right) =>
+            NumericLanes.Combine(LaneOf(left.Kind), LaneOf(right.Kind), floatReceiver: false, decimalEngine: false) switch
             {
-                if (left.Kind == CarrierKind.ApproximateReal) left = new Carrier(CarrierKind.Dec);
-                if (right.Kind == CarrierKind.ApproximateReal) right = new Carrier(CarrierKind.Dec);
-            }
-            if ((left.Kind == CarrierKind.Dec || right.Kind == CarrierKind.Dec) && !left.IsReal && !right.IsReal)
-                return new Carrier(CarrierKind.Dec);
-            if (left.IsReal || right.IsReal) return new Carrier(CarrierKind.Real);
-            return Carrier.Exact(left.Integral && right.Integral && op != '/');
-        }
+                NumericLane.Sdidi => new Carrier(CarrierKind.Dec),
+                NumericLane.Binary64 or NumericLane.Approximation => new Carrier(CarrierKind.Real),
+                _ => Carrier.Exact(left.Integral && right.Integral && op != '/'),
+            };
 
         /// <summary><c>NumericRenderer.Power</c> under NATIVE arithmetic: an exponentiation by an INTEGER with no binary64
         /// operand is exact and lands on the SDIDI (or its wide form, which the renderer settles onto the SDIDI as an

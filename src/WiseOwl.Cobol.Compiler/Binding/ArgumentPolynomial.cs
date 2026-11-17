@@ -215,6 +215,27 @@ internal sealed class Polynomial
     /// non-terminating value, when the grid was evaluated and f is not 0.</summary>
     public int? FractionDigits(out IReadOnlyDictionary<int, BigInteger>? witness)
     {
+        // ⛔ ONCE PER POLYNOMIAL (kb/Work PB5891 review R1-2): the value is immutable, so its answer is memoized; the classifier asks it
+        // only where it reads it, and asks the same node's polynomial at most twice.
+        if (!_fractionDigitsKnown)
+        {
+            _fractionDigits = ComputeFractionDigits(out _witness);
+            _fractionDigitsKnown = true;
+        }
+        witness = _witness;
+        return _fractionDigits;
+    }
+
+    private bool _fractionDigitsKnown;
+    private int? _fractionDigits;
+    private IReadOnlyDictionary<int, BigInteger>? _witness;
+
+    /// <summary>The number of grid tests run on this thread (<see cref="FractionDigits"/> past its coefficient bound): the count a
+    /// unit test bounds for a deep expression, never a wall-clock limit (kb/Work PB5891 review R1-2).</summary>
+    [ThreadStatic] internal static int GridEvaluations;
+
+    private int? ComputeFractionDigits(out IReadOnlyDictionary<int, BigInteger>? witness)
+    {
         witness = null;
         int? byCoefficients = 0;
         foreach (var t in _terms.Values)
@@ -230,6 +251,7 @@ internal sealed class Polynomial
             points *= d + 1;
             if (points > MaxGridPoints) return byCoefficients;
         }
+        GridEvaluations++;
         int[] atoms = [.. degrees.Keys];
         var point = new BigInteger[atoms.Length];
         int most = 0;

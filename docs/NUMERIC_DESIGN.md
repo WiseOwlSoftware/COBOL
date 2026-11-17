@@ -1389,6 +1389,14 @@ ON is 23:59:60 in FORMATTED-TIME, FORMATTED-DATETIME and LOCALE-TIME-FROM-SECOND
 `2023/pb638_unsigned_wide_item_as_integer_argument`, `2023/pb1379_time_form_floor_float_carriers_*`, `CobolDecSignedTailTests`,
 `CobolNumDivideAlignmentTests`, `CobolDateSecondsLandingTests` and `IntrinsicCarrierAgreementDriftTests`.
 
+
+**The lane of an operation is ONE function (kb/Work PB5891 review R1-3).** `NumericLanes.Combine` (`Binding/NumericLanes.cs`) states
+which carrier a binary operation takes, from the lanes of its operands (`NumericLane`: Int128, wide or exact, SDIDI, binary64, an
+engine's binary64 approximation), a floating-point receiver and the arithmetic mode; `NumericLanes.Power` the same for `**`.
+`NumericRenderer.CombineCore` dispatches on `Combine`'s answer (`NumericRenderer.LaneOf` reads a rendered value's lane), the bind-time
+carrier prediction `FunctionValueLane` folds through it, and the type 6 classifier bounds an intermediate's exactness by the precision
+of the same answer (`NumericLanes.SignificantDigits`; docs/INTRINSICS_DESIGN.md, the type-6 intake, rule 4). `NumericLaneDriftTests`
+compiles every operand kind beside every partner and holds the lane the generated C# shows to the classifier's prediction.
 ### D27. A fixed-point operand enters the SDIDI through ONE lift, and that lift ROUNDS to the intermediate's 34 digits (§2023:8.8.1.5.2 r1). (kb/Work PB2918.)
 `NumericRenderer.DecOperand` is the only operand lift: an operand whose `NumX.Digits` bound is within 34 lifts exactly
 (`CobolDec.From`, no rounding needed); one that may hold more — a 16-byte binary container owns 39 digits, and an operand

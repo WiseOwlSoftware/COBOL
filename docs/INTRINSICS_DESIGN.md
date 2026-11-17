@@ -977,8 +977,9 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    argument types written), an index-name, a counter register (`AlgebraicRanges.IsCounterRegister`), a report VARYING counter and an
    OCCURS DEPENDING extent are integer atoms of unknown magnitude. A floating-point item (§2023:14.6.8.3, PB248) and a numeric-type
    function are REAL atoms. Two occurrences are ONE atom when they are the same PURE term, compared as bound trees
-   (`IntrinsicArgumentRules.SameTerm`): the same item reference (the same place, its subscripts included), or the same function with the
-   same arguments. A function whose value is not fixed by its arguments is never one atom with another: the catalog column
+   (`IntrinsicArgumentRules.SameTerm`): the same item reference, its access path compared STRUCTURALLY through its subscripts and any
+   reference modification (`SamePlace`, `SamePosition`: `T (I)` twice is one atom, `T (I)` and `T (J)` two; review R1-1), or the same
+   function with the same arguments. A function whose value is not fixed by its arguments is never one atom with another: the catalog column
    `IntrinsicSig.ValueSource` says which (`IntrinsicValueSource.RunUnitState`: RANDOM, SECONDS-PAST-MIDNIGHT, CURRENT-DATE,
    FORMATTED-CURRENT-DATE, WHEN-COMPILED and the EXCEPTION- family; `ArgumentsOrCurrentYear`: DATE-TO-YYYYMMDD, DAY-TO-YYYYDDD and
    YEAR-TO-YYYY written without argument-3, whose default is FUNCTION NUMVAL (FUNCTION CURRENT-DATE (1:4)), §2023:15.100.3 AR5), `IntrinsicValueSourceDriftTests`
@@ -1009,15 +1010,24 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    `SQRT (N) - SQRT (N)` is exactly 0, and `SQRT (N) + 1 - SQRT (N)` is refused because `SQRT (N) + 1` is rounded wherever SQRT's digits
    do not fit (a negation is exact whatever it negates); (b) a quotient's own polynomial has `FractionDigits` within the 14 guard digits
    every nested quotient keeps beyond its operands' (`ExactFractionDigits`, `CobolNum.NestedQuotientScale`): `WN / 3 * 3` is refused
-   because `WN / 3` is not exact, and `N * (N + 1) * (N + 2) / 6` is exact because its quotient is an integer; (c) on the binary64 lane
-   (an operation with a floating-point item or a floating literal carrier beneath it, which native arithmetic evaluates in IEEE
-   binary64, NumericRenderer D16) its polynomial is integer-valued (`F - F + 1` admitted, `(F - F + N * 0.1) * 10` refused); and (d)
-   under a standard arithmetic (`ArithmeticModes.IntermediateSignificantDigits`: 32 for the 2002 STANDARD, 34 for STANDARD-DECIMAL,
-   §2023:8.8.1.5.2) an intermediate whose polynomial carries fraction digits fits that many significant digits: its digits lie in
-   `[-FractionDigits(P), hi)`, hi the largest monomial's magnitude bound plus the carry of the monomial count (`Polynomial.DigitHigh`).
-   An INTEGER the arithmetic rounds (on the binary64 lane at 10^15 or more, under a standard arithmetic past its digits) stays an
-   integer, but no longer the polynomial's value, so from that node up it is a fresh integer atom (`X * Y + 1` stays admitted, and
-   `X * Y / 2 * 2` over items whose product passes the digits is refused). So the one quantity `FractionDigits` decides both questions: f = 0 for the answer, f <= 14
+   because `WN / 3` is not exact, and `N * (N + 1) * (N + 2) / 6` is exact because its quotient is an integer; and the LANE the code
+   generator evaluates the operation on keeps its digits. ⛔ **The lane is ONE answer** (review R1-3): `NumericLanes.Combine` (and
+   `NumericLanes.Power`) say which carrier an operation takes, `NumericRenderer.CombineCore` dispatches on `Combine`'s answer, and the
+   classifier reads the same function over the leaves' carriers (`FunctionValueLane.LaneOf`, the bind-time carrier prediction):
+   `NumericLaneDriftTests` compiles every operand kind beside every partner and holds the lane the generated C# shows to the lane the
+   classifier predicts. The Int128 and exact lanes keep every digit; (c) on binary64 (an operation with a floating-point item beneath
+   it, NumericRenderer D16) the polynomial must be integer-valued (`F - F + 1` admitted, `(F - F + N * 0.1) * 10` refused); and (d) on
+   the SDIDI an intermediate whose polynomial carries fraction digits fits its significant digits (`NumericLanes.SignificantDigits`:
+   under a decimal engine `ArithmeticModes.IntermediateSignificantDigits`, 32 for the 2002 STANDARD and 34 for STANDARD-DECIMAL,
+   §2023:8.8.1.5.2; natively the SDIDI's 34, the lane an operation takes beside a floating-point literal, a numeric function's value or
+   another SDIDI value, CONFORMANCE.md A.1 item 82): its digits lie in `[-FractionDigits(P), hi)`, hi the largest monomial's magnitude
+   bound plus the carry of the monomial count (`Polynomial.DigitHigh`). So `SQRT (N) - SQRT (N) + X * 10.25` over a 31-digit X is
+   refused under native arithmetic too: the cancelled function's value puts the sum on the SDIDI, where `X * 10.25` needs 35 digits
+   (`pb5891-sdidi-lane-identity`; without the SQRT pair it is exact, `pb5891_native_exact_lane`). An INTEGER the arithmetic rounds (on
+   binary64 at 10^15 or more, on the SDIDI past its digits) stays an integer, but no longer the polynomial's value, so from that node
+   up it is a fresh integer atom (`X * Y + 1` stays admitted, and `X * Y / 2 * 2` over items whose product passes the digits is
+   refused). The integer-valued test runs only where (b), (c) or (d) reads it and at the answer, once per polynomial (memoized; review
+   R1-2, `ArgumentPolynomialTests.ADeepSum_EvaluatesTheGridOnlyWhereItIsRead` bounds the count). So the one quantity `FractionDigits` decides both questions: f = 0 for the answer, f <= 14
    for a quotient, and -f is the low digit of every intermediate. `B27 / 0.0001 / 16384 * 16384 * 0.0001` over a 27-digit item is
    admitted natively (`pb5886_native_quotient_chain`) and refused under STANDARD-DECIMAL (`pb5886-standard-decimal-intermediate`), where
    its quotient (B27 x 0.6103515625) needs up to 37 significant digits, 10 of them fraction digits; `(...) ** 1` does not hide its base
@@ -1036,8 +1046,8 @@ needs a verdict) and the shape table (each shape refused or admitted, with its r
 literal-constant rows; `ArgumentPolynomialTests` holds the grid test, the cap and the term comparer.
 Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`, `pb5345-power-literal-base`,
 `pb5832-product-by-literal`, `-quotient-in-sum`, `-item-quotient`, `-numeric-function-term`, `-date-of-integer-function-term`,
-`-day-of-integer-function-term`, the ten `pb5886-*` refusals, `pb5891-not-integer-valued`, `-impure-identity`, `-degree-over-cap`, `-table-subscripts`; complements `pb5208_power_integral_exponents`,
-`pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`, `pb5891_polynomial_integer_arguments`, `pb5891_standard_decimal_identity`.
+`-day-of-integer-function-term`, the ten `pb5886-*` refusals, `pb5891-not-integer-valued`, `-impure-identity`, `-degree-over-cap`, `-table-subscripts`, `-table-two-subscripts`, `-sdidi-lane-identity`; complements `pb5208_power_integral_exponents`,
+`pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`, `pb5891_polynomial_integer_arguments`, `pb5891_standard_decimal_identity`, `pb5891_native_exact_lane`.
 
 ### An argument rule that differs by edition is one edition arm, never a second copy (PB5130, PB5161, PB5162).
 

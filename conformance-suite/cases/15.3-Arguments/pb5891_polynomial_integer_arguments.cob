@@ -26,7 +26,9 @@
       *> at least 0 and less than 1 (RTRI OK); N * (N + 1) * (N + 2)
       *> / 6 = 10, FACTORIAL (10) = 3628800 (FTET); MOD (5, 7) = 5
       *> twice (SQID, SQZR). The first four are the refuter's forms
-      *> of kb/Work PB5891 (slice 1985-247).
+      *> of kb/Work PB5891 (slice 1985-247). Review R1-1: T (I) read
+      *> twice is one term, so with I = 2 and T (2) = 3, T (I) *
+      *> (T (I) + 1) / 2 = 6 and FACTORIAL (6) = 720 (TTRI).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5891A.
        DATA DIVISION.
@@ -36,6 +38,9 @@
        01  RS  PIC S9(18) SIGN LEADING SEPARATE.
        01  C   PIC X.
        01  F   PIC 9V9(8).
+       01  TB.
+           05  T   PIC 99 OCCURS 3 TIMES.
+       01  I   PIC 9 VALUE 2.
        PROCEDURE DIVISION.
        P1.
            COMPUTE R = FUNCTION FACTORIAL (N * (N + 1) / 2).
@@ -57,4 +62,7 @@
            DISPLAY "SQID " R.
            COMPUTE R = FUNCTION MOD (0 * FUNCTION SQRT (N) + 5, 7).
            DISPLAY "SQZR " R.
+           MOVE 3 TO T (2).
+           COMPUTE R = FUNCTION FACTORIAL (T (I) * (T (I) + 1) / 2).
+           DISPLAY "TTRI " R.
            STOP RUN.

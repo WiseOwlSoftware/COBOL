@@ -55,7 +55,8 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         Assert.True(stale.Count == 0, "NodeVerdicts names a node type that no longer exists:\n  " + string.Join("\n  ", stale));
     }
 
-    /// <summary>(expression over N PIC 9, M PIC S9, K PIC 9V9, U PIC 9, A PIC X, F COMP-2, T PIC 9V9 OCCURS 2; refused; why). The data names are fixed by
+    /// <summary>(expression over N PIC 9, M PIC S9, K PIC 9V9, U PIC 9, A PIC X, F COMP-2, T PIC 9V9 OCCURS 2, TN PIC 99 OCCURS 2,
+    /// I and J PIC 9; refused; why). The data names are fixed by
     /// <see cref="Shapes_AreRefusedOrAdmittedAsRecorded"/>. Every refused row with "PB5886" is an integer argument the screen
     /// before kb/Work PB5886 admitted.</summary>
     private static readonly (string Expression, bool Refused, string Why)[] Shapes =
@@ -134,6 +135,10 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         ("K * K * 10", true, "PB5891: 0.1 at K = 0.1"),
         ("T (1) - T (2)", true, "PB5891: two subscripts are two places (the item keyed by its description cancelled them)"),
         ("T (1) - T (1) + 1", false, "PB5891: one place is one atom"),
+        ("T (I) - T (I) + 5", false, "PB5891 review R1-1: one subscript item read twice is one place"),
+        ("T (I) - T (J) + 5", true, "PB5891 review R1-1: two subscript items are two places (0.1 at T (I) = 0.1, T (J) = 0)"),
+        ("TN (I) * (TN (I) + 1) / 2", false, "PB5891 review R1-1: TN (I) is one atom, and a product of two consecutive integers is even"),
+        ("TN (I) * (TN (J) + 1) / 2", true, "PB5891 review R1-1: TN (I) and TN (J) are two atoms (1/2 at 1 and 0)"),
         ("F - F + 1", false, "PB5891: F - F is exactly 0 in binary64"),
         ("F + 1 - F", true, "PB5891: the intermediate F + 1 holds a floating-point term and is not shown exact"),
         ("(F - F + N * 0.1) * 10", true, "PB5891: the intermediate F - F + N * 0.1 is computed in binary64 and is not an integer"),
@@ -158,6 +163,10 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
             01 F COMP-2 VALUE 0.5.
             01 TB.
                05 T PIC 9V9 OCCURS 2 VALUE 0.5.
+            01 TI.
+               05 TN PIC 99 OCCURS 2 VALUE 2.
+            01 I PIC 9 VALUE 1.
+            01 J PIC 9 VALUE 2.
             01 R PIC S9(4).
             PROCEDURE DIVISION.
             {proc}    STOP RUN.

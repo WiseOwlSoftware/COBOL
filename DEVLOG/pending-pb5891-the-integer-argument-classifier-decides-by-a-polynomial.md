@@ -33,3 +33,11 @@ retired (its program is now admitted); the refusal expectations of the PB5832 an
 **Rows.** 1985: the four PB5891 rows take the new witnesses (their stored reads are the campaign's to renew); `1989-AR-A.2.2-4` and
 2023 `AR-15.3-6` restated CONFORMS. kb/Work PB5889 keeps only the residue that is an integer by a function's meaning
 (`S2 - FUNCTION MAX (S2)`).
+
+**Review round 1.** R1-3 (a wrong answer): a cancelled numeric function moved the generated code onto the 34-digit SDIDI while the
+classifier assumed native exactness, so `MOD ((Y * 100 - (SQRT (N) - SQRT (N) + X * 10.25)) * 4, 1000)` printed 40 for 41. The lane of
+an operation is now one function, `NumericLanes.Combine`: `NumericRenderer.CombineCore` dispatches on it and the classifier bounds each
+intermediate by its precision; `NumericLaneDriftTests` holds the generated C#'s lane to the classifier's for 21 operand pairings, and the
+program is refused (`pb5891-sdidi-lane-identity`; its exact twin `pb5891_native_exact_lane` prints 0041). R1-1: places compare
+structurally through subscripts, so `T (I) * (T (I) + 1) / 2` is admitted and `T (I) * (T (J) + 1) / 2` refused. R1-2: the grid test runs
+only where it is read, memoized per polynomial (a 40-node argument: 15.5 s to 2.2 s).

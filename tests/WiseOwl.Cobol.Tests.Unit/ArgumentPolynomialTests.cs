@@ -116,12 +116,48 @@ public sealed class ArgumentPolynomialTests
         return new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { Arithmetic = ArithmeticMode.Native };
     }
 
+    /// <summary>⛔ THE GRID TEST RUNS ONLY WHERE IT IS READ, ONCE PER POLYNOMIAL (kb/Work PB5891 review R1-2): forty additions of 1
+    /// above the quotient N * (N + 1) / 2 are Int128-lane intermediates under native arithmetic, which read no fraction digits, so
+    /// the classification evaluates the grid for the quotient and for the answer, and for nothing else. A count, never a time.</summary>
+    [Fact]
+    public void ADeepSum_EvaluatesTheGridOnlyWhereItIsRead()
+    {
+        var n = Ref(IntegerItem("N"));
+        BoundExpr e = new BoundBinary(new BoundBinary(n, '*', new BoundBinary(n, '+', new BoundNumLiteral("1"))), '/', new BoundNumLiteral("2"));
+        for (int i = 0; i < 40; i++) e = new BoundBinary(e, '+', new BoundNumLiteral("1"));
+        int before = Polynomial.GridEvaluations;
+        Assert.True(IntrinsicArgumentRules.IsAlwaysIntegral(e, ArithmeticMode.Native));
+        Assert.InRange(Polynomial.GridEvaluations - before, 1, 2);
+    }
+
+    private static DataItem IntegerItem(string name) => new()
+    {
+        Level = 1, CobolName = name, ClrName = name,
+        Pic = new PicInfo(PicCategory.Numeric, Usage.Display, Length: 2, Digits: 2, Scale: 0, Signed: false),
+    };
+
     [Fact]
     public void SameTerm_OnePlaceIsOneTerm_TwoItemsAreTwo()
     {
         var s = Item("S");
         Assert.True(IntrinsicArgumentRules.SameTerm(Ref(s), Ref(s)));
         Assert.False(IntrinsicArgumentRules.SameTerm(Ref(s), Ref(Item("S"))));
+    }
+
+    private static BoundNumRef Element(DataItem table, DataItem subscript) =>
+        new(new MemberPlace(new AccessPath([new RootFieldSegment(table.ClrName),
+            new FixedTableSegment(new PositionItemRead(new AccessPath([new RootFieldSegment(subscript.ClrName)]), subscript, PositionReadForm.Occurrence))]),
+            table));
+
+    /// <summary>kb/Work PB5891 review R1-1: a subscript is part of the place, compared structurally: T (I) twice is one term (each
+    /// reference binds its own access path), T (I) and T (J) are two.</summary>
+    [Fact]
+    public void SameTerm_ASubscriptedElement_IsOneTermOnlyUnderTheSameSubscript()
+    {
+        var t = Item("T");
+        var (i, j) = (IntegerItem("I"), IntegerItem("J"));
+        Assert.True(IntrinsicArgumentRules.SameTerm(Element(t, i), Element(t, i)));
+        Assert.False(IntrinsicArgumentRules.SameTerm(Element(t, i), Element(t, j)));
     }
 
     [Fact]
