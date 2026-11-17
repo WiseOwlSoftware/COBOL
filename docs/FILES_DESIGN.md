@@ -2208,8 +2208,13 @@ file name as the clause's data-name and died at OPEN naming a word the programme
   where a general format prints `data-name-n`: the SORT KEY phrase of both formats (§2023:14.9.40.2; §2023:14.9.40.3
   SR14 b) *"Key data names shall not be subscripted"*) and the MERGE KEY phrase (§2023:14.9.24.2). Those keys used to
   keep the base item and drop a reference-modifier, so a table SORT on `K(4:3)` sorted on all of K (kb/Work
-  PB481). READ's KEY operand (§2023:14.9.30.3 SR11) and START's (§2023:14.9.41.3 SR5/SR6) are identity rules and ask
-  `Place.DenotedItem`, which a reference-modified slice never is (kb/Work PB602, PB481).
+  PB481). READ's and START's KEY operand is a data-name that may be qualified and nothing more (§2023:14.9.30.3
+  SR12, §2023:14.9.41.3 SR4; §1985:IX.4.5.3 SR3, §1985:IX.4.7.3 SR2), so both ask this screen first, through
+  `KeyedIoBinder.ScreenKeyOperandShape`, before the operand is read as a record-key-name or as data-name-1: before it,
+  READ asked no shape question and `READ IXF KEY IS IX-T (1)`, a table element over the prime key's positions in
+  another record, read by the prime key (kb/Work PB5883). COBOL-2002 alone keeps an integer-literal subscript
+  (§2002:5.1.3, kb/Work PB5602). The identity rules that follow (§2023:14.9.30.3 SR11, §2023:14.9.41.3 SR5/SR6) ask
+  `Place.DenotedItem` (kb/Work PB602, PB481).
 - **`ScreenReferenceModifier(dref, face, edition)`** — the NOTE's reference-modifier arm alone, for the one
   `data-name-n` operand that must carry a subscript: SEARCH ALL Format 2's `data-name-1` and every `data-name-2`
   (§2023:14.9.37.2; §2023:14.9.37.3 SR8 requires the first index-name subscript). `SearchAllFormat2Rules.CheckKeySide` asks it,

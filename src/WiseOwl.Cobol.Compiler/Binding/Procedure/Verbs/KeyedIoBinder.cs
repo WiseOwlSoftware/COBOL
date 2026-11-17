@@ -128,6 +128,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 if (!ctx.Validation.CheckReadKeyFormat(file, contention?.readAdvancingOnLock() is not null,
                         atEnd is not null, notAtEnd is not null, next, previous))
                     keyIndex = -1;
+                // The operand's SHAPE (kb/Work PB5883): data-name-1 or record-key-name-1 may be qualified and nothing more.
+                else if (!ScreenKeyOperandShape(keyRef, $"READ on '{file.CobolName}': KEY IS", ReadKeyShapeRule))
+                    return BoundRejected.Reported(ctx.Edition);
                 // SR11's record-key-name-1 arm (kb/Work PB1099): a SOURCE-form key is named by its record-key-name
                 // and by nothing else, so the name is asked BEFORE the operand is read as a data-name.
                 else if (RecordKeyNameOf(file, keyRef, $"READ on '{file.CobolName}': KEY IS") is var (use, rki) && use is not RecordKeyNameUse.None)
@@ -366,7 +369,11 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // asked before the operand is read as data-name-1, because a SOURCE-form key is no data item. SR4 needs no
         // test of its own here: record-key-name-1's data-name-2 operands are screened by their clause's SR1.
         int? namedKeyIndex = null;
-        if (kp?.dataReference() is { } rkRef && RecordKeyNameOf(file, rkRef, $"START on '{name}': KEY IS") is var (use, rkIndex)
+        // The operand's SHAPE first, for both readings (kb/Work PB5883): a refused shape is reported, the organization-
+        // independent SR2 below is still asked, and the statement stops before any key screen reads an operand it has not got.
+        bool shapeRefused = kp?.dataReference() is { } shapeRef
+            && !ScreenKeyOperandShape(shapeRef, $"START on '{name}': KEY IS", StartKeyShapeRule(file));
+        if (!shapeRefused && kp?.dataReference() is { } rkRef && RecordKeyNameOf(file, rkRef, $"START on '{name}': KEY IS") is var (use, rkIndex)
             && use is not RecordKeyNameUse.None)
         {
             if (use is RecordKeyNameUse.Refused) return BoundRejected.Reported(ctx.Edition);
@@ -377,7 +384,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                     + "file control entry for file-name-1 (ISO §2023:14.9.41.3 SR7)");
             namedKeyIndex = rkIndex;
         }
-        else if (kp?.dataReference() is { } dref && host.Expr.ResolveSending(dref) is var keyAnswer
+        else if (!shapeRefused && kp?.dataReference() is { } dref && host.Expr.ResolveSending(dref) is var keyAnswer
             && (operand = keyAnswer.Place) is null)
             return keyAnswer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
 
@@ -406,7 +413,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         }
         // The SR4 violation is reported; the key screens below cannot run on an operand with no single fixed
         // position, so the statement stops here rather than reporting a second, wrong reason.
-        if (operandUnderOccurs) return BoundRejected.Reported(ctx.Edition);
+        if (operandUnderOccurs || shapeRefused) return BoundRejected.Reported(ctx.Edition);
 
         if (file.Organization == FileOrganization.Relative)
         {
@@ -520,7 +527,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             return (RecordKeyNameUse.None, 0);
         // KeyReference keeps the qualifiers and DROPS a subscript or reference-modifier (kb/Work PB481), and a
         // record-key-name carries neither — §2023:8.4.2.2.2 Format 6 prints only the file-name qualifier — so the
-        // operand's shape is screened before the name is taken as one.
+        // operand's shape is screened before the name is taken as one. The caller's ScreenKeyOperandShape has refused
+        // every other shape already; what can reach here is COBOL-2002's subscript, which data-name-1 may carry
+        // (§2002:5.1.3) and a record-key-name may not.
         if (!DataBinder.ScreenDataNameShape(dref, "the KEY phrase's record-key-name", ctx.Edition,
                 "a record-key-name is qualified only by its file-name (ISO §2023:8.4.2.2.2 Format 6)"))
             return (RecordKeyNameUse.Refused, 0);
@@ -534,6 +543,35 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             _ => (RecordKeyNameUse.Refused, 0),   // SR1's ambiguity, reported
         };
     }
+
+    /// <summary>⛔ THE ONE SHAPE SCREEN OF A KEY PHRASE OPERAND, asked by READ and START before the operand is read either as a
+    /// record-key-name or as data-name-1 (kb/Work PB5883). Each edition prints the operand as a data-name that may be
+    /// qualified and nothing more (READ: §1985:IX.4.5.3 SR3, §2002:14.8.29.2 SR11, §2014:14.9.29.2 SR10, §2023:14.9.30.3 SR12;
+    /// START: §1985:VIII.4.7.3 SR2, §1985:IX.4.7.3 SR2, §2002:14.8.37.2 SR4, §2014:14.9.37.2 SR4, §2023:14.9.41.3 SR4), so a
+    /// subscripted table element, a reference-modified slice and a special register are refused here, by the same screen the
+    /// file-control key clauses ask (<see cref="DataBinder.ScreenDataNameShape"/>). COBOL-2002 alone reads a data-name-n "including
+    /// qualification and subscription if needed" (§2002:5.1.3, kb/Work PB5602), so its integer-literal subscript passes and the
+    /// key identity compares the occurrence it selects. Until this screen, READ asked no shape question of data-name-1 at all:
+    /// <c>READ IXF KEY IS IX-T (1)</c>, a table element over the prime key's positions in another record, compiled and read by
+    /// the prime key.</summary>
+    private bool ScreenKeyOperandShape(Core.DataReferenceContext dref, string face, string subscriptRule) =>
+        DataBinder.ScreenDataNameShape(dref, face, ctx.Edition, subscriptRule, admitsSubscript2002: true);
+
+    /// <summary>The READ KEY phrase's own rule about the operand's shape, in the targeted edition's text (kb/Work PB5883).</summary>
+    private string ReadKeyShapeRule => ctx.Edition.Cite(
+        "data-name-1 may be qualified (ISO §1985:IX.4.5.3 SR3), and a table element reference is subscripted "
+            + "(ISO §1985:IV.4.3.8.2.3 SR4), so no table element is data-name-1",
+        "data-name-1 or record-key-name-1 may be qualified (ISO §2002:14.8.29.2 SR11)",
+        "data-name-1 or record-key-name-1 may be qualified (ISO §2023:14.9.30.3 SR12) and carries no subscript",
+        "data-name-1 or record-key-name-1 may be qualified (ISO §2014:14.9.29.2 SR10) and carries no subscript");
+
+    /// <summary>The START KEY phrase's own rule about the operand's shape, in the targeted edition's text (kb/Work PB5883).</summary>
+    private string StartKeyShapeRule(FileModel file) => ctx.Edition.Cite(
+        $"data-name-1 may be qualified (ISO §1985:{(file.Organization == FileOrganization.Relative ? "VIII" : "IX")}.4.7.3 SR2), "
+            + "and a table element reference is subscripted (ISO §1985:IV.4.3.8.2.3 SR4), so no table element is data-name-1",
+        "data-name-1 or record-key-name-1 may be qualified (ISO §2002:14.8.37.2 SR4)",
+        "data-name-1 or record-key-name-1 shall not be subject to any OCCURS clauses (ISO §2023:14.9.41.3 SR4)",
+        "data-name-1 or record-key-name-1 shall not be subscripted (ISO §2014:14.9.37.2 SR4)");
 
     /// <summary>What a KEY phrase operand is as a record-key-name (<see cref="RecordKeyNameOf"/>).</summary>
     private enum RecordKeyNameUse
