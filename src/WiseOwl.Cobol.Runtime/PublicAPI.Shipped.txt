@@ -174,7 +174,6 @@ WiseOwl.Cobol.Runtime.CobolContiguousLayout.MediumExtents(WiseOwl.Cobol.Runtime.
 WiseOwl.Cobol.Runtime.CobolContiguousLayout.MediumImage(string! image, WiseOwl.Cobol.Runtime.RecordExtents! extents) -> string!
 WiseOwl.Cobol.Runtime.CobolContiguousLayout.Position(string! record, int fixedOffset, WiseOwl.Cobol.Runtime.RecordExtents? extents = null) -> int
 WiseOwl.Cobol.Runtime.CobolContiguousLayout.StatesCount(string! record, WiseOwl.Cobol.Runtime.RecordExtents? extents, bool fixedForm) -> bool
-WiseOwl.Cobol.Runtime.CobolContiguousLayout.StructureOf(int k) -> WiseOwl.Cobol.Runtime.CobolDynStructure?
 WiseOwl.Cobol.Runtime.CobolContiguousLayout.ToFixedForm(string! image, WiseOwl.Cobol.Runtime.RecordExtents? extents) -> string!
 WiseOwl.Cobol.Runtime.CobolDate
 WiseOwl.Cobol.Runtime.CobolDec
@@ -219,7 +218,6 @@ WiseOwl.Cobol.Runtime.CobolDynTable<T>.CurrentOccurrencesAs<TOut>(System.Func<T,
 WiseOwl.Cobol.Runtime.CobolDynTable<T>.EnterSearch() -> void
 WiseOwl.Cobol.Runtime.CobolDynTable<T>.ExitSearch() -> void
 WiseOwl.Cobol.Runtime.CobolDynTable<T>.FromCurrentImage(string! content, int elementWidth, System.Func<T, string!, T>! store) -> void
-WiseOwl.Cobol.Runtime.CobolDynTable<T>.InitializeAll() -> void
 WiseOwl.Cobol.Runtime.CobolDynTable<T>.Recreate<TPart>(System.Collections.Generic.IReadOnlyList<TPart>! parts, TPart blank, System.Func<T, TPart, T>! store) -> void
 WiseOwl.Cobol.Runtime.CobolDynTable<T>.RefReceiving(WiseOwl.Cobol.Runtime.Occurrence occurrence) -> T
 WiseOwl.Cobol.Runtime.CobolDynTable<T>.RefSending(WiseOwl.Cobol.Runtime.Occurrence occurrence) -> T
@@ -556,8 +554,6 @@ WiseOwl.Cobol.Runtime.Collation.CollationElement.CollationElement(int Primary, i
 WiseOwl.Cobol.Runtime.Collation.CollationElement.Deconstruct(out int Primary, out int Secondary, out int Tertiary, out bool IsVariable, out WiseOwl.Cobol.Runtime.Collation.ElementCase Case) -> void
 WiseOwl.Cobol.Runtime.Collation.CollationElement.Equals(WiseOwl.Cobol.Runtime.Collation.CollationElement other) -> bool
 WiseOwl.Cobol.Runtime.Collation.CollationElement.IsCompletelyIgnorable.get -> bool
-WiseOwl.Cobol.Runtime.Collation.CollationElement.IsPrimaryIgnorable.get -> bool
-WiseOwl.Cobol.Runtime.Collation.CollationElement.IsUpper.get -> bool
 WiseOwl.Cobol.Runtime.Collation.CollationElement.IsVariable.get -> bool
 WiseOwl.Cobol.Runtime.Collation.CollationElement.IsVariable.init -> void
 WiseOwl.Cobol.Runtime.Collation.CollationElement.Primary.get -> int
@@ -638,7 +634,6 @@ WiseOwl.Cobol.Runtime.Collation.CollationTable.ContractionCount.get -> int
 WiseOwl.Cobol.Runtime.Collation.CollationTable.Description.get -> string!
 WiseOwl.Cobol.Runtime.Collation.CollationTable.ElementCount.get -> int
 WiseOwl.Cobol.Runtime.Collation.CollationTable.GetElements(int codePoint) -> System.ReadOnlyMemory<WiseOwl.Cobol.Runtime.Collation.CollationElement>
-WiseOwl.Cobol.Runtime.Collation.CollationTable.HasContraction(System.ReadOnlySpan<int> codePoints) -> bool
 WiseOwl.Cobol.Runtime.Collation.CollationTable.HasExplicitMapping(int codePoint) -> bool
 WiseOwl.Cobol.Runtime.Collation.CollationTable.IsNonStarter(int codePoint) -> bool
 WiseOwl.Cobol.Runtime.Collation.CollationTable.IsRenumbered.get -> bool
@@ -668,7 +663,6 @@ WiseOwl.Cobol.Runtime.Collation.Collator.Compare(string? a, string? b) -> int
 WiseOwl.Cobol.Runtime.Collation.Collator.GetKey(string? text) -> WiseOwl.Cobol.Runtime.Collation.CollationKey!
 WiseOwl.Cobol.Runtime.Collation.Collator.GetKeyCached(string? text) -> WiseOwl.Cobol.Runtime.Collation.CollationKey!
 WiseOwl.Cobol.Runtime.Collation.Collator.NeedsNormalization(System.ReadOnlySpan<char> text) -> bool
-WiseOwl.Cobol.Runtime.Collation.Collator.Normalize(System.ReadOnlySpan<char> text) -> string!
 WiseOwl.Cobol.Runtime.Collation.Collator.Options.get -> WiseOwl.Cobol.Runtime.Collation.CollationOptions!
 WiseOwl.Cobol.Runtime.Collation.Collator.Strength.get -> WiseOwl.Cobol.Runtime.Collation.CollationStrength
 WiseOwl.Cobol.Runtime.Collation.Collator.Table.get -> WiseOwl.Cobol.Runtime.Collation.CollationTable!
@@ -687,7 +681,6 @@ WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.HasTailoringFile.get -> bool
 WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.IsRecognizedCulture.get -> bool
 WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.IsTailored.get -> bool
 WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Name.get -> string!
-WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Notes.get -> System.Collections.Generic.IReadOnlyList<string!>!
 WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Options.get -> WiseOwl.Cobol.Runtime.Collation.CollationOptions!
 WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Resolved.get -> WiseOwl.Cobol.Runtime.Collation.ResolvedLocaleCollation!
 WiseOwl.Cobol.Runtime.Collation.Locale.LocaleInfo.Table.get -> WiseOwl.Cobol.Runtime.Collation.CollationTable!
@@ -755,7 +748,6 @@ WiseOwl.Cobol.Runtime.Collation.TailoringRules.Source.get -> string!
 WiseOwl.Cobol.Runtime.Collation.TailoringRules.UcaVersion.get -> string?
 WiseOwl.Cobol.Runtime.Collation.WeightMap
 WiseOwl.Cobol.Runtime.Collation.WeightMap.Count.get -> int
-WiseOwl.Cobol.Runtime.Collation.WeightMap.IsIdentity.get -> bool
 WiseOwl.Cobol.Runtime.Collation.WeightMap.Map(int weight) -> int
 WiseOwl.Cobol.Runtime.Collation.WeightMap.WeightMap(int[]! from, int[]! to) -> void
 WiseOwl.Cobol.Runtime.ConfigEntry
@@ -1463,7 +1455,6 @@ WiseOwl.Cobol.Runtime.IO.FileRecordLock.WithLock = 1 -> WiseOwl.Cobol.Runtime.IO
 WiseOwl.Cobol.Runtime.IO.FileRecordLock.WithNoLock = 2 -> WiseOwl.Cobol.Runtime.IO.FileRecordLock
 WiseOwl.Cobol.Runtime.IO.FileRegistry
 WiseOwl.Cobol.Runtime.IO.FileRegistry.AddAlternateKey(string! name, WiseOwl.Cobol.Runtime.IO.KeySegment[]! key, bool duplicates, WiseOwl.Cobol.Runtime.CobolCollation? collation = null, string? suppress = null) -> void
-WiseOwl.Cobol.Runtime.IO.FileRegistry.AtEnd(string! name) -> bool
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Close(string! name) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.CloseAll() -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.CloseAndDrop(string! key) -> void
@@ -1481,7 +1472,6 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.DeleteShared(string! name, string! keyedRe
 WiseOwl.Cobol.Runtime.IO.FileRegistry.EndOfPage(string! name) -> bool
 WiseOwl.Cobol.Runtime.IO.FileRegistry.EnqueueInstanceClose(string! key) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.ExceptionFile(string! name) -> string!
-WiseOwl.Cobol.Runtime.IO.FileRegistry.Failed(string! name) -> bool
 WiseOwl.Cobol.Runtime.IO.FileRegistry.FileRegistry() -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.HostPathOf(string! name) -> string!
 WiseOwl.Cobol.Runtime.IO.FileRegistry.IoConditionName(string! name) -> string?
@@ -1501,7 +1491,6 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.OpenTape(string! name, WiseOwl.Cobol.Runti
 WiseOwl.Cobol.Runtime.IO.FileRegistry.ReadExceedsRecordMaximum(string! name) -> string!
 WiseOwl.Cobol.Runtime.IO.FileRegistry.ReadKeyed(string! name, int keyIndex, string! keyedRecordImage, out string! image, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null) -> string!
 WiseOwl.Cobol.Runtime.IO.FileRegistry.ReadKeyedNext(string! name, out string! image) -> string!
-WiseOwl.Cobol.Runtime.IO.FileRegistry.ReadKeyedPrevious(string! name, out string! image) -> string!
 WiseOwl.Cobol.Runtime.IO.FileRegistry.ReadKeyedShared(string! name, int keyIndex, string! keyedRecordImage, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, bool ignoringLock, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, out string! image, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null) -> string!
 WiseOwl.Cobol.Runtime.IO.FileRegistry.ReadShared(string! name, bool previous, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, bool advancingOnLock, bool ignoringLock, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, out string! image) -> string!
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
@@ -1707,7 +1696,6 @@ WiseOwl.Cobol.Runtime.IO.RetryAttempt.RetryAttempt(string! Status, bool HolderOu
 WiseOwl.Cobol.Runtime.IO.RetryAttempt.Status.get -> string!
 WiseOwl.Cobol.Runtime.IO.RetryAttempt.Status.init -> void
 WiseOwl.Cobol.Runtime.IO.SequentialConnector
-WiseOwl.Cobol.Runtime.IO.SequentialConnector.AtEnd.get -> bool
 WiseOwl.Cobol.Runtime.IO.SequentialConnector.BeginLinagePage(WiseOwl.Cobol.Runtime.IO.LinagePage page) -> string?
 WiseOwl.Cobol.Runtime.IO.SequentialConnector.EndOfPage.get -> bool
 WiseOwl.Cobol.Runtime.IO.SequentialConnector.LinageCounter.get -> long
@@ -2082,14 +2070,12 @@ WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.CodePointEnumerator.M
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.CodePoints.get -> int[]!
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.End.get -> int
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.EnumerateCodePoints() -> WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.CodePointEnumerator
-WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.EnumerateRunes() -> System.Collections.Generic.IEnumerable<System.Text.Rune>!
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.Equals(WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster other) -> bool
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.FirstCodePoint.get -> int
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.GraphemeCluster() -> void
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.GraphemeCluster(string! source, int start, int length) -> void
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.IsSingleCodePoint.get -> bool
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.Length.get -> int
-WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.Memory.get -> System.ReadOnlyMemory<char>
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.Source.get -> string!
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.Span.get -> System.ReadOnlySpan<char>
 WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.Start.get -> int
@@ -2589,7 +2575,6 @@ static WiseOwl.Cobol.Runtime.CobolEdit.DeEdit(string! image, string! picture, ch
 static WiseOwl.Cobol.Runtime.CobolEdit.DeEditFloat(string! image, string! picture, bool commaMode = false, WiseOwl.Cobol.Runtime.CobolEdit.EditRule[]? edits = null, bool blankWhenZero = false) -> WiseOwl.Cobol.Runtime.CobolDec
 static WiseOwl.Cobol.Runtime.CobolEdit.EditRule.operator !=(WiseOwl.Cobol.Runtime.CobolEdit.EditRule left, WiseOwl.Cobol.Runtime.CobolEdit.EditRule right) -> bool
 static WiseOwl.Cobol.Runtime.CobolEdit.EditRule.operator ==(WiseOwl.Cobol.Runtime.CobolEdit.EditRule left, WiseOwl.Cobol.Runtime.CobolEdit.EditRule right) -> bool
-static WiseOwl.Cobol.Runtime.CobolEdit.FloatExtremeImage(string! picture, bool negative, bool commaMode = false, WiseOwl.Cobol.Runtime.CobolEdit.EditRule[]? edits = null) -> string!
 static WiseOwl.Cobol.Runtime.CobolEdit.FloatMask.Parse(string! picture, bool commaMode = false, WiseOwl.Cobol.Runtime.CobolEdit.EditRule[]? edits = null) -> WiseOwl.Cobol.Runtime.CobolEdit.FloatMask
 static WiseOwl.Cobol.Runtime.CobolEdit.FloatMask.operator !=(WiseOwl.Cobol.Runtime.CobolEdit.FloatMask left, WiseOwl.Cobol.Runtime.CobolEdit.FloatMask right) -> bool
 static WiseOwl.Cobol.Runtime.CobolEdit.FloatMask.operator ==(WiseOwl.Cobol.Runtime.CobolEdit.FloatMask left, WiseOwl.Cobol.Runtime.CobolEdit.FloatMask right) -> bool
@@ -2853,7 +2838,6 @@ static WiseOwl.Cobol.Runtime.CobolNum.ParseImage(string! image, in WiseOwl.Cobol
 static WiseOwl.Cobol.Runtime.CobolNum.ParseImageFloat(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> double
 static WiseOwl.Cobol.Runtime.CobolNum.ParseImageSending(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> System.Int128
 static WiseOwl.Cobol.Runtime.CobolNum.ParseImageSingle(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> float
-static WiseOwl.Cobol.Runtime.CobolNum.ParseImageU(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> ulong
 static WiseOwl.Cobol.Runtime.CobolNum.ParseImageU128(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> System.UInt128
 static WiseOwl.Cobol.Runtime.CobolNum.ParseImageU128Sending(string! image, in WiseOwl.Cobol.Runtime.NumProfile item) -> System.UInt128
 static WiseOwl.Cobol.Runtime.CobolNum.PlainValue(System.Int128 unscaled, int scale) -> string!
@@ -3179,7 +3163,6 @@ static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.EnterDeclarative(object! 
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.EnterStatement(string! stmt, string! loc, string![]! locNames) -> (string? Stmt, string? Loc, string![]? Names)
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ExceptionObject.get -> WiseOwl.Cobol.Runtime.CobolObject?
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ExitStatement((string? Stmt, string? Loc, string![]? Names) prior) -> void
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ExternalActivatingMask.get -> int
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ExternalDataMismatchChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ExternalDataMismatchChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ExternalFileMismatchChecking.get -> bool
@@ -3212,7 +3195,6 @@ static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowUseChecking.set -> vo
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FlowUseError(string! detail) -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FunctionArgOmittedChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FunctionArgOmittedChecking.set -> void
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.FunctionArgOmittedError(string! detail) -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.LastFatal.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.LastFile.get -> string?
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.LastIoStatus.get -> string?
@@ -3241,7 +3223,6 @@ static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.NonfatalDispatcher.set ->
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.OdoError(string! detail) -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.OoArgOmittedChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.OoArgOmittedChecking.set -> void
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.OoArgOmittedError(string! detail) -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.OoConformanceChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.OoConformanceChecking.set -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.OoConformanceError(string! detail) -> void
@@ -3259,7 +3240,6 @@ static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.PerformVaryingIndexError(
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.PopPerformFrame() -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ProgramArgOmittedChecking.get -> bool
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ProgramArgOmittedChecking.set -> void
-static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ProgramArgOmittedError(string! detail) -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.PushAllCheckingOff() -> WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.PushPerformFrame(WiseOwl.Cobol.Runtime.Exceptions.PerformFrame! f) -> void
 static WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.RangeIndexChecking.get -> bool
@@ -3388,10 +3368,7 @@ static WiseOwl.Cobol.Runtime.GroupCompatibility.Walk(WiseOwl.Cobol.Runtime.Group
 static WiseOwl.Cobol.Runtime.GroupMismatch.operator !=(WiseOwl.Cobol.Runtime.GroupMismatch? left, WiseOwl.Cobol.Runtime.GroupMismatch? right) -> bool
 static WiseOwl.Cobol.Runtime.GroupMismatch.operator ==(WiseOwl.Cobol.Runtime.GroupMismatch? left, WiseOwl.Cobol.Runtime.GroupMismatch? right) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolFile.AddAlternateKey(string! name, WiseOwl.Cobol.Runtime.IO.KeySegment[]! key, bool duplicates, WiseOwl.Cobol.Runtime.CobolCollation? collation = null, string? suppress = null) -> void
-static WiseOwl.Cobol.Runtime.IO.CobolFile.AtEnd(string! name) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Close(string! name) -> void
-static WiseOwl.Cobol.Runtime.IO.CobolFile.CloseAll() -> void
-static WiseOwl.Cobol.Runtime.IO.CobolFile.CloseAndDrop(string! key) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.CloseIfOpen(string! name) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.CloseNoRewind(string! name) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.CloseReelUnit(string! name) -> void
@@ -3401,11 +3378,9 @@ static WiseOwl.Cobol.Runtime.IO.CobolFile.CurrentRecord(string! name) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.CurrentRecordExtents(string! name) -> WiseOwl.Cobol.Runtime.RecordExtents?
 static WiseOwl.Cobol.Runtime.IO.CobolFile.DeleteFile(string! name, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, bool overridden = false) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.DeleteFile(string! name, bool overridden = false) -> string!
-static WiseOwl.Cobol.Runtime.IO.CobolFile.DeleteRecord(string! name, string! keyedRecordImage) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.DeleteShared(string! name, string! keyedRecordImage, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.EndOfPage(string! name) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolFile.ExceptionFile(string! name) -> string!
-static WiseOwl.Cobol.Runtime.IO.CobolFile.Failed(string! name) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Init() -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.IoConditionName(string! name) -> string?
 static WiseOwl.Cobol.Runtime.IO.CobolFile.IsLockedByOther(string! name, string! recId) -> bool
@@ -3424,9 +3399,6 @@ static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenOutput(string! name, string! assig
 static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenShared(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode, bool hasSharingOverride, WiseOwl.Cobol.Runtime.IO.FileSharing sharingOverride, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.IO.OpenTapePhrase tape, string! assign, bool assignDynamic, WiseOwl.Cobol.Runtime.IO.LinagePage? page) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenTape(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode, WiseOwl.Cobol.Runtime.IO.OpenTapePhrase tape, string! assign, bool assignDynamic, WiseOwl.Cobol.Runtime.IO.LinagePage? page) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.ReadExceedsRecordMaximum(string! name) -> string!
-static WiseOwl.Cobol.Runtime.IO.CobolFile.ReadKeyed(string! name, int keyIndex, string! keyedRecordImage, out string! image) -> string!
-static WiseOwl.Cobol.Runtime.IO.CobolFile.ReadKeyedNext(string! name, out string! image) -> string!
-static WiseOwl.Cobol.Runtime.IO.CobolFile.ReadKeyedPrevious(string! name, out string! image) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.ReadKeyedShared(string! name, int keyIndex, string! keyedRecordImage, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, bool ignoringLock, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, out string! image, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.ReadShared(string! name, bool previous, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, bool advancingOnLock, bool ignoringLock, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, out string! image) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
@@ -3443,7 +3415,6 @@ static WiseOwl.Cobol.Runtime.IO.CobolFile.ReleaseAllForConnector(string! name) -
 static WiseOwl.Cobol.Runtime.IO.CobolFile.ReleaseSingle(string! name, string! recId) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.ReleasedRecord(string! image, int length) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.ResolveHostPath(string! assignTarget) -> string!
-static WiseOwl.Cobol.Runtime.IO.CobolFile.RewriteKeyed(string! name, string! image, int length = -1) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.RewriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.SelectNameOf(string! cobolName) -> string!
 static WiseOwl.Cobol.Runtime.IO.CobolFile.SetRelativeKey(string! name, long rrn) -> void
@@ -3623,8 +3594,6 @@ static WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeBreaker.RangeCount.get
 static WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeBreaker.Split(string! text) -> string![]!
 static WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeBreaker.Truncate(string! text, int maxClusters) -> string!
 static WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeBreaker.UnicodeVersion.get -> string!
-static WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.operator !=(WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster left, WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster right) -> bool
-static WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster.operator ==(WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster left, WiseOwl.Cobol.Runtime.Unicode.Segmentation.GraphemeCluster right) -> bool
 static WiseOwl.Cobol.Runtime.Unicode.UnicodeNormalizer.CompareNormalized(string? a, string? b, WiseOwl.Cobol.Runtime.Unicode.UnicodeNormalizationForm form) -> int
 static WiseOwl.Cobol.Runtime.Unicode.UnicodeNormalizer.IsNfcAvailable.get -> bool
 static WiseOwl.Cobol.Runtime.Unicode.UnicodeNormalizer.IsNormalized(string! input, WiseOwl.Cobol.Runtime.Unicode.UnicodeNormalizationForm form) -> bool
@@ -3644,7 +3613,6 @@ static readonly WiseOwl.Cobol.Runtime.CobolCallException.CarriedNames -> string!
 static readonly WiseOwl.Cobol.Runtime.CobolDec.E -> WiseOwl.Cobol.Runtime.CobolDec
 static readonly WiseOwl.Cobol.Runtime.CobolDec.Pi -> WiseOwl.Cobol.Runtime.CobolDec
 static readonly WiseOwl.Cobol.Runtime.CobolVarGroup.Empty -> WiseOwl.Cobol.Runtime.CobolVarGroup!
-static readonly WiseOwl.Cobol.Runtime.Collation.CollationElement.Ignorable -> WiseOwl.Cobol.Runtime.Collation.CollationElement
 static readonly WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile.None -> WiseOwl.Cobol.Runtime.Exceptions.EcCheckingProfile!
 static readonly WiseOwl.Cobol.Runtime.Exceptions.ExceptionCatalog.IoMaskNames -> string![]!
 static readonly WiseOwl.Cobol.Runtime.FunctionPointer.Null -> WiseOwl.Cobol.Runtime.FunctionPointer
