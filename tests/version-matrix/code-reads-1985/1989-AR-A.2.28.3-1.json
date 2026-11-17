@@ -2,75 +2,93 @@
  "rule-id": "1989-AR-A.2.28.3-1",
  "rule-digest": "751450a8779d",
  "read": {
-  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
-  "slice": "1985-242",
+  "pin": "cdc9601608399d224cd2b9ffd6324d8f90df4796",
+  "slice": "1985-247",
   "sources": {
-   "reader": "2ad1f79cff7c4c92e213726248e74f627166f73ff8c5d5b3c390728c0ac7c90e",
-   "refuter": "56e712bb6a26c4cdabeef7d08e3953c9a41683ecd887ad4658d520c4df44760e"
+   "reader": "7307715f9589f86e41a2c6ac8b6c798328955ad77e2c0a95e4363e69bc6f9f85",
+   "refuter": "dc50e52f9fb8d7241a738e294de939e04ccc0f5692aa56588bc63153696fbdb5"
   },
   "imported": {
-   "reader": "89c22c362bf8ace94db6f7e8fc522a4d0b28a1b5f6ceb2a74ca6f1b54e227398",
-   "refuter": "474a93608bd59ad50a85ec6f18113c7da7c06fd318a420f2670f3317a201d4e9"
+   "reader": "388ac2505a567afd96b75bd57fd027efe40d342c43318e269d4533021f60f08a",
+   "refuter": "2838df7488865780f49f9e9a04932a5de9d614586e59930e44422c50a618fa70"
   }
  },
  "reader": {
   "rule-id": "1989-AR-A.2.28.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 both MOD arguments must be integer arguments (§1989:A.2.2 AR4): each position refuses a non-integral literal, a scaled or alphanumeric item, a not-always-integral expression and a numeric function, and accepts every integer literal, integer item, integer function and always-integral expression.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NotAlwaysIntegral",
+  "requirement": "At --std 85 both MOD arguments must be integer arguments (§1989:A.2.2 AR4) and each non-integer argument, in either position, is refused; integer arguments, signed ones included, yield argument-1 - argument-2 * INTEGER(argument-1 / argument-2).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NonIntegralItemReason; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#NotAlwaysIntegral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
-    "switches": "D8 window sig.IntroducedIn > DialectLevel: the 1989 Intrinsic Function Module rows carry IntroducedIn 85, so the function is admitted at --std 85",
+    "switches": "sig.IntroducedIn (85 for the 1989 Intrinsic Function module rows) against ctx.Edition.DialectLevel: the function is admitted at --std 85",
     "same-arm-as-latest": true
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation",
-    "switches": "EditionInfo.AlphabeticIsAlphanumeric widens an alphanumeric class position at 2002; inert for kind 'i' (Admissible('i') is class numeric only) and IntegerViolation takes no edition",
+    "switches": "edition.AlphabeticIsAlphanumeric (2002 only) widens a position whose admissible set holds class alphanumeric; an integer ('i') position admits only class numeric, so the arm is not reached",
     "same-arm-as-latest": true
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
-    "switches": "ArgPredicate.AppliesAt(year) per-position predicates; a Uniform('i') row carries none, so nothing differs at 85",
+    "switches": "ArgPredicate.AppliesAt(year) gates per-position predicates; the Uniform('i') row of this function carries none",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of IntrinsicBinder.cs for Edition./CobolVersion/ConstructRegistry/DialectBehaviors/ReservedWords and of IntrinsicArgumentRules.cs for EditionInfo/edition: the integer screen (IntegerViolation, NonIntegralItemReason, NotAlwaysIntegral) takes no edition; the only consults on the path are the three listed",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: the witness g85_f33_07 exercises only the acceptance half; no witness refuses a non-integer at either position",
+  "edition-search": "Read Violation, IntegerViolation, NonIntegralItemReason and the NotAlwaysIntegral walk, CheckArgumentClasses and BindFunctionResult; grepped IntrinsicArgumentRules.cs and IntrinsicBinder.cs for Edition/DialectLevel/CobolVersion/AppliesAt/IntroducedIn. ArithmeticMode (ctx.Options.Arithmetic) is Native at 85 (no OPTIONS paragraph), the 2023 default.",
+  "behaviour-differs-by-edition": "no: the same COBOL1627 refusals at --std 85 and --std 2023 (fn_refuse.cob, 25 of 25 lines at each); 2023's run-time EC-ARGUMENT-FUNCTION for an out-of-range value has no 1985 counterpart, where the result is undefined (§1989:A.2.2 AR4)",
+  "witnesses-cover": "part: the witnesses cover quotient arguments and a NIST legal case; not exercised by them: argument-2 scaled items, numeric functions, signed table values, 18-digit operands",
   "probes": [
    {
-    "class": "b,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-242/mrc_ref.cob",
-    "printed": "COBOL1627 on MOD(7.5 2) arg-1, MOD(7 D) arg-2, MOD(SQRT(16) 3) arg-1, MOD(N / 2 + 1, 3) arg-1, MOD(A 3) arg-1, MOD(7 SQRT(4)) arg-2",
-    "expected": "each non-integer argument at either position refused"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/fn_refuse.cob",
+    "printed": "COBOL1627 for MOD(SC 2) argument-1, MOD(7 SC) argument-2, MOD(7.5 2), MOD(7 N / 3) argument-2, MOD(FUNCTION SQRT(16) 3), MOD(A 3)",
+    "expected": "each refused, naming the offending position"
    },
    {
-    "class": "a,d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-242/mrc_ok.cob",
-    "printed": "BIGMOD (S9(18) -999999999999999999, 7) 0; ODOMOD (EL(CNT)=66, 7.0) 3; INTFNMOD (INTEGER(7.9), I*2) 7; SELFMOD COMPUTE I = MOD(I + 10, 7) 1; ZEROMOD 0; NEGMOD (-N, 3) 2",
-    "expected": "a1 - a2 * INTEGER(a1/a2) per A.2.28.4 RV1: 0, 3, 7, 1, 0, 2"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/fn_legal.cob",
+    "printed": "M1 MOD(11 5) 1, M2 MOD(M K) with M COMP -11 and K 5: 4, M3 MOD(11 -5) -4, M4 MOD(-11 -5) -1",
+    "expected": "the table of A.2.28.4 RV2: 1, 4, -4, -1"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/fn_legal.cob",
+    "printed": "M5 MOD(0 7) 0, M6 MOD(999999999999999999 7) 0, M7 MOD(FACTORIAL(5) N*7) 8, M8 COMPUTE N = MOD(N + 10 N) with N = 4: 2",
+    "expected": "0; 10**18-1 is divisible by 7; 120 mod 28 = 8; 14 mod 4 = 2 with the receiving item also an argument"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/fn_fig.cob",
+    "printed": "FZ 1 / MZ 0 / RZ 0.72624326 (EXIT 0)",
+    "expected": "ZERO is allowed in an arithmetic expression at 1985 (VI.6.2), integer valued: FACTORIAL(ZERO)=1, MOD(ZERO 5)=0, RANDOM(ZERO) in [0,1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/fn_figref.cob",
+    "printed": "COBOL1627 for MOD(QUOTE 2)",
+    "expected": "refused"
    }
   ],
   "citations": [
    {
     "cite": "§1989:A.2.28.3 AR1",
-    "check": "OK  §1989:A.2.28.3 AR1  the text is in the rule: Argument-1 and argument-2 must be integers"
+    "check": "OK  §1989:A.2.28.3 AR1  (2.28.3 Arguments)  the text is in AR1"
    },
    {
     "cite": "§1989:A.2.2 AR4",
-    "check": "OK  §1989:A.2.2 AR4  the text is in the rule: An arithmetic expression which will always result in an integer value must be specified"
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
    },
    {
     "cite": "§1989:A.2.3 GR2",
-    "check": "OK  §1989:A.2.3 GR2  the text is in the rule: A numeric function may not be referenced where an integer operand is required"
+    "check": "OK  §1989:A.2.3 GR2  (2.3 TYPES OF FUNCTIONS)  the text is in GR2"
    }
   ],
-  "notes": "Both positions are screened by the same Uniform('i') row through the edition-blind type-6 screen at --std 85; the largest 1985 item (18 digits), an ODO element, a self-modified receiver and negative operands all evaluate correctly.",
+  "notes": "Each MOD position is screened by the same integer screen and refused per position at --std 85 as at 2023; signed integer arguments give the standard's table values and an 18-digit argument is exact. Diagnostics at --std 85 cite §2023:15.64.3 r1.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "",
+  "at-2023": "fn_refuse.cob: the same 25 COBOL1627 refusals",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -79,18 +97,9 @@
  "refuter": {
   "rule-id": "1989-AR-A.2.28.3-1",
   "refutation": "OVERTURNED",
-  "classes": "b,c,d,f",
-  "evidence": "Probes at --std 85 (run_probe.py): E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-242/open1.cob (compile-only, runs/open1-001) refused N*M/2, S*S/2, N/M, (N+1)/2, (N+M)/2, N**0.5, SQRT(N)+1, REM(N 2), LENGTH(A)/2, an index data item (COBOL6979) and an index-name (COBOL1637), but gave NO diagnostic on FACTORIAL(FUNCTION ORD(A) / 2), FACTORIAL(FUNCTION MOD(N 3) * 0.5), FACTORIAL(FUNCTION INTEGER(N) / FUNCTION INTEGER(M)), FACTORIAL(FUNCTION ORD-MAX(N M) / 2), MOD(N * N * N / 2, 7), MOD(7, FUNCTION ORD(A) / 4), RANDOM(FUNCTION INTEGER-PART(N) / 3), CHAR(FUNCTION RANDOM(1) * 10). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-242/open3.cob (N=1, M=2, A='B'; runs/open3-001 at 85, open3-002 at 2023) compiled and ran EXIT 0 at both editions: ORDHALF (FACTORIAL(67/2=33.5)) 518194401280000000 = 33! truncated; MODHALF (FACTORIAL(0.5)) 1; INTQUOT (FACTORIAL(1/2)) 1; CUBEHALF (MOD(0.5,7)) 0; MODARG2 (MOD(7, 67/4=16.75)) 7; CHARHALF (CHAR(33.5)) blank; RANDHALF (RANDOM(33.5)) seeded silently. Each argument is provably not always an integer (INTEGER of an integer item is the item, so INTEGER(N)/INTEGER(M) is N/M, which the screen refuses; ORD of a one-character item takes consecutive values; MOD(N 3) is 1 at N=1; N*N*N/2 is 0.5 at N=1). Code read: IntrinsicArgumentRules.cs#NotAlwaysIntegral -> CollectAdditive default arm (factor not integer or term not ProvablyIntegral -> RestIntegral=false -> fail open) and WitnessOf (witness arms only for bare-item quotient/product, a power, MEAN/MEDIAN, 8 transcendental numeric functions). The screen takes no edition, and docs/INTRINSICS_DESIGN.md states the 85 arm relies on it because 85 has no EC-ARGUMENT-FUNCTION net. kb/Work/PB5832 (landed) and its 2026-11-16-residue.md record the fail-open residue and keep these rows CONFORMS; the residue list names numeric functions, A*B/C, 3+-factor products, two witness terms and powers under a coefficient, but NOT an integer-function term under a fractional literal factor nor a quotient of two integer functions, which are decidable siblings of the shapes PB5832 refused. MOD-specific: MOD(N * N * N / 2, 7) (arg-1, 0.5 at N=1, prints 0) and MOD(7, FUNCTION ORD(A) / 4) (arg-2, 16.75 for A='B', prints 7) compile at 85 without a diagnostic; MOD(N * M / 2, 3) is refused, so the 3-factor product is a sibling the 2-factor witness misses. cite.py: OK §1989:A.2.2 AR4 'An arithmetic expression which will always result in an integer value must be specified'; cite.py: OK §1989:A.2.28.3 AR1 'Argument-1 and argument-2 must be integers'.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CollectAdditive: default arm sets RestIntegral=false for an integer-function term under a non-integral literal factor (fail open), no edition switch",
-   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#WitnessOf: quotient witness only for two BARE items, product witness only for two bare items; integer-function terms have no witness arm"
-  ],
-  "corrected": "Non-conforming (under_rejects, wrong_answer; cause b): §1989:A.2.28.3 AR1 requires both arguments to be integers (always-integral expressions per §1989:A.2.2 AR4); MOD(7, FUNCTION ORD(A) / 4) and MOD(N * N * N / 2, 7) compile at --std 85 and are truncated silently. Same at 2023. Known note: kb/Work/PB5832 residue (the 3-factor product is listed there; the integer-function quotient is not)."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "An integer argument that is a quotient with an integer FUNCTION term (FUNCTION ORD(A) / 2) compiles and is truncated silently (open3.cob: FACTORIAL of 33.5 returns 33!), where the rule requires an expression that always results in an integer.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-17.md"
- },
- "work": "PB5886"
+  "classes": "a,b,d,f",
+  "evidence": "fn_edge.cob at --std 85: COMPUTE RS = FUNCTION MOD(N * (N + 1) / 2 4) refused, 'error COBOL1627: FUNCTION MOD argument-1 is an arithmetic expression whose term (N * (N + 1)) is an integer under the net factor 0.5 ...'; the argument always results in an integer value (product of consecutive integers is even), so §1989:A.2.28.3 AR1 with §1989:A.2.2 AR4 makes it legal. Same at --std 2023. Admitted and correct: MOD(INTEGER-PART(SC) 2) = 0, MOD(K LENGTH(X)) with K = -7 gives 3, MOD(-11 ORD-MIN(9 5 1 7 3)) = 1 (fn_legal2.cob). Refused correctly: MOD(N (1:1) 2) (reference modification is alphanumeric), MOD(NUMVAL(\"5\") 2), MOD(7 FUNCTION RANDOM) (fn_refuse2.cob). cite.py: OK §1989:A.2.28.3 AR1 'Argument-1 and argument-2 must be integers'; OK §1989:A.2.2 AR4.",
+  "edition-sites-missed": [],
+  "corrected": "PARTIAL: rejects-legal-source; cause (b). IntrinsicArgumentRules.cs#NotAlwaysIntegral refuses MOD(N * (N + 1) / 2 4) at every edition. Known: kb/Work PB5889 (class), form not listed."
+ }
 }

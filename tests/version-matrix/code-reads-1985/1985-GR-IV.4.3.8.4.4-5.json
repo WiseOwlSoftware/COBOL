@@ -2,66 +2,62 @@
  "rule-id": "1985-GR-IV.4.3.8.4.4-5",
  "rule-digest": "be587a19be81",
  "read": {
-  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
-  "slice": "1985-237",
+  "pin": "6450516b5e6a2ed7b831a834d06b3e578d759c6b",
+  "slice": "1985-245",
   "sources": {
-   "reader": "10c46923cc936bd474f98b0987fa57e51be9d7397412d2b1ff469c6396ce500a",
-   "refuter": "e49db95ee4b953357c139c91667ace20327d46fd8a6d68769553324f37de35b7"
+   "reader": "f0212a8cf5971d2ef5b9d0ec64dfecc6248e7d9ba1caf7c4f8af1a6a61f639bc",
+   "refuter": "86e402484d178ca7f6b2e4663730e3d9d688c365aee89683a16116d007aa470e"
   },
   "imported": {
-   "reader": "faa678874fbe30d23228d51b2b426dbdc977dc5d95ac91c86158decd9c21ea0f"
+   "reader": "df046b25db7d8588884dfcbf7b862ace339b086fc73acd04611c56b3e52d5a38",
+   "refuter": "d01f05be2b3e865dfd871ef838173a0043e2394897093f3de19ebc9fa049e323"
   }
  },
  "reader": {
   "rule-id": "1985-GR-IV.4.3.8.4.4-5",
-  "verdict": "PARTIAL",
-  "requirement": "At 1985 the reference-modified unique data item is elementary without JUSTIFIED; a function slice is alphanumeric; a data-name-1 slice keeps data-name-1's class and category except that numeric, numeric edited and alphanumeric edited become alphanumeric, so an alphabetic slice stays alphabetic, and every rule keyed on category (MOVE validity, class condition, INITIALIZE) must see that category.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#Category; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#OperandItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand; src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#RulesAt",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 a reference-modified operand is an elementary item without JUSTIFIED; a reference-modified function is class and category alphanumeric; a reference-modified data-name keeps the class and category of data-name-1 (alphabetic stays alphabetic, a group becomes an elementary alphanumeric) except that numeric, numeric edited and alphanumeric edited become alphanumeric, which governs MOVE (no editing, no decimal alignment, no justification, the Table of category bars), comparison (nonnumeric) and class tests.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#Category; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#Kind; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#ReceivingCategory; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#IsGroupPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#IsStringVisitor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#RulesAt",
-    "switches": "below 2002 the class condition takes the 1985 rule set (NumericNotAlphabeticOrSignedGroup1985, UsageDisplay1985, NotNumeric1985); at 2023 the 2023 set, which has no alphabetic bar on NUMERIC",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#CheckClassConditionOperand",
+    "switches": "ClassConditionModel.RulesAt(DialectLevel): the 1985 class-condition operand rule set (NUMERIC not over an alphabetic item, COBOL6917) instead of the 2002+ set; the alphabetic fact it reads is the edition-agnostic MoveTable16.SenderPosition rider, so a refmod alphabetic slice is refused",
     "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Lenient",
-    "switches": "--permissive only (not the edition): an alphabetic slice read as alphanumeric with a warning",
-    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of Place.cs, MoveTable16.cs, RefModBinder.cs for DialectLevel/CobolVersion/Edition: the category reader RefModPlace.CategoryOf is edition-invariant; the only edition switch reached is the class condition's rule set in ConditionBinder.CheckClassConditionOperand.",
-  "behaviour-differs-by-edition": "yes: 1985 bars the NUMERIC class test on an item described as alphabetic (VI.6.3.1.2 GR5) and the 2023 class condition has no such bar, so only at 1985 does an alphabetic slice's category decide a refusal of the class test",
-  "witnesses-cover": "part: the witness covers a numeric slice compared as characters; alphabetic slices, numeric edited and alphanumeric edited slices, the JUSTIFIED drop and the function arm are not exercised",
+  "edition-search": "grep -n -E 'Edition|CobolVersion|Std|Dialect|Construct' over Place.cs, MoveClassifier.cs, MoveTable16.cs, OperandText.cs found no edition test: the GR5 category reader RefModPlace.CategoryOf, the MOVE classifier and the comparison text predicate are one code for every edition; the only edition arm on the path is the class-condition rule set.",
+  "behaviour-differs-by-edition": "no: the category rewrite is the same at 85 and 2023 for every 1985 category (2023 adds national/boolean arms 1985 has no items for); probe rm5pos printed identical lines at --std 85 and --std 2023. Only the class-condition operand bars differ by edition (a separate rule).",
+  "witnesses-cover": "part: the witnesses exercise numeric refmod compared as characters and the NUMERIC test on an alphabetic slice; not exercised by them: JUSTIFIED dropped on a refmod receiver, numeric-edited and alphanumeric-edited receivers (no editing), group refmod as an elementary item, the MOVE category bars over an alphabetic slice, function refmod as alphanumeric (probed here).",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rm5.cob",
-    "printed": "MOVE N4(1:2) TO ZZ9.99 -> [ 12.00]; TO 99 -> [12]; MOVE AE(1:3) TO X(5) -> [A B  ]; MOVE \"A\" TO J(1:3) on JUST RIGHT -> [A  YZ]; MOVE 12 TO N4(3:2) -> [1212]; N4(1:2) ALPHABETIC accepted (NOALPHA); IF N4(1:2) = 12 -> CMP12",
-    "expected": "numeric/edited slices are alphanumeric (moves as alphanumeric sender/receiver, ALPHABETIC test permitted); the slice has no JUSTIFIED"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/rm5pos.cob",
+    "printed": "J=[AB   ] JFULL=[   AB] NE=[12345 ] N3=[7  ] N3Z=[000] AE=[ABCD ] SN=[-005] G=[ABCD] N3ALPHA F ABALPHA T NECMP T NECMP0 F AB=[005  ] N2=[12] FN=[BCD  ] FNALPHA T FNNUM T (identical at --std 2023)",
+    "expected": "GR5: no JUSTIFIED (AB left), numeric/numeric-edited/alphanumeric-edited slices alphanumeric (no editing, integer moved as characters left-justified, ZERO as alphanumeric 000), sign separate position counted (GR1), function slice alphanumeric"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rm5r.cob",
-    "printed": "COBOL0819 MOVE AB(1:2) TO N4 (alphabetic to numeric); COBOL0819 MOVE 12 TO AB(1:2) (numeric to alphabetic); COBOL0819 MOVE 1.5 TO N4(1:2); COBOL0844 ADD N4(1:2); COBOL1675 ADD 1 TO NE(1:2)",
-    "expected": "refused: an alphabetic slice is alphabetic, a numeric slice is alphanumeric and is no arithmetic operand"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/rm5neg1.cob",
+    "printed": "error COBOL0819: MOVE TO AB: a numeric or numeric-edited sending operand does not move to an alphabetic receiver",
+    "expected": "AB (1:3) is alphabetic (GR5); §1985:VI.6.19.4 GR3b bars a numeric data item moved to an alphabetic item"
    },
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rm5c.cob",
-    "printed": "IF AB NUMERIC (AB PIC A(5)): COBOL6917 refused",
-    "expected": "refused (§1985:VI.6.3.1.2 GR5)"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/rm5neg2.cob",
+    "printed": "error COBOL0819: an alphabetic sending operand does not move to a numeric or numeric-edited receiver",
+    "expected": "§1985:VI.6.19.4 GR3a bars an alphabetic item moved to a numeric item; the slice is alphabetic"
    },
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rm5d.cob",
-    "printed": "IF AB(1:2) NUMERIC: EXIT 0, no diagnostic",
-    "expected": "refused: the slice has class and category alphabetic (IV.4.3.8.4.4 GR5), and the NUMERIC test cannot be used with an item described as alphabetic (VI.6.3.1.2 GR5)"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/rm5neg3.cob",
+    "printed": "error COBOL0819: a noninteger numeric sending operand does not move to an alphabetic, alphanumeric or alphanumeric-edited receiver",
+    "expected": "N3 (1:3) is alphanumeric (GR5); §1985:VI.6.19.4 GR3c bars a noninteger literal to it"
    },
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rm5f.cob",
-    "printed": "INITIALIZE WA(2:1) REPLACING ALPHABETIC -> [aQc]; FUNCTION UPPER-CASE(\"xyz\")(2:2) -> [YZ ]; FUNCTION UPPER-CASE(\"12\")(1:2) NUMERIC accepted, true",
-    "expected": "an alphabetic slice takes the ALPHABETIC phrase; a function slice is alphanumeric"
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/IV.4.3.8.4@1985-Reference-Modification/pb5881-refmod-alphabetic-numeric-test-85.cob",
+    "printed": "error COBOL6917: the NUMERIC class condition over 'AB' (§1985:VI.6.3.1.2)",
+    "expected": "refused: the slice is alphabetic"
    }
   ],
   "citations": [
@@ -70,19 +66,30 @@
     "check": "OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5"
    },
    {
-    "cite": "§1985:VI.6.3.1.2 GR5",
-    "check": "OK  §1985:VI.6.3.1.2 GR5  (6.3.1.2 Class Condition)  the text is in GR5"
+    "cite": "§1985:VI.6.19.4 GR3",
+    "check": "OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3c",
+    "check": "OK  §1985:VI.6.19.4 GR3c  (6.19.4 General Rules)  the text is in GR3c"
    }
   ],
-  "notes": "MOVE (Table16Operand.Of(Place) with its alphabetic rider) and INITIALIZE (PB5813, landed) keep an alphabetic slice alphabetic, and numeric/edited slices are alphanumeric everywhere probed. The class condition does not: CheckClassConditionOperand reads the description through MoveTable16.OperandItem, which is null for a RefModPlace, and its comment says a slice is never alphabetic, citing §2023:8.4.3.3.4 GR6 c, a rewrite that names numeric only. Doubt: one could read VI.6.3.1.2's 'data description' as data-name-1's entry alone, but GR5 gives the slice that description's class and category.",
+  "notes": "RefModPlace.CategoryOf rewrites numeric and numeric-edited to alphanumeric and preserves every other category; alphanumeric edited has no PicCategory of its own and loses its edit mask through Table16Operand.Of(Place), and the alphabetic rider survives, which is exactly GR5's exception list. The refmod receiver is never a group and carries no JUSTIFIED (store through the slice place). Every probe matched the text.",
   "seeded": true,
-  "harm": "under-rejects",
-  "cause": "a",
-  "at-2023": "accepted, exit 0; correct at 2023, whose class condition (§2023:8.8.4.4.3) has no alphabetic bar on NUMERIC",
-  "repro": "01 AB PIC A(5) VALUE \"ABCDE\". ... IF AB(1:2) NUMERIC DISPLAY \"X\". (E:/COBOL-coord/scratch/coderead-1985/out/work-1985-237/src/rm5d.cob, --std 85)",
-  "expected": "refused: 'The NUMERIC test cannot be used with an item whose data description describes the item as alphabetic' (§1985:VI.6.3.1.2 GR5), the slice having 'the same class and category as that defined for the data item referenced by data-name-1' (§1985:IV.4.3.8.4.4 GR5)",
-  "observed": "compiles with no diagnostic (exit 0); IF AB NUMERIC unsliced is refused COBOL6917",
-  "known_note": "none for the class condition; sibling PB5813 (INITIALIZE REPLACING on an alphabetic slice, landed) names the same mechanism and leads at MoveOverlap.cs and ExpressionBinder.cs"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5881"
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.8.4.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Attacked the alphanumeric class of numeric, edited and group slices where a numeric operand is required, all at --std 85: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-245/src/rf_add.cob (ADD N3(1:2)) COBOL0844; rf_compute.cob COBOL0844; rf_sign.cob (N3(1:3) POSITIVE) COBOL0844; rf_subscript.cob (TE(N3(3:1))) COBOL0844; rf_giving.cob (GIVING N3(1:3)) COBOL1675; rf_tally.cob (INSPECT TALLYING N3(1:3)) COBOL0847 citing §1985:IV.4.3.8.4.4 GR5; rf_goto.cob (GO TO DEPENDING ON N3(3:1)) COBOL2324; rf_nonint_group.cob (MOVE 1.5 TO G(1:3), a group slice is elementary alphanumeric) COBOL0819. Positive: rf_pos.cob printed N5=[00123] (group slice moved as elementary alphanumeric to numeric, not as a group move), CMP F, CMP2 F, CMP3 F (N3(1:3)=007 against N5=00007 compared nonnumerically), G(1:5) NUMERIC accepted over a group holding a signed item; rf_pos2.cob printed NE=[00007 ] (no editing), AJ=[AB   ] (A(5) JUSTIFIED RIGHT slice left-justified), ST4=[-] (trailing separate sign counted, GR1), SC=[12   ] (99PP slice), NV=[125  ] and NVN=[00125] (9V99 slice: no decimal alignment). Every result is what GR5 requires. cite: OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5; OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }
