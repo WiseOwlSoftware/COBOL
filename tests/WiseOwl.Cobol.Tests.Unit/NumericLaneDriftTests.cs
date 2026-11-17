@@ -24,7 +24,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// prediction <c>FunctionValueLane.LaneOf</c>.</para>
 /// <para><see cref="EveryOperandKindBesideEveryPartner_TakesTheLaneTheClassifierPredicts"/> pins the two for every operand kind the
 /// classifier admits as a term (an item, a fixed-point and a floating-point literal, a floating-point item, a numeric function, an
-/// integer function, an exact power, an SDIDI-valued function) beside a fixed-point literal, a floating-point literal and a
+/// integer function, an exact power, an SDIDI-valued function, powers over P-scaled exponents of 9P and 99P and over an exponent that
+/// is an integer by its value but not by its carrier, review R2-1) beside a fixed-point literal, a floating-point literal and a
 /// floating-point item: it compiles <c>COMPUTE R = L + P</c> for each pair, reads the lane of the root operation from the generated
 /// C#, and requires the classifier's <c>ArgumentLane</c> of the same bound expression to name it.</para>
 /// </remarks>
@@ -36,6 +37,10 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
     private static readonly DataItem F = Item("F", PicInfo.FloatItem(Usage.Double));
     private static readonly DataItem A = Item("A", new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: 4, Digits: 0, Scale: 0, Signed: false));
     private static readonly DataItem B = Item("B", new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false));
+
+    // kb/Work PB5891 review R2-1: P-scaled exponents, integers by value whose carrier scale is below 0.
+    private static readonly DataItem P1 = Item("P1", new PicInfo(PicCategory.Numeric, Usage.Display, Length: 1, Digits: 1, Scale: -1, Signed: false));
+    private static readonly DataItem P2 = Item("P2", new PicInfo(PicCategory.Numeric, Usage.Display, Length: 2, Digits: 2, Scale: -1, Signed: false));
 
     private static Place PlaceOf(DataItem item) => new MemberPlace(new AccessPath([new RootFieldSegment(item.ClrName)]), item);
 
@@ -55,6 +60,11 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
         ("FUNCTION ORD (B)", () => Call("ORD", new BoundFieldOperand(PlaceOf(B)))),
         ("N ** 2", () => new BoundPower(new BoundNumRef(PlaceOf(N)), new BoundNumLiteral("2"), NegativeBaseRealRoots: false)),
         ("FUNCTION NUMVAL (A)", () => Call("NUMVAL", new BoundFieldOperand(PlaceOf(A)))),
+        ("3 ** P1", () => new BoundPower(new BoundNumLiteral("3"), new BoundNumRef(PlaceOf(P1)), NegativeBaseRealRoots: false)),
+        ("3 ** P2", () => new BoundPower(new BoundNumLiteral("3"), new BoundNumRef(PlaceOf(P2)), NegativeBaseRealRoots: false)),
+        ("3 ** (N / 2 * 2)", () => new BoundPower(new BoundNumLiteral("3"),
+            new BoundBinary(new BoundBinary(new BoundNumRef(PlaceOf(N)), '/', new BoundNumLiteral("2")), '*', new BoundNumLiteral("2")),
+            NegativeBaseRealRoots: false)),
     ];
 
     /// <summary>The partners: a fixed-point literal (Int128), a floating-point literal (SDIDI), a floating-point item (binary64).</summary>
@@ -100,6 +110,8 @@ public sealed class NumericLaneDriftTests : WiseOwlCobolTestBase
             01 F COMP-2 VALUE 0.5.
             01 A PIC X(4) VALUE "12".
             01 B PIC X VALUE "B".
+            01 P1 PIC 9P VALUE 20.
+            01 P2 PIC 99P VALUE 40.
             01 R PIC 9(5)V9(5).
             PROCEDURE DIVISION.
             {proc}    STOP RUN.

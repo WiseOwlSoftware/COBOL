@@ -1392,7 +1392,10 @@ ON is 23:59:60 in FORMATTED-TIME, FORMATTED-DATETIME and LOCALE-TIME-FROM-SECOND
 
 **The lane of an operation is ONE function (kb/Work PB5891 review R1-3).** `NumericLanes.Combine` (`Binding/NumericLanes.cs`) states
 which carrier a binary operation takes, from the lanes of its operands (`NumericLane`: Int128, wide or exact, SDIDI, binary64, an
-engine's binary64 approximation), a floating-point receiver and the arithmetic mode; `NumericLanes.Power` the same for `**`.
+engine's binary64 approximation), a floating-point receiver and the arithmetic mode; `NumericLanes.Power` the same for `**`, which
+`NumericRenderer.Power` dispatches on: its exact arm takes an exponent that is an integer BY VALUE (`NumericLanes.IsIntegerByValue`, the
+Int128 lane at scale 0 or below, PB272's value-not-spelling rule), so `3 ** U` over `U PIC 99P VALUE 40` is 12157665459056928801, where
+the scale-0 test it replaced took the binary64 approximation (kb/Work PB5891 review R2-2).
 `NumericRenderer.CombineCore` dispatches on `Combine`'s answer (`NumericRenderer.LaneOf` reads a rendered value's lane), the bind-time
 carrier prediction `FunctionValueLane` folds through it, and the type 6 classifier bounds an intermediate's exactness by the precision
 of the same answer (`NumericLanes.SignificantDigits`; docs/INTRINSICS_DESIGN.md, the type-6 intake, rule 4). `NumericLaneDriftTests`

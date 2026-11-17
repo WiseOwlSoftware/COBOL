@@ -183,7 +183,7 @@ internal static partial class IntrinsicArgumentRules
                 var b = Build(pw.Base, ctx);
                 if (b.Why is not null) return b;
                 // The renderer reads an integer-valued literal exponent as a scale-0 Int128 operand (NumericRenderer.IntegerValuedLiteral).
-                var lane = NumericLanes.Power(b.Lane, NumericLane.Scaled, exponentIsInteger: true, literalOne: n.Numerator.IsOne, ctx.DecimalEngine);
+                var lane = NumericLanes.Power(b.Lane, NumericLane.Scaled, exponentIsIntegerByValue: true, literalOne: n.Numerator.IsOne, ctx.DecimalEngine);
                 return b.Value!.Power((int)n.Numerator) is { } power
                     ? Intermediate(e, power, lane, quotient: false, ctx) : Unexpanded(e, lane, ctx);
             }
@@ -195,9 +195,17 @@ internal static partial class IntrinsicArgumentRules
                 if (b.Why is not null) return b;
                 var x = Build(pw.Exp, ctx);
                 bool exponentIntegral = x is { Why: null, Value: { } xv } && IsIntegerValued(xv, ctx);
-                if (IsIntegerValued(b.Value!, ctx) && IsIntegerPower(pw.Base, pw.Exp, exponentIntegral))
-                    return new(Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One), null,
-                        NumericLanes.Power(b.Lane, x.Lane, exponentIntegral, literalOne: false, ctx.DecimalEngine));
+                // ⛔ THE LANE ASKS THE EXPONENT'S CARRIER, AS THE RENDERER DOES (kb/Work PB5891 review R2-1): an exponent integer by its
+                // polynomial but not by its carrier (`N ** (U / 2 * 2)`) is evaluated as the engine's binary64 approximation, which no
+                // integer atom may stand for.
+                var lane = NumericLanes.Power(b.Lane, x.Lane, !ctx.DecimalEngine && FunctionValueLane.IsIntegerCarrier(pw.Exp),
+                    literalOne: false, ctx.DecimalEngine);
+                if (IsIntegerValued(b.Value!, ctx) && IsIntegerPower(pw.Base, pw.Exp, exponentIntegral) && !NumericLanes.IsBinary64(lane))
+                    return new(Polynomial.OfAtom(ctx.AtomOf(e, integer: true, digits: null, scale: 0), ExactRational.One), null, lane);
+                if (NumericLanes.IsBinary64(lane) && exponentIntegral && IsIntegerValued(b.Value!, ctx))
+                    return Built.Fail($"is an arithmetic expression that raises {TermText(pw.Base)} to the power {TermText(pw.Exp)}, an "
+                        + "integer whose carrier is not one, which native arithmetic evaluates as a binary64 approximation, so its value "
+                        + "is not shown to be an integer — " + TypeSixExpressionRule, lane);
                 return Built.Fail($"is an arithmetic expression that raises {TermText(pw.Base)} to the power {TermText(pw.Exp)}, which can "
                     + "be negative or is not an integer, so its value is not shown to be an integer — " + TypeSixExpressionRule, ctx.LeafLane(e));
             }

@@ -991,8 +991,11 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    `1/c`; a power to a non-negative integer literal n (n <= 64) is the n-th power. A quotient by an item, a function or an expression is
    no polynomial and is not proven (`A / A` is a size error at A = 0). Any other power is an integer atom when its base is shown integral
    and its exponent cannot be negative (an unsigned integer item through an even number of negations), or its base is the literal 1 and
-   its exponent is shown integral (`IsIntegerPower`; `N ** U`, `1 ** M`); otherwise it is not proven (`N ** -1`, `1024 ** K`,
-   `4 ** 0.5`). An expansion is held to 1024 monomials; a larger one is not expanded, and is an integer atom when its structure alone
+   its exponent is shown integral (`IsIntegerPower`; `N ** U`, `1 ** M`), AND the code generator computes it exactly: its exponent's
+   carrier is an integer by value (`NumericLanes.IsIntegerByValue`: the Int128 lane at scale 0 or below, so `3 ** U` over `U PIC 99P`
+   is the exact power, review R2-2, `pb5891_p_scaled_exponent`), which `NumericRenderer.Power` and the classifier ask through the one
+   `NumericLanes.Power` (review R2-1); an exponent integer by value but not by its carrier (`2 ** (U / 2 * 2)`) is a binary64
+   approximation and refused. Otherwise it is not proven (`N ** -1`, `1024 ** K`, `4 ** 0.5`). An expansion is held to 1024 monomials; a larger one is not expanded, and is an integer atom when its structure alone
    makes it an integer term (`ProvablyIntegral`), otherwise not proven.
 3. **Integer-valued, exactly.** Like terms are collected. A monomial that holds a real atom must have coefficient zero, so `SQRT (N) -
    SQRT (N) + 5` and `0 * FUNCTION SQRT (N) + 5` are the constant 5. What is left is a polynomial P in integer atoms, and
@@ -1047,7 +1050,7 @@ literal-constant rows; `ArgumentPolynomialTests` holds the grid test, the cap an
 Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`, `pb5345-power-literal-base`,
 `pb5832-product-by-literal`, `-quotient-in-sum`, `-item-quotient`, `-numeric-function-term`, `-date-of-integer-function-term`,
 `-day-of-integer-function-term`, the ten `pb5886-*` refusals, `pb5891-not-integer-valued`, `-impure-identity`, `-degree-over-cap`, `-table-subscripts`, `-table-two-subscripts`, `-sdidi-lane-identity`; complements `pb5208_power_integral_exponents`,
-`pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`, `pb5891_polynomial_integer_arguments`, `pb5891_standard_decimal_identity`, `pb5891_native_exact_lane`.
+`pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`, `pb5891_polynomial_integer_arguments`, `pb5891_standard_decimal_identity`, `pb5891_native_exact_lane`, `pb5891_p_scaled_exponent`, `pb5891_p_scaled_exponent_85`.
 
 ### An argument rule that differs by edition is one edition arm, never a second copy (PB5130, PB5161, PB5162).
 

@@ -40,17 +40,26 @@ internal static class NumericLanes
         return NumericLane.Scaled;
     }
 
-    /// <summary>The lane of a power (<c>NumericRenderer.Power</c>): the SDIDI under a decimal engine (§2023:8.8.1.5.4); natively an
-    /// integer exponent on the Int128 lane over a base that is no binary64 is the EXACT power (kb/Work PB2617, PB4575; the base itself
-    /// when the exponent is the literal 1 over an Int128-lane base); every other power is the engine's binary64, a float item's
-    /// content when an operand is one.</summary>
-    internal static NumericLane Power(NumericLane @base, NumericLane exponent, bool exponentIsInteger, bool literalOne, bool decimalEngine)
+    /// <summary>The lane of a power (<c>NumericRenderer.Power</c>, which dispatches on it): the SDIDI under a decimal engine
+    /// (§2023:8.8.1.5.4); natively an exponent that is an integer BY VALUE (<see cref="IsIntegerByValue"/>) over a base that is no
+    /// binary64 is the EXACT power (kb/Work PB2617, PB4575; the base itself when the exponent is the literal 1 over an Int128-lane
+    /// base); every other power is the engine's binary64, a float item's content when an operand is one.
+    /// <paramref name="exponentIsIntegerByValue"/> is <see cref="IsIntegerByValue"/>'s answer for the exponent's carrier.</summary>
+    internal static NumericLane Power(NumericLane @base, NumericLane exponent, bool exponentIsIntegerByValue, bool literalOne, bool decimalEngine)
     {
         if (decimalEngine) return NumericLane.Sdidi;
-        if (!IsBinary64(@base) && exponent == NumericLane.Scaled && exponentIsInteger)
+        if (!IsBinary64(@base) && exponent == NumericLane.Scaled && exponentIsIntegerByValue)
             return literalOne && @base == NumericLane.Scaled ? NumericLane.Scaled : NumericLane.Exact;
         return @base == NumericLane.Binary64 || exponent == NumericLane.Binary64 ? NumericLane.Binary64 : NumericLane.Approximation;
     }
+
+    /// <summary>⛔ THE ONE QUESTION "IS THIS CARRIER AN INTEGER BY ITS VALUE" (kb/Work PB5891 review R2-1, R2-2; PB272's value-not-spelling
+    /// rule): an Int128-lane value whose scale is 0 or NEGATIVE holds an integer (a P-scaled item, PIC 99P, is its unscaled digits
+    /// times a power of ten). The renderer's exact power asks it of its exponent, the bind-time carrier prediction states a leaf's
+    /// integrality by it, and the type 6 classifier passes it to <see cref="Power"/>, so the three cannot disagree on which power is
+    /// exact. Before it the renderer asked for scale 0 exactly, so <c>3 ** U</c> over <c>U PIC 99P VALUE 40</c> took the binary64
+    /// approximation and stored 12157665459056929000 for 12157665459056928801.</summary>
+    internal static bool IsIntegerByValue(NumericLane lane, int carrierScale) => lane == NumericLane.Scaled && carrierScale <= 0;
 
     /// <summary>Is the lane binary64 (a float item's content or an engine's approximation)?</summary>
     internal static bool IsBinary64(NumericLane lane) => lane is NumericLane.Binary64 or NumericLane.Approximation;

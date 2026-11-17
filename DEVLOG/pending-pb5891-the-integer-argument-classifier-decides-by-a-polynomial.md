@@ -41,3 +41,9 @@ intermediate by its precision; `NumericLaneDriftTests` holds the generated C#'s 
 program is refused (`pb5891-sdidi-lane-identity`; its exact twin `pb5891_native_exact_lane` prints 0041). R1-1: places compare
 structurally through subscripts, so `T (I) * (T (I) + 1) / 2` is admitted and `T (I) * (T (J) + 1) / 2` refused. R1-2: the grid test runs
 only where it is read, memoized per polynomial (a 40-node argument: 15.5 s to 2.2 s).
+
+**Review round 2.** R2-2 (a wrong answer already on main): the exact power asked for a scale-0 exponent, so `3 ** U` over `U PIC 99P
+VALUE 40` took the binary64 approximation and stored 12157665459056929000 for 12157665459056928801 (`MOD (3 ** U, 1000)` gave 768 for
+801). The one question is now `NumericLanes.IsIntegerByValue` (scale 0 or below), asked by the renderer's exact power, the carrier
+prediction and the classifier; R2-1: `NumericRenderer.Power` dispatches on `NumericLanes.Power`, and the classifier refuses a power
+evaluated as a binary64 approximation. Cases `pb5891_p_scaled_exponent` and `pb5891_p_scaled_exponent_85`.
