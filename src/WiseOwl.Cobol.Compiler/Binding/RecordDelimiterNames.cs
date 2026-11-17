@@ -22,7 +22,8 @@ namespace WiseOwl.Cobol.Binding;
 /// </list>
 /// GnuCOBOL's fourth arm, a warning "not recognized; will be ignored" for any other word, is a leniency and not an
 /// implementor-name, so it is not taken. Neither name is a reserved word: each is matched here as the text of the
-/// clause's <c>cobolWord</c>, so a program may still declare a data-name or a paragraph spelled BINARY-SEQUENTIAL.</para>
+/// clause's <c>cobolWord</c>, so a program may still declare a data-name or a paragraph spelled BINARY-SEQUENTIAL. Each is an
+/// implementor-name, so the table is a source of <see cref="ImplementorNameRegistry"/> (kb/Work PB5884).</para>
 /// </summary>
 internal static class RecordDelimiterNames
 {

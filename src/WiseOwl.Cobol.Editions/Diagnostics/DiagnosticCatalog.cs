@@ -3361,8 +3361,9 @@ public static class DiagnosticCatalog
         "§1985:VI.6.16.3 SR3");
 
     /// <summary>COBOL7624 — at COBOL-85 the computer-name of the SOURCE-COMPUTER or OBJECT-COMPUTER paragraph is one of this
-    /// implementation's implementor-names (kb/Work PB5795): a device-name, feature-name or switch-name of the SPECIAL-NAMES table
-    /// (<c>ImplementorNames</c>) or an ALPHABET code-name (<c>ImplementorCodeNames</c>). "Computer-name is a system-name."
+    /// implementation's implementor-names (kb/Work PB5795, PB5884): a row of the one registry of them, <c>ImplementorNameRegistry</c>
+    /// (a SPECIAL-NAMES device-, feature- or switch-name, an ALPHABET code-name, an ASSIGN device class or a RECORD DELIMITER
+    /// name). "Computer-name is a system-name."
     /// (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1), and §1985:IV.4.2.2.1.2: "Within a given implementation these three types of
     /// system-names form disjoint sets; a given system-name may belong to one and only one of them." The rule is 1985's alone:
     /// §2002:8.3.1.1.2 and §2023:8.3.2.3.1 keep the disjointness for device-name, feature-name and switch-name only. Asked by
