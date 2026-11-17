@@ -385,23 +385,16 @@ public sealed class CopyProcessor(
     /// <summary>The rule on the text a replacing action produces (kb/Work PB1356) — §2023:7.2.3.4 GR13 for COPY, §2023:7.2.4.4
     /// GR9 for REPLACE, which differ only in that a COPY replacing action MAY produce a REPLACE statement (REPLACE
     /// statements "shall be syntactically correct after the action of the replacing phrase of the COPY statement",
-    /// §2023:7.2.1).
-    /// <para><see cref="KeepsPseudoTextDebuggingLines"/>: whether a debugging line written inside pseudo-text-2 stays a
-    /// debugging line where the replaced text does not begin on one (kb/Work PB5382). COPY says so at every edition
-    /// (§1985:XII.2.4 GR9, §2002:7.1.2.3 GR13: "only those text-words that are specified on debugging lines where the
-    /// debugging line is within pseudo-text-2 appear on debugging lines"); COBOL-85's REPLACE gives every introduced line
-    /// the indicator of the line the replaced text begins on (§1985:XII.3.4 GR11) — see
-    /// <see cref="IntroducedText"/>.</para></summary>
-    private sealed record ResultRule(string Statement, bool ForbidsReplaceStatement, string Rule, string Quoted,
-        bool KeepsPseudoTextDebuggingLines);
+    /// §2023:7.2.1). Which lines of the produced text are debugging lines is the same for both (<see cref="IntroducedText"/>).</summary>
+    private sealed record ResultRule(string Statement, bool ForbidsReplaceStatement, string Rule, string Quoted);
 
     private static readonly ResultRule CopyResultRule = new("COPY", false, "§2023:7.2.3.4 GR13",
         "The replacing action of a COPY statement shall not introduce a COPY statement, a SOURCE FORMAT directive, a "
-        + "comment, or a blank line.", KeepsPseudoTextDebuggingLines: true);
+        + "comment, or a blank line.");
 
     private static readonly ResultRule ReplaceResultRule = new("REPLACE", true, "§2023:7.2.4.4 GR9",
         "The text produced as a result of processing a REPLACE statement shall not contain a COPY statement, a REPLACE "
-        + "statement, a SOURCE FORMAT directive, a comment, or a blank line.", KeepsPseudoTextDebuggingLines: false);
+        + "statement, a SOURCE FORMAT directive, a comment, or a blank line.");
 
     /// <summary>Whether position <paramref name="pos"/> of <paramref name="text"/> lies on a debugging line: its line
     /// begins with <see cref="ReferenceFormatProcessor.DebugLineCarrier"/>, the form the §2023:6.5 conversion writes a
@@ -419,12 +412,19 @@ public sealed class CopyProcessor(
     /// alone. Every further line is a line the replacement INTRODUCES: when the replaced text begins on a debugging line
     /// it is a debugging line ("the resultant text is on a debugging line", §2002:7.1.3.3 GR11; "When a text word specified
     /// in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is
-    /// specified on a debugging line", §1985:XII.2.4 GR9), and otherwise it is what pseudo-text-2 wrote, unless
-    /// <paramref name="takesReplacedIndicator"/> makes it a source line too: COBOL-85's REPLACE, whose introduced lines take
-    /// "the same character as the line on which the text being replaced begins" (§1985:XII.3.4 GR11), and an operand that
-    /// is not pseudo-text at every edition — only debugging lines "within pseudo-text-2" stay debugging lines
-    /// (§1985:XII.2.4 GR9, §2002:7.1.2.3 GR13), so identifier-2 written over a debugging line does not (kb/Work PB5471). The text keeps
-    /// the origins <paramref name="to"/> was written at (kb/Work PB5313), which lay out the words a replacement places.</summary>
+    /// specified on a debugging line", §1985:XII.2.4 GR9), and otherwise it is what pseudo-text-2 wrote: a debugging line of
+    /// pseudo-text-2 stays a debugging line, for COPY and REPLACE alike and at every edition ("only those text words that are
+    /// specified on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines in the resultant
+    /// program", §1985:XII.2.4 GR9; §2002:7.1.2.3 GR13). ⛔ COBOL-85's REPLACE is no exception (kb/Work PB5887): its GR11 —
+    /// "the indicator area of the introduced lines contains the same character as the line on which the text being replaced
+    /// begins" (§1985:XII.3.4 GR11) — is word for word the COPY statement's (§1985:XII.2.4 GR11), which stands beside GR9's
+    /// sentence, so it gives the replaced line's indicator to the lines pseudo-text-2 does not write as debugging lines and
+    /// takes none away; "Debugging lines are permitted in pseudo-text" (§1985:XII.3.4 GR8), and "After all COPY and REPLACE
+    /// statements have been processed, a debugging line will be considered to have all the characteristics of a comment line,
+    /// if the WITH DEBUGGING MODE clause is not specified" (§1985:VI.7.3). <paramref name="takesReplacedIndicator"/> makes every
+    /// line a source line for an operand that is not pseudo-text: only debugging lines "within pseudo-text-2" stay debugging
+    /// lines, so identifier-2 written over a debugging line does not (kb/Work PB5471). The text keeps the origins
+    /// <paramref name="to"/> was written at (kb/Work PB5313), which lay out the words a replacement places.</summary>
     private static MappedText IntroducedText(MappedText to, bool onDebuggingLine, bool takesReplacedIndicator)
     {
         bool decided = onDebuggingLine || takesReplacedIndicator;   // every line's indicator is the replaced line's
@@ -569,7 +569,7 @@ public sealed class CopyProcessor(
                     // debugging line takes the replaced line's indicator on every line it introduces (§1985:XII.2.4 GR11;
                     // kb/Work PB5471).
                     var introducedText = IntroducedText(to, onDebuggingLine,
-                        takesReplacedIndicator: !toIsPseudoText || (fixedForm && !rule.KeepsPseudoTextDebuggingLines));
+                        takesReplacedIndicator: !toIsPseudoText);
                     string introduced = introducedText.Text;
                     // A replacement that BEGINS on a debugging line of its own (pseudo-text-2 written with its D indicator, kept by
                     // COPY) starts a line: the carrier makes every text word after it on the resultant line debugging text, so
