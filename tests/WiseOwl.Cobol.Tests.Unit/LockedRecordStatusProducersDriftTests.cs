@@ -35,8 +35,9 @@ namespace WiseOwl.Cobol.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class LockedRecordStatusProducersDriftTests
 {
-    /// <summary>A use of the '51' constant that COMPARES it (a consumer), not one that yields it.</summary>
-    private static readonly Regex Comparison = new(@"(==|!=)\s*FileStatusCode\.RecordLocked|FileStatusCode\.RecordLocked\s*(==|!=)",
+    /// <summary>A use of the '51' constant that COMPARES it, or KEYS a lookup by it (<c>[FileStatusCode.RecordLocked] =</c>,
+    /// the condition <c>IoStatus1985.OwnValues</c> reports at COBOL-85, kb/Work PB5882): a consumer, not one that yields it.</summary>
+    private static readonly Regex Comparison = new(@"(==|!=)\s*FileStatusCode\.RecordLocked|FileStatusCode\.RecordLocked\s*(==|!=)|\[FileStatusCode\.RecordLocked\]\s*=",
         RegexOptions.Compiled);
 
     /// <summary>The nearest enclosing member declaration above a line: an access modifier, a return type and a name

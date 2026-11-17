@@ -23,9 +23,10 @@ namespace WiseOwl.Cobol.Runtime.IO;
 /// and the two must agree.</para></summary>
 internal static class IoStatus1985
 {
-    /// <summary>§1985:VII.1.3.5 (Sequential I-O), its 9x aside.</summary>
+    /// <summary>§1985:VII.1.3.5 (Sequential I-O), its 9x aside. '07' is spelled by its constant, the one place the value is
+    /// written (<c>IoStatus07SetterDriftTests</c>).</summary>
     private static readonly FrozenSet<string> Sequential = FrozenSet.Create(StringComparer.Ordinal,
-        "00", "04", "05", "07", "10", "30", "34", "35", "37", "38", "39", "41", "42", "43", "44", "46", "47", "48", "49");
+        "00", "04", "05", FileStatusCode.PhraseOnNonReelMedium, "10", "30", "34", "35", "37", "38", "39", "41", "42", "43", "44", "46", "47", "48", "49");
 
     /// <summary>§1985:VIII.1.3.4 (Relative I-O).</summary>
     private static readonly FrozenSet<string> Relative = FrozenSet.Create(StringComparer.Ordinal,
