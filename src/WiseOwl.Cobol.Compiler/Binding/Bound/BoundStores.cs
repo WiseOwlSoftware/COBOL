@@ -26,9 +26,11 @@ namespace WiseOwl.Cobol.Binding.Bound;
 /// <remarks>
 /// Scope facts that keep this walk small and honest:
 /// - Only PLACE stores can hit a property temp. Non-Place stores (generated index/ALTER fields, external
-///   switches, FILE STATUS via <c>FileModel</c>, report-engine counters, run-unit exception state,
-///   <c>BoundTableSort.Storage</c>) can never target the temp — a temp is a synthesized simple local
-///   (and a property subject cannot carry OCCURS, COBOL0842), so those arms are <c>None</c> here.
+///   switches, report-engine counters, run-unit exception state, <c>BoundTableSort.Storage</c>) can never target
+///   the temp — a temp is a synthesized simple local (and a property subject cannot carry OCCURS, COBOL0842), so
+///   those arms are <c>None</c> here. The items a file connector stores (the record area, FILE STATUS, RELATIVE KEY,
+///   DEPENDING ON: <see cref="FileConnectorStore"/>) are data items, and <see cref="StoresInto"/> asks them through
+///   the places its caller passes (kb/Work PB5885).
 /// - <see cref="Place.Item"/> is identity-compared: every Place wrapper (RefMod/alias/view) forwards
 ///   <c>Item</c> to the underlying item, so a windowed write through <c>RefModPlace</c> still classifies.
 /// - The child-statement recursion (<c>Kids</c>) is DEFENSIVELY total over conditional-phrase bodies (SIZE
@@ -82,9 +84,15 @@ public static class BoundStores
     /// <para>A BY REFERENCE CALL argument and an INVOKE write-back are NOT stores here: whether the callee alters
     /// the argument is not decidable from this source element, and a syntax rule that fired on the possibility
     /// would reject a conforming program. The OO property desugar counts them (it must run the SET accessor after
-    /// a crossing), which is why the choice is a parameter of the walk and not of the node.</para></summary>
-    public static bool StoresInto(BoundStatement s, Func<Place, bool> matches) =>
-        s.Accept(new StoreKindVisitor(matches, crossingsStore: false)) is not StoreKind.None;
+    /// a crossing), which is why the choice is a parameter of the walk and not of the node.</para>
+    /// <para>The stores an input-output statement makes through its file connector ARE stores here, though the statement
+    /// names only the file (kb/Work PB5885): <paramref name="connector"/> places them (<see cref="FileConnectorStore"/>) and
+    /// each I-O arm says which its verb makes, so a READ alters its record area, the FILE STATUS item, the RELATIVE KEY item
+    /// and the DEPENDING ON item as a MOVE to one of them does. The other two queries ask about the operands a statement
+    /// writes and pass none.</para></summary>
+    public static bool StoresInto(BoundStatement s, Func<Place, bool> matches,
+        Func<FileModel, FileConnectorStore, IEnumerable<Place>> connector) =>
+        s.Accept(new StoreKindVisitor(matches, crossingsStore: false, connector: connector)) is not StoreKind.None;
 
     /// <summary>The place through which <paramref name="s"/> ITSELF — never a statement nested in it — stores into
     /// <paramref name="item"/>, or null when it does not. The third client (X3.23-1985 USE FOR DEBUGGING general rule 6 c, which
@@ -103,7 +111,8 @@ public static class BoundStores
     /// <summary>The per-node store classification (the former <c>StoreKindOf</c> switch, one arm per leaf) —
     /// the exhaustive <see cref="IBoundStatementVisitor{T}"/> over the bound statements, carrying the target
     /// <paramref name="item"/> so recursion is <c>child.Accept(this)</c>.</summary>
-    private sealed class StoreKindVisitor(Func<Place, bool> matches, bool crossingsStore, bool direct = false) : IBoundStatementVisitor<StoreKind>
+    private sealed class StoreKindVisitor(Func<Place, bool> matches, bool crossingsStore, bool direct = false,
+        Func<FileModel, FileConnectorStore, IEnumerable<Place>>? connector = null) : IBoundStatementVisitor<StoreKind>
     {
         /// <summary>The first <see cref="Place"/> a matching store went through, or null (<see cref="DirectStoreOf"/> reads it).</summary>
         public Place? FirstHit { get; private set; }
@@ -129,6 +138,33 @@ public static class BoundStores
         /// receiver the node used to hold.</summary>
         private bool IntoHit(BoundMove? m) => m is not null && m.Targets.Any(Hit);
         private bool ReceiversHit(IReadOnlyList<Receiver> rs) => rs.Any(r => Hit(r.Place));
+
+        /// <summary>Does the statement store, through the connector of <paramref name="file"/>, into a matching item among
+        /// <paramref name="stores"/>? Only <see cref="StoresInto"/> passes a <c>connector</c>: an item the statement does not name
+        /// is never a property temp, nor an operand the statement explicitly references (X3.23-1985 USE FOR DEBUGGING general
+        /// rule 6 c).</summary>
+        private bool ConnectorHit(FileModel file, params ReadOnlySpan<FileConnectorStore> stores)
+        {
+            if (connector is null) return false;
+            foreach (var store in stores)
+                foreach (var place in connector(file, store))
+                    if (Hit(place)) return true;
+            return false;
+        }
+
+        /// <summary>The FILE STATUS item of each of <paramref name="files"/>: the I-O status is set by CLOSE, DELETE, OPEN, READ,
+        /// REWRITE, START, UNLOCK and WRITE (§2023:9.1.13.1), and the item is updated with it (§2023:12.4.5.8.4 GR1).</summary>
+        private bool StatusHit(IEnumerable<FileModel> files) => connector is not null && files.Any(f => ConnectorHit(f, FileConnectorStore.Status));
+
+        /// <summary>What a READ stores through the connector of <paramref name="file"/>, on both organizations' arms: the record
+        /// area (§2023:14.9.30.4 GR13), the FILE STATUS item (every input-output statement, §2023:9.1.13.1) and the DEPENDING ON item
+        /// (§2023:13.18.43.4 GR15: "after the successful execution of a READ or RETURN statement"); and the RELATIVE KEY item only
+        /// for a SEQUENTIAL read (<paramref name="sequential"/>): §1985:VIII.4.5.4 GR14 moves the relative record number into it on
+        /// "the execution of a format 1 READ statement", and §2023:14.9.30.4 GR25 is the same rule, while a random read takes the
+        /// item as its input (kb/Work PB5885 review R1-1).</summary>
+        private bool ReadHit(FileModel file, bool sequential) =>
+            ConnectorHit(file, FileConnectorStore.RecordArea, FileConnectorStore.Status, FileConnectorStore.Depending)
+            || (sequential && ConnectorHit(file, FileConnectorStore.RelativeKey));
 
         // The statements NESTED in this one — a conditional phrase's imperative statements, an IF or EVALUATE arm, an inline
         // PERFORM body: each is a statement of its own. A found store dominates (the temp occurs exactly once). A DIRECT query
@@ -195,8 +231,8 @@ public static class BoundStores
         public StoreKind Visit(BoundCommitRollback n) => StoreKind.None;   // CONTINUE-equivalent (kb/Work PB137)
         public StoreKind Visit(BoundContinueAfter n) => StoreKind.None;   // reads its interval expr; stores nothing
         public StoreKind Visit(BoundNextSentence n) => StoreKind.None;
-        public StoreKind Visit(BoundOpen n) => StoreKind.None;
-        public StoreKind Visit(BoundClose n) => StoreKind.None;
+        public StoreKind Visit(BoundOpen n) => StatusHit(n.Files.Select(f => f.File)) ? StoreKind.Write : StoreKind.None;
+        public StoreKind Visit(BoundClose n) => StatusHit(n.Files.Select(f => f.File)) ? StoreKind.Write : StoreKind.None;
         public StoreKind Visit(BoundInitiate n) => StoreKind.None;
         public StoreKind Visit(BoundGenerate n) => StoreKind.None;
         public StoreKind Visit(BoundSuppress n) => StoreKind.None;
@@ -211,9 +247,17 @@ public static class BoundStores
         public StoreKind Visit(BoundMethodReturn n) => StoreKind.None;
         public StoreKind Visit(BoundAlter n) => StoreKind.None;
         public StoreKind Visit(BoundSetSwitches n) => StoreKind.None;
-        public StoreKind Visit(BoundKeyedDelete n) => StoreKind.None;   // no data receiver; its INVALID KEY body is separately wrapped
-        public StoreKind Visit(BoundSort n) => StoreKind.None;
-        public StoreKind Visit(BoundMerge n) => StoreKind.None;
+        // DELETE names no data receiver (its INVALID KEY body is separately wrapped); it sets the FILE STATUS item.
+        public StoreKind Visit(BoundKeyedDelete n) => StatusHit([n.File]) ? StoreKind.Write : StoreKind.None;
+        public StoreKind Visit(BoundSort n) => SortTransferHit(n.Using, n.Giving) ? StoreKind.Write : StoreKind.None;
+        public StoreKind Visit(BoundMerge n) => SortTransferHit(n.Using, n.Giving) ? StoreKind.Write : StoreKind.None;
+
+        /// <summary>The USING files are read by implicit READ statements (§2023:14.9.40.4 GR9 a)), each storing what an explicit
+        /// READ stores, and the GIVING files are written as if by WRITE statements, each setting the FILE STATUS item and, for a
+        /// relative file, the RELATIVE KEY item.</summary>
+        private bool SortTransferHit(IReadOnlyList<FileModel> usingFiles, IReadOnlyList<FileModel> givingFiles) =>
+            connector is not null
+            && (usingFiles.Any(f => ReadHit(f, sequential: true)) || givingFiles.Any(f => ConnectorHit(f, FileConnectorStore.Status, FileConnectorStore.RelativeKey)));
         // The table SORT reads the table and places its occurrences back (ISO/IEC 1989:2023 §2023:14.9.40.4 GR24): data-name-2 and every
         // key data-name it writes are changed in place (kb/Work PB4855). Its storage is reached through n.Storage, the same table.
         public StoreKind Visit(BoundTableSort n)
@@ -222,7 +266,7 @@ public static class BoundStores
             foreach (var key in n.Keys) hit |= Hit(key.Written);
             return hit ? StoreKind.ReadWrite : StoreKind.None;
         }
-        public StoreKind Visit(BoundUnlock n) => StoreKind.None;
+        public StoreKind Visit(BoundUnlock n) => StatusHit([n.File]) ? StoreKind.Write : StoreKind.None;
 
         // ── Wrappers / containers ───────────────────────────────────────────────────────────────────────
         public StoreKind Visit(BoundSequence n) => Steps(n.Steps);
@@ -313,29 +357,36 @@ public static class BoundStores
         // The conditional-phrase recursion is TOTAL over the node's phrase bodies, so the sequential WRITE's
         // §2023:9.1.14 pair (bound under --permissive only — kb/Work PB691) is walked exactly as BoundKeyedWrite's is;
         // the two arms of one verb may not disagree about which bodies exist (feedback_two_arm_dispatch).
-        public StoreKind Visit(BoundWrite n) => StoreOrKids(n.FromMove is not null && Hit(n.Record),
+        public StoreKind Visit(BoundWrite n) => StoreOrKids((n.FromMove is not null && Hit(n.Record)) || StatusHit([n.File]),
             StoreKind.ReadWrite, n.AtEop, n.NotAtEop,                  // FROM-move then read as the image
             n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);          // the --permissive pair (PB691)
         // The INVALID KEY lists are walked on BOTH READ arms. They are §2023:14.9.30.2 Format-2 phrases and the
         // sequential arm reports COBOL1720 for them, but --permissive leaves the bind standing and
         // §2023:14.9.30.4 GR13c then RUNS the NOT INVALID KEY imperative — a store inside it is a real store, and
         // omitting the lists here is the same two-arm disagreement kb/Work PB334 was about.
-        public StoreKind Visit(BoundRead n) => StoreOrKids(IntoHit(n.IntoMove), StoreKind.Write,
+        // A READ stores its INTO operand and, through the connector, what ReadHit names: the statement names only the file
+        // (kb/Work PB5885).
+        public StoreKind Visit(BoundRead n) => StoreOrKids(IntoHit(n.IntoMove) || ReadHit(n.File, sequential: true), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
-        public StoreKind Visit(BoundRewrite n) => StoreOrKids(n.FromMove is not null && Hit(n.Record),
+        public StoreKind Visit(BoundRewrite n) => StoreOrKids((n.FromMove is not null && Hit(n.Record)) || StatusHit([n.File]),
             StoreKind.ReadWrite, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);   // the --permissive pair (PB691)
-        public StoreKind Visit(BoundKeyedRead n) => StoreOrKids(IntoHit(n.IntoMove), StoreKind.Write,
+        public StoreKind Visit(BoundKeyedRead n) => StoreOrKids(IntoHit(n.IntoMove) || ReadHit(n.File, sequential: n.Kind != ReadKind.Random), StoreKind.Write,
             n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
-        public StoreKind Visit(BoundKeyedWrite n) => StoreOrKids(n.FromMove is not null && Hit(n.Record), StoreKind.ReadWrite,
-            n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
-        public StoreKind Visit(BoundKeyedRewrite n) => StoreOrKids(n.FromMove is not null && Hit(n.Record), StoreKind.ReadWrite,
-            n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
-        public StoreKind Visit(BoundKeyedDeleteFile n) => Kids(n.OnException, n.NotOnException);
-        public StoreKind Visit(BoundKeyedStart n) => Kids(n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
+        // A sequential-access WRITE of a relative file moves the number of the record released into the RELATIVE KEY item
+        // (§2023:14.9.51.4 GR29 a)); under random or dynamic access the item is the WRITE's input (GR29 b)).
+        public StoreKind Visit(BoundKeyedWrite n) => StoreOrKids((n.FromMove is not null && Hit(n.Record)) || StatusHit([n.File])
+                || (n.File.AccessMode == FileAccessMode.Sequential && ConnectorHit(n.File, FileConnectorStore.RelativeKey)),
+            StoreKind.ReadWrite, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
+        public StoreKind Visit(BoundKeyedRewrite n) => StoreOrKids((n.FromMove is not null && Hit(n.Record)) || StatusHit([n.File]),
+            StoreKind.ReadWrite, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
+        public StoreKind Visit(BoundKeyedDeleteFile n) => StoreOrKids(StatusHit([n.File]), StoreKind.Write, n.OnException, n.NotOnException);
+        public StoreKind Visit(BoundKeyedStart n) => StoreOrKids(StatusHit([n.File]), StoreKind.Write, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
         public StoreKind Visit(BoundRelease n) => n.FromMove is not null && Hit(n.Record) ? StoreKind.ReadWrite : StoreKind.None;
-        public StoreKind Visit(BoundReturn n) => StoreOrKids(Hit(n.RecordArea) || IntoHit(n.IntoMove) || Hit(n.Varying?.Depending),
-            Hit(n.RecordArea) ? StoreKind.ReadWrite : StoreKind.Write,  // area: stored then INTO-source
-            n.AtEnd, n.NotAtEnd);
+        // RETURN makes the record available in the record area (§2023:14.9.34.4 GR3) and sets the DEPENDING ON item
+        // (§2023:13.18.43.4 GR15) through the connector, as READ does; an SD has no FILE STATUS or RELATIVE KEY item.
+        public StoreKind Visit(BoundReturn n) => StoreOrKids(
+            IntoHit(n.IntoMove) || ConnectorHit(n.File, FileConnectorStore.RecordArea, FileConnectorStore.Depending),
+            StoreKind.Write, n.AtEnd, n.NotAtEnd);
 
         // ── CALL / INVOKE (BY REFERENCE crossings: copy-in + writeback = ReadWrite) ──────────────────────
         public StoreKind Visit(BoundCallProgram n) =>
