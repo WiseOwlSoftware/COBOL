@@ -15,6 +15,18 @@
       *> 2.33333333333333333 (lines 2, 3, 6, 14), and every other
       *> line as there. Rendering the arguments at scale 0 (the
       *> withdrawn ruling R4-1) printed 2.33333333333333000.
+      *> Line 15 (kb/Work PB5893, the coordinator's ruling TRUNCATION):
+      *> the argument A / 3 is evaluated exactly whatever the receiver,
+      *> at the working scale NumericLanes.ArgumentScale gives a
+      *> floating-point receiver (17 + 14 guard digits), so ABS returns
+      *> 2.3333333333333333333333333333333; it lands in COMP-2 F2 with
+      *> no ROUNDED as any exact value does, by truncation toward zero,
+      *> the double 2.333333333333333 (2.33333333333333303...). The
+      *> evidence (probe bis2.cob, kb/Work PB5893's dated file): on
+      *> main COMPUTE F2 = R over R PIC 9V9(30) holding that value
+      *> prints 2.333333333333333, R + 0 and ROUNDED print
+      *> 2.3333333333333335. Main printed 2.3333333333333335 here only
+      *> because it took the argument onto binary64 (the defect).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. S0.
        DATA DIVISION.

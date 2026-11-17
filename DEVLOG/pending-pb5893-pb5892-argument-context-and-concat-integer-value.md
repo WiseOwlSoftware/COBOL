@@ -16,7 +16,11 @@ and `RawArgPairs`) pass it. `IntrinsicArgumentIntakeContractDriftTests.EveryArgu
 holds every `num.AsNum(` of the renderer to it. After the fix every line of the probe prints the derived value
 (`runs-br/rcv23-001`). The argument context's scale is one rule, `NumericLanes.ArgumentScale`: the receiver's scale, and under a
 floating-point receiver at least the 17 significant digits of binary64, so a nested quotient keeps 31 fraction digits and its
-value reaches the binary64 receiver whole (the coordinator's ruling; `LaneOf` reads the same scale).
+value reaches the binary64 receiver whole (the coordinator's ruling; `LaneOf` reads the same scale). The function's exact value
+then lands as any exact value does (truncation without ROUNDED, the coordinator's ruling; the landing rule is unchanged), so
+`COMPUTE F2 = FUNCTION ABS (A / 3)` prints 2.333333333333333 where main's binary64 argument gave 2.3333333333333335, as main's own
+`COMPUTE F2 = R` prints for the same exact value (`pb5891_argument_receiver_scale` line 15; the evidence is kb/Work PB5893's dated
+file of 2026-11-17).
 
 **A sibling of PB5892 (rejects legal source).** The STOP and GOBACK status operand (§2023:14.9.42.3 SR2, §2023:14.9.18.3 SR6) asked
 `Scale: 0` for "an integer data item", so `STOP RUN WITH NORMAL STATUS U` over U PIC 99P COMP was refused COBOL1704; it asks
