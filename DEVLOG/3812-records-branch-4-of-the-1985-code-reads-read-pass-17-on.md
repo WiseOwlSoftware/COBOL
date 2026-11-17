@@ -1,4 +1,4 @@
-## Records branch 4 of the 1985 code reads: read pass 17 on record, three rulings recorded, and the last inherited 1985 row closes on a test (1985 reads 0 GAP)
+## Entry 3812 — 2026-11-16 20:41 PST — Records branch 4 of the 1985 code reads: read pass 17 on record, three rulings recorded, and the last inherited 1985 row closes on a test (1985 reads 0 GAP)
 
 A records branch (kb/Work PB5819, PB5849, PB5683): it records decisions already made and changes no compiler or
 runtime source.
@@ -57,3 +57,4 @@ sequential sibling stays open, with the measure the ruling gives.
 - after: `1985 2274 rules · 0 GAP (v1.0 = zero GAP)`; code reads 1343 confirmed · 11 contradicted · 0 undecided · 0
   stale, no re-read owed · 1 KEPT row owed a read (`1985-GR-XIII.4.5.4-18`, now witnessed by its own test). 2023 (4 GAP) and 2002 (1183
   GAP) are unchanged.
+
