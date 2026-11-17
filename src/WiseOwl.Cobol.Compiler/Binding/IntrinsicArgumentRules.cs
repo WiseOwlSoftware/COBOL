@@ -1887,10 +1887,18 @@ internal static class IntrinsicArgumentRules
             // An operand already refused where it was bound: its site reported the rule it breaks.
             case BoundExprError:
                 return null;
+            // The integer terms that are no item, literal or operation: an integer function (the call arm above took every other), a
+            // counter register, an index-name, a report VARYING counter and an OCCURS DEPENDING extent (ProvablyIntegral's own arms).
+            case BoundIntrinsicCall or BoundIndexRef or BoundLinageCounterRef or BoundReportCounterRef or BoundReportVaryingRef or BoundOdoExtent
+                when ProvablyIntegral(e):
+                return FractionalFactorWhy(e, factor);
+            // ⛔ THE DEFAULT REFUSES (review R4-1): a BoundNumRef that is no numeric item, a BoundNumLiteral the fold cannot read, an
+            // operator this walk does not know, and any node kind added later are not shown to be integers.
+            case BoundNumRef or BoundNumLiteral or BoundIndexRef or BoundLinageCounterRef or BoundReportCounterRef or BoundReportVaryingRef
+                or BoundOdoExtent:
             default:
-                return ProvablyIntegral(e) ? FractionalFactorWhy(e, factor)
-                    : $"is an arithmetic expression with {TermText(e)}, a term that is not shown to be an integer, so the expression is "
-                      + "not shown to always result in an integer value — " + TypeSixExpressionRule;
+                return $"is an arithmetic expression with {TermText(e)}, a term that is not shown to be an integer, so the expression is "
+                    + "not shown to always result in an integer value — " + TypeSixExpressionRule;
         }
     }
 
@@ -1916,13 +1924,21 @@ internal static class IntrinsicArgumentRules
     /// item of scale s and d digits spans [−s, d − s); a literal its own digits; a product the sums of its factors' bounds (a quotient by a
     /// literal c is the product by 1/c); a sum the outer bounds of its terms and one more position. A term whose magnitude the walk does
     /// not know (a function, a register, an index) spans [0, cap): it is an integer of up to cap digits.</summary>
+    /// <para>⛔ EVERY <see cref="BoundExpr"/> KIND IS NAMED, AND THE DEFAULT REFUSES (kb/Work PB5886 review R4-1): a power fell to a
+    /// default that bounded it as an integer, so <c>(B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1</c> slipped past the bound its base
+    /// fails. A kind the walk does not name is not proven, and <c>TypeSixWalkCoverageDriftTests</c> holds every proof walk to naming
+    /// every concrete kind.</para></summary>
     private static (int Lo, int Hi, string? Overflow) DigitBound(BoundExpr e, int cap)
     {
         if (ExactValue(e) is { } literal) return LiteralDigits(literal, cap);
         switch (e)
         {
-            case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } }:
-                return p.IsFloat ? (-cap, cap, null) : (-p.Scale, p.Digits - p.Scale, null);
+            case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric, IsFloat: false } p } }:
+                return (-p.Scale, p.Digits - p.Scale, null);
+            case BoundNumRef:
+                return NotBounded(e, cap);   // a floating-point item, or an operand an extension admits
+            case BoundNumLiteral:
+                return NotBounded(e, cap);   // a literal ExactValue could not read
             case BoundNegate n:
                 return DigitBound(n.Operand, cap);
             case BoundUdfEvaluatedExpr udf:
@@ -1932,16 +1948,51 @@ internal static class IntrinsicArgumentRules
                 var l = DigitBound(b.Left, cap);
                 if (l.Overflow is not null) return l;
                 var r = b.Op == '/'
-                    ? (ExactValue(b.Right) is { Sign: not 0 } c ? LiteralDigits(ExactRational.One / c, cap) : (-cap, cap, null))
+                    ? (ExactValue(b.Right) is { Sign: not 0 } c ? LiteralDigits(ExactRational.One / c, cap) : NotBounded(b.Right, cap))
                     : DigitBound(b.Right, cap);
                 if (r.Overflow is not null) return r;
-                (int lo, int hi) = b.Op is '+' or '-' ? (Math.Min(l.Lo, r.Lo), Math.Max(l.Hi, r.Hi) + 1) : (l.Lo + r.Lo, l.Hi + r.Hi);
+                (int lo, int hi) = b.Op switch
+                {
+                    '+' or '-' => (Math.Min(l.Lo, r.Lo), Math.Max(l.Hi, r.Hi) + 1),
+                    '*' or '/' => (l.Lo + r.Lo, l.Hi + r.Hi),
+                    _ => (-cap, cap),
+                };
                 return (lo, hi, lo < 0 && hi - lo > cap ? ExprText(e) : null);
             }
-            default:
+            // A POWER IS BOUNDED BY ITS BASE AND EXPONENT (review R4-1): an integer exponent n >= 0 multiplies the base's positions by n
+            // (the power is a product of n bases); a power of an integer base to an unsigned integer item is an integer of unknown size;
+            // the literal 1 to any integer exponent is 1. Any other power is not bounded.
+            case BoundPower pw:
+            {
+                var bound = DigitBound(pw.Base, cap);
+                if (bound.Overflow is not null) return bound;
+                if (ExactValue(pw.Exp) is { IsInteger: true, Sign: >= 0 } n && QuotientsAreExact(pw.Exp))
+                {
+                    long times = (long)System.Numerics.BigInteger.Min(n.Numerator, cap + 1);
+                    long lo = bound.Lo * times, hi = bound.Hi * times;
+                    if (lo < 0 && hi - lo > cap) return (-cap, cap, ExprText(e));
+                    return ((int)Math.Max(lo, -cap - 1), (int)Math.Min(hi, cap + 1), null);
+                }
+                if (IsLiteralOne(pw.Base)) return (0, 1, null);
+                return bound.Lo >= 0 && IsNonNegativeIntegerExponent(pw.Exp) ? (0, cap, null) : NotBounded(e, cap);
+            }
+            // An INTEGER term whose magnitude the walk does not know: an integer of up to cap digits, no fraction digits.
+            case BoundIntrinsicCall { ResultType: IntrinsicType.Integer }:
+            case BoundIndexRef or BoundLinageCounterRef or BoundReportCounterRef or BoundReportVaryingRef or BoundOdoExtent:
                 return (0, cap, null);
+            case BoundIntrinsicCall:
+                return NotBounded(e, cap);   // a numeric function's value carries any digits
+            // An operand already refused where it was bound: its site reported the rule it breaks, and nothing more is said of it.
+            case BoundExprError:
+                return (0, 0, null);
+            default:
+                return NotBounded(e, cap);
         }
     }
+
+    /// <summary>The bound of a term the walk does not show bounded: it is refused where it stands (its own text as the overflow), so
+    /// no intermediate it is part of, and no argument it is, is admitted (review R4-1: the fail-closed default).</summary>
+    private static (int Lo, int Hi, string? Overflow) NotBounded(BoundExpr e, int cap) => (-cap, cap, ExprText(e));
 
     /// <summary>The positions of an exact literal value's nonzero digits (see <see cref="DigitBound"/>); a value with no terminating
     /// decimal expansion spans [−cap, cap), so any intermediate holding it overflows.</summary>
@@ -2047,11 +2098,16 @@ internal static class IntrinsicArgumentRules
         // function's TYPE, never by this reference's value), so a sum, product or negation over one is always integral. The
         // ARGUMENTS beneath the call are the call's business, not terms of this sum.
         BoundIntrinsicCall { ResultType: IntrinsicType.Integer } => true,
-        _ when AlgebraicRanges.IsCounterRegister(e) => true,
+        BoundIntrinsicCall => false,
+        BoundLinageCounterRef or BoundReportCounterRef => AlgebraicRanges.IsCounterRegister(e),
         // An index-name's value is an occurrence number (§2023:13.18.38), a report VARYING counter and an OCCURS DEPENDING extent are
         // scale-0 integers by construction (their node docs).
         BoundIndexRef or BoundReportVaryingRef or BoundOdoExtent => true,
         BoundPower pw => ProvablyIntegral(pw.Base) && IsIntegerPower(pw.Base, pw.Exp, ProvablyIntegral(pw.Exp)),
+        BoundUdfEvaluatedExpr udf => ProvablyIntegral(udf.Inner),
+        // ⛔ NOT PROVEN (review R4-1): a literal the fold cannot read, an item that is no numeric item, a quotient (the fold took the
+        // literal ones), an operand already refused, and any node kind added later.
+        BoundNumLiteral or BoundNumRef or BoundBinary or BoundExprError => false,
         _ => false,
     };
 
@@ -2157,6 +2213,9 @@ internal static class IntrinsicArgumentRules
                 && System.Numerics.BigInteger.Abs(ev.Numerator) <= MaxFoldedExponent
                 && (bv.Sign != 0 || ev.Sign > 0):
                 return bv.Pow((int)ev.Numerator);
+            // ⛔ THE FOLD READS LITERALS ONLY (review R4-1): every other kind is no literal, and null is "not a constant", never a value.
+            case BoundBinary or BoundPower or BoundNumRef or BoundIntrinsicCall or BoundIndexRef or BoundLinageCounterRef
+                or BoundReportCounterRef or BoundReportVaryingRef or BoundOdoExtent or BoundExprError or BoundUdfEvaluatedExpr:
             default:
                 return null;
         }

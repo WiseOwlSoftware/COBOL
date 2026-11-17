@@ -100,9 +100,11 @@ public sealed class IntegerArgumentConstantWitnessTests
     private static readonly BoundExpr Big27 = Item("B27", 27, 0);
 
     /// <summary><c>B27 / 0.0001 / 16384 * 16384 * 0.0001</c> (kb/Work PB5886 review R3-1): B27 for every value in exact arithmetic. Its
-    /// quotient by 16384, B27 × 0.6103515625, has up to 27 integer and 10 fraction digits: the native quotient keeps its 14 fraction digits (the nested
-    /// quotient's guard), a standard-decimal intermediate keeps 34 significant digits (§2023:8.8.1.5.2) and the 2002 standard one 32
-    /// (§2002:8.8.1.3.1.1), so at B27 = 999…9 the value is …998.9999 under both standard arithmetics.</summary>
+    /// quotient by 16384, B27 × 0.6103515625, has up to 27 integer and 10 fraction digits. Native arithmetic keeps them (the nested
+    /// quotient's guard digits), and the expression prints B27. A standard-decimal intermediate keeps 34 significant digits
+    /// (§2023:8.8.1.5.2), so at B27 = 999…9 the expression prints …998.9999. The 2002 standard intermediate keeps 32 (§2002:8.8.1.3.1.1)
+    /// and, at B27 = 999…9, happens to print …999.0000 (review R4-2); the screen refuses there on the bound, which a value with fraction
+    /// digits beyond 32 significant ones exceeds, not on that one valuation.</summary>
     private static readonly BoundExpr Big27Round =
         Bin(Bin(Bin(Bin(Big27, '/', Lit("0.0001")), '/', Lit("16384")), '*', Lit("16384")), '*', Lit("0.0001"));
 
@@ -115,6 +117,13 @@ public sealed class IntegerArgumentConstantWitnessTests
         { "W-S * 10, standard (2002)", ArithmeticMode.Standard, Bin(ScaledItem, '*', Lit("10")), false },
         { "B27 * 3, standard-decimal (an integer intermediate may round and stays an integer)", ArithmeticMode.StandardDecimal,
             Bin(Big27, '*', Lit("3")), false },
+        // Review R4-1: a power is bounded by its base, so ** 1 does not hide the base's rounded intermediate.
+        { "(B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1, native", ArithmeticMode.Native,
+            new BoundPower(Big27Round, Lit("1"), NegativeBaseRealRoots: false), false },
+        { "(B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1, standard-decimal", ArithmeticMode.StandardDecimal,
+            new BoundPower(Big27Round, Lit("1"), NegativeBaseRealRoots: false), true },
+        { "(W-I / 2 * 2) ** 2, standard-decimal", ArithmeticMode.StandardDecimal,
+            new BoundPower(Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), Lit("2"), NegativeBaseRealRoots: false), false },
     };
 
     [Theory]

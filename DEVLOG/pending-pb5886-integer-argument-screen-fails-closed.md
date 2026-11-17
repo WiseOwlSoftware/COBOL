@@ -38,5 +38,13 @@ carries a required `Arithmetic`, `IntrinsicResultType.Resolve` and the screen ta
 `pb5886-standard-decimal-intermediate` (refused) and `pb5886_native_quotient_chain` (admitted, 0999) pins it, and the INTEGER-PART
 wrap is a no-op on every argument it receives. The stale quotient text in the pb5886 goldens and the node-verdict table is restated.
 
+**Review round 4.** The digit bound did not walk into a power, so `MAX ((B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1)` was
+admitted under STANDARD-DECIMAL and the INTEGER-PART wrap changed what MAX printed: the third hole of one kind, a node kind a walk did
+not name falling to a default that admitted. Every proof walk (CollectAdditive, DigitBound, ProvablyIntegral, ExactValue) now names
+every concrete `BoundExpr` kind and refuses in its default, a power is bounded by its base and exponent, and
+`TypeSixWalkCoverageDriftTests` enumerates the kinds by reflection. Refusal `pb5886-standard-decimal-power`; its native twin is the
+second line of `pb5886_native_quotient_chain` (0999). The same shared code applies the bound under the 2002 STANDARD arithmetic; no
+2002 verdict is recorded (the 2002 store is frozen).
+
 **Rows.** 1985: the four rows of the note take the new refusals as witnesses; `1989-AR-A.2.2-4` restated CONFORMS. 2023:
 `AR-15.3-6` gains the witnesses; `GR-5.5-3` and `DOC-A.1-124` retire the deleted goldens. NIST: 403 NIST tests green.

@@ -19,7 +19,10 @@
       *> nested quotient keeps (the guard digits of the numeric
       *> design's quotient rule), so B27 / 0.0001 / 16384 * 16384 *
       *> 0.0001 is exactly B27. With B27 = 999...9 (27 nines),
-      *> MOD (B27, 1000) is 999 (§2023:15.64.4 RV1).
+      *> MOD (B27, 1000) is 999 (§2023:15.64.4 RV1). The same argument
+      *> to the power 1 is the same value, so the second line is 999
+      *> too (review R4-1; refused under STANDARD-DECIMAL,
+      *> pb5886-standard-decimal-power).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5886M.
        DATA DIVISION.
@@ -30,5 +33,8 @@
        MAIN-PARA.
            COMPUTE R = FUNCTION MOD
                (B27 / 0.0001 / 16384 * 16384 * 0.0001, 1000).
+           DISPLAY R.
+           COMPUTE R = FUNCTION MOD
+               ((B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1, 1000).
            DISPLAY R.
            STOP RUN.
