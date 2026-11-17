@@ -1,4 +1,4 @@
-## PB2119 Delete wave C: dead runtime API removed by the emitted-set measure, joined names kept, the register re-measured
+## Entry 3825 — 2026-11-17 13:45 PST — PB2119 Delete wave C: dead runtime API removed by the emitted-set measure, joined names kept, the register re-measured
 
 **What was measured.** Before any deletion, the arch-oracle capture of main 5459e4e876 compiled the whole population the
 suites compile (conformance corpus, NIST green programs, version matrix, optional-word sweep: 22595 cases, 8473 emitted
@@ -37,3 +37,4 @@ constructed and threaded) and PB2756 stay open with the re-measure's finding.
 **Neutrality.** `python scripts/arch/compare_oracle.py` over the captures before and after the deletions:
 `=== ARCH-ORACLE: IDENTICAL — 22595 cases ===`, and the emitted member set after equals the set before. The solution
 builds with 0 warnings; the Characterization snapshots (37) and the touched unit (6577) and conformance (365) filters pass.
+
