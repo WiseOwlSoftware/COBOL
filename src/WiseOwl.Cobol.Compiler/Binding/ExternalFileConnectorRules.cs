@@ -210,14 +210,15 @@ internal static class ExternalFileConnectorRules
 
     /// <summary>"If any specifies it, all shall, naming the same item": report the first describer that names no external
     /// item, else the first whose item differs from the first describer's.</summary>
-    private static void SameItem(EditionContext edition, List<FileModel> conns, Func<FileModel, string?> identity,
+    private static void SameItem(EditionContext edition, List<FileModel> conns, Func<FileModel, ExternalDataItemIdentity?> identity,
         Func<FileModel, Editions.DiagnosticCursor> at, DiagnosticDescriptor code, EditionSeverity severity, string message,
         string cite, string externalName)
     {
+        // The identities are values compared part by part (record equality of ExternalDataItemIdentity, kb/Work PB5888 R1-1).
         var ids = conns.Select(identity).ToList();
-        if (!ids.Any(id => id is null) && ids.Distinct(StringComparer.Ordinal).Count() <= 1) return;
+        if (!ids.Any(id => id is null) && ids.Distinct().Count() <= 1) return;
         int odd = ids.FindIndex(id => id is null);
-        if (odd < 0) odd = ids.FindIndex(id => !string.Equals(id, ids[0], StringComparison.Ordinal));
+        if (odd < 0) odd = ids.FindIndex(id => id != ids[0]);
         using (edition.At(at(conns[odd])))
             edition.Report(new EditionDiagnostic(code.Code, severity, code.Id, message, $"external file '{externalName}'", cite));
     }

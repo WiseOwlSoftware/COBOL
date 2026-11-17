@@ -462,23 +462,23 @@ public sealed class DataItem
     /// another name at the same characters is another description (not ruled otherwise).</para>
     /// Read by the external file connector rules (<c>ExternalFileConnectorRules</c>), the entry identity
     /// (<c>FileEntryIdentity</c>) and the emitted external descriptor (<c>OoEmitter</c>; kb/Work PB2418), so the compile-time and
-    /// the run-time agreement ask one identity.</summary>
-    public string? ExternalItemIdentity() => ExternalItemIdentity([]);
+    /// the run-time agreement ask one identity. It is a VALUE whose parts stay apart (<see cref="ExternalDataItemIdentity"/>,
+    /// kb/Work PB5888 review R1-1): an <c>AS literal-1</c> record name may hold any character, so no joined string is one.</summary>
+    public ExternalDataItemIdentity? ExternalItemIdentity() => ExternalItemIdentity([]);
 
     /// <summary>The identity of ONE OCCURRENCE of this item, for a COBOL-2002 clause operand written with integer-literal
     /// subscripts (<c>RELATIVE KEY IS RK(2)</c>, §2002:5.1.3; kb/Work PB5602): the record and the item's name, the occurrence the
     /// subscripts select, and that occurrence's storage, so two occurrences of one external table are two items. No subscripts
     /// is the item's own identity (<see cref="ExternalItemIdentity()"/>).</summary>
-    public string? ExternalItemIdentity(IReadOnlyList<int> occurrence)
+    public ExternalDataItemIdentity? ExternalItemIdentity(IReadOnlyList<int> occurrence)
     {
         var root = this;
         while (root.Parent is not null) root = root.Parent;
         if (!(root.HasExternalClause || root.ExternalFromType)) return null;   // root is not an external data item
-        string record = root.ExternalizedRecordName();
-        string name = ReferenceEquals(root, this) ? record : $"{record}.{CobolNames.UpperFold(CobolName ?? "?")}";
-        string selected = occurrence.Count == 0 ? name : $"{name}({string.Join(",", occurrence)})";
-        string offset = RecordLayout.OffsetOf(this, occurrence)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?";
-        return $"{selected}@{offset}:{ByteWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+        return new ExternalDataItemIdentity(root.ExternalizedRecordName(),
+            ReferenceEquals(root, this) ? null : CobolNames.UpperFold(CobolName ?? "?"),
+            string.Join(",", occurrence.Select(o => o.ToString(System.Globalization.CultureInfo.InvariantCulture))),
+            RecordLayout.OffsetOf(this, occurrence), ByteWidth);
     }
 
     /// <summary>True when this level-01 entry carries a CONSTANT RECORD clause (ISO §2023:13.18.15) — a STRUCTURED

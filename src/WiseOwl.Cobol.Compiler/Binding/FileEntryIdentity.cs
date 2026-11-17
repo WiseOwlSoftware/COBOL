@@ -107,7 +107,7 @@ internal static class FileEntryIdentity
             new("PAD", "the PADDING CHARACTER clause", f.Padding switch
             {
                 null => "",
-                { DataName: { } pn } p => "@" + (p.Item?.ExternalItemIdentity() ?? CobolNames.UpperFold(pn)),
+                { DataName: { } pn } p => "@" + (p.Item?.ExternalItemIdentity()?.Key ?? CobolNames.UpperFold(pn)),
                 { Literal: { } lit } => "=" + lit,
                 _ => "",
             }),
