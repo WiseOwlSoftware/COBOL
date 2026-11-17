@@ -1,4 +1,4 @@
-## The code-read store accepts a documented decline, and branch 3 of the 1985 code reads goes on record
+## Entry 3800 — 2026-11-16 16:26 PST — The code-read store accepts a documented decline, and branch 3 of the 1985 code reads goes on record
 
 **The tool change (kb/Work PB5865).** The importer now requires the defect fields (`harm`, `repro`, `expected`, `observed`, `cause`) only of a reader's verdict that does not resolve, so a DOCUMENTED-NON-SUPPORT read carries none, and a DOUBTFUL refuter's case needs its reason and no `corrected` (an OVERTURNED still needs one). The one outcome function takes the verdict each row shares with its chain (`lineage.chain_verdict`, computed by `code_read_store.shared_verdicts`, carried by `Context.shared`): a resolving non-CONFORMS read is confirmed by the verdict its row shares, contradicted by another and undecided where the chain shares none. No stored record changed outcome (1,334 before and after); the store still never reads kb/Work.
 
@@ -9,3 +9,4 @@
 **Register.** Five 1985 determinations in `docs/conformance/3/`: `D-85-COUNTER-QUAL`, `D-85-TERMINATE-BREAK`, `D-85-SPACE-CLASS`, `D-85-GROUP-CATEGORY` and `D-85-RENAMES-SAME-NAME`.
 
 **Summary, before and after.** 1985 code reads: 1248 confirmed, 76 contradicted, 10 undecided, 32 KEPT rows owed a read, to 1308 confirmed, 43 contradicted, 1 undecided, 5 owed. The inventory's GAP counts did not move (2023 21, 2002 1186, 1985 55).
+
