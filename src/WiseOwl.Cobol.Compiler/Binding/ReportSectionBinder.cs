@@ -1020,6 +1020,48 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return pos is { } last ? (int)last : seed;
     }
 
+    /// <summary>THE lower limit a heading or footing of relative lines is held to, with the words of the rule that sets it —
+    /// ONE answer, so the screen refuses a group by the same limit and rule it then names (kb/Work PB1003 review R1-1).
+    /// <paramref name="lower"/> is <see cref="GroupLimits"/>' lower limit. At COBOL-85 each group type's printed rule:
+    /// a report heading with NEXT GROUP NEXT PAGE, alone on the first page, the page limit (§1985:XIII.3.10.6 GR2b); any
+    /// other report heading and a page heading, the line before FIRST DETAIL (§1985:XIII.3.10.6 GR2a, §1985:XIII.3.8.4
+    /// GR1c); a page footing and a report footing, the page limit (§1985:XIII.3.10.9 GR2, §1985:XIII.3.10.10 GR2), each
+    /// line past it presented outside the vertical subdivision of the page (§1985:XIII.3.15.3 SR1). A report heading
+    /// bounded above FIRST DETAIL by an absolute page heading line, and every group from COBOL-2002, take the
+    /// §2023:13.18.57.4 GR8 limit and §2023:13.18.39.4's words.</summary>
+    private static (int Limit, string Words) RelativeGroupLowerLimit(ReportGroupModel g, ReportModel model, int year, int lower)
+    {
+        const string Sr1 = "; neither integer-1 nor integer-2 may be specified in such a way as to cause any line of a report "
+            + "group to be presented outside the vertical subdivision of the page";
+        string headingWords(string rules) => $"line {model.FirstDetail - 1}, the line before the FIRST DETAIL integer "
+            + $"{model.FirstDetail}: report heading (without NEXT GROUP NEXT PAGE) and page heading report groups may not be "
+            + $"presented on or beyond the line number specified by integer-3 (ISO {rules})";
+        if (year < 2002)
+            switch (g.Kind)
+            {
+                case ReportGroupKindModel.ReportHeading when g.NextGroup?.Kind == ReportNextGroupKind.NextPage:
+                    return (model.PageLimit, $"the page limit {model.PageLimit}, the last line on which a report heading "
+                        + "with NEXT GROUP NEXT PAGE, presented by itself on the first page, can be presented (ISO "
+                        + "§1985:XIII.3.10.6 GR2b)" + Sr1 + " (ISO §1985:XIII.3.15.3 SR1)");
+                case ReportGroupKindModel.ReportHeading when lower == model.FirstDetail - 1:
+                    return (lower, headingWords("§1985:XIII.3.8.4 GR1c; §1985:XIII.3.10.6 GR2a"));
+                case ReportGroupKindModel.PageHeading:
+                    return (lower, headingWords("§1985:XIII.3.8.4 GR1c"));
+                case ReportGroupKindModel.PageFooting:
+                    return (model.PageLimit, $"the page limit {model.PageLimit}, the last line on which the page footing can "
+                        + "be presented (ISO §1985:XIII.3.10.9 GR2)" + Sr1 + " (ISO §1985:XIII.3.15.3 SR1)");
+                case ReportGroupKindModel.ReportFooting:
+                    return (model.PageLimit, $"the page limit {model.PageLimit}, the last line on which the report footing can "
+                        + "be presented (ISO §1985:XIII.3.10.10 GR2; a relative first line follows the page footing's final "
+                        + "LINE-COUNTER, GR3b)" + Sr1 + " (ISO §1985:XIII.3.15.3 SR1)");
+            }
+        return (lower, $"the group's lower limit {lower}, on every page "
+            + (g.Kind is ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting
+                ? "(ISO §2023:13.18.39.4 GR1, GR2 a): no report line will appear below the page limit"
+                : "(ISO §2023:13.18.39.4 GR1, GR2 d): each report group shall be confined within its region of the page")
+            + "; limits per §2023:13.18.57.4 GR8)");
+    }
+
     /// <summary>The final LINE-COUNTER setting of the report group a COBOL-85 page heading or report footing is placed after,
     /// which at COBOL-85 the description fixes: 1985 has no PRESENT WHEN, so the report heading always precedes the page
     /// heading on the first page and the page footing always precedes the report footing on the last. A relative report
@@ -1287,33 +1329,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     or ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting)
             {
                 int? preceding = Cobol85FinalLineCounter(g, model, Edition.DialectLevel);
+                var bound = RelativeGroupLowerLimit(g, model, Edition.DialectLevel, lower);
                 if (!g.Lines.Exists(l => l.Kind == ReportLineKindModel.Absolute)
-                    && MinimumLastLine(g, model, null, preceding) is { } relativeEnd && relativeEnd > lower)
+                    && MinimumLastLine(g, model, null, preceding) is { } relativeEnd && relativeEnd > bound.Limit)
                 {
                     var last = g.Lines[^1];
                     using var at = Edition.At(last.Entry);
-                    string reach = $"the relative lines of {ReportGroupTypeWords(g.Kind).ToLowerInvariant()} report group "
+                    Violation(last, $"the relative lines of {ReportGroupTypeWords(g.Kind).ToLowerInvariant()} report group "
                         + $"'{g.Name ?? "FILLER"}' reach line {relativeEnd}"
                         + (preceding is { } p ? $", placed after the {(g.Kind == ReportGroupKindModel.PageHeading
-                            ? "report heading" : "page footing")}'s final LINE-COUNTER setting {p}" : "");
-                    bool footing = g.Kind is ReportGroupKindModel.PageFooting or ReportGroupKindModel.ReportFooting;
-                    Violation(last, Edition.DialectLevel < 2002 && !footing && relativeEnd >= model.FirstDetail
-                        ? $"{reach}, on or beyond the FIRST DETAIL integer {model.FirstDetail}; report heading (without NEXT "
-                            + "GROUP NEXT PAGE) and page heading report groups may not be presented on or beyond the line number "
-                            + "specified by integer-3 (ISO §1985:XIII.3.8.4 GR1c)"
-                        : Edition.DialectLevel < 2002 && footing
-                        ? $"{reach}, past the page limit {lower}; neither integer-1 nor integer-2 may be specified in such a way "
-                            + "as to cause any line of a report group to be presented outside the vertical subdivision of the page "
-                            + "(ISO §1985:XIII.3.15.3 SR1"
-                            + (g.Kind == ReportGroupKindModel.ReportFooting
-                                ? "; the report footing's last line is at most the PAGE LIMIT integer, §1985:XIII.3.10.10 GR2, "
-                                    + "and a relative first line follows the page footing's final LINE-COUNTER, GR3b)"
-                                : ")")
-                        : $"{reach}, past the group's lower limit {lower}, on every page "
-                            + (footing
-                                ? "(ISO §2023:13.18.39.4 GR1, GR2 a): no report line will appear below the page limit"
-                                : "(ISO §2023:13.18.39.4 GR1, GR2 d): each report group shall be confined within its region of the page")
-                            + "; limits per §2023:13.18.57.4 GR8)");
+                            ? "report heading" : "page footing")}'s final LINE-COUNTER setting {p}" : "")
+                        + $", past {bound.Words}");
                 }
 
                 // The candidates for the group's first line: a relative line is first when every line above it may be
