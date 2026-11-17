@@ -1,4 +1,4 @@
-## PB5882: at COBOL-85 the FILE STATUS item receives only the 1985 values and their 9x
+## Entry 3813 — 2026-11-16 20:43 PST — PB5882: at COBOL-85 the FILE STATUS item receives only the 1985 values and their 9x
 
 **The defect.** The runtime reported the 2023 I-O status vocabulary at every edition, so a `--std 85` WRITE of a record
 holding the line delimiter, on a file framed by the implementor-name LINE-SEQUENTIAL (kb/Work PB5844), stored '71', a value
@@ -24,3 +24,4 @@ organization), and the 1985 case `pb5882_io_status_1985_values`, whose expected 
 **Not done here, registered in the report.** At 85 the line-delimited READ still continues an over-length line's remainder
 and gives '00' for a short line, where §1985:VII.4.4.4 GR13 truncates and reports the length conflict; the OCCURS DEPENDING
 ON READ's '34' is a 1985 value of another condition; 2002 (frozen) still reports '06', '09' and '71'.
+
