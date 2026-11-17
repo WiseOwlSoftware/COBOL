@@ -1,4 +1,4 @@
-## PB5883 and PB5888: the KEY phrase of READ and START asks the data-name shape screen, and an external data item's identity drops the group names
+## Entry 3811 — 2026-11-16 20:37 PST — PB5883 and PB5888: the KEY phrase of READ and START asks the data-name shape screen, and an external data item's identity drops the group names
 
 Wave 20262097, group B. Two mechanisms, one checkpoint each.
 
@@ -28,3 +28,4 @@ and 2023; `r1-name-differ` (another item name) and PB5857's other-positions case
 
 **Rows.** Witnesses added to 1985-SR-IX.4.5.3-2, 1985-SR-IX.4.5.3-3, 1985-GR-VIII.2.4.4-8 (KEPT rows, their code reads'
 verdicts stand), SR-14.9.30.3-12, SR-14.9.41.3-4 and GR-12.4.5.3-1; no GAP moved. Gate: the dispatching session's.
+
