@@ -51,9 +51,6 @@ public static class CtNumeric
         return new CobolDec(bits[3] < 0 ? -magnitude : magnitude, -scale);
     }
 
-    /// <summary>True when <paramref name="v"/> has no fractional part.</summary>
-    public static bool IsInteger(CobolDec v) => CobolDec.Compare(v.TruncateToInteger(), v) == 0;
-
     /// <summary>The number of digits of an integer value as <see cref="CobolDec.TruncateToInteger"/> returns it (exponent at least
     /// zero); zero has one digit.</summary>
     public static int IntegerDigits(CobolDec integer)
