@@ -993,7 +993,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// position renders without the receiver's floating-point facts; under a floating-point receiver a numeric position also keeps
     /// significance (<c>NumericLanes.ArgumentKeepsSignificance</c>).</summary>
     private ReceiverContext ReceiverFor(BoundIntrinsicCall ic, int i) =>
-        num.ArgumentReceiver(IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i));
+        num.ArgumentReceiver(ic.CarrierFacts.IsIntegerPosition(i));
 
     /// <summary>The context of an operand the intake reads without its index: an element of a table(ALL) argument or an argument of a
     /// variadic numeric list, and the leading rate of PRESENT-VALUE and a binary64-family argument-1, each at a §2023:15.3 type 10

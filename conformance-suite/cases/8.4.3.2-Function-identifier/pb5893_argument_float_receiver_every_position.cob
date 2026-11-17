@@ -46,6 +46,11 @@
       *> +3.333E-25 in PIC +9.999E+99. A quotient by a literal that
       *> divides exactly stays exact: (Y * 100 - X * 10.25) * 4 / 4 is
       *> 1.025E32 + 10.25, so REM (..., 1000) is 10.25 (+10.25).
+      *> A nested call keeps the significance (review R2-1, R2-2: these
+      *> stopped on the lane assertion): with A = 7, ABS (ABS (A / 3) +
+      *> 1) is 10/3 and ABS (- ABS (A / 3)) is 7/3, each landing in
+      *> COMP-2 by truncation as the double just below it,
+      *> 3.333333333333333 and 2.333333333333333.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5893A.
        DATA DIVISION.
@@ -63,6 +68,7 @@
        01  T   PIC 9(25) VALUE 3000000000000000000000000.
        01  FS  PIC +9.999E+99.
        01  W2  PIC S99V99.
+       01  A   PIC 9 VALUE 7.
        PROCEDURE DIVISION.
        MAIN-PARA.
            COMPUTE F2 = FUNCTION REM ((Y * 100 - X * 10.25) * 4, 1000)
@@ -132,4 +138,8 @@
            COMPUTE F2 = FUNCTION REM ((Y * 100 - X * 10.25) * 4 / 4,
                1000)
            COMPUTE W2 ROUNDED = F2  DISPLAY "REMQ2 " W2
+           COMPUTE F2 = FUNCTION ABS (FUNCTION ABS (A / 3) + 1)
+           DISPLAY "NEST1 " F2
+           COMPUTE F2 = FUNCTION ABS (- FUNCTION ABS (A / 3))
+           DISPLAY "NEST2 " F2
            STOP RUN.

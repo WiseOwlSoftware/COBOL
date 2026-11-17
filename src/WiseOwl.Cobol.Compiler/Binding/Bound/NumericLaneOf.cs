@@ -18,6 +18,16 @@ internal readonly record struct LaneContext(ArithmeticMode Arithmetic, bool Floa
 {
     public static LaneContext Argument(ArithmeticMode arithmetic) => new(arithmetic, false, 0, false);
 
+    /// <summary>⛔ THE CONTEXT OF A FUNCTION'S ARGUMENT AT <paramref name="integerPosition"/> RENDERED IN THIS ONE, the bound twin of
+    /// <c>NumericRenderer.ArgumentReceiver</c> (kb/Work PB5893 review R2-1): no floating-point receiver facts, the same scale, and
+    /// significance by the one rule <see cref="NumericLanes.ArgumentKeepsSignificance"/> over this context's floating-point receiver (a
+    /// binary64 one or an edited one) or its own significance.</summary>
+    public LaneContext ArgumentContext(bool integerPosition) => this with
+    {
+        FloatReceiver = false, FloatEdited = false,
+        KeepsSignificance = NumericLanes.ArgumentKeepsSignificance(FloatReceiver || FloatEdited || KeepsSignificance, integerPosition),
+    };
+
     /// <summary>Is a quotient by <paramref name="divisor"/> in this context the final one (<see cref="NumericLanes.QuotientIsFinal"/>)?</summary>
     public bool FinalQuotient(BoundExpr divisor) =>
         NumericLanes.QuotientIsFinal(FloatEdited, KeepsSignificance, NumericLanes.TerminatesWithinGuardDigits(divisor));
@@ -111,16 +121,34 @@ internal static partial class NumericLanes
 
     /// <summary>A function value: the carrier the bind-time prediction gives it (<see cref="FunctionValueLane"/>, from the call's catalog
     /// facts and the carriers of its arguments), its scale and digit bound the code generator's alone. An exact value may be on the Int128
-    /// lane or its wide and run-time-scaled forms.</summary>
-    private static NodeLane CallLane(BoundIntrinsicCall call, LaneContext ctx) =>
-        ctx.DecimalEngine
-            ? NodeLane.Any(NumericLane.Scaled, NumericLane.Wide, NumericLane.Exact, NumericLane.Sdidi)
-            : FunctionValueLane.LaneOf(call) switch
-            {
-                NumericLane.Scaled => NodeLane.Any(NumericLane.Scaled, NumericLane.Wide, NumericLane.Exact),
-                NumericLane.Sdidi => NodeLane.Any(NumericLane.Sdidi, NumericLane.Exact, NumericLane.Wide, NumericLane.Scaled),
-                var lane => NodeLane.Of(lane),
-            };
+    /// lane or its wide and run-time-scaled forms.
+    /// <para>⛔ The arguments are read in the context the renderer gives them (<see cref="LaneContext.ArgumentContext"/>, kb/Work PB5893
+    /// review R2-1): under a floating-point receiver an argument at a numeric position keeps significance, so a quotient in it may be the
+    /// SDIDI's final quotient, and a function whose bind-time prediction is exact then returns its value on the SDIDI as it does over any
+    /// SDIDI-carried argument. Before it, <c>ABS (ABS (A / 3) + 1)</c> into COMP-2 and <c>ABS (- ABS (A / 3))</c> stopped on the lane
+    /// assertion.</para></summary>
+    private static NodeLane CallLane(BoundIntrinsicCall call, LaneContext ctx)
+    {
+        if (ctx.DecimalEngine) return NodeLane.Any(NumericLane.Scaled, NumericLane.Wide, NumericLane.Exact, NumericLane.Sdidi);
+        var lane = FunctionValueLane.LaneOf(call);
+        if (lane == NumericLane.Scaled && AnArgumentMayBeOnTheSdidi(call, ctx)) lane = NumericLane.Sdidi;
+        return lane switch
+        {
+            NumericLane.Scaled => NodeLane.Any(NumericLane.Scaled, NumericLane.Wide, NumericLane.Exact),
+            NumericLane.Sdidi => NodeLane.Any(NumericLane.Sdidi, NumericLane.Exact, NumericLane.Wide, NumericLane.Scaled),
+            _ => NodeLane.Of(lane),
+        };
+    }
+
+    /// <summary>May an argument of <paramref name="call"/>, in the context the renderer gives it, be on the SDIDI?</summary>
+    private static bool AnArgumentMayBeOnTheSdidi(BoundIntrinsicCall call, LaneContext ctx)
+    {
+        for (int i = 0; i < call.Args.Count; i++)
+            if (call.Args[i] is BoundComputedOperand { Expr: var e }
+                && LaneOf(e, ctx.ArgumentContext(call.CarrierFacts.IsIntegerPosition(i))).Lanes.Contains(NumericLane.Sdidi))
+                return true;
+        return false;
+    }
 
     /// <summary><c>NumericRenderer.Visit(BoundNegate)</c> / <c>Negate</c>: the carrier is kept (an unsigned-wide value under a decimal
     /// engine enters the SDIDI).</summary>

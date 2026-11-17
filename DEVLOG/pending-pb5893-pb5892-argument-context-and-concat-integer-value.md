@@ -28,6 +28,14 @@ rules.
   (`TerminatesWithinGuardDigits`): `REM (... * 4 / 4, 1000)` is 10.25.
 - `LaneOf` reads the rule through `LaneContext.KeepsSignificance` and the renderer reads it through `NestedQuotient`, so `AssertLane`
   holds.
+- Every arm of `LaneOf` reads an argument in `LaneContext.ArgumentContext`, the bound twin of the renderer's argument context.
+  Review R2-1 found the call arm reading no context. `ABS (ABS (A / 3) + 1)` into COMP-2 stopped on the lane assertion; so did
+  `ABS (- ABS (A / 3))`, which also failed on main (R2-2). Both compile now.
+- `ArgumentLaneSweepTests` generates 270 argument shapes and compiles them:
+  - under six receiver kinds at 2023, and the two fixed ones at 85;
+  - at numeric, integer and result-type positions;
+  - from atoms, quotients, negations and nested calls, two levels deep.
+  It requires each to compile. Without the call arm's fix, 56 shapes per floating-point receiver fail.
 - The first form of the fix, a fixed 17-digit working scale, cut `ABS (1 / C / C)` to 0 and `ABS (1 / T)` under a `+9.999E+99` mask to
   +0.000E+00. It is deleted.
 
