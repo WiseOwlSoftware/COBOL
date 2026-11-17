@@ -1,4 +1,4 @@
-## Notes batch 23: the leads of the 1985 fix branches and of PB2119, filed as seven notes and one dated file
+## Entry 3828 — 2026-11-17 14:34 PST — Notes batch 23: the leads of the 1985 fix branches and of PB2119, filed as seven notes and one dated file
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record).
 
@@ -11,3 +11,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 - PB5920 (defect, misleads_diagnosis): COBOL1971's message for a literal computer-name says "not a paragraph of the CONFIGURATION SECTION".
 
 Finding file: `kb/Work/PB2622/2026-11-17-boolerror-report-deleted.md` (PB2164 deleted `BoundBoolError.Report`).
+
