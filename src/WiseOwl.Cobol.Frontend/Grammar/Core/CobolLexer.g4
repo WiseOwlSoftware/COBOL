@@ -404,6 +404,40 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
         PopMode();
     }
 
+    // The action of PIC_STRING: the greedy match ends where the character-string ends, and the mode with it.
+    // (1) `PIC 999999999999..` — the match took the separator period too: a trailing '.' is given back, so it becomes
+    // the DOT token (CutTokenTo: the input AND the column).
+    // (2) A trailing ',' or ';' IMMEDIATELY FOLLOWED BY A SPACE is the CLAUSE SEPARATOR the greedy match over-captured
+    // (§2023:8.3.5 SR2) — `77 X PIC 99, VALUE 3.` lexes the picture as "99" (VCR Table 7 row 7.14; the W2
+    // adversarial-review finding; the ';' twin was NC203A/245A/251A/252A). The following-character GUARD is
+    // load-bearing: a LEGAL trailing ',' (§2023:13.18.40.3 SR7 — PICTURE as the last clause) is followed by the
+    // separator PERIOD, not a space (NC125A's `PIC 9,9,…,9,.` — the token ends at the ',' because '.'+newline cannot
+    // extend the match, so LA(1) is '.' and the ',' is a PICTURE SYMBOL to keep). The given-back separator re-lexes in
+    // the mode that follows: in DEFAULT mode FNARG_SEPARATOR's action skips it (a PICTURE clause is never inside a list
+    // region), and in PICMODE (3) PIC_WS does.
+    // (3) What is left may be the word IS (kb/Work PB5867): in `PICTURE IS, X(2)` the match was "IS,", one character
+    // longer than PIC_IS's "IS", so this rule won it; with its separator given back it is the IS PIC_IS would have
+    // lexed, and the one decision about an IS in this mode is OnPictureIs's (the IS keyword once, the string after).
+    private void OnPictureString()
+    {
+        var t = Text;
+        if (t.Length > 1 && t[t.Length - 1] == '.')
+        {
+            CutTokenTo(t.Length - 1);
+        }
+        else if (t.Length > 1 && (t[t.Length - 1] == ',' || t[t.Length - 1] == ';'))
+        {
+            int la = InputStream.LA(1);
+            if (la == ' ' || la == '\n' || la == Antlr4.Runtime.IntStreamConstants.EOF)
+            {
+                CutTokenTo(t.Length - 1);
+                // PIC_IS's own spelling: the grammar's caseInsensitive folds A-Z and a-z only, so this asks no culture
+                if (t.Length == 3 && (t[0] | 0x20) == 'i' && (t[1] | 0x20) == 's') { OnPictureIs(); return; }
+            }
+        }
+        PopMode();
+    }
+
     private void OnDelimitedLiteral()
     {
         int last = InputStream.LA(-1);   // the match's last character
@@ -1426,7 +1460,15 @@ ANY_CHAR    : . ;
 mode PICMODE;
 
 PIC_IS      : 'IS' { OnPictureIs(); } ;  // the IS keyword, once: a second IS is the character-string (OnPictureIs)
-PIC_WS      : [ \n]+ -> skip ;       // skip whitespace
+// ⛔ THE SEPARATOR BEFORE THE CHARACTER-STRING IS THE SEPARATOR SPACE, AND A COMMA OR SEMICOLON FOLLOWED BY A SPACE IS ONE
+// (kb/Work PB5867). §1985:IV.4.2.1 SR2: "the punctuation characters comma and semicolon, immediately followed by a space,
+// are separators that may be used anywhere the separator space is used"; §2023:8.3.5 SR2 repeats it. The word PICTURE
+// (and its IS) and the character-string are separated by the separator space, so `PICTURE; 9(3)` and `PIC, 999` are
+// that separator: this rule took only spaces and line ends, and PIC_STRING then took the ',' or ';' as the string's
+// first character. The test is the space AFTER it: `PIC ,999` is the string ",999" (a comma insertion symbol first), and
+// a ',' or ';' no space follows stays PIC_STRING's. Longest match makes the choice: ", " is two characters, and PIC_STRING
+// stops at the space after one. The separator AFTER the string is PIC_STRING's trailing trim (OnPictureString).
+PIC_WS      : ( [ \n] | [,;] [ \n] )+ -> skip ;
 // A comment line between PIC and its character-string (kb/Work PB1493). Source comments are removed by the
 // reference-format stage (ISO §2023:6.5 2) / 3)) before the lexer runs, but the fixed-form DEBUGGING-line carrier
 // (ReferenceFormatProcessor.DebugLineCarrier) still reaches it as a *> line — and *> never begins a picture
@@ -1435,38 +1477,11 @@ PIC_WS      : [ \n]+ -> skip ;       // skip whitespace
 // DebuggingLineRewriter can find. It precedes PIC_COMMENT because the two match the same text and the first rule wins.
 PIC_DEBUG_LINE : '*>' '\u{FDD0}' 'DEBUG ' ~[\n]* -> type(DEBUG_LINE_IN_REGION), channel(HIDDEN) ;
 PIC_COMMENT : '*>' ~[\n]* -> skip ;
-PIC_STRING  : ( ~[ \n.] | '.' ~[ \n] )+
-    {
-        // Handle PIC "999999999999.." — greedy match consumed sentence-ending period.
-        // If the PIC string ends with '.' and the char that caused the match was also '.',
-        // trim the trailing period and back up so it becomes a DOT token (CutTokenTo: the input AND the column).
-        var t = Text;
-        if (t.Length > 1 && t[t.Length - 1] == '.')
-        {
-            CutTokenTo(t.Length - 1);
-        }
-        // A trailing ',' or ';' IMMEDIATELY FOLLOWED BY A SPACE is the CLAUSE SEPARATOR over-captured by the
-        // greedy match (ISO §2023:8.3.5 rule 2) — `77 X PIC 99, VALUE 3.` must lex the picture as "99" (VCR Table 7
-        // row 7.14; the W2 adversarial-review finding; the ';' twin was NC203A/245A/251A/252A). The
-        // following-character GUARD is load-bearing: a LEGAL trailing ',' (§2023:13.18.40.3 SR7 — PICTURE as the
-        // last clause) is followed by the separator PERIOD, not a space (NC125A's `PIC 9,9,…,9,.` — the token
-        // ends at the ',' because '.'+newline cannot extend the match, so LA(1) is '.' and the ',' is a
-        // PICTURE SYMBOL to keep). The seek-back re-lexes a trimmed separator in DEFAULT mode, where
-        // FNARG_SEPARATOR's action skips it (a PICTURE clause is never inside a list region).
-        else if (t.Length > 1 && (t[t.Length - 1] == ',' || t[t.Length - 1] == ';'))
-        {
-            int la = InputStream.LA(1);
-            if (la == ' ' || la == '\n' || la == Antlr4.Runtime.IntStreamConstants.EOF)
-            {
-                CutTokenTo(t.Length - 1);
-            }
-        }
-    } -> popMode ;
+PIC_STRING  : ( ~[ \n.] | '.' ~[ \n] )+ { OnPictureString(); } ;
     // Matches: any non-whitespace-non-period char,
     //      OR: a period followed by a non-whitespace char (embedded decimal)
-    // Post-action: if PIC string ends with '.', the greedy match consumed a
-    //   sentence-ending period — back up one char so it tokenizes as DOT;
-    //   likewise a trailing ','/';' clause separator (§2023:8.3.5 r2) backs up and re-lexes as a skip token.
+    // Post-action (OnPictureString): a trailing separator period or ','/';' clause separator (§2023:8.3.5 SR2) the greedy
+    //   match took is given back; a match that was the IS keyword and its separator (`PICTURE IS, X(2)`) is the IS.
 // ⛔ THE MODE IS TOTAL: A SEPARATOR PERIOD WHERE THE CHARACTER-STRING SHOULD BE ENDS IT (kb/Work PB4233). A '.' followed
 // by a space, a line end or the end of the text is the separator period (§2023:8.3.5 3)), which PIC_STRING cannot start, so
 // `01 X PIC.` matched no rule here: ANTLR reported it on the console, outside the diagnostics, dropped the period and
