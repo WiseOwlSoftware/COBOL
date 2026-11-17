@@ -27,7 +27,7 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
     {
         ["BoundNumLiteral"] = "Linear: a constant term at its exact value; the sum of the constants must be an integer",
         ["BoundNumRef"] = "Linear: a numeric item's net coefficient times its least value must be whole; a floating-point item's must be zero",
-        ["BoundBinary"] = "Linear for + - and a product by a literal; Integer for a product of two terms each shown integral; a quotient only as a literal fold with an exact integral value, else Refused",
+        ["BoundBinary"] = "Linear for + - and a product by a literal; a quotient by a literal whose reciprocal terminates is the product by that reciprocal (within the digits the arithmetic in force keeps); Integer for a product of two terms each shown integral; every other quotient Refused",
         ["BoundNegate"] = "Linear: the operand under the negated factor",
         ["BoundPower"] = "Integer for a base shown integral to a non-negative integer literal or an unsigned integer item; else Refused",
         ["BoundIndexRef"] = "Integer: an index-name's value is an occurrence number",

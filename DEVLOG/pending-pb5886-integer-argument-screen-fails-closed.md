@@ -30,5 +30,13 @@ admitted again, `WN / 3 * 3` refused); the literal 1 to any integer exponent is 
 complement legs those rules admit are restored. Forms that are integers only by an identity between numeric function terms stay
 refused as recorded debt, kb/Work PB5889, whose refusal `pb5889-identity-difference` replaces `pb4795_identity_difference_legal`.
 
+**Review round 3.** The R2-1 wrap exposed a screen defect: under ARITHMETIC IS STANDARD-DECIMAL every intermediate keeps 34
+significant digits, so `B27 / 0.0001 / 16384 * 16384 * 0.0001` over a 27-digit item is not an integer there (the quotient needs 46
+digits; the reviewer measured ...998.9999), yet the screen admitted it. The arithmetic in force now reaches the classifier: the call node
+carries a required `Arithmetic`, `IntrinsicResultType.Resolve` and the screen take it, and `ArithmeticModes.IntermediateSignificantDigits`
+(one table: native none, 2002 STANDARD 32, STANDARD-DECIMAL 34) bounds every intermediate that carries fraction digits. The pair
+`pb5886-standard-decimal-intermediate` (refused) and `pb5886_native_quotient_chain` (admitted, 0999) pins it, and the INTEGER-PART
+wrap is a no-op on every argument it receives. The stale quotient text in the pb5886 goldens and the node-verdict table is restated.
+
 **Rows.** 1985: the four rows of the note take the new refusals as witnesses; `1989-AR-A.2.2-4` restated CONFORMS. 2023:
 `AR-15.3-6` gains the witnesses; `GR-5.5-3` and `DOC-A.1-124` retire the deleted goldens. NIST: 403 NIST tests green.

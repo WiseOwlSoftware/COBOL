@@ -1452,14 +1452,14 @@ internal static class IntrinsicArgumentRules
     /// admits class alphabetic there (<see cref="EditionInfo.AlphabeticIsAlphanumeric"/>), the one place the edition enters
     /// the class screen; §2023:15.3 prints no such sentence.</para>
     /// </remarks>
-    public static string? Violation(ArgRule rule, BoundOperand op, EditionInfo edition)
+    public static string? Violation(ArgRule rule, BoundOperand op, EditionInfo edition, ArithmeticMode arithmetic)
     {
         char kind = rule.Kind;
         // §2023:15.3 TYPE 6 IS "INTEGER", AND INTEGER IS NOT A CLASS (fix-queue PB40) — so the class test below
         // cannot express it and never could. Both an integer function and a numeric function are class NUMERIC
         // (§2023:15.2 items 5 and 6, "these are of the class and category numeric"), so `'i'` admitted both and
         // `FUNCTION CHAR(FUNCTION ABS(<scaled item>))` compiled clean. This arm is the missing half.
-        if (kind == 'i' && IntegerViolation(op) is { } notInteger) return notInteger;
+        if (kind == 'i' && IntegerViolation(op, arithmetic) is { } notInteger) return notInteger;
 
         var candidates = CandidateClasses(op);
         if (candidates.Length == 0) return null;                          // not statically decidable — fail open
@@ -1662,7 +1662,7 @@ internal static class IntrinsicArgumentRules
     /// standard settles it on the function's TYPE, and the expression arm judges a function TERM the same way.
     /// </para>
     /// </remarks>
-    public static string? IntegerViolation(BoundOperand op) => op switch
+    public static string? IntegerViolation(BoundOperand op, ArithmeticMode arithmetic) => op switch
     {
         // §2023:8.4.3.2.3 SR11 — a NUMERIC function, whatever this reference would evaluate to.
         BoundComputedOperand { Expr: BoundIntrinsicCall ic }
@@ -1683,7 +1683,7 @@ internal static class IntrinsicArgumentRules
             + "integer data item, an integer literal, or an always-integral arithmetic expression",
         // §2023:15.3 type 6's EXPRESSION alternative, FAIL CLOSED (kb/Work PB5886): admitted only when NotAlwaysIntegral shows the
         // expression is an integer for every valuation; its doc states what that covers.
-        BoundComputedOperand { Expr: { } expr } when NotAlwaysIntegral(expr) is { } why => why,
+        BoundComputedOperand { Expr: { } expr } when NotAlwaysIntegral(expr, arithmetic) is { } why => why,
         _ => null,
     };
 
@@ -1759,15 +1759,23 @@ internal static class IntrinsicArgumentRules
     /// constant. A form that is an integer only by an algebraic identity between terms that are not integer terms
     /// (<c>FUNCTION SQRT (N) - FUNCTION SQRT (N) + 5</c>) is refused too: the screen decides by types and literal values, not by algebra
     /// (kb/Work PB5889, a recorded decision). The verdict is the same at every edition (the requirement is the same in both texts).</summary>
-    private static string? NotAlwaysIntegral(BoundExpr expr) => NotAlwaysIntegral(expr, quotientDigits: 0);
+    /// <para>⛔ AND UNDER THE ARITHMETIC IN FORCE (kb/Work PB5886 review R3-1). Every intermediate of the expression must be the exact
+    /// value the walk reasons about. A nested quotient keeps its operands' fraction digits plus the guard digits of
+    /// <see cref="CobolNum.NestedQuotientScale"/> in every mode (the walk's <c>quotientDigits</c>), and a standard-decimal or
+    /// standard intermediate data item also keeps only <see cref="ArithmeticModes.IntermediateSignificantDigits"/> significant digits
+    /// (§2023:8.8.1.5.2: 34 for STANDARD-DECIMAL; §2002:8.8.1.3.1.1: 32 for the 2002 STANDARD), rounding or truncating the rest
+    /// (<see cref="IntermediateDigitsWhy"/>). So <c>B27 / 0.0001 / 16384 * 16384 * 0.0001</c> over a 27-digit item is an integer under
+    /// native arithmetic and is refused under ARITHMETIC IS STANDARD-DECIMAL, where its quotient needs 46 digits.</para></summary>
+    private static string? NotAlwaysIntegral(BoundExpr expr, ArithmeticMode arithmetic) =>
+        NotAlwaysIntegral(expr, quotientDigits: 0) ?? IntermediateDigitsWhy(expr, arithmetic);
 
     /// <summary>⛔ THE ONE ANSWER TO "IS THIS ARITHMETIC EXPRESSION ALWAYS AN INTEGER" (kb/Work PB5886 round 2, R2-1): the type 6 screen
     /// refuses an argument exactly when this is false, and <c>IntrinsicResultType.IsIntegerArgument</c> reads it for the type tables of the
     /// functions whose type depends on their arguments, so <c>FUNCTION MAX (WN / 2 * 2)</c> is an integer function as <c>WN / 2 * 2</c> is
     /// an integer argument (§2023:15.3 AR6; §1989:A.2.2 AR4).</summary>
-    internal static bool IsAlwaysIntegral(BoundExpr expr) => NotAlwaysIntegral(expr) is null;
+    internal static bool IsAlwaysIntegral(BoundExpr expr, ArithmeticMode arithmetic) => NotAlwaysIntegral(expr, arithmetic) is null;
 
-    /// <summary><see cref="NotAlwaysIntegral(BoundExpr)"/> of a subexpression evaluated under quotients by literals whose reciprocals
+    /// <summary><see cref="NotAlwaysIntegral(BoundExpr, ArithmeticMode)"/>'s walk of a subexpression evaluated under quotients by literals whose reciprocals
     /// already spend <paramref name="quotientDigits"/> fraction digits (see <see cref="CollectAdditive"/>).</summary>
     private static string? NotAlwaysIntegral(BoundExpr expr, int quotientDigits)
     {
@@ -1807,7 +1815,7 @@ internal static class IntrinsicArgumentRules
 
     /// <summary>Walk the argument as a sum of terms under literal factors (<paramref name="factor"/>, a rational), recording each numeric
     /// item's net coefficient and each literal term in <paramref name="sum"/>; the reason the first term that is neither of those nor an
-    /// integer term under a whole factor makes the expression not shown integral, or null (see <see cref="NotAlwaysIntegral(BoundExpr)"/>).
+    /// integer term under a whole factor makes the expression not shown integral, or null (see <see cref="NotAlwaysIntegral(BoundExpr, ArithmeticMode)"/>).
     /// <paramref name="quotientDigits"/> is the sum of the fraction digits of the reciprocals of the literal divisors the term sits under: a
     /// nested quotient is kept at no fewer than <see cref="ExactFractionDigits"/> digits beyond its operands' own, so the chain of quotients
     /// is exact only while that sum stays within them.</summary>
@@ -1884,6 +1892,70 @@ internal static class IntrinsicArgumentRules
                     : $"is an arithmetic expression with {TermText(e)}, a term that is not shown to be an integer, so the expression is "
                       + "not shown to always result in an integer value — " + TypeSixExpressionRule;
         }
+    }
+
+    /// <summary>⛔ THE SIGNIFICANT-DIGIT HALF OF "EXACT IN THE ARITHMETIC IN FORCE" (kb/Work PB5886 review R3-1): null under an arithmetic
+    /// whose intermediates keep every integer digit (native: <see cref="ArithmeticModes.IntermediateSignificantDigits"/> is null), and under a
+    /// standard arithmetic null only when every intermediate of the expression that carries fraction digits fits that many significant
+    /// digits. An intermediate with no fraction digits may lose low integer digits to the rounding and stays an integer, so it is not
+    /// asked; one with fraction digits that does not fit is rounded or truncated, and the value is no longer the exact one the walk
+    /// showed integral (<c>B27 / 0.0001 / 16384</c>: 32 integer and 14 fraction digits against the SDIDI's 34, §2023:8.8.1.5.2).</summary>
+    private static string? IntermediateDigitsWhy(BoundExpr expr, ArithmeticMode arithmetic)
+    {
+        if (ArithmeticModes.IntermediateSignificantDigits(arithmetic) is not { } cap) return null;
+        return DigitBound(expr, cap).Overflow is { } at
+            ? $"is an arithmetic expression whose intermediate {at} needs more than the {cap} significant digits an intermediate keeps "
+              + $"under ARITHMETIC IS {(arithmetic is ArithmeticMode.Standard ? "STANDARD" : "STANDARD-DECIMAL")}, so its fraction digits "
+              + "are not kept and the value is not shown to be an integer — " + TypeSixExpressionRule
+            : null;
+    }
+
+    /// <summary>A bound on the integer and fraction digits of <paramref name="e"/>'s value, and the first intermediate (as written) whose
+    /// bound carries fraction digits beyond <paramref name="cap"/> significant digits. A term whose magnitude the walk does not know (a
+    /// function, a register, an index) is bounded by <paramref name="cap"/> integer digits; a product is bounded by the sums of its
+    /// factors' digits, a quotient by a literal c by the product by 1/c, a sum by one more integer digit than its larger term.</summary>
+    private static (int Int, int Frac, string? Overflow) DigitBound(BoundExpr e, int cap)
+    {
+        switch (e)
+        {
+            case BoundNumLiteral or BoundNegate { Operand: BoundNumLiteral } when ExactValue(e) is { } v:
+                return LiteralDigits(v, cap);
+            case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } }:
+                return p.IsFloat ? (cap, cap, null) : (Math.Max(p.Digits - p.Scale, 0), Math.Max(p.Scale, 0), null);
+            case BoundNegate n:
+                return DigitBound(n.Operand, cap);
+            case BoundUdfEvaluatedExpr udf:
+                return DigitBound(udf.Inner, cap);
+            case BoundBinary b:
+            {
+                var l = DigitBound(b.Left, cap);
+                if (l.Overflow is not null) return l;
+                (int Int, int Frac, string? Overflow) r;
+                if (b.Op == '/')
+                {
+                    if (ExactValue(b.Right) is not { Sign: not 0 } c || (ExactRational.One / c).FractionDigits is null) return (cap, cap, null);
+                    r = LiteralDigits(ExactRational.One / c, cap);
+                }
+                else
+                {
+                    r = DigitBound(b.Right, cap);
+                    if (r.Overflow is not null) return r;
+                }
+                (int i, int f) = b.Op is '+' or '-' ? (Math.Max(l.Int, r.Int) + 1, Math.Max(l.Frac, r.Frac)) : (l.Int + r.Int, l.Frac + r.Frac);
+                return (i, f, f > 0 && i + f > cap ? ExprText(e) : null);
+            }
+            default:
+                return (cap, 0, null);
+        }
+    }
+
+    /// <summary>The integer and fraction digits of an exact literal value (a non-terminating one is bounded by <paramref name="cap"/>
+    /// of each, so any product with it overflows).</summary>
+    private static (int Int, int Frac, string? Overflow) LiteralDigits(ExactRational v, int cap)
+    {
+        if (v.FractionDigits is not { } frac) return (cap, cap, null);
+        var whole = System.Numerics.BigInteger.Abs(v.Numerator / v.Denominator);
+        return (whole.IsZero ? 0 : whole.ToString(System.Globalization.CultureInfo.InvariantCulture).Length, frac, null);
     }
 
     /// <summary>Null when an integer term <paramref name="e"/> stands under a whole <paramref name="factor"/>; otherwise the reason the
@@ -1995,17 +2067,20 @@ internal static class IntrinsicArgumentRules
     /// the same and every carrier it reaches is at scale 0. Everything else (an integer-form literal or constant, an item, a register, an
     /// integer function) is returned as the instance it was. Null when the value is an integer wider than the scaled carrier
     /// (<see cref="PicInfo.ScaledCarrierDigits"/>): the argument cannot be given a scale-0 literal, so it is not an Integer argument.</summary>
-    internal static BoundExpr? IntegralForm(BoundExpr e)
+    internal static BoundExpr? IntegralForm(BoundExpr e, ArithmeticMode arithmetic)
     {
         if (LiteralScaleZeroForm(e) is not { } form) return null;
         // ⛔ AN ARGUMENT THE TYPE 6 CLASSIFIER ADMITS BY A LITERAL FACTOR OR A QUOTIENT BY A LITERAL (kb/Work PB5886 round 2, R2-1) is an
         // integer by VALUE but is computed at a scale above 0 (`S * 10` at S's scale, `WN / 2 * 2` at the quotient's): its scale-0 form is
-        // FUNCTION INTEGER-PART of it, the integer function whose value is the integer part (§2023:15.49.1), which an exact integral value
-        // keeps unchanged. A form ProvablyIntegral reads is at scale 0 already.
+        // FUNCTION INTEGER-PART of it, the integer function whose value is the integer part (§2023:15.49.1). ⛔ THE WRAP IS A NO-OP ON
+        // EVERY ARGUMENT IT IS GIVEN (review R3-1): IntegerRowArguments wraps only an argument IsAlwaysIntegral admitted under the
+        // arithmetic in force, and that admission requires every intermediate to be exact in that arithmetic (the guard digits of a nested
+        // quotient, and the significant digits of a standard intermediate), so the value INTEGER-PART receives is the exact integer and
+        // it returns it unchanged; it changes only the scale the value is carried at. A form ProvablyIntegral reads is at scale 0 already.
         if (ProvablyIntegral(form)) return form;
         if (!IntrinsicCatalog.TryGet("INTEGER-PART", out var integerPart))
             throw new InvalidOperationException("the intrinsic catalog has no INTEGER-PART row, which the scale-0 form of an integer argument needs");
-        return new BoundIntrinsicCall(integerPart, [new BoundComputedOperand(form)], PicCategory.Numeric);
+        return new BoundIntrinsicCall(integerPart, [new BoundComputedOperand(form)], PicCategory.Numeric) { Arithmetic = arithmetic };
     }
 
     /// <summary>The literal half of <see cref="IntegralForm"/>: every integral-valued subtree written with fraction digits replaced by the
@@ -2117,13 +2192,10 @@ internal static class IntrinsicArgumentRules
     /// <summary>Does the arithmetic store a power as <see cref="ExactValue"/> folded it? A power to an integer exponent is NOT a nested
     /// quotient and is never cut at <see cref="ExactFractionDigits"/>: a non-negative exponent is the exact power
     /// (<c>CobolExact.Pow</c>), a negative one is the reciprocal <c>1 / (b ** |e|)</c> (<c>CobolExact.Pow</c>), ONE rounding of the exact
-    /// quotient to the SDIDI's <see cref="SdidiDigits"/> digits, so <c>2 ** -20</c> (20 fraction digits) is exact (kb/Work PB4794
+    /// quotient to the SDIDI's <see cref="ArithmeticModes.SdidiDigits"/> digits, so <c>2 ** -20</c> (20 fraction digits) is exact (kb/Work PB4794
     /// review R1-1). A power that does not fold, or whose value does not terminate, is not kept exactly.</summary>
     private static bool PowerIsKeptExactly(BoundPower pw) => ExactValue(pw) is { FractionDigits: { } digits }
-        && (ExactValue(pw.Exp)!.Value.Sign >= 0 || digits <= SdidiDigits);
-
-    /// <summary>The significant digits of the standard decimal intermediate data item (decimal128): 34.</summary>
-    private const int SdidiDigits = 34;
+        && (ExactValue(pw.Exp)!.Value.Sign >= 0 || digits <= ArithmeticModes.SdidiDigits);
 
     /// <summary>Is the value a finite decimal of at most <see cref="ExactFractionDigits"/> fraction digits?</summary>
     private static bool IsKeptExactly(ExactRational? v) => v is { FractionDigits: { } digits } && digits <= ExactFractionDigits;

@@ -86,6 +86,31 @@ public static class ArithmeticModes
         _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no §2023:15.93.4 r1b digit cap for this mode"),
     };
 
+    /// <summary>The significant digits of the standard-decimal intermediate data item, decimal128 (§2023:8.8.1.5.2 NOTE 2, "a maximum
+    /// precision of 34 decimal digits"). ⛔ The one spelling of the number: the SDIDI lift (<c>NumericRenderer</c>) and the type 6 screen
+    /// read it (kb/Work PB5886 review R3-1).</summary>
+    public const int SdidiDigits = 34;
+
+    /// <summary>⛔ HOW MANY SIGNIFICANT DIGITS AN INTERMEDIATE KEEPS UNDER THE MODE, or null where it keeps every integer digit (kb/Work
+    /// PB5886 review R3-1). The type 6 screen asks it: an expression whose intermediates carry fraction digits beyond it is not exact
+    /// under that arithmetic, so it is not shown to be an integer.
+    /// <list type="bullet">
+    /// <item>NATIVE — null: the implementor's intermediates widen to the exact carrier past the scaled one (numeric design D2,
+    /// kb/Work PB4592); only a nested quotient's guard digits bound it (<c>CobolNum.NestedQuotientScale</c>), in every mode.</item>
+    /// <item>STANDARD (2002) — 32: "a precision of 32 decimal digits" (§2002:8.8.1.3.1.1; <c>CobolDec.SidiDigits</c>).</item>
+    /// <item>STANDARD-DECIMAL — 34 (<see cref="SdidiDigits"/>, §2023:8.8.1.5.2).</item>
+    /// <item>STANDARD-BINARY — declined at bind (COBOL0806), so no compilation asks; asked anyway it fails loudly.</item>
+    /// </list></summary>
+    public static int? IntermediateSignificantDigits(ArithmeticMode mode) => mode switch
+    {
+        ArithmeticMode.Native => null,
+        ArithmeticMode.Standard => CobolDec.SidiDigits,
+        ArithmeticMode.StandardDecimal => SdidiDigits,
+        ArithmeticMode.StandardBinary => throw new InvalidOperationException(
+            "ARITHMETIC IS STANDARD-BINARY is declined at bind (COBOL0806); no expression is evaluated under it"),
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "no intermediate precision for this mode"),
+    };
+
     /// <summary>The cap the runtime assumes when the emitted call omits the argument — the native one. Kept
     /// beside the table so "which value means omit" cannot drift away from "what the table says native is".</summary>
     public const int DefaultDigitCap = 31;

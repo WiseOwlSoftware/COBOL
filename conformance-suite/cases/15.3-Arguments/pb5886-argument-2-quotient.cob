@@ -14,10 +14,10 @@
       *> AR4 (cite.py --check): "An arithmetic expression which
       *> will always result in an integer value must be specified".
       *> The screen fails closed (kb/Work PB5886): a quotient is an
-      *> integer term only when both operands are literals whose
-      *> quotient is an integer, a function term is judged by the
-      *> function's own type, and a term it cannot show to be an
-      *> integer is not one.
+      *> integer term only by a literal whose reciprocal terminates
+      *> (it is the product by that reciprocal), a function term is
+      *> judged by the type its definition gives for its arguments,
+      *> and a term it cannot show to be an integer is not one.
       *> ORD (A) / 4 is 16.75 for A = "B"; argument-2 is screened as
       *> argument-1 is.
        IDENTIFICATION DIVISION.

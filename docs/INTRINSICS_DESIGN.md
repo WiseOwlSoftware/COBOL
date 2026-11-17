@@ -974,6 +974,12 @@ PB5345, PB5832) let `FUNCTION FACTORIAL (FUNCTION ORD (A) / 2)` compile there an
   the reciprocals on the path stay within the digits a nested quotient keeps (`ExactFractionDigits`): `WN / 2 * 2`, `S / 0.1` and
   `U * 4 / 2` are admitted, `WN / 3 * 3` refused (the arithmetic truncates `WN / 3`); a literal fold is a constant kept exactly or not
   (`QuotientsAreExact`, PB4758); a quotient by an item, a function or an expression is no integer term (`A / A` is a size error at 0);
+- EXACT UNDER THE ARITHMETIC IN FORCE (PB5886 review R3-1): the call node carries the ARITHMETIC clause's mode (`BoundIntrinsicCall.Arithmetic`,
+  required), and the classifier asks `ArithmeticModes.IntermediateSignificantDigits` (null for native, 32 for the 2002 STANDARD,
+  34 for STANDARD-DECIMAL, §2023:8.8.1.5.2): every intermediate carrying fraction digits must fit those significant digits, or its
+  fraction is rounded away (`IntermediateDigitsWhy`). `B27 / 0.0001 / 16384 * 16384 * 0.0001` over a 27-digit item is admitted
+  natively (`pb5886_native_quotient_chain`) and refused under STANDARD-DECIMAL (`pb5886-standard-decimal-intermediate`), where its
+  quotient needs 46 digits. So the INTEGER-PART wrap of an Integer-row argument is a no-op on every argument it is given;
 - a SUM of items under LITERAL FACTORS (`CollectAdditive` over a `LinearSum`): a product by a literal is exact in decimal arithmetic, so
   an item's net coefficient decides, and `coefficient × 10^(−scale)` must be a whole number (`S * 10`, `WN * 0.5 + WN * 0.5` and `S - S`
   are admitted; `WN * 0.5` is refused); a floating-point item's net coefficient must be zero (PB248); the literal terms must sum to an

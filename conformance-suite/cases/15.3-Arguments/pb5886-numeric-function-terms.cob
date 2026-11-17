@@ -14,10 +14,10 @@
       *> AR4 (cite.py --check): "An arithmetic expression which
       *> will always result in an integer value must be specified".
       *> The screen fails closed (kb/Work PB5886): a quotient is an
-      *> integer term only when both operands are literals whose
-      *> quotient is an integer, a function term is judged by the
-      *> function's own type, and a term it cannot show to be an
-      *> integer is not one.
+      *> integer term only by a literal whose reciprocal terminates
+      *> (it is the product by that reciprocal), a function term is
+      *> judged by the type its definition gives for its arguments,
+      *> and a term it cannot show to be an integer is not one.
       *> MAX of a scaled item is a numeric function, which is no
       *> integer term by its type (§2023:8.4.3.2.3 SR11 judges a
       *> numeric function where an integer is required by type).

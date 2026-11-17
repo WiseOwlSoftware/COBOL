@@ -85,7 +85,7 @@ public sealed class IntegerArgumentConstantWitnessTests
     [MemberData(nameof(Cases))]
     public void TheIntegerScreen_JudgesTheLiteralConstantByValue(string shape, BoundExpr expr, bool refused)
     {
-        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr));
+        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), ArithmeticMode.Native);
         if (refused)
             Assert.True(why is not null,
                 $"'{shape}' is not shown to be an integer for every valuation, so ISO §2023:15.3 type 6 does not admit it — but "
@@ -94,5 +94,36 @@ public sealed class IntegerArgumentConstantWitnessTests
             Assert.True(why is null,
                 $"'{shape}' must stay admitted (the screen shows it is an integer for every valuation) — but the screen "
                 + $"refused it: {why}");
+    }
+
+    /// <summary>A 27-digit unsigned integer item, all nines at its largest.</summary>
+    private static readonly BoundExpr Big27 = Item("B27", 27, 0);
+
+    /// <summary><c>B27 / 0.0001 / 16384 * 16384 * 0.0001</c> (kb/Work PB5886 review R3-1): B27 for every value in exact arithmetic. Its
+    /// quotient by 16384 has up to 32 integer and 14 fraction digits: the native quotient keeps its 14 fraction digits (the nested
+    /// quotient's guard), a standard-decimal intermediate keeps 34 significant digits (§2023:8.8.1.5.2) and the 2002 standard one 32
+    /// (§2002:8.8.1.3.1.1), so at B27 = 999…9 the value is …998.9999 under both standard arithmetics.</summary>
+    private static readonly BoundExpr Big27Round =
+        Bin(Bin(Bin(Bin(Big27, '/', Lit("0.0001")), '/', Lit("16384")), '*', Lit("16384")), '*', Lit("0.0001"));
+
+    public static TheoryData<string, ArithmeticMode, BoundExpr, bool> ArithmeticCases() => new()
+    {
+        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, native", ArithmeticMode.Native, Big27Round, false },
+        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, standard-decimal", ArithmeticMode.StandardDecimal, Big27Round, true },
+        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, standard (2002)", ArithmeticMode.Standard, Big27Round, true },
+        { "W-I / 2 * 2, standard-decimal", ArithmeticMode.StandardDecimal, Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), false },
+        { "W-S * 10, standard (2002)", ArithmeticMode.Standard, Bin(ScaledItem, '*', Lit("10")), false },
+        { "B27 * 3, standard-decimal (an integer intermediate may round and stays an integer)", ArithmeticMode.StandardDecimal,
+            Bin(Big27, '*', Lit("3")), false },
+    };
+
+    [Theory]
+    [MemberData(nameof(ArithmeticCases))]
+    public void TheIntegerScreen_AsksTheArithmeticInForce(string shape, ArithmeticMode arithmetic, BoundExpr expr, bool refused)
+    {
+        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), arithmetic);
+        Assert.True(refused == why is not null,
+            $"'{shape}': expected {(refused ? "refused" : "admitted")} under {arithmetic} arithmetic, whose intermediates keep "
+            + $"{ArithmeticModes.IntermediateSignificantDigits(arithmetic)?.ToString() ?? "every integer"} digits (kb/Work PB5886 R3-1); got {why ?? "admitted"}");
     }
 }
