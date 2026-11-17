@@ -287,17 +287,26 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             }
             foreach (var f in data.Files.Declared.Where(f => f.IsExternal))
             {
-                string ItemRef(string? clauseName, string? identity) => clauseName is null ? "null"
-                    : CsLiteral(identity ?? "!");   // "!" = present but NOT an external item (§2023:14.8.4.2 violation face)
+                // §2023:14.8.4.2: each reference is the item's identity key, compared at run time for equality only; a present item
+                // that is NOT external is marked in the descriptor's own NonExternalItem field, never by a token a reader would have to
+                // find in the text, since an AS literal-1 record name inside a key may hold any character (kb/Work PB5888 review R2-1).
+                var fsId = f.FileStatusName is null ? null : f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts);
+                var rkId = f.RelativeKeyName is null ? null : f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts);
+                bool nonExternal = (f.FileStatusName is not null && fsId is null) || (f.RelativeKeyName is not null && rkId is null)
+                    || (f.Linage?.Operands.Any(op => op.DataName is not null && op.Item?.ExternalItemIdentity() is null) ?? false);
+                string ItemRef(string? clauseName, ExternalDataItemIdentity? identity) => clauseName is null ? "null"
+                    : CsLiteral(identity?.Key ?? "!");   // "!" = the place of an item that is not external; NonExternalItem says so
+                // Each LINAGE operand's token is written with its length before it, so the joined text is injective whatever a key holds.
                 string linage = f.Linage is null ? "null"
-                    : CsLiteral(string.Join(";", f.Linage.Operands.Select(op => op.DataName is null
+                    : CsLiteral(string.Concat(f.Linage.Operands.Select(op => op.DataName is null
                         ? $"={op.Literal}"
-                        : op.Item?.ExternalItemIdentity()?.Key ?? "!")));
+                        : op.Item?.ExternalItemIdentity()?.Key ?? "!").Select(tok => $"{tok.Length}:{tok};")));
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(f.ExternalName!)}, "
-                    + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts)?.Key)}, "
-                    + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts)?.Key)}, LinageRef: {linage}, "
+                    + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, fsId)}, "
+                    + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, rkId)}, LinageRef: {linage}, "
                     + $"SelectFingerprint: {CsLiteral(f.SelectFingerprint ?? throw new InvalidOperationException($"OoEmitter: the EXTERNAL file '{f.ExternalName}' has no bound entry identity (BackendAnswers writes one for every EXTERNAL file)"))}, "
-                    + $"RecordDelimiter: {(f.RecordDelimiter is { } rd ? CsLiteral(rd) : "null")}), {selfMask});   // §2023:14.8.4.2 / §2023:14.8.4.4 / §2023:12.4.5.3 GR1");
+                    + $"RecordDelimiter: {(f.RecordDelimiter is { } rd ? CsLiteral(rd) : "null")}, "
+                    + $"NonExternalItem: {(nonExternal ? "true" : "false")}), {selfMask});   // §2023:14.8.4.2 / §2023:14.8.4.4 / §2023:12.4.5.3 GR1");
             }
         }
     }

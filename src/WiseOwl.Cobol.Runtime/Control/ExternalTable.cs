@@ -35,7 +35,10 @@ public enum ExternalChecks
 /// strongly typed) and <see cref="ConstantRecord"/> = the CONSTANT RECORD presence (§2023:14.8.4.3 ¶3).
 /// FILE kind (§2023:14.8.4.2 / §2023:14.8.4.4): <see cref="FileStatusRef"/> / <see cref="RelativeKeyRef"/> /
 /// <see cref="LinageRef"/> = the corresponding-external-item identities of the file-referencing control items
-/// ("EXTNAME.SUB.PATH", "!" when the item exists but is NOT external, null when the clause is absent);
+/// (the compiler's length-prefixed identity key, "!" in the place of an item that exists but is NOT external, null when the
+/// clause is absent), compared ONLY for equality and never split or searched, because an <c>AS literal-1</c> record name inside a
+/// key may hold any character, ';' and '!' included (kb/Work PB5888 review R2-1); <see cref="NonExternalItem"/> = whether any of the
+/// three names an item that is NOT an external data item (§2023:14.8.4.2 conjunct 1), its own field so no reader parses text;
 /// <see cref="SelectFingerprint"/> = the §2023:12.4.5.3 GR1 a–m canonical fingerprint of the file control entry, every item an
 /// entry compares by equality; <see cref="RecordDelimiter"/> = GR1 c), the RECORD DELIMITER clause's written arm
 /// (STANDARD-1 or the implementor-name), null when the entry writes no such clause. GR1 c) is the one item whose agreement is not
@@ -50,7 +53,8 @@ public sealed record ExternalDescriptor(
     string? RelativeKeyRef = null,
     string? LinageRef = null,
     string? SelectFingerprint = null,
-    string? RecordDelimiter = null)
+    string? RecordDelimiter = null,
+    bool NonExternalItem = false)
 {
     /// <summary>⛔ THE ONE AGREEMENT RELATION of two entries' RECORD DELIMITER clauses (kb/Work PB5844), read by the compile-time
     /// check (<c>FileEntrySegment.Agrees</c>) and the run-time one (<see cref="ExternalTable.Describe"/>). Two WRITTEN clauses agree
@@ -152,14 +156,10 @@ public sealed class ExternalTable
         entries[describer] = desc;
     }
 
-    /// <summary>§2023:14.8.4.2 conjunct 1: a present-but-non-external file-referencing item is the "!" sentinel (emitted by
-    /// the codegen when a specified FILE STATUS / RELATIVE KEY / LINAGE item is not an external data item). It is a
-    /// whole ";"-separated token — the entire single string for FILE STATUS / RELATIVE KEY, one token among several
-    /// for LINAGE (alongside a dotted external-item identity or an "=&lt;integer&gt;" literal, neither of which can
-    /// contain "!" or ";"), so whole-token equality is exact. A null ref (clause unspecified) is not a violation. This
-    /// closes the both-"!" false negative — two non-external describers used to compare EQUAL (<c>"!" == "!"</c>).</summary>
-    private static bool AnyNonExternalRef(ExternalDescriptor d) =>
-        IsNonExternal(d.FileStatusRef) || IsNonExternal(d.RelativeKeyRef) || IsNonExternal(d.LinageRef);
-
-    private static bool IsNonExternal(string? r) => r is { } s && s.Split(';').Contains("!");
+    /// <summary>§2023:14.8.4.2 conjunct 1: a FILE STATUS / RELATIVE KEY / LINAGE item that is present but NOT an external data item,
+    /// marked by the compiler in the descriptor's own field (<see cref="ExternalDescriptor.NonExternalItem"/>). Either describer's
+    /// mark is the violation, so two non-external describers never compare equal and pass (the both-"!" false negative). Until
+    /// kb/Work PB5888 review R2-1 the mark was a "!" token found by splitting the reference text on ';', and a record externalized
+    /// AS "A;!;B" raised a false EC-EXTERNAL-DATA-MISMATCH.</summary>
+    private static bool AnyNonExternalRef(ExternalDescriptor d) => d.NonExternalItem;
 }
