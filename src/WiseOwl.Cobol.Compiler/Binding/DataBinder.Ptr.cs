@@ -141,7 +141,7 @@ public sealed partial class DataBinder
         // storage to be allocated is the number of BYTES required to hold an item as described by data-name-1",
         // and §2023:13.18.44.4 GR1's larger-of-the-two for a multi-member class. Character positions are NOT that
         // number for a NATIONAL leaf (two bytes per position, §2023:13.18.60.4 GR8 / D-N1) — kb/Work PB231.
-        cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(m => m.ByteWidth * (m.Occurs ?? 1)),
+        cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(RecordLayout.OccupiedBytes),
             rejectReason: null);
         // ⛔ THE CELL CLAIM, made HERE because this method IS the one cell-backing forcer and its three callers
         // ARE the three cell surfaces: from now on the class has a StorageCell behind its backing
@@ -228,7 +228,7 @@ public sealed partial class DataBinder
         if (DynSlotWindow.CarriedBySlot(node)) return next + 1;
         int k = next;
         foreach (var c in node.Children.Where(c => c.RedefinesTargetName is null))
-            k += (AssignCellComponents(c, k) - k) * (c.Occurs ?? 1);
+            k = RecordLayout.Narrow(RecordLayout.Plus(k, RecordLayout.Times(AssignCellComponents(c, k) - k, c)));
         return k;
     }
 }

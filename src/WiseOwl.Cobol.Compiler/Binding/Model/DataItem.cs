@@ -1539,7 +1539,7 @@ public sealed class DataItem
     /// MAXIMUM, because §2023:8.5.1.8 fixes the allocated physical capacity at compile time.</summary>
     internal int MinimumOccurrences =>
         OccursSpec is { DependingName: not null } or { IsDynamic: true } ? OccursSpec.Min
-        : Occurs ?? 1;
+        : RecordLayout.Occurrences(this);
 
     /// <summary>True when this subtree contains a <c>USAGE BIT</c> leaf — the gate that sends a group's width
     /// through the §2023:8.5.1.6.3 bit walk (design D19, fix-queue PB43) instead of the plain character sum. It is the
@@ -1624,16 +1624,11 @@ public sealed class DataItem
     /// (the .NET Single/Double carriers); INDEX / POINTER / PROGRAM-POINTER / FUNCTION-POINTER / OBJECT REFERENCE
     /// = 8 (the 64-bit managed carrier). WiseOwl COBOL has no SYNCHRONIZED physical padding, so a group carries no
     /// implicit-filler bytes (§2023:15.14.4 r3 is satisfied vacuously).</summary>
-    public int ByteWidth =>
-        IsElementary ? ElementaryByteWidth
-        // A no-THROUGH level-66 alias of a GROUP item has no PICTURE and no children of its own — "all of the data
-        // attributes of data-name-2 become the data attributes of data-name-1 and the storage area occupied by
-        // data-name-2 becomes the storage area occupied by data-name-1" (§2023:13.18.45.4 GR1) — so it is as wide as
-        // the group it renames. (A THROUGH alias carries a synthesized alphanumeric PICTURE: the arm above.)
-        : Renames is { IsAlias: true, From: { } renamed } ? renamed.ByteWidth
-        // D19/PB43 — same reason as ImageWidth: a bit-bearing subtree is LAID OUT, not summed.
-        : HasBitDescendant ? BitLayout.Characters(BitLayout.ExtentBits(this))
-        : Children.Where(c => c.RedefinesTargetName is null).Sum(c => c.ByteWidth * (c.Occurs ?? 1));
+    /// <remarks>The rule is <see cref="RecordLayout.ExactByteWidth"/>, the one size computation, in 64 bits, narrowed by
+    /// <see cref="RecordLayout.Narrow"/> (kb/Work PB5695): a no-THROUGH level-66 alias of a GROUP item is as wide as the group it
+    /// renames (§2023:13.18.45.4 GR1), a bit-bearing subtree is LAID OUT, not summed (D19/PB43), and any other group sums its storage
+    /// children's bytes times their occurrences.</remarks>
+    public int ByteWidth => RecordLayout.Narrow(RecordLayout.ExactByteWidth(this));
 
     /// <summary>An elementary item's byte width — the per-usage pinned widths documented on <see cref="ByteWidth"/>.</summary>
     /// <summary>The byte width this implementation gives every pointer-class and object-reference item — USAGE
@@ -1665,7 +1660,7 @@ public sealed class DataItem
                 Usage.FloatDecimal16 => 8,                            // decimal64 = 8 bytes
                 Usage.Pointer or Usage.ProgramPointer or Usage.FunctionPointer
                     or Usage.ObjectReference or Usage.MessageTag => PointerByteWidth,   // DOC-A.1-212: the slot rule, 8
-                Usage.National => pic.BytesPerPosition * ElementaryImageWidth,   // UTF-16, D-N1/D-N3 — the ONE unit reader
+                Usage.National => RecordLayout.Narrow(RecordLayout.Product(pic.BytesPerPosition, ElementaryImageWidth)),   // UTF-16, D-N1/D-N3 — the ONE unit reader
                 _ => ElementaryImageWidth,                       // DISPLAY / BIT: 1 byte per character/boolean position
             };
         }

@@ -212,7 +212,7 @@ public static class OdoModel
         // The prefix is the table's own placement offset (never `total − elem × max`, which would charge rule 4's
         // trailing filler to the prefix); -1 means an unmodelled overlay chain, and the character path stands in.
         bool bitUnits = group.HasBitDescendant && BitLayout.StartBitOf(group, table) >= 0;
-        int max = table.Occurs ?? 1;                          // the allocated capacity = integer-2 (§2023:8.5.1.8)
+        int max = RecordLayout.Occurrences(table);            // the allocated capacity = integer-2 (§2023:8.5.1.8)
         // integer-1 — the LOWER bound §2023:13.18.38.4 GR7 requires the control value to fall within. Carried so the
         // extent computation can raise EC-BOUND-ODO below it; the runtime floor used to be hardcoded 0, which
         // made a below-minimum DEPENDING value clamp silently instead of setting the condition.

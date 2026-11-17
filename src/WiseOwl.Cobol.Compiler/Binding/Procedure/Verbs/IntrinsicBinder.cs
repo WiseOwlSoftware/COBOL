@@ -2675,7 +2675,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     if (tablePath is null || c.OccursSpec?.CapacityRegister is not { } reg)
                     { failure = Stage($"the dynamic-capacity table '{c.CobolName ?? c.ClrName}' could not be addressed"); return; }
                     fixedPart -= c.ByteWidth;
-                    dynamicBytes += c.ByteWidth;
+                    dynamicBytes = RecordLayout.Narrow(RecordLayout.Plus(dynamicBytes, c.ByteWidth));
                     Add(new BoundBinary(new BoundNumRef(new CapacityRegisterPlace(tablePath, reg)), '*',
                                         new BoundNumLiteral(c.ByteWidth.ToString())));
                 }
@@ -2689,7 +2689,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     { failure = ImageOrStage($"the OCCURS DEPENDING table '{c.CobolName ?? c.ClrName}' has a runtime-length element — a per-occurrence sum"); return; }
                     if (odo is null)   // the resolver wraps every ODO group operand — struct member or class-tier window (kb/Work PB80); reaching here is a shape it could not resolve
                     { failure = Stage($"the OCCURS DEPENDING table '{c.CobolName ?? c.ClrName}' has no resolvable data-name-1 place"); return; }
-                    int elem = c.ByteWidth, max = c.Occurs ?? 1;
+                    int elem = c.ByteWidth, max = RecordLayout.Occurrences(c);
                     // r4a / r2a — a BASED entry not associated with actual data answers the maximum (GR8b): the
                     // entry's data-address field guards the ODO term (kb/Work PB80).
                     string? basedAddress = group.Class?.BasedPointerField;   // null for a non-BASED class

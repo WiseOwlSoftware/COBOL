@@ -260,6 +260,6 @@ internal sealed class PhysicalModel(EmitContext ctx)
     /// <summary>The emitted character-image width of an item: a leaf's own width; a group's = the sum of its physical
     /// fields (a contained REDEFINES class contributes its single backing width once, its views nothing).</summary>
     private int PhysicalImageWidth(DataItem item) =>
-        item.IsGroup ? PhysicalChildrenOf(item).Sum(f => f.Width) : item.ByteWidth;
+        item.IsGroup ? RecordLayout.Narrow(PhysicalChildrenOf(item).Aggregate(0L, (sum, f) => RecordLayout.Plus(sum, f.Width))) : item.ByteWidth;
 
 }

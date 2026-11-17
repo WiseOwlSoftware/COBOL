@@ -22,7 +22,11 @@ internal static class ItemLength
     /// exception for the CONSTANT entry; the FUNCTION LENGTH fold never reaches an ODO group (r4 is a runtime
     /// length). A dynamic-length item (r6) is never folded here: FUNCTION LENGTH reads it at run time and §2023:13.10.3
     /// SR12 bars it from a CONSTANT entry.</summary>
-    internal static int Positions(DataItem item)
+    internal static int Positions(DataItem item) => RecordLayout.Narrow(ExactPositions(item));
+
+    /// <summary><see cref="Positions"/> in 64 bits: the form a CONSTANT entry's length phrase reads while the data division binds, before
+    /// the size limit has screened the item it measures (kb/Work PB5695).</summary>
+    internal static long ExactPositions(DataItem item)
     {
         // THE ONE category reader (D20/PB79): an elementary item's own picture, a bit / national GROUP's as-if picture
         // — a bit group's boolean positions are its exact bit extent (no trailing filler), a national group's national
@@ -44,7 +48,7 @@ internal static class ItemLength
             if (pic.Usage is Usage.National)
                 return NationalWindow.PositionsOf(item) ?? pic.Length;                      // r2 — national positions
         }
-        return item.ByteWidth;                                                              // r3 — alphanumeric positions ≡ bytes
+        return RecordLayout.ExactByteWidth(item);                                           // r3 — alphanumeric positions ≡ bytes
     }
 
     /// <summary>⛔ THE X3.23-1985 SIZE OF AN ITEM: "The size of an elementary data item or a group item is the number of characters in standard data format of
@@ -56,9 +60,13 @@ internal static class ItemLength
     /// one) is its storage size.</summary>
     internal static int StandardDataFormatCharacters(DataItem item)
     {
-        if (item.Pic is { } pic && !item.IsGroup)
-            return IsStoredAsDigits(pic) ? pic.Digits : item.ByteWidth;
-        return item.Children.Where(child => child.RedefinesTarget is null).Sum(child => StandardDataFormatCharacters(child) * (child.Occurs ?? 1));
+        return RecordLayout.Narrow(ExactStandardDataFormatCharacters(item));
+
+        // In 64 bits through the one group sum (RecordLayout.OverStorageChildren), narrowed once (kb/Work PB5695).
+        static long ExactStandardDataFormatCharacters(DataItem item) =>
+            item.Pic is { } pic && !item.IsGroup
+                ? IsStoredAsDigits(pic) ? pic.Digits : RecordLayout.ExactByteWidth(item)
+                : RecordLayout.OverStorageChildren(item, ExactStandardDataFormatCharacters);
     }
 
     /// <summary>Whether an elementary item's storage is not its standard data format: a numeric item of usage binary, packed
@@ -94,7 +102,7 @@ internal static class ItemLength
         int offset = 0;
         foreach (var child in group.Children.Where(c => c.RedefinesTarget is null))
         {
-            int count = child.Occurs ?? 1;
+            int count = RecordLayout.Occurrences(child);
             int width = child.ByteWidth;
             if (child.IsGroup)
                 parts.Add(new StandardPart(offset, width, null, count, PartsOf(child)));
@@ -105,7 +113,7 @@ internal static class ItemLength
                 parts[^1] = run with { Width = run.Width + width };
             else
                 parts.Add(new StandardPart(offset, width, null, count, null));
-            offset += width * count;
+            offset = RecordLayout.Narrow(RecordLayout.Plus(offset, RecordLayout.OccupiedBytes(child)));
         }
         return parts;
     }

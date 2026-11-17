@@ -196,7 +196,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 // ONE recursive storage function (a redefiner sits at its target's offset, §2023:13.18.44), the parts are
                 // the record's NON-redefining leaves that intersect the window, and a boundary inside a leaf (a FROM /
                 // THRU that partially redefines it) is a partial part.
-                int Width(DataItem d) => d.ByteWidth * (d.Occurs ?? 1);   // STORAGE bytes: a national position is two (D-N1; kb/Work PB1665)
+                int Width(DataItem d) => RecordLayout.OccupiedBytes(d);   // STORAGE bytes: a national position is two (D-N1; kb/Work PB1665)
                 int Offset(DataItem d)
                 {
                     if (d.RedefinesTarget is { } tgt) return Offset(tgt);          // an overlay starts where its target does
@@ -260,7 +260,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     {
                         int off = Offset(leaf) + delta, total = Width(leaf);
                         if (off + total - 1 >= startOff && off <= endOff)
-                            leaves.Add((leaf, off, leaf.ByteWidth, leaf.Occurs ?? 1, [.. outer]));
+                            leaves.Add((leaf, off, leaf.ByteWidth, RecordLayout.Occurrences(leaf), [.. outer]));
                         return;
                     }
                     var table = tables[level];
@@ -490,7 +490,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
     /// exactly (<see cref="BitLayout.RunBits"/>, occurrences included), anything else its byte width times eight.</summary>
     private static long StorageBitsOf(DataItem d) =>
         BitLayout.IsBitItem(d) ? BitLayout.RunBits(d)
-        : (long)d.ByteWidth * (d.Occurs ?? 1) * BitLayout.BitsPerCharacter;
+        : RecordLayout.OccupiedBits(d);
 
     /// <summary>The bit offset of <paramref name="target"/> within its record (§2023:8.5.1.6.3 placement), or -1 when an
     /// overlay chain below it cannot be resolved — the callers must not reject on -1.</summary>

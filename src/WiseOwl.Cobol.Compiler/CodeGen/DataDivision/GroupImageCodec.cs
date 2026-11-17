@@ -177,7 +177,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     private string InitImageOfMember(DataItem c, BitRunMap runs, bool useValues, Subscripts subs, SeedRecipe recipe) =>
         runs.RunLedBy(c) is { } run
             ? RuntimeApi.BitsPack(string.Join(" + ", run.Select(m => InitialBitCarrierOf(m, useValues, subs))),
-                                  $"{run.Sum(BitLayout.RunBits)}")
+                                  $"{BitLayout.RunBitsOf(run)}")
         : runs.IsInRun(c) ? "\"\""
         : ImageInitOf(c, useValues, subs, recipe);
 
@@ -620,8 +620,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 : d.IsDynamicTable ? new VarPart(d.ElementTransferImageCapable ? VarPartKind.DynTable : VarPartKind.DynGroupTable, f, d, 0, 1)
                 : d.TransferImageCapable ? new VarPart(VarPartKind.OdoFixed, f, d, f.Width, 0)
                 : d.OccursSpec?.DependingName is not null
-                    ? new VarPart(VarPartKind.OdoTable, f, d, (d.Occurs ?? 1) * VarFixedWidth(d), (d.Occurs ?? 1) * VarComponentCount(d), d.Occurs ?? 1)
-                : d.Occurs is { } n ? new VarPart(VarPartKind.NestedTable, f, d, n * VarFixedWidth(d), n * VarComponentCount(d), n)
+                    ? new VarPart(VarPartKind.OdoTable, f, d, RecordLayout.Narrow(RecordLayout.Times(VarFixedWidth(d), d)),
+                        RecordLayout.Narrow(RecordLayout.Times(VarComponentCount(d), d)), RecordLayout.Occurrences(d))
+                : d.Occurs is { } n ? new VarPart(VarPartKind.NestedTable, f, d, RecordLayout.Narrow(RecordLayout.Times(VarFixedWidth(d), d)),
+                    RecordLayout.Narrow(RecordLayout.Times(VarComponentCount(d), d)), n)
                 : new VarPart(VarPartKind.Nested, f, d, VarFixedWidth(d), VarComponentCount(d)));
         }
         return parts;
@@ -638,7 +640,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         OdoModel.TableUnder(group) is not { } t ? default
         : !DataItem.HasVariableLengthSubordinate(t)
             ? OdoModel.FixedImageTail(OdoModel.ImageHolder(group, t), t)
-        : new OdoTail(VarFixedWidth(t), t.Occurs ?? 1, VarComponentCount(t));
+        : new OdoTail(VarFixedWidth(t), RecordLayout.Occurrences(t), VarComponentCount(t));
 
     /// <summary>The character width of a variable-length group's FIXED run — its image with every
     /// variable-length component collapsed to nothing. This is the §2023:8.5.1.12.3 accounting the compatibility
@@ -1244,7 +1246,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     private static BitFiller? ImageTailOf(IReadOnlyList<DataItem> run)
     {
         var tail = BitLayout.RunTailOf(run);
-        return tail is not null && run.Sum(BitLayout.RunBits) + tail.Bits == BitLayout.RunCharacters(run) * BitLayout.BitsPerCharacter
+        return tail is not null && BitLayout.RunBitsOf(run) + tail.Bits == BitLayout.RunCharacters(run) * BitLayout.BitsPerCharacter
             ? tail : null;
     }
 
@@ -1256,7 +1258,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         var tail = ImageTailOf(run);
         var carriers = run.Select(BitCarrierOf).ToList();
         if (tail is not null) carriers.Add(tail.ClrName);
-        return RuntimeApi.BitsPack(string.Join(" + ", carriers), $"{run.Sum(BitLayout.RunBits) + (tail?.Bits ?? 0)}");
+        return RuntimeApi.BitsPack(string.Join(" + ", carriers), $"{BitLayout.RunBitsOf(run) + (tail?.Bits ?? 0)}");
     }
 
     private static string AsImageOf(PhysicalModel.Physical f) =>
@@ -1323,7 +1325,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // to each member in declaration order; the continuations have Width 0 and consume no slice.
         if (f.BitRun is { } run)
         {
-            int runBits = run.Sum(BitLayout.RunBits);
+            int runBits = BitLayout.RunBitsOf(run);
             // The run's stored trailing filler (§2023:8.5.1.6.3, kb/Work PB3564) is unpacked with it and stored back below.
             var tail = ImageTailOf(run);
             // ⚠ The carrier local is named for the run's OFFSET, not a bare `__bits`: a group may hold SEVERAL
@@ -1338,7 +1340,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 // THE one distributor (kb/Work PB161) — a bit GROUP member spreads to its subordinates
                 // (FromBits, D20/PB79), a fixed-OCCURS member loops its occurrences.
                 EmitRunMemberFromBits(m, carrier, at, w);
-                at += BitLayout.RunBits(m);
+                at = RecordLayout.Narrow(RecordLayout.Plus(at, BitLayout.RunBits(m)));
             }
             // ⛔ WHAT THE IMAGE HELD AFTER THE LAST MEMBER IS THE FILLER'S VALUE NOW — MOVE "AB" TO G stores 'A''s low
             // seven bits here, and the next DISPLAY of G reads them back (§2023:14.9.25.4 GR4: the group move is an

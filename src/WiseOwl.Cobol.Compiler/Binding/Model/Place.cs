@@ -637,7 +637,7 @@ public static class CellComponents
     /// occurrence count.</summary>
     public static int PerOccurrence(DataItem item) =>
         IsComponent(item) ? 1
-        : item.Children.Where(c => c.RedefinesTargetName is null).Sum(c => PerOccurrence(c) * (c.Occurs ?? 1));
+        : RecordLayout.Narrow(RecordLayout.OverStorageChildren(item, c => PerOccurrence(c)));
 
     /// <summary>The components of ONE occurrence of <paramref name="group"/>, in ordinal (storage) order with every
     /// fixed table's occurrences expanded, each with its position in the group's window and the occurrence numbers of
@@ -692,9 +692,9 @@ public static class CellComponents
                                                                                int shift, Subscripts fixedSubs)
     {
         foreach (var c in node.Children.Where(c => c.RedefinesTargetName is null))
-            for (int o = 0; o < (c.Occurs ?? 1); o++)
+            for (int o = 0; o < RecordLayout.Occurrences(c); o++)
             {
-                int s = shift + o * c.ByteWidth;
+                int s = RecordLayout.Narrow(RecordLayout.Plus(shift, RecordLayout.Product(o, c.ByteWidth)));
                 var f = c.Occurs is null ? fixedSubs : fixedSubs.With(o + 1);
                 if (IsComponent(c)) yield return (c, placed(c) + s, f);
                 else foreach (var x in Walk(c, placed, s, f)) yield return x;
@@ -761,8 +761,8 @@ public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnly
         OdoModel.TableUnder(group) is not { } table ? default
         : CellComponents.PerOccurrence(table) is var comps && comps == 0
             ? OdoModel.FixedImageTail(OdoModel.ImageHolder(group, table), table)
-        : new OdoTail(table.ByteWidth - CellComponents.Of(table).Where(p => p.Item.IsDynamicTable).Sum(p => p.Item.ByteWidth),
-                      table.Occurs ?? 1, comps);
+        : new OdoTail(table.ByteWidth - RecordLayout.Narrow(CellComponents.Of(table).Where(p => p.Item.IsDynamicTable).Aggregate(0L, (sum, p) => RecordLayout.Plus(sum, p.Item.ByteWidth))),
+                      RecordLayout.Occurrences(table), comps);
 
     /// <summary>The window shape of one ELEMENT of the dynamic-capacity table <paramref name="table"/> when that
     /// element is itself a variable-length group (a runtime-length item or a nested table inside it), else null: the

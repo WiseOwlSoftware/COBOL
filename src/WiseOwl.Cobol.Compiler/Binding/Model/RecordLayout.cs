@@ -25,6 +25,10 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// description entry are implicitly referenced as keys for all other record description entries";
 /// §2023:14.9.41.3 SR6b — leftmost character position correspondence).</para>
 /// </summary>
+/// <summary>The three measures the limit on one data item is decided over (<see cref="RecordLayout.ExceedsSizeLimit"/>): its image in
+/// character positions, its storage extent in bytes with every overlay, and the elementary items it holds.</summary>
+internal readonly record struct ItemMeasures(long Image, long Extent, long Elementary);
+
 internal static class RecordLayout
 {
     /// <summary>⛔ THE ONE WIDTH RULE of an item's character image — <c>DataItem.ImageWidth</c> IS this (kb/Work
@@ -44,11 +48,19 @@ internal static class RecordLayout
     /// members were lost (kb/Work PB1665: <c>MOVE G5 TO G6</c> left <c>B</c> as spaces). Every consumer of a group's
     /// character-image width — MOVE, the receiving store, the boundary windows, ref-mod positions, LENGTH folds,
     /// the Tier-B strides — reads this one answer, so none restates the unit.</para>
-    /// <para>⛔ AN ITEM PAST <see cref="MaxCharacterPositions"/> NEVER WRAPS (kb/Work PB5695). The answer is <see cref="ExactImageWidth"/>
-    /// saturated at <see cref="int.MaxValue"/>: such an item is refused (COBOL7641, <see cref="ExceedsSizeLimit"/>) before any
-    /// program is emitted, and the binder's other readers keep their out-of-range answers meanwhile. The int product used to
-    /// wrap: <c>05 E PIC X(1000) OCCURS 2000000000</c> was 2,000,000,000,000 positions, read as −1,454,759,936.</para></summary>
-    public static int ImageWidth(DataItem item) => (int)Math.Min(ExactImageWidth(item), int.MaxValue);
+    /// <para>The answer is <see cref="ExactImageWidth"/> through <see cref="Narrow"/>: see the size section below.</para></summary>
+    public static int ImageWidth(DataItem item) => Narrow(ExactImageWidth(item));
+
+    // ── ⛔ THE ONE COMPUTATION OF AN ITEM'S SIZE (kb/Work PB5695 and its review R1-1) ─────────────────────────────────────
+    //
+    // Every size the compiler takes of a data item — its image, its bytes, its storage extent with every overlay, an OCCURS
+    // product, a group sum, a REDEFINES comparison, an offset, a record length — is computed HERE, in 64 bits, saturating at
+    // long.MaxValue, and is narrowed to int by ONE function, Narrow, which throws an internal compiler error for a value no
+    // admitted item can have. The limit (MaxCharacterPositions / MaxStorageBytes, D-ITEM-SIZE) is decided by ONE function,
+    // ExceedsSizeLimit, in CheckStorageLimitsPass, which runs before any pass that narrows a group's size and stops the
+    // compile when it refuses an item (DataDivisionRefused). The int product used to wrap: 05 E PIC X(1000) OCCURS 2000000000
+    // was 2,000,000,000,000 positions, read as -1,454,759,936, and an over-limit group with a REDEFINES over it crashed the
+    // compiler with OverflowException out of a checked Sum. SizeArithmeticDriftTests holds the arithmetic to this file.
 
     /// <summary>⚠ THE IMPLEMENTOR-DEFINED MAXIMUM number of character positions in ONE DATA ITEM, elementary or group (docs/conformance
     /// determination D-ITEM-SIZE). No edition sets one: §2023:13.18.40.3 SR4 bounds only the WRITTEN character-string, SR14 bounds only
@@ -57,30 +69,122 @@ internal static class RecordLayout
     /// bounded by the standard. 2^27 is the largest power of two whose UTF-16 image — two bytes per character position, for
     /// alphanumeric and national alike — stays inside .NET's single-object ceiling, and an item's image is one such string (an
     /// elementary item's value, a group's <c>AsImage</c>). Two screens ask it, each where its size is first known: the PICTURE
-    /// expansion of an elementary item (COBOL2148; past it the expansion used to die with an OutOfMemoryException instead of naming
-    /// the source line, kb/Work PB531) and the size of a group (COBOL7641, <see cref="ExceedsSizeLimit"/>; past it the size wrapped
-    /// in the compiler's 32-bit model and the program allocated until the host ran out of memory, kb/Work PB5695).</summary>
+    /// expansion of an elementary item (COBOL2148, kb/Work PB531) and the size of a group (COBOL7641, <see cref="ExceedsSizeLimit"/>,
+    /// kb/Work PB5695).</summary>
     internal const int MaxCharacterPositions = 1 << 27;
 
-    /// <summary>⛔ THE ONE DECIDER of "this data item is larger than this implementation's limit" over a laid-out item (kb/Work
-    /// PB5695): its <see cref="ExactImageWidth"/> exceeds <see cref="MaxCharacterPositions"/>. <paramref name="width"/> is that
-    /// width, for the diagnostic.</summary>
-    public static bool ExceedsSizeLimit(DataItem item, out long width) => (width = ExactImageWidth(item)) > MaxCharacterPositions;
+    /// <summary>The most bytes one data item's storage occupies, every item that redefines within it included: as many as it may
+    /// hold character positions, so that every BIT offset in it (eight to a byte, §2023:8.1.2 as WiseOwl COBOL pins it) is an
+    /// <see cref="int"/>. Part of the same limit (D-ITEM-SIZE); a national item of more than 2^26 positions (two bytes each, D-N1)
+    /// meets it before its image does.</summary>
+    internal const long MaxStorageBytes = MaxCharacterPositions;
 
-    /// <summary><see cref="ImageWidth"/>'s rule, computed in <see cref="long"/> and saturated at <see cref="long.MaxValue"/>, so
-    /// the true size of an item past every limit is known and never wraps.</summary>
-    public static long ExactImageWidth(DataItem item)
+    /// <summary>The largest measure an item within the limit has, so the largest value <see cref="Narrow"/> accepts: its storage in
+    /// bits, eight times <see cref="MaxStorageBytes"/> — above every other measure (its image at most
+    /// <see cref="MaxCharacterPositions"/>, its bytes and codec span at most <see cref="MaxStorageBytes"/>, an offset less, the
+    /// characters of standard data format at most 2.25 per byte, its boolean positions at most its bits).</summary>
+    internal const long MaxMeasure = 8L * MaxStorageBytes;
+
+    /// <summary>⛔ THE ONE NARROWING of a size to <see cref="int"/>. It may be asked only of a measure of an item within the limit
+    /// (<see cref="ExceedsSizeLimit"/>), which is at most <see cref="MaxMeasure"/>; any other value means a pass measured an item the
+    /// limit refused, or one it has not screened yet, and that is an internal compiler error, never a wrapped or clamped size.</summary>
+    public static int Narrow(long measure) =>
+        measure is >= 0 and <= MaxMeasure ? (int)measure
+        : throw new InvalidOperationException(
+            $"internal compiler error: a data item size of {measure} reached the narrowing to int; only an item within the "
+            + $"{MaxCharacterPositions:N0}-position limit may be narrowed (RecordLayout.Narrow, kb/Work PB5695)");
+
+    /// <summary>⛔ THE ONE CONVERSION OF A RUN-TIME BOUND that is not a data item's size — a dynamic-length item's maximum (Annex A.1 item
+    /// 62 allows 1,073,741,791 characters) summed into a record's maximum length, a dynamic-capacity table's expected capacity — to
+    /// the int the run time takes: saturated at <see cref="int.MaxValue"/>, the documented ceiling of those bounds.</summary>
+    public static int SaturatedBound(long bound) => (int)Math.Clamp(bound, int.MinValue, int.MaxValue);
+
+    /// <summary>The occurrences of one entry: its OCCURS count (an OCCURS DEPENDING table's maximum, §2023:8.5.1.8), one for an entry
+    /// with no OCCURS clause and for a dynamic-capacity table (its occurrences are not part of the fixed layout).</summary>
+    public static int Occurrences(DataItem item) => item.Occurs ?? 1;
+
+    /// <summary>⛔ THE OCCURS PRODUCT: <paramref name="perOccurrence"/> for each of <paramref name="item"/>'s
+    /// <see cref="Occurrences"/>, in 64 bits.</summary>
+    public static long Times(long perOccurrence, DataItem item) => Product(perOccurrence, Occurrences(item));
+
+    /// <summary>A product of two sizes or counts, saturating at <see cref="long.MaxValue"/>.</summary>
+    public static long Product(long a, long b) => TableValuePlan.SaturatingMultiply(a, b);
+
+    /// <summary>A sum of two sizes, saturating at <see cref="long.MaxValue"/>.</summary>
+    public static long Plus(long a, long b) => TableValuePlan.SaturatingAdd(a, b);
+
+    /// <summary>⛔ THE GROUP SUM: <paramref name="perOccurrence"/> of each of <paramref name="group"/>'s storage children (not one that
+    /// REDEFINES, which overlays its target and adds no storage, §2023:13.18.44) times its occurrences.</summary>
+    public static long OverStorageChildren(DataItem group, Func<DataItem, long> perOccurrence)
     {
-        if (item.IsElementary) return item.ElementaryImageWidth;
-        // D19/PB43 — a bit-bearing subtree is laid out by the ONE §2023:8.5.1.6.3 walk, never summed.
-        if (item.HasBitDescendant) return BitLayout.Characters(BitLayout.ExtentBits(item));
         long sum = 0;
-        foreach (var c in item.Children)
-            if (c.RedefinesTargetName is null)
-                sum = TableValuePlan.SaturatingAdd(sum, TableValuePlan.SaturatingMultiply(ImageContribution(item, c), c.Occurs ?? 1));
+        foreach (var c in group.Children)
+            if (c.RedefinesTargetName is null) sum = Plus(sum, Times(perOccurrence(c), c));
         return sum;
     }
 
+    /// <summary>⛔ THE ONE DECIDER of "this data item is larger than this implementation's limit" (kb/Work PB5695; D-ITEM-SIZE): its
+    /// <see cref="ItemMeasures"/>. An item is within the limit when its image is at most <see cref="MaxCharacterPositions"/>
+    /// characters, its storage extent at most <see cref="MaxStorageBytes"/> bytes and it holds at most
+    /// <see cref="MaxCharacterPositions"/> elementary items (a table of dynamic-length items occupies no fixed positions, but each
+    /// of its occurrences is a string the program allocates).</summary>
+    public static bool ExceedsSizeLimit(DataItem item, out ItemMeasures measures)
+    {
+        measures = new ItemMeasures(ExactImageWidth(item), ExactExtent(item), ElementaryOccurrences(item));
+        return measures.Image > MaxCharacterPositions || measures.Extent > MaxStorageBytes || measures.Elementary > MaxCharacterPositions;
+    }
+
+    /// <summary><see cref="ImageWidth"/>'s rule, in 64 bits.</summary>
+    public static long ExactImageWidth(DataItem item) =>
+        item.IsElementary ? item.ElementaryImageWidth
+        // D19/PB43 — a bit-bearing subtree is laid out by the ONE §2023:8.5.1.6.3 walk, never summed.
+        : item.HasBitDescendant ? BitLayout.Characters(BitLayout.ExactExtentBits(item))
+        : OverStorageChildren(item, c => ImageContribution(item, c));
+
+    /// <summary><c>DataItem.ByteWidth</c>'s rule, in 64 bits: the item's size in BYTES, the FUNCTION BYTE-LENGTH (§2023:15.14)
+    /// authority — a leaf's pinned per-usage width (<c>DataItem.ElementaryByteWidth</c>), a no-THROUGH level-66 alias of a group the
+    /// group it renames (§2023:13.18.45.4 GR1), a bit-bearing group its §2023:8.5.1.6.3 characters, any other group the sum of its
+    /// storage children's bytes times their occurrences.</summary>
+    public static long ExactByteWidth(DataItem item) =>
+        item.IsElementary ? item.ElementaryByteWidth
+        : item.Renames is { IsAlias: true, From: { } renamed } ? ExactByteWidth(renamed)
+        : item.HasBitDescendant ? BitLayout.Characters(BitLayout.ExactExtentBits(item))
+        : OverStorageChildren(item, ExactByteWidth);
+
+    /// <summary>The bytes every occurrence of <paramref name="item"/> occupies — its <c>ByteWidth</c> times its occurrences: the
+    /// size a REDEFINES class member is compared and allocated by (§2023:13.18.44.4 GR1, in bytes, kb/Work PB231).</summary>
+    public static int OccupiedBytes(DataItem item) => Narrow(Times(ExactByteWidth(item), item));
+
+    /// <summary><see cref="OccupiedBytes"/> in bits, the unit a REDEFINES overlay of a bit item is measured in (§2023:13.18.44.3 SR8).</summary>
+    public static long OccupiedBits(DataItem item) => Product(Times(ExactByteWidth(item), item), BitLayout.BitsPerCharacter);
+
+    /// <summary>The bytes <paramref name="item"/>'s storage spans with every item that redefines within it: a leaf its bytes, a
+    /// group the sum over its storage children of the larger of the child's own occupied storage and that of each sibling that
+    /// redefines it (§2023:13.18.44.4 GR1: the area is the larger of the two). The codec span (<see cref="PhysicalWidth"/>) never
+    /// exceeds it, so an item within <see cref="MaxStorageBytes"/> lays out without a wrap.</summary>
+    public static long ExactExtent(DataItem item)
+    {
+        if (!item.IsGroup) return ExactByteWidth(item);
+        if (item.HasBitDescendant) return BitLayout.Characters(BitLayout.ExactExtentBits(item));
+        long sum = 0;
+        var children = item.Children;
+        for (int i = 0; i < children.Count; i++)
+        {
+            var c = children[i];
+            if (c.RedefinesTargetName is not null) continue;
+            long slot = Times(ExactExtent(c), c);
+            // The entries that redefine it follow it "without intervening entries that define new storage areas" (§2023:13.18.44.3
+            // SR10), each overlaying its area.
+            for (int j = i + 1; j < children.Count && children[j].RedefinesTargetName is not null; j++)
+                slot = Math.Max(slot, Times(ExactExtent(children[j]), children[j]));
+            sum = Plus(sum, slot);
+        }
+        return sum;
+    }
+
+    /// <summary>The elementary items (counting each occurrence) that <paramref name="item"/>'s storage holds.</summary>
+    public static long ElementaryOccurrences(DataItem item) =>
+        item.IsElementary ? 1 : OverStorageChildren(item, ElementaryOccurrences);
     /// <summary>The character positions EVERY occurrence of <paramref name="item"/> occupies — <see cref="ImageWidth"/> (one occurrence)
     /// times the occurrences of each table level on its path: the most a reference that names the item without subscripts (a whole
     /// table, <c>PlaceBuilder.WholeTable</c>) can hold, which is what X3.23-1985 USE FOR DEBUGGING general rule 15 sizes DEBUG-CONTENTS
@@ -91,9 +195,9 @@ internal static class RecordLayout
     /// item in no table.</summary>
     public static long AllOccurrencesImageWidth(DataItem item)
     {
-        long width = ImageWidth(item);
+        long width = ExactImageWidth(item);
         foreach (var level in item.SubscriptLevels())
-            width *= level.Occurs ?? (level.OccursSpec is { IsDynamic: true } d ? Math.Max(1, d.ExpectedMax ?? d.InitialCap ?? 1) : 1);
+            width = Product(width, level.Occurs ?? (level.OccursSpec is { IsDynamic: true } d ? Math.Max(1, d.ExpectedMax ?? d.InitialCap ?? 1) : 1));
         return width;
     }
 
@@ -103,7 +207,7 @@ internal static class RecordLayout
     private static long ImageContribution(DataItem group, DataItem child)
     {
         long w = ExactImageWidth(child);
-        return !InNationalGroup(group) && IsNationalClass(child) ? TableValuePlan.SaturatingMultiply(w, PicInfo.BytesPerPositionOf(Usage.National)) : w;
+        return !InNationalGroup(group) && IsNationalClass(child) ? Product(w, PicInfo.BytesPerPositionOf(Usage.National)) : w;
     }
 
     /// <summary>A national item is an elementary item of usage national or a national group
@@ -129,7 +233,10 @@ internal static class RecordLayout
     /// equals <see cref="ImageWidth"/>. Mirrors <c>OdoModel.PhysicalWidth</c> / <c>SortPhysicalWidth</c> (the ODO
     /// §2023:13.18.38 GR8 extent) — the raw <see cref="ImageWidth"/> would over- or under-count a group containing a
     /// redefines class whose redefiner is wider than the redefined item.</summary>
-    public static int PhysicalWidth(DataItem item)
+    public static int PhysicalWidth(DataItem item) => Narrow(ExactPhysicalWidth(item));
+
+    /// <summary><see cref="PhysicalWidth"/>'s walk, in 64 bits.</summary>
+    private static long ExactPhysicalWidth(DataItem item)
     {
         // ⛔ THE CODEC BASIS IS BYTES, NOT CARRIER POSITIONS (kb/Work PB327). This walk is the record/frame
         // geometry — §2023:12.4.5.12.4 GR4 states key correspondence over "the identical BYTE POSITIONS", §2023:14.9.30.4
@@ -139,13 +246,11 @@ internal static class RecordLayout
         // position (D-N1) — so this read is byte-identical everywhere else and is the whole of the geometry
         // change that admits a national leaf to a file record. <see cref="ImageWidth"/> stays the CARRIER
         // authority (StorageFormPass's form widths, the §2023:13.18.29.4 GR2b as-if PICTURE N(m) length).
-        if (!item.IsGroup) return item.ByteWidth;
+        if (!item.IsGroup) return ExactByteWidth(item);
         // D19/PB43 — a bit-bearing subtree's extent comes from the §2023:8.5.1.6.3 walk. A REDEFINES class inside such
         // a group is not reachable here: D-N2's byte≠char containment already refuses a sub-byte overlay, and
         // PB43 records the sub-byte redefiner as explicitly OUT of scope and loud rather than rounded.
-        if (item.HasBitDescendant) return BitLayout.Characters(BitLayout.ExtentBits(item));
-        // Summed in long and saturated, as ImageWidth is: an item past MaxCharacterPositions is refused (COBOL7641) and never wraps here
-        // meanwhile (kb/Work PB5695).
+        if (item.HasBitDescendant) return BitLayout.Characters(BitLayout.ExactExtentBits(item));
         long w = 0;
         foreach (var c in item.Children)
         {
@@ -157,14 +262,14 @@ internal static class RecordLayout
             // the target) — contributes the ONE backing at class-max width; other members contribute nothing.
             if (c.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(c))
             {
-                if (c.IsCanonical) w = TableValuePlan.SaturatingAdd(w, cls.Width);
+                if (c.IsCanonical) w = Plus(w, cls.Width);
                 continue;
             }
             if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
                 continue;   // a forwarded view
-            w = TableValuePlan.SaturatingAdd(w, TableValuePlan.SaturatingMultiply(PhysicalOccurrenceWidth(c), c.Occurs ?? 1));
+            w = Plus(w, Times(ExactPhysicalOccurrenceWidth(c), c));
         }
-        return (int)Math.Min(w, int.MaxValue);
+        return w;
     }
 
     /// <summary>ONE OCCURRENCE of <paramref name="item"/> on the PHYSICAL (codec, byte) basis — the per-child
@@ -175,8 +280,10 @@ internal static class RecordLayout
     /// positions, which a national leaf counts once where this basis counts it twice (§2023:13.18.60.4 GR8; D-N1) —
     /// against a <see cref="PhysicalWidth"/> total in BYTES, so the fixed prefix came out as the difference and a
     /// zero-occurrence national table sent half its maximum image (kb/Work PB943).</summary>
-    internal static int PhysicalOccurrenceWidth(DataItem item) =>
-        item.IsGroup ? PhysicalWidth(item) : item.ByteWidth;
+    internal static int PhysicalOccurrenceWidth(DataItem item) => Narrow(ExactPhysicalOccurrenceWidth(item));
+
+    private static long ExactPhysicalOccurrenceWidth(DataItem item) =>
+        item.IsGroup ? ExactPhysicalWidth(item) : ExactByteWidth(item);
 
     /// <summary>The item's character offset within its record AREA on the PHYSICAL (codec) basis: the offset inside
     /// its own 01 root, which IS the area offset because every secondary 01 under an FD is a synthesized REDEFINES
@@ -214,20 +321,20 @@ internal static class RecordLayout
         DataItem root = item;
         while (root.Parent is { } parent) root = parent;
 
-        int? found = null;
-        var offsets = new Dictionary<DataItem, int>(ReferenceEqualityComparer.Instance);
+        long? found = null;
+        var offsets = new Dictionary<DataItem, long>(ReferenceEqualityComparer.Instance);
         Walk(root, 0);
-        return found;
+        return found is { } at ? Narrow(at) : null;
 
-        void Walk(DataItem node, int off)
+        void Walk(DataItem node, long off)
         {
             if (found is not null) return;
             offsets[node] = off;
             if (ReferenceEquals(node, item)) { found = off; return; }
-            int running = off;
+            long running = off;
             foreach (var c in node.Children)
             {
-                int cOff = c.RedefinesTarget is { } t && offsets.TryGetValue(t, out int tOff) ? tOff : running;
+                long cOff = c.RedefinesTarget is { } t && offsets.TryGetValue(t, out long tOff) ? tOff : running;
                 Walk(c, cOff);
                 if (found is not null) return;
                 // The advance mirrors PhysicalWidth's per-child contribution exactly (the codec layout):
@@ -236,13 +343,13 @@ internal static class RecordLayout
                 // child overlays its target (no advance); everything else its physical extent.
                 if (c.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(c))
                 {
-                    if (c.IsCanonical) running += cls.Width;
+                    if (c.IsCanonical) running = Plus(running, cls.Width);
                     continue;
                 }
                 if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
                     continue;                                             // a forwarded view
                 if (c.RedefinesTargetName is not null) continue;          // overlays its target — no advance
-                running += PhysicalOccurrenceWidth(c) * (c.Occurs ?? 1);
+                running = Plus(running, Times(ExactPhysicalOccurrenceWidth(c), c));
             }
         }
     }
@@ -342,10 +449,10 @@ internal static class RecordLayout
     {
         if (occurrence.Count == 0) return 0;
         var levels = item.SubscriptLevels();
-        int bytes = 0;
+        long bytes = 0;
         for (int i = 0; i < levels.Count && i < occurrence.Count; i++)
-            bytes += (occurrence[i] - 1) * PhysicalOccurrenceWidth(levels[i]);
-        return bytes;
+            bytes = Plus(bytes, Product(occurrence[i] - 1, ExactPhysicalOccurrenceWidth(levels[i])));
+        return Narrow(bytes);
     }
 
     /// <summary>The offset of <paramref name="item"/> in its 01 record when it is written with the integer-literal
@@ -395,21 +502,21 @@ internal static class RecordLayout
         if (key.Renames is { From: { } renamed }) key = renamed;
         int preceding = 0;
         long maxBytes = 0;
-        int? found = null;
-        var offsets = new Dictionary<DataItem, int>(ReferenceEqualityComparer.Instance);
+        long? found = null;
+        var offsets = new Dictionary<DataItem, long>(ReferenceEqualityComparer.Instance);
         Walk(root, 0);
-        return found is { } f ? (f, preceding, maxBytes) : null;
+        return found is { } f ? (Narrow(f), preceding, maxBytes) : null;
 
         // Returns the FIXED-run offset just past node.
-        int Walk(DataItem node, int start)
+        long Walk(DataItem node, long start)
         {
             offsets[node] = start;
             if (ReferenceEquals(node, key)) { found = start; return start; }
-            int running = start;
+            long running = start;
             foreach (var c in node.Children)
             {
                 if (found is not null) return running;
-                int cStart = c.RedefinesTarget is { } t && offsets.TryGetValue(t, out int tOff) ? tOff : running;
+                long cStart = c.RedefinesTarget is { } t && offsets.TryGetValue(t, out long tOff) ? tOff : running;
                 if (c.IsDynamicLength)
                 {
                     if (ReferenceEquals(c, key)) { found = cStart; return running; }
@@ -425,13 +532,13 @@ internal static class RecordLayout
                 if (found is not null) return running;
                 if (c.Class is { Tier: RedefinesTier.StringCanonical } cls && cls.Members.Contains(c))
                 {
-                    if (c.IsCanonical) running += cls.Width;
+                    if (c.IsCanonical) running = Plus(running, cls.Width);
                     continue;
                 }
                 if (c.Class is { Tier: RedefinesTier.Alias } clsA && clsA.Members.Contains(c) && !c.IsCanonical)
                     continue;
                 if (c.RedefinesTargetName is not null) continue;
-                running += PhysicalOccurrenceWidth(c) * (c.Occurs ?? 1);
+                running = Plus(running, Times(ExactPhysicalOccurrenceWidth(c), c));
             }
             return running;
         }

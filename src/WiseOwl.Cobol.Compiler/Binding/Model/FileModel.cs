@@ -179,7 +179,7 @@ public sealed class RecordKey
         !IsSourceForm && ReferenceEquals(Segments[0], item) && Subscripts.SequenceEqual(occurrence);
 
     /// <summary>The key's length in bytes — the sum of its segments' (a national position is two bytes, D-N1).</summary>
-    public int ByteWidth => Segments.Sum(s => s.ByteWidth);
+    public int ByteWidth => RecordLayout.Narrow(Segments.Aggregate(0L, (sum, s) => RecordLayout.Plus(sum, s.ByteWidth)));
 
     /// <summary>The item the key takes its class and category from: data-name-1, or — §2023:12.4.5.12.3 SR5 /
     /// §2023:12.4.5.6.3 SR6, "Record-key-name-1 has the class and category of data-name-2" — the first data-name-2,
@@ -920,7 +920,7 @@ public sealed class FileModel
     /// once where D-N1 stores two bytes — so a national record measured half its size against the RECORD
     /// integers: legal source was refused and oversize source accepted.</para></summary>
     internal static int MaxRecordSize(DataItem item) =>
-        IsVariableLengthRecord(item) ? (int)Math.Min(int.MaxValue, MaxDynamicExtent(item)) : item.ByteWidth;
+        IsVariableLengthRecord(item) ? RecordLayout.SaturatedBound(MaxDynamicExtent(item)) : item.ByteWidth;
 
     /// <summary>GR8 b)'s maximum for a record with variable-length members (kb/Work PB981): a dynamic-length
     /// item contributes its MAXIMUM size (§2023:8.5.1.10.1 — <see cref="DataItem.DynMaxSize"/> characters, two bytes
@@ -945,7 +945,7 @@ public sealed class FileModel
     /// (§2023:8.5.1.9.1, DOC-A.1-60), never its TO phrase, which is only the EXPECTED capacity and "may be exceeded
     /// with a nonfatal exception".</para></summary>
     internal static long MaxDynamicExtent(DataItem item) =>
-        ((long)item.ByteWidth + DynamicLeafSum(item, static leaf => DynamicLeafMaximum(leaf))) * (item.Occurs ?? 1);
+        RecordLayout.Times(RecordLayout.Plus(RecordLayout.ExactByteWidth(item), DynamicLeafSum(item, static leaf => DynamicLeafMaximum(leaf))), item);
 
     /// <summary>A dynamic-length item's MAXIMUM extent in a record image: its maximum size in bytes (§2023:8.5.1.10.1 —
     /// <see cref="DataItem.DynMaxSize"/> character positions of <see cref="DataItem.ImageUnit"/> bytes each)
@@ -965,7 +965,9 @@ public sealed class FileModel
     private static long DynamicLeafSum(DataItem item, Func<DataItem, long> leafExtent, bool atMinimum = false) =>
         item.IsDynamicLength ? leafExtent(item)
         : item.IsGroup ? item.Children.Where(c => c.RedefinesTargetName is null)
-            .Sum(c => DynamicLeafSum(c, leafExtent, atMinimum) * (atMinimum ? c.MinimumOccurrences : c.Occurs ?? 1))
+            .Aggregate(0L, (sum, c) => RecordLayout.Plus(sum, atMinimum
+                ? RecordLayout.Product(DynamicLeafSum(c, leafExtent, atMinimum), c.MinimumOccurrences)
+                : RecordLayout.Times(DynamicLeafSum(c, leafExtent, atMinimum), c)))
         : 0;
 
     /// <summary>The structure overhead of every dynamic-length item at or beneath <paramref name="item"/> that is
@@ -1102,7 +1104,7 @@ public sealed class FileModel
     /// §2023:8.5.1.6.3 walk (GR4, so two 3-bit items share a byte). The re-summation this replaced counted each leaf
     /// in character positions and rounded each bit leaf to a byte of its own, so a record of two
     /// <c>PIC 1(3) USAGE BIT</c> items had minimum 2 and maximum 1 and no WRITE of it could succeed.</para></summary>
-    internal static int MinRecordSize(DataItem item) => (int)Math.Min(int.MaxValue, MinExtent(item));
+    internal static int MinRecordSize(DataItem item) => RecordLayout.SaturatedBound(MinExtent(item));
 
     /// <summary>GR8 a)'s summation, per occurrence of <paramref name="item"/> (a parent multiplies by the item's
     /// own <see cref="DataItem.MinimumOccurrences"/>). Three arms, the first two adding
@@ -1118,12 +1120,13 @@ public sealed class FileModel
     /// </list></summary>
     private static long MinExtent(DataItem item) =>
         item.IsElementary || !HasVaryingTableBeneath(item)
-            ? item.ByteWidth + MinimumStructureOverhead(item)
+            ? RecordLayout.Plus(RecordLayout.ExactByteWidth(item), MinimumStructureOverhead(item))
         : item.HasBitDescendant && OdoModel.TableUnder(item) is { OccursSpec: { } os } table
                 && BitLayout.StartBitOf(item, table) is >= 0 and var start
             ? BitLayout.Characters(start
                 + BitLayout.TableBits(table, os.Min)) + MinimumStructureOverhead(item)
-        : item.Children.Where(c => c.RedefinesTargetName is null).Sum(c => MinExtent(c) * c.MinimumOccurrences);
+        : item.Children.Where(c => c.RedefinesTargetName is null)
+            .Aggregate(0L, (sum, c) => RecordLayout.Plus(sum, RecordLayout.Product(MinExtent(c), c.MinimumOccurrences)));
 
     /// <summary>Whether an occurs-depending table — the one table in a record whose occurrence count varies —
     /// lies strictly beneath <paramref name="item"/> (a redefinition contributes nothing to GR8's sum, so one

@@ -259,7 +259,18 @@ public static class CompilerDriver
             options.RepositoryDirectories(),
             DirectoriesNamed: options.RepositoryPaths is not null,
             options.ReferencePaths ?? [], outputDll, options.RepositoryCheck, inputs);
-        var bound = new Binding.BinderDriver().Bind(tree, edition, frontend.Directives, repository, options.PublishAs);   // Phase 2a — BIND (terminal = conformance pass)
+        Binding.Model.BoundCompilation bound;
+        try
+        {
+            bound = new Binding.BinderDriver().Bind(tree, edition, frontend.Directives, repository, options.PublishAs);   // Phase 2a — BIND (terminal = conformance pass)
+        }
+        catch (Binding.Passes.DataDivisionRefused)
+        {
+            // A data item past the size limit (COBOL7641) ends the binding there, before any pass narrows its size (kb/Work PB5695):
+            // the diagnostics reported so far are the answer.
+            return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings])
+                { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };
+        }
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings])
                 { Inputs = inputs, CompileOutput = diagnostics.CompileOutput };

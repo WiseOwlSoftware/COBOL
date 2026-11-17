@@ -111,6 +111,7 @@
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::AllTypeDecls": [
+      "WiseOwl.Cobol.Binding.Passes.CheckStorageLimitsPass",
       "WiseOwl.Cobol.Binding.Passes.ExpandTypesPass",
       "WiseOwl.Cobol.Binding.Passes.InheritSignClausesPass",
       "WiseOwl.Cobol.Binding.Passes.UsageInheritancePass"

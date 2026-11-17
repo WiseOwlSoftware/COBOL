@@ -109,4 +109,66 @@ public sealed class DataItemSizeLimitTests
             Assert.Contains("134,217,728", report);
         }
     }
+
+    // kb/Work PB5695 review R1-1: 2 x 100,000 x 20,000 = 4,000,000,000 positions, with a REDEFINES over the group. The REDEFINES
+    // classification measured T through a checked int Sum and the compiler crashed with an OverflowException; now the limit
+    // refuses T and the compile stops before any pass narrows its size. The result is the ONE diagnostic, no exception.
+    private const string RedefinedOverLimit = """
+               01 T.
+                  05 A PIC X(100000) OCCURS 20000.
+                  05 B PIC X(100000) OCCURS 20000.
+               01 U REDEFINES T PIC X.
+        """;
+
+    // Three one-character items, each redefined by 1,000 x 100,000 = 100,000,000 characters (each within the image limit; a table,
+    // so no PICTURE is expanded to that length, kb/Work PB5913): the group's image is
+    // 3 positions, but its storage with the items that redefine within it is 300,000,000 bytes, past 134,217,728.
+    private const string OverlaysPastTheStorageLimit = """
+               01 G.
+                  05 A PIC X.
+                  05 AR REDEFINES A.
+                     10 AE PIC X(1000) OCCURS 100000.
+                  05 B PIC X.
+                  05 BR REDEFINES B.
+                     10 BE PIC X(1000) OCCURS 100000.
+                  05 C PIC X.
+                  05 CR REDEFINES C.
+                     10 CE PIC X(1000) OCCURS 100000.
+        """;
+
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void AGroupPastTheLimit_StopsTheCompile_WithNoCrash(int edition)
+    {
+        var redefined = Check("REDEFOVER", RedefinedOverLimit, edition);
+        Assert.Equal(CompilerDriver.Outcome.BindError, redefined.Status);
+        Assert.Contains("'T': its size, 4,000,000,000 character positions", Assert.Single(redefined.Errors));
+
+        var overlays = Check("OVERLAYS", OverlaysPastTheStorageLimit, edition);
+        Assert.Equal(CompilerDriver.Outcome.BindError, overlays.Status);
+        Assert.Contains("'G': its storage, 300,000,000 bytes", Assert.Single(overlays.Errors));
+    }
+
+    // COBOL-2023: a table of 200,000,000 dynamic-length items occupies no fixed positions, but each occurrence is a string the
+    // program allocates; a national group of 1,000 x 67,109 = 67,109,000 positions (its image, within the limit) is 134,218,000 bytes (two a
+    // position, D-N1).
+    [Fact]
+    public void TheStorageAndElementaryMeasures_AreLimitedToo()
+    {
+        var dynamic = Check("DYNTABLE", """
+                   01 T.
+                      05 G OCCURS 200000000.
+                         10 D PIC X DYNAMIC LENGTH.
+            """, 2023);
+        Assert.Contains("'T': it holds 200,000,000 elementary items", Assert.Single(dynamic.Errors));
+
+        var national = Check("NATIONAL", """
+                   01 T GROUP-USAGE NATIONAL.
+                      05 E PIC N(1000) OCCURS 67109.
+            """, 2023);
+        Assert.Contains("'T': its storage, 134,218,000 bytes", Assert.Single(national.Errors));
+    }
 }
