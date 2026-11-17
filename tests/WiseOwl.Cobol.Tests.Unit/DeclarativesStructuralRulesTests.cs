@@ -274,6 +274,60 @@ public sealed class DeclarativesStructuralRulesTests
         Assert.DoesNotContain(d, x => x.Contains("COBOL2378"));
     }
 
+    /// <summary>A statement that names only a FILE stores through its connector (kb/Work PB5885): a READ makes the record
+    /// available in the record area (§2023:14.9.30.4 GR13) of every record description of the file and of a SAME RECORD AREA
+    /// file, moves the relative record number into the RELATIVE KEY item (GR25) and the record's length into the DEPENDING ON
+    /// item (§2023:13.18.43.4 GR15); CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK and WRITE set the FILE STATUS item
+    /// (§2023:9.1.13.1, §2023:12.4.5.8.4 GR1); a sequential-access WRITE of a relative file moves the record number into the
+    /// RELATIVE KEY item (§2023:14.9.51.4 GR29). Each control data item of <see cref="FileReportProgram"/> is one of those.</summary>
+    [Theory]
+    [InlineData("READ INF AT END MOVE 1 TO WS-N")]                // the record area holds IN-KEY
+    [InlineData("READ INF INTO WS-X AT END MOVE 1 TO WS-N")]      // the record area is stored before the INTO move
+    [InlineData("READ INF2 AT END MOVE 1 TO WS-N")]               // SAME RECORD AREA: INF2's record area is INF's
+    [InlineData("READ STF AT END MOVE 1 TO WS-N")]                // the FILE STATUS item WS-FS
+    [InlineData("OPEN INPUT STF")]
+    [InlineData("CLOSE STF")]
+    [InlineData("READ RELF NEXT RECORD AT END MOVE 1 TO WS-N")]   // the RELATIVE KEY item WS-RK
+    [InlineData("WRITE RELF-REC INVALID KEY MOVE 1 TO WS-N")]     // sequential access: the RELATIVE KEY item WS-RK
+    [InlineData("READ VARF AT END MOVE 1 TO WS-N")]               // the DEPENDING ON item WS-LEN
+    [InlineData("READ RELD NEXT RECORD AT END MOVE 1 TO WS-N")]   // dynamic access, NEXT: a format 1 READ stores WS-RK3
+    public void AStoreThroughAFileConnectorIntoAControlDataItem_IsRefused(string statement)
+    {
+        var d = BindDiagnostics(FileReportProgram(statement), 2023);
+        Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§2023:14.9.49.3 SR11"));
+    }
+
+    /// <summary>The 1985 rule is the same (§1985:XIII.4.9.3 SR4), for the program kb/Work PB5885 measured.</summary>
+    [Fact]
+    public void AReadIntoTheRecordAreaHoldingAControlDataItem_IsRefusedAt85()
+    {
+        var d = BindDiagnostics(FileReportProgram("READ INF AT END MOVE 1 TO WS-N"), 85);
+        Assert.Single(d, x => x.Contains("COBOL2378") && x.Contains("§1985:XIII.4.9.3 SR4"));
+    }
+
+    /// <summary>The control: an I-O statement that stores none of its file's connector items that is a control data item alters
+    /// none.</summary>
+    [Theory]
+    [InlineData("READ OTF AT END MOVE 1 TO WS-N")]
+    [InlineData("OPEN INPUT OTF")]
+    [InlineData("CLOSE OTF")]
+    [InlineData("READ OTF INTO WS-X AT END MOVE 1 TO WS-N")]
+    // A random READ takes the RELATIVE KEY item as its input and stores nothing into it (§1985:VIII.4.5.4 GR14 and
+    // §2023:14.9.30.4 GR25 move the record number only on a format 1, sequential, READ; kb/Work PB5885 review R1-1).
+    [InlineData("READ RELR INVALID KEY MOVE 1 TO WS-N")]
+    [InlineData("READ RELD INVALID KEY MOVE 1 TO WS-N")]         // dynamic access without NEXT: a random read
+    // A random or dynamic WRITE reads the key (§2023:14.9.51.4 GR29 b)); START, DELETE and REWRITE store no key; RELR and
+    // RELD have no FILE STATUS item.
+    [InlineData("WRITE RELR-REC INVALID KEY MOVE 1 TO WS-N")]
+    [InlineData("START RELD KEY IS EQUAL TO WS-RK3 INVALID KEY MOVE 1 TO WS-N")]
+    [InlineData("DELETE RELD RECORD INVALID KEY MOVE 1 TO WS-N")]
+    [InlineData("REWRITE RELD-REC INVALID KEY MOVE 1 TO WS-N")]
+    public void AnIoStatementOnAFileWithNoControlItem_IsAccepted(string statement)
+    {
+        var d = BindDiagnostics(FileReportProgram(statement), 2023);
+        Assert.DoesNotContain(d, x => x.Contains("COBOL2378"));
+    }
+
     /// <summary>SR11 places a store in the 01 record's own coordinates (kb/Work PB5808, review R2-1): a REDEFINES BELOW level 01
     /// whose original is not at the record's first byte. WS-NB1 overlays the control data item WS-NGRP; WS-NB2 overlays only WS-NOTH.</summary>
     [Theory]
@@ -388,6 +442,81 @@ public sealed class DeclarativesStructuralRulesTests
                    01 WS-N-RED REDEFINES WS-N PIC X.
                    REPORT SECTION.
                    RD R-1 CONTROL IS WS-GRP
+                       PAGE LIMIT IS 20 LINES.
+                   01 DET-A TYPE DE LINE PLUS 1.
+                      02 COLUMN 1 PIC 9 SOURCE IS WS-N.
+                   PROCEDURE DIVISION.
+                   DECLARATIVES.
+                   BR-SEC SECTION.
+                       USE BEFORE REPORTING DET-A.
+                   BR-P.
+                       {{statement}}.
+                   END DECLARATIVES.
+                   MAIN SECTION.
+                   M1.
+                       OPEN OUTPUT RPT.
+                       INITIATE R-1.
+                       GENERATE DET-A.
+                       TERMINATE R-1.
+                       CLOSE RPT.
+                       STOP RUN.
+            """;
+
+    /// <summary>A report whose control data items are each an item a file connector stores into (kb/Work PB5885): IN-KEY in the
+    /// record of INF (whose record area INF2 shares), STF's FILE STATUS item WS-FS, RELF's RELATIVE KEY item WS-RK and VARF's
+    /// DEPENDING ON item WS-LEN. OTF has none of them. The USE BEFORE REPORTING procedure's one paragraph holds
+    /// <paramref name="statement"/>.</summary>
+    private static string FileReportProgram(string statement) => $$"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. BRFILES.
+                   ENVIRONMENT DIVISION.
+                   INPUT-OUTPUT SECTION.
+                   FILE-CONTROL.
+                       SELECT RPT ASSIGN TO "brfiles.rpt".
+                       SELECT INF ASSIGN TO "brfiles-inf.dat".
+                       SELECT INF2 ASSIGN TO "brfiles-inf2.dat".
+                       SELECT STF ASSIGN TO "brfiles-stf.dat" FILE STATUS IS WS-FS.
+                       SELECT RELF ASSIGN TO "brfiles-relf.dat" ORGANIZATION IS RELATIVE
+                           ACCESS MODE IS SEQUENTIAL RELATIVE KEY IS WS-RK.
+                       SELECT RELR ASSIGN TO "brfiles-relr.dat" ORGANIZATION IS RELATIVE
+                           ACCESS MODE IS RANDOM RELATIVE KEY IS WS-RK2.
+                       SELECT RELD ASSIGN TO "brfiles-reld.dat" ORGANIZATION IS RELATIVE
+                           ACCESS MODE IS DYNAMIC RELATIVE KEY IS WS-RK3.
+                       SELECT VARF ASSIGN TO "brfiles-varf.dat".
+                       SELECT OTF ASSIGN TO "brfiles-otf.dat".
+                   I-O-CONTROL.
+                       SAME RECORD AREA FOR INF INF2.
+                   DATA DIVISION.
+                   FILE SECTION.
+                   FD INF.
+                   01 IN-REC.
+                      02 IN-KEY PIC X(2).
+                      02 IN-AMT PIC 9(3).
+                   FD INF2.
+                   01 IN2-REC PIC X(9).
+                   FD STF.
+                   01 ST-REC PIC X(5).
+                   FD RELF.
+                   01 RELF-REC PIC X(5).
+                   FD RELR.
+                   01 RELR-REC PIC X(5).
+                   FD RELD.
+                   01 RELD-REC PIC X(5).
+                   FD VARF RECORD IS VARYING IN SIZE FROM 1 TO 9 CHARACTERS DEPENDING ON WS-LEN.
+                   01 VAR-REC PIC X(9).
+                   FD OTF.
+                   01 OT-REC PIC X(5).
+                   FD RPT REPORT IS R-1.
+                   WORKING-STORAGE SECTION.
+                   01 WS-FS PIC XX.
+                   01 WS-RK PIC 9(4).
+                   01 WS-LEN PIC 9(4).
+                   01 WS-RK2 PIC 9(4).
+                   01 WS-RK3 PIC 9(4).
+                   01 WS-X PIC X(5).
+                   01 WS-N PIC 9 VALUE 0.
+                   REPORT SECTION.
+                   RD R-1 CONTROLS ARE IN-KEY WS-FS WS-RK WS-LEN WS-RK2 WS-RK3
                        PAGE LIMIT IS 20 LINES.
                    01 DET-A TYPE DE LINE PLUS 1.
                       02 COLUMN 1 PIC 9 SOURCE IS WS-N.
