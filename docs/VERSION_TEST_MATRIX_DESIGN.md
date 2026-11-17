@@ -310,10 +310,11 @@ the edition in force has no such rule, the message cites the edition where the r
   one that cites a rule of 2002, 2014 or 2023 (in the edition form, or the prose "ISO/IEC 1989:2002") and no rule of the 1985
   standard or its 1989 amendment fails, unless it is
   an edition gate, its code's descriptors record `No1985Rule`, or its code is on
-  `conformance-suite/wiseowl/edition-citation-pending-1985.json`. That file holds the codes the sweep has not yet reached, each
-  entry naming kb/Work PB4950 and the count measured when it was laid; a code not on it cannot start citing only a later edition
-  at 85, and the change that fixes a listed code removes its entry. It was laid at 301 codes (1656 diagnostic lines of the
-  2459 refusals at 85); 298 remain after the first fixes.
+  `conformance-suite/wiseowl/edition-citation-pending-1985.json`. That file is a RATCHET owned by kb/Work PB4950: code → refusal
+  id → the exact number of offending lines. A count that grows fails (a new site, under a listed code too); one that shrinks
+  fails until it is lowered; one at 0 fails until its entry is removed; an entry whose refusal is not compiled at 85 fails
+  `EditionCitationNetDriftTests`. It was laid at 301 codes (1656 lines of the 2459 refusals at 85); 298 codes, 1482 entries and
+  1638 lines remain after the first fixes.
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
   1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
   `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.

@@ -10,9 +10,10 @@ confirmed.
   `docs/VERSION_TEST_MATRIX_DESIGN.md` P2.3a.
 - **The net.** `EditionCitationNet` asks every diagnostic of every refusal the wiseowl manifest compiles at 85. With an empty
   allowlist, 1810 of the 2459 refusals failed: 3271 diagnostic lines of 319 codes, of which 1615 lines (18 codes) are edition
-  gates that rightly cite the edition where a construct begins. The other 301 codes went on the tracked allowlist
-  `conformance-suite/wiseowl/edition-citation-pending-1985.json`, every entry naming kb/Work PB4950; 298 codes (1638 lines)
-  remain after this change. A new code that cites only a later edition at 85 fails the suite.
+  gates that rightly cite the edition where a construct begins. The other 301 codes went on a ratchet,
+  `conformance-suite/wiseowl/edition-citation-pending-1985.json` (owner kb/Work PB4950): code → refusal → exact line count. A
+  grown count fails, a shrunk one fails until lowered, a zeroed one until removed; 298 codes, 1482 entries, 1638 lines remain.
+  A probe that added one 2023-only line under the listed COBOL1970/1971 failed 22 refusals.
 - **The notes.** PB5530 (SEARCH ALL's COBOL1964/COBOL1965 cite and quote §1985:VI.6.22.3 at 85, one rule map), PB5875
   (COBOL1778's 1985 ground), PB5906 (LINAGE-COUNTER OF a file the program cannot see says so), PB5488 (COBOL6764 quotes its rule
   exactly), PB5905 (no area-A message beside COBOL1971), PB5667 (one verdict for a function-identifier in SEND WITH), PB5636 (a
