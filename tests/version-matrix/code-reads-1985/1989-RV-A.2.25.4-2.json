@@ -2,67 +2,114 @@
  "rule-id": "1989-RV-A.2.25.4-2",
  "rule-digest": "b3613e529c35",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-180",
+  "pin": "d77571151bfc10ec6bd98abded49dce0af3aa121",
+  "slice": "1985-249",
   "sources": {
-   "reader": "b5874b3639f0d78b2869cfd0326da0530db24cab4e135f6db89df4567e71ba0b",
-   "refuter": "bbae1edda13178c47e7bf070f2019b28f1f8b3a3c1be48f6bd6c487443c94d19"
+   "reader": "6eb66f9f889d7242ea39e5090dbda99f0fbadef0b7b44878fe149e24de12ea90",
+   "refuter": "187bb748f0c1836ccbc0e25a60ceeb0e5bf8d80c8a5dc9184eb54aa82f0dcc43"
   },
   "imported": {
-   "reader": "cd05fd13e07e9a1ca746b04a0e055c5287ab28925c9185f68f499d0aee9d78df",
-   "refuter": "103d1516b3d0675fd9288fcc0b5bd6a45911a701d78573d37c0bd26d18f512ef"
+   "reader": "451bf155259cc2aec1c637f0159cf3dd8b4c70177caf86bb361086820e590950",
+   "refuter": "64f18f5483f2bea84c7b1e3fabcb61c5650b77decc093fc26309e49b7f7ff58a"
   }
  },
  "reader": {
   "rule-id": "1989-RV-A.2.25.4-2",
   "verdict": "CONFORMS",
-  "requirement": "FUNCTION MEDIAN returns, for an odd count of referenced occurrences, a value with at least half the occurrences on each side, and for an even count the arithmetic mean of the two middle sorted occurrences, the parity being that of the run-time occurrence count (an ODO ALL range included).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#Binary64ResultIsApproximation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/FunctionValueLane.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MedianScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#MedianDec; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs",
+  "requirement": "At --std 85 an odd count of argument-1 occurrences returns a value with at least half the occurrences >= and at least half <= it, and an even count returns the arithmetic mean of the two middle occurrences, for every count an argument list or an ALL/ODO expansion yields.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IsDefinedAt; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#Median; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MedianScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Wide.cs#MedianWide; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#MedianDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#MedianReal; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
-    "switches": "the function's IntroducedIn (85 for MAX, MEAN, MEDIAN) against DialectLevel: COBOL1502 before it",
+    "switches": "the catalog window IntroducedIn 85 against ctx.Edition.DialectLevel (not-yet-introduced refusal); MEDIAN passes at 85",
     "same-arm-as-latest": true
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
-    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands is refused (COBOL0900); inside an arithmetic expression it is not consulted",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written as an identifier operand (DISPLAY/MOVE) is refused per 1985 IV.4.3.8.3.3 SR4; not consulted inside an arithmetic expression",
     "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StandardDecimal",
-    "switches": "OPTIONS ARITHMETIC mode; at 85 no ARITHMETIC clause exists so Options.Arithmetic is Native, the latest edition's default arm",
-    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "grep of Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior over IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs, CobolIntrinsics.Exact.cs, CobolIntrinsics.Dec.cs, CobolIntrinsics.ExactValue.cs and CobolTable.cs found none on the MAX/MEAN/MEDIAN arms; the edition is read only in IntrinsicBinder (availability window, identifier-placement screen, argument predicates) and through the arithmetic mode",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_bf05_06 covers literal lists and a fixed 3-element ALL with odd and even counts; not exercised there are a parity fixed only at run time by an ODO object, negative and 18-digit middle pairs, and a sum of the middle pair beyond 18 digits (probed here)",
+  "edition-search": "grep of Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior over FunctionValueLane.cs, IntrinsicCarrierRules.cs, IntrinsicRenderer.cs, NumericRenderer.cs, FunctionDeviceText.cs, CobolTable.cs and the runtime Median bodies: the only hit (IntrinsicCarrierRules.RoundsStandardArgument, DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic) concerns integer arguments under STANDARD arithmetic, absent at 85; lane choice and the Median bodies are edition-free",
+  "behaviour-differs-by-edition": "no: the value MEDIAN returns comes from the same lane and runtime body at 85 and 2023 (med1.cob prints identical lines at both); only the placement of a numeric function as an identifier operand differs (refused at 85 per SR4), which is another rule",
+  "witnesses-cover": "part: g85_bf05_06 covers odd and even literal lists, duplicates and a fixed-table ALL with and without a trailing literal; not exercised there: ODO-varied parity of one table, negatives, mixed usages and scales in the even mean, the 18-digit even mean",
   "probes": [
    {
-    "class": "a,d,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/median.cob",
-    "printed": "D1= 000000001.50000000 D2= 000000000.75000000 D3=-000000000.50000000 D4= 000000001.50000000 D5= 000000003.50000000 D6= 000000003.00000000 D7= 999999999999999998 D8= 000000000000000000 D9= 999999999999999999 DA= 000000000.00300000 DB= 000000007.00000000 DC=-000000000.75000000 DD=SIZE DE=4 DF= 000000002.00000000 DG= 000000000.10000000 DH= 000000004.50000000",
-    "expected": "D1 ODO N=5 sorted -2.5 0 1.5 3.3 10 -> 1.5; D2 N=4 -> (0+1.5)/2=0.75; D3 N=2 -> -0.5; D4 N=1 -> 1.5; D5 1..6 -> 3.5; D6 T2C(ALL 2)=1,5 -> 3; D7 (K1+K3)/2 truncated 999999999999999998; D8 0; D9 K1; DA (0.001+0.005)/2=0.003; DB 7; DC (-1-0.5)/2=-0.75; DD 60 size error; DE MEDIAN(9 4 1)=4; DF 2; DG 0.1; DH 4.5"
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-249/med1.cob",
+    "printed": "ODO4 00004.500000; ODO5 00007.000000; ODO1 00010.000000; ODO6 00004.500000; ODOS 5 (CNT=3 as both ODO object and argument, then receiving)",
+    "expected": "TE(ALL) over the ODO count: (2+7)/2=4.5; 7; 10; (2+7)/2=4.5; median(10 -3.5 7 3)=(3+7)/2=5"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-249/med2.cob",
+    "printed": "2ALL 00003.500000; 1ALL 00005.000000; COLA 00002.500000",
+    "expected": "CEL(ALL ALL)=1..6 -> 3.5; CEL(2 ALL)=4 5 6 -> 5; CEL(ALL 1)=1 4 -> 2.5 (A.2.2 row-major ALL expansion)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-249/med5.cob",
+    "printed": "abnormal run-unit termination: EC-ARGUMENT-FUNCTION (fatal): a table(ALL) intrinsic argument ranged over no occurrences",
+    "expected": "ODO count 0: A.2.2 the result of the reference to the function-identifier is undefined; a fatal stop is within undefined"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-249/med4.cob",
+    "printed": "COBOL1627 for PIC X item, numeric-edited item and nonnumeric literal arguments; COBOL1504 + COBOL0900 for the empty list ()",
+    "expected": "A.2.25.3 AR1 argument-1 class numeric; the general format requires at least one argument"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxlater.cob",
-    "printed": "COBOL0900 floating-point numeric literal 1.5E1 requires COBOL-2002 (lines 9, 11, 12); COBOL0900 national literal N\"AB\" requires COBOL-2002 plus COBOL1627 class mismatch (line 10)",
-    "expected": "a floating-point literal argument (2002) is refused at --std 85"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-249/med3.cob",
+    "printed": "--std 85: COBOL0900 for DISPLAY FUNCTION MEDIAN and MOVE FUNCTION MEDIAN (SR4); --std 2023: runs, prints 00000002.5",
+    "expected": "1985 IV.4.3.8.3.3 SR4: numeric function only in an arithmetic expression; 2002 and later admit it"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-249/med1.cob",
+    "printed": "MIX3 00000.000300; MIX2 -00006.124850; EXPR -00000.999700; TINY 00000.000001; INAE 00005.500000",
+    "expected": "COMP-3 -12.25, COMP 7, PPP-scaled .0003 -> middle .0003; even mean (-12.25+.0003)/2=-6.12485; arithmetic-expression arguments 8,-24.5,-.9997 -> -.9997; 1.5E-6 truncated to 6 places; MEDIAN inside an expression 1.5*3+1=5.5"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-249/med2.cob",
+    "printed": "FIGZ 00000.000000; COND OK",
+    "expected": "ZERO 4 ZEROS (figurative ZERO is an arithmetic expression, 1985 VI.6.2.1) -> 0; MEDIAN(1 2 3 4)=2.5 in a relation condition"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-249/med1.cob",
+    "printed": "BIGE 99999999999999998.5; BIGO 99999999999999999.0; BIGZ 00000000000000000.0; ZERO 00000.000000; NEG4 -00002.500000; SELF 5; DUP4 00003.000000",
+    "expected": "18-digit even mean 999999999999999998.5 (no overflow; the high digit is truncated by the 17-integer-digit receiver); odd max; mean of -max and +max is 0; all zero; negatives -2.5; COMPUTE I = MEDIAN(I 5 9) with I=1 -> 5; duplicates 1 3 3 3 -> 3"
    }
   ],
   "citations": [
+   {
+    "cite": "§1989:A.2.25.4 RV1",
+    "check": "OK  §1989:A.2.25.4 RV1  (2.25.4 Returned Values)  the text is in RV1"
+   },
    {
     "cite": "§1989:A.2.25.4 RV2",
     "check": "OK  §1989:A.2.25.4 RV2  (2.25.4 Returned Values)  the text is in RV2"
    },
    {
-    "cite": "§1989:A.2.2 AR4",
-    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+    "cite": "§1989:A.2.25.4 RV3",
+    "check": "OK  §1989:A.2.25.4 RV3  (2.25.4 Returned Values)  the text is in RV3"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VI.6.2.1",
+    "check": "OK  §1985:VI.6.2.1  (6.2.1 Definition of an Arithmetic Expression)  the text is in the clause"
    }
   ],
-  "notes": "The parity is decided at run time on the expanded argument array (D1..D4 vary the ODO object 5, 4, 2, 1 in one program), and the even branch adds the two middles with checked ExactAdd before the exact x5 halving, so D7's 19-digit pair sum is exact. Same output at --std 2023.",
+  "notes": "Witness g85_bf05_06 matches its golden at --std 85. The even branch forms (b+c)/2 exactly ((b+c)x5 at scale+1 in MedianScaled and MedianWide; HalfSum in ExactValue Median), so 999999999999999999 and 999999999999999998 average to ...998.5 with no overflow; parity is decided at run time, so one ALL reference over an ODO table gives the mean at counts 4 and 6 and the middle at 1 and 5.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -75,8 +122,8 @@
  "refuter": {
   "rule-id": "1989-RV-A.2.25.4-2",
   "refutation": "UPHELD",
-  "classes": "a,b,c,d,f",
-  "evidence": "Even counts: meanctx2-001 C4 COMPUTE PIC 9 ROUNDED = MEDIAN (1 2) gives 2, C5 MEDIAN (1 2) * 2 gives 3, C7 IF MEDIAN (W1 PIC 9V9 .1, W2 PIC 9V99 .02) = 0.06 true (mean of two middles of different scales in a receiverless context), CB MEDIAN (TE (ALL)) of 4 elements = 1.0, CG MEDIAN (K K 0 K) = K, CK = 2.5; degen-001 G5 MEDIAN (W-N W-N) = -1.25. meanprec2-001 P2 MEDIAN (K F) into PIC 9(18) gives 499999999999999999 and P6 IF MEDIAN (K F) < 500000000000000000 true: the 37-digit mean of the middle pair is kept exactly. Same at --std 2023 (meanprec2-002). cite.py: OK §1989:A.2.25.4 RV2 'the returned value is the arithmetic mean of the values referenced by the two middle occurrences'.",
+  "classes": "a,c,d,f",
+  "evidence": "Even branch of CobolIntrinsics.ExactValue.cs#Median: exact HalfSum of two fixed-point middles; binary64 mean only when a MIDDLE is binary64. Probes r1-002 at --std 85: EVFX MEDIAN(.1 .5 SQRT(100) 0)=.300000 (binary64 outside the middle pair does not taint the exact mean), EVMX MEDIAN(.1 SQRT(.25) 0 10)=.300000, EVRR MEDIAN(SQRT(.01) SQRT(.25))=.300000, T18E MEDIAN(SV9(18) 1e-18, 2e-18)=.000000000000000001 (1.5e-18 truncated by receiver), BGTE MEDIAN(999999999999999999 1e-18) integer part 499999999999999999 and BGTF the same minus 499999999999999999 = .500000000000000000 (37-digit exact mean, no overflow), BGT4 4 args across +-max and 1e-18/2e-18 -> mean of the 2 tiny middles, PSCE MEDIAN(SPPP9 .0001, S9P(3) 5000)=2500.000050, MZER (-0 0 1 -1) -> 0, ROUN COMPUTE ROUNDED PIC 9 = MEDIAN(1 2) -> 2 and TRUN -> 1 (the 1.5 is carried, not cut), c4 TE(ALL) TE(ALL) 10 occurrences -> 4. DIV MEDIAN(1/3 2/3)=.499999 matches plain COMPUTE (1/3+2/3)/2 = .499999 (d1-001): arithmetic-expression arguments' intermediate precision is implementor latitude per A.2.3 GR2, not a MEDIAN defect. Run-time parity over ODO was covered by the reader (ODO4/5/1/6) and the reader's med5 count-0 fatal is within A.2.2 'the result of the reference to the function-identifier is undefined'. cite.py: OK §1989:A.2.25.4 RV2 'the arithmetic mean of the values referenced by the two middle occurrences'; OK §1989:A.2.3 (GR2); OK §1989:A.2.2 (AR1).",
   "edition-sites-missed": [],
   "corrected": ""
  }
