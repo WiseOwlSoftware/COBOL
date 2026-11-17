@@ -354,9 +354,6 @@ public sealed class Collator
     public bool NeedsNormalization(ReadOnlySpan<char> text) =>
         Normalizer.NeedsNfd(text, Table, forIdentical: Strength == CollationStrength.Identical);
 
-    /// <summary>The NFD of <paramref name="text"/> under this collator's table data (see <see cref="Normalizer"/>).</summary>
-    public string Normalize(ReadOnlySpan<char> text) => Normalizer.ToNfd(text, Table);
-
     private int CompareLevel(ReadOnlySpan<char> a, ReadOnlySpan<char> b, int level)
     {
         var ia = new CollationElementIterator(a, Table, Options.NumericOrdering);

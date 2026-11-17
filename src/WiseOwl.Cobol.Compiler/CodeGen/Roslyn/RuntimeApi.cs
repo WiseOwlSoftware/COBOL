@@ -19,9 +19,6 @@ namespace WiseOwl.Cobol.CodeGen;
 /// </summary>
 internal static class RuntimeApi
 {
-    // ── Type-name anchors (each is a compile-time reference to the runtime type). ──
-    public static string Bool => nameof(CobolBool);
-
     // ── The CALL-site exception carrier (ISO §2023:14.9.4.4 GR3h/GR3i; kb/Work PB233). Its two classification
     //    predicates are asked in BOTH directions, and both route here so the runtime member is named once:
     //    at COMPILE time to split the statement's enabled name set into catch arms, and as EMITTED TEXT in the
@@ -355,17 +352,11 @@ internal static class RuntimeApi
             ? $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageSingle)}({image}, {profile})"
             : $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageFloat)}({image}, {profile})";
 
-    /// <summary>The UNSIGNED decode twins (the Step D arm-1 dissolution) — a ulong/UInt128-carried window
-    /// decodes to its container value, bit-identically through the signed lane.
-    /// <para>⚠ The 8-byte (<c>ulong</c>) half has NO emitter caller: <c>ParseBinaryImage</c> already returns an
-    /// unsigned item's full width as a non-negative <c>Int128</c>, so <c>NumericRenderer</c>'s generic
-    /// StoreAsImage arm decodes a <c>PIC 9(10..18) COMP-5</c> window identically and the extra arm was pure
-    /// duplication (kb/Work PB164, the Step D review). Kept as the named half of the runtime's unsigned lane
-    /// pair, NOT as live drift — the 16-byte twin below is the one an emitter picks.</para></summary>
-    public static string NumParseImageU(string image, string profile) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.ParseImageU)}({image}, {profile})";
-
-    /// <inheritdoc cref="NumParseImageU"/>
+    /// <summary>The UNSIGNED decode (the Step D arm-1 dissolution) — a UInt128-carried window decodes to its container
+    /// value, bit-identically through the signed lane. There is no 8-byte (<c>ulong</c>) twin: <c>ParseBinaryImage</c>
+    /// already returns an unsigned item's full width as a non-negative <c>Int128</c>, so <c>NumericRenderer</c>'s
+    /// generic StoreAsImage arm decodes a <c>PIC 9(10..18) COMP-5</c> window identically (kb/Work PB164, the Step D
+    /// review; the unused twin was deleted by kb/Work PB2181).</summary>
     /// <param name="sending">As <see cref="NumParseImage"/> — no default, so a new site states whether it is a
     /// §2023:14.6.13.2 rule 2 sending reference.</param>
     public static string NumParseImageU128(string image, string profile, bool sending) =>
@@ -775,15 +766,6 @@ internal static class RuntimeApi
         $"{nameof(CobolIntrinsics)}.{nameof(CobolIntrinsics.ArgumentDomain)}.{domain}, "
         + $"{Emit.EmitText.CsLiteral(function)}, {Emit.EmitText.CsLiteral(rule)}";
 
-    /// <summary>A VALUE-SEMANTICS rescale — <c>CobolNum.Rescale</c>. ⛔ Every render of this today NARROWS to
-    /// scale 0 (an integer intrinsic argument, a LINAGE line number, an unstringing pointer), where the plain
-    /// rescale is exact. It is NOT a landing into a receiver: a receiver-bound alignment takes
-    /// <see cref="NumRescaleStore"/>, whose two forms are the ones DOC-A.1-70 and §2023:14.7.5 name (kb/Work PB639 —
-    /// this helper carried a <c>checkedPath = false</c> DEFAULT, and the arithmetic store's edited landing took
-    /// it, so a widening past the carrier wrapped in binary).</summary>
-    public static string NumRescale(string value, string fromScale, string toScale, CobolRounding mode) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.Rescale)}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
-
     /// <summary>The receiver-bound STORE alignment, in the landing's own form and with NO default — the caller
     /// says which store it is, exactly as <see cref="FloatToScaled"/> does for the float carrier (kb/Work PB77).
     /// The UNCHECKED landing is <c>CobolNum.RescaleStoreCap</c>: the LOW-ORDER digits of the result aligned at
@@ -1187,12 +1169,6 @@ internal static class RuntimeApi
     /// value, a non-integer power) - <c>CobolDec.FromApproximation</c>, the shortest round-trip decimal.</summary>
     public static string DecFromApproximation(string doubleExpr) =>
         $"{nameof(CobolDec)}.{nameof(CobolDec.FromApproximation)}({doubleExpr})";
-
-    /// <summary>One SDIDI division of two exactly-lifted fixed-point values — MEAN's §2023:15.60.4 equivalent-expression
-    /// division under standard-decimal arithmetic (§2023:15.4.1 r1; P10 Step 12).</summary>
-    public static string DecDivLifted(string numerator, string numeratorScale, string denominator, string mode) =>
-        $"{nameof(CobolDec)}.{nameof(CobolDec.Div)}({nameof(CobolDec)}.{nameof(CobolDec.From)}({numerator}, "
-        + $"{numeratorScale}), {nameof(CobolDec)}.{nameof(CobolDec.From)}({denominator}, 0), {mode})";
 
     /// <summary>The capacity-checked edited format — <c>CobolEdit.TryFormat</c> (false = the aligned value's
     /// significant digits exceed the mask, §2023:14.7.5 case 3).</summary>

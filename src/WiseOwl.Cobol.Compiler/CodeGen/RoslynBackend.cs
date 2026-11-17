@@ -21,9 +21,6 @@ internal sealed class RoslynBackend : ICodeGenBackend
     internal RoslynBackend(CSharpEmitter bindHost) => _emitter = bindHost;
 
     /// <inheritdoc/>
-    public BackendId Id => BackendId.Roslyn;
-
-    /// <inheritdoc/>
     /// <remarks>Render C# from the bound tree (<c>CSharpEmitter.EmitBound</c>), write the <c>.g.cs</c> beside the
     /// assembly (always, and before compiling, so the debugging artifact survives a failed compile), then
     /// <see cref="Compile"/>, whose Roslyn diagnostics cross the seam as <see cref="BackendDiagnostic"/>s

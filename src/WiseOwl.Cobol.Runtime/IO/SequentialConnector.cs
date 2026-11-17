@@ -2384,7 +2384,4 @@ public sealed partial class SequentialConnector : FileConnector
         _lastReadLinePartial = false;
         _readOrdinal = ordinalBefore;
     }
-
-    /// <summary>The AT END condition (ISO §2023:14.9.30): true only at end-of-file (status 10).</summary>
-    public bool AtEnd => Status == FileStatusCode.AtEnd;
 }

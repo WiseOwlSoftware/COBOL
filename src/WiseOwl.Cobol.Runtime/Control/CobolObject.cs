@@ -169,7 +169,7 @@ public abstract class CobolObject
     // (CobolFile.MintInstanceKey), registered in the emitted ctor, tracked here, and implicitly CLOSED when the
     // object is deleted (§2023:9.1.4 — the runtime executes an implicit CLOSE "for file connectors in an object when
     // the object is deleted"; the §2023:9.1.4 NOTE licenses this happening during garbage collection). The run-unit
-    // CobolFile.CloseAll() at run-unit termination remains the backstop for objects not yet finalized.
+    // FileRegistry.CloseAll() at run-unit termination remains the backstop for objects not yet finalized.
 
     /// <summary>The minted connector keys of this object's instance files (null until the emitted ctor tracks the
     /// first one). Each class's ctor tracks its OWN files, so an inherited-plus-own object accumulates the whole

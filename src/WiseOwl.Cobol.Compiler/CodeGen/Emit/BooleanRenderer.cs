@@ -91,8 +91,4 @@ internal static class BooleanRenderer
             RuntimeApi.BoolShift(s.Kind, s.Operand.Accept(this),
                 RuntimeApi.HostInt64(NumericRenderer.Align(num.Render(s.Count, ReceiverContext.None, sending), 0)));
     }
-
-    /// <summary>A boolean value expression as read for a relation operand — the same '0'/'1' string form.</summary>
-    public static string BoolRead(BoundBoolExpr e, NumericRenderer num, SendingRef sending = SendingRef.Normal) =>
-        Render(e, num, sending);
 }

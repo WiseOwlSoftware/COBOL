@@ -269,10 +269,6 @@ public sealed class CobolDynTable<T>
     /// <summary>SET Format 14 <c>… DOWN BY n</c> (§2023:14.9.39.4 GR30 c): lower the current capacity by n.</summary>
     public void CapacityDownBy(long n) => SetCapacity((Int128)_count - n);
 
-    /// <summary>INITIALIZE of the whole dynamic table (§2023:14.9 INITIALIZE GR10): re-seed occurrences [1..current];
-    /// the current capacity is unchanged.</summary>
-    public void InitializeAll() { for (int i = 0; i < _count; i++) _store[i] = _seedAt(i + 1); }
-
     /// <summary>⛔ A DETACHED COPY OF THE TABLE (kb/Work PB3139): the same description — its FROM minimum, its TO expected
     /// capacity, its seeds and its INITIALIZED recipe — at the same current capacity, each occurrence copied by
     /// <paramref name="copyElement"/>, so no store through the copy reaches this table. It is the dynamic-capacity table

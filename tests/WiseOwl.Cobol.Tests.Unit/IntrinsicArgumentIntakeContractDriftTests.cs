@@ -129,7 +129,9 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
             .Where(l => l.Contains("num.AsNum(", StringComparison.Ordinal))
             .Select(l => l.Trim())
             .ToList();
-        Assert.True(calls.Count >= 12, $"expected at least 12 argument renders in IntrinsicRenderer, found {calls.Count}: the scan is blind");
+        // The floor guards against a blind scan, not a fixed population: 11 since kb/Work PB2177 deleted the dead
+        // DomainArg(BoundIntrinsicCall, BoundOperand) overload, one of the 12 render sites PB5893 counted.
+        Assert.True(calls.Count >= 11, $"expected at least 11 argument renders in IntrinsicRenderer, found {calls.Count}: the scan is blind");
         var other = calls
             .Where(c => !c.Contains("ReceiverFor(ic, i)", StringComparison.Ordinal)
                         && !c.Contains("NumericArgument)", StringComparison.Ordinal)

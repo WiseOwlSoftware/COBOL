@@ -699,8 +699,6 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// no domain takes the plain <see cref="DblOf"/>. ⛔ The screen is the ONLY place such a rule is decided: the
     /// runtime bodies carry no second test on the double (a legal argument rounded onto a bound would trip it).</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier, after an EXACT domain test on that carrier.</remarks>
-    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) => DomainArg(ic, num.AsNum(a, NumericArgument));
-
     private static string DomainArg(BoundIntrinsicCall ic, NumX x) =>
         ic.Sig.Domain is IntrinsicDomain.None
             ? NumericRenderer.Real(x)

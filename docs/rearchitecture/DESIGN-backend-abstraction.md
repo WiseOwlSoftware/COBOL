@@ -147,7 +147,6 @@ namespace WiseOwl.Cobol.CodeGen;
 /// The ONE seam between the backend-neutral BoundCompilation and a target. NEVER binds.
 public interface ICodeGenBackend
 {
-    BackendId Id { get; }                                   // Roslyn | Cil
     BackendArtifact Emit(BoundCompilation program, BackendOptions options);
 }
 

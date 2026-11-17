@@ -98,28 +98,21 @@ public static class CobolKeywordTokens
         if (word.Length == 0 || !char.IsLetter(word[0])) return 0;
         foreach (char c in word)
             if (!char.IsLetterOrDigit(c) && c != '-' && c != '_') return 0;
-        try
-        {
-            var lexer = new CobolLexer(new Antlr4.Runtime.AntlrInputStream(word));
-            lexer.RemoveErrorListeners();
-            var sink = new CountingErrorListener();
-            lexer.AddErrorListener(sink);
-            var tokens = new Antlr4.Runtime.CommonTokenStream(lexer);
-            tokens.Fill();
-            var onChannel = tokens.GetTokens()
-                .Where(t => t.Channel == Antlr4.Runtime.Lexer.DefaultTokenChannel
-                            && t.Type != Antlr4.Runtime.TokenConstants.EOF)
-                .ToList();
-            if (sink.Count > 0 || onChannel.Count != 1) return 0;
-            var tok = onChannel[0];
-            if (tok.Type == CobolLexer.IDENTIFIER) return 0;
-            if (tok.StartIndex != 0 || tok.StopIndex != word.Length - 1) return 0;
-            return tok.Type;
-        }
-        catch (Exception)
-        {
-            return 0;   // a probe never breaks a compile: an unlexable word is simply not a keyword token
-        }
+        var lexer = new CobolLexer(new Antlr4.Runtime.AntlrInputStream(word));
+        lexer.RemoveErrorListeners();
+        var sink = new CountingErrorListener();
+        lexer.AddErrorListener(sink);
+        var tokens = new Antlr4.Runtime.CommonTokenStream(lexer);
+        tokens.Fill();
+        var onChannel = tokens.GetTokens()
+            .Where(t => t.Channel == Antlr4.Runtime.Lexer.DefaultTokenChannel
+                        && t.Type != Antlr4.Runtime.TokenConstants.EOF)
+            .ToList();
+        if (sink.Count > 0 || onChannel.Count != 1) return 0;
+        var tok = onChannel[0];
+        if (tok.Type == CobolLexer.IDENTIFIER) return 0;
+        if (tok.StartIndex != 0 || tok.StopIndex != word.Length - 1) return 0;
+        return tok.Type;
     }
 
     private sealed class CountingErrorListener : Antlr4.Runtime.IAntlrErrorListener<int>

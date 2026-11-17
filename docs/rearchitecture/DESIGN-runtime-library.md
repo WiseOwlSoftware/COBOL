@@ -3503,10 +3503,8 @@ Values/                         namespace WiseOwl.Cobol.Runtime.Values
 `Pow10` (NEW, `Values/Numeric/Pow10.cs`) — the ONE power-of-ten source:
 ```csharp
 internal static class Pow10 {
-    private static readonly long[]   L = BuildLong();   // 10^0..10^18
     private static readonly Int128[] W = BuildWide();   // 10^0..10^38
     private static readonly Int128[] F = BuildFive();   // 5^0..5^54 — 10^n's ODD COFACTOR (kb/Work PB623)
-    public static long   AsLong(int n) => L[n];         // callers already bound n ≤ 18 / ≤ 38 by design
     public static Int128 AsWide(int n) => W[n];
     public static Int128 FiveAsWide(int n) => F[n];     // the exact binary64 expansion's multiplier
 }
