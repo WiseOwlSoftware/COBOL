@@ -125,6 +125,11 @@
       "changedIn": 2002
     },
     {
+      "id": "line-sequential-file-rules",
+      "vcrRow": "7.88",
+      "changedIn": 2023
+    },
+    {
       "id": "move-sign-is-the-values-sign",
       "vcrRow": "7.85",
       "changedIn": 2014

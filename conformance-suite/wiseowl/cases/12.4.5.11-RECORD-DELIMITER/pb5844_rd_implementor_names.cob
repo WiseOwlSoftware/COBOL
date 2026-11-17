@@ -34,12 +34,21 @@
       *> and for a line sequential file whose RECORD clause has no
       *> DEPENDING phrase "any spaces to the right of the rightmost
       *> non-space character are not transferred" (§2023:14.9.51.4
-      *> GR21; at 85 the file is line sequential by the name's method,
-      *> Annex A.1 item 150), so the same two writes read back as
+      *> GR21), so at 2023 the same two writes read back as
       *> LEN=02 [AB] and LEN=03 [C D].
-      *> The B and L lines differ only because the names select two
-      *> methods; a name that selected nothing would print B's lengths
-      *> on both. The LINE-SEQUENTIAL writer's ORGANIZATION clause
+      *> At 85 no line sequential file exists: the name only selects
+      *> the line delimiter as the method of determining the length of
+      *> a variable length record, and "Any method used will not be
+      *> reflected in the record area or the record size used within
+      *> the program" (§1985:VII.2.8.4 GR1; kb/Work PB5903), so the
+      *> writer's records keep their size, 6, and read back as
+      *> LEN=06 [AB    ] and LEN=06 [C D   ], as B's do
+      *> (pb5844_rd_implementor_names.85.out). That the 85 reader splits
+      *> a file at its line delimiters is the witness
+      *> VII.1.3@1985-LANGUAGE-CONCEPTS/pb5882_io_status_1985_values.
+      *> At 2023 the B and L lines differ only because the names select
+      *> two methods; a name that selected nothing would print B's
+      *> lengths on both. The LINE-SEQUENTIAL writer's ORGANIZATION clause
       *> FOLLOWS its RECORD DELIMITER clause, and the reader writes the
       *> clause without the optional word IS, so neither the order of
       *> the clauses nor the optional word decides the method.
