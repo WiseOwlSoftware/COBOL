@@ -39,18 +39,19 @@
       *> floating-point resultant a quotient in an argument at a
       *> numeric position that may not terminate is the 34-digit
       *> SDIDI quotient, never one cut at a fixed scale): with
-      *> C = 10**18 - 1, 1 / C / C is 1.000000000000000002E-36, which
-      *> lands in COMP-2 with no ROUNDED by truncation, the double just
-      *> below it, shown as 1E-36, and in COMP-1 the binary32 just
+      *> C = 10**18 - 1, 1 / C / C is 1.000000000000000002E-36 on the
+      *> SDIDI, an approximation that lands by round-to-nearest-even
+      *> (review R4-1): the double nearest it, shown as 1E-36, and in
+      *> COMP-1 that double truncated (no ROUNDED) to the binary32
       *> below it, 9.9999995E-37; 1 / T with T = 3E24 is 3.333...E-25,
       *> +3.333E-25 in PIC +9.999E+99. A quotient by a literal that
       *> divides exactly stays exact: (Y * 100 - X * 10.25) * 4 / 4 is
       *> 1.025E32 + 10.25, so REM (..., 1000) is 10.25 (+10.25).
       *> A nested call keeps the significance (review R2-1, R2-2: these
       *> stopped on the lane assertion): with A = 7, ABS (ABS (A / 3) +
-      *> 1) is 10/3 and ABS (- ABS (A / 3)) is 7/3, each landing in
-      *> COMP-2 by truncation as the double just below it,
-      *> 3.333333333333333 and 2.333333333333333.
+      *> 1) is 10/3 and ABS (- ABS (A / 3)) is 7/3, each an SDIDI
+      *> approximation landing in COMP-2 by round-to-nearest-even
+      *> (review R4-1): 3.3333333333333335 and 2.3333333333333335.
       *> A floating-point argument makes the function binary64
       *> (DOC-A.1-92b), also beside a quotient that keeps significance
       *> (review R3-1, R3-2): FH COMP-2 VALUE 0.5, so SUM (FH, A / 3)

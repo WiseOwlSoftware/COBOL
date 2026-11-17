@@ -124,9 +124,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// its own operands (an argument that renders as floating-point takes binary64 by DOC-A.1-92b) and never by the receiver's usage. A
     /// COMP-2 resultant took the argument of <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored
     /// 672 for 41 (an integer position, review R3-1), and <c>FUNCTION REM</c>'s numeric argument-1 the same (kb/Work PB5893); the
-    /// receiver then takes the function's value by the ordinary rules (<see cref="ReceiverContext.FloatLanding"/>; an exact value lands in
-    /// a binary64 receiver by its mode, truncation without ROUNDED, so <c>COMPUTE F2 = FUNCTION ABS (A / 3)</c> stores 2.333333333333333
-    /// as <c>COMPUTE F2 = R</c> does for R = 2.333...3, and ROUNDED stores 2.3333333333333335). The receiver's SCALE is kept: a nested
+    /// receiver then takes the function's value by the ordinary rules (<see cref="ReceiverContext.FloatLanding"/>; by the value's lane,
+    /// <c>FunctionValueLane.DeliversByNearest</c>: an exact value lands in a binary64 receiver by its mode, truncation without ROUNDED, as
+    /// <c>COMPUTE F2 = R</c> does, and an SDIDI approximation by round-to-nearest-even, so <c>COMPUTE F2 = FUNCTION ABS (A / 3)</c> stores
+    /// 2.3333333333333335, kb/Work PB5893 review R4-1). The receiver's SCALE is kept: a nested
     /// quotient's working scale reads it (<c>CobolNum.NestedQuotientScale</c>), so <c>COMPUTE RR = FUNCTION ABS (A / 3)</c> into
     /// PIC 9V9(17) keeps all 17 places (review R5-1; <c>pb5891_argument_receiver_scale</c>). Under a FLOATING-POINT receiver, which has no
     /// fraction scale to give, an argument at a numeric position keeps significance instead (<see cref="ReceiverContext.KeepsSignificance"/>,
@@ -164,6 +165,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         try
         {
             NumX x = e.Accept(this);
+            if (outermost && rcv.LandsAsBinary64 && !x.Real
+                && FunctionValueLane.DeliversByNearest(e, CurrentLaneContext))
+                x = new NumX(Real(x), 0, Real: true);
             return keepWide ? x : Settle(x, rcv, outermost);
         }
         finally { _rcv = saved; _sending = savedEx; _outermost = savedOut; }

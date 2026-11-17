@@ -116,6 +116,18 @@ internal static class FunctionValueLane
     /// significance (<c>FUNCTION SUM (FG, A / 3)</c> under a COMP-2 resultant is the binary64 sum, 8.5 times 3 / 3, as on main).</summary>
     internal static bool IsBinary64(BoundIntrinsicCall call, LaneContext ctx) => !ctx.DecimalEngine && Of(call, ctx).IsReal;
 
+    /// <summary>⛔ HOW A VALUE IS DELIVERED TO A BINARY64 OR BINARY32 RECEIVER (kb/Work PB5893 review R4-1, the coordinator's ruling): a value on
+    /// the 34-digit SDIDI lane that is an approximation (a quotient that kept significance or an SDIDI quotient that may not terminate went
+    /// into it: <see cref="Carrier"/>'s <c>Approximation</c>) is ALREADY an approximation, so it converts to binary64 by
+    /// round-to-nearest-even, as every binary64 operation's result does, and the receiver takes that binary64 by its mode (exactly, into a
+    /// binary64 item). Truncating it compounded the error: <c>FUNCTION SUM (A / 3, A / 3, A / 3)</c> stored 6.999999999999999 where the
+    /// exact value and main store 7. Every other value keeps the receiver's mode on every digit: an exact fixed-family value
+    /// (<c>COMPUTE F2 = R</c>, kb/Work PB4730) and an SDIDI value that IS exact (a floating-point literal, NUMVAL's parse, whose truncation
+    /// landing kb/Work PB1196 and PB3839 determine). Native arithmetic only (a decimal engine's SDIDI is the arithmetic's own intermediate,
+    /// §2023:14.7.4.3). <c>NumericRenderer.Render</c> asks it of a statement's final transfer, in the context it renders in.</summary>
+    internal static bool DeliversByNearest(BoundExpr value, LaneContext ctx) =>
+        !ctx.DecimalEngine && value.Accept(new ArgumentCarrier(ctx)) is { Kind: CarrierKind.Dec, Approximation: true };
+
     /// <summary>The carrier the native renderer returns a numeric function's value on, as far as the kind is concerned, with its arguments
     /// read in the context the renderer gives them (<see cref="LaneContext.ArgumentContext"/>, kb/Work PB5893 reviews R2-1, R3-1).</summary>
     private static Carrier Of(BoundIntrinsicCall call, LaneContext ctx)
@@ -128,10 +140,13 @@ internal static class FunctionValueLane
         var kind = Of(call, [.. read.Select(a => a.Significance ? Carrier.Exact(false) : a)]);
         // DOC-A.1-92b first: a binary64 argument decides, whatever an argument that keeps significance holds.
         if (kind is CarrierKind.Real or CarrierKind.ApproximateReal) return new Carrier(kind);
-        // Else an argument on the SDIDI takes a function with an SDIDI body there (RenderNum's `AnyDecRaw` arm), as any SDIDI argument does.
-        if (read.Any(a => a.Significance) && NativeSdidiBodies.Contains(sig.RuntimeMethod) && kind == CarrierKind.Fixed)
-            return OnSdidiBody(sig.RuntimeMethod) == CarrierKind.Dec ? new Carrier(CarrierKind.Dec, Significance: true) : Carrier.Exact(IsInteger(call));
-        return kind == CarrierKind.Fixed ? Carrier.Exact(IsInteger(call)) : new Carrier(kind);
+        // Else an argument on the SDIDI takes a function with an SDIDI body there (RenderNum's `AnyDecRaw` arm), as any SDIDI argument does,
+        // and the value is an approximation when an argument that kept significance went into it.
+        bool significance = read.Any(a => a.Significance);
+        if (significance && NativeSdidiBodies.Contains(sig.RuntimeMethod) && kind == CarrierKind.Fixed) kind = OnSdidiBody(sig.RuntimeMethod);
+        bool approximation = read.Any(a => a.Approximation) && kind == CarrierKind.Dec;
+        return kind == CarrierKind.Fixed ? Carrier.Exact(IsInteger(call))
+            : new Carrier(kind, Significance: significance && kind == CarrierKind.Dec, Approximation: approximation);
     }
 
     /// <summary>The carrier of a call over arguments already read (<paramref name="argCarriers"/>; an argument that keeps significance read as
@@ -226,10 +241,13 @@ internal static class FunctionValueLane
     /// <summary>A carrier, whether the value is known to have scale 0 (an integer — the question
     /// <c>NumericRenderer.Power</c> asks of its exponent), and — for an exact operand whose digit bound the renderer
     /// states (<c>NumX.Digits</c>) — that bound.</summary>
-    /// <para><c>Significance</c>: an SDIDI value that is on the SDIDI only because a floating-point receiver's argument keeps significance
-    /// (a final quotient, <see cref="NumericLanes.QuotientIsFinal"/>), never a genuine SDIDI operand (a floating-point literal, an integer power).</para>
+    /// <para><c>Significance</c>: an SDIDI value into which a final quotient of an argument that keeps significance went
+    /// (<see cref="NumericLanes.QuotientIsFinal"/>): an approximation, never the exact value a floating-point literal or NUMVAL's parse is.</para>
+    /// <para><c>Approximation</c>: an SDIDI value that is an approximation of an exact value, the one fact the delivery to a floating-point
+    /// receiver asks (<see cref="DeliversByNearest"/>): one with <c>Significance</c>, an SDIDI quotient whose divisor may not terminate
+    /// (<c>NUMVAL (X) / 3</c>), and every operation and function value into which one went.</para>
     private readonly record struct Carrier(CarrierKind Kind, bool Integral = false, IntrinsicCarrierRules.AlignedOperand? Aligned = null,
-        bool Significance = false)
+        bool Significance = false, bool Approximation = false)
     {
         public bool IsReal => Kind is CarrierKind.Real or CarrierKind.ApproximateReal;
         public static Carrier Exact(bool integral, IntrinsicCarrierRules.AlignedOperand? aligned = null) => new(CarrierKind.Fixed, integral, aligned);
@@ -255,9 +273,14 @@ internal static class FunctionValueLane
             var c = Combine(l, n.Op, r);
             // A quotient the context makes final (NumericLanes.QuotientIsFinal) is the SDIDI's; one over an SDIDI operand stays as genuine
             // as that operand is.
-            if (n.Op == '/' && c.Kind == CarrierKind.Fixed && ctx.FinalQuotient(n.Right)) return new Carrier(CarrierKind.Dec, Significance: true);
-            bool genuineDec = l.Kind == CarrierKind.Dec && !l.Significance || r.Kind == CarrierKind.Dec && !r.Significance;
-            return c.Kind == CarrierKind.Dec && !genuineDec ? c with { Significance = true } : c;
+            if (n.Op == '/' && c.Kind == CarrierKind.Fixed && ctx.FinalQuotient(n.Right))
+                return new Carrier(CarrierKind.Dec, Significance: true, Approximation: true);
+            if (c.Kind != CarrierKind.Dec) return c;
+            return c with
+            {
+                Significance = l.Significance || r.Significance,
+                Approximation = l.Approximation || r.Approximation || n.Op == '/' && !NumericLanes.TerminatesWithinGuardDigits(n.Right),
+            };
         }
         public Carrier Visit(BoundNegate n) => n.Operand.Accept(this);
         public Carrier Visit(BoundPower n) => Power(n.Base.Accept(this), n.Exp.Accept(this));

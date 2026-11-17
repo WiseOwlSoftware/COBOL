@@ -31,17 +31,26 @@ rules.
 - Every arm of `LaneOf` reads an argument in `LaneContext.ArgumentContext`, the bound twin of the renderer's argument context.
   Review R2-1 found the call arm reading no context. `ABS (ABS (A / 3) + 1)` into COMP-2 stopped on the lane assertion; so did
   `ABS (- ABS (A / 3))`, which also failed on main (R2-2). Both compile now.
-- `ArgumentLaneSweepTests` generates 270 argument shapes and compiles them:
-  - under six receiver kinds at 2023, and the two fixed ones at 85;
-  - at numeric, integer and result-type positions;
-  - from atoms, quotients, negations and nested calls, two levels deep.
-  It requires each to compile. Without the call arm's fix, 56 shapes per floating-point receiver fail.
+- `ArgumentLaneSweepTests` generates argument shapes and compiles them: 864 statements per program at 2023 (12 atoms, each alone and
+  under 8 operations, at 8 positions) and 504 at 85 (8 atoms, 7 positions), under six receiver kinds at 2023 and the two fixed ones at 85.
+  The atoms are an item, quotients that terminate and that do not, negations, nested calls, a call as a divisor, a subscripted item, and
+  (from 2002 on) SUM, RANGE, MEAN and MIDRANGE over a floating-point item beside a quotient. The positions are numeric, integer and
+  result-type. It requires each to compile. Without the call's one decider (`FunctionValueLane.IsBinary64` in `RenderNum`), 168 of 864
+  statements fail under each floating-point receiver (round 3); without the round-2 call arm, 56 of the then 270.
 - The first form of the fix, a fixed 17-digit working scale, cut `ABS (1 / C / C)` to 0 and `ABS (1 / T)` under a `+9.999E+99` mask to
   +0.000E+00. It is deleted.
 
-**The landing.** The function's exact value lands as any exact value does: truncation without ROUNDED (the coordinator's ruling; the
-landing rule is unchanged). So `COMPUTE F2 = FUNCTION ABS (A / 3)` prints 2.333333333333333, the double just below 7/3, as main's own
-`COMPUTE F2 = R` does for the same exact value (`pb5891_argument_receiver_scale` line 15; kb/Work PB5893's dated evidence file).
+**The landing, by the value's lane** (the coordinator's rulings, the second narrowing the first at review R4-1;
+`FunctionValueLane.DeliversByNearest`).
+- An exact value lands in a COMP-1 or COMP-2 receiver by the receiver's mode, truncation without ROUNDED, as on main
+  (`COMPUTE F2 = R`). That includes an exact SDIDI value: a floating-point literal or a NUMVAL parse (kb/Work PB1196, PB3839).
+- A value on the SDIDI into which a quotient that kept significance went is already an approximation, so it converts to binary64 by
+  round-to-nearest-even.
+- Between rounds 1 and 4 it truncated, and `SUM (A / 3, A / 3, A / 3)` stored 6.999999999999999 for main's 7. A MOVE of that to PIC 9
+  then gave 6.
+- Now SUM (A / 3 x3) and ABS (A / 3 * 3) are 7, the MOVE gives 7, and ABS (A / 3), MAX (A / 3, 1) and MEAN (A / 3, 1) print main's
+  2.3333333333333335 and 1.6666666666666667 again (`pb5891_argument_receiver_scale` line 15 is main's value again).
+- kb/Work PB5893's dated evidence file states the rule and why exact SDIDI values keep truncation.
 
 **One decider of a call's family** (review R3-1, the coordinator's ruling).
 - `FunctionValueLane` reads a call's arguments in the renderer's argument context, and DOC-A.1-92b is stated there

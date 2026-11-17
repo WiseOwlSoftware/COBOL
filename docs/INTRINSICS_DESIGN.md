@@ -794,7 +794,9 @@ binary64 8.5, kb/Work PB5893 review R3-1). `ArgumentLaneSweepTests` compiles a g
 grammar of argument shapes under every receiver kind to hold it. A fixed working scale (the first form of this fix) cut `1 / T` at
 T = 3E24 to 3.333333E-25 and `1 / C / C` over an 18-digit C to 0. An argument at a type 6 (integer) position keeps the nested
 quotient the type 6 classifier proved exact. The function's value then lands by the ordinary rules: an exact value in a binary64
-receiver by its mode, truncation without ROUNDED (`ABS (A / 3)` stores 2.333333333333333, ROUNDED 2.3333333333333335); an SDIDI or wide argument is routed to the same native bodies by `RenderNum`'s native
+receiver by its mode, truncation without ROUNDED (`COMPUTE F2 = R`), and an SDIDI approximation (one into which a quotient that kept
+significance or an SDIDI quotient that may not terminate went) by round-to-nearest-even, as a binary64 operation's result, so `ABS (A / 3)`
+stores 2.3333333333333335 and `SUM (A / 3, A / 3, A / 3)` 7 (`FunctionValueLane.DeliversByNearest`, kb/Work PB5893 review R4-1); an SDIDI or wide argument is routed to the same native bodies by `RenderNum`'s native
 Dec arm (PB69, PB4111), which returns the value on the SDIDI. `WholeRangeBodiesDriftTests` requires every variadic Float
 catalog row to be a member and pins each overload. Pinned by `conformance-suite/cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list`.
 
