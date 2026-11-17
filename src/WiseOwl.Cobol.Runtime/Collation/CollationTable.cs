@@ -247,16 +247,6 @@ public sealed class CollationTable
     /// computed Hangul or implicit weight).</summary>
     public bool HasExplicitMapping(int codePoint) => _singles.ContainsKey(codePoint);
 
-    /// <summary>True when the table maps exactly this code point sequence as a contraction.</summary>
-    public bool HasContraction(ReadOnlySpan<int> codePoints)
-    {
-        if (codePoints.Length < 2 || !_contractions.TryGetValue(codePoints[0], out var candidates)) return false;
-        var rest = codePoints[1..];
-        foreach (var c in candidates)
-            if (c.Rest.AsSpan().SequenceEqual(rest)) return true;
-        return false;
-    }
-
     /// <summary>True when the code point is a NON-STARTER — canonical combining class ≠ 0 (combining marks): the
     /// presence of one is what makes canonical reordering (NFD) and discontiguous contraction matching necessary.</summary>
     public bool IsNonStarter(int codePoint) => codePoint >= 0x300 && _ccc.ContainsKey(codePoint);
@@ -306,12 +296,6 @@ public sealed class CollationTable
 
     /// <summary>The whole element pool (read-only) — what a rule builder scans for the weights in use.</summary>
     internal ReadOnlySpan<CollationElement> Pool => _elements.AsSpan(0, _elementCount);
-
-    /// <summary>Every explicit single mapping (code point → pool slice) — for builders and diagnostics.</summary>
-    internal IEnumerable<(int CodePoint, int Offset, int Count)> Singles()
-    {
-        foreach (var (cp, packed) in _singles) yield return (cp, packed >> 8, packed & 0xFF);
-    }
 
     /// <summary>Every contraction (full code point sequence → pool slice) — for builders and diagnostics.</summary>
     internal IEnumerable<(int[] CodePoints, int Offset, int Count)> Contractions()
@@ -852,16 +836,6 @@ public sealed class WeightMap
 
     /// <summary>The number of defined root weights.</summary>
     public int Count => _from.Length;
-
-    /// <summary>True when every root weight maps to itself.</summary>
-    public bool IsIdentity
-    {
-        get
-        {
-            for (int i = 0; i < _from.Length; i++) if (_from[i] != _to[i]) return false;
-            return true;
-        }
-    }
 
     /// <summary>The image of a root-scale weight.</summary>
     public int Map(int weight)
