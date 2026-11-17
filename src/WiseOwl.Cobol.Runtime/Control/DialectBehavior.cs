@@ -340,6 +340,17 @@ public enum DialectBehavior
     /// lists (<c>IoStatus1985.Report</c>; kb/Work PB5882; VCR row 7.86; docs/FILES_DESIGN.md D33), and from 2002 it is the
     /// condition itself. Both editions are QUOTED. The consumer is <c>FileConnector.ProgramStatus</c>.</summary>
     IoStatusValuesOutside1985Lists = 30,
+    /// <summary>§2002:13.16.52.3 GR6 and §2023:13.18.54.4 GR6 — "The additions necessary to compute its value are completed before
+    /// the adding of the operand into the current sum counter", so a group's rolled additions run in dependency order, and
+    /// §2002:13.16.52.2 SR3e (§2023:13.18.54.3 SR4e) refuses a chain of references that never terminates, a counter that is its
+    /// own addend included. §1985:XIII.3.19.4 GR9a says instead that "Crossfooting is performed according to the sequence in
+    /// which sum counters are defined within the control footing report group", and that a counter that is its own addend
+    /// adds "the initial value of that sum counter at the time of summation"; no 1985 syntax rule forbids a forward or a
+    /// self addend. So at <c>--std 85</c> <c>SA SUM SB SC</c>, <c>SB SUM SC</c>, <c>SC SUM WS-A</c> gives SA the zero SB
+    /// still holds, and <c>S5 SUM WS-A S5</c> is legal and doubles S5's subtotal (kb/Work PB5894, PB5895; VCR row 7.87). Both
+    /// editions are QUOTED. The consumers are <c>ReportWriterEmitter.RegisterCrossEngineAdditions</c> (the order) and
+    /// <c>ReportSectionBinder.ScreenRolledChains</c>'s call (the refusal).</summary>
+    SumAdditionsInDependencyOrder = 31,
 }
 
 /// <summary>
@@ -507,6 +518,11 @@ public static class DialectBehaviors
             "the program's I-O status takes values the 1985 module lists do not have (the record operation and file sharing "
             + "conflicts, the record identification failure, the line sequential conditions) only from COBOL-2002; at COBOL-85 "
             + "each condition is reported by the 1985 value that names it or by its own documented 9x"),
+        new(DialectBehavior.SumAdditionsInDependencyOrder, "sum-additions-in-dependency-order", 2002,
+            "7.87", "§2002:13.16.52.3 GR6", "§1985:XIII.3.19.4 GR9a",
+            "a report group's rolled additions run in dependency order, and a chain of SUM references that never terminates "
+            + "(a counter that is its own addend included) is refused, only from COBOL-2002; COBOL-85 crossfoots in the order "
+            + "the counters are defined, and a counter that is its own addend adds its value at the time of summation"),
     ];
 
     static DialectBehaviors()

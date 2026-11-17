@@ -657,9 +657,11 @@ public sealed class CobolReport(
     }
 
     /// <summary>Perform the additions <paramref name="group"/> owes when it is processed — its rolled totals — in the
-    /// order they were registered (the binder orders a chain of rolled totals so a counter's own additions precede
-    /// its being read, §2023:13.18.54.4 GR6: "The additions necessary to compute its value are completed before the adding
-    /// of the operand into the current sum counter"). An entry absent in THIS presentation's snapshot adds nothing.</summary>
+    /// order they were registered, which is the edition's (the emitter's <c>RegisterCrossEngineAdditions</c>): from 2002 a
+    /// chain of rolled totals is ordered so a counter's own additions precede its being read, §2023:13.18.54.4 GR6: "The
+    /// additions necessary to compute its value are completed before the adding of the operand into the current sum
+    /// counter"; at 1985 a group crossfoots counter by counter in the order the counters are defined, then rolls forward
+    /// (§1985:XIII.3.19.4 GR9a, §1985:XIII.3.20.4 GR10). An entry absent in THIS presentation's snapshot adds nothing.</summary>
     private static void ApplyRolled(ReportGroup group, bool crossFoot)
     {
         foreach (var r in group.Rolled)

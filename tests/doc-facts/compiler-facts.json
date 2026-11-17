@@ -170,6 +170,11 @@
       "changedIn": 2014
     },
     {
+      "id": "sum-additions-in-dependency-order",
+      "vcrRow": "7.87",
+      "changedIn": 2002
+    },
+    {
       "id": "sum-size-error-blanks-printable-item",
       "vcrRow": "7.58",
       "changedIn": 2002
