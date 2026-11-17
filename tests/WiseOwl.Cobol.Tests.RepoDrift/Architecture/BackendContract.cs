@@ -219,7 +219,10 @@ internal static class BackendContract
         [
             "Model.DataItem.PointerRestrictionIdentity", "Model.PictureClauseIdentity.Key",
             // the corresponding external data item an external file's clauses name, compared across describers (kb/Work PB2418)
-            "Model.DataItem.ExternalItemIdentity()",
+            // a value whose parts stay apart (kb/Work PB5888 review R1-1): the external record's externalized name, the item's own
+            // name, the selected occurrence, and the length-prefixed Key the run-time descriptor carries
+            "Model.DataItem.ExternalizedRecordName()", "Model.ExternalDataItemIdentity.Record", "Model.ExternalDataItemIdentity.Item",
+            "Model.ExternalDataItemIdentity.Occurrence", "Model.ExternalDataItemIdentity.Key",
             // an expansion's key and the labeled digests it is made of: compared for identity, written as attribute strings (kb/Work PB2104)
             "Model.ExpansionIdentity.Key", "Model.ExpansionIdentity.Parts",
             "Model.StrongTypeModel.EssentialCharacteristicsKey()", "Model.StrongTypeModel.InvariantRecordText()",
