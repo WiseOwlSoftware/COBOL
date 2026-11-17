@@ -1,59 +1,69 @@
 {
  "rule-id": "1985-GR-XIII.3.19.4-10",
- "rule-digest": "578a78da21de",
+ "rule-digest": "ae579e101636",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-147",
+  "pin": "a05cc533dc71b8875b14f48db632f610014f78ec",
+  "slice": "1985-250",
   "sources": {
-   "reader": "aff0e1385e6225d488e8b2cc3ec3c7c65b700c07c5563f8d9152780be230c482",
-   "refuter": "4339c344b8821e5c914117f89968167c481a2bb1a6773ab21ae3ce0d3e67c9b3"
+   "reader": "e0eed3f705dfb2a90fe0df9dd236ea3a447256afca7a34f6a550a7cba6a9d917",
+   "refuter": "13b851ab30b0140c836035bcb153c21ff86be64ba419c7a2ad35d678f68935a5"
   },
   "imported": {
-   "reader": "ffdd59209e2e7412db209e536697ed6cc432021213ce07b364e479689cec7475",
-   "refuter": "95659412a3e64655496b54df5ea09de3480a6d2f7f28bcc0eb6f8d903f7bf7de"
+   "reader": "ffb1ef295a390684d221c3f9b4e3d5773c38d2cf6cd201a39e770524dddc77b3",
+   "refuter": "e20c6b89b5290f2b5a9521e78616554ac4cf5550860bc0c59558cad3e599deb3"
   }
  },
  "reader": {
   "rule-id": "1985-GR-XIII.3.19.4-10",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 an addend written n times in a SUM clause must be added n times (subtotalled identifiers at each GENERATE, and sum-counter addends at crossfoot or roll-forward time), and a detail named n times in an UPON phrase must make a GENERATE of that detail increment n times.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Fires; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Accumulate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyRolled; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddGenerateTrigger; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindSumClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#SumAddition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RegisterCrossEngineAdditions",
+  "requirement": "At --std 85 an addend written n times in a SUM clause (a subtotalled item or a crossfooted or rolled sum counter) is added n times, and a detail named n times in an UPON phrase (qualified or not) makes each GENERATE of that detail add the addends n times; UPON operands must name a detail of the same report.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Fires; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyRolled; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#SumAddition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RegisterCrossEngineAdditions; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveUponDetail",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenRolledAddend",
-    "switches": "DialectLevel < 2002: a Report Section addend must be a sum counter of the same report (§1985:XIII.3.19.3 SR1, XIII.3.18.3 SR1 c); a refusal screen, not the count of additions",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveUponDetail",
+    "switches": "DialectLevel < 2002: an UPON operand naming a detail of another report is refused (§1985:XIII.3.19.3 SR2); from 2002 it registers a cross-report trigger",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportSumClause",
-    "switches": "refuses the 2002 SUM forms (expression, literal or function addend, ROUNDED) below 2002",
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#RegisterCrossEngineAdditions",
+    "switches": "DialectBehavior.SumAdditionsInDependencyOrder: order of rolled/crossfoot registrations (definition order at 85); each duplicated rolled addend is registered once per appearance at every edition",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: g85_bf09_09 sums addends once; a repeated identifier, a repeated UPON detail and a repeated rolled sum counter are not exercised",
+  "edition-search": "Fires and the GENERATE subtotalling loop in ReportWriter.cs read no edition (grep Edition|DialectBehavior: lines 654, 751, 981, 1097, 1209, 1505 only)",
+  "behaviour-differs-by-edition": "yes: only the operand class: at 2023 UPON may name another report's detail (p4c compiles at 2023, refused at 85); the repetition counting is one arm",
+  "witnesses-cover": "part: g85_bf09_09 covers duplicate UPON operands; not exercised: duplicated subtotalled identifiers, a duplicated crossfooted and rolled sum counter, repeated SUM phrases, a qualified and unqualified spelling of one detail, scaled and signed addends",
   "probes": [
    {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p4a.cob",
+    "printed": "CF K=1: 30 24 27 60 24; CF K=2: 2 2 2 4 2; FINAL: 64 26",
+    "expected": "SUM X X = 2*(5+3+7)=30; SUM X UPON D1 D1 = 2*(5+7)=24; UPON D1 D2 D1 = 10+3+14=27; crossfoot SUM S1 S1 = 60; two SUM X UPON D1 phrases = 24; rolled SUM S1 S1 = 2*(30+2)=64; UPON D1 OF R1 D1 = 2*13=26"
+   },
+   {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/sum1.cob",
-    "printed": "S-DUP (SUM W-A W-A) 6, 6, 8; S-UPN (SUM W-A UPON DET1 DET1 DET2) 4, 6, 8; S-X (SUM S-MUL S-MUL, crossfoot) 42, 6, 8; M-DUP (SUM S-DUP S-DUP, rolled) 24, 16",
-    "expected": "first CF MIN: W-A 1 (DET1) and 2 (DET2): 2*(1+2)=6; UPON: 2*1+1*2=4; crossfoot 2*21=42; rolled 2*6+2*6=24 at the major break; all printed as derived"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p4b.cob",
+    "printed": "4.0  -2988",
+    "expected": "signed scaled X (-1.5, 2.5) with SUM X X UPON D1 D1 = 4*(1.0) = 4.0; COMP-3 Y (-999, 3) SUM Y Y Y = -2988"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-147/src/sumref.cob",
-    "printed": "COBOL6763 SUM in a DETAIL group; COBOL6824 RESET ON a lower control; COBOL0900 ROUNDED; COBOL0900 an expression addend 'W-A + 1'",
-    "expected": "1985 refuses each (XIII.3.19.3 SR3, SR4, and the 1985 general format has no ROUNDED and no expression addend)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-250/src/p4c.cob",
+    "printed": "at 85: COBOL2046 twice, the UPON operand 'D2 OF R2' names a detail report group of report 'R2' (§1985:XIII.3.19.3 SR2); at 2023: exit 0",
+    "expected": "1985 SR2 refuses another report's detail, each repeated operand"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.3.19.4 GR10",
-    "check": "OK  §1985:XIII.3.19.4 GR10  (3.19.4 General Rules)  the text is in GR10 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+    "check": "OK  §1985:XIII.3.19.4 GR10  (3.19.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:XIII.3.19.3 SR2",
+    "check": "OK  §1985:XIII.3.19.3 SR2  (3.19.3 Syntax Rules)  the text is in SR2"
    }
   ],
-  "notes": "SumTerm.Fires counts each appearance of the detail in the UPON list and GenerateCore adds that many times; SumAddition folds every written addend (duplicates kept) into one ADD; each rolled addend occurrence registers its own AddRolled. GR10 sits on folio XIII-54, which the transcription reconstructs (low confidence, kb/Work PB4952); the verdict follows the reconstructed text, which agrees with the 2023 GR7.",
+  "notes": "Duplicate generate-driven addends fold into one ADD closure that sums every written addend; duplicate UPON operands are counted by Fires; duplicate rolled/crossfooted counters register one addition per appearance. Class f (size error) was not decisive here: p4b's PIC 9 counter SUM Y Y overflowed and printed 6, a result 1985 leaves undefined (no ON SIZE ERROR); classes a and e do not apply.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -66,11 +76,9 @@
  "refuter": {
   "rule-id": "1985-GR-XIII.3.19.4-10",
   "refutation": "UPHELD",
-  "classes": "c,d",
-  "evidence": "Probes E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-147/src/sum3a.cob and sum3.cob (CONTROLS FINAL MAJ MIN; CF MIN entries S-QD SUM W-A W-A OF W-REC, the same addend written once plain and once qualified; S-PH SUM W-A SUM W-A SUM W-B, the addend repeated across SUM phrases; S-UP SUM W-B UPON DET DET DET; CF FINAL SUM S-PH S-PH S-PH, a rolled addend three times). sum3a-001 (GENERATE DET, W-A/W-B = 1/10, 2/20, 3/30): DISPLAY after the first GENERATE 'S-PH +012 S-UP +030'; CF MIN lines '2 12 30', '4 24 60', '6 36 90'; CF FINAL 216 = 3*(12+24+36). sum3-001, second INITIATE with GENERATE RPT (report-name form, the sole detail named three times in UPON; XIII.3.20.4 GR11 'as though a GENERATE data-name statement were being executed'): CF MIN '2 12 30' then '4 24 60', CF FINAL 108. Every repeated reference adds once per appearance, on both GENERATE forms, for subtotal, rolled and qualified spellings. The identifier half also follows from the printed GR2 ('the value in each data item referenced by identifier-1'); the UPON half rests only on the reconstructed folio XIII-54 (kb/Work PB4952), with nothing printed against it. cite.py: 'OK  §1985:XIII.3.19.4 GR10  (3.19.4 General Rules)  the text is in GR10 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]'; 'OK  §1985:XIII.3.19.4 GR2  (3.19.4 General Rules)  the text is in GR2'; 'OK  §1985:XIII.3.20.4 GR11  (3.20.4 General Rules)  the text is in GR11'.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SumPresentable: DialectBehavior.SumSizeErrorBlanksPrintableItem, an addition that is a size error leaves the printable item as MOVE makes it at 85 (not this rule's count of additions)"
-  ],
+  "classes": "b,d",
+  "evidence": "Read §1985:XIII.3.19.4 GR9a, GR9c and GR10. Probed operand forms the reader did not try (r4a): subscripted duplicates SUM T(1) T(1) gave 24 (2*(5+7)); the same addend spelled two ways, SUM T(I) T(1) T(2) with I=1, gave 27; a counter that is its own addend twice, SUM S3 S3, after MOVE 5 TO S3 gave 15 = 5 + 5 + 5 (GR9a uses the initial value for each reference); a mixed SUM T(1) S4 after MOVE 100 TO S4 gave 200; the second control group gave 2 4 0 2, as expected. Run r4a-001. cite.py: 'OK  §1985:XIII.3.19.4 GR10  (3.19.4 General Rules)  the text is in GR10'; 'OK  §1985:XIII.3.19.4 GR9a  (3.19.4 General Rules)  the text is in GR9a'. Also read the PB5895 self-addend arm (ReportSectionBinder.cs, SumAdditionsInDependencyOrder gate at 1985); the reader names that gate in the emitter.",
+  "edition-sites-missed": [],
   "corrected": ""
  }
 }

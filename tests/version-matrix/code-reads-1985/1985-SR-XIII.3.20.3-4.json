@@ -1,84 +1,141 @@
 {
  "rule-id": "1985-SR-XIII.3.20.3-4",
- "rule-digest": "4ae2e820150e",
+ "rule-digest": "2bba838dd1ac",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-076",
+  "pin": "a05cc533dc71b8875b14f48db632f610014f78ec",
+  "slice": "1985-251",
   "sources": {
-   "reader": "44d586d8cbb609dc61eae27ec31793c5b4679cf8d37209f3730c08e0b61c9851",
-   "refuter": "307ebb4f8f6956d0aa6a0cfddbf9be187b3fea3168a1a1de989118716ae224c9"
+   "reader": "0153a19a0d59809b4d6da97ba41ad424947b03c4dcd9e8ad7e4fc89428bf98fe",
+   "refuter": "58f0cb94399d708290dc160eafffdfacc77db0f06e8a3a23a154823c5850dcc5"
   },
   "imported": {
-   "reader": "bbf796cb437e9f1dff9ac9fd4e8fae967141a078afcb894838588832ebe62452",
-   "refuter": "a69e736834ad8714c5b628eaad83884e85772b5e84287ce72249686083b142e8"
+   "reader": "dcc925970e4ce1b110ca98b2622103c6543589ae4e18d8045aa9c59e4320f863",
+   "refuter": "e19a14fec692f396807e1b68431e0f5723a872aeeb8de4d64652042b07f75ee3"
   }
  },
  "reader": {
   "rule-id": "1985-SR-XIII.3.20.3-4",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 a second REPORT HEADING, PAGE HEADING, PAGE FOOTING or REPORT FOOTING group in one RD, or a second control heading or second control footing for the same CONTROL data-name or FINAL, must be refused, while omitting the CH or the CF (or both) at any control level is accepted.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupCensus; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
-  "edition-consulted": [],
-  "edition-search": "Read ScreenReportGroupCensus whole (it uses Edition only for At/Error) and the ResolveReports loop that sets ControlLevel before it; grep of the two members for DialectLevel, CobolVersion, Constructs., IsCobol85 found nothing.",
-  "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: pb1299_report_group_census_legal is the legal half (one group of every type, CH/CF per level); the refusal of each duplicate is covered by these probes",
+  "requirement": "At --std 85 a CH/CF operand (data-name or FINAL, which the 1985 format requires to be written) must name an operand of the RD's CONTROL clause (qualified spellings naming the same item included), at most one CH and one CF may exist per control data-name or FINAL, and a control with no CH or CF is legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindGroupType; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlLevelOf; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupCensus; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportGroupType; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportControlName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85ControlName",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportGroupType",
+    "switches": "refuses (COBOL0900) a CH/CF without operand and the OR PAGE phrase below COBOL-2002 (Constructs.ReportControlOperandForms2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportControlName",
+    "switches": "refuses the optional ON/FOR word before the operand below COBOL-2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85ControlName",
+    "switches": "refuses a reference-modified TYPE operand below COBOL-2002; qualification stays admitted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef",
+    "switches": "EditionContext.SubscriptedClauseOperands (Year == 2002) admits a subscripted operand; 85 refuses it",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 the operand is required and ON/FOR, OR PAGE and reference modification are refused (later editions admit them); the membership test (SR10) and the one-CH/one-CF-per-level census (SR14) are the same code at every edition.",
+  "witnesses-cover": "part: witnesses cover CH twice for one control, an operand not in CONTROL and a legal census; CF twice, a qualified/unqualified pair naming one control, CH/CF FINAL with no FINAL in CONTROL, a group-item operand, no CONTROL clause at all and a control with no CH/CF were probed here.",
   "probes": [
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4a_two_rh.cob",
-    "printed": "EXIT 65; error COBOL2749: report group 'G2' is a second REPORT HEADING ('G1' is the first)",
-    "expected": "refused (RH then REPORT HEADING)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/cf2.cob",
+    "printed": "error COBOL2749: 'CF2' is a second CONTROL FOOTING for control 'WS-KEY'",
+    "expected": "refused: at most one control footing per data-name"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4b_two_ph.cob",
-    "printed": "EXIT 65; error COBOL2749: a second PAGE HEADING",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/cfqual2.cob",
+    "printed": "error COBOL2749: CF WS-KEY OF WS-GRP is a second CONTROL FOOTING for control 'WS-KEY'",
+    "expected": "refused: same control, other spelling"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/chqual.cob",
+    "printed": "EXIT 0; CONTROL WS-KEY OF WS-GRP with CH WS-KEY and CF WS-KEY IN WS-GRP prints CH1 1 CF1 CH1 1 CF1",
+    "expected": "legal: the TYPE operand names the CONTROL operand's item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/cfnotctl.cob",
+    "printed": "error COBOL0899: the TYPE CF operand 'WS-OTH' shall be the same as one of the operands of the CONTROL clause",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/chgrp.cob",
+    "printed": "error COBOL0899: TYPE CH operand 'WS-GRP' (group containing the control) shall be one of the CONTROL operands",
+    "expected": "refused: the group is not the control data-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/chfinal_noctl.cob",
+    "printed": "error COBOL0899: the TYPE CH operand shall be the same as one of the operands of the CONTROL clause",
+    "expected": "refused: FINAL not in CONTROL clause"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/cffinal_noctl.cob",
+    "printed": "error COBOL0899 (CF FINAL, no FINAL in CONTROL)",
     "expected": "refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4c_two_pf.cob",
-    "printed": "EXIT 65; error COBOL2749: a second PAGE FOOTING",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/nocontrol_ch.cob",
+    "printed": "error COBOL0899: TYPE CH operand 'WS-KEY' shall be one of the CONTROL operands (RD has no CONTROL clause)",
     "expected": "refused"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4d_two_rf.cob",
-    "printed": "EXIT 65; error COBOL2749: a second REPORT FOOTING",
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/ch_nooperand.cob",
+    "printed": "error COBOL0900: TYPE CH without its control operand requires COBOL-2002",
+    "expected": "refused: 1985 format braces {data-name-1 | FINAL}"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/cf_nooperand.cob",
+    "printed": "error COBOL0900: TYPE CONTROL FOOTING without its control operand requires COBOL-2002",
     "expected": "refused"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4e_two_ch_k.cob",
-    "printed": "EXIT 65; error COBOL2749: a second CONTROL HEADING for control 'WS-K'",
-    "expected": "refused (CH WS-K then CONTROL HEADING WS-K)"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/ch_orpage.cob",
+    "printed": "error COBOL0900: the OR PAGE phrase of TYPE CONTROL HEADING requires COBOL-2002",
+    "expected": "refused: not in the 1985 format"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4f_two_cf_final.cob",
-    "printed": "EXIT 65; error COBOL2749: a second CONTROL FOOTING for control 'FINAL'",
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/ch_onword.cob",
+    "printed": "error COBOL0900: the word ON before a TYPE clause's control operand requires COBOL-2002",
     "expected": "refused"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4g_ch_and_cf_j.cob",
-    "printed": "EXIT 0; G1 D1 G2 G1 D1 G2",
-    "expected": "accepted: CH and CF only for WS-J, FINAL and WS-K omitted; break on WS-J presents CF then CH"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/twoctl_nogroups.cob",
+    "printed": "EXIT 0; CONTROLS FINAL WS-KEY WS-K2 with only CF WS-K2 prints 1 CF1 1 CF1",
+    "expected": "legal: no CH/CF required for a control"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4h_cf_k_and_cf_j.cob",
-    "printed": "EXIT 0; D1 G2 D1 G2 G1",
-    "expected": "accepted: a CF at two levels with no CH; TERMINATE presents CF WS-J then CF WS-K"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-251/ch_cf_samectl.cob",
+    "printed": "EXIT 0; CH1 CH2 1 CF2 CF1 CH1 CH2 1 CF2 CF1",
+    "expected": "legal: one CH and one CF per control"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.3.20.3 SR4",
-    "check": "OK  §1985:XIII.3.20.3 SR4  (3.20.3 Syntax Rules)  the text is in SR4 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+    "check": "OK  §1985:XIII.3.20.3 SR4  (3.20.3 Syntax Rules)  the text is in SR4"
    }
   ],
-  "notes": "The census keys each non-detail group by (kind, resolved control level), so duplicates are found whether written in full or abbreviated, and omitted control groups are never required. The rule text comes from the reconstructed folio XIII-55 (PB4952).",
+  "notes": "ResolveReports resolves each CH/CF operand to a control level (FINAL by FindIndex, data-name by ControlLevelOf, qualifier-insensitive) and refuses a miss; the census refuses a second CH or CF per level. The 1985 operand forms are gated in VersionConformancePass (format diagram read from the transcription; the scan lacks XIII-55, transcribed from GovInfo). The COBOL0899 for a non-control operand is positioned at the RD line, not the group entry, and cites §2023 (cosmetic).",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -90,10 +147,15 @@
  },
  "refuter": {
   "rule-id": "1985-SR-XIII.3.20.3-4",
-  "refutation": "UPHELD",
-  "classes": "b,c",
-  "evidence": "Read ReportSectionBinder.cs#ScreenReportGroupCensus (keyed by kind and resolved ControlLevel; no edition test). Probes at --std 85: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r4a_two_ch_same_item_diff_spelling.cob (CH WS-K OF WS-G then CONTROL HEADING WS-K IN WS-G) -> EXIT 65 COBOL2749 second CONTROL HEADING; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r4c_dup_cf_qual_unqual.cob (CF WS-P then CONTROL FOOTING WS-P OF WS-Q) -> EXIT 65 COBOL2749 second CONTROL FOOTING; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r4b_two_rds_each_once.cob (two RDs on one file, each with one RH, PH, PF, RF, R1 also two detail groups) -> EXIT 0, so the census is per report description and DETAIL is not limited. cite.py: OK  §1985:XIII.3.20.3 SR4 ... [RECONSTRUCTED: kb/Work PB4952]. The rule text is the transcription's reconstruction of folio XIII-55; the verdict holds against that text, which the later editions keep unchanged.",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,d",
+  "evidence": "Membership and count halves hold: xrptctl.cob (R1 CONTROL WS-A, R2 CONTROL WS-B, R2 CH WS-A) refused COBOL0899 'RD R2: the TYPE CH operand WS-A shall be the same as one of the operands of the CONTROL clause'; wrongitem.cob (CONTROL WS-KEY OF G1, CH WS-KEY OF G2, a different item of the same name) refused COBOL0899; ControlLevelOf matches the written reference first, then the resolved item. The doubt is the qualified operand the reader's requirement admits: qualneedless.cob (WS-KEY unique, CONTROL IS WS-KEY, TYPE CH WS-KEY OF WS-GRP) compiles and runs EXIT 0 at --std 85, as did the reader's chqual.cob (CF WS-KEY IN WS-GRP). The 1985 text: 'OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause' -- a 'data-name' in a general format 'must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of the format'; the CONTROL clause permits it ('OK  §1985:XIII.3.7.3 SR1 ... the text is in SR1', 'Data-name-1 may be qualified'), but no TYPE syntax rule does ('OK  §1985:XIII.3.20.3 SR4 ... the text is in SR4' says only 'must be specified in the CONTROL clause'). The compiler admits the qualified TYPE operand by a recorded READING (VersionConformancePass#GateCobol85ControlName doc comment; kb/Work PB5573 2026-11-14-landed.md: 'a QUALIFIED TYPE operand stays COBOL-85 ... a reading, folio XIII-55 missing, kb/Work PB4952'), that SR4's 'specified in the CONTROL clause' carries the CONTROL clause's qualified spelling. On the literal text the qualified operand is not permitted (under-rejects); on the recorded reading it is. The printed folio XIII-55 settles it. Nothing else in this rule's range failed.",
   "edition-sites-missed": [],
-  "corrected": ""
+  "corrected": "Under the literal §1985:III.2 reading the verdict is PARTIAL (under-rejects): TYPE CH/CF data-name written qualified (qualneedless.cob, chqual.cob) is admitted at --std 85 though no TYPE rule permits qualification. Under PB5573's recorded reading (SR4 inherits the CONTROL clause's qualified spelling) CONFORMS stands."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "Batch 23 ruling: the refuter confirmed SR4's membership and count halves (xrptctl.cob, wrongitem.cob refused), so SR4 CONFORMS; its doubt, a qualified TYPE operand compiling at 85, is upheld as a defect of the FORMAT row 1985-FMT-XIII.3.20.2 (kb/Work PB5910), not of SR4",
+  "ref": "kb/Work/PB5683/2026-11-17-rulings-code-reads-batch-23.md"
  }
 }
