@@ -35,6 +35,17 @@
       *> makes FG * 3 a binary64 argument, 0.30000000000000004 in
       *> IEEE binary64, so REM (FG * 3, 1) is that double under both
       *> receivers, 0.30000000000000004 to 17 places.
+      *> SIGNIFICANCE (kb/Work PB5893 review R1-2, R1-3: under a
+      *> floating-point resultant a quotient in an argument at a
+      *> numeric position that may not terminate is the 34-digit
+      *> SDIDI quotient, never one cut at a fixed scale): with
+      *> C = 10**18 - 1, 1 / C / C is 1.000000000000000002E-36, which
+      *> lands in COMP-2 with no ROUNDED by truncation, the double just
+      *> below it, shown as 1E-36, and in COMP-1 the binary32 just
+      *> below it, 9.9999995E-37; 1 / T with T = 3E24 is 3.333...E-25,
+      *> +3.333E-25 in PIC +9.999E+99. A quotient by a literal that
+      *> divides exactly stays exact: (Y * 100 - X * 10.25) * 4 / 4 is
+      *> 1.025E32 + 10.25, so REM (..., 1000) is 10.25 (+10.25).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5893A.
        DATA DIVISION.
@@ -48,6 +59,10 @@
        01  W   PIC S9(4).
        01  D4  PIC S9V9(4).
        01  R17 PIC 9V9(17).
+       01  C   PIC 9(18) VALUE 999999999999999999.
+       01  T   PIC 9(25) VALUE 3000000000000000000000000.
+       01  FS  PIC +9.999E+99.
+       01  W2  PIC S99V99.
        PROCEDURE DIVISION.
        MAIN-PARA.
            COMPUTE F2 = FUNCTION REM ((Y * 100 - X * 10.25) * 4, 1000)
@@ -111,4 +126,10 @@
            COMPUTE R17 = F2  DISPLAY "FARG2 " R17
            COMPUTE R17 = FUNCTION REM (FG * 3, 1)
            DISPLAY "FARGX " R17
+           COMPUTE F2 = FUNCTION ABS (1 / C / C)  DISPLAY "SMALL2 " F2
+           COMPUTE F1 = FUNCTION ABS (1 / C / C)  DISPLAY "SMALL1 " F1
+           COMPUTE FS = FUNCTION ABS (1 / T)      DISPLAY "SMALLE " FS
+           COMPUTE F2 = FUNCTION REM ((Y * 100 - X * 10.25) * 4 / 4,
+               1000)
+           COMPUTE W2 ROUNDED = F2  DISPLAY "REMQ2 " W2
            STOP RUN.

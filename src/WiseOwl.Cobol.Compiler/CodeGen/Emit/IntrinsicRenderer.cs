@@ -684,7 +684,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// INTAKE(EXACT) for an exact carrier; INTAKE(APPROXIMATED) for a float one, whose binary64 IS the argument.</remarks>
     private string PresentValueBase(BoundIntrinsicCall ic, BoundOperand a)
     {
-        NumX x = num.AsNum(a, num.ArgumentReceiver);
+        NumX x = num.AsNum(a, NumericArgument);
         return RuntimeApi.Intrinsic("PresentValueBase", x.Real ? DomainArg(ic, x) : ExactArg(ic, x));
     }
 
@@ -693,7 +693,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// no domain takes the plain <see cref="DblOf"/>. ⛔ The screen is the ONLY place such a rule is decided: the
     /// runtime bodies carry no second test on the double (a legal argument rounded onto a bound would trip it).</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier, after an EXACT domain test on that carrier.</remarks>
-    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) => DomainArg(ic, num.AsNum(a, num.ArgumentReceiver));
+    private string DomainArg(BoundIntrinsicCall ic, BoundOperand a) => DomainArg(ic, num.AsNum(a, NumericArgument));
 
     private static string DomainArg(BoundIntrinsicCall ic, NumX x) =>
         ic.Sig.Domain is IntrinsicDomain.None
@@ -923,9 +923,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// route a <c>Dec</c> operand takes. So there is ONE landing here, not a second mechanism beside the first,
     /// and the exact Int128 family evaluates the EAE as §2023:15.4.1 r1 requires.</para>
     /// <para>The landing of an argument already rendered in the argument context (<c>NumericRenderer.ArgumentReceiver</c>): it reads
-    /// only the receiver's scale and integer-digit headroom (<see cref="ReceiverContext.WorkingScale"/>), never a lane fact, so it keeps
-    /// the statement's receiver; the argument context's wider scale under a floating-point receiver (<c>NumericLanes.ArgumentScale</c>)
-    /// would put a large SDIDI value past the carrier there, a headroom a floating-point receiver does not state.</para>
+    /// only the receiver's scale and integer-digit headroom (<see cref="ReceiverContext.WorkingScale"/>), which the argument context
+    /// shares with the statement's receiver, and never a lane fact, so it reads the statement's receiver.</para>
     /// </remarks>
     private NumX Landed(NumX x) => num.Landed(x, num.Receiver);   // the ONE landing (NumericRenderer.Landed — kb/Work PB84)
 
@@ -989,6 +988,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// value (<see cref="ExactValueArg"/>, kb/Work PB4111, PB4568): VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE, and the exact
     /// family beside an SDIDI or binary64 argument, form their value from <c>CobolExact</c> arguments and round it once.</para>
     /// </remarks>
+    /// <summary>⛔ THE CONTEXT ARGUMENT <paramref name="i"/> IS RENDERED IN (kb/Work PB5891 review R3-1, kb/Work PB5893):
+    /// <see cref="NumericRenderer.ArgumentReceiver"/> at the argument's position, a §2023:15.3 type 6 (integer) position or not. Every
+    /// position renders without the receiver's floating-point facts; under a floating-point receiver a numeric position also keeps
+    /// significance (<c>NumericLanes.ArgumentKeepsSignificance</c>).</summary>
+    private ReceiverContext ReceiverFor(BoundIntrinsicCall ic, int i) =>
+        num.ArgumentReceiver(IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i));
+
+    /// <summary>The context of an operand the intake reads without its index: an element of a table(ALL) argument or an argument of a
+    /// variadic numeric list, and the leading rate of PRESENT-VALUE and a binary64-family argument-1, each at a §2023:15.3 type 10
+    /// (numeric) position.</summary>
+    private ReceiverContext NumericArgument => num.ArgumentReceiver(integerPosition: false);
+
     private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));
 
     /// <summary>
@@ -1013,7 +1024,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     private NumX RawWideArg(BoundIntrinsicCall ic, int i)
     {
-        NumX x = num.AsNum(ic.Args[i], num.ArgumentReceiver, keepWide: true);
+        NumX x = num.AsNum(ic.Args[i], ReceiverFor(ic, i), keepWide: true);
         x = StandardArgument(ic, x);
         if (!(x.Real || x.Dec || x.Exact || x.Scale != 0) || !IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i)) return x;
         if (x.Wide)
@@ -1061,7 +1072,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     private string IntArgWideSaturating(BoundIntrinsicCall ic, int i)
     {
-        NumX x = num.AsNum(ic.Args[i], num.ArgumentReceiver);
+        NumX x = num.AsNum(ic.Args[i], ReceiverFor(ic, i));
         return x.Real ? RuntimeApi.IntegerArgSaturatingReal(x.Expr)
             : x.Dec ? RuntimeApi.IntegerArgSaturatingDec(x.Expr)
             : AsIntWide(x);
@@ -1083,7 +1094,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <summary>One operand lifted to a <c>CobolDec</c> from its RAW carrier — the per-operand form of <see cref="DecArg"/>
     /// (a table(ALL) element renders here inside its enumeration lambda).</summary>
     /// <remarks>INTAKE(LIFTED) — the per-operand form of <see cref="DecArg"/> — same contract.</remarks>
-    private string DecOf(BoundOperand a) => num.DecOperand(num.AsNum(a, num.ArgumentReceiver));
+    private string DecOf(BoundOperand a) => num.DecOperand(num.AsNum(a, NumericArgument));
 
     /// <summary>⛔ AN ARGUMENT AS ITS EXACT VALUE (<c>CobolExact</c>; kb/Work PB4111, PB4568): the position intake keeping the wide form
     /// (<see cref="RawWideArg"/>, so a §2023:15.3 type-6 position is still its integer), then <see cref="NumericRenderer.ExactOperand"/> —
@@ -1104,12 +1115,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     {
         for (int i = 0; i < ic.Args.Count; i++)
             if (ReferenceEquals(ic.Args[i], a)) return ExactValueArg(ic, i);
-        return num.ExactOperand(num.AsNum(a, num.ArgumentReceiver));
+        return num.ExactOperand(num.AsNum(a, NumericArgument));
     }
 
     /// <summary>One operand as a C# double from its RAW carrier — the per-operand form of <see cref="Dbl"/>.</summary>
     /// <remarks>INTAKE(APPROXIMATED) — binary64 from the RAW carrier — exactness past 2^53 is surrendered. §2023:15.4.1's native latitude permits that for an equivalent-arithmetic-expression function; a standard mode and a value-fixing definition do not.</remarks>
-    private string DblOf(BoundOperand a) => NumericRenderer.Real(num.AsNum(a, num.ArgumentReceiver));
+    private string DblOf(BoundOperand a) => NumericRenderer.Real(num.AsNum(a, NumericArgument));
 
     // ── table(ALL) arguments — the enumeration seam (ISO §2023:15.3; kb/Work PB62) ─────────────────────────────
 
@@ -1530,7 +1541,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         {
             for (int i = 0; i < ic.Args.Count; i++)
                 if (ReferenceEquals(ic.Args[i], a)) return Aligned(i);
-            return NumericRenderer.WideAligned(num.AsNum(a, num.ArgumentReceiver), s);
+            return NumericRenderer.WideAligned(num.AsNum(a, NumericArgument), s);
         }
         string List() => ArgArray(ic, 0, "CobolWide", Element) ?? string.Join(", ", xs.Select((_, i) => Aligned(i)));
         // A table(ALL) argument stands for an unknown number of elements, so SUM charges it nine more digits (as
@@ -1677,7 +1688,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // the list itself enumerates through ArgArray (kb/Work PB62).
         var xs = Operands(ic).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
-        string list = ArgArray(ic, 0, "Int128", a => NumericRenderer.Align(num.AsNum(a, num.ArgumentReceiver), s))
+        string list = ArgArray(ic, 0, "Int128", a => NumericRenderer.Align(num.AsNum(a, NumericArgument), s))
                       ?? string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s)));
         return (list, s);
     }
@@ -1693,9 +1704,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
         // A table(ALL) argument enumerates (kb/Work PB62): its elements share one scale, so the scales array
         // enumerates the same ranges with a constant selector.
-        string vals = ArgArray(ic, 0, "Int128", a => { var x = num.AsNum(a, num.ArgumentReceiver); return NumericRenderer.Align(x, x.Scale); })
+        string vals = ArgArray(ic, 0, "Int128", a => { var x = num.AsNum(a, NumericArgument); return NumericRenderer.Align(x, x.Scale); })
                       ?? $"new Int128[] {{ {string.Join(", ", xs.Select(x => NumericRenderer.Align(x, x.Scale)))} }}";
-        string scales = ArgArray(ic, 0, "int", a => num.AsNum(a, num.ArgumentReceiver).Scale.ToString())
+        string scales = ArgArray(ic, 0, "int", a => num.AsNum(a, NumericArgument).Scale.ToString())
                         ?? $"new int[] {{ {string.Join(", ", xs.Select(x => x.Scale))} }}";
         return (vals, scales, s);
     }

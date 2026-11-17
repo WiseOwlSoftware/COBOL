@@ -779,11 +779,17 @@ function's ONE native body (`VarianceExact` / `StdDevExact` / `PresentValueExact
 PRESENT-VALUE's §2023:15.74.3 r2 is then decided where every native evaluation of it decides it — `PresentValueExact`'s exact
 test of the discount base through the one `PresentValueDomain` raise site — which is also what lets a leading table(ALL)
 rate stay one `CobolExact[]` enumeration. A list with a floating argument keeps the binary64 body (its EAE is evaluated in
-binary64, CONFORMANCE.md DOC-A.1-92b; an all-fixed-point argument is evaluated exactly whatever the receiver, kb/Work PB5893, at the
-working scale `NumericLanes.ArgumentScale` states once: the receiver's scale, and under a floating-point receiver at least
-`NumericLanes.Binary64SignificantDigits` (17), so a nested quotient keeps 17 fraction digits beside its 14 guard digits and at least
-17 significant digits of any quotient of magnitude 10^-14 or more reach the binary64 receiver; `LaneOf` reads the same scale through
-the argument context, so the lane assertion holds); an SDIDI or wide argument is routed to the same native bodies by `RenderNum`'s native
+binary64, CONFORMANCE.md DOC-A.1-92b. An all-fixed-point argument is never taken onto binary64 by the receiver, kb/Work PB5893:
+EXACTNESS WHERE EXACT, SIGNIFICANCE WHERE NOT. Under a floating-point receiver (`ReceiverContext.IsFloatingPoint`: COMP-1, COMP-2,
+every FLOAT usage and a floating-point numeric-edited item), which has no fraction scale to cut a quotient at, an argument at a
+§2023:15.3 type 10 (numeric) position keeps significance (`NumericLanes.ArgumentKeepsSignificance`): its +, - and * stay on the exact
+lanes, and a quotient is the SDIDI's final quotient, 34 significant digits by round-to-odd at every magnitude, unless its divisor is
+a literal that divides exactly within the nested quotient's guard digits (`NumericLanes.QuotientIsFinal`,
+`TerminatesWithinGuardDigits`), which stays the exact nested quotient. The one rule is read by `LaneOf` (through `LaneContext`) and
+by the renderer's `NestedQuotient`, so the lane assertion holds. A fixed working scale (the first form of this fix) cut `1 / T` at
+T = 3E24 to 3.333333E-25 and `1 / C / C` over an 18-digit C to 0. An argument at a type 6 (integer) position keeps the nested
+quotient the type 6 classifier proved exact. The function's value then lands by the ordinary rules: an exact value in a binary64
+receiver by its mode, truncation without ROUNDED (`ABS (A / 3)` stores 2.333333333333333, ROUNDED 2.3333333333333335); an SDIDI or wide argument is routed to the same native bodies by `RenderNum`'s native
 Dec arm (PB69, PB4111), which returns the value on the SDIDI. `WholeRangeBodiesDriftTests` requires every variadic Float
 catalog row to be a member and pins each overload. Pinned by `conformance-suite/cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list`.
 
@@ -1037,7 +1043,9 @@ bound are `Binding/ArgumentPolynomial.cs` (`Polynomial`, `PolynomialAtom`, `Exac
    (an argument that renders as floating-point takes binary64, DOC-A.1-92b), never by the statement's receiver, and the receiver takes
    the function's value by the ordinary rules. Before it a COMP-2 resultant took `MOD ((Y * 100 - X * 10.25) * 4, 1000)` onto
    binary64 and stored 672 for 41 (`pb5891_argument_float_receiver`), and `REM`'s numeric argument-1 the same
-   (`pb5893_argument_float_receiver_every_position`). Every argument keeps the receiver's SCALE (review R5-1: at scale 0, `ABS (A / 3)` into PIC 9V9(17) printed
+   (`pb5893_argument_float_receiver_every_position`). Under a floating-point receiver an argument at a numeric position keeps
+   SIGNIFICANCE instead of a scale (`NumericLanes.ArgumentKeepsSignificance`, `QuotientIsFinal`; the DOC-A.1-92b paragraph above), and
+   `LaneContext.KeepsSignificance` carries it to `LaneOf`. Every argument keeps the receiver's SCALE (review R5-1: at scale 0, `ABS (A / 3)` into PIC 9V9(17) printed
    2.33333333333333000 for 2.33333333333333333, `pb5891_argument_receiver_scale`), and the renderer asserts an argument's nodes at
    that scale. ⛔ **Why the classifier may read scale 0 (`LaneContext.Argument`) while the renderer runs at the receiver's scale:**
    a receiver scale only widens a nested quotient's working scale (`CobolNum.NestedQuotientScale`), so a quotient on the Int128

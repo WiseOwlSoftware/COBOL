@@ -116,27 +116,30 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <see cref="IntrinsicRenderer"/> (an intrinsic's working scale/mode derive from the SAME receiver).</summary>
     internal ReceiverContext Receiver => _rcv;
 
-    /// <summary>⛔ THE CONTEXT EVERY INTRINSIC FUNCTION ARGUMENT IS EVALUATED IN, AT EVERY POSITION (kb/Work PB5891 reviews R3-1, R5-1;
+    /// <summary>⛔ THE CONTEXT AN INTRINSIC FUNCTION ARGUMENT IS EVALUATED IN, AT EVERY POSITION (kb/Work PB5891 reviews R3-1, R5-1;
     /// kb/Work PB5893; every <c>num.AsNum</c> of an argument in <c>IntrinsicRenderer</c> passes it, which
     /// <c>IntrinsicArgumentIntakeContractDriftTests.EveryArgument_RendersInTheArgumentReceiver</c> holds): the statement's receiver
-    /// with none of its floating-point facts. An argument is an arithmetic expression of its own, evaluated "individually"
+    /// with none of its floating-point facts, at its scale. An argument is an arithmetic expression of its own, evaluated "individually"
     /// (§2023:8.4.3.2.4 GR2), whose value is the function's input and never the resultant's, so its evaluation technique is decided by
     /// its own operands (an argument that renders as floating-point takes binary64 by DOC-A.1-92b) and never by the receiver's usage. A
     /// COMP-2 resultant took the argument of <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored
     /// 672 for 41 (an integer position, review R3-1), and <c>FUNCTION REM</c>'s numeric argument-1 the same (kb/Work PB5893); the
-    /// receiver then takes the function's value by the ordinary rules (<see cref="ReceiverContext.FloatLanding"/>). Its SCALE is
-    /// <see cref="NumericLanes.ArgumentScale"/>'s, the one rule: a fixed-point receiver's own scale, which a nested quotient's working
-    /// scale reads (<c>CobolNum.NestedQuotientScale</c>), so <c>COMPUTE RR = FUNCTION ABS (A / 3)</c> into PIC 9V9(17) keeps all 17
-    /// places (review R5-1; <c>pb5891_argument_receiver_scale</c>); under a floating-point receiver at least the binary64 significant
-    /// digits, so <c>COMPUTE F2 = FUNCTION ABS (A / 3)</c> stores the double <c>A / 3</c> stores. <see cref="AssertLane"/> checks an argument's
-    /// nodes in THIS context; the type 6 classifier reads <see cref="LaneContext.Argument"/> (scale 0). A larger receiver scale only
-    /// widens a quotient's working scale, so a node the classifier sees on the Int128 lane may be wide here and an SDIDI operation beside
-    /// it exact here, never the reverse: the renderer's lane is never less exact than the classifier's
-    /// (<c>NumericLaneDriftTests.AnArgumentsLane_AtAReceiverScale_IsNeverLessExactThanAtScaleZero</c>).</summary>
-    internal ReceiverContext ArgumentReceiver => _rcv with
+    /// receiver then takes the function's value by the ordinary rules (<see cref="ReceiverContext.FloatLanding"/>; an exact value lands in
+    /// a binary64 receiver by its mode, truncation without ROUNDED, so <c>COMPUTE F2 = FUNCTION ABS (A / 3)</c> stores 2.333333333333333
+    /// as <c>COMPUTE F2 = R</c> does for R = 2.333...3, and ROUNDED stores 2.3333333333333335). The receiver's SCALE is kept: a nested
+    /// quotient's working scale reads it (<c>CobolNum.NestedQuotientScale</c>), so <c>COMPUTE RR = FUNCTION ABS (A / 3)</c> into
+    /// PIC 9V9(17) keeps all 17 places (review R5-1; <c>pb5891_argument_receiver_scale</c>). Under a FLOATING-POINT receiver, which has no
+    /// fraction scale to give, an argument at a numeric position keeps significance instead (<see cref="ReceiverContext.KeepsSignificance"/>,
+    /// <see cref="NumericLanes.ArgumentKeepsSignificance"/>): a quotient that may not terminate is the SDIDI's final quotient, 34
+    /// significant digits at every magnitude (<see cref="NumericLanes.QuotientIsFinal"/>). <see cref="AssertLane"/> checks an argument's
+    /// nodes in THIS context; the type 6 classifier reads <see cref="LaneContext.Argument"/> (scale 0) for the integer positions, which
+    /// never keep significance. A larger receiver scale only widens a quotient's working scale, so a node the classifier sees on the
+    /// Int128 lane may be wide here and an SDIDI operation beside it exact here, never the reverse: the renderer's lane is never less
+    /// exact than the classifier's (<c>NumericLaneDriftTests.AnArgumentsLane_AtAReceiverScale_IsNeverLessExactThanAtScaleZero</c>).</summary>
+    internal ReceiverContext ArgumentReceiver(bool integerPosition) => _rcv with
     {
-        Scale = NumericLanes.ArgumentScale(_rcv.Scale, _rcv.Real), Real = false, FloatEdited = false, Single = false,
-        FloatSignificandDigits = 0,
+        Real = false, FloatEdited = false, Single = false, FloatSignificandDigits = 0,
+        KeepsSignificance = NumericLanes.ArgumentKeepsSignificance(_rcv.IsFloatingPoint || _rcv.KeepsSignificance, integerPosition),
     };
 
     /// <summary>Whether the value now being rendered IS the value transferred to a single resultant identifier —
@@ -408,8 +411,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         var l = n.Left.Accept(this);
         var r = n.Right.Accept(this);
         _outermost = outer;
-        return AssertLane(n, CombineCore(l, n.Op.ToString(), r), outer,
-            $"; its operands are rendered on {LaneOf(l)} (scale {l.Scale}, digits {l.Digits}) and {LaneOf(r)} (scale {r.Scale}, digits {r.Digits})");
+        bool savedTerminates = _divisorTerminates;
+        _divisorTerminates = n.Op != '/' || NumericLanes.TerminatesWithinGuardDigits(n.Right);
+        try
+        {
+            return AssertLane(n, CombineCore(l, n.Op.ToString(), r), outer,
+                $"; its operands are rendered on {LaneOf(l)} (scale {l.Scale}, digits {l.Digits}) and {LaneOf(r)} (scale {r.Scale}, digits {r.Digits})");
+        }
+        finally { _divisorTerminates = savedTerminates; }
     }
     // ⛔ EVERY recursion clears _outermost, not only BoundBinary's (kb/Work PB129 — GR-8.8.1.2-1): a division
     // under a unary minus, an exponent base, or a computed-operand wrapper is NOT the final transfer, so it
@@ -888,7 +897,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : NumericLane.Scaled;
 
     /// <summary>The receiver facts the lane of an expression rendered now depends on (<see cref="LaneContext"/>).</summary>
-    private LaneContext CurrentLaneContext => new(ctx.CurrentOptions.Arithmetic, _rcv.Real, _rcv.Scale, _rcv.FloatEdited);
+    private LaneContext CurrentLaneContext =>
+        new(ctx.CurrentOptions.Arithmetic, _rcv.Real, _rcv.Scale, _rcv.FloatEdited, _rcv.KeepsSignificance);
 
     /// <summary>⛔ THE RENDERED CARRIER AGREES WITH THE NODE'S LANE, OR THE COMPILATION STOPS (kb/Work PB5891 review R3-1): the lane of
     /// every numeric node is <see cref="NumericLanes.LaneOf"/>, the one function the type 6 classifier also reads, and a node the
@@ -1388,7 +1398,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <summary>Is the quotient being rendered NESTED — neither the final transfer to a resultant that rounds at its own
     /// scale nor a floating-point edited resultant's — so that it is the truncated quotient at the working scale on
     /// every lane (<see cref="Divide"/>; CONFORMANCE.md DOC-A.1-123)?</summary>
-    private bool NestedQuotient => !_rcv.FloatEdited && !(_outermost && _rcv.RoundsAtItsScale);
+    private bool NestedQuotient =>
+        !NumericLanes.QuotientIsFinal(_rcv.FloatEdited, _rcv.KeepsSignificance, _divisorTerminates) && !(_outermost && _rcv.RoundsAtItsScale);
+
+    /// <summary>Does the divisor of the binary node being combined terminate within the guard digits
+    /// (<see cref="NumericLanes.TerminatesWithinGuardDigits"/>)? Set by <see cref="Visit(BoundBinary)"/> for its own combine and read by
+    /// <see cref="NestedQuotient"/> through <see cref="NumericLanes.QuotientIsFinal"/>, as <c>LaneOf</c> reads the bound divisor; true
+    /// elsewhere (a statement's own combine, where only a floating-point edited receiver makes a quotient final).</summary>
+    private bool _divisorTerminates = true;
 
     /// <summary>The SDIDI spelling of a nested quotient's operand (<c>CobolDec.DivTruncatedToOdd</c>, a round-to-odd
     /// consumer): exact (<see cref="DecOperandExact"/>), except an UNSIGNED-WIDE value beside an SDIDI-carried operand,

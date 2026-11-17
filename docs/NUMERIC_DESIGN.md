@@ -1396,7 +1396,9 @@ where its facts decide them, its scale and digit bound, by the rules below; `Num
 negation and power node that is not a final transfer to it (an internal compiler error otherwise), and the type 6 classifier reads it.
 An intrinsic function's argument, at every position, renders without the resultant's floating-point facts, at the receiver's
 scale (`NumericRenderer.ArgumentReceiver`; kb/Work PB5891 review R3-1, PB5893): its evaluation technique is its own operands', and a
-floating-point receiver takes the function's value by the ordinary rules. A read of an item stored as an image states the description's digit bound as a field read does (`NumericRenderer.WindowedNum`), so no lane depends on a storage decision made after binding. `NumericLanes.Combine` (`Binding/Bound/NumericLanes.cs`) states
+floating-point receiver takes the function's value by the ordinary rules; under a floating-point receiver
+(`ReceiverContext.IsFloatingPoint`) an argument at a numeric position keeps significance: a quotient in it that may not terminate is the
+SDIDI's final quotient (`NumericLanes.QuotientIsFinal`, read by `LaneOf` and `NestedQuotient`). A read of an item stored as an image states the description's digit bound as a field read does (`NumericRenderer.WindowedNum`), so no lane depends on a storage decision made after binding. `NumericLanes.Combine` (`Binding/Bound/NumericLanes.cs`) states
 which carrier a binary operation takes, from the lanes of its operands (`NumericLane`: Int128, wide or exact, SDIDI, binary64, an
 engine's binary64 approximation), a floating-point receiver and the arithmetic mode; `NumericLanes.Power` the same for `**`, which
 `NumericRenderer.Power` dispatches on: its exact arm takes an exponent that is an integer BY VALUE (`NumericLanes.IsIntegerByValue`, the

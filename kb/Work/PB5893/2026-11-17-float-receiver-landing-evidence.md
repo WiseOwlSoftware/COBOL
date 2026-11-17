@@ -23,7 +23,7 @@ where main computed the argument in binary64 and landed a double.
 exact value and truncate. Row 4 changes because main's argument was binary64 (the defect), not because the landing changed.
 
 **Not ruled here (a lead for its own note; no id allocated).** (1) Whether truncation is the right default for an exact value stored
-in a binary64 receiver without ROUNDED, given that the same value as a binary64 operand (`R + 0`) lands by nearest. (2) Whether the
-argument's fixed working scale under a floating-point receiver (`NumericLanes.ArgumentScale`: 17 + 14 guard fraction digits) should
-give way to a significance-based one: a quotient below 10^-14 keeps fewer than 17 significant digits, so `ABS (A / B)` with
-B = 3 * 10^17 prints 2.33333333333333E-17 where main printed 2.3333333333333332E-17 (probe `rcv23b.cob`).
+in a binary64 receiver without ROUNDED, given that the same value as a binary64 operand (`R + 0`) lands by nearest. (2) The fixed
+argument working scale this file first named as a second lead is gone: review round 1 (R1-2, R1-3) showed it cut small quotients
+(`ABS (1 / C / C)` stored 0), and the coordinator ruled EXACTNESS WHERE EXACT, SIGNIFICANCE WHERE NOT (`NumericLanes.QuotientIsFinal`),
+so a non-terminating quotient in such an argument is the 34-digit SDIDI quotient at every magnitude. Only lead (1) remains.

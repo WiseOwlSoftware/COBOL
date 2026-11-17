@@ -115,8 +115,9 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
     /// is an expression evaluated individually (§2023:8.4.3.2.4 GR2) whose evaluation technique its own operands decide, never the
     /// statement's receiver: an intake that rendered an argument under <c>num.Receiver</c> took an all-fixed-point argument onto
     /// binary64 beneath a COMP-2 resultant (<c>COMPUTE F = FUNCTION REM ((Y * 100 - X * 10.25) * 4, 1000)</c> stored 672 for 41).
-    /// So every <c>num.AsNum(</c> in the renderer passes <c>num.ArgumentReceiver</c> (or the receiver-less
-    /// <c>ReceiverContext.None</c>, which has no floating-point facts either), and the count of calls read is asserted. (The landing
+    /// So every <c>num.AsNum(</c> in the renderer passes the argument context, <c>NumericRenderer.ArgumentReceiver</c> through
+    /// <c>ReceiverFor(ic, i)</c> (at its position) or <c>NumericArgument</c> (an operand read without its index, at a numeric position),
+    /// or the receiver-less <c>ReceiverContext.None</c>, which has no floating-point facts either; the count of calls read is asserted. (The landing
     /// <c>Landed</c> of an argument already rendered reads only the receiver's scale headroom, and keeps the receiver.)
     /// </summary>
     [Fact]
@@ -130,7 +131,8 @@ public sealed class IntrinsicArgumentIntakeContractDriftTests
             .ToList();
         Assert.True(calls.Count >= 12, $"expected at least 12 argument renders in IntrinsicRenderer, found {calls.Count}: the scan is blind");
         var other = calls
-            .Where(c => !c.Contains("num.ArgumentReceiver", StringComparison.Ordinal)
+            .Where(c => !c.Contains("ReceiverFor(ic, i)", StringComparison.Ordinal)
+                        && !c.Contains("NumericArgument)", StringComparison.Ordinal)
                         && !c.Contains("ReceiverContext.None", StringComparison.Ordinal))
             .ToList();
         Assert.True(other.Count == 0,
