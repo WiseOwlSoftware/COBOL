@@ -241,6 +241,7 @@ public static class Constructs
     public const string ReportSourceExpression2002 = "report-source-expression-2002";
     public const string ReportSourceRounded2002 = "report-source-rounded-2002";
     public const string ReportSumForms2002 = "report-sum-forms-2002";
+    public const string ReportTypeOperandQualification2002 = "report-type-operand-qualification-2002";
     public const string ReportValueForms2002 = "report-value-forms-2002";
     public const string ReportVarying2002 = "report-varying-2002";
     public const string RepositoryClass2002 = "repository-class-2002";

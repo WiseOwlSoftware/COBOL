@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0899: RD 'R1': TYPE CH operand 'WS-KEY (1)' is subscripted"}

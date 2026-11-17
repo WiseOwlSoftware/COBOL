@@ -1996,7 +1996,8 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.ReportControlOperandForms2002,
                     $"the word {word.GetText().ToUpperInvariant()} before a TYPE clause's control operand (report group description)");
             }
-            if (ctx.dataReference() is { } name) GateCobol85ControlName(name, "TYPE clause's control operand (report group description)");
+            if (ctx.dataReference() is { } name)
+                GateCobol85ControlName(name, "TYPE clause's control operand (report group description)", mayBeQualified: false);
             return base.VisitChildren(ctx);
         }
 
@@ -2004,27 +2005,31 @@ internal sealed class VersionConformancePass
         /// data-name-1 is a control name, asked by <see cref="GateCobol85ControlName"/>.</summary>
         public override object? VisitReportControlClause(CobolParserCore.ReportControlClauseContext ctx)
         {
-            foreach (var name in ctx.dataReference()) GateCobol85ControlName(name, "CONTROL clause operand (report description)");
+            foreach (var name in ctx.dataReference())
+                GateCobol85ControlName(name, "CONTROL clause operand (report description)", mayBeQualified: true);
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>⛔ THE 1985 FORM OF A CONTROL NAME, ASKED IN ONE PLACE FOR BOTH CLAUSES THAT WRITE ONE (kb/Work PB5573): the
-        /// CONTROL clause's data-name-1 and the TYPE clause's CONTROL HEADING / CONTROL FOOTING operand. §1985:III.2: a 'data-name'
-        /// "must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of the format",
-        /// and §1985:XIII.3.7.3 SR1 permits qualification only ("Data-name-1 may be qualified"); ISO/IEC 1989:2002 adds reference
-        /// modification to both (13.16.15.2 SR4, 13.16.55.2 SR10; §2023:13.18.16.3 SR4, §2023:13.18.57.3 SR10). So the reference
-        /// modifier is the 2002 form, read where every reference reads it (<c>ReferenceResolver.ReadWritten</c>: on the word or on
-        /// a qualifier, <c>WS-KEY OF WS-REC (1:1)</c>). A subscript is not asked: a subscripted control name is refused at every
-        /// edition (COBOL1699, COBOL0899), so a 2002 refusal beside it would name an edition that does not admit it either.
-        /// ⚖ A QUALIFIED TYPE operand stays COBOL-85 (kb/Work PB5573): §1985:XIII.3.20.3 SR4, "Data-name-1, data-name-2, and
-        /// FINAL, if present, must be specified in the CONTROL clause of the corresponding report description entry", asks for
-        /// the spelling SR1 permits there, qualifiers included; refusing it would leave a control name that needs qualification
-        /// to be unique with no control heading or footing at all.</summary>
-        private void GateCobol85ControlName(CobolParserCore.DataReferenceContext name, string where)
+        /// <summary>⛔ THE 1985 FORM OF A CONTROL NAME, ASKED IN ONE PLACE FOR BOTH CLAUSES THAT WRITE ONE (kb/Work PB5573,
+        /// PB5910): the CONTROL clause's data-name-1 and the TYPE clause's CONTROL HEADING / CONTROL FOOTING operand. §1985:III.2:
+        /// a 'data-name' "must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of
+        /// the format". The CONTROL clause permits qualification (§1985:XIII.3.7.3 SR1, "Data-name-1 may be qualified"); the
+        /// printed TYPE clause (folio XIII-55) permits nothing, its §1985:XIII.3.20.3 SR4 asking only that the operand "must be
+        /// specified in the CONTROL clause of the corresponding report description entry", so <paramref name="mayBeQualified"/>
+        /// is the clause's answer. ISO/IEC 1989:2002 adds reference modification to both (13.16.15.2 SR4, 13.16.55.2 SR10) and
+        /// qualification to the TYPE operand (13.16.55.2 SR10; §2014:13.18.57.2 SR10 and §2023:13.18.57.3 SR10 the same). So the
+        /// reference modifier and the TYPE operand's qualifier are 2002 forms, read where every reference reads them
+        /// (<c>ReferenceResolver.ReadWritten</c>: a modifier on the word or on a qualifier, <c>WS-KEY OF WS-REC (1:1)</c>). A
+        /// subscript is not asked: a subscripted control name is refused at every edition (COBOL1699, COBOL0899), so a 2002
+        /// refusal beside it would name an edition that does not admit it either.</summary>
+        private void GateCobol85ControlName(CobolParserCore.DataReferenceContext name, string where, bool mayBeQualified)
         {
-            if (!ReferenceResolver.ReadWritten(name).IsReferenceModified) return;
+            var written = ReferenceResolver.ReadWritten(name);
             using var _ = Sink.At(name);
-            _p.Check(Constructs.ReportControlReferenceModification2002, $"the reference-modified {where} {WrittenSource.Of(name)}");
+            if (written.IsReferenceModified)
+                _p.Check(Constructs.ReportControlReferenceModification2002, $"the reference-modified {where} {WrittenSource.Of(name)}");
+            if (!mayBeQualified && written.Qualifiers.Count > 0)
+                _p.Check(Constructs.ReportTypeOperandQualification2002, $"the qualified {where} {WrittenSource.Of(name)}");
         }
 
         /// <summary>The '+' symbol for PLUS in a relative LINE or NEXT GROUP operand (ISO §2023:13.18.35.3 SR1, §2023:13.18.37.3
