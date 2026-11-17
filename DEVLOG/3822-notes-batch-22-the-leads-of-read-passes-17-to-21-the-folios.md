@@ -1,4 +1,4 @@
-## Notes batch 22: the leads of read passes 17 to 21, the folios and the wave reviews, filed as fourteen notes
+## Entry 3822 — 2026-11-17 12:09 PST — Notes batch 22: the leads of read passes 17 to 21, the folios and the wave reviews, filed as fourteen notes
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record).
 
@@ -14,3 +14,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 - PB5907, PB5908, PB5909 (defect, MINOR): three leads of the reviews of PB5886 and PB5893.
 
 Finding files: the sightings of 2023 citations at `--std 85` beside PB4950, and the two large files semgrep cannot parse beside PB5502.
+
