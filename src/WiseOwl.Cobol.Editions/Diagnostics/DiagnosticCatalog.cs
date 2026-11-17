@@ -3360,6 +3360,20 @@ public static class DiagnosticCatalog
         + "\"If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.\" (§1985:VI.6.16.3 SR3)",
         "§1985:VI.6.16.3 SR3");
 
+    /// <summary>COBOL7624 — at COBOL-85 the computer-name of the SOURCE-COMPUTER or OBJECT-COMPUTER paragraph is one of this
+    /// implementation's implementor-names (kb/Work PB5795): a device-name, feature-name or switch-name of the SPECIAL-NAMES table
+    /// (<c>ImplementorNames</c>) or an ALPHABET code-name (<c>ImplementorCodeNames</c>). "Computer-name is a system-name."
+    /// (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1), and §1985:IV.4.2.2.1.2: "Within a given implementation these three types of
+    /// system-names form disjoint sets; a given system-name may belong to one and only one of them." The rule is 1985's alone:
+    /// §2002:8.3.1.1.2 and §2023:8.3.2.3.1 keep the disjointness for device-name, feature-name and switch-name only. Asked by
+    /// <c>VersionConformancePass.GateComputerName</c>.</summary>
+    public static readonly DiagnosticDescriptor ComputerNameIsImplementorName = new(
+        "COBOL7624", "computer-name-is-implementor-name", EditionSeverity.Error,
+        "A computer-name is spelled as one of this implementation's implementor-names. \"Computer-name is a system-name.\" "
+        + "(§1985:VI.4.4.3 SR1) \"Within a given implementation these three types of system-names form disjoint sets; a given "
+        + "system-name may belong to one and only one of them.\" (§1985:IV.4.2.2.1.2)",
+        "§1985:IV.4.2.2.1.2; §1985:VI.4.3.3 SR1; §1985:VI.4.4.3 SR1");
+
     /// <summary>COBOL7234 — a PERFORM in a USE BEFORE REPORTING procedure has a GENERATE, INITIATE or TERMINATE statement in its range
     /// (kb/Work PB5254). §1985:XIII.4.9.3 SR3: "A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or
     /// TERMINATE statements in its range." A COBOL-85 rule, reported at --std 85, asked of the bound program

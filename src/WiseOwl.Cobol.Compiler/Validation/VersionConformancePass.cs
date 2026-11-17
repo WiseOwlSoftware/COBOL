@@ -2455,6 +2455,7 @@ internal sealed class VersionConformancePass
         {
             if (ctx.computerName() is null && ctx.objectComputerClause().Any(c => c.unrecognizedClause() is null))
                 _p.Check(Constructs.ComputerNameOptional2002, "an OBJECT-COMPUTER clause without computer-name-1");
+            GateComputerName(ctx.computerName(), "OBJECT-COMPUTER");
             GateLonePeriod(ctx, "OBJECT-COMPUTER");
             return base.VisitChildren(ctx);
         }
@@ -2468,8 +2469,34 @@ internal sealed class VersionConformancePass
         {
             if (ctx.computerName() is null && ctx.debuggingModeClause() is not null)
                 _p.Check(Constructs.ComputerNameOptional2002, "the SOURCE-COMPUTER WITH DEBUGGING MODE clause without computer-name-1");
+            GateComputerName(ctx.computerName(), "SOURCE-COMPUTER");
             GateLonePeriod(ctx, "SOURCE-COMPUTER");
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>⛔ §1985:IV.4.2.2.1.2 — AT COBOL-85 A COMPUTER-NAME IS NO IMPLEMENTOR-NAME (kb/Work PB5795; COBOL7624). "Computer-name is
+        /// a system-name." (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1), and the three types of system-name, computer-name, implementor-name and
+        /// language-name, "form disjoint sets; a given system-name may belong to one and only one of them". This implementation's
+        /// computer-names are every well-formed system-name (DOC-A.1-198) but its implementor-names, which are the names its two tables
+        /// specify: the SPECIAL-NAMES device-, feature- and switch-names (<see cref="ImplementorNames"/>) and the ALPHABET code-names
+        /// (<see cref="ImplementorCodeNames"/>, X3.23-1985's implementor-name-2 of the ALPHABET clause); it specifies no language-name
+        /// (§1985:VI.6.12.3 SR1, kb/Work PB5308). The rule is 1985's alone: §2002:8.3.1.1.2 and §2023:8.3.2.3.1 keep the disjointness for
+        /// device-name, feature-name and switch-name, and computer-name is not among them.</summary>
+        private void GateComputerName(CobolParserCore.ComputerNameContext? name, string paragraph)
+        {
+            if (_p._edition.Year >= 2002 || name is null) return;
+            string word = name.GetText();
+            string? kind = ImplementorNames.Lookup(word) is { } row ? ImplementorNames.KindWord(row.Kind)
+                : ImplementorCodeNames.Find(word, national: false) is not null || ImplementorCodeNames.Find(word, national: true) is not null
+                    ? "code-name" : null;
+            if (kind is null) return;
+            using var _ = Sink.At(name);
+            _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.ComputerNameIsImplementorName.Code, EditionSeverity.Error,
+                DiagnosticCatalog.ComputerNameIsImplementorName.Id,
+                $"the {paragraph} computer-name {CobolNames.UpperFold(word)} is one of this implementation's {kind}s, an implementor-name"
+                + " — §1985:IV.4.2.2.1.2: \"Within a given implementation these three types of system-names form disjoint "
+                + "sets; a given system-name may belong to one and only one of them.\"", CobolNames.UpperFold(word),
+                DiagnosticCatalog.ComputerNameIsImplementorName.IsoSection));
         }
 
         /// <summary>SPECIAL-NAMES followed by a second period and no clause (kb/Work PB5170); see <see cref="GateLonePeriod"/>.</summary>
@@ -3843,7 +3870,10 @@ internal sealed class VersionConformancePass
         /// <c>ctx.COMMIT() is not null ? "COMMIT" : …</c> word list that had already gone stale (CRT/CURSOR).
         /// Every alternative of the rule is a SINGLE token, so the subrule's own text IS the word.</para>
         /// <para>FILLER is deliberately NOT reached: it is a separate <c>dataName</c> alternative, and not a
-        /// user-defined word at all.</para></summary>
+        /// user-defined word at all.</para>
+        /// <para>The one SYSTEM-NAME slot that offers the rule, <c>computerName</c> (kb/Work PB5804), takes it only where §2023:8.9
+        /// leaves the word free (<c>gatedWordFreeHere</c>), so it never reaches this arm; §2023:8.3.2.1 SR1 bars a reserved word
+        /// from a system-name too, so the arm would be right there as well.</para></summary>
         public override object? VisitReservedGatedWord(CobolParserCore.ReservedGatedWordContext ctx)
         {
             FlagReservedUserWord(CobolNames.UpperFold(ctx.GetText()), ctx.Start);

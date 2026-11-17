@@ -428,7 +428,7 @@ internal static class RecordLayout
         for (int i = 0; i < file.AlternateKeys.Count; i++)
             if (file.AlternateKeys[i].Key.Names(operand, occurrence)) return i;
         // §2023:12.4.5.12.4 GR4's implicit keys — the same byte window in ANOTHER record description of the file
-        // (a REDEFINES of the key, or a same-position item in a secondary 01). The operand shall live in a
+        // (a same-position item in a secondary 01 — NOT a REDEFINES inside the key's own record, kb/Work PB5877). The operand shall live in a
         // record description entry OF THIS FILE: GR4 speaks of the file's own record description entries, and
         // without that test offset 0 in ANY 01 anywhere — WORKING-STORAGE included — collided with offset 0 in
         // the record (kb/Work PB354 part 1).
@@ -436,7 +436,18 @@ internal static class RecordLayout
         // The implicit key is "specified as a record key" only if it can be one: the item shares the key's class,
         // category and usage (§1985:IX.2.7.3 SR2 makes every key alphanumeric; §2023:14.9.41.3 SR6b), so a numeric
         // item of the same width at the key's positions is no key (kb/Work PB5794).
-        return KeyIndexAtOffset(file, off, key => key.ByteWidth == operand.ByteWidth && SameClassCategoryUsage(operand, key));
+        // ⛔ GR4 reaches "all OTHER record description entries" only (§1985:IX.2.7.4 GR3, §2023:12.4.5.12.4 GR4): an item
+        // in the key's OWN record description entry that is not the key itself (a REDEFINES of it) is not specified as a
+        // record key, so it is no implicit key (kb/Work PB5877). Names() above already answered the key itself.
+        DataItem operandRecord = RootOf(operand);
+        return KeyIndexAtOffset(file, off,
+            key => !ReferenceEquals(RootOf(key), operandRecord) && key.ByteWidth == operand.ByteWidth && SameClassCategoryUsage(operand, key));
+    }
+
+    private static DataItem RootOf(DataItem item)
+    {
+        while (item.Parent is { } p) item = p;
+        return item;
     }
 
     /// <summary>ISO §2023:14.9.41.3 SR6 b) — START's GENERIC key: a data item that is not itself a record key but
@@ -488,9 +499,7 @@ internal static class RecordLayout
     public static bool IsInRecordOfFile(FileModel file, DataItem? item)
     {
         if (item is null) return false;
-        DataItem root = item;
-        while (root.Parent is { } p) root = p;
-        return file.Records.Contains(root);
+        return file.Records.Contains(RootOf(item));
     }
 
     /// <summary>The index of the record key whose leftmost byte position is <paramref name="off"/> and which
