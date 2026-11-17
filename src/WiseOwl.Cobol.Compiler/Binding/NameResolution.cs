@@ -225,14 +225,14 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
                 + $"object (which fixes its length or its number of occurrences), and '{depending.Item.CobolName}' belongs to LINKAGE SECTION record '{record.CobolName}': the "
                 + "procedure division may not reference it ("
                 + data.Edition.Cite(
-                    y1985: "ISO §1985:X.5.1 GR4; an implicit reference \"occurs if and only if the data item contributes to the "
-                        + "execution of the statement\", §1985:IV.4.4.1",
-                    y2002: "ISO §2002:13.6.2 SR4; an implicit reference \"occurs if and only if the data item contributes to the "
-                        + "execution of the statement\", §2002:8.4.4",
-                    y2014: "ISO §2014:13.7.2 SR4; an implicit reference occurs when \"it contributes to, or is affected by, the "
-                        + "execution of the statement\", §2014:8.4.4",
-                    y2023: "ISO §2023:13.7.3 SR4; an implicit reference occurs when \"it contributes to, or is affected by, the "
-                        + "execution of the statement\", §2023:8.4.5")
+                    y1985: "ISO §1985:X.5.1 GR4; §1985:IV.4.4.1: an implicit reference \"occurs if and only if the data item "
+                        + "contributes to the execution of the statement\"",
+                    y2002: "ISO §2002:13.6.2 SR4; §2002:8.4.4: an implicit reference \"occurs if and only if the data item "
+                        + "contributes to the execution of the statement\"",
+                    y2014: "ISO §2014:13.7.2 SR4; §2014:8.4.4: an implicit reference occurs when \"it contributes to, or is "
+                        + "affected by, the execution of the statement\"",
+                    y2023: "ISO §2023:13.7.3 SR4; §2023:8.4.5: an implicit reference occurs when \"it contributes to, or is "
+                        + "affected by, the execution of the statement\"")
                 + $"). Name '{record.CobolName}' in the procedure division header"
                 + (data.Edition.DialectLevel < 2002 ? "." : ", or describe it BASED."));
             return;
