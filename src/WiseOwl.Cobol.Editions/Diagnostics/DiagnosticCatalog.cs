@@ -7008,7 +7008,10 @@ public static class DiagnosticCatalog
         + "storage with the items that redefine within it, and 134,217,728 elementary items. ISO §2023:4.5: 'Translation may be "
         + "unsuccessful due to factors other than lack of conformance of a compilation group', and its NOTE names 'the limits of "
         + "an implementation'. The limit is documented in docs/CONFORMANCE.md §3 D-ITEM-SIZE.",
-        "ISO §2023:4.5");
+        "ISO §2023:4.5",
+        No1985Rule: "X3.23-1985 states no limit on the size of a data item and no clause on the limits of an implementation (its "
+            + "conformance clauses, §1985:I.1.5.2, speak of none): the refusal is this implementation's limit (D-ITEM-SIZE), which "
+            + "§2023:4.5 is the first edition to license in words");
     /// <summary>§2023:14.9.16.3 SR3/SR4, §2023:14.9.21.3 SR2, §2023:14.9.46.3 SR2 — a contained program's GENERATE, INITIATE or
     /// TERMINATE names a GLOBAL report (§2023:13.18.27.3 SR1 e)) of a containing program whose file description entry
     /// is not GLOBAL (kb/Work PB369). The report is visible; the statement drives output to its file, which the
