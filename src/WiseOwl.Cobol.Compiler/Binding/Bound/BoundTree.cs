@@ -997,8 +997,9 @@ public sealed record BoundBoolShift(BoundBoolExpr Operand, BoolShiftKind Kind, B
 /// <summary>A boolean expression the binder could not give a meaning to — the backend emits a loud runtime guard (§1.4).
 /// ⛔ THE WRONG USE IS UNREPRESENTABLE (kb/Work PB1029): the constructor is private, and the node is obtainable
 /// only as a <see cref="Refused"/> (the SOURCE is wrong and the site reported the rule — the one statement funnel
-/// fails the compile with COBOL2362 if the statement drew no error) or as an <see cref="Unbuilt"/> shape
-/// (WiseOwl COBOL's gap, announced by that funnel as COBOL1756). Either way it can never compile SILENTLY into a
+/// fails the compile with COBOL2362 if the statement drew no error) or as a <see cref="Carry"/> of a failure already
+/// on the ledger from another value channel, which keeps its <see cref="IsUnbuilt"/> mark (an unbuilt shape is WiseOwl
+/// COBOL's gap, announced by that funnel as COBOL1756). Either way it can never compile SILENTLY into a
 /// run-time abort, which is what a STRING sending ALL literal (§2023:14.9.43.3 SR2) did before.</summary>
 public sealed record BoundBoolError : BoundBoolExpr
 {
@@ -1015,22 +1016,6 @@ public sealed record BoundBoolError : BoundBoolExpr
     {
         edition.NoteRefusal(Editions.Diagnostics.DiagnosticCatalog.UnreportedRefusal, feature);
         return new(feature, unbuilt: false);
-    }
-
-    /// <summary>Report <paramref name="message"/> under <paramref name="rule"/> and return the refusal — the operand
-    /// twin of <see cref="BoundRejected.Report(EditionContext, Editions.Diagnostics.DiagnosticDescriptor, string)"/>.</summary>
-    public static BoundBoolError Report(EditionContext edition, Editions.Diagnostics.DiagnosticDescriptor rule,
-        string message, string feature)
-    {
-        edition.Error(rule, message);
-        return Refused(edition, feature);
-    }
-
-    /// <summary>A legal shape WiseOwl COBOL has not built — announced by the statement funnel (COBOL1756).</summary>
-    public static BoundBoolError Unbuilt(EditionContext edition, string feature)
-    {
-        edition.NoteUnbuilt(feature);
-        return new(feature, unbuilt: true);
     }
 
     /// <summary>The SAME failure carried into another value channel — already on the ledger, so not re-noted.</summary>

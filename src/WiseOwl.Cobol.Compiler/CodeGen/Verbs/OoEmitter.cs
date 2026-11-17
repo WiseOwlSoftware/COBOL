@@ -119,7 +119,6 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <summary>The module's static field holding a §2023:8.5.1.12 atom array (<see cref="GroupAtomTable"/>, kb/Work PB2690).</summary>
     private string Atoms(GroupAtom[] shape) => Ctx.Atoms.Ref(shape);
     private NumericRenderer Num => U.Num;
-    private ConditionRenderer Cond => U.Cond;
     private PlaceTable Places => U.Places;
 
     /// <summary>Emit the EXTERNAL record-area backings for a data forest (ISO §2023:13.18.22.4 GR4b / §2023:8.6.7): each
