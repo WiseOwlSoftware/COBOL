@@ -868,10 +868,11 @@ internal sealed class ReportWriterEmitter(
     /// (<c>AddGenerateTrigger</c>), once per appearance of the detail in the phrase.</item>
     /// <item><b>A rolled total</b> (GR6/GR7 a)/b)): the addition registers with the report GROUP that contains data-name-1
     /// (<c>AddRolled</c>) and happens when that group is processed — in a counter's own report or another's (SR4 g)).
-    /// Additions on one group run in the order registered, and an addition that READS a counter follows the additions
-    /// INTO it — GR6: "The additions necessary to compute its value are completed before the adding of the operand into
-    /// the current sum counter" — so the registrations of a group are put in dependency order, written order
-    /// otherwise.</item>
+    /// Additions on one group run in the order registered, and the order is the edition's
+    /// (<see cref="DialectBehavior.SumAdditionsInDependencyOrder"/>, kb/Work PB5894): from 2002 an addition that READS a
+    /// counter follows the additions INTO it (<see cref="InDependencyOrder"/>); at 1985 a group's crossfooting runs
+    /// counter by counter in the order the counters are defined, then its rolling forward
+    /// (<see cref="RegisterInDefinitionOrder"/>).</item>
     /// </list></summary>
     private void RegisterCrossEngineAdditions(CodeWriter w, IReadOnlyList<ReportModel> reports)
     {
@@ -890,16 +891,39 @@ internal sealed class ReportWriterEmitter(
                             + $"__RPT_{target.CsIndex}, {sum.Id}, {addend});   // UPON a detail of report {d.Owner.Name} (ISO §2023:13.18.54.4 GR7 c) 2))");
                 }
 
-        var pending = new List<(ReportModel Target, ReportSumModel Sum, ReportItemOccurrence Source)>();
+        // Written order: report by report, each report's counters in counter-id order (the order their entries are
+        // defined), each counter's addends as written.
+        var pending = new List<RolledRegistration>();
         foreach (var target in live)
             foreach (var sum in target.Sums)
                 foreach (var a in sum.Terms.SelectMany(t => t.Addends).Where(a => a.Rolled))
                     foreach (var o in a.RolledFrom)
-                        pending.Add((target, sum, o));
+                        pending.Add(new(target, sum, o));
+        if (DialectBehaviors.IsActive(DialectBehavior.SumAdditionsInDependencyOrder, ctx.Data.DialectLevel))
+            foreach (var p in InDependencyOrder(pending))
+                RegisterRolled(w, p.Target, p.Sum, [p.Source]);
+        else
+            RegisterInDefinitionOrder(w, pending);
+    }
+
+    /// <summary>One rolled addition owed to counter <see cref="Sum"/> of report <see cref="Target"/> by the entry
+    /// occurrence <see cref="Source"/> (§2023:13.18.54.4 GR6/GR7).</summary>
+    private readonly record struct RolledRegistration(ReportModel Target, ReportSumModel Sum, ReportItemOccurrence Source)
+    {
+        /// <summary>A crossfoot (§1985:XIII.3.19.4 GR9a): the addend is defined in the counter's own report group.</summary>
+        public bool CrossFoots => ReferenceEquals(Sum.PrintedIn, Source.Family.Group);
+    }
+
+    /// <summary>The 2002 and later order of a group's rolled additions — §2023:13.18.54.4 GR6: "The additions necessary to
+    /// compute its value are completed before the adding of the operand into the current sum counter". Each step takes
+    /// the first registration no still-pending one feeds: a registration R reads counter C when its source IS C's
+    /// occurrence, and is fed by every pending registration of the SAME group that adds into C. Written order otherwise.</summary>
+    private static List<RolledRegistration> InDependencyOrder(List<RolledRegistration> written)
+    {
+        var pending = new List<RolledRegistration>(written);
+        var ordered = new List<RolledRegistration>(written.Count);
         while (pending.Count > 0)
         {
-            // The first registration no still-pending one feeds: a registration R reads counter C when its source IS C's
-            // occurrence, and is fed by every pending registration of the SAME group that adds into C.
             int next = -1;
             for (int i = 0; i < pending.Count && next < 0; i++)
             {
@@ -910,23 +934,63 @@ internal sealed class ReportWriterEmitter(
                 if (!fed) next = i;
             }
             if (next < 0) next = 0;   // a cycle (SR4 e), already refused at bind): written order
-            var (rolledTarget, rolledSum, source) = pending[next];
+            ordered.Add(pending[next]);
             pending.RemoveAt(next);
-            var sourceReport = source.Family.Report;
-            int gi = sourceReport.Groups.IndexOf(source.Family.Group);
-            // GR11 — the slot of the addend entry in its group's presence snapshot; −1 is unconditional.
-            int slot = source.Sum is { } counter
-                ? PresencePlan.SlotOf(PlanOf(sourceReport, counter.PrintedIn).Sums, counter)
-                : PresencePlan.SlotOf(PlanOf(sourceReport, source.Family.Group).Items, source);
-            string addend = SumAddition(rolledTarget, rolledSum, [source.Value],
-                $"report {rolledTarget.Name}: the value of data-name-1 '{source.Family.Name}' is not a number a sum counter can add (ISO §2023:13.18.54.4 GR6)",
-                w, source);
-            // The group's OWN counter arithmetic (roll forward: the addend is a counter; crossfoot: the counter is the group's
-            // own) precedes its USE BEFORE REPORTING declarative; a data entry into another group's counter follows it.
-            string crossFoot = source.Sum is not null || ReferenceEquals(rolledSum.PrintedIn, source.Family.Group) ? "true" : "false";
-            w.Line($"__RPT_{rolledTarget.CsIndex}.AddRolled(__rg{sourceReport.CsIndex}_{gi}, {rolledSum.Id}, {slot}, {addend}, {crossFoot});"
-                + $"   // rolled total of '{source.Family.Name}' (ISO §2023:13.18.54.4 GR6/GR7)");
         }
+        return ordered;
+    }
+
+    /// <summary>⛔ THE 1985 ORDER OF A GROUP'S ROLLED ADDITIONS (kb/Work PB5894, PB5895). §1985:XIII.3.20.4 GR10 processes a
+    /// control footing by a) crossfooting, then b) rolling forward. §1985:XIII.3.19.4 GR9a orders the crossfooting:
+    /// "Crossfooting is performed according to the sequence in which sum counters are defined within the control footing
+    /// report group. That is, all crossfooting into the first sum counter defined in the control footing report group is
+    /// completed, and then all crossfooting into the second sum counter defined in the control footing report group is
+    /// completed." So an addend counter defined LATER in the group is read before its own crossfoot, and
+    /// "When one of the addends is the sum counter defined by the data description entry in which that SUM clause
+    /// appears, the initial value of that sum counter at the time of summation is used in the summing operation".
+    /// All of one counter's crossfoot addends are therefore ONE addition (the closure reads every addend, the counter
+    /// itself included, before it stores), registered in counter-id order, which is the order the entries are defined;
+    /// a counter appears as an addend as many times as it is written (GR10's "as many times as the addend is referenced").
+    /// The rolling forward follows, an addition per addend, reading counters whose crossfooting is complete.</summary>
+    private void RegisterInDefinitionOrder(CodeWriter w, List<RolledRegistration> written)
+    {
+        foreach (var counter in written.Where(p => p.CrossFoots).GroupBy(p => p.Sum, ReferenceEqualityComparer.Instance))
+        {
+            var first = counter.First();
+            RegisterRolled(w, first.Target, first.Sum, counter.Select(p => p.Source).ToList());
+        }
+        foreach (var p in written.Where(p => !p.CrossFoots))
+            RegisterRolled(w, p.Target, p.Sum, [p.Source]);
+    }
+
+    /// <summary>Register ONE addition into <paramref name="rolledSum"/> of the addends <paramref name="sources"/>, all of
+    /// one report group, on that group (§2023:13.18.54.4 GR7 a)/b)). The addition is the ADD of every source's value
+    /// (<see cref="SumAddition"/>), and its presence slot is the sources' one slot: several sources are one addition only
+    /// at 1985 (<see cref="RegisterInDefinitionOrder"/>), whose report groups have no PRESENT WHEN clause and no OCCURS
+    /// clause, so every slot there is −1.</summary>
+    private void RegisterRolled(CodeWriter w, ReportModel rolledTarget, ReportSumModel rolledSum, IReadOnlyList<ReportItemOccurrence> sources)
+    {
+        var source = sources[0];
+        var sourceReport = source.Family.Report;
+        int gi = sourceReport.Groups.IndexOf(source.Family.Group);
+        // GR11 — the slot of the addend entry in its group's presence snapshot; −1 is unconditional.
+        int SlotOf(ReportItemOccurrence o) => o.Sum is { } counter
+            ? PresencePlan.SlotOf(PlanOf(sourceReport, counter.PrintedIn).Sums, counter)
+            : PresencePlan.SlotOf(PlanOf(sourceReport, o.Family.Group).Items, o);
+        int slot = SlotOf(source);
+        if (sources.Count > 1 && sources.Any(o => SlotOf(o) != -1 || o.VaryingDependent))
+            throw new InvalidOperationException($"report {rolledTarget.Name}: a crossfoot of several addends into one counter "
+                + "(§1985:XIII.3.19.4 GR9a) names an addend whose presence is conditional or whose value depends on a VARYING "
+                + "counter, which no 1985 report group can have");
+        string names = string.Join(", ", sources.Select(o => $"'{o.Family.Name}'"));
+        string addend = SumAddition(rolledTarget, rolledSum, sources.Select(o => o.Value).ToList(),
+            $"report {rolledTarget.Name}: the value of data-name-1 {names} is not a number a sum counter can add (ISO §2023:13.18.54.4 GR6)",
+            w, sources.Count == 1 ? source : null);
+        // The group's OWN counter arithmetic (roll forward: the addend is a counter; crossfoot: the counter is the group's
+        // own) precedes its USE BEFORE REPORTING declarative; a data entry into another group's counter follows it.
+        string crossFoot = source.Sum is not null || ReferenceEquals(rolledSum.PrintedIn, source.Family.Group) ? "true" : "false";
+        w.Line($"__RPT_{rolledTarget.CsIndex}.AddRolled(__rg{sourceReport.CsIndex}_{gi}, {rolledSum.Id}, {slot}, {addend}, {crossFoot});"
+            + $"   // rolled total of {names} (ISO §2023:13.18.54.4 GR6/GR7)");
     }
 
     // ── The §2023:14.9.49.4 GR4 Format-2 selector (kb/Work PB369) ─────────────────────────────────────────────────

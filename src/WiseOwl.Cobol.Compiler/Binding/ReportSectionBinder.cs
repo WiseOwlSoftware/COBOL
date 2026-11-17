@@ -3916,8 +3916,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             else model.LineWidth = widest;
         }
         // SR4 e) is asked of the references of EVERY report at once: a chain may leave one report description and
-        // come back (SR4 g) lets data-name-1 name an entry of a different one).
-        ScreenRolledChains();
+        // come back (SR4 g) lets data-name-1 name an entry of a different one). SR4 e) is COBOL-2002's
+        // (§2002:13.16.52.2 SR3 e)), the companion of the dependency order (DialectBehavior.SumAdditionsInDependencyOrder):
+        // at 1985 a counter-to-counter reference is a crossfoot within one group or a roll forward to a higher one
+        // (§1985:XIII.3.19.3 SR1), crossfooting runs in the order the counters are defined (§1985:XIII.3.19.4 GR9a), so
+        // every chain has an answer, and a counter that is its own addend adds "the initial value of that sum counter at
+        // the time of summation" (kb/Work PB5895).
+        if (DialectBehaviors.IsActive(DialectBehavior.SumAdditionsInDependencyOrder, Edition.DialectLevel))
+            ScreenRolledChains();
     }
 
     /// <summary>One PLACEMENT of a printable item on a report line, in the line's NOMINAL walk: the field, which of

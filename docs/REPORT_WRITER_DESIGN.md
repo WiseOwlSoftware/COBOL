@@ -567,7 +567,7 @@ off-by-one through every later counter check.
   report-name last — SR4 g) is the same arm, not a second one), screens it once per WRITTEN addend (SR4: a numeric item
   with a value, unsubscripted — COBOL2730; a) no UPON; b)/c)/d) the levels of repetition, `RolledRepetitionFault`;
   f) the report-type pairing, COBOL2731, within one report only; e) the chain terminates, `ScreenRolledChains` over
-  every report) and then maps per COUNTER OCCURRENCE (GR8): the INNERMOST levels of the addend and the counter are the
+  every report, from 2002 only: at 1985 a self or mutual reference within a group is legal, see below) and then maps per COUNTER OCCURRENCE (GR8): the INNERMOST levels of the addend and the counter are the
   same levels (SR4 d) — "in order beginning with the lowest level of nesting"), so an addend occurrence belongs to the
   counter occurrence whose coordinates equal its own innermost ones, and its outer levels are the "complete table"
   GR8 b) totals; a non-repeating addend belongs to every counter occurrence. The addition is registered, once per
@@ -581,8 +581,13 @@ off-by-one through every later counter check.
   (`ReportWriterEmitter.SumAddition` — GR3's ADD with ON SIZE ERROR), over a value bound once every report's
   operands are (`ReportWriterBinder.BindRolledValues`: the counter occurrence's content as a `ReportSumCounterPlace`
   read, or the SOURCE/VALUE operand as a number). Registrations are emitted after EVERY engine is constructed
-  (`RegisterCrossEngineAdditions`), and the ones on one group are put in dependency order, because GR6 requires "the
-  additions necessary to compute its value are completed before the adding of the operand". The same list registers
+  (`RegisterCrossEngineAdditions`), in the edition's order (`DialectBehavior.SumAdditionsInDependencyOrder`, VCR row
+  7.87, kb/Work PB5894, PB5895). From 2002 the ones on one group are put in dependency order, because GR6 requires "the
+  additions necessary to compute its value are completed before the adding of the operand". At 1985 a group crossfoots
+  counter by counter in the order the counters are defined (§1985:XIII.3.19.4 GR9a), every addend read as it stands
+  then, and all of one counter's crossfoot addends are ONE addition, so a counter that is its own addend adds "the
+  initial value of that sum counter at the time of summation"; the group's rolling forward follows
+  (§1985:XIII.3.20.4 GR10 a)/b)), an addition per addend. The same list registers
   an UPON on a detail of another report. A term's rolled addends leave its GENERATE-driven addition (GR9 sums addends
   "separately according to the above rules"); the UPON phrase is refused with data-name-1 (SR4 a)). A SOURCE operand
   that names a VARYING counter (§2023:13.18.64.4 GR3) is that occurrence's value, a compose-local when the entry prints,
