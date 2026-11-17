@@ -242,9 +242,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     /// because GR1's two arms differ in it: the substituted figurative into a numeric receiver is the image
     /// fill, the written sender is the conversion.</summary>
     private string ElementaryStore(Place target, BoundOperand source, MoveSenderOrigin origin, bool senderFirst) =>
-        // A fill that sends a NUMBER (FillNumber: at 1985 a figurative whose character is a digit) is the conversion,
+        // A fill that sends a NUMBER (AllLiteralNumber: at 1985 a figurative whose character is a digit) is the conversion,
         // not the image fill (kb/Work PB5677).
-        MoveClassifier.Kind(source, target) is MoveKind.FigurativeToNumericImage && FillNumber(source, target.Item) is null
+        MoveClassifier.Kind(source, target) is MoveKind.FigurativeToNumericImage && AllLiteralNumber(source, target.Item) is null
             ? FigurativeToNumericImageStore(target, source, FillCite(origin))
             : target is RefModPlace slice ? SliceStore(slice, source, senderFirst)
             // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §2023:13.18.2 GR1 — the item is n
@@ -308,7 +308,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     /// non-DISPLAY numeric receiver (BINARY / PACKED / COMP-5 / float — no character image in the typed-native
     /// model) remains a NARROW loud guard (§1.4). Eligibility is the NODE's <see cref="MoveKind"/> (classified
     /// once — figurative ZERO and digit-only ALL classify as Convert, VALUE moves not fills) less a fill that sends a
-    /// number (<see cref="FillNumber"/>: at 1985 a figurative whose character is a digit, kb/Work PB5677), which
+    /// number (<see cref="AllLiteralNumber"/>: at 1985 a figurative whose character is a digit, kb/Work PB5677), which
     /// <see cref="ElementaryStore"/> hands to the conversion instead.</summary>
     private string FigurativeToNumericImageStore(Place target, BoundOperand source, string fillCite)
     {
@@ -656,7 +656,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     /// <summary>⛔ THE NUMERIC VALUE A FILL SENDS to a numeric or numeric-edited receiver — a digit-only <c>ALL "literal"</c> at every
     /// edition, and at COBOL-85 a HIGH-VALUE, LOW-VALUE or QUOTE whose character is a digit (kb/Work PB5677: a PROGRAM COLLATING
     /// SEQUENCE can make LOW-VALUE "5") — the one place the repeated string becomes a number, so the receiver's category and the
-    /// edition's rule are decided once (kb/Work PB5176); <see langword="null"/> for any other source, which
+    /// edition's rule are decided once (kb/Work PB5176; it keeps the name of its first sender, the figurative being the same
+    /// repeated string of one character); <see langword="null"/> for any other source, which
     /// <see cref="FigurativeToNumericImageStore"/> then fills. §1985:VI.6.19.4 GR3 puts every figurative constant but ZERO and
     /// SPACE in category alphanumeric, so the 1985 arm below is the same for the figurative as for the ALL literal; a fill
     /// of a character that is no digit sends no number, and the value of a numeric item holding it is the implementor's.
@@ -682,7 +683,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     /// - the image of the repeated characters was never an edited value. Up to 18 digit positions fold to a native
     /// <c>long</c>; more (COBOL-2002+ wide receivers, ISO §2023:8.3.3.3.2, and a 1985 edited picture) decode through the ONE
     /// deterministic digit decode (<c>FromAlphanumeric</c>, Int128 — numeric design D1).</summary>
-    private NumX? FillNumber(BoundOperand source, DataItem target)
+    private NumX? AllLiteralNumber(BoundOperand source, DataItem target)
     {
         if (target.OperandPic is not { Category: PicCategory.Numeric or PicCategory.NumericEdited } pic) return null;
         bool level1985 = ctx.Data.DialectLevel < 2002;
@@ -716,7 +717,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     {
         BoundNumericLiteral or BoundComputedOperand => true,
         BoundFigurative { Kind: 'Z' } => true,
-        BoundFigurative or BoundAllLiteral => FillNumber(source, target) is not null,   // a fill whose characters are digits
+        BoundFigurative or BoundAllLiteral => AllLiteralNumber(source, target) is not null,   // a fill whose characters are digits
         BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Numeric or PicCategory.NumericEdited,
         _ => false,
     };
@@ -913,16 +914,16 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         // EDITED into the mask ('ZZ9.99' shows '  0.00', not a zero-fill).
         if (source is BoundFigurative f && pic.Category is not PicCategory.Numeric
             && !(f.Kind is 'Z' && pic.Category is PicCategory.NumericEdited) && !pic.IsCharacterEdited
-            && FillNumber(source, target) is null)   // a digit fill into a numeric-edited receiver is a value to edit (kb/Work PB5677)
+            && AllLiteralNumber(source, target) is null)   // a digit fill into a numeric-edited receiver is a value to edit (kb/Work PB5677)
             // Category-aware fill: a national/boolean receiver's HIGH/LOW-VALUE reads its OWN sequence — the
             // explicit national PCS extremes when declared, else the D-N3 pin — never the ALPHANUMERIC
             // program collating sequence's extreme (§2023:8.3.3.6 GR6/GR7 over the national sequence).
             return $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Configuration.Collating, figContext, ctx.Data.Configuration.NationalCollating)}, {wN})";
         // ALL "literal" repeats the literal to the receiver width (ISO §2023:8.3.3.6.4 GR2). An ANY LENGTH
         // receiver's width exists only at runtime — repeat at runtime, then width-fit (§2023:13.18.2 GR1).
-        // (A digit-only ALL into a numeric-EDITED receiver is a numeric value to edit, never the image: FillNumber, kb/Work PB5176.)
+        // (A digit-only ALL into a numeric-EDITED receiver is a numeric value to edit, never the image: AllLiteralNumber, kb/Work PB5176.)
         if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric && !pic.IsCharacterEdited
-            && FillNumber(source, target) is null)
+            && AllLiteralNumber(source, target) is null)
             return runtimeWidth is null
                 ? CsLiteral(EmitText.RepeatToWidth(a.Literal, pic.Length))
                 : RuntimeApi.StrStore(RuntimeApi.StrRepeat(CsLiteral(a.Literal), runtimeWidth), runtimeWidth);
@@ -961,7 +962,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                 // A function whose value is on the exact wide form (an exact-family call over an argument expression past the
                 // Int128 carrier, kb/Work PB3953) is kept exact here and TRANSFERRED at the mask's scale below, so the edit sees
                 // the value's own low-order digits and not its 34-digit image.
-                NumX e = FillNumber(source, target)
+                NumX e = AllLiteralNumber(source, target)
                     ?? num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
                 // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
                 // mask scale (it has none) — and the transfer's mode rounds the significand to the mask's digits
@@ -1070,7 +1071,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                     // as its IEEE window bytes.
                     return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(fval, target.ProfileName, pic.IsSingle) : fval;
                 }
-                NumX n = FillNumber(source, target)
+                NumX n = AllLiteralNumber(source, target)
                     ?? num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
                 // ⛔ AT 1985 AND 2002 THE SIGN IS THE SENDING OPERAND'S (§1985:VI.6.19.4 GR4b1; kb/Work PB5852): an image-carried
                 // sign holder is written with the sender's sign over a zero result. The sign is read BEFORE the store
