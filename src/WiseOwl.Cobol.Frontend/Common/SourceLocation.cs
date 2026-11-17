@@ -7,9 +7,6 @@ namespace WiseOwl.Cobol.Frontend.Common;
 /// </summary>
 public readonly struct SourceLocation : IEquatable<SourceLocation>
 {
-    /// <summary>A sentinel location used when no real source position is available.</summary>
-    public static readonly SourceLocation None = new("<source>", 0, 0, 0);
-
     /// <summary>Path or name of the source file.</summary>
     public string FileName { get; }
 

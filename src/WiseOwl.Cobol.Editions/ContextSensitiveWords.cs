@@ -47,8 +47,4 @@ public static partial class ContextSensitiveWords
 
     /// <summary>True when <paramref name="word"/> is an ISO §2023:8.10 context-sensitive word.</summary>
     public static bool Contains(string word) => ByWord.ContainsKey(word);
-
-    /// <summary>The number of rows — the drift test's population check (never the words themselves: the
-    /// content-filter rule keeps word lists out of conversation streams).</summary>
-    public static int Count => Entries.Length;
 }
