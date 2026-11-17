@@ -92,7 +92,7 @@ public sealed class CommentEntryResolutionOrderDriftTests
             string name = Path.GetFileName(file), code = Strip(File.ReadAllText(file));
             if (code.Contains("CommentEntryCarrier.Encode(", StringComparison.Ordinal)) made.Add(name);
             if (code.Contains("CommentEntryCarrier.Decode(", StringComparison.Ordinal)) read.Add(name);
-            if (name != "DivisionCursor.cs" && System.Text.RegularExpressions.Regex.IsMatch(code, @"new DivisionCursor\([^)]*,\s*\w+\)"))
+            if (name != "DivisionCursor.cs" && System.Text.RegularExpressions.Regex.IsMatch(code, @"new DivisionCursor\([^;]*,\s*(?:words|map|CobolWordsMap\.\w+)\)"))
                 mapped.Add(name);
         }
         Assert.Equal(["ReferenceFormatProcessor.LogicalConversion.cs"], made);
@@ -105,7 +105,7 @@ public sealed class CommentEntryResolutionOrderDriftTests
     {
         var physical = new PhysicalLine(7, "       COPY BOOK. >>IF X IS DEFINED ==", null);
         string carrier = CommentEntryCarrier.Encode(isHeader: false, isFixed: true, ccvsIndicators: false, inclusion: 3, physical);
-        Assert.Empty(TextWordScanner.Scan(carrier));
+        Assert.Empty(TextWordScanner.Scan(carrier, directiveLines: true));
         Assert.False(ReferenceFormatProcessor.HoldsNoProgramText(carrier));   // it is a line of text, to be decided, not a blank one
         Assert.False(carrier.TrimStart().StartsWith(">>", StringComparison.Ordinal));
     }

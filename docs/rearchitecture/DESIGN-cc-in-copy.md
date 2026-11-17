@@ -87,9 +87,11 @@ Everything the text-manipulation stage does is decided over §2023:7.2.2.5 TEXT-
 colon and parentheses are separator text-words outside literals; a period, comma or semicolon separates only when
 a space (or a line end, or a closing `==`) follows (§2023:8.3.5 2)/3)), so `Z,ZZ9` and `ZZ.ZZ` are one word; a literal
 is ONE word from its prefix (`X" N" NX" B" BX"`) through its closing delimiter with doubled quotes inside; `&` is a
-word of its own; `==` is the pseudo-text delimiter. Its three consumers:
+word of its own; `==` is the pseudo-text delimiter; a line that begins `>>` is ONE `DirectiveLine` element only where
+the edition has compiler directives (`EditionInfo.HasCompilerDirectives`, from 2002, §2002:7.2.2 SR2): below it the line is ordinary text-words
+(§1985:III.2 item 3), so pseudo-text may hold it (§1985:XII.3.3 SR3, SR4; kb/Work PB5803) and every scanner call takes that answer. Its three consumers:
 
-- **Locating COPY and REPLACE** — `FindStatementKeyword(text, pos, keyword, onGlued)` returns the next text-word
+- **Locating COPY and REPLACE** — `FindStatementKeyword(text, pos, keyword, edition, onGlued)` returns the next text-word
   `COPY` / `REPLACE`, so it cannot fire in a literal, a comment, a directive line or a longer word, and a REPLACE is
   found wherever it stands, not only first on a line (§2023:7.2.4.3 SR1, kb/Work PB1358); a keyword glued behind
   `.`/`,`/`;` forms no text-word and is reported (SR2: COBOL2451 for COPY, COBOL2449 for REPLACE).

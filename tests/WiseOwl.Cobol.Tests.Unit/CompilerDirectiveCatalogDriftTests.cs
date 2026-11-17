@@ -156,28 +156,31 @@ public sealed class CompilerDirectiveCatalogDriftTests
             if (!bag.Diagnostics.Any(d => d.Code == "COBOL0900")) silent.Add(word);
         }
 
-        // >>SOURCE FORMAT is consumed one stage earlier, by ReferenceFormatProcessor, so the driver never sees
-        // it — its gate is asserted separately below.
-        silent.Remove("SOURCE");
         Assert.True(silent.Count == 0,
             $"[{string.Join(", ", silent)}] compile clean at --std 85, an edition with no compiler directives "
             + "(ISO §2023:7.3 is a COBOL-2002 introduction) — the PB725 under-rejection has returned");
     }
 
-    /// <summary>The one directive whose gate cannot live with its siblings: <c>&gt;&gt;SOURCE FORMAT</c> is
-    /// consumed by the reference-format normalizer before the conditional-compilation driver runs, so its gate
-    /// emits there — same row, same COBOL0900, one stage earlier.</summary>
+    /// <summary>At COBOL-85 the reference-format stage does not consume a <c>&gt;&gt;SOURCE FORMAT</c> line: COBOL-85 has no
+    /// compiler directive lines, so the line is text where COPY or REPLACE pseudo-text holds it (kb/Work PB5803), and the
+    /// conditional-compilation driver gates it — COBOL0900 — like every sibling directive. At 2002 the stage consumes it
+    /// and the driver never sees it.</summary>
     [Fact]
-    public void SourceFormatDirective_IsRejectedAt85()
+    public void SourceFormatDirective_IsKeptByTheNormalizerAt85AndGatedByTheDriver()
     {
-        var bag = new DiagnosticBag();
-        ReferenceFormatProcessor.NormalizeToFreeForm(
-            ">>SOURCE FORMAT IS FREE\nIDENTIFICATION DIVISION.\n", new ReferenceFormatDiagnostics(85, false, bag), "t.cob");
-        Assert.Contains(bag.Diagnostics, d => d.Code == "COBOL0900");
+        const string text = "       >>SOURCE FORMAT IS FREE\n       IDENTIFICATION DIVISION.\n";   // fixed form: in the program-text area
+        var kept = new DiagnosticBag();
+        string normalized = ReferenceFormatProcessor.NormalizeToFreeForm(text, new ReferenceFormatDiagnostics(85, false, kept), "t.cob");
+        Assert.Contains(">>SOURCE", normalized);
+        Assert.DoesNotContain(kept.Diagnostics, d => d.Code == "COBOL0900");
+
+        var gated = new DiagnosticBag();
+        ConditionalCompilationProcessor.Process(text, WiseOwl.Cobol.Frontend.Frontend.LeftDirectives, gated, "t.cob", dialectLevel: 85);
+        Assert.Contains(gated.Diagnostics, d => d.Code == "COBOL0900");
 
         var ok = new DiagnosticBag();
-        ReferenceFormatProcessor.NormalizeToFreeForm(
-            ">>SOURCE FORMAT IS FREE\nIDENTIFICATION DIVISION.\n", new ReferenceFormatDiagnostics(2002, false, ok), "t.cob");
+        string consumed = ReferenceFormatProcessor.NormalizeToFreeForm(text, new ReferenceFormatDiagnostics(2002, false, ok), "t.cob");
+        Assert.DoesNotContain(">>SOURCE", consumed);
         Assert.DoesNotContain(ok.Diagnostics, d => d.Code == "COBOL0900");
     }
 

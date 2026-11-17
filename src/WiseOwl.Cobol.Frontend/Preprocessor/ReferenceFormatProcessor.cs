@@ -205,12 +205,13 @@ public static partial class ReferenceFormatProcessor
     /// class instead ("digits or spaces before <c>&gt;&gt;</c>") missed a fixed-form directive whose sequence area was
     /// not numeric, and took a directive preceded by program text, or written past margin R in free form, as a
     /// switch — the following text was then read in the wrong format.</para>
-    /// <para>The §2023:7.3 compiler-directive facility's introduction gate and operand check for the ONE directive that
-    /// cannot be gated with its siblings are asked here: this stage CONSUMES the &gt;&gt;SOURCE FORMAT line (it must —
-    /// the following segment's reference format depends on it), so the line never reaches the shared
-    /// directive-recognition point in ConditionalCompilationProcessor. Same producer, same row
-    /// (source-format-directive-2002 → COBOL0900; COBOL1911 for the operand), one stage earlier (kb/Work PB725,
-    /// PB794). Both are silent when the conversion carries no DiagnosticBag.</para>
+    /// <para>Where the edition has compiler directives (<c>HasCompilerDirectives</c>, 2002 on) this stage CONSUMES the
+    /// &gt;&gt;SOURCE FORMAT line (it must — the following segment's reference format depends on it), so the line never
+    /// reaches the shared directive-recognition point in ConditionalCompilationProcessor, and the operand check
+    /// (COBOL1911) is asked here (kb/Work PB794). Where it has none (--std 85) no directive line is recognized at all
+    /// (kb/Work PB5803): the line stays text and the driver emits the COBOL0900 introduction gate
+    /// (source-format-directive-2002), once, with the operand check (kb/Work PB725). Both are silent when the conversion
+    /// carries no DiagnosticBag.</para>
     /// <para>Recognition is by the directive WORD through the ONE compiler-directive line parse
     /// (<see cref="CompilerDirectiveLine"/>), never by the whole line's shape: the end-anchored regex that preceded it
     /// failed to match a legal <c>&gt;&gt;SOURCE FORMAT FIXED *&gt; switch</c>, so the line stayed in the text and the
@@ -253,7 +254,10 @@ public static partial class ReferenceFormatProcessor
                 isDirective = true;
                 readFixed = !current;
             }
-            if (!isDirective) continue;
+            // ⛔ COBOL-85 HAS NO COMPILER DIRECTIVE LINES (kb/Work PB5803; §1985:III.2 item 3): a line there that begins `>>` is
+            // text-words, so it switches no format and is not discarded here. Where it is a directive the conditional-compilation
+            // loop still gates it (kb/Work PB725); inside COPY/REPLACE pseudo-text it stays the text it is.
+            if (!isDirective || gates is { HasCompilerDirectives: false }) continue;
             if (DirectiveStackOp.TryParse(d, i + 1, out var op))
             {
                 directiveLines.Add(i + 1);

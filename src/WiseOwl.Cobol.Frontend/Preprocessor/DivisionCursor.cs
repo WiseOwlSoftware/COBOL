@@ -38,7 +38,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// stage has finished with, read by a cursor that is given the group's word map (<paramref name="words"/>) and so reads
 /// the words as the lexer will (docs/CONFORMANCE.md D-CE2; kb/Work PB4281).</para>
 /// </summary>
-internal sealed class DivisionCursor(bool? startsInIdentificationDivision, CobolWordsMap? words = null)
+internal sealed class DivisionCursor(bool? startsInIdentificationDivision, bool directiveLines, CobolWordsMap? words = null)
 {
     /// <summary>The paragraphs that begin an identification division (§2023:11.2.1 General format: program-id-paragraph,
     /// function-id-paragraph, class-id-paragraph, method-id-paragraph, interface-id-paragraph):
@@ -255,7 +255,7 @@ internal sealed class DivisionCursor(bool? startsInIdentificationDivision, Cobol
     /// <summary>Read every text-word of <paramref name="text"/> — one logical line.</summary>
     public void Read(string text)
     {
-        for (int next = 0; TextWordScanner.TryNext(text, ref next, out var word);)
+        for (int next = 0; TextWordScanner.TryNext(text, ref next, out var word, directiveLines);)
             Feed(word);
     }
 
@@ -268,7 +268,7 @@ internal sealed class DivisionCursor(bool? startsInIdentificationDivision, Cobol
         while (true)
         {
             int next = _scanned;   // a word that reaches past the position is left for a later, greater one
-            if (!TextWordScanner.TryNext(text, ref next, out var word) || word.End > position) break;
+            if (!TextWordScanner.TryNext(text, ref next, out var word, directiveLines) || word.End > position) break;
             _scanned = next;
             Feed(word);
         }

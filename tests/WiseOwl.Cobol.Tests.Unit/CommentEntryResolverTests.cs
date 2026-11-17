@@ -26,7 +26,7 @@ public sealed class CommentEntryResolverTests
         var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob",
             initialFixed: false, out _);
         string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 2023, permissive: true);
-        return CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), words ?? CobolWordsMap.Empty, gates);
+        return CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), words ?? CobolWordsMap.Empty, EditionInfo.Of(2023), gates);
     }
 
     /// <summary>The finished text of a FREE-form <paramref name="source"/> (see <see cref="Resolved"/>).</summary>
@@ -103,7 +103,7 @@ public sealed class CommentEntryResolverTests
         var gates = new ReferenceFormatDiagnostics(85, true, new DiagnosticBag());
         var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: true, out _);
         string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 85, permissive: true);
-        var resolved = CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), CobolWordsMap.Empty, gates);
+        var resolved = CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), CobolWordsMap.Empty, EditionInfo.Of(2023), gates);
         Assert.Equal(converted.Lines.Length, resolved.Text.Lines.Length);
         return (converted.Text.Split('\n'), resolved.Text.Text.Split('\n'), converted.Lines.Length);
     }
@@ -138,7 +138,7 @@ public sealed class CommentEntryResolverTests
     public void NoCarrier_PassesThroughUntouched()
     {
         var text = MappedText.Identity("PROGRAM-ID. P.\nPROCEDURE DIVISION.\n", "t.cob");
-        var resolved = CommentEntryResolver.Resolve(text, CobolWordsMap.Empty, null);
+        var resolved = CommentEntryResolver.Resolve(text, CobolWordsMap.Empty, EditionInfo.Of(2023), null);
         Assert.Same(text, resolved.Text);
         Assert.Null(resolved.ProgramText);
     }
@@ -170,7 +170,7 @@ public sealed class CommentEntryResolverTests
     {
         string line = CommentEntryCarrier.Prefix + damage;
         var text = MappedText.Identity(line, "t.cob");
-        Assert.Throws<InvalidOperationException>(() => CommentEntryResolver.Resolve(text, CobolWordsMap.Empty, null));
+        Assert.Throws<InvalidOperationException>(() => CommentEntryResolver.Resolve(text, CobolWordsMap.Empty, EditionInfo.Of(2023), null));
     }
 
     private const string ProgramTextCandidateSource =
@@ -242,7 +242,7 @@ public sealed class CommentEntryResolverTests
             new(new SourceOrigin("t.cob", 1)), new(new SourceOrigin("b.cpy", 1)),
             new(new SourceOrigin("t.cob", 3)), new(new SourceOrigin("b.cpy", 1)), new(new SourceOrigin("t.cob", 5)),
         };
-        var resolved = CommentEntryResolver.Resolve(new MappedText(text, origins), CobolWordsMap.Empty, null);
+        var resolved = CommentEntryResolver.Resolve(new MappedText(text, origins), CobolWordsMap.Empty, EditionInfo.Of(2023), null);
         Assert.Equal(new CommentEntryPin("b.cpy", 2, 1), resolved.ProgramText);
         Assert.Equal("REMARKS. .", resolved.Text.Text.Split('\n')[1]);   // the first inclusion is a comment-entry
     }
@@ -269,7 +269,7 @@ public sealed class CommentEntryResolverTests
         var converted = ReferenceFormatProcessor.NormalizeToFreeFormMapped(source, gates, "t.cob", initialFixed: false, out _);
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
         string compiled = ConditionalCompilationProcessor.Process(converted.Text, LeftDirectives, dialectLevel: 2023, permissive: true);
-        CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), CobolWordsMap.Empty, gates);
+        CommentEntryResolver.Resolve(new MappedText(compiled, converted.Lines), CobolWordsMap.Empty, EditionInfo.Of(2023), gates);
         Assert.Single(bag.Diagnostics, d => d.Code == "COBOL2653");
         // (b) the run that reads the candidate as program text reports it once, in the converter
         bag = new DiagnosticBag();
