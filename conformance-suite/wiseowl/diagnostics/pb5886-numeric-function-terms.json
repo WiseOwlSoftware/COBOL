@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "with the term FUNCTION MAX (S2), a numeric function"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "FUNCTION FACTORIAL argument-1 is an arithmetic expression whose intermediate S2 - FUNCTION MAX (S2) holds the term FUNCTION MAX (S2), a numeric function, which does not cancel there, so neither the intermediate's exact value nor an integer value is shown"}

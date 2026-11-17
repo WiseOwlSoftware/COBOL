@@ -21,21 +21,22 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </remarks>
 public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
 {
-    /// <summary>The verdict of every <c>BoundExpr</c> node type at a type 6 position, and why. Integer: an integer term
-    /// (ProvablyIntegral). Linear: a term of the sum under literal factors. Refused: never shown integral.</summary>
+    /// <summary>The verdict of every <c>BoundExpr</c> node type at a type 6 position, and why (kb/Work PB5891: the classifier builds the
+    /// expression's value as a polynomial; docs/INTRINSICS_DESIGN.md, the type-6 intake). Integer atom: a term that takes integer values
+    /// only. Real atom: a term that must cancel. Operation: a polynomial operation whose intermediate must be exact. Refused: not shown.</summary>
     private static readonly Dictionary<string, string> NodeVerdicts = new()
     {
-        ["BoundNumLiteral"] = "Linear: a constant term at its exact value; the sum of the constants must be an integer",
-        ["BoundNumRef"] = "Linear: a numeric item's net coefficient times its least value must be whole; a floating-point item's must be zero",
-        ["BoundBinary"] = "Linear for + - and a product by a literal; a quotient by a literal whose reciprocal terminates is the product by that reciprocal (within the digits the arithmetic in force keeps); Integer for a product of two terms each shown integral; every other quotient Refused",
-        ["BoundNegate"] = "Linear: the operand under the negated factor",
-        ["BoundPower"] = "Integer for a base shown integral to a non-negative integer literal or an unsigned integer item; else Refused",
-        ["BoundIndexRef"] = "Integer: an index-name's value is an occurrence number",
-        ["BoundLinageCounterRef"] = "Integer: a counter register is an unsigned integer data item (AlgebraicRanges.IsCounterRegister)",
-        ["BoundReportCounterRef"] = "Integer: a counter register is an unsigned integer data item (AlgebraicRanges.IsCounterRegister)",
-        ["BoundReportVaryingRef"] = "Integer: a report VARYING counter is a scale-0 integer",
-        ["BoundIntrinsicCall"] = "Integer for an INTEGER-type function (by the function's type); Refused for every other function, whatever this reference's value",
-        ["BoundOdoExtent"] = "Integer: the run-time extent of a variable-length group is a scale-0 integer",
+        ["BoundNumLiteral"] = "Constant: a literal fold at its exact value, trusted only when the arithmetic stores its quotients exactly",
+        ["BoundNumRef"] = "Integer atom times 10^-scale for a fixed-point item (the same place is one atom); Real atom for a floating-point item",
+        ["BoundBinary"] = "Operation: + - * of polynomials, a quotient by a nonzero literal is the product by its reciprocal; every other quotient Refused",
+        ["BoundNegate"] = "Operation: the operand's polynomial negated, exact whatever it negates",
+        ["BoundPower"] = "Operation: the n-th power for a non-negative integer literal n; Integer atom for an integer-valued base to an unsigned integer item or 1 to an integer; else Refused",
+        ["BoundIndexRef"] = "Integer atom: an index-name's value is an occurrence number",
+        ["BoundLinageCounterRef"] = "Integer atom: a counter register is an unsigned integer data item (AlgebraicRanges.IsCounterRegister)",
+        ["BoundReportCounterRef"] = "Integer atom: a counter register is an unsigned integer data item (AlgebraicRanges.IsCounterRegister)",
+        ["BoundReportVaryingRef"] = "Integer atom: a report VARYING counter is a scale-0 integer",
+        ["BoundIntrinsicCall"] = "Integer atom for an INTEGER-type function; Real atom for every other (one atom only when its arguments fix its value)",
+        ["BoundOdoExtent"] = "Integer atom: the run-time extent of a variable-length group is a scale-0 integer",
         ["BoundExprError"] = "Not refused again: the operand was refused where it was bound",
         ["BoundUdfEvaluatedExpr"] = "The verdict of the expression it carries",
     };
@@ -54,7 +55,8 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         Assert.True(stale.Count == 0, "NodeVerdicts names a node type that no longer exists:\n  " + string.Join("\n  ", stale));
     }
 
-    /// <summary>(expression over N PIC 9, M PIC S9, K PIC 9V9, U PIC 9, A PIC X; refused; why). The data names are fixed by
+    /// <summary>(expression over N PIC 9, M PIC S9, K PIC 9V9, U PIC 9, A PIC X, F COMP-2, T PIC 9V9 OCCURS 2, TN PIC 99 OCCURS 2,
+    /// I and J PIC 9, PZ PIC 9P; refused; why). The data names are fixed by
     /// <see cref="Shapes_AreRefusedOrAdmittedAsRecorded"/>. Every refused row with "PB5886" is an integer argument the screen
     /// before kb/Work PB5886 admitted.</summary>
     private static readonly (string Expression, bool Refused, string Why)[] Shapes =
@@ -107,7 +109,11 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         ("FUNCTION ORD (A) * FUNCTION MOD (N 3)", false, "a product of integer functions"),
         ("FUNCTION ORD (A) * 0.5 * 2", false, "an integer function under the net factor 1"),
         ("FUNCTION MOD (N 3) * 0.5", true, "PB5886: an integer function under the net factor 0.5"),
-        ("FUNCTION SQRT (N) - FUNCTION SQRT (N) + 5", true, "an integer only by an identity between numeric function terms (kb/Work PB5889)"),
+        ("FUNCTION SQRT (N) - FUNCTION SQRT (N) + 5", false, "PB5891: the same pure term cancels, so the value is the constant 5"),
+        ("0 * FUNCTION SQRT (N) + 5", false, "PB5891: a real term under the coefficient 0 is the constant 0"),
+        ("FUNCTION SQRT (N) + 1 - FUNCTION SQRT (N)", true, "PB5891: the intermediate SQRT (N) + 1 holds a real term and is not shown exact"),
+        ("FUNCTION RANDOM - FUNCTION RANDOM + 1", true, "PB5891: RANDOM's value is not fixed by its arguments, so the two calls are two atoms"),
+        ("K - FUNCTION MAX (K)", true, "PB5889's residue: MAX (K) and K are two atoms, equal only by MAX's meaning"),
         ("FUNCTION MAX (K) - K", true, "PB5886: MAX of a scaled item is a numeric function"),
         ("FUNCTION RANDOM (1) * 10", true, "PB5886: a numeric function"),
         // Items under literal factors (a product by a literal is exact in decimal arithmetic).
@@ -118,6 +124,26 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
         ("K + 1", true, "K has digits right of the decimal point"),
         ("N * K", true, "a product of two items, K not shown integral"),
         ("N * U * 2", false, "a product of integer items"),
+        // kb/Work PB5891: the value is a polynomial, integer-valued exactly when it is an integer on the grid of its degrees.
+        ("N * (N + 1) / 2", false, "PB5891: a product of two consecutive integers is even"),
+        ("N * (N + 1) * (N + 2) / 6", false, "PB5891: a product of three consecutive integers is a multiple of 6, so the quotient is exact"),
+        ("N * (N - 1) / 2 + 65", false, "PB5891: N (N - 1) / 2 is an integer"),
+        ("N ** 2 * (N + 1) ** 2 / 4", false, "PB5891: the square of N (N + 1) / 2"),
+        ("N * (N + 1) / 3", true, "PB5891: 2/3 at N = 1"),
+        ("(N ** 13 - N) / 13", true, "PB5891: an integer by Fermat, but degree 13 passes the grid cap and the quotient is not shown exact"),
+        ("K * K * 100", false, "PB5891: K is a tenth of an integer atom, so K * K * 100 is that atom squared"),
+        ("K * K * 10", true, "PB5891: 0.1 at K = 0.1"),
+        ("T (1) - T (2)", true, "PB5891: two subscripts are two places (the item keyed by its description cancelled them)"),
+        ("T (1) - T (1) + 1", false, "PB5891: one place is one atom"),
+        ("T (I) - T (I) + 5", false, "PB5891 review R1-1: one subscript item read twice is one place"),
+        ("T (I) - T (J) + 5", true, "PB5891 review R1-1: two subscript items are two places (0.1 at T (I) = 0.1, T (J) = 0)"),
+        ("TN (I) * (TN (I) + 1) / 2", false, "PB5891 review R1-1: TN (I) is one atom, and a product of two consecutive integers is even"),
+        ("TN (I) * (TN (J) + 1) / 2", true, "PB5891 review R1-1: TN (I) and TN (J) are two atoms (1/2 at 1 and 0)"),
+        ("2 ** PZ", false, "PB5891 review R2-2: a P-scaled exponent is an integer by value, so the power is exact"),
+        ("2 ** (U / 2 * 2)", true, "PB5891 review R2-1: an exponent integer by value but not by its carrier is a binary64 power"),
+        ("F - F + 1", false, "PB5891: F - F is exactly 0 in binary64"),
+        ("F + 1 - F", true, "PB5891: the intermediate F + 1 holds a floating-point term and is not shown exact"),
+        ("(F - F + N * 0.1) * 10", true, "PB5891: the intermediate F - F + N * 0.1 is computed in binary64 and is not an integer"),
     ];
 
     [Fact]
@@ -136,6 +162,14 @@ public sealed class IntrinsicTypeSixPowerShapesDriftTests : WiseOwlCobolTestBase
             01 K PIC 9V9 VALUE 0.5.
             01 U PIC 9 VALUE 2.
             01 A PIC X VALUE "B".
+            01 F COMP-2 VALUE 0.5.
+            01 TB.
+               05 T PIC 9V9 OCCURS 2 VALUE 0.5.
+            01 TI.
+               05 TN PIC 99 OCCURS 2 VALUE 2.
+            01 I PIC 9 VALUE 1.
+            01 J PIC 9 VALUE 2.
+            01 PZ PIC 9P VALUE 20.
             01 R PIC S9(4).
             PROCEDURE DIVISION.
             {proc}    STOP RUN.

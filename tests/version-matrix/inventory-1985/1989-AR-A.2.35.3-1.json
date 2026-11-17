@@ -1,7 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.35.3-1",
  "rule-digest": "97e5556356b1",
- "test-ref": "conformance:cases/A.2.35@1985-RANDOM-FUNCTION/g85_bf38_03; conformance:cases/15.3-Arguments/pb5886-random-seed-quotient",
+ "test-ref": "conformance:cases/A.2.35@1985-RANDOM-FUNCTION/g85_bf38_03; conformance:cases/15.3-Arguments/pb5886-random-seed-quotient; conformance:cases/15.3-Arguments/pb5891_polynomial_integer_arguments",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

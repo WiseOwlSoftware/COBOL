@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "FUNCTION DAY-OF-INTEGER argument-1 is an arithmetic expression with the term FUNCTION SQRT (N)"}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "FUNCTION DAY-OF-INTEGER argument-1 is an arithmetic expression whose intermediate FUNCTION SQRT (N) + 1 holds the term FUNCTION SQRT (N), a numeric function, which does not cancel there, so neither the intermediate's exact value nor an integer value is shown"}

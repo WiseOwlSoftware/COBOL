@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.RegularExpressions;
 using WiseOwl.Cobol.Binding.Bound;
-using WiseOwl.Cobol.Binding.Procedure;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
 
@@ -184,7 +183,7 @@ public sealed class FunctionValueLaneDriftTests
     [Fact]
     public void BinderAndRenderer_AskTheSameApproximationPredicate()
     {
-        string lane = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "Procedure", "FunctionValueLane.cs"));
+        string lane = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "Binding", "Bound", "FunctionValueLane.cs"));
         string renderer = File.ReadAllText(Path.Combine(TestRepo.Src("WiseOwl.Cobol.Compiler"), "CodeGen", "Emit", "IntrinsicRenderer.cs"));
         Assert.Contains("IntrinsicCarrierRules.Binary64ResultIsApproximation(", lane, StringComparison.Ordinal);
         Assert.Contains("IntrinsicCarrierRules.Binary64ResultIsApproximation(", renderer, StringComparison.Ordinal);

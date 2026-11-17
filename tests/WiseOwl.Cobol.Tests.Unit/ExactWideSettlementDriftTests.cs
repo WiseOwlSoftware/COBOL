@@ -115,7 +115,7 @@ public sealed class ExactWideSettlementDriftTests
         // results are NumX.Wide values the renderer settles at its public entry.
         string intrinsic = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "IntrinsicRenderer.cs"));
         Assert.Single(Regex.Matches(intrinsic, @"keepWide\s*:\s*true"));
-        Assert.Contains("NumX x = num.AsNum(ic.Args[i], num.Receiver, keepWide: true);", BodyOf(intrinsic, "private NumX RawWideArg("));
+        Assert.Contains("NumX x = num.AsNum(ic.Args[i], ReceiverFor(ic, i), keepWide: true);", BodyOf(intrinsic, "private NumX RawWideArg("));
         Assert.Contains("private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));", intrinsic);
         // The temporary DISPLAY shows: every kept value settles into a wide text or a wide field.
         string device = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "CodeGen", "Emit", "FunctionDeviceText.cs"));

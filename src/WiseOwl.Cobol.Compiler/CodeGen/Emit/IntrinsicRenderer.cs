@@ -985,6 +985,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// value (<see cref="ExactValueArg"/>, kb/Work PB4111, PB4568): VARIANCE, STANDARD-DEVIATION and PRESENT-VALUE, and the exact
     /// family beside an SDIDI or binary64 argument, form their value from <c>CobolExact</c> arguments and round it once.</para>
     /// </remarks>
+    /// <summary>⛔ THE CONTEXT ARGUMENT <paramref name="i"/> IS RENDERED IN (kb/Work PB5891 reviews R3-1, R5-1): a §2023:15.3 type 6 (integer)
+    /// position takes <see cref="NumericRenderer.ArgumentReceiver"/>, the receiver without its floating-point facts, so the integer the type 6
+    /// classifier admitted is the one computed (a COMP-2 resultant took <c>MOD ((Y * 100 - X * 10.25) * 4, 1000)</c>'s argument onto binary64
+    /// and stored 672 for 41); every other position keeps the statement's receiver, as it always has, so no other argument's value moves.</summary>
+    private ReceiverContext ReceiverFor(BoundIntrinsicCall ic, int i) =>
+        IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i) ? num.ArgumentReceiver : num.Receiver;
+
     private NumX RawArg(BoundIntrinsicCall ic, int i) => NumericRenderer.LowerWide(RawWideArg(ic, i));
 
     /// <summary>
@@ -1009,7 +1016,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     private NumX RawWideArg(BoundIntrinsicCall ic, int i)
     {
-        NumX x = num.AsNum(ic.Args[i], num.Receiver, keepWide: true);
+        NumX x = num.AsNum(ic.Args[i], ReceiverFor(ic, i), keepWide: true);
         x = StandardArgument(ic, x);
         if (!(x.Real || x.Dec || x.Exact || x.Scale != 0) || !IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i)) return x;
         if (x.Wide)
@@ -1057,7 +1064,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// </remarks>
     private string IntArgWideSaturating(BoundIntrinsicCall ic, int i)
     {
-        NumX x = num.AsNum(ic.Args[i], num.Receiver);
+        NumX x = num.AsNum(ic.Args[i], ReceiverFor(ic, i));
         return x.Real ? RuntimeApi.IntegerArgSaturatingReal(x.Expr)
             : x.Dec ? RuntimeApi.IntegerArgSaturatingDec(x.Expr)
             : AsIntWide(x);

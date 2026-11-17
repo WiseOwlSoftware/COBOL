@@ -1389,6 +1389,22 @@ ON is 23:59:60 in FORMATTED-TIME, FORMATTED-DATETIME and LOCALE-TIME-FROM-SECOND
 `2023/pb638_unsigned_wide_item_as_integer_argument`, `2023/pb1379_time_form_floor_float_carriers_*`, `CobolDecSignedTailTests`,
 `CobolNumDivideAlignmentTests`, `CobolDateSecondsLandingTests` and `IntrinsicCarrierAgreementDriftTests`.
 
+
+**The lane of an operation is ONE function, and the lane of a node is ONE function of the bound node (kb/Work PB5891 reviews R1-3,
+R3-1).** `NumericLanes.LaneOf(BoundExpr, LaneContext)` (`Binding/Bound/NumericLaneOf.cs`, the compiler.bound layer) states every numeric node's possible carriers and,
+where its facts decide them, its scale and digit bound, by the rules below; `NumericRenderer.AssertLane` holds every rendered binary,
+negation and power node that is not a final transfer to it (an internal compiler error otherwise), and the type 6 classifier reads it.
+An intrinsic function's argument at a type 6 (integer) position renders without the resultant's floating-point facts, at the
+receiver's scale (`IntrinsicRenderer.ReceiverFor`, `NumericRenderer.ArgumentReceiver`); every other argument keeps the receiver. A read of an item stored as an image states the description's digit bound as a field read does (`NumericRenderer.WindowedNum`), so no lane depends on a storage decision made after binding. `NumericLanes.Combine` (`Binding/Bound/NumericLanes.cs`) states
+which carrier a binary operation takes, from the lanes of its operands (`NumericLane`: Int128, wide or exact, SDIDI, binary64, an
+engine's binary64 approximation), a floating-point receiver and the arithmetic mode; `NumericLanes.Power` the same for `**`, which
+`NumericRenderer.Power` dispatches on: its exact arm takes an exponent that is an integer BY VALUE (`NumericLanes.IsIntegerByValue`, the
+Int128 lane at scale 0 or below, PB272's value-not-spelling rule), so `3 ** U` over `U PIC 99P VALUE 40` is 12157665459056928801, where
+the scale-0 test it replaced took the binary64 approximation (kb/Work PB5891 review R2-2).
+`NumericRenderer.CombineCore` dispatches on `Combine`'s answer (`NumericRenderer.LaneOf` reads a rendered value's lane), the bind-time
+carrier prediction `FunctionValueLane` folds through it, and the type 6 classifier bounds an intermediate's exactness by the precision
+of the same answer (`NumericLanes.SignificantDigits`; docs/INTRINSICS_DESIGN.md, the type-6 intake, rule 4). `NumericLaneDriftTests`
+compiles every operand kind beside every partner and holds the lane the generated C# shows to the classifier's prediction.
 ### D27. A fixed-point operand enters the SDIDI through ONE lift, and that lift ROUNDS to the intermediate's 34 digits (§2023:8.8.1.5.2 r1). (kb/Work PB2918.)
 `NumericRenderer.DecOperand` is the only operand lift: an operand whose `NumX.Digits` bound is within 34 lifts exactly
 (`CobolDec.From`, no rounding needed); one that may hold more — a 16-byte binary container owns 39 digits, and an operand

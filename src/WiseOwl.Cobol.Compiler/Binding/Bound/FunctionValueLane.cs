@@ -1,11 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Frozen;
-using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Common;
 
-namespace WiseOwl.Cobol.Binding.Procedure;
+namespace WiseOwl.Cobol.Binding.Bound;
 
 /// <summary>
 /// ⛔ <b>WHICH CARRIER A NUMERIC FUNCTION'S RETURNED VALUE ARRIVES ON, ASKED AT BIND TIME</b> (kb/Work PB3268) — the
@@ -113,7 +112,7 @@ internal static class FunctionValueLane
     /// <summary>The carrier the native renderer returns a numeric function's value on, as far as the kind is concerned.</summary>
     private static CarrierKind Of(BoundIntrinsicCall call)
     {
-        var sig = call.Sig;
+        var sig = call.CarrierFacts;
         // NUMVAL / NUMVAL-C / NUMVAL-F return the SDIDI in EVERY mode — RenderNum's first arm, ahead of the mode dispatch and of
         // whatever their arguments are (the value is the exact parse of the argument: by definition for NUMVAL and NUMVAL-C, by the PB3839 determination for NUMVAL-F).
         if (IntrinsicCarrierRules.ReturnsExactParse(sig.Name)) return CarrierKind.Dec;
@@ -126,7 +125,7 @@ internal static class FunctionValueLane
         // its caller on the SDIDI, so ANNUITY(INTEGER(1.5E0) 3) got a COMP-2 intermediate that rounded AnnuityDec's value
         // in a multi-receiver MOVE (§2023:15.4.1: "the returned value is the same for all instances of a given function").
         if (call.ResultCategory is not PicCategory.Numeric) return CarrierKind.Fixed;
-        var args = call.Args.Select((a, i) => AtPosition(sig.Name, i, a.Accept(ArgumentCarrier.Instance))).ToList();
+        var args = call.Args.Select((a, i) => AtPosition(sig, i, a.Accept(ArgumentCarrier.Instance))).ToList();
         bool anyDec = args.Any(a => a.Kind == CarrierKind.Dec);
         bool anyReal = args.Any(a => a.IsReal);
         bool allReal = args.Count > 0 && args.All(a => a.IsReal);
@@ -153,12 +152,27 @@ internal static class FunctionValueLane
         // is an engine APPROXIMATION only when none of those arguments is a float ITEM's content (kb/Work PB4622, the one
         // predicate RenderNum asks too): ABS / MAX / FRACTION-PART / SUM ... over a float item return a value derived from the
         // item's exact binary64, which lands as the item does.
-        if (anyReal && IntrinsicArgumentRules.ArgumentRunIsAllNumeric(sig.Name, args.Count))
+        if (anyReal && sig.ArgumentRunAllNumeric)
             return IntrinsicCarrierRules.Binary64ResultIsApproximation(false, args.Any(a => a.Kind == CarrierKind.Real))
                 ? CarrierKind.ApproximateReal
                 : CarrierKind.Real;
         return CarrierKind.Fixed;
     }
+
+    /// <summary>The carrier an expression's value arrives on under native arithmetic, as this prediction reads it: what
+    /// <see cref="NumericLanes.LaneOf"/> reads of a function value (kb/Work PB5891 reviews R3-1, R5-2). A function whose SDIDI body returns a
+    /// whole exact value is the SDIDI here (<see cref="NativeSdidiBodiesWithWholeResult"/>); <c>NumericLanes.LaneOf</c> allows the exact
+    /// lanes beside it.</summary>
+    internal static NumericLane LaneOf(BoundExpr leaf) => LaneOf(leaf.Accept(ArgumentCarrier.Instance).Kind);
+
+    private static NumericLane LaneOf(CarrierKind kind) => kind switch
+    {
+        CarrierKind.Fixed => NumericLane.Scaled,
+        CarrierKind.Dec => NumericLane.Sdidi,
+        CarrierKind.Real => NumericLane.Binary64,
+        CarrierKind.ApproximateReal => NumericLane.Approximation,
+        _ => throw new InvalidOperationException($"no lane for the carrier {kind}"),
+    };
 
     /// <summary>The carrier of the value an SDIDI body returns (<c>RenderDec</c>'s arm for the function), as its consumer receives it: the
     /// SDIDI (also for <see cref="NativeSdidiBodiesWithWholeResult"/>, which lower to it), or an exact scale-0 value for
@@ -169,14 +183,14 @@ internal static class FunctionValueLane
     /// <summary>The argument as the renderer's intake (<c>IntrinsicRenderer.RawArg</c>) hands it to the lane predicates: at a
     /// §2023:15.3 type-6 (integer) position a binary64 or fractional fixed-point operand is already its INTEGER on the exact
     /// carrier, so it moves no call onto the float lane; an SDIDI operand stays on the SDIDI (as its integer).</summary>
-    private static Carrier AtPosition(string functionName, int position, Carrier argument) =>
+    private static Carrier AtPosition(IntrinsicCarrierFacts facts, int position, Carrier argument) =>
         argument.Kind != CarrierKind.Dec && !(argument.Kind == CarrierKind.Fixed && argument.Integral)
-            && IntrinsicArgumentRules.IsIntegerPosition(functionName, position)
+            && facts.IsIntegerPosition(position)
             ? Carrier.Exact(true)
             : argument;
 
     /// <summary>The call's RESOLVED type is Integer — the type the binder gave it (<see cref="BoundIntrinsicCall.ResultType"/>).</summary>
-    private static bool IsInteger(BoundIntrinsicCall call) => call.ResultType is IntrinsicType.Integer;
+    private static bool IsInteger(BoundIntrinsicCall call) => call.CarrierFacts.IntegerResult;
 
     /// <summary>The carrier a value is held on while the renderer evaluates an expression: the exact scaled
     /// <c>Int128</c>, the SDIDI, a binary64 that is a float ITEM's content, or a binary64 the engine produced as an
@@ -266,25 +280,21 @@ internal static class FunctionValueLane
             IntrinsicCarrierRules.AlignedOperand? bound = !item.StoreAsImage && pic.Category is PicCategory.Numeric
                 ? new IntrinsicCarrierRules.AlignedOperand(pic.UnscaledDigitBound, pic.Scale, tableAllOperand)
                 : null;
-            return Carrier.Exact(pic.ReceiverScale() == 0, bound);
+            // An integer BY VALUE (kb/Work PB5891 review R2-2): a P-scaled item, scale below 0, is one (NumericLanes.IsIntegerByValue).
+            return Carrier.Exact(NumericLanes.IsIntegerByValue(NumericLane.Scaled, pic.ReceiverScale()), bound);
         }
 
-        /// <summary><c>NumericRenderer.CombineCore</c> under NATIVE arithmetic: a binary64 that is the engine's own
-        /// approximation is lifted to the SDIDI beside operands that are not float ITEMS; an SDIDI operand takes the
-        /// operation onto the SDIDI unless a binary64 is also present (D16: the float lane keeps precedence).</summary>
-        private static Carrier Combine(Carrier left, char op, Carrier right)
-        {
-            bool floatItem = left.Kind == CarrierKind.Real || right.Kind == CarrierKind.Real;
-            if (!floatItem)
+        /// <summary><c>NumericRenderer.CombineCore</c> under NATIVE arithmetic, by the ONE lane rule both ask
+        /// (<see cref="NumericLanes.Combine"/>, kb/Work PB5891 review R1-3): a binary64 that is the engine's own approximation is
+        /// lifted to the SDIDI beside operands that are not float ITEMS; an SDIDI operand takes the operation onto the SDIDI unless a
+        /// binary64 is also present (D16: the float lane keeps precedence).</summary>
+        private static Carrier Combine(Carrier left, char op, Carrier right) =>
+            NumericLanes.Combine(LaneOf(left.Kind), LaneOf(right.Kind), floatReceiver: false, decimalEngine: false) switch
             {
-                if (left.Kind == CarrierKind.ApproximateReal) left = new Carrier(CarrierKind.Dec);
-                if (right.Kind == CarrierKind.ApproximateReal) right = new Carrier(CarrierKind.Dec);
-            }
-            if ((left.Kind == CarrierKind.Dec || right.Kind == CarrierKind.Dec) && !left.IsReal && !right.IsReal)
-                return new Carrier(CarrierKind.Dec);
-            if (left.IsReal || right.IsReal) return new Carrier(CarrierKind.Real);
-            return Carrier.Exact(left.Integral && right.Integral && op != '/');
-        }
+                NumericLane.Sdidi => new Carrier(CarrierKind.Dec),
+                NumericLane.Binary64 or NumericLane.Approximation => new Carrier(CarrierKind.Real),
+                _ => Carrier.Exact(left.Integral && right.Integral && op != '/'),
+            };
 
         /// <summary><c>NumericRenderer.Power</c> under NATIVE arithmetic: an exponentiation by an INTEGER with no binary64
         /// operand is exact and lands on the SDIDI (or its wide form, which the renderer settles onto the SDIDI as an

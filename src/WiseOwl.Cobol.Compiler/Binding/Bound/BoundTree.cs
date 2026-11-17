@@ -520,8 +520,21 @@ public sealed record BoundIntrinsicCall(
     public required ArithmeticMode Arithmetic
     {
         get => _arithmetic;
-        init { _arithmetic = value; _resultType ??= IntrinsicResultType.Resolve(Sig, Args, value); }
+        init
+        {
+            _arithmetic = value;
+            _resultType ??= IntrinsicResultType.Resolve(Sig, Args, value);
+            _carrierFacts ??= IntrinsicResultType.CarrierFacts(Sig, Args, _resultType.Value);
+        }
     }
+
+    /// <summary>⛔ THE CATALOG FACTS THAT DECIDE THE CALL'S CARRIER, DECIDED ONCE WITH ITS TYPE (kb/Work PB5891 review R5-2): the data the
+    /// bound layer's carrier prediction (<see cref="FunctionValueLane"/>) and lane rule (<see cref="NumericLanes.LaneOf"/>) read of a call,
+    /// from the arguments as written (a frozen argument's temporary keeps them, as it keeps <see cref="ResultType"/>).</summary>
+    internal IntrinsicCarrierFacts CarrierFacts => _carrierFacts
+        ?? throw new InvalidOperationException($"FUNCTION {Sig.Name} was bound without the arithmetic in force, so its carrier facts are undecided");
+
+    private readonly IntrinsicCarrierFacts? _carrierFacts;
 
     private readonly ArithmeticMode _arithmetic;
     private readonly IntrinsicType? _resultType;

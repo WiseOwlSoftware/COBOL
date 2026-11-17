@@ -1,0 +1,71 @@
+## Entry 3817 — 2026-11-17 01:48 PST — PB5891: the integer-argument classifier decides by a polynomial normal form, so N * (N + 1) / 2 is an integer argument
+
+**Re-probe.** The refuter's `fn_edge.cob` (slice 1985-247) was refused COBOL1627 at `--std 85` and `--std 2023` on main cdc9601608:
+`FACTORIAL (N * (N + 1) / 2)`, `MOD (N * (N + 1) / 2 4)`, `CHAR (N * (N - 1) / 2 + 65)` and `RANDOM (N * (N + 1) / 2)` over N PIC 99.
+Each argument is an integer for every N (a product of two consecutive integers is even), so §1989:A.2.2 AR4 and §2023:15.3 AR6
+admit it; the rule sets no method of proof. After the fix the program compiles at both editions and prints 720, +2, C and a RANDOM
+value (N = 3).
+
+**Root cause.** Since kb/Work PB5886 the type 6 screen failed closed but decided by the SHAPE of the terms: an integer term under a
+literal factor was an integer only when the factor was whole, so `N * (N + 1)` under 0.5 was refused, and an identity between
+numeric function terms (`SQRT (N) - SQRT (N) + 5`) was refused as recorded debt (kb/Work PB5889).
+
+**Fix (the ruling's design; docs/INTRINSICS_DESIGN.md, the type-6 intake, written first).** `IntrinsicArgumentRules.TypeSix.cs`
+builds the argument's value as a polynomial with rational coefficients in its atoms: a fixed-point item is 10^-scale times an integer
+atom keyed by its place; integer functions, index-names, counters and ODO extents are integer atoms; floating items and numeric
+functions are real atoms, which must cancel; a quotient by a nonzero literal is the product by its reciprocal, by anything else is
+refused. Two references are one atom only when they are the same pure term (`SameTerm`); the catalog's new `IntrinsicSig.ValueSource`
+column (held over every function by `IntrinsicValueSourceDriftTests`) keeps RANDOM, the clock functions, WHEN-COMPILED and the
+EXCEPTION- family from cancelling. Every intermediate must be exact (no real term, a quotient within the 14 guard digits, an integer
+on the binary64 lane, the significant digits of a standard arithmetic; an integer the arithmetic rounds becomes a fresh atom), and
+the polynomial must be integer-valued, decided exactly on the grid {0..d_i} of its degrees (`Polynomial.FractionDigits`; cap: degree
+12 per atom, 4096 points). `CollectAdditive`, `LinearSum` and `DigitBound` are deleted.
+
+**A sibling under-reject fixed with it.** `LinearSum` keyed an item by its description, so `T (1) - T (2)` over a scaled table
+cancelled and was admitted (it is 0.1 at T (1) = 0.1, T (2) = 0); atoms are keyed by place, and it is refused.
+
+**Tests.** Admitted: `pb5891_polynomial_integer_arguments` (85, 2014, 2023), `pb5891_standard_decimal_identity` (2014, 2023).
+Refused: `pb5891-not-integer-valued`, `-impure-identity`, `-degree-over-cap`, `-table-subscripts`. `pb5889-identity-difference` is
+retired (its program is now admitted); the refusal expectations of the PB5832 and PB5886 goldens follow the new reasons. Unit:
+`ArgumentPolynomialTests`, `IntrinsicValueSourceDriftTests`, the shape table of `IntrinsicTypeSixPowerShapesDriftTests` (15 new rows),
+`TypeSixWalkCoverageDriftTests` over `Build` and `SameTerm`. The NIST differential: 395 of 395 unchanged.
+
+**Rows.** 1985: the four PB5891 rows take the new witnesses (their stored reads are the campaign's to renew); `1989-AR-A.2.2-4` and
+2023 `AR-15.3-6` restated CONFORMS. kb/Work PB5889 keeps only the residue that is an integer by a function's meaning
+(`S2 - FUNCTION MAX (S2)`).
+
+**Review round 1.** R1-3 (a wrong answer): a cancelled numeric function moved the generated code onto the 34-digit SDIDI while the
+classifier assumed native exactness, so `MOD ((Y * 100 - (SQRT (N) - SQRT (N) + X * 10.25)) * 4, 1000)` printed 40 for 41. The lane of
+an operation is now one function, `NumericLanes.Combine`: `NumericRenderer.CombineCore` dispatches on it and the classifier bounds each
+intermediate by its precision; `NumericLaneDriftTests` holds the generated C#'s lane to the classifier's for 21 operand pairings, and the
+program is refused (`pb5891-sdidi-lane-identity`; its exact twin `pb5891_native_exact_lane` prints 0041). R1-1: places compare
+structurally through subscripts, so `T (I) * (T (I) + 1) / 2` is admitted and `T (I) * (T (J) + 1) / 2` refused. R1-2: the grid test runs
+only where it is read, memoized per polynomial (a 40-node argument: 15.5 s to 2.2 s).
+
+**Review round 2.** R2-2 (a wrong answer already on main): the exact power asked for a scale-0 exponent, so `3 ** U` over `U PIC 99P
+VALUE 40` took the binary64 approximation and stored 12157665459056929000 for 12157665459056928801 (`MOD (3 ** U, 1000)` gave 768 for
+801). The one question is now `NumericLanes.IsIntegerByValue` (scale 0 or below), asked by the renderer's exact power, the carrier
+prediction and the classifier; R2-1: `NumericRenderer.Power` dispatches on `NumericLanes.Power`, and the classifier refuses a power
+evaluated as a binary64 approximation. Cases `pb5891_p_scaled_exponent` and `pb5891_p_scaled_exponent_85`.
+
+**Review round 3.** R3-1 (a wrong answer): the classifier and the code generator still derived a power's exponent facts twice, so
+`1 ** (X * X)` over a 31-digit X was classified exact and rendered as a binary64 approximation (0040 for 41). The lane of every numeric
+node is now one pure function of the bound node, `NumericLanes.LaneOf(BoundExpr, LaneContext)`, memoized: the classifier checks every
+lane it allows, and the renderer asserts every rendered operation lies in it (an internal compiler error otherwise; the whole corpus
+ran with it armed). The wide-exponent form is refused (`pb5891-wide-exponent-power`); `1 ** (K * PZ)` at scale 0 is exact
+(`pb5891_scaled_product_exponent`). Making the function pure exposed a wrong answer already on main: a COMP-2 resultant took a
+function's argument onto binary64 (672 for 41); arguments now render without the resultant's floating-point facts
+(`pb5891_argument_float_receiver`).
+
+**Review round 4 and the gate's preflight.** The lane rule moved to the compiler.bound layer (`Binding/Bound/NumericLanes.cs`,
+`NumericLaneOf.cs`), which the binder and the code generator both read, so the code generator gains no dependency on the binder
+(`ArchitectureEdgesDriftTests`); a function value's carrier is the call's own fact, `BoundIntrinsicCall.ValueLane`, decided with its type.
+An argument is rendered and asserted at scale 0, the context the classifier reads. ARITHMETIC IS STANDARD-BINARY no longer crashes the
+classifier: the mode's own COBOL0806 is reported (`pb5891-standard-binary-argument`).
+
+**Review round 5.** Arguments are rendered at the receiver's scale again (rendering them at scale 0 changed printed values: `ABS (A / 3)`
+into PIC 9V9(17)); only an argument at a type 6 (integer) position drops the resultant's floating-point facts, so no other argument's
+value moves (`pb5891_argument_receiver_scale` prints main's values). The renderer asserts an argument in the context it uses; the
+classifier reads scale 0, never less exact (pinned by a unit test). The carrier prediction `FunctionValueLane` moved to the bound layer,
+reading a call's catalog facts as data (`IntrinsicCarrierFacts`, compiler.model) instead of through a forwarder.
+

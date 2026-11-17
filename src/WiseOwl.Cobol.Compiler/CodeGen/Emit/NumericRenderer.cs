@@ -116,6 +116,19 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <see cref="IntrinsicRenderer"/> (an intrinsic's working scale/mode derive from the SAME receiver).</summary>
     internal ReceiverContext Receiver => _rcv;
 
+    /// <summary>⛔ THE CONTEXT AN INTRINSIC FUNCTION'S ARGUMENT AT A TYPE 6 (INTEGER) POSITION IS EVALUATED IN (kb/Work PB5891 reviews R3-1,
+    /// R5-1; <c>IntrinsicRenderer.ReceiverFor</c>; every other argument keeps the statement's receiver): the statement's receiver
+    /// with none of its floating-point facts. An argument is an arithmetic expression of its own, evaluated "individually"
+    /// (§2023:8.4.3.2.4 GR2), whose value is the function's input and never the resultant's: a COMP-2 resultant took the argument of
+    /// <c>COMPUTE F = FUNCTION MOD ((Y * 100 - X * 10.25) * 4, 1000)</c> onto binary64 and stored 672 for 41. The receiver's SCALE is kept:
+    /// a nested quotient's working scale reads it (<c>CobolNum.NestedQuotientScale</c>), so <c>COMPUTE RR = FUNCTION ABS (A / 3)</c> into
+    /// PIC 9V9(17) keeps all 17 places (review R5-1; <c>pb5891_argument_receiver_scale</c>). <see cref="AssertLane"/> checks an argument's
+    /// nodes in THIS context; the type 6 classifier reads <see cref="LaneContext.Argument"/> (scale 0). A larger receiver scale only
+    /// widens a quotient's working scale, so a node the classifier sees on the Int128 lane may be wide here and an SDIDI operation beside
+    /// it exact here, never the reverse: the renderer's lane is never less exact than the classifier's
+    /// (<c>NumericLaneDriftTests.AnArgumentsLane_AtAReceiverScale_IsNeverLessExactThanAtScaleZero</c>).</summary>
+    internal ReceiverContext ArgumentReceiver => _rcv with { Real = false, FloatEdited = false, Single = false, FloatSignificandDigits = 0 };
+
     /// <summary>Whether the value now being rendered IS the value transferred to a single resultant identifier —
     /// <see cref="_outermost"/>, read by the mutually-recursive <see cref="IntrinsicRenderer"/> (kb/Work PB647:
     /// a float returned value's quantization is the final transfer's rounding exactly when this is true, and
@@ -385,7 +398,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         var l = n.Left.Accept(this);
         var r = n.Right.Accept(this);
         _outermost = outer;
-        return CombineCore(l, n.Op.ToString(), r);
+        return AssertLane(n, CombineCore(l, n.Op.ToString(), r), outer,
+            $"; its operands are rendered on {LaneOf(l)} (scale {l.Scale}, digits {l.Digits}) and {LaneOf(r)} (scale {r.Scale}, digits {r.Digits})");
     }
     // ⛔ EVERY recursion clears _outermost, not only BoundBinary's (kb/Work PB129 — GR-8.8.1.2-1): a division
     // under a unary minus, an exponent base, or a computed-operand wrapper is NOT the final transfer, so it
@@ -401,7 +415,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         _outermost = outer;
         // Under a standard mode an unsigned-wide operand is an SDIDI operand like any other (§2023:8.8.1.5.2 r1, kb/Work PB2966):
         // lifted by DecOperand's rounding twin, not narrowed through the native Widen funnel Negate applies.
-        return Negate(StandardDecimal && v.U ? new NumX(DecOperand(v), 0, Dec: true) : v);
+        return AssertLane(n, Negate(StandardDecimal && v.U ? new NumX(DecOperand(v), 0, Dec: true) : v), outer);
     }
     public NumX Visit(BoundPower n)
     {
@@ -410,14 +424,15 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         var b = IntegerValuedLiteral(n.Base) ?? n.Base.Accept(this);
         var e = IntegerValuedLiteral(n.Exp) ?? n.Exp.Accept(this);
         _outermost = outer;
-        return Power(b, e, IntegerLiteralValue(n.Exp), n.NegativeBaseRealRoots);
+        return AssertLane(n, Power(b, e, IntegerLiteralValue(n.Exp), n.NegativeBaseRealRoots), outer);
     }
 
     /// <summary>A numeric LITERAL whose algebraic VALUE is an integer the native carrier can hold, as a scale-0
     /// operand — whatever notation it was written in. <c>null</c> for anything else.
     /// <para>⛔ THE EXACT-INTEGER <c>**</c> ARM IS KEYED ON THE VALUE, NEVER ON THE SPELLING (kb/Work PB272).
-    /// <see cref="Power"/>'s exact arm asks <c>e.Scale == 0 &amp;&amp; !e.Dec &amp;&amp; !e.Real</c>, all three of
-    /// which are properties of how the operand was WRITTEN: <c>10 ** 30</c> took the exact Int128 power and
+    /// <see cref="Power"/>'s exact arm asked <c>e.Scale == 0 &amp;&amp; !e.Dec &amp;&amp; !e.Real</c>, all three of
+    /// which are properties of how the operand was WRITTEN (it now asks <see cref="NumericLanes.IsIntegerByValue"/>, an Int128-lane
+    /// carrier at scale 0 or below, so a P-scaled exponent item is an integer too, kb/Work PB5891 review R2-2): <c>10 ** 30</c> took the exact Int128 power and
     /// <c>10 ** 30.0</c> (scale 1) and <c>10 ** 3.0E+1</c> (a Dec since D-B, a Real before it) both dropped to the
     /// §2023:8.8.1.2 binary64 approximation — the same expression, three notations, and the answers differed from the
     /// 17th significant digit up. §2023:8.3.3.3.3 rule 5 makes a floating-point literal's value "the algebraic product
@@ -584,9 +599,15 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
                 ? RuntimeApi.FloatSending(RuntimeApi.NumParseImageFloat(image, item.ProfileName, binary32Carrier: false))
                 : RuntimeApi.NumParseImageFloat(image, item.ProfileName, binary32Carrier: false),
             0, Real: true, Approximate: item.HoldsApproximation),
+        // ⛔ A WINDOWED READ STATES THE ITEM'S DIGIT BOUND, AS A FIELD READ DOES (kb/Work PB5891 review R3-1): the value decoded from the
+        // image is the item's value, so its bound is the description's (PicInfo.UnscaledDigitBound), whether storage holds it as a field
+        // or as an image. The bound used to be dropped here, so a product's lane depended on a storage decision the expression's lane
+        // (NumericLanes.LaneOf, read before storage is laid out) cannot see.
         { IsUnsignedWideBinary: true } =>
-            new NumX(RuntimeApi.NumParseImageU128(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale, U: true),
-        _ => new NumX(RuntimeApi.NumParseImage(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale),
+            new NumX(RuntimeApi.NumParseImageU128(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale, U: true,
+                Digits: pic.Category is PicCategory.Numeric ? pic.UnscaledDigitBound : 0),
+        _ => new NumX(RuntimeApi.NumParseImage(image, item.ProfileName, sending.FixedPointChecked()), pic.Scale,
+            Digits: pic.Category is PicCategory.Numeric ? pic.UnscaledDigitBound : 0),
     };
 
     /// <summary>The context-free numeric read of a place (every branch of <see cref="FieldNum"/> except the
@@ -752,6 +773,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // the ISO text is silent, evaluates every intrinsic result as a decimal.
         // Every producer of an Approximate Real is IntrinsicRenderer.RenderFloatNative and Power's non-integer arm;
         // FloatItemLane is the ONE statement of "does a float operand own this lane".
+        // ⛔ THE LANE IS NumericLanes.Combine's ANSWER (kb/Work PB5891 review R1-3): the one rule the type 6 classifier bounds an
+        // intermediate's exactness by, so the screen and this dispatch cannot disagree on where an operation is evaluated. The arms
+        // below are the lane's forms (NumericLaneDriftTests holds every operand pairing to it).
+        var lane = NumericLanes.Combine(LaneOf(a), LaneOf(b), _rcv.Real, StandardDecimal);
         if (!StandardDecimal && !FloatItemLane(a, b))
         {
             a = LiftApproximation(a);
@@ -797,7 +822,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // digits under the INTERMEDIATE ROUNDING mode made `FUNCTION INTEGER (X) * FUNCTION INTEGER (Y) / 7 * 7` 2.000000
         // where `X * Y / 7 * 7` is 1.999999. A literal's notation does not change that rule either: `2.0E0 / 7 * 7` is
         // the same 1.999999.
-        if (StandardDecimal) return DecBinary(op, a, b);
+        if (lane == NumericLane.Sdidi && StandardDecimal) return DecBinary(op, a, b);
         // ⛔ AN EXACT WIDE INTERMEDIATE BESIDE AN SDIDI-CARRIED OPERAND KEEPS EVERY DIGIT (kb/Work PB4575; DOC-A.1-123). A nested
         // product past the Int128 carrier is exact on the wide form, and the sums, differences and products above it stay exact
         // (kb/Work PB1900) — but the wide form's scale is the compiler's and an SDIDI value's (a floating-point literal, a power,
@@ -811,14 +836,14 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // same carrier; a final-transfer quotient is the exact quotient of the exact values rounded once to 34 digits by round-to-odd
         // (ExactFinalQuotient, kb/Work PB4599), and a binary64 operation takes the value's image. A scaled Int128 operand beside an SDIDI one keeps the SDIDI lane: its digit bound is within the lane's
         // exact 38-digit operand and the 34-digit result is DOC-A.1-82's published lane determination (kb/Work PB274).
-        if (!a.Real && !b.Real && !_rcv.Real && (a.Exact || b.Exact || (a.Wide || b.Wide) && (a.Dec || b.Dec)))
+        if (lane == NumericLane.Exact && (a.Exact || b.Exact || a.Dec || b.Dec))
         {
             if (op is "+" or "-" or "*") return ExactBinary(op, a, b);
             if (op == "/") return NestedQuotient ? ExactQuotient(a, b) : ExactFinalQuotient(a, b, ctx.CurrentOptions.IntermediateRounding);
         }
         if (a.Exact) a = LowerWide(a);
         if (b.Exact) b = LowerWide(b);
-        if ((a.Dec || b.Dec) && !a.Real && !b.Real && !_rcv.Real)
+        if (lane != NumericLane.Binary64 && (a.Dec || b.Dec))
             return op == "/" && NestedQuotient
                 ? Divide(a, b)
                 : DecBinary(op, a, b);   // an UNSIGNED-WIDE operand enters here as it is: DecOperand rounds it (PB2966, below)
@@ -838,8 +863,42 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // single-precision operand widens exactly) — native COBOL float arithmetic is IEEE binary, never decimal
         // (§2023:8.8.1.3 implementor-defined; STANDARD-BINARY is obsolete, 2023 §2023:8.8.1.4.1 NOTE). +,-,*,/ are native
         // double ops.
-        if (a.Real || b.Real || _rcv.Real) return CombineReal(a, op, b);
+        if (lane == NumericLane.Binary64) return CombineReal(a, op, b);
         return CombineNative(a, op, b);
+    }
+
+    /// <summary>⛔ THE LANE A RENDERED VALUE IS HELD ON (kb/Work PB5891 review R1-3), the input of <see cref="NumericLanes.Combine"/>:
+    /// an engine's binary64 approximation, a float item's binary64, the SDIDI, a wide or run-time-scaled exact value, or the Int128
+    /// lane (an unsigned-wide operand enters it through <see cref="DeU"/>).</summary>
+    internal static NumericLane LaneOf(NumX x) =>
+        x.Real ? (x.Approximate ? NumericLane.Approximation : NumericLane.Binary64)
+        : x.Dec ? NumericLane.Sdidi
+        : x.Wide ? NumericLane.Wide
+        : x.Exact ? NumericLane.Exact
+        : NumericLane.Scaled;
+
+    /// <summary>The receiver facts the lane of an expression rendered now depends on (<see cref="LaneContext"/>).</summary>
+    private LaneContext CurrentLaneContext => new(ctx.CurrentOptions.Arithmetic, _rcv.Real, _rcv.Scale, _rcv.FloatEdited);
+
+    /// <summary>⛔ THE RENDERED CARRIER AGREES WITH THE NODE'S LANE, OR THE COMPILATION STOPS (kb/Work PB5891 review R3-1): the lane of
+    /// every numeric node is <see cref="NumericLanes.LaneOf"/>, the one function the type 6 classifier also reads, and a node the
+    /// renderer carries on a lane outside it is an internal compiler error in every build, so the whole conformance corpus is the drift
+    /// test of the two. Where the node's facts decide one Int128 or wide carrier, its scale and digit bound must agree as well (the
+    /// later lane decisions read them). A node that is a statement's final transfer (<c>_outermost</c>) lands at the receiver and is
+    /// not a lane of the expression.</summary>
+    private NumX AssertLane(BoundExpr node, NumX x, bool outermost, string operands = "")
+    {
+        if (outermost) return x;
+        var expected = NumericLanes.LaneOf(node, CurrentLaneContext);
+        var got = LaneOf(x);
+        bool agrees = expected.Lanes.Contains(got)
+            && (!expected.Known || got is not (NumericLane.Scaled or NumericLane.Wide) || (x.Scale == expected.Scale && x.Digits == expected.Digits));
+        return agrees ? x : throw new InvalidOperationException(
+            $"INTERNAL COMPILER ERROR (kb/Work PB5891 R3-1): a {node.GetType().Name} ({(node is BoundBinary b ? $"operator {b.Op}" : "its operation")}) is rendered on the {got} lane (scale {x.Scale}, "
+            + $"digits {x.Digits}), but its lane is {string.Join(" or ", expected.Lanes.Order())}"
+            + (expected.Known ? $" (scale {expected.Scale}, digits {expected.Digits})" : "") + operands
+            + " — NumericLanes.LaneOf and the renderer disagree");
+
     }
 
     /// <summary>One operation on the SDIDI lane at the program's INTERMEDIATE ROUNDING mode — the operands lifted by
@@ -1576,7 +1635,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // power lowered its other operand to the same image: once a wide value beside an SDIDI operand kept every digit (CombineCore's
         // exact arm, the exact relation), `(P) ** 1 - P` of a 39-digit P stored the image's residue (99001 for 0) and
         // `IF P ** 1 = P` was false. Any other base or exponent (a binary64, a non-integer exponent, a standard mode) is lowered.
-        if (StandardDecimal || !(b.Wide || b.Exact) || !IsIntegerCarrier(DeU(e))) b = LowerWide(b);
+        if (StandardDecimal || !(b.Wide || b.Exact) || !IsIntegerByValue(DeU(e))) b = LowerWide(b);
         // STANDARD / STANDARD-DECIMAL: exponentiation follows §2023:8.8.1.5.4 — an integer exponent evaluates by
         // repeated SDIDI multiplication (r2a–r2d exactly; r2e's implementor-defined form for larger integers,
         // every step per §2023:8.8.1.5.3), r3's reciprocal for a negative exponent, and the EC-SIZE-EXPONENTIATION
@@ -1595,8 +1654,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // ⛔ AN INTEGER EXPONENT OVER A FIXED-POINT OR EXACT BASE IS EXACT, AND THE RECEIVER PLAYS NO ROLE AT ALL (kb/Work PB18,
         // PB32, PB65, PB69, PB2617, PB4575, PB4569). §2023:8.8.1.3 leaves native evaluation to the implementor and the precedence follows
         // GnuCOBOL (CLAUDE.md rule 1), whose cob_decimal_pow raises a decimal to an integer exponent by an exact mpz_pow_ui with
-        // scale × n; binary64 is the approximation of a NON-integer exponent only. The test is the exponent's CARRIER (scale 0, no
-        // Dec/Real: an integer by construction). This arm used to leave the INTEGER base to a binary64 fallback past the Int128
+        // scale × n; binary64 is the approximation of a NON-integer exponent only. The test is the exponent's CARRIER, an integer BY
+        // VALUE (NumericLanes.IsIntegerByValue: the Int128 lane at scale 0 or below, so a P-scaled exponent item is one, kb/Work PB5891
+        // review R2-2), and the arm is NumericLanes.Power's answer (review R2-1), the one the type 6 classifier reads. This arm used to leave the INTEGER base to a binary64 fallback past the Int128
         // carrier (the owner's decision of 2026-08-03, NUMERIC_DESIGN D19 (a)), so `2 ** 130` kept 16 digits where `B65 * B65` kept
         // all 40 for the same value, and MOD, REM, INTEGER, SUM, a relation and a cancelling subtraction inherited the wrong operand
         // silently; the owner superseded it on 2026-11-04 ("Yes, exact"): ONE exact power for every base shape, so a function's value
@@ -1613,8 +1673,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         //     exact power at run time, reduced once to 34 digits by round-to-odd where lowered, the §2023:8.8.1.5.4 r3 reciprocal for a
         //     negative exponent and the §2023:8.8.1.2 rule-6 screen, written once.
         // The power's precision (the base's times a non-negative exponent, a reciprocal's own places) is carried by the value.
-        if (!b.Real && IsIntegerCarrier(e))
+        if (NumericLanes.Power(LaneOf(b), LaneOf(e), IsIntegerByValue(e), literalOne: false, decimalEngine: false)
+            is NumericLane.Exact or NumericLane.Scaled)
         {
+            // A P-scaled exponent enters at scale 0: its value, its unscaled digits times the power of ten (an exact widening).
+            e = new NumX(Align(e, 0), 0);
             if (literalExponent is { } n && n >= 1 && b.Digits > 0 && !b.Dec && !b.Exact
                 && (long)b.Digits * (long)n <= RuntimeApi.WideMaxDigits)
                 return n == 1
@@ -1669,9 +1732,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             $"{pow}, {landing.Scale}, {RuntimeApi.RoundingText(landing.Mode)}{CheckedFlag}"), landing.Scale);
     }
 
-    /// <summary>An operand that is an INTEGER BY ITS CARRIER: the scaled <see cref="Int128"/> lane at scale 0 (no SDIDI, binary64 or
-    /// exact intermediate, whose scale is not this one). <see cref="Power"/>'s exact arms key on it.</summary>
-    private static bool IsIntegerCarrier(NumX x) => !x.Real && !x.Dec && !x.Wide && !x.Exact && x.Scale == 0;
+    /// <summary>An operand that is an INTEGER BY ITS VALUE on the scaled <see cref="Int128"/> lane (no SDIDI, binary64 or exact
+    /// intermediate, whose scale is the run time's): <see cref="NumericLanes.IsIntegerByValue"/> over its lane and scale, the one
+    /// question <see cref="Power"/>'s exact arms and the type 6 classifier ask (kb/Work PB5891 review R2-1, R2-2).</summary>
+    private static bool IsIntegerByValue(NumX x) => NumericLanes.IsIntegerByValue(LaneOf(x), x.Scale);
 
     private static NumX Negate(NumX x) =>
         x.Real ? new NumX($"(-({Real(x)}))", 0, Real: true, Approximate: x.Approximate)
