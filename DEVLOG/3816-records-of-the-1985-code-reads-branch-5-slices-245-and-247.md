@@ -1,4 +1,4 @@
-## Records of the 1985 code reads, branch 5: slices 245 and 247 go on record, kb/Work PB5891 is filed, six rulings are applied
+## Entry 3816 — 2026-11-16 22:43 PST — Records of the 1985 code reads, branch 5: slices 245 and 247 go on record, kb/Work PB5891 is filed, six rulings are applied
 
 A records branch: no compiler or runtime source changed.
 
@@ -8,3 +8,4 @@ A records branch: no compiler or runtime source changed.
 - **Test comment** (the review lead R1-1 of PB5890): in `DeclarativesStructuralRulesTests.cs` the summary of `ReportProgram` is back above `ReportProgram`.
 - **Summary before and after**: 1985 0 GAP at both. Code reads, before: 1343 confirmed · 11 contradicted · 0 undecided · 0 stale · 1 KEPT owed; after: 1350 confirmed · 5 contradicted · 0 undecided · 0 stale · 0 KEPT owed. `plan --edition 1985` after: 0 KEPT owed a read, 0 owed a re-read.
 - No 2002 verdict was recorded.
+
