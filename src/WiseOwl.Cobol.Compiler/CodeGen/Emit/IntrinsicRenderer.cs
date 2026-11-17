@@ -160,6 +160,12 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // lowered to its 34-digit round-to-odd image, and ABS (BIG * BIG * K3) answered from the image (…100000 for …000999);
         // RenderWide evaluates the call on the same exact wide form the arithmetic statements keep (§2023:8.8.1.3, §2023:15.4.1, GnuCOBOL's
         // arbitrary-precision argument temporary by CLAUDE.md rule 1).
+        // ⛔ THE FAMILY OF THE CALL IS THE PREDICTION'S (kb/Work PB5893 review R3-1, the coordinator's ruling): FunctionValueLane.IsBinary64 is the
+        // one decider of whether the call is a binary64, in the context this render runs in, and NumericLanes.LaneOf reads the same answer.
+        // DOC-A.1-92b lives there: a binary64 argument makes the function binary64 even beside an argument that is on the SDIDI only because a
+        // floating-point receiver's argument keeps significance, which the SDIDI-argument arm below would otherwise take.
+        else if (FunctionValueLane.IsBinary64(ic, num.CurrentLaneContext))
+            return sig.Float ? RenderFloat(ic, sig.RuntimeMethod) : RenderFloat(ic, RealMethod(sig.RuntimeMethod));
         else if (RenderWide(ic) is { } wideExact)
             return wideExact;
         // ⛔ A CROSS-ALIGNING ARM WHOSE ALIGNED ARGUMENTS PROVABLY CANNOT STAY IN THE Int128 CARRIER TAKES THE SDIDI

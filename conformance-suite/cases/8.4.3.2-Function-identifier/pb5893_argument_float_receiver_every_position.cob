@@ -51,6 +51,12 @@
       *> 1) is 10/3 and ABS (- ABS (A / 3)) is 7/3, each landing in
       *> COMP-2 by truncation as the double just below it,
       *> 3.333333333333333 and 2.333333333333333.
+      *> A floating-point argument makes the function binary64
+      *> (DOC-A.1-92b), also beside a quotient that keeps significance
+      *> (review R3-1, R3-2): FH COMP-2 VALUE 0.5, so SUM (FH, A / 3)
+      *> is the binary64 0.5 + 2.3333333333333335 = 2.8333333333333335,
+      *> times 3 the binary64 8.5 (8.5 into COMP-2, +8.500E+00 into
+      *> PIC +9.999E+99).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5893A.
        DATA DIVISION.
@@ -69,6 +75,7 @@
        01  FS  PIC +9.999E+99.
        01  W2  PIC S99V99.
        01  A   PIC 9 VALUE 7.
+       01  FH  COMP-2 VALUE 0.5.
        PROCEDURE DIVISION.
        MAIN-PARA.
            COMPUTE F2 = FUNCTION REM ((Y * 100 - X * 10.25) * 4, 1000)
@@ -142,4 +149,8 @@
            DISPLAY "NEST1 " F2
            COMPUTE F2 = FUNCTION ABS (- FUNCTION ABS (A / 3))
            DISPLAY "NEST2 " F2
+           COMPUTE F2 = FUNCTION ABS (FUNCTION SUM (FH, A / 3) * 3)
+           DISPLAY "SUMF2 " F2
+           COMPUTE FS = FUNCTION ABS (FUNCTION SUM (FH, A / 3) * 3)
+           DISPLAY "SUMFE " FS
            STOP RUN.

@@ -787,7 +787,10 @@ lanes, and a quotient is the SDIDI's final quotient, 34 significant digits by ro
 a literal that divides exactly within the nested quotient's guard digits (`NumericLanes.QuotientIsFinal`,
 `TerminatesWithinGuardDigits`), which stays the exact nested quotient. The one rule is read by `LaneOf` (through `LaneContext`) and
 by the renderer's `NestedQuotient`, so the lane assertion holds; every arm of `LaneOf`, the call arm included, reads an argument in
-`LaneContext.ArgumentContext`, the bound twin of the renderer's argument context, and `ArgumentLaneSweepTests` compiles a generated
+`LaneContext.ArgumentContext`, the bound twin of the renderer's argument context. A call's family has one decider,
+`FunctionValueLane.IsBinary64`, which `RenderNum` and `LaneOf` both read: DOC-A.1-92b is stated there, so a binary64 argument makes
+the call binary64 also beside a value that is on the SDIDI only because it keeps significance (`ABS (SUM (FG, A / 3) * 3)` is the
+binary64 8.5, kb/Work PB5893 review R3-1). `ArgumentLaneSweepTests` compiles a generated
 grammar of argument shapes under every receiver kind to hold it. A fixed working scale (the first form of this fix) cut `1 / T` at
 T = 3E24 to 3.333333E-25 and `1 / C / C` over an 18-digit C to 0. An argument at a type 6 (integer) position keeps the nested
 quotient the type 6 classifier proved exact. The function's value then lands by the ordinary rules: an exact value in a binary64

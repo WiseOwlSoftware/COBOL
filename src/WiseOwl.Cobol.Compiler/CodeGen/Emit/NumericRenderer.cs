@@ -897,7 +897,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         : NumericLane.Scaled;
 
     /// <summary>The receiver facts the lane of an expression rendered now depends on (<see cref="LaneContext"/>).</summary>
-    private LaneContext CurrentLaneContext =>
+    internal LaneContext CurrentLaneContext =>
         new(ctx.CurrentOptions.Arithmetic, _rcv.Real, _rcv.Scale, _rcv.FloatEdited, _rcv.KeepsSignificance);
 
     /// <summary>⛔ THE RENDERED CARRIER AGREES WITH THE NODE'S LANE, OR THE COMPILATION STOPS (kb/Work PB5891 review R3-1): the lane of

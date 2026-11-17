@@ -43,10 +43,22 @@ rules.
 landing rule is unchanged). So `COMPUTE F2 = FUNCTION ABS (A / 3)` prints 2.333333333333333, the double just below 7/3, as main's own
 `COMPUTE F2 = R` does for the same exact value (`pb5891_argument_receiver_scale` line 15; kb/Work PB5893's dated evidence file).
 
-**Every printed difference from main** over five probes is listed in kb/Work PB5893's landed file:
+**One decider of a call's family** (review R3-1, the coordinator's ruling).
+- `FunctionValueLane` reads a call's arguments in the renderer's argument context, and DOC-A.1-92b is stated there
+  (`FunctionValueLane.IsBinary64`): a binary64 argument makes the call binary64, also beside a value that is on the SDIDI only because it
+  keeps significance.
+- `IntrinsicRenderer.RenderNum` takes the float lane exactly when that predicate says so, and `LaneOf` reads the same prediction.
+- Before it, `ABS (SUM (FG, A / 3) * 3)` into COMP-2 stopped on the lane assertion where main prints 8.5. Into a floating-point edited
+  item it stopped on main too (R3-2). Both print 8.5 now.
+- The renderer taking the family of a binary or negation node from `LaneOf` was tried and reverted. It moved the run-time binary64
+  marks of kb/Work PB4891, PB4923 and PB4753 (and PB4975's golden), and made NIST IF120A an internal compiler error. It is reported
+  for a ruling.
+
+**Every printed difference from main** over every review probe is listed in kb/Work PB5893's landed file, each with its kind:
 - the fix's values;
-- nine values closer to the exact one (EXP, SIN, VARIANCE, STANDARD-DEVIATION, RANGE, REM (X / 3, 7) = 3 for main's 6, among them);
-- six that are the double just below the exact value, by the truncation ruling.
+- values closer to the exact one (EXP, SIN, VARIANCE, STANDARD-DEVIATION, RANGE, REM (X / 3, 7) = 3 for main's 6, among them);
+- values that are the double just below the exact value, by the truncation ruling;
+- compiles that failed on main.
 
 **A sibling of PB5892 (rejects legal source).** The STOP and GOBACK status operand (§2023:14.9.42.3 SR2, §2023:14.9.18.3 SR6) asked
 `Scale: 0` for "an integer data item", so `STOP RUN WITH NORMAL STATUS U` over U PIC 99P COMP was refused COBOL1704. It asks
