@@ -1585,31 +1585,6 @@ internal static class IntrinsicArgumentRules
             : null;
 
     /// <summary>
-    /// Why this operand cannot satisfy a §2023:15.3 <b>type 6 (Integer)</b> position, or <see langword="null"/>.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// §2023:15.3 type 6: "An arithmetic expression that will always result in an integer value or an integer data
-    /// item shall be specified." (`--check`ed.) Two shapes are PROVABLY outside that, and only those two are
-    /// rejected here — everything else fails open, because the position also admits any arithmetic expression
-    /// whose result is always integral and no screen can enumerate those.
-    /// </para>
-    /// <para>
-    /// ⛔ <b>THE FUNCTION ARM IS NOT A VALUE JUDGEMENT, AND THAT IS WHY IT CANNOT OVER-REJECT.</b>
-    /// §2023:8.4.3.2.3 SR11: "A numeric function shall not be specified where an integer operand is required, EVEN
-    /// THOUGH A PARTICULAR REFERENCE OF THE NUMERIC FUNCTION MIGHT YIELD AN INTEGER VALUE." The standard settles
-    /// it on the function's TYPE — so a nested call resolving to §15.x.1's Numeric row is inadmissible outright,
-    /// with no question of "but this one is integral". That is the opposite of the fail-open reasoning the class
-    /// arms need, and it is the standard's own choice, not this screen's.
-    /// </para>
-    /// <para>
-    /// ⚠ WHAT MUST KEEP COMPILING, and the trap that makes the narrow form necessary:
-    /// <c>FUNCTION CHAR(W-I + 1)</c> over an unscaled item is an arithmetic expression that always results in an
-    /// integer, which type 6 admits in as many words. A screen written as "reject unless PROVABLY an integer"
-    /// would refuse it — the PB1 failure mode, arrived at from the opposite direction.
-    /// </para>
-    /// </remarks>
-    /// <summary>
     /// ⛔ THE ONE PRIMITIVE behind every §2023:15.3 type 6 screen: the reason this ITEM's DESCRIPTION admits a value
     /// that is not an integer, or <see langword="null"/> when the description admits only integers (kb/Work
     /// PB248). Every §2023:15.3 type-6 site reads THIS — the bare-operand arm of <see cref="IntegerViolation"/>, the
@@ -1665,6 +1640,24 @@ internal static class IntrinsicArgumentRules
     /// <see cref="NonIntegralItemReason"/>, for the expression walks that need the predicate without the prose.</summary>
     private static bool AdmitsNonIntegralValue(PicInfo? pic) => NonIntegralItemReason(pic) is not null;
 
+    /// <summary>
+    /// Why this operand cannot satisfy a §2023:15.3 <b>type 6 (Integer)</b> position, or <see langword="null"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// §2023:15.3 AR6: "An arithmetic expression that will always result in an integer value or an integer data item shall be
+    /// specified"; §1989:A.2.2 AR4 at COBOL-85: "An arithmetic expression which will always result in an integer value must be
+    /// specified" (both cite.py --check OK). Four operand shapes: a nested numeric function, a data item, a numeric literal and an
+    /// arithmetic expression. The expression arm FAILS CLOSED (kb/Work PB5886, <see cref="NotAlwaysIntegral"/>): it admits what it
+    /// shows to be an integer for every valuation, so <c>FUNCTION CHAR(W-I + 1)</c> over an unscaled item stays legal and
+    /// <c>FUNCTION FACTORIAL(FUNCTION ORD(A) / 2)</c> is refused.
+    /// </para>
+    /// <para>
+    /// ⛔ <b>THE FUNCTION ARM IS NOT A VALUE JUDGEMENT.</b> §2023:8.4.3.2.3 SR11: "A numeric function shall not be specified where an
+    /// integer operand is required, even though a particular reference of the numeric function might yield an integer value." The
+    /// standard settles it on the function's TYPE, and the expression arm judges a function TERM the same way.
+    /// </para>
+    /// </remarks>
     public static string? IntegerViolation(BoundOperand op) => op switch
     {
         // §2023:8.4.3.2.3 SR11 — a NUMERIC function, whatever this reference would evaluate to.
@@ -1684,13 +1677,8 @@ internal static class IntrinsicArgumentRules
         BoundNumericLiteral lit when HasNonIntegralValue(lit.Text) =>
             $"is the numeric literal {lit.Text}, whose value is not an integer — ISO §2023:15.3 type 6 requires an "
             + "integer data item, an integer literal, or an always-integral arithmetic expression",
-        // §2023:15.3 type 6's EXPRESSION alternative — the two PROVABLY not-always-integral shapes (kb/Work PB124,
-        // AR-15.3-6's remaining half). Soundness is the whole design: an arm may fire only when a witness
-        // VALUATION yielding a non-integer provably exists, and the counterexample zoo that keeps everything
-        // else fail-open is real legal source — `(I / 2) * 2` and `I / I` are always-integral, `362880 / D9`
-        // is integral for every 1-digit divisor, `SCALED * 100` cancels its scale, `SCALED - SCALED` nets to
-        // zero. Hence: only a BARE-item/LITERAL quotient at the ROOT (arm in NotAlwaysIntegral), and only a
-        // scale>0 item appearing PURELY as additive leaves with an uncancelled net coefficient.
+        // §2023:15.3 type 6's EXPRESSION alternative, FAIL CLOSED (kb/Work PB5886): admitted only when NotAlwaysIntegral shows the
+        // expression is an integer for every valuation; its doc states what that covers.
         BoundComputedOperand { Expr: { } expr } when NotAlwaysIntegral(expr) is { } why => why,
         _ => null,
     };
@@ -1740,481 +1728,192 @@ internal static class IntrinsicArgumentRules
         _ => null,
     };
 
-    /// <summary>The provably-not-always-integral screen for §2023:15.3 type 6's expression alternative (kb/Work
-    /// PB124). Returns the violation text, or null to FAIL OPEN — see the arm's comment for the soundness
-    /// obligations and the counterexamples that bound it.</summary>
+    /// <summary>⛔ THE TYPE 6 SCREEN OF AN ARITHMETIC-EXPRESSION ARGUMENT FAILS CLOSED (kb/Work PB5886): the reason the expression is
+    /// not SHOWN to result in an integer for every valuation of the items it references, or null when it is.
+    /// <para>§2023:15.3 AR6: "An arithmetic expression that will always result in an integer value or an integer data item shall be
+    /// specified"; §1989:A.2.2 AR4: "An arithmetic expression which will always result in an integer value must be specified" (both
+    /// cite.py --check OK). The requirement is on the PROGRAM, so an expression the compiler cannot show to be always integral is not one
+    /// it may admit. The screen this replaced refused only where it could name a valuation with a non-integer value and admitted every
+    /// other shape; COBOL-85 has no EC-ARGUMENT-FUNCTION run-time check, so <c>FUNCTION FACTORIAL (FUNCTION ORD (A) / 2)</c> compiled
+    /// there and returned 33! for 33.5 (kb/Work PB5886, after PB124, PB617, PB5208, PB5345 and PB5832 had each added another witness).</para>
+    /// <para>What the screen SHOWS, and so admits (the dispatching session's ruling on PB5886, owner-delegated):</para>
+    /// <list type="bullet">
+    /// <item>an INTEGER TERM: an integer literal, an integer data item, an integer function (by the function's own type, §2023:15.2 5,
+    /// never by this reference's value, as §2023:8.4.3.2.3 SR11 judges a numeric function), a counter register, an index-name, and a
+    /// sum, difference, product or negation of integer terms, or an integer term to a non-negative integer power
+    /// (<see cref="ProvablyIntegral"/>);</item>
+    /// <item>a quotient only where both operands are literals whose quotient is an integer the arithmetic keeps exactly (the literal
+    /// fold, <see cref="QuotientsAreExact"/>); a quotient with any other operand is not an integer term, whatever its divisor;</item>
+    /// <item>a sum of items under LITERAL FACTORS whose net coefficient the items' granularity makes whole: a product by a literal is
+    /// exact in decimal arithmetic, so <c>S * 10</c> over <c>S PIC 9V9</c> and <c>WN * 0.5 + WN * 0.5</c> always result in an integer
+    /// (<see cref="CollectAdditive"/>).</item>
+    /// </list>
+    /// Everything else is refused: a numeric function term, a quotient over an item or a function, a power the rules above do not cover, a
+    /// fixed-point item whose net coefficient leaves a fraction, a floating-point item with a nonzero coefficient and a non-integral
+    /// constant. The verdict is the same at every edition (the requirement is the same in both texts).</summary>
     private static string? NotAlwaysIntegral(BoundExpr expr)
     {
-        // ⛔ A QUOTIENT OR PRODUCT BY A LITERAL IS A SCALING OF THE SPINE, NOT A SPECIAL ROOT SHAPE (kb/Work PB5832). The root arm that stood
-        // here refused only `item / literal` at the root of the argument, so `FACTORIAL (WN * 0.5)`, `MOD (WN / 2 + 1, 3)` and
-        // `FACTORIAL (WN / 2 * 3)` compiled and were truncated at COBOL-85, which has no EC-ARGUMENT-FUNCTION run-time net
-        // (§1989:A.2.2 AR4). CollectAdditive now reads `E * c` and `E / c` (c an exact literal fold) as E under a rational factor, so the
-        // item's net coefficient is a rational and the granularity test below is the same decision for every such shape: an item of scale s
-        // holds every multiple of 10^(−s) its digits allow, so a net coefficient k makes k × 10^(−s) the step between consecutive values,
-        // and the sum is an integer for every valuation iff that step is an integer (for s > 0 never when the coefficient is 1; for a P-scaled
-        // or integer item iff the divisor divides 10^(−s)). A FLOATING-POINT item is finer than any fixed granularity (§2023:14.6.8.3), so
-        // any nonzero coefficient is a witness (kb/Work PB248).
-        // An additive spine (+, −, unary −) carrying a scale>0 item PURELY as its own leaves, with a net
-        // coefficient the item's granularity does not cancel (10^scale ∤ net): value every other leaf at any
-        // constant and step the item by 10^(−scale) — consecutive results are less than 1 apart, so a
-        // non-integer value exists. An occurrence inside a NON-additive subtree voids the witness (the subtree
-        // moves with the item — `SCALED - (SCALED * 1)` nets to zero through it), so such items are skipped.
-        // ⛔ TWO READINGS OF A SIGNED FUNCTION ABS (kb/Work PB4796): FUNCTION ABS of a signed item X is X where X is not negative
-        // and - X where it is negative (§2023:15.7.4 1) a) and b)), and the witness needs ONE valuation region, so the spine is walked
-        // once with every signed ABS read as the item (the non-negative region) and, when it held one, once more read as the
-        // item's negation (the non-positive region): `G2 - FUNCTION ABS (G2)` over a signed G2 nets to 0 in the first and to
-        // 2 * G2 in the second, which is not an integer for a negative G2, so the screen refuses it. An unsigned item has the
-        // first region only, where ABS is the item in both.
-        var spine = new AdditiveSpine(negativeRegime: false);
-        CollectAdditive(expr, ExactRational.One, spine);
-        if (ItemWitness(spine) is { } itemWhy) return itemWhy;
-        if (spine.SawSignedAbs)
+        var sum = new LinearSum();
+        if (CollectAdditive(expr, ExactRational.One, sum) is { } termWhy) return termWhy;
+        foreach (var (item, (coeff, scale, isFloat)) in sum.Items)
         {
-            var negativeRegime = new AdditiveSpine(negativeRegime: true);
-            CollectAdditive(expr, ExactRational.One, negativeRegime);
-            if (ItemWitness(negativeRegime) is { } negativeWhy) return negativeWhy;
-        }
-        // THE CONSTANT WITNESS (kb/Work PB617). Every surviving item term is integral — an integer item, or a
-        // scaled item whose net coefficient its granularity cancels (in each region a signed ABS reads in), or a float netting
-        // to zero — so when every OTHER term is provably integral too (RestIntegral), the expression's value is the literal
-        // constant plus an integer for EVERY valuation: it is never an integer when the constant is not one. `1.5 + 1` (2.5)
-        // and `W-I + 0.5` are refused on that VALUE, while `1.5 + 0.5` (2) and `3 - 1` are admitted — the
-        // question is the sum, never the presence of a fraction in some literal. A term the fold cannot value
-        // and cannot prove integral (a numeric function, a quotient over an item) clears RestIntegral: FAIL OPEN.
-        // ⛔ The claim is "never" only when every term was read for EVERY valuation: a FUNCTION ABS of a sum is read as the sum on the
-        // valuations where the items are not negative (spine.AbsOfSum), and the message then says so (kb/Work PB4796 review R2-2).
-        if (spine.RestIntegral && spine.WitnessTerms == 0 && !spine.Constant.IsInteger)
-            return $"is an arithmetic expression whose literal terms sum to {spine.Constant} and whose "
-                + (spine.AbsOfSum ? "other terms always sum to an integer wherever the items are not negative, so its value is not an integer there"
-                    : spine.SawSignedAbs ? "other terms always sum to an integer, so its value is never an integer"
-                    : "every other term is an integer, so its value is never an integer")
-                + " — ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in an integer value";
-        // THE WITNESS TERM (kb/Work PB5208, PB5345, PB5832): exactly one term with a witness valuation (a power, an item quotient, a numeric
-        // function: <see cref="WitnessOf"/>), and every other term an integer for EVERY valuation (an integral constant, items whose net
-        // coefficient the granularity cancels - ItemWitness found none -, nothing opaque but the term's own items), so the sum is a non-integer
-        // plus an integer at the witness. A signed ABS reads two ways: fail open.
-        if (spine is { WitnessTerms: 1, RestIntegral: true, SawSignedAbs: false, AbsOfSum: false } && spine.Constant.IsInteger
-            && spine.Net.Values.All(term => term.Coeff.Sign == 0)) return spine.WitnessWhy;
-        return null;
-    }
-
-    /// <summary>⛔ THE POWER ARM OF THE TYPE 6 SCREEN (kb/Work PB5208, PB5345; §2023:15.3 type 6 and §1989:A.2.2 AR4: "An arithmetic
-    /// expression which will always result in an integer value must be specified"). <see cref="ProvablyIntegral"/> already knows a
-    /// power is integral when its exponent is a non-negative integer literal; this is the other half, the shapes with a WITNESS
-    /// valuation, so the screen refuses them as it refuses <c>N / 2</c> instead of failing open. <see cref="CollectAdditive"/> reaches
-    /// it, so a power at the root, under a negation, or one term of a sum whose other terms are all integral is read here. A BASE is
-    /// one of two shapes (through negations, |−X| ** e = |X| ** e up to sign):
-    /// <list type="bullet">
-    /// <item>a bare numeric data item: it can hold v = 3 × 10^(−s). A literal exponent that is a negative integer −k gives
-    /// v^(−k) = 10^(sk) / 3^k, never an integer, since 3^k does not divide a power of ten; a literal exponent that is not an integer,
-    /// p/q in lowest terms with q &gt; 1, gives a v^(p/q) whose q-th power 3^p × 10^(−sp) has a power of 3 that q does not divide, so it
-    /// is not even rational;</item>
-    /// <item>an integer literal c with |c| ≥ 2: c ** −m (m ≠ 0) is 1 / c^m, never an integer, and c ** t for a positive t below 1
-    /// lies between 1 and c, an integer only when c is a perfect power of the matching degree (<see cref="IsPerfectPower"/>).</item>
-    /// </list>
-    /// An EXPONENT that is a numeric data item can be negative when it is signed or written under an odd number of negations, and a
-    /// non-integer when its description admits one. When it is the SAME item as the base item, base and exponent move together:
-    /// v = 2 under a negated exponent, or v = −2 of a signed item, is (±2) ** −2 = ±1/4, and an item with fraction digits at
-    /// v = 10^(−s) is v ** v, strictly between 0 and 1.
-    /// <para>⛔ THE FAIL-OPEN SHAPES ARE RECORDED, NOT FORGOTTEN (the power-shape table of <c>IntrinsicTypeSixPowerShapesDriftTests</c>): a
-    /// base that is an expression (<c>(N − N + 1) ** −1</c> is 1), a power under a product (<c>(N ** −1) * 2520</c> is an integer
-    /// for every 1-digit N), a literal base whose fraction exponent item holds only integer roots, a tied negated base at a fraction (no
-    /// real value) and a sum of two powers (<c>N ** −1 − N ** −1</c> is 0).</para></summary>
-    private static string? PowerWitness(BoundPower pw)
-    {
-        DataItem? baseItem = BareNumericItem(pw.Base)?.Place.Item;
-        System.Numerics.BigInteger? literalBase = baseItem is null && ExactValue(pw.Base) is { IsInteger: true } bv
-            && System.Numerics.BigInteger.Abs(bv.Numerator) >= 2 ? bv.Numerator : null;
-        if (baseItem is null && literalBase is null) return null;
-        string subject = baseItem is not null ? $"the data item '{baseItem.CobolName}'" : $"the literal {literalBase}";
-        string why;
-        if (ExactValue(pw.Exp) is { } e)
-        {
-            if (e.IsInteger && e.Sign >= 0) return null;   // ProvablyIntegral's arm: N ** 2 is always an integer
-            if (literalBase is { } lc && !e.IsInteger)
-            {
-                // ExactValue folds a power only for an integer exponent, so a fraction exponent on a literal base is read here (§2023:15.3
-                // AR6): c ** (p/q), p/q in lowest terms, is an integer only for p > 0 and c a perfect q-th power; a negative c has no real value.
-                if (lc.Sign < 0 || e.Sign > 0 && IsPerfectRoot(lc, e.Denominator)) return null;
-            }
-            // A literal base to an integer exponent within MaxFoldedExponent never reaches here (the fold values it); beyond it, c ** -m is 1/c^m.
-            why = e.IsInteger ? $"to the negative power {e}" : $"to the power {e}, which is not an integer";
-        }
-        else
-        {
-            if (!TryBareNumericItem(pw.Exp, out var expRef, out bool negated)
-                || expRef.Place.DescribedItem is not { IsGroup: false, Pic: { Category: PicCategory.Numeric } ep } expItem)
-                return null;
-            bool canBeNegative = ep.Signed || negated, canBeFraction = AdmitsNonIntegralValue(ep);
-            // The item holds a value of magnitude 2 (or 2 × 10^k under P scaling): it has a digit position left of the radix point.
-            bool holdsInteger = ep.IsFloat || ep.Digits - ep.Scale >= 1;
-            string signWord = ep.Signed ? "signed" : "negated";
-            if (baseItem is not null && ReferenceEquals(expItem, baseItem))
-            {
-                // A negated BASE at a fraction is a negative number to a fractional power, which is no real value: fail open.
-                TryBareNumericItem(pw.Base, out _, out bool baseNegated);
-                if (canBeNegative && holdsInteger) why = $"to the power of itself, which at the value that makes the exponent −2 ({signWord}) is ±1/4";
-                else if (!negated && !baseNegated && canBeFraction) why = "to the power of itself, which has digits to the right of the decimal point";
-                else return null;
-            }
-            else if (literalBase is { } c)
-            {
-                if (canBeNegative && (c.Sign > 0 || holdsInteger))
-                    why = $"to the power of the {signWord} data item '{expItem.CobolName}'";
-                else if (c.Sign > 0 && !negated && canBeFraction && (ep.IsFloat || !IsPerfectPower(c, ep.Scale)))
-                    why = $"to the power of the data item '{expItem.CobolName}', which has digits to the right of the decimal point";
-                else return null;
-            }
-            else
-            {
-                if (!canBeNegative && !canBeFraction) return null;            // an unsigned integer exponent: N ** M is always an integer
-                why = canBeNegative
-                    ? $"to the power of the {signWord} data item '{expItem.CobolName}'"
-                    : $"to the power of the data item '{expItem.CobolName}', which has digits to the right of the decimal point";
-            }
-        }
-        return $"raises {subject} {why}, so its value is not always an integer — ISO "
-            + "§2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in an integer value";
-    }
-
-    /// <summary>Is <paramref name="c"/> (at least 2) the 10^<paramref name="scale"/>-th power of an integer, so that an exponent item
-    /// whose least positive value is 10^(−scale) gives <c>c ** t</c> an integer at t = 10^(−scale)? <paramref name="scale"/> is
-    /// positive: the caller asks it of an item with fraction digits. A c below 2 ** 10^scale has a root between 1 and 2.</summary>
-    private static bool IsPerfectPower(System.Numerics.BigInteger c, int scale) => IsPerfectRoot(c, System.Numerics.BigInteger.Pow(10, scale));
-
-    /// <summary>Is <paramref name="c"/> (at least 2) the <paramref name="degree"/>-th power of an integer? A c below
-    /// 2 ** degree has a root between 1 and 2, so a degree of at least its bit length answers false without a search.</summary>
-    private static bool IsPerfectRoot(System.Numerics.BigInteger c, System.Numerics.BigInteger degreeBig)
-    {
-        long bits = (long)c.GetBitLength();
-        if (degreeBig >= bits) return false;   // c < 2 ** degree
-        int degree = (int)degreeBig;
-        System.Numerics.BigInteger lo = 2, hi = System.Numerics.BigInteger.One << (int)(bits / degree + 1);
-        while (lo <= hi)
-        {
-            var mid = (lo + hi) / 2;
-            int cmp = System.Numerics.BigInteger.Pow(mid, degree).CompareTo(c);
-            if (cmp == 0) return true;
-            if (cmp < 0) lo = mid + 1; else hi = mid - 1;
-        }
-        return false;
-    }
-
-    /// <summary>The §2023:15.3 type 6 item witness over a walked spine: the first item whose net coefficient its granularity does
-    /// not cancel, as the violation text, or null (see <see cref="NotAlwaysIntegral"/> for the argument).</summary>
-    private static string? ItemWitness(AdditiveSpine spine)
-    {
-        foreach (var (item, (coeff, scale, isFloat, opaque)) in spine.Net)
-        {
-            if (opaque || coeff.Sign == 0) continue;
-            // ⛔ THE FLOAT WITNESS NEEDS NO GRANULARITY TEST, and applying the fixed-point one to it would
-            // disarm the arm entirely (kb/Work PB248): a float item's PicInfo carries Scale 0, so
-            // its step is 1 and every integral coefficient would pass. Its value set is
-            // finer than any decimal granularity — for a net coefficient c ≠ 0 pick the leaf value 10^−k (or
-            // 2^−k for a binary float) with 10^k > |c|, hold every other leaf at zero, and c·10^−k is not an
-            // integer — so a nonzero net coefficient IS the witness.
-            // A fixed-point item of scale s steps by 10^(−s) (a negative s is a P-scaled item), so the net coefficient c makes the
-            // sum step by c × 10^(−s): an integer for every valuation iff that product is one (kb/Work PB5832: c is a rational now).
-            bool witness = isFloat || !(coeff * ExactRational.FromScaled(1, -scale)).IsInteger;
-            if (!witness) continue;
+            if (coeff.Sign == 0) continue;
+            // A fixed-point item of scale s holds every multiple of 10^(−s) its digits allow, so a net coefficient c moves the sum by
+            // c × 10^(−s) between neighbouring values: an integer for every valuation iff that step is whole (a negative s is a P-scaled
+            // item). A floating-point item is finer than any decimal step (§2023:14.6.8.3, kb/Work PB248), so a nonzero c never is.
+            if (!isFloat && (coeff * ExactRational.FromScaled(1, -scale)).IsInteger) continue;
             return $"is an arithmetic expression whose term '{item.CobolName}' "
                 + (isFloat ? "is a floating-point numeric data item"
                     : coeff.IsInteger ? "has digits to the right of the decimal point"
-                    : $"is multiplied or divided by a literal to the net factor {coeff}, which the item's granularity does not make a whole number")
-                + ", so the sum does not always result in an integer value — ISO §2023:15.3 "
-                + "type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in one";
+                    : $"is multiplied by a literal to the net factor {coeff}, which the item's granularity does not make a whole number")
+                + ", so the sum does not always result in an integer value — " + TypeSixExpressionRule;
         }
+        if (!sum.Constant.IsInteger)
+            return $"is an arithmetic expression whose literal terms sum to {sum.Constant} and whose every other term is an integer, "
+                + "so its value is never an integer — " + TypeSixExpressionRule;
         return null;
     }
 
-    /// <summary>What <see cref="CollectAdditive"/> learns about an additive spine (+, −, unary −): the signed leaf
-    /// count of every item whose DESCRIPTION admits a non-integral value, the exact signed sum of the terms the
-    /// literal fold can value (<see cref="ExactValue"/>), and whether every remaining term is provably an
-    /// integer. <paramref name="negativeRegime"/> is the valuation region a signed FUNCTION ABS is read in: false, every
-    /// item not negative (ABS is the item); true, every signed item not positive (ABS is its negation).</summary>
-    private sealed class AdditiveSpine(bool negativeRegime)
+    /// <summary>The rule every type 6 expression refusal cites.</summary>
+    private const string TypeSixExpressionRule =
+        "ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in an integer value";
+
+    /// <summary>What <see cref="CollectAdditive"/> learns about an argument: the net coefficient of every numeric data item that is a
+    /// term of the sum (a rational, the product of the signs and literal factors on its path), and the exact sum of its literal terms.
+    /// Every other term has already been shown to be an integer term under a whole factor, so it adds an integer.</summary>
+    private sealed class LinearSum
     {
-        public readonly Dictionary<DataItem, (ExactRational Coeff, int Scale, bool Float, bool Opaque)> Net = new();
+        public readonly Dictionary<DataItem, (ExactRational Coeff, int Scale, bool Float)> Items = new();
         public ExactRational Constant = ExactRational.Zero;
-        public bool RestIntegral = true;
-        public bool NegativeRegime => negativeRegime;
-        /// <summary>A term that is neither an item of <see cref="Net"/> nor an exact constant (an integer item, a function): the
-        /// spine is not a plain sum of those two.</summary>
-        public bool Residue;
-        /// <summary>A FUNCTION ABS of a signed item whose reading depends on the region was met: the walk is repeated in the other.</summary>
-        public bool SawSignedAbs;
-        /// <summary>A FUNCTION ABS of a sum was read as the sum, which holds where the items are not negative only.</summary>
-        public bool AbsOfSum;
-        /// <summary>The witness text of a witness term (<see cref="WitnessOf"/>: a power, an item quotient, a numeric function) and how
-        /// many such terms the spine has. One term over an otherwise integral sum is a witness (a non-integer plus an integer is no
-        /// integer); two may cancel (<c>N ** -1 - N ** -1</c>).</summary>
-        public string? WitnessWhy;
-        public int WitnessTerms;
     }
 
-    /// <summary>Walk an additive spine, accumulating the net coefficient — a RATIONAL, the product of the signs and the literal factors
-    /// on the path (<paramref name="factor"/>) — of every item whose DESCRIPTION admits a non-integral value
-    /// (<see cref="NonIntegralItemReason"/> — a scale&gt;0 item OR a floating-point one), or of any numeric item a non-integral
-    /// factor reaches, and the exact sum of its literal-only terms; any occurrence under a non-additive node marks the item
-    /// OPAQUE (the witness argument no longer holds for it) and — unless that node is provably integral — voids
-    /// the constant witness. A product or quotient by an exact literal fold is NOT non-additive (kb/Work PB5832): it scales the spine.</summary>
-    private static void CollectAdditive(BoundExpr e, ExactRational factor, AdditiveSpine spine)
+    /// <summary>Walk the argument as a sum of terms under literal factors (<paramref name="factor"/>, a rational), recording each numeric
+    /// item's net coefficient and each literal term in <paramref name="sum"/>; the reason the first term that is neither of those nor an
+    /// integer term under a whole factor makes the expression not shown integral, or null (see <see cref="NotAlwaysIntegral"/>).</summary>
+    private static string? CollectAdditive(BoundExpr e, ExactRational factor, LinearSum sum)
     {
+        // A LITERAL-ONLY SUBTREE is a constant term at its exact fold — trusted as a VALUE only when the arithmetic stores every quotient
+        // in it exactly (kb/Work PB4758: `1 / 3 * 3` folds to 1 and the arithmetic stores 0.9999).
+        if (ExactValue(e) is { } constant)
+        {
+            if (!QuotientsAreExact(e)) return InexactLiteralWhy(constant);
+            sum.Constant += factor * constant;
+            return null;
+        }
         switch (e)
         {
             case BoundBinary { Op: '+' } b:
-                CollectAdditive(b.Left, factor, spine); CollectAdditive(b.Right, factor, spine); break;
+                return CollectAdditive(b.Left, factor, sum) ?? CollectAdditive(b.Right, factor, sum);
             case BoundBinary { Op: '-' } b:
-                CollectAdditive(b.Left, factor, spine); CollectAdditive(b.Right, -factor, spine); break;
+                return CollectAdditive(b.Left, factor, sum) ?? CollectAdditive(b.Right, -factor, sum);
             case BoundNegate n:
-                CollectAdditive(n.Operand, -factor, spine); break;
-            // ⛔ A PRODUCT OR QUOTIENT BY AN EXACT LITERAL SCALES THE SPINE (kb/Work PB5832, §1989:A.2.2 AR4 and §2023:15.3 type 6). `E * c` and
-            // `c * E` are E under the factor c, `E / c` is E under 1/c (c is not 0: the zero divide is another screen's business), and the
-            // sum stays linear in every leaf, so the net coefficient of an item and the granularity argument of ItemWitness hold. A zero
-            // factor makes the term the constant 0. (A quotient STORES a finite number of digits at run time, so `WN / 3 * 3` nets to WN here
-            // and is admitted: the screen fails open, it never refuses on a value the arithmetic cannot show.)
-            case BoundBinary { Op: '*', Left: var mulLeft, Right: var mulRight } when ExactValue(e) is null
-                && (ExactValue(mulLeft) is not null || ExactValue(mulRight) is not null):
-                if (ExactValue(mulLeft) is { } leftFactor) { if (leftFactor.Sign != 0) CollectAdditive(mulRight, factor * leftFactor, spine); }
-                else if (ExactValue(mulRight) is { Sign: not 0 } rightFactor) CollectAdditive(mulLeft, factor * rightFactor, spine);
-                break;
-            case BoundBinary { Op: '/', Left: var dividend, Right: var divisorExpr } when ExactValue(e) is null
-                && ExactValue(divisorExpr) is { Sign: not 0 } divisor:
-                CollectAdditive(dividend, factor / divisor, spine); break;
-            case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { } p } and { } it }
-                when AdmitsNonIntegralValue(p) || (!factor.IsInteger && p is { Category: PicCategory.Numeric, Usage: not Usage.Index }):
-                // An INTEGER item reached by a non-integral factor is a leaf of the Net too, and still no constant: the sign of an integer
-                // item is unknown to IsNeverNegativeWhereItemsAreNot, which asks for Residue.
-                if (!AdmitsNonIntegralValue(p)) spine.Residue = true;
-                spine.Net[it] = spine.Net.TryGetValue(it, out var v)
-                    ? (v.Coeff + factor, p.Scale, p.IsFloat, v.Opaque) : (factor, p.Scale, p.IsFloat, false);
-                break;
-            // ⛔ A CALL WHOSE VALUE IS A TERM OF THE SPINE IS READ AS THAT TERM (kb/Work PB4757, PB4795, PB4796). The walk below marks
-            // every item beneath a call opaque, which keeps `G2 - FUNCTION ABS (G2 + 0)` from being refused where it is legal but let
-            // `G2 + FUNCTION ABS (G2)` and `S2 + FUNCTION MAX (S2)` slip past the screen, although each is 2 × the item on the
-            // valuations the call reads as its argument. `ReadCall` names the calls whose value IS an expression of the spine
-            // and the valuations it holds on; the leaf arm then counts the items and the witness argument stands.
-            case BoundIntrinsicCall call when ReadCall(call, spine) is var (term, negated) && term is not null:
-                CollectAdditive(term, negated ? -factor : factor, spine); break;
-            // A TERM WITH A WITNESS VALUATION is a term whose own value is not always an integer (kb/Work PB5345, PB5832): it is neither a
-            // constant nor an item of the Net, and the verdict on it waits for the other terms (the end of NotAlwaysIntegral).
-            case BoundPower or BoundBinary { Op: '/' or '*' } or BoundIntrinsicCall when ExactValue(e) is null && WitnessOf(e, factor) is { } witnessWhy:
-                spine.Residue = true;   // a witness term is no constant and no item of the Net (IsNeverNegativeWhereItemsAreNot's "no other term")
-                spine.WitnessWhy ??= witnessWhy;
-                spine.WitnessTerms++;
-                // The items beneath it move with the term, so a leaf of the same item elsewhere is no free step (the default arm's reason).
-                MarkOpaque(e, spine);
-                break;
-            default:
-                if (ExactValue(e) is { } constant)
-                    spine.Constant += factor * constant;
-                else
-                {
-                    spine.Residue = true;
-                    // A term is an integer for every valuation only when it is provably integral AND its factor is a whole number: half of an
-                    // integer product is no integer (`FUNCTION LENGTH (X) * 0.5` — the factor is the product's literal, kb/Work PB5832).
-                    if (!factor.IsInteger || !ProvablyIntegral(e))
-                    {
-                        spine.RestIntegral = false;
-                        MarkOpaque(e, spine);
-                    }
-                }
-                break;
-        }
-    }
-
-    /// <summary>Every item beneath <paramref name="e"/> moves with a term the spine cannot read, so its additive witness no longer
-    /// holds: the Net records it OPAQUE (a fresh entry carries a zero coefficient).</summary>
-    private static void MarkOpaque(BoundExpr e, AdditiveSpine spine)
-    {
-        foreach (var it in NumericItemsBeneath(e))
-            spine.Net[it.Item] = spine.Net.TryGetValue(it.Item, out var prior)
-                ? (prior.Coeff, it.Scale, it.Float, true) : (ExactRational.Zero, it.Scale, it.Float, true);
-    }
-
-    /// <summary>The numeric functions whose value at a bare numeric item holding TWO granules is not an integer, and the proof: the item
-    /// holds 2 × 10^(−s) for a scale s ≥ 0, which is 2 itself or a rational 2 × 10^m with m &lt; 0, an algebraic number other than 0 and 1.
-    /// SQRT of it is irrational (2^(s+1) × 5^s is no perfect square, the exponents of 2 and 5 differing by one); LOG and LOG10 are
-    /// irrational, and EXP, SIN, COS, TAN and ATAN transcendental, at a nonzero algebraic argument (Lindemann–Weierstrass, and
-    /// Gelfond–Schneider for the logarithms). The list is a recorded fail-open complement, not a catalogue of the Numeric row: a function
-    /// not named here (MEAN, MEDIAN, ANNUITY, RANDOM …) may take an integer value at every item valuation, so its term is opaque
-    /// (kb/Work PB5832).</summary>
-    private static readonly string[] NonIntegerAtTwoGranules = ["SQRT", "LOG", "LOG10", "EXP", "SIN", "COS", "TAN", "ATAN"];
-
-    /// <summary>The multiples of its least value the divisor item of a quotient of two items is valued at (<see cref="WitnessOf"/>): 3 and
-    /// 7 are the primes a one-digit item can hold, so a coefficient that makes the quotient whole at one of them (a multiple of 3) fails at the other.</summary>
-    private static readonly int[] QuotientWitnessDivisors = [3, 7];
-
-    /// <summary>The witness text of a term of the spine whose own value is not always an integer (kb/Work PB5345, PB5832), or null when the
-    /// term has no witness the screen can prove. <paramref name="factor"/> is the term's coefficient in the sum.
-    /// <list type="bullet">
-    /// <item>A power: <see cref="PowerWitness"/>, only at a unit coefficient (<c>(N ** -1) * 2520</c> is an integer for every 1-digit N).</item>
-    /// <item>A quotient of two numeric data items that cannot share storage (<see cref="StorageOverlap"/>) and are not the same item:
-    /// A holds one granule and B holds three or seven, so the quotient is 10^(sb−sa) / 3 or / 7 times the coefficient, and the sum is not an
-    /// integer when either is not. <c>A / B</c> of two independent 1-digit items is 1/3 at A = 1, B = 3 (<c>MOD (A / B, 3)</c>).</item>
-    /// <item>A call of <see cref="NonIntegerAtTwoGranules"/> over a bare numeric item of scale ≥ 0, at the valuation where the item holds
-    /// two granules; a nonzero rational times an irrational is no integer.</item>
-    /// </list></summary>
-    private static string? WitnessOf(BoundExpr e, ExactRational factor)
-    {
-        switch (e)
-        {
+                return CollectAdditive(n.Operand, -factor, sum);
+            // A PRODUCT BY A LITERAL scales the term (kb/Work PB5832): `E * c` and `c * E` are E under the factor c, and decimal
+            // multiplication is exact, so the item's net coefficient stays the whole story. A zero factor makes the term the constant 0.
+            case BoundBinary { Op: '*', Left: var left, Right: var right } when ExactValue(left) is not null || ExactValue(right) is not null:
+            {
+                var (literal, other) = ExactValue(left) is not null ? (left, right) : (right, left);
+                if (!QuotientsAreExact(literal)) return InexactLiteralWhy(ExactValue(literal)!.Value);
+                var k = ExactValue(literal)!.Value;
+                return k.Sign == 0 ? null : CollectAdditive(other, factor * k, sum);
+            }
+            // A PRODUCT OF TWO TERMS NEITHER OF WHICH IS A LITERAL is an integer term when each factor is shown integral on its own and its
+            // coefficient is whole: half of an integer product is no integer (`A * B * 0.5` at A = B = 1).
+            case BoundBinary { Op: '*', Left: var left, Right: var right }:
+                return NotAlwaysIntegral(left) ?? NotAlwaysIntegral(right) ?? FractionalFactorWhy(e, factor);
+            // ⛔ A QUOTIENT THE FOLD DID NOT TAKE (an operand that is not a literal, or a zero divisor) IS NOT AN INTEGER TERM (kb/Work
+            // PB5886): its value moves with its operands and the screen does not show it whole, whatever the divisor.
+            case BoundBinary { Op: '/', Left: var dividend, Right: var divisor }:
+                return $"is an arithmetic expression that divides {TermText(dividend)} by {TermText(divisor)}; a quotient is an integer "
+                    + "term only when both operands are literals whose quotient is an integer, so the expression is not shown to "
+                    + "always result in an integer value — " + TypeSixExpressionRule;
             case BoundPower pw:
-                return factor.IsInteger && System.Numerics.BigInteger.Abs(factor.Numerator).IsOne ? PowerWitness(pw) : null;
-            case BoundBinary { Op: '/', Left: var left, Right: var right }:
-            {
-                if (BareNumericItem(left) is not { Place: { } pa } || BareNumericItem(right) is not { Place: { } pb }
-                    || pa.DescribedItem is not { Pic: { } picA } || pb.DescribedItem is not { Pic: { } picB }
-                    || ReferenceEquals(pa.Item, pb.Item) || StorageOverlap.MayShareStorage(pa, pb))
-                    return null;
-                // The quotient at A = one granule 10^(−sa) and B = one granule 10^(−sb), times the factor; B holds 3 or 7 of them as well.
-                var ratio = factor * ExactRational.FromScaled(1, picB.Scale - picA.Scale);
-                foreach (int divisor in QuotientWitnessDivisors)
-                    if (!(ratio / ExactRational.FromScaled(divisor, 0)).IsInteger)
-                        return $"is an arithmetic expression that divides data item '{pa.Item.CobolName}' by data item '{pb.Item.CobolName}', "
-                            + $"so with the first at its least value and the second at {divisor} times its least value the quotient is not an integer, and the sum "
-                            + "does not always result in an integer value — ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in one";
+                return NotAlwaysIntegral(pw.Base)
+                    ?? (IsNonNegativeIntegerExponent(pw.Exp) ? FractionalFactorWhy(e, factor)
+                        : $"is an arithmetic expression that raises {TermText(pw.Base)} to the power {TermText(pw.Exp)}, which is not a "
+                          + "non-negative integer literal or an unsigned integer data item, so its value is not shown to be an integer — "
+                          + TypeSixExpressionRule);
+            case BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } and { } item }:
+                sum.Items[item] = sum.Items.TryGetValue(item, out var prior)
+                    ? (prior.Coeff + factor, p.Scale, p.IsFloat) : (factor, p.Scale, p.IsFloat);
                 return null;
-            }
-            case BoundBinary { Op: '*', Left: var factorLeft, Right: var factorRight }:
-            {
-                // A product of two numeric items: both at one granule, the product is 10^(−(sa+sb)), times the coefficient. A sum that is
-                // not an integer there is no integer for every valuation (kb/Work PB5832, review R1-1: `A * B * 0.5`, `MOD (A * B / 2, 3)`).
-                if (BareNumericItem(factorLeft) is not { Place: { } pl } || BareNumericItem(factorRight) is not { Place: { } pr }
-                    || GranuleScale(pl) is not { } scaleL || GranuleScale(pr) is not { } scaleR
-                    || (!ReferenceEquals(pl.Item, pr.Item) && StorageOverlap.MayShareStorage(pl, pr)))
-                    return null;
-                if ((factor * ExactRational.FromScaled(1, -(scaleL + scaleR))).IsInteger) return null;
-                return $"is an arithmetic expression that multiplies data item '{pl.Item.CobolName}' by data item '{pr.Item.CobolName}' under the coefficient {factor}, "
-                    + "so with both at their least value the product is not an integer, and the sum does not always result in an integer value — "
-                    + "ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in one";
-            }
-            case BoundIntrinsicCall { ResultType: IntrinsicType.Numeric, Args.Count: >= 2 } meanCall
-                when CobolNames.Same(meanCall.Sig.Name, "MEAN") || (CobolNames.Same(meanCall.Sig.Name, "MEDIAN") && meanCall.Args.Count == 2):
-                return MeanWitness(meanCall, factor);
-            case BoundIntrinsicCall { ResultType: IntrinsicType.Numeric, Args: [var argument] } call
-                when NonIntegerAtTwoGranules.Any(name => CobolNames.Same(call.Sig.Name, name))
-                    && argument is not BoundFieldOperand { Place: TableAllPlace }
-                    && ValueOfArgument(argument) is { } inner
-                    && TryBareNumericItem(inner, out var arg, out bool negated) && !negated
-                    && arg.Place.DescribedItem is { Pic: { Usage: not Usage.Index, Scale: >= 0 } }:
-                return $"is an arithmetic expression with the term FUNCTION {call.Sig.Name} ({arg.Place.Item.CobolName}), a numeric function whose value is not an "
-                    + $"integer when '{arg.Place.Item.CobolName}' holds two times its least value, so the sum does not always result in an integer value — "
-                    + "ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in one";
+            // ⛔ A FUNCTION TERM IS JUDGED BY THE FUNCTION'S OWN TYPE (kb/Work PB5886): an integer function is an integer term
+            // (ProvablyIntegral below), and any other is not, even where a particular reference yields an integer value — the standard's
+            // own reading of a numeric function where an integer is required (§2023:8.4.3.2.3 SR11; §1989:A.2.3 GR2 at COBOL-85).
+            case BoundIntrinsicCall { ResultType: not IntrinsicType.Integer } call:
+                return $"is an arithmetic expression with the term {TermText(call)}, a numeric function, whose value is not an integer "
+                    + "term by the function's type, so the expression is not shown to always result in an integer value — "
+                    + TypeSixExpressionRule;
+            // The windows that carry a user function's activations hold the expression they evaluate.
+            case BoundUdfEvaluatedExpr udf:
+                return CollectAdditive(udf.Inner, factor, sum);
+            // An operand already refused where it was bound: its site reported the rule it breaks.
+            case BoundExprError:
+                return null;
             default:
-                return null;
+                return ProvablyIntegral(e) ? FractionalFactorWhy(e, factor)
+                    : $"is an arithmetic expression with {TermText(e)}, a term that is not shown to be an integer, so the expression is "
+                      + "not shown to always result in an integer value — " + TypeSixExpressionRule;
         }
     }
 
-    /// <summary>The scale of the fixed-point numeric item a place is (its least value is 10^(−scale)), or null for an index, a floating-point
-    /// or a non-numeric item.</summary>
-    private static int? GranuleScale(Place place) =>
-        place.DescribedItem is { IsGroup: false, Pic: { Category: PicCategory.Numeric, Usage: not Usage.Index, IsFloat: false } p } ? p.Scale : null;
+    /// <summary>Null when an integer term <paramref name="e"/> stands under a whole <paramref name="factor"/>; otherwise the reason the
+    /// product is not an integer for every valuation (an integer times a fraction is one only for some values).</summary>
+    private static string? FractionalFactorWhy(BoundExpr e, ExactRational factor) => factor.IsInteger ? null
+        : $"is an arithmetic expression whose term {TermText(e)} is an integer under the net factor {factor}, which is not a whole "
+          + "number, so the sum does not always result in an integer value — " + TypeSixExpressionRule;
 
-    /// <summary>The witness of MEAN, or MEDIAN of two values, over two or more arguments that are numeric items (distinct items sharing no
-    /// storage) and exact literals: both are the sum of the arguments over their count n, §2023:15.60.4 RV1 c) and §2023:15.61.4 RV2
-    /// (two values: the mean of the two middle values). An item occurring m times steps the sum by m × 10^(−scale) when it moves one granule,
-    /// so the term steps by coefficient × m × 10^(−scale) / n; the others stay fixed. A step that is no integer means both valuations
-    /// cannot give an integer. Any other argument shape fails open (kb/Work PB5832, review R1-1: <c>FUNCTION MEAN (N, 0)</c>).</summary>
-    private static string? MeanWitness(BoundIntrinsicCall call, ExactRational factor)
+    /// <summary>The reason a literal term whose exact value the arithmetic does not store is refused (kb/Work PB4758).</summary>
+    private static string InexactLiteralWhy(ExactRational value) =>
+        $"is an arithmetic expression with a literal quotient of the exact value {value}, which the arithmetic does not store exactly, "
+        + "so the value it computes is not shown to be an integer — " + TypeSixExpressionRule;
+
+    /// <summary>Is the exponent a non-negative integer for every valuation: a literal fold that is a non-negative integer the arithmetic
+    /// keeps exactly, or an unsigned integer data item? An integer base to such a power is an integer.</summary>
+    private static bool IsNonNegativeIntegerExponent(BoundExpr exponent) => exponent switch
     {
-        var multiplicity = new List<(Place Place, int Scale, int Count)>();
-        foreach (var argument in call.Args)
-        {
-            if (argument is BoundFieldOperand { Place: TableAllPlace } || ValueOfArgument(argument) is not { } value) return null;
-            if (ExactValue(value) is not null) continue;
-            if (BareNumericItem(value) is not { Place: { } place } || GranuleScale(place) is not { } scale) return null;
-            int at = multiplicity.FindIndex(m => ReferenceEquals(m.Place.Item, place.Item));
-            if (at >= 0) multiplicity[at] = (multiplicity[at].Place, scale, multiplicity[at].Count + 1);
-            else
-            {
-                if (multiplicity.Any(m => StorageOverlap.MayShareStorage(m.Place, place))) return null;
-                multiplicity.Add((place, scale, 1));
-            }
-        }
-        foreach (var (place, scale, count) in multiplicity)
-            if (!(factor * ExactRational.FromScaled(count, -scale) / ExactRational.FromScaled(call.Args.Count, 0)).IsInteger)
-                return $"is an arithmetic expression with the term FUNCTION {call.Sig.Name}, the sum of {call.Args.Count} arguments over {call.Args.Count}, whose value "
-                    + $"steps by a non-integer when '{place.Item.CobolName}' moves one least value, so the sum does not always result in an integer value — "
-                    + "ISO §2023:15.3 type 6 (at COBOL-85 §1989:A.2.2 AR4) admits an arithmetic expression only when it ALWAYS results in one";
-        return null;
-    }
-
-    /// <summary>The functions whose value with ONE argument is that argument (the equivalent arithmetic expression for one
-    /// occurrence of argument-1: MAX §2023:15.59.4 1) and MIN §2023:15.63.4 1) "the content of the argument-1 having the greatest (least)
-    /// value", SUM §2023:15.88.4 1) a), MEAN §2023:15.60.4 1) a) and MEDIAN §2023:15.61.4 1) "(argument-1)", MIDRANGE §2023:15.62.4 1)
-    /// "((FUNCTION MAX (argument-list) + FUNCTION MIN (argument-list)) / 2)" of one value). A table(ALL) argument is many occurrences, so it is no identity.</summary>
-    private static readonly string[] OneArgumentIdentities = ["MAX", "MIN", "SUM", "MEAN", "MEDIAN", "MIDRANGE"];
-
-    /// <summary>The expression a call reads as in an additive spine on the valuations of the walk's region, with whether it reads as
-    /// the NEGATION of that expression; a null term for every call that reads as no expression of the spine.
-    /// <list type="bullet">
-    /// <item>A one-argument identity (<see cref="OneArgumentIdentities"/>) is its argument on every valuation.</item>
-    /// <item>FUNCTION ABS of a bare (parenthesized, negated) numeric data item is the item where the item is not negative, §2023:15.7.4 1) a)
-    /// "(argument-1)", and its negation where it is, b) "(- (argument-1))". An unsigned item is never negative; a signed item
-    /// reads as the item in the walk of the non-negative region and as its negation in the other
-    /// (<see cref="AdditiveSpine.SawSignedAbs"/> asks for that second walk).</item>
-    /// <item>FUNCTION ABS of a sum that cannot be negative where every item is not negative (a non-negative constant over items of
-    /// non-negative coefficients) is that sum in the non-negative region (<see cref="AdditiveSpine.AbsOfSum"/>). Any other
-    /// argument leaves the call opaque: the sign of a difference depends on the valuation, and one valuation region per item is
-    /// all a witness gets.</item>
-    /// </list></summary>
-    private static (BoundExpr? Term, bool Negated) ReadCall(BoundIntrinsicCall call, AdditiveSpine spine)
-    {
-        if (call.Args is not [var argument] || argument is BoundFieldOperand { Place: TableAllPlace }
-            || ValueOfArgument(argument) is not { } inner)
-            return (null, false);
-        if (OneArgumentIdentities.Any(name => CobolNames.Same(call.Sig.Name, name))) return (inner, false);
-        if (!CobolNames.Same(call.Sig.Name, "ABS")) return (null, false);
-        if (BareNumericItem(inner) is { } item)
-        {
-            if (item.Place.Item?.Pic is not { Signed: true } pic || !AdmitsNonIntegralValue(pic)) return (item, false);
-            spine.SawSignedAbs = true;
-            return (item, spine.NegativeRegime);
-        }
-        if (spine.NegativeRegime || !IsNeverNegativeWhereItemsAreNot(inner)) return (null, false);
-        // A literal-only argument has no items: its value holds on every valuation, so the message keeps its plain wording (R1-3).
-        if (ExactValue(inner) is null) spine.AbsOfSum = true;
-        return (inner, false);
-    }
-
-    /// <summary>The expression an intrinsic argument stands for: the data item, the arithmetic expression or the literal; null for
-    /// every other operand.</summary>
-    private static BoundExpr? ValueOfArgument(BoundOperand argument) => argument switch
-    {
-        BoundFieldOperand f => new BoundNumRef(f.Place),
-        BoundComputedOperand c => c.Expr,
-        BoundNumericLiteral l => new BoundNumLiteral(l.Text),
-        _ => null,
+        _ when ExactValue(exponent) is { } v => v is { IsInteger: true, Sign: >= 0 } && QuotientsAreExact(exponent),
+        BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Signed: false } p } } => !AdmitsNonIntegralValue(p),
+        _ => false,
     };
 
-    /// <summary>The numeric data item an expression is, through negations (|- X| = |X|); null for anything else.</summary>
-    private static BoundNumRef? BareNumericItem(BoundExpr x) => TryBareNumericItem(x, out var item, out _) ? item : null;
-
-    /// <summary><see cref="BareNumericItem"/> with the PARITY of the negations it looked through: <paramref name="negated"/> is true under an odd number.</summary>
-    private static bool TryBareNumericItem(BoundExpr x, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out BoundNumRef? item, out bool negated)
+    /// <summary>A term as a diagnostic names it: a data item or a literal by kind, anything else as written (<see cref="ExprText"/>).</summary>
+    private static string TermText(BoundExpr e) => e switch
     {
-        negated = false;
-        while (x is BoundNegate n) { negated = !negated; x = n.Operand; }
-        item = x as BoundNumRef;
-        return x is BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic.Category: PicCategory.Numeric } };
-    }
+        BoundNumRef { Place.Item: { } item } => $"data item '{item.CobolName}'",
+        _ when ExactValue(e) is { } v => $"the literal {v}",
+        BoundIntrinsicCall => ExprText(e),
+        _ => $"({ExprText(e)})",
+    };
 
-    /// <summary>Is the sum a plain sum of items and exact constants that is not negative when every item is not negative: a
-    /// non-negative constant and a non-negative coefficient on each item (<c>S2 + 1</c>, <c>S2 + S3</c>), nothing opaque and no
-    /// other term (an integer item or a function may be negative)?</summary>
-    private static bool IsNeverNegativeWhereItemsAreNot(BoundExpr sum)
+    /// <summary>An arithmetic expression in COBOL notation for a diagnostic, every operation parenthesized but the outermost; an
+    /// argument of a nested call that is not an item or a literal prints as "...".</summary>
+    private static string ExprText(BoundExpr e) => e switch
     {
-        var probe = new AdditiveSpine(negativeRegime: false);
-        CollectAdditive(sum, ExactRational.One, probe);
-        return !probe.Residue && probe.Constant.Sign >= 0 && probe.Net.Values.All(term => term is { Coeff.Sign: >= 0, Opaque: false });
-    }
+        BoundNumRef { Place.Item: { } item } => item.CobolName,
+        BoundNumLiteral l => l.Text,
+        BoundIntrinsicCall call => $"FUNCTION {call.Sig.Name}" + (call.Args.Count == 0 ? ""
+            : " (" + string.Join(", ", call.Args.Select(a => a switch
+            {
+                BoundFieldOperand { Place.Item: { } item } => item.CobolName,
+                BoundNumericLiteral l => l.Text,
+                _ => "...",
+            })) + ")"),
+        BoundBinary b => $"{OperandText(b.Left)} {b.Op} {OperandText(b.Right)}",
+        BoundNegate n => $"- {OperandText(n.Operand)}",
+        BoundPower pw => $"{OperandText(pw.Base)} ** {OperandText(pw.Exp)}",
+        _ => "...",
+    };
 
-    /// <summary>Is <paramref name="e"/> an integer for EVERY valuation of the items it references? Sound, not
-    /// complete: true only for a literal fold with an integral value, an item whose description admits only
-    /// integers, an integer-type function-identifier, and +, −, ×, unary − and a non-negative integral literal power
-    /// over such terms. A quotient over an item, a numeric function and every other shape answer false — the caller
-    /// then fails open.
+    private static string OperandText(BoundExpr e) => e is BoundBinary or BoundNegate or BoundPower ? $"({ExprText(e)})" : ExprText(e);
+
+    /// <summary>Is <paramref name="e"/> an INTEGER TERM — an integer for EVERY valuation of the items it references, by its structure?
+    /// True for a literal fold with an integral value the arithmetic keeps exactly, an item whose description admits only integers, an
+    /// integer-type function-identifier, a counter register, an index-name, a report VARYING counter and the run-time extent of an
+    /// OCCURS DEPENDING table (each a scale-0 integer by its definition), and +, −, ×, unary − over such terms and such a term to a
+    /// non-negative integer power (<see cref="IsNonNegativeIntegerExponent"/>). A quotient over an item, a numeric function and every
+    /// other shape answer false. The type 6 screen (<see cref="NotAlwaysIntegral"/>) reads it for every term that is not a sum, a
+    /// product, a quotient, a power or a numeric item, and refuses the argument when it answers false (kb/Work PB5886).
     /// <para>It is also the ONE reading of §2023:15.3 type 6's "arithmetic expression that will always result in an integer
     /// value" for the result-type rows (<c>IntrinsicResultType.IsIntegerArgument</c>, kb/Work PB4709): an argument that
     /// is such an expression keeps ABS, MAX, MIN, RANGE and SUM on their Integer row (the per-function result tables of
@@ -2230,10 +1929,10 @@ internal static class IntrinsicArgumentRules
         // `FUNCTION ABS (1 / 3 * 3)` returned 1 where `COMPUTE X = 1 / 3 * 3` stores 0.9999. A quotient whose exact value has a
         // non-terminating decimal expansion, or a terminating one longer than the fraction digits the arithmetic keeps
         // (`1 / 1048576 * 1048576`, PB4794), therefore voids the proof (§2023:15.3 6) asks for an expression that "will always result in
-        // an integer value", and that value is the one the arithmetic produces); the argument stays a Numeric one and the caller fails open.
+        // an integer value", and that value is the one the arithmetic produces); the argument stays a Numeric one and the type 6 screen refuses it.
         _ when ExactValue(e) is { } v => v.IsInteger && QuotientsAreExact(e),
         // Category NUMERIC only: any other operand an extension admits (a de-edited numeric-edited item, say) is
-        // not provably integral, and the screen fails open over it.
+        // not provably integral.
         BoundNumRef { Place.DescribedItem: { IsGroup: false, Pic: { Category: PicCategory.Numeric } p } }
             => !AdmitsNonIntegralValue(p),
         BoundBinary { Op: '+' or '-' or '*' } b => ProvablyIntegral(b.Left) && ProvablyIntegral(b.Right),
@@ -2243,7 +1942,10 @@ internal static class IntrinsicArgumentRules
         // ARGUMENTS beneath the call are the call's business, not terms of this sum.
         BoundIntrinsicCall { ResultType: IntrinsicType.Integer } => true,
         _ when AlgebraicRanges.IsCounterRegister(e) => true,
-        BoundPower { Exp: var x } pw => ProvablyIntegral(pw.Base) && ExactValue(x) is { IsInteger: true, Sign: >= 0 },
+        // An index-name's value is an occurrence number (§2023:13.18.38), a report VARYING counter and an OCCURS DEPENDING extent are
+        // scale-0 integers by construction (their node docs).
+        BoundIndexRef or BoundReportVaryingRef or BoundOdoExtent => true,
+        BoundPower pw => ProvablyIntegral(pw.Base) && IsNonNegativeIntegerExponent(pw.Exp),
         _ => false,
     };
 
@@ -2376,7 +2078,7 @@ internal static class IntrinsicArgumentRules
     private static bool IsKeptExactly(ExactRational? v) => v is { FractionDigits: { } digits } && digits <= ExactFractionDigits;
 
     /// <summary>The largest literal exponent <see cref="ExactValue"/> folds — a bound on the fold's work, never on
-    /// what the source may say: a larger exponent is left unfolded and the screen fails open.</summary>
+    /// what the source may say: a larger exponent is left unfolded, so a power beyond it is no literal fold.</summary>
     private const int MaxFoldedExponent = 64;
 
     /// <summary>An exact rational in lowest terms with a positive denominator — the carrier of
@@ -2449,55 +2151,6 @@ internal static class IntrinsicArgumentRules
         }
     }
 
-    /// <summary>Every numeric item whose description admits a non-integral value referenced anywhere beneath a
-    /// non-additive subtree. ⛔ It MUST see exactly what <see cref="CollectAdditive"/>'s leaf arm sees — the two
-    /// halves are one rule (the same <see cref="NonIntegralItemReason"/> primitive), and a shape visible to the
-    /// leaf arm but not to this one would fire SPURIOUSLY on legal source: <c>F - (F * 1)</c> nets to zero only
-    /// because this walk marks <c>F</c> opaque (kb/Work PB248 — the float widening had to land in both).</summary>
-    private static IEnumerable<(DataItem Item, int Scale, bool Float)> NumericItemsBeneath(BoundExpr e)
-    {
-        switch (e)
-        {
-            case BoundNumRef { Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Usage: not Usage.Index } p } and { } it }:
-                yield return (it, p.Scale, p.IsFloat); break;
-            case BoundBinary b:
-                foreach (var x in NumericItemsBeneath(b.Left)) yield return x;
-                foreach (var x in NumericItemsBeneath(b.Right)) yield return x;
-                break;
-            case BoundNegate n:
-                foreach (var x in NumericItemsBeneath(n.Operand)) yield return x;
-                break;
-            case BoundPower p2:
-                foreach (var x in NumericItemsBeneath(p2.Base)) yield return x;
-                foreach (var x in NumericItemsBeneath(p2.Exp)) yield return x;
-                break;
-            // ⛔ A CALL MOVES WITH THE ITEMS IN ITS ARGUMENTS (kb/Work PB4709, review R1-4): in `G2 - FUNCTION ABS (G2 * 1)` over an
-            // UNSIGNED G2 the term ABS(G2 * 1) equals G2 on every value of G2, so the difference is 0 and always an integer, but
-            // the walk saw no item beneath the call, left G2's additive witness standing, and the screen refused legal source. The
-            // witness argument (hold every other leaf constant and step the item) fails for the same reason it fails under `F * 1`:
-            // the term moves with the item, so the item is marked opaque and the screen fails open. (A call that
-            // CollectAdditive.ReadCall reads as an expression of the spine never reaches this walk, PB4757, PB4795.)
-            case BoundIntrinsicCall call:
-                foreach (var argument in call.Args)
-                    foreach (var x in NumericItemsBeneath(argument)) yield return x;
-                break;
-        }
-    }
-
-    /// <summary>The items an intrinsic ARGUMENT references (<see cref="NumericItemsBeneath(BoundExpr)"/>'s operand-side twin): a
-    /// data item named as the argument, or an arithmetic expression over them.</summary>
-    private static IEnumerable<(DataItem Item, int Scale, bool Float)> NumericItemsBeneath(BoundOperand argument)
-    {
-        switch (argument)
-        {
-            case BoundFieldOperand { Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric, Usage: not Usage.Index } p } and { } it }:
-                yield return (it, p.Scale, p.IsFloat); break;
-            case BoundComputedOperand { Expr: var inner }:
-                foreach (var x in NumericItemsBeneath(inner)) yield return x;
-                break;
-        }
-    }
-
     /// <summary>
     /// ⛔ THE ONE EXACT DECODE both literal screens read — <see cref="WiseOwl.Cobol.Common.NumericLiteral.TryParseExact"/>,
     /// "the ONE exact parser the binder's range checks, the standard-decimal literal operand and the VALUE
@@ -2517,20 +2170,6 @@ internal static class IntrinsicArgumentRules
         bool ok = WiseOwl.Cobol.Common.NumericLiteral.TryParseExact(text.Replace(',', '.'), out var sig, out exp10);
         if (ok) unscaled = sig;
         return ok;
-    }
-
-    /// <summary>The literal's magnitude as an integer, or null when its VALUE is not an integer (those are
-    /// not the quotient screen's business — the item/d granularity argument needs an integral d).</summary>
-    /// <remarks>⚠ An E-form literal used to return null here unconditionally, which failed the quotient screen
-    /// OPEN for every floating-point divisor (kb/Work PB248). <c>1.0E2</c> is the integer 100 and divides
-    /// exactly as <c>100</c> does; the form of the literal was never the question, its VALUE was.</remarks>
-    private static System.Numerics.BigInteger? LiteralIntegerMagnitude(string text)
-    {
-        if (!TryLiteralValue(text, out var sig, out int exp10)) return null;
-        var mag = System.Numerics.BigInteger.Abs(sig);
-        if (exp10 >= 0) return mag * System.Numerics.BigInteger.Pow(10, exp10);
-        var unit = System.Numerics.BigInteger.Pow(10, -exp10);
-        return mag % unit == 0 ? mag / unit : null;
     }
 
     /// <summary>
