@@ -2,49 +2,56 @@
  "rule-id": "1985-SR-XIII.4.9.3-4",
  "rule-digest": "c7acdc68fa0a",
  "read": {
-  "pin": "946daf5a4d16ed4c6a2370978e1249457c072b90",
-  "slice": "1985-241",
+  "pin": "cdc9601608399d224cd2b9ffd6324d8f90df4796",
+  "slice": "1985-247",
   "sources": {
-   "reader": "9db4f7c5d7dbf72cbfa3267006cfee1667d681ae12b6baa6dc9435216c71154b",
-   "refuter": "598865e6a2fcfa17a6c309c2a98c4298fe124dce14875e03b821d751dcc6daad"
+   "reader": "7307715f9589f86e41a2c6ac8b6c798328955ad77e2c0a95e4363e69bc6f9f85",
+   "refuter": "dc50e52f9fb8d7241a738e294de939e04ccc0f5692aa56588bc63153696fbdb5"
   },
   "imported": {
-   "reader": "996439c594f569fa96206882435aba6a5cdfcb0978f63935c638e8ecdd6ac83b"
+   "reader": "234d6461ee49570f2c7a88b2656505e217f93353a2d07de7530f2b3b97e905f8",
+   "refuter": "29ec529dbbf17f0be85a2586ed447205765e81df2df978242a999c242e4b19ef"
   }
  },
  "reader": {
   "rule-id": "1985-SR-XIII.4.9.3-4",
-  "verdict": "PARTIAL",
-  "requirement": "At --std 85 every statement of a USE BEFORE REPORTING procedure that alters the value of any control data item (of any report) must be refused, whatever the statement and whether the store reaches the item directly, through a containing group, a REDEFINES/reference-modified view, or a file record area that holds it; statements that alter no control data item are accepted.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataStores; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#SameStorageLine; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStores.cs#StoresInto",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse any statement of a USE BEFORE REPORTING procedure (the paragraphs of the declarative section the USE heads) that stores into the storage of a control data item of any report: the item itself, a group containing it, a subordinate item, a REDEFINES/RENAMES or reference-modified view sharing a byte, or an implicit store (READ record area, POINTER/TALLYING/REMAINDER/VARYING operands), and must admit stores that touch no byte of one.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataStores; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#SameStorageLine; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundStores.cs#StoresInto; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#ConnectorStores; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#InBeforeReportingProcedure",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataStores",
-    "switches": "the diagnostic's wording (must/shall) and citation (§1985:XIII.4.9.3 SR4 below 2002); the detection itself is edition-blind",
+    "switches": "ctx.Edition.DialectLevel selects only the diagnostic's wording (must/shall) and the clause it cites (§1985:XIII.4.9.3 SR4 below 2002); the decision is edition-free",
     "same-arm-as-latest": true
    }
   ],
-  "edition-search": "Read CheckControlDataStores, SameStorageLine, the BindStatement funnel and the BoundStores visitor arms for READ/RETURN/WRITE/REWRITE/ACCEPT/STRING/UNSTRING/INSPECT; grepped DialectLevel in ReportWriterBinder (the 85-only CheckControlDataReferences beside it is §1985:XIII.3.20.3 SR5, another rule).",
-  "behaviour-differs-by-edition": "no: only the message text differs",
-  "witnesses-cover": "part: pb363_before_reporting_legal_store covers only the legal store; the refusal half (each storing verb, group, REDEFINES, ref-mod, READ INTO) and the file-record-area store were probed here",
+  "edition-search": "Read CheckControlDataStores, SameStorageLine, the StatementBinder.BindStatement call site and EnclosingContext.InBeforeReportingProcedure; grepped them for Edition/DialectLevel/CobolVersion: the only consults are the message text. CheckControlDataReferences (a separate 1985-only rule, XIII.3.20.3 SR5) is gated on DialectLevel < 2002 but is not this rule.",
+  "behaviour-differs-by-edition": "no: the same 19 statements are refused at --std 85 and --std 2023 (COBOL2378), only the cited clause in the message differs",
+  "witnesses-cover": "part: the witnesses exercise MOVE CORRESPONDING/ADD/SUBTRACT CORR/INITIALIZE REPLACING (legal side), a READ into the record area and a RANDOM READ setting a RELATIVE KEY; not exercised by them: arithmetic GIVING/REMAINDER, STRING/UNSTRING/INSPECT/ACCEPT, POINTER and TALLYING, inline PERFORM VARYING, REDEFINES, reference modification, a second control item of the same report",
   "probes": [
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-241/ubr_bad.cob",
-    "printed": "COBOL2378 on MOVE to WK, MOVE to the group, MOVE to the REDEFINES, ADD/COMPUTE to WNK, INITIALIZE, SET cond TO TRUE, STRING, INSPECT REPLACING, MOVE to WS-RED(1:2), UNSTRING, READ INTO IN-REC, and the MOVE inside IF; NOT on line 43 'READ INF AT END ...' whose record area holds control item IN-KEY (exit 65)",
-    "expected": "every statement that alters a control data item refused"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-241/ubr_read.cob",
-    "printed": "compiles clean at --std 85 and --std 2023 (exit 0); run at 85 with records AA001 AA002 BB003 CC004 prints report lines [BB 003] [CC 004]: the declarative's READs replaced IN-KEY before each group was presented",
-    "expected": "refused: READ INF and READ INF INTO WS-X each store a record into IN-REC, altering control data item IN-KEY"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/ubr_refuse.cob",
+    "printed": "EXIT 65; COBOL2378 at each of the 19 storing statements (ADD, COMPUTE, MULTIPLY GIVING, DIVIDE REMAINDER, MOVE to REDEFINES, MOVE to containing group, MOVE to CTL2 (2:1), STRING INTO, UNSTRING INTO, UNSTRING POINTER, UNSTRING TALLYING, INSPECT REPLACING, INSPECT TALLYING, ACCEPT FROM DATE, ACCEPT, inline PERFORM VARYING, INITIALIZE group, SUBTRACT, MOVE inside IF), each citing ISO §1985:XIII.4.9.3 SR4",
+    "expected": "each statement refused: \"A USE BEFORE REPORTING procedure must not alter the value of any control data item\""
    },
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-241/ubr_ok.cob",
-    "printed": "002 TU; report [AA TU 001] [AA TU 002] (exit 0)",
-    "expected": "stores into non-control items, including a ref-mod window of a REDEFINES that touches only WOTH, accepted and executed before each DE1"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/ubr_legal.cob",
+    "printed": "USE 01 QXYZ 1 / USE 02 QXYZ 2 / END 02 QXYZ 2 (EXIT 0)",
+    "expected": "MOVE to RDF (3:4) and OTH (1:1) touch no byte of CTL and are legal; the procedure runs once per GENERATE"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/ubr_refuse.cob",
+    "printed": "MOVE SPACES TO GRP (group holding CTL) and INITIALIZE GRP refused; MOVE to RDF REDEFINES GRP refused",
+    "expected": "refused: a store into a group or redefinition holding the control data item alters it"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-247/src/ubr_perform.cob",
+    "printed": "accepted at --std 85; END 09 (PERFORM from the USE BEFORE REPORTING section of a paragraph in a USE AFTER ERROR section that MOVEs 9 to CTL)",
+    "expected": "SR4 governs the statements of the procedure; unlike SR3, SR4 does not extend to a PERFORM range, so no compile-time refusal is required"
    }
   ],
   "citations": [
@@ -53,23 +60,35 @@
     "check": "OK  §1985:XIII.4.9.3 SR4  (4.9.3 Syntax Rules)  the text is in SR4"
    },
    {
-    "cite": "§1985:XIII.3.7.3 SR1",
-    "check": "OK  §1985:XIII.3.7.3 SR1  (3.7.3 Syntax Rules)  the text is in SR1"
+    "cite": "§1985:XIII.4.9.3 SR3",
+    "check": "OK  §1985:XIII.4.9.3 SR3  (4.9.3 Syntax Rules)  the text is in SR3"
    },
    {
-    "cite": "§1985:XIII.4.9.4 GR4",
-    "check": "OK  §1985:XIII.4.9.4 GR4  (4.9.4 General Rules)  the text is in GR4"
+    "cite": "§1985:XIII.4.9.3 SR1",
+    "check": "OK  §1985:XIII.4.9.3 SR1  (4.9.3 Syntax Rules)  the text is in SR1"
    }
   ],
-  "notes": "Every explicit store is caught, but BoundStores' READ arm (Visit(BoundRead)) counts only the INTO target, never the file's record area, unlike its RETURN arm which counts RecordArea. A control data item may be in the File Section (§1985:XIII.3.7.3 SR1 bars only the Report Section), so a READ in the USE procedure alters it unrefused.",
+  "notes": "Every storing statement form available at 1985 that reaches a control data item, directly, through a containing group, a REDEFINES, reference modification or an implicit operand, is refused with COBOL2378 at --std 85, and a store into bytes of a group or redefinition outside the control item is admitted and runs correctly. A store in a procedure PERFORMed from another declarative section is not refused; SR4, unlike SR3's PERFORM-range sentence, speaks of the procedure's own statements, so this is read as conforming. A CALL BY REFERENCE of a control item is not refused (the called program is not visible).",
   "seeded": true,
-  "harm": "under-rejects",
-  "cause": "b",
-  "at-2023": "compiles clean at --std 2023 too (exit 0); §2023:14.9.49.3 SR11 states the same rule",
-  "repro": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-241/ubr_read.cob: FD INF with 01 IN-REC / 05 IN-KEY; RD R1 CONTROL IS IN-KEY; DECLARATIVES U1 SECTION. USE BEFORE REPORTING DE1. U1-P. READ INF AT END MOVE 1 TO WEOF.",
-  "expected": "§1985:XIII.4.9.3 SR4: \"A USE BEFORE REPORTING procedure must not alter the value of any control data item.\" The READ stores the next record into IN-REC, altering IN-KEY, so the compile is refused (COBOL2378).",
-  "observed": "exit 0 at --std 85 and --std 2023; at run time the declarative's READ consumes records and the control data item changes before the group is presented",
-  "known_note": "none (kb/Work PB5808, landed, covers the REDEFINES overlap; PB363 the original screen; neither names a READ record area)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "same 19 refusals (grep -c COBOL2378 = 19)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5885"
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.9.3-4",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,d,e",
+  "evidence": "Read ReportWriterBinder.CheckControlDataStores/SameStorageLine, StatementBinder.BindStatement (lines 489-498), BoundStores.StoresInto and its StoreKindVisitor arms, PlaceBuilder.ConnectorStores. Probes at --std 85 (run_probe.py, refute-1985-247/runs): ubr_more.cob EXIT 65 with COBOL2378 at every new storing form the reader did not try: SET index-data-item TO index-name (a control data item may be an index data item, §1985:XIII.3.7.4 GR3), SEARCH VARYING the index data item, STRING WITH POINTER, INSPECT CONVERTING, DIVIDE INTO, MULTIPLY BY, MOVE CORRESPONDING and ADD CORRESPONDING into a corresponding control item, ACCEPT FROM TIME, UNSTRING DELIMITER IN / COUNT IN, READ of a file whose SAME RECORD AREA partner holds the control item, a store nested in AT END, out-of-line PERFORM VARYING ... AFTER the control item, ADD GIVING, and a store into the control item of ANOTHER report (R2) from R1's USE procedure. ubr_cd.cob and ubr_cdout.cob: control items in input and output CDs, refused for ACCEPT MESSAGE COUNT, RECEIVE, SEND, ENABLE and DISABLE (status key). ubr_samearea.cob: SAME AREA (not RECORD) partner READ admitted, EXIT 0, 'END 01'. No under- or over-rejection found among the statement forms. What the verdict rests on: the reader's ubr_perform.cob (USE procedure PERFORMs a paragraph of another declarative section that MOVEs into the control item) compiles and prints END 09. SR4 is silent on PERFORM ranges; the reader reads it lexically by contrast with SR3's explicit PERFORM-range sentence. The other reading: SR3's first sentence is lexical ('must not appear in a paragraph') and so needed the PERFORM extension, while SR4 states an effect of the procedure ('must not alter the value'), which the procedure has when a statement of it PERFORMs a store; and since §1985:XIII.4.9.4 GR2 bars any reference to nondeclarative procedures, every range a USE procedure can PERFORM lies in the declaratives and is visible in the source element, so the effect is statically checkable (unlike a CALL BY REFERENCE, also not refused). cite.py: OK §1985:XIII.4.9.3 SR4 'A USE BEFORE REPORTING procedure must not alter the value of any control data item'; OK §1985:XIII.4.9.3 SR3; OK §1985:XIII.3.7.4 GR3; OK §1985:XIII.4.9.4 GR2 'there must be no reference to any nondeclarative procedures'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "Read again in slice 1985-247 after kb/Work PB5890 landed: every storing form refused, legal stores run. The doubt (a store through a PERFORM into another declarative section) is rejected: SR3 reaches a PERFORM's range and SR4 does not, so SR4 constrains the procedure's own statements.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-20.md"
+ }
 }

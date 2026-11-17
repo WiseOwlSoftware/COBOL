@@ -455,8 +455,6 @@ public sealed class DeclarativesStructuralRulesTests
             {{body}}
             """;
 
-    /// <summary>A report whose CONTROL is WS-GRP (subordinate to WS-CTL-REC, with WS-GRP-LO subordinate to it) and
-    /// a USE BEFORE REPORTING procedure whose one paragraph holds <paramref name="statement"/>.</summary>
     /// <summary>A report whose control data item WS-CCTL (alphanumeric) is the first item of the group WS-CGRP (kb/Work PB5890).
     /// WS-CSRC corresponds to WS-CGRP in WS-OTH and WS-OTA only; WS-CSRC2 corresponds in WS-CCTL and WS-OTH.</summary>
     private static string CorrespondingReportProgram(string statement) => $$"""
@@ -502,6 +500,8 @@ public sealed class DeclarativesStructuralRulesTests
                        STOP RUN.
             """;
 
+    /// <summary>A report whose CONTROL is WS-GRP (subordinate to WS-CTL-REC, with WS-GRP-LO subordinate to it) and
+    /// a USE BEFORE REPORTING procedure whose one paragraph holds <paramref name="statement"/>.</summary>
     private static string ReportProgram(string statement) => $$"""
                    IDENTIFICATION DIVISION.
                    PROGRAM-ID. BRSTRUCT.

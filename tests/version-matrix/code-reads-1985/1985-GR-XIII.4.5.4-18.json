@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-18",
+ "rule-digest": "b8fce584c65f",
+ "read": {
+  "pin": "6450516b5e6a2ed7b831a834d06b3e578d759c6b",
+  "slice": "1985-245",
+  "sources": {
+   "reader": "f0212a8cf5971d2ef5b9d0ec64dfecc6248e7d9ba1caf7c4f8af1a6a61f639bc",
+   "refuter": "86e402484d178ca7f6b2e4663730e3d9d688c365aee89683a16116d007aa470e"
+  },
+  "imported": {
+   "reader": "761d2251a73bbe3ead0f3226c2fae80fb33f236ceab3289452b6a045bcff5ebb",
+   "refuter": "513c0e9f958f59e7bb40ef98cd24ef5a505b0f58fecc798cf638fa167a2ed53d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.5.4-18",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 the minimum and maximum record sizes of a report file are those in force when the file is created (OPEN OUTPUT, or OPEN EXTEND of an unavailable optional file) and an OPEN EXTEND must not change them: the processor keeps the creation's sizes, and a program that opens the file under other sizes violates the rule, detected only where the implementor validates that fixed attribute (GR6).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ProgramStatus",
+    "switches": "DialectBehavior.IoStatusValuesOutside1985Lists: at 85 the status the program sees is IoStatus1985.Report's 1985 value; 00, 04, 05, 10, 35 are the same values at both editions",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n -E 'Dialect|Edition|CobolVersion' over FileConnector.cs, SequentialConnector.cs, FileRegistry.cs, FixedFileAttributes.cs, KeyedConnector.cs: the fixed-attribute validation (FixedAttributeConflict, Conflicts) and the sequential OPEN EXTEND path take no edition; the edition arms found are the 1985 status mapping, the sharing facility and the LINAGE open refusal, none of which touch record sizes.",
+  "behaviour-differs-by-edition": "no: the record sizes and the validated set (DOC-A.1-129) are one determination at every edition; only the I-O status vocabulary is edition-mapped.",
+  "witnesses-cover": "part: the witness covers OPEN OUTPUT then OPEN EXTEND under the same description; not exercised by it: an OPEN EXTEND under another record size, an OPEN EXTEND that creates an optional file, an OPEN EXTEND of a missing non-optional file (probed here).",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XIII.4.5@1985-OPEN-STATEMENT/pb5819_record_sizes_kept_after_extend_85.cob",
+    "printed": "EXPECT: MATCH (OPEN OUTPUT 00, OPEN EXTEND 00, OPEN INPUT 00, READ 00 x3, READ 04, READ 10)",
+    "expected": "sizes of the creation kept after OPEN EXTEND"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-245/src/rw_change.cob",
+    "printed": "OPEN EXTEND OTHER SIZE 00 (RECORD CONTAINS 20 over a file created at 12); OPEN EXTEND SAME 00; reread at 12: READ 00 111111111111 / READ 00 (line end)2222222222 / READ 04 / READ 10; OPEN EXTEND MISSING 35; OPEN EXTEND OPTIONAL 05 then READ3 00 333333333333 / READ3 04 / READ3 10",
+    "expected": "GR18 binds the program; GR6 leaves which fixed attributes OPEN validates to the implementor (DOC-A.1-129: nothing for a sequential/report file), so 00 on the other-size EXTEND is within latitude; GR14 creates the optional file, establishing its sizes; a missing non-optional file fails the OPEN (35)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.5.4 GR18",
+    "check": "OK  §1985:XIII.4.5.4 GR18  (4.5.4 General Rules)  the text is in GR18"
+   },
+   {
+    "cite": "§1985:XIII.4.5.4 GR6",
+    "check": "OK  §1985:XIII.4.5.4 GR6  (4.5.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:XIII.4.5.4 GR14",
+    "check": "OK  §1985:XIII.4.5.4 GR14  (4.5.4 General Rules)  the text is in GR14"
+   }
+  ],
+  "notes": "The rule is a 'must not' on the program plus the processor's obligation not to alter the sizes itself; a report file is a text print stream (DOC-A.1-146 (c')) whose format records no sizes, so nothing an OPEN EXTEND does changes them and the documented validated set (DOC-A.1-129) does not compare them. The record sizes in force at a later READ are the reading description's, and the residue of line ends reads as 04, as the witness expects.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.5.4-18",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "GR18 binds the program (the sizes must not subsequently be changed); GR6 leaves which fixed attributes OPEN validates to the implementor, and docs/conformance/7/DOC-A.1-129.md documents that a sequential or report print stream validates nothing, citing §1985:XIII.4.5.4 GR6. Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-245/src/rw_vary.cob at --std 85: report file FD RECORD CONTAINS 5 TO 12 created by OPEN OUTPUT (00), OPEN EXTEND under an 8-character report FD (00), OPEN EXTEND under the creating FD (00); the processor changes no recorded size because the print stream records none. A RECORD CONTAINS 5 TO 12 sequential re-read gets 39 (the varying-prefix parse of DOC-A.1-129 arm 2, a Sequential I-O rule, not this one). No reading of GR18 found that obliges the processor to refuse what GR6 lets it leave unvalidated. cite: OK  §1985:XIII.4.5.4 GR18  (4.5.4 General Rules)  the text is in GR18; OK  §1985:XIII.4.5.4 GR6  (4.5.4 General Rules)  the text is in GR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
