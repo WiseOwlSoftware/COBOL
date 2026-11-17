@@ -1017,22 +1017,6 @@ public sealed record BoundBoolError : BoundBoolExpr
         return new(feature, unbuilt: false);
     }
 
-    /// <summary>Report <paramref name="message"/> under <paramref name="rule"/> and return the refusal — the operand
-    /// twin of <see cref="BoundRejected.Report(EditionContext, Editions.Diagnostics.DiagnosticDescriptor, string)"/>.</summary>
-    public static BoundBoolError Report(EditionContext edition, Editions.Diagnostics.DiagnosticDescriptor rule,
-        string message, string feature)
-    {
-        edition.Error(rule, message);
-        return Refused(edition, feature);
-    }
-
-    /// <summary>A legal shape WiseOwl COBOL has not built — announced by the statement funnel (COBOL1756).</summary>
-    public static BoundBoolError Unbuilt(EditionContext edition, string feature)
-    {
-        edition.NoteUnbuilt(feature);
-        return new(feature, unbuilt: true);
-    }
-
     /// <summary>The SAME failure carried into another value channel — already on the ledger, so not re-noted.</summary>
     public static BoundBoolError Carry(string feature, bool unbuilt) => new(feature, unbuilt);
 }
