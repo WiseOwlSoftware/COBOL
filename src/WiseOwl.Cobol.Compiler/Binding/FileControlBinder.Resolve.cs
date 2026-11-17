@@ -335,7 +335,7 @@ public sealed partial class FileControlBinder
         // are its segments' (GR2's concatenation) — SR2 makes every segment the same category, so one unit applies.
         if (operand is null || !ItemCategory.IsAlphanumericOrNational(key.CategorySource)) return null;
         bool national = !ItemCategory.IsAlphanumeric(key.CategorySource);
-        int positions = RecordLayout.Narrow(key.Segments.Aggregate(0L, (sum, s) => RecordLayout.Plus(sum, s.ByteWidth / (s.OperandPic?.BytesPerPosition ?? 1))));   // the ONE unit reader (kb/Work PB546)
+        int positions = RecordLayout.ItemSize(key.Segments.Aggregate(0L, (sum, s) => RecordLayout.Plus(sum, s.ByteWidth / (s.OperandPic?.BytesPerPosition ?? 1))));   // the ONE unit reader (kb/Work PB546)
         var category = national ? PicCategory.National : PicCategory.Alphanumeric;
         string value = operand.Form switch
         {

@@ -620,10 +620,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 : d.IsDynamicTable ? new VarPart(d.ElementTransferImageCapable ? VarPartKind.DynTable : VarPartKind.DynGroupTable, f, d, 0, 1)
                 : d.TransferImageCapable ? new VarPart(VarPartKind.OdoFixed, f, d, f.Width, 0)
                 : d.OccursSpec?.DependingName is not null
-                    ? new VarPart(VarPartKind.OdoTable, f, d, RecordLayout.Narrow(RecordLayout.Times(VarFixedWidth(d), d)),
-                        RecordLayout.Narrow(RecordLayout.Times(VarComponentCount(d), d)), RecordLayout.Occurrences(d))
-                : d.Occurs is { } n ? new VarPart(VarPartKind.NestedTable, f, d, RecordLayout.Narrow(RecordLayout.Times(VarFixedWidth(d), d)),
-                    RecordLayout.Narrow(RecordLayout.Times(VarComponentCount(d), d)), n)
+                    ? new VarPart(VarPartKind.OdoTable, f, d, RecordLayout.ItemSize(RecordLayout.Times(VarFixedWidth(d), d)),
+                        RecordLayout.ItemSize(RecordLayout.Times(VarComponentCount(d), d)), RecordLayout.Occurrences(d))
+                : d.Occurs is { } n ? new VarPart(VarPartKind.NestedTable, f, d, RecordLayout.ItemSize(RecordLayout.Times(VarFixedWidth(d), d)),
+                    RecordLayout.ItemSize(RecordLayout.Times(VarComponentCount(d), d)), n)
                 : new VarPart(VarPartKind.Nested, f, d, VarFixedWidth(d), VarComponentCount(d)));
         }
         return parts;
@@ -808,14 +808,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                         // A message tag decodes its token positions as every token leaf does (kb/Work PB4838), so a variable-length message area decomposes like any
                         // other; a RECEIVE then resolves a token of the sending run unit against the message's slots (AsyncMessaging.Resolved, kb/Work PB4957).
                         EmitMemberFromImage(p.Field, off, w);
-                        off += p.Field.Width;
+                        off = RecordLayout.Advance(off, p.Field.Width);
                         break;
                     case VarPartKind.NestedTable:
                     case VarPartKind.OdoTable:   // every occurrence it USES (§2023:13.18.38.4 GR8 a: __odo of them), to its maximum
                         using (w.Block($"for (int __i = 0; __i < {(p.Kind is VarPartKind.OdoTable ? $"global::System.Math.Min({p.Occurs}, __odo)" : p.Occurs.ToString())}; __i++)"))
                             w.Line($"{p.Field.Name}[__i].FromVarImage(__v.Slice({off} + __i * {p.FixedWidth / p.Occurs}, "
                                 + $"{p.FixedWidth / p.Occurs}, {dynAt} + __i * {p.DynCount / p.Occurs}, {p.DynCount / p.Occurs}), __storage);");
-                        off += p.FixedWidth;
+                        off = RecordLayout.Advance(off, p.FixedWidth);
                         dynAt += p.DynCount;
                         break;
                     case VarPartKind.DynLeaf:
@@ -863,7 +863,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     case VarPartKind.Nested:
                         w.Line($"{p.Field.Name}.FromVarImage(__v.Slice({off}, {p.FixedWidth}, {dynAt}, {p.DynCount}), __storage"
                             + $"{(DataItem.HasOdoBeneath(p.Item!) ? ", __odo" : "")});");
-                        off += p.FixedWidth;
+                        off = RecordLayout.Advance(off, p.FixedWidth);
                         dynAt += p.DynCount;
                         break;
                     default:
@@ -889,17 +889,17 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         foreach (var p in VarParts(group))
             switch (p.Kind)
             {
-                case VarPartKind.Fixed: off += p.Field.Width; break;
+                case VarPartKind.Fixed: off = RecordLayout.Advance(off, p.Field.Width); break;
                 // A dynamic-length item is counted in positions of its image unit: one character an alphanumeric position, two
                 // bytes a national one (kb/Work PB3441), the unit its fixed form pads and its structure frames by.
                 case VarPartKind.DynLeaf: layout.Add((off, p.Item!.ImageUnit, p.Item.VariableComponentMax, FileModel.LayoutCodeOf(p.Item))); break;
                 case VarPartKind.DynTable:
                 case VarPartKind.DynGroupTable: layout.Add((off, p.Field.Width, p.Item!.VariableComponentMax, 0)); break;
-                case VarPartKind.Nested: ContiguousLayout(p.Item!, off, layout); off += p.FixedWidth; break;
+                case VarPartKind.Nested: ContiguousLayout(p.Item!, off, layout); off = RecordLayout.Advance(off, p.FixedWidth); break;
                 case VarPartKind.NestedTable:
                 case VarPartKind.OdoTable:   // the components at the table's MAXIMUM: where compare / the boundary look for them
                     for (int i = 0; i < p.Occurs; i++) ContiguousLayout(p.Item!, off + i * (p.FixedWidth / p.Occurs), layout);
-                    off += p.FixedWidth;
+                    off = RecordLayout.Advance(off, p.FixedWidth);
                     break;
                 case VarPartKind.OdoFixed:
                     // The OCCURS DEPENDING table is a variable-length COMPONENT of the record, up to its maximum
@@ -907,7 +907,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                     // in bits). §2023:13.18.38.3 SR22 makes it the record's trailing storage, so it is the last component.
                     var (startChar, unit, maxUnits) = OdoMemberTail.Of(p).RecordTail;
                     layout.Add((off + startChar, unit, maxUnits, 0));
-                    off += startChar;   // the table itself leaves the FIXED run
+                    off = RecordLayout.Advance(off, startChar);   // the table itself leaves the FIXED run
                     break;
                 default:
                     throw ImageOnlyPartInCarrier(p);
@@ -1000,7 +1000,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             foreach (var f in members)
             {
                 EmitMemberFromImage(f, off, w);
-                off += f.Width;
+                off = RecordLayout.Advance(off, f.Width);
             }
         }
         if (group.GroupUsage is GroupUsage.Bit) EmitBitMethods(group, w);
@@ -1340,7 +1340,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 // THE one distributor (kb/Work PB161) — a bit GROUP member spreads to its subordinates
                 // (FromBits, D20/PB79), a fixed-OCCURS member loops its occurrences.
                 EmitRunMemberFromBits(m, carrier, at, w);
-                at = RecordLayout.Narrow(RecordLayout.Plus(at, BitLayout.RunBits(m)));
+                at = RecordLayout.ItemSize(RecordLayout.Plus(at, BitLayout.RunBits(m)));
             }
             // ⛔ WHAT THE IMAGE HELD AFTER THE LAST MEMBER IS THE FILLER'S VALUE NOW — MOVE "AB" TO G stores 'A''s low
             // seven bits here, and the next DISPLAY of G reads them back (§2023:14.9.25.4 GR4: the group move is an

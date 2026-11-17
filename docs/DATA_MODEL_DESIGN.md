@@ -2379,7 +2379,7 @@ it larger draws **COBOL7641** (`CheckStorageLimitsPass`, after the SIGN clauses 
 group's size), and the compile stops there (`DataDivisionRefused`, caught by `CompilerDriver`). **A data item's size has ONE
 computation** (kb/Work PB5695 review R1-1): `RecordLayout`'s size section computes every size, OCCURS product, group sum,
 REDEFINES comparison, offset and record length in `long` (`Exact*`, `Times`, `Product`, `Plus`, `OverStorageChildren`), and
-`RecordLayout.Narrow` is the one narrowing to `int`, an internal compiler error for a value no admitted item has;
+`RecordLayout.ItemSize` is the one narrowing to `int`, an internal compiler error for a value no admitted item has;
 `DataItem.ByteWidth`, `ImageWidth`, `PhysicalWidth` and `BitLayout`'s bit extents are its narrowed views, and
 `SizeArithmeticDriftTests` bans the old shapes (`Occurs ?? 1`, a width multiplied, summed or clamped) elsewhere. Before it,
 `05 E PIC X(1000) OCCURS 2000000000` read as −1,454,759,936 and compiled, and the same group with a REDEFINES over it crashed

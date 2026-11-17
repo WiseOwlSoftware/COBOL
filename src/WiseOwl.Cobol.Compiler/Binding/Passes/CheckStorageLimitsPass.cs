@@ -23,7 +23,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// <para><b>Placement, and why the compile stops.</b> After the TYPE clauses are expanded (an item's size includes its type's) and the
 /// SIGN clauses inherited (a SEPARATE sign adds a character position, §2023:13.18.52.4 GR6), and BEFORE every pass that narrows a
 /// group's size to an int (the REDEFINES passes first). Every size is computed in 64 bits (<see cref="RecordLayout"/>'s size
-/// section) and narrowed by one function that refuses a size no admitted item has (<see cref="RecordLayout.Narrow"/>), so a pass
+/// section) and narrowed by one function that refuses a size no admitted item has (<see cref="RecordLayout.ItemSize"/>), so a pass
 /// that measured a refused item would be an internal compiler error. None does: once this pass reports, it ends the binding of the
 /// compilation group, and the driver answers with the diagnostics so far (kb/Work PB5695 review R1-1: an over-limit group with a
 /// REDEFINES over it went on to the classification pass and crashed the compiler with an OverflowException).</para>

@@ -18,8 +18,10 @@
   TYPEDEF template, at every edition. **The compile then stops**: the pass runs before any pass that measures a group's
   size as an `int`, and once it reports, the binding of the compilation group ends and the diagnostics so far are the
   answer. Every size the compiler takes of an item (image, bytes, storage, an OCCURS product, a group sum, a REDEFINES
-  comparison, an offset, a bit extent) is computed in 64 bits by `RecordLayout`'s size section and narrowed to `int` by
-  one function, `RecordLayout.Narrow`, which raises an internal compiler error for a value no item within the limit has;
+  comparison, an offset, a bit extent) is computed in 64 bits by `RecordLayout`'s size section, and an item's OWN size is
+  narrowed to `int` by one function, `RecordLayout.ItemSize`, which raises an internal compiler error for a value no item
+  within the limit has; a size at a hypothetical count (the 2023 READ's search for the largest DEPENDING count a record
+  maximum admits) is no item's size and stays in 64 bits (`BitLayout.TableBitsAtCount`) or saturates (`SaturatedBound`);
   `SizeArithmeticDriftTests` holds that arithmetic to the one file. Before `COBOL7641`, `01 T. 05 E PIC X(1000) OCCURS
   2000000000.` compiled clean (its size wrapped in the compiler's 32-bit model and the program committed memory until the
   host ran out), and an over-limit group with a REDEFINES over it crashed the compiler with an OverflowException (kb/Work

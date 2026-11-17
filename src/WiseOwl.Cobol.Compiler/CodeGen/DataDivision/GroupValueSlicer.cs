@@ -292,16 +292,16 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
                 // element count.
                 int at = off;
                 var runs = OccurrenceRunEmit.RunsOfRepeats(n, slice.PeriodFor(w),
-                    (a, b) => slice.SameWindow(at + (a - 1) * w, at + (b - 1) * w, w));
+                    (a, b) => slice.SameWindow(RecordLayout.OccurrenceAt(at, a - 1, w), RecordLayout.OccurrenceAt(at, b - 1, w), w));
                 parts.Add($"{c.ClrName} = " + OccurrenceRunEmit.Array(c.ElementType, n, runs,
-                    o => MemberFromSlice(c, slice.Window(at + (o - 1) * w, w, ' '), (g, s) => SliceInit(g, s, depth + 1)).Init, depth));
-                off += w * n;
+                    o => MemberFromSlice(c, slice.Window(RecordLayout.OccurrenceAt(at, o - 1, w), w, ' '), (g, s) => SliceInit(g, s, depth + 1)).Init, depth));
+                off = RecordLayout.OccurrenceAt(off, n, w);
             }
             else
             {
                 var (field, init) = MemberFromSlice(c, slice.Window(off, w, ' '), (g, s) => SliceInit(g, s, depth));
                 parts.Add($"{field} = {init}");
-                off += w;
+                off = RecordLayout.Advance(off, w);
             }
         }
         return $"new {item.StructName} {{ {string.Join(", ", parts)} }}";
@@ -345,9 +345,9 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
                 // its declared bits but the NEXT one starts at the following byte.
                 int stride = BitLayout.StrideBits(c);
                 var runs = OccurrenceRunEmit.RunsOfRepeats(n, area.PeriodFor(stride),   // kb/Work PB1722
-                    (a, b) => area.SameWindow(at + (a - 1) * stride, at + (b - 1) * stride, per));
+                    (a, b) => area.SameWindow(RecordLayout.OccurrenceAt(at, a - 1, stride), RecordLayout.OccurrenceAt(at, b - 1, stride), per));
                 parts.Add($"{c.ClrName} = " + OccurrenceRunEmit.Array(c.ElementType, n, runs,
-                    o => MemberFromSlice(c, BitWindow(area, at + (o - 1) * stride, per), (g, s) => SliceBitInit(g, s, depth + 1)).Init, depth));
+                    o => MemberFromSlice(c, BitWindow(area, RecordLayout.OccurrenceAt(at, o - 1, stride), per), (g, s) => SliceBitInit(g, s, depth + 1)).Init, depth));
             }
             else
             {
@@ -372,9 +372,9 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
             int n = table.Occurs!.Value, per = BitLayout.WidthBits(table), stride = BitLayout.StrideBits(table), pad = stride - per;
             int first = filler.StartBit;
             var gaps = OccurrenceRunEmit.RunsOfRepeats(n - 1, area.PeriodFor(stride),
-                (a, b) => area.SameWindow(first + (a - 1) * stride, first + (b - 1) * stride, pad));
+                (a, b) => area.SameWindow(RecordLayout.OccurrenceAt(first, a - 1, stride), RecordLayout.OccurrenceAt(first, b - 1, stride), pad));
             parts.Add($"{filler.ClrName} = " + OccurrenceRunEmit.Image(gaps,
-                o => EmitText.CsLiteral(BitWindow(area, first + (o - 1) * stride, pad).Text)));
+                o => EmitText.CsLiteral(BitWindow(area, RecordLayout.OccurrenceAt(first, o - 1, stride), pad).Text)));
         }
         return $"new {item.StructName} {{ {string.Join(", ", parts)} }}";
     }

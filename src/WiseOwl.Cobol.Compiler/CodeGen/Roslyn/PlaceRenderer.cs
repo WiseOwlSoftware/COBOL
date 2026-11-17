@@ -540,7 +540,7 @@ internal static class PlaceRenderer
         {
             int w = n.Widths[i];
             sb.Append(' ').Append(Write(n.Leaves[i], $"__ren.Substring({off}, {w})"));
-            off += w;
+            off = RecordLayout.Advance(off, w);
         }
         return sb.Append(" }").ToString();
     }

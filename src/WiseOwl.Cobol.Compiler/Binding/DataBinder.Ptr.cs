@@ -228,7 +228,7 @@ public sealed partial class DataBinder
         if (DynSlotWindow.CarriedBySlot(node)) return next + 1;
         int k = next;
         foreach (var c in node.Children.Where(c => c.RedefinesTargetName is null))
-            k = RecordLayout.Narrow(RecordLayout.Plus(k, RecordLayout.Times(AssignCellComponents(c, k) - k, c)));
+            k = RecordLayout.ItemSize(RecordLayout.Plus(k, RecordLayout.Times(AssignCellComponents(c, k) - k, c)));
         return k;
     }
 }

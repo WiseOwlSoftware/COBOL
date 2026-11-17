@@ -225,7 +225,7 @@ public static class OdoModel
         int elem = bitUnits ? BitLayout.StrideBits(table) : Model.RecordLayout.PhysicalOccurrenceWidth(table);
         int fixedUnits = bitUnits
             ? BitLayout.StartBitOf(group, table)
-            : Model.RecordLayout.PhysicalWidth(group) - elem * max;            // SR22 — the variable tail is trailing
+            : Model.RecordLayout.PhysicalWidth(group) - Model.RecordLayout.ItemSize(Model.RecordLayout.Product(elem, max));   // SR22 — the variable tail is trailing (the difference may be negative for a group whose dynamic members the codec counts apart)
         return new OdoGeometry(fixedUnits, elem, min, max, bitUnits ? BitLayout.BitsPerCharacter : 1,
             bitUnits ? BitLayout.TrailingFillerBits(table) : 0);
     }

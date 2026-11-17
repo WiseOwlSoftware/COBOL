@@ -22,7 +22,7 @@ internal static class ItemLength
     /// exception for the CONSTANT entry; the FUNCTION LENGTH fold never reaches an ODO group (r4 is a runtime
     /// length). A dynamic-length item (r6) is never folded here: FUNCTION LENGTH reads it at run time and §2023:13.10.3
     /// SR12 bars it from a CONSTANT entry.</summary>
-    internal static int Positions(DataItem item) => RecordLayout.Narrow(ExactPositions(item));
+    internal static int Positions(DataItem item) => RecordLayout.ItemSize(ExactPositions(item));
 
     /// <summary><see cref="Positions"/> in 64 bits: the form a CONSTANT entry's length phrase reads while the data division binds, before
     /// the size limit has screened the item it measures (kb/Work PB5695).</summary>
@@ -60,7 +60,7 @@ internal static class ItemLength
     /// one) is its storage size.</summary>
     internal static int StandardDataFormatCharacters(DataItem item)
     {
-        return RecordLayout.Narrow(ExactStandardDataFormatCharacters(item));
+        return RecordLayout.ItemSize(ExactStandardDataFormatCharacters(item));
 
         // In 64 bits through the one group sum (RecordLayout.OverStorageChildren), narrowed once (kb/Work PB5695).
         static long ExactStandardDataFormatCharacters(DataItem item) =>
@@ -113,7 +113,7 @@ internal static class ItemLength
                 parts[^1] = run with { Width = run.Width + width };
             else
                 parts.Add(new StandardPart(offset, width, null, count, null));
-            offset = RecordLayout.Narrow(RecordLayout.Plus(offset, RecordLayout.OccupiedBytes(child)));
+            offset = RecordLayout.ItemSize(RecordLayout.Plus(offset, RecordLayout.OccupiedBytes(child)));
         }
         return parts;
     }

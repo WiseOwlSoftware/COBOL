@@ -48,15 +48,15 @@ internal static class RecordLayout
     /// members were lost (kb/Work PB1665: <c>MOVE G5 TO G6</c> left <c>B</c> as spaces). Every consumer of a group's
     /// character-image width — MOVE, the receiving store, the boundary windows, ref-mod positions, LENGTH folds,
     /// the Tier-B strides — reads this one answer, so none restates the unit.</para>
-    /// <para>The answer is <see cref="ExactImageWidth"/> through <see cref="Narrow"/>: see the size section below.</para></summary>
-    public static int ImageWidth(DataItem item) => Narrow(ExactImageWidth(item));
+    /// <para>The answer is <see cref="ExactImageWidth"/> through <see cref="ItemSize"/>: see the size section below.</para></summary>
+    public static int ImageWidth(DataItem item) => ItemSize(ExactImageWidth(item));
 
     // ── ⛔ THE ONE COMPUTATION OF AN ITEM'S SIZE (kb/Work PB5695 and its review R1-1) ─────────────────────────────────────
     //
     // Every size the compiler takes of a data item — its image, its bytes, its storage extent with every overlay, an OCCURS
     // product, a group sum, a REDEFINES comparison, an offset, a record length — is computed HERE, in 64 bits, saturating at
-    // long.MaxValue, and is narrowed to int by ONE function, Narrow, which throws an internal compiler error for a value no
-    // admitted item can have. The limit (MaxCharacterPositions / MaxStorageBytes, D-ITEM-SIZE) is decided by ONE function,
+    // long.MaxValue, and an ITEM'S OWN size is narrowed to int by ONE function, ItemSize, which throws an internal compiler error
+    // for a value no admitted item can have; a size at a hypothetical count stays long (or goes through SaturatedBound). The limit (MaxCharacterPositions / MaxStorageBytes, D-ITEM-SIZE) is decided by ONE function,
     // ExceedsSizeLimit, in CheckStorageLimitsPass, which runs before any pass that narrows a group's size and stops the
     // compile when it refuses an item (DataDivisionRefused). The int product used to wrap: 05 E PIC X(1000) OCCURS 2000000000
     // was 2,000,000,000,000 positions, read as -1,454,759,936, and an over-limit group with a REDEFINES over it crashed the
@@ -79,20 +79,25 @@ internal static class RecordLayout
     /// meets it before its image does.</summary>
     internal const long MaxStorageBytes = MaxCharacterPositions;
 
-    /// <summary>The largest measure an item within the limit has, so the largest value <see cref="Narrow"/> accepts: its storage in
+    /// <summary>The largest measure an item within the limit has, so the largest value <see cref="ItemSize"/> accepts: its storage in
     /// bits, eight times <see cref="MaxStorageBytes"/> — above every other measure (its image at most
     /// <see cref="MaxCharacterPositions"/>, its bytes and codec span at most <see cref="MaxStorageBytes"/>, an offset less, the
     /// characters of standard data format at most 2.25 per byte, its boolean positions at most its bits).</summary>
     internal const long MaxMeasure = 8L * MaxStorageBytes;
 
-    /// <summary>⛔ THE ONE NARROWING of a size to <see cref="int"/>. It may be asked only of a measure of an item within the limit
-    /// (<see cref="ExceedsSizeLimit"/>), which is at most <see cref="MaxMeasure"/>; any other value means a pass measured an item the
-    /// limit refused, or one it has not screened yet, and that is an internal compiler error, never a wrapped or clamped size.</summary>
-    public static int Narrow(long measure) =>
+    /// <summary>⛔ THE ONE NARROWING OF AN ITEM'S OWN SIZE to <see cref="int"/>: a measure of a data item the limit has proved in range
+    /// (<see cref="ExceedsSizeLimit"/>) — its image, bytes, storage, an offset or occurrence inside it, a count of its real
+    /// occurrences — which is at most <see cref="MaxMeasure"/>; any other value means a pass measured an item the limit refused, or
+    /// one it has not screened yet, and that is an internal compiler error, never a wrapped or clamped size.
+    /// <para>⛔ A computation over a HYPOTHETICAL count — a search for the largest count a record length admits, a maximum, a bound — is
+    /// NOT an item's size and never asks this: it stays in 64 bits (<see cref="BitLayout.TableBitsAtCount"/>, <see cref="Product"/>,
+    /// <see cref="Plus"/>) and, if the run time needs an int, goes through <see cref="SaturatedBound"/> (kb/Work PB5695 review R2-2:
+    /// <c>SequentialIoEmitter.OdoRecordExceedsMaximum</c>'s search reached it and a legal 2023 program crashed the compiler).</para></summary>
+    public static int ItemSize(long measure) =>
         measure is >= 0 and <= MaxMeasure ? (int)measure
         : throw new InvalidOperationException(
             $"internal compiler error: a data item size of {measure} reached the narrowing to int; only an item within the "
-            + $"{MaxCharacterPositions:N0}-position limit may be narrowed (RecordLayout.Narrow, kb/Work PB5695)");
+            + $"{MaxCharacterPositions:N0}-position limit may be narrowed (RecordLayout.ItemSize, kb/Work PB5695)");
 
     /// <summary>⛔ THE ONE CONVERSION OF A RUN-TIME BOUND that is not a data item's size — a dynamic-length item's maximum (Annex A.1 item
     /// 62 allows 1,073,741,791 characters) summed into a record's maximum length, a dynamic-capacity table's expected capacity — to
@@ -102,6 +107,19 @@ internal static class RecordLayout
     /// <summary>The occurrences of one entry: its OCCURS count (an OCCURS DEPENDING table's maximum, §2023:8.5.1.8), one for an entry
     /// with no OCCURS clause and for a dynamic-capacity table (its occurrences are not part of the fixed layout).</summary>
     public static int Occurrences(DataItem item) => item.Occurs ?? 1;
+
+    /// <summary>The OCCURS count an entry declares, zero for an entry with no OCCURS clause (the count a field record carries
+    /// when it must tell a table from a single item).</summary>
+    public static int DeclaredOccurrences(DataItem item) => item.Occurs ?? 0;
+
+    /// <summary>⛔ AN OFFSET ADVANCED PAST A FIELD: <paramref name="offset"/> plus <paramref name="by"/>, in 64 bits and narrowed as the
+    /// position inside an item within the limit that it is (the walks that lay a group's fields out one after another).</summary>
+    public static int Advance(long offset, long by) => ItemSize(Plus(offset, by));
+
+    /// <summary>⛔ THE OFFSET OF AN OCCURRENCE: <paramref name="origin"/> plus <paramref name="zeroBasedIndex"/> strides of
+    /// <paramref name="stride"/>, in 64 bits and narrowed as the item position it is (the occurrence is one of the table's own, so
+    /// the offset lies inside an item within the limit).</summary>
+    public static int OccurrenceAt(long origin, long zeroBasedIndex, long stride) => ItemSize(Plus(origin, Product(zeroBasedIndex, stride)));
 
     /// <summary>⛔ THE OCCURS PRODUCT: <paramref name="perOccurrence"/> for each of <paramref name="item"/>'s
     /// <see cref="Occurrences"/>, in 64 bits.</summary>
@@ -153,7 +171,7 @@ internal static class RecordLayout
 
     /// <summary>The bytes every occurrence of <paramref name="item"/> occupies — its <c>ByteWidth</c> times its occurrences: the
     /// size a REDEFINES class member is compared and allocated by (§2023:13.18.44.4 GR1, in bytes, kb/Work PB231).</summary>
-    public static int OccupiedBytes(DataItem item) => Narrow(Times(ExactByteWidth(item), item));
+    public static int OccupiedBytes(DataItem item) => ItemSize(Times(ExactByteWidth(item), item));
 
     /// <summary><see cref="OccupiedBytes"/> in bits, the unit a REDEFINES overlay of a bit item is measured in (§2023:13.18.44.3 SR8).</summary>
     public static long OccupiedBits(DataItem item) => Product(Times(ExactByteWidth(item), item), BitLayout.BitsPerCharacter);
@@ -233,7 +251,7 @@ internal static class RecordLayout
     /// equals <see cref="ImageWidth"/>. Mirrors <c>OdoModel.PhysicalWidth</c> / <c>SortPhysicalWidth</c> (the ODO
     /// §2023:13.18.38 GR8 extent) — the raw <see cref="ImageWidth"/> would over- or under-count a group containing a
     /// redefines class whose redefiner is wider than the redefined item.</summary>
-    public static int PhysicalWidth(DataItem item) => Narrow(ExactPhysicalWidth(item));
+    public static int PhysicalWidth(DataItem item) => ItemSize(ExactPhysicalWidth(item));
 
     /// <summary><see cref="PhysicalWidth"/>'s walk, in 64 bits.</summary>
     private static long ExactPhysicalWidth(DataItem item)
@@ -280,7 +298,7 @@ internal static class RecordLayout
     /// positions, which a national leaf counts once where this basis counts it twice (§2023:13.18.60.4 GR8; D-N1) —
     /// against a <see cref="PhysicalWidth"/> total in BYTES, so the fixed prefix came out as the difference and a
     /// zero-occurrence national table sent half its maximum image (kb/Work PB943).</summary>
-    internal static int PhysicalOccurrenceWidth(DataItem item) => Narrow(ExactPhysicalOccurrenceWidth(item));
+    internal static int PhysicalOccurrenceWidth(DataItem item) => ItemSize(ExactPhysicalOccurrenceWidth(item));
 
     private static long ExactPhysicalOccurrenceWidth(DataItem item) =>
         item.IsGroup ? ExactPhysicalWidth(item) : ExactByteWidth(item);
@@ -324,7 +342,7 @@ internal static class RecordLayout
         long? found = null;
         var offsets = new Dictionary<DataItem, long>(ReferenceEqualityComparer.Instance);
         Walk(root, 0);
-        return found is { } at ? Narrow(at) : null;
+        return found is { } at ? ItemSize(at) : null;
 
         void Walk(DataItem node, long off)
         {
@@ -452,7 +470,7 @@ internal static class RecordLayout
         long bytes = 0;
         for (int i = 0; i < levels.Count && i < occurrence.Count; i++)
             bytes = Plus(bytes, Product(occurrence[i] - 1, ExactPhysicalOccurrenceWidth(levels[i])));
-        return Narrow(bytes);
+        return ItemSize(bytes);
     }
 
     /// <summary>The offset of <paramref name="item"/> in its 01 record when it is written with the integer-literal
@@ -505,7 +523,7 @@ internal static class RecordLayout
         long? found = null;
         var offsets = new Dictionary<DataItem, long>(ReferenceEqualityComparer.Instance);
         Walk(root, 0);
-        return found is { } f ? (Narrow(f), preceding, maxBytes) : null;
+        return found is { } f ? (ItemSize(f), preceding, maxBytes) : null;
 
         // Returns the FIXED-run offset just past node.
         long Walk(DataItem node, long start)

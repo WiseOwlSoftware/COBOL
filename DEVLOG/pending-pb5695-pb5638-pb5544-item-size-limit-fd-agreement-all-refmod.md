@@ -14,8 +14,12 @@ Three 1985 refusal defects, fixed in one branch.
   The fix is to the whole class of sites:
   - **One computation:** every size, OCCURS product, group sum, REDEFINES comparison, offset and bit extent is computed in
     64 bits in `RecordLayout`.
-  - **One narrowing:** `RecordLayout.Narrow` raises an internal compiler error above the largest admitted measure.
+  - **One narrowing:** `RecordLayout.ItemSize` raises an internal compiler error above the largest admitted measure.
   - **Enforced:** `SizeArithmeticDriftTests`, a text-level test, bans the old shapes elsewhere.
+  Round 2 (R2-2) found that the narrowing (then `Narrow`, now `ItemSize`) was also reached by the 2023 READ's search over
+  HYPOTHETICAL counts. A legal bit + OCCURS DEPENDING record under RECORD VARYING TO 500000000 then crashed the compiler.
+  `ItemSize` now narrows an item's own size only; a hypothetical count stays in 64 bits (`BitLayout.TableBitsAtCount`).
+  The local-name products R2-3 listed now go through `RecordLayout`, and the test bans them.
 - **PB5638 (under-rejects).** §1985:VII.3.7.4 GR11a: every entry of an external file connector has a LINAGE clause if any
   entry has one. An entry with no LINAGE used to be skipped. `FileDescriptionIdentity.Rule.AbsentCite` now reports such an
   entry (COBOL6847). The sweep found two more gaps. GR11c: a LINAGE data-name is now compared by its external data item

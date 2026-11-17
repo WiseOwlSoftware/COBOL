@@ -1344,11 +1344,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         int max = table.Occurs ?? spec.Max;
         bool bits = record.HasBitDescendant && BitLayout.StartBitOf(record, table) >= 0;
         int elem = bits ? BitLayout.StrideBits(table) : RecordLayout.PhysicalOccurrenceWidth(table);
-        long fixedUnits = bits ? BitLayout.StartBitOf(record, table) : RecordLayout.PhysicalWidth(record) - (long)elem * max;
-        // The record's size in BYTES at n occurrences (GR13 c) — bits round up to the byte the last one ends in (GR4).
+        long fixedUnits = bits ? BitLayout.StartBitOf(record, table) : RecordLayout.PhysicalWidth(record) - RecordLayout.Product(elem, max);
+        // The record's size in BYTES at n occurrences (GR13 c) — bits round up to the byte the last one ends in (GR4). ⛔ n is a
+        // HYPOTHETICAL count, past the table's maximum while the search runs, so the size is no item's: it stays in 64 bits and is
+        // never narrowed (kb/Work PB5695 review R2-2: a bit + OCCURS DEPENDING record under RECORD VARYING TO 500000000 crashed).
         long BytesAt(long n) => bits
-            ? BitLayout.Characters((int)(fixedUnits + BitLayout.TableBits(table, (int)n)))
-            : fixedUnits + n * elem;
+            ? BitLayout.Characters(RecordLayout.Plus(fixedUnits, BitLayout.TableBitsAtCount(table, n)))
+            : RecordLayout.Plus(fixedUnits, RecordLayout.Product(n, elem));
         long fdMax = file.RecordSizeVaries ? file.VaryMax : file.RecordWidth;
         long limit = max;
         for (int guard = 0; BytesAt(limit + 1) <= fdMax && guard < (1 << 22); guard++) limit++;

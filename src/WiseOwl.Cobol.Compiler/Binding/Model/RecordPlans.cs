@@ -59,19 +59,19 @@ internal static class RecordPlans
         for (int i = 0; i < ordered.Count; i++)
         {
             var (startBit, bits, leaf) = ordered[i];
-            int first = RecordLayout.Narrow(startBit / 8);
+            int first = RecordLayout.ItemSize(startBit / 8);
             if (first < at) continue;   // overlaps an item already placed: its bytes are converted once
             if (BitLayout.IsBitLeaf(leaf))
             {
                 // A run: every following bit item that starts in a byte the run already reaches.
-                var run = new List<int> { RecordLayout.Narrow(startBit), RecordLayout.Narrow(bits) };
-                int end = RecordLayout.Narrow((startBit + bits - 1) / 8);
+                var run = new List<int> { RecordLayout.ItemSize(startBit), RecordLayout.ItemSize(bits) };
+                int end = RecordLayout.ItemSize((startBit + bits - 1) / 8);
                 while (i + 1 < ordered.Count && BitLayout.IsBitLeaf(ordered[i + 1].Leaf) && ordered[i + 1].StartBit / 8 <= end)
                 {
                     i++;
-                    run.Add(RecordLayout.Narrow(ordered[i].StartBit));
-                    run.Add(RecordLayout.Narrow(ordered[i].Bits));
-                    end = Math.Max(end, RecordLayout.Narrow((ordered[i].StartBit + ordered[i].Bits - 1) / 8));
+                    run.Add(RecordLayout.ItemSize(ordered[i].StartBit));
+                    run.Add(RecordLayout.ItemSize(ordered[i].Bits));
+                    end = Math.Max(end, RecordLayout.ItemSize((ordered[i].StartBit + ordered[i].Bits - 1) / 8));
                 }
                 if (first > at) steps.Add(new PlanStep(RecordStepKind.Raw, at, first - at));
                 steps.Add(new PlanStep(RecordStepKind.BitRun, first, end - first + 1, Bits: [.. run]));

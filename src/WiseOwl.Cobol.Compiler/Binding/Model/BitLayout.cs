@@ -169,7 +169,7 @@ internal static class BitLayout
     /// <see cref="DataItem.AsIfPic"/> reports as §2023:13.18.29.4 GR1b's <c>m</c>), and one spelling means the
     /// per-occurrence extent used as a WIDTH (the Tier-B bit window, kb/Work PB203) and the one used as a STRIDE
     /// (a subscripted bit member) cannot drift apart.</para></summary>
-    public static int RunBits(DataItem m) => RecordLayout.Narrow(RunBitsAt(m, PhaseOf(m)));
+    public static int RunBits(DataItem m) => RecordLayout.ItemSize(RunBitsAt(m, PhaseOf(m)));
 
     /// <summary><see cref="RunBits"/> for an item whose first bit lies <paramref name="phase"/> bits into a byte of the
     /// record (see <see cref="PhaseOf"/>) — the form <see cref="Walk"/> reads, which already knows where it is.</summary>
@@ -188,9 +188,16 @@ internal static class BitLayout
     /// written out THREE times — here, in <c>FileModel.MinExtent</c> and in
     /// <c>SequentialIoEmitter.OdoRecordExceedsMaximum</c> — and the OCCURS DEPENDING LENGTH of a bit group needs it
     /// as a fourth, so it is one method now (kb/Work PB3156).</para></summary>
-    public static int TableBits(DataItem table, int occurrences) => RecordLayout.Narrow(TableBitsAt(table, occurrences, PhaseOf(table)));
+    /// <para>⛔ An ITEM's size, so narrowed by <see cref="RecordLayout.ItemSize"/>: <paramref name="occurrences"/> is a count the table
+    /// can hold (at most its maximum). A count past it — a search for the largest count a record length admits — is no item's
+    /// size and asks <see cref="TableBitsAtCount"/>, which stays in 64 bits (kb/Work PB5695 review R2-2).</para>
+    public static int TableBits(DataItem table, int occurrences) => RecordLayout.ItemSize(TableBitsAt(table, occurrences, PhaseOf(table)));
 
-    private static long TableBitsAt(DataItem table, int occurrences, int phase) =>
+    /// <summary><see cref="TableBits"/> at ANY count, a hypothetical one included, in 64 bits and never narrowed: the extent the
+    /// table would have at <paramref name="count"/> occurrences (kb/Work PB5695 review R2-2).</summary>
+    public static long TableBitsAtCount(DataItem table, long count) => TableBitsAt(table, count, PhaseOf(table));
+
+    private static long TableBitsAt(DataItem table, long occurrences, int phase) =>
         occurrences <= 0 ? 0 : RecordLayout.Plus(RecordLayout.Product(StrideBitsAt(table, phase), occurrences - 1), WidthBitsAt(table, phase));
 
     /// <summary>The filler bits that pad the LAST occurrence of <paramref name="table"/> to its
@@ -210,7 +217,7 @@ internal static class BitLayout
     /// <summary>The bits a §2023:8.5.1.6.3 run's members occupy, back to back (<see cref="RunBits"/> summed through the one size
     /// computation, kb/Work PB5695): what the run's carrier packs before its tail filler.</summary>
     public static int RunBitsOf(IEnumerable<DataItem> run) =>
-        RecordLayout.Narrow(run.Aggregate(0L, (bits, m) => RecordLayout.Plus(bits, RunBitsAt(m, PhaseOf(m)))));
+        RecordLayout.ItemSize(run.Aggregate(0L, (bits, m) => RecordLayout.Plus(bits, RunBitsAt(m, PhaseOf(m)))));
 
     /// <summary>The stem of a stored implicit filler's CLR field name (<see cref="BitFiller.ClrName"/>): an
     /// emitter-fixed stem and a serial, never a COBOL word, so no user word can meet it
@@ -298,7 +305,7 @@ internal static class BitLayout
             // The padding between the occurrences of a strided table (§2023:13.18.1.4 GR2).
             if (HasTablePad(c))
                 found.Add(new(BitFillerKind.TablePad, c, at + WidthBits(c), WidthBits(c),
-                    RecordLayout.Narrow(RecordLayout.Product(RecordLayout.Occurrences(c) - 1, StrideBits(c) - WidthBits(c)))));
+                    RecordLayout.ItemSize(RecordLayout.Product(RecordLayout.Occurrences(c) - 1, StrideBits(c) - WidthBits(c)))));
             if (runs.RunLedBy(c) is not { } run) continue;
             int runBits = RunBitsOf(run);
             int tail;
@@ -311,7 +318,7 @@ internal static class BitLayout
                 int next = last + 1;
                 while (next < children.Count && children[next].RedefinesTargetName is not null) next++;
                 if (next >= children.Count) continue;
-                int end = RecordLayout.Narrow(starts![last] + RunBitsAt(children[last], (phase + starts[last]) % BitsPerCharacter));
+                int end = RecordLayout.ItemSize(starts![last] + RunBitsAt(children[last], (phase + starts[last]) % BitsPerCharacter));
                 tail = starts[next] - end;
             }
             else tail = RoundUpToByte(runBits) - runBits;
@@ -395,7 +402,7 @@ internal static class BitLayout
     /// out by the same rules (§2023:8.5.1.6.3 applies "within that group" at every level).
     /// <para>⛔ This is a WIDTH, not a STRIDE. For an ALIGNED multiple-occurrence item the two differ — use
     /// <see cref="StrideBits"/> wherever the number multiplies a subscript.</para></summary>
-    public static int WidthBits(DataItem item) => RecordLayout.Narrow(WidthBitsAt(item, PhaseOf(item)));
+    public static int WidthBits(DataItem item) => RecordLayout.ItemSize(WidthBitsAt(item, PhaseOf(item)));
 
     private static long WidthBitsAt(DataItem item, int phase) =>
         IsBitLeaf(item) ? item.Pic!.Length
@@ -431,7 +438,7 @@ internal static class BitLayout
     /// occurrence. <see cref="RunBits"/> therefore counts <c>stride × (n−1) + width</c>, not <c>stride × n</c>;
     /// the group's own tail filler is rule 4's round-up, applied once by <see cref="ExtentBits"/>.</para>
     /// </summary>
-    public static int StrideBits(DataItem item) => RecordLayout.Narrow(StrideBitsAt(item, PhaseOf(item)));
+    public static int StrideBits(DataItem item) => RecordLayout.ItemSize(StrideBitsAt(item, PhaseOf(item)));
 
     private static long StrideBitsAt(DataItem item, int phase) =>
         HoldsByteStart(item) ? RoundUpToByte(WidthBitsAt(item, phase)) : WidthBitsAt(item, phase);
@@ -485,7 +492,7 @@ internal static class BitLayout
     /// the end of a level 77 item, or the end of a level 1 elementary item" — which is why an ELEMENTARY bit item
     /// never comes through here and keeps its exact bit count (see <see cref="WidthBits"/>).</para>
     /// </summary>
-    public static int ExtentBits(DataItem group) => RecordLayout.Narrow(ExtentBitsAt(group, PhaseOf(group)));
+    public static int ExtentBits(DataItem group) => RecordLayout.ItemSize(ExtentBitsAt(group, PhaseOf(group)));
 
     /// <summary><see cref="ExtentBits"/> in 64 bits, the form the size computation reads (<see cref="RecordLayout.ExactImageWidth"/>), so a
     /// bit group past the limit is measured, never wrapped (kb/Work PB5695).</summary>
@@ -567,7 +574,7 @@ internal static class BitLayout
     {
         var starts = new long[group.Children.Count];
         Walk(group, PhaseOf(group), starts);
-        return [.. starts.Select(s => s < 0 ? -1 : RecordLayout.Narrow(s))];
+        return [.. starts.Select(s => s < 0 ? -1 : RecordLayout.ItemSize(s))];
     }
 
     /// <summary>
@@ -631,7 +638,7 @@ internal static class BitLayout
     /// <summary>The next byte boundary at or after <paramref name="bits"/> — "the first bit position of the first
     /// available byte" (§2023:8.5.1.6.3), and equally the implicit-filler advance to a natural boundary. Already
     /// byte-aligned input is returned unchanged, so no phantom filler byte is generated.</summary>
-    public static int RoundUpToByte(int bits) => RecordLayout.Narrow(RoundUpToByte((long)bits));
+    public static int RoundUpToByte(int bits) => RecordLayout.ItemSize(RoundUpToByte((long)bits));
 
     private static long RoundUpToByte(long bits) =>
         bits == long.MaxValue ? bits : (bits + BitsPerCharacter - 1) / BitsPerCharacter * BitsPerCharacter;
@@ -653,7 +660,7 @@ internal static class BitLayout
             if (n?.Parent is not { } parent) return -1;
             int at = StartBitWithin(parent, n);
             if (at < 0) return -1;
-            off += at;
+            off = RecordLayout.Advance(off, at);
         }
         return off;
     }
@@ -662,7 +669,7 @@ internal static class BitLayout
     /// <b>§2023:15.50.4 r9</b> requires ("if argument-1 does not occupy an integral number of positions, the returned
     /// value is rounded to the next larger integer value"). With rule 4 above the extent is already integral for a
     /// group; the ceiling is what makes an ELEMENTARY bit item's character occupancy right.</summary>
-    public static int Characters(int bits) => RecordLayout.Narrow(Characters((long)bits));
+    public static int Characters(int bits) => (int)Characters((long)bits);   // at most int.MaxValue / 8 + 1: always an int
 
     /// <summary><see cref="Characters(int)"/> in 64 bits.</summary>
     public static long Characters(long bits) => bits == long.MaxValue ? bits : (bits + BitsPerCharacter - 1) / BitsPerCharacter;

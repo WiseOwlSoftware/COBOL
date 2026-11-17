@@ -179,7 +179,7 @@ public sealed class RecordKey
         !IsSourceForm && ReferenceEquals(Segments[0], item) && Subscripts.SequenceEqual(occurrence);
 
     /// <summary>The key's length in bytes — the sum of its segments' (a national position is two bytes, D-N1).</summary>
-    public int ByteWidth => RecordLayout.Narrow(Segments.Aggregate(0L, (sum, s) => RecordLayout.Plus(sum, s.ByteWidth)));
+    public int ByteWidth => RecordLayout.ItemSize(Segments.Aggregate(0L, (sum, s) => RecordLayout.Plus(sum, s.ByteWidth)));
 
     /// <summary>The item the key takes its class and category from: data-name-1, or — §2023:12.4.5.12.3 SR5 /
     /// §2023:12.4.5.6.3 SR6, "Record-key-name-1 has the class and category of data-name-2" — the first data-name-2,

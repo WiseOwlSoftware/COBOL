@@ -205,7 +205,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     foreach (var sib in par.Children)
                     {
                         if (ReferenceEquals(sib, d)) break;
-                        if (sib.RedefinesTargetName is null) off += Width(sib);       // a redefining sibling adds no storage
+                        if (sib.RedefinesTargetName is null) off = RecordLayout.ItemSize(RecordLayout.Plus(off, Width(sib)));   // a redefining sibling adds no storage
                     }
                     return off;
                 }
@@ -270,7 +270,7 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     for (int k = first; k <= last; k++)
                     {
                         outer.Add(k);
-                        AddRuns(leaf, tables, level + 1, delta + (k - 1) * stride, outer);
+                        AddRuns(leaf, tables, level + 1, RecordLayout.OccurrenceAt(delta, k - 1, stride), outer);
                         outer.RemoveAt(outer.Count - 1);
                     }
                 }
@@ -300,13 +300,13 @@ internal sealed class ResolveRedefinesPass : IBindPass
                     RenamesSpanPart? best = null;
                     foreach (var (leaf, off, w, occ, outer) in leaves)
                     {
-                        int total = w * occ;
+                        int total = RecordLayout.ItemSize(RecordLayout.Product(w, occ));
                         if (pos < off || pos > off + total - 1) continue;          // the leaf does not contain pos
                         // the whole leaf (every occurrence) starting exactly here and fitting the window
                         if (off == pos && off + total - 1 <= endOff)
                             Consider(new RenamesSpanPart(leaf, null, 1, total, outer));
                         int k = (pos - off) / w + 1;                                // the occurrence containing pos
-                        int cellLo = off + (k - 1) * w, cellHi = cellLo + w - 1;
+                        int cellLo = RecordLayout.OccurrenceAt(off, k - 1, w), cellHi = cellLo + w - 1;
                         if (cellLo == pos && cellHi <= endOff)                      // a whole cell (or the whole 1-occurrence leaf)
                             Consider(new RenamesSpanPart(leaf, occ == 1 ? null : k, 1, w, outer));
                         else                                                        // a partial slice of the containing cell

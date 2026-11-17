@@ -1625,10 +1625,10 @@ public sealed class DataItem
     /// = 8 (the 64-bit managed carrier). WiseOwl COBOL has no SYNCHRONIZED physical padding, so a group carries no
     /// implicit-filler bytes (§2023:15.14.4 r3 is satisfied vacuously).</summary>
     /// <remarks>The rule is <see cref="RecordLayout.ExactByteWidth"/>, the one size computation, in 64 bits, narrowed by
-    /// <see cref="RecordLayout.Narrow"/> (kb/Work PB5695): a no-THROUGH level-66 alias of a GROUP item is as wide as the group it
+    /// <see cref="RecordLayout.ItemSize"/> (kb/Work PB5695): a no-THROUGH level-66 alias of a GROUP item is as wide as the group it
     /// renames (§2023:13.18.45.4 GR1), a bit-bearing subtree is LAID OUT, not summed (D19/PB43), and any other group sums its storage
     /// children's bytes times their occurrences.</remarks>
-    public int ByteWidth => RecordLayout.Narrow(RecordLayout.ExactByteWidth(this));
+    public int ByteWidth => RecordLayout.ItemSize(RecordLayout.ExactByteWidth(this));
 
     /// <summary>An elementary item's byte width — the per-usage pinned widths documented on <see cref="ByteWidth"/>.</summary>
     /// <summary>The byte width this implementation gives every pointer-class and object-reference item — USAGE
@@ -1660,7 +1660,7 @@ public sealed class DataItem
                 Usage.FloatDecimal16 => 8,                            // decimal64 = 8 bytes
                 Usage.Pointer or Usage.ProgramPointer or Usage.FunctionPointer
                     or Usage.ObjectReference or Usage.MessageTag => PointerByteWidth,   // DOC-A.1-212: the slot rule, 8
-                Usage.National => RecordLayout.Narrow(RecordLayout.Product(pic.BytesPerPosition, ElementaryImageWidth)),   // UTF-16, D-N1/D-N3 — the ONE unit reader
+                Usage.National => RecordLayout.ItemSize(RecordLayout.Product(pic.BytesPerPosition, ElementaryImageWidth)),   // UTF-16, D-N1/D-N3 — the ONE unit reader
                 _ => ElementaryImageWidth,                       // DISPLAY / BIT: 1 byte per character/boolean position
             };
         }

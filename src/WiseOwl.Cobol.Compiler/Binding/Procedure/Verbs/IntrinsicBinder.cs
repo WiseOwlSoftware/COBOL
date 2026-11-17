@@ -2675,7 +2675,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     if (tablePath is null || c.OccursSpec?.CapacityRegister is not { } reg)
                     { failure = Stage($"the dynamic-capacity table '{c.CobolName ?? c.ClrName}' could not be addressed"); return; }
                     fixedPart -= c.ByteWidth;
-                    dynamicBytes = RecordLayout.Narrow(RecordLayout.Plus(dynamicBytes, c.ByteWidth));
+                    dynamicBytes = RecordLayout.ItemSize(RecordLayout.Plus(dynamicBytes, c.ByteWidth));
                     Add(new BoundBinary(new BoundNumRef(new CapacityRegisterPlace(tablePath, reg)), '*',
                                         new BoundNumLiteral(c.ByteWidth.ToString())));
                 }
@@ -2713,20 +2713,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                         // gives it back once an occurrence exists (BoundOdoExtent.TrailingWidth), before any ceiling, and
                         // the maximum the constant part is taken from is the table's TableBits (kb/Work PB3156).
                         int trailingBits = BitLayout.TrailingFillerBits(c);
-                        long endBits = prefixBits + (long)max * strideBits - trailingBits;
+                        long endBits = RecordLayout.Plus(prefixBits, RecordLayout.Product(max, strideBits)) - trailingBits;
                         // The dynamic-capacity tables found so far each sit in the prefix as ONE occurrence (whole bytes,
                         // on byte boundaries): their runtime terms add the full capacity, so the prefix counts none.
                         fixedPart += bitPositions ? 0 : dynamicBytes;
-                        fixedPart -= bitPositions ? endBits : BitLayout.Characters((int)endBits);
+                        fixedPart -= bitPositions ? endBits : BitLayout.Characters(endBits);
                         Add(new BoundOdoExtent(odo.Depending, spec.Min, max,
-                                prefixBits - (bitPositions ? 0 : (int)dynamicBytes * BitLayout.BitsPerCharacter), strideBits,
+                                prefixBits - (bitPositions ? 0 : RecordLayout.ItemSize(RecordLayout.Product(dynamicBytes, BitLayout.BitsPerCharacter))), strideBits,
                                 trailingBits, bitPositions ? 1 : BitLayout.BitsPerCharacter)
                             { BasedAddress = basedAddress });
                     }
                     else
                     {
                         if (nationalPositions) elem = ItemLength.Positions(c);
-                        fixedPart -= (long)elem * max;
+                        fixedPart -= RecordLayout.Product(elem, max);
                         Add(new BoundOdoExtent(odo.Depending, spec.Min, max, 0, elem, 0) { BasedAddress = basedAddress });
                     }
                 }

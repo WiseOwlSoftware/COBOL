@@ -235,7 +235,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         if (!DynamicTablePath(s.dataReference(), "SEARCH", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
         if (WrittenTable("SEARCH", table, written, whenEnclosing, out bail) is not { } whole) return bail;
-        return Preceded(prelude, new BoundSearch(searchIx, table.Occurs ?? 0, whole, also, atEnd, whens, Borrowed(written, whenEnclosing),
+        return Preceded(prelude, new BoundSearch(searchIx, RecordLayout.DeclaredOccurrences(table), whole, also, atEnd, whens, Borrowed(written, whenEnclosing),
             DependItem: SearchDepending(s.dataReference(), table),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // §2023:14.9.37.4 GR4: an out-of-range initial index (SEARCH-INDEX) / a scan advancing off the end (NO-MATCH)
@@ -286,7 +286,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         if (!DynamicTablePath(s.dataReference(), "SEARCH ALL", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
             return bail;
         if (WrittenTable("SEARCH ALL", table, written, whenEnclosing, out bail) is not { } whole) return bail;
-        return Preceded(prelude, new BoundSearch(table.Indexes[0].Cell, table.Occurs ?? 0, whole,
+        return Preceded(prelude, new BoundSearch(table.Indexes[0].Cell, RecordLayout.DeclaredOccurrences(table), whole,
             AlsoVaried: null, atEnd, whens, Borrowed(written, whenEnclosing), IsAll: true, DependItem: SearchDepending(s.dataReference(), table),
             DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // SEARCH ALL forces the index to 1 (GR9 ignores the initial setting) so SEARCH-INDEX can never arise;

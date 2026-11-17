@@ -40,8 +40,8 @@ public sealed class BitGroupPhaseDriftTests
     public void EveryPublicReader_AsksPhaseOfAndDelegatesToTheExplicitPhaseForm(string publicName, string explicitName)
     {
         var delegation = new Regex(
-            // The public reader narrows the explicit form's 64-bit answer through the one size narrowing (kb/Work PB5695).
-            $@"public static int {publicName}\([^)]*\)\s*=>\s*RecordLayout\.Narrow\({explicitName}\([^;]*PhaseOf\(", RegexOptions.CultureInvariant);
+            // The public reader narrows the explicit form's 64-bit answer through the one narrowing of an item's own size (kb/Work PB5695).
+            $@"public static int {publicName}\([^)]*\)\s*=>\s*RecordLayout\.ItemSize\({explicitName}\([^;]*PhaseOf\(", RegexOptions.CultureInvariant);
         Assert.True(delegation.IsMatch(BitLayoutText()),
             $"BitLayout.{publicName} no longer reads {explicitName} at PhaseOf(item): a bit group that begins mid-byte would "
             + "count its byte boundaries from its own start again (kb/Work PB3158).");

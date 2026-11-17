@@ -195,7 +195,7 @@ public sealed record OccurrenceExtents(StorageExtent First, IReadOnlyList<Occurr
             var (stride, count) = Levels[level];
             for (int i = 0; i < count; i++)
             {
-                long s = start + (long)i * stride;
+                long s = RecordLayout.Plus(start, RecordLayout.Product(i, stride));
                 if (s >= otherEnd) break;
                 if (Any(level + 1, s)) return true;
             }
