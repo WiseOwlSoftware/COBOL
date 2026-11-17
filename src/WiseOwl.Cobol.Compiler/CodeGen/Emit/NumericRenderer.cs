@@ -1069,8 +1069,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     };
 
     /// <summary>The SDIDI's precision (decimal128, ISO §2023:8.8.1.5.2 NOTE 2): an exact operand whose
-    /// <see cref="NumX.Digits"/> bound is within it lifts with no rounding.</summary>
-    private const int SdidiDigits = 34;
+    /// <see cref="NumX.Digits"/> bound is within it lifts with no rounding. Its one spelling is <see cref="ArithmeticModes.SdidiDigits"/>.</summary>
+    private const int SdidiDigits = ArithmeticModes.SdidiDigits;
 
     private NumX CombineNative(NumX a, string op, NumX b) => op switch
     {

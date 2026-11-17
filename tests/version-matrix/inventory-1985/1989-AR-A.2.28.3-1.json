@@ -1,7 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.28.3-1",
  "rule-digest": "751450a8779d",
- "test-ref": "conformance:cases/A.2.28@1985-MOD-FUNCTION/g85_f33_07",
+ "test-ref": "conformance:cases/A.2.28@1985-MOD-FUNCTION/g85_f33_07; conformance:cases/15.3-Arguments/pb5886-product-quotient; conformance:cases/15.3-Arguments/pb5886-argument-2-quotient",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

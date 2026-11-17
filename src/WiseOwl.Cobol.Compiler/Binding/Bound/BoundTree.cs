@@ -508,8 +508,23 @@ public sealed record BoundIntrinsicCall(
     /// temporary is an integer DATA ITEM where the expression it replaced was not, so a type re-read from the swapped
     /// <see cref="Args"/> made one call Integer or Numeric by whether a LATER argument activated a user-defined function.
     /// The <c>with</c> that settles a call copies this property, so the type stays the one the arguments as written
-    /// gave (§15.x.1's result-type tables).</summary>
-    public IntrinsicType ResultType { get; init; } = IntrinsicResultType.Resolve(Sig, Args);
+    /// gave (§15.x.1's result-type tables). It is decided when <see cref="Arithmetic"/> is set, because whether an argument
+    /// expression is an integer depends on the arithmetic that evaluates it (kb/Work PB5886 review R3-1).</summary>
+    public IntrinsicType ResultType => _resultType
+        ?? throw new InvalidOperationException($"FUNCTION {Sig.Name} was bound without the arithmetic in force, so its type is undecided");
+
+    /// <summary>⛔ THE ARITHMETIC IN FORCE FOR THE STATEMENT THAT REFERENCES THE FUNCTION (§2023:11.9.5, the ARITHMETIC clause; kb/Work
+    /// PB5886 review R3-1). Required, so no call is bound without it: whether an argument such as <c>B27 / 0.0001 / 16384 * 16384</c> is
+    /// always an integer depends on the digits that arithmetic keeps (<see cref="IntrinsicArgumentRules.IsAlwaysIntegral"/>), and the
+    /// call's type (MAX of an integer argument is an integer function) is decided from it, once, here.</summary>
+    public required ArithmeticMode Arithmetic
+    {
+        get => _arithmetic;
+        init { _arithmetic = value; _resultType ??= IntrinsicResultType.Resolve(Sig, Args, value); }
+    }
+
+    private readonly ArithmeticMode _arithmetic;
+    private readonly IntrinsicType? _resultType;
 
     /// <summary>CHAR-NATIONAL / ORD-over-a-national-argument bound under a NON-native NATIONAL program collating
     /// sequence (an <c>ALPHABET … FOR NATIONAL</c> literal phrase; §2023:15.16.4 / §2023:15.70.4 r2) — the backend then

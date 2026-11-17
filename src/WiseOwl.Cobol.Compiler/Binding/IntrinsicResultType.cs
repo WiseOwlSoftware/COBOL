@@ -156,7 +156,7 @@ internal static class IntrinsicResultType
     /// <see cref="IntrinsicResultRule.Fixed"/> row, otherwise the type its §15.x.1 table selects for these
     /// arguments.
     /// </summary>
-    public static IntrinsicType Resolve(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args) => sig.Result switch
+    public static IntrinsicType Resolve(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args, ArithmeticMode arithmetic) => sig.Result switch
     {
         // The §15.x.1 "Argument type National → National" row, read through the ONE class-or-usage reader: for the
         // string functions (LOWER-CASE, TRIM, …) argument-1's class rules exclude every usage-national item that is
@@ -167,14 +167,14 @@ internal static class IntrinsicResultType
 
         // Integer only when it is KNOWN to be an integer — an undecidable argument keeps the declared Numeric.
         IntrinsicResultRule.IntegerFollowsArgument1 =>
-            IsIntegerArg(args, 0) ? IntrinsicType.Integer : IntrinsicType.Numeric,
+            IsIntegerArg(args, 0, arithmetic) ? IntrinsicType.Integer : IntrinsicType.Numeric,
 
         // §2023:15.76.1 / §2023:15.88.1 "All arguments integer". An empty list cannot satisfy "all" in any useful sense
         // (and the arity model forbids it for both functions), so it keeps the declared type.
         IntrinsicResultRule.IntegerFollowsAllArguments =>
-            args.Count > 0 && AllIntegerArgs(args) ? IntrinsicType.Integer : IntrinsicType.Numeric,
+            args.Count > 0 && AllIntegerArgs(args, arithmetic) ? IntrinsicType.Integer : IntrinsicType.Numeric,
 
-        IntrinsicResultRule.FollowsUniformArguments => UniformArgumentType(sig, args),
+        IntrinsicResultRule.FollowsUniformArguments => UniformArgumentType(sig, args, arithmetic),
 
         // §2023:15.18.4 r2 — "If argument-1 is of class OR USAGE national, the function will return a national value";
         // §2023:15.18.3 r2 makes the argument list uniform in usage, so argument-1 decides for the whole call. The two
@@ -206,7 +206,7 @@ internal static class IntrinsicResultType
     /// (§2023:15.59.3 / §2023:15.63.3), so argument-1 decides the string and index rows while the integer row must consult
     /// all of them ("ALL arguments integer").
     /// </summary>
-    private static IntrinsicType UniformArgumentType(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args)
+    private static IntrinsicType UniformArgumentType(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args, ArithmeticMode arithmetic)
     {
         if (args.Count == 0) return sig.Type;
         // ⛔ THE INDEX ROW MUST BE TESTED FIRST, AND IT IS NOT A PicCategory. An index data item is PICTURE-less
@@ -230,7 +230,7 @@ internal static class IntrinsicResultType
             PicCategory.National => IntrinsicType.National,
             // Alphabetic folds into Alphanumeric in this model, and both rows return Alphanumeric anyway.
             PicCategory.Alphanumeric or PicCategory.NumericEdited => IntrinsicType.Alphanumeric,
-            _ => AllIntegerArgs(args) ? IntrinsicType.Integer : IntrinsicType.Numeric,
+            _ => AllIntegerArgs(args, arithmetic) ? IntrinsicType.Integer : IntrinsicType.Numeric,
         };
     }
 
@@ -341,14 +341,16 @@ internal static class IntrinsicResultType
     /// PICTURE has scale 0, and a nested INTEGER-typed function is one. Anything not provably an integer answers
     /// false, which keeps the numeric row — the fail-soft direction.
     /// </summary>
-    private static bool IsIntegerArg(IReadOnlyList<BoundOperand> args, int i) =>
-        i < args.Count && IsIntegerArgument(args[i]);
+    private static bool IsIntegerArg(IReadOnlyList<BoundOperand> args, int i, ArithmeticMode arithmetic) =>
+        i < args.Count && IsIntegerArgument(args[i], arithmetic);
 
     /// <summary>The §2023:15.3 type-6 reading of one ARGUMENT for the result-type rows: <see cref="IsIntegerOperand(BoundOperand)"/>,
     /// and any ARITHMETIC EXPRESSION the intrinsic binder makes a computed operand of (<c>ABS((I2))</c> kb/Work PB4635,
     /// <c>ABS(I2 + 1)</c>, <c>ABS(- I2)</c>, <c>MAX(I2 + 1 1)</c> kb/Work PB4709) — "an arithmetic expression that will always
-    /// result in an integer value" (§2023:15.3 item 6) — when <see cref="IntrinsicArgumentRules.ProvablyIntegral"/>, the ONE reading of
-    /// "always", proves it and <see cref="IntrinsicArgumentRules.IntegralForm"/> can give it the scale-0 value the Integer row needs, so the
+    /// result in an integer value" (§2023:15.3 AR6; at COBOL-85 §1989:A.2.2 AR4, "An arithmetic expression which will always result in an
+    /// integer value") — when <see cref="IntrinsicArgumentRules.IsAlwaysIntegral"/>, the ONE reading of "always" that the type 6 screen also
+    /// asks (kb/Work PB5886 round 2, R2-1: <c>MAX (WN / 2 * 2)</c> is Integer exactly as <c>WN / 2 * 2</c> is an integer argument), admits it
+    /// and <see cref="IntrinsicArgumentRules.IntegralForm"/> can give it the scale-0 value the Integer row needs, so the
     /// function keeps the Integer row it has when the argument is a bare integer item or literal (the per-function tables of §2023:15.7.1 and
     /// its siblings, summarized by §2023:15.6 Table 21: "Both Int and Num are listed in the arguments column when the type of the argument
     /// determines the type of the function"). A parenthesized sole LITERAL is read as the bare literal is, by its FORM
@@ -356,11 +358,12 @@ internal static class IntrinsicResultType
     /// R1-2), which keeps a floating-point literal's established device image (<c>pb99_floating_literal_operand_exact</c>).
     /// ⚠ NOT folded into <see cref="IsIntegerOperand(BoundOperand)"/>: the statement positions that read it (the §2023:8.8.4.2.5 relation
     /// screen, PERFORM TIMES) want an integer ITEM or literal, and PB1935 keeps a parenthesized one out of them.</summary>
-    private static bool IsIntegerArgument(BoundOperand op) =>
+    private static bool IsIntegerArgument(BoundOperand op, ArithmeticMode arithmetic) =>
         IsIntegerOperand(op) || op switch
         {
             BoundComputedOperand { EnclosedOperand: BoundNumericLiteral enclosed } => IsIntegerOperand(enclosed),
-            BoundComputedOperand { Expr: var expr } => IntrinsicArgumentRules.ProvablyIntegral(expr) && IntrinsicArgumentRules.IntegralForm(expr) is not null,
+            BoundComputedOperand { Expr: var expr } => IntrinsicArgumentRules.IsAlwaysIntegral(expr, arithmetic)
+                && IntrinsicArgumentRules.IntegralForm(expr, arithmetic) is not null,
             _ => false,
         };
 
@@ -371,17 +374,17 @@ internal static class IntrinsicResultType
     /// function without the digits (<see cref="IntrinsicArgumentRules.IntegralForm"/>), or <c>MOVE FUNCTION ABS(I2 + 1.0) TO A10</c>
     /// stores <c>4.0</c>. The type is read from the arguments as WRITTEN and is unchanged by the rewrite (the value is the same). The
     /// list is returned as the instance it was when no argument changes.</summary>
-    public static IReadOnlyList<BoundOperand> IntegerRowArguments(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args)
+    public static IReadOnlyList<BoundOperand> IntegerRowArguments(in IntrinsicSig sig, IReadOnlyList<BoundOperand> args, ArithmeticMode arithmetic)
     {
         // A row DECLARED Integer takes type-6 arguments, which the renderer's intake already reads as their integers (FACTORIAL, MOD);
         // a row that RESOLVES to Integer (ABS, MAX, MIN, RANGE, SUM) takes its type-10 arguments at their own scale.
-        if (sig.Type is IntrinsicType.Integer || Resolve(sig, args) is not IntrinsicType.Integer)
+        if (sig.Type is IntrinsicType.Integer || Resolve(sig, args, arithmetic) is not IntrinsicType.Integer)
             return args;
         BoundOperand[]? rewritten = null;
         for (int i = 0; i < args.Count; i++)
         {
             if (args[i] is not BoundComputedOperand { Expr: var expr } computed
-                || IntrinsicArgumentRules.IntegralForm(expr) is not { } form || ReferenceEquals(form, expr))
+                || IntrinsicArgumentRules.IntegralForm(expr, arithmetic) is not { } form || ReferenceEquals(form, expr))
                 continue;
             rewritten ??= [.. args];
             rewritten[i] = computed with { Expr = form };
@@ -456,10 +459,10 @@ internal static class IntrinsicResultType
         _ => false,
     };
 
-    private static bool AllIntegerArgs(IReadOnlyList<BoundOperand> args)
+    private static bool AllIntegerArgs(IReadOnlyList<BoundOperand> args, ArithmeticMode arithmetic)
     {
         foreach (var a in args)
-            if (!IsIntegerArgument(a)) return false;
+            if (!IsIntegerArgument(a, arithmetic)) return false;
         return true;
     }
 }

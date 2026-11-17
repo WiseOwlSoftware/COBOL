@@ -893,11 +893,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // lives on the catalog ROW (IntrinsicSig.Result) and is read HERE and nowhere else; adding a function is
         // a column, not an edit to this method. IntrinsicResultTypeDriftTests re-derives the population from
         // specs/ISO_COBOL_2023.md so a new §15.x.1 table cannot be missed.
-        var category = IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, args));
+        var category = IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, args, ctx.Options.Arithmetic));
         // ⛔ AN INTEGER-ROW CALL TAKES ITS ARGUMENTS WITHOUT FRACTION DIGITS (§2023:15.2 5) - "no digits to the right of the decimal point",
         // kb/Work PB4709: ABS(I2 + 1.0) is Integer by §2023:15.3 item 6 (the expression always results in an integer), and its returned
         // value must then be 4, not 4.0; the type was read from the arguments as written, the value is the same.
-        if (IntrinsicResultType.IntegerRowArguments(sig, args) is var scaleZero && !ReferenceEquals(scaleZero, args))
+        if (IntrinsicResultType.IntegerRowArguments(sig, args, ctx.Options.Arithmetic) is var scaleZero && !ReferenceEquals(scaleZero, args))
         {
             // The argument window keys its entries by the operand AS BOUND (§2023:8.4.3.2.4 GR2, ArgumentOrder): each operand the rewrite
             // replaced says so, or it is never frozen against a later argument's activation (review R2-1).
@@ -982,7 +982,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             && !DialectBehaviors.IsActive(DialectBehavior.IntegerDateFormBounded, ctx.Edition.Edition.Year);
 
         return new BoundIntrinsicCall(resolved, args, category, collate)
-            { CollateNat = collateNat, ResultIsAlphabetic = alphabetic, IntegerDateFormUnbounded = integerDateUnbounded };
+            { Arithmetic = ctx.Options.Arithmetic, CollateNat = collateNat, ResultIsAlphabetic = alphabetic, IntegerDateFormUnbounded = integerDateUnbounded };
     }
 
     /// <summary>Is this argument provably CLASS ALPHABETIC (§2023:8.5.2.1 Table 2 — category alphabetic, the PIC A
@@ -1043,7 +1043,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (!ctx.Validation.ScreenReportFileReference(file, $"FUNCTION {sig.Name}"))
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {sig.Name} argument");
         host.Ec.EcNoteFunction();
-        return new BoundIntrinsicCall(sig, [], sig.ResultCategory) { FileArg = file };
+        return new BoundIntrinsicCall(sig, [], sig.ResultCategory) { Arithmetic = ctx.Options.Arithmetic, FileArg = file };
     }
 
     /// <summary>
@@ -1138,7 +1138,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         CheckArgumentClasses(sig, operands);
         // §2023:15.85.1: "The function type is alphanumeric" — a FIXED result rule, so the row's category is the
         // answer and there is no §15.x.1 table to resolve (the PB15 hazard does not arise here).
-        return new BoundIntrinsicCall(sig, operands, sig.ResultCategory) { OrderingTable = orderingTable };
+        return new BoundIntrinsicCall(sig, operands, sig.ResultCategory) { Arithmetic = ctx.Options.Arithmetic, OrderingTable = orderingTable };
     }
 
     /// <summary>The LOCALE functions (§2023:15.51 LOCALE-COMPARE, §2023:15.52 LOCALE-DATE, §2023:15.53 LOCALE-TIME, §2023:15.54
@@ -1193,7 +1193,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // date/time results is run-time-determined (§2023:15.52.4 r3 / §2023:15.53.4 r3 / §2023:15.54.4 r3) — the returned
         // CobolString carries its own length, and the receiving context (a MOVE, a reference modification) bounds
         // it at run time, exactly as every dynamic-length result already does.
-        return new BoundIntrinsicCall(sig, operands, sig.ResultCategory) { Locale = locale };
+        return new BoundIntrinsicCall(sig, operands, sig.ResultCategory) { Arithmetic = ctx.Options.Arithmetic, Locale = locale };
     }
 
     /// <summary>UPPER-CASE / LOWER-CASE with the LOCALE phrase (§2023:15.97.2 / §2023:15.57.2 — <c>( argument-1 [ LOCALE
@@ -1231,7 +1231,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         }
         var operands = new List<BoundOperand> { operand };
         CheckArgumentClasses(sig, operands);
-        return new BoundIntrinsicCall(sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands))) { Locale = locale };   // §2023:15.97.1 / §2023:15.57.1 — the type follows argument-1
+        return new BoundIntrinsicCall(sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands, ctx.Options.Arithmetic))) { Arithmetic = ctx.Options.Arithmetic, Locale = locale };   // §2023:15.97.1 / §2023:15.57.1 — the type follows argument-1
     }
 
     private static string LocaleFunctionClause(string name) => name switch
@@ -1304,8 +1304,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // compiling clean even with the catalog row correct. The two-arm dispatch, in its silent form: the fix
         // present, the defect intact, every test green. Both arms now read the ONE rule.
         return new BoundIntrinsicCall(
-            sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
-            { TrimMode = mode };
+            sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands, ctx.Options.Arithmetic)))
+            { Arithmetic = ctx.Options.Arithmetic, TrimMode = mode };
     }
 
     /// <summary>FIND-STRING (§2023:15.37) — <c>argument-1 argument-2 [LAST] [[START AFTER] argument-3] [ANYCASE]</c>
@@ -1375,7 +1375,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // `return` above it, so no Verified row could ever screen them. Screened here, after this
         // binder's own arity check, exactly as the generic path orders it.
         CheckArgumentClasses(sig, operands);
-        return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { FindLast = last, Anycase = anycase };
+        return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic, FindLast = last, Anycase = anycase };
     }
 
     /// <summary>SUBSTITUTE (§2023:15.87) — <c>argument-1 { [ANYCASE] [FIRST|LAST] argument-2 argument-3 } …</c>
@@ -1472,8 +1472,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             CheckArgumentClasses(sig, operands);
             CheckSubstituteZeroLengthArgument2(operands);
             return new BoundIntrinsicCall(
-                sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
-                { SubstituteModes = partFlags, SubstituteFlat = true };
+                sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands, ctx.Options.Arithmetic)))
+                { Arithmetic = ctx.Options.Arithmetic, SubstituteModes = partFlags, SubstituteFlat = true };
         }
         // A well-formed call ends on a completed pair with no dangling keyword/operand (§2023:15.87.3 rule requires
         // at least one pair; the source alone or a half pair is malformed).
@@ -1488,8 +1488,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         CheckArgumentClasses(sig, operands);
         CheckSubstituteZeroLengthArgument2(operands);
         return new BoundIntrinsicCall(
-            sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands)))
-            { SubstituteModes = modes };
+            sig, operands, IntrinsicSig.CategoryOf(IntrinsicResultType.Resolve(sig, operands, ctx.Options.Arithmetic)))
+            { Arithmetic = ctx.Options.Arithmetic, SubstituteModes = modes };
     }
 
     /// <summary>§2023:15.87.3 r3 — "Neither argument-1 nor argument-2 shall be of zero length" — for every pair's
@@ -1645,7 +1645,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // the former bind-time ANY→NAT remap was a second mechanism for the same job and is deleted).
         var category = dst == 3 ? PicCategory.National : PicCategory.Alphanumeric;   // §2023:15.19.1 table
         return new BoundIntrinsicCall(sig, operands, category)
-            { ConvertSource = src, ConvertDest = dst, ConvertDestHex = hex };
+            { Arithmetic = ctx.Options.Arithmetic, ConvertSource = src, ConvertDest = dst, ConvertDestHex = hex };
     }
 
     /// <summary>The statically knowable data category of a function argument (drives the §2023:15.3 per-function
@@ -1801,7 +1801,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // — the one half of "integer literal" the schema's value test (IntegerViolation, COBOL1627) cannot see.
         for (int i = 1; i <= 2 && i < args.Count; i++)
             if (args[i] is BoundNumericLiteral bl && !IntrinsicResultType.IsIntegerOperand(bl)
-                && IntrinsicArgumentRules.IntegerViolation(bl) is null)
+                && IntrinsicArgumentRules.IntegerViolation(bl, ctx.Options.Arithmetic) is null)
                 ctx.Edition.Error(DiagnosticCatalog.BaseConvertArgumentRule, $"FUNCTION BASECONVERT: argument-{i + 1} shall be a positive "
                     + $"nonzero numeric INTEGER literal or data item, not '{bl.Text}' (ISO §2023:15.12.3 rule 1)");
 
@@ -1877,7 +1877,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (kind == 2 && !host.InNestedProgram)
             ctx.Edition.Error(DiagnosticCatalog.ModuleNameNestedOutsideNestedProgram, "FUNCTION MODULE-NAME NESTED shall be specified only within a "
                 + "nested program (ISO §2023:15.65.3 argument rule 1) — this compilation unit is not contained");
-        return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { ModuleNameKind = kind };
+        return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { Arithmetic = ctx.Options.Arithmetic, ModuleNameKind = kind };
     }
 
     // (LocaleUnsupported — the ONE A.4.9 documented-non-support diagnostic, COBOL1518 — is DELETED with the
@@ -2036,7 +2036,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "rule 3) — name the currency string as argument-2");
         }
         return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric)
-        { Anycase = anycase, Locale = locale, LocaleWritten = localeWritten, CurrencyContentUnrestricted = !contentRules };
+        { Arithmetic = ctx.Options.Arithmetic, Anycase = anycase, Locale = locale, LocaleWritten = localeWritten, CurrencyContentUnrestricted = !contentRules };
     }
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
@@ -2109,7 +2109,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 if (p.AppliesAt(ctx.Edition.Edition.Year)
                     && IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
                     Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: IntrinsicArgumentRules.IsCoercible(p, rule, args[i]));
-            if (IntrinsicArgumentRules.Violation(rule, args[i], ctx.Edition.Edition) is not { } why) continue;
+            if (IntrinsicArgumentRules.Violation(rule, args[i], ctx.Edition.Edition, ctx.Options.Arithmetic) is not { } why) continue;
             ReportClass($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})", args[i]);
         }
 
@@ -2280,7 +2280,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // image IS §2023:15.50.4's character-position count, for the literal `(1:5)` form and the runtime `(I:L)` form
         // alike, and the omitted-length `(I:)` form comes out right because the substring already ends where the
         // item does.
-        BoundFieldOperand { Place: RefModPlace } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+        BoundFieldOperand { Place: RefModPlace } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic },
         // ⛔ A GROUP WHOSE LENGTH IS A RUNTIME VALUE — an OCCURS DEPENDING table beneath it (§2023:15.50.4 r4b),
         // dynamic-length elementary items or dynamic-capacity tables beneath it (r7, the §2023:8.5.1.12.1
         // variable-length group), in any combination — is ONE arm and ONE builder (kb/Work PB61: RV-15.50.4-4 /
@@ -2296,7 +2296,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // corresponding argument): never the compile-time fold, always the runtime .Length over the carrier
         // (the same BoundIntrinsicCall channel a nested string-function argument uses).
         BoundFieldOperand { Place.Item.IsAnyLength: true } =>
-            new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+            new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic },
         // A DYNAMIC LENGTH item's LENGTH is its CURRENT length in BYTES (ISO §2023:15.50.4 rule 6 — unlike the
         // character-position count of rules 2/3), never a compile-time fold. For a PIC X item one byte per
         // character position, so the runtime .Length over the native string IS the answer (the ANY LENGTH
@@ -2307,9 +2307,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // 2 × its positions (D-N1), read from the storage channel (kb/Work PB61 / RV-15.50.4-6 — it staged loud
         // where the alphanumeric sibling one line below already rode the runtime channel).
         BoundFieldOperand { Place.Item: { IsDynamicLength: true, Pic.Usage: Usage.National } } =>
-            new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { LengthInBytes = true },
+            new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic, LengthInBytes = true },
         BoundFieldOperand { Place.Item.IsDynamicLength: true } =>
-            new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+            new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic },
         // ⛔ §2023:15.50.4 r1 — AN ELEMENTARY BOOLEAN ITEM'S LENGTH IS IN BOOLEAN POSITIONS, NOT IN THE CHARACTER
         // POSITIONS IT OCCUPIES: "If argument-1 is a bit group item, an elementary boolean data item, a boolean
         // literal, or a type declaration for a boolean item, the returned value is an integer equal to the length
@@ -2441,7 +2441,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             var item = new DataItem { Level = 1, CobolName = "__FN-RESULT", ClrName = "__fnResult", Pic = PicInfo.IndexItem };
             return new BoundNumLiteral((bytes ? item.ByteWidth : ItemLength.Positions(item)).ToString());
         }
-        return new BoundIntrinsicCall(sig, args, PicCategory.Numeric);   // the renderer measures the result image (string) or the temporary (FunctionDeviceText)
+        return new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic };   // the renderer measures the result image (string) or the temporary (FunctionDeviceText)
     }
 
     /// <summary>A bare-word argument that names a TYPE (§2023:15.50.3 r1 / §2023:15.14.3 r1: "… a based entry, a type-name,
@@ -2624,7 +2624,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundExpr ImageOrStage(string what) =>
             group.CurrentExtentTransferImageCapable
                 && inner is MemberPlace or DynTablePlace or RedefViewPlace { Coding: VarGroupWindow }
-                ? new BoundIntrinsicCall(sig, [op], PicCategory.Numeric) { OverCurrentImage = true }
+                ? new BoundIntrinsicCall(sig, [op], PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic, OverCurrentImage = true }
                 : Stage(what);
 
         // ⛔ A BIT-BEARING GROUP IS LAID OUT, NOT SUMMED (§2023:8.5.1.6.3; kb/Work PB2964, PB2498) — and its layout is
@@ -2760,7 +2760,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                             : null;
                     if (cPlace is null) { failure = Stage($"the dynamic-length subordinate '{c.CobolName ?? c.ClrName}' could not be addressed"); return; }
                     Add(new BoundIntrinsicCall(sig, [new BoundFieldOperand(cPlace)], PicCategory.Numeric)
-                            { LengthInBytes = !bytes && c.Pic is { Usage: Usage.National } });
+                            { Arithmetic = ctx.Options.Arithmetic, LengthInBytes = !bytes && c.Pic is { Usage: Usage.National } });
                 }
                 else if (c.IsGroup) Walk(c, cPath, shift);
             }
@@ -2823,13 +2823,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // category national and its bytes are UTF-16BE), an ANY LENGTH or DYNAMIC LENGTH item's current bytes
         // (§2023:15.14.4 r5); an OCCURS DEPENDING group's current extent in bytes (§2023:15.14.4 r2b) is the group arm
         // below — VariableLengthGroupSum builds it from data-name-1's clamped value and the byte widths.
-        BoundFieldOperand { Place: RefModPlace } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+        BoundFieldOperand { Place: RefModPlace } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic },
         // §2023:15.14.4 r2b + r6 — a group whose length is a runtime value (an OCCURS DEPENDING table, dynamic-length
         // items, dynamic-capacity tables beneath it): the ONE builder LENGTH uses, in bytes (kb/Work PB61).
         BoundFieldOperand g when g.Place.Item.IsGroup && HasRuntimeLength(g.Place.Item) =>
             VariableLengthGroupSum(sig, g, bytes: true),
-        BoundFieldOperand { Place.Item.IsAnyLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
-        BoundFieldOperand { Place.Item.IsDynamicLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+        BoundFieldOperand { Place.Item.IsAnyLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic },
+        BoundFieldOperand { Place.Item.IsDynamicLength: true } => new BoundIntrinsicCall(sig, args, PicCategory.Numeric) { Arithmetic = ctx.Options.Arithmetic },
         BoundFieldOperand f => new BoundNumLiteral(f.Place.Item.ByteWidth.ToString()),
         // A FUNCTION-IDENTIFIER is a data item of its §2023:15.2 type (§2023:8.4.3.2.1), admitted by §2023:15.14.3 r1's "a data item
         // of any class or category" — the LENGTH twin's arm, ONE builder for both (kb/Work PB1398). BYTE-LENGTH had
@@ -2882,8 +2882,8 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// folded literal's text cannot say whether an integer or a numeric function produced it and the ONE integer
     /// classifier (<see cref="IntrinsicResultType.IsIntegerOperand(BoundOperand)"/>) answers from the type
     /// (kb/Work PB1421: `GO TO … DEPENDING ON FUNCTION HIGHEST-ALGEBRAIC(E)`, E PIC ZZ9, compiled).</summary>
-    private static BoundExpr Folded(IntrinsicSig sig, List<BoundOperand> args, BoundExpr fold) =>
-        fold is BoundNumLiteral l ? l with { FunctionType = IntrinsicResultType.Resolve(sig, args), FoldedFunction = sig.Name } : fold;
+    private BoundExpr Folded(IntrinsicSig sig, List<BoundOperand> args, BoundExpr fold) =>
+        fold is BoundNumLiteral l ? l with { FunctionType = IntrinsicResultType.Resolve(sig, args, ctx.Options.Arithmetic), FoldedFunction = sig.Name } : fold;
 
     private BoundExpr BindAlgebraicFold(IntrinsicSig sig, List<BoundOperand> args)
     {

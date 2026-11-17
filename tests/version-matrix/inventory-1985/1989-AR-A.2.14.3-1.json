@@ -1,7 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.14.3-1",
  "rule-digest": "2a350b019cd6",
- "test-ref": "conformance:cases/A.2.14@1985-FACTORIAL-FUNCTION/g85_f36_01",
+ "test-ref": "conformance:cases/A.2.14@1985-FACTORIAL-FUNCTION/g85_f36_01; conformance:cases/15.3-Arguments/pb5886-integer-function-quotient; conformance:cases/15.3-Arguments/pb5886-integer-function-fraction-factor; conformance:cases/15.3-Arguments/pb5886-quotient-of-integer-functions",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

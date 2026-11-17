@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (kb/Work PB617). <c>IntrinsicArgumentRules.CollectAdditive</c> used to accumulate data items only, so a literal's
 /// fraction never entered the integrality net: <c>FUNCTION CHAR(1.5 + 1)</c> (= 2.5) compiled clean while the bare
 /// <c>CHAR(1.5)</c> was refused. Each row is an argument operand and whether the screen must refuse it; the admitted
-/// rows pin the soundness half (the constant is a SUM — <c>1.5 + 0.5</c> is 2 — and a term the fold cannot value or
-/// prove integral fails open).
+/// rows pin what the screen shows integral (the constant is a SUM — <c>1.5 + 0.5</c> is 2 — and a product by a literal
+/// cancels an item's scale), and since kb/Work PB5886 a term it cannot show integral is refused (it fails closed).
 /// </summary>
 public sealed class IntegerArgumentConstantWitnessTests
 {
@@ -56,36 +56,83 @@ public sealed class IntegerArgumentConstantWitnessTests
         // kb/Work PB5832 review R1-1: a product of two items (both at one granule) under a non-integral factor.
         { "W-S * W-S * 0.5", Bin(Bin(ScaledItem, '*', ScaledItem), '*', Lit("0.5")), true },
         { "W-I * W-I / 2", Bin(Bin(IntItem, '*', IntItem), '/', Lit("2")), true },
-        // Admitted: the constant is integral, or a term defeats the proof (fail open).
+        // kb/Work PB5886: the screen fails closed; a zero divisor gives no value at all, and the reciprocal of 3 does not terminate.
+        { "W-I / 3 * 3", Bin(Bin(IntItem, '/', Lit("3")), '*', Lit("3")), true },
+        { "W-I / W-I", Bin(IntItem, '/', IntItem), true },
+        { "1 / 0 + 0.5", Bin(Bin(Lit("1"), '/', Lit("0")), '+', Lit("0.5")), true },
+        { "1 / 3 * 3", Bin(Bin(Lit("1"), '/', Lit("3")), '*', Lit("3")), true },
+        // Admitted: the expression is shown to be an integer for every valuation.
         { "1.5 + 0.5", Bin(Lit("1.5"), '+', Lit("0.5")), false },
         { "3 - 1", Bin(Lit("3"), '-', Lit("1")), false },
         { "6.5E1", Bin(Lit("6.5E1"), '+', Lit("0")), false },
         { "W-I + 1.5 + 1.5", Bin(Bin(IntItem, '+', Lit("1.5")), '+', Lit("1.5")), false },
         { "0.5 * 4", Bin(Lit("0.5"), '*', Lit("4")), false },
         { "2 ** 6 + 1", Bin(new BoundPower(Lit("2"), Lit("6"), NegativeBaseRealRoots: false), '+', Lit("1")), false },
-        // The products and quotients by a literal that cancel to a whole net coefficient (kb/Work PB5832).
+        // The products by a literal that cancel to a whole net coefficient (kb/Work PB5832).
         { "W-I * 0.5 * 2", Bin(Bin(IntItem, '*', Lit("0.5")), '*', Lit("2")), false },
-        { "W-I / 2 * 2", Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), false },
         { "W-I * 0.5 + W-I * 0.5", Bin(Bin(IntItem, '*', Lit("0.5")), '+', Bin(IntItem, '*', Lit("0.5"))), false },
+        { "W-S * 10", Bin(ScaledItem, '*', Lit("10")), false },
+        // kb/Work PB5886 round 2: a quotient by a literal whose reciprocal terminates is the product by that reciprocal.
+        { "W-I / 2 * 2", Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), false },
         { "W-S / 0.1", Bin(ScaledItem, '/', Lit("0.1")), false },
         { "W-I * 0", Bin(IntItem, '*', Lit("0")), false },
         { "W-I * W-I * 2", Bin(Bin(IntItem, '*', IntItem), '*', Lit("2")), false },
         { "W-I * W-I", Bin(IntItem, '*', IntItem), false },
-        { "1 / 0 + 0.5 (zero divide is not this screen's)", Bin(Bin(Lit("1"), '/', Lit("0")), '+', Lit("0.5")), false },
+        { "4 / 2 + W-I", Bin(Bin(Lit("4"), '/', Lit("2")), '+', IntItem), false },
     };
 
     [Theory]
     [MemberData(nameof(Cases))]
     public void TheIntegerScreen_JudgesTheLiteralConstantByValue(string shape, BoundExpr expr, bool refused)
     {
-        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr));
+        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), ArithmeticMode.Native);
         if (refused)
             Assert.True(why is not null,
-                $"'{shape}' is never an integer for any valuation, so ISO §2023:15.3 type 6 does not admit it — but the "
-                + "integer screen admitted it (kb/Work PB617: the additive spine must fold its literal terms).");
+                $"'{shape}' is not shown to be an integer for every valuation, so ISO §2023:15.3 type 6 does not admit it — but "
+                + "the integer screen admitted it (kb/Work PB617: the sum must fold its literal terms; PB5886: the screen fails closed).");
         else
             Assert.True(why is null,
-                $"'{shape}' must stay admitted (its value is integral, or the screen cannot prove otherwise and must "
-                + $"fail open) — but the screen refused it: {why}");
+                $"'{shape}' must stay admitted (the screen shows it is an integer for every valuation) — but the screen "
+                + $"refused it: {why}");
+    }
+
+    /// <summary>A 27-digit unsigned integer item, all nines at its largest.</summary>
+    private static readonly BoundExpr Big27 = Item("B27", 27, 0);
+
+    /// <summary><c>B27 / 0.0001 / 16384 * 16384 * 0.0001</c> (kb/Work PB5886 review R3-1): B27 for every value in exact arithmetic. Its
+    /// quotient by 16384, B27 × 0.6103515625, has up to 27 integer and 10 fraction digits. Native arithmetic keeps them (the nested
+    /// quotient's guard digits), and the expression prints B27. A standard-decimal intermediate keeps 34 significant digits
+    /// (§2023:8.8.1.5.2), so at B27 = 999…9 the expression prints …998.9999. The 2002 standard intermediate keeps 32 (§2002:8.8.1.3.1.1)
+    /// and, at B27 = 999…9, happens to print …999.0000 (review R4-2); the screen refuses there on the bound, which a value with fraction
+    /// digits beyond 32 significant ones exceeds, not on that one valuation.</summary>
+    private static readonly BoundExpr Big27Round =
+        Bin(Bin(Bin(Bin(Big27, '/', Lit("0.0001")), '/', Lit("16384")), '*', Lit("16384")), '*', Lit("0.0001"));
+
+    public static TheoryData<string, ArithmeticMode, BoundExpr, bool> ArithmeticCases() => new()
+    {
+        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, native", ArithmeticMode.Native, Big27Round, false },
+        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, standard-decimal", ArithmeticMode.StandardDecimal, Big27Round, true },
+        { "B27 / 0.0001 / 16384 * 16384 * 0.0001, standard (2002)", ArithmeticMode.Standard, Big27Round, true },
+        { "W-I / 2 * 2, standard-decimal", ArithmeticMode.StandardDecimal, Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), false },
+        { "W-S * 10, standard (2002)", ArithmeticMode.Standard, Bin(ScaledItem, '*', Lit("10")), false },
+        { "B27 * 3, standard-decimal (an integer intermediate may round and stays an integer)", ArithmeticMode.StandardDecimal,
+            Bin(Big27, '*', Lit("3")), false },
+        // Review R4-1: a power is bounded by its base, so ** 1 does not hide the base's rounded intermediate.
+        { "(B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1, native", ArithmeticMode.Native,
+            new BoundPower(Big27Round, Lit("1"), NegativeBaseRealRoots: false), false },
+        { "(B27 / 0.0001 / 16384 * 16384 * 0.0001) ** 1, standard-decimal", ArithmeticMode.StandardDecimal,
+            new BoundPower(Big27Round, Lit("1"), NegativeBaseRealRoots: false), true },
+        { "(W-I / 2 * 2) ** 2, standard-decimal", ArithmeticMode.StandardDecimal,
+            new BoundPower(Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), Lit("2"), NegativeBaseRealRoots: false), false },
+    };
+
+    [Theory]
+    [MemberData(nameof(ArithmeticCases))]
+    public void TheIntegerScreen_AsksTheArithmeticInForce(string shape, ArithmeticMode arithmetic, BoundExpr expr, bool refused)
+    {
+        string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr), arithmetic);
+        Assert.True(refused == why is not null,
+            $"'{shape}': expected {(refused ? "refused" : "admitted")} under {arithmetic} arithmetic, whose intermediates keep "
+            + $"{ArithmeticModes.IntermediateSignificantDigits(arithmetic)?.ToString() ?? "every integer"} digits (kb/Work PB5886 R3-1); got {why ?? "admitted"}");
     }
 }

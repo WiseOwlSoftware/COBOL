@@ -236,7 +236,7 @@ The seven shapes, and the functions each covers:
 | `FollowsDestinationFormat` | CONVERT §2023:15.19 | keyed on the destination KEYWORDS, not an argument |
 | `Fixed` | everything else | §15.x.1 states one type, or §2023:15.2/§2023:15.6 does |
 
-**WHAT "INTEGER ARGUMENT" MEANS to those rows (kb/Work PB4635, PB4709).** `IntrinsicResultType.IsIntegerArgument` reads §2023:15.3 item 6: an argument is Integer when it is an integer item, an integer literal, an integer-type function, or "an arithmetic expression that will always result in an integer value" - and the last is decided by `IntrinsicArgumentRules.ProvablyIntegral`, the same sound-not-complete reading the §2023:15.3 type-6 refusal screen fails open on. So `ABS(I2 + 1)`, `ABS(- I2)`, `ABS((I2))`, `MAX(I2 + 1 1)`, `ABS(FUNCTION INTEGER(S) + 1)` and `ABS(LINAGE-COUNTER OF F + 1)` are INTEGER functions (and `FACTORIAL(ABS(I2 + 1))` compiles), while `ABS(S2 + 1)` over a scaled item and `ABS(I2 / 2)` stay Numeric. The VALUE is read, not the form, and it is the value the ARITHMETIC stores (kb/Work PB4758): a literal-only subtree holding a quotient whose exact value is a non-terminating decimal (`1 / 3 * 3`, exactly 1, stored as 0.99999999 by the arithmetic), or a terminating one longer than the 14 fraction digits a nested quotient is certain to keep (`1 / 1048576 * 1048576`, 20 digits: a one-digit receiver stores 0; kb/Work PB4794), is not proof, so `ABS(1 / 3 * 3)` stays Numeric and returns what `COMPUTE` stores (`IntrinsicArgumentRules.QuotientsAreExact`, reading `CobolNum.NestedQuotientScale`); the type-6 refusal screen reads a call as the expression it stands for on the valuations it holds on (`IntrinsicArgumentRules.ReadCall`, kb/Work PB4757, PB4795, PB4796): a one-argument MAX, MIN, SUM, MEAN, MEDIAN or MIDRANGE is its argument (§2023:15.59.4 1), §2023:15.63.4 1), §2023:15.88.4 1) a), §2023:15.60.4 1) a)); `FUNCTION ABS` of an unsigned numeric item, or of its negation, is the item; `FUNCTION ABS` of a SIGNED item is the item where it is not negative and its negation where it is (§2023:15.7.4 1) a) and b)), so the screen walks the sum twice, once in each region, and refuses when either has an uncancelled item; `FUNCTION ABS` of a sum of items and constants that cannot be negative where the items are not negative (`S2 + 1`) is the sum in the first region. So `FACTORIAL(S2 + FUNCTION ABS(S2))`, `FACTORIAL(S2 + FUNCTION MAX(S2))`, `FACTORIAL(S2 + FUNCTION ABS(S2 + 1))` and, over a signed `G2`, `FACTORIAL(G2 - FUNCTION ABS(G2))` (2 * G2 for a negative G2) are refused, while `S2 - FUNCTION ABS(S2)` and `G2 - FUNCTION MAX(G2)` net to 0 and stay legal; every other call or argument (`G2 - FUNCTION ABS(G2 + 0)` over a signed G2, a table(ALL) argument) keeps its items opaque (sound, incomplete). The value-not-form reading: `ABS(I2 + 1.0)`, `ABS(1.5 + 0.5)` and `ABS(4 / 2)` are Integer too (§2023:15.3 item 6: "will always result in an integer value"), while a LONE literal, bare or parenthesized, keeps the FORM reading of §2023:8.3.3.3.2 (`ABS(1.0)` and `ABS((1.0))` are Numeric, and a floating-point literal keeps its established device image). An integer function has "no digits to the right of the decimal point" (§2023:15.2 5)), and ABS, MAX, MIN, RANGE and SUM return their argument at the argument's own scale, so the binder hands a call that RESOLVED to the Integer row its arguments in scale-0 form (`IntrinsicResultType.IntegerRowArguments`, rewriting through `IntrinsicArgumentRules.IntegralForm`): `MOVE FUNCTION ABS(I2 + 1.0) TO A10` stores `4`, as `ABS(I2 + 1)` does. A row DECLARED Integer (FACTORIAL, MOD) takes type-6 arguments that the renderer's intake already reads as integers. The statement positions that read `IntrinsicResultType.IsIntegerOperand` (PERFORM ... TIMES, the §2023:8.8.4.2.5 relation screen) still want an integer ITEM, literal (by FORM, §2023:8.3.3.3.2) or integer function.
+**WHAT "INTEGER ARGUMENT" MEANS to those rows (kb/Work PB4635, PB4709, PB5886).** `IntrinsicResultType.IsIntegerArgument` reads §2023:15.3 AR6 (at COBOL-85 §1989:A.2.2 AR4): an argument is Integer when it is an integer item, an integer literal, an integer-type function, or "an arithmetic expression that will always result in an integer value" - and the last is decided by `IntrinsicArgumentRules.IsAlwaysIntegral`, the SAME classifier the §2023:15.3 type-6 refusal screen asks (kb/Work PB5886 review round 2, R2-1: there is one answer to "is this expression an integer"). It fails closed and decides by the types of the terms and the values of the literals (the type-6 intake section below lists what it admits). So `ABS(I2 + 1)`, `ABS(- I2)`, `ABS((I2))`, `MAX(I2 + 1 1)`, `ABS(FUNCTION INTEGER(S) + 1)`, `ABS(LINAGE-COUNTER OF F + 1)`, `MAX(WN / 2 * 2)` and `MAX(S * 10)` are INTEGER functions (and `FACTORIAL(ABS(I2 + 1))`, `FACTORIAL(MAX(S * 10) - 12)` compile), while `ABS(S2 + 1)` over a scaled item and `ABS(I2 / 2)` stay Numeric. The VALUE is read, not the form, and it is the value the ARITHMETIC stores (kb/Work PB4758): a literal-only subtree holding a quotient whose exact value is a non-terminating decimal (`1 / 3 * 3`, exactly 1, stored as 0.99999999 by the arithmetic), or a terminating one longer than the 14 fraction digits a nested quotient is certain to keep (`1 / 1048576 * 1048576`; kb/Work PB4794), is not proof, so `ABS(1 / 3 * 3)` stays Numeric and returns what `COMPUTE` stores (`IntrinsicArgumentRules.QuotientsAreExact`, reading `CobolNum.NestedQuotientScale`). A call is judged by its type, never read as the expression it stands for: `S2 - FUNCTION MAX(S2)` over a scaled S2 is refused (an identity between numeric function terms, recorded debt kb/Work PB5889). The value-not-form reading: `ABS(I2 + 1.0)`, `ABS(1.5 + 0.5)` and `ABS(4 / 2)` are Integer too, while a LONE literal, bare or parenthesized, keeps the FORM reading of §2023:8.3.3.3.2 (`ABS(1.0)` and `ABS((1.0))` are Numeric, and a floating-point literal keeps its established device image). An integer function has "no digits to the right of the decimal point" (§2023:15.2), and ABS, MAX, MIN, RANGE and SUM return their argument at the argument's own scale, so the binder hands a call that RESOLVED to the Integer row its arguments in scale-0 form (`IntrinsicResultType.IntegerRowArguments`, rewriting through `IntrinsicArgumentRules.IntegralForm`): a literal written with fraction digits becomes its integer literal (`MOVE FUNCTION ABS(I2 + 1.0) TO A10` stores `4`, as `ABS(I2 + 1)` does), and an argument still computed above scale 0 (`S * 10`, `WN / 2 * 2`) is wrapped in `FUNCTION INTEGER-PART` (§2023:15.49.1), which keeps its exact integral value. A row DECLARED Integer (FACTORIAL, MOD) takes type-6 arguments that the renderer's intake already reads as integers. The statement positions that read `IntrinsicResultType.IsIntegerOperand` (PERFORM ... TIMES, the §2023:8.8.4.2.5 relation screen) still want an integer ITEM, literal (by FORM, §2023:8.3.3.3.2) or integer function.
 
 **MAX/MIN in full** (§2023:15.59.1/§2023:15.63.1, over the uniform §2023:15.59.3/§2023:15.63.3 r2 argument list): alphabetic or alphanumeric → an ALPHANUMERIC result (the selected string); NATIONAL → a NATIONAL result (the selected national string — NOT alphanumeric); INDEX → an INDEX result; all-integer → an INTEGER result; otherwise → NUMERIC. The size of an alphanumeric or national result is the size of the selected argument-1 (§2023:15.59.4/§2023:15.63.4 r3). ⚠ The INDEX row is **not** a `PicCategory` — an index item is PICTURE-less and this model carries it as `PicInfo.IndexItem`, category Numeric with usage Index, so a category-keyed test would route it to the numeric arm and, since its scale is 0, answer INTEGER: a plausible wrong type rather than a visible failure.
 
@@ -331,14 +331,10 @@ the usage-keyed arm in `ClassOfItem` beside `Usage.Index`'s.
 
 `IntegerViolation` decides §2023:15.3 type 6 — "an arithmetic expression that will always result in an
 integer value **or** an integer data item" — for four operand shapes: a DATA ITEM, a nested numeric function
-(§2023:8.4.3.2.3 SR11), a numeric LITERAL, and the provably-not-always-integral EXPRESSION shapes (an item appearing purely as
-additive leaves, under any product or quotient by a literal, with an uncancelled net coefficient — kb/Work PB5832, which replaced
-the root-only bare-item/literal quotient arm; a quotient of two independent items; a numeric function over a bare item; and
-— kb/Work PB617 — an additive spine whose literal-only terms fold EXACTLY to a non-integer constant
-while every other term is provably integral, so `CHAR(1.5 + 1)` and `CHAR(W-I + 0.5)` are refused on VALUE and
-`CHAR(1.5 + 0.5)` is admitted; the fold is the algebraic value, never an arithmetic mode's rounded intermediate);
-every other expression fails open, because "always results in an integer value" is not generally
-decidable (§2023:4.2.2 discretion). The item test is `PicInfo.IsIntegerDescription` — **the ONE primitive**, and both of
+(§2023:8.4.3.2.3 SR11), a numeric LITERAL, and an arithmetic EXPRESSION, which the screen admits only when it SHOWS it is an integer
+for every valuation: it FAILS CLOSED (kb/Work PB5886; the section on the type-6 intake below lists what it shows). "Always results in
+an integer value" is not generally decidable, and the requirement is on the program (§2023:15.3 AR6 "shall be specified", §1989:A.2.2
+AR4 "must be specified"), so an expression the compiler cannot show integral is refused rather than admitted. The item test is `PicInfo.IsIntegerDescription` — **the ONE primitive**, and both of
 type 6's disqualifying shapes live in it: a declared SCALE > 0, and a FLOATING-POINT usage (kb/Work PB248 — a float
 item is PICTURE-less, so it carries scale 0 and a scale-only test admitted it; §2023:14.6.8.3 sets its content to "the
 algebraic value of the sending operand", so its declared value set contains non-integers and no reference to it is
@@ -365,8 +361,9 @@ base are COBOL1627 (kb/Work PB2079). The `--permissive` coercion in that screen 
 characters to coerce (`IsDigitDecodable`): a pointer or object-reference operand stays an error under it, since the
 coercion has nothing to render or decode. Every catalogued function has a row in `Verified` or a
 cited reason in `DeliberatelyUnscreened` (`IntrinsicArgumentClassDriftTests.EveryCataloguedFunction_HasARow`), so a
-function can no longer be silently unscreened; the screen is fail-open by construction (an undecidable operand is
-never rejected) and its leniency is `--permissive`'s. Pinned by `pb58_argument_predicates_legal` (the shapes that
+function can no longer be silently unscreened; the CLASS screen is fail-open by construction (an operand whose class is
+undecidable is never rejected) and its leniency is `--permissive`'s. The type-6 EXPRESSION arm is the exception: it fails closed
+(kb/Work PB5886). Pinned by `pb58_argument_predicates_legal` (the shapes that
 must NOT be rejected) and the `pb58-*` negatives (one per rule instance).
 
 ### FUNCTION LENGTH (§2023:15.50) and BYTE-LENGTH (§2023:15.14): one fold per function, its arms enumerated from the RULE BRANCHES, and ONE builder for a group whose length is a runtime value (PB24 → PB43 → PB61).
@@ -956,46 +953,53 @@ said 24:00:00, §2023:15.54.4 r2). Goldens `pb1379_time_form_floor_float_carrier
 (total, `Int128`), keyed on `NumX.Carrier` (scaled, SDIDI, binary64; the unsigned-wide lane funnels through
 `NumericRenderer.DeU` first — the bounded intake had no arm for it and a COMP-5 PIC 9(19+) operand reached Roslyn as a
 CS1503). Each landing asks `CobolNum.HasFraction` / `CobolDec.HasFraction` / the binary64 truncation test of the EXACT value
-and raises EC-ARGUMENT-FUNCTION (§2023:15.3's closing paragraph) before the truncating narrowing; `IntrinsicArgumentRules`'s
-compile-time screen stays fail-open (it can only refuse the provably non-integral), so `FACTORIAL(X * Y / Z)` with X = 5, Y = 1 and
-Z = 2 is a run-time condition. `IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers` walks `NumXCarrier`.
-Goldens `pb1526_integer_argument_has_integral_value`, `pb638_unsigned_wide_item_as_integer_argument`.
+and raises EC-ARGUMENT-FUNCTION (§2023:15.3's closing paragraph) before the truncating narrowing. Since kb/Work PB5886 the
+compile-time screen fails closed, so a program the compiler accepts reaches this test with an integral value; the test stays the
+run-time net under `--permissive`, which admits a floating-point operand at an integer position as a coercion extension.
+`IntrinsicCarrierAgreementDriftTests.EveryIntegerIntake_IsTotalOverTheNumXCarriers` walks `NumXCarrier`.
+Golden `pb638_unsigned_wide_item_as_integer_argument`.
 
-The compile-time screen's witness shapes are four, each with a valuation that is not an integer
-(`IntrinsicArgumentRules.NotAlwaysIntegral`): an additive spine with an uncancelled item (or a non-integral constant), a POWER
-with a witness (`PowerWitness`, kb/Work PB5208, PB5345), a quotient of two independent items and a numeric function over a bare
-item (`WitnessOf`, kb/Work PB5832). **A product or quotient by a literal is a SCALING of the spine, not a shape of its own**
-(PB5832): `CollectAdditive` reads `E * c`, `c * E` and `E / c` (c an exact literal fold) as E under a rational factor, so an item's net
-coefficient is a rational and `ItemWitness` asks one question of every such shape: does `coefficient × 10^(−scale)` make a whole number?
-`WN * 0.5`, `WN / 2 + 1` and `W-S * 2 + 65.5` are refused, `WN * 0.5 * 2`, `WN / 2 * 2` and `W-S / 0.1` admitted. This is the
-COBOL-85 arm too: §1989:A.2.2 AR4 requires "an arithmetic expression which will always result in an integer value", and 85 has no
-run-time EC-ARGUMENT-FUNCTION net, so the screen carries no edition switch (it refuses at 2023, where "shall be specified" allows it).
-A PRODUCT of two numeric items (the same item, or two that cannot share storage) is 10^(−(sa+sb)) at both one least value, so
-`A * B * 0.5` and `MOD (A * B / 2, 3)` are refused; `FUNCTION MEAN` (or MEDIAN of two) over items and literals is the sum over n
-(§2023:15.60.4 RV1, §2023:15.61.4 RV2), which steps by `coefficient × m × 10^(−scale) / n` when an item occurring m times moves one
-least value, so `MEAN (N, 0) + 64` is refused and `MEAN (N, N) + 1` admitted (`MeanWitness`, PB5832 review R1-1).
-A quotient of two numeric items that are not the same item and cannot share storage (`StorageOverlap`) is 10^(sb−sa) / 3 or / 7 at
-A = one least value and B = 3 or 7 times its own, so `MOD (A / B, 3)` is refused; a REDEFINES pair, a table's two subscripts and `A / A`
-fail open. A call of SQRT, LOG, LOG10, EXP, SIN, COS, TAN or ATAN over a bare item of scale >= 0 is irrational or transcendental at two
-granules (the proof is on `NonIntegerAtTwoGranules`), so `CHAR (FUNCTION SQRT (N) + 64)` is refused; every other numeric function
-(MEAN, MEDIAN, RANDOM, ANNUITY ...) stays opaque. A witness term (power, quotient or function) counts only as the ONE such term of a sum
-whose other terms are integral for every valuation; a power or quotient under a coefficient other than 1 (`(N ** -1) * 2520`) fails open.
-A power is read
-wherever `CollectAdditive` meets it: at the root, under a negation, or as the ONE power term of a sum whose other terms are
-integral for every valuation. Its base is a bare numeric item (it can hold 3 × 10^(−s), whose negative integer power is
-10^(sk) / 3^k and whose non-integral power is irrational) or an integer literal c with |c| >= 2 (c ** −m is 1 / c^m, and
-c ** t for a positive t below 1 lies between 1 and c, an integer only when c is a perfect power of the matching degree,
-`IsPerfectPower`); its exponent is a negative or non-integral literal, or an item that is signed, negated or has fraction
-digits. One item as base and exponent is the tied case (v = 2 or −2 gives ±1/4; v = 10^(−s) gives a value between 0 and 1).
-The power half `ProvablyIntegral` admits (a non-negative integer literal exponent) is the complement. The FAIL-OPEN shapes are
-recorded and pinned: an expression base, a power under a product, a literal base below 2 in magnitude, a perfect-power literal
-base over a fraction exponent item, a sum of two powers or of a power and a non-integral constant, and a power sharing its item
-with another term of the sum. `IntrinsicTypeSixPowerShapesDriftTests` holds the table (each shape refused or admitted, with its
-reason) and forces a verdict for every `BoundExpr` node type, so a new node cannot fail open unchosen.
+**The compile-time screen FAILS CLOSED (kb/Work PB5886).** `IntrinsicArgumentRules.NotAlwaysIntegral` admits an arithmetic-expression
+argument only when it SHOWS the expression is an integer for every valuation; §2023:15.3 AR6 and §1989:A.2.2 AR4 put the requirement on
+the program, and COBOL-85 has no EC-ARGUMENT-FUNCTION, so the screen that refused only on a witness valuation (PB124, PB617, PB5208,
+PB5345, PB5832) let `FUNCTION FACTORIAL (FUNCTION ORD (A) / 2)` compile there and return 33! for 33.5. What it shows:
+- an INTEGER TERM (`ProvablyIntegral`): an integer literal or exact integral literal fold, an integer data item, an INTEGER-type
+  function (the type its definition's table gives for the argument types written, read from the one table `IntrinsicResultType.Resolve`
+  that `IntrinsicResultTypeDriftTests` holds to the standard's §15.x.1 tables, so MAX, MIN, SUM, RANGE and ABS of integer arguments
+  are integer terms; never by this reference's value — the reading §2023:8.4.3.2.3 SR11 gives a numeric function), a counter register,
+  an index-name, a report VARYING counter, an OCCURS DEPENDING extent, and +, −, ×, unary − over integer terms; a power is an integer
+  term when its base is shown integral and its exponent cannot be negative (a non-negative integer literal, or an unsigned integer data
+  item through an even number of negations), and the literal 1 to any integer exponent is one (`IsIntegerPower`; `1 ** M`);
+- a QUOTIENT by a nonzero literal c whose reciprocal terminates is the product by 1/c (PB5886 round 2), while the fraction digits of
+  the reciprocals on the path stay within the digits a nested quotient keeps (`ExactFractionDigits`): `WN / 2 * 2`, `S / 0.1` and
+  `U * 4 / 2` are admitted, `WN / 3 * 3` refused (the arithmetic truncates `WN / 3`); a literal fold is a constant kept exactly or not
+  (`QuotientsAreExact`, PB4758); a quotient by an item, a function or an expression is no integer term (`A / A` is a size error at 0);
+- EXACT UNDER THE ARITHMETIC IN FORCE (PB5886 review R3-1): the call node carries the ARITHMETIC clause's mode (`BoundIntrinsicCall.Arithmetic`,
+  required), and the classifier asks `ArithmeticModes.IntermediateSignificantDigits` (null for native, 32 for the 2002 STANDARD,
+  34 for STANDARD-DECIMAL, §2023:8.8.1.5.2): every intermediate carrying fraction digits must fit those significant digits, or its
+  fraction is rounded away (`IntermediateDigitsWhy`). `B27 / 0.0001 / 16384 * 16384 * 0.0001` over a 27-digit item is admitted
+  natively (`pb5886_native_quotient_chain`) and refused under STANDARD-DECIMAL (`pb5886-standard-decimal-intermediate`), where its
+  quotient (B27 × 0.6103515625) needs up to 37 significant digits, 10 of them fraction digits. A power is bounded by its base and
+  exponent (an integer exponent n >= 0 multiplies the base's digit positions by n), so `(...) ** 1` does not hide its base
+  (`pb5886-standard-decimal-power`, review R4-1). ⛔ Every walk the screen proves integer-ness with (`CollectAdditive`, `DigitBound`,
+  `ProvablyIntegral`, the fold `ExactValue`) names every concrete `BoundExpr` kind in an explicit arm and refuses in its default;
+  `TypeSixWalkCoverageDriftTests` enumerates the kinds by reflection and holds each walk to naming them. So the INTEGER-PART wrap of an Integer-row argument is a no-op on every argument it is given;
+- a SUM of items under LITERAL FACTORS (`CollectAdditive` over a `LinearSum`): a product by a literal is exact in decimal arithmetic, so
+  an item's net coefficient decides, and `coefficient × 10^(−scale)` must be a whole number (`S * 10`, `WN * 0.5 + WN * 0.5` and `S - S`
+  are admitted; `WN * 0.5` is refused); a floating-point item's net coefficient must be zero (PB248); the literal terms must sum to an
+  integer (PB617: `CHAR (1.5 + 1)` is refused, `CHAR (1.5 + 0.5)` admitted); a product of two non-literal terms is an integer term when
+  each is shown integral on its own and its coefficient is whole.
+Everything else is refused with COBOL1627 at every edition: a numeric function term, an integer term under a fractional net factor
+(`FUNCTION ORD (A) / 2`, `FUNCTION MOD (N 3) * 0.5`), a power outside the rule above (`N ** -1`, `1024 ** K`, `4 ** 0.5`) and a term no
+rule classifies. A form that is an integer only by an algebraic identity between terms that are not integer terms (`SQRT (N) - SQRT (N)
++ 5`, `S2 - FUNCTION MAX (S2)` over a scaled S2) is refused too: the screen decides by types and literal values, not by algebra, and
+the refusal of that legal source is recorded debt (kb/Work PB5889, refusal `pb5889-identity-difference`). `IntrinsicTypeSixPowerShapesDriftTests` holds the node verdict table (a new `BoundExpr`
+node needs a verdict) and the shape table (each shape refused or admitted, with its reason); `IntegerArgumentConstantWitnessTests` holds
+the literal-constant rows.
 Refusals `pb5208-power-negative-exponent`, `-fractional-exponent`, `-signed-exponent`, `pb5345-power-literal-base`,
 `pb5832-product-by-literal`, `-quotient-in-sum`, `-item-quotient`, `-numeric-function-term`, `-date-of-integer-function-term`,
-`-day-of-integer-function-term`; complements `pb5208_power_integral_exponents`, `pb5345_power_failopen_shapes`,
-`pb5832_scaled_integral_shapes`.
+`-day-of-integer-function-term`, the ten `pb5886-*` refusals, `pb5889-identity-difference`; complements `pb5208_power_integral_exponents`,
+`pb5345_power_failopen_shapes`, `pb5832_scaled_integral_shapes`, `pb124_always_integral_zoo`, `pb5886_integer_term_shapes`.
 
 ### An argument rule that differs by edition is one edition arm, never a second copy (PB5130, PB5161, PB5162).
 
