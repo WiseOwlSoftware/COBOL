@@ -261,10 +261,13 @@ the text it writes, decided by the line the match begins on (`firstLineIsDebuggi
 - **The replaced text begins on a debugging line:** every introduced line is a debugging line (§1985:XII.3.4 GR11, §1985:XII.2.4 GR9,
   §2002:7.1.3.3 GR11, §2002:7.1.2.3 GR13); a carrier pseudo-text-2 wrote at its own start is dropped, because its first line lands on the
   replaced line.
-- **It begins on a source line:** a COPY keeps the debugging lines pseudo-text-2 wrote (GR9 / GR13: "only those text words that are specified
-  on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines"), and so does REPLACE from 2002; COBOL-85's
-  REPLACE gives each introduced line the replaced line's indicator, so it drops them (`ResultRule.KeepsPseudoTextDebuggingLines`, asked
-  with `EditionInfo.ReplacedTextIsLaidOutInFixedForm`).
+- **It begins on a source line:** COPY and REPLACE keep the debugging lines pseudo-text-2 wrote, at every edition (GR9 / GR13: "only those
+  text words that are specified on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines"). COBOL-85's
+  REPLACE is no exception (kb/Work PB5887): its GR11 (§1985:XII.3.4 GR11) is word for word the COPY statement's (§1985:XII.2.4 GR11), which
+  stands beside GR9's sentence, so it gives the replaced line's indicator to the lines pseudo-text-2 does not write as debugging lines and
+  takes none away; "Debugging lines are permitted in pseudo-text" (§1985:XII.3.4 GR8), and §1985:VI.7.3 makes each a comment line after all
+  COPY and REPLACE statements are processed when WITH DEBUGGING MODE is absent. Only an operand that is not pseudo-text takes the replaced
+  line's indicator on every line (kb/Work PB5471).
 - **A kept carrier after text on the replaced line starts a line (kb/Work PB5472):** when the introduced text begins with a debugging-line
   carrier and the line holds non-blank text ahead of the match, `ApplyReplacements` writes a line break before the replacement. The carrier
   makes every word after it on the resultant line debugging text, so without the break the library words ahead of the match would be hidden
