@@ -81,5 +81,10 @@
   "observed": "exit 0, no diagnostic; the program runs and prints -0017 +9999 -9999",
   "known_note": "none (kb/Work PB495 built the SR2 screen; it does not discuss BINARY against COMPUTATIONAL)"
  },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "Reading B: \"the same usage\" is the manner of representation (the USAGE clause specifies the manner in which a data item is represented, 1985 VI.5.14.4 GR2), and this implementation represents COMPUTATIONAL as BINARY (DOC-A.1-208), so a COMPUTATIONAL item under a BINARY group specifies one usage; the text admits both readings, and by CLAUDE.md rule 1's order GnuCOBOL decides: it gives BINARY and COMP one usage.",
+  "ref": "kb/Work/PB5683/2026-11-16-ruling-same-usage.md"
+ },
  "work": "PB5849"
 }
