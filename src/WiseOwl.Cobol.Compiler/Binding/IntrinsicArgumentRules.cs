@@ -1892,12 +1892,12 @@ internal static class IntrinsicArgumentRules
     /// argument of a nested call that is not an item or a literal prints as "...".</summary>
     private static string ExprText(BoundExpr e) => e switch
     {
-        BoundNumRef { Place.Item: { } item } => item.CobolName,
+        BoundNumRef { Place.Item: { } item } => $"{item.CobolName}",
         BoundNumLiteral l => l.Text,
         BoundIntrinsicCall call => $"FUNCTION {call.Sig.Name}" + (call.Args.Count == 0 ? ""
             : " (" + string.Join(", ", call.Args.Select(a => a switch
             {
-                BoundFieldOperand { Place.Item: { } item } => item.CobolName,
+                BoundFieldOperand { Place.Item: { } item } => $"{item.CobolName}",
                 BoundNumericLiteral l => l.Text,
                 _ => "...",
             })) + ")"),

@@ -13,8 +13,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (kb/Work PB617). <c>IntrinsicArgumentRules.CollectAdditive</c> used to accumulate data items only, so a literal's
 /// fraction never entered the integrality net: <c>FUNCTION CHAR(1.5 + 1)</c> (= 2.5) compiled clean while the bare
 /// <c>CHAR(1.5)</c> was refused. Each row is an argument operand and whether the screen must refuse it; the admitted
-/// rows pin the soundness half (the constant is a SUM — <c>1.5 + 0.5</c> is 2 — and a term the fold cannot value or
-/// prove integral fails open).
+/// rows pin what the screen shows integral (the constant is a SUM — <c>1.5 + 0.5</c> is 2 — and a product by a literal
+/// cancels an item's scale), and since kb/Work PB5886 a term it cannot show integral is refused (it fails closed).
 /// </summary>
 public sealed class IntegerArgumentConstantWitnessTests
 {
@@ -56,22 +56,27 @@ public sealed class IntegerArgumentConstantWitnessTests
         // kb/Work PB5832 review R1-1: a product of two items (both at one granule) under a non-integral factor.
         { "W-S * W-S * 0.5", Bin(Bin(ScaledItem, '*', ScaledItem), '*', Lit("0.5")), true },
         { "W-I * W-I / 2", Bin(Bin(IntItem, '*', IntItem), '/', Lit("2")), true },
-        // Admitted: the constant is integral, or a term defeats the proof (fail open).
+        // kb/Work PB5886: the screen fails closed, and a quotient over an item is no integer term even where its value always is one,
+        // and a zero divisor gives no value at all.
+        { "W-I / 2 * 2", Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), true },
+        { "W-S / 0.1", Bin(ScaledItem, '/', Lit("0.1")), true },
+        { "1 / 0 + 0.5", Bin(Bin(Lit("1"), '/', Lit("0")), '+', Lit("0.5")), true },
+        { "1 / 3 * 3", Bin(Bin(Lit("1"), '/', Lit("3")), '*', Lit("3")), true },
+        // Admitted: the expression is shown to be an integer for every valuation.
         { "1.5 + 0.5", Bin(Lit("1.5"), '+', Lit("0.5")), false },
         { "3 - 1", Bin(Lit("3"), '-', Lit("1")), false },
         { "6.5E1", Bin(Lit("6.5E1"), '+', Lit("0")), false },
         { "W-I + 1.5 + 1.5", Bin(Bin(IntItem, '+', Lit("1.5")), '+', Lit("1.5")), false },
         { "0.5 * 4", Bin(Lit("0.5"), '*', Lit("4")), false },
         { "2 ** 6 + 1", Bin(new BoundPower(Lit("2"), Lit("6"), NegativeBaseRealRoots: false), '+', Lit("1")), false },
-        // The products and quotients by a literal that cancel to a whole net coefficient (kb/Work PB5832).
+        // The products by a literal that cancel to a whole net coefficient (kb/Work PB5832).
         { "W-I * 0.5 * 2", Bin(Bin(IntItem, '*', Lit("0.5")), '*', Lit("2")), false },
-        { "W-I / 2 * 2", Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), false },
         { "W-I * 0.5 + W-I * 0.5", Bin(Bin(IntItem, '*', Lit("0.5")), '+', Bin(IntItem, '*', Lit("0.5"))), false },
-        { "W-S / 0.1", Bin(ScaledItem, '/', Lit("0.1")), false },
+        { "W-S * 10", Bin(ScaledItem, '*', Lit("10")), false },
         { "W-I * 0", Bin(IntItem, '*', Lit("0")), false },
         { "W-I * W-I * 2", Bin(Bin(IntItem, '*', IntItem), '*', Lit("2")), false },
         { "W-I * W-I", Bin(IntItem, '*', IntItem), false },
-        { "1 / 0 + 0.5 (zero divide is not this screen's)", Bin(Bin(Lit("1"), '/', Lit("0")), '+', Lit("0.5")), false },
+        { "4 / 2 + W-I", Bin(Bin(Lit("4"), '/', Lit("2")), '+', IntItem), false },
     };
 
     [Theory]
@@ -81,11 +86,11 @@ public sealed class IntegerArgumentConstantWitnessTests
         string? why = IntrinsicArgumentRules.IntegerViolation(new BoundComputedOperand(expr));
         if (refused)
             Assert.True(why is not null,
-                $"'{shape}' is never an integer for any valuation, so ISO §2023:15.3 type 6 does not admit it — but the "
-                + "integer screen admitted it (kb/Work PB617: the additive spine must fold its literal terms).");
+                $"'{shape}' is not shown to be an integer for every valuation, so ISO §2023:15.3 type 6 does not admit it — but "
+                + "the integer screen admitted it (kb/Work PB617: the sum must fold its literal terms; PB5886: the screen fails closed).");
         else
             Assert.True(why is null,
-                $"'{shape}' must stay admitted (its value is integral, or the screen cannot prove otherwise and must "
-                + $"fail open) — but the screen refused it: {why}");
+                $"'{shape}' must stay admitted (the screen shows it is an integer for every valuation) — but the screen "
+                + $"refused it: {why}");
     }
 }
