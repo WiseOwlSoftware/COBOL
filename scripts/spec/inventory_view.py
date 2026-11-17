@@ -331,7 +331,7 @@ def summary() -> list[str]:
         # *_MatchesLegacy differential, which resolves on disk, and still be open (only a SPEC-DERIVED test closes one).
         if need := sum(1 for r in adjudicated if r["verdict"] == "CONFORMS" and r["state"] == "GAP"):
             lines.append(f"       {year}: {need} CONFORMS still test-needed (each is one spec-derived golden from OK)")
-        if reads := code_read_store.view_line(schema.edition(year), schema, rows):
+        if reads := code_read_store.view_line(schema.edition(year), schema, rows, views.get(schema.edition(year).next_held, [])):
             lines.append(reads)
     return lines
 

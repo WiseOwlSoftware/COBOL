@@ -74,5 +74,10 @@
   ],
   "corrected": "Under the literal 1985 reading this is NOT CONFORMING (under-rejects), cause (c). The 1985 'source program' includes contained programs, so (i) an unqualified Procedure Division LINE-COUNTER/PAGE-COUNTER in a program whose source program (contained programs included) specifies more than one RD, and (ii) an unqualified counter in a contained program that has its own RD and also sees a GLOBAL RD, would each need COBOL2729. The compiler accepts both and resolves to the nearest report. Under the reader's per-program reading it CONFORMS. Settle it with an adjudication note before closing the rule."
  },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "An unqualified LINE-COUNTER counts the report descriptions of the program it is written in (kb/Work PB5800): a recorded determination (register entry D-85-COUNTER-QUAL). The 1985 text leaves the count open (§1985:IV.4.3.8.1 SRL2.9, §1985:XIII.3.5.6 SR3); GnuCOBOL counts per program, and that decided it.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-open-readings.md"
+ },
  "work": "PB5800"
 }

@@ -2,77 +2,84 @@
  "rule-id": "1985-GR-IX.3.2.4-5",
  "rule-digest": "b21caf6dfbcc",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-093",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-231",
   "sources": {
-   "reader": "87566458a341535548f3b5a6dd7a32e41f8d29615141383f437bce21afb35729",
-   "refuter": "a4be79958e3090192e4df035e3d0235625d8e66c250d53fd8d46b0f100d23cda"
+   "reader": "43c580eb16d629a336024563d073f2700bfc4ffb6812f3ef39b97d8486aac256",
+   "refuter": "74ffba6c4e5da9fb0ab8d159b0adbcca4ae86cfa089f48501e4fd7e33d78f9db"
   },
   "imported": {
-   "reader": "48997d5c9787c47656dfa888dcdd2602168deaee603fe9fbd50c4f6ea44c4e53",
-   "refuter": "5b1d4f0be5573f2b29c0bba877fd6d1044451a9f079a7d76d9cda9541f6b3f80"
+   "reader": "0320ebc7f0805f03be40c5aa54e428c2b8b9f595a73d59c7815d86ad334291e5",
+   "refuter": "0e0a590935a7007d9554c3277d8ca78eb0dc88563a15a7c386f9f4a0b70080b1"
   }
  },
  "reader": {
   "rule-id": "1985-GR-IX.3.2.4-5",
   "verdict": "CONFORMS",
-  "requirement": "An indexed file's FD takes the Sequential I-O RECORD clause whole (VII.3.8): format 1 RECORD CONTAINS integer-1 [CHARACTERS] (SR1: no record description larger than integer-1), boxed format 2 RECORD IS VARYING [FROM i2] [TO i3] [CHARACTERS] [DEPENDING ON d] (SR2 bounds, SR3 i3 > i2, SR4 d elementary unsigned integer in WS/Linkage; GR8-GR12 write length from d or the ODO, status 44 out of range, READ sets d, DELETE/START/failed READ leave d alone, READ INTO sends the record's length) and format 3 RECORD CONTAINS i4 TO i5 (no syntax rule; GR14 sizes come from the descriptions); no BYTES word at 1985. Witness g85_f17_08 covers format 1 and format 2 GR11 only.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete",
+  "requirement": "At --std 85 an indexed file's FD admits the Sequential I-O RECORD clause in all three formats (CONTAINS integer-1; IS VARYING IN SIZE [FROM integer-2] [TO integer-3] [DEPENDING ON data-name-1]; CONTAINS integer-4 TO integer-5) with that clause's syntax rules (SR1-SR4) and general rules (record sizing, DEPENDING ON set by READ and read by WRITE/REWRITE, an output record outside integer-2..integer-3 unsuccessful with I-O status 44, READ INTO sending size). The witness covers formats 1 and 2 on the success path only.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
-    "switches": "BYTES phrase (Constructs.RecordClauseBytes2023): refused at 85 (COBOL0900), admitted at 2023",
+    "switches": "the BYTES phrase is a COBOL-2023 construct: refused COBOL0900 at 85, accepted at 2023",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
-    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize (since 2002): at 85 a format 3 range does not bound WRITE/REWRITE (BoundsEnforced false); at 2023 it does ('44')",
+    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize (2002 on): Format 3's integers bound WRITE/REWRITE only from 2002; at 85 Format 3 is fixed-by-record-description (GR13 implementor choice, GR15)",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen (RecordClauseRule.AppliesAt, Since)",
-    "switches": "SR9 (format 3 integer-5 > integer-4) Since 2002: not screened at 85; SR1-SR4 rows Since 85",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#RecordClauseRule.CitationAt / #Sr6Sentence",
-    "switches": "diagnostic cites §1985:VII.3.8.3 SRn and names 'working-storage or linkage section' below 2002",
-    "same-arm-as-latest": false
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen",
+    "switches": "rule rows apply by Since edition and cite the 1985 rule (Of1985) below 2002; SR6 sentence names two sections at 85 (Sr6Sentence)",
+    "same-arm-as-latest": true
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "yes: at 85 BYTES is refused, a format 3 range neither orders its integers nor bounds a WRITE (fmt3run: short record 00 at 85, 44 then 23 at 2023), and the SR4 wording drops local-storage; format 1/2 checks and run-time bounds are the same code",
-  "witnesses-cover": "part: g85_f17_08 exercises format 1 and format 2 with GR11 on random READ; SR1-SR4 refusals, GR8/GR10 status 44, GR9, GR10c ODO length, GR12 READ INTO and format 3 are not exercised",
+  "edition-search": "grep of Edition/DialectLevel/DialectBehavior in BindRecordClause, RecordClauseRules.cs and VersionConformancePass#VisitRecordClause",
+  "behaviour-differs-by-edition": "yes: BYTES refused at 85; Format 3 range does not bound output at 85 (2002 GR19 absent in 1985); diagnostics cite §1985:VII.3.8.3 at 85",
+  "witnesses-cover": "part: g85_f17_08 exercises formats 1 and 2 success path; not format 3, the SR1-SR4 refusals, status 44 on WRITE/REWRITE out of range, ODO-sized VARYING without DEPENDING, READ INTO",
   "probes": [
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/rec1.cob",
-    "printed": "W LEN3 44 / W LEN13 44 / W LEN4 00 / W LEN7 00 / W LEN12 00 / R K002 00 LEN 07 INTO [K002XYZ       ] / R K003 00 LEN 12 / R0 IK 23, UNSUCC READ LEN 55 / START 00 LEN 66 / DELETE 00 LEN 77 / REWRITE LEN13 44 LEN 13",
-    "expected": "GR10 last paragraph: length outside 4..12 unsuccessful with 44 (IX.1.3.4 44); GR11 data-name-1 holds the length read; GR12 INTO sends 7 characters; GR9 failed READ, START, DELETE leave it"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/rec2.cob",
-    "printed": "W1 00 / W2 00 / R1 00 [K0012AABB       ] / R2 00 [K00251122334455 ]",
-    "expected": "GR10c: ODO record written at fixed part + current occurrences (9 and 15 chars); GR12b INTO sends that many"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/ix1.cob",
+    "printed": "WRITE LEN 5 FS 44 / WRITE LEN 13 FS 44 / WRITE LEN 8 FS 00 / READ XB LEN 08 / REWRITE LEN 3 FS 44 / REWRITE LEN 12 FS 00 / READ XB LEN 12 / ODO VARYING without DEPENDING READ INTO [K0013ABC      ] / Format 3 file WRITE+READ 00",
+    "expected": "VII.3.8.4 GR10 last paragraph and IX.1.3.4 status 44 for out-of-range length; GR11 length after READ; GR10c/GR12b ODO length 8 sends 8 chars to INTO"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/sr1.cob, sr2a.cob, sr2b.cob, sr3.cob, sr4a.cob, sr4b.cob, sr4c.cob",
-    "printed": "sr1 COBOL2010 (§1985:VII.3.8.3 SR1); sr2a/sr2b COBOL2010 (SR2, both arms); sr3 FROM 10 TO 10 COBOL2009 (SR3); sr4a signed COBOL2922, sr4b file-section item COBOL2922, sr4c group COBOL2922 (SR4)",
-    "expected": "each syntax rule refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/ixsr1.cob",
+    "printed": "COBOL2010 ... integer-1 = 8 ... (ANSI §1985:VII.3.8.3 SR1)",
+    "expected": "SR1 refusal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/ixsr2.cob",
+    "printed": "COBOL2010 fewer than integer-2 = 12 (SR2); ixsr2b.cob more than integer-3 = 8 (SR2)",
+    "expected": "SR2 refusal both halves"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/ixsr3.cob",
+    "printed": "COBOL2009 FROM 10 TO 10 integer-3 shall be greater (SR3); ixsr3b FROM 10 TO 4 same",
+    "expected": "SR3 refusal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/ixsr4a.cob",
+    "printed": "COBOL2922 not an unsigned integer (S99); ixsr4c PIC 9V9 same; ixsr4b XA-KEY: not unsigned integer + described in the file section",
+    "expected": "SR4 refusal"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/bytes.cob",
-    "printed": "COBOL0900: the RECORD clause BYTES phrase requires COBOL-2023 (targeting COBOL-85)",
-    "expected": "1985 formats have only CHARACTERS: refuse"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/ixbytes.cob",
+    "printed": "COBOL0900 the RECORD clause BYTES phrase requires COBOL-2023",
+    "expected": "BYTES is not in the 1985 format: refused"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/fmt3.cob, fmt3b.cob, fmt3run.cob, fmt1ok.cob, varok.cob",
-    "printed": "fmt3 (10 TO 10) OK; fmt3b (4 TO 20) OK; fmt3run at 85: W SHORT 00, R1 00 K001 (at 2023: W SHORT 44); fmt1ok (CHARACTERS omitted) OK; varok (VARYING FROM 4 TO 12 DEPENDING XB-LEN, optional words omitted) OK",
-    "expected": "1985 format 3 has no syntax rule and GR14 sizes records from their descriptions; CHARACTERS/IS/IN/SIZE/FROM/ON optional (rendered PDF p404)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/ixf3.cob",
+    "printed": "RAN (Format 3 RECORD CONTAINS 5 TO 10 on an indexed file accepted)",
+    "expected": "Format 3 is legal 1985 source"
    }
   ],
   "citations": [
@@ -85,31 +92,15 @@
     "check": "OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10"
    },
    {
-    "cite": "§1985:VII.3.8.4 GR11",
-    "check": "OK  §1985:VII.3.8.4 GR11  (3.8.4 General Rules)  the text is in GR11"
-   },
-   {
-    "cite": "§1985:VII.3.8.4 GR9",
-    "check": "OK  §1985:VII.3.8.4 GR9  (3.8.4 General Rules)  the text is in GR9"
-   },
-   {
-    "cite": "§1985:VII.3.8.4 GR12",
-    "check": "OK  §1985:VII.3.8.4 GR12  (3.8.4 General Rules)  the text is in GR12"
-   },
-   {
-    "cite": "§1985:VII.3.8.4 GR14",
-    "check": "OK  §1985:VII.3.8.4 GR14  (3.8.4 General Rules)  the text is in GR14"
-   },
-   {
     "cite": "§1985:VII.3.8.3 SR3",
     "check": "OK  §1985:VII.3.8.3 SR3  (3.8.3 Syntax Rules)  the text is in SR3"
    },
    {
     "cite": "§1985:IX.1.3.4",
-    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5d.1"
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5d"
    }
   ],
-  "notes": "The pointer rule's range is the whole Sequential I-O RECORD clause applied to an indexed file; every syntax rule and the run-time general rules probed behave per the 1985 text, with the 1985-only arms (no BYTES, unordered and non-binding format 3) taken by edition switches. GR2 (external connector consistency) was not probed: it states a program obligation across run units.",
+  "notes": "The indexed FD binds the same RecordClause path as sequential (FileDescriptionFormats row RECORD clause = All formats); every syntax rule refused with a 1985 citation and the runtime set status 44 for out-of-range WRITE/REWRITE lengths. Format 3 at 85 is treated as fixed-by-record-description (GR13 implementor-defined), not range-enforced.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -121,18 +112,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-IX.3.2.4-5",
-  "refutation": "OVERTURNED",
-  "classes": "a,b,d",
-  "evidence": "occ2.cob (refute-1985-093/occ2-001): FD XB RECORD IS VARYING IN SIZE FROM 4 TO 12 CHARACTERS DEPENDING ON XB-TL, where XB-TL is 05 PIC 99 OCCURS 2 under a WS group. --std 85 compiles clean (EXIT 0) and runs: XB-TL(1)=13 then WRITE gives 'W 00' (GR10a would make it unsuccessful, 44), and after a successful READ 'R 00 T1 00 T2 00' (GR11 sets no occurrence): the DEPENDING ON operand is silently disregarded. Same at --std 2023. The 1985 format's data-name-1 is a data-name, which 'must not be reference-modified, subscripted, or qualified unless specifically permitted' (cite.py: OK §1985:III, the text is in the clause), and a table element reference must be subscripted (cite.py: OK §1985:IV.4.3.8.2.3 SR4), so a table element cannot be data-name-1; the SR4 screen (cite.py: OK §1985:VII.3.8.3 SR4) tests only elementary/unsigned-integer/section. Sibling contrast: occ3.cob FILE STATUS naming an OCCURS item is refused COBOL2455. Also ran sr4ed (Z9), sr4dec (9V9), sr4x (XX): COBOL2922 correctly; sr4p (9PP, an integer), sr4comp, sr4lvl77: admitted correctly. cite.py OK §1985:VII.3.8.4 GR11.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles (RECORD DEPENDING via ResolveClauseOperand, no OCCURS/occurrence screen; ScreenClauseOperandOccurrence gated on Edition.SubscriptedClauseOperands is not applied to it)"
-  ],
-  "corrected": "NONCONFORMING (under-rejects): at --std 85 RECORD VARYING ... DEPENDING ON a table element (an item subject to OCCURS) is admitted with no diagnostic and the clause's length register is then ignored at WRITE and READ (GR8/GR10a/GR11 dead). Cause (b): same at 2023. Known note: none exact (PB2041 open, adjacent: the data-name-n OCCURS screen sentence)."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "`RECORD VARYING ... DEPENDING ON TL`, TL an element of a table, compiles, and at run time the length is ignored (a WRITE gives 00 where an elementary item gives 44). The subscripted spelling is refused. 2023 rows `FMT-13.18.43.2` and the operand rule `SR-13.18.43.3-6`.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-5.md"
- },
- "work": "PB5810"
+  "refutation": "UPHELD",
+  "classes": "a,b,e,f",
+  "evidence": "Probes at --std 85 under refute-1985-231/runs. rix1-001 (indexed DYNAMIC, RECORD IS VARYING FROM 6 TO 12 DEPENDING ON XB-LEN PIC 99 COMP): WRITE 12/6/9 all 00 with LEN kept; failed random READ (23) left LEN 55; START 00 left LEN 55; READ NEXT set LEN 06 then 09; READ NEXT at end (10) left LEN 44; DELETE left LEN 07; REWRITE LEN 10 00; READ INTO sent 10 then 6 characters ([K003ZZZZZZ    ], [K002BB        ]), so GR8-GR12 hold on the indexed path including START, DELETE and READ NEXT, which the reader did not probe. rixodo-001: ODO record 6 to 20 under VARYING FROM 8 TO 20 refused COBOL2010 citing §1985:VII.3.8.3 SR2 (GR5a minimum table count used). rixf1odo-001: ODO record 6 to 14 under RECORD CONTAINS 10 refused COBOL2010 (§1985:VII.3.8.3 SR1, GR5b maximum). cite.py: OK §1985:VII.3.8.4 GR9; OK §1985:VII.3.8.3 SR2; OK §1985:VII.3.8.4 GR5. Indexed REWRITE size change is legal at level 2 (§1985:IX.4.6.4 GR3, read), so the reader's REWRITE LEN 12 00 is right.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

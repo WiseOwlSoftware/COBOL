@@ -1,0 +1,119 @@
+{
+ "rule-id": "1985-SR-VIII.4.5.3-2",
+ "rule-digest": "26afad2a3e91",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-223",
+  "sources": {
+   "reader": "84716e4119386c189ba9d3e72cbd7112564a9de256d94eb36424ba20cec228e7",
+   "refuter": "71aa1d520b40d70e8bd38f10f4c2067a0bd1de296f5285cdafc3ec0dbdaf19b0"
+  },
+  "imported": {
+   "reader": "19d91869241a706e7e9db711aef152076bde1e65b661f7c1277fa30297dac5ab",
+   "refuter": "778f46019bfc42b5f8996c821cfe62aff2985a7d0a92940c8f252257668e88e3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.5.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a READ of a relative file in sequential access mode must be Format 1 (READ file-name-1 [NEXT] RECORD [INTO identifier-1] [AT END] [NOT AT END] [END-READ]); Format 2's INVALID KEY / NOT INVALID KEY phrases, a KEY phrase, and the 2002 PREVIOUS and lock phrases are refused on such a file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadKeyOrganization; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "Edition.Year >= 2002 returns early: the 1985 requirement that a dynamic-access sequential READ write NEXT (SR3) applies at 85 only; not reached for sequential access",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce = Edition.Year < 2002: at 85 AT END or INVALID KEY is mandatory without an applicable USE procedure (SR5)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase",
+    "switches": "EditionContext.Removed: an error under strict, a warning under --permissive (not an edition switch; same at 85 and 2023)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 the 2002 phrases PREVIOUS and WITH LOCK are refused (COBOL0900) and the SR5 exception-phrase requirement applies; the Format-1/Format-2 screen itself is the same code at 85 and 2023 (rrbad1 COBOL1720 and rrbad5 COBOL2269 at both)",
+  "witnesses-cover": "part: g85_f21_03 and g85_f21_08 run Format 1 READs on sequential relative files; the refusal of INVALID KEY, NOT INVALID KEY, KEY, PREVIOUS, lock phrases and AT END mixed with INVALID KEY on such a file is not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rr1.cob",
+    "printed": "1 AAAA RK=01 / 2 BBBB RK=02 / 3 AT END / 4 AAAA ST=00 / USE ST=10 / 5 ST=10",
+    "expected": "READ NEXT RECORD AT END, READ RECORD INTO ... AT END ... NOT AT END, and a phrase-less READ under a USE procedure on sequential-access relative files read in relative-number order, update the relative key, and take AT END / the USE procedure at end of file"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rrbad1.cob",
+    "printed": "error COBOL1720: the INVALID KEY phrase shall not be specified for a READ statement that references a file whose READ is a Format-1 sequential read",
+    "expected": "Format 2 phrase on sequential access refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rrbad2.cob",
+    "printed": "error COBOL1720 (NOT INVALID KEY) and COBOL6826 (no AT END, no USE: §1985:VIII.4.5.3 SR5)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rrbad3.cob",
+    "printed": "error COBOL0864: READ KEY on 'RLF': the KEY phrase may be specified only when ORGANIZATION IS INDEXED",
+    "expected": "the 1985 relative READ has no KEY phrase; refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rrbad5.cob",
+    "printed": "error COBOL2269: READ INVALID KEY: no general format of the READ statement prints the INVALID KEY phrase beside the AT END phrase",
+    "expected": "mixed Format 1/Format 2 phrases refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rrbad7.cob",
+    "printed": "EXIT 0",
+    "expected": "READ RLF NEXT AT END is Format 1; accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rrbad4.cob",
+    "printed": "error COBOL0900: READ PREVIOUS requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "PREVIOUS is not in the 1985 format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rrbad6.cob",
+    "printed": "error COBOL0900: a record-lock phrase ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "WITH LOCK is not in the 1985 format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.3 SR2",
+    "check": "OK  §1985:VIII.4.5.3 SR2  (4.5.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VIII.4.5.2 Format 2",
+    "check": "OK  §1985:VIII.4.5.2 Format 2  the text is in format 2 of 2"
+   }
+  ],
+  "notes": "KeyedIoBinder.BindRead binds a sequential-access relative READ as ReadKind.Next and screens the Format 2 INVALID KEY bracket through ScreenForbiddenPhrase (COBOL1720), the KEY phrase through CheckReadKeyOrganization, and a mixed bracket at the phrase-association parse (COBOL2269). Under --permissive the INVALID KEY screen becomes a warning with the phrase dead; the default strict compile refuses.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.5.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "§1985:VIII.4.5.2 Format 1 vs Format 2 differ only in NEXT/AT END vs INVALID KEY. Probes at --std 85: rr1 relative file with NO ACCESS clause (default sequential) READ INVALID KEY -> COBOL1720; rr2 GLOBAL relative FD read from a nested program with INVALID KEY / NOT INVALID KEY -> COBOL1720; rr3 EXTERNAL FD with INVALID KEY -> COBOL1720 (plus SR1 COBOL6827 for INTO the record area); rr4 positive: READ RLF RECORD END ... NOT END and READ RLF END (AT omitted) run, printed AAAA / E2. Reader covered PREVIOUS, lock, KEY and mixed phrases. cite.py: OK  §1985:VIII.4.5.3 SR2  (4.5.3 Syntax Rules)  the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

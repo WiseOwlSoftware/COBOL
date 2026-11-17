@@ -1,0 +1,76 @@
+{
+ "rule-id": "1985-GR-XIII.3.7.4-3",
+ "rule-digest": "fa3015c26bc8",
+ "read": {
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-234",
+  "sources": {
+   "reader": "5e0b08c073caf5306a862a48971856ff2aa3fc72e06e7a1e3f13151f9242b82e",
+   "refuter": "dd1503825093059e4b10a3dc6d1f6906a81d04e32f50a044286696e8cc2c78e9"
+  },
+  "imported": {
+   "reader": "d38a4ab8951d537e2cb244d18ed83cff13794bdab1d567c9f6e119372c6995d5",
+   "refuter": "66b25429691b566457b51b19401d77939f8452e01e130c11807febf829c2c9e3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.7.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the break test compares each control item with its saved prior as a relation condition: a numeric item as two numeric operands (so -0 equals +0), an index data item as two index data items, any other item (alphanumeric, group, edited) as two nonnumeric operands under the program collating sequence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddControl; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#NumericControlEqual; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FloatControlEqual; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandShapeViolation; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
+    "switches": "EditionInfo.ControlOperandMayBeIndexDataItem (Year < 2002) admits an index data item as CONTROL operand only at 85; ControlOperandShapeViolation refuses it from 2002 (§2023:13.18.60.3 SR10)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "emits the engine's Edition from DialectLevel; the index-item arm (value key) is reachable only at 85 because the binder admits it only there",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the numeric (NumericControlEqual), float and collated-nonnumeric arms in EmitReportConstruction switch on category/usage only; grep for DialectLevel/Edition in the control loop finds none besides the emitted Edition.",
+  "behaviour-differs-by-edition": "yes: 3b (index data item control) exists only at 85; at 2023 the same program is refused (COBOL1700, §2023:13.18.60.3 SR10). The numeric and nonnumeric arms are the same code at every edition.",
+  "witnesses-cover": "part: pb5782_numeric_control_signed_zero covers 3a (zoned separate-sign and packed -0); not 3b (index item) or 3c (group, program collating sequence)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-234/p4ctl.cob",
+    "printed": "3c: KB A->B with ALPHABET A1 IS \"A\" ALSO \"B\" as PROGRAM COLLATING SEQUENCE: no break; A->C: break. 3c group: GRP holding +0 -> -0 image (GK = 0 true): CF-GRP printed. 3b: IX 1->1 no break, 1->3 break, CF-IX sees prior 1, TERMINATE 3",
+    "expected": "GR3a/b/c"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-234/p4ctl.cob",
+    "printed": "--std 2023 --compile-only: error COBOL1700 RD 'R3': CONTROL operand 'IX' is an index data item",
+    "expected": "a later edition refuses the 85-only index control"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.7.4 GR3",
+    "check": "OK  §1985:XIII.3.7.4 GR3  the text is in GR3"
+   }
+  ],
+  "notes": "The emitter picks the comparison by the item's class: image-carried numeric -> NumericControlEqual (value), index -> occurrence-number key, float -> value/bit key, otherwise the collated StrCompare when a program collating sequence is in effect, else ordinal equality of equal-length images. A group containing a signed zero breaks on the sign image, as the nonnumeric comparison requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.7.4-3",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-234/r4ctl.cob uses PROGRAM COLLATING SEQUENCE A1 IS \"1\" ALSO \"2\" ... Numeric KN PIC 9 going 1->2 breaks: the numeric test ignores the alphabet (3a). Numeric-edited KE PIC Z9 going ' 1'->' 2' does not break, and ' 1'->' 3' does: KE is not a numeric data item, so the nonnumeric test applies under the collating sequence (3c). Signed zoned KT going from +0 to the overpunch -0 '}' does not break (3a, numeric equality). The 85 refusal of VALUE 1 on an edited item (COBOL0900) also confirmed the edition gate. The index item (3b) and the group (3c) are covered by the reader's p4ctl. cite.py: `OK  §1985:XIII.3.7.4 GR3c  ... the text is in GR3c`.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings: DialectBehavior.ControlFootingPageGroupsSeePriorControlValues decides the values that page groups see, not the break test."
+  ],
+  "corrected": ""
+ }
+}

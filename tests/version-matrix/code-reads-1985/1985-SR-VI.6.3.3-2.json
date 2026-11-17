@@ -1,0 +1,119 @@
+{
+ "rule-id": "1985-SR-VI.6.3.3-2",
+ "rule-digest": "4235e72a4622",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-223",
+  "sources": {
+   "reader": "84716e4119386c189ba9d3e72cbd7112564a9de256d94eb36424ba20cec228e7",
+   "refuter": "71aa1d520b40d70e8bd38f10f4c2067a0bd1de296f5285cdafc3ec0dbdaf19b0"
+  },
+  "imported": {
+   "reader": "56af403b24aeb826d4b7d3564976a0628a7e3e3b95708900d5ae4216fee3f031",
+   "refuter": "e7c250f9cdeeb3fee8cd12a8cdee273f01095d55693daf6e1e36ac4f1bd6a4fe"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in a paren-free AND/OR sequence of relation conditions any relation after the first may omit its subject, or its subject and relational operator; the compiler must insert the last stated subject and last stated operator, stop inserting at a complete non-relation simple condition, read NOT as part of the operator only before GREATER/>/LESS/</EQUAL/= and otherwise as the logical NOT of the abbreviated relation (carrying the stated operator), and refuse results that break table 1 (NOT NOT, an omitted subject after a terminating condition) and 2002+ connectives (XOR).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#succeedingCondition; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#negatedAbbreviatedRelation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#abbreviatedRelation; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#logicalNotBeforeRelationalOperator; src/WiseOwl.Cobol.Frontend/Parsing/NegatedAbbreviationForm.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AbbrevCarry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindPrimary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindNegatedAbbreviatedRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindSoleOperandCondition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNegatedAbbreviatedRelation; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitXorOperator",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindNegatedAbbreviatedRelation",
+    "switches": "ctx.Edition.Edition.Has(2002): from 2002 an IS-led simple operator after NOT is negated and carried (§2002 GR2b); at 85 every negatedAbbreviatedRelation is BoundNot of the abbreviated relation, carrying the stated operator (§1985:VI.6.3.3 GRL2.2)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNegatedAbbreviatedRelation",
+    "switches": "ConstructRegistry rows abbreviated-not-logical-removed-2002 and abbreviated-not-is-simple-operator-removed-2014: legal at 85, COBOL0902 from 2002/2014",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitXorOperator",
+    "switches": "LogicalOperatorGate: XOR/EXCLUSIVE-OR refused below 2023 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 NOT before a non-GREATER/LESS/EQUAL operator word (e.g. NOT >=) is the logical NOT of the abbreviated relation and is accepted; from 2002 that shape is refused (COBOL0902); XOR is refused at 85 and legal at 2023",
+  "witnesses-cover": "part: g85_f11_02 covers omission of subject and of subject+operator (T1-T7); the NOT interpretation (GRL1/GRL2), the five printed expansion examples, termination at a non-relation simple condition, table-1 refusals and the XOR edition arm are not exercised",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/c2ok.cob",
+    "printed": "E1 F, E2 T, E2b F, E3 T, E4 F, E5 T, E5b F, E6 T, E6b F, E7 T, E8 T, E9 T",
+    "expected": "the five printed examples with chosen values: E1 ((a>b) AND (a NOT<c)) OR (a NOT<d) = F; E2/E2b (a NOT= b) OR (a NOT= c) = T/F; E3 (NOT(a=b)) OR (a=c) = T; E4 NOT((a>b) OR (a<c)) = F; E5/E5b NOT(((a NOT>b) AND (a NOT>c)) AND NOT(a NOT>d)) = T/F; E6/E6b 85 logical NOT before >= carrying >=: T/F; E7 new subject after complete relation; E8 literal subject; E9 arithmetic-expression objects"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/c2bad2.cob",
+    "printed": "error COBOL2318: '2' is used as a condition",
+    "expected": "A = 1 OR X NUMERIC OR 2: insertion terminated by the class condition, so '2' has no subject; refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/c2bad4.cob",
+    "printed": "error COBOL0001: cannot parse construct near 'NOT'",
+    "expected": "A = 1 AND NOT NOT 2 breaks table 1 (NOT NOT); refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/c2bad5.cob",
+    "printed": "error COBOL0001: cannot parse construct near '='",
+    "expected": "A = 1 OR (= 2): parentheses within the sequence end the abbreviation; refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/c2bad3.cob",
+    "printed": "error COBOL0900: the logical XOR/EXCLUSIVE-OR operator requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "the 1985 format has AND/OR only; refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/c2par3.cob",
+    "printed": "P1 T, P2 F, P4 F",
+    "expected": "A = 1 OR (2) / OR (B): the parenthesized object is an arithmetic expression (§1985 arithmetic expressions allow parentheses), i.e. A = 2 / A = B; and (2 OR 5) refused COBOL2318 (c2par2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.3.3 SR2",
+    "check": "OK  §1985:VI.6.3.3 SR2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.3.3",
+    "check": "OK  §1985:VI.6.3.3  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.3.3 GRL2.2",
+    "check": "OK  §1985:VI.6.3.3 GRL2.2  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in GRL2.2"
+   }
+  ],
+  "notes": "AbbrevCarry threads subject and operator in source order through BindFlatSequence; a parenthesized or non-relation condition resets it. The 85 arm of the logical NOT (BindNegatedAbbreviatedRelation without Has(2002)) is the 1985 reading and differs from the latest by design. All printed examples and the edge cases computed the expected truth values.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.3.3-2",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "The 1985 format is 'relation-condition {AND|OR} [NOT] [relational-operator] object', and the 1985 relational operators include 'IS [NOT] LESS THAN / IS [NOT] <' with IS optional (§1985:VI.6.3.1.1 format, line 12029, IS not underlined; cite.py: OK  §1985:VI.6.3.1.1  (6.3.1.1 Relation Condition)  'Greater than or not greater than'; table 1 sentence: OK  §1985:VI.6.3.2.3  'the pair NOT NOT is not permissible'). So 'A > 1 AND NOT NOT < 5' is [NOT]=NOT, relational-operator='NOT <', object=5. By GRL2.1 the word after the first NOT is NOT, not one of GREATER > LESS < EQUAL =, so by GRL2.2 that NOT is logical: ((A > 1) AND (NOT (A NOT < 5))), which complies with table 1 (NOT followed by a simple-condition; the second NOT is inside the relational operator, not a logical element). Probes: ab1.cob at --std 85: 'IF A > 1 AND NOT NOT < 5' and 'IF A > 1 AND NOT NOT < 2' -> error COBOL0001: cannot parse construct near 'NOT' (both lines). ab6.cob at --std 85, the SAME form with the optional IS written: 'IF A > 1 AND NOT IS NOT < 5' compiles and prints N6 T (correct), and the unabbreviated 'NOT A NOT < 5' and 'A > 1 AND NOT A NOT < 5' print U1 T / U2 T. So the refusal depends only on whether optional IS is written. Cause: CobolParserCoreBase.cs#logicalNotBeforeRelationalOperator excludes NOT as LA(2) ('and NOT, which no reading lets follow NOT', grammar comment at CobolExpressions.g4#negatedAbbreviatedRelation), and comparisonOperator has no 'NOT NOT <' alternative. ab1b.cob at --std 2023: same COBOL0001 (edition-blind predicate). Other probes held: ab2 'OR NOT GREATER THAN OR EQUAL TO 2' and ab3 'OR NOT LESS OR EQUAL 2' refused (NOT joins GREATER/LESS by GRL2.1 and NOT GREATER THAN OR EQUAL is no 1985 operator); ab4 '<>' -> COBOL0900; ab5 'OR IS 3' refused; N3 'OR NOT IS > 4' T, N4 'OR IS NOT > 2' F, N5 'OR GREATER THAN OR EQUAL TO 3' T, all right for A=3. cite.py: OK  §1985:VI.6.3.3 SR2 (the format is in SR2's text); OK  §1985:VI.6.3.3 GRL2.1  'If the word immediately following NOT is GREATER'; OK  §1985:VI.6.3.3 GRL2.2  'The NOT is interpreted as a logical operator'; OK  §1985:III  'IS [NOT] LESS THAN'. Reading that would save the verdict: Table 1's sentence 'the pair NOT NOT is not permissible' read lexically; rejected because table 1 ranges over logical elements and the compiler itself accepts the identical semantics when IS is written.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#logicalNotBeforeRelationalOperator: edition-blind left-edge predicate; excludes NOT after NOT, so the 85-only logical-NOT abbreviation arm cannot carry a negated relational operator written without IS"
+  ],
+  "corrected": "DIVERGES (rejects-legal-source, cause c): at --std 85 'IF A > 1 AND NOT NOT < 5' is the SR2 format with [NOT] followed by the relational operator 'NOT <' and must compile as (A > 1) AND NOT (A NOT < 5); the compiler refuses it with COBOL0001 while accepting 'AND NOT IS NOT < 5'. Minimal repro: refute-1985-223/src/ab1.cob. Expected: compiles, prints N1 T and N2 F for A=3."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "At --std 85 an abbreviated combined relation condition with NOT NOT before a relation character (IF A > 1 AND NOT NOT < 5) is refused with COBOL0001, where the 1985 text reads the first NOT as the logical operator and NOT < as the relational operator.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10r.md"
+ },
+ "work": "PB5861"
+}

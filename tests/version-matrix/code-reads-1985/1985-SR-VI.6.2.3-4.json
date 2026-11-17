@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-SR-VI.6.2.3-4",
+ "rule-digest": "618661049d71",
+ "read": {
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-236",
+  "sources": {
+   "reader": "512c02f56c3a47c611830738fee062815aa4c177a4ec0c46758af157f304ad13",
+   "refuter": "59706be367945bed95443e558b94e18db15415727de8a491eb7471c0e48eb036"
+  },
+  "imported": {
+   "reader": "2360e088612d191f733b99c5d4c396a4f6e7994455a7b30bf915c2994b5424f2",
+   "refuter": "a5d24dde176696cfefee8fdb064ec5d25ff78b2853c2840fb215479db41f6ae8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.2.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an arithmetic expression may begin only with '(', '+', '-', an identifier or a literal and end only with ')', an identifier or a literal, its parentheses must balance in order, and a leading unary operator of an expression that immediately follows an identifier or another expression (function argument lists) must be inside a left parenthesis, so 'A - B' there is one binary expression and 'A (- B)' two arguments.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#arithmeticExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryExpression; src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#Check; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgumentsOf",
+  "edition-consulted": [],
+  "edition-search": "The formation is structural: the grammar's arithmeticExpression/additiveExpression/multiplicativeExpression/powerExpression/unaryExpression chain plus the post-parse screens. grep for Edition/Dialect/Year in ArithmeticFormationRules.cs and SeparatorRule.cs finds none; IntrinsicBinder.cs's edition consults (lines 68, 240, 337, 729, 982, 1005, 1216, 1294, 1950, 1966, 2012, 2107, 2496) gate functions and phrases, not argument splitting. SubscriptBinder gates arithmetic-expression subscripts at 85 (COBOL0900), a different rule (§1985:IV.4.3.8.2.3).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf15_01 covers the legal forms (leading '(', '+', '-', nested parentheses, A (- B) as two function arguments, A - B as one); the refusal half (bad first/last symbol, unbalanced or misordered parentheses) is exercised only by the probes here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c4_neg1.cob",
+    "printed": "COMPUTE R = * A -> error COBOL0001: cannot parse construct near '*'",
+    "expected": "refused: may not begin with '*'"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c4_neg2.cob",
+    "printed": "COMPUTE R = A + -> error COBOL0001 near 'DISPLAY'",
+    "expected": "refused: may not end with an operator"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c4_neg3.cob",
+    "printed": "COMPUTE R = (A + B -> error COBOL5506 near 'DISPLAY', expected ... ')'",
+    "expected": "refused: unbalanced left parenthesis"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c4_neg4.cob",
+    "printed": "COMPUTE R = A + B) -> error COBOL2269: unexpected ')'",
+    "expected": "refused: unbalanced right parenthesis"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c4_neg5.cob",
+    "printed": "COMPUTE R = ) A + B ( -> error COBOL0001 near ')'",
+    "expected": "refused: right parenthesis before its left; may not begin with ')'"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c4_pos.cob",
+    "printed": "-0021 / 0010 / 0004 / 0007 / DE / GT / W1",
+    "expected": "A * - B = -21; A - - B = 10; FUNCTION MAX (A - B) = 4 (one argument); FUNCTION MAX (A (- B) 1) = 7 (three arguments); X (A - B : B - 1) = DE; A - B > - B true; EVALUATE A - B WHEN - 4 + 8 selected"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.2.3 SR4",
+    "check": "OK  §1985:VI.6.2.3 SR4  (║6.2.3 Formation and Evaluation Rules║)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VI.6.2.3 SR3",
+    "check": "OK  §1985:VI.6.2.3 SR3  (║6.2.3 Formation and Evaluation Rules║)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VI.6.2.2",
+    "check": "OK  §1985:VI.6.2.2  (║6.2.2 Arithmetic Operators║)  the text is in the clause"
+   }
+  ],
+  "notes": "A first probe wrote 'FUNCTION MAX (A -B)' and drew COBOL2993 (operator not followed by a space); that is correct at 85 because §1985:VI.6.2.2 requires every arithmetic operator to be preceded and followed by a space, so the third sentence's unparenthesized unary-after-identifier can only be written in the spaced binary form, which the compiler reads as one expression. The refusals are parse errors (COBOL0001/5506/2269) rather than a rule-naming diagnostic, which is adequate for a syntax rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.2.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Probes at --std 85 under refute-1985-236/runs: refused -- '+ + A' (COBOL1719 unary-unary pair), '(A) (B)' (COBOL2269), 'A -2' in COMPUTE (COBOL2993; identifier followed by a signed literal is no permissible pair), '( ) + A' (COBOL0001), 'A B' (COBOL2269), '- * A' (COBOL0001). r4_pos runs: FUNCTION MAX (1 -2)=1 and FUNCTION MAX (A -2)=7 and FUNCTION MIN (A -2 B)=-2 (a sign adjacent to digits is part of the literal, §1985:IV.4.2.2.2.2 rule 2, so these are separate arguments, not a binary minus); A - -2 = 9; - (- A) ** 2 = 49 (unary first, §1985:VI.6.2.3 GR1); A ** - 1 * 0 + ((B)) = 3. cite.py: 'OK  §1985:VI.6.2.3 SR4  (║6.2.3 Formation and Evaluation Rules║)  the text is in SR4'; 'OK  §1985:VI.6.2.3 SR3 ...the text is in SR3'; 'OK  §1985:IV.4.2.2.2.2 ... it lies in SR2'; 'OK  §1985:VI.6.2.3 GR1' (a first try as SR1 failed [no-ordinal], corrected). Refusals cite §2023 clauses at --std 85 (cosmetic).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

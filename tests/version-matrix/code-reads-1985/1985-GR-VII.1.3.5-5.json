@@ -2,122 +2,81 @@
  "rule-id": "1985-GR-VII.1.3.5-5",
  "rule-digest": "35211f4782c2",
  "read": {
-  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
-  "slice": "1985-195",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-231",
   "sources": {
-   "reader": "8e9f846199cca1176b5b277e8ee59437f30f48aa84ef54c6c128ea345f8b1ab1",
-   "refuter": "1e43cf4cb1cc89170dc57bf1e7ddb0124a517da7b11476c126cb01ec9a395a49"
+   "reader": "43c580eb16d629a336024563d073f2700bfc4ffb6812f3ef39b97d8486aac256",
+   "refuter": "74ffba6c4e5da9fb0ab8d159b0adbcca4ae86cfa089f48501e4fd7e33d78f9db"
   },
   "imported": {
-   "reader": "84d350c69f9a7444e4733cd1ee1c0704992da08ab53952b84065aa514c436a3d",
-   "refuter": "8a8ef94a2aabc0e8c4052b27fabbf44162ad2641ef3f14e15a6d7cdd956b84ca"
+   "reader": "fc4dd7730f3072495896ec79386a6edcde70841b71d59a613452114caabb1132",
+   "refuter": "d3f33e6a660d56ec2dd9cc132bedd2bfaeba43ba873a546250c4a161e7f007ff"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.1.3.5-5",
   "verdict": "CONFORMS",
-  "requirement": "When an input-output statement on a sequential file is unsuccessful because of a condition the implementor specifies (none of the successful, at end, permanent error or logic error conditions), the I-O status must report it in the implementor-defined class (9x, VII.1.3.5 GRL2.5); where more than one value applies the implementor picks.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#LinageValueViolation; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#CharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordHasCharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#HasCharacterWithoutImage; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+  "requirement": "At --std 85 a sequential-file input-output statement that fails for a condition the implementor specifies (one the 1985 list 00-49 does not define, such as a LINAGE value that breaks VII.3.7.4 GR2/GR3) is unsuccessful and sets an implementor-defined 9x I-O status that duplicates no 00-49 condition, and the 1985 path sets no status value the 1985 list lacks (no 2002+ value such as 61 or 71); where more than one value applies the implementor chooses. Witnesses cover the LINAGE violation at OPEN OUTPUT (90, file not opened, then 48/42/41) and the exception condition.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#LinageValueViolation; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RefuseOpenForLinage; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#TakeRunUnitFileLock; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
-    "switches": "DialectBehavior.FileSharingFacility (2002+): at 85 no file lock is taken and no '61' file-sharing status is produced; a second connector's OPEN of the same file answers '00'",
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "DialectBehavior.LinageViolatingOpenLeavesFileOpen (2002 on): at 85 a LINAGE value violation refuses the OPEN with 90 and leaves the file not open; from 2002 the OPEN succeeds into a broken page",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#TakeRunUnitFileLock",
+    "switches": "SharingFacilityInEffect (DialectBehavior.FileSharingFacility, 2002 on): no run-unit file lock and no 61 at 85",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered",
-    "switches": "a host refusal of the OPEN answers '61' when the sharing facility is in effect and the 1985 value '30' at 85",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
-    "switches": "the clause-less connector's sharing mode: no restriction at 85 (FileSharing.AllOther)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#DialectBehaviors",
-    "switches": "the file-sharing-facility row (introduced 2002) the three sites above read",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
-    "switches": "ORGANIZATION LINE SEQUENTIAL refused below 2023 (COBOL0900), so the line-sequential '71' cannot arise at 85",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAssignClause",
-    "switches": "ASSIGN USING refused below 2002 (COBOL0900), so the '31' association failure cannot arise at 85",
+    "switches": "a host sharing refusal is 61 from 2002 and 30 (a 1985 permanent-error value) at 85",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "yes: at 2002 and later a second connector's conflicting OPEN answers '61' (and a host refusal '61'); at 85 the file sharing facility is off, so those OPENs answer '00' or the 1985 '30', and no status outside the 1985 list or 9x is produced for a sequential file",
-  "witnesses-cover": "part: the witnesses cover '90' (LINAGE) and '91' under CODE-SET; '91' without CODE-SET, the absence of 2002+ statuses at 85 (sharing, line sequential, ASSIGN USING) and the 1985 values after a failed OPEN are not exercised there",
+  "edition-search": "grep IsActive|DialectBehavior|Edition in SequentialConnector.cs, FileConnector.cs, FileRegistry.cs around the status assignments; LINE SEQUENTIAL (statuses 06/09/71) is refused COBOL0900 at 85 (probe lseq.cob)",
+  "behaviour-differs-by-edition": "yes: LINAGE violation at OPEN refuses the OPEN at 85 (OPEN succeeds from 2002); two connectors on one physical file in one run unit both open at 85 where 2023 answers 61",
+  "witnesses-cover": "part: the OPEN OUTPUT leg only; not a LINAGE violation found at a page change during WRITE ADVANCING PAGE, the 61-versus-1985 status choice for sharing, the absence of 2002+ values at 85",
   "probes": [
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios6.cob",
-    "printed": "85: OPEN I-O TWICE FS1=00 FS2=00, F2 READ SAME RECORD FS=00, both REWRITEs FS=00; 2002: FS2=61 then 47/49",
-    "expected": "at 85 no 2002 file-sharing or record-lock value (61, 51); only 1985 values or 9x"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios1.cob",
-    "printed": "error COBOL0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-85)",
-    "expected": "refused at 85, so '71' is unreachable"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios4.cob",
-    "printed": "error COBOL0900: the USING phrase of the ASSIGN clause requires COBOL-2002",
-    "expected": "refused at 85, so '31' is unreachable"
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/lin1.cob",
+    "printed": "OPEN 00 LC=01; W1 00 LC=02; after MOVE 0 TO W-N, WRITE BEFORE ADVANCING PAGE: USE-1 FS=90 LC=00, W-PAGE FS=90; following WRITEs 90 (USE runs each time); CLOSE 00; REOPEN 00 LC=01; OPEN of the open file 41",
+    "expected": "VII.1.3.5 GR5: an implementor-defined failure is unsuccessful with a 9x status that duplicates no 00-49 condition; USE runs for a non-successful status"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios2.cob",
-    "printed": "MISSING OPEN FS=35; READ AFTER FAILED OPEN FS=47; CLOSE NOT OPEN FS=42; VARYING TOO LONG FS=44; VARYING TOO SHORT FS=44; two OPEN OUTPUT of one file FS=00 and 00",
-    "expected": "each a 1985 value (35, 47, 42, 44); no implementor 9x replaces a condition 00-49 names"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/shr.cob",
+    "printed": "--std 85: OPEN F1 00, WRITE 00, OPEN OUTPUT F2 (same physical file) 00, OPEN INPUT F2 00, READ 10, CLOSE 00 00; --std 2023: OPEN OUTPUT F2 61, OPEN INPUT F2 61, READ 47, CLOSE 00 42",
+    "expected": "no status outside the 1985 list at 85 (61 is a 2002 file-sharing value); 1985 defines no sharing condition"
    },
    {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios3.cob",
-    "printed": "ASSIGN TO W-NAME (blank) OPEN OUTPUT FS=00",
-    "expected": "the 1985 ASSIGN word is an implementor-name, no '31'"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios7.cob",
-    "printed": "USE ENTERED FS=91; WRITE EURO FS=91; WRITE PLAIN FS=00; READ FS=00 R1=ABCD (the refused record never reached the file)",
-    "expected": "an implementor-defined unsuccessful condition answers 9x, the declarative runs, nothing is written"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/13.18.34-LINAGE/pb526_linage_ec_condition_85.cob",
-    "printed": "USE-A FS=90 LC=000; A-W2 FS=90 ... EXPECT: MATCH",
-    "expected": "LINAGE value violation (page size not greater than zero, §1985:VII.3.7.4 GR2) reported as implementor-defined 90"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/A.1-Implementor-defined-language-element-list/pb1542_code_set_unrepresentable_85.cob",
-    "printed": "SQ-E=91 SQ-EURO=91 SQ-REWR=91 ... EXPECT: MATCH",
-    "expected": "CODE-SET unrepresentable character reported as implementor-defined 91"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-231/src/lseq.cob",
+    "printed": "COBOL0900 ORGANIZATION LINE SEQUENTIAL requires COBOL-2023",
+    "expected": "the organization whose 06/09/71 statuses are outside the 1985 list is not 1985 source"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VII.1.3.5 GR5",
-    "check": "OK  §1985:VII.1.3.5 GR5  (1.3.5 I-O Status)  the text is in GR5 [\"a condition that is specified by the implementor\"]"
+    "check": "OK  §1985:VII.1.3.5 GR5  (1.3.5 I-O Status)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.5a"
    },
    {
     "cite": "§1985:VII.3.7.4 GR2",
-    "check": "OK  §1985:VII.3.7.4 GR2 [\"The value must be greater than zero\"]"
+    "check": "OK  §1985:VII.3.7.4 GR2  (║3.7.4 General Rules║)  the text is in GR2"
    }
   ],
-  "notes": "The compiler defines two implementor conditions for sequential files, the LINAGE value violation ('90') and a record character with no byte image in the file's coded character set ('91', with or without CODE-SET), documented in docs/conformance/7/DOC-A.1-110.md; both make the statement unsuccessful and run the USE declarative. At 85 the 2002 file sharing facility is switched off by DialectBehavior.FileSharingFacility, and LINE SEQUENTIAL and ASSIGN USING are refused, so no 2002+ status (61, 51, 71, 31) reaches a 1985 program.",
+  "notes": "The implementor-defined conditions take 90 (LINAGE values) and 91 (a character with no byte image), both 9x and distinct from 00-49, and the 85 path refuses the 2002+ facilities whose values (61, 71, 31 via ASSIGN USING, 45 via FORMAT) the 1985 list lacks. Observation outside this rule: at 85 OPEN OUTPUT of a second connector on a physical file another connector is writing succeeds and truncates it, then READ gives 10; 1985 states no sharing rule, so this is implementor latitude.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "ios7 at 2023: 91 the same; ios2 at 2023: the second OPEN of one file answers 61 (the 2002 facility)",
+  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -125,19 +84,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-VII.1.3.5-5",
-  "refutation": "OVERTURNED",
-  "classes": "b,c,e",
-  "evidence": "io6.cob (FD F1 LINAGE IS W-N LINES, W-N = 0; F2 an absent non-optional file) at --std 85 printed: LINAGE-0 OPEN OUTPUT FS=90; SECOND OPEN OUTPUT FS=41; WRITE FS=90; CLOSE FS=00; SECOND CLOSE FS=42; ABSENT OPEN INPUT FS=35; ABSENT SECOND OPEN FS=35; ABSENT CLOSE FS=42. --std 2023 prints the same lines. So the OPEN that reports the implementor-defined 90 has in fact put the file in an open mode (a second OPEN answers 41, the CLOSE answers 00), unlike the genuinely unsuccessful 35 OPEN (second OPEN 35, CLOSE 42). Code: SequentialConnector.BeginLinagePage's summary says 'A violation here does NOT un-open the connector', justified only by §2023:13.18.34.4 GR6 b) 2 ('until the file is closed'); the 1985 LINAGE clause (§1985:VII.3.7.4 GR2/GR3) states the value rules with no such continuation, and nothing on the path consults the edition. cite.py: OK §1985:VII.1.3.5 GR5 [\"unsuccessfully executed as a result of a condition that is specified by the implementor\"]; OK §1985:VII.4.3.4 GR1 [\"The successful execution of an OPEN statement determines the availability of the file and results in the file being in an open mode\"]; OK §1985:VII.4.3.4 GR3 [\"When a file is not in an open mode, no statement may be executed which references the file\"]; OK §1985:VII.1.3.5 GRL2.4 [\"An OPEN statement is attempted for a file in the open mode\"] and [\"A CLOSE statement is attempted for a file not in the open mode\"]. Other probes found no fault: io1 (OPEN OUTPUT/INPUT/EXTEND in a missing directory 30/35/35), io2 (a directory: 35/37/35), io3 (an unusable file name 30/30), io5 (ADVANCING 0 and PAGE 00): all 1985 values, no 31/61/9x. kb/Work: PB526 (landed) chose the 2023 continuation for every edition and pins it at 85 with conformance-suite/cases/13.18.34-LINAGE/pb526_linage_ec_condition_85 (B-OPEN FS=90 then B-CLOSE FS=00); no note records the 1985 conflict.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage: leaves the connector in open mode after the 90 OPEN at every edition; 1985 has no GR6 b) 2 continuation and needs an arm in which the 9x OPEN is unsuccessful (no open mode)",
-   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus: the latch that keeps answering 90 to later WRITEs on that connector"
-  ],
-  "corrected": "NON-CONFORMING (misleads-diagnosis / wrong-answer; cause a: this edition needs its own arm and has none). At 1985 GR5 defines the 9x class as a statement 'unsuccessfully executed', and only a successful OPEN results in an open mode (§1985:VII.4.3.4 GR1, Table 1). The compiler's 90 OPEN establishes an open mode anyway, so a 1985 program that tests FS = '90' and re-OPENs gets 41, and its CLOSE answers 00 where 42 is the 1985 value. Repro: io6.cob above; expected at 85: second OPEN 90 again (or the OPEN of a file not in open mode), WRITE 48, CLOSE 42; observed 41, 90, 00."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "An OPEN refused with status 90 (LINAGE of zero) leaves the file open: a second OPEN gives 41, a WRITE 90, the CLOSE 00. At 1985 a 9x statement is unsuccessful, so the WRITE is 48 and the CLOSE 42. The 2023 continuation (kb/Work PB526) is applied at every edition. Checker's confidence: medium-high.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
- },
- "work": "PB5845"
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Attack: look for a status outside the 1985 sequential list, or a 9x that duplicates a 00-49 condition, on paths the reader did not try. rst1-003 (--std 85, USE AFTER STANDARD ERROR on all files): OPEN OUTPUT into a nonexistent directory -> 30 (not 35, which 1985 reserves for INPUT/I-O/EXTEND); WRITE after that failed OPEN -> 48; two connectors OPEN I-O on one file, READ both, REWRITE both -> 00 throughout (no 51 record lock, no 61); OPEN EXTEND and OPEN INPUT on a missing non-optional file -> 35; READ after the failed OPEN -> 47; CLOSE of a closed file -> 42; OPEN after CLOSE WITH LOCK -> 38. rst2 (ASSIGN TO WS-NAME, a data-name holding spaces) at --std 85 -> OPEN 00: the name is taken as an implementor-name, so the dynamic-ASSIGN 31 (FileConnector.cs#AssociationFailure) is not reachable at 85. Every value is in the 1985 list. cite.py: OK §1985:VII.1.3.5 (9x \"must not duplicate any condition specified by the I-O status values 00 through 49\"); OK §1985:VII.1.3.5 (35 \"an OPEN statement with the INPUT, I-O, or EXTEND phrase is attempted\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

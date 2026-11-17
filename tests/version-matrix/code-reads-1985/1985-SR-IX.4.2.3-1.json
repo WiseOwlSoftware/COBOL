@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-SR-IX.4.2.3-1",
+ "rule-digest": "bd6653c35fa9",
+ "read": {
+  "pin": "1712645b4772cda5433a5a24f9b7d597298915e6",
+  "slice": "1985-230",
+  "sources": {
+   "reader": "cb3be01a78846309688098d11baa3d09e17121eaadae4196bf7c132343a631e8",
+   "refuter": "025c5d214ae191eb324d267335fc86df1d6e8dd720161061dd4841a11927f046"
+  },
+  "imported": {
+   "reader": "851c817e5cc948dbd89ecc63105ba90524c5d96708a0ee540f3b1bf21512ff2a",
+   "refuter": "5f2651c7e56de5d2e53cd89d75d3335cc94de74d1e073c85d3f54df5c5e9e4bf"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept, and run as one CLOSE per file, a CLOSE statement whose file-names name files of different organizations (indexed, relative, sequential) and different access modes (sequential, random, dynamic), each with the phrase its own module allows (WITH LOCK on indexed and relative files; NO REWIND, REEL/UNIT or WITH LOCK on sequential files).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitCloseStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "CLOSE WITH LOCK admitted at 85, refused at 2023 (COBOL0902); the per-file organization check in BindClose has no edition arm",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep CLOSE in VersionConformancePass.cs and every BoundClose consumer; BindClose resolves each file and checks its phrase against that file's own organization (file.IsSequential), with ctx.Edition used only to stamp BoundRejected",
+  "behaviour-differs-by-edition": "yes: WITH LOCK on a member is admitted at 85 and refused at 2023; mixing organizations and access modes is accepted at every edition",
+  "witnesses-cover": "part: g85_bf18_07 mixes indexed dynamic/random/sequential, relative and sequential files with plain CLOSE; not exercised: per-member phrases of different modules in one CLOSE (WITH LOCK, NO REWIND) and an OPTIONAL file that is absent",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c3mix.cob",
+    "printed": "OPEN-XO 05 / CLOSE 00 00 07 00 00 / REOPEN 38 00 38 00 / XR 02BB",
+    "expected": "CLOSE XO XD WITH LOCK SQ NO REWIND RL WITH LOCK XR accepted; absent OPTIONAL indexed file closes 00, locked indexed and relative files reopen 38, the disk sequential file's NO REWIND gives 07 (§1985 I-O status 07 for a non-reel/unit medium), the random indexed file reopens 00 with its record"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/g85_bf18_07.cob",
+    "printed": "EXPECT: MATCH (g85_bf18_07.out)",
+    "expected": "the witness's golden: CLOSE-1..3 all 00, USE-A 42 XD=99 XR=99 then USE-A 42 XD=99 XR=00"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c1lock.cob (--std 2023)",
+    "printed": "error COBOL0902: the CLOSE WITH LOCK phrase was removed in COBOL-2023",
+    "expected": "the later edition refuses WITH LOCK; 85 admits it on every organization"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.2.3 SR1",
+    "check": "OK  §1985:IX.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IX.4.2.2",
+    "check": "OK  §1985:IX.4.2.2  (4.2.2 General Format)  the text is in the clause"
+   }
+  ],
+  "notes": "BindClose resolves each file-name independently and screens its phrase against that file's own organization, so no cross-file organization or access check exists to refuse a mixed CLOSE; the emitter runs one CLOSE per member through the same runtime entry for every organization. The refusal half is empty (the rule only permits).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "refute-1985-230/r3c.cob at --std 85: sequential (EXTEND), indexed dynamic (INPUT), relative random (I-O) closed in one 'CLOSE RL XI WITH LOCK SQ' -> 'C1 00 00 00', SQ re-read AAAA/BBBB, XI reopen 38; then 'CLOSE SQ UNIT FOR REMOVAL RL XI WITH LOCK' (sequential-only phrase beside an indexed WITH LOCK, XI not open) -> USE fires once with SS=07 SX=42 SR=00, 'C2 07 00' (07: non-reel medium, §1985 I-O status 07). r3a.cob 'CLOSE SQ FOR REMOVAL' was correctly refused (FOR REMOVAL only after REEL/UNIT in the 1985 format). cite.py: OK  §1985:IX.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

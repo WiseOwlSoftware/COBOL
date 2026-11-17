@@ -2,43 +2,50 @@
  "rule-id": "1985-SR-VI.6.18.3-6",
  "rule-digest": "d62427be0143",
  "read": {
-  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
-  "slice": "1985-218",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-236",
   "sources": {
-   "reader": "cfe4d5c943059164c740b95b8c7610ab3083cbb9e458314248fa3d7317c57a2d",
-   "refuter": "446d7608587e1a37923ce3eb4eed10b4b95d56ffc03c222c898da3bf2ae5103a"
+   "reader": "512c02f56c3a47c611830738fee062815aa4c177a4ec0c46758af157f304ad13",
+   "refuter": "59706be367945bed95443e558b94e18db15415727de8a491eb7471c0e48eb036"
   },
   "imported": {
-   "reader": "2a0fe40dbd53b23a8db7cc7c88af53b0ef0c7c2c2ce9f75dea9317568cbaf878"
+   "reader": "3434026a7ef9f18e62e08c0a8c20a2cdd33f2d2b53948ae206f1328683f94bdd",
+   "refuter": "46b7456a2b91f798e1efd1264b151a877d00c015b7033b23c4f31d982bd520de"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.6.18.3-6",
-  "verdict": "PARTIAL",
-  "requirement": "At 1985, in INSPECT formats 1 and 3 the TALLYING counter identifier-2 must reference an elementary numeric data item, so the compiler refuses an alphanumeric, alphabetic, numeric-edited, group or index-data-item counter and a reference-modified numeric counter (which is class and category alphanumeric by IV.4.3.8.4.4 GR5), and accepts any numeric item (display, COMP, signed, scaled, subscripted).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectTallyCounter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
-  "edition-consulted": [],
-  "edition-search": "grep -n 'DialectLevel|Edition' over StatementValidation.cs#CheckInspectTallyCounter and InspectBinder.cs#BindPhraseOperands' counter arm: the check reads only counter.Item.Pic (Category Numeric, Usage not Index); the edition appears only in the sibling size rules (InspectSizeRulesCoverDataItems), not on the SR6 path",
-  "behaviour-differs-by-edition": "no: the same check, and the same failure, at 85 and 2023",
-  "witnesses-cover": "part: pb1127-inspect-index-item-tally-counter covers the USAGE INDEX counter only; the other categories and the reference-modified numeric counter are not witnessed",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the INSPECT TALLYING counter identifier-2 must reference an elementary numeric data item: an alphanumeric, alphabetic, numeric-edited, group, reference-modified (class alphanumeric by §1985:IV.4.3.8.4.4 GR5) or index data item is refused, and any elementary numeric item (signed, scaled, binary, subscripted) is accepted and incremented.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectTallyCounter; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsElementaryNumericReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectSizeRulesCoverDataItems",
+    "switches": "only the citation text in the COBOL0847 message (§1985:VI.6.18.3 SR6 and §1985:IV.4.3.8.4.4 GR5 at 85, §2023 numbers otherwise); the accept/refuse decision is the same predicate at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover an index item counter and reference-modified/whole counters; alphanumeric, alphabetic, numeric-edited and group counters and the positive signed/binary/scaled/subscripted counters are exercised only by the probes here",
   "probes": [
    {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c3_neg.cob",
+    "printed": "COBOL0847 'shall be an elementary numeric data item (§1985:VI.6.18.3 SR6)' for X PIC X(3), group G, E PIC ZZ9, A PIC A(3), N (2:2) (with the GR5 note), IX USAGE INDEX",
+    "expected": "each refused by SR6"
+   },
+   {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c6_tally_legal.cob",
-    "printed": "005 +0007 +02 1.0 05 3 AAXAAZA",
-    "expected": "display, COMP, leading separate sign, scaled, subscripted counters accepted and tallied; PIC 9 counter 8+5 keeps 3"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c3_pos2.cob",
+    "printed": "+0003 0.5 05",
+    "expected": "C2 S9(4) COMP -2 + 5 = 3; C3 9V9 0.5 + 10 CHARACTERS = 10.5 truncated to 0.5 in 9V9; C5 (I) subscripted counter = 5"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c6_tally_refuse.cob",
-    "printed": "COBOL0847 at lines 15 (PIC X), 16 (ZZ9), 17 (group), 18 (USAGE INDEX), 20 (PIC A); nothing at line 19 (N1(1:2))",
-    "expected": "each of the six counters refused under SR6"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c6_tally_refmod.cob",
-    "printed": "error: backend compilation failed (generated C# at c6_tally_refmod.g.cs): (51,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?' (exit 70); the same at --std 2023",
-    "expected": "a COBOL diagnostic: N1(1:2) is class and category alphanumeric (§1985:IV.4.3.8.4.4 GR5), not an elementary numeric data item (SR6)"
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-236/c3_pos.cob",
+    "printed": "005 -0002 1.5 +01 00",
+    "expected": "five counters in one TALLYING phrase; left-to-right first-match: C1 takes every A (5), C2 none (-2), C3 CHARACTERS BEFORE C counts B (0.5+1=1.5), C4 LEADING none (1), C5(2) none (0)"
    }
   ],
   "citations": [
@@ -51,15 +58,22 @@
     "check": "OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5"
    }
   ],
-  "notes": "CheckInspectTallyCounter asks the BASE item's PICTURE, so a reference-modified numeric counter passes as numeric and the emitter then produces C# that Roslyn refuses; every other category is refused correctly. Same mechanism as kb/Work PB5734 (StrUnstrIsInteger), whose 2026-11-15 addendum names this row; PB5734 is status landed but the INSPECT arm still fails in this tree (d92742fe62).",
+  "notes": "The screen asks the class of the PLACE (Table16Operand), so a reference-modified numeric counter is refused as GR5 requires. Side observation for another rule: DISPLAY of a PIC 9V9 item printed '1.5'/'0.5' (an inserted decimal point) where a display-usage item would be shown as its digits; not this rule's concern.",
   "seeded": true,
-  "harm": "under-rejects; misleads-diagnosis (the user sees a C# CS1503 backend error, exit 70, instead of the COBOL rule)",
-  "cause": "b",
-  "at-2023": "the same: backend compilation failed, CS1503, exit 70 (2023 SR5 with 8.4.3.3.4 GR6c makes the same counter illegal)",
-  "repro": "       01 X PIC X(7) VALUE \"AAXAAYA\".\n       01 N1 PIC 9(4) VALUE 1234.\n       PROCEDURE DIVISION.\n       P1.\n           INSPECT X TALLYING N1(1:2) FOR ALL \"A\".",
-  "expected": "a compile-time diagnostic: \"Identifier-2 must reference an elementary numeric data item\" (§1985:VI.6.18.3 SR6); the reference-modified item is \"class and category alphanumeric\" (§1985:IV.4.3.8.4.4 GR5)",
-  "observed": "error: backend compilation failed (generated C# at c6_tally_refmod.g.cs): (51,111): error CS1503: Argument 4: cannot convert from 'long' to 'string?'",
-  "known_note": "PB5734 (addendum kb/Work/PB5734/2026-11-15-inspect-tallying-counter.md names this row and mechanism; the note's status is landed while the INSPECT arm still fails at d92742fe62)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5859"
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.18.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85 under refute-1985-236/runs: r3_neg2 refuses (COBOL0847 citing §1985:VI.6.18.3 SR6) a level-66 RENAMES R1 THRU R2 counter (a group), a PIC X(2) counter in Format 3 (TALLYING ... REPLACING), and a group counter in Format 3; r3_neg refuses FUNCTION LENGTH (X) as identifier-2 (COBOL5506 parse refusal; a function is never a receiving operand). r3_pos runs: 66 RN RENAMES R1 (elementary numeric) counts 3 (RN=03); PACKED-DECIMAL counter in Format 3 C2=+003 with X=AACCA; BINARY counter 10+5 CHARACTERS=0015; PIC 9PP counter 0+3 -> 000 (scaled truncation); class f: INSPECT X TALLYING I FOR ALL \"A\" TC (I) FOR ALL \"C\" with I=1 gives I=4 T=200 (subscript evaluated once first, §1985:VI.6.18.4 GR5). cite.py: 'OK  §1985:VI.6.18.3 SR6  (6.18.3 Syntax Rules)  the text is in SR6'; 'OK  §1985:VI.6.18.4 GR5  (6.18.4 General Rules)  the text is in GR5'. Side note (not this rule): DISPLAY of PIC 9PP printed three characters '000'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

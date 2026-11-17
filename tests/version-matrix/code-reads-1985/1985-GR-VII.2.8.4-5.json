@@ -1,0 +1,61 @@
+{
+ "rule-id": "1985-GR-VII.2.8.4-5",
+ "rule-digest": "3bda1e53eb6c",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-221",
+  "sources": {
+   "reader": "028328aac0c5fcf9e3876475a14235cad7621e65d41413876f1c571e3854079a",
+   "refuter": "f6a98d0447bf8be2dcfc10143829e65c9104acad7229d11bfe1bd697d7a12542"
+  },
+  "imported": {
+   "reader": "5b6136df53f7188b59d7a4aa956d44619e15bdcc2748f7c2e8130b378628f528"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.8.4-5",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "requirement": "At 85, at a successful OPEN the record delimiter in force must be the one the RECORD DELIMITER clause of the file control entry for the OPEN's file-name specifies; WiseOwl declines the clause, so the delimiter in force at every OPEN is the implementor's default method whatever the entry writes.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Segments",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsKeyword",
+    "switches": "DELIMITER and STANDARD-1 reserved at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "as for GR2; the OPEN path in SequentialConnector carries no delimiter setting and no edition input (grep for RecordDelimiter in the runtime IO directory: comments only).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "all of the rule's range at this edition: OPEN of files whose entries write STANDARD-1, an implementor-name and no clause",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/rd_odo_bytes-001",
+    "printed": "OPEN of F1 (STANDARD-1), F2 (VARREC), F3 (no clause) all succeed and read back as written; the three files are byte-identical; F4 (STANDARD-1, missing file) OPEN 35 then READ 47",
+    "expected": "the declined clause leaves the default method in force at every successful OPEN; a failed OPEN establishes nothing"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/pb292_record_delimiter_witness-001",
+    "printed": "COBOL1778 on each clause; A, B, C and D framed alike",
+    "expected": "declined by name"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.8.4 GR5",
+    "check": "OK  §1985:VII.2.8.4 GR5  (║2.8.4 General Rules║)  the text is in GR5"
+   }
+  ],
+  "notes": "GR5 binds the delimiter at OPEN to the clause of the entry associated with the OPEN's file-name; with the clause declined (docs/conformance/2/26.md, COBOL1778) every entry yields the one default method, so the rule's subject is the declined element. Verdict by the kb/Work PB5373 class-3 decision, the same as GR6; the witness is COBOL1778 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "PB292; PB5373"
+ },
+ "work": "PB5844"
+}

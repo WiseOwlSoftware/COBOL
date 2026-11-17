@@ -109,5 +109,10 @@
   ],
   "corrected": "Under reading B, NOT CONFORMS (under-rejects): FUNCTION PRESENT-VALUE (T (ALL)) must be refused because ALL may stand only for the repeated argument-2; the compiler admits it at 85 (and, the check consulting no edition, at every edition). Under reading A the verdict stands. Needs an adjudication of §1989:A.2.2 for a function with a non-repeating leading argument (ANNUITY-like PRESENT-VALUE)."
  },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "One ALL table may supply argument-1 and the argument-2 series of PRESENT-VALUE (kb/Work PB5834). Decided by the 1989 text: §1989:A.2.2 AR4 gates the ALL subscript on the function and defines the reference as if each table element were specified.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-open-readings.md"
+ },
  "work": "PB5834"
 }

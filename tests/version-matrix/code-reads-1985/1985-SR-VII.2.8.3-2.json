@@ -1,0 +1,62 @@
+{
+ "rule-id": "1985-SR-VII.2.8.3-2",
+ "rule-digest": "c31cb1e80b8c",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-223",
+  "sources": {
+   "reader": "84716e4119386c189ba9d3e72cbd7112564a9de256d94eb36424ba20cec228e7",
+   "refuter": "71aa1d520b40d70e8bd38f10f4c2067a0bd1de296f5285cdafc3ec0dbdaf19b0"
+  },
+  "imported": {
+   "reader": "97ef37f27bf83f48d4ff8363459cbbf1e6a3ab8ac9fdb94ef90230ea4c2fb061"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.8.3-2",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "requirement": "At --std 85 a RECORD DELIMITER IS STANDARD-1 clause may be written only for a file whose external medium is magnetic tape; an implementation that claims no reel device need not implement the phrase (a hardware-dependent element) but must document its absence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause",
+  "edition-consulted": [],
+  "edition-search": "Same path as SR1: FileControlBinder.BindFileControl captures STANDARD-1 into FileModel.RecordDelimiter and calls EditionContext.Declined(RecordDelimiterUnsupported); Declined reads only the descriptor severity and --permissive. Grepped for RecordDelimiter/STANDARD_1 in src (excluding Generated): no CobolVersion, ConstructRegistry or edition test on the path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb292_record_delimiter_witness writes STANDARD-1 with and without IS on mass-storage (disk) files and pins the warning through DocumentedNonSupportWitnessTests; no tape medium exists to exercise the positive half",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rd1.cob",
+    "printed": "warning COBOL1778: '... STANDARD-1 is a processor-dependent element ... whose ... medium is a tape drive, and WiseOwl COBOL provides no reel device ... The clause is ACCEPTED and has no effect'; files FV and FF (disk files) compile and round-trip: '03 ABC 0123456789'",
+    "expected": "STANDARD-1 on a non-tape file: the phrase is the §1985:C.3 item 6 hardware-dependent element, not implemented and documented absent; flagged at compile time"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rd2.cob",
+    "printed": "warning COBOL1778 + error COBOL2912 for a RELATIVE file",
+    "expected": "STANDARD-1 on a relative (mass-storage) file entry is refused by the format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.8.3 SR2",
+    "check": "OK  §1985:VII.2.8.3 SR2  (║2.8.3 Syntax Rules║)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:I.1.5.2.5.1",
+    "check": "OK  §1985:I.1.5.2.5.1  (1.5.2.5.1 Hardware Dependent Language Elements)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:C.3",
+    "check": "OK  §1985:C.3  (3. <u>HARDWARE DEPENDENT LANGUAGE ELEMENT LIST</u>)  the text is in the clause"
+   }
+  ],
+  "notes": "STANDARD-1 is a 1985 hardware-dependent element (§1985:C.3 item 6) and §1985:I.1.5.2.5.1 says such elements for unclaimed hardware need not be implemented, their absence specified; docs/conformance/2/26.md documents it Not claimed (no reel device) and COBOL1778 flags every use, so no tape-medium file can exist for SR2 to admit. The decline text cites the 2023 licence (§2023:4.2.6, Annex A.3 item 26) rather than the 1985 one; same behaviour at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "PB292 (landed: the decline itself)"
+ }
+}
