@@ -226,17 +226,11 @@ public readonly record struct InitializeCategorySet(int Mask)
     /// widened by hand whenever the standard adds a word.</summary>
     public bool IsEmpty => Mask == 0;
 
-    /// <summary>The set naming exactly <paramref name="c"/>.</summary>
-    public static InitializeCategorySet Of(InitializeCategory c) => new(1 << (int)c);
-
     /// <summary>§2023:5.2.6.4 membership — is <paramref name="c"/> one of the alternatives this category-name names?</summary>
     public bool Contains(InitializeCategory c) => (Mask & (1 << (int)c)) != 0;
 
     /// <summary>This set plus <paramref name="c"/> (idempotent — the caller diagnoses the repetition).</summary>
     public InitializeCategorySet With(InitializeCategory c) => new(Mask | (1 << (int)c));
-
-    /// <summary>The union — the running "already named in this REPLACING phrase" accumulator SR6 tests against.</summary>
-    public InitializeCategorySet Union(InitializeCategorySet other) => new(Mask | other.Mask);
 }
 
 /// <summary>Facts about <see cref="InitializeCategory"/> that the binder and the pure syntax checks BOTH read —
