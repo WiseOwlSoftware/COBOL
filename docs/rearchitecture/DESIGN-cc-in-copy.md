@@ -261,10 +261,14 @@ the text it writes, decided by the line the match begins on (`firstLineIsDebuggi
 - **The replaced text begins on a debugging line:** every introduced line is a debugging line (§1985:XII.3.4 GR11, §1985:XII.2.4 GR9,
   §2002:7.1.3.3 GR11, §2002:7.1.2.3 GR13); a carrier pseudo-text-2 wrote at its own start is dropped, because its first line lands on the
   replaced line.
-- **It begins on a source line:** a COPY keeps the debugging lines pseudo-text-2 wrote (GR9 / GR13: "only those text words that are specified
-  on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines"), and so does REPLACE from 2002; COBOL-85's
-  REPLACE gives each introduced line the replaced line's indicator, so it drops them (`ResultRule.KeepsPseudoTextDebuggingLines`, asked
-  with `EditionInfo.ReplacedTextIsLaidOutInFixedForm`).
+- **It begins on a source line:** COPY and REPLACE keep the debugging lines pseudo-text-2 wrote, at every edition (GR9 / GR13: "only those
+  text words that are specified on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines"). For
+  COBOL-85's REPLACE the text is open (kb/Work PB5887): its GR11 (§1985:XII.3.4 GR11) can be read to give such a line the replaced line's
+  indicator (kb/Work PB5382's reading) or, as the same sentence must be read in COPY beside GR9 (§1985:XII.2.4 GR11), to speak only of the
+  additional lines a placement creates, and REPLACE's GR8 ("Debugging lines are permitted in pseudo-text") does not choose. CLAUDE.md rule
+  1's precedence decides: GnuCOBOL keeps the line a debugging line, so §1985:VI.7.3 makes it a comment line when WITH DEBUGGING MODE is
+  absent (determination `D-85-REPLACE-DEBUGGING-LINES`, docs/conformance/3/). Only an operand that is not pseudo-text takes the replaced
+  line's indicator on every line (kb/Work PB5471).
 - **A kept carrier after text on the replaced line starts a line (kb/Work PB5472):** when the introduced text begins with a debugging-line
   carrier and the line holds non-blank text ahead of the match, `ApplyReplacements` writes a line break before the replacement. The carrier
   makes every word after it on the resultant line debugging text, so without the break the library words ahead of the match would be hidden
