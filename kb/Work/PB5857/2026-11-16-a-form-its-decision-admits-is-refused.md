@@ -1,0 +1,2 @@
+The re-read of slice 1985-243 found one form still refused after this fix: two programs that share one EXTERNAL relative file and name `RELATIVE KEY IS REL-KEY` at the same characters of the same external record are refused COBOL1575 when the item sits under differently named groups (`GA` in one program, `GB` in the other), which this note's decision (the same external data item is the same storage) admits.
+The residue is its own note, kb/Work PB5888; this note is not reopened.
