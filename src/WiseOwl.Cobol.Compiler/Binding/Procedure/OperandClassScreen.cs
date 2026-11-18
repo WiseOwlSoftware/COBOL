@@ -70,7 +70,8 @@ internal static class OperandPositions
     public static readonly OperandPosition SearchVaryingIdentifier = new(
         "SEARCH VARYING", "identifier-2", "§2023:14.9.37.3 SR5",
         "a data item whose usage is index or a data item that is an integer",
-        OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SearchVaryingOperand);
+        OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SearchVaryingOperand,
+        Rule1985: "§1985:VI.6.22.3 SR2");
 
     /// <summary>ISO §2023:14.9.39.3 SR1 — the SET Format-1 receiving identifier-1 (kb/Work PB212). An index-name-1
     /// receiver is the brace's OTHER alternative and is not screened here.</summary>

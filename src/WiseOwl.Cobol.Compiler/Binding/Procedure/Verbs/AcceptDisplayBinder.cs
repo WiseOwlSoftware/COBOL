@@ -54,8 +54,8 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (ac.receivingIdentifier().dataReference() is { } dref && host.Expr.IndexFieldOf(dref) is not null)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.IndexNameContext, $"ACCEPT receiver '{DataBinder.WrittenText(dref)}' is an index-name — an "
-                + "index-name is not an identifier (ISO §2023:8.4.3.1.2) and ACCEPT is not among the contexts that "
-                + "may reference one (§2023:13.18.38.3 r7); SET a data item to it first (§2023:14.9.39)");
+                + $"index-name is not an identifier (ISO {ctx.Edition.Edition.NotAnIdentifier()}) and ACCEPT is not among the contexts that "
+                + $"may reference one ({ctx.Edition.Edition.Contexts()}); SET a data item to it first ({ctx.Edition.Edition.Cite("§1985:VI.6.23.1", "§2023:14.9.39", "§2023:14.9.39")})");
         }
 
         // ⛔ THE RECEIVING CHOKEPOINT, NOT THE SENDING RESOLVER (kb/Work PB429). ACCEPT's operand is the
@@ -87,8 +87,10 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (excluded is not null)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}' is {excluded}, which "
-                + (temporal ? "the temporal format excludes (ISO §2023:14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §2023:14.9.25.3 SR2 via §2023:14.9.1.4 GR6" : "") + ")"
-                            : "the device format excludes (ISO §2023:14.9.1.3 SR1)"));
+                + (temporal ? "the temporal format excludes (ISO " + ctx.Edition.Edition.Cite("§1985:VI.5.14.3 SR5",
+                                  "§2023:14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §2023:14.9.25.3 SR2 via §2023:14.9.1.4 GR6" : ""),
+                                  "§2023:14.9.1.3 SR3" + (StrongTypeModel.IsStrongGroup(rItem) ? "; §2023:14.9.25.3 SR2 via §2023:14.9.1.4 GR6" : "")) + ")"
+                            : "the device format excludes (ISO " + ctx.Edition.Edition.Cite("§1985:VI.5.14.3 SR5", "§2023:14.9.1.3 SR1", "§2023:14.9.1.3 SR1") + ")"));
         }
 
         // SR6: "Neither identifier-1 nor identifier-2 shall reference a variable-length group" (§2023:8.5.1.12 —
@@ -138,7 +140,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         if (MoveTable16.Validity(sender, target, MoveTable16.CitationsOf(ctx.Edition.Edition)) is { } refusal)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
-                + $"stores by the MOVE rules (ISO §2023:14.9.1.4 GR6 / §2023:14.9.1.3 SR3) and this move is invalid — {refusal.Reason}");
+                + $"stores by the MOVE rules (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.5.4 GR6", "§2023:14.9.1.4 GR6 / §2023:14.9.1.3 SR3", "§2023:14.9.1.4 GR6 / §2023:14.9.1.3 SR3")}) and this move is invalid — {refusal.Reason}");
         }
         return new BoundAccept(target, kind)
         {

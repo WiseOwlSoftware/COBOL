@@ -64,15 +64,23 @@ internal sealed class OccursKeyResolvePass : IBindPass
                     binder.Edition.Error(DiagnosticCatalog.OccursKeyNotWithinTable,
                         $"{keyPhrase} '{written}' on '{subject}': no data item so named "
                         + (key.Qualifiers.Count > 0 ? "under the written qualifiers " : "")
-                        + $"is '{subject}' itself or subordinate to it — \"The first specification of data-name-2 "
-                        + "shall be the name of either the entry containing the OCCURS clause or an entry subordinate "
-                        + "to the entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)");
+                        + $"is '{subject}' itself or subordinate to it — "
+                        + binder.Edition.Edition.Cite(
+                            "\"The first specification of data-name-2 must be the name of either the entry containing the OCCURS clause "
+                            + "or an entry subordinate to the entry containing the OCCURS clause\" (ISO §1985:VI.5.8.3 SR3)",
+                            "\"The first specification of data-name-2 shall be the name of either the entry containing the OCCURS clause "
+                            + "or an entry subordinate to the entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)",
+                            "\"The first specification of data-name-2 shall be the name of either the entry containing the OCCURS clause "
+                            + "or an entry subordinate to the entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)"));
                 else if (i > 0 && ReferenceEquals(item, table))
                 {
                     binder.Edition.Error(DiagnosticCatalog.OccursKeyNotWithinTable,
                         $"{keyPhrase} '{written}' on '{subject}': only the FIRST key data-name may name the "
-                        + "table entry itself — \"Subsequent specification of data-name-2 shall be subordinate to the "
-                        + "entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)");
+                        + "table entry itself — "
+                        + binder.Edition.Edition.Cite(
+                            "\"Subsequent specification of data-name-2 must be subordinate to the entry containing the OCCURS clause\" (ISO §1985:VI.5.8.3 SR3)",
+                            "\"Subsequent specification of data-name-2 shall be subordinate to the entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)",
+                            "\"Subsequent specification of data-name-2 shall be subordinate to the entry containing the OCCURS clause\" (ISO §2023:13.18.38.3 SR3)"));
                     item = null;
                 }
                 else if (item is not null && OccursKeyItemFault(table, item, binder.Edition.DialectLevel) is { } fault)

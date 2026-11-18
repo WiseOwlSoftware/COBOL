@@ -1700,7 +1700,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // cardinality lives in the grammar rather than in nine bind-time checks. ⛔ The emptiness is asked of the parse
         // AT the offending token, never of the parser's position (kb/Work PB3832; OffendingPosition).
         if (at.EmptyBlockOwner() is { } stmtName)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(stmtName), 0));
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(stmtName, ((CobolParserCoreBase)recognizer).EditionInForce), 0));
 
         // ⛔ 0b. THE WHEN OTHER PHRASE — BOTH OF ITS RULES, SEPARATED BY LOOKAHEAD (kb/Work PB396).
         // `[ WHEN OTHER imperative-statement-2 ]` follows the `{ … } …` repetition in EVALUATE's format, and
@@ -1736,7 +1736,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 ? WhenOtherPlacement(recognizer, PreviousDefault(stream, otherIndex), out owner)
                 : PhrasePlacement.None;
             if (placement == PhrasePlacement.InPlace && token.TokenIndex == otherIndex && owner is not null)
-                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(StatementOwning(owner)), 0));
+                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(StatementOwning(owner), ((CobolParserCoreBase)recognizer).EditionInForce), 0));
             else if (!(bodyPresent && (at.Carried is not null || placement is PhrasePlacement.InPlace or PhrasePlacement.Unread)))
                 hints.Add(bodyPresent
                     ? new(Diagnostics.DiagnosticDescriptors.COBOL2073,
@@ -1748,7 +1748,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     : new(Diagnostics.DiagnosticDescriptors.COBOL2072,
                         "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
                         + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
-                        + "it (ISO §2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3).", 0));
+                        + "it (ISO " + ((CobolParserCoreBase)recognizer).EditionInForce.Cite("§1985:IV.2.1.4, with §1985:VI.6.13.2",
+                            "§2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3",
+                            "§2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3") + ").", 0));
         }
 
         // ⛔ 0c. A WRITTEN SHAPE NO GENERAL FORMAT OF ITS CLAUSE PRINTS (kb/Work PB412, PB421). The grammar
@@ -1866,7 +1868,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (!HasStructuralHint(hints) && !at.EntrySlotYields && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow, theEditionPrints, constantNamesPrinted || !admitted.WordsStandForLiterals,
-                   at.ClosedConstructCouldTake, out bool anOperandIsDue) is { } kindMsg)
+                   at.ClosedConstructCouldTake, ((CobolParserCoreBase)recognizer).EditionInForce, out bool anOperandIsDue) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0, LeavesNoTail: anOperandIsDue));
         // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
         // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
@@ -1874,7 +1876,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // word there may be a paragraph-name whose period is missing, which hint 14 says; it is not asked.
         else if (!HasStructuralHint(hints) && token.Type != CobolLexer.IDENTIFIER && at.SentenceMayBeginAt()
                  && AdmittedKinds.Refusal(token, StatementBlockStart(recognizer), [], _ => false, StatementBlockStart(recognizer),
-                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, out _) is { } sentenceMsg)
+                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, ((CobolParserCoreBase)recognizer).EditionInForce, out _) is { } sentenceMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, sentenceMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
@@ -1987,11 +1989,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>COBOL2072's sentence for the statement <paramref name="stmtName"/> whose required imperative-statement is
     /// empty (hint 0a, and 0b's WHEN group with no statement).</summary>
-    private static string EmptyBlockMessage(string stmtName)
+    private static string EmptyBlockMessage(string stmtName, EditionInfo edition)
         => $"The {stmtName} statement's general format shows an imperative-statement here that is not "
            + "bracketed, so at least one statement shall be specified: brackets are what license an "
-           + "omission (ISO §2023:5.2.6.2), and one alternative of a brace group shall be explicitly specified "
-           + "(ISO §2023:5.2.6.3).";
+           + $"omission (ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.2", "§2023:5.2.6.2")}), and one alternative of a brace group shall be explicitly specified "
+           + $"(ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.3", "§2023:5.2.6.3")}).";
 
     /// <summary>The name of the statement <paramref name="context"/> is, or of the innermost one around it, for a message
     /// (<c>EVALUATE</c>, <c>PERFORM</c>; <see cref="StatementName"/>).</summary>
@@ -2109,8 +2111,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var run = at.ResidueRunOpening;
         return new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                 Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
-            closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token),
-                at.OwnerName()) + ".", 0, run?.Start, LeavesNoTail: run is null);
+            ((CobolParserCoreBase)recognizer).ClosedFormatRefusal(closedFormat,
+                run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token), at.OwnerName()) + ".", 0, run?.Start, LeavesNoTail: run is null);
     }
 
     /// <summary>A closed format's residue: the format whose list stands there, and the error production's form
@@ -2766,14 +2768,15 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// </list></summary>
     private static string? GoToComplementMessage(Parser recognizer, IToken token, ITokenStream stream)
     {
+        var edition = ((CobolParserCoreBase)recognizer).EditionInForce;
         for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
             if (c is CobolParserCore.GoToStatementContext g)
-                return GoToFormats.DiagnoseWrittenShape(g.procedureName().Length, g.DEPENDING() is not null);
+                return GoToFormats.DiagnoseWrittenShape(g.procedureName().Length, g.DEPENDING() is not null, edition);
 
         if (token.Type != CobolLexer.DEPENDING) return null;
         var prev = GetToken(stream, token.TokenIndex - 1);
         if (prev?.Type == CobolLexer.TO) prev = GetToken(stream, token.TokenIndex - 2);
-        return prev?.Type == CobolLexer.GO ? GoToFormats.DiagnoseWrittenShape(0, hasDepending: true) : null;
+        return prev?.Type == CobolLexer.GO ? GoToFormats.DiagnoseWrittenShape(0, hasDepending: true, edition) : null;
     }
 
     /// <summary>Whether the failure is at the empty parenthesis pair of an inline method invocation segment —

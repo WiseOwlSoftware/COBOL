@@ -1886,7 +1886,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (signedLiteral && !signBearing)
         {
             Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: a signed numeric literal in the VALUE clause "
-                + $"requires a signed numeric or sign-bearing numeric-edited subject ('{raw.Trim()}'; ISO §2023:13.18.63.3 SR3)");
+                + $"requires a signed numeric or sign-bearing numeric-edited subject ('{raw.Trim()}'; ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR2", "§2023:13.18.63.3 SR3", "§2023:13.18.63.3 SR3")})");
             return;
         }
 
@@ -1933,10 +1933,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         if (lowLitExp < lowStoredExp || (band is null && highLitExp > highStoredExp))
             Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, edited
                 ? $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not representable in the numeric-edited "
-                    + $"PICTURE {mask} without truncation of leading or trailing nonzero digits (ISO §2023:13.18.63.3 SR6)"
+                    + $"PICTURE {mask} without truncation of leading or trailing nonzero digits (ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR6", "§2023:13.18.63.3 SR6")})"
                 : $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
                     + "permissible value in the range the PICTURE indicates — it is not representable without truncation "
-                    + "of leading or trailing nonzero digits (ISO §2023:13.18.63.3 SR2)");
+                    + $"of leading or trailing nonzero digits (ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")})");
         else if (band is { } usageBand && !AlgebraicRanges.Admits(usageBand, magnitudeText, negative: negativeLiteral))
             // SR2's other half: "permissible values within the range indicated by the PICTURE clause or the USAGE
             // clause" (ISO §2023:13.18.63.3 SR2). A fixed-width binary usage (BINARY-CHAR … -DOUBLE, COMP-5) owns the
@@ -1946,7 +1946,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             // HIGHEST/LOWEST-ALGEBRAIC fold agree on (kb/Work PB3997).
             Edition.Error(DiagnosticCatalog.ValueNumericOutOfRange, $"{where}: the numeric literal {raw.Trim()} in the VALUE clause is not a "
                 + $"permissible value in the range the USAGE clause indicates — {(usageBand.FarthestNegative ?? "0")} through "
-                + $"{usageBand.Farthest} (ISO §2023:13.18.63.3 SR2)");
+                + $"{usageBand.Farthest} (ISO {Edition.Edition.Cite("§1985:VI.5.15.3 SR3", "§2023:13.18.63.3 SR2", "§2023:13.18.63.3 SR2")})");
     }
 
     /// <summary>The stored digit-position span and P-signed scale of a FIXED-POINT item — plain numeric

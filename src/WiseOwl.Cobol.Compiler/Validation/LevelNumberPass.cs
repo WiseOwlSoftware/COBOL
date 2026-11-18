@@ -77,8 +77,18 @@ internal static class LevelNumberRules
     /// <param name="Requirement">The rule sentence, verbatim from §2023:13.18.33.3 but for its leading capital — the
     /// diagnostic quotes the standard rather than paraphrasing it.</param>
     /// <param name="Specials">The special level-numbers this arm admits (§2023:13.18.33.4 GR2). 1–49 is universal.</param>
-    internal readonly record struct Arm(string Citation, string Requirement, int[] Specials)
+    /// <param name="Citation1985">The 1985 rule's printed citation ("ISO §1985:VI.5.7.3 SR2"), the one a program compiled at
+    /// <c>--std 85</c> reads (kb/Work PB4950); <see langword="null"/> when 1985 has no such arm (the screen).</param>
+    /// <param name="Requirement1985">The 1985 rule's sentence, verbatim but for its leading capital.</param>
+    internal readonly record struct Arm(string Citation, string Requirement, int[] Specials,
+        string? Citation1985 = null, string? Requirement1985 = null)
     {
+        /// <summary>The citation of the edition in force: the 1985 rule at COBOL-85, the later rule otherwise.</summary>
+        internal string CitationIn(EditionInfo edition) => edition.Year < 2002 && Citation1985 is not null ? Citation1985 : Citation;
+
+        /// <summary>The requirement sentence of the edition in force.</summary>
+        internal string RequirementIn(EditionInfo edition) => edition.Year < 2002 && Requirement1985 is not null ? Requirement1985 : Requirement;
+
         /// <summary>§2023:13.18.33.1: "Level numbers 1 through 49 indicate the position of a data item or screen item
         /// within the hierarchical structure … In addition, level numbers 66, 77, and 88 are used to identify
         /// special entries." The 1–49 range is common to every arm; <see cref="Specials"/> is the difference.</summary>
@@ -92,16 +102,23 @@ internal static class LevelNumberRules
     {
         [LevelNumberArm.FileRecord] = new("ISO §2023:13.18.33.3 SR2",
             "data description entries subordinate to a FD or SD entry shall have level-numbers with the values "
-            + "66, 88, or 1 through 49", [66, 88]),
+            + "66, 88, or 1 through 49", [66, 88],
+            "ISO §1985:VI.5.7.3 SR2", "data description entries subordinate to a CD, FD, or SD entry must have level-numbers with the "
+            + "values 01 through 49, 66, or 88"),
         [LevelNumberArm.CommunicationRecord] = new("ISO/IEC 1989:2002 13.16.31 SR2",
             "data description entries subordinate to a CD entry shall have level-numbers with the values "
-            + "66, 88, or 1 through 49", [66, 88]),
+            + "66, 88, or 1 through 49", [66, 88],
+            "ISO §1985:VI.5.7.3 SR2", "data description entries subordinate to a CD, FD, or SD entry must have level-numbers with the "
+            + "values 01 through 49, 66, or 88"),
         [LevelNumberArm.NoncontiguousCapable] = new("ISO §2023:13.18.33.3 SR5",
             "data description entries in the working-storage section, local-storage section, and linkage section "
-            + "shall have level-numbers 66, 77, 88, or 1 through 49", [66, 77, 88]),
+            + "shall have level-numbers 66, 77, 88, or 1 through 49", [66, 77, 88],
+            "ISO §1985:VI.5.7.3 SR3", "data description entries in the Working-Storage Section and Linkage Section must have "
+            + "level-numbers 01 through 49, 66, 77, or 88"),
         [LevelNumberArm.ReportGroup] = new("ISO §2023:13.18.33.3 SR4",
             "report group description entries that are subordinate to an RD entry shall have level-numbers with "
-            + "the values 1 through 49", []),
+            + "the values 1 through 49", [],
+            "ISO §1985:XIII.3.14.3 SR2", "data description entries subordinate to an RD entry must have level-numbers 01 through 49 only"),
         [LevelNumberArm.ScreenItem] = new("ISO §2023:13.18.33.3 SR6",
             "screen description entries shall have level-numbers 1 through 49", []),
     };
@@ -270,14 +287,14 @@ internal static class LevelNumberRules
 /// number ISO never defined is not a removed construct, so there is no permissive arm to write. Same reasoning,
 /// measured the same way, as <see cref="ExpressionFormationPass"/>.</para>
 /// </summary>
-internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVisitor(sink)
+internal sealed class LevelNumberPass(IDiagnosticSink sink, EditionInfo edition) : CursorFollowingVisitor(sink)
 {
     /// <summary>ISO §2023:8.3.2.2.13 — "A level-number, expressed as a one-digit or two-digit number".</summary>
     private const int MaxLevelNumberDigits = 2;
 
     /// <summary>Screen every level-number in the group's raw parse tree.</summary>
-    internal static void Run(CobolParserCore.CompilationUnitContext tree, IDiagnosticSink sink) =>
-        new LevelNumberPass(sink).VisitPositioned(tree);
+    internal static void Run(CobolParserCore.CompilationUnitContext tree, WiseOwl.Cobol.Binding.EditionContext edition) =>
+        new LevelNumberPass(edition, edition.Edition).VisitPositioned(tree);
 
     /// <summary>ISO §2023:13.18.33.3 SR2 / SR4 / SR5 / SR6 (the section axis) and, for a data description entry,
     /// §2023:13.18.33.4 GR2b/GR2c + §2023:13.16.3 SR1/SR2 (the format axis).</summary>
@@ -298,11 +315,16 @@ internal sealed class LevelNumberPass(IDiagnosticSink sink) : CursorFollowingVis
             // any digit run, which is why the length is asked here, in the one place every arm's level-number passes.
             if (text.Length > MaxLevelNumberDigits)
                 Report(ctx, DiagnosticCatalog.LevelNumberOutOfRange, text,
-                    "a level-number is expressed as a one-digit or two-digit number, and a level-number in the "
-                    + "range of 1 through 9 may be specified as 01 through 09 (ISO §2023:8.3.2.2.13, §2023:13.18.33.3 SR3)");
+                    edition.Cite(
+                        "a level-number is expressed as a one or two digit number, and a level-number in the "
+                        + "range of 1 through 9 may be written either as a single digit or as a zero followed by a significant digit (ISO §1985:III.2)",
+                        "a level-number is expressed as a one-digit or two-digit number, and a level-number in the "
+                        + "range of 1 through 9 may be specified as 01 through 09 (ISO §2023:8.3.2.2.13, §2023:13.18.33.3 SR3)",
+                        "a level-number is expressed as a one-digit or two-digit number, and a level-number in the "
+                        + "range of 1 through 9 may be specified as 01 through 09 (ISO §2023:8.3.2.2.13, §2023:13.18.33.3 SR3)"));
             else if (!known || !arm.Permits(level))
                 Report(ctx, DiagnosticCatalog.LevelNumberOutOfRange, text,
-                    $"{arm.Requirement} ({arm.Citation})");
+                    $"{arm.RequirementIn(edition)} ({arm.CitationIn(edition)})");
             else if (ctx.Parent is CobolParserCore.DataDescriptionEntryContext entry)
                 CheckEntryFormat(ctx, entry, text, level);
         }

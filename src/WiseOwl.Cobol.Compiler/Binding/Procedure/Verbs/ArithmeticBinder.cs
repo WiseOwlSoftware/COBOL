@@ -42,7 +42,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                     $"ADD with GIVING writes one operand, '{DataBinder.WrittenText(operands[0])}', before GIVING: Format 2 "
                     + "prints identifier-1 or literal-1 and then identifier-2 or literal-2, the second after the optional "
                     + "word TO (ISO §2023:14.9.2.2 Format 2)");
-            var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.2.3 SR4");
+            var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.6.3 SR1", "§2023:14.9.2.3 SR4"));
             // §2023:14.9.2.3 SR1b: the ADD Format-2 composite is "all of the operands ... excluding the data items that
             // follow the word GIVING" — the resultant identifiers are NOT superimposed into the composite (§2023:14.7.7
             // rule 2). Pass no receivers so a wide GIVING target does not spuriously push the composite past 31
@@ -54,7 +54,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         {
             if (!Format1Receivers("ADD", "§2023:14.9.2.2", to))
                 return BoundRejected.Reported(ctx.Edition);
-            var recv = host.Expr.Receivers(to, editedOk: false, "§2023:14.9.2.3 SR2");
+            var recv = host.Expr.Receivers(to, editedOk: false, new("§1985:VI.6.6.3 SR1", "§2023:14.9.2.3 SR2"));
             ctx.Validation.CheckComposite("ADD", addends, recv);
             return new BoundAddTo(addends, recv, sizeErr);
         }
@@ -76,7 +76,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (sub.arithmeticGivingPhrase() is { } giving)
         {
             var fromX = GivingSendingOperand("SUBTRACT", "FROM", "§2023:14.9.44.2 Format 2", from);
-            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.44.3 SR4");
+            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.26.3 SR1", "§2023:14.9.44.3 SR4"));
             // §2023:14.9.44.3 SR1b: the SUBTRACT Format-2 composite excludes the data items following GIVING (§2023:14.7.7
             // rule 2) — the resultants are not superimposed. Pass no receivers (see the ADD GIVING note above).
             ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], []);
@@ -84,7 +84,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         }
         if (!Format1Receivers("SUBTRACT", "§2023:14.9.44.2", from))
             return BoundRejected.Reported(ctx.Edition);
-        var targets = host.Expr.Receivers(from, editedOk: false, "§2023:14.9.44.3 SR2");
+        var targets = host.Expr.Receivers(from, editedOk: false, new("§1985:VI.6.26.3 SR1", "§2023:14.9.44.3 SR2"));
         ctx.Validation.CheckComposite("SUBTRACT", minuends, targets);
         return new BoundSubtractFrom(minuends, targets, sizeErr);
     }
@@ -100,14 +100,14 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         if (mul.arithmeticGivingPhrase() is { } giving)
         {
             var b = GivingSendingOperand("MULTIPLY", "BY", "§2023:14.9.26.2 Format 2", byOps);
-            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.26.3 SR2");
+            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.20.3 SR1", "§2023:14.9.26.3 SR2"));
             ctx.Validation.CheckComposite("MULTIPLY", [a, b], recv, CompositeMembers.ReceivingItems85);
             return new BoundMultiplyGiving(a, b, recv, sizeErr);
         }
         // In-place: each BY operand is itself the receiver (target ← target × a).
         if (!Format1Receivers("MULTIPLY", "§2023:14.9.26.2", byOps))
             return BoundRejected.Reported(ctx.Edition);
-        var byRecv = host.Expr.Receivers(byOps, editedOk: false, "§2023:14.9.26.3 SR1");
+        var byRecv = host.Expr.Receivers(byOps, editedOk: false, new("§1985:VI.6.20.3 SR1", "§2023:14.9.26.3 SR1"));
         ctx.Validation.CheckComposite("MULTIPLY", [a], byRecv, CompositeMembers.ReceivingItems85);
         return new BoundMultiplyBy(a, byRecv, sizeErr);
     }
@@ -137,7 +137,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             if (into is not null) (dividend, divisor) = (GivingSendingOperand("DIVIDE", "INTO", "§2023:14.9.12.2 Format 4", into), a);
             else if (by is not null) (dividend, divisor) = (a, GivingSendingOperand("DIVIDE", "BY", "§2023:14.9.12.2 Format 5", by));
             else return DivideShape();
-            var quotients = host.Expr.Receivers(g.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.12.3 SR2");
+            var quotients = host.Expr.Receivers(g.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR2"));
             if (quotients.Count != 1)
             {
                 // §2023:14.9.12.2 Formats 4–5 print exactly ONE identifier-3. It is a GENERAL FORMAT fact and
@@ -151,7 +151,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // screens, and §2023:14.9.12.3 SR2 fixes its category (numeric or numeric-edited). It is identified when the remainder
             // is stored (§1985:VI.6.11.4 GR4; kb/Work PB5386), like every arithmetic receiver.
             if (host.Expr.ResolveReceivingAtStore(rem.receivingIdentifier()) is not { } r0
-                || host.Expr.ScreenResultant(r0, rem.receivingIdentifier(), editedOk: true, "§2023:14.9.12.3 SR2") is not { } r)
+                || host.Expr.ScreenResultant(r0, rem.receivingIdentifier(), editedOk: true, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR2")) is not { } r)
                 return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.receivingIdentifier().GetText()}'");
             ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients, CompositeMembers.ReceivingItems85);
             ctx.Data.Procedure.ClaimInterleavedReceiver(r);   // the quotient was claimed with the other Receivers (ExpressionBinder.ReceiverOf)
@@ -163,20 +163,20 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             if (div.arithmeticGivingPhrase() is { } giving)
             {
                 var dividendX = GivingSendingOperand("DIVIDE", "INTO", "§2023:14.9.12.2 Format 2", into);
-                var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.12.3 SR2");
+                var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR2"));
                 ctx.Validation.CheckComposite("DIVIDE", [dividendX, a], recv, CompositeMembers.ReceivingItems85);
                 return new BoundDivideGiving(dividendX, a, recv, sizeErr);
             }
             if (!Format1Receivers("DIVIDE", "§2023:14.9.12.2", into))
                 return BoundRejected.Reported(ctx.Edition);   // a receiver-less BoundDivideInto crashed the emitter (targets.Max on empty)
-            var intoRecv = host.Expr.Receivers(into, editedOk: false, "§2023:14.9.12.3 SR1");
+            var intoRecv = host.Expr.Receivers(into, editedOk: false, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR1"));
             ctx.Validation.CheckComposite("DIVIDE", [a], intoRecv, CompositeMembers.ReceivingItems85);
             return new BoundDivideInto(a, intoRecv, sizeErr);   // target ← target ÷ a
         }
         if (by is not null && div.arithmeticGivingPhrase() is { } gv)
         {
             var divisorX = GivingSendingOperand("DIVIDE", "BY", "§2023:14.9.12.2 Format 3", by);
-            var recv = host.Expr.Receivers(gv.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.12.3 SR2");
+            var recv = host.Expr.Receivers(gv.receivingArithmeticOperand(), editedOk: true, new("§1985:VI.6.11.3 SR1", "§2023:14.9.12.3 SR2"));
             ctx.Validation.CheckComposite("DIVIDE", [a, divisorX], recv, CompositeMembers.ReceivingItems85);
             return new BoundDivideGiving(a, divisorX, recv, sizeErr);
         }

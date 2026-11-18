@@ -688,7 +688,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         if (op is not BoundOperandError && !IntrinsicResultType.IsIntegerOperand(op))
             ctx.Edition.Error(DiagnosticCatalog.PerformTimesCountNotInteger,
                 $"PERFORM TIMES count '{(t.functionCall() ?? (Antlr4.Runtime.ParserRuleContext?)t.dataReference())?.GetText()}' "
-                + "shall be an integer (ISO §2023:14.9.28.3 SR2) — an integer data item, an integer literal, or an "
+                + $"shall be an integer (ISO {ctx.Edition.Edition.Cite("§1985:VI.6.21.3 SR4", "§2023:14.9.28.3 SR2", "§2023:14.9.28.3 SR2")}) — an integer data item, an integer literal, or an "
                 + "integer-type function-identifier (§2023:15.2 type 5)");
         return op;
     }

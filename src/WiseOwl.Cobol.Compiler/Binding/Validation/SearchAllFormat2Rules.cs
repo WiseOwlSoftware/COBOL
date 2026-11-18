@@ -366,8 +366,11 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // asked of the diagnostic-free fold so ConcatFolder's own reporting does not run a second time here.
         if (operand.valueOperand()?.nonNumericLiteral() is { } nn)
             return !IsZeroLengthLiteral(nn) || Sending(table,
-                $"the sending operand {nn.GetText()} is a zero-length literal; \"neither literal-1 nor literal-2 "
-                + $"shall be zero-length literals\" (ISO {Rule("SR13")})");
+                $"the sending operand {nn.GetText()} is a zero-length literal; "
+                + data.Edition.Edition.Cite(
+                    "a nonnumeric literal has \"1 through 160 characters in length\", so none is zero-length (ISO §1985:IV.4.2.2.2.1)",
+                    $"\"neither literal-1 nor literal-2 shall be zero-length literals\" (ISO {Rule("SR13")})",
+                    $"\"neither literal-1 nor literal-2 shall be zero-length literals\" (ISO {Rule("SR13")})"));
 
         if (operand.valueOperand()?.arithmeticExpression() is not { } ae) return true;
         if (SoleDataReference(ae) is { } sole)

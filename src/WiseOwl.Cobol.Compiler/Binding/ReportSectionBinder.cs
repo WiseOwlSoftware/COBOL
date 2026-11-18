@@ -130,7 +130,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         Edition.Error(DiagnosticCatalog.ReportUsageNotDisplayOrNational, $"RD '{reportName}' entry "
             + $"'{entryName ?? "FILLER"}'{(written is null ? "" : $" ({written})")}: usage {usage} is not "
             + "admitted here — only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause "
-            + "associated with a report group item (ISO §2023:13.18.60.3 SR7)");
+            + $"associated with a report group item (ISO {Edition.Edition.Cite("§1985:XIII.3.21.3 SR3", "§2023:13.18.60.3 SR7", "§2023:13.18.60.3 SR7")})");
     }
 
     /// <summary>Bind one RD entry's description clauses: PAGE geometry (§2023:13.18.39) with the GR3 defaults,
@@ -143,13 +143,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         var rdClauses = rd.reportDescriptionClause();
         string rdWhere = $"RD '{model.Name}'";
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportGlobalClause() is not null), rdWhere,
-            "the GLOBAL clause", "ISO §2023:13.14.2");
+            "the GLOBAL clause", "ISO " + Edition.Edition.Cite("§1985:XIII.3.5.2", "§2023:13.14.2", "§2023:13.14.2"));
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportCodeClause() is not null), rdWhere,
-            "the CODE clause", "ISO §2023:13.14.2");
+            "the CODE clause", "ISO " + Edition.Edition.Cite("§1985:XIII.3.5.2", "§2023:13.14.2", "§2023:13.14.2"));
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportControlClause() is not null), rdWhere,
-            "the CONTROL clause", "ISO §2023:13.14.2");
+            "the CONTROL clause", "ISO " + Edition.Edition.Cite("§1985:XIII.3.5.2", "§2023:13.14.2", "§2023:13.14.2"));
         UnrepeatedElements.AtMostOnce(Edition, rdClauses.Count(c => c.reportPageClause() is not null), rdWhere,
-            "the PAGE clause", "ISO §2023:13.14.2");
+            "the PAGE clause", "ISO " + Edition.Edition.Cite("§1985:XIII.3.5.2", "§2023:13.14.2", "§2023:13.14.2"));
         foreach (var clause in rdClauses)
         {
             // §2023:13.18.27.3 SR1 e) — the report-name is a global name. The containment half (visibility in contained
@@ -181,15 +181,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                     + (model.Controls.Skip(clauseStart).Any(c => c.IsFinal)
                                         ? "FINAL is written more than once in the CONTROL clause"
                                         : $"FINAL is written after the data-name '{model.Controls[^1].Display}'")
-                                    + " — ISO §2023:13.18.16.2 admits FINAL once, as the first operand (`FINAL "
-                                    + "[ data-name-1 ] …`, §2023:5.2.7), and §2023:13.18.16.4 GR2 makes it the highest level");
+                                    + $" — ISO {Edition.Edition.Cite("§1985:XIII.3.7.2", "§2023:13.18.16.2", "§2023:13.18.16.2")} admits FINAL once, as the first operand (`FINAL "
+                                    + $"[ data-name-1 ] …`, {Edition.Edition.Cite("§1985:XIII.3.7.2", "§2023:5.2.7", "§2023:5.2.7")}), and {Edition.Edition.Cite("§1985:XIII.3.7.4 GR1", "§2023:13.18.16.4 GR2", "§2023:13.18.16.4 GR2")} makes it the highest level");
                             model.Controls.Add(new ReportControlModel { IsFinal = true });
                             break;
                         case Core.DataReferenceContext dref:
                             model.Controls.Add(new ReportControlModel
                             {
                                 Operand = ControlOperandRef(dref, DiagnosticCatalog.ReportControlOperandShape,
-                                    $"RD '{model.Name}': CONTROL operand", "ISO §2023:13.18.16.3 SR4"),
+                                    $"RD '{model.Name}': CONTROL operand", new("§1985:XIII.3.7.3 SR1", "§2023:13.18.16.3 SR4")),
                             });
                             break;
                     }
@@ -238,7 +238,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 var subs = page.reportPageSubclause();
                 foreach (var phrase in Enum.GetValues<PagePhrase>())
                     UnrepeatedElements.AtMostOnce(Edition, subs.Count(s => PagePhraseOf(s) == phrase), rdWhere,
-                        $"the PAGE clause's {PagePhraseWords(phrase)} phrase", "ISO §2023:13.18.39.2");
+                        $"the PAGE clause's {PagePhraseWords(phrase)} phrase", "ISO " + Edition.Edition.Cite("§1985:XIII.3.8.2", "§2023:13.18.39.2", "§2023:13.18.39.2"));
                 // §2023:13.18.39.3 SR3 — "The HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, or FOOTING
                 // phrase may be specified only if integer-1 is specified." Each phrase subdivides the page
                 // (GR2c–GR2g) and a report with no page limit has no page to subdivide.
@@ -300,7 +300,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             using var at = Edition.At(limitCtx);
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the page limit {limit} exceeds "
-                + $"{MaxPageLimit}; integer-1 shall not exceed {MaxPageLimit} (ISO §2023:13.18.39.3 SR5)");
+                + $"{MaxPageLimit}; " + Edition.Edition.Cite(
+                    "integer-1 must not exceed three significant digits in length (ISO §1985:XIII.3.8.3 SR2)",
+                    $"integer-1 shall not exceed {MaxPageLimit} (ISO §2023:13.18.39.3 SR5)",
+                    $"integer-1 shall not exceed {MaxPageLimit} (ISO §2023:13.18.39.3 SR5)"));
         }
         // §1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length."
         else if (limit is { } written && ExceedsThreeSignificantDigits85(written) && page.integerOperand() is { } limit85Ctx)
@@ -316,14 +319,21 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // The next written integer up the order: the following phrase, or the page limit after the last one.
             string? nextWords = null;
             int next = 0;
-            if (k + 1 < phrases.Count) { nextWords = $"the {PagePhraseWords(phrases[k + 1].Phrase)} integer"; next = phrases[k + 1].Value; }
+            // The 1985 rule that orders this pair is the one that bounds the NEXT integer from below (§1985:XIII.3.8.3
+            // SR4 integer-3 >= integer-2, SR5 integer-4 >= integer-3, SR6 integer-5 >= integer-4, SR7 integer-1 >= integer-5).
+            string rule1985 = "SR7";
+            if (k + 1 < phrases.Count)
+            {
+                nextWords = $"the {PagePhraseWords(phrases[k + 1].Phrase)} integer"; next = phrases[k + 1].Value;
+                rule1985 = phrases[k + 1].Phrase switch { PagePhrase.FirstDetail => "SR4", PagePhrase.Footing => "SR6", _ => "SR5" };
+            }
             else if (limit is { } l) { nextWords = "the page limit"; next = l; }
             if (nextWords is null || value <= next) continue;
             using var at = Edition.At(ctx);
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the {PagePhraseWords(phrase)} integer "
                 + $"{value} is greater than {nextWords} {next}; the PAGE clause's integers shall be in ascending order, "
                 + "HEADING, FIRST DETAIL, LAST CONTROL HEADING, LAST DETAIL, FOOTING, then the page limit, with equality "
-                + "allowed (ISO §2023:13.18.39.3 SR6)");
+                + $"allowed (ISO {Edition.Edition.Cite($"§1985:XIII.3.8.3 {rule1985}", "§2023:13.18.39.3 SR6", "§2023:13.18.39.3 SR6")})");
         }
     }
 
@@ -3092,7 +3102,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 else if (name.dataReference() is { } dref)
                     group.ControlOperand = ControlOperandRef(dref, DiagnosticCatalog.ReportControlTypeOperand,
                         $"RD '{model.Name}': TYPE {(group.Kind == ReportGroupKindModel.ControlHeading ? "CH" : "CF")} operand",
-                        "ISO §2023:13.18.57.3 SR10");
+                        new("§1985:XIII.3.20.3 SR4", "§2023:13.18.57.3 SR10"));
             }
             // Omitted operand: legal only with a one-operand CONTROL clause (§2023:13.18.57.3 SR11) — resolved later.
             // §2023:13.18.57.2: the OR PAGE phrase belongs to the control HEADING (the grammar writes it nowhere else).
@@ -3514,7 +3524,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.ReportSumEntryCategory, $"{where}: its PICTURE {picText} is of a category that cannot "
                 + $"receive a numeric sum, and the entry contains a SUM clause: {why}. The category of the subject of the entry "
                 + "shall be valid as the category of a receiving operand in a MOVE statement for a sending operand of the "
-                + "category numeric (ISO §2023:13.18.54.3 SR2)");
+                + $"category numeric (ISO {Edition.Edition.Cite("§1985:XIII.3.19.3 SR1", "§2023:13.18.54.3 SR2", "§2023:13.18.54.3 SR2")})");
     }
 
     /// <summary>Bind ONE OCCURRENCE of an entry's SUM clause (ISO §2023:13.18.54) into the <see cref="ReportSumModel"/>
@@ -3570,7 +3580,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (reset.FINAL() is not null) sum.ResetFinal = true;
             else if (reset.dataReference() is { } rref)
                 sum.ResetOperand = ControlOperandRef(rref, DiagnosticCatalog.ReportResetNotControlOperand,
-                    $"RD '{model.Name}': SUM … RESET ON operand", "ISO §2023:13.18.54.3 SR8");
+                    $"RD '{model.Name}': SUM … RESET ON operand", new("§1985:XIII.3.19.3 SR4", "§2023:13.18.54.3 SR8"));
         }
         model.Sums.Add(sum);   // in binding order; SealSumCounters puts the list in id order
         return sum;
@@ -3738,7 +3748,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         if (IsReportSectionOnlyName(op.Name))
                             Edition.Error(DiagnosticCatalog.ReportControlOperandShape, $"RD '{model.Name}': CONTROL operand '{op}' names a "
                                 + "report section data item: data-name-1 shall not be defined in the report "
-                                + "section (ISO §2023:13.18.16.3 SR2)");
+                                + $"section (ISO {Edition.Edition.Cite("§1985:XIII.3.7.3 SR1", "§2023:13.18.16.3 SR2", "§2023:13.18.16.3 SR2")})");
                         else
                             Edition.Error(DiagnosticCatalog.ReportControlOperandUnresolved, $"RD '{model.Name}': CONTROL operand '{op}' does not "
                                 + "resolve to a data item (ISO §2023:8.4.2.1)");
@@ -3751,7 +3761,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                  op.ToString(), Edition))
                     { /* reported by the screen */ }
                     else if (ctl.Item is { } ctlItem
-                             && ControlOperandShapeViolation(ctlItem, occursAdmitted: Edition.SubscriptedClauseOperands,
+                             && ControlOperandShapeViolation(ctlItem, Edition.Edition, occursAdmitted: Edition.SubscriptedClauseOperands,
                                  indexAdmitted: Edition.Edition.ControlOperandMayBeIndexDataItem) is { } shape)
                         Edition.Error(shape.Code, $"RD '{model.Name}': CONTROL operand '{op}' {shape.Clause}");
                     // §2023:8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
@@ -4366,7 +4376,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + $"{ReportGroupTypeWords(data.Group.Kind)} report group, and the SUM entry is in a "
                 + $"{ReportGroupTypeWords(target.Group.Kind)} report group: that combination of report types is not one SR4 f) permits "
                 + "(a control footing: a detail or a control footing of a lower level of control; a detail: a different detail; "
-                + "a report footing: any other group but the report heading; a page footing: any body group — ISO §2023:13.18.54.3 SR4 f)).");
+                + "a report footing: any other group but the report heading; a page footing: any body group — ISO "
+                + Edition.Edition.Cite("§1985:XIII.3.19.3 SR1", "§2023:13.18.54.3 SR4 f)", "§2023:13.18.54.3 SR4 f)") + ").");
             return null;
         }
         return data;
@@ -4882,7 +4893,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// §2023:8.4.2.3.3 SR2 bars a subscript on an item that has none, so no legal subscripted spelling exists — and it
     /// was being dropped on the floor exactly as the ref-mod was.</para></summary>
     private ReportControlRef ControlOperandRef(
-        Core.DataReferenceContext dref, DiagnosticDescriptor code, string where, string rule)
+        Core.DataReferenceContext dref, DiagnosticDescriptor code, string where, EditionRule rule)
     {
         var (name, quals) = DataBinder.KeyReference(dref);
         var sfx = RefModBinder.ReadOperandSuffixes(dref);
@@ -4909,8 +4920,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             }
             else
                 Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is subscripted. A control operand may not be subject "
-                    + "to an OCCURS clause (ISO §2023:13.18.16.3 SR3), and a subscript may be written only for an item that "
-                    + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal.");
+                    + Edition.Edition.Cite(
+                        "to an OCCURS clause: data-name-1 \"may be qualified\" and its general format prints no subscript (ISO §1985:XIII.3.7.3 SR1), "
+                        + "so a subscripted control operand is never legal.",
+                        "to an OCCURS clause (ISO §2023:13.18.16.3 SR3), and a subscript may be written only for an item that "
+                        + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal.",
+                        "to an OCCURS clause (ISO §2023:13.18.16.3 SR3), and a subscript may be written only for an item that "
+                        + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal."));
         }
         if (sfx.RefMods > 1)
             Edition.Error(DiagnosticCatalog.RefModOfRefMod, $"{where} '{DataBinder.WrittenText(dref)}' carries {sfx.RefMods} reference "
@@ -4919,7 +4935,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         else if (sfx.NonLiteral)
             Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is reference-modified with a leftmost-position or "
                 + $"length that is not an integer literal. The operand may be reference-modified, but if it is, "
-                + $"leftmost-position and length shall be integer literals ({rule}) — the prior control has the "
+                + $"leftmost-position and length shall be integer literals (ISO {rule.In(Edition.Edition)}) — the prior control has the "
                 + "same data description as the slice (§2023:13.18.16.4 GR3), so its extent is fixed at compile time.");
         else if (sfx.BeyondHostLimit)
             // kb/Work PB1579: the literals ARE integer literals (the rule above holds), but one lies beyond the host
@@ -4951,7 +4967,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// itself is never one). Measured: both compiled clean and reached ReportWriterEmitter's runtime loud. This is
     /// a table-RECOGNITION site, which is exactly what <c>IsTable</c>'s own doc-comment says it is for.</para></summary>
     private static (DiagnosticDescriptor Code, string Clause)? ControlOperandShapeViolation(
-        DataItem item, bool occursAdmitted, bool indexAdmitted)
+        DataItem item, EditionInfo edition, bool occursAdmitted, bool indexAdmitted)
     {
         // "Subject to an OCCURS clause" is §2023:8.4.2.3.3 SR2's question under another name, so it is asked through
         // THE one walk (DataItem.SubscriptLevels, outermost first — kb/Work PB877); the message names the
@@ -4959,12 +4975,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (!occursAdmitted && item.SubscriptLevels() is [.., var innermost])
             return (DiagnosticCatalog.ReportControlOperandShape,
                 $"is subject to the OCCURS clause on '{innermost.CobolName ?? innermost.ClrName}': data-name-1 shall "
-                + "not be subject to any OCCURS clauses (ISO §2023:13.18.16.3 SR3)");
+                + $"not be subject to any OCCURS clauses (ISO {edition.Cite("§1985:XIII.3.7.3 SR1", "§2023:13.18.16.3 SR3", "§2023:13.18.16.3 SR3")})");
         if (OdoModel.TableUnder(item) is { } odo)
             return (DiagnosticCatalog.ReportControlOperandShape,
                 $"has the occurs-depending table '{odo.CobolName ?? odo.ClrName}' subordinate to it: the "
                 + "entry specified by data-name-1 shall not have an occurs-depending table subordinate to it "
-                + "(ISO §2023:13.18.16.3 SR5)");
+                + $"(ISO {edition.Cite("§1985:XIII.3.7.3 SR3", "§2023:13.18.16.3 SR5", "§2023:13.18.16.3 SR5")})");
         if (item.IsGroup && DataItem.HasVariableLengthSubordinate(item))
             return (DiagnosticCatalog.ReportControlOperandShape,
                 "is a variable-length group (ISO §2023:8.5.1.12.1 — a dynamic-length elementary item or a "

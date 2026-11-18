@@ -1203,6 +1203,15 @@ public abstract class CobolParserCoreBase : Parser
     internal bool ReservedAsAName(IToken token)
         => ReservedUserWordViolation(token, atAName: true) is not null || ExtensionReservedWord(token) is not null;
 
+    /// <summary>The edition the parse is diagnosed for, for the diagnosis that words a citation by edition (kb/Work PB4950).
+    /// Diagnosis only (<c>CobolErrorStrategy</c>); never read while parsing.</summary>
+    internal EditionInfo EditionInForce => Edition;
+
+    /// <summary>⛔ A CLOSED FORMAT'S REFUSAL WORDED FOR THE COMPILE EDITION (kb/Work PB4950): <see cref="ClosedFormat.Refusal"/> cites the
+    /// general format of the edition in force, which only the parser knows. Diagnosis only (<c>CobolErrorStrategy</c>); never called
+    /// while parsing.</summary>
+    internal string ClosedFormatRefusal(Cst.ClosedFormat format, string word, string? owner) => format.Refusal(word, owner, Edition);
+
     /// <summary>The canonical word of the keyword <paramref name="token"/> when this implementation reserves it for a
     /// nonstandard extension (§2023:4.2.10 3), else null.</summary>
     internal string? ExtensionReservedWord(IToken token)

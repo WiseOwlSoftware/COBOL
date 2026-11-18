@@ -687,7 +687,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // IS an intrinsic function of ISO/IEC 1989 (§15) — only this compilation group no longer has it — so the
             // refusal names the directive and where it is written; any other name is no intrinsic function at all.
             string upper = name.ToUpperInvariant();
-            string declareHint = host.UserFunctions?.ContainsKey(name) == true
+            // The REPOSITORY paragraph and the user-defined function are COBOL-2002 (§2023:12.3.8.4 GR12); 1985 has neither, so
+            // at COBOL-85 the hint would send the reader to a construct the edition lacks (kb/Work PB4950).
+            string declareHint = host.UserFunctions?.ContainsKey(name) == true && ctx.Edition.Edition.Has(2002)
                 ? $"; the compilation group defines FUNCTION-ID {upper} — declare FUNCTION {upper} in this unit's "
                   + "REPOSITORY paragraph to reference it as a user-defined function (ISO §2023:12.3.8.4 GR12)"
                 : "";
@@ -701,7 +703,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + declareHint);
             else
                 ctx.Edition.Error(DiagnosticCatalog.IntrinsicFunctionUnknown, $"FUNCTION {upper} is not an intrinsic function of ISO/IEC 1989 "
-                    + "(§2023:15.6 summary of functions)" + declareHint);
+                    + $"({ctx.Edition.Edition.Cite("§1989:A.2.4 summary of functions", "§2023:15.6 summary of functions", "§2023:15.6 summary of functions")})" + declareHint);
             return BoundExprError.Refused(ctx.Edition, $"FUNCTION {name}");
         }
 

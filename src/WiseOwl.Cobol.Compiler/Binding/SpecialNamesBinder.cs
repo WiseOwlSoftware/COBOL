@@ -84,12 +84,12 @@ public sealed partial class SpecialNamesBinder
             case Common.NumericSeparatorIssue.DecimalPointUnderCommaMode:
                 Edition.Error(DiagnosticCatalog.NumericLiteralDecimalSeparator,
                     $"numeric literal '{text}': under DECIMAL-POINT IS COMMA the "
-                    + "decimal separator is the comma (ISO §2023:12.3.7.4 GR14a); '.' is not valid in a numeric literal");
+                    + $"decimal separator is the comma (ISO {Edition.Edition.Cite("§1985:VI.4.5.4 GR12", "§2023:12.3.7.4 GR14a", "§2023:12.3.7.4 GR14a")}); '.' is not valid in a numeric literal");
                 break;
             case Common.NumericSeparatorIssue.CommaWithoutCommaMode:
                 Edition.Error(DiagnosticCatalog.NumericLiteralDecimalSeparator,
                     $"numeric literal '{text}': a comma decimal separator requires "
-                    + "DECIMAL-POINT IS COMMA (ISO §2023:12.3.7.4 GR14a; §2023:8.3.3.3.2 admits only '.' as the decimal point)");
+                    + $"DECIMAL-POINT IS COMMA (ISO {Edition.Edition.Cite("§1985:VI.4.5.4 GR12", "§2023:12.3.7.4 GR14a; §2023:8.3.3.3.2 admits only '.' as the decimal point", "§2023:12.3.7.4 GR14a; §2023:8.3.3.3.2 admits only '.' as the decimal point")})");
                 break;
         }
         // §2023:8.3.3.3.3 SR2/SR3/SR4 (kb/Work PB99) — the floating-point literal's FORM, checked HERE because both the

@@ -340,6 +340,11 @@ the edition in force has no such rule, the message cites the edition where the r
   transcription's headings by `Intrinsic1989ModuleDriftTests`), and for a function a later edition introduced the 2023 clause with
   the gate's "(targeting COBOL-85)". A construct COBOL-2002 introduced whose rule still fires at 85 (a page width, a multiple COLUMN
   clause, the national category) says so the same way (`NotInCobol85`, `MoveCitations`).
+- **A shared screen takes its rule as data with the 1985 arm beside it** (kb/Work PB4950 slice 4): `EditionRule(In1985, InLater)` for the
+  receiver-category screen of the arithmetic statements, `IndexNameRule` for every index-name-is-no-identifier message,
+  `OpenTapePhraseRule.OrganizationClause1985`, `LevelNumberRules.Arm.Citation1985`, `ClauseList.Format1985` and `ClosedFormat.Clause1985`
+  for the general-format tables, and the parse layer reads the edition through `CobolParserCoreBase.EditionInForce` (`AdmittedKinds`,
+  `GoToFormats`, the empty-block message). The next row of such a table is cited by writing its 1985 field.
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
   1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
   `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.

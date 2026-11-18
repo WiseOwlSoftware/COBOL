@@ -63,9 +63,14 @@ internal sealed partial class ControlFlowBinder
         if (options.Length > 1)
             ctx.Edition.Error(DiagnosticCatalog.PerformInlineHeadMultipleControlPhrases,
                 $"an inline PERFORM carries {options.Length} loop-control phrases "
-                + $"({string.Join(", ", options.Select(PhraseName))}), and ISO §2023:14.9.28.2 Format 2 prints ONE "
-                + "bracket over the three stacked alternatives times-phrase / until-phrase / varying-phrase, so "
-                + "at most one may be specified. A VARYING phrase already carries its own UNTIL");
+                + $"({string.Join(", ", options.Select(PhraseName))}), and "
+                + ctx.Edition.Edition.Cite(
+                    "ISO §1985:VI.6.21.2 prints the TIMES, UNTIL and VARYING phrases in three formats of their own (Formats 2, 3 and 4), so "
+                    + "at most one may be specified. A VARYING phrase already carries its own UNTIL",
+                    "ISO §2023:14.9.28.2 Format 2 prints ONE bracket over the three stacked alternatives times-phrase / until-phrase / "
+                    + "varying-phrase, so at most one may be specified. A VARYING phrase already carries its own UNTIL",
+                    "ISO §2023:14.9.28.2 Format 2 prints ONE bracket over the three stacked alternatives times-phrase / until-phrase / "
+                    + "varying-phrase, so at most one may be specified. A VARYING phrase already carries its own UNTIL"));
     }
 
     /// <summary>The phrase's own name as the general format prints it, for the cardinality diagnostic.</summary>

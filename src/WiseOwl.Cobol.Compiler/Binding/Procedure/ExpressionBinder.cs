@@ -476,7 +476,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (op is not BoundComputedOperand { Expr: BoundIndexRef }) return false;
         ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,
             $"{where} references the index-name '{sourceText}', which is not an identifier "
-            + "(ISO §2023:8.4.3.1.2); §2023:13.18.38.3 r7 admits an index-name only as a subscript, in PERFORM/SEARCH "
+            + $"(ISO {ctx.Edition.Edition.NotAnIdentifier()}); {ctx.Edition.Edition.Contexts()} admits an index-name only as a subscript, in PERFORM/SEARCH "
             + "VARYING, in SET, or in a relation condition. SET a data item to the index first "
             + $"(SET data-item TO {sourceText}) and reference the data item");
         return true;
@@ -626,17 +626,17 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Edition.Permissive)
                 ctx.Edition.Warning(DiagnosticCatalog.IndexNameContext,
-                    $"the index-name '{DataBinder.WrittenText(dref)}' is used as an arithmetic operand; §2023:13.18.38.3 r7 "
+                    $"the index-name '{DataBinder.WrittenText(dref)}' is used as an arithmetic operand; {ctx.Edition.Edition.Contexts()} "
                     + "admits an index-name only in a subscript, PERFORM/SEARCH VARYING, SET, or as an operand OF a "
-                    + "relation condition, never inside an arithmetic expression (§2023:8.8.4.2.13) — accepted under "
+                    + "relation condition, never inside an arithmetic expression — accepted under "
                     + "--permissive, computing the occurrence number");
             else
             {
                 ctx.Edition.Error(DiagnosticCatalog.IndexNameContext,
-                    $"the index-name '{DataBinder.WrittenText(dref)}' is not an arithmetic operand (ISO §2023:8.8.1.1 names no "
-                    + "index-names; §2023:13.18.38.3 r7 admits an index-name only in a subscript, PERFORM/SEARCH "
+                    $"the index-name '{DataBinder.WrittenText(dref)}' is not an arithmetic operand (ISO {ctx.Edition.Edition.NotArithmetic()} "
+                    + "admits an index-name only in a subscript, PERFORM/SEARCH "
                     + "VARYING, SET, or as an operand OF a relation condition, never inside an arithmetic "
-                    + "expression, §2023:8.8.4.2.13). SET a data item to the index first "
+                    + "expression). SET a data item to the index first "
                     + $"(SET data-item TO {DataBinder.WrittenText(dref)}) — or --permissive accepts it as the occurrence "
                     + "number");
                 return BoundExprError.Refused(ctx.Edition, $"index-name '{DataBinder.WrittenText(dref)}' in an arithmetic expression");
@@ -1102,7 +1102,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// which is the <paramref name="editedOk"/> parameter. Collapsing the two would either lose that axis or
     /// smuggle a receiver rule into the sending screen. The two DO share the class vocabulary
     /// (<c>ClassOfPlace</c> / <c>ClassOfItem</c>) already, which is the part that must not fork.</para></summary>
-    internal Place? ScreenResultant(Place p, Antlr4.Runtime.ParserRuleContext written, bool editedOk, string clause)
+    internal Place? ScreenResultant(Place p, Antlr4.Runtime.ParserRuleContext written, bool editedOk, EditionRule clause)
     {
         using var _ = ctx.Edition.At(written);   // kb/Work PB4406 — the resultant's own position, not the statement's
         string refText = written.GetText();
@@ -1125,11 +1125,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // alphanumeric or national for a numeric or edited item and alphabetic for an alphabetic one (kb/Work PB5881).
         string actual = p is RefModPlace ? $"a reference-modified slice (category {ItemCategory.CategoryName(p)}, §2023:8.4.3.3.4 GR6)"
             : p.Item.IsGroup ? "a group item"
-            : pic is { Usage: Usage.Index } ? "an index data item (§2023:13.18.60.3 SR10)"
+            : pic is { Usage: Usage.Index } ? $"an index data item ({ctx.Edition.Edition.Cite("§1985:VI.5.14.3 SR5", "§2023:13.18.60.3 SR10", "§2023:13.18.60.3 SR10")})"
             : edited ? "a numeric-edited item, which this receiver position does not admit"
             : $"of category {ItemCategory.CategoryName(p) ?? "unknown"}";
         ctx.Edition.Error(DiagnosticCatalog.ArithmeticResultantCategory,
-            $"the arithmetic resultant '{refText}' is {actual}; ISO {clause} requires an elementary numeric"
+            $"the arithmetic resultant '{refText}' is {actual}; ISO {clause.In(ctx.Edition.Edition)} requires an elementary numeric"
             + (editedOk ? " or numeric-edited" : "") + " data item");
         return null;
     }
@@ -1149,19 +1149,19 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// carrying its own ROUNDED mode and screened per the caller's syntax rule (<paramref name="editedOk"/> — GIVING-style
     /// positions admit numeric-edited, in-place ones do not); an unresolvable or rejected reference is dropped after its
     /// diagnostic.</summary>
-    public List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops, bool editedOk, string clause) =>
+    public List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops, bool editedOk, EditionRule clause) =>
         ops.Select(o => ResolvedReceiver(o.receivingIdentifier(), o.roundedPhrase(), editedOk, clause)).OfType<Receiver>().ToList();
 
     /// <summary>Resolve the Format-1 TO / FROM / BY / INTO receivers of ADD, SUBTRACT, MULTIPLY and DIVIDE (the one
     /// <c>arithmeticPhraseOperand</c> rule, kb/Work PB2144). The caller has asked <c>ArithmeticOperandRole</c> first, so
     /// every operand here is a receiving identifier; one that is not is dropped, never bound as a receiver.</summary>
-    public List<Receiver> Receivers(IEnumerable<Core.ArithmeticPhraseOperandContext> ops, bool editedOk, string clause) =>
+    public List<Receiver> Receivers(IEnumerable<Core.ArithmeticPhraseOperandContext> ops, bool editedOk, EditionRule clause) =>
         ops.Select(o => ResolvedReceiver(o.receivingIdentifier(), o.roundedPhrase(), editedOk, clause)).OfType<Receiver>().ToList();
 
     /// <summary>Resolve the <c>COMPUTE</c> Format-1 resultants (<c>computeStore</c> = data reference + optional
     /// ROUNDED) — §2023:14.9.8.3 SR1 admits elementary numeric or numeric-edited.</summary>
     public List<Receiver> Receivers(IEnumerable<Core.ComputeStoreContext> stores) =>
-        stores.Select(s => ResolvedReceiver(s.receivingIdentifier(), s.roundedPhrase(), editedOk: true, "§2023:14.9.8.3 SR1"))
+        stores.Select(s => ResolvedReceiver(s.receivingIdentifier(), s.roundedPhrase(), editedOk: true, new("§1985:VI.6.8.3 SR1", "§2023:14.9.8.3 SR1")))
               .OfType<Receiver>().ToList();
 
     /// <summary>The ONE resolution of a written arithmetic receiver, for every receiver list above: the receiving
@@ -1169,7 +1169,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// its own ROUNDED phrase; null (after the diagnostic) when it does not resolve or is refused, or when the operand
     /// wrote no receiving identifier.</summary>
     private Receiver? ResolvedReceiver(Core.ReceivingIdentifierContext? written, Core.RoundedPhraseContext? rounded,
-                                       bool editedOk, string clause) =>
+                                       bool editedOk, EditionRule clause) =>
         written is not null && ResolveReceivingAtStore(written) is { } p && ScreenResultant(p, written, editedOk, clause) is { } sp
             ? ReceiverOf(sp, rounded) : null;
 
