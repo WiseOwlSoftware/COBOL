@@ -1,4 +1,4 @@
-## PB5925: the source listing, step 3 - diagnostics placed on their lines, summarised, and cited as data
+## Entry 3839 — 2026-11-18 05:14 PST — PB5925: the source listing, step 3 - diagnostics placed on their lines, summarised, and cited as data
 
 Step 3 of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5925's decision): every diagnostic of a compilation becomes a
 record, and the listing places each under the line it names, lists them all in a summary, and carries the rule each cites as
@@ -62,3 +62,4 @@ appends), and the text listing's cost over no listing is the parent's again.
 **Leads filed** beside kb/Work PB5925: a text stage's diagnostic in a twice-copied copybook is placed in the first block
 (`2026-11-18-text-stage-diagnostic-placement`); the model's records compare their lists by reference
 (`2026-11-18-model-list-equality`).
+
