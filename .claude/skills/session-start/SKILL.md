@@ -36,7 +36,7 @@ the campaign narrative. ⛔ **It does NOT own a worklist — `kb/Work/` does, an
 ## 3. Run the probe — never hand-read what a script computes
 
 ```
-pwsh -NoProfile -File scripts/session-probe.ps1
+python scripts/session_probe.py
 ```
 
 Reports branch · dirty/unpushed · mailbox (this session's lane, open messages, and whether IT has an inbox watcher armed)

@@ -8,7 +8,7 @@
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git status:*)",
-      "Bash(pwsh -NoProfile -File scripts/session-probe.ps1)",
+      "Bash(python scripts/session_probe.py)",
       "Bash(python scripts/render-spec-page.py:*)",
       "Bash(python scripts/gnucobol_differential.py:*)"
     ],

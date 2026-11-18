@@ -13,7 +13,7 @@ name: Build and Test
 on:
   push:
     # `main` — the branch the protection guards, and the branch every instrument already reads
-    # (`scripts/session-probe.ps1`, `.claude/skills/gate/SKILL.md`, plan §9 all key on `--branch main`).
+    # (`scripts/session_probe.py`, `.claude/skills/gate/SKILL.md`, plan §9 all key on `--branch main`).
     # ⚠ Deliberately NOT `branches: '**'`: up to six implementer worktrees push WIP branches all day
     # (`worktree-agent-*`, `impl/*`), and a two-platform matrix per WIP push is precisely the cost this
     # repository has already refused once (the 2026-08-08 owner flag). Nothing else is pushed to land: main takes

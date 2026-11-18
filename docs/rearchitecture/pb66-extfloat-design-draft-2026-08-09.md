@@ -847,7 +847,7 @@ illegal `PIC +9V99E+99` to `PIC +9.99E+99`** (§2).
 
 ## 12. Diagnostics
 
-Next free code is **`COBOL1643`** (`scripts/session-probe.ps1`: "src-grep max COBOL1642 · catalog max
+Next free code is **`COBOL1643`** (`scripts/session_probe.py`: "src-grep max COBOL1642 · catalog max
 COBOL1641 · next free = COBOL1643").
 
 | Code | Condition | Citation in the message |

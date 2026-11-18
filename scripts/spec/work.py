@@ -77,6 +77,7 @@ import re
 import subprocess
 import sys
 from collections.abc import Sequence
+from concurrent.futures import ThreadPoolExecutor
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -1614,6 +1615,7 @@ def sites_problems(items: list[dict]) -> list[str]:
     naming files outside the roots, 15 of them on 2026-10-25): refusing them would turn the check into a backlog."""
     bad = []
     campaigns = campaign_leads(items)
+    held = []   # (note, the clusters it names, whether a campaign holds it): the notes this rule applies to
     for it in items:
         nid = str(it.get("id") or "")
         clusters = it.get("cluster") if isinstance(it.get("cluster"), list) else []
@@ -1622,14 +1624,24 @@ def sites_problems(items: list[dict]) -> list[str]:
         from_cutover = bool(clusters) and number is not None and int(number.group(1)) >= SITES_REQUIRED_FROM
         if it.get("kind") == "decision" or it.get("status") in TERMINAL_STATUSES or not (from_cutover or in_campaign):
             continue
+        held.append((it, clusters, in_campaign))
+
+    def read_sites(it: dict) -> tuple[NoteSites, list[str]]:
+        """A note's site block and its globs that match no tracked file: each is one or more `git ls-files` processes and
+        a read of every named source file, independent of every other note, so the notes are read side by side (the
+        sequential loop was 5 of the 11 s `check` took, kb/Work PB5939)."""
         sites = note_sites(it.get("_body", ""), repo=REPO)
+        return sites, [g for g in sites.globs if not expand_globs((g,), REPO)]
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        read = list(pool.map(read_sites, [it for it, _, _ in held]))
+    for (it, clusters, in_campaign), (sites, dead) in zip(held, read):
         if not sites.declared:
             where = (f"names the campaign cluster(s) {', '.join(sorted(campaigns & set(clusters))) or 'it tiers'}"
                      if in_campaign else f"names the cluster(s) {', '.join(clusters)}")
             bad.append(f"{it['_file']}: {where} but declares no site block — {SITES_RULE}; without one the wave "
                        f"planner partitions nothing for it and plans it UNPARTITIONED (kb/Work PB3263, PB3640, PB3670)")
             continue
-        dead = [g for g in sites.globs if not expand_globs((g,), REPO)]
         bad += [f"{it['_file']}: its site glob `{g}` matches no tracked file, so it claims nothing (kb/Work PB3721)"
                 for g in dead]
         if not (sites.paths or sites.no_code or sites.globs):

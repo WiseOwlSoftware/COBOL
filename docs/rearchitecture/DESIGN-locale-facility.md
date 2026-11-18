@@ -32,7 +32,7 @@
 > `EcNameResolution` refusal of the EC-LOCALE / EC-ORDER-NOT-SUPPORTED names is REVERTED at T1 (support is
 > claimed, so the names are legal again — the raise sites of §4.10 then make them live).
 > **The diagnostic band of §7 is re-based:** codes 1642–1660 were claimed by other work between drafting and
-> adoption; the locale band starts at COBOL1662 (`scripts/session-probe.ps1` is the authority at each landing).
+> adoption; the locale band starts at COBOL1662 (`scripts/session_probe.py` is the authority at each landing).
 
 # DESIGN — The LOCALE Facility (ISO/IEC 1989:2023 Annex A.4.9)
 
@@ -1011,7 +1011,7 @@ PICTURE arms, and `EcNameResolution`). Under the implement decision each arm is 
 New codes are needed for the syntax rules that only become reachable once the syntax is accepted. ⚠ The band
 drafted here as 1642–1650 was CLAIMED by other work between drafting and adoption (the catalog's maximum was
 COBOL1661 at adoption); the locale band therefore starts at **COBOL1662**, allocated increment by increment
-from `scripts/session-probe.ps1` — the rules below keep their letters (a–i) so the design's references survive
+from `scripts/session_probe.py` — the rules below keep their letters (a–i) so the design's references survive
 renumbering:
 
 | Rule | Reachable from |

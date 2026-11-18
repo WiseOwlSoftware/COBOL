@@ -12,7 +12,7 @@
 
 Design: docs/rearchitecture/DESIGN-orchestrator-loop.md section 6. The next value of a kind is
 max(truth, reserved) + 1. TRUTH is read from the repository on every call, by the one rule per kind below
-(`session-probe.ps1` calls `peek code --probe` instead of computing it a second time). RESERVED is the highest value
+(`session_probe.py` calls `peek code --probe` instead of computing it a second time). RESERVED is the highest value
 handed out so far, kept in `<coord>/alloc.json` OUTSIDE every worktree, so an id given to an in-flight implementer
 whose note has not landed yet is never handed out again (five collisions in one day cost a renumbering pass,
 workstream SKILL section 4). A reservation is never returned: an unused id is a harmless gap.
