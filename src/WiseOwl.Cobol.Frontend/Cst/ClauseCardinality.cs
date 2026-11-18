@@ -68,7 +68,7 @@ public sealed record ClauseList(string Format, string FormatLabel, string Subjec
     /// <summary>The general format as a diagnostic names it in the edition in force (kb/Work PB4950): the 1985 clause
     /// where this figure has one recorded (<see cref="Format1985"/>), otherwise <see cref="Format"/>, which an
     /// <see cref="Earlier"/> figure already words as "ANSI X3.23-1985".</summary>
-    public string FormatIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Year < 2002 && Format1985 is not null ? Format1985 : Format;
+    public string FormatIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Cite(Format1985 ?? Format, Format, Format);
 
     /// <summary>The figure the edition <paramref name="year"/> prints for this list: this one, or the
     /// <see cref="Earlier"/> chain's figure in force at that edition.</summary>

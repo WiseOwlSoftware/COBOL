@@ -2026,7 +2026,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             data.Edition.Error(DiagnosticCatalog.FormatClauseViolation,
                 $"OPEN I-O '{file.CobolName}' — the file description entry specifies a FORMAT clause, and the I-O phrase shall not be specified for such a file "
-                + $"({(data.Edition.DialectLevel < 2014 ? "ISO §2002:14.8.26.2 SR7" : data.Edition.DialectLevel < 2023 ? "ISO §2014:14.9.26.2 SR7" : "ISO §2023:14.9.27.3 SR9")})");
+                + $"({data.Edition.Edition.Cite("ISO §2002:14.8.26.2 SR7", "ISO §2002:14.8.26.2 SR7", "ISO §2023:14.9.27.3 SR9", "ISO §2014:14.9.26.2 SR7")})");
             ok = false;
         }
         if (mode is BoundOpenMode.Extend && file.AccessMode is not FileAccessMode.Sequential)

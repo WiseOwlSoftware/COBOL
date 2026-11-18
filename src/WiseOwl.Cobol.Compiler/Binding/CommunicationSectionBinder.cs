@@ -262,7 +262,7 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
         {
             if (names.Any(n => n.Key != field && CobolNames.Same(n.Value, name)))
                 Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}' names the data-name '{name}' more than once; "
-                    + (Edition.DialectLevel < 2002 ? "ISO §1985:XIV.2.2.3 " : "ISO/IEC 1989:2002 A.1.2.2 ")
+                    + Edition.Edition.Cite("ISO §1985:XIV.2.2.3 ", "ISO/IEC 1989:2002 A.1.2.2 ", "ISO/IEC 1989:2002 A.1.2.2 ")
                     + (format switch
                     {
                         CommunicationFormat.Input => "SR6",
@@ -386,7 +386,7 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                 if (FirstWithValue(record) is { } valued)
                     using (Edition.At(valued))
                         Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"'{valued.CobolName ?? "FILLER"}' has {(valued.Own88s.Count > 0 && valued.RawValue is null && valued.TableValues is null ? $"the condition-name '{valued.Own88s[0].Name}', whose entry is a VALUE clause," : "a VALUE clause")} in a record of CD '{cd.Name}' that is not its first; "
-                            + (Edition.DialectLevel < 2002 ? "ISO §1985:XIV.2.2.3 (SR5, SR9 and SR14): " : "ISO/IEC 1989:2002 A.1.2.2: ") + "\"only the first redefinition may contain VALUE clauses\".");
+                            + Edition.Edition.Cite("ISO §1985:XIV.2.2.3 (SR5, SR9 and SR14): ", "ISO/IEC 1989:2002 A.1.2.2: ", "ISO/IEC 1989:2002 A.1.2.2: ") + "\"only the first redefinition may contain VALUE clauses\".");
         }
     }
 

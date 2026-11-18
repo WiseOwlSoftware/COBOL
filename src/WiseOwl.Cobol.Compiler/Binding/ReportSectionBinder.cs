@@ -928,7 +928,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     using var _ = Edition.At(misplaced);
                     Edition.Error(DiagnosticCatalog.ReportNextGroupClauseRule, $"RD '{model.Name}' entry "
                         + $"'{ge.dataName().NameOrNull() ?? "FILLER"}' is a level {level} entry; the NEXT GROUP "
-                        + $"clause may be specified only in a level 1 entry (ISO {Edition.Edition.Cite("§1985:XIII.3.9.3 SR4", "§2023:13.15.3 SR6", "§2023:13.15.3 SR6")})");
+                        + $"clause may be specified only in a level 1 entry (ISO {Edition.Edition.Cite("§1985:XIII.3.9.2, whose format 1 alone prints it", "§2023:13.15.3 SR6", "§2023:13.15.3 SR6")})");
                 }
         }
         foreach (var g in model.Groups)
@@ -2236,7 +2236,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: an OCCURS clause may be subordinate to an entry "
                 + "containing another OCCURS clause only if the DEPENDING ON phrase is not specified (ISO "
-                + (Edition.DialectLevel < 2014 ? "§2002:13.16.36.2 SR9)" : "§2023:13.18.38.3 SR10)"));
+                + Edition.Edition.Cite("§2002:13.16.36.2 SR9)", "§2002:13.16.36.2 SR9)", "§2023:13.18.38.3 SR10)", "§2023:13.18.38.3 SR10)"));
             return null;
         }
 
@@ -3574,7 +3574,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Edition.Error(DiagnosticCatalog.ReportSumRoundedWithoutColumn, $"RD '{model.Name}' entry "
                     + $"'{entryName ?? "FILLER"}': the SUM clause writes a ROUNDED phrase, which is permitted "
                     + "only if the COLUMN clause is specified for the subject of the entry (ISO "
-                    + (Edition.DialectLevel == 2014 ? "§2014:13.18.54.2" : "§2023:13.18.54.3") + " SR3) — the phrase governs §2023:13.18.54.4 GR4's transfer of the sum counter to the "
+                    + Edition.Edition.Cite("§2023:13.18.54.3", "§2023:13.18.54.3", "§2023:13.18.54.3", "§2014:13.18.54.2") + " SR3) — the phrase governs §2023:13.18.54.4 GR4's transfer of the sum counter to the "
                     + "printable item, and this entry defines none.");
             else
                 sum.Rounded = rnd;
@@ -3949,7 +3949,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     Edition.Error(DiagnosticCatalog.ReportRecordShorterThanCode, $"RD '{model.Name}': the CODE clause "
                         + $"{code.Written} places {codeLength} character{(codeLength == 1 ? "" : "s")} at the start of every logical record, "
                         + $"and the RECORD clause of file '{model.File.CobolName}' gives a record of {record} "
-                        + (Edition.DialectLevel < 2002 ? "(ISO §1985:XIII.3.6.4 GR1)" : "(ISO §2023:13.18.12.4 GR1)"));
+                        + Edition.Edition.Cite("(ISO §1985:XIII.3.6.4 GR1)", "(ISO §2023:13.18.12.4 GR1)", "(ISO §2023:13.18.12.4 GR1)"));
                 }
                 model.LineWidth = Math.Max(0, record - codeLength);
             }
@@ -4052,9 +4052,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>The words that tell a COBOL-85 compile that the rule it just broke belongs to a construct COBOL-2002 introduced (a
     /// page width, a multiple COLUMN clause): "; <paramref name="construct"/> is not in COBOL-85, so this rule requires COBOL-2002
     /// (targeting COBOL-85)", the edition gate's own phrase, and nothing at the editions that have the construct (kb/Work PB4950).</summary>
-    private string NotInCobol85(string construct) => Edition.DialectLevel < 2002
-        ? $"; {construct} is not in COBOL-85, so this rule requires COBOL-2002 (targeting COBOL-{Edition.DialectLevel})"
-        : "";
+    private string NotInCobol85(string construct) => Edition.Edition.Cite(
+        $"; {construct} is not in COBOL-85, so this rule requires COBOL-2002 (targeting COBOL-{Edition.DialectLevel})", "", "");
 
     /// <summary>⛔ THE PRINTABLE ITEMS OF ONE REPORT LINE, AS A SET (ISO §2023:13.18.14.3 SR7, SR8; kb/Work PB1222), asked
     /// of each line after the whole source element is described, because the printable-size is a picture's. The
@@ -4191,7 +4190,9 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + $"'{addend.Written}' contains '{rsName}', which names a report section item. If the addend "
                     + "is arithmetic-expression-1, any identifiers it contains may reference entries in any "
                     + "section of the data division OTHER THAN the report section (ISO "
-                    + Edition.Edition.Cite("§1985:XIII.3.19.3 SR1", "§2023:13.18.54.3 SR6", "§2023:13.18.54.3 SR6") + ").");
+                    // COBOL-85's SUM addend is identifier-1 alone (§1985:XIII.3.19.2): an arithmetic-expression addend is a 2002 form
+                    // (report-sum-forms-2002, gated at 85), so its rule says so the edition gate's way (kb/Work PB4950 review R1-1).
+                    + "§2023:13.18.54.3 SR6" + NotInCobol85("an arithmetic-expression addend of the SUM clause") + ").");
                 return;
             }
             addend.Rejected = false;

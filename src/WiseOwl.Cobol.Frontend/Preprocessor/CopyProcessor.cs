@@ -1506,7 +1506,7 @@ public sealed class CopyProcessor(
         {
             if (diagnostics is null || Rules.Statement != "COPY" || !edition.ReplacingIdentifierSubscriptsRestricted) return;
             if (ReplacingIdentifierSubscripts.FirstArithmeticSubscript(words) is not var (start, end)) return;
-            Content(start, edition.Year == 2002 ? "§2002:7.1.2.2 SR9" : "§2014:7.2.2.2 SR9",
+            Content(start, edition.Cite("§2014:7.2.2.2 SR9", "§2002:7.1.2.2 SR9", "§2014:7.2.2.2 SR9", "§2014:7.2.2.2 SR9"),
                 "If subscripting is specified, it shall not include any arithmetic expressions as subscripts with the exception of a "
                 + "single literal or identifier, or an identifier plus or minus an integer",
                 $"the subscript '{words[0].Source[start..end].TrimSpaces()}' is an arithmetic expression");

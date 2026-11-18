@@ -569,7 +569,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         ctx.Edition.Error(DiagnosticCatalog.UseBeforeReportingRestriction,
             $"this statement alters control data item '{hit!.CobolName}' in USE BEFORE REPORTING declarative section "
             + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"A USE BEFORE REPORTING procedure "
-            + (ctx.Edition.DialectLevel < 2002 ? "must" : "shall") + " not alter the value of any control data item\" ("
+            + ctx.Edition.Edition.Cite("must", "shall", "shall") + " not alter the value of any control data item\" ("
             + ctx.Edition.DialectLevel switch
             {
                 < 2002 => "ISO §1985:XIII.4.9.3 SR4)",

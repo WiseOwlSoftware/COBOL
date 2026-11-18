@@ -183,7 +183,7 @@ public sealed partial class SpecialNamesBinder
         // literal's own introduction gate refuses it.
         if (bare.Hexadecimal && Edition.DialectLevel >= 2014)
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, "CURRENCY SIGN: a hexadecimal currency literal requires the PICTURE "
-                + "SYMBOL phrase (ISO " + (Edition.DialectLevel < 2023 ? "§2014:12.3.6.2 SR19" : "§2023:12.3.7.3 SR19") + ")");
+                + "SYMBOL phrase (ISO " + Edition.Edition.Cite("§2014:12.3.6.2 SR19", "§2014:12.3.6.2 SR19", "§2023:12.3.7.3 SR19", "§2014:12.3.6.2 SR19") + ")");
         if (bare.Text.Length != 1)
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{bare.Text}\": without PICTURE SYMBOL the literal "
@@ -215,7 +215,7 @@ public sealed partial class SpecialNamesBinder
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{literal7.Text}\": a currency string may not contain the "
                 + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO "
-                + (Edition.DialectLevel < 2014 ? "§2002:12.2.6.2 SR20b" : "§2023:12.3.7.3 r23b") + ")");
+                + Edition.Edition.Cite("§2002:12.2.6.2 SR20b", "§2002:12.2.6.2 SR20b", "§2023:12.3.7.3 r23b", "§2023:12.3.7.3 r23b") + ")");
             return false;
         }
         return true;

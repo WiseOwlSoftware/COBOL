@@ -123,7 +123,7 @@ public sealed partial class FileControlBinder
         string? fault = table
             ? "is subject to an OCCURS clause, so every reference to it is a table element reference that shall be subscripted, "
               + "yet the clause's data-name-1 may be qualified and takes no subscript "
-              + (Edition.DialectLevel < 2002 ? "(ISO §1985:IV.4.3.8.2.3 SR4 and §1985:VII.2.7.3 SR2)" : "(ISO §2002:8.4.1.2.2 SR5)")
+              + Edition.Edition.Cite("(ISO §1985:IV.4.3.8.2.3 SR4 and §1985:VII.2.7.3 SR2)", "(ISO §2002:8.4.1.2.2 SR5)", "(ISO §2002:8.4.1.2.2 SR5)")
             : !ItemCategory.IsAlphanumeric(item) ? $"is {ItemCategory.Face(item)}, not of the category alphanumeric"
             : item.ByteWidth != 1 || DataItem.HasOdoOnOrBeneath(item)
                 ? $"is {item.ByteWidth} character positions long, not a one-character data item"

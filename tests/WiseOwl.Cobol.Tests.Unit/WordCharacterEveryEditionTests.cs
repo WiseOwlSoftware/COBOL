@@ -20,13 +20,13 @@ public sealed class WordCharacterEveryEditionTests
     [InlineData("CAFÉ- X", "U+00A0")]
     public void ACharacterInNoAnnexB_IsRefusedAtEveryTarget_NamingTheCharacter(string word, string character)
     {
-        foreach (int level in new[] { 1985, 2002, 2014, 2023 })
+        foreach (int level in new[] { 85, 2002, 2014, 2023 })
         {
             string? message = CobolWordRule.CharacterViolation(word, level);
             Assert.NotNull(message);
             Assert.Contains(character, message);
         }
-        Assert.Contains("in no edition's Annex B", CobolWordRule.CharacterViolation(word, 1985));
+        Assert.Contains("in no edition's Annex B", CobolWordRule.CharacterViolation(word, 85));
     }
 
     /// <summary>The extended-letter question is per CHARACTER (kb/Work PB4156): a word holds one when ANY character is in some
@@ -55,7 +55,7 @@ public sealed class WordCharacterEveryEditionTests
     [InlineData("A-B_", "last")]
     public void AHyphenOrUnderscoreAtAWordEdge_IsRefusedAtEveryTarget_NamingTheRule(string word, string position)
     {
-        foreach (int level in new[] { 1985, 2002, 2014, 2023 })
+        foreach (int level in new[] { 85, 2002, 2014, 2023 })
         {
             string? message = CobolWordRule.CharacterViolation(word, level);
             Assert.NotNull(message);
@@ -85,5 +85,5 @@ public sealed class WordCharacterEveryEditionTests
     [InlineData("STRASSE-ß")]
     [InlineData("A\U0001E900")]
     public void AnAnnexBLetter_IsNoCharacterViolationBelow2002(string word) =>
-        Assert.Null(CobolWordRule.CharacterViolation(word, 1985));
+        Assert.Null(CobolWordRule.CharacterViolation(word, 85));
 }

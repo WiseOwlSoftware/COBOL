@@ -100,7 +100,8 @@ internal static class ReportGroupResolution
         string owners = string.Join(", ", new[] { first.Name }
             .Concat(extra.Select(e => e.Report.Name)).Select(n => $"'{n}'"));
         string example = preferred is not null && found.Any(f => ReferenceEquals(f.Report, preferred)) ? preferred.Name : first.Name;
-        string rule = edition.DialectLevel < 2002 ? "ISO §1985:IV.4.3.8.1 SRL2.1" : "ISO §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1";
+        string rule = edition.Edition.Cite("ISO §1985:IV.4.3.8.1 SRL2.1", "ISO §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1",
+            "ISO §2023:8.4.2.2.1 / §2023:8.4.2.2.3 SR1");
         string homonyms = (found.Count > 1 ? $"described in more than one report description entry ({owners})" : $"described in report {owners}")
             + (dataItems == 0 ? "" : $"{(found.Count > 1 ? " and" : ",")} also the name of {(dataItems == 1 ? "a data item" : $"{dataItems} data items")}");
         edition.Error(DiagnosticCatalog.ReportGroupReferenceAmbiguous, $"{where}: report group '{head}' is "

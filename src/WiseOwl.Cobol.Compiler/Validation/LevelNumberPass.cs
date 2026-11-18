@@ -85,10 +85,10 @@ internal static class LevelNumberRules
         string? Citation1985 = null, string? Requirement1985 = null)
     {
         /// <summary>The citation of the edition in force: the 1985 rule at COBOL-85, the later rule otherwise.</summary>
-        internal string CitationIn(EditionInfo edition) => edition.Year < 2002 && Citation1985 is not null ? Citation1985 : Citation;
+        internal string CitationIn(EditionInfo edition) => edition.Cite(Citation1985 ?? Citation, Citation, Citation);
 
         /// <summary>The requirement sentence of the edition in force.</summary>
-        internal string RequirementIn(EditionInfo edition) => edition.Year < 2002 && Requirement1985 is not null ? Requirement1985 : Requirement;
+        internal string RequirementIn(EditionInfo edition) => edition.Cite(Requirement1985 ?? Requirement, Requirement, Requirement);
 
         /// <summary>§2023:13.18.33.1: "Level numbers 1 through 49 indicate the position of a data item or screen item
         /// within the hierarchical structure … In addition, level numbers 66, 77, and 88 are used to identify

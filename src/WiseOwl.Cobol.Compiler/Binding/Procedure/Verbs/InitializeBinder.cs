@@ -17,6 +17,12 @@ using Core = CobolParserCore;
 /// the 0830–0833 2002-surface gate block moved VERBATIM (Exec Step E folds it).</summary>
 internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>COBOL2030's text from COBOL-2002 on: §2023:14.9.20.3 SR1's class list (kb/Work PB4950; at COBOL-85 the rule is
+    /// §1985:VI.6.17.3 SR5).</summary>
+    private const string Initialize2023 = "of class index, the one class ISO §2023:14.9.20.3 SR1's list excludes (it admits a "
+        + "strongly-typed item and classes alphabetic, alphanumeric, boolean, message-tag, national, numeric, object and pointer); "
+        + "only SET, SEARCH, a relation condition and the argument positions of §2023:13.18.60.3 SR10 may reference an index data item";
+
     private int _initializeLoopVar;   // program-unique loop-counter ordinal (NextLoopVar)
 
     /// <summary>The next per-occurrence loop counter of the unit, by its identity (kb/Work PB4321): the backend names it.</summary>
@@ -256,11 +262,11 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         if (IntrinsicArgumentRules.ClassOfPlace(place) is CobolClass.Index)
         {
             ctx.Edition.Error(DiagnosticCatalog.InitializeTargetClass,
-                $"INITIALIZE '{DataBinder.WrittenText(dref)}' — identifier-1 is of class index, the one class ISO "
-                + "§2023:14.9.20.3 SR1's list excludes (it admits a strongly-typed item and classes alphabetic, "
-                + "alphanumeric, boolean, message-tag, national, numeric, object and pointer); only SET, SEARCH, "
-                + "a relation condition and the argument positions of §2023:13.18.60.3 SR10 may reference an index "
-                + "data item");
+                $"INITIALIZE '{DataBinder.WrittenText(dref)}' — identifier-1 is " + ctx.Edition.Edition.Cite(
+                    "an index data item, and \"An index data item may not appear as an operand of an INITIALIZE statement\" "
+                    + "(ISO §1985:VI.6.17.3 SR5); only a SEARCH or SET statement, a relation condition and the USING phrase of a "
+                    + "Procedure Division header or CALL statement may reference one (§1985:VI.5.14.3 SR5)",
+                    Initialize2023, Initialize2023));
             return;
         }
         if (place is RefModPlace)

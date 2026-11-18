@@ -299,7 +299,8 @@ the edition in force has no such rule, the message cites the edition where the r
 
 - **One decider.** `EditionInfo.Cite(y1985, y2002, y2023, y2014)` (`src/WiseOwl.Cobol.Editions/EditionInfo.cs`) is the one choice
   of a citation, or of the words a message quotes, by edition. A site never spells its own `DialectLevel < 2002 ? …` between two
-  citations. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
+  citations; `EditionCiteOneDeciderDriftTests` (Unit) refuses, anywhere under `src/` but the decider and the generated parser, an
+  edition comparison whose ternary arm is a string. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
   `SearchAllFormat2Rules.Rule`, which maps 2023's SR6 to SR13 of SEARCH to each edition's rule).
 - **Declines.** A descriptor whose `Title` is its message (a decline, composed by `EditionContext.Declined`) carries
   `Title1985`, the message at 85 citing the 1985 ground; `Declined` renders it through `Cite`.
@@ -344,7 +345,8 @@ the edition in force has no such rule, the message cites the edition where the r
   `OpenTapePhraseRule.OrganizationClause1985`, `LevelNumberRules.Arm.Citation1985`, `ClauseList.Format1985` and `ClosedFormat.Clause1985`
   for the general-format tables. The next row of such a table is cited by writing its 1985 field.
 - **The parser's error strategy reads the edition through ONE member**, `CobolParserCoreBase.EditionInForce` (a diagnosis-only read
-  recorded in `EditionReadDriftTests`): the strategy's one `CiteAt`, `AdmittedKinds`, `GoToFormats`, the empty-block message, the
+  recorded in `EditionReadDriftTests`), asked by the strategy's one `EditionOf`, which refuses a recognizer that is no COBOL parser
+  as an internal error rather than default to a later edition's text: the strategy's one `CiteAt`, `AdmittedKinds`, `GoToFormats`, the empty-block message, the
   extension-reserved-word sentence (§1985:I.1.5.2.5.2) and a closed format's `Refusal(word, owner, edition)` all take it. No other parser member answers an edition question for a message.
 - **A rule that differs by I-O module is chosen by the file** (kb/Work PB4950 slice 6): COBOL-85 states a READ, REWRITE, DELETE,
   WRITE or SAME rule once per module (sequential VII, relative VIII, indexed IX, sort-merge XI), so `StatementValidation.IoRule`

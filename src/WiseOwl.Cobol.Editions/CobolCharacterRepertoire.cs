@@ -136,12 +136,13 @@ public static partial class CobolCharacterRepertoire
         char edge = first ? word[0] : word[^1];
         string where = $"the COBOL word '{word}' has the {(edge == '_' ? "underscore" : "hyphen")} as its "
             + $"{(first ? "first" : "last")} character: ";
-        return dialectLevel < 2002
-            ? where + (edge == '_'
+        const string later = "\"The hyphen or underscore shall not appear as the first or last character in such words\" (ISO §2023:8.3.2.1)";
+        return where + EditionInfo.Of(dialectLevel).Cite(
+            (edge == '_'
                 ? "\"Each character of a COBOL word that is not a special character word is selected from the set of letters, "
                   + "digits, and the hyphen\""
-                : "\"the hyphen may not appear as the first or last character in such words\"") + " (ISO §1985:IV.4.2.2.1)"
-            : where + "\"The hyphen or underscore shall not appear as the first or last character in such words\" (ISO §2023:8.3.2.1)";
+                : "\"the hyphen may not appear as the first or last character in such words\"") + " (ISO §1985:IV.4.2.2.1)",
+            later, later);
     }
 
     /// <summary>True when <paramref name="word"/> begins or ends with a hyphen or an underscore — the one test of the position rule
@@ -212,16 +213,16 @@ public static partial class CobolCharacterRepertoire
     /// and the message says so (kb/Work PB4130).</summary>
     public static string? ViolationAtEveryEdition(string word, int dialectLevel)
     {
+        const string LaterWordCharacters = "basic letters, basic digits, hyphen, underscore and the extended letters of Annex B "
+            + "(ISO §2023:8.3.2.1; §2023:8.1.3.2 GR4)";
         for (int i = 0; i < word.Length;)
         {
             int cp = NextCodePoint(word, ref i);
             if (cp >= 0x80 && !IsInSomeAnnexB(cp))
                 return $"the COBOL word '{word}' contains U+{cp:X4}, which is in no edition's Annex B, so it is not a "
                     + "character of a COBOL word at any edition: a word is made of "
-                    + (dialectLevel < 2002
-                        ? "letters, digits and the hyphen (ISO §1985:IV.4.2.2.1)"
-                        : "basic letters, basic digits, hyphen, underscore and the extended letters of Annex B "
-                          + "(ISO §2023:8.3.2.1; §2023:8.1.3.2 GR4)");
+                    + EditionInfo.Of(dialectLevel).Cite("letters, digits and the hyphen (ISO §1985:IV.4.2.2.1)",
+                        LaterWordCharacters, LaterWordCharacters);
         }
         return null;
     }

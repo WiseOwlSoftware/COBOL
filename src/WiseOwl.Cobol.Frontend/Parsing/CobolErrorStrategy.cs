@@ -1638,7 +1638,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         bool isSynonym = !CobolKeywords.Same(written, reserved);
         var synonymBy = isSynonym && recognizer is CobolParserCoreBase { CobolWords: { IsEmpty: false } words }
             ? words.SynonymBy(written) : null;
-        string rule = recognizer is CobolParserCoreBase core ? core.EditionInForce.Cite("§1985:I.1.5.2.5.2", "§2023:4.2.10", "§2023:4.2.10") : "§2023:4.2.10";
+        string rule = EditionOf(recognizer).Cite("§1985:I.1.5.2.5.2", "§2023:4.2.10", "§2023:4.2.10");
         return $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO {rule}; docs/CONFORMANCE.md D-RW1)"
             + (synonymBy is { Action: WiseOwl.Cobol.Editions.CobolWordsAction.Substitute }
                 ? $"; {synonymBy.AsWritten} replaces it with '{Truncate(written, 40)}' (ISO §2023:7.3.10.4 GR4), so '{Truncate(written, 40)}' is that reserved word and no user-defined word"
@@ -1701,7 +1701,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // cardinality lives in the grammar rather than in nine bind-time checks. ⛔ The emptiness is asked of the parse
         // AT the offending token, never of the parser's position (kb/Work PB3832; OffendingPosition).
         if (at.EmptyBlockOwner() is { } stmtName)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(stmtName, ((CobolParserCoreBase)recognizer).EditionInForce), 0));
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(stmtName, EditionOf(recognizer)), 0));
 
         // ⛔ 0b. THE WHEN OTHER PHRASE — BOTH OF ITS RULES, SEPARATED BY LOOKAHEAD (kb/Work PB396).
         // `[ WHEN OTHER imperative-statement-2 ]` follows the `{ … } …` repetition in EVALUATE's format, and
@@ -1737,7 +1737,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 ? WhenOtherPlacement(recognizer, PreviousDefault(stream, otherIndex), out owner)
                 : PhrasePlacement.None;
             if (placement == PhrasePlacement.InPlace && token.TokenIndex == otherIndex && owner is not null)
-                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(StatementOwning(owner), ((CobolParserCoreBase)recognizer).EditionInForce), 0));
+                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(StatementOwning(owner), EditionOf(recognizer)), 0));
             else if (!(bodyPresent && (at.Carried is not null || placement is PhrasePlacement.InPlace or PhrasePlacement.Unread)))
                 hints.Add(bodyPresent
                     ? new(Diagnostics.DiagnosticDescriptors.COBOL2073,
@@ -1749,7 +1749,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     : new(Diagnostics.DiagnosticDescriptors.COBOL2072,
                         "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
                         + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
-                        + "it (ISO " + ((CobolParserCoreBase)recognizer).EditionInForce.Cite("§1985:IV.2.1.4, with §1985:VI.6.13.2",
+                        + "it (ISO " + EditionOf(recognizer).Cite("§1985:IV.2.1.4, with §1985:VI.6.13.2",
                             "§2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3",
                             "§2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3") + ").", 0));
         }
@@ -1829,7 +1829,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2173,
                 "Both general formats of the MOVE statement put the whole sending specification directly after "
                 + "the verb — Format 1 is 'MOVE { identifier-1 | literal-1 } TO { identifier-2 } …' and Format 2 "
-                + ((CobolParserCoreBase)recognizer).EditionInForce.Cite(
+                + EditionOf(recognizer).Cite(
                     "is 'MOVE { CORRESPONDING | CORR } identifier-1 TO identifier-2' — so no format admits a "
                     + "CORRESPONDING phrase after a sending operand (ISO §1985:VI.6.19.2).",
                     "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
@@ -1877,7 +1877,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (!HasStructuralHint(hints) && !at.EntrySlotYields && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow, theEditionPrints, constantNamesPrinted || !admitted.WordsStandForLiterals,
-                   at.ClosedConstructCouldTake, ((CobolParserCoreBase)recognizer).EditionInForce, out bool anOperandIsDue) is { } kindMsg)
+                   at.ClosedConstructCouldTake, EditionOf(recognizer), out bool anOperandIsDue) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0, LeavesNoTail: anOperandIsDue));
         // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
         // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
@@ -1885,7 +1885,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // word there may be a paragraph-name whose period is missing, which hint 14 says; it is not asked.
         else if (!HasStructuralHint(hints) && token.Type != CobolLexer.IDENTIFIER && at.SentenceMayBeginAt()
                  && AdmittedKinds.Refusal(token, StatementBlockStart(recognizer), [], _ => false, StatementBlockStart(recognizer),
-                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, ((CobolParserCoreBase)recognizer).EditionInForce, out _) is { } sentenceMsg)
+                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, EditionOf(recognizer), out _) is { } sentenceMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, sentenceMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
@@ -2121,7 +2121,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                 Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
             closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token), at.OwnerName(),
-                ((CobolParserCoreBase)recognizer).EditionInForce) + ".", 0, run?.Start, LeavesNoTail: run is null);
+                EditionOf(recognizer)) + ".", 0, run?.Start, LeavesNoTail: run is null);
     }
 
     /// <summary>A closed format's residue: the format whose list stands there, and the error production's form
@@ -2777,7 +2777,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// </list></summary>
     private static string? GoToComplementMessage(Parser recognizer, IToken token, ITokenStream stream)
     {
-        var edition = ((CobolParserCoreBase)recognizer).EditionInForce;
+        var edition = EditionOf(recognizer);
         for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
             if (c is CobolParserCore.GoToStatementContext g)
                 return GoToFormats.DiagnoseWrittenShape(g.procedureName().Length, g.DEPENDING() is not null, edition);
@@ -3182,10 +3182,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             }.Select(r => recognizer.Atn.NextTokens(recognizer.Atn.ruleToStartState[r]))];
 
     /// <summary>The words of the edition in force: <paramref name="y1985"/> at COBOL-85, <paramref name="later"/> from 2002 (kb/Work PB4950,
-    /// <see cref="EditionInfo.Cite"/>), so a syntax diagnostic cites the rule of the edition the program is compiled under. A recognizer
-    /// that is no COBOL parser has no edition and takes the later text.</summary>
-    private static string CiteAt(Parser recognizer, string y1985, string later) =>
-        recognizer is CobolParserCoreBase parser ? parser.EditionInForce.Cite(y1985, later, later) : later;
+    /// <see cref="EditionInfo.Cite"/>), so a syntax diagnostic cites the rule of the edition the program is compiled under.</summary>
+    private static string CiteAt(Parser recognizer, string y1985, string later) => EditionOf(recognizer).Cite(y1985, later, later);
+
+    /// <summary>⛔ THE ONE EDITION READ OF THE ERROR STRATEGY (kb/Work PB4950 review R1-2): the edition the parse is diagnosed for,
+    /// through <see cref="CobolParserCoreBase.EditionInForce"/>. This strategy is installed only on a COBOL parser, so a recognizer
+    /// that is not one is an internal error, never a silent later-edition default.</summary>
+    private static EditionInfo EditionOf(Parser recognizer) => recognizer is CobolParserCoreBase parser
+        ? parser.EditionInForce
+        : throw new InvalidOperationException(
+            $"CobolErrorStrategy diagnosed a {recognizer.GetType().Name}, which is no COBOL parser and has no edition to cite");
 
     /// <summary>The COBOL2418 message when the parser failed ON one spelling of a figurative family at a
     /// position whose general format names a DIFFERENT spelling of that family as its keyword; null otherwise.

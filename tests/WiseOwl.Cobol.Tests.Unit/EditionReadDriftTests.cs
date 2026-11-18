@@ -195,25 +195,15 @@ public sealed class EditionReadDriftTests
         // neither table, and the words a format spells where §2023:8.9 leaves them free (IsKeywordWhereFree). It refuses nothing
         // itself and gates no construct.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.DiagnosisOnly),
-        // A closed format's refusal cites the general format of the compile edition: §1985:VI.5.3.2 for the data description
-        // entry, §2023:13.16.2 later (kb/Work PB4950). Worded by the parser because only it holds the edition. It refuses nothing itself.
-        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ResidueRefusal | EditionInForce"] = (1, Verdict.DiagnosisOnly),
-        // The error strategy's own sentences cite the rule of the edition in force (kb/Work PB4950): the MOVE CORRESPONDING position, the
-        // empty block, the conditional-phrase and sentence-kind messages, and the GO TO complement each word their citation through
-        // EditionInForce (§1985:VI.6.19.2 for MOVE, §2023:14.9.25.2 later, and the like). Wording only; each refuses nothing itself.
-        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | EditionInForce"] = (6, Verdict.DiagnosisOnly),
-        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GoToComplementMessage | EditionInForce"] = (1, Verdict.DiagnosisOnly),
-        // The COBOL0313 sentence about a word this implementation reserves for a nonstandard extension cites the rule that lets an
-        // implementation do so in the edition in force (kb/Work PB4950): §1985:I.1.5.2.5.2 at COBOL-85, §2023:4.2.10 from 2002. It
-        // chooses a citation and nothing else; the word is refused whatever it says.
-        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ExtensionReservationSentence | EditionInForce"] = (1, Verdict.DiagnosisOnly),
-        // The same sentence names a user-defined word where an operand is due only where the compile edition has one to write
+        // ⛔ THE ERROR STRATEGY READS THE EDITION ONE WAY (kb/Work PB4950 review R1-2): EditionOf, through EditionInForce, so a syntax
+        // diagnostic cites the rule of the edition in force (CiteAt, a closed format's refusal, the MOVE CORRESPONDING position, the
+        // empty block, the GO TO complement, the COBOL0313 extension-word sentence). A recognizer that is no COBOL parser is an
+        // internal error, never a later-edition default. Wording only: it refuses nothing and gates no construct.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.EditionOf | EditionInForce"] = (1, Verdict.DiagnosisOnly),
+        // The COBOL5506 sentence names a user-defined word where an operand is due only where the compile edition has one to write
         // (kb/Work PB4435, PrintsConstantName): where every word the position takes stands for a literal (§2023:13.10.3 SR2), the
         // word is a constant-name, and the constant entry is COBOL-2002's, so a COBOL-85 sentence names the literal alone.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsConstantName"] = (1, Verdict.DiagnosisOnly),
-        // A syntax diagnostic cites the rule of the edition in force (kb/Work PB4950): the one choice, through EditionInForce, of the
-        // words the strategy's messages carry. It refuses nothing and gates no construct.
-        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.CiteAt | EditionInForce"] = (1, Verdict.DiagnosisOnly),
         // The listener: the gate's second witness notes a syntax error's offending reservation-gated word.
         ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | OffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
         // The front end's driver decides whether a re-parse lexes differently because a word the program declared is
