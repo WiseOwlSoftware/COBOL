@@ -1,4 +1,4 @@
-## The 1985 inventory counts the missing listing: three rows leave CONFORMS
+## Entry 3833 — 2026-11-17 22:42 PST — The 1985 inventory counts the missing listing: three rows leave CONFORMS
 
 §1985:IV.7.1 says each compiler "produces an output listing of the source program in reference format", and the compiler
 produces none. The 1985 inventory had said 0 GAP because the listing requirement is prose with no numbered rule and so
@@ -18,3 +18,4 @@ ruling; this change records the rows it reaches.
 
 1985 inventory line before: 2275 rules, 0 GAP; after: 2275 rules, 3 GAP (CONFORMS 894 to 891, NOT-IMPLEMENTED 1,
 PARTIAL 2). The state counts a non-resolving verdict as GAP, so the three rows are three GAP, not one GAP and two other.
+
