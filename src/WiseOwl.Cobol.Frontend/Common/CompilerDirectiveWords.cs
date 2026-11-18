@@ -117,20 +117,15 @@ public static class CompilerDirectiveWords
     /// §2002:7.2.19.2 / §2014:7.3.20.2 / §2023:7.3.25.3 (kb/Work PB5599).</summary>
     public static string Citation(int edition, Site site)
     {
-        int year = Printed(edition);
-        string clause = (site, year) switch
+        // No directive word is reserved below 2002 (Printed), so a COBOL-85 site reads 2002's text; each text is written once.
+        var (y2002, y2014, y2023) = site switch
         {
-            (Site.Define, 2002) => "7.2.9.2",
-            (Site.Define, 2014) => "7.3.9.2",
-            (Site.Define, _) => "7.3.11.3",
-            (Site.DefinedCondition, 2002) => "7.2.7.3.2",
-            (Site.DefinedCondition, 2014) => "7.3.7.3.2",
-            (Site.DefinedCondition, _) => "7.3.8.4.3",
-            (Site.TurnFileName, 2002) => "7.2.19.2",
-            (Site.TurnFileName, 2014) => "7.3.20.2",
-            _ => "7.3.25.3",
+            Site.Define => ("§2002:7.2.9.2 SR1", "§2014:7.3.9.2 SR1", "§2023:7.3.11.3 SR1"),
+            Site.DefinedCondition => ("§2002:7.2.7.3.2 SR1", "§2014:7.3.7.3.2 SR1", "§2023:7.3.8.4.3 SR1"),
+            Site.TurnFileName => ("§2002:7.2.19.2 SR1", "§2014:7.3.20.2 SR1", "§2023:7.3.25.3 SR1"),
+            _ => throw new ArgumentOutOfRangeException(nameof(site), site, "a compiler-directive word site the table does not carry"),
         };
-        return $"§{year}:{clause} SR1";
+        return WiseOwl.Cobol.Editions.EditionInfo.Of(edition).Cite(y2002, y2023, y2002, y2014);
     }
 
     private static int Printed(int edition) => edition >= 2023 ? 2023 : edition >= 2014 ? 2014 : 2002;

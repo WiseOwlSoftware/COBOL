@@ -350,12 +350,19 @@ public sealed partial class DataBinder
     internal static string? BlankWhenZeroViolation(PicInfo pic, EditionInfo edition)
     {
         if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited))
-            return "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
-                + "character-string as category numeric-edited or as numeric without the picture symbol 'S' "
-                + $"(ISO {edition.Cite("§1985:VI.5.4.3 SR1", "§2023:13.18.8.3 SR1")}) — this item is of category {ItemCategory.CategoryName(pic)}";
+            return edition.Cite(
+                    "the BLANK WHEN ZERO clause can be specified only for an elementary item whose PICTURE is specified as numeric or "
+                    + "numeric edited (ISO §1985:VI.5.4.3 SR1)",
+                    "the BLANK WHEN ZERO clause may be specified only for an elementary item described by its picture "
+                    + "character-string as category numeric-edited or as numeric without the picture symbol 'S' (ISO §2023:13.18.8.3 SR1)")
+                + $" — this item is of category {ItemCategory.CategoryName(pic)}";
         if (!UsageFamilies.IsDisplayOrNational(pic.Usage))
-            return "the subject of a BLANK WHEN ZERO clause shall be implicitly or explicitly described as usage "
-                + $"display or usage national (ISO {edition.Cite("§1985:VI.5.4.3 SR2", "§2023:13.18.8.3 SR2")}) — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
+            return edition.Cite(
+                    "the numeric or numeric edited data description entry to which the BLANK WHEN ZERO clause applies must be described, "
+                    + "either implicitly or explicitly, as USAGE IS DISPLAY (ISO §1985:VI.5.4.3 SR2)",
+                    "the subject of a BLANK WHEN ZERO clause shall be implicitly or explicitly described as usage display or usage "
+                    + "national (ISO §2023:13.18.8.3 SR2)")
+                + $" — this item's usage is {UsageFamilies.UsageWord(pic.Usage)}";
         return null;
     }
 

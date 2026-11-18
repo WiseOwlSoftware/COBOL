@@ -53,18 +53,83 @@ public sealed class EditionCiteOneDeciderDriftTests
         (s.ContainingType?.Name == nameof(EditionInfo) && SeedNames.Contains(s.Name))
         || (s is IPropertySymbol && s.Name is "DialectLevel" or "Std");
 
-    /// <summary>The metadata a compilation of the sources needs: the framework and every non-WiseOwl assembly beside this test.</summary>
-    private static IEnumerable<MetadataReference> FrameworkAndThirdParty() =>
-        ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
-            .Concat(Directory.EnumerateFiles(AppContext.BaseDirectory, "*.dll")
-                .Where(f => !Path.GetFileName(f).StartsWith("WiseOwl.", StringComparison.Ordinal)))
-            .DistinctBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
-            .Select(f => MetadataReference.CreateFromFile(f));
+    /// <summary>The framework and the packages, as metadata: the test host's trusted platform assemblies (the runtime resolves the
+    /// framework and every package the products reference into that list), less the WiseOwl assemblies, which the compilation builds
+    /// from their sources (a built copy beside them would make every member ambiguous, CS0121).</summary>
+    private static IReadOnlyList<MetadataReference> FrameworkAndPackages { get; } =
+        [.. ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
+            .Where(f => !Path.GetFileName(f).StartsWith("WiseOwl.", StringComparison.Ordinal))
+            .Select(f => MetadataReference.CreateFromFile(f))];
+
+    /// <summary>The C# the products are built from, one compilation per <c>src/</c> project, built the way MSBuild builds it: the
+    /// project's own sources, the compile items MSBuild generates for it from the same settings (its global usings, from
+    /// <c>ImplicitUsings</c>, and its assembly attributes, in its <c>obj/</c>), the language version and nullable context of
+    /// <c>Directory.Build.props</c>, its project references as compilation references, and the compiler's source generator run as
+    /// the build runs it. Each compilation must bind with no error: a guard over a compilation that does not bind can miss silently.</summary>
+    private static IReadOnlyList<CSharpCompilation> SourceCompilations => s_sourceCompilations.Value;
+
+    private static readonly Lazy<IReadOnlyList<CSharpCompilation>> s_sourceCompilations = new(BuildSourceCompilations);
+
+    private static readonly string[] Projects =
+        ["WiseOwl.Cobol.Runtime", "WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Frontend", "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Cli"];
+
+    private static IReadOnlyList<CSharpCompilation> BuildSourceCompilations()
+    {
+        // Directory.Build.props sets LangVersion 14; the Roslyn this test links (4.14) names C# 14 Preview.
+        var parse = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+        var built = new Dictionary<string, CSharpCompilation>(StringComparer.Ordinal);
+        var closure = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+        foreach (string project in Projects)   // in dependency order
+        {
+            string dir = TestRepo.Src(project);
+            string obj = TestRepo.Src(project, "obj", TestRepo.Configuration, TestRepo.TargetFramework);
+            var sources = Directory.EnumerateFiles(dir, "*.cs", SearchOption.AllDirectories)
+                .Where(f => !Path.GetRelativePath(dir, f).Split(Path.DirectorySeparatorChar).Any(seg => seg is "bin" or "obj"))
+                .Concat(Directory.EnumerateFiles(obj, "*.cs", SearchOption.TopDirectoryOnly))
+                .Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f), parse, path: f));
+            // MSBuild flows project references transitively, so a project sees every project below its own references.
+            var direct = System.Xml.Linq.XDocument.Load(TestRepo.Src(project, project + ".csproj"))
+                .Descendants("ProjectReference")
+                .Where(r => (string?)r.Attribute("ReferenceOutputAssembly") != "false")
+                .Select(r => Path.GetFileNameWithoutExtension((string)r.Attribute("Include")!))
+                .ToList();
+            closure[project] = [.. direct.Concat(direct.SelectMany(d => closure[d])).Distinct(StringComparer.Ordinal)];
+            var references = closure[project].Select(name => built[name].ToMetadataReference());
+            var compilation = CSharpCompilation.Create(project, sources, [.. FrameworkAndPackages, .. references],
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
+            if (project == "WiseOwl.Cobol.Compiler")
+                compilation = RunSourceGenerator(compilation, parse);
+            var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+            Assert.True(errors.Count == 0, $"{project} does not bind as the build binds it: {errors.Count} error(s); the first 20:\n"
+                + string.Join("\n", errors.Take(20)));
+            built[project] = compilation;
+        }
+        return [.. Projects.Select(p => built[p])];
+    }
+
+    /// <summary>The compiler's bound-tree visitor generator (<c>WiseOwl.Cobol.Compiler.SourceGen</c>, an analyzer the compiler project
+    /// references with <c>OutputItemType="Analyzer"</c>), run over the compilation as the build runs it.</summary>
+    private static CSharpCompilation RunSourceGenerator(CSharpCompilation compilation, CSharpParseOptions parse)
+    {
+        const string generator = "WiseOwl.Cobol.Compiler.SourceGen";
+        var assembly = System.Reflection.Assembly.LoadFrom(
+            TestRepo.Src(generator, "bin", TestRepo.Configuration, "netstandard2.0", generator + ".dll"));
+        var generators = assembly.GetTypes()
+            .Where(t => !t.IsAbstract && typeof(IIncrementalGenerator).IsAssignableFrom(t))
+            .Select(t => ((IIncrementalGenerator)Activator.CreateInstance(t)!).AsSourceGenerator())
+            .ToList();
+        Assert.NotEmpty(generators);
+        CSharpGeneratorDriver.Create(generators, parseOptions: parse)
+            .RunGeneratorsAndUpdateCompilation(compilation, out var output, out _);
+        return (CSharpCompilation)output;
+    }
 
     /// <summary>Every ad-hoc edition choice of a string in the trees <paramref name="scan"/> accepts, as "path:line: kind".</summary>
-    public static IReadOnlyList<string> Find(CSharpCompilation compilation, Func<SyntaxTree, bool> scan, Func<SyntaxTree, bool> derives)
+    public static IReadOnlyList<string> Find(IReadOnlyList<CSharpCompilation> compilations, Func<SyntaxTree, bool> scan,
+        Func<SyntaxTree, bool> derives)
     {
-        var models = compilation.SyntaxTrees.ToDictionary(t => t, t => compilation.GetSemanticModel(t));
+        var models = compilations.SelectMany(c => c.SyntaxTrees.Select(t => (Tree: t, Model: c.GetSemanticModel(t))))
+            .ToDictionary(x => x.Tree, x => x.Model);
 
         // ── The edition-derived values, as a fixed point over every declaration that can carry one ──
         var reads = new List<(ISymbol Declared, IReadOnlyList<ISymbol> Reads, bool ComparesEdition)>();
@@ -79,7 +144,13 @@ public sealed class EditionCiteOneDeciderDriftTests
                     PropertyDeclarationSyntax p => (model.GetDeclaredSymbol(p), ReturnedBy(p.ExpressionBody,
                         p.AccessorList?.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)) is { } g
                             ? (SyntaxNode?)g.ExpressionBody ?? g.Body : null)),
-                    MethodDeclarationSyntax { ParameterList.Parameters.Count: 0 } m => (model.GetDeclaredSymbol(m), ReturnedBy(m.ExpressionBody, m.Body)),
+                    // A predicate whose parameters all carry an edition is followed too: Is85(edition) answers the edition question
+                    // whatever edition it is handed. One that also takes the program's data (InEdition(row), RemovedAt2023(word, level))
+                    // answers a question about the program: a verdict, like a condition that reads it beside the edition.
+                    MethodDeclarationSyntax m when m.ParameterList.Parameters.All(IsEditionParameter) =>
+                        (model.GetDeclaredSymbol(m), ReturnedBy(m.ExpressionBody, m.Body)),
+                    LocalFunctionStatementSyntax f when f.ParameterList.Parameters.All(IsEditionParameter) =>
+                        (model.GetDeclaredSymbol(f), ReturnedBy(f.ExpressionBody, f.Body)),
                     _ => ((ISymbol?)null, Enumerable.Empty<SyntaxNode>()),
                 };
                 // An edition question answers a bool or an int, as the seeds do; a string or a record computed from an edition-derived
@@ -122,6 +193,15 @@ public sealed class EditionCiteOneDeciderDriftTests
                         "switch expression",
                     IfStatementSyntax { Else: { } e } i when YieldsString(i.Statement, Str) && YieldsString(e.Statement, Str) && Reads(i.Condition) =>
                         "if/else",
+                    // An if with no else whose branch returns a string, followed by a return of another: the else is the rest of the block.
+                    IfStatementSyntax { Else: null, Parent: BlockSyntax b } i when i.Statement is var t && Returns(t, Str)
+                        && b.Statements.IndexOf(i) is var at && at + 1 < b.Statements.Count && Returns(b.Statements[at + 1], Str)
+                        && Reads(i.Condition) =>
+                        "if/return",
+                    SwitchStatementSyntax w when w.Sections.Count(sec => sec.Statements.Any(st => YieldsString(st, Str))) >= 2
+                        && (Reads(w.Expression) || (NamesEdition(w.Expression) && w.Sections.SelectMany(sec => sec.Labels)
+                            .Any(l => l.DescendantNodes().OfType<LiteralExpressionSyntax>().Any(IsEditionValue)))) =>
+                        "switch statement",
                     _ => null,
                 };
                 if (kind is not null)
@@ -203,6 +283,18 @@ public sealed class EditionCiteOneDeciderDriftTests
         _ => false,
     };
 
+    /// <summary>A parameter that carries an edition: of type EditionInfo or EditionContext, or a number named for one.</summary>
+    private static bool IsEditionParameter(ParameterSyntax p) =>
+        p.Type?.ToString() is "EditionInfo" or "EditionContext" or "WiseOwl.Cobol.Binding.EditionContext"
+        || (p.Type?.ToString() == "int" && NamesEdition(SyntaxFactory.IdentifierName(p.Identifier.ValueText)));
+
+    private static bool Returns(StatementSyntax s, Func<ExpressionSyntax, bool> str) => s switch
+    {
+        BlockSyntax { Statements: [var only] } => Returns(only, str),
+        ReturnStatementSyntax { Expression: { } r } => str(r),
+        _ => false,
+    };
+
     private static bool YieldsString(StatementSyntax s, Func<ExpressionSyntax, bool> str) => s switch
     {
         BlockSyntax { Statements: [var only] } => YieldsString(only, str),
@@ -217,6 +309,10 @@ public sealed class EditionCiteOneDeciderDriftTests
     /// <summary>The code generator chooses the C# it emits, which no reader of a diagnostic sees: not a message site.</summary>
     private static bool IsCodeGeneration(SyntaxTree t) => t.FilePath.Split(Path.DirectorySeparatorChar).Contains("CodeGen");
 
+    /// <summary>A compile item MSBuild or the source generator produced (obj/, or a generator's path): no message is written there.</summary>
+    private static bool IsBuildOutput(SyntaxTree t) =>
+        !Path.IsPathRooted(t.FilePath) || t.FilePath.Split(Path.DirectorySeparatorChar).Contains("obj");
+
     private static bool IsGenerated(SyntaxTree t) =>
         t.FilePath.Split(Path.DirectorySeparatorChar).Contains("Generated") || t.FilePath.EndsWith(".g.cs", StringComparison.Ordinal);
 
@@ -224,14 +320,8 @@ public sealed class EditionCiteOneDeciderDriftTests
     public void NoSourceChoosesAStringByEditionOutsideCite()
     {
         string src = TestRepo.Src();
-        var trees = Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories)
-            .Where(f => !Path.GetRelativePath(src, f).Split(Path.DirectorySeparatorChar).Any(seg => seg is "bin" or "obj"))
-            .Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f), CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
-                path: f))
-            .ToList();
-        var compilation = CSharpCompilation.Create("src", trees, FrameworkAndThirdParty(),
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true, nullableContextOptions: NullableContextOptions.Enable));
-        var offences = Find(compilation, t => !IsDecider(t) && !IsGenerated(t) && !IsCodeGeneration(t), t => !IsDecider(t))
+        var offences = Find(SourceCompilations, t => !IsDecider(t) && !IsGenerated(t) && !IsCodeGeneration(t) && !IsBuildOutput(t),
+                t => !IsDecider(t))
             .Select(h => Path.GetRelativePath(src, h.Split(':', 2) is [var drive, var rest] && drive.Length == 1 ? $"{drive}:{rest}" : h)
                 .Replace('\\', '/'))
             .Order(StringComparer.Ordinal)
@@ -247,6 +337,8 @@ public sealed class EditionCiteOneDeciderDriftTests
     public void TheDetector_ReportsEachShape_AndEachAlias()
     {
         const string planted = """
+            using System.Collections.Generic;
+            using System.Linq;
             using WiseOwl.Cobol.Editions;
             class EditionContext { public EditionInfo Edition = EditionInfo.Of(85); public int DialectLevel => Edition.Year; public bool Permissive; }
             class C
@@ -278,15 +370,36 @@ public sealed class EditionCiteOneDeciderDriftTests
                 string Mode() => Edition.Permissive ? "warning" : "error";
                 string Fact(EditionInfo edition) => edition.SubscriptedClauseOperands ? "subscripted" : "plain";
                 string Mixed(bool index) => index && Edition.DialectLevel < 2002 ? "refused" : "admitted";
+                string ThroughACall(List<EditionContext> ds) { bool modern = ds.First().Edition.Has(2002); return modern ? "a" : "b"; }
+                static bool Is85(EditionInfo e) => e.Year < 2002;
+                string Predicate(EditionInfo e) => Is85(e) ? "a" : "b";
+                string Statement(EditionInfo e)
+                {
+                    switch (e.Year)
+                    {
+                        case 85: return "a";
+                        default: return "b";
+                    }
+                }
+                string EarlyReturn(EditionInfo e)
+                {
+                    if (e.Year < 2002) return "a";
+                    return "b";
+                }
             }
             """;
-        var compilation = CSharpCompilation.Create("planted", [CSharpSyntaxTree.ParseText(planted, path: "planted.cs")],
-            [.. FrameworkAndThirdParty(), MetadataReference.CreateFromFile(typeof(EditionInfo).Assembly.Location)],
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        var editions = SourceCompilations.Single(c => c.AssemblyName == "WiseOwl.Cobol.Editions");
+        var compilation = CSharpCompilation.Create("planted",
+            [CSharpSyntaxTree.ParseText(planted, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), path: "planted.cs")],
+            [.. FrameworkAndPackages, editions.ToMetadataReference()],
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
+        var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+        Assert.True(errors.Count == 0, "the planted source does not bind:\n" + string.Join("\n", errors.Take(20)));
         Assert.Equal([
-            "planted.cs:8: conditional expression", "planted.cs:11: switch expression", "planted.cs:18: if/else",
-            "planted.cs:23: conditional expression", "planted.cs:24: conditional expression", "planted.cs:25: conditional expression",
-            "planted.cs:26: conditional expression", "planted.cs:31: conditional expression",
-        ], Find(compilation, _ => true, _ => true));
+            "planted.cs:10: conditional expression", "planted.cs:13: switch expression", "planted.cs:20: if/else",
+            "planted.cs:25: conditional expression", "planted.cs:26: conditional expression", "planted.cs:27: conditional expression",
+            "planted.cs:28: conditional expression", "planted.cs:33: conditional expression", "planted.cs:34: conditional expression",
+            "planted.cs:36: conditional expression", "planted.cs:39: switch statement", "planted.cs:47: if/return",
+        ], Find([editions, compilation], t => t.FilePath == "planted.cs", _ => true));
     }
 }
