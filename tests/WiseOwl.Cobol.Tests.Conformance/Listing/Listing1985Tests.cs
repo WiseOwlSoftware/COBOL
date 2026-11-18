@@ -190,12 +190,7 @@ public sealed class Listing1985Tests : IDisposable
         // §1989:A.2.46.3 RV1 positions 1-21 of the instant, and RV3: the program's WHEN-COMPILED denotes the same time.
         var (ok, stdout, detail) = CutRunner.Run(Path.Combine(_dir, "outer85.dll"), _dir);
         Assert.True(ok, detail);
-        var offset = instant.Offset;
-        string expected = instant.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)
-            + (instant.Millisecond / 10).ToString("00", CultureInfo.InvariantCulture)
-            + (offset < TimeSpan.Zero ? '-' : '+')
-            + Math.Abs(offset.Hours).ToString("00", CultureInfo.InvariantCulture) + Math.Abs(offset.Minutes).ToString("00", CultureInfo.InvariantCulture);
-        Assert.Equal(expected, stdout.Trim());
+        Assert.Equal(ListingHookCases.WhenCompiledOf(instant), stdout.Trim());
     }
 
     [Fact]

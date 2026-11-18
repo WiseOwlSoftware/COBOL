@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-7.2.15.1",
+ "rule-digest": "d38e8d866fdd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.3.18-LISTING/pb725_directive_facility",
+ "notes": "kb/Work PB5925 (listing step 4b of docs/rearchitecture/DESIGN-listing.md, 2026-11-18), judged by the 2002 text. §2002:7.2.15.1 is >>LISTING followed by a choice of ON and OFF, OFF underlined and ON not, so a bare >>LISTING selects ON, which is what §2002:7.2.15.2 GR4 and GR5 call 'specifying or implying the ON phrase' (the figure 2023 keeps, whose printed page was rendered for FMT-7.3.18.2). The witnesses compile '>>LISTING OFF', '>>LISTING ON' and a bare '>>LISTING' at --std 2002 and observe each one's effect on the listing; any other operand is COBOL1911 (CompilerDirectiveCatalog.CheckOperand). Own witness: pb725_directive_facility, which writes '>>LISTING ON' and '>>PAGE' with comment-text at --std 2002 and matches its golden; the listing facts at 2002 are Listing2002Tests (a conformance-test class, which the lineage check does not take as a KEPT row's own witness)."
+}

@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Listing;
 using WiseOwl.Cobol.Listing.Text;
 using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using static WiseOwl.Cobol.Tests.Conformance.Listing.ListingHookCases;
 
 namespace WiseOwl.Cobol.Tests.Conformance.Listing;
 
@@ -21,35 +22,11 @@ public sealed class Listing2023Tests : IDisposable
 {
     private readonly string _dir = ScratchDirectory.Create("listing2023");
 
+    private readonly ListingHookCases _cases;
+
+    public Listing2023Tests() => _cases = new ListingHookCases(_dir, 2023);
+
     public void Dispose() => ScratchDirectory.Remove(_dir);
-
-    private (CompilerDriver.Result Result, ListingDocument Listing, string Text) Compile(string name, string[] lines,
-        IReadOnlyDictionary<string, string>? copybooks = null)
-    {
-        string source = Path.Combine(_dir, name + ".cob");
-        File.WriteAllText(source, string.Join("\n", lines));
-        foreach (var (book, text) in copybooks ?? new Dictionary<string, string>()) File.WriteAllText(Path.Combine(_dir, book), text);
-        // Page length 0: only a '/' line, a PAGE directive and a new section start a page, so every form feed is a rule's.
-        var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, name + ".dll"),
-            DialectLevel: 2023, CopyPaths: [_dir], CheckOnly: true,
-            Listing: new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json, PageLength: 0)));
-        Assert.True(result.Success, string.Join("\n", result.Errors));
-        var listing = Assert.IsType<ListingDocument>(result.Listing);
-        ListingJsonContract.AssertHolds(listing);
-        return (result, listing, File.ReadAllText(Path.Combine(_dir, name + ".lst")));
-    }
-
-    /// <summary>The source lines (inclusion null), 1-based by physical line.</summary>
-    private static ListingLine Source(ListingDocument listing, int fileLine) =>
-        listing.Lines.Single(l => l.Inclusion is null && l.FileLine == fileLine);
-
-    /// <summary>The 1-based physical line of the source line holding <paramref name="text"/>.</summary>
-    private static int LineOf(string[] lines, string text) => Array.FindIndex(lines, l => l.Contains(text, StringComparison.Ordinal)) + 1;
-
-    /// <summary>Whether the text listing prints <paramref name="line"/>'s source row: its listing number, then the line as written.</summary>
-    private static bool Printed(string text, ListingLine line) =>
-        text.Split('\n').Any(r => r.Length > 6 && r[..6].Trim() == line.Number.ToString(System.Globalization.CultureInfo.InvariantCulture)
-            && r.TrimEnd().EndsWith(line.Text.TrimEnd(), StringComparison.Ordinal));
 
     private static readonly string[] Prologue =
     [
@@ -73,30 +50,7 @@ public sealed class Listing2023Tests : IDisposable
     /// being suppressed by a LISTING directive". The hidden lines are in the model, not listed, and not printed.
     /// </summary>
     [Fact]
-    public void ListingOff_StopsTheLinesAfterIt_UntilOn_AndEveryListingDirectiveIsListed()
-    {
-        string[] lines =
-        [
-            .. Prologue,
-            "       01 SHOWN-BEFORE PIC X.",
-            "       >>LISTING OFF",
-            "       01 HIDDEN-1 PIC X.",
-            "       >>LISTING OFF",
-            "       01 HIDDEN-2 PIC X.",
-            "       >>LISTING",
-            "       01 SHOWN-AFTER PIC X.",
-            .. Epilogue,
-        ];
-        var (_, listing, text) = Compile("lstoff", lines);
-        var hidden = new[] { LineOf(lines, "HIDDEN-1"), LineOf(lines, "HIDDEN-2") };
-        for (int n = 1; n <= lines.Length; n++)
-        {
-            var line = Source(listing, n);
-            Assert.Equal(!hidden.Contains(n), line.Listed);
-            Assert.Equal(line.Listed, Printed(text, line));
-        }
-        Assert.Equal(ListingLineKind.Directive, Source(listing, LineOf(lines, ">>LISTING OFF")).Kind);
-    }
+    public void ListingOff_StopsTheLinesAfterIt_UntilOn_AndEveryListingDirectiveIsListed() => _cases.ListingOffThenOn();
 
     /// <summary>
     /// §2023:7.3.19.4 GR2: "If a source listing is being produced, a PAGE directive shall cause page ejection followed by listing of
@@ -105,34 +59,7 @@ public sealed class Listing2023Tests : IDisposable
     /// one form feed for the listed PAGE directive and one before the diagnostic summary.
     /// </summary>
     [Fact]
-    public void APageDirective_EjectsAPage_ThenIsListed_ButNotUnderListingOff()
-    {
-        string[] lines =
-        [
-            .. Prologue,
-            "       01 A PIC X.",
-            "       >>PAGE THE DATA ITEMS FOLLOW",
-            "       01 B PIC X.",
-            "       >>LISTING OFF",
-            "       >>PAGE NOT LISTED",
-            "       01 C PIC X.",
-            "       >>LISTING ON",
-            .. Epilogue,
-        ];
-        var (_, listing, text) = Compile("lstpage", lines);
-        var page = Source(listing, LineOf(lines, "THE DATA ITEMS"));
-        var hiddenPage = Source(listing, LineOf(lines, "NOT LISTED"));
-        Assert.True(page.Listed);
-        Assert.True(page.PageBreakBefore);
-        Assert.False(hiddenPage.Listed);
-        Assert.False(hiddenPage.PageBreakBefore);
-        Assert.Equal([page.Number], listing.Lines.Where(l => l.PageBreakBefore).Select(l => l.Number));
-
-        string[] pages = text.Split(PageComposer.FormFeed);
-        Assert.Equal(3, pages.Length);   // the page before the PAGE directive, the page it starts, the summary
-        string first = pages[1].Split('\n').Skip(ListingRequest.TextHeadingLines).First(r => r.Length > 0);
-        Assert.EndsWith(lines[page.FileLine - 1], first.TrimEnd(), StringComparison.Ordinal);
-    }
+    public void APageDirective_EjectsAPage_ThenIsListed_ButNotUnderListingOff() => _cases.PageDirective();
 
     /// <summary>
     /// §2023:7.2.3.4 GR4: "If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is
@@ -140,22 +67,7 @@ public sealed class Listing2023Tests : IDisposable
     /// (the JSON keeps them), not listed; the text listing prints the COPY statement and no line or banner of the library text.
     /// </summary>
     [Fact]
-    public void CopySuppress_ListsTheCopyStatement_ButNotTheLibraryText()
-    {
-        string[] lines = [.. Prologue, "       COPY SUPPBOOK SUPPRESS.", "       01 AFTER-COPY PIC X.", .. Epilogue];
-        var (_, listing, text) = Compile("lstsupp", lines,
-            new Dictionary<string, string> { ["SUPPBOOK.cpy"] = "       01 IN-COPY-1 PIC X.\n       01 IN-COPY-2 PIC X." });
-        var inclusion = Assert.Single(listing.Inclusions);
-        Assert.True(inclusion.Suppress);
-        var copied = listing.Lines.Where(l => l.Inclusion == inclusion.Id).ToList();
-        Assert.Equal(["       01 IN-COPY-1 PIC X.", "       01 IN-COPY-2 PIC X."], copied.Select(l => l.Text));
-        Assert.All(copied, l => Assert.False(l.Listed));
-        Assert.True(Source(listing, LineOf(lines, "COPY SUPPBOOK")).Listed);
-        Assert.True(Source(listing, LineOf(lines, "AFTER-COPY")).Listed);
-        Assert.DoesNotContain("IN-COPY", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("COPY SUPPBOOK ->", text, StringComparison.Ordinal);
-        Assert.Contains("COPY SUPPBOOK SUPPRESS.", text, StringComparison.Ordinal);
-    }
+    public void CopySuppress_ListsTheCopyStatement_ButNotTheLibraryText() => _cases.CopySuppress();
 
     /// <summary>
     /// §2023:7.2.3.4 GR5: "At the completion of copying the library text into the compilation group, the LISTING directive that is in
@@ -163,18 +75,26 @@ public sealed class Listing2023Tests : IDisposable
     /// A LISTING OFF inside the library text stops the library text's own lines after it, and not the source lines after the COPY.
     /// </summary>
     [Fact]
-    public void AListingOffInLibraryText_DoesNotOutliveIt()
-    {
-        string[] lines = [.. Prologue, "       COPY OFFBOOK.", "       01 AFTER-COPY PIC X.", .. Epilogue];
-        string[] book = ["       01 BOOK-SHOWN PIC X.", "       >>LISTING OFF", "       01 BOOK-HIDDEN PIC X."];
-        var (_, listing, _) = Compile("lstgr5", lines, new Dictionary<string, string> { ["OFFBOOK.cpy"] = string.Join("\n", book) });
-        var inclusion = Assert.Single(listing.Inclusions);
-        var copied = listing.Lines.Where(l => l.Inclusion == inclusion.Id).ToList();
-        Assert.Equal(book, copied.Select(l => l.Text));
-        Assert.Equal([true, true, false], copied.Select(l => l.Listed));
-        Assert.True(Source(listing, LineOf(lines, "AFTER-COPY")).Listed);
-        Assert.All(listing.Lines.Where(l => l.Inclusion is null), l => Assert.True(l.Listed));
-    }
+    public void AListingOffInLibraryText_DoesNotOutliveIt() => _cases.ListingStateAtTheEndOfLibraryText();
+
+    /// <summary>§2023:7.3.19.4 GR3: "If a source listing is not being produced, a PAGE directive shall have no effect".</summary>
+    [Fact]
+    public void APageDirective_WithNoListing_HasNoEffect() => _cases.PageDirective_WithNoListing_HasNoEffect();
+
+    /// <summary>
+    /// §2023:6.3.7.2: "If a source listing is being produced, a comment line identified by the fixed comment indicator slant (/)
+    /// causes page ejection followed by printing of the comment line"; an asterisk comment line prints at the next available line
+    /// position.
+    /// </summary>
+    [Fact]
+    public void ASlantLine_StartsAPage_AndAnAsteriskLineFollowsItsPredecessor() => _cases.SlantAndAsteriskLines();
+
+    /// <summary>
+    /// §2023:15.99.3 RV3: "The returned value shall denote the same time as the compilation date and time if provided in the
+    /// listing and in the generated object code".
+    /// </summary>
+    [Fact]
+    public void WhenCompiled_DenotesTheInstantTheListingCarries() => _cases.WhenCompiled_DenotesTheListingsInstant();
 
     /// <summary>
     /// §2023:7.3.22.4 GR1: "If directive-name is specified, the state of the directive is saved"; §2023:7.3.20.4 GR1 restores it. A
@@ -194,7 +114,7 @@ public sealed class Listing2023Tests : IDisposable
             "       01 AFTER-POP PIC X.",
             .. Epilogue,
         ];
-        var (_, listing, _) = Compile("lstpush", lines);
+        var (_, listing, _) = _cases.Compile("lstpush", lines);
         Assert.False(Source(listing, LineOf(lines, "IN-PUSH")).Listed);
         Assert.False(Source(listing, LineOf(lines, ">>POP")).Listed);
         Assert.True(Source(listing, LineOf(lines, ">>LISTING OFF")).Listed);
@@ -223,7 +143,7 @@ public sealed class Listing2023Tests : IDisposable
             "           DISPLAY \"AFTER\"",
             "           STOP RUN.",
         ];
-        var (_, listing, _) = Compile("lstgr14", lines);
+        var (_, listing, _) = _cases.Compile("lstgr14", lines);
         Assert.False(Source(listing, LineOf(lines, "HANDLER")).Listed);
         int endPerform = LineOf(lines, "END-PERFORM");
         for (int n = 1; n <= lines.Length; n++)
@@ -257,7 +177,7 @@ public sealed class Listing2023Tests : IDisposable
             "           STOP RUN.",
         ];
         string[] book = ["       >>DEFINE BOOKVAR 1", "           DISPLAY \"IN-BOOK\""];
-        var (_, listing, text) = Compile("lstgr5pop", lines, new Dictionary<string, string> { ["DIRBOOK.cpy"] = string.Join("\n", book) });
+        var (_, listing, text) = _cases.Compile("lstgr5pop", lines, new Dictionary<string, string> { ["DIRBOOK.cpy"] = string.Join("\n", book) });
         int handler = LineOf(lines, "HANDLER");
         for (int n = 1; n <= lines.Length; n++)
             Assert.Equal(n != handler, Source(listing, n).Listed);
@@ -290,7 +210,7 @@ public sealed class Listing2023Tests : IDisposable
             "           STOP RUN.",
         ];
         string[] book = ["               DISPLAY \"BOOK-HANDLER\"", "           END-PERFORM"];
-        var (_, listing, _) = Compile("lstgr5end", lines, new Dictionary<string, string> { ["ENDBOOK.cpy"] = string.Join("\n", book) });
+        var (_, listing, _) = _cases.Compile("lstgr5end", lines, new Dictionary<string, string> { ["ENDBOOK.cpy"] = string.Join("\n", book) });
         var inclusion = Assert.Single(listing.Inclusions);
         var copied = listing.Lines.Where(l => l.Inclusion == inclusion.Id).ToList();
         Assert.Equal(book, copied.Select(l => l.Text));
@@ -321,7 +241,7 @@ public sealed class Listing2023Tests : IDisposable
             "       >>LISTING ON",
             .. Epilogue,
         ];
-        var (result, listing, text) = Compile("lstdisp", lines);
+        var (result, listing, text) = _cases.Compile("lstdisp", lines);
         var first = Source(listing, LineOf(lines, "\"FIRST\""));
         var second = Source(listing, LineOf(lines, "\"SECOND\""));
         Assert.False(second.Listed);
@@ -377,7 +297,7 @@ public sealed class Listing2023Tests : IDisposable
             "       COPY REPBOOK REPLACING ==:N:== BY ==SECOND-ITEM==.",
             .. Epilogue,
         ];
-        var (_, listing, text) = Compile("lstrepl", lines, new Dictionary<string, string> { ["REPBOOK.cpy"] = "       01 :N: PIC X." });
+        var (_, listing, text) = _cases.Compile("lstrepl", lines, new Dictionary<string, string> { ["REPBOOK.cpy"] = "       01 :N: PIC X." });
         var replaced = Source(listing, LineOf(lines, ":V:."));
         Assert.Equal(ListingReplacement.Replacing, replaced.Replacement);
         Assert.Equal("01 NUM PIC 9 VALUE 7.", replaced.Replaced!.Trim());

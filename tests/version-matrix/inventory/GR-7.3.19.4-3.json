@@ -3,7 +3,7 @@
  "rule-digest": "f0c3ec92a6c4",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#page-directive-2002",
- "test-ref": "conformance:cases/7.3.18-LISTING/pb725_directive_facility",
+ "test-ref": "conformance:cases/7.3.18-LISTING/pb725_directive_facility; conformance-test:Listing2023Tests.APageDirective_WithNoListing_HasNoEffect",
  "editions": "2002,2014,2023",
  "notes": "kb/Work PB5925 (listing step 4a of docs/rearchitecture/DESIGN-listing.md, 2026-11-18). §2023:7.3.19.4 GR3: \"If a source listing is not being produced, a PAGE directive shall have no effect.\" With no listing the driver records nothing for a PAGE directive (it asks TextStageTrace.Records first) and consumes the line as a blank one, so the program compiles and runs as without the directive: the goldens pb725_directive_facility (2002) and pb794_directive_operands (2023) hold >>PAGE with directive-independent expected output. At --std 85 a >>PAGE line is COBOL0900 (COBOL-85 has no >> directives)."
 }

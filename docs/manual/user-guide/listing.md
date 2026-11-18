@@ -79,7 +79,11 @@ sequence and indicator areas are not part of it.
 ## What is listed (2002 and later)
 
 The compiler directives and the COPY statement of COBOL-2002 and later control the listing (ISO/IEC 1989:2023 sections
-7.3.18, 7.3.19 and 7.2.3.4). The lines they turn off are still in the JSON listing, with `listed` false.
+7.3.18, 7.3.19 and 7.2.3.4). The lines they turn off are still in the JSON listing, with `listed` false. COBOL-2002 and
+COBOL-2014 state the same LISTING, PAGE and COPY SUPPRESS rules in the same words (ISO/IEC 1989:2002 sections 7.2.15,
+7.2.16 and 7.1.2.3; ISO/IEC 1989:2014 sections 7.3.16, 7.3.17 and 7.2.2.3), and the listing applies them the same way at
+`--std 2002` and `--std 2014`. Those two editions have no `>>PUSH`, `>>POP` or `>>DISPLAY` directive and no
+exception-checking PERFORM, so the items below that name them apply at `--std 2023` only.
 
 - `>>LISTING OFF` stops the listing of the lines after it until `>>LISTING ON` (or `>>LISTING` with no operand, which
   means ON). Every LISTING directive line is listed, the OFF ones included: "Each LISTING directive shall be listed, even
@@ -117,6 +121,9 @@ The DATE-COMPILED paragraph "is replaced during compilation with a paragraph of 
 printed. The page headings print the same date and time, and `FUNCTION WHEN-COMPILED` in the program returns the same
 instant: one compilation has one time ("The returned value must denote the same time as the compilation date and time
 if provided in the listing of the source program", the WHEN-COMPILED function, returned value 3).
+
+WHEN-COMPILED denotes the listing's instant at every edition (ISO/IEC 1989:2002 section 15.80.2, ISO/IEC 1989:2014
+section 15.92.2 and ISO/IEC 1989:2023 section 15.99.3, returned value 3 in each).
 
 At `--std 2002` and later the DATE-COMPILED paragraph is a removed construct (COBOL0902); under `--permissive` it is
 accepted with a warning and replaced in the listing as at `--std 85`.
