@@ -35,23 +35,6 @@
    "l1-accept-from-undeclared-mnemonic": 1,
    "l1-display-upon-input-only-device": 1
   },
-  "COBOL0818": {
-   "pb139-accept-alphabetic-temporal": 1
-  },
-  "COBOL0819": {
-   "1985-GR-VI_6_19_4-3": 1,
-   "pb1007-numeric-function-two-character-receivers": 2,
-   "pb3605-move-space-numeric": 2,
-   "pb416-move-zero-to-alphabetic": 1,
-   "pb70-refmod-group-noninteger-numeric-sender": 1,
-   "pb71-all-national-figurative-below-2002": 1,
-   "pb72-move-alphabetic-to-numeric": 1,
-   "pb72-move-edited-to-numeric": 1,
-   "pb72-move-noninteger-to-alphanumeric": 1,
-   "pb72-move-numeric-to-alphabetic": 1,
-   "pb73-move-alphabetic-view-to-numeric": 1,
-   "pb73-move-numeric-function-to-alphanumeric": 1
-  },
   "COBOL0823": {
    "pb353-invoke-unbindable-target-names-its-edition": 1
   },
@@ -306,60 +289,6 @@
    "pb586-level88-literal-out-of-range": 1,
    "pb586-report-literal-out-of-range": 1,
    "pb97-value-edited-truncation": 4
-  },
-  "COBOL1627": {
-   "1985-SR-X_5_2_3-1": 1,
-   "1985-SR-X_5_3_3-1": 1,
-   "1989-AR-A_2_22_3-1": 1,
-   "1989-AR-A_2_23_3-1": 1,
-   "1989-AR-A_2_27_3-1": 1,
-   "1989-AR-A_2_30_3-4": 2,
-   "1989-AR-A_2_31_3-1": 1,
-   "1989-AR-A_2_32_3-1": 1,
-   "1989-AR-A_2_33_3-1": 1,
-   "1989-AR-A_2_38_3-1": 1,
-   "1989-AR-A_2_44_3-1": 1,
-   "g85_x03": 1,
-   "l1-cos-class-numeric": 1,
-   "l1-integer-class": 1,
-   "l1-log-class-numeric": 2,
-   "l1-log10-class-numeric": 2,
-   "l1-sin-class-numeric": 2,
-   "l1-tan-class-numeric": 2,
-   "pb1-integer-arg-numeric-edited": 1,
-   "pb1-numeric-arg-alphanumeric": 1,
-   "pb1-numeric-arg-family": 3,
-   "pb1-numeric-arg-numeric-edited": 1,
-   "pb1-numeric-arg-trig-family": 3,
-   "pb1-numeric-arg2-alphanumeric": 1,
-   "pb1-string-arg-numeric": 1,
-   "pb12-find-string-integer-position": 1,
-   "pb124-numval-alphabetic": 1,
-   "pb1398-length-of-arithmetic-expression": 1,
-   "pb1420-random-numeric-function-seed": 1,
-   "pb19-boolean-arg-alphanumeric": 1,
-   "pb19-numeric-arg-alphanumeric": 1,
-   "pb19-string-arg-numeric": 1,
-   "pb2074-upper-case-address-of": 1,
-   "pb248-integer-arg-float-item": 1,
-   "pb248-integer-arg-float-literal": 1,
-   "pb31-max-mixed-argument-classes": 1,
-   "pb40-numeric-function-in-integer-position": 1,
-   "pb40-scaled-item-in-integer-position": 1,
-   "pb48-figurative-all-numeric-argument": 1,
-   "pb48-figurative-space-numeric-argument": 1,
-   "pb52-intrinsic-argument-stage": 1,
-   "pb5833-max-all-refmod-numeric-mix": 1,
-   "pb5833-mean-all-refmod": 1,
-   "pb5833-median-all-refmod": 1,
-   "pb5833-midrange-all-refmod": 1,
-   "pb61-length-numeric-literal": 1,
-   "pb658-numval-numeric-edited-argument": 1,
-   "stat-mean-arg-class-numeric": 1,
-   "stat-median-arg-class-numeric": 1,
-   "stat-midrange-arg-class-numeric": 1,
-   "stat-standard-deviation-arg-class-numeric": 1,
-   "stat-variance-arg-class-numeric": 1
   },
   "COBOL1630": {
    "pb1943-sum-counter-ref-mod-of-ref-mod": 1,
@@ -747,10 +676,7 @@
    "pb416-initialize-target-class-index": 1
   },
   "COBOL2031": {
-   "pb3605-initialize-replacing-numeric-by-space": 1,
-   "pb416-initialize-replacing-index-sender": 1,
-   "pb416-initialize-replacing-numeric-to-alphabetic": 1,
-   "pb416-initialize-replacing-zero-to-alphabetic": 1
+   "pb416-initialize-replacing-index-sender": 1
   },
   "COBOL2045": {
    "pb1830-report-sum-addend-index-item": 1,
@@ -1324,11 +1250,6 @@
    "pb5789-type-ch-twice-85": 1,
    "pb5789-type-rh-twice-85": 1
   },
-  "COBOL2750": {
-   "1985-SR-XIII_3_19_3-1": 1,
-   "pb1295-sum-entry-alphabetic": 1,
-   "pb1295-sum-entry-unprintable-alphabetic": 1
-  },
   "COBOL2751": {
    "pb1295-sum-expression-subscripted-by-sum-counter": 1,
    "pb1474-source-expression-subscripted-by-page-counter": 1,
@@ -1337,8 +1258,6 @@
    "pb1474-sum-addend-subscripted-by-sum-counter": 1
   },
   "COBOL2770": {
-   "pb1293-source-alphabetic-to-numeric": 1,
-   "pb1293-source-numeric-to-alphabetic": 1,
    "pb5188-source-index-data-item": 1
   },
   "COBOL2773": {

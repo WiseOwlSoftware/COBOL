@@ -3499,7 +3499,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (picText is null || pic is null || !_reportPicturesScreened.Add(ge)) return;
         _d.ScreenPictureDigitCapacity(pic, $"{where} (PICTURE {picText})");
-        if (summed && MoveTable16.NumericSenderRefusal(Table16Operand.Of(pic)) is { } why)
+        if (summed && MoveTable16.NumericSenderRefusal(Table16Operand.Of(pic), MoveTable16.CitationsOf(Edition.Edition)) is { } why)
             Edition.Error(DiagnosticCatalog.ReportSumEntryCategory, $"{where}: its PICTURE {picText} is of a category that cannot "
                 + $"receive a numeric sum, and the entry contains a SUM clause: {why}. The category of the subject of the entry "
                 + "shall be valid as the category of a receiving operand in a MOVE statement for a sending operand of the "

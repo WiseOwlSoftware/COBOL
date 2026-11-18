@@ -256,7 +256,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// described such that a MOVE statement is valid with identifier-1 as the sending operand and the printable item
     /// as the receiving operand" (the ROUNDED spelling is a <see cref="FieldComputeSource"/>, SR5). It is §2023:13.18.53.4
     /// GR1's implicit MOVE, so it is the ONE §2023:14.9.25.3 validity chain every other MOVE asker uses
-    /// (<see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem)"/>: SR2, SR6-SR9 and Table 16), asked
+    /// (<see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem, MoveCitations)"/>: SR2, SR6-SR9 and Table 16), asked
     /// of the entry's printable item. An entry with no COLUMN clause has no printable item (<paramref name="printable"/>
     /// null), hence no receiving operand and nothing to ask — except §2023:14.9.25.3 SR1's sending half, a class rule
     /// about identifier-1 alone (<see cref="MoveTable16.SenderClassRefusal"/>), asked of every identifier-1.</item>
@@ -280,7 +280,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                 + $"from identifier-1 is invalid — {classRefusal} (ISO §2023:13.18.53.3 SR2)");
             return true;
         }
-        if (printable is null || MoveTable16.Validity(operand, Table16Operand.Of(printable), printable) is not { } refusal)
+        if (printable is null || MoveTable16.Validity(operand, Table16Operand.Of(printable), printable, MoveTable16.CitationsOf(ctx.Edition.Edition)) is not { } refusal)
             return false;
         ctx.Edition.Error(DiagnosticCatalog.ReportSourceOperandRule, $"{where}: the implicit MOVE of §2023:13.18.53.4 GR1 "
             + $"from identifier-1 to the printable item is invalid — {refusal.Reason} (ISO §2023:13.18.53.3 SR2)");

@@ -135,7 +135,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         // §2023:14.9.25.3 refuses an integer sender, so the question is asked of the ONE validity chain
         // (MoveTable16.Validity — SR2, SR6–SR9, Table 16) with the ACTUAL conceptual item as sender, and framed
         // here under ACCEPT's own rule. ImplicitMovePhrase.AcceptTemporal tells BindMoveOf not to ask it twice.
-        if (MoveTable16.Validity(sender, target) is { } refusal)
+        if (MoveTable16.Validity(sender, target, MoveTable16.CitationsOf(ctx.Edition.Edition)) is { } refusal)
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.AcceptReceiverExcluded, $"ACCEPT receiver '{rItem.CobolName}': the temporal transfer "
                 + $"stores by the MOVE rules (ISO §2023:14.9.1.4 GR6 / §2023:14.9.1.3 SR3) and this move is invalid — {refusal.Reason}");

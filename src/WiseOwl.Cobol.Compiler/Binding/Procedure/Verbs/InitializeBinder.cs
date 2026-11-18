@@ -955,7 +955,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
             // clean and aborted the run unit. The receiving operand of SR4's MOVE is "an item of the specified
             // category" — an ELEMENTARY item with a Table-16 position and no data item, which SR9's reader
             // reads (null receiver) as "not a group", i.e. a violation when the sender is a variable-length group.
-            if (MoveTable16.Validity(value, recvPos, receiverItem: null)?.Reason is not { } refusal) continue;
+            if (MoveTable16.Validity(value, recvPos, receiverItem: null, MoveTable16.CitationsOf(ctx.Edition.Edition))?.Reason is not { } refusal) continue;
             ctx.Edition.Error(DiagnosticCatalog.InitializeReplacingMoveInvalid,
                 $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {senderText}: ISO §2023:14.9.20.3 SR4 "
                 + $"requires that `MOVE {senderText} TO <an item of category "

@@ -79,7 +79,7 @@ public sealed class ProcedureRangeDeclarativesDriftTests
     public void ARangeStraddlingTheDeclarativesBoundary_IsRefused(int level)
     {
         var diagnostics = BindDiagnostics(Straddle, level);
-        Assert.Contains(diagnostics, d => d.Contains("COBOL2186") && d.Contains("§2023:14.9.28.3 SR11"));
+        Assert.Contains(diagnostics, d => d.Contains("COBOL2186") && (d.Contains("§2023:14.9.28.3 SR11") || d.Contains("§1985:VI.6.21.3 SR11")));
     }
 
     /// <summary>HALF 2 — the quiet one. Both names ARE in the declaratives portion, so a screen written as "one
@@ -92,7 +92,7 @@ public sealed class ProcedureRangeDeclarativesDriftTests
     public void ARangeSpanningTwoDeclarativeSections_IsRefused(int level)
     {
         var diagnostics = BindDiagnostics(TwoDeclarativeSections, level);
-        Assert.Contains(diagnostics, d => d.Contains("COBOL2186") && d.Contains("§2023:14.9.28.3 SR11"));
+        Assert.Contains(diagnostics, d => d.Contains("COBOL2186") && (d.Contains("§2023:14.9.28.3 SR11") || d.Contains("§1985:VI.6.21.3 SR11")));
     }
 
     /// <summary>The control, and it is the load-bearing half: a range whose two ends are procedures of the SAME

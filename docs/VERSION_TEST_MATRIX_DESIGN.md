@@ -322,6 +322,14 @@ the edition in force has no such rule, the message cites the edition where the r
   `PlacementRules.SequenceRule.Cite1985`/`Shall1985`, `LiteralPosition`'s `Cite1985`), so the next row of a table is cited by
   adding its 1985 fields. A refusal's `expect` in `conformance-suite/wiseowl/diagnostics` names a phrase every edition's
   message holds, never a citation of one edition.
+- **A rule whose words live in the runtime takes its citations as data** (kb/Work PB4950 slice 3): `MoveValidity` (Runtime, which has no
+  edition) states Table 16's reasons once, and the compiler hands it a `MoveCitations` (`MoveTable16.CitationsOf(edition)`: the 2023
+  numbers, or §1985:VI.6.19.4 GR3a/b/c at 85, and the edition gate's phrase for a cell COBOL-85 lacks); the run time asks the
+  two-argument form, which cites §2023. The functions' argument rules have one place, `IntrinsicCitations.Clause`: at 85 the
+  paragraph of the 1989 Intrinsic Function module (`IntrinsicCatalog.Paragraph1989`, derived from the catalog and pinned to the
+  transcription's headings by `Intrinsic1989ModuleDriftTests`), and for a function a later edition introduced the 2023 clause with
+  the gate's "(targeting COBOL-85)". A construct COBOL-2002 introduced whose rule still fires at 85 (a page width, a multiple COLUMN
+  clause, the national category) says so the same way (`NotInCobol85`, `MoveCitations`).
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
   1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
   `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.
