@@ -481,7 +481,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // dataReference too), so this arm does, with the one message the parse layer gives the other three.
             if (m.dataReferenceSuffix().Length > 0)
                 ctx.Edition.Error(DiagnosticCatalog.StatementFormatShape,
-                    MnemonicNameSlot.SuffixMessage("WRITE … ADVANCING", name, "§2023:14.9.51.2 Format 1"));
+                    MnemonicNameSlot.SuffixMessage("WRITE … ADVANCING", name, "§1985:VII.4.7.2", "§2023:14.9.51.2 Format 1",
+                        (y1985, later) => ctx.Edition.Edition.Cite(y1985, later, later)));
             // ⛔ LINE / LINES BELONG TO THE COUNT ALTERNATIVE ONLY (kb/Work PB1189). §2023:14.9.51.2 Format 1 prints
             // `{ identifier-2 | integer-1 } [ LINE | LINES ]` and `{ mnemonic-name-1 | PAGE }` as the two operand
             // alternatives, so `mnemonic-name-1 LINES` is no WRITE statement. The grammar cannot tell a mnemonic
@@ -490,7 +491,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             if ((wba.LINE() ?? wba.LINES()) is { } word)
                 ctx.Edition.Error(DiagnosticCatalog.StatementFormatShape,
                     $"WRITE ADVANCING {DataBinder.WrittenText(m)} {word.GetText()}: '{name}' "
-                    + "is a mnemonic-name, and ISO §2023:14.9.51.2 Format 1 writes LINE or LINES only after the count "
+                    + "is a mnemonic-name, and ISO " + ctx.Edition.Edition.Cite("§1985:VII.4.7.2", "§2023:14.9.51.2 Format 1", "§2023:14.9.51.2 Format 1")
+                    + " writes LINE or LINES only after the count "
                     + "alternative { identifier-2 | integer-1 } — the other alternative is { mnemonic-name-1 | PAGE } "
                     + $"with no such word. Remove '{word.GetText()}'.");
             return FeatureAdvancing(before, name, system);

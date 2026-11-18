@@ -50,6 +50,13 @@ public abstract class CobolParserCoreBase : Parser
         => written is null ? null
          : CobolWords.Resolve(written);   // the keyword spelling, directive or none: Resolve spells it (kb/Work PB4240)
 
+    /// <summary>A DIAGNOSIS-ONLY EDITION READ (kb/Work PB4950, the owner's decision of 2026-11-07: "a diagnostic cite the rule of
+    /// the edition the program was compiled under"): <paramref name="y1985"/> at COBOL-85 and <paramref name="later"/> at every
+    /// later edition, chosen by the ONE decider <see cref="EditionInfo.Cite"/>. The error strategy words a syntax diagnostic
+    /// through it, because the edition's getter is protected (<c>EditionReadDriftTests</c>); it refuses nothing and gates
+    /// no construct.</summary>
+    public string DiagnosticCitation(string y1985, string later) => Edition.Cite(y1985, later, later);
+
     protected bool is85()   => Edition.Has(85);
     protected bool is2002() => Edition.Has(2002);
     protected bool is2014() => Edition.Has(2014);

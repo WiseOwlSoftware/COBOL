@@ -107,7 +107,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
+            "DiagnosticCitation", "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
             "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "UserWordViolationOf", "conditionalPhraseAssociates",
             "entryNameHere", "facilityWord",
             "gatedDeclaration", "gatedWordFreeHere", "is2002", "is2014",
@@ -199,6 +199,11 @@ public sealed class EditionReadDriftTests
         // (kb/Work PB4435, PrintsConstantName): where every word the position takes stands for a literal (§2023:13.10.3 SR2), the
         // word is a constant-name, and the constant entry is COBOL-2002's, so a COBOL-85 sentence names the literal alone.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsConstantName"] = (1, Verdict.DiagnosisOnly),
+        // The error strategy words each syntax diagnostic's citation in the edition's own text (kb/Work PB4950, the owner's decision of
+        // 2026-11-07: "a diagnostic cite the rule of the edition the program was compiled under"): CiteAt is the ONE strategy
+        // member that asks the parser's Cite, and every message that names a rule goes through it. It refuses nothing and gates no
+        // construct.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.CiteAt | DiagnosticCitation"] = (1, Verdict.DiagnosisOnly),
         // The listener: the gate's second witness notes a syntax error's offending reservation-gated word.
         ["src/WiseOwl.Cobol.Frontend/Parsing/ReservationGateRewriter.cs | OffenderWitness.SyntaxError | NoteGatedOffender"] = (1, Verdict.WordStatus),
         // The front end's driver decides whether a re-parse lexes differently because a word the program declared is

@@ -216,7 +216,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     if (cp.FIRST() is not null || cp.TRAILING() is not null)
                         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "INSPECT TALLYING FOR "
                             + (cp.FIRST() is not null ? "FIRST" : "TRAILING")
-                            + ": the tallying-phrase of ISO §2023:14.9.22.2 prints only CHARACTERS, ALL and LEADING");
+                            + ": the tallying-phrase of ISO "
+                            + ctx.Edition.Edition.Cite("§1985:VI.6.18.2 Format 1", "§2023:14.9.22.2", "§2023:14.9.22.2")
+                            + " prints only CHARACTERS, ALL and LEADING");
                     InspectTallyKind kind = cp.ALL() is not null ? InspectTallyKind.All : InspectTallyKind.Leading;
                     foreach (var operand in cp.inspectCountOperand())
                     {
@@ -242,8 +244,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     continue;
                 }
                 if (item.TRAILING() is not null)
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "INSPECT REPLACING TRAILING: the replacing-phrase of ISO §2023:14.9.22.2 "
-                        + "prints only CHARACTERS, ALL, LEADING and FIRST");
+                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "INSPECT REPLACING TRAILING: the replacing-phrase of ISO "
+                        + ctx.Edition.Edition.Cite("§1985:VI.6.18.2 Format 2", "§2023:14.9.22.2", "§2023:14.9.22.2")
+                        + " prints only CHARACTERS, ALL, LEADING and FIRST");
                 InspectReplaceKind kind = item.ALL() is not null ? InspectReplaceKind.All
                     : item.FIRST() is not null ? InspectReplaceKind.First
                     : InspectReplaceKind.Leading;
