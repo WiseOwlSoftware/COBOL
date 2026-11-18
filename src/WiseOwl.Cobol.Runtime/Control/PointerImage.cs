@@ -87,7 +87,21 @@ public static class PointerImage
 
     /// <summary>A data-pointer whose displacement from its cell lies outside the ±2^31 the shape base + displacement can state (kb/Work PB4925): the entry
     /// its own base names, so its token decodes to exactly it.</summary>
-    internal sealed record FarDisplacement(StorageCell Cell, int Generation, long Offset);
+    internal sealed record FarDisplacement(StorageCell Cell, int Generation, long Offset) : ImagedEntry
+    {
+        internal override bool Ended => Generation != Cell.Generation;
+    }
+
+    /// <summary>⛔ AN ENTRY THE RUN UNIT'S TABLE HOLDS STRONGLY (kb/Work PB5928). Every token this codec renders names one of these or the identity of an
+    /// addressless pointer (<see cref="SlotImageTable.NoteIdentity"/>, held weakly). An entry is a record made for the table, so nothing else references it:
+    /// held weakly it would be collected at the next GC while the storage it names is alive, and the token would read back as a <see cref="ForeignAddress"/>.
+    /// The table drops it only when <see cref="Ended"/> says the storage it names has ended. A new kind of entry derives from this type, so the type
+    /// system, not a list in the table, decides how it is held.</summary>
+    internal abstract record ImagedEntry
+    {
+        /// <summary>Whether the storage life this entry names has ended (FREE, CANCEL), so the table may drop it.</summary>
+        internal virtual bool Ended => false;
+    }
 
     /// <summary>Whether base + <paramref name="offset"/> decodes back to its own base: the nearest base (<see cref="DataPointerOf"/>) is the pointer's own while
     /// the displacement is in [-2^31, 2^31), the half-open window the rounding gives each base.</summary>
@@ -96,10 +110,13 @@ public static class PointerImage
     private static readonly ConditionalWeakTable<StorageCell, CellLives> s_cellBases = new();
 
     /// <summary>One life of one storage cell, the entry a decoded data-pointer token names.</summary>
-    internal sealed record CellLife(StorageCell Cell, int Generation);
+    internal sealed record CellLife(StorageCell Cell, int Generation) : ImagedEntry
+    {
+        internal override bool Ended => Generation != Cell.Generation;
+    }
 
     /// <summary>A program- or function-pointer's category and name, the entry a decoded token names.</summary>
-    internal sealed record NamedAddress(char Category, string Name);
+    internal sealed record NamedAddress(char Category, string Name) : ImagedEntry;
 
     /// <summary>The storage image of a data-pointer VALUE (null or NULL → <see cref="NullImage"/>).</summary>
     public static string Of(ManagedPointer? p) => p switch
@@ -195,12 +212,12 @@ public static class PointerImage
         _ => null,
     };
 
-    private static long AreaBase(object area)
+    private static long AreaBase(ManagedPointer area)
     {
         long b;
         lock (s_lock)
             b = s_areaBases.GetValue(area, static _ => new StrongBox<long>(++s_nextBase << BaseShift)).Value;
-        RunUnit.Current.SlotImages.Note(b, area);
+        RunUnit.Current.SlotImages.NoteIdentity(b, area);
         return b;
     }
 

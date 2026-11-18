@@ -36,12 +36,14 @@ public sealed class SlotImageRoundTripTests
     public void DataPointerOf_APointerDisplacedBeyondTheWindow_ReadsBackAsItself_NeverAsAnotherArea()
     {
         // kb/Work PB4925: base + displacement names another area's window once the displacement leaves [-2^31, 2^31), so a far pointer takes a base of its
-        // own. Areas A and B are imaged in turn, so B's base is A's next; A + 2^32 and A + 2^32 + 5 would otherwise decode as B and B + 5.
+        // own. A + (B's base - A's base) and that + 5 would otherwise decode as B and B + 5. The displacement is read from the two images, never assumed:
+        // bases are process-wide, so a test running in parallel may take bases between A's and B's (kb/Work PB5928).
         var a = new StorageCell { Ref = "AAAA" };
         var b = new StorageCell { Ref = "BBBB" };
-        _ = PointerImage.Of(ManagedPointer.At(a, 0));
-        _ = PointerImage.Of(ManagedPointer.At(b, 0));
-        foreach (long offset in new long[] { 1L << 32, (1L << 32) + 5, 1L << 31, -(1L << 31) - 1, long.MaxValue, long.MinValue })
+        long baseOfA = AddressOf(PointerImage.Of(ManagedPointer.At(a, 0)));
+        long toB = AddressOf(PointerImage.Of(ManagedPointer.At(b, 0))) - baseOfA;
+        Assert.True(toB >= 1L << 32, $"B's base lies {toB} past A's");
+        foreach (long offset in new long[] { toB, toB + 5, 1L << 32, 1L << 31, -(1L << 31) - 1, long.MaxValue, long.MinValue })
         {
             var written = ManagedPointer.At(a, offset);
             string image = PointerImage.Of(written);
@@ -50,12 +52,38 @@ public sealed class SlotImageRoundTripTests
             Assert.Same(a, cell.Cell);
             Assert.Equal(offset, cell.Offset);
             Assert.Equal(image, PointerImage.Of(read));                                 // equal pointers image equal (§2023:8.8.4.2.16)
-            Assert.False(ManagedPointer.SameTarget(ManagedPointer.At(b, offset - (1L << 32)), read), $"offset {offset}");
+            Assert.False(ManagedPointer.SameTarget(ManagedPointer.At(b, unchecked(offset - toB)), read), $"offset {offset}");
         }
         // The window's edges stay base + displacement: -2^31 and 2^31 - 1 decode back with no base of their own.
         foreach (long offset in new long[] { -(1L << 31), (1L << 31) - 1 })
             Assert.Equal(offset, Assert.IsType<CellPointer>(PointerImage.DataPointerOf(PointerImage.Of(ManagedPointer.At(a, offset)))).Offset);
     }
+
+    [Fact]
+    public void DataPointerOf_AFarPointer_ReadsBackAsItself_AfterACollection()
+    {
+        // kb/Work PB5928: the table held a far pointer's entry (a FarDisplacement nothing else references) as a WeakReference, so any collection between
+        // the WRITE and the READ dropped it and the token read back as a ForeignAddress while its cell was alive. The image is taken in a frame of its own,
+        // so no local keeps the entry alive, and the collection here is the one a long batch, or a test running in parallel, makes at any moment.
+        var cell = new StorageCell { Ref = "AAAA" };
+        RunUnit.Run(unit =>
+        {
+            foreach (long offset in new long[] { 1L << 32, long.MinValue })
+            {
+                string image = ImageOf(cell, offset);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                var read = Assert.IsType<CellPointer>(PointerImage.DataPointerOf(image));
+                Assert.Same(cell, read.Cell);
+                Assert.Equal(offset, read.Offset);
+            }
+        });
+        GC.KeepAlive(cell);
+    }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static string ImageOf(StorageCell cell, long offset) => PointerImage.Of(ManagedPointer.At(cell, offset));
 
     [Fact]
     public void DataPointerOf_AnAddresslessPointer_ReadsBackAsItself()
@@ -194,6 +222,14 @@ public sealed class SlotImageRoundTripTests
         _ = PointerImage.Of(ManagedPointer.At(cell, 0));
         cell.End(StorageEnd.Freed);
         return new WeakReference(cell);
+    }
+
+    /// <summary>The eight positions read as the big-endian address they render, the inverse of <see cref="Big"/>.</summary>
+    private static long AddressOf(string image)
+    {
+        long a = 0;
+        foreach (char c in image) a = (a << 8) | StorageByte.ToByte(c);
+        return a;
     }
 
     private static string Big(long v) => string.Create(8, v, static (span, a) =>
