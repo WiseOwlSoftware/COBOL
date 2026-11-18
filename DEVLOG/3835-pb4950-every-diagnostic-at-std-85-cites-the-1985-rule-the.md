@@ -1,4 +1,4 @@
-## PB4950: every diagnostic at --std 85 cites the 1985 rule; the citation ratchet is gone
+## Entry 3835 — 2026-11-18 00:34 PST — PB4950: every diagnostic at --std 85 cites the 1985 rule; the citation ratchet is gone
 
 The owner decided on 2026-11-07 that a diagnostic cites the rule of the edition the program is compiled under. The net that
 asks it, `EditionCitationNet`, was laid as a ratchet of 298 codes and 1638 diagnostic lines that cited only a 2002, 2014 or
@@ -25,3 +25,4 @@ The runtime's `MoveValidity` keeps one form of each rule check, the one that tak
 (`Table16Refusal`, `BinaryWidthRefusal`, `FigurativeRefusal` with `MoveCitations`). The run time passes
 `MoveCitations.Iso2023` explicitly. The two-argument overloads that forwarded to it are gone. Removing them changes the
 shipped public surface, so the runtime major is now 31 (`scripts/abi_pin.py bump --runtime-major`).
+
