@@ -1,4 +1,4 @@
-## PB5928: every slot-image entry is held until what it names ends, so a garbage collection no longer turns a token foreign
+## Entry 3838 — 2026-11-18 03:29 PST — PB5928: every slot-image entry is held until what it names ends, so a garbage collection no longer turns a token foreign
 
 A full Unit gate failed `SlotImageRoundTripTests.DataPointerOf_APointerDisplacedBeyondTheWindow_ReadsBackAsItself_NeverAsAnotherArea` with
 "Expected CellPointer, Actual ForeignAddress", though the class passed alone. The suspected cause was the process-wide pointer-image bases shared by
@@ -22,3 +22,4 @@ and it drops ended lives the first time the cell is imaged in its current life.
 Five new tests cover the two collection cases (far pointer, saved-locale handle, addressless carrier) and the bounded growth (100000 lives hold one
 base). Each failed against the code it replaces and passes now. The far-pointer test now reads B's displacement from the two images instead of
 assuming adjacent bases (kb/Work PB5928).
+
