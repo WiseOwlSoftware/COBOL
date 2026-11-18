@@ -39,10 +39,11 @@ public static class TextListingRenderer
         + string.Concat(Enumerable.Range(1, TextWidth / 10).Select(n => "----+----" + (n % 10).ToString(CultureInfo.InvariantCulture)));
 
     /// <summary>The order the sections are printed in (DESIGN-listing.md section 7.1): options, source with inline diagnostics,
-    /// program map, statistics and verbs, diagnostic summary. Every member of <see cref="ListingSection"/> once (the Unit
+    /// program map, data map, statistics and verbs, diagnostic summary. Every member of <see cref="ListingSection"/> once (the Unit
     /// assembly's <c>ListingSectionsTests.EverySection_HasOneSpelling_OneTitle_AndOnePlaceInTheTextOrder</c> holds it so).</summary>
     public static readonly IReadOnlyList<ListingSection> SectionOrder =
-        [ListingSection.Options, ListingSection.Source, ListingSection.Programs, ListingSection.Statistics, ListingSection.Diagnostics];
+        [ListingSection.Options, ListingSection.Source, ListingSection.Programs, ListingSection.DataMap, ListingSection.Statistics,
+         ListingSection.Diagnostics];
 
     /// <summary>Render <paramref name="document"/> as the paginated text listing <paramref name="request"/> asks for: each section
     /// the document holds (<see cref="ListingDocument.Sections"/>), in <see cref="SectionOrder"/>, each starting a page; a section
@@ -79,6 +80,7 @@ public static class TextListingRenderer
         ListingSection.Diagnostics => "DIAGNOSTICS",
         ListingSection.Options => "OPTIONS",
         ListingSection.Statistics => "STATISTICS",
+        ListingSection.DataMap => "DATA MAP",
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no title"),
     };
 
@@ -90,6 +92,8 @@ public static class TextListingRenderer
         ListingSection.Statistics => document.Statistics is { } statistics ? StatisticsText.Rows(statistics, document.Files, document.Header.Parse, width)
             : throw new InvalidOperationException("the statistics section is produced but the document holds no statistics"),
         ListingSection.Diagnostics => SummaryRows(document, width),
+        ListingSection.DataMap => document.DataMap is { } map ? DataMapText.Rows(map, width)
+            : throw new InvalidOperationException("the data map section is produced but the document holds no data map"),
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section the text listing cannot print"),
     };
 
@@ -135,7 +139,8 @@ public static class TextListingRenderer
             int pieces = 0;
             foreach (string piece in Wrap(text))
             {
-                rows.Add(new ListingRow(pieces == 0 ? SourceRow(line, piece) : ContinuationRow(piece), pieces == 0 && breakBefore, ProgramOf(line)));
+                rows.Add(new ListingRow(pieces == 0 ? WithMargin(SourceRow(line, piece), line.Margin, request.PageWidth) : ContinuationRow(piece),
+                    pieces == 0 && breakBefore, ProgramOf(line)));
                 pieces++;
             }
             if (line.Replacement == ListingReplacement.Replacing)
@@ -150,6 +155,29 @@ public static class TextListingRenderer
         }
         return rows;
     }
+
+    /// <summary>The 1-based column the embedded margin starts in (DESIGN-listing.md section 6.2: columns 100 to 132).</summary>
+    public const int MarginColumn = 100;
+
+    /// <summary>The narrowest page that prints the margin (DESIGN-listing.md section 7.1: below 132 the margin is not printed).</summary>
+    public const int MarginPageWidth = 132;
+
+    /// <summary>⛔ THE MARGIN OF A SOURCE ROW (DESIGN-listing.md section 6.2): <paramref name="row"/> padded to column
+    /// <see cref="MarginColumn"/> and the line's margin as the builder computed it (<see cref="ListingLine.Margin"/>: a data
+    /// definition line's offset, length and usage), on a page at least <see cref="MarginPageWidth"/> wide; the row as it is
+    /// otherwise. Never wider than the page.</summary>
+    public static string WithMargin(string row, ListingMargin? margin, int width)
+    {
+        if (margin is null || width < MarginPageWidth) return row;
+        string text = MarginText(margin);
+        string marked = row.PadRight(MarginColumn - 1) + text;
+        return marked.Length <= width ? marked : marked[..width];
+    }
+
+    /// <summary>The margin's text: <c>OFF=n LEN=n usage</c>, an offset or length the data map does not hold printed as <c>-</c>, a usage it does not hold
+    /// (a group that states none) not printed.</summary>
+    public static string MarginText(ListingMargin margin) => string.Create(CultureInfo.InvariantCulture,
+        $"OFF={margin.Offset?.ToString(CultureInfo.InvariantCulture) ?? "-"} LEN={margin.Length?.ToString(CultureInfo.InvariantCulture) ?? "-"} {margin.Usage ?? ""}").TrimEnd();
 
     /// <summary>Each text padded to its width; a text as wide as its column, or wider, is followed by one space.</summary>
     internal static string Columns(params ReadOnlySpan<(string Text, int Width)> columns)

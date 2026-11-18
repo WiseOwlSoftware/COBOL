@@ -31,9 +31,12 @@ internal sealed class LineDraft
     /// <summary>Place diagnostic <paramref name="id"/> on the line.</summary>
     public void AddDiagnostic(int id) => (Diagnostics ??= []).Add(id);
 
+    /// <summary>The line's margin (<see cref="LineAnnotationBuilder"/>), or null.</summary>
+    public ListingMargin? Margin { get; set; }
+
     /// <summary>The finished model line.</summary>
     public ListingLine ToLine() => new(Number, File, FileLine, Inclusion, Depth, Form, ListingLineKinds.Of(Kind), Text, Omitted,
-        Listed, PageBreakBefore, Program, Replacement, Replaced, Diagnostics is { } ids ? ids.ToArray() : NoDiagnostics);
+        Listed, PageBreakBefore, Program, Replacement, Replaced, Diagnostics is { } ids ? ids.ToArray() : NoDiagnostics, Margin);
 
     private static readonly int[] NoDiagnostics = [];
 }

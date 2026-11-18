@@ -38,6 +38,9 @@
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.OoDataBinder"
     ],
+    "WiseOwl.Cobol.Binding.ConstantEntryBinder::DeclaredConstants": [
+      "WiseOwl.Cobol.Binding.Model.SymbolTable"
+    ],
     "WiseOwl.Cobol.Binding.ConstantEntryBinder::ExpandPicConstants": [
       "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
@@ -269,6 +272,7 @@
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.InheritStep",
       "WiseOwl.Cobol.Binding.LiteralEnvironment",
+      "WiseOwl.Cobol.Binding.Model.SymbolTable",
       "WiseOwl.Cobol.Binding.OoDataBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
@@ -838,6 +842,7 @@
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::Symbols": [
+      "WiseOwl.Cobol.Binding.BinderDriver",
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",

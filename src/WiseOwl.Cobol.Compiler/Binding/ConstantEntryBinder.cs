@@ -265,6 +265,8 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         public bool Screened { get; set; }
         /// <summary>The cycle through this entry was reported, so a second reader of it does not report it again.</summary>
         public bool CycleReported { get; set; }
+        /// <summary>What the entry stands for once it bound, or null while unbound or when it was refused (ISO §2023:13.10.4 GR1).</summary>
+        public ConstantDef? Def { get; set; }
         /// <summary>The entry is a length phrase (§2023:13.10.2 BYTE-LENGTH OF / LENGTH OF) — its cycle is SR4's.</summary>
         public bool IsLengthPhrase => Body.constantValue() is { } cv
             && (cv.LENGTH() is not null || cv.constantByteLengthWord() is not null);
@@ -273,6 +275,16 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
     /// <summary>Every constant entry declared in this binder, its methods' included, by its body — how an in-order walk
     /// finds the declaration it has reached.</summary>
     private readonly Dictionary<Core.ConstantEntryBodyContext, DeclaredConstant> _constantByBody = [];
+
+    /// <summary>Every NAMED constant entry this binder declared, its methods' included, in source order: its name, the position of
+    /// its level-number, its specification as written (null when the entry was refused) and its GLOBAL phrase. The finished
+    /// symbol table's constant entries (<c>SymbolTable.Finish</c>; docs/rearchitecture/DESIGN-listing.md section 6.6).</summary>
+    internal IEnumerable<(string Name, int Line, int Column, string? Value, bool Global)> DeclaredConstants() =>
+        _constantByBody.Values
+            .Where(static d => d.NameCtx is not null)
+            .OrderBy(static d => d.Level.Start.StartIndex)
+            .Select(static d => (d.NameCtx!.GetText(), d.Level.Start.Line, d.Level.Start.Column, d.Def?.Specification,
+                d.Def?.IsGlobal ?? false));
 
     /// <summary>The constant entries being evaluated, outermost first: the demand chain a circular reference closes.</summary>
     private readonly List<DeclaredConstant> _constantsInProgress = [];
@@ -399,6 +411,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         }
         d.State = ConstantBindState.Finished;
         if (def is null) return;
+        d.Def = def;   // what the entry stands for, which the finished symbol table reads (DeclaredConstants)
 
         // §2023:13.10.3 SR9: "If constant-name-1 duplicates another constant-name, the specification of
         // arithmetic-expression-1, literal-1, data-name-1, data-name-2, or compilation-variable-name-1 shall be the

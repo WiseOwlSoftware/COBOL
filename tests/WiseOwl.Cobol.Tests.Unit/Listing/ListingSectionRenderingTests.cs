@@ -20,7 +20,7 @@ public sealed class ListingSectionRenderingTests
     private static ListingLine Line(int number, ListingLineKind kind, int? inclusion = null, bool omitted = false, bool listed = true,
         int file = 1) =>
         new(number, file, number, inclusion, inclusion is null ? 0 : 1, ListingLineForm.Fixed, kind, "       LINE " + number, omitted,
-            listed, false, 0, ListingReplacement.None, null, []);
+            listed, false, 0, ListingReplacement.None, null, [], null);
 
     /// <summary>Six lines: three of program text (one omitted), a comment, a blank line, and two lines of a library text, one
     /// of them not listed.</summary>
@@ -49,18 +49,19 @@ public sealed class ListingSectionRenderingTests
     }
 
     private static ListingDocument Document(IReadOnlyList<ListingSectionStatus> sections, ListingStatistics? statistics = null,
-        IReadOnlyList<ListingOption>? options = null) => new(
+        IReadOnlyList<ListingOption>? options = null, ListingDataMap? dataMap = null) => new(
         new ListingHeader("30.0.0", 2023, "ISO/IEC 1989:2023", Instant, "/src/p.cob", ListingOutcome.Success, ListingParse.Parsed),
         [new ListingFile(1, "/src/p.cob", ListingFileRole.Source, "00"), new ListingFile(2, "/src/lib/REC.cpy", ListingFileRole.Library, "00")],
         [new ListingInclusion(1, null, 1, 3, 3, "REC", null, 2, ListingInclusionOutcome.Found, false)],
         Lines,
-        [new ListingProgram(0, "OUTER", ListingProgramKind.Program, null, 0, 1, 6),
-         new ListingProgram(1, "INNER", ListingProgramKind.Program, 0, 1, 4, 5)],
+        [new ListingProgram(0, "OUTER", ListingProgramKind.Program, null, 0, 1, 6, null),
+         new ListingProgram(1, "INNER", ListingProgramKind.Program, 0, 1, 4, 5, null)],
         [], [],
         options ?? [new ListingOption("--std", "2023 (ISO/IEC 1989:2023)", ListingOptionOrigin.Default),
                     new ListingOption("--copy", "/a/very/long/library/directory/" + new string('x', 120), ListingOptionOrigin.Specified),
                     new ListingOption("compiler", "30.0.0", ListingOptionOrigin.Host)],
         statistics,
+        dataMap,
         sections);
 
     private static ListingStatistics Statistics(ListingParseStatistics? parse) => new(
@@ -79,12 +80,13 @@ public sealed class ListingSectionRenderingTests
     public void EachSection_StartsAPage_InTheOrderOfSection71()
     {
         var document = Document([.. Enum.GetValues<ListingSection>().Select(Produced)],
-            Statistics(new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 2, [1, 6]), new ListingVerb("STOP", 1, [6])])));
+            Statistics(new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 2, [1, 6]), new ListingVerb("STOP", 1, [6])])),
+            dataMap: new ListingDataMap([], []));
         string[] pages = TextListingRenderer.Render(document, new ListingRequest()).Split(PageComposer.FormFeed);
-        Assert.Equal(["OPTIONS", "SOURCE  /src/p.cob", "PROGRAMS", "STATISTICS", "DIAGNOSTICS"], pages.Select(p => p.Split('\n')[1]));
+        Assert.Equal(["OPTIONS", "SOURCE  /src/p.cob", "PROGRAMS", "DATA MAP", "STATISTICS", "DIAGNOSTICS"], pages.Select(p => p.Split('\n')[1]));
         Assert.All(pages.Where(p => !p.Split('\n')[1].StartsWith("SOURCE", StringComparison.Ordinal)),
             p => Assert.Contains("  OUTER  ", p.Split('\n')[0], StringComparison.Ordinal));
-        Assert.Equal(["1", "2", "3", "4", "5"], pages.Select(p => p.Split('\n')[0].Split(' ')[^1]));
+        Assert.Equal(["1", "2", "3", "4", "5", "6"], pages.Select(p => p.Split('\n')[0].Split(' ')[^1]));
     }
 
     /// <summary>A document asked for one section prints that section alone, its pages numbered from 1.</summary>

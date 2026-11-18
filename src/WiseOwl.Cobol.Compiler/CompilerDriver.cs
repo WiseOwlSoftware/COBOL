@@ -303,6 +303,8 @@ public static class CompilerDriver
             RepositoryUpdate = options.RepositoryUpdate && !options.CheckOnly,
             // kb/Work PB4721: the screens of the bind skip a word or literal the client wrote into this expansion's text.
             ClientWritten = options.ClientWritten,
+            // DESIGN-listing.md section 9: the bind finishes the symbol table only for a listing that reads it.
+            RecordsSymbols = listing is not null && WiseOwl.Cobol.Listing.Building.ListingFacts.ReadsSymbols(listing.Request),
         };
         // ⛔ The >>COBOL-WORDS directive's SR3/SR4 verdict (COBOL1623, ISO §2023:7.3.10.3) is judged HERE, on the directive stage's map
         // and before the frontend gate: it needs no parse tree, so a program that also fails to parse reports it beside the parse
@@ -327,7 +329,10 @@ public static class CompilerDriver
         Binding.Model.BoundCompilation bound;
         try
         {
-            bound = new Binding.BinderDriver().Bind(tree, edition, frontend.Directives, repository, options.PublishAs);   // Phase 2a — BIND (terminal = conformance pass)
+            var binder = new Binding.BinderDriver();
+            bound = binder.Bind(tree, edition, frontend.Directives, repository, options.PublishAs);   // Phase 2a — BIND (terminal = conformance pass)
+            // The finished symbol table, when the bind accepted the program (DESIGN-listing.md section 4.3: a refused program has none).
+            if (binder.Symbols is { } symbols && !edition.HasErrors) listing?.DepositSymbols(symbols);
         }
         catch (Binding.Passes.DataDivisionRefused)
         {

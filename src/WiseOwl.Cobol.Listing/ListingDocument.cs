@@ -14,7 +14,8 @@ namespace WiseOwl.Cobol.Listing;
 /// what a reader of the listing needs; step notes go in remarks. Step 1 of the design's section 11 built the header, files,
 /// inclusions, lines and programs; step 2 the JSON form; step 3 the diagnostics; step 4a the directive hooks (the LISTING and
 /// PAGE directives, COPY SUPPRESS, the DISPLAY directive's transfers, the lines REPLACE changed); step 5 the options, the
-/// statistics and the verbs, and the choice of sections; later steps add their sections beside them.</remarks>
+/// statistics and the verbs, and the choice of sections; step 6 the data map and the file map, the program attributes and the
+/// margin, all from the symbol table; later steps add their sections beside them.</remarks>
 /// <param name="Header">The compiler, the edition, the compilation timestamp, the main source and the outcome.</param>
 /// <param name="Files">Every file read: the source and each library text.</param>
 /// <param name="Inclusions">Every COPY statement processed, in text order.</param>
@@ -28,6 +29,8 @@ namespace WiseOwl.Cobol.Listing;
 /// then the compiler and the host it ran on; empty when the section was not asked for.</param>
 /// <param name="Statistics">The statistics section: lines by kind and by file, programs, statements, diagnostics by severity
 /// and the verbs; null when the section was not asked for.</param>
+/// <param name="DataMap">The data map and the file map: every name of the data division with what the compiler decided for it;
+/// null when the section was not asked for or could not be produced.</param>
 /// <param name="Sections">Each section the listing was asked for, in the order of <see cref="ListingSection"/>: produced, or
 /// why not (DESIGN-listing.md section 4.3). A section not asked for has no entry and its part of the document is empty: the
 /// lines and the DISPLAY transfers are the source section's, the diagnostics the diagnostics section's. The header, the
@@ -42,6 +45,7 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingDisplay> Displays,
     IReadOnlyList<ListingOption> Options,
     ListingStatistics? Statistics,
+    ListingDataMap? DataMap,
     IReadOnlyList<ListingSectionStatus> Sections)
 {
     /// <summary>The identifier of the JSON schema's major version 1 (DESIGN-listing.md section 7.3): every JSON listing of this
@@ -216,9 +220,11 @@ public enum ListingReplacement
 /// its place; or, for a line a replacing action changed, the resultant text compiled from it (one line of text per resultant
 /// line, joined by line feeds; empty when the replacement removed everything the line held), printed under it.</param>
 /// <param name="Diagnostics">The <see cref="ListingDiagnostic.Id"/> of each diagnostic placed on the line, in listing order.</param>
+/// <param name="Margin">What the data map says of the data item the line declares (its offset, length and usage), which the text
+/// listing prints in its margin; null when the line declares none or the data map was not asked for.</param>
 public sealed record ListingLine(int Number, int File, int FileLine, int? Inclusion, int Depth, ListingLineForm Form,
     ListingLineKind Kind, string Text, bool Omitted, bool Listed, bool PageBreakBefore, int? Program,
-    ListingReplacement Replacement, string? Replaced, IReadOnlyList<int> Diagnostics);
+    ListingReplacement Replacement, string? Replaced, IReadOnlyList<int> Diagnostics, ListingMargin? Margin);
 
 /// <summary>The kind of source unit a <see cref="ListingProgram"/> is.</summary>
 public enum ListingProgramKind
@@ -247,7 +253,11 @@ public enum ListingProgramKind
 /// <param name="Depth">0 for an outermost unit.</param>
 /// <param name="FirstLine">The first listing line of the unit.</param>
 /// <param name="LastLine">The last listing line of the unit.</param>
-public sealed record ListingProgram(int Id, string Name, ListingProgramKind Kind, int? Parent, int Depth, int FirstLine, int LastLine);
+/// <param name="Attributes">What the compiler decided for a program or function it bound (its COMMON, INITIAL, RECURSIVE and
+/// PROTOTYPE attributes, its externalized name and its .NET type), from the symbol table: null when the bind did not finish, when
+/// neither the program map nor the data map was asked for, and for a class, interface, factory, object or method.</param>
+public sealed record ListingProgram(int Id, string Name, ListingProgramKind Kind, int? Parent, int Depth, int FirstLine, int LastLine,
+    ListingProgramAttributes? Attributes);
 
 /// <summary>The sections of a listing (DESIGN-listing.md section 8, <c>--listing-sections</c>). A section joins this enum
 /// with its builder, so a request can name only a section the compiler can produce.</summary>
@@ -264,6 +274,10 @@ public enum ListingSection
     /// <summary>The statistics: lines by kind and by file, programs, statements, diagnostics by severity, and each verb with
     /// its count and its lines.</summary>
     Statistics,
+    /// <summary>The data map and the file map: every data item, condition-name, index-name, constant-name and file-name with its
+    /// level, offset, lengths, usage, picture and the .NET field it became; and, in the source section, each data description
+    /// line's offset, length and usage in the margin.</summary>
+    DataMap,
 }
 
 /// <summary>How serious a diagnostic is.</summary>

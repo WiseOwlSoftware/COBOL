@@ -60,6 +60,18 @@ internal sealed class ListingFacts(ListingRequest request, CompilationInputs inp
     /// <summary>Deposit the compilation's diagnostics.</summary>
     public void DepositDiagnostics(IReadOnlyList<Frontend.Diagnostics.Diagnostic> diagnostics) => Diagnostics = diagnostics;
 
+    /// <summary>The finished symbol table (DESIGN-listing.md section 6.7.1), deposited once the bind finished with no error; null
+    /// otherwise, and always when no section of the listing reads it (<see cref="ReadsSymbols"/>).</summary>
+    public Symbols.SymbolTableSnapshot? Symbols { get; private set; }
+
+    /// <summary>Deposit the finished symbol table.</summary>
+    public void DepositSymbols(Symbols.SymbolTableSnapshot symbols) => Symbols = symbols;
+
+    /// <summary>Whether a section the listing holds reads the symbol table: the data map, and the program map's attributes
+    /// (DESIGN-listing.md sections 6.5 and 6.6). The bind finishes the table only then (<c>EditionContext.RecordsSymbols</c>).</summary>
+    public static bool ReadsSymbols(ListingRequest request) =>
+        request.Sections.Contains(ListingSection.DataMap) || request.Sections.Contains(ListingSection.Programs);
+
     /// <summary>The front end's listed pass, or null while no source text has been read.</summary>
     public FrontendFacts? Frontend { get; private set; }
 

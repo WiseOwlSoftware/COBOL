@@ -29,15 +29,16 @@ public sealed class JsonListingWriterTests
         [new ListingInclusion(1, null, 1, 2, 2, "REC", "LIB", 2, ListingInclusionOutcome.Found, false),
          new ListingInclusion(2, 1, 2, 3, 3, "\"gone.cpy\"", null, null, ListingInclusionOutcome.NotFound, true)],
         [new ListingLine(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000100 ID DIVISION.", false, true,
-            false, 0, ListingReplacement.None, null, [1]),
+            false, 0, ListingReplacement.None, null, [1], new ListingMargin(1, 0, 5, "DISPLAY")),
          new ListingLine(2, 1, 2, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "000200 DATE-COMPILED. X.", false, true,
-            true, 0, ListingReplacement.DateCompiled, "DATE-COMPILED. 2026-11-17 14:03:22 -05:00.", []),
+            true, 0, ListingReplacement.DateCompiled, "DATE-COMPILED. 2026-11-17 14:03:22 -05:00.", [], null),
          new ListingLine(3, 2, 1, 1, 1, ListingLineForm.Free, ListingLineKind.PageEjectComment, "*> été", true, false,
-            false, null, ListingReplacement.DateCompiledEntry, null, []),
+            false, null, ListingReplacement.DateCompiledEntry, null, [], null),
          new ListingLine(4, 1, 3, null, 0, ListingLineForm.Free, ListingLineKind.Source, "MOVE A TO B.", false, true,
-            false, 0, ListingReplacement.Replacing, "MOVE X TO B.\nDISPLAY B.", [])],
-        [new ListingProgram(0, "MAIN", ListingProgramKind.Program, null, 0, 1, 3),
-         new ListingProgram(1, "INNER", ListingProgramKind.Program, 0, 1, 2, 3)],
+            false, 0, ListingReplacement.Replacing, "MOVE X TO B.\nDISPLAY B.", [], null)],
+        [new ListingProgram(0, "MAIN", ListingProgramKind.Program, null, 0, 1, 3,
+             new ListingProgramAttributes(true, false, true, false, "main-ext", "MAIN")),
+         new ListingProgram(1, "INNER", ListingProgramKind.Program, 0, 1, 2, 3, null)],
         [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "no (ISO §2023:14.9.8.4 GR1)", 1, 1, 1, 8,
             [new ListingCitation(2023, "14.9.8.4", "GR1"), new ListingCitation(1985, "VI.5.3", null)]),
          new ListingDiagnostic(2, "CS0103", ListingSeverity.Warning, "generated", null, null, null, null, [])],
@@ -50,11 +51,25 @@ public sealed class JsonListingWriterTests
             [new ListingFileStatistics(1, new ListingLineCounts(3, [new ListingKindCount(ListingLineKind.Source, 3)], 0, 0, 0))],
             [new ListingSeverityCount(ListingSeverity.Error, 1), new ListingSeverityCount(ListingSeverity.Warning, 1)],
             new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 2, [4, 4]), new ListingVerb("STOP", 1, [])])),
+        new ListingDataMap(
+            [new ListingDataItem(1, ListingDataItemKind.Data, "REC", 0, 1, 8, 1, null, "WORKING-STORAGE", null, null, "GROUP", 1, 3, 2,
+                [3], null, null, null, true, false, true, 0, 15, 15, "REC", "_T_1[]", []),
+             new ListingDataItem(2, ListingDataItemKind.Data, "N", null, null, null, 66, 1, "OTHER", "DISPLAY", "9(5)", "NUMERIC",
+                null, null, null, [], 1, 1, 1, false, true, false, null, 5, 5, null, null, []),
+             new ListingDataItem(3, ListingDataItemKind.Index, "IX", 0, 1, 20, null, 1, null, null, null, null, null, null, null, [],
+                null, null, null, false, false, false, null, null, null, "_IX_1", "long", []),
+             new ListingDataItem(4, ListingDataItemKind.Condition, "YES", 0, 2, 12, 88, 2, null, null, null, null, null, null, null, [],
+                null, null, null, false, false, false, null, null, null, null, null, ["\"Y\"", "1 THRU 9"]),
+             new ListingDataItem(5, ListingDataItemKind.Constant, "K", 0, 3, 8, null, null, null, null, null, null, null, null, null, [],
+                null, null, null, true, false, false, null, null, null, null, null, ["5"])],
+            [new ListingFileEntry(1, "F", 0, 1, 12, false, "INDEXED", "DYNAMIC", [1], true, false),
+             new ListingFileEntry(2, "S", null, null, null, true, "SEQUENTIAL", "SEQUENTIAL", [], false, true)]),
         [new ListingSectionStatus(ListingSection.Source, true, null),
          new ListingSectionStatus(ListingSection.Programs, false, "the bind refused the program"),
          new ListingSectionStatus(ListingSection.Diagnostics, true, null),
          new ListingSectionStatus(ListingSection.Options, true, null),
-         new ListingSectionStatus(ListingSection.Statistics, true, null)]);
+         new ListingSectionStatus(ListingSection.Statistics, true, null),
+         new ListingSectionStatus(ListingSection.DataMap, true, null)]);
 
     /// <summary>Each line as a value: a record's list member compares by reference, so a line's diagnostic ids are compared as a
     /// sequence beside the rest of it.</summary>
@@ -70,7 +85,7 @@ public sealed class JsonListingWriterTests
     {
         var json = Written(EveryMember());
         Assert.Equal(["$schema", "schemaVersion", "header", "files", "inclusions", "lines", "programs", "diagnostics", "displays",
-            "options", "statistics", "sections"], json.Select(p => p.Key));
+            "options", "statistics", "dataMap", "sections"], json.Select(p => p.Key));
         Assert.Equal("urn:wiseowl:cobol:listing:v1", (string?)json["$schema"]);
         Assert.Equal("1.0", (string?)json["schemaVersion"]);
     }

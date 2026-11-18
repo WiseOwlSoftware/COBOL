@@ -411,7 +411,10 @@ internal static class StorageFormPass
     public static string ElementTypeOf(DataItem item) =>
         item.IsGroup ? item.StructName : StorageElementType(item.Storage!);
 
-    private static string StorageElementType(StorageForm f) => f switch
+    /// <summary>⛔ THE ONE SPELLING OF THE .NET TYPE A STORAGE FORM IS HELD IN (the field of an elementary item, an index-name's
+    /// cell): the binder's decision, the same for every backend, which <see cref="DataItem.ElementType"/> reproduces and the
+    /// listing's symbol table reads (docs/rearchitecture/DESIGN-listing.md section 6.6).</summary>
+    internal static string StorageElementType(StorageForm f) => f switch
     {
         StorageForm.CharImage => "string",
         StorageForm.NativeInt ni => ni.Wide ? "Int128" : "long",

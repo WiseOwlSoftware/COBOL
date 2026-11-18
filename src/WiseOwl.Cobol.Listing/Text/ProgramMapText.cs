@@ -10,20 +10,40 @@ public static class ProgramMapText
 {
     /// <summary>The program map's rows (DESIGN-listing.md section 6.5): each source unit in text order, its id, kind, first and
     /// last listing line, and its name indented two columns per level of nesting, so a contained unit stands under the unit
-    /// that contains it. After a parse that recovered from a syntax error (<paramref name="parse"/>) a last row says the map holds
+    /// that contains it, and under a bound program its attributes (<see cref="AttributesText"/>). After a parse that recovered from a syntax error (<paramref name="parse"/>) a last row says the map holds
     /// only the units the recovery kept.</summary>
     public static IEnumerable<string> Rows(IReadOnlyList<ListingProgram> programs, ListingParse parse, int width)
     {
         yield return string.Create(CultureInfo.InvariantCulture, $"{"ID",6}  {"KIND",-9} {"FIRST",6}  {"LAST",6}  NAME");
         foreach (var p in programs)
+        {
             foreach (string row in TextListingRenderer.Indented(string.Create(CultureInfo.InvariantCulture,
                          $"{p.Id,6}  {KindWord(p.Kind),-9} {p.FirstLine,6}  {p.LastLine,6}  {new string(' ', 2 * p.Depth)}{p.Name}"),
                          0, NameColumn + 2 * p.Depth, width))
                 yield return row;
+            if (p.Attributes is { } a)
+                foreach (string row in TextListingRenderer.Indented(AttributesText(a), NameColumn + 2 * p.Depth + 2,
+                             NameColumn + 2 * p.Depth + 4, width))
+                    yield return row;
+        }
         if (parse is not ListingParse.Recovered) yield break;
         yield return "";
         foreach (string row in TextListingRenderer.Indented(TextListingRenderer.RecoveredNote("the source units"), 0, 2, width))
             yield return row;
+    }
+
+    /// <summary>The row under a bound program (DESIGN-listing.md section 6.5): its COMMON, INITIAL, RECURSIVE and PROTOTYPE
+    /// attributes, the name it is externalized as, and the .NET type it became.</summary>
+    public static string AttributesText(ListingProgramAttributes attributes)
+    {
+        var words = new List<string>();
+        if (attributes.Common) words.Add("COMMON");
+        if (attributes.Initial) words.Add("INITIAL");
+        if (attributes.Recursive) words.Add("RECURSIVE");
+        if (attributes.Prototype) words.Add("PROTOTYPE");
+        words.Add($"AS '{attributes.ExternalizedName}'");
+        words.Add($".NET {attributes.NativeType}");
+        return string.Join("  ", words);
     }
 
     /// <summary>The 0-based column a program row's name starts at, before its nesting indent.</summary>

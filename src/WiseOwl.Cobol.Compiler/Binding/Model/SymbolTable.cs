@@ -42,7 +42,7 @@ public readonly record struct Scope(OoMethodDataScope? Method)
 /// PHASE-06 doc's single <c>BoundCompilation.Symbols</c> sketch, which presumed a merged namespace that does
 /// not exist.</para>
 /// </summary>
-public sealed class SymbolTable
+public sealed partial class SymbolTable
 {
     private readonly DataBinder _data;
 

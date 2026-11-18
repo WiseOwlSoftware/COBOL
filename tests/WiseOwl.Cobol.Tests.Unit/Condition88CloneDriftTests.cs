@@ -90,6 +90,12 @@ public sealed class Condition88CloneDriftTests
                 list.Add(Activator.CreateInstance(elem, "REFLECT-LOW", "REFLECT-HIGH"));
                 populated.Add(p.Name);
             }
+            else if (p.CanWrite && p.PropertyType == typeof(WiseOwl.Cobol.Editions.DiagnosticCursor))
+            {
+                // A position (the entry's DeclaredAt, docs/rearchitecture/DESIGN-listing.md section 6.6): any set one.
+                p.SetValue(src, new WiseOwl.Cobol.Editions.DiagnosticCursor(7, 11));
+                populated.Add(p.Name);
+            }
             else if (p.CanWrite)
             {
                 Assert.Fail($"Condition88.{p.Name} is a writable member of a type this drift test does not know "

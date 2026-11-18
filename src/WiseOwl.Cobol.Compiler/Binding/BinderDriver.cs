@@ -42,6 +42,11 @@ internal sealed class BinderDriver
         ?? throw new InvalidOperationException("BinderDriver.Session was read before Bind made it");
     private BindSession? _session;
 
+    /// <summary>The finished symbol table of the bind (docs/rearchitecture/DESIGN-listing.md section 6.7.1), made once the data
+    /// binding is frozen when <see cref="EditionContext.RecordsSymbols"/> asks for it; null otherwise. The listing's collector
+    /// takes it; nothing else reads it.</summary>
+    internal global::WiseOwl.Cobol.Symbols.SymbolTableSnapshot? Symbols { get; private set; }
+
     /// <summary>Bind the WHOLE compilation group in <paramref name="tree"/> under the targeted EDITION
     /// (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the driver fails the
     /// compile when any exist, BEFORE emit). <paramref name="turnEvents"/> are the frontend's <c>&gt;&gt;TURN</c>
@@ -279,6 +284,7 @@ internal sealed class BinderDriver
         // fact set is complete. Each element's DataBindResult — what a backend reads in place of the binder — is made here, once;
         // everything below reads the bound model, and the binders stay with the session.
         var interfaceData = session.Binders.Freeze(units, classes);
+        if (edition.RecordsSymbols) Symbols = FinishSymbols(units, session.Binders);
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
@@ -350,6 +356,25 @@ internal sealed class BinderDriver
             new ImportedTypes(table.ImportedClasses, table.ImportedInterfaces), turn, ecActive,
             anyFiles, edition.DialectLevel, edition.SignEncoding, expansions,
             entryUnits, publishes, interfaceRecords);
+    }
+
+    /// <summary>⛔ THE FINISHED SYMBOL TABLE (docs/rearchitecture/DESIGN-listing.md section 6.7.1): each program unit's entry, then
+    /// the names its own table declared (<see cref="SymbolTable.Finish"/>), in the order the units are written, so a container's
+    /// GLOBAL item has its id before a contained unit's attribute names it. Made after the data binding is frozen and before the
+    /// file connectors are renamed for the run unit, so a file-name is the one the program wrote.</summary>
+    private static global::WiseOwl.Cobol.Symbols.SymbolTableSnapshot FinishSymbols(IReadOnlyList<BoundUnit> units, ElementBinders binders)
+    {
+        var into = new SymbolTableWriter();
+        foreach (var unit in units.OrderBy(static u => u.SourcePosition))
+        {
+            var u = unit;
+            into.Declare(u, global::WiseOwl.Cobol.Symbols.NameClass.Program, u.Name,
+                new global::WiseOwl.Cobol.Symbols.SymbolPosition(u.DeclaredAt.Line, u.DeclaredAt.Column),
+                _ => new global::WiseOwl.Cobol.Symbols.ProgramAttributes(u.IsFunction, u.Common, u.Initial, u.Recursive, u.IsPrototype,
+                    u.ExternalizedName, u.ClassName));
+            binders.Of(u).Data.Symbols.Finish(into, u.Data);
+        }
+        return into.Snapshot();
     }
 
     /// <summary>Flatten the compilation group into the ordered unit lists — top-level program units in source
@@ -538,6 +563,7 @@ internal sealed class BinderDriver
         {
             Name = name, ExternalizedName = externalized, ClassName = className,
             SourcePosition = FirstToken(ctx)?.StartIndex ?? 0,
+            DeclaredAt = FirstToken(ctx) is { } first ? new(first.Line, first.Column) : default,
             Parent = parent, Initial = initial, Common = common, Recursive = recursive,
             IsFunction = isFunction, IsPrototype = isPrototype,
         };

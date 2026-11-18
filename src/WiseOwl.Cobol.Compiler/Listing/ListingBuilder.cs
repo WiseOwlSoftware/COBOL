@@ -55,6 +55,15 @@ internal static class ListingBuilder
         var displays = DirectiveEffectsBuilder.Displays(frontend.Trace, index);
         var diagnostics = DiagnosticSectionBuilder.Build(facts.Diagnostics, frontend, index, fileIds, drafts);
         var wanted = facts.Request.Sections;
+        // The symbol table's views (DESIGN-listing.md sections 6.5 and 6.6), when the bind finished it.
+        var dataMap = wanted.Contains(ListingSection.DataMap) && facts.Symbols is { } symbols
+            ? DataMapBuilder.Build(symbols, index, frontend, drafts) : null;
+        if (dataMap is not null) LineAnnotationBuilder.MarkMargins(dataMap, drafts);
+        if (facts.Symbols is { } table)
+        {
+            var attributes = DataMapBuilder.ProgramAttributesOf(table, index, frontend, drafts);
+            programs = [.. programs.Select(p => attributes.TryGetValue(p.Id, out var a) ? p with { Attributes = a } : p)];
+        }
         if (wanted.Contains(ListingSection.Diagnostics))
             foreach (var diagnostic in diagnostics)
                 if (diagnostic.Line is { } placed) drafts[placed - 1].AddDiagnostic(diagnostic.Id);
@@ -79,14 +88,23 @@ internal static class ListingBuilder
             wanted.Contains(ListingSection.Options) ? facts.Options : [],
             wanted.Contains(ListingSection.Statistics)
                 ? StatisticsSectionBuilder.Build(lines, files, diagnostics, programs, units, index) : null,
-            [.. wanted.Each().Select(section => StatusOf(section, units))]);
+            dataMap,
+            [.. wanted.Each().Select(section => StatusOf(section, units, facts.Symbols, outcome))]);
     }
 
-    /// <summary>Whether <paramref name="section"/> could be produced (DESIGN-listing.md section 4.3): every section of this step
-    /// stands on the source text, which a listing always has, but the program map stands on the parse.</summary>
-    private static ListingSectionStatus StatusOf(ListingSection section, Frontend.SourceUnitFacts? units) => section switch
+    /// <summary>Whether <paramref name="section"/> could be produced (DESIGN-listing.md section 4.3): the source, diagnostics,
+    /// options and statistics stand on the source text, which a listing always has; the program map stands on the parse, and the
+    /// data map on the finished symbol table, which only a bind that accepted the program makes.</summary>
+    private static ListingSectionStatus StatusOf(ListingSection section, Frontend.SourceUnitFacts? units,
+        Symbols.SymbolTableSnapshot? symbols, ListingOutcome outcome) => section switch
     {
         ListingSection.Programs when units is null => new(section, false, "the source was not parsed"),
+        ListingSection.DataMap when symbols is null => new(section, false, outcome switch
+        {
+            ListingOutcome.FrontendError => "the source was not parsed",
+            _ => "the bind refused the program",
+        }),
+        ListingSection.DataMap => new(section, true, null),
         ListingSection.Source or ListingSection.Programs or ListingSection.Diagnostics or ListingSection.Options
             or ListingSection.Statistics => new(section, true, null),
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a listing section with no builder"),
