@@ -1,1 +1,493 @@
-{ "note": "seed", "members": [] }
+{
+  "note": "NameTableOwnershipDriftTests rule (3), docs/rearchitecture/DESIGN-listing.md section 6.7.1: each non-private member of WiseOwl.Cobol.Compiler that takes a string and gives a binder type, whose string is NO COBOL name of the program, with the reason. A lookup by a COBOL name is never classified here: it becomes SymbolTable's. The file only shrinks (its ceiling is in the test).",
+  "members": [
+    {
+      "member": "WiseOwl.Cobol.Binding.ArgPredicate.CharacterCategory(string, int)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ArgPredicate.DataItemOnly(string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ArgPredicate.DataItemOrLiteralOnly(string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ArgPredicate.ExactWidth(int, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ArgPredicate.MinWidth(int, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ArgPredicate.NotStrongGroup(string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ArgSchema.WithNoZeroLength(string, params int[])",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundAllLiteral.Of(string)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundBoolError.Carry(string, bool)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundBoolError.Refused(WiseOwl.Cobol.Binding.EditionContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundExprError.Carry(string, bool)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundExprError.Refused(WiseOwl.Cobol.Binding.EditionContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundExprError.Report(WiseOwl.Cobol.Binding.EditionContext, WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor, string, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundExprError.Unbuilt(WiseOwl.Cobol.Binding.EditionContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundOperandError.Carry(string, bool)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundOperandError.Refused(WiseOwl.Cobol.Binding.EditionContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundOperandError.Report(WiseOwl.Cobol.Binding.EditionContext, WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor, string, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundOperandError.Unbuilt(WiseOwl.Cobol.Binding.EditionContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Bound.BoundRejected.Report(WiseOwl.Cobol.Binding.EditionContext, WiseOwl.Cobol.Editions.Diagnostics.DiagnosticDescriptor, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ChoiceIndicators.AtMostOnce<T>(WiseOwl.Cobol.Binding.EditionContext, T[], string, string, string, string?)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ChoiceIndicators.ForPhrasePair<T>(WiseOwl.Cobol.Binding.EditionContext, T[], System.Func<T, bool>, string, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.CompilerTemps.Create(WiseOwl.Cobol.Binding.Model.DataItem, string, string, string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.CompilerTemps.CreateTable(WiseOwl.Cobol.Binding.Model.DataItem, int?, string, string, string, out WiseOwl.Cobol.Binding.Model.DataItem)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.CompilerTemps.ForInvocation(WiseOwl.Cobol.Binding.Model.DataItem, string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.CompilerTemps.ForProperty(WiseOwl.Cobol.Binding.Model.DataItem, string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.CompilerTemps.ForSelf(string, bool)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ConstantEntryBinder.LiteralTokenValue(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.NonNumericLiteralContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ConstantEntryBinder.VariableStringValue(WiseOwl.Cobol.Frontend.Expressions.CtValue, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.DataBinder.ForceStringCanonical(WiseOwl.Cobol.Binding.Model.DataItem, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.DataBinder.SpecialNamesConstant(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CobolWordContext, System.Action<string>, string, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.DataBinder.Sr9ImpliedFor(string, WiseOwl.Cobol.Binding.Model.Usage)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.DataBinder.UniqueOrReportAmbiguous<T>(WiseOwl.Cobol.Binding.Model.NameCandidates<T>, string, string, out bool, bool)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.DateTimeFormatGrammar.Describe(string, bool)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.EcRaiseSite.Exit(string)",
+      "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.FunctionWord.OfWrittenWord(string, WiseOwl.Cobol.Editions.CobolWordsMap)",
+      "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.GroupRepositoryProvider.Function(string, int)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.GroupRepositoryProvider.FunctionsByWord(string, int, string?)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.GroupRepositoryProvider.Program(string, int)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.IRepositoryProvider.Function(string, int)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.IRepositoryProvider.FunctionsByWord(string, int, string?)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.IRepositoryProvider.Program(string, int)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ImplementorCodeNames.Find(string, bool)",
+      "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ImplementorNameRegistry.Lookup(string)",
+      "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.IntrinsicCatalog.TryGet(string, out WiseOwl.Cobol.Binding.IntrinsicSig)",
+      "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.Class(string, WiseOwl.Cobol.Compiler.Oo.OoClassTable)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.ExpansionsNamed(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.Function(string, int)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.FunctionsByWord(string, int, string?)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.Interface(string, WiseOwl.Cobol.Compiler.Oo.OoClassTable)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.Program(string, int)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.MetadataRepositoryProvider.Skeleton(string, bool)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.CsNameScope.HostEntry(string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.CsNames.ModuleNamespaceOf(string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.ExpansionPlacements.Of(string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.MethodRoster.Find(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.ObjectRefDescriptor.ActiveClass(string?, bool)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.ObjectRefDescriptor.FormalParameter(string, bool, bool, bool)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.ObjectRefDescriptor.Interface(string)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.ObjectRefDescriptor.ObjectClass(string, bool, bool)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.ObjectRefDescriptor.Resolved(string, string?)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.OoInterfaceSymbol.FindOwnPrototype(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.PicInfo.FunctionPointerItem(string)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.PicInfo.PointerItem(string?)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.PicInfo.ProgramPointerItem(string?)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.PictureClauseIdentity.Of(string, char, string, bool)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.RecordKey.OfSource(string, System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Binding.Model.DataItem>, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<int>>)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Model.StorageTierSlice.AnchorOf(string, string, int)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.OoDataBinder.BindObjectRefDescriptor(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ObjectReferenceUsageContext?, string, WiseOwl.Cobol.Binding.Model.EntrySection)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.PictureAnalyzer.Analyze(string, WiseOwl.Cobol.Binding.Model.Usage, WiseOwl.Cobol.Binding.EditionContext, string, WiseOwl.Cobol.Binding.Model.SignSpec?, char, bool, bool, System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Binding.EditingPhraseSpec>?, System.Collections.Generic.IReadOnlyDictionary<char, WiseOwl.Cobol.Binding.Model.CurrencyDefinition>?, WiseOwl.Cobol.Binding.Model.LocaleEditSpec?, bool)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.BareOperandAnalysis.OfClassName(string)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ConditionBinder.CheckedRangeMembership(WiseOwl.Cobol.Binding.Bound.BoundOperand, WiseOwl.Cobol.Binding.Bound.BoundOperand, WiseOwl.Cobol.Binding.Bound.BoundOperand, bool, string?)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ConditionBinder.CheckedRelational(WiseOwl.Cobol.Binding.Bound.BoundOperand, string, WiseOwl.Cobol.Binding.Bound.BoundOperand)",
+      "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ConditionBinder.ComparisonOperandOf(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ValueOperandContext?, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ConditionBinder.Refused(string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ConditionBinder.Unresolved(WiseOwl.Cobol.Binding.RefResolution, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder.BindIndexNameWindowOperandExpr(Antlr4.Runtime.Tree.IParseTree, string?)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder.BindOperandExpr(Antlr4.Runtime.Tree.IParseTree, string?)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder.BooleanLiteralOperand(string)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder.NationalLiteralOperand(string)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder.NumericLiteralOperand(string)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.MoveBinder.SendingOperand(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.SendingOperandContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.OoBinder.OoApplyObjectView(WiseOwl.Cobol.Binding.Model.Place, WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ObjectViewContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.OoBinder.OoBindSetObjectRef(System.Collections.Generic.IReadOnlyList<WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext>, WiseOwl.Cobol.Binding.Procedure.SetSender?, bool, bool, bool, string?)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.OoBinder.OoObjectReferenceTemporary(WiseOwl.Cobol.Binding.Bound.BoundExpr, Antlr4.Runtime.ParserRuleContext, string, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.OoBinder.OoPredefinedSearchRoot(bool, Antlr4.Runtime.IToken, WiseOwl.Cobol.Frontend.Generated.CobolParserCore.CobolWordContext?, string, bool)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.OoBinder.RefusePredefinedObjectOutsideMethod(string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder.ResolveProcedureOperand(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ProcedureNameContext, string, string, WiseOwl.Cobol.Binding.Procedure.ProcedureReferenceKind)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.ProgramNameLiteral.Of(WiseOwl.Cobol.Binding.Procedure.ExpressionBinder, WiseOwl.Cobol.Frontend.Generated.CobolParserCore.NonNumericLiteralContext?, string)",
+      "reason": "it builds a value that records the word as written (a descriptor, an analysis, a bound node) and resolves nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.PtrBinder.AddressIdentifierOperand(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.AddressIdentifierContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.PtrBinder.BindAddressIdentifier(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.AddressIdentifierContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp.ConceptualCharacterItem(WiseOwl.Cobol.Binding.Model.PicCategory, string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp.Materialize(WiseOwl.Cobol.Binding.Bound.BoundOperand, string, int?, WiseOwl.Cobol.Binding.Procedure.SendingValueTemp.ValueUse)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp.MaterializeBoolean(WiseOwl.Cobol.Binding.Bound.BoundBoolExpr, int, string, int?)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp.MaterializeLiteral(WiseOwl.Cobol.Binding.Bound.BoundStringLiteral, string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp.MaterializeTableAll(WiseOwl.Cobol.Binding.Model.TableAllPlace, string, int?)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.SendingValueTemp.MaterializeTruth(WiseOwl.Cobol.Binding.Bound.BoundCondition, string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.SetBinder.BindProgramAddressOperand(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.ProgramAddressIdentifierContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.SetSender.OfExpression(string)",
+      "reason": "its string is the text of a literal, a PICTURE character-string or a format string, which names nothing"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.StorageSectionRule.Of2023(string)",
+      "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Procedure.StrongGroupComparison.Lower(WiseOwl.Cobol.Binding.Model.Place, WiseOwl.Cobol.Binding.Model.Place, string, out string?)",
+      "reason": "its string is a word of the standard or of the implementor (an intrinsic function name, an implementor-name, a clause or verb keyword), never a user-defined word of the program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.RaisingPhrase.Partition(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.RaisingClauseContext?, WiseOwl.Cobol.Compiler.Oo.OoClassTable?, WiseOwl.Cobol.Binding.EditionContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.RefModBinder.RefModOf(WiseOwl.Cobol.Binding.Model.Place, WiseOwl.Cobol.Frontend.Generated.CobolParserCore.RefModPartContext, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.RefResolution.Deferred(WiseOwl.Cobol.Binding.Model.DeferredShape, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.RefResolution.Refused(string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.RefResolution.Resolved(WiseOwl.Cobol.Binding.Model.Place, string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.ReferenceResolver.SegmentFailure(string)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Repository.RepositoryCodec.Of(string, string, bool, WiseOwl.Cobol.Binding.Model.SkeletonRecord)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.RepositoryResolver.ResolveFunction(string, string, int)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.RepositoryResolver.ResolveProgram(string, int)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Validation.StatementValidation.ResolveFile(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext, string, out WiseOwl.Cobol.Binding.Model.FileModel?, bool, string?)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Validation.StatementValidation.ResolveFile(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.FileNameContext, string, out WiseOwl.Cobol.Binding.Model.FileModel?, bool, string?)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Validation.StatementValidation.ResolveRecordName(WiseOwl.Cobol.Binding.Model.Place, string, string, string, string, out WiseOwl.Cobol.Binding.Model.FileModel?)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.Binding.Validation.StatementValidation.ResolveSearchTable(WiseOwl.Cobol.Frontend.Generated.CobolParserCore.DataReferenceContext, string, WiseOwl.Cobol.Binding.ReferenceResolver)",
+      "reason": "its strings word a diagnostic (a feature, a message, a verb, a rule citation, a site): the operand, if any, is the parser context"
+    },
+    {
+      "member": "WiseOwl.Cobol.CodeGen.CSharpLocal.Position(string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.CodeGen.PositionRenderer.OneBased(string)",
+      "reason": "its string is a C# identifier the compiler mints or emits (a temporary's tag or prefix, a CLR or member name), never a COBOL word"
+    },
+    {
+      "member": "WiseOwl.Cobol.Compiler.Oo.IOoImporter.Class(string, WiseOwl.Cobol.Compiler.Oo.OoClassTable)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Compiler.Oo.IOoImporter.Interface(string, WiseOwl.Cobol.Compiler.Oo.OoClassTable)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Compiler.Oo.IOoImporter.Skeleton(string, bool)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Compiler.Oo.OoClassTable.FindByExternalizedName(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Compiler.Oo.OoClassTable.FindInterfaceByExternalizedName(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ImportClass(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    },
+    {
+      "member": "WiseOwl.Cobol.Compiler.Oo.OoClassTable.ImportInterface(string)",
+      "reason": "its string is an externalized name or a class identity read from compiled repository metadata (another compilation's record), not a symbol of this program"
+    }
+  ]
+}

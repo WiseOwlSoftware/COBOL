@@ -305,7 +305,8 @@ internal static class NameTableOwnership
                 else if (parameters.Any(p => p.RefKind != RefKind.Out && p.Type.SpecialType == SpecialType.System_String))
                 {
                     yield return new NameFinding(3, key, Where(member),
-                        $"{key} takes a string and gives a binder symbol: convert it to SymbolTable.Identify, or classify its string as no COBOL name");
+                        $"{key} takes a string ({string.Join(", ", parameters.Where(p => p.Type.SpecialType == SpecialType.System_String).Select(p => p.Name))}) "
+                        + "and gives a binder symbol: convert it to SymbolTable.Identify, or classify its string as no COBOL name");
                 }
             }
         }

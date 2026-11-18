@@ -32,8 +32,8 @@ public sealed class NameTableOwnershipDriftTests
     private static readonly string[] StayingClasses = ["KEYWORD", "SAMESYMBOL", "EXTERNAL", "MESSAGE"];
 
     /// <summary>The classifications only shrink: a new entry raises its ceiling here, in review's sight.</summary>
-    private const int StringMembersCeiling = 200;
-    private const int ComparisonsCeiling = 200;
+    private const int StringMembersCeiling = 122;
+    private const int ComparisonsCeiling = 86;
 
     /// <summary>Where every run writes its findings, one per line.</summary>
     private static readonly string MeasuredFile = Path.Combine(AppContext.BaseDirectory, "name-table-ownership.measured.txt");
@@ -44,7 +44,8 @@ public sealed class NameTableOwnershipDriftTests
         Diagnostic[] errors = [.. compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)];
         IReadOnlyList<NameFinding> findings = NameTableOwnership.Findings(compilation, NameTableShape.Product);
         // The whole measured picture beside the run's output, so a red is read in full, never from a truncated message.
-        File.WriteAllLines(MeasuredFile, findings.Select(f => f.ToString()));
+        // One finding per line, tab-separated (rule, key, where, what), so a script can read the keys whole.
+        File.WriteAllLines(MeasuredFile, findings.Select(f => string.Join('\t', f.Rule, f.Key, f.Where, f.What)));
         return (findings, errors);
     });
 
