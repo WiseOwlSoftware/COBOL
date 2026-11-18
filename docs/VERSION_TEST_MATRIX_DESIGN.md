@@ -301,18 +301,28 @@ the edition in force has no such rule, the message cites the edition where the r
   of a citation, or of the words a message quotes, by edition: `y1985` at COBOL-85 and `later` from COBOL-2002 on, each text written
   once, with `y2002` and `y2014` overriding only where that edition's own text differs. A text two editions share is written once
   at a site (a local or constant passed twice), never twice. A site never spells its own `DialectLevel < 2002 ? …` between two
-  texts: `EditionCiteOneDeciderDriftTests` (Unit) compiles each `src/` project as MSBuild does (its sources, the compile items
-  MSBuild generated in `obj/` such as its global usings, the settings of `Directory.Build.props`, its project references resolved
-  through `TestRepo.MsBuildPath`, the framework and packages, and the compiler's source generator) and asserts each compilation binds
-  with no error. With the semantic model it computes the EDITION-DERIVED values as a fixed point: the seeds are `EditionInfo`'s `int`
-  properties and `bool`-of-`int` methods (by reflection), `DialectLevel` and `Std`; a `bool` or `int` local, field, property, method
-  or local function whose initializer or return expression reads one is derived, a method only when every parameter carries an
-  edition (one that also takes the program's data answers a question about the program). It refuses a conditional, a switch
+  texts. THE BUILD REFUSES IT: `EditionCiteAnalyzer` (`src/WiseOwl.Cobol.Analyzers`, a Roslyn analyzer every `src/` project that is
+  not itself a Roslyn component loads through `src/Directory.Build.props`) runs over the REAL compilation MSBuild builds (its sources,
+  every generator's output, the SDK's included, its references), and its finding is a build error, `WOCA0001`. (Until PB4950 round 7
+  a Unit test rebuilt each compilation by hand, and every change to how main builds broke the copy: project paths, a new project,
+  the System.Text.Json generator.) With the semantic model it computes the EDITION-DERIVED values as a fixed point across the
+  compilation's files: the seeds are `EditionInfo`'s public instance `int` properties and `bool`-of-`int` methods (read from its
+  symbol), `DialectLevel` and `Std`; a `bool` or `int` local, field, property, method or local function whose initializer or return
+  expression reads one is derived, a method only when every parameter carries an edition (one that also takes the program's data
+  answers a question about the program). ACROSS ASSEMBLIES the derivation travels by attribute: an analyzer sees one compilation and
+  a referenced assembly has no bodies, so a derived member another assembly can read (public, or protected in a public type; the
+  products grant `InternalsVisibleTo` only to tests) must carry `[EditionDerived]` (`WiseOwl.Cobol.Runtime.EditionDerivedAttribute`,
+  in the runtime because every product project that reads an edition references it), `WOCA0002` where it is declared, and a marked
+  member read from metadata is derived in the reading compilation. The rule that requires the mark computes the need for it, so the
+  marked set cannot drift (a seed list beside the code could). It refuses a conditional, a switch
   expression or statement, an if/else, or an if that returns before a second return, choosing between two strings (written, or of
   type string and not a call) on a condition that reads a derived value, and an interpolation hole whose own value a derived member
-  computes (a string, or a number spliced into a citation such as `§{Printed(edition)}:8.12`). Exempt: `EditionInfo.cs`, generated
+  computes (a string, or a number spliced into a citation such as `§{Printed(edition)}:8.12`). Exempt: `EditionInfo`'s own file (the
+  decider), generated
   code and the code generator (whose strings are emitted C#). `EditionInfo`'s `bool` properties are named rule facts, a choice that
-  can answer null (a message or none) is a verdict, and a hole that prints the compile edition names it. Every quotation a COBOL-85
+  can answer null (a message or none) is a verdict, and a hole that prints the compile edition names it. `EditionCiteAnalyzerTests`
+  (Unit) runs the analyzer over planted source through `CompilationWithAnalyzers`, each shape, each alias and the cross-assembly mark,
+  and pins its edition list to `EditionInfo.All`; a src file planted with a violation fails `dotnet build` with `WOCA0001`. Every quotation a COBOL-85
   message carries is the 1985 text of the rule it cites, checked with `cite.py` over the rendered diagnostics of every refusal at 85. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
   `SearchAllFormat2Rules.Rule`, which maps 2023's SR6 to SR13 of SEARCH to each edition's rule).
 - **Declines.** A descriptor whose `Title` is its message (a decline, composed by `EditionContext.Declined`) carries

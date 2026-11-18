@@ -122,6 +122,10 @@
     {
       "assembly": "WiseOwl.Cobol.Compiler.SourceGen",
       "reason": "build-time generator; references no product assembly (census projects[].projectReferences = [])"
+    },
+    {
+      "assembly": "WiseOwl.Cobol.Analyzers",
+      "reason": "build-time analyzer (src/Directory.Build.props loads it into every src project); references no product assembly (census projects[].projectReferences = [])"
     }
   ],
   "allowed": [

@@ -74,6 +74,7 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <summary>The fixed-point digit capacity of the targeted edition: 18 at COBOL-85, 31 at 2002+ (ISO
     /// §2023:8.3.3.3.2 fixed-point literals 1–31 digits; the §2023:14.7 composite-of-operands rules; PICTURE digit
     /// positions) — delegated to <see cref="Edition"/>.</summary>
+    [EditionDerived]
     public int MaxDigits => Edition.MaxDigits;
 
     // ── The diagnostic cursor and the source-line map (kb/Work PB82) ──────────────────────────────────────────

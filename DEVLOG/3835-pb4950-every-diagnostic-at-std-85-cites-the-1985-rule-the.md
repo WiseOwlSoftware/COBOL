@@ -13,8 +13,11 @@ asks it, `EditionCitationNet`, was laid as a ratchet of 298 codes and 1638 diagn
   `EditionInForce` and deleted the rest.
 - **One file-control row mechanism.** A 1985 file-control row replaces only the 2023 rows of its id under the same diagnostic
   (`FileControlKeyRule.Replaces`), so a sort-merge arm that shares a 2023 rule id keeps its row and its code.
-- **One decider, enforced by the semantic model.** A Roslyn drift test computes the edition-derived values of all of `src` as a
-  fixed point, aliases included, and refuses any other choice of words by edition. Every quotation a COBOL-85 message carries
+- **One decider, enforced by the build.** A Roslyn analyzer (`src/WiseOwl.Cobol.Analyzers`, loaded by every `src` project)
+  computes the edition-derived values of each real compilation as a fixed point, aliases included, and makes any other choice
+  of words by edition a build error (WOCA0001). A derived member another assembly reads carries `[EditionDerived]` (WOCA0002),
+  so the derivation crosses projects. Three merge reds came from a test that rebuilt the compilation by hand; the analyzer
+  replaced it. Every quotation a COBOL-85 message carries
   was checked against the 1985 rule it cites, over the rendered diagnostics of every refusal at 85.
 - **The net is a plain rule.** The ratchet file is deleted. Any later-edition-only citation at 85 fails, unless it is an edition
   gate or its descriptor records `No1985Rule` (docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a).

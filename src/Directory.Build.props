@@ -1,0 +1,21 @@
+<Project>
+
+  <!--
+    src-tree props. MSBuild stops at the FIRST Directory.Build.props found walking up, so the repo-root one is imported
+    explicitly; without this line every src project would lose TargetFramework, Nullable, TreatWarningsAsErrors and the rest.
+  -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!--
+    ⛔ THE REPOSITORY'S ANALYZERS RUN OVER EVERY src PROJECT'S REAL COMPILATION (kb/Work PB4950 round 7). Each src project
+    that is not itself a Roslyn component loads src/WiseOwl.Cobol.Analyzers as an analyzer, so a rule over the product's C#
+    (WOCA0001, one decider of a message's words by edition, docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a) is a build ERROR in the
+    compilation MSBuild actually builds: its sources, its SDK-supplied generators' output, its references. Item conditions
+    are evaluated after every property, so the project's own IsRoslynComponent is already set here.
+  -->
+  <ItemGroup Condition="'$(IsRoslynComponent)' != 'true'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)WiseOwl.Cobol.Analyzers/WiseOwl.Cobol.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

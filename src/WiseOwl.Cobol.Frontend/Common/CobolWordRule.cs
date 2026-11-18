@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Frontend.Common;
 
@@ -30,6 +31,7 @@ namespace WiseOwl.Cobol.Frontend.Common;
 public static class CobolWordRule
 {
     /// <summary>The §2023:8.3.2.1 maximum COBOL-word length for a targeted edition.</summary>
+    [EditionDerived]
     public static int MaxLength(int dialectLevel) =>
         dialectLevel >= 2023 ? 63 : dialectLevel >= 2002 ? 31 : 30;
 

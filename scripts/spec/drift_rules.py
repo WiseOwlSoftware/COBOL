@@ -90,10 +90,6 @@ WITHIN_HELPER = re.compile(r"\bstatic\s+string\s+(\w+)\(\s*string\s+directory\s*
 #: The trees `s_suiteCases` files a test id under: `s_suiteCases = new(() => new[] { Suite("cases"), ... }`.
 CASE_TREES = re.compile(r"\bs_suiteCases\s*=\s*new\([^{]*\{([^}]*)\}")
 PUBLIC_STRING = re.compile(r"\bpublic\s+static\s+string\s+(\w+)\s*\(")
-#: A RESOLVER: `static string X(string fileDirectory, string written) => Path.GetFullPath(Path.Combine(fileDirectory, ...` (the MSBuild
-#: path helper, kb/Work PB1957). It names no repository path of its own: both the directory and the path are its caller's arguments.
-RESOLVER_HELPER = re.compile(r"\bstatic\s+string\s+(\w+)\(\s*string\s+(\w+)\s*,\s*string\s+\w+\s*\)\s*=>\s*"
-                             r"Path\.GetFullPath\(\s*Path\.Combine\(\s*\2\s*,")
 #: Where a test writes a repo path: a helper call `TestRepo.X(` (`X(` inside TestRepo itself: `BARE_CALL`) or a
 #: `Path.Combine(`. The arguments are read with balanced parentheses (`path_args`), never by a regex over them: an
 #: argument is itself a call (`TestRepo.Src(Path.Combine("WiseOwl.Cobol.Frontend", "Grammar"))`, kb/Work PB3112).
@@ -183,14 +179,12 @@ def test_repo(root=ROOT):
         return '"bin"' in text[m.end():text.find(";", m.end())]
 
     within = [m.group(1) for m in WITHIN_HELPER.finditer(text)]
-    resolvers = [m.group(1) for m in RESOLVER_HELPER.finditer(text)]
     unread = [m.group(1) for m in PUBLIC_STRING.finditer(text)
               if m.group(1) not in helpers and m.group(1) not in case and m.group(1) not in beside
-              and m.group(1) not in within and m.group(1) not in resolvers and not builds(m)]
+              and m.group(1) not in within and not builds(m)]
     if case and not trees:
         unread += [f"{c} (the trees s_suiteCases files an id under)" for c in case]
-    return {"helpers": helpers, "case": case, "beside": beside, "within": within, "resolvers": resolvers, "trees": trees,
-            "unread": unread}
+    return {"helpers": helpers, "case": case, "beside": beside, "within": within, "trees": trees, "unread": unread}
 
 
 def prefixed(helpers, name, args):
@@ -1172,11 +1166,6 @@ def self_test():
         (root / TEST_REPO).write_text(odd, encoding="utf-8", newline="\n")
         check("a TestRepo helper in a shape the index cannot read is reported (`--check` fails on it)",
               test_repo(root)["unread"] == ["Odd"], test_repo(root)["unread"])
-        resolver = re.sub(r"(\bclass\s+TestRepo\s*\{)", r"\1 public static string Resolve(string fileDirectory, string written) => "
-                          r"Path.GetFullPath(Path.Combine(fileDirectory, written));", odd, count=1)
-        (root / TEST_REPO).write_text(resolver, encoding="utf-8", newline="\n")
-        check("a resolver of a path its caller hands it (TestRepo.MsBuildPath's shape, kb/Work PB1957) is no unread helper",
-              "Resolve" in test_repo(root)["resolvers"] and "Resolve" not in test_repo(root)["unread"], test_repo(root))
 
     # THE TRAIT RULES (kb/Work PB3022, PB4395), each on a planted tree: the shapes they refuse, and the shapes they must not.
     with tempfile.TemporaryDirectory() as tmp:

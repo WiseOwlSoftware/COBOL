@@ -8,7 +8,7 @@ THE DEFECT. A C# language server (csharp-ls, the LSP tool of MANDATORY-PRACTICES
 `WiseOwl.Cobol.Compiler.SourceGen.dll` straight from the worktree's `bin\\` and keeps it loaded for the life of its session.
 Windows refuses to OVERWRITE a loaded image, so every later build that had a fresh output to copy there (the landing's
 ABI-pin settle, a finisher's gate) failed with MSB3027/MSB3021 "locked by", as if the branch were broken. The project's
-`MoveAsideHeldOutput` target (src/WiseOwl.Cobol.Compiler.SourceGen/WiseOwl.Cobol.Compiler.SourceGen.csproj) now deletes the stale
+`MoveAsideHeldOutput` target (src/Directory.Build.targets, run by every src Roslyn component) now deletes the stale
 output and, when it is held, renames it aside (a loaded image can be renamed), so the copy succeeds.
 
 THE TEST builds a scratch copy of that project (the repository's own bin and obj are untouched), has a real .NET
@@ -47,13 +47,16 @@ def expect(label: str, ok: bool, detail: str = "") -> None:
 
 def stage(out: pathlib.Path) -> pathlib.Path:
     """A scratch copy of the generator project with the repository-root files that configure its build (the SDK pin,
-    the central package versions, the package sources and the shared properties), so the build runs the project's own
-    targets and writes nothing into the repository. Returns the copied project file."""
+    the central package versions, the package sources and the shared properties) and src/'s own props and targets (which
+    define the held-output target every src Roslyn component runs), so the build runs the targets the project gets in the
+    repository and writes nothing into it. Returns the copied project file."""
     for name in ("Directory.Build.props", "Directory.Packages.props", "global.json", "nuget.config"):
         shutil.copy2(REPO / name, out / name)
     (out / "nuget-feed").mkdir()                       # nuget.config names this local source
     project = out / "src" / PROJECT.parent.name
     project.mkdir(parents=True)
+    for name in ("Directory.Build.props", "Directory.Build.targets"):   # src/'s own: the held-output target lives in its targets
+        shutil.copy2(PROJECT.parent.parent / name, out / "src" / name)
     for source in [PROJECT, *PROJECT.parent.glob("*.cs")]:
         shutil.copy2(source, project / source.name)
     return project / PROJECT.name

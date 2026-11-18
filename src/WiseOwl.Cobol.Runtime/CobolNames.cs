@@ -164,6 +164,7 @@ public static partial class CobolNames
     /// implements, so a name must be written in <see cref="EditionSpelling"/> to be compared as that edition would: every
     /// edition below 2023 (Annex E.2 item 14 deleted the final-sigma mapping at 2023, and the dotless-i one the fold never applies). The single question
     /// the lexer's spelling, the bind-time literal formation and the emitted run-time name formation all ask.</summary>
+    [EditionDerived]
     public static bool HasEditionSpelling(int dialectLevel) => dialectLevel < 2023;
 
     /// <summary>The spelling under which the ONE (2023) comparer answers as the edition <paramref name="dialectLevel"/>'s
