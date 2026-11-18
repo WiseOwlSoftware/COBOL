@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding.Repository;
 using WiseOwl.Cobol.Compiler.Oo;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Common;
+using WiseOwl.Cobol.Frontend.Diagnostics;
 
 namespace WiseOwl.Cobol;
 
@@ -29,9 +30,11 @@ internal static class ExpansionAssemblies
     /// reached, which the group's result takes as its own: an expansion whose assembly the host refuses is OutputNotWritable, not a
     /// backend error; kb/Work PB4502 review R2-1) or none (<paramref name="Failure"/> is then Success), with the warnings of every
     /// compilation that ran of the text of a skeleton read from the repository (one of a skeleton written in the group is the group's to
-    /// report, <see cref="Write"/>).</summary>
+    /// report, <see cref="Write"/>). <paramref name="Diagnostics"/> holds the record of every diagnostic of <paramref name="Errors"/>
+    /// and <paramref name="Warnings"/> that has one (each line of them is its record's <see cref="Diagnostic.Render"/>; the other lines name
+    /// no source: a header, an output the host refused), located at the entry (DESIGN-listing.md section 6.3).</summary>
     public sealed record Written(IReadOnlyList<string> Files, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings, string? GeneratedCsPath,
-        CompilerDriver.Outcome Failure);
+        CompilerDriver.Outcome Failure, IReadOnlyList<Diagnostic> Diagnostics);
 
     /// <summary>Compile every expansion <paramref name="expansions"/> places in an assembly of its own, dependency order, and return the files
     /// written; the first failure stops the run and is returned as the group's result, under the outcome that compilation reached (`Written.Failure`), with the generated C# of the compilation that
@@ -49,6 +52,7 @@ internal static class ExpansionAssemblies
     {
         var files = new List<string>();
         var warnings = new List<string>();
+        var records = new List<Diagnostic>();
         var references = new List<string>(options.ReferencePaths ?? []);
         foreach (var (text, state, placement, requestedAt, region, clientWritten) in expansions.ToWrite)
         {
@@ -69,14 +73,16 @@ internal static class ExpansionAssemblies
                 // repository is this compilation's, reported at the entry, and the group's bind of it withdraws what it raised; the text
                 // of a skeleton written in the group is the user's own, which the group has reported where the user wrote it, under the
                 // same state, so this compilation's report of it would be the same facts a second time.
+                var reported = AtTheEntry(result, temp, name, requestedAt);
                 if (region.IsRepositoryText)
                 {
-                    warnings.AddRange(result.Warnings.Select(w => AtTheEntry(w, temp, name, requestedAt)));
+                    warnings.AddRange(reported.Warnings);
+                    records.AddRange(reported.Records.Where(d => !d.IsError));
                     edition.WithdrawWarningsOf(region);
                 }
                 if (!result.Success)
                     return new(files, [$"the expansion assembly '{target}' (ISO §2023:9.3.12; DESIGN-external-repository §10.5):",
-                        .. result.Errors.Select(e => AtTheEntry(e, temp, name, requestedAt))], warnings, result.GeneratedCsPath, result.Status);
+                        .. reported.Errors], warnings, result.GeneratedCsPath, result.Status, [.. records, .. reported.Records.Where(d => d.IsError)]);
                 files.AddRange(result.OutputFiles);
                 references.Add(target);
             }
@@ -85,25 +91,36 @@ internal static class ExpansionAssemblies
                 File.Delete(temp);
             }
         }
-        return new(files, [], warnings, null, CompilerDriver.Outcome.Success);
+        return new(files, [], warnings, null, CompilerDriver.Outcome.Success, records);
     }
 
-    /// <summary>A diagnostic line of the compilation of the text of expansion <paramref name="expansion"/>, reported where the expansion
-    /// was asked for: <paramref name="requestedAt"/> replaces the position in <paramref name="temp"/> (a line of text the user never wrote,
-    /// in a file that no longer exists), a diagnostic that names no position takes it, and the expansion is named after the message so the
-    /// text it concerns can be found. Any other line (a header, a Roslyn diagnostic of the generated C#) is returned as it was, except
-    /// that a remaining mention of <paramref name="temp"/> becomes the expansion's name.</summary>
-    internal static string AtTheEntry(string diagnostic, string temp, string expansion, SourceLocation requestedAt)
+    /// <summary>The report of <paramref name="result"/>, the compilation of the text of expansion <paramref name="expansion"/>, where
+    /// the expansion was asked for: each diagnostic's record moved to the entry (<see cref="AtTheEntry(Diagnostic, string, string,
+    /// SourceLocation)"/>, the one decider), each of its lines that one record's rendering, and each other line (one that names no
+    /// source, such as an output the host refused) kept with a mention of <paramref name="temp"/> made the expansion's name.</summary>
+    internal static (IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings, IReadOnlyList<Diagnostic> Records) AtTheEntry(
+        CompilerDriver.Result result, string temp, string expansion, SourceLocation requestedAt)
     {
-        string named = DiagnosticRegion.InTheExpansion(expansion);
-        if (diagnostic.StartsWith(temp + "(", StringComparison.Ordinal) && diagnostic.IndexOf("): ", temp.Length, StringComparison.Ordinal) is var end and >= 0)
-            diagnostic = $"{requestedAt}: {diagnostic[(end + 3)..]} {named}";
-        else if (diagnostic.StartsWith("error ", StringComparison.Ordinal) || diagnostic.StartsWith("warning ", StringComparison.Ordinal)
-            || diagnostic.StartsWith("info ", StringComparison.Ordinal))
-            diagnostic = $"{requestedAt}: {diagnostic} {named}";
-        return diagnostic.Replace(temp, $"the text of the expansion '{expansion}'", StringComparison.Ordinal);
+        var moved = new Dictionary<string, Diagnostic>(StringComparer.Ordinal);
+        foreach (var record in result.Diagnostics) moved.TryAdd(record.ToString(), AtTheEntry(record, temp, expansion, requestedAt));
+        string Line(string line) => moved.TryGetValue(line, out var record) ? record.ToString() : Named(line, temp, expansion);
+        return ([.. result.Errors.Select(Line)], [.. result.Warnings.Select(Line)], [.. result.Diagnostics.Select(d => moved[d.ToString()])]);
     }
 
+    /// <summary>A diagnostic of the compilation of the text of expansion <paramref name="expansion"/>, reported where the expansion was
+    /// asked for: <paramref name="requestedAt"/> replaces the position in <paramref name="temp"/> (a line of text the user never wrote, in a
+    /// file that no longer exists), a diagnostic that names no position takes it, and the expansion is named after the message so the
+    /// text it concerns can be found. A diagnostic located elsewhere (a Roslyn diagnostic of the generated C#) keeps its location; a
+    /// remaining mention of <paramref name="temp"/> in its message becomes the expansion's name.</summary>
+    internal static Diagnostic AtTheEntry(Diagnostic diagnostic, string temp, string expansion, SourceLocation requestedAt)
+    {
+        bool atTheText = diagnostic.Location is not { } at || string.Equals(at.FileName, temp, StringComparison.Ordinal);
+        string message = atTheText ? $"{diagnostic.Message} {DiagnosticRegion.InTheExpansion(expansion)}" : diagnostic.Message;
+        return diagnostic with { Message = Named(message, temp, expansion), Location = atTheText ? requestedAt : diagnostic.Location };
+    }
+
+    private static string Named(string text, string temp, string expansion) =>
+        text.Replace(temp, $"the text of the expansion '{expansion}'", StringComparison.Ordinal);
     /// <summary>The most positions of a line this writes (ISO §2023:6.1 3) a) allows 255): room is left for a floating literal continuation
     /// indicator and its quotation symbol.</summary>
     private const int LineLimit = 200;

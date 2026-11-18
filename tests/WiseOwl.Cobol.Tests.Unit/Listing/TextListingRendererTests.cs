@@ -26,7 +26,7 @@ public sealed class TextListingRendererTests
 
     private static ListingLine Line(ListingLineKind kind, bool omitted = false,
         ListingReplacement replacement = ListingReplacement.None) =>
-        new(1, 1, 1, null, 0, ListingLineForm.Fixed, kind, "", omitted, true, false, null, replacement, null);
+        new(1, 1, 1, null, 0, ListingLineForm.Fixed, kind, "", omitted, true, false, null, replacement, null, []);
 
     [Fact]
     public void TheMarker_FollowsTheLinesKind_OmissionAndReplacementFirst()
@@ -103,13 +103,16 @@ public sealed class TextListingRendererTests
             [new ListingFile(1, source, ListingFileRole.Source, "00"), new ListingFile(2, library, ListingFileRole.Library, "00")],
             [new ListingInclusion(1, null, 1, 1, 1, "REC", null, 2, ListingInclusionOutcome.Found)],
             [
-                new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       COPY REC.", false, true, false, 0, ListingReplacement.None, null),
-                new(2, 2, 1, 1, 1, ListingLineForm.Fixed, ListingLineKind.Source, "       01 R PIC X.", false, true, false, 0, ListingReplacement.None, null),
+                new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       COPY REC.", false, true, false, 0, ListingReplacement.None, null, []),
+                new(2, 2, 1, 1, 1, ListingLineForm.Fixed, ListingLineKind.Source, "       01 R PIC X.", false, true, false, 0, ListingReplacement.None, null, [1]),
             ],
             [new ListingProgram(0, "P", ListingProgramKind.Program, null, 0, 1, 2)],
+            [new ListingDiagnostic(1, "COBOL0001", ListingSeverity.Error, "a message of many words " + string.Join(" ", Enumerable.Repeat("word", 60)),
+                2, 2, 1, 8, [])],
             [new ListingSectionStatus(ListingSection.Source, true, null), new ListingSectionStatus(ListingSection.Programs, true, null)]);
         var request = new ListingRequest(PageWidth: ListingRequest.MinimumPageWidth);
-        string[] rows = TextListingRenderer.Render(document, request).Split('\n');
+        // A form feed opens each page after the first; it is no column.
+        string[] rows = [.. TextListingRenderer.Render(document, request).Split('\n').Select(r => r.TrimStart(PageComposer.FormFeed))];
         Assert.All(rows, r => Assert.True(r.Length <= request.PageWidth, $"{r.Length} columns: {r}"));
         Assert.StartsWith("SOURCE  ...", rows[1], StringComparison.Ordinal);
         Assert.EndsWith("/directory19/main.cob", rows[1], StringComparison.Ordinal);
@@ -119,5 +122,70 @@ public sealed class TextListingRendererTests
         string joined = string.Concat(rows.Skip(banner).TakeWhile(r => !r.Contains("01 R PIC X.", StringComparison.Ordinal))
             .Select(r => r[(TextListingRenderer.TextColumn - 1)..]));
         Assert.Equal("COPY REC -> " + library + " (depth 1)", joined);
+    }
+
+    private static ListingDiagnostic Diagnostic(int id, ListingSeverity severity, string message, int? line = 1, int? column = 8) =>
+        new(id, "COBOL0001", severity, message, line, line is null ? null : 1, line, line is null ? null : column, []);
+
+    /// <summary>A diagnostic under a line printed whole (DESIGN-listing.md section 6.3): a caret under its column, in the source
+    /// columns (a supplementary-plane character before it being one position), then the arrow row at the source text's column.</summary>
+    [Fact]
+    public void ADiagnostic_PrintsACaretUnderItsColumn_ThenItsRow()
+    {
+        string[] rows = [.. TextListingRenderer.DiagnosticRows(Diagnostic(1, ListingSeverity.Error, "no such name"), "       MOVE X TO Y.", 132)];
+        Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1 + 7) + "^", rows[0]);
+        Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1) + "==> error COBOL0001 (col 8): no such name", rows[1]);
+        Assert.Equal(2, rows.Length);
+        // \U0001D11E is two UTF-16 units and one position: column 3 (the index after it) stands one position on.
+        Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1 + 1) + "^", TextListingRenderer.CaretRow("\U0001D11EX", 3));
+        Assert.Null(TextListingRenderer.CaretRow("AB", 4));
+        // Under a line not printed whole (wrapped or replaced) there is no caret, and a diagnostic with no column names none.
+        Assert.Single(TextListingRenderer.DiagnosticRows(Diagnostic(1, ListingSeverity.Warning, "w"), null, 132));
+        Assert.Equal(new string(' ', TextListingRenderer.TextColumn - 1) + "==> info COBOL0001: i",
+            Assert.Single(TextListingRenderer.DiagnosticRows(Diagnostic(1, ListingSeverity.Info, "i", line: null), "X", 132)));
+    }
+
+    /// <summary>A long message wraps at a space onto rows indented under it, none wider than the page, and the rows read back as
+    /// the whole message.</summary>
+    [Fact]
+    public void ALongMessage_WrapsUnderItself_NoRowWiderThanThePage()
+    {
+        string message = string.Join(" ", Enumerable.Range(1, 60).Select(n => "word" + n)) + " " + new string('x', 150);
+        string[] rows = [.. TextListingRenderer.DiagnosticRows(Diagnostic(1, ListingSeverity.Error, message), null, 100)];
+        Assert.True(rows.Length > 3);
+        Assert.All(rows, r => Assert.True(r.Length <= 100, $"{r.Length}: {r}"));
+        Assert.All(rows.Skip(1), r => Assert.StartsWith(new string(' ', TextListingRenderer.TextColumn - 1 + TextListingRenderer.Arrow.Length), r, StringComparison.Ordinal));
+        // Broken at spaces, the 150-position word cut where it does not fit: the rows hold the whole text, in order.
+        string expected = "==> error COBOL0001 (col 8): " + message;
+        Assert.Equal(expected.Replace(" ", "", StringComparison.Ordinal),
+            string.Concat(rows.Select(r => r.Replace(" ", "", StringComparison.Ordinal))));
+        Assert.All(rows.SkipLast(2), r => Assert.Matches("word[0-9]+$", r));
+    }
+    /// <summary>The summary (DESIGN-listing.md section 6.3): the counts by severity, then each diagnostic in the document's order
+    /// with its listing line (or '-' for one placed on no line) and its file, line and column.</summary>
+    [Fact]
+    public void TheSummary_CountsBySeverity_ThenListsEachDiagnostic()
+    {
+        var document = new ListingDocument(Header(), [new ListingFile(1, "main.cob", ListingFileRole.Source, "00")], [],
+            [new(1, 1, 1, null, 0, ListingLineForm.Fixed, ListingLineKind.Source, "       MOVE X TO Y.", false, true, false, null,
+                ListingReplacement.None, null, [1, 2])],
+            [], [Diagnostic(1, ListingSeverity.Error, "e"), Diagnostic(2, ListingSeverity.Warning, "w"), Diagnostic(3, ListingSeverity.Warning, "g", line: null)],
+            []);
+        Assert.Equal(
+        [
+            "Errors: 1   Warnings: 2   Information: 0",
+            "",
+            "     1  error COBOL0001 main.cob(1,8): e",
+            "     1  warning COBOL0001 main.cob(1,8): w",
+            "     -  warning COBOL0001: g",
+        ], TextListingRenderer.SummaryRows(document, 132));
+        // In the whole listing the summary starts a page after the source section, whose line carries both diagnostics.
+        string[] pages = TextListingRenderer.Render(document, new ListingRequest()).Split(PageComposer.FormFeed);
+        Assert.Equal(2, pages.Length);
+        Assert.Contains("==> error COBOL0001 (col 8): e", pages[0], StringComparison.Ordinal);
+        Assert.Contains("==> warning COBOL0001 (col 8): w", pages[0], StringComparison.Ordinal);
+        Assert.DoesNotContain("COBOL0001: g", pages[0], StringComparison.Ordinal);
+        Assert.Equal("DIAGNOSTICS", pages[1].Split('\n')[1]);
+        Assert.Contains("     -  warning COBOL0001: g", pages[1], StringComparison.Ordinal);
     }
 }

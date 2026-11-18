@@ -418,6 +418,35 @@ where the listing is a larger share, 20-25 % over `None` and 10-12 % over `Text`
 listing (it carries every line's attributes as named properties, indented), and is built as one string before it is
 written. The quiet-host re-measure of every row is still owed (kb/Work PB5927).
 
+**Step 3 (kb/Work PB5925, diagnostics): the no-listing budget against the parent, and every row with the diagnostics section.**
+Step 3 changes the path of a compilation that asks for no listing (a bind diagnostic is a record, a located `SourceLocation`
+carries two more integers), so it measures `None` against its parent. Measured on 2026-11-18, Release, one Windows host, the
+parent (`5d26bc2f25`, main with step 2) and the `listing-step-3` branch, each a full run of
+`dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter *CompileBenchmarks*` (24 cases, about 300 s).
+Allocated bytes per compile, parent -> step 3:
+
+| Program | Method | None | Text | TextAndJson |
+|---|---|---|---|---|
+| IX113A | FrontEndAndBind | 72.90 -> 67.64 MB | 79.49 -> 74.42 MB | 87.67 -> 83.06 MB |
+| IX113A | FullCompile | 172.67 -> 172.01 MB | 177.71 -> 171.56 MB | 190.69 -> 179.46 MB |
+| NC105A | FrontEndAndBind | 37.66 -> 34.02 MB | 40.61 -> 37.57 MB | 44.91 -> 42.64 MB |
+| NC105A | FullCompile | 105.66 -> 107.03 MB | 109.96 -> 110.43 MB | 117.82 -> 110.96 MB |
+| NC218A | FrontEndAndBind | 32.61 -> 30.09 MB | 36.22 -> 33.60 MB | 40.37 -> 38.39 MB |
+| NC218A | FullCompile | 99.48 -> 95.82 MB | 102.98 -> 98.98 MB | 109.76 -> 103.75 MB |
+| SM201A | FrontEndAndBind | 17.72 -> 15.07 MB | 17.61 -> 16.47 MB | 19.19 -> 18.30 MB |
+| SM201A | FullCompile | 38.40 -> 37.76 MB | 40.59 -> 38.72 MB | 41.91 -> 40.73 MB |
+
+Reading them: the first branch run was OVER the no-listing budget: the front end and bind of IX113A allocated 0.85 MB more than
+the parent in two runs each (72.90 and 72.86 MB against 73.77 and 73.70 MB), NC218A 0.4 MB more. An exact probe
+(`GC.GetAllocatedBytesForCurrentThread` around 30 check-only compiles of IX113A, three runs each: parent 73.11-73.74 MB, branch
+73.90-74.61 MB) and the runtime's allocation-tick sampling found the cause: `MarginRCutScreen.Warnings` built a closure
+capturing the cut's `SourceLocation` once per CHARACTER of every token, before asking whether there was a cut (about 112,000
+closures, 5.4 MB per compile), and step 3's two integers made each 8 bytes larger. The screen now asks with a loop
+(`MarginRCutScreen.Holds`), and the same probe reads 68.14-68.20 MB: 5.3 MB (7 %) under the parent. The text listing's cost
+over `None` on the front end is the parent's (IX113A 6.78 MB against 6.59-6.67 MB) once the two sections are composed into
+one buffer (the first version copied the whole listing to join the summary to it, 1.4 MB on IX113A). On these clean programs
+the diagnostics section is one summary page; full-compile rows vary by several MB from run to run (the backend's own
+variation, as at steps 1 and 2). Time rows are not shown: StdDev was again 20-40 % of the mean (kb/Work PB5927).
 ---
 
 ## Not measured here

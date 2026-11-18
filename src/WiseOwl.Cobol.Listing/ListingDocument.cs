@@ -12,13 +12,15 @@ namespace WiseOwl.Cobol.Listing;
 /// the compiler's <c>ListingBuilder</c> from the source and the compiler's own data, and read by every renderer. Every type is
 /// an immutable record. The summaries are the JSON schema's descriptions (<see cref="Json.ListingJsonSchema"/>), so they state
 /// what a reader of the listing needs; step notes go in remarks. Step 1 of the design's section 11 built the header, files,
-/// inclusions, lines and programs; step 2 the JSON form; later steps add their sections beside them.</remarks>
+/// inclusions, lines and programs; step 2 the JSON form; step 3 the diagnostics; later steps add their sections beside them.</remarks>
 /// <param name="Header">The compiler, the edition, the compilation timestamp, the main source and the outcome.</param>
 /// <param name="Files">Every file read: the source and each library text.</param>
 /// <param name="Inclusions">Every COPY statement processed, in text order.</param>
 /// <param name="Lines">The source section, in listing order: every physical line of every file read, each inclusion's lines
 /// after the last line of its COPY statement.</param>
 /// <param name="Programs">Every source unit, in text order, with its nesting and listing line range.</param>
+/// <param name="Diagnostics">Every diagnostic the compilation reported of its source, in listing order: those placed on a line by
+/// line and column, then those placed on none in the order they were reported.</param>
 /// <param name="Sections">Each section of the listing: produced, or why not (DESIGN-listing.md section 4.3).</param>
 public sealed record ListingDocument(
     ListingHeader Header,
@@ -26,6 +28,7 @@ public sealed record ListingDocument(
     IReadOnlyList<ListingInclusion> Inclusions,
     IReadOnlyList<ListingLine> Lines,
     IReadOnlyList<ListingProgram> Programs,
+    IReadOnlyList<ListingDiagnostic> Diagnostics,
     IReadOnlyList<ListingSectionStatus> Sections)
 {
     /// <summary>The identifier of the JSON schema's major version 1 (DESIGN-listing.md section 7.3): every JSON listing of this
@@ -176,9 +179,10 @@ public enum ListingReplacement
 /// <param name="Program">The <see cref="ListingProgram.Id"/> of the innermost program containing the line.</param>
 /// <param name="Replacement">Which replacement the compiler made of the line, if any.</param>
 /// <param name="Replaced">What the compiler compiled in place of <paramref name="Text"/>, when it is printed in its place.</param>
+/// <param name="Diagnostics">The <see cref="ListingDiagnostic.Id"/> of each diagnostic placed on the line, in listing order.</param>
 public sealed record ListingLine(int Number, int File, int FileLine, int? Inclusion, int Depth, ListingLineForm Form,
     ListingLineKind Kind, string Text, bool Omitted, bool Listed, bool PageBreakBefore, int? Program,
-    ListingReplacement Replacement, string? Replaced);
+    ListingReplacement Replacement, string? Replaced, IReadOnlyList<int> Diagnostics);
 
 /// <summary>The kind of source unit a <see cref="ListingProgram"/> is.</summary>
 public enum ListingProgramKind
@@ -216,7 +220,35 @@ public enum ListingSection
     Source,
     /// <summary>The program map: every source unit, its nesting and its listing lines.</summary>
     Programs,
+    /// <summary>The diagnostics: each at its line in the source section, and all of them in the summary at the end.</summary>
+    Diagnostics,
 }
+
+/// <summary>How serious a diagnostic is.</summary>
+public enum ListingSeverity
+{
+    /// <summary>An error: the compilation fails.</summary>
+    Error,
+    /// <summary>A warning: the compilation does not fail.</summary>
+    Warning,
+    /// <summary>Information.</summary>
+    Info,
+}
+
+/// <summary>One diagnostic of the compilation (DESIGN-listing.md section 6.3), placed on the listing line it names.</summary>
+/// <param name="Id">1-based, in listing order.</param>
+/// <param name="Code">The diagnostic's code (<c>COBOL0001</c>).</param>
+/// <param name="Severity">Error, warning or information.</param>
+/// <param name="Message">The diagnostic's text, which names the rule of the edition in force where it cites one.</param>
+/// <param name="Line">The listing line the diagnostic is placed on, or null when it names no place in a file the listing lists
+/// (a diagnostic about the compilation as a whole, or about text the compiler generated).</param>
+/// <param name="File">The <see cref="ListingFile.Id"/> of the file it names, or null when <paramref name="Line"/> is.</param>
+/// <param name="FileLine">The 1-based physical line of that file, or null when <paramref name="Line"/> is.</param>
+/// <param name="Column">The 1-based character position in that line's text (<see cref="ListingLine.Text"/>, tabs expanded),
+/// or null when <paramref name="Line"/> is.</param>
+/// <param name="Citations">Each citation of the standard the message makes, in the order written.</param>
+public sealed record ListingDiagnostic(int Id, string Code, ListingSeverity Severity, string Message, int? Line, int? File,
+    int? FileLine, int? Column, IReadOnlyList<ListingCitation> Citations);
 
 /// <summary>Whether a section was produced and, when not, why (DESIGN-listing.md section 4.3): a section is never left out
 /// silently.</summary>

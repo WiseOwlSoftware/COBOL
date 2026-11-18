@@ -251,6 +251,10 @@
     ],
     [
       "compiler.binding",
+      "frontend.diagnostics"
+    ],
+    [
+      "compiler.binding",
       "frontend.common"
     ],
     [
@@ -408,6 +412,10 @@
     [
       "compiler.listing",
       "frontend.preprocessor"
+    ],
+    [
+      "compiler.listing",
+      "frontend.diagnostics"
     ],
     [
       "compiler.listing",

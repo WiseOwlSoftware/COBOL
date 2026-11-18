@@ -40,24 +40,6 @@ public sealed record BackendOptions(string OutputPath, string AssemblyName, Edit
     bool EmitPdb = true, WiseOwl.Cobol.Frontend.CompilationInputs? Inputs = null,
     IReadOnlyList<string>? RepositoryReferences = null);
 
-/// <summary>One diagnostic a backend reports (kb/Work PB4272): the seam's own type, so a backend that is not Roslyn
-/// reports an error without referencing Roslyn, and the driver reads every backend's diagnostics the same way. Each backend
-/// translates its own diagnostics into it (<c>RoslynBackend.Neutral</c>), and the line it renders is the ONE diagnostic
-/// text, <see cref="Diagnostic.Render"/>.</summary>
-/// <param name="Code">The backend's identifier of the diagnostic (Roslyn's <c>CS0103</c>).</param>
-/// <param name="Severity">Error, warning or information.</param>
-/// <param name="Message">The diagnostic's text.</param>
-/// <param name="Location">Where it lies in the source the backend compiled (the Roslyn backend's generated C#), or
-/// <see langword="null"/> when it names no position (an output file the backend could not write).</param>
-public sealed record BackendDiagnostic(string Code, DiagnosticSeverity Severity, string Message, SourceLocation? Location)
-{
-    /// <summary>The diagnostic fails the emission.</summary>
-    public bool IsError => Severity == DiagnosticSeverity.Error;
-
-    /// <inheritdoc/>
-    public override string ToString() => Diagnostic.Render(Location, Severity, Code, Message);
-}
-
 /// <summary>The outcome of one backend emission (DESIGN-codegen-backend §2.2).</summary>
 /// <param name="Success">True iff the assembly was produced.</param>
 /// <param name="Diagnostics">The backend's compile diagnostics (errors, warnings and information; empty for a clean
@@ -70,7 +52,7 @@ public sealed record BackendDiagnostic(string Code, DiagnosticSeverity Severity,
 /// and restore, stated by the component that wrote it rather than re-derived by the caller.</param>
 /// <param name="Library">The assembly is a library — the group has no main program (DESIGN-external-repository §7.2) —
 /// so a host loads it and nothing launches it.</param>
-public sealed record BackendArtifact(bool Success, IReadOnlyList<BackendDiagnostic> Diagnostics,
+public sealed record BackendArtifact(bool Success, IReadOnlyList<Diagnostic> Diagnostics,
     string? GeneratedSourcePath, string? AssemblyPath, IReadOnlyList<string> OutputFiles, bool Library);
 
 /// <summary>

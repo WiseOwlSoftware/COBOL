@@ -84,13 +84,47 @@ if provided in the listing of the source program", the WHEN-COMPILED function, r
 At `--std 2002` and later the DATE-COMPILED paragraph is a removed construct (COBOL0902); under `--permissive` it is
 accepted with a warning and replaced in the listing as at `--std 85`.
 
+## Diagnostics
+
+Every diagnostic of the compilation (each error and warning the compiler prints) is placed in the listing under the line
+it names. When that line is printed whole as written, a caret marks the column; then a row gives the severity, the code,
+the column and the message, continued under itself when it is longer than the page is wide:
+
+```text
+     5         5        01 BIG PIC 9(32).
+                        ^
+                 ==> error COBOL0801 (col 8): data item 'BIG' (PICTURE 9(32)) has 32 digit
+                     positions; ISO/IEC 1989 limits a numeric item to 31 digit positions (ISO
+                     §2023:13.18.40.3 SR14)
+```
+
+A diagnostic in library text is placed in the copy it belongs to: when a library text is copied twice and only the second
+copy is in error, the diagnostic is under the second copy's line. The column counts the line as listed, tabs expanded.
+
+The listing ends with a summary on a page of its own, headed `DIAGNOSTICS`: the number of errors, warnings and information
+messages, then every diagnostic in listing order with its listing line, file, line and column:
+
+```text
+Errors: 1   Warnings: 0   Information: 0
+
+     5  error COBOL0801 demo.cob(5,8): data item 'BIG' (PICTURE 9(32)) has 32 digit positions;
+        ISO/IEC 1989 limits a numeric item to 31 digit positions (ISO §2023:13.18.40.3 SR14)
+```
+
+A diagnostic that names no line of a file the listing lists (one about the compilation as a whole) appears in the summary
+only, with `-` for its line; so does a diagnostic on a line the listing does not print. Messages cite the rule of the
+edition being compiled, as on standard error.
+
 ## The JSON listing
 
 `--listing-format json` writes the listing as one JSON document, `BASE.lst.json`: the stable form for a program to read,
 where the text listing is for people. It holds everything the text listing is made from, and more: every file read with
 its SHA-256 digest, every COPY statement with its outcome and nesting, every line with its kind (source, comment,
 directive, ...), whether it was listed and whether a page starts before it, the text as written and, for the
-DATE-COMPILED paragraph, what the compiler compiled in its place, and every program with its listing lines. The text and
+DATE-COMPILED paragraph, what the compiler compiled in its place, every program with its listing lines, and every
+diagnostic with its code, severity, message, listing line, file, line and column. Each diagnostic also carries the
+citations its message makes as data, `citations`: for the example above
+`[{ "edition": 2023, "locator": "13.18.40.3", "rule": "SR14" }]`. A line lists the ids of the diagnostics placed on it. The text and
 the JSON listing of one compilation are renderings of one document, so they always agree.
 
 The document opens with the schema it follows:
@@ -130,7 +164,7 @@ error). The lines of a `>>DISPLAY` directive that go to standard output follow t
 
 ## Later additions
 
-The listing grows section by section: diagnostics placed on their lines, the options
+The listing grows section by section: the options
 section, the program map, the data map, the cross-reference, the statistics and verb counts, the map from each COBOL
 statement to its object code, and a hyperlinked HTML form. The `>>LISTING` and `>>PAGE` directives of 2002 and later
 are accepted today and do not yet change the listing.

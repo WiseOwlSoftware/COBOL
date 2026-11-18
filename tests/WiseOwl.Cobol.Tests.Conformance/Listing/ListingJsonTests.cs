@@ -109,7 +109,11 @@ public sealed class ListingJsonTests : IDisposable
         Assert.False(File.Exists(Path.Combine(_dir, "json85.lst")));
         var read = JsonListingWriter.Read(File.ReadAllText(Path.Combine(_dir, "json85.lst.json")));
         Assert.Equal(ListingOutcome.BindError, read.Header.Outcome);
-        Assert.Equal(result.Listing!.Lines, read.Lines);
+        // A record's list member compares by reference, so each line's diagnostic ids are compared as a sequence.
+        static IEnumerable<(ListingLine, string)> ByValue(IEnumerable<ListingLine> lines) =>
+            lines.Select(l => (l with { Diagnostics = [] }, string.Join(',', l.Diagnostics)));
+        Assert.Equal(ByValue(result.Listing!.Lines), ByValue(read.Lines));
+        Assert.Contains(read.Diagnostics, d => d.Message.Contains("NO-SUCH-NAME", StringComparison.Ordinal) && d.Line is not null);
     }
 
     /// <summary>A listing file the host refuses is one error for that file (DESIGN-listing.md section 4.6), changes no outcome,

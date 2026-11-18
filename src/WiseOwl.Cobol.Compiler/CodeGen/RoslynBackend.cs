@@ -23,7 +23,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
     /// <inheritdoc/>
     /// <remarks>Render C# from the bound tree (<c>CSharpEmitter.EmitBound</c>), write the <c>.g.cs</c> beside the
     /// assembly (always, and before compiling, so the debugging artifact survives a failed compile), then
-    /// <see cref="Compile"/>, whose Roslyn diagnostics cross the seam as <see cref="BackendDiagnostic"/>s
+    /// <see cref="Compile"/>, whose Roslyn diagnostics cross the seam as the front end's backend-neutral <see cref="Frontend.Diagnostics.Diagnostic"/>s
     /// (<see cref="Neutral"/>; kb/Work PB4272).</remarks>
     public BackendArtifact Emit(Binding.Model.BoundCompilation program, BackendOptions options)
     {
@@ -51,15 +51,15 @@ internal sealed class RoslynBackend : ICodeGenBackend
             result.Success ? options.OutputPath : null, written, library);
     }
 
-    /// <summary>Roslyn's diagnostics as the seam's <see cref="BackendDiagnostic"/>s (kb/Work PB4272), each rendering the
+    /// <summary>Roslyn's diagnostics as the seam's backend-neutral <see cref="Frontend.Diagnostics.Diagnostic"/>s (kb/Work PB4272; DESIGN-listing.md section 6.3: one diagnostic record for every phase), each rendering the
     /// line Roslyn's own <see cref="Diagnostic.ToString"/> renders (its <c>DiagnosticFormatter</c>): the mapped source
     /// position when the diagnostic lies in a file, else none, and the message in the current UI culture.
     /// <c>RoslynFreeSeamDriftTests</c> pins the two texts equal. A HIDDEN diagnostic (Roslyn's severity for
     /// what is "not surfaced through normal means", such as an unnecessary using directive) is not a diagnostic of the
     /// compilation and is not carried.</summary>
-    internal static IReadOnlyList<BackendDiagnostic> Neutral(IReadOnlyList<Diagnostic> diagnostics)
+    internal static IReadOnlyList<Frontend.Diagnostics.Diagnostic> Neutral(IReadOnlyList<Diagnostic> diagnostics)
     {
-        var neutral = new List<BackendDiagnostic>(diagnostics.Count);
+        var neutral = new List<Frontend.Diagnostics.Diagnostic>(diagnostics.Count);
         foreach (Diagnostic d in diagnostics)
         {
             Frontend.Diagnostics.DiagnosticSeverity? severity = d.Severity switch
@@ -71,7 +71,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
                 _ => throw new System.Diagnostics.UnreachableException($"Roslyn diagnostic severity {d.Severity}"),
             };
             if (severity is { } s)
-                neutral.Add(new BackendDiagnostic(d.Id, s, d.GetMessage(CultureInfo.CurrentUICulture), LocationOf(d.Location)));
+                neutral.Add(new Frontend.Diagnostics.Diagnostic(d.Id, s, d.GetMessage(CultureInfo.CurrentUICulture), LocationOf(d.Location), default));
         }
         return neutral;
     }

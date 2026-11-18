@@ -390,6 +390,8 @@ CLASSIFICATION = Classification(inert={
        "tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Unit/CarrierLandingFormTests.cs": "scripts/spec/audit_annex_a1.py",
+       "tests/WiseOwl.Cobol.Tests.Unit/Listing/citation-vectors.json": "scripts/spec/citation.py --self-test (the vectors it shares "
+                                                                     "with the listing's C# reader, DESIGN-listing.md section 7.3)",
        "tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj": "scripts/linux-gate.sh",
        "tests/_shared/SpecClauseText.cs": "scripts/spec/spec_headings.py",
        "tests/_shared/TestRepo.cs": "scripts/spec/drift_rules.py",

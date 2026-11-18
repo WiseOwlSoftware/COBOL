@@ -1,0 +1,17 @@
+{
+  "about": "The shared vectors of the citation format's two readers (DESIGN-listing.md section 7.3): scripts/spec/citation.py's scan (its --self-test) and WiseOwl.Cobol.Listing.ListingCitation.Scan (ListingCitationTests). Each text's citations are the well-formed citations of a standard it makes, left to right, written by hand from the format's specification (citation.py's docstring); a bare section sign and a malformed citation are none.",
+  "vectors": [
+    {"mark": "citation-audit: example", "text": "PICTURE has 40 digit positions (ISO §2023:13.18.40.3 SR14)", "citations": [{"edition": 2023, "locator": "13.18.40.3", "rule": "SR14"}]},
+    {"mark": "citation-audit: example", "text": "the slant (§1985:IV.7.2.4) and §1985:VI.5.3.4 GR3", "citations": [{"edition": 1985, "locator": "IV.7.2.4", "rule": null}, {"edition": 1985, "locator": "VI.5.3.4", "rule": "GR3"}]},
+    {"mark": "citation-audit: example", "text": "a printed page §1985:p.VI-20 and an appendix §1985:B.2.1", "citations": [{"edition": 1985, "locator": "p.VI-20", "rule": null}, {"edition": 1985, "locator": "B.2.1", "rule": null}]},
+    {"mark": "citation-audit: example", "text": "WHEN-COMPILED §1989:A.2.46.3 RV3 and §1993:p.B-16", "citations": [{"edition": 1989, "locator": "A.2.46.3", "rule": "RV3"}, {"edition": 1993, "locator": "p.B-16", "rule": null}]},
+    {"mark": "citation-audit: example", "text": "§2002:7.2.15.2 GR4, GR5 and §2014:15.92.2 RV3", "citations": [{"edition": 2002, "locator": "7.2.15.2", "rule": "GR4"}, {"edition": 2014, "locator": "15.92.2", "rule": "RV3"}]},
+    {"mark": "citation-audit: example", "text": "written apart: §2023:14.9.8.4 GR 1", "citations": [{"edition": 2023, "locator": "14.9.8.4", "rule": "GR1"}]},
+    {"mark": "citation-audit: example", "text": "a restarted list §2023:9.3.6 GRL2.1, a path §2023:14.9.13.3 GR6d.2", "citations": [{"edition": 2023, "locator": "9.3.6", "rule": "GRL2.1"}, {"edition": 2023, "locator": "14.9.13.3", "rule": "GR6d.2"}]},
+    {"mark": "citation-audit: example", "text": "an annex §2023:A.1 and a format §2023:14.9.39 Format 10 and a table §2023:8.9 Table 13", "citations": [{"edition": 2023, "locator": "A.1", "rule": null}, {"edition": 2023, "locator": "14.9.39", "rule": "Format 10"}, {"edition": 2023, "locator": "8.9", "rule": "Table 13"}]},
+    {"mark": "citation-audit: example", "text": "a glued rule path §2023:13.18.35.4.5b.3 ends the clause", "citations": [{"edition": 2023, "locator": "13.18.35.4", "rule": null}]},
+    {"mark": "citation-audit: example", "text": "an argument rule §2023:15.10.3 AR1.", "citations": [{"edition": 2023, "locator": "15.10.3", "rule": "AR1"}]},
+    {"mark": "citation-audit: example", "text": "no edition §13.16, a template §2023:<clause>, no standard §5000:1.2, a 1985 locator of the wrong shape §1985:13.18", "citations": []},
+    {"mark": "citation-audit: example", "text": "no section sign at all", "citations": []}
+  ]
+}

@@ -229,7 +229,7 @@ public sealed class DirectiveStateStackTests
             """, bag, "t.cob");
         // line 1: nothing stored; line 4: PUSH ALL stored TURN, so it succeeds; line 5: already restored;
         // line 6: PUSH ALL stored LISTING (a directive with no state still has a save to remove); line 7: gone.
-        var warned = bag.Diagnostics.Where(x => x.Code == "COBOL2297").Select(x => x.Location.Line + 1).ToList();
+        var warned = bag.Diagnostics.Where(x => x.Code == "COBOL2297").Select(x => x.Location!.Value.Line + 1).ToList();
         Assert.Equal([1, 5, 7], warned);
         Assert.All(bag.Diagnostics.Where(x => x.Code == "COBOL2297"),
             x => Assert.Equal(DiagnosticSeverity.Warning, x.Severity));

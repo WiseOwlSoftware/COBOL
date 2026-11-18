@@ -727,6 +727,8 @@ def self_test() -> int:
         ("the example marker is read on its own line only",
          example(f"x = '§14.9.24'  # {EXAMPLE_MARKER}") and not example("x = '§14.9.24'")),  # citation-audit: example
         ("other_edition names the edition", other_edition("COBOL-85 ") == 1985 and other_edition("ISO 1989:2002 ") == 2002),
+        ("the vectors shared with the C# reader (ListingCitation.Scan; DESIGN-listing.md section 7.3) read as written",
+         _shared_vectors_hold()),
     ]
     for name, ok in cases:
         print(f"{'PASS' if ok else 'FAIL'}  {name}")
@@ -785,6 +787,25 @@ def _bare_in(line: str, prev: str = "") -> bool:
     without its edition."""
     c = next(c for c in scan(line, bare=True) if c.bare)
     return bare_standard(line, c, known=universe(2023), prev=prev)
+
+
+#: The vectors this module's `scan` and the listing's C# reader (`WiseOwl.Cobol.Listing.ListingCitation.Scan`) share: each text's
+#: well-formed citations, written by hand (DESIGN-listing.md section 7.3). `ListingCitationTests` holds the C# reader to them.
+SHARED_VECTORS = spec_pdf.REPO / "tests" / "WiseOwl.Cobol.Tests.Unit" / "Listing" / "citation-vectors.json"
+
+
+def _shared_vectors_hold() -> bool:
+    """Every shared vector's citations are what `scan` reads of its text, a bare or malformed one being none."""
+    import json
+    vectors = json.loads(SHARED_VECTORS.read_text(encoding="utf-8"))["vectors"]
+    ok = bool(vectors)
+    for v in vectors:
+        read = [{"edition": c.edition, "locator": c.locator, "rule": c.rule}
+                for c in scan(v["text"]) if c.error is None and not c.bare]
+        if read != v["citations"]:
+            print(f"  vector {v['text']!r}: scan read {read}, the vector says {v['citations']}")
+            ok = False
+    return ok
 
 
 def _planted_amendments() -> bool:

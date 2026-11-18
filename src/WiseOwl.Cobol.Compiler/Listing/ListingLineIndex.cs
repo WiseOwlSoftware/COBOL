@@ -35,15 +35,36 @@ internal sealed class ListingLineIndex
     public int ResultantLines => _lineMap.Count;
 
     /// <summary>The listing line of 1-based RESULTANT <paramref name="line"/>, or null when it names no listed physical line.</summary>
-    public int? Of(int line)
+    public int? Of(int line) => _lineMap.Origin(line) is { } origin ? Of(line, origin) : null;
+
+    /// <summary>The listing line of physical <paramref name="origin"/> in the text RESULTANT <paramref name="line"/> belongs to:
+    /// the innermost inclusion holding the line whose file is the origin's, else the source; null when that text lists no such
+    /// line. A resultant line's own origin is the physical line of its first stretch; a position further along it (a continuation
+    /// line's text, joined onto it) may name another physical line of the same text, and is placed in the same inclusion.</summary>
+    public int? Of(int line, SourceOrigin origin)
     {
-        if (_lineMap.Origin(line) is not { } origin) return null;
+        if (line < 1 || line >= _innermost.Length) return null;
         int inclusion = _innermost[line];
         // A line inside an inclusion's range whose origin is another file (a framing line of a nested COPY) belongs to the
         // nearest enclosing text that is that file.
         while (inclusion != 0 && _inclusions[inclusion].File != origin.File) inclusion = _inclusions[inclusion].Parent ?? 0;
         if (inclusion == 0 && origin.File != _sourceFile) return null;
         return _listingLine.TryGetValue((inclusion, origin.Line), out int number) ? number : null;
+    }
+
+    /// <summary>⛔ THE PLACE OF A DIAGNOSTIC'S LOCATION (DESIGN-listing.md section 6.3): the listing line of the physical line
+    /// <paramref name="at"/> names. A location located from a resultant line of THIS index's frame (<see cref="SourceLocation.Frame"/>,
+    /// the map the listed pass's parse and bind located through) is placed in the inclusion that resultant line belongs to, so a
+    /// diagnostic in the second copy of a copybook copied twice is placed in the second block; any other (a text stage's own
+    /// numbering, or none) in the first text that lists that physical line. Null when no listed text holds it.</summary>
+    public int? Place(SourceLocation at)
+    {
+        var origin = new SourceOrigin(at.FileName, at.Line + 1);
+        if (at.Frame == _lineMap.Frame && at.ResultantLine > 0 && Of(at.ResultantLine, origin) is { } placed) return placed;
+        if (origin.File == _sourceFile && Of(null, origin.Line) is { } inSource) return inSource;
+        foreach (var inclusion in _inclusions.Values.Where(i => i.File == origin.File).OrderBy(i => i.Id))
+            if (Of(inclusion.Id, origin.Line) is { } inCopy) return inCopy;
+        return null;
     }
 
     /// <summary>The listing line of 1-based <paramref name="fileLine"/> of <paramref name="inclusion"/> (null: the source).</summary>

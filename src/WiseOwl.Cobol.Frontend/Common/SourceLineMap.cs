@@ -133,7 +133,18 @@ public sealed class SourceLineMap
     private readonly LineOrigin[] _origins;
 
     /// <param name="origins">One origin per resultant line piece (<c>text.Split('\n')</c> order), index 0 = line 1.</param>
-    public SourceLineMap(LineOrigin[] origins) => _origins = origins;
+    public SourceLineMap(LineOrigin[] origins)
+    {
+        _origins = origins;
+        Frame = Interlocked.Increment(ref s_frames);
+    }
+
+    /// <summary>This map's identity as a numbering of resultant lines, never 0: each map numbers the lines of one text, and a
+    /// location it produces (<see cref="Locate(int, int, string)"/>) names it (<see cref="SourceLocation.Frame"/>), so a reader
+    /// of a location's resultant line knows which text's line it is (DESIGN-listing.md section 6.3).</summary>
+    public int Frame { get; }
+
+    private static int s_frames;
 
     /// <summary>The identity map: resultant line n of <paramref name="file"/> is source line n, column for column.</summary>
     public static SourceLineMap Identity(string file, int lineCount)
@@ -173,9 +184,11 @@ public sealed class SourceLineMap
     /// <summary>THE diagnostic location of RESULTANT line <paramref name="line"/> (1-based) at 0-based resultant
     /// <paramref name="column"/>: the physical file, line and column it came from (kb/Work PB1801), or
     /// <paramref name="fallbackFile"/> at that same line and column when the line is outside the map.</summary>
+    /// <remarks>A location inside the map keeps the resultant line it was located from and this map's <see cref="Frame"/>
+    /// (<see cref="SourceLocation.ResultantLine"/>), so every diagnostic located here carries them with no reporter asking.</remarks>
     public SourceLocation Locate(int line, int column, string fallbackFile) =>
         line >= 1 && line <= _origins.Length
-            ? _origins[line - 1].Locate(column)
+            ? _origins[line - 1].Locate(column).LocatedFrom(line, Frame)
             : new SourceOrigin(fallbackFile, line).ToLocation(column);
 
     /// <summary>The stretch that holds 0-based resultant <paramref name="column"/> of RESULTANT line <paramref name="line"/>
