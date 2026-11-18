@@ -274,10 +274,18 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     internal static bool IsEmptyGroup(Core.SubscriptPartContext group) => group.subscriptList() is null;
 
     /// <summary>The COBOL2309 message body (the quoted reference is the caller's).</summary>
-    internal const string EmptyParenthesesMessage = "parentheses with nothing inside them follow a data reference. A "
-        + "subscript list writes at least one subscript (ISO §2023:8.4.2.3.2 — \"( subscript … )\") and a reference "
-        + "modifier a leftmost position (ISO §2023:8.4.3.3.2); empty parentheses belong only to a function-identifier "
-        + "with no arguments (ISO §2023:8.4.3.2.2). Remove the parentheses, or write the subscript.";
+    internal static string EmptyParenthesesMessage(EditionInfo edition) => "parentheses with nothing inside them follow a data reference. A "
+        + edition.Cite(
+            "subscript list writes at least one subscript (ISO §1985:IV.4.3.8.2.2) and a reference modifier a leftmost character "
+            + "position (ISO §1985:IV.4.3.8.4.2); a function-identifier writes its parentheses only around at least one argument "
+            + "(ISO §1985:IV.4.3.8.3.2).",
+            "subscript list writes at least one subscript (ISO §2023:8.4.2.3.2 — \"( subscript … )\") and a reference "
+            + "modifier a leftmost position (ISO §2023:8.4.3.3.2); empty parentheses belong only to a function-identifier "
+            + "with no arguments (ISO §2023:8.4.3.2.2).",
+            "subscript list writes at least one subscript (ISO §2023:8.4.2.3.2 — \"( subscript … )\") and a reference "
+            + "modifier a leftmost position (ISO §2023:8.4.3.3.2); empty parentheses belong only to a function-identifier "
+            + "with no arguments (ISO §2023:8.4.3.2.2).")
+        + " Remove the parentheses, or write the subscript.";
 
     private bool ScreenEmptyParentheses(Core.DataReferenceContext dref, Core.SubscriptPartContext group)
     {
@@ -286,7 +294,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (refs.Probing) return true;
         if (!refs.Diagnosed.Add(dref)) return true;
         data.Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
-            $"'{DataBinder.WrittenText(dref)}': " + EmptyParenthesesMessage);
+            $"'{DataBinder.WrittenText(dref)}': " + EmptyParenthesesMessage(data.Edition.Edition));
         return true;
     }
 

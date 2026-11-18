@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
@@ -41,12 +42,16 @@ internal sealed class UserWordCensus
 
     /// <summary>THE one wording of a §2023:8.3.2.2 conflict (COBOL2692), for the declaration funnel and the method
     /// reference record alike: <paramref name="first"/> is the type the word was first recorded as.</summary>
-    public static string ConflictMessage(string word, UserWordKind first, UserWordKind second) =>
+    public static string ConflictMessage(string word, UserWordKind first, UserWordKind second, EditionInfo edition) =>
         $"'{word}' names two types of user-defined word in this source element ({first.Spelling()} and "
         + $"{second.Spelling()}) — a given user-defined word may be used as only one type of user-defined word "
-        + "(ISO §2023:8.3.2.2); the "
-        + "exceptions are a compilation-variable-name, a level-number that matches a paragraph-name or "
-        + "section-name, and the constant-name / data-name / property-name / record-key-name / record-name group"
+        + edition.Cite(
+            "(ISO §1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, can belong to one and only "
+            + "one of these disjoint sets\"); the exceptions are the segment-numbers and the level-numbers",
+            "(ISO §2023:8.3.2.2); the exceptions are a compilation-variable-name, a level-number that matches a paragraph-name or "
+            + "section-name, and the constant-name / data-name / property-name / record-key-name / record-name group",
+            "(ISO §2023:8.3.2.2); the exceptions are a compilation-variable-name, a level-number that matches a paragraph-name or "
+            + "section-name, and the constant-name / data-name / property-name / record-key-name / record-name group")
         + (UserWordKinds.IsCopyName(first) || UserWordKinds.IsCopyName(second)
             ? "; below COBOL-2002 a COPY statement's text-name and library-name are user-defined words of disjoint sets of "
               + "their own (§1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, can belong to "

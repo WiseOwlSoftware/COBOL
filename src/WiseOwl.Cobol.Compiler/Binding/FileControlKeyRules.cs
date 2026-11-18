@@ -772,7 +772,7 @@ internal static class FileControlKeyRules
         return null;
     }
 
-    private static string BeyondMinimumMessage(FileModel f, FileKeyOperand op, string n, string citation)
+    private static string BeyondMinimumMessage(FileModel f, FileKeyOperand op, string n, string citation, string unit = "bytes")
     {
         string where = BeyondMinimum(f, op.Item, op.Occurrence) switch
         {
@@ -781,7 +781,7 @@ internal static class FileControlKeyRules
             null => "is not contained within the minimum record size",
         };
         return $"{op.ClauseFace} {op.Written} {where}, but indexed file '{f.CobolName}' contains variable-length "
-            + $"records with minimum size {f.RecordSizeRange.Min}; the key shall be contained within the first {n} bytes of the "
+            + $"records with minimum size {f.RecordSizeRange.Min}; the key shall be contained within the first {n} {unit} of the "
             + $"record, where {n} equals the minimum record size ({citation})";
     }
 
@@ -892,6 +892,74 @@ internal static class FileControlKeyRules
             (f, op) => $"{op.ClauseFace} '{op.Name}' must not be defined within a record description of file '{f.CobolName}' "
                 + $"({ClauseOperandRules1985.RelativeKeyNotInRecord.Citation})",
             "SR-12.4.5.13.3-3"),
+
+        // ⛔ THE KEY RULES COBOL-85 PRINTS WITH ITS OWN NUMBERS (kb/Work PB4950): the same obligations as §2023:12.4.5.6.3 SR4 and
+        // SR5 and §2023:12.4.5.12.3 SR4, in the indexed module's wording ("character position"), each REPLACING its 2023 row below
+        // COBOL-2002.
+        new("1985-SR-IX.2.5.3-4", "IX.2.5.3", "ANSI §1985:IX.2.5.3 SR4",
+            "must not reference an item whose leftmost character position corresponds to the leftmost character position of the prime record key or of any other alternate record key",
+            FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            _ => true,
+            (f, op) => CoincidingKey(f, op) is not null,
+            (f, op) => $"{op.ClauseFace} '{op.Name}' begins at the same character position as "
+                + $"{CoincidingKey(f, op) ?? "the prime record key or another alternate record key"}; data-name-1 "
+                + "must not reference an item whose leftmost character position corresponds to the leftmost character position "
+                + "of the prime record key or of any other alternate record key (ANSI §1985:IX.2.5.3 SR4)")
+        { Supersedes = "SR-12.4.5.6.3-4" },
+        new("1985-SR-IX.2.5.3-5", "IX.2.5.3", "ANSI §1985:IX.2.5.3 SR5",
+            "each alternate record key must be contained within the first x character positions of the record",
+            FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            f => f.RecordSizeVaries,
+            (f, op) => BeyondMinimum(f, op.Item, op.Occurrence) is not null,
+            (f, op) => BeyondMinimumMessage(f, op, "x", "ANSI §1985:IX.2.5.3 SR5", "character positions"))
+        { Supersedes = "SR-12.4.5.6.3-5" },
+        new("1985-SR-IX.2.7.3-4", "IX.2.7.3", "ANSI §1985:IX.2.7.3 SR4",
+            "the prime record key must be contained within the first x character positions of the record",
+            FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            f => f.RecordSizeVaries,
+            (f, op) => BeyondMinimum(f, op.Item, op.Occurrence) is not null,
+            (f, op) => BeyondMinimumMessage(f, op, "x", "ANSI §1985:IX.2.7.3 SR4", "character positions"))
+        { Supersedes = "SR-12.4.5.12.3-4" },
+
+        // ⛔ THE FORMAT-LEVEL RULES (§2023:12.4.5.2 SR8, SR9, SR10) HAVE NO NUMBERED COBOL-85 RULE: the 1985 file control entry of
+        // each organization PRINTS the clauses it takes (§1985:IX.2.3.2 the RECORD KEY and ALTERNATE RECORD KEY clauses of the indexed
+        // entry, §1985:VIII.2.3.2 and §1985:VIII.2.4.2 the RELATIVE KEY clause of the relative entry), so a clause written in the entry
+        // of an organization that does not print it breaks the general format, and an ACCESS RANDOM or DYNAMIC relative file prints
+        // its RELATIVE KEY phrase in the format. Rule ids carry FMT where the quoted words are the general format's (re-derived by
+        // FileControlKeyRuleDriftTests from the clause's "General Format" subsection).
+        new("1985-FMT-IX.2.3.2-RECORD-KEY", "IX.2.3.2", "ANSI §1985:IX.2.3.2",
+            "RECORD KEY IS data-name-1",
+            FileKinds.AnyOrganization & ~FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            _ => true,
+            (_, op) => op.Name is not null && op.IsClauseHead,
+            (f, op) => $"file '{f.CobolName}' has a {op.ClauseFace} clause, which the general format prints only in the indexed file "
+                + $"control entry (ANSI §1985:IX.2.3.2), but this file is {f.OrganizationFace}")
+        { Supersedes = "SR-12.4.5.2-8" },
+        new("1985-FMT-IX.2.3.2-ALTERNATE-RECORD-KEY", "IX.2.3.2", "ANSI §1985:IX.2.3.2",
+            "ALTERNATE RECORD KEY IS data-name-2",
+            FileKinds.AnyOrganization & ~FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            _ => true,
+            (_, op) => op.IsClauseHead,
+            (f, op) => $"file '{f.CobolName}' has an {op.ClauseFace} clause, which the general format prints only in the indexed file "
+                + $"control entry (ANSI §1985:IX.2.3.2), but this file is {f.OrganizationFace}")
+        { Supersedes = "SR-12.4.5.2-8" },
+        new("1985-FMT-VIII.2.3.2-RELATIVE-KEY", "VIII.2.3.2", "ANSI §1985:VIII.2.3.2",
+            "RELATIVE KEY IS data-name-1",
+            FileKinds.AnyOrganization & ~FileKinds.Relative, FileKeyRole.RelativeKey,
+            _ => true,
+            (_, op) => op.Name is not null,
+            (f, op) => $"file '{f.CobolName}' has a {op.ClauseFace} clause, which the general format prints only in the relative file "
+                + $"control entry (ANSI §1985:VIII.2.3.2), but this file is {f.OrganizationFace}")
+        { Supersedes = "SR-12.4.5.2-9" },
+        new("1985-FMT-VIII.2.4.2-RELATIVE-KEY", "VIII.2.4.2", "ANSI §1985:VIII.2.4.2",
+            "RELATIVE KEY IS data-name-1",
+            FileKinds.Relative, FileKeyRole.RelativeKey,
+            f => f.AccessMode != FileAccessMode.Sequential,
+            (_, op) => op.Name is null,
+            (f, op) => $"relative file '{f.CobolName}' is ACCESS {f.AccessMode.ToString().ToUpperInvariant()} but has no "
+                + $"{op.ClauseFace} clause; the general format of the ACCESS MODE clause prints RELATIVE KEY IS data-name-1 with "
+                + "RANDOM and DYNAMIC (ANSI §1985:VIII.2.4.2)")
+        { Supersedes = "SR-12.4.5.2-10" },
     ];
 
     /// <summary>One <see cref="Rules1985"/> row from its <see cref="Rule1985"/> designation: the id, clause, citation and quoted text are

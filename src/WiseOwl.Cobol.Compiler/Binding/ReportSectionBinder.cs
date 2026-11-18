@@ -36,6 +36,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     private readonly ReportScope _scope = scope;
     private readonly EditionContext Edition = host.Edition;
 
+    /// <summary>The syntax rule that CODE's literal-1 shall be an alphanumeric literal (§2023:13.18.12.3 SR1), in the edition in force; at
+    /// COBOL-85 it is the rule that asks for a two-character nonnumeric literal (kb/Work PB4950).</summary>
+    private string CodeLiteralRule => Edition.Edition.Cite("§1985:XIII.3.6.3 SR1", "§2023:13.18.12.3 SR1", "§2023:13.18.12.3 SR1");
+
+    /// <summary>What a message of a clause COBOL-2002 introduced (PRESENT WHEN, VARYING) adds below 2002: the clause has no COBOL-85
+    /// rule, so it names the edition where it begins and the edition in force, the words of an edition gate (kb/Work PB4950).</summary>
+    private string Since2002 => Edition.Edition.Cite("; the clause requires COBOL-2002 (targeting COBOL-85)", "", "");
+
     /// <summary>⛔ THE ONE POINT A CONTAINER'S GLOBAL REPORTS BECOME VISIBLE to this unit (ISO §2023:13.18.27.4 GR1/GR2):
     /// the end of <see cref="DataBinder.BindDeclarations"/> — after this unit's own report-name and data-names are declared, so
     /// a name it declares hides the container's (§2023:8.4.6.2), and BEFORE <see cref="DataBinder.BindResolve"/>, so every clause of
@@ -364,7 +372,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (_d.SpecialNames.OperandLiteralClass(lit) != LiteralClass.Alphanumeric)
             {
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {lit.GetText()}, which is not an "
-                    + "alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1)");
+                    + $"alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO {CodeLiteralRule})");
                 return null;
             }
             string chars = _d.SpecialNames.LiteralCharsOf(lit, sr11: false);
@@ -377,7 +385,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names the constant-name '{DataBinder.WrittenText(dref)}' "
                     + $"for {k.StandsFor}, which is not an alphanumeric literal: literal-1 shall be an alphanumeric literal "
-                    + "(ISO §2023:13.18.12.3 SR1; §2023:13.10.4 GR1)");
+                    + $"(ISO {CodeLiteralRule}{Edition.Edition.Cite("", "; §2023:13.10.4 GR1", "; §2023:13.10.4 GR1")})");
                 return null;
             }
             return Screen85CodeLiteral(k.Text, DataBinder.WrittenText(dref), where)
@@ -416,7 +424,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         {
             if (folded.Category == PicCategory.Alphanumeric) return folded.Value;
             Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, whose literal-1 is not an "
-                + "alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO §2023:13.18.12.3 SR1)");
+                + $"alphanumeric literal: literal-1 shall be an alphanumeric literal (ISO {CodeLiteralRule})");
             return null;
         }
         if (ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, _d.LiteralEnv) is { } fill) return fill.ToString();
@@ -432,7 +440,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             return null;
         }
         Edition.Error(DiagnosticCatalog.ReportCodeClauseRule, $"{where} names {fig.GetText()}, which is no alphanumeric literal "
-            + "(ISO §2023:13.18.12.3 SR1)");
+            + $"(ISO {CodeLiteralRule})");
         return null;
     }
 
@@ -786,7 +794,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 || (c.reportColumnClause()?.reportColumnOperand().Length ?? 0) > 1);
             if (!repeating)
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where}: a VARYING clause requires the entry to also "
-                    + "contain an OCCURS clause or a multiple LINE or multiple COLUMN clause (ISO §2023:13.18.64.3 SR1)");
+                    + $"contain an OCCURS clause or a multiple LINE or multiple COLUMN clause (ISO §2023:13.18.64.3 SR1{Since2002})");
             var own = new List<string>();
             foreach (var spec in specs)
             {
@@ -795,11 +803,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{name}': the counter is defined twice in "
                         + "this entry; data-name-1 shall not be defined elsewhere in the source element, except as "
                         + "data-name-1 in another VARYING clause of an entry not subordinate to the subject of the "
-                        + "current entry (ISO §2023:13.18.64.3 SR2)");
+                        + $"current entry (ISO §2023:13.18.64.3 SR2{Since2002})");
                 else if (enclosing.Any(c => CobolNames.Same(c.Name, name)))
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{name}': an entry above this one already "
                         + "defines the counter in its VARYING clause; a reuse of the name is permitted only in an entry "
-                        + "not subordinate to the subject of the current entry (ISO §2023:13.18.64.3 SR2)");
+                        + $"not subordinate to the subject of the current entry (ISO §2023:13.18.64.3 SR2{Since2002})");
                 else if (!model.VaryingNames.Contains(name, CobolNames.Comparer))
                     model.VaryingNames.Add(name);
                 own.Add(name);
@@ -808,7 +816,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (spec.FROM() is not null && own.FirstOrDefault(n => HasWord(spec.arithmeticExpression(0), n)) is { } hit)
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} VARYING '{spec.cobolWord().GetText()}': the "
                         + $"counter '{hit}' shall not be referenced in arithmetic-expression-1 of the same VARYING clause (ISO "
-                        + "§2023:13.18.64.3 SR3)");
+                        + $"§2023:13.18.64.3 SR3{Since2002})");
             enclosing.AddRange(own.Select(n => (level, n)));
         }
     }
@@ -823,8 +831,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         if (entries.Length > 0) return;
         Edition.Error(DiagnosticCatalog.ReportDescriptionWithoutGroup, $"RD '{model.Name}' is followed by no report "
-            + "group description entry (ISO §2023:13.8.4: an RD entry shall be followed by one or more report group "
-            + "description entries)");
+            + "group description entry (ISO "
+            + Edition.Edition.Cite("§1985:XIII.3.4: the description of each report \"must begin with a report description entry (RD entry) and be followed by one or more report group description entries\")",
+                "§2023:13.8.4: an RD entry shall be followed by one or more report group description entries)",
+                "§2023:13.8.4: an RD entry shall be followed by one or more report group description entries)"));
     }
 
     /// <summary>⛔ THE REPORT SECTION'S ENTRIES IN SOURCE ORDER (ISO §2023:13.8.2: <c>{ constant-entry |
@@ -1661,7 +1671,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (ge.reportGroupBody().reportGroupClause().Count(c => c.reportSumClause() is not null) > 1)
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} writes its SUM clause in more than one "
                     + "piece: the RESET phrase and the rounded-phrase come once, after the whole repeated SUM … UPON "
-                    + "group, so neither of them, nor any other clause, may be written between two SUM groups (ISO §2023:13.18.54.2)");
+                    + "group, so neither of them, nor any other clause, may be written between two SUM groups (ISO "
+                    + Edition.Edition.Cite("§1985:XIII.3.19.2", "§2023:13.18.54.2", "§2023:13.18.54.2") + ")");
             // §1985:XIII.3.19.3 SR3 — "A SUM clause can appear only in the description of a control footing report group."
             // COBOL-2002 lifts it (§2023:13.18.54.3 SR4 f) names a detail, report footing and page footing as SUM groups).
             if (sum && Edition.DialectLevel < 2002 && groupKind != ReportGroupKindModel.ControlFooting)
@@ -2541,7 +2552,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (groupIndicate && ownCond is not null)
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': the GROUP "
                     + "INDICATE clause shall not be specified in an entry in which the PRESENT WHEN clause is "
-                    + "specified (ISO §2023:13.15.3 SR17)");
+                    + $"specified (ISO §2023:13.15.3 SR17{Since2002})");
 
             // ⛔ THE MULTI-OPERAND REPETITION RULE, ONE READER FOR BOTH CLAUSES (kb/Work PB506). ISO
             // §2023:13.18.63.3 SR35 (VALUE) and §2023:13.18.53.3 SR6 (SOURCE) are the SAME rule written twice, and their
@@ -3678,7 +3689,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + $"{string.Join(", ", members.Where(r => r.CodeWritten).Select(r => $"'{r.Name}'"))} but not for "
                     + $"{string.Join(", ", members.Where(r => !r.CodeWritten).Select(r => $"'{r.Name}'"))}: if the CODE clause is "
                     + "specified for any report, it shall be specified for each report associated with the same report file "
-                    + "(ISO §2023:13.18.12.3 SR3)");
+                    + $"(ISO {Edition.Edition.Cite("§1985:XIII.3.6.3 SR2", "§2023:13.18.12.3 SR3", "§2023:13.18.12.3 SR3")})");
             }
         }
     }
@@ -3864,7 +3875,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             foreach (var name in model.VaryingNames)
                 if (_d.State.Forest.DeclaresOwnDataName(name) || IsReportSectionOnlyName(name))
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' VARYING '{name}': the counter "
-                        + "data-name shall not be defined elsewhere in the source element (ISO §2023:13.18.64.3 SR2)");
+                        + $"data-name shall not be defined elsewhere in the source element (ISO §2023:13.18.64.3 SR2{Since2002})");
 
             // Line width: the FD's fixed RECORD CONTAINS, else the widest NOMINAL field extent — absolute
             // operands at column + width − 1; relative (PLUS) operands walked against the line's horizontal
@@ -4524,14 +4535,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (HasWord(cond, "LINE-COUNTER") || HasWord(cond, "PAGE-COUNTER"))
             {
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': a PRESENT WHEN condition shall not "
-                    + "reference LINE-COUNTER or PAGE-COUNTER (ISO §2023:13.15.3 SR16)");
+                    + $"reference LINE-COUNTER or PAGE-COUNTER (ISO §2023:13.15.3 SR16{Since2002})");
                 _scope.RefusePresentWhen(cond);
             }
             foreach (var n in names)
                 if (HasWord(cond, n))
                 {
                     Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': a PRESENT WHEN condition shall not "
-                        + $"reference the report section data item '{n}' (ISO §2023:13.15.3 SR16)");
+                        + $"reference the report section data item '{n}' (ISO §2023:13.15.3 SR16{Since2002})");
                     _scope.RefusePresentWhen(cond);
                     break;
                 }
@@ -4894,7 +4905,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // integer-n that sizes or positions something meets (COBOL2427), never a saturated bound allocated.
             Edition.Error(DiagnosticCatalog.IntegerOperandBeyondLimit,
                 WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where,
-                    $"the reference-modification of '{DataBinder.WrittenText(dref)}', a leftmost-position or length that"));
+                    $"the reference-modification of '{DataBinder.WrittenText(dref)}', a leftmost-position or length that", Edition.DialectLevel));
         return new ReportControlRef(name, quals, subscripts, sfx.Start, sfx.Length, subscriptRefused);
     }
 

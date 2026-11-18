@@ -199,7 +199,10 @@ internal sealed class OdoResolvePass : IBindPass
             // data-name-1 and the innermost table that makes it subscripted.
             if (subscripted && !DeclarationFact(dep, dep.SubscriptLevels()[^1]))
                 binder.Edition.Error(DiagnosticCatalog.OccursDependingObjectSubscripted, $"OCCURS DEPENDING ON '{depName}' on '{subject}': "
-                    + "data-name-1 shall not be subscripted (ISO §2023:13.18.38.3 SR2)" + via);
+                    + "data-name-1 shall not be subscripted (ISO "
+                    + binder.Edition.Edition.Cite(
+                        "§1985:VI.5.8.3 SR2: only qualification of data-name-1 is permitted, and a data-name in a general format \"must not be reference-modified, subscripted, or qualified unless specifically permitted\", §1985:III.2",
+                        "§2023:13.18.38.3 SR2", "§2023:13.18.38.3 SR2") + ")" + via);
 
             // SR1(b)/SR10: "complex ODO" is illegal at every edition — tables may be nested only when the
             // DEPENDING phrase is absent, and no OCCURS subject may have an occurs-depending table beneath it. The

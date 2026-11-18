@@ -501,7 +501,10 @@ public static class DiagnosticCatalog
         + "its definition declares (§2023:8.4.6.7, determination D-R3). A definition that FOLLOWS the paragraph is none of them. "
         + "WiseOwl COBOL's external repository is the compiled assemblies of the --repository directories (by default the "
         + "output directory) and the --reference files, searched in that order; the message names every place searched.",
-        "ISO §2023:12.3.8.3 SR14 / SR10 / SR6");
+        "ISO §2023:12.3.8.3 SR14 / SR10 / SR6",
+        No1985Rule: "The REPOSITORY paragraph, its program, function and class specifiers and the external repository are not in "
+            + "ANSI X3.23-1985, whose CALL names a literal or an identifier and which has no object-oriented facility, so there is "
+            + "no 1985 rule to cite (the facility begins in COBOL-2002, kb/Work PB4950).");
 
     /// <summary>COBOL5963 — REPO-2: a later entry of the external repository publishes the unit the resolver chose, from
     /// another build, with a different signature (DESIGN-external-repository §8.6).</summary>
@@ -1880,7 +1883,10 @@ public static class DiagnosticCatalog
         "COBOL1944", "table-value-without-occurs", EditionSeverity.Error,
         "ISO §2023:13.18.63.3 syntax rule 18: \"A data description entry that contains the VALUE clause shall contain "
         + "an OCCURS clause or be subordinate to a data description entry that contains an OCCURS clause.\"",
-        "ISO §2023:13.18.63.3 SR18");
+        "ISO §2023:13.18.63.3 SR18",
+        No1985Rule: "The Format 2 (table) VALUE clause, VALUE … FROM … TO, is not in ANSI X3.23-1985: its VALUE clause has a format 1 "
+            + "(literal-1) and a format 2 for condition-names (§1985:VI.5.15.2), so there is no 1985 rule to cite "
+            + "(the facility begins in COBOL-2023, kb/Work PB4950).");
     public static readonly DiagnosticDescriptor TableValueSubscriptCount = new(
         "COBOL1945", "table-value-subscript-count", EditionSeverity.Error,
         "ISO §2023:13.18.63.3 syntax rule 20: \"In one FROM phrase, there shall be one subscript-1 specified for each "
@@ -1894,7 +1900,9 @@ public static class DiagnosticCatalog
         + "phrase but no TO phrase is specified in the same entry or in any superordinate entry, the values of "
         + "subscript-1 and subscript-2 corresponding to all levels higher than that of the OCCURS clause, if "
         + "applicable, shall be equal\"",
-        "ISO §2023:13.18.63.3 SR23");
+        "ISO §2023:13.18.63.3 SR23",
+        No1985Rule: "The OCCURS DYNAMIC clause and the Format 2 (table) VALUE clause are not in ANSI X3.23-1985, so there is no 1985 "
+            + "rule to cite (the facilities begin in COBOL-2023, kb/Work PB4950).");
     // ⛔ NO `BitGroupLevelValue` DESCRIPTOR ANY MORE (kb/Work PB207, landed). A group-level VALUE on a group
     // with a USAGE BIT descendant was staged loud here as recognized-not-implemented, on the ground that
     // §2023:13.18.63.4 GR5 had no area to deposit into. It has one, in the OTHER UNIT: §2023:13.18.29.4 GR1b makes a bit
@@ -4914,7 +4922,10 @@ public static class DiagnosticCatalog
         + "SPECIAL-NAMES (§2023:12.3.7). The word written here declares no alphabet. §2023:14.7.8 rule 2 makes that alphabet "
         + "the collating sequence the range is evaluated in, so an unresolved name has no ordering to give: declare "
         + "the alphabet, or drop the IN phrase and take the implementor's default sequence.",
-        "ISO §2023:14.9.13.3 SR3 / §2023:13.18.63.3 SR31 / §2023:12.3.7");
+        "ISO §2023:14.9.13.3 SR3 / §2023:13.18.63.3 SR31 / §2023:12.3.7",
+        No1985Rule: "The IN alphabet-name phrase of a THROUGH range, in an EVALUATE WHEN phrase or a condition-name's VALUE clause, is not in "
+            + "ANSI X3.23-1985 (§1985:VI.6.13.2, §1985:VI.5.15.2), so there is no 1985 rule to cite (the phrase begins in COBOL-2002, "
+            + "kb/Work PB4950).");
 
     /// <summary>COBOL1998 — §2023:14.9.13.3 SR3 sentence 1 / §2023:13.18.63.3 SR31 sentence 1: alphabet-name-1 may be
     /// written only over a range whose operands are of a class a collating sequence orders.</summary>
@@ -6077,7 +6088,10 @@ public static class DiagnosticCatalog
         + "be written, whether or not the phrase would have an effect — a value LIST with no range is compared "
         + "by §2023:8.8.4.5.3 GR2's ordinary relation rules under the PROGRAM collating sequence, which the IN phrase "
         + "does not reach. Either add the THROUGH phrase the alphabet is meant to order, or drop the IN phrase.",
-        "ISO §2023:13.18.63.3 SR31 / §2023:14.7.8 / §2023:8.8.4.5.3");
+        "ISO §2023:13.18.63.3 SR31 / §2023:14.7.8 / §2023:8.8.4.5.3",
+        No1985Rule: "The IN alphabet-name phrase of a condition-name's VALUE clause is not in ANSI X3.23-1985, whose condition-name "
+            + "VALUE clause has no such phrase (§1985:VI.5.15.2), so there is no 1985 rule to cite (the phrase begins in COBOL-2002, "
+            + "kb/Work PB4950).");
 
     /// <summary>COBOL2177 — §2023:13.18.63.2: the VALUE clause's leading words are not a pairing the general
     /// format prints — <c>VALUE ARE</c> / <c>VALUES IS</c> in any format, or <c>VALUES</c> at all in Format 1.
@@ -7272,7 +7286,10 @@ public static class DiagnosticCatalog
         + "SR4 — the subject's data-name shall not be a property-name defined in a superclass; "
         + "SR5 — in or under a CONSTANT RECORD, the SET phrase (WITH NO SET) shall be specified; SR6 — not for an "
         + "object reference described with ACTIVE-CLASS. The site names the rule it caught.",
-        "ISO §2023:13.18.42.3 SR1/SR2/SR3/SR4/SR5/SR6");
+        "ISO §2023:13.18.42.3 SR1/SR2/SR3/SR4/SR5/SR6",
+        No1985Rule: "The PROPERTY clause, the factory and instance definitions it belongs to, ACTIVE-CLASS and CONSTANT RECORD are "
+            + "not in ANSI X3.23-1985, which has no object-oriented facility, so there is no 1985 rule to cite (the facility begins "
+            + "in COBOL-2002, kb/Work PB4950).");
 
     /// <summary>COBOL2630 — a prefixed literal whose CONTENT is outside its format's repertoire (kb/Work PB1441,
     /// PB1394): §2023:8.3.3.2.3 SR5 / §2023:8.3.3.5.3 SR4 "Hex-character-sequence-1 shall be composed of hexadecimal digits"
@@ -9020,7 +9037,10 @@ public static class DiagnosticCatalog
         "A user-defined function is declared in the REPOSITORY paragraph but the compilation group holds neither a "
         + "FUNCTION-ID definition specified before the source element nor a function prototype for it (§2023:12.3.8.4 GR11), so "
         + "the activation has no signature to bind to.",
-        "ISO §2023:12.3.8.4 GR11; §2023:12.3.8.3 SR10");
+        "ISO §2023:12.3.8.4 GR11; §2023:12.3.8.3 SR10",
+        No1985Rule: "User-defined functions (FUNCTION-ID, a function prototype, a REPOSITORY function-specifier) are not in ANSI "
+            + "X3.23-1985, whose FUNCTION reference is to an intrinsic function alone, so there is no 1985 rule to cite "
+            + "(the facility begins in COBOL-2002, kb/Work PB4950).");
 
     /// <summary>COBOL1506 — user function argument rule (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor UserFunctionArgumentRule = new(

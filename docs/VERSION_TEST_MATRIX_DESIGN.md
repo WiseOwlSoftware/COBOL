@@ -322,6 +322,16 @@ the edition in force has no such rule, the message cites the edition where the r
   `PlacementRules.SequenceRule.Cite1985`/`Shall1985`, `LiteralPosition`'s `Cite1985`), so the next row of a table is cited by
   adding its 1985 fields. A refusal's `expect` in `conformance-suite/wiseowl/diagnostics` names a phrase every edition's
   message holds, never a citation of one edition.
+- **A rule with no numbered 1985 counterpart is cited by the 1985 general format it is read from** (kb/Work PB4950 slice 2): the
+  file control entry of each organization prints the clauses it takes, so `FileControlKeyRules.Rules1985` carries rows whose id is
+  `1985-FMT-<clause>-<key>` (a clause WRITTEN where the 1985 format of its organization does not print it; an ACCESS RANDOM or
+  DYNAMIC relative file without the RELATIVE KEY its format prints), re-derived by `FileControlKeyRuleDriftTests` from the clause's
+  "General Format" subsection. The syntax-error strategy (`CobolErrorStrategy`) reads the edition only through
+  `CobolParserCoreBase.EditionCitation` (a diagnosis-only member recorded in `EditionReadDriftTests`). A clause COBOL-2002
+  introduced, written under `--std 85` past its edition gate, says "requires COBOL-2002 (targeting COBOL-85)" (the net's own
+  edition-gate phrase) beside the 2023 rule (the report writer's PRESENT WHEN and VARYING). `SortKeyAdmission` and
+  `CorrespondingOperandRule` take the edition: the sort-merge key rule is `§1985:XI.4.4.3 SR4` / `§1985:XI.4.1.3 SR4` with its own
+  letters (a, c, e, f), CORRESPONDING's group rule is `§1985:VI.6.19.3 SR3` (MOVE), `VI.6.6.3 SR1` (ADD), `VI.6.26.3 SR1` (SUBTRACT).
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
   1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
   `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.

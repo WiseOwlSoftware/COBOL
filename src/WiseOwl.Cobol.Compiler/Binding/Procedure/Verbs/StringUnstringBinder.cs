@@ -24,6 +24,9 @@ using Core = CobolParserCore;
 /// The five bound records stayed in <c>Binding/Bound/BoundStringUnstring.cs</c>.</summary>
 internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>The syntax rule that bars a figurative constant beginning with ALL from a STRING literal, in the edition in force (kb/Work PB4950).</summary>
+    private string StringAllRule => ctx.Edition.Edition.Cite("§1985:VI.6.25.3 SR1", "§2023:14.9.43.3 SR2", "§2023:14.9.43.3 SR2");
+
     /// <summary>Bind STRING (ISO §2023:14.9.43). Each <c>stringSendingPhrase</c> carries ONE sender and optionally the
     /// DELIMITED phrase that closes its run; the phrase governs every phraseless sender back to the previous
     /// phrase, so the binder back-propagates each phrase to its run, and a trailing phraseless run — legal only
@@ -44,8 +47,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if (BeginsWithAllWord(phrases[i].strUnstrOperand(), values[i]))   // SR2 — literal-1 shall not be a figurative beginning with the word ALL (a bare symbolic character is not — PB110)
                 values[i] = BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                     $"STRING sending operand '{DataBinder.WrittenText(phrases[i].strUnstrOperand())}' is a figurative constant that "
-                    + "begins with the word ALL, which literal-1 shall not be (ISO §2023:14.9.43.3 SR2)",
-                    "STRING sending ALL literal (ISO §2023:14.9.43.3 SR2)");
+                    + $"begins with the word ALL, which literal-1 {ctx.Edition.Edition.Cite("must not be", "shall not be", "shall not be")} (ISO {StringAllRule})",
+                    $"STRING sending ALL literal (ISO {StringAllRule})");
             // ⛔ SR1 IS ONE SENTENCE ABOUT EVERY OPERAND OF THE STATEMENT, and it was enforced at ONE of its
             // three identifier positions (kb/Work PB664 — the sweep the MOVE screen's landing asked for).
             // `STRING P DELIMITED BY SIZE INTO A` over a USAGE POINTER sender compiled clean and stored
@@ -64,8 +67,8 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             if (dp.ALL() is not null || BeginsWithAllWord(dp.strUnstrOperand(), d))
                 d = BoundOperandError.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule,
                     $"STRING DELIMITED BY '{(dp.ALL() is not null ? "ALL " : "")}{DataBinder.WrittenText(dp.strUnstrOperand())}': the delimiter is a figurative constant that begins with "
-                    + "the word ALL, which literal-2 shall not be (ISO §2023:14.9.43.3 SR2)",
-                    "STRING DELIMITED BY ALL literal (ISO §2023:14.9.43.3 SR2)");
+                    + $"the word ALL, which literal-2 {ctx.Edition.Edition.Cite("must not be", "shall not be", "shall not be")} (ISO {StringAllRule})",
+                    $"STRING DELIMITED BY ALL literal (ISO {StringAllRule})");
             if (Sr1Offence(d) is { } delimOffence)     // identifier-2 / literal-2 — SR1's second named position
                 return Sr1Reject($"STRING DELIMITED BY '{DataBinder.WrittenText(dp.strUnstrOperand())}'", delimOffence);
             // SR3 — literal-2 shall not be a zero-length literal (§2023:8.3.3.1: contiguous delimiters). The run-time kernel

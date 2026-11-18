@@ -379,7 +379,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (ctx.Data.State.Reports.Named(rn.GetText()) is not { } r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"INITIATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + "description entry in the report section (ISO §2023:14.9.21.3 SR1)");
+                    + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.4.3 SR1", "§2023:14.9.21.3 SR1", "§2023:14.9.21.3 SR1")})");
             if (RejectContainedReportFile(r, $"INITIATE {r.Name}", "ISO §2023:14.9.21.3 SR2") is { } notGlobal) return notGlobal;
             members.Add(new BoundInitiate([r]));
         }
@@ -432,7 +432,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         }
         // Match.None is UNDIAGNOSED by contract ("leaves the 'this is not a report group' diagnostic to the
         // caller") — so this is the report, never a deferral (kb/Work PB909).
-        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{where}: '{name}' names neither a detail report group (ISO §2023:14.9.16.3 SR1) "
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"{where}: '{name}' names neither a detail report group (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.3.3 SR1", "§2023:14.9.16.3 SR1", "§2023:14.9.16.3 SR1")}) "
             + "nor a report description entry (SR2)");
     }
 
@@ -447,7 +447,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         {
             if (ctx.Data.State.Reports.Named(rn.GetText()) is not { } r)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementOperandRule, $"TERMINATE '{rn.GetText()}': report-name-1 shall be defined by a report "
-                    + "description entry in the report section (ISO §2023:14.9.46.3 SR1)");
+                    + $"description entry in the report section (ISO {ctx.Edition.Edition.Cite("§1985:XIII.4.7.3 SR1", "§2023:14.9.46.3 SR1", "§2023:14.9.46.3 SR1")})");
             if (RejectContainedReportFile(r, $"TERMINATE {r.Name}", "ISO §2023:14.9.46.3 SR2") is { } notGlobal) return notGlobal;
             members.Add(Presenting(new BoundTerminate([r])));
         }
