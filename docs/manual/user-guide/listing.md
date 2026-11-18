@@ -117,7 +117,12 @@ calling `JsonListingWriter.Read`.
 **Versions.** `schemaVersion` is `major.minor`. The minor grows when a property or an enumerated value is added; the major
 changes only when one is removed, renamed or changes meaning, and the `$schema` identifier and the schema's file name
 carry the major (`v1`). Within a major every addition is optional, so a reader of version 1 must ignore a property it does
-not know, and a reader written for 1.0 reads every 1.x document. A new major is announced in the release notes of the
+not know and accept an enumerated value it does not know, and a reader written for 1.0 reads every 1.x document.
+`JsonListingWriter.Read` does both: in a document of a later minor than the assembly's own, a value it does not know reads
+as `ListingJson.UnknownEnumValue` (-1, a value no member has, so `Enum.IsDefined` is false for it). It refuses a document
+that is not valid against its own version of the schema: a required property missing, a `null` where the schema allows
+none, an enumerated value written as a number, or, in a document of its own minor or an earlier one, a value it does not
+know. A new major is announced in the release notes of the
 release that ships it.
 
 With `--listing-output -` the one format requested goes to standard output, before the diagnostics (which go to standard

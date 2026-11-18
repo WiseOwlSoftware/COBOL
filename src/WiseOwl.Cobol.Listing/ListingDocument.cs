@@ -38,12 +38,12 @@ public sealed record ListingDocument(
 
     /// <summary>The identifier of the schema the document follows: <c>urn:wiseowl:cobol:listing:v1</c> for every version of
     /// major 1.</summary>
-    [JsonPropertyName("$schema"), JsonPropertyOrder(-2), JsonRequired]
+    [JsonPropertyName("$schema"), JsonPropertyOrder(-2)]
     public string Schema { get; init; } = SchemaUrn;
 
     /// <summary>The schema version the document was written at, <c>&lt;major&gt;.&lt;minor&gt;</c>. A reader of major 1
     /// reads every 1.x document and ignores the properties it does not know.</summary>
-    [JsonPropertyOrder(-1), JsonRequired]
+    [JsonPropertyOrder(-1)]
     public string SchemaVersion { get; init; } = CurrentSchemaVersion;
 }
 

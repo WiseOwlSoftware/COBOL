@@ -281,8 +281,11 @@ step 9, and no request can name a format the compiler cannot write. ONE table, `
 command-line spelling, file extension and renderer (`Spelling`, `Extension`, `Render`, `TryParse`, `Each`); the listing's
 exit writes files through it and the command line prints `-` through it, and `ListingOutputTests` calls every switch for
 every member. `ListingRequest.FormatsProblem` is the one rule for formats (at least one; exactly one when `OutputBase` is
-`-`, since two would interleave in one stream), asked by the command line and by the request's own constructor, which
-refuses a request it would fail. `ListingRequest.TextExtension` is deleted: the extension is `ListingOutput.Extension`.
+`-`, since two would interleave in one stream), asked by the command line and by the request itself, which refuses a
+request it would fail. (Step 2, review R1-3:) the request asks all three of its rules (`PageLengthProblem`,
+`PageWidthProblem`, `FormatsProblem`) in its constructor AND in each property's `init` accessor, so an object initializer
+or a `with` expression (`request with { OutputBase = "-" }` on a two-format request) cannot build a request the listing
+would fail; a property initializer alone checked only the constructor. `ListingRequest.TextExtension` is deleted: the extension is `ListingOutput.Extension`.
 The document's schema identity is two properties of `ListingDocument` itself, `Schema` (JSON `$schema`, the constant
 `ListingDocument.SchemaUrn`) and `SchemaVersion` (the constant `ListingDocument.CurrentSchemaVersion`), init properties
 beside the positional ones so a reader sees the version the file was WRITTEN at, not this compiler's. `CompilerDriver.Options.Listing` is a
@@ -437,13 +440,17 @@ What is listed is decided by the collector's STATE, never by which return was ta
   error lists source and diagnostics; a bind error adds the program names from the parse; `CheckOnly` (a library caller
   may ask for both) has no object-code map ("check-only compile: no code generated"); an expansion's failure (return 306) and a
   backend error have the symbol-table sections and no object-code map; a host that refuses the assembly write (return 321) gets the
-  listing written if its own path is writable, and a listing write that fails adds one error to `Result.Errors` without
-  changing the outcome.
+  listing written if its own path is writable, and each listing file the host refuses to write adds one error to
+  `Result.Errors` without changing the outcome, the other formats still written (step 2).
 
 A return point added to the body later needs no listing code. The no-listing path is the body alone, with a null
 collector. (Step 1:) `Compile` builds the facts, runs `CompileCore`, returns at once when no source text was deposited
-(`ListingFacts.Frontend` is null), and otherwise asks `ListingWriter.Write` for a `ListingWritten(Document, File, Error)`,
-which it folds into the result; the driver maps its `Outcome` to `ListingOutcome` (`ListingOutcomeOf`). The front end is
+(`ListingFacts.Frontend` is null), and otherwise asks `ListingWriter.Write` for a `ListingWritten(Document, Files, Errors)`,
+which it folds into the result. (Step 2, review R1-4:) `ListingWriter.Write` renders each requested format through
+`ListingOutput` (`Each`, `Extension`, `Render`) into `BASE` plus that format's extension; `Files` lists each file written
+and `Errors` holds one error per file the host refused, the other formats being written all the same (witness
+`ListingJsonTests.ARefusedJsonFile_IsOneError_AndTheTextIsStillWritten`); with `OutputBase` `-` both lists are empty and
+the caller prints the one format; the driver maps its `Outcome` to `ListingOutcome` (`ListingOutcomeOf`). The front end is
 built by the one `CompilerDriver.NewFrontend`, which the no-work drift test reads. (Step 1, review R1-2:) each kind of
 outcome is a test (section 10 item 8): `Listing1985Tests.AFailedCompilation_StillListsItsSource` (front-end error, bind
 error, no source) and `ListingOutcomeTests` (check-only, the refused assembly write of the last return, an output refused
@@ -955,9 +962,23 @@ lists from `ListingCrossReference`; the renderer joins nothing and computes noth
 - Serialized with a `System.Text.Json` source-generation context (`ListingJsonContext`): camelCase, enums as strings,
   nulls omitted, no reflection at run time. (Step 2:) also `RespectNullableAnnotations` (a null where the model has none is
   refused on reading), indented with LF line ends; enum values are the member names (`"PageEjectComment"`).
-  `JsonListingWriter.Write` writes the document; `JsonListingWriter.Read` is the policy's reader: it ignores a property it
-  does not know, and refuses a document whose `$schema` is not `ListingDocument.SchemaUrn` or whose `schemaVersion` is not of
-  major 1 (both are `[JsonRequired]`, so a document that names no schema is refused too).
+  (Step 2, review R1-1 and R1-2:) the context is internal and is only the base of THE ONE CONTRACT, `ListingJson`
+  (`ListingJson.Options`, `ListingJson.Document`), through which the writer, the reader and the schema generator all
+  serialize. It adds three rules, each decided once: REQUIRED, a property whose value is never null is required
+  (`ListingJson.IsRequired`, applied to the metadata by a resolver modifier; `RespectNullableAnnotations` alone refused
+  only an explicit null, so a document missing `header`, `lines` or a line's `text` read with null in a non-nullable
+  member), and the generator's `required` lists read the same flag; NO NULL ELEMENT, a list of the model never holds null
+  (`[null]` in `files` is refused); ENUM VALUES ARE NAMES, one converter (made per model enum by one factory, the only
+  reflection, once per enum type) writes and reads a member's name and refuses a number (`"kind": 42` was read as an
+  undefined value). The compatibility policy makes an added enum value a MINOR change, so a reader of 1.0 must read a
+  1.x document holding a value it does not know: in a document of a LATER minor than `CurrentSchemaVersion` such a name
+  reads as `ListingJson.UnknownEnumValue` (-1, which no model enum's member has; the converter refuses an enum that
+  defines it, and a document holding it is refused on writing, since its name is not known); in a document of this
+  reader's minor or an earlier one the same name is invalid and refused. `JsonListingWriter.Write` writes the document;
+  `JsonListingWriter.Read` is the policy's reader: it reads `schemaVersion` first (`ListingJson.MinorOf`, the one parser
+  of `1.<minor>`, which refuses `1.x` and `1.01`) to choose the contract of the document's minor, ignores a property it
+  does not know, refuses a property written twice, and refuses a document whose `$schema` is not
+  `ListingDocument.SchemaUrn` or whose `schemaVersion` is absent or not of major 1.
 - The schema is GENERATED from the model types by `JsonSchemaExporter` (.NET 10) with the descriptions taken from the
   model's XML comments, and committed as `src/WiseOwl.Cobol.Listing/Json/listing-v1.schema.json`, an embedded resource.
   A preflight drift test regenerates it and fails on a difference: the schema cannot drift from the writer.
@@ -965,8 +986,10 @@ lists from `ListingCrossReference`; the renderer joins nothing and computes noth
   (`GenerateDocumentationFile`; with `TreatWarningsAsErrors` an undocumented public member, every enum member included, is
   a build error there), and refuses a property, type or enum value the file does not describe. A positional record's
   property is described by its `<param>` (the C# compiler writes no `P:` entry for it); an enum's description lists each
-  value's meaning after the type's own. The exporter lists every constructor parameter as `required`; the generator keeps
-  only the properties that are never null, because the writer leaves a null out. So a property ADDED in a later minor must
+  value's meaning after the type's own. The exporter lists every constructor parameter as `required`; the generator
+  replaces each object's `required` with the contract's required properties (`ListingJson.IsRequired`: never null, because
+  the writer leaves a null out), and states each model enum as its members' names (the exporter cannot describe the
+  contract's own converter). So a property ADDED in a later minor must
   be nullable (absent from older documents), which keeps it out of `required` and keeps every older document valid.
   `ListingJsonSchema.Committed()` returns the embedded file. The drift test is
   `tests/WiseOwl.Cobol.Tests.Unit/Listing/ListingJsonSchemaDriftTests.cs` (`WISEOWL_COBOL_UPDATE_LISTING_SCHEMA=1` writes the
@@ -980,7 +1003,8 @@ lists from `ListingCrossReference`; the renderer joins nothing and computes noth
 
 **Versioning and compatibility policy.** The major version changes only when a property is removed, renamed, or changes
 meaning; the minor version changes when a property or an enum value is added. Within a major version every addition is
-optional, and a reader must ignore properties it does not know. The compiler writes exactly one major version; a new
+optional, and a reader must ignore properties it does not know and accept an enum value it does not know in a
+document of a later minor (`JsonListingWriter.Read` reads it as `ListingJson.UnknownEnumValue`). The compiler writes exactly one major version; a new
 major version is announced in the release notes of the release that ships it, with the schema of the old major kept in
 the repository for reference. The schema file name carries the major (`listing-v1.schema.json`, `listing-v2...`).
 
@@ -1085,7 +1109,7 @@ captured listing.
    that line, and the text margin and the HTML links render exactly them; object-code map: each statement's method and IL
    range equal what the PDB's sequence points say, read independently in the test with `System.Reflection.Metadata`.
 5. **Schema.** The generated schema equals the committed file (a preflight class, since a red one means a stale derived
-   file); every document the tests produce round-trips through `ListingJsonContext` with no unknown property.
+   file); every document the tests produce round-trips through the contract (`ListingJson`) with no unknown property.
    (Step 2:) `ListingJsonSchemaDriftTests` (Unit: the schema equals the committed file and the embedded resource, every
    property at every depth is described, an undocumented member is refused); `JsonListingWriterTests` (Unit: names, enums,
    left-out nulls, the reader's policy) over a hand-built document holding every member; `ListingJsonTests` (Conformance:
@@ -1163,7 +1187,8 @@ the 1985 minimum, so PB5923 closes first.
   PARTIAL re-adjudications PB5923 names, PB5924's rows) take the step's tests as witnesses.
 
 **Step 2 - JSON and its schema. BUILT (branch `listing-step-2`; the corrections above marked "step 2").**
-`src/WiseOwl.Cobol.Listing/Json/JsonListingWriter.cs`, `ListingJsonContext.cs`, `ListingJsonSchema.cs`,
+`src/WiseOwl.Cobol.Listing/Json/JsonListingWriter.cs`, `ListingJson.cs` (the one contract), `ListingJsonContext.cs`,
+`ListingJsonSchema.cs`,
 `listing-v1.schema.json` (generated), `src/WiseOwl.Cobol.Listing/ListingOutput.cs` (the one table of formats), the schema
 drift test (a population class until the merge group measures it, then preflight: section 7.3), `--listing-format`; the
 `Text` benchmark row re-measured with JSON (`CompileBenchmarks.ListingMode.TextAndJson`, section 9).

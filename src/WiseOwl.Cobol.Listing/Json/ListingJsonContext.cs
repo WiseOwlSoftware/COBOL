@@ -5,17 +5,16 @@ using System.Text.Json.Serialization;
 namespace WiseOwl.Cobol.Listing.Json;
 
 /// <summary>
-/// ⛔ THE ONE SERIALIZATION CONTRACT OF THE JSON LISTING (DESIGN-listing.md section 7.3): a <c>System.Text.Json</c>
-/// source-generation context, so the writer, the reader and the schema generator (<see cref="ListingJsonSchema"/>) see one
-/// set of properties and no reflection runs: camelCase names, enums as their member names, a null left out, nullable
-/// annotations respected (a null where the model has none is refused on reading), and an indented document with LF line ends.
+/// The JSON listing's source-generated metadata (DESIGN-listing.md section 7.3): camelCase names, a null left out, nullable
+/// annotations respected (a null where the model has none is refused on reading), and an indented document with LF line
+/// ends. It is the base of the one contract, <see cref="ListingJson"/>, which adds the contract's rules (required properties,
+/// no null element, enum values as names); nothing serializes through this context alone, so it is internal.
 /// </summary>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    UseStringEnumConverter = true,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     RespectNullableAnnotations = true,
     WriteIndented = true,
     NewLine = "\n")]
 [JsonSerializable(typeof(ListingDocument))]
-public sealed partial class ListingJsonContext : JsonSerializerContext;
+internal sealed partial class ListingJsonContext : JsonSerializerContext;

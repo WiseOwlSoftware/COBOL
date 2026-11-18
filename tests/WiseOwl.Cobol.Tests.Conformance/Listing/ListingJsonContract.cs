@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance.Listing;
 
 /// <summary>
 /// The JSON contract every listing a test of this assembly produces is held to (DESIGN-listing.md section 10 item 5): its JSON
-/// is valid against the committed schema, and it round-trips through <see cref="ListingJsonContext"/> with no property the
+/// is valid against the committed schema, and it round-trips through <see cref="ListingJson"/> with no property the
 /// model does not know. The listing tests' compile helpers call <see cref="AssertHolds"/> on every document they produce, so a
 /// fact a later step adds to the model is checked against the schema by every listing test, not only by this one.
 /// </summary>
@@ -20,7 +20,7 @@ internal static class ListingJsonContract
 {
     private static readonly JsonNode Schema = JsonNode.Parse(ListingJsonSchema.Committed())!;
 
-    private static readonly JsonSerializerOptions Strict = new(ListingJsonContext.Default.Options)
+    private static readonly JsonSerializerOptions Strict = new(ListingJson.Options)
     {
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     };

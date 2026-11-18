@@ -69,4 +69,28 @@ public sealed class ListingOutputTests
         Assert.Null(ListingRequest.FormatsProblem(outputBase, (ListingFormats)formats));
         Assert.Equal((ListingFormats)formats, new ListingRequest(outputBase, Formats: (ListingFormats)formats).Formats);
     }
+
+    /// <summary>The request refuses a request the listing would fail however it is built (review R1-3): the constructor, an
+    /// object initializer and a <c>with</c> expression all ask the same three rules.</summary>
+    [Fact]
+    public void ARequestTheListingWouldFail_IsRefused_HoweverItIsBuilt()
+    {
+        var two = new ListingRequest(Formats: ListingFormats.Text | ListingFormats.Json);
+        var toStandardOutput = new ListingRequest(ListingRequest.StandardOutput);
+        Assert.Throws<ArgumentException>(() => toStandardOutput with { Formats = ListingFormats.Text | ListingFormats.Json });
+        Assert.Throws<ArgumentException>(() => new ListingRequest(ListingRequest.StandardOutput) { Formats = ListingFormats.Text | ListingFormats.Json });
+        Assert.Throws<ArgumentException>(() => two with { OutputBase = ListingRequest.StandardOutput });
+        Assert.Throws<ArgumentException>(() => two with { Formats = 0 });
+        Assert.Throws<ArgumentException>(() => new ListingRequest(PageLength: ListingRequest.MinimumPageLength - 1));
+        Assert.Throws<ArgumentException>(() => new ListingRequest() { PageLength = -1 });
+        Assert.Throws<ArgumentException>(() => new ListingRequest(PageWidth: ListingRequest.MinimumPageWidth - 1));
+        Assert.Throws<ArgumentException>(() => new ListingRequest() with { PageWidth = ListingRequest.MaximumPageWidth + 1 });
+        // and each rule's edge is accepted, by every route
+        Assert.Equal(ListingFormats.Json, (toStandardOutput with { Formats = ListingFormats.Json }).Formats);
+        Assert.Equal("out/x", (two with { OutputBase = "out/x" }).OutputBase);
+        Assert.Equal(0, (two with { PageLength = 0 }).PageLength);
+        Assert.Equal(ListingRequest.MinimumPageLength, new ListingRequest { PageLength = ListingRequest.MinimumPageLength }.PageLength);
+        Assert.Equal(ListingRequest.MaximumPageWidth, new ListingRequest(PageWidth: ListingRequest.MaximumPageWidth).PageWidth);
+        Assert.Equal(new ListingRequest("out/x", 0, 200, ListingFormats.Json), new ListingRequest("out/x", 0, 200) with { Formats = ListingFormats.Json });
+    }
 }

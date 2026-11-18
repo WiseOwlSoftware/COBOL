@@ -9,9 +9,11 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
 
 /// <summary>
-/// The JSON listing's contract (DESIGN-listing.md section 7.3): camelCase names, enums as their member names, a null left out,
-/// the document opening with <c>$schema</c> and <c>schemaVersion</c>, and the compatibility policy's reader: a property it does
-/// not know is ignored, a document of another schema or major is refused. Each expected value is read off the hand-built
+/// The JSON listing's contract (DESIGN-listing.md section 7.3, <see cref="ListingJson"/>): camelCase names, enums as their
+/// member names, a null left out, the document opening with <c>$schema</c> and <c>schemaVersion</c>, and the compatibility
+/// policy's reader: a property it does not know is ignored, and so is an enum value it does not know in a later minor; a
+/// document of another schema or major, or one the schema calls invalid (a required property missing, a null where none is
+/// allowed, an enum value written as a number), is refused. Each expected value is read off the hand-built
 /// document below (the input), never off a captured run.
 /// </summary>
 public sealed class JsonListingWriterTests
@@ -92,7 +94,7 @@ public sealed class JsonListingWriterTests
     {
         var document = EveryMember();
         string text = JsonListingWriter.Write(document);
-        var strict = new JsonSerializerOptions(ListingJsonContext.Default.Options)
+        var strict = new JsonSerializerOptions(ListingJson.Options)
         {
             UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow,
         };
@@ -144,4 +146,151 @@ public sealed class JsonListingWriterTests
         json["lines"]![0]!["text"] = null;
         Assert.Throws<JsonException>(() => JsonListingWriter.Read(json.ToJsonString()));
     }
+
+    /// <summary>The policy's other half (review R1-2): an enum value added in a later minor is read, as
+    /// <see cref="ListingJson.UnknownEnumValue"/>, which no member has; the same name in a document of this reader's minor is
+    /// invalid and refused; and the read document cannot be written again, since the value's name is not known.</summary>
+    [Fact]
+    public void TheReader_ReadsAnEnumValueOfALaterMinor_AsTheUnknownValue()
+    {
+        var json = Written(EveryMember());
+        json["schemaVersion"] = "1.1";
+        json["lines"]![0]!["kind"] = "AKindOfALaterMinor";
+        json["sections"]![1]!["section"] = "ASectionOfALaterMinor";
+        var read = JsonListingWriter.Read(json.ToJsonString());
+        Assert.Equal((ListingLineKind)ListingJson.UnknownEnumValue, read.Lines[0].Kind);
+        Assert.False(Enum.IsDefined(read.Lines[0].Kind));
+        Assert.Equal((ListingSection)ListingJson.UnknownEnumValue, read.Sections[1].Section);
+        Assert.Equal(EveryMember().Lines[1], read.Lines[1]);
+        Assert.Throws<JsonException>(() => JsonListingWriter.Write(read));
+
+        json["schemaVersion"] = ListingDocument.CurrentSchemaVersion;
+        Assert.Contains("AKindOfALaterMinor", Assert.Throws<JsonException>(() => JsonListingWriter.Read(json.ToJsonString())).Message,
+            StringComparison.Ordinal);
+    }
+
+    /// <summary>An enum value is its member's name, never a number (the schema's <c>enum</c> lists names only), in a document of
+    /// any minor.</summary>
+    [Theory]
+    [InlineData("1.0")]
+    [InlineData("1.9")]
+    public void TheReader_RefusesAnEnumValueWrittenAsANumber(string version)
+    {
+        var json = Written(EveryMember());
+        json["schemaVersion"] = version;
+        json["lines"]![0]!["kind"] = 1;
+        Assert.Throws<JsonException>(() => JsonListingWriter.Read(json.ToJsonString()));
+    }
+
+    /// <summary>No model enum has a member of <see cref="ListingJson.UnknownEnumValue"/>, so the value read for a later minor's
+    /// enum value is never a member's.</summary>
+    [Fact]
+    public void NoModelEnum_HasTheUnknownValue()
+    {
+        var enums = typeof(ListingDocument).Assembly.GetExportedTypes()
+            .Where(t => t.IsEnum && t.Namespace == typeof(ListingDocument).Namespace && t != typeof(ListingFormats)).ToList();
+        Assert.Contains(typeof(ListingLineKind), enums);
+        Assert.All(enums, t => Assert.False(Enum.IsDefined(t, ListingJson.UnknownEnumValue), t.Name));
+    }
+
+    /// <summary>⛔ THE READER REFUSES EXACTLY WHAT THE SCHEMA CALLS INCOMPLETE (review R1-1): every property of the written
+    /// document, at every depth, is removed in turn; the reading is refused when the committed schema lists it as
+    /// <c>required</c> there and accepted when it does not. The schema's <c>required</c> lists and the reader both come from
+    /// <see cref="ListingJson.IsRequired"/>, and this holds them together from the outside.</summary>
+    [Fact]
+    public void TheReader_RefusesADocumentMissingARequiredProperty_AndOnlyThat()
+    {
+        var schema = JsonNode.Parse(ListingJsonSchema.Committed())!.AsObject();
+        var cases = new List<(List<object> Parent, string Name, bool Required)>();
+        void Walk(JsonObject node, JsonNode? instance, List<object> path)
+        {
+            if (node["properties"] is JsonObject properties && instance is JsonObject obj)
+            {
+                var required = (node["required"] as JsonArray ?? []).Select(n => (string)n!).ToHashSet(StringComparer.Ordinal);
+                foreach (var (name, property) in properties)
+                {
+                    if (!obj.ContainsKey(name)) continue;
+                    cases.Add((path, name, required.Contains(name)));
+                    if (property is JsonObject p) Walk(p, obj[name], [.. path, name]);
+                }
+            }
+            if (node["items"] is JsonObject items && instance is JsonArray array)
+                for (int i = 0; i < array.Count; i++) Walk(items, array[i], [.. path, i]);
+        }
+        Walk(schema, Written(EveryMember()), []);
+        Assert.Contains(cases, c => c.Required && c.Parent.Count == 0 && c.Name == "header");
+        Assert.Contains(cases, c => c.Required && c.Name == "text");
+        Assert.Contains(cases, c => c.Required && c.Name == "compilerVersion");
+        Assert.Contains(cases, c => !c.Required && c.Name == "libraryName");
+
+        var wrong = new List<string>();
+        foreach (var (parent, name, required) in cases)
+        {
+            JsonNode node = Written(EveryMember());
+            foreach (var step in parent) node = step is int i ? node[i]! : node[(string)step]!;
+            node.AsObject().Remove(name);
+            string where = string.Join(".", parent) + "." + name;
+            try
+            {
+                JsonListingWriter.Read(node.Root.ToJsonString());
+                if (required) wrong.Add(where + " (required) was read without it");
+            }
+            catch (JsonException e)
+            {
+                if (!required) wrong.Add(where + " (optional) was refused: " + e.Message);
+            }
+        }
+        Assert.Empty(wrong);
+    }
+
+    /// <summary>A list of the model never holds null (the schema's items are objects), so a document whose list does is refused.</summary>
+    [Theory]
+    [InlineData("files")]
+    [InlineData("lines")]
+    [InlineData("sections")]
+    public void TheReader_RefusesANullElementOfAList(string list)
+    {
+        var json = Written(EveryMember());
+        json[list]!.AsArray().Add(null);
+        Assert.Throws<JsonException>(() => JsonListingWriter.Read(json.ToJsonString()));
+    }
+
+    [Fact]
+    public void TheReader_RefusesAPropertyWrittenTwice()
+    {
+        string text = JsonListingWriter.Write(EveryMember());
+        string twice = text.Replace("\"schemaVersion\": \"1.0\",", "\"schemaVersion\": \"1.0\", \"$schema\": \"urn:wiseowl:cobol:listing:v1\",",
+            StringComparison.Ordinal);
+        Assert.NotEqual(text, twice);
+        Assert.Throws<JsonException>(() => JsonListingWriter.Read(twice));
+    }
+
+    /// <summary>The one parser of a schema version of major 1: <c>1.</c> and a decimal minor with no leading zero.</summary>
+    [Theory]
+    [InlineData("1.0", 0)]
+    [InlineData("1.7", 7)]
+    [InlineData("1.12", 12)]
+    [InlineData("1.", null)]
+    [InlineData("1.x", null)]
+    [InlineData("1.01", null)]
+    [InlineData("1.-1", null)]
+    [InlineData("1.1 ", null)]
+    [InlineData("2.0", null)]
+    [InlineData("1", null)]
+    [InlineData(null, null)]
+    public void TheMinor_IsReadFromASchemaVersionOfMajor1(string? version, int? minor)
+    {
+        Assert.Equal(minor, ListingJson.MinorOf(version));
+        if (version is null || minor is not null) return;
+        var json = Written(EveryMember());
+        json["schemaVersion"] = version;
+        Assert.Throws<JsonException>(() => JsonListingWriter.Read(json.ToJsonString()));
+    }
+
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("null")]
+    [InlineData("{")]
+    public void TheReader_RefusesATextThatIsNoObject(string text) =>
+        Assert.ThrowsAny<JsonException>(() => JsonListingWriter.Read(text));
 }

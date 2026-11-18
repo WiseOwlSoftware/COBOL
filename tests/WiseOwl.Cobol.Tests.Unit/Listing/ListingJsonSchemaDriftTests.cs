@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 
 /// <summary>
 /// ⛔ THE JSON LISTING'S SCHEMA CANNOT DRIFT FROM ITS WRITER (DESIGN-listing.md sections 7.3 and 10 item 5). The schema is
-/// GENERATED from the one serialization contract (<see cref="ListingJsonContext"/>) with the model's XML documentation as
+/// GENERATED from the one serialization contract (<see cref="ListingJson"/>) with the model's XML documentation as
 /// its descriptions, and committed as <c>src/WiseOwl.Cobol.Listing/Json/listing-v1.schema.json</c>; this class regenerates it
 /// and is red on any difference, so a property added, renamed or retyped in the model without the schema is caught here.
 /// Re-generate with <c>WISEOWL_COBOL_UPDATE_LISTING_SCHEMA=1</c> (the case then writes the file and passes), read the diff,

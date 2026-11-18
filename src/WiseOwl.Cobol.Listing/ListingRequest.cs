@@ -7,7 +7,10 @@ namespace WiseOwl.Cobol.Listing;
 /// <summary>
 /// What listing a compilation is asked for (DESIGN-listing.md sections 4.2 and 8). <c>CompilerDriver.Options.Listing</c> is a
 /// <see cref="ListingRequest"/>, or null for no listing and no listing work. Every format renders the one document the builder
-/// made (<see cref="ListingOutput"/>), so the formats cannot disagree.
+/// made (<see cref="ListingOutput"/>), so the formats cannot disagree. A request is never one the listing would fail: its
+/// constructor, each <c>init</c> accessor and so every <c>with</c> expression ask the request's rules
+/// (<see cref="PageLengthProblem"/>, <see cref="PageWidthProblem"/>, <see cref="FormatsProblem"/>) and throw
+/// <see cref="ArgumentException"/> on a problem.
 /// </summary>
 /// <param name="OutputBase">Where the listing goes: <c>BASE</c> plus each format's extension (<see cref="ListingOutput.Extension"/>);
 /// null for the output assembly's path without its extension; <see cref="StandardOutput"/> for no file (the caller prints the
@@ -19,9 +22,27 @@ namespace WiseOwl.Cobol.Listing;
 public sealed record ListingRequest(string? OutputBase = null, int PageLength = ListingRequest.DefaultPageLength,
     int PageWidth = ListingRequest.DefaultPageWidth, ListingFormats Formats = ListingFormats.Text)
 {
+    private readonly string? _outputBase = Valid(FormatsProblem(OutputBase, Formats), nameof(Formats), OutputBase);
+    private readonly int _pageLength = Valid(PageLengthProblem(PageLength), nameof(PageLength), PageLength);
+    private readonly int _pageWidth = Valid(PageWidthProblem(PageWidth), nameof(PageWidth), PageWidth);
+    private readonly ListingFormats _formats = Formats;
+
+    /// <summary>Where the listing goes (the record's <c>OutputBase</c> parameter); with the formats, one problem at most
+    /// (<see cref="FormatsProblem"/>).</summary>
+    public string? OutputBase { get => _outputBase; init => _outputBase = Valid(FormatsProblem(value, _formats), nameof(OutputBase), value); }
+
+    /// <summary>Lines per page (the record's <c>PageLength</c> parameter; <see cref="PageLengthProblem"/>).</summary>
+    public int PageLength { get => _pageLength; init => _pageLength = Valid(PageLengthProblem(value), nameof(PageLength), value); }
+
+    /// <summary>Columns (the record's <c>PageWidth</c> parameter; <see cref="PageWidthProblem"/>).</summary>
+    public int PageWidth { get => _pageWidth; init => _pageWidth = Valid(PageWidthProblem(value), nameof(PageWidth), value); }
+
     /// <summary>The formats to write: never none, and one alone when the listing goes to standard output.</summary>
-    public ListingFormats Formats { get; init; } = FormatsProblem(OutputBase, Formats) is { } problem
-        ? throw new ArgumentException(problem, nameof(Formats)) : Formats;
+    public ListingFormats Formats { get => _formats; init => _formats = Valid(FormatsProblem(_outputBase, value), nameof(Formats), value); }
+
+    /// <summary><paramref name="value"/>, or the <see cref="ArgumentException"/> its <paramref name="problem"/> is.</summary>
+    private static T Valid<T>(string? problem, string parameter, T value) =>
+        problem is null ? value : throw new ArgumentException(problem, parameter);
 
     /// <summary>The <see cref="OutputBase"/> that writes no file: the command line prints the text listing to standard output.</summary>
     public const string StandardOutput = "-";

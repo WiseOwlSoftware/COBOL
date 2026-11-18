@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Listing.Json;
 
 /// <summary>
 /// ⛔ THE JSON LISTING'S SCHEMA (DESIGN-listing.md section 7.3): GENERATED from the one serialization contract
-/// (<see cref="ListingJsonContext"/>) by <see cref="JsonSchemaExporter"/>, with each description taken from the model's XML
+/// (<see cref="ListingJson"/>) by <see cref="JsonSchemaExporter"/>, with each description taken from the model's XML
 /// documentation, and committed as <c>Json/listing-v1.schema.json</c>, which this assembly embeds (<see cref="Committed"/>).
 /// The schema therefore cannot drift from the writer: the Unit assembly's <c>ListingJsonSchemaDriftTests</c> regenerates it
 /// and is red on any difference from the committed file.
@@ -38,7 +38,7 @@ public static class ListingJsonSchema
     }
 
     /// <summary>
-    /// Generate the schema from <see cref="ListingJsonContext"/>, describing each property, type and enum value from
+    /// Generate the schema from the contract (<see cref="ListingJson.Document"/>), describing each property, type and enum value from
     /// <paramref name="documentation"/>, the XML documentation file this assembly is built with. A property or type the
     /// documentation does not describe is refused, never published without its meaning.
     /// </summary>
@@ -51,7 +51,7 @@ public static class ListingJsonSchema
             TreatNullObliviousAsNonNullable = true,
             TransformSchemaNode = (context, node) => Describe(context, node, docs),
         };
-        var generated = ListingJsonContext.Default.ListingDocument.GetJsonSchemaAsNode(exporter).AsObject();
+        var generated = ListingJson.Document.GetJsonSchemaAsNode(exporter).AsObject();
         var schema = new JsonObject
         {
             ["$schema"] = Dialect,
@@ -72,31 +72,37 @@ public static class ListingJsonSchema
         }) + "\n";
     }
 
-    /// <summary>Put the documentation's description on one schema node: a property's from its member (or its record
-    /// parameter), a type's from its summary, and for an enum each value's meaning after it.</summary>
+    /// <summary>Put the contract on one schema node: an enum of the model is its members' names (the contract's own
+    /// converter, which the exporter cannot describe, writes exactly those), an object's <c>required</c> is the contract's
+    /// required properties (<see cref="ListingJson.IsRequired"/>, the reader's one rule), and the documentation's description
+    /// goes first: a property's from its member (or its record parameter), a type's from its summary, and for an enum each
+    /// value's meaning after it.</summary>
     private static JsonNode Describe(JsonSchemaExporterContext context, JsonNode node, XmlDocumentation docs)
     {
-        if (node is not JsonObject schema) return node;
         var type = Nullable.GetUnderlyingType(context.TypeInfo.Type) ?? context.TypeInfo.Type;
+        bool modelEnum = type.IsEnum && IsModelType(type);
+        if (modelEnum)
+        {
+            var names = new JsonArray([.. Enum.GetNames(type).Select(n => (JsonNode?)JsonValue.Create(n))]);
+            if (type != context.TypeInfo.Type) names.Add(null);
+            node = new JsonObject { ["enum"] = names };
+        }
+        if (node is not JsonObject schema) return node;
         string? description = context.PropertyInfo is { } property
             ? docs.Property(ClrProperty(property))
             : IsModelType(type) ? docs.Type(type) : null;
-        if (type.IsEnum && IsModelType(type))
+        if (modelEnum)
             description = (description is null ? "" : description + " ")
                 + string.Join(" ", Enum.GetNames(type).Select(n => n + ": " + docs.EnumValue(type, n)));
         if (description is not null) schema.Insert(0, "description", description);
-        if (schema["required"] is JsonArray required && schema["properties"] is JsonObject properties)
-            for (int i = required.Count - 1; i >= 0; i--)
-                if (AdmitsNull(properties[(string)required[i]!])) required.RemoveAt(i);
+        if (context.TypeInfo.Kind == JsonTypeInfoKind.Object)
+        {
+            schema.Remove("required");
+            var required = context.TypeInfo.Properties.Where(ListingJson.IsRequired).Select(p => (JsonNode?)p.Name).ToArray();
+            if (required.Length > 0) schema["required"] = new JsonArray(required);
+        }
         return schema;
     }
-
-    /// <summary>Whether a property's schema admits null. The writer leaves a null out (<see cref="ListingJsonContext"/>), so such
-    /// a property may be absent and is not required: the exporter lists every constructor parameter as required, and this
-    /// keeps only those always written.</summary>
-    private static bool AdmitsNull(JsonNode? property) => property is JsonObject p
-        && (p["type"] is JsonArray types && types.Any(t => (string?)t == "null")
-            || p["enum"] is JsonArray values && values.Any(v => v is null));
 
     /// <summary>Whether <paramref name="type"/> is a type of the model (the listing's own), not a framework type such as a list
     /// or a string, which the documentation does not describe.</summary>
