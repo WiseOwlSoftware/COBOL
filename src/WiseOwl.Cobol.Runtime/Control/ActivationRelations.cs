@@ -696,14 +696,14 @@ public static class ActivationRelations
                 || !string.Equals(receiving.StrongType, sending.StrongType, StringComparison.Ordinal)))
             return "the sending operand shall be a group item of the same type (ISO §2023:14.9.25.3 SR2 / §2023:8.5.3.3)"; // SR2
         if (FigurativeSenderOf(sending) is { } figurative                                                     // SR5-SR7
-            && MoveValidity.FigurativeRefusal(figurative, receiving.Table16) is { } figurativeWhy)
+            && MoveValidity.FigurativeRefusal(figurative, receiving.Table16, MoveCitations.Iso2023) is { } figurativeWhy)
             return figurativeWhy;
-        if (MoveValidity.BinaryWidthRefusal(sending.BinaryWidth, receiving.Table16) is { } binaryWhy)       // SR8
+        if (MoveValidity.BinaryWidthRefusal(sending.BinaryWidth, receiving.Table16, MoveCitations.Iso2023) is { } binaryWhy)       // SR8
             return binaryWhy;
         if ((sending.Shape is ActivationShape.VariableLengthGroup || receiving.Shape is ActivationShape.VariableLengthGroup)
             && VariableLengthViolation(sending, receiving, "sending item", "receiving item") is { } lengthWhy)
             return lengthWhy + " (ISO §2023:14.9.25.3 SR9)";                                                      // SR9
-        return MoveValidity.Table16Refusal(sending.Table16, receiving.Table16);                               // SR10
+        return MoveValidity.Table16Refusal(sending.Table16, receiving.Table16, MoveCitations.Iso2023);                               // SR10
     }
 
     /// <summary>ISO §2023:14.8.3 for the returning item of a method §2023:9.3.6 has BOUND (§2023:14.9.23.4 GR7 c)):

@@ -1638,7 +1638,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         bool isSynonym = !CobolKeywords.Same(written, reserved);
         var synonymBy = isSynonym && recognizer is CobolParserCoreBase { CobolWords: { IsEmpty: false } words }
             ? words.SynonymBy(written) : null;
-        return $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO §2023:4.2.10; docs/CONFORMANCE.md D-RW1)"
+        string rule = EditionOf(recognizer).Cite("§1985:I.1.5.2.5.2", "§2023:4.2.10");
+        return $"{reserved} is a word this implementation reserves for a nonstandard extension (ISO {rule}; docs/CONFORMANCE.md D-RW1)"
             + (synonymBy is { Action: WiseOwl.Cobol.Editions.CobolWordsAction.Substitute }
                 ? $"; {synonymBy.AsWritten} replaces it with '{Truncate(written, 40)}' (ISO §2023:7.3.10.4 GR4), so '{Truncate(written, 40)}' is that reserved word and no user-defined word"
                 : isSynonym ? $" and '{Truncate(written, 40)}' is its synonym here (ISO §2023:7.3.10.4 GR2), so neither is a user-defined word"
@@ -1700,7 +1701,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // cardinality lives in the grammar rather than in nine bind-time checks. ⛔ The emptiness is asked of the parse
         // AT the offending token, never of the parser's position (kb/Work PB3832; OffendingPosition).
         if (at.EmptyBlockOwner() is { } stmtName)
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(stmtName), 0));
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(stmtName, EditionOf(recognizer)), 0));
 
         // ⛔ 0b. THE WHEN OTHER PHRASE — BOTH OF ITS RULES, SEPARATED BY LOOKAHEAD (kb/Work PB396).
         // `[ WHEN OTHER imperative-statement-2 ]` follows the `{ … } …` repetition in EVALUATE's format, and
@@ -1736,18 +1737,20 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 ? WhenOtherPlacement(recognizer, PreviousDefault(stream, otherIndex), out owner)
                 : PhrasePlacement.None;
             if (placement == PhrasePlacement.InPlace && token.TokenIndex == otherIndex && owner is not null)
-                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(StatementOwning(owner)), 0));
+                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2072, EmptyBlockMessage(StatementOwning(owner), EditionOf(recognizer)), 0));
             else if (!(bodyPresent && (at.Carried is not null || placement is PhrasePlacement.InPlace or PhrasePlacement.Unread)))
                 hints.Add(bodyPresent
                     ? new(Diagnostics.DiagnosticDescriptors.COBOL2073,
                         "A WHEN OTHER phrase may be specified at most once, and only after every WHEN phrase: the "
                         + "general format brackets it as a single phrase FOLLOWING the repeated WHEN group, and an "
                         + "ellipsis applies only to the portion between the delimiters immediately to its left "
-                        + "(ISO §2023:14.9.13.2 / §2023:14.9.28.2 Format 3, with ISO §2023:5.2.7).", 0)
+                        + CiteAt(recognizer, "(ISO §1985:VI.6.13.2, with ISO §1985:IV.2.1.5).",
+                            "(ISO §2023:14.9.13.2 / §2023:14.9.28.2 Format 3, with ISO §2023:5.2.7)."), 0)
                     : new(Diagnostics.DiagnosticDescriptors.COBOL2072,
                         "The WHEN OTHER phrase carries an imperative-statement INSIDE its bracket, so writing the "
                         + "phrase obliges the statement: brackets license omitting the whole phrase, never emptying "
-                        + "it (ISO §2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3).", 0));
+                        + "it (ISO " + EditionOf(recognizer).Cite("§1985:IV.2.1.4, with §1985:VI.6.13.2",
+                            "§2023:5.2.6.2, with §2023:14.9.13.2 / §2023:14.9.28.2 Format 3") + ").", 0));
         }
 
         // ⛔ 0c. A WRITTEN SHAPE NO GENERAL FORMAT OF ITS CLAUSE PRINTS (kb/Work PB412, PB421). The grammar
@@ -1788,7 +1791,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // SIZE ERROR, a CALL's NOT ON OVERFLOW, a READ's INVALID KEY beside its AT END — ends every statement and
         // arrives here; ConditionalPhraseAssociation reads the parser state and names the statement and the reason.
         // Added after 0e, so SEARCH's own NOT AT END wording (its WHEN-branch advice) wins the shared code.
-        if (ConditionalPhraseAssociation.UnownedPhraseMessage(recognizer.Context, stream, token) is { } phraseMsg)
+        if (ConditionalPhraseAssociation.UnownedPhraseMessage(recognizer.Context, stream, token,
+                (y1985, later) => CiteAt(recognizer, y1985, later)) is { } phraseMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269, phraseMsg, 0));
         // ⛔ 0f. AN INLINE METHOD INVOCATION'S EMPTY PARENTHESIS PAIR (kb/Work PB1430). `inlineInvocationSegment`
         // requires its argumentList inside the optional parentheses, so `O :: "M" ( )` arrives here, at the '(' or
@@ -1824,8 +1828,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2173,
                 "Both general formats of the MOVE statement put the whole sending specification directly after "
                 + "the verb — Format 1 is 'MOVE { identifier-1 | literal-1 } TO { identifier-2 } …' and Format 2 "
-                + "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
-                + "CORRESPONDING phrase after a sending operand (ISO §2023:14.9.25.2).", 0));
+                + EditionOf(recognizer).Cite(
+                    "is 'MOVE { CORRESPONDING | CORR } identifier-1 TO identifier-2' — so no format admits a "
+                    + "CORRESPONDING phrase after a sending operand (ISO §1985:VI.6.19.2).",
+                    "is 'MOVE { CORRESPONDING | CORR } identifier-3 TO identifier-4' — so no format admits a "
+                    + "CORRESPONDING phrase after a sending operand (ISO §2023:14.9.25.2)."), 0));
 
         // ⛔ 0h. A WORD THE STATEMENT JUST WRITTEN DOES NOT PRINT HERE (kb/Work PB906). A statement the parser has ended
         // and a word that no statement, phrase or entry can take after it (not a scope terminator, which hint 13
@@ -1844,9 +1851,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && !at.APeriodLetsTheSentenceFollow() && at.StatementThatEndedBefore() is { } endedStatement)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL2269,
                 $"The {endedStatement} statement ends before this token: no general format of {endedStatement} "
-                + "prints it after what is written, and no missing period would let it begin the next sentence. The "
-                + "words, phrases, clauses, punctuation, and operands in each general format shall be written in the "
-                + "compilation group in the sequence given in the general format (ISO §2023:5.2.1).", 0));
+                + "prints it after what is written, and no missing period would let it begin the next sentence. "
+                + CiteAt(recognizer,
+                    "Clauses must be written in the sequence given in the general formats (ISO §1985:IV.2.1).",
+                    "The words, phrases, clauses, punctuation, and operands in each general format shall be written in the "
+                    + "compilation group in the sequence given in the general format (ISO §2023:5.2.1)."), 0));
 
         // ⛔ 0i. THE KIND WRITTEN IS NOT A KIND THE POSITION EXPECTS (kb/Work PB3428, PB3861). Read from the parse AT the
         // token with every predicate on the way evaluated (OffendingPosition.Admitted), so a context word a text
@@ -1865,7 +1874,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (!HasStructuralHint(hints) && !at.EntrySlotYields && ScopeTerminator(recognizer, token.Type) is null && at.Admitted() is { } admitted
             && AdmittedKinds.Refusal(token, admitted.Tokens, admitted.Words, admitted.WordChangesNothing, StatementBlockStart(recognizer),
                    at.APeriodLetsTheSentenceFollow, theEditionPrints, constantNamesPrinted || !admitted.WordsStandForLiterals,
-                   at.ClosedConstructCouldTake, out bool anOperandIsDue) is { } kindMsg)
+                   at.ClosedConstructCouldTake, EditionOf(recognizer), out bool anOperandIsDue) is { } kindMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, kindMsg, 0, LeavesNoTail: anOperandIsDue));
         // ⛔ A LITERAL WHERE THE NEXT SENTENCE WOULD BEGIN (kb/Work PB4425): the parser's own position has left the
         // procedure division (OffendingPosition.SentenceMayBeginAt), so the position the refusal names is the sentence
@@ -1873,7 +1882,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // word there may be a paragraph-name whose period is missing, which hint 14 says; it is not asked.
         else if (!HasStructuralHint(hints) && token.Type != CobolLexer.IDENTIFIER && at.SentenceMayBeginAt()
                  && AdmittedKinds.Refusal(token, StatementBlockStart(recognizer), [], _ => false, StatementBlockStart(recognizer),
-                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, out _) is { } sentenceMsg)
+                        () => false, theEditionPrints, aUserWordIsPrinted: true, () => null, EditionOf(recognizer), out _) is { } sentenceMsg)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL5506, sentenceMsg, 0));
 
         // ⛔ NO "MISSING SPACE BEFORE / AFTER STRING LITERAL" GUESS HERE (kb/Work PB1394). A literal delimiter that is not
@@ -1986,11 +1995,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>COBOL2072's sentence for the statement <paramref name="stmtName"/> whose required imperative-statement is
     /// empty (hint 0a, and 0b's WHEN group with no statement).</summary>
-    private static string EmptyBlockMessage(string stmtName)
+    private static string EmptyBlockMessage(string stmtName, EditionInfo edition)
         => $"The {stmtName} statement's general format shows an imperative-statement here that is not "
            + "bracketed, so at least one statement shall be specified: brackets are what license an "
-           + "omission (ISO §2023:5.2.6.2), and one alternative of a brace group shall be explicitly specified "
-           + "(ISO §2023:5.2.6.3).";
+           + $"omission (ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.2")}), and one alternative of a brace group shall be explicitly specified "
+           + $"(ISO {edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.3")}).";
 
     /// <summary>The name of the statement <paramref name="context"/> is, or of the innermost one around it, for a message
     /// (<c>EVALUATE</c>, <c>PERFORM</c>; <see cref="StatementName"/>).</summary>
@@ -2108,8 +2117,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var run = at.ResidueRunOpening;
         return new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                 Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
-            closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token),
-                at.OwnerName()) + ".", 0, run?.Start, LeavesNoTail: run is null);
+            closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token), at.OwnerName(),
+                EditionOf(recognizer)) + ".", 0, run?.Start, LeavesNoTail: run is null);
     }
 
     /// <summary>A closed format's residue: the format whose list stands there, and the error production's form
@@ -2765,14 +2774,15 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// </list></summary>
     private static string? GoToComplementMessage(Parser recognizer, IToken token, ITokenStream stream)
     {
+        var edition = EditionOf(recognizer);
         for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
             if (c is CobolParserCore.GoToStatementContext g)
-                return GoToFormats.DiagnoseWrittenShape(g.procedureName().Length, g.DEPENDING() is not null);
+                return GoToFormats.DiagnoseWrittenShape(g.procedureName().Length, g.DEPENDING() is not null, edition);
 
         if (token.Type != CobolLexer.DEPENDING) return null;
         var prev = GetToken(stream, token.TokenIndex - 1);
         if (prev?.Type == CobolLexer.TO) prev = GetToken(stream, token.TokenIndex - 2);
-        return prev?.Type == CobolLexer.GO ? GoToFormats.DiagnoseWrittenShape(0, hasDepending: true) : null;
+        return prev?.Type == CobolLexer.GO ? GoToFormats.DiagnoseWrittenShape(0, hasDepending: true, edition) : null;
     }
 
     /// <summary>Whether the failure is at the empty parenthesis pair of an inline method invocation segment —
@@ -2815,12 +2825,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// </list></summary>
     private static string? SearchFormatShapeMessage(Parser recognizer, IToken token, ITokenStream stream)
     {
-        const string formats = " ISO §2023:14.9.37.2 prints two SEARCH formats and ";
+        string formats = " ISO " + CiteAt(recognizer, "§1985:VI.6.22.2", "§2023:14.9.37.2") + " prints two SEARCH formats and ";
         var ctx = recognizer.Context;
         if (token.Type == CobolLexer.KEY && NearestSearchBeforeWhen(ctx) is { } keyed)
             return (keyed is CobolParserCore.SearchAllStatementContext ? "SEARCH ALL" : "SEARCH")
                 + " KEY:" + formats + "neither has a KEY phrase — the key of a SEARCH ALL is declared by the "
-                + "ASCENDING/DESCENDING KEY phrase of identifier-1's OCCURS clause (§2023:14.9.37.3 SR7), and the "
+                + "ASCENDING/DESCENDING KEY phrase of identifier-1's OCCURS clause ("
+                + CiteAt(recognizer, "§1985:VI.6.22.3 SR1", "§2023:14.9.37.3 SR7") + "), and the "
                 + "Format-2 WHEN phrase names it. Remove the phrase.";
 
         bool notAtEnd = token.Type == CobolLexer.NOT ? IsAtEndAhead(stream, token.TokenIndex + 1)
@@ -2842,8 +2853,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     if (d is CobolParserCore.SearchAllStatementContext sa && sa.Stop is { } stop
                         && NextDefault(stream, stop.TokenIndex)?.TokenIndex == token.TokenIndex)
                         return "SEARCH ALL with a second WHEN phrase: Format 2 prints exactly ONE WHEN phrase — its "
-                            + "ellipsis sits on the [ AND … ] bracket, not on the WHEN brace (ISO §2023:14.9.37.2, with "
-                            + "§2023:5.2.7), so a further key condition is written as an AND phrase of the one WHEN.";
+                            + "ellipsis sits on the [ AND … ] bracket, not on the WHEN brace (ISO "
+                            + CiteAt(recognizer, "§1985:VI.6.22.2, with §1985:IV.2.1.5", "§2023:14.9.37.2, with §2023:5.2.7")
+                            + "), so a further key condition is written as an AND phrase of the one WHEN.";
         return null;
     }
 
@@ -2883,12 +2895,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 {
                     var (slot, format, word) = d switch
                     {
-                        CobolParserCore.AcceptSourceContext a => ("ACCEPT … FROM", "§2023:14.9.1.2 Format 1", a.cobolWord()),
-                        CobolParserCore.DisplayUponContext u => ("DISPLAY … UPON", "§2023:14.9.11.2 Format 1", u.cobolWord()),
-                        _ => (null, null, null),
+                        CobolParserCore.AcceptSourceContext a => ("ACCEPT … FROM", ("§1985:VI.6.5.2 Format 1", "§2023:14.9.1.2 Format 1"), a.cobolWord()),
+                        CobolParserCore.DisplayUponContext u => ("DISPLAY … UPON", ("§1985:VI.6.10.2", "§2023:14.9.11.2 Format 1"), u.cobolWord()),
+                        _ => (null, default, null),
                     };
                     if (word?.Stop is { } stop && NextDefault(stream, stop.TokenIndex)?.TokenIndex == token.TokenIndex)
-                        return MnemonicNameSlot.SuffixMessage(slot!, WrittenSource.Of(word), format!);
+                        return MnemonicNameSlot.SuffixMessage(slot!, WrittenSource.Of(word), format.Item1, format.Item2,
+                            (y1985, later) => CiteAt(recognizer, y1985, later));
                 }
 
         for (RuleContext? c = recognizer.Context; c is not null; c = c.Parent)
@@ -2901,7 +2914,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     if (t.Type is CobolLexer.DOT or TokenConstants.EOF) return null;
                     if (t.Type == CobolLexer.TO)
                         return suffixed is not null && NextDefault(stream, t.TokenIndex)?.Type is CobolLexer.ON or CobolLexer.OFF
-                            ? MnemonicNameSlot.SuffixMessage("SET … TO ON/OFF", WrittenSource.Of(suffixed), "§2023:14.9.39.2 Format 3")
+                            ? MnemonicNameSlot.SuffixMessage("SET … TO ON/OFF", WrittenSource.Of(suffixed), "§1985:VI.6.23.2 Format 3",
+                                "§2023:14.9.39.2 Format 3", (y1985, later) => CiteAt(recognizer, y1985, later))
                             : null;
                     if (suffixed is null && IsMnemonicSuffixStart(t.Type))
                         suffixed = PreviousDefault(stream, t.TokenIndex);
@@ -3164,6 +3178,18 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 CobolParserCore.RULE_lowValueWord, CobolParserCore.RULE_quoteWord,
             }.Select(r => recognizer.Atn.NextTokens(recognizer.Atn.ruleToStartState[r]))];
 
+    /// <summary>The words of the edition in force: <paramref name="y1985"/> at COBOL-85, <paramref name="later"/> from 2002 (kb/Work PB4950,
+    /// <see cref="EditionInfo.Cite"/>), so a syntax diagnostic cites the rule of the edition the program is compiled under.</summary>
+    private static string CiteAt(Parser recognizer, string y1985, string later) => EditionOf(recognizer).Cite(y1985, later);
+
+    /// <summary>⛔ THE ONE EDITION READ OF THE ERROR STRATEGY (kb/Work PB4950 review R1-2): the edition the parse is diagnosed for,
+    /// through <see cref="CobolParserCoreBase.EditionInForce"/>. This strategy is installed only on a COBOL parser, so a recognizer
+    /// that is not one is an internal error, never a silent later-edition default.</summary>
+    private static EditionInfo EditionOf(Parser recognizer) => recognizer is CobolParserCoreBase parser
+        ? parser.EditionInForce
+        : throw new InvalidOperationException(
+            $"CobolErrorStrategy diagnosed a {recognizer.GetType().Name}, which is no COBOL parser and has no edition to cite");
+
     /// <summary>The COBOL2418 message when the parser failed ON one spelling of a figurative family at a
     /// position whose general format names a DIFFERENT spelling of that family as its keyword; null otherwise.
     /// A position that admits the figurative constant admits every spelling, so the test cannot fire there.</summary>
@@ -3179,9 +3205,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         string Spell(int t) => recognizer.Vocabulary.GetLiteralName(t)?.Trim('\'') ?? recognizer.Vocabulary.GetDisplayName(t);
         string required = string.Join(" or ", wanted.Select(Spell));
         return $"The general format requires the keyword {required} here, and {WrittenSource.Of(token).ToUpperInvariant()} is a "
-            + "different reserved word (ISO §2023:8.9): the spellings of a figurative constant are interchangeable only "
-            + "where the figurative constant itself is written (ISO §2023:8.3.3.6.2), and a keyword underlined in a "
-            + "general format is required as printed (ISO §2023:5.2.2).";
+            + CiteAt(recognizer,
+                "different reserved word (ISO §1985:IV.4.2.2.2.3): the singular and plural forms of a figurative constant are "
+                + "interchangeable only where the figurative constant itself is written, and a keyword underlined in a general "
+                + "format is required as printed (ISO §1985:IV.2.1.2).",
+                "different reserved word (ISO §2023:8.9): the spellings of a figurative constant are interchangeable only "
+                + "where the figurative constant itself is written (ISO §2023:8.3.3.6.2), and a keyword underlined in a "
+                + "general format is required as printed (ISO §2023:5.2.2).");
     }
 
     /// <summary>The one keyword position the expected-set test above cannot see: the SIGN CONDITION
@@ -3213,10 +3243,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
         if (next is null || next.Type == CobolLexer.ZERO || !zeroFamily.Contains(next.Type)) return null;
         return $"The sign condition's general format requires the keyword ZERO here, and "
-            + $"{WrittenSource.Of(next).ToUpperInvariant()} is a different reserved word (ISO §2023:8.9): its format is "
-            + "'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §2023:8.8.4.7.2), and the spellings of a figurative "
-            + "constant are interchangeable only where the figurative constant itself is written (ISO §2023:8.3.3.6.2). "
-            + "To compare against the figurative constant, write a relation condition: '= ZEROS'.";
+            + $"{WrittenSource.Of(next).ToUpperInvariant()} is a different reserved word "
+            + CiteAt(recognizer,
+                "(ISO §1985:IV.4.2.2.2.3): its format is 'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §1985:VI.6.3.1.5), and the "
+                + "singular and plural forms of a figurative constant are interchangeable only where the figurative constant itself is written.",
+                "(ISO §2023:8.9): its format is 'IS [NOT] { POSITIVE | NEGATIVE | ZERO }' (ISO §2023:8.8.4.7.2), and the spellings of a "
+                + "figurative constant are interchangeable only where the figurative constant itself is written (ISO §2023:8.3.3.6.2).")
+            + " To compare against the figurative constant, write a relation condition: '= ZEROS'.";
     }
 
     private static IToken? PreviousDefault(ITokenStream stream, ref int index)

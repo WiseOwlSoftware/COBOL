@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
 using System.Collections.Frozen;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 
@@ -55,44 +56,47 @@ internal static class ReceivingOperandForms
 {
     /// <summary>One form's prohibition: the descriptor it reports under and the message it reports, given the operand as
     /// written.</summary>
-    internal readonly record struct Rule(DiagnosticDescriptor Descriptor, Func<string, string> Message);
+    internal readonly record struct Rule(DiagnosticDescriptor Descriptor, Func<string, EditionInfo, string> Message);
 
     /// <summary>Every <see cref="NonReceivableForm"/>, with the rule that forbids it. Each message quotes or names its own
     /// clause (cite.py --check: §2023:8.4.3.5.3 2), §2023:8.4.3.6.3 1), §2023:8.4.3.7.3 1), §2023:8.4.3.8.3 2), §2023:8.4.3.11.3 5),
     /// §2023:8.4.3.12.3 3), §2023:8.4.3.13.3 4), §2023:8.4.3.14.3 2), §2023:8.4.3.15.3 3) — all OK).</summary>
     internal static readonly FrozenDictionary<NonReceivableForm, Rule> Rules = new Dictionary<NonReceivableForm, Rule>
     {
-        [NonReceivableForm.ObjectView] = new(DiagnosticCatalog.ObjectViewReceiving, w =>
+        [NonReceivableForm.ObjectView] = new(DiagnosticCatalog.ObjectViewReceiving, (w, _) =>
             $"'{w}' is written as a receiving operand: an object-view shall not be specified as a receiving operand "
             + "(ISO §2023:8.4.3.5.3 SR2)"),
-        [NonReceivableForm.ExceptionObject] = new(DiagnosticCatalog.ExceptionObjectReceiving, _ =>
+        [NonReceivableForm.ExceptionObject] = new(DiagnosticCatalog.ExceptionObjectReceiving, (_, _) =>
             "EXCEPTION-OBJECT shall not be specified as a receiving operand (ISO §2023:8.4.3.6.3 SR1) — it is the "
             + "predefined object reference for the CURRENT exception object (§2023:8.4.3.6.4 GR1), set by the run unit when "
             + "an exception is raised"),
-        [NonReceivableForm.Null] = new(DiagnosticCatalog.NullReceiving, w =>
+        [NonReceivableForm.Null] = new(DiagnosticCatalog.NullReceiving, (w, _) =>
             $"'{w}' is written as a receiving operand: NULL shall not be specified as a receiving operand (ISO "
             + "§2023:8.4.3.7.3 SR1); write the item that is to receive NULL as the receiver (SET item TO NULL)"),
-        [NonReceivableForm.Self] = new(DiagnosticCatalog.SelfSuperReceiving, w =>
+        [NonReceivableForm.Self] = new(DiagnosticCatalog.SelfSuperReceiving, (w, _) =>
             $"'{w}' is written as a receiving operand: SELF is an identifier format that shall not be specified as a "
             + "receiving operand (ISO §2023:8.4.3.8.3 SR2)"),
-        [NonReceivableForm.Super] = new(DiagnosticCatalog.SelfSuperReceiving, w =>
+        [NonReceivableForm.Super] = new(DiagnosticCatalog.SelfSuperReceiving, (w, _) =>
             $"'{w}' is written as a receiving operand: SUPER is an identifier format that shall not be specified as a "
             + "receiving operand (ISO §2023:8.4.3.8.3 SR2)"),
-        [NonReceivableForm.DataAddress] = new(DiagnosticCatalog.AddressIdentifierReceiving, w =>
+        [NonReceivableForm.DataAddress] = new(DiagnosticCatalog.AddressIdentifierReceiving, (w, _) =>
             $"'{w}' is written as a receiving operand: a data-address-identifier shall not be specified as a "
             + "receiving operand (ISO §2023:8.4.3.11.3 SR5); only SET's own Format-7 receiver ADDRESS OF data-name-1 "
             + "stores an address (§2023:14.9.39.2)"),
-        [NonReceivableForm.FunctionAddress] = new(DiagnosticCatalog.AddressIdentifierReceiving, w =>
+        [NonReceivableForm.FunctionAddress] = new(DiagnosticCatalog.AddressIdentifierReceiving, (w, _) =>
             $"'{w}' is written as a receiving operand: a function-address-identifier shall not be specified as a "
             + "receiving operand (ISO §2023:8.4.3.12.3 SR3)"),
-        [NonReceivableForm.ProgramAddress] = new(DiagnosticCatalog.AddressIdentifierReceiving, w =>
+        [NonReceivableForm.ProgramAddress] = new(DiagnosticCatalog.AddressIdentifierReceiving, (w, _) =>
             $"'{w}' is written as a receiving operand: a program-address-identifier shall not be specified as a "
             + "receiving operand (ISO §2023:8.4.3.13.3 SR4)"),
-        [NonReceivableForm.LinageCounter] = new(DiagnosticCatalog.LinageCounterReceiving, _ =>
-            "LINAGE-COUNTER shall not be referenced as a receiving operand (ISO §2023:8.4.3.14.3 SR2); only the "
-            + "input-output control system may change its value (ISO §2023:13.18.34.4 GR7 b)"),
-        [NonReceivableForm.LineCounter] = new(DiagnosticCatalog.ReportLineCounterReceiving, _ =>
-            "LINE-COUNTER shall not be referenced as a receiving operand (ISO §2023:8.4.3.15.3 SR3)"),
+        [NonReceivableForm.LinageCounter] = new(DiagnosticCatalog.LinageCounterReceiving, (_, edition) =>
+            "LINAGE-COUNTER shall not be referenced as a receiving operand (ISO "
+            + edition.Cite("§1985:VII.1.3.7", "§2023:8.4.3.14.3 SR2") + "); only the "
+            + "input-output control system may change its value (ISO "
+            + edition.Cite("§1985:VII.1.3.7)", "§2023:13.18.34.4 GR7 b)")),
+        [NonReceivableForm.LineCounter] = new(DiagnosticCatalog.ReportLineCounterReceiving, (_, edition) =>
+            "LINE-COUNTER shall not be referenced as a receiving operand (ISO "
+            + edition.Cite("§1985:XIII.1.2.3", "§2023:8.4.3.15.3 SR3") + ")"),
     }.ToFrozenDictionary();
 
     /// <summary>The form of a <c>nonReceivableIdentifier</c> — the grammar's superset of the formats above that a

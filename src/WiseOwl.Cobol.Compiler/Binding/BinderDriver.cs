@@ -83,7 +83,7 @@ internal sealed class BinderDriver
         // The procedure division's general-format screens the superset grammar leaves to a named refusal (kb/Work
         // PB351, PB1146): a conditional statement as an imperative-statement operand (§2023:14.5.1) and a body mixing
         // §2023:14.2.1 Format 1 and Format 2 (§2023:14.4.1). Pre-bind for the same reason: pure syntax over the raw tree.
-        global::WiseOwl.Cobol.Validation.ProcedureFormatPass.Run(tree, edition);
+        global::WiseOwl.Cobol.Validation.ProcedureFormatPass.Run(tree, edition, edition.Edition);
         // ISO §2023:10.7.3 — every end marker against the definition it ends, and SR1's presence rule (kb/Work PB988).
         // Pre-bind for the same reason: a pure syntax rule over the raw tree, asked once of EVERY definition the
         // source states (parameterized skeletons included) before the OO table renames anything.
@@ -235,7 +235,7 @@ internal sealed class BinderDriver
         // so neither existing pass's charter covers it. It walks the RAW parse tree once, never once per binding
         // site; the rule itself is the shared frontend ArithmeticFormationRules, which the compile-time
         // expression evaluator invokes on its own trees. kb/Work PB158.
-        global::WiseOwl.Cobol.Validation.ExpressionFormationPass.Run(ctx, edition);
+        global::WiseOwl.Cobol.Validation.ExpressionFormationPass.Run(ctx, edition, edition.Edition);
 
         // The literal-syntax pass (ISO §2023:8.3.3.2.3 SR1/SR6, §2023:8.3.3.4.3 SR1, §2023:8.3.3.5.3 SR1/SR5) — a sibling on the
         // same footing: the length and hexadecimal-grouping rules are properties of the literal TOKEN, whatever
@@ -444,10 +444,10 @@ internal sealed class BinderDriver
         using var attributePosition = edition.At(pid);   // the PROGRAM-ID paragraph, for the repeat / 0886 / 0887 messages
         var initialAttr = ChoiceIndicators.AtMostOnce(edition,
             attributes.Where(a => a.commonProgramAttribute().INITIAL_() is not null).ToArray(),
-            group, "the INITIAL attribute", "11.10.2");
+            group, "the INITIAL attribute", "11.10.2", clause1985: "X.3.1.2");
         var commonAttr = ChoiceIndicators.AtMostOnce(edition,
             attributes.Where(a => a.commonProgramAttribute().COMMON() is not null).ToArray(),
-            group, "the COMMON attribute", "11.10.2");
+            group, "the COMMON attribute", "11.10.2", clause1985: "X.3.1.2");
         var recursiveAttr = ChoiceIndicators.AtMostOnce(edition,
             attributes.Where(a => a.commonProgramAttribute().RECURSIVE() is not null).ToArray(),
             group, "the RECURSIVE attribute", "11.10.2");
@@ -512,7 +512,8 @@ internal sealed class BinderDriver
                 + "§2023:11.10.3 SR5–6, checked above against the container chain");
         if (common && parent is null)
             edition.Error(DiagnosticCatalog.CommonProgramNotContained,
-                $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO §2023:11.10.3 SR4)");
+                $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO "
+                + edition.Edition.Cite("§1985:X.3.1.3 SR3", "§2023:11.10.3 SR4") + ")");
 
         // §2023:8.6.6 (:8821) "Functions and methods are always recursive" / §2023:9.4 (:12529) "a user defined
         // function always possesses the recursive attribute and may call itself" — implicit, never the
@@ -890,12 +891,17 @@ internal sealed class BinderDriver
                 if (shared && first.Kind == kind) continue;
                 using var _ = edition.At(at);
                 string why = first.Kind == kind
-                    ? $"two {kind} definitions cannot be one instance (§2023:8.3.2.2: \"when two or more source "
-                      + "elements identify something with the same externalized name, they refer to the same "
-                      + "instance\")"
-                    : $"{Noun(kind)} and {Noun(first.Kind)} are not the same kind of entity or item "
-                      + "(§2023:8.3.2.2: \"all instances of a given name that is externalized to the operating "
-                      + "environment shall identify the same kind of entity or item\")";
+                    ? $"two {kind} definitions cannot be one instance ("
+                      + edition.Edition.Cite("§1985:X.1.3.8.1: \"when two programs in a run unit are identically named, at least one of "
+                          + "those two programs must be directly or indirectly contained within another separately compiled program "
+                          + "which does not contain the other\"",
+                          "§2023:8.3.2.2: \"when two or more source elements identify something with the same externalized name, "
+                          + "they refer to the same instance\"") + ")"
+                    : $"{Noun(kind)} and {Noun(first.Kind)} are not the same kind of entity or item ("
+                      + edition.Edition.Cite("§1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, "
+                          + "can belong to one and only one of these disjoint sets\"",
+                          "§2023:8.3.2.2: \"all instances of a given name that is externalized to the operating "
+                          + "environment shall identify the same kind of entity or item\"") + ")";
                 edition.Error(DiagnosticCatalog.DuplicateExternalizedDefinition,
                     $"{spelling} and {first.Spelling} both externalize the name "
                     + $"'{name}' in this compilation group — {why}");
@@ -916,9 +922,12 @@ internal sealed class BinderDriver
                     using var _ = edition.At(sources.NameOf(c));
                     edition.Error(DiagnosticCatalog.DuplicateContainedProgramName,
                         $"program '{c.Name}' contained in '{root.Name}' repeats the name of another program "
-                        + $"contained in '{root.Name}' — the names assigned to programs that are contained "
-                        + "directly or indirectly within the same outermost program shall be unique within that "
-                        + "outermost program (ISO §2023:8.4.6.3)");
+                        + $"contained in '{root.Name}' — "
+                        + edition.Edition.Cite(
+                            "when two programs in a run unit are identically named, at least one of them must be directly or indirectly "
+                            + "contained within another separately compiled program which does not contain the other (ISO §1985:X.1.3.8.1)",
+                            "the names assigned to programs that are contained directly or indirectly within the same outermost program "
+                            + "shall be unique within that outermost program (ISO §2023:8.4.6.3)"));
                 }
         }
 

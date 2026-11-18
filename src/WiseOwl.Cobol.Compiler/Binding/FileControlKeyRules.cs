@@ -230,11 +230,17 @@ internal sealed record FileControlKeyRule(
 {
     /// <summary>The <see cref="RuleId"/> of the 2023 rows a COBOL-85 row REPLACES at COBOL-85 (kb/Work PB5361): the same obligation
     /// under the 1985 numbering and wording, so the program is told the rule its edition prints and is not told twice. Set only on
-    /// a row of <c>Rules1985</c>; <c>FileControlKeyRules.RulesFor</c> drops the superseded rows below COBOL-2002.</summary>
+    /// a row of <c>Rules1985</c>; <c>FileControlKeyRules.RulesFor</c> drops, below COBOL-2002, the rows of that id REPORTED UNDER THE
+    /// SAME <see cref="Diagnostic"/> (kb/Work PB4950): one 2023 rule id can hold two arms under two codes (§2023:12.4.5.2 SR11's
+    /// sort-merge sentence, COBOL1900, and its organization sentence, COBOL2912), and a 1985 row replaces only the arm it restates.</summary>
     public string? Supersedes { get; init; }
 
     /// <summary>The descriptor <see cref="FileControlKeyRules.Screen"/> reports this row under.</summary>
     public DiagnosticDescriptor Diagnostic => Code ?? DiagnosticCatalog.FileKeyClauseRule;
+
+    /// <summary>Whether this COBOL-85 row replaces the 2023 row <paramref name="row"/> below COBOL-2002: <see cref="Supersedes"/> names
+    /// its id and both report under one diagnostic.</summary>
+    public bool Replaces(FileControlKeyRule row) => Supersedes == row.RuleId && Diagnostic.Code == row.Diagnostic.Code;
 }
 
 /// <summary>
@@ -692,6 +698,18 @@ internal static class FileControlKeyRules
     /// test derives the set from the printed diagrams and refuses a line that opens unbracketed with no row.
     /// <para>SELECT is also unbracketed, and is the entry itself. SORT-MERGE: Format 4 prints ASSIGN, and an SD's
     /// entry is Format 4 (§2023:12.4.5.2 SR13), so the clause is required of it too.</para></summary>
+    /// <summary>The general format of the file control entry of the 1985 module that holds a file of <paramref name="kind"/>: the
+    /// sequential module's (§1985:VII.2.3.2) for a record or line sequential file, the relative (§1985:VIII.2.3.2), the indexed
+    /// (§1985:IX.2.3.2) and the sort-merge (§1985:XI.2.3.2) module's for theirs (kb/Work PB4950). Each prints its required clauses
+    /// with no bracket.</summary>
+    private static string FileControlFormat1985(FileKinds kind) => kind switch
+    {
+        FileKinds.Indexed => "§1985:IX.2.3.2",
+        FileKinds.Relative => "§1985:VIII.2.3.2",
+        FileKinds.SortMerge => "§1985:XI.2.3.2",
+        _ => "§1985:VII.2.3.2",
+    };
+
     private static readonly RequiredClause[] RequiredClauses =
     [
         new("ASSIGN", FileFormats.Format1 | FileFormats.Format2 | FileFormats.Format3 | FileFormats.Format4,
@@ -772,7 +790,7 @@ internal static class FileControlKeyRules
         return null;
     }
 
-    private static string BeyondMinimumMessage(FileModel f, FileKeyOperand op, string n, string citation)
+    private static string BeyondMinimumMessage(FileModel f, FileKeyOperand op, string n, string citation, string unit = "bytes")
     {
         string where = BeyondMinimum(f, op.Item, op.Occurrence) switch
         {
@@ -781,7 +799,7 @@ internal static class FileControlKeyRules
             null => "is not contained within the minimum record size",
         };
         return $"{op.ClauseFace} {op.Written} {where}, but indexed file '{f.CobolName}' contains variable-length "
-            + $"records with minimum size {f.RecordSizeRange.Min}; the key shall be contained within the first {n} bytes of the "
+            + $"records with minimum size {f.RecordSizeRange.Min}; the key shall be contained within the first {n} {unit} of the "
             + $"record, where {n} equals the minimum record size ({citation})";
     }
 
@@ -892,6 +910,88 @@ internal static class FileControlKeyRules
             (f, op) => $"{op.ClauseFace} '{op.Name}' must not be defined within a record description of file '{f.CobolName}' "
                 + $"({ClauseOperandRules1985.RelativeKeyNotInRecord.Citation})",
             "SR-12.4.5.13.3-3"),
+
+        // ⛔ THE KEY RULES COBOL-85 PRINTS WITH ITS OWN NUMBERS (kb/Work PB4950): the same obligations as §2023:12.4.5.6.3 SR4 and
+        // SR5 and §2023:12.4.5.12.3 SR4, in the indexed module's wording ("character position"), each REPLACING its 2023 row below
+        // COBOL-2002.
+        new("1985-SR-IX.2.5.3-4", "IX.2.5.3", "ANSI §1985:IX.2.5.3 SR4",
+            "must not reference an item whose leftmost character position corresponds to the leftmost character position of the prime record key or of any other alternate record key",
+            FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            _ => true,
+            (f, op) => CoincidingKey(f, op) is not null,
+            (f, op) => $"{op.ClauseFace} '{op.Name}' begins at the same character position as "
+                + $"{CoincidingKey(f, op) ?? "the prime record key or another alternate record key"}; data-name-1 "
+                + "must not reference an item whose leftmost character position corresponds to the leftmost character position "
+                + "of the prime record key or of any other alternate record key (ANSI §1985:IX.2.5.3 SR4)")
+        { Supersedes = "SR-12.4.5.6.3-4" },
+        new("1985-SR-IX.2.5.3-5", "IX.2.5.3", "ANSI §1985:IX.2.5.3 SR5",
+            "each alternate record key must be contained within the first x character positions of the record",
+            FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            f => f.RecordSizeVaries,
+            (f, op) => BeyondMinimum(f, op.Item, op.Occurrence) is not null,
+            (f, op) => BeyondMinimumMessage(f, op, "x", "ANSI §1985:IX.2.5.3 SR5", "character positions"))
+        { Supersedes = "SR-12.4.5.6.3-5" },
+        new("1985-SR-IX.2.7.3-4", "IX.2.7.3", "ANSI §1985:IX.2.7.3 SR4",
+            "the prime record key must be contained within the first x character positions of the record",
+            FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            f => f.RecordSizeVaries,
+            (f, op) => BeyondMinimum(f, op.Item, op.Occurrence) is not null,
+            (f, op) => BeyondMinimumMessage(f, op, "x", "ANSI §1985:IX.2.7.3 SR4", "character positions"))
+        { Supersedes = "SR-12.4.5.12.3-4" },
+
+        // ⛔ THE FORMAT-LEVEL RULES (§2023:12.4.5.2 SR8, SR9, SR10) HAVE NO NUMBERED COBOL-85 RULE: the 1985 file control entry of
+        // each organization PRINTS the clauses it takes (§1985:IX.2.3.2 the RECORD KEY and ALTERNATE RECORD KEY clauses of the indexed
+        // entry, §1985:VIII.2.3.2 and §1985:VIII.2.4.2 the RELATIVE KEY clause of the relative entry), so a clause written in the entry
+        // of an organization that does not print it breaks the general format, and an ACCESS RANDOM or DYNAMIC relative file prints
+        // its RELATIVE KEY phrase in the format. Rule ids carry FMT where the quoted words are the general format's (re-derived by
+        // FileControlKeyRuleDriftTests from the clause's "General Format" subsection).
+        new("1985-FMT-IX.2.3.2-RECORD-KEY", "IX.2.3.2", "ANSI §1985:IX.2.3.2",
+            "RECORD KEY IS data-name-1",
+            FileKinds.AnyOrganization & ~FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            _ => true,
+            (_, op) => op.Name is not null && op.IsClauseHead,
+            (f, op) => $"file '{f.CobolName}' has a {op.ClauseFace} clause, which the general format prints only in the indexed file "
+                + $"control entry (ANSI §1985:IX.2.3.2), but this file is {f.OrganizationFace}")
+        { Supersedes = "SR-12.4.5.2-8" },
+        new("1985-FMT-IX.2.3.2-ALTERNATE-RECORD-KEY", "IX.2.3.2", "ANSI §1985:IX.2.3.2",
+            "ALTERNATE RECORD KEY IS data-name-2",
+            FileKinds.AnyOrganization & ~FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            _ => true,
+            (_, op) => op.IsClauseHead,
+            (f, op) => $"file '{f.CobolName}' has an {op.ClauseFace} clause, which the general format prints only in the indexed file "
+                + $"control entry (ANSI §1985:IX.2.3.2), but this file is {f.OrganizationFace}")
+        { Supersedes = "SR-12.4.5.2-8" },
+        new("1985-FMT-VIII.2.3.2-RELATIVE-KEY", "VIII.2.3.2", "ANSI §1985:VIII.2.3.2",
+            "RELATIVE KEY IS data-name-1",
+            FileKinds.AnyOrganization & ~FileKinds.Relative, FileKeyRole.RelativeKey,
+            _ => true,
+            (_, op) => op.Name is not null,
+            (f, op) => $"file '{f.CobolName}' has a {op.ClauseFace} clause, which the general format prints only in the relative file "
+                + $"control entry (ANSI §1985:VIII.2.3.2), but this file is {f.OrganizationFace}")
+        { Supersedes = "SR-12.4.5.2-9" },
+        new("1985-FMT-VIII.2.4.2-RELATIVE-KEY", "VIII.2.4.2", "ANSI §1985:VIII.2.4.2",
+            "RELATIVE KEY IS data-name-1",
+            FileKinds.Relative, FileKeyRole.RelativeKey,
+            f => f.AccessMode != FileAccessMode.Sequential,
+            (_, op) => op.Name is null,
+            (f, op) => $"relative file '{f.CobolName}' is ACCESS {f.AccessMode.ToString().ToUpperInvariant()} but has no "
+                + $"{op.ClauseFace} clause; the general format of the ACCESS MODE clause prints RELATIVE KEY IS data-name-1 with "
+                + "RANDOM and DYNAMIC (ANSI §1985:VIII.2.4.2)")
+        { Supersedes = "SR-12.4.5.2-10" },
+        // §2023:12.4.5.2 SR11's organization sentence ("Format 3 shall be specified only for a sequential file or a report file")
+        // has no numbered COBOL-85 rule either: the PADDING CHARACTER and RECORD DELIMITER clauses are printed by the sequential
+        // file control entry (§1985:VII.2.3.2) and by neither the relative (§1985:VIII.2.3.2) nor the indexed (§1985:IX.2.3.2) one.
+        // It replaces only that arm (COBOL2912); SR11's sort-merge sentence keeps its own row and code.
+        new("1985-FMT-VII.2.3.2-SEQUENTIAL-CLAUSE", "VII.2.3.2", "ANSI §1985:VII.2.3.2",
+            "PADDING CHARACTER IS",
+            FileKinds.Indexed | FileKinds.Relative, FileKeyRole.Entry,
+            f => !f.IsReportFile && SpecifiesSequentialFormat(f),
+            (_, _) => true,
+            (f, _) => $"file '{f.CobolName}' is {f.OrganizationFace}, but its file control entry has {SequentialFormatMarker(f)}, "
+                + "which the general format prints only in the sequential file control entry (ANSI §1985:VII.2.3.2); the relative "
+                + "and indexed file control entries print no such clause (§1985:VIII.2.3.2, §1985:IX.2.3.2)",
+            DiagnosticCatalog.FileControlFormat3OnKeyedFile)
+        { Supersedes = "SR-12.4.5.2-11" },
     ];
 
     /// <summary>One <see cref="Rules1985"/> row from its <see cref="Rule1985"/> designation: the id, clause, citation and quoted text are
@@ -947,7 +1047,7 @@ internal static class FileControlKeyRules
     };
 
     private static readonly FileControlKeyRule[] Rules85 =
-        [.. Rules.Where(r => Rules1985.All(n => n.Supersedes != r.RuleId)), .. Rules1985];
+        [.. Rules.Where(r => Rules1985.All(n => !n.Replaces(r))), .. Rules1985];
 
     /// <summary>⛔ THE 2023 ROWS COBOL-2002's TEXT DOES NOT PRINT (kb/Work PB5602): the OCCURS bans of the three key clauses. §2002:12.3.4.12.2 SR1,
     /// §2002:12.3.4.5.2 SR1 and §2002:12.3.4.13.2 SR1 each say only "may be qualified" — a data-name-n at COBOL-2002 includes
@@ -1027,8 +1127,9 @@ internal static class FileControlKeyRules
             if ((required.ScreenedOn & kind) == 0 || !required.Applies(file) || required.Written(file)) continue;
             using var at = edition.At(file.EntryAt);   // the ABSENCE of a clause has nothing but the entry to point at
             edition.Error(DiagnosticCatalog.FileControlClauseRequired,
-                $"{required.KindFace}file '{file.CobolName}' has no {required.Face} clause (ISO §2023:12.4.5.1 "
-                + $"{required.FormatsFace}: the {required.Face} clause is printed with no bracket around it, so the "
+                $"{required.KindFace}file '{file.CobolName}' has no {required.Face} clause (ISO "
+                + edition.Edition.Cite($"{FileControlFormat1985(kind)}", $"§2023:12.4.5.1 {required.FormatsFace}")
+                + $": the {required.Face} clause is printed with no bracket around it, so the "
                 + "entry shall specify it)");
         }
         // Role-outer: each role's operands are enumerated ONCE for all of its rules, so a file control entry

@@ -405,7 +405,7 @@ public sealed class WordCharacterScreenTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains($"'{word}'") && e.Contains($"as its {position} character")
-                                     && e.Contains("§2023:8.3.2.1"));
+                                     && e.Contains(edition < 2002 ? "§1985:IV.4.2.2.1" : "§2023:8.3.2.1"));
         Assert.DoesNotContain(errors, e => e.Contains("COBOL0902"));
         string all = string.Join('\n', errors.Concat(warnings));
         Assert.Equal(edition == 85, all.Contains("COBOL0900"));
@@ -489,7 +489,7 @@ public sealed class WordCharacterScreenTests
         var named = errors.Where(e => e.Contains("COBOL2773") && e.Contains($"'{word}'")).ToList();
         var only = Assert.Single(named);
         Assert.Contains("has the hyphen as its " + position + " character", only);
-        Assert.Contains("§2023:8.3.2.1", only);
+        Assert.Contains(edition < 2002 ? "§1985:IV.4.2.2.1" : "§2023:8.3.2.1", only);   // the edition's own rule (kb/Work PB4950)
         // A word token inside the joined word is judged only as part of it, so MY_NAME is never reported alone.
         Assert.DoesNotContain(errors.Concat(warnings), e => e.Contains("COBOL2773") && !e.Contains($"'{word}'"));
     }

@@ -32,6 +32,12 @@ public sealed class WrittenKindRefusalTests
         + "word of its statement name, which a literal is not (ISO §2023:14.5.3.1; the names are Table 12's, §2023:14.5.1).";
     private const string AStatementIsNoWord = "a statement may begin at this position, and a statement begins with the first "
         + "word of its statement name, which a user-defined word is not (ISO §2023:14.5.3.1; the names are Table 12's, §2023:14.5.1).";
+    // The same sentences at COBOL-85, which cite the 1985 rule (kb/Work PB4950): "A statement is a syntactically valid combination of
+    // words, literals, and separators beginning with a COBOL verb" (§1985:IV.6.4.1.2).
+    private const string AStatementIsNoLiteral85 = "a statement may begin at this position, and a statement begins with the first "
+        + "word of its statement name, which a literal is not (ISO §1985:IV.6.4.1.2).";
+    private const string AStatementIsNoWord85 = "a statement may begin at this position, and a statement begins with the first "
+        + "word of its statement name, which a user-defined word is not (ISO §1985:IV.6.4.1.2).";
     private const string Files = "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
         + "           SELECT F ASSIGN TO \"pb3428u.dat\".\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n"
         + "       01 R PIC X(4).\n";
@@ -82,7 +88,7 @@ public sealed class WrittenKindRefusalTests
         "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-E PIC 9(3).\n       01 W-G.\n"
         + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
         "COBOL5506: cannot parse construct near 'TIMES'. The word TIMES is not expected here: expected an integer literal "
-        + "(ISO §2023:5.2.1).")]
+        + "(ISO §1985:IV.2.1).")]
     [InlineData("occurs-to-without-integer-2-2002", 2002,
         "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-E PIC 9(3).\n       01 W-G.\n"
         + "          05 W-C PIC 9(3) OCCURS 0 TO TIMES DEPENDING ON W-E.\n" + Proc,
@@ -107,7 +113,7 @@ public sealed class WrittenKindRefusalTests
     [InlineData("usage-literal-85", 85, "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X USAGE 5.\n" + Proc,
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: expected BINARY, COMP, COMP-1, COMP-2, COMP-3, "
         + "COMP-4, COMP-5, COMPUTATIONAL, COMPUTATIONAL-1, COMPUTATIONAL-2, COMPUTATIONAL-3, COMPUTATIONAL-4, "
-        + "COMPUTATIONAL-5, DISPLAY, INDEX, PACKED-DECIMAL or POINTER (ISO §2023:5.2.1).")]
+        + "COMPUTATIONAL-5, DISPLAY, INDEX, PACKED-DECIMAL or POINTER (ISO §1985:IV.2.1).")]
     // ⛔ AN OPTIONAL WORD IS NOT AN ALTERNATIVE (kb/Work PB4225). The IS of [USAGE IS] is not a usage: the word that
     // changes nothing about what follows it (ISO §2023:8.3.2.4.3) is left out of the list at every edition.
     [InlineData("usage-literal-2002", 2002, "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X USAGE 5.\n" + Proc,
@@ -135,7 +141,7 @@ public sealed class WrittenKindRefusalTests
     [InlineData("literal-after-then", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN 5 END-IF.\n           STOP RUN.\n",
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("literal-after-then-85", 85, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN 5 END-IF.\n           STOP RUN.\n",
-        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral85)]
     [InlineData("alphanumeric-literal-after-else", 2023,
         Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN CONTINUE ELSE \"X\" END-IF.\n           STOP RUN.\n",
         "COBOL5506: unexpected '\"X\"'. The alphanumeric literal \"X\" is not expected here: " + AStatementIsNoLiteral)]
@@ -155,7 +161,7 @@ public sealed class WrittenKindRefusalTests
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     // PB4426: the same sentence at each edition, for the selection object (a THRU may lengthen it) and the condition.
     [InlineData("literal-after-when-85", 85, Table + "       PROCEDURE DIVISION.\n           EVALUATE W-N WHEN 1 5 END-EVALUATE.\n           STOP RUN.\n",
-        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral85)]
     [InlineData("literal-after-when-2002", 2002, Table + "       PROCEDURE DIVISION.\n           EVALUATE W-N WHEN 1 5 END-EVALUATE.\n           STOP RUN.\n",
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("literal-after-when-2014", 2014, Table + "       PROCEDURE DIVISION.\n           EVALUATE W-N WHEN 1 5 END-EVALUATE.\n           STOP RUN.\n",
@@ -165,7 +171,7 @@ public sealed class WrittenKindRefusalTests
     [InlineData("literal-after-a-condition-2014", 2014, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 5 CONTINUE END-IF.\n           STOP RUN.\n",
         "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
     [InlineData("literal-after-a-relation", 85, Table + "       PROCEDURE DIVISION.\n           IF W-N = W-X 5 CONTINUE END-IF.\n           STOP RUN.\n",
-        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral)]
+        "COBOL5506: unexpected '5'. The integer literal 5 is not expected here: " + AStatementIsNoLiteral85)]
     [InlineData("user-word-after-then", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 THEN FOO END-IF.\n           STOP RUN.\n",
         "COBOL5506: unexpected 'FOO'. The word 'FOO' is not expected here: " + AStatementIsNoWord)]
     // ⛔ A LITERAL WHERE THE NEXT SENTENCE BEGINS (kb/Work PB4425): the period ends the sentence (ISO §2023:14.5.1), so the
@@ -176,7 +182,7 @@ public sealed class WrittenKindRefusalTests
     // (An integer there is not this row: a paragraph-name need not contain a letter, ISO §2023:8.3.2.2 3), so `5 DISPLAY "C".`
     // is a header whose period is missing, which hint 14 says.)
     [InlineData("literal-after-a-sentence-85", 85, Table + "       PROCEDURE DIVISION.\n           DISPLAY \"A\". \"B\" DISPLAY \"C\".\n           STOP RUN.\n",
-        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
+        "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral85)]
     [InlineData("literal-after-end-if", 2023, Table + "       PROCEDURE DIVISION.\n           IF W-N = 1 DISPLAY \"A\" END-IF. \"B\".\n           STOP RUN.\n",
         "COBOL5506: unexpected '\"B\"'. The alphanumeric literal \"B\" is not expected here: " + AStatementIsNoLiteral)]
     // The figurative constant begins a sentence that goes on (`SPACES DISPLAY "A".`): written alone with its period,
@@ -220,7 +226,7 @@ public sealed class WrittenKindRefusalTests
     /// (2002) and EC and EO (2002) are named from the edition that reserves them and not before.</summary>
     [Theory]
     [InlineData("paren-85", 85, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
-        "expected '**', ')', '+', '-', '*' or '/' (ISO §2023:5.2.1)", "B-")]
+        "expected '**', ')', '+', '-', '*' or '/' (ISO §1985:IV.2.1)", "B-")]
     [InlineData("paren-2002", 2002, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
         "expected B-AND, B-OR, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §2023:5.2.1)", "B-SHIFT")]
     [InlineData("paren-2014", 2014, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
@@ -228,7 +234,7 @@ public sealed class WrittenKindRefusalTests
     [InlineData("paren-2023", 2023, Head + Table + "       PROCEDURE DIVISION.\n           COMPUTE W-N = (W-N + 1.\n           STOP RUN.\n",
         "expected B-AND, B-OR, B-SHIFT-L, B-SHIFT-LC, B-SHIFT-R, B-SHIFT-RC, B-XOR, '**', ')', '+', '-', '*' or '/' (ISO §2023:5.2.1)", null)]
     [InlineData("program-id-attribute-85", 85, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
-        "expected COMMON or INITIAL (ISO §2023:5.2.1)", "PROTOTYPE")]   // RECURSIVE is in the 2002 list of §2002:8.10, PROTOTYPE a 2002 §2002:8.9 word
+        "expected COMMON or INITIAL (ISO §1985:IV.2.1)", "PROTOTYPE")]   // RECURSIVE is in the 2002 list of §2002:8.10, PROTOTYPE a 2002 §2002:8.9 word
     [InlineData("program-id-attribute-2002", 2002, "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB4174G IS GLOBAL.\n" + Proc,
         "expected COMMON, INITIAL, PROTOTYPE or RECURSIVE (ISO §2023:5.2.1)", null)]
     [InlineData("use-85", 85, UseDeclarative, "expected AFTER, BEFORE, DEBUGGING, ERROR, EXCEPTION", "EC, EO")]   // USE [FOR] DEBUGGING: FOR is an optional word (kb/Work PB4919)

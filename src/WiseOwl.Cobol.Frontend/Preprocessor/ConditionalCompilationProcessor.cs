@@ -773,7 +773,7 @@ public static partial class ConditionalCompilationProcessor
         if (!IsCompilationVariableNameShape(name))
         {
             // A word that breaks the position rule is named by it (kb/Work PB4234), not by "no word at all".
-            complaint = (CobolCharacterRepertoire.SeparatorPositionViolation(name) ?? $"'{name}' is not a COBOL word")
+            complaint = (CobolCharacterRepertoire.SeparatorPositionViolation(name, 2023) ?? $"'{name}' is not a COBOL word")
                 + ", so it cannot be compilation-variable-name-1";
             return false;
         }
@@ -1147,8 +1147,8 @@ public static partial class ConditionalCompilationProcessor
         public bool ScreenFragment(Antlr4.Runtime.Tree.IParseTree fragment, string text, bool compiled)
         {
             // A literal the directive line ends inside (§2023:6.4.2; kb/Work PB3245) has no value either.
-            bool closed = LiteralScreen.ReportUnterminated(fragment, (_, descriptor, message) => Emit(descriptor.Code, message));
-            foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, fragment)) Emit(v.Descriptor.Code, v.Message);
+            bool closed = LiteralScreen.ReportUnterminated(fragment, edition, (_, descriptor, message) => Emit(descriptor.Code, message));
+            foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, fragment, edition)) Emit(v.Descriptor.Code, v.Message);
             return LiteralScreen.Run(fragment, edition, new BagSink(bag ?? new DiagnosticBag(), At), compiled) && closed;
         }
 

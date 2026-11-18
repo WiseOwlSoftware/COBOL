@@ -1,0 +1,37 @@
+<Project>
+
+  <!--
+    src-tree props. MSBuild stops at the FIRST Directory.Build.props found walking up, so the repo-root one is imported
+    explicitly; without this line every src project would lose TargetFramework, Nullable, TreatWarningsAsErrors and the rest.
+  -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!--
+    ⛔ THE REPOSITORY'S ANALYZERS RUN OVER EVERY src PROJECT'S REAL COMPILATION (kb/Work PB4950 rounds 7 and 11). Every src project
+    but the analyzer project itself loads src/WiseOwl.Cobol.Analyzers as an analyzer, so a rule over the product's C# (WOCA0001, one
+    decider of a message's words by edition, docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a) is a build ERROR in the compilation MSBuild
+    actually builds: its sources, its SDK-supplied generators' output, its references. The one project left out is named by its
+    path, what it IS, never by a property a project can set on itself: an exclusion on IsRoslynComponent let a product that set it
+    drop the analyzer silently (round 10's review). The compiler's source generator loads it too; its C# is judged like any other.
+    ⛔ ONE CONFIGURATION OF THE ANALYZER PER BUILD (kb/Work PB4950 rounds 9 to 11). MSBuild hands a referenced project every global
+    property of the build that references it, and can drop only a NAMED list of them, never all of them. Two rules hold instead:
+      * every reference names one configuration for the analyzer (SetConfiguration). Building a project on its own, that is
+        Release; in a solution build the solution's configuration mapping assigns every project reference its configuration and
+        overrides the metadata, and the analyzer then builds in the solution's configuration. Either way one configuration holds
+        in one build;
+      * a nested build of a src project builds no references (BuildProjectReferences=false). The outer build of that project has
+        built them, and the nested build, such as the runtime's per-platform ReadyToRun publish, only re-compiles the project
+        itself, under global properties of its own.
+    Before these rules each nested publish built the analyzer again, as another configuration, into the one
+    obj/<configuration>/netstandard2.0. Two builds wrote it at once (CS2012), and their differing assembly attributes made every
+    Release build recompile it. AnalyzerBuildsOnceDriftTests (RepoDrift) builds the runtime in Release twice and requires the
+    analyzer built under exactly one configuration and not rebuilt on an unchanged tree. AnalyzerWiringDriftTests refuses a
+    nested build in src (an MSBuild task, or an Exec of dotnet build, publish, pack, test or msbuild) that builds references.
+  -->
+  <ItemGroup Condition="'$(MSBuildProjectFullPath)' != '$(MSBuildThisFileDirectory)WiseOwl.Cobol.Analyzers$([System.IO.Path]::DirectorySeparatorChar)WiseOwl.Cobol.Analyzers.csproj'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)WiseOwl.Cobol.Analyzers/WiseOwl.Cobol.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all"
+                      SetConfiguration="Configuration=Release" />
+  </ItemGroup>
+
+</Project>

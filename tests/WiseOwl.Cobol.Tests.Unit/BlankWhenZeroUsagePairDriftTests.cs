@@ -85,7 +85,7 @@ public sealed class BlankWhenZeroUsagePairDriftTests
         Assert.DoesNotContain("Usage.Display", line);
 
         string screen = Code("Binding", "DataBinder.ClausePlacement.cs");
-        Match violation = Regex.Match(screen, @"BlankWhenZeroViolation\(PicInfo pic\)\s*\{.*?\n    \}", RegexOptions.Singleline);
+        Match violation = Regex.Match(screen, @"BlankWhenZeroViolation\(PicInfo pic, EditionInfo edition\)\s*\{.*?\n    \}", RegexOptions.Singleline);
         Assert.True(violation.Success, "BlankWhenZeroViolation is the BLANK WHEN ZERO SR2 screen; it moved or was renamed.");
         Assert.Contains("UsageFamilies.IsDisplayOrNational(pic.Usage)", violation.Value);
         Assert.DoesNotContain("Usage.Display", violation.Value);

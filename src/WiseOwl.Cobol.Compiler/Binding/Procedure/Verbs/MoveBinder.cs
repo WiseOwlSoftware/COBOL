@@ -537,7 +537,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                 + "§2023:14.9.35.3 SR12)");
             return null;
         }
-        if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
+        if (MoveTable16.SenderClassRefusal(source, ctx.Edition.Edition) is { } classRefusal)
         {
             ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed,
                 $"{classRefusal} — {rules.Statement}: identifier-1 shall be valid as a sending operand in a MOVE statement");
@@ -642,13 +642,13 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         // three usages LIVE, and the measurement agreed: `MOVE P TO Y` over a USAGE POINTER sender printed
         // Y=[WiseOwl.Cobol] (the CLR carrier's type name) into an alphanumeric item, and `MOVE NULL TO P` reached
         // Roslyn and surfaced CS0029 about generated C#. One rule, one core, asked of both positions.
-        if (MoveTable16.SenderClassRefusal(source) is { } classRefusal)
+        if (MoveTable16.SenderClassRefusal(source, ctx.Edition.Edition) is { } classRefusal)
             ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed, classRefusal
                 + (source is BoundFieldOperand sIdx
                     ? $" — MOVE {sIdx.Place.Item.CobolName}{ImplicitMovePhrase.Via(implicitOf)}"
                     : ImplicitMovePhrase.Via(implicitOf)));
         foreach (var t in targets)
-            if (MoveTable16.ReceiverClassRefusal(t) is { } recvRefusal)
+            if (MoveTable16.ReceiverClassRefusal(t, ctx.Edition.Edition) is { } recvRefusal)
                 ctx.Edition.Error(DiagnosticCatalog.MoveOperandClassNotAllowed,
                     $"{recvRefusal} — {ImplicitMovePhrase.WhereOf(implicitOf, t.Item.CobolName)}");
 
@@ -693,7 +693,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         }
     }
 
-    /// <summary>ISO §2023:14.9.25.3 SR2, SR6–SR10 for one MOVE, per receiver — asked of <see cref="MoveTable16.Validity(BoundOperand, Place)"/>
+    /// <summary>ISO §2023:14.9.25.3 SR2, SR6–SR10 for one MOVE, per receiver — asked of <see cref="MoveTable16.Validity(BoundOperand, Place, MoveCitations)"/>
     /// and framed here under each rule's own diagnostic (COBOL1533 · COBOL1931 · COBOL0819). Version-
     /// invariant: SR5's edition rows are <c>VersionConformancePass</c>'s.</summary>
     private void MoveCategoryLegality(BoundOperand source, IReadOnlyList<Place> targets,
@@ -711,7 +711,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             // group rules; the one rule the old `continue` hid is SR8, whose letter — "identifier-2 shall
             // reference a numeric or numeric-edited item" — a group item does not satisfy. MOVE CORRESPONDING's
             // pairing filter already read it that way (kb/Work PB391); the written MOVE now agrees with it.
-            if (MoveTable16.Validity(source, t) is not { } refusal) continue;
+            if (MoveTable16.Validity(source, t, MoveTable16.CitationsOf(ctx.Edition.Edition)) is not { } refusal) continue;
             FrameMoveRefusal(refusal, source, Table16Operand.Of(t), t is RefModPlace, t.DescribedItem,
                              t.Item.CobolName, implicitOf);
         }
@@ -723,7 +723,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// description entry. The first cut asked only §2023:14.9.25.3 SR1's class half of that MOVE, so a boolean operand
     /// that the header-RETURNING arm refuses (SR10, Table 16: boolean to numeric is "No") compiled clean and
     /// aborted at run time. The sender-class screen (SR1) and the whole
-    /// <see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem?)"/> chain (SR2, SR6–SR10) are asked
+    /// <see cref="MoveTable16.Validity(BoundOperand, Table16Operand, DataItem?, MoveCitations)"/> chain (SR2, SR6–SR10) are asked
     /// here, in the order <see cref="BindMoveOf"/> asks them of a place, and a refusal is reported under the
     /// rule's own diagnostic.</summary>
     /// <param name="source">The sending operand.</param>
@@ -734,7 +734,7 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
                                                ImplicitMovePhrase implicitOf)
     {
         MoveOperandClassChecks(source, [], implicitOf);
-        if (MoveTable16.Validity(source, receiver, receiverItem: null) is { } refusal)
+        if (MoveTable16.Validity(source, receiver, receiverItem: null, MoveTable16.CitationsOf(ctx.Edition.Edition)) is { } refusal)
             FrameMoveRefusal(refusal, source, receiver, receiverIsView: false, receiverItem: null, receiverName, implicitOf);
     }
 
@@ -784,14 +784,17 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
         bool senderIsView = source is BoundFieldOperand { Place: RefModPlace };
         if (ctx.Edition.Permissive
             && MoveValidity.Table16Refusal(Table16Operand.Lenient(senderPos, senderIsFunction, senderIsView).Heading,
-                Table16Operand.Lenient(receiverPos, false, receiverIsView).Heading) is null)
+                Table16Operand.Lenient(receiverPos, false, receiverIsView).Heading,
+                MoveTable16.CitationsOf(ctx.Edition.Edition)) is null)   // only the verdict is read: no reason is shown
             ctx.Edition.Warning(DiagnosticCatalog.MoveShapeInvalid, $"{where}: {refusal}; accepted under --permissive "
                 + (senderIsFunction ? "as the function's literal text (a NUMERIC-typed function is the Noninteger sender, ISO §2023:15.2 item 4)"
                                     : "reading the reference-modified view as plain alphanumeric (ISO §2023:8.4.3.3.4 GR6 keeps it alphabetic)"));
         else
             ctx.Edition.Error(DiagnosticCatalog.MoveShapeInvalid, $"{where}: MOVE is invalid — {refusal}"
                 + (senderIsFunction && senderPos is { Category: PicCategory.Numeric, IsNonInteger: true }
-                    ? " (a NUMERIC-typed function is the Noninteger sender, §2023:15.2 item 4 / §2023:8.4.3.2.3 SR11; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
+                    ? " (a NUMERIC-typed function is the Noninteger sender, "
+                      + ctx.Edition.Edition.Cite("§1989:A.2.3", "§2023:15.2 item 4 / §2023:8.4.3.2.3 SR11")
+                      + "; an INTEGER function moves to a character receiver; --permissive accepts this as the function's literal text)"
                     : ""));
     }
 

@@ -1,1 +1,1 @@
-{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "SR24 excludes \"c) An alphanumeric group containing items with a usage other than display."}
+{"refuse-at": ["85", "2002", "2014", "2023"], "expect": "a condition-name may not be associated with an alphanumeric group containing an item whose usage is not DISPLAY"}

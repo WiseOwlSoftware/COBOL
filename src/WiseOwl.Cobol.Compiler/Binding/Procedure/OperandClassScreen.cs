@@ -4,6 +4,7 @@ using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 
+using WiseOwl.Cobol.Editions;
 namespace WiseOwl.Cobol.Binding.Procedure;
 
 /// <summary>The operand CLASSES a statement's identifier-position syntax rule can enumerate. Each member is one
@@ -36,9 +37,12 @@ internal enum OperandClasses
 /// <remarks>⚠ <see cref="Statement"/> is spelled WITHOUT an ellipsis: the diagnostic renderer transliterates U+2026
 /// to ASCII, and a message opening "SET … TO" printed a statement nobody wrote (kb/Work PB388,
 /// <c>SetDiagnosticNamesReceiversDriftTests</c>); the operand the program wrote is named in the message itself.</remarks>
+/// <remarks>⛔ <see cref="Rule1985"/> is the rule's 1985 citation where ANSI X3.23-1985 states it: a program compiled at
+/// <c>--std 85</c> reads it instead of <see cref="Rule"/> (kb/Work PB4950); null where the 1985 text has no such rule, and the
+/// 2023 citation then stands.</remarks>
 internal sealed record OperandPosition(
     string Statement, string Operand, string Rule, string Requirement, OperandClasses Admits,
-    DiagnosticDescriptor Diagnostic);
+    DiagnosticDescriptor Diagnostic, string? Rule1985 = null);
 
 /// <summary>⛔ THE REGISTER OF CLASS-CLOSED IDENTIFIER POSITIONS (kb/Work PB210 · PB211 · PB212). Every statement
 /// operand whose syntax rule reads "identifier-n shall reference a data item of class …" is a row HERE and is
@@ -59,7 +63,7 @@ internal static class OperandPositions
     public static readonly OperandPosition GoToDependingSelector = new(
         "GO TO DEPENDING ON", "identifier-1", "§2023:14.9.17.3 SR1",
         "a numeric elementary data item that is an integer",
-        OperandClasses.IntegerItem, DiagnosticCatalog.GoToDependingSelectorClass);
+        OperandClasses.IntegerItem, DiagnosticCatalog.GoToDependingSelectorClass, Rule1985: "§1985:VI.6.15.3 SR1");
 
     /// <summary>ISO §2023:14.9.37.3 SR5 first sentence — SEARCH … VARYING identifier-2 (kb/Work PB211). The rule's second
     /// sentence is a subscript prohibition, not a class, and is asked by <c>SearchBinder</c> under the same
@@ -67,14 +71,16 @@ internal static class OperandPositions
     public static readonly OperandPosition SearchVaryingIdentifier = new(
         "SEARCH VARYING", "identifier-2", "§2023:14.9.37.3 SR5",
         "a data item whose usage is index or a data item that is an integer",
-        OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SearchVaryingOperand);
+        OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SearchVaryingOperand,
+        Rule1985: "§1985:VI.6.22.3 SR2");
 
     /// <summary>ISO §2023:14.9.39.3 SR1 — the SET Format-1 receiving identifier-1 (kb/Work PB212). An index-name-1
     /// receiver is the brace's OTHER alternative and is not screened here.</summary>
     public static readonly OperandPosition SetIndexAssignmentReceiver = new(
         "SET TO (Format 1, index-assignment)", "identifier-1", "§2023:14.9.39.3 SR1",
         "a data item of class index or an integer data item",
-        OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SetIndexAssignmentOperand);
+        OperandClasses.IntegerItem | OperandClasses.IndexDataItem, DiagnosticCatalog.SetIndexAssignmentOperand,
+        Rule1985: "§1985:VI.6.23.3 SR2");
 
     /// <summary>ISO §2023:14.9.28.3 SR2 first sentence over the varied identifier of the VARYING / AFTER phrase — "Each
     /// identifier shall reference a numeric elementary item described in the data division" (found by the
@@ -82,13 +88,13 @@ internal static class OperandPositions
     public static readonly OperandPosition PerformVaryingIdentifier = new(
         "PERFORM VARYING / AFTER", "the varied identifier", "§2023:14.9.28.3 SR2",
         "a numeric elementary item described in the data division",
-        OperandClasses.NumericElementaryItem, DiagnosticCatalog.PerformVaryingOperandRule);
+        OperandClasses.NumericElementaryItem, DiagnosticCatalog.PerformVaryingOperandRule, Rule1985: "§1985:VI.6.21.3 SR4");
 
     /// <summary>ISO §2023:14.9.28.3 SR5 a) — the varied identifier when an index-name is in the FROM phrase.</summary>
     public static readonly OperandPosition PerformVaryingIdentifierFromIndex = new(
         "PERFORM VARYING / AFTER with an index-name FROM", "the varied identifier", "§2023:14.9.28.3 SR5 a)",
         "an integer data item",
-        OperandClasses.IntegerItem, DiagnosticCatalog.PerformVaryingOperandRule);
+        OperandClasses.IntegerItem, DiagnosticCatalog.PerformVaryingOperandRule, Rule1985: "§1985:VI.6.21.3 SR7a");
 
     /// <summary>ISO §2023:14.9.51.3 SR14 — WRITE … ADVANCING identifier-2 (kb/Work PB1023). The brace's OTHER
     /// alternative, integer-1 (SR15 — "positive or zero"), is a literal and is screened beside this row by
@@ -96,7 +102,7 @@ internal static class OperandPositions
     public static readonly OperandPosition WriteAdvancingIdentifier = new(
         "WRITE ADVANCING", "identifier-2", "§2023:14.9.51.3 SR14",
         "an integer data item",
-        OperandClasses.IntegerItem, DiagnosticCatalog.WriteAdvancingOperand);
+        OperandClasses.IntegerItem, DiagnosticCatalog.WriteAdvancingOperand, Rule1985: "§1985:VII.4.7.3 SR4");
 
     /// <summary>Every row (the drift test holds this against the declared fields, so a row cannot be declared
     /// and forgotten here).</summary>
@@ -164,7 +170,7 @@ internal static class OperandClassScreen
             case BoundFieldOperand { Place: var p }: return Screen(edition, pos, p, text);
             case BoundComputedOperand or BoundNumericLiteral { FunctionValue: true }:
                 if ((FunctionResultClasses(op) & pos.Admits) != 0) return true;
-                Report(edition, pos, text, DescribeFunctionResult(op));
+                Report(edition, pos, text, DescribeFunctionResult(op, edition.Edition));
                 return false;
             default:
                 Report(edition, pos, text, "not a data item");
@@ -181,15 +187,17 @@ internal static class OperandClassScreen
         : IntrinsicResultType.OperandCategory(op) is PicCategory.Numeric ? OperandClasses.NumericElementaryItem
         : OperandClasses.None;
 
-    private static string DescribeFunctionResult(BoundOperand op) =>
+    private static string DescribeFunctionResult(BoundOperand op, EditionInfo edition) =>
         IntrinsicResultType.OperandCategory(op) is PicCategory.Numeric
-            ? "a numeric function-identifier, and \"A numeric function shall not be specified where an integer "
-              + "operand is required\" (ISO §2023:8.4.3.2.3 SR11)"
+            ? "a numeric function-identifier, and " + edition.Cite(
+                "\"A function-identifier which references an integer or numeric function may be used only in an arithmetic "
+                + "expression\" (ISO §1985:IV.4.3.8.3.3 SR4)",
+                "\"A numeric function shall not be specified where an integer operand is required\" (ISO §2023:8.4.3.2.3 SR11)")
             : $"a function-identifier of category {IntrinsicResultType.OperandCategory(op)?.ToString().ToLowerInvariant() ?? "unknown"}";
 
     private static void Report(EditionContext edition, OperandPosition pos, string text, string what) =>
         edition.Error(pos.Diagnostic,
-            $"{pos.Statement} {pos.Operand} '{text}' shall reference {pos.Requirement} (ISO {pos.Rule}); "
+            $"{pos.Statement} {pos.Operand} '{text}' shall reference {pos.Requirement} (ISO {edition.Edition.Cite(pos.Rule1985 ?? pos.Rule, pos.Rule)}); "
             + $"'{text}' is {what}");
 
     private static string Describe(Place p)

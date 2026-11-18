@@ -58,9 +58,10 @@ public sealed partial class SpecialNamesBinder
         if (nn?.figurativeConstant() is { } fig)
         {
             var slot = new FigurativeSlot(what, DiagnosticCatalog.SpecialNamesLiteralClass, DiagnosticCatalog.SpecialNamesLiteralEmpty,
-                $"{operand} shall be an alphanumeric or national literal", "SR10",
+                $"{operand} shall be an alphanumeric or national literal", "§2023:12.3.7.3 SR10",
                 category => category is PicCategory.Alphanumeric or PicCategory.National,
-                $"{operand} shall specify neither a symbolic-character figurative constant nor a zero-length literal");
+                $"{operand} shall specify neither a symbolic-character figurative constant nor a zero-length literal",
+                "§2023:12.3.7.3 SR11");
             if (SpecialNamesFigurative(fig, slot) is not { } figurative) return false;
             text = figurative;
             return Sr11ZeroLength(text.Length == 0);
@@ -134,21 +135,32 @@ public sealed partial class SpecialNamesBinder
     private sealed record LiteralPhraseRules(
         string What, bool National, DiagnosticDescriptor Code, string RuleNumber,
         char OrdinalItem, char ClassItem, char LengthItem, string LengthPhrases,
-        CodedCharacterSet? InSet)
+        CodedCharacterSet? InSet, string Rule1985Numeric, string Rule1985Length)
     {
         /// <summary>"SR14 b1" / "SR17 c3" — the sub-rule of THIS clause, in THIS class.</summary>
         public string Rule(char item) => $"{RuleNumber} {(National ? 'c' : 'b')}{item}";
+
+        /// <summary>⛔ THE CITATION OF ONE OF THIS CLAUSE'S LITERAL-OPERAND RULES in the edition in force (kb/Work PB4950): the
+        /// 2002 text and later state them as <c>SR14 b1</c> and kin, the 1985 text in its paragraphs 4a and 4b (ALPHABET) or
+        /// 11a and 11b (CLASS) — the numeric ordinal and the noninteger literal are both "if numeric, must be
+        /// unsigned integers", the one-character rule is the nonnumeric one. An item the 1985 text has no counterpart of (the
+        /// CLASS IN phrase's count) cites the later text.</summary>
+        public string Cite(EditionInfo edition, char item) => edition.Cite(
+            item == LengthItem ? Rule1985Length : item == OrdinalItem || item == ClassItem ? Rule1985Numeric : $"§2023:12.3.7.3 {Rule(item)}",
+            $"§2023:12.3.7.3 {Rule(item)}");
 
         /// <summary>The class every noninteger operand shall be (SR14 b2/c2, SR17 b3/c3).</summary>
         public LiteralClass LiteralClass => National ? LiteralClass.National : LiteralClass.Alphanumeric;
 
         public static LiteralPhraseRules Alphabet(string name, bool national) => new(
             $"ALPHABET {name}{(national ? " FOR NATIONAL" : "")}", national, DiagnosticCatalog.AlphabetClauseViolation,
-            "SR14", '1', '2', '3', "a THROUGH or ALSO phrase", InSet: null);
+            "SR14", '1', '2', '3', "a THROUGH or ALSO phrase", InSet: null,
+            Rule1985Numeric: "§1985:VI.4.5.3 SR4a", Rule1985Length: "§1985:VI.4.5.3 SR4b");
 
         public static LiteralPhraseRules Class(string name, bool national, CodedCharacterSet? inSet) => new(
             $"CLASS {name}{(national ? " FOR NATIONAL" : "")}", national, DiagnosticCatalog.ClassClauseViolation,
-            "SR17", '2', '3', '4', "a THROUGH phrase", inSet);
+            "SR17", '2', '3', '4', "a THROUGH phrase", inSet,
+            Rule1985Numeric: "§1985:VI.4.5.3 SR11a", Rule1985Length: "§1985:VI.4.5.3 SR11b");
     }
 
     /// <summary>The symbolic-character names the SPECIAL-NAMES paragraph being bound declares (see
@@ -188,7 +200,7 @@ public sealed partial class SpecialNamesBinder
                 {
                     PredefinedNullRule.Report(Edition, $"{r.What}: an operand of the literal phrase — each operand is a "
                         + $"numeric literal, {(r.National ? "a NATIONAL" : "an alphanumeric")} literal or a figurative "
-                        + $"constant (ISO §2023:12.3.7.3 {r.Rule(r.ClassItem)})");
+                        + $"constant (ISO {r.Cite(Edition.Edition, r.ClassItem)})");
                     return null;
                 }
                 // §2023:12.3.7.3 SR11 — literal-1 … literal-6 "shall specify neither a symbolic-character figurative
@@ -198,7 +210,7 @@ public sealed partial class SpecialNamesBinder
                 if (IsZeroLengthOperand(lit))
                 {
                     Edition.Error(r.Code, $"{r.What}: {ConcatFolder.Spelling(lit)} — an operand shall not be a zero-length "
-                        + "literal (ISO §2023:12.3.7.3 SR11)");
+                        + $"literal (ISO {ZeroLengthBarRule()})");
                     return null;
                 }
                 // ⛔ WHICH RULE is decided by the literal's FORM — an integer literal is held to the ordinal rule
@@ -227,7 +239,7 @@ public sealed partial class SpecialNamesBinder
                 if (IsZeroLengthConstant(k))
                 {
                     Edition.Error(r.Code, $"{r.What}: {spec} — an operand shall not be a zero-length literal "
-                        + "(ISO §2023:12.3.7.3 SR11)");
+                        + $"(ISO {ZeroLengthBarRule()})");
                     return null;
                 }
                 LiteralClass? constantClass = k.Category switch
@@ -252,12 +264,12 @@ public sealed partial class SpecialNamesBinder
                 if (IsSymbolicCharacterName(w.GetText()))
                 {
                     Edition.Error(r.Code, $"{r.What}: {w.GetText()} — an operand shall not be a symbolic-character "
-                        + "figurative constant (ISO §2023:12.3.7.3 SR11)");
+                        + $"figurative constant (ISO {SymbolicBarRule()})");
                     return null;
                 }
                 Edition.Error(r.Code, $"{r.What}: {w.GetText()} is not a literal — each operand shall be a numeric "
                     + $"literal, {(r.National ? "a NATIONAL" : "an alphanumeric")} literal, a figurative constant or a "
-                    + $"constant-name standing for a literal (ISO §2023:12.3.7.3 {r.Rule(r.ClassItem)}; §2023:12.3.7.4 GR10; "
+                    + $"constant-name standing for a literal (ISO {r.Cite(Edition.Edition, r.ClassItem)}; §2023:12.3.7.4 GR10; "
                     + "§2023:13.10.3 SR2)");
                 return null;
         }
@@ -270,7 +282,7 @@ public sealed partial class SpecialNamesBinder
             if (signed)
             {
                 Edition.Error(r.Code, $"{r.What}: {spelling} — each numeric literal shall be an UNSIGNED integer "
-                    + $"(ISO §2023:12.3.7.3 {r.Rule(r.OrdinalItem)})");
+                    + $"(ISO {r.Cite(Edition.Edition, r.OrdinalItem)})");
                 return null;
             }
             int ordinal = WiseOwl.Cobol.Validation.IntegerOperandRules.HostValue(digits);
@@ -281,14 +293,14 @@ public sealed partial class SpecialNamesBinder
                 if (inSet.CharactersAt(ordinal) is { } named) return Of(string.Concat(named), named.Count, ordinal: true);
                 Edition.Error(r.Code, $"{r.What}: the ordinal {spelling} does not exist in the character set "
                     + $"referenced by the IN alphabet ({inSet.Phrase}, {inSet.OrdinalCount} characters) — ISO "
-                    + $"§2023:12.3.7.3 {r.Rule(r.OrdinalItem)}");
+                    + r.Cite(Edition.Edition, r.OrdinalItem));
                 return null;
             }
             if (ordinal is >= 1 and <= CollatingTable.Repertoire) return Of(((char)(ordinal - 1)).ToString(), ordinal: true);
             Edition.Error(r.Code, $"{r.What}: the ordinal {spelling} does not exist in the native "
                 + $"{(r.National ? "national" : "alphanumeric")} character set ({CollatingTable.Repertoire} "
                 + "characters) — each numeric literal shall be an unsigned integer with a value from one "
-                + $"through the maximum number of characters in that set (ISO §2023:12.3.7.3 {r.Rule(r.OrdinalItem)})");
+                + $"through the maximum number of characters in that set (ISO {r.Cite(Edition.Edition, r.OrdinalItem)})");
             return null;
         }
 
@@ -296,7 +308,7 @@ public sealed partial class SpecialNamesBinder
         void ClassRule(string spelling) =>
             Edition.Error(r.Code, $"{r.What}: {spelling} — each noninteger literal shall be "
                 + $"{(r.National ? "a NATIONAL literal (N\"…\")" : "an alphanumeric literal")} "
-                + $"(ISO §2023:12.3.7.3 {r.Rule(r.ClassItem)})");
+                + $"(ISO {r.Cite(Edition.Edition, r.ClassItem)})");
     }
 
     /// <summary>The digits and sign of a numeric literal that is an INTEGER — a fixed-point integer core with an
@@ -331,18 +343,27 @@ public sealed partial class SpecialNamesBinder
     /// <param name="ClassCode">The diagnostic of a refusal of the operand's class or character (§2023:12.3.7.3 SR10 / the clause's class rule).</param>
     /// <param name="SymbolicCode">The diagnostic of the SR11 symbolic-character refusal.</param>
     /// <param name="ClassClause">The slot's class rule in its own words (appended to the operand).</param>
-    /// <param name="ClassRule">The syntax rule it is, e.g. "SR14 b2".</param>
+    /// <param name="ClassCitation">The syntax rule it is, cited in the edition in force, e.g. "§2023:12.3.7.3 SR14 b2".</param>
+    /// <param name="SymbolicCitation">The rule that bars a symbolic-character operand, cited in the edition in force.</param>
     /// <param name="Admits">Whether an <c>ALL literal-1</c> of that category is admitted.</param>
     /// <param name="SymbolicClause">The SR11 sentence for a symbolic-character operand.</param>
     private readonly record struct FigurativeSlot(string What, DiagnosticDescriptor ClassCode, DiagnosticDescriptor SymbolicCode, string ClassClause,
-        string ClassRule, Func<PicCategory, bool> Admits, string SymbolicClause);
+        string ClassCitation, Func<PicCategory, bool> Admits, string SymbolicClause, string SymbolicCitation);
 
     /// <summary>The ALPHABET / CLASS clause's figurative slot (§2023:12.3.7.3 SR14 b2/c2, SR17 b3/c3, SR11).</summary>
     private FigurativeSlot FigurativeSlotOf(LiteralPhraseRules r) => new(r.What, r.Code, r.Code,
         $"each noninteger literal shall be {(r.National ? "a NATIONAL literal (N\"…\")" : "an alphanumeric literal")}",
-        r.Rule(r.ClassItem),
+        r.Cite(Edition.Edition, r.ClassItem),
         category => category == (r.National ? PicCategory.National : PicCategory.Alphanumeric),
-        "an operand shall not be a symbolic-character figurative constant");
+        "an operand shall not be a symbolic-character figurative constant", SymbolicBarRule());
+
+    /// <summary>The rule that bars a zero-length literal from an ALPHABET or CLASS literal operand: SR11 of §2023:12.3.7.3; COBOL-85
+    /// has no such sentence, only the length of a nonnumeric literal, "1 through 160 characters" (§1985:IV.4.2.2.2.1).</summary>
+    private string ZeroLengthBarRule() => Edition.Edition.Cite("§1985:IV.4.2.2.2.1", "§2023:12.3.7.3 SR11");
+
+    /// <summary>The rule that bars a symbolic-character figurative constant from an ALPHABET or CLASS literal operand: SR11 of
+    /// §2023:12.3.7.3, SR5 of §1985:VI.4.5.3.</summary>
+    private string SymbolicBarRule() => Edition.Edition.Cite("§1985:VI.4.5.3 SR5", "§2023:12.3.7.3 SR11");
 
     /// <summary>⛔ THE ONE DECODING of a figurative constant written in a SPECIAL-NAMES literal slot (ISO §2023:12.3.7.4
     /// GR10; §2023:8.3.3.6.3 SR1 — "<i>A figurative constant may be used whenever 'literal' appears in a format</i>"): the
@@ -359,7 +380,7 @@ public sealed partial class SpecialNamesBinder
         if (fig.ALL() is null) return AlphabetFigurative(fig.GetText()) ?? FigurativeNotACharacter(fig, slot);
         if (fig.cobolWord() is { } word && IsSymbolicCharacterName(word.GetText()))
         {
-            Edition.Error(slot.SymbolicCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.SymbolicClause} (ISO §2023:12.3.7.3 SR11)");
+            Edition.Error(slot.SymbolicCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.SymbolicClause} (ISO {slot.SymbolicCitation})");
             return null;
         }
         return ConcatFolder.FoldAllLiteral(fig, LiteralEnvironment.SpecialNames(_host, refusesSymbolicCharacters: true),
@@ -389,7 +410,7 @@ public sealed partial class SpecialNamesBinder
         FigurativeSlot slot)
     {
         if (slot.Admits(literal1.Category)) return literal1.Value;
-        Edition.Error(slot.ClassCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.ClassClause} (ISO §2023:12.3.7.3 {slot.ClassRule})");
+        Edition.Error(slot.ClassCode, $"{slot.What}: {ConcatFolder.Spelling(fig)} — {slot.ClassClause} (ISO {slot.ClassCitation})");
         return null;
     }
 
@@ -491,10 +512,16 @@ public sealed partial class SpecialNamesBinder
                 {
                     // An ordinal that lands on an ALSO group (GR7 k6) names SEVERAL characters, and a THROUGH bound
                     // is ONE character: the specification defines no run that begins at, or ends at, a group.
+                    // ⚠ No COBOL-85 program reaches this rule: an ordinal is read here only against the CLASS clause's IN
+                    // alphabet-name, which 1985 does not have, so at 85 the edition gate class-clause-in-alphabet-2002 has already
+                    // refused the program and this line follows it (refusal pb1095-class-in-also-group-through). Its 1985 arm names
+                    // the 1985 ALPHABET rule that gives ALSO characters one ordinal position, §1985:VI.4.5.4 GR4d.6 (kb/Work PB4950
+                    // review R2-2). Behaviour unchanged.
                     Edition.Error(r.Code, $"{r.What}: the ordinal {op.Spelling} names {op.Members} characters of the "
                         + "character set referenced by the IN alphabet (an ALSO group shares one ordinal position, "
-                        + "ISO §2023:12.3.7.4 GR7 k6), so it is no single character to begin or end the run of native "
-                        + "characters a THROUGH phrase expands (ISO §2023:12.3.7.4 GR12)");
+                        + $"ISO {Edition.Edition.Cite("§1985:VI.4.5.4 GR4d.6", "§2023:12.3.7.4 GR7 k6")}), "
+                        + "so it is no single character to begin or end the run of native "
+                        + $"characters a THROUGH phrase expands (ISO {Edition.Edition.Cite("§1985:VI.4.5.3 SR11b", "§2023:12.3.7.4 GR12")})");
                     ok = false;
                     continue;
                 }
@@ -515,7 +542,7 @@ public sealed partial class SpecialNamesBinder
             {
                 Edition.Error(r.Code, $"{r.What}: the operand '{chars}' is {chars.Length} characters — each "
                     + $"{(r.National ? "national" : "alphanumeric")} literal, when {r.LengthPhrases} is specified, shall "
-                    + $"be one character in length (ISO §2023:12.3.7.3 {r.Rule(r.LengthItem)})");
+                    + $"be one character in length (ISO {r.Cite(Edition.Edition, r.LengthItem)})");
                 ok = false;
             }
         }

@@ -70,7 +70,7 @@ internal sealed class CheckStorageLimitsPass : IBindPass
             using var _ = binder.Edition.At(item);
             binder.Edition.Error(DiagnosticCatalog.DataItemBeyondSizeLimit,
                 $"data item '{item.CobolName ?? "FILLER"}': {what} for one data item, elementary or group (docs/CONFORMANCE.md §3 "
-                + $"D-ITEM-SIZE). {binder.Edition.Edition.Cite(LimitsOfAnImplementation1985, LimitsOfAnImplementation, LimitsOfAnImplementation)}");
+                + $"D-ITEM-SIZE). {binder.Edition.Edition.Cite(LimitsOfAnImplementation1985, LimitsOfAnImplementation)}");
             return true;
         }
         bool refused = false;

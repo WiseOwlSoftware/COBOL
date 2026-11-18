@@ -372,7 +372,8 @@ public static class CobolLiteral
         {
             LiteralClass.National => ("national", "§2023:8.3.3.5.3 SR1"),
             LiteralClass.Boolean => ("boolean", "§2023:8.3.3.4.3 SR1"),
-            _ => ("alphanumeric", "§2023:8.3.3.2.3 SR1"),
+            // 1985 has the alphanumeric (nonnumeric) literal only; the boolean and national classes begin later (kb/Work PB4950).
+            _ => ("alphanumeric", new EditionInfo(dialectLevel).Cite("§1985:IV.4.2.2.2.1", "§2023:8.3.3.2.3 SR1")),
         };
         return $"is {positions} {name} character positions long — {clause} limits {(cls == LiteralClass.Alphanumeric ? "an" : "a")} {name} literal to "
             + $"{MaxPositionsText(dialectLevel)}{BoundProvenance(dialectLevel)}";

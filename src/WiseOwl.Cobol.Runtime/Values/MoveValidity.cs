@@ -55,6 +55,30 @@ public enum FigurativeSender
     BooleanCharacters,
 }
 
+/// <summary>⛔ THE CITATION OF EACH RULE <see cref="MoveValidity"/> STATES, as the edition in force numbers it (kb/Work PB4950: a
+/// diagnostic cites the rule of the edition the program compiles under). The rule texts are the runtime's, the editions are the
+/// compiler's, so the compiler hands the citations in: <see cref="Iso2023"/> for every edition from 2002 on and for the run time,
+/// where nothing is shown, and for COBOL-85 the paragraphs of its MOVE statement (§1985:VI.6.19.4 general rule 3) that say what
+/// Table 16 prints. A rule COBOL-85 lacks (SR7's boolean figurative constants, SR8's binary-width usages, the National and
+/// Boolean rows of the table) cites its 2023 number at 85 too.</summary>
+/// <param name="Space">SR5's SPACE arm: "The figurative constant SPACE shall not be moved to a numeric or numeric-edited item".</param>
+/// <param name="Zero">SR6: ZERO to an alphabetic data item.</param>
+/// <param name="Boolean">SR7: a figurative constant whose characters are not boolean characters, to a boolean item.</param>
+/// <param name="BinaryWidth">SR8: the fixed-width binary usages move only to numeric receivers.</param>
+/// <param name="ToNumeric">Table 16: an alphabetic, alphanumeric-edited (or SPACE) sender to a numeric or numeric-edited receiver.</param>
+/// <param name="NumericToAlphabetic">Table 16: a numeric or numeric-edited sender to an alphabetic receiver.</param>
+/// <param name="Noninteger">Table 16: a noninteger numeric sender to an alphanumeric or alphanumeric-edited receiver.</param>
+/// <param name="Table16">Table 16 for every other cell (the national and boolean rows and columns).</param>
+public sealed record MoveCitations(string Space, string Zero, string Boolean, string BinaryWidth, string ToNumeric,
+    string NumericToAlphabetic, string Noninteger, string Table16)
+{
+    /// <summary>The citations of ISO §2023:14.9.25.3, which COBOL-2002 and later number the same way.</summary>
+    public static readonly MoveCitations Iso2023 = new(
+        "ISO §2023:14.9.25.3 SR5", "ISO §2023:14.9.25.3 SR6", "ISO §2023:14.9.25.3 SR7", "ISO §2023:14.9.25.3 SR8",
+        "ISO §2023:14.9.25.3 SR10, Table 16", "ISO §2023:14.9.25.3 SR10, Table 16", "ISO §2023:14.9.25.3 SR10, Table 16",
+        "ISO §2023:14.9.25.3 SR10, Table 16");
+}
+
 /// <summary>
 /// ⭐ THE RULES OF ISO §2023:14.9.25.3 THAT A DATA DESCRIPTION ALONE DECIDES, in ONE place for both phases (kb/Work PB2076):
 /// SR10's Table 16 (<see cref="Table16Refusal"/>) and SR8's fixed-width binary sender (<see cref="BinaryWidthRefusal"/>).
@@ -76,7 +100,9 @@ public static class MoveValidity
     /// <para>The arms are the table read AS PRINTED (specs/ISO_COBOL_2023.md, Table 16); with them every cell over the
     /// nine headings is decided here (<c>Table16PrintedTableDriftTests</c> compares all 81). The classic '85 rows carry
     /// the same "No" cells, so the table is version-invariant.</para></summary>
-    public static string? Table16Refusal(Table16Category sender, Table16Category receiver)
+    /// <param name="cites">The citations of the edition in force (<c>MoveTable16.CitationsOf</c> in the compiler); the run time,
+    /// which has no edition, passes <see cref="MoveCitations.Iso2023"/>.</param>
+    public static string? Table16Refusal(Table16Category sender, Table16Category receiver, MoveCitations cites)
     {
         if (sender is Table16Category.None || receiver is Table16Category.None) return null;
 
@@ -86,14 +112,14 @@ public static class MoveValidity
                    or Table16Category.NationalEdited or Table16Category.NumericInteger
                    or Table16Category.NumericNoninteger or Table16Category.NumericEdited
                 ? "an alphabetic, alphanumeric-edited, numeric or numeric-edited sending operand does not move "
-                  + "to a boolean receiver (ISO §2023:14.9.25.3 SR10, Table 16)"
+                  + $"to a boolean receiver ({cites.Table16})"
                 : null;
 
         // ── NATIONAL column ("National, National-edited"): only a NONINTEGER numeric sender is "No" ──
         if (receiver is Table16Category.National or Table16Category.NationalEdited)
             return sender is Table16Category.NumericNoninteger
                 ? "a noninteger numeric sending operand does not move to a national receiver "
-                  + "(ISO §2023:14.9.25.3 SR10, Table 16)"
+                  + $"({cites.Table16})"
                 : null;
 
         // ── NATIONAL-EDITED row: the ONLY "Yes" is the "National, National-edited" column, decided above. It is a
@@ -102,14 +128,14 @@ public static class MoveValidity
         //    characters (kb/Work PB492). ──
         if (sender is Table16Category.NationalEdited)
             return "a national-edited sending operand moves only to a national or national-edited receiver "
-                 + "(ISO §2023:14.9.25.3 SR10, Table 16)";
+                 + $"({cites.Table16})";
 
         // ── NATIONAL row: alphabetic / alphanumeric / alphanumeric-edited receivers are "No" ──
         if (sender is Table16Category.National)
             return receiver is Table16Category.Alphabetic or Table16Category.Alphanumeric
                        or Table16Category.AlphanumericEdited
                 ? "a national sending operand does not move to an alphabetic, alphanumeric or "
-                  + "alphanumeric-edited receiver (ISO §2023:14.9.25.3 SR10, Table 16; FUNCTION DISPLAY-OF is the "
+                  + $"alphanumeric-edited receiver ({cites.Table16}; FUNCTION DISPLAY-OF is the "
                   + "sanctioned conversion)"
                 : null;
 
@@ -117,25 +143,25 @@ public static class MoveValidity
         if (sender is Table16Category.Boolean)
             return receiver is Table16Category.Alphabetic || IsNumericColumn(receiver)
                 ? "a boolean sending operand does not move to an alphabetic, numeric or numeric-edited receiver "
-                  + "(ISO §2023:14.9.25.3 SR10, Table 16)"
+                  + $"({cites.Table16})"
                 : null;
 
         // ── ALPHABETIC column: a numeric or numeric-edited sender is "No" (`MOVE 5 TO a-pic-a` stored "5   "). ──
         if (receiver is Table16Category.Alphabetic && IsNumericColumn(sender))
             return "a numeric or numeric-edited sending operand does not move to an alphabetic receiver "
-                 + "(ISO §2023:14.9.25.3 SR10, Table 16)";
+                 + $"({cites.NumericToAlphabetic})";
 
         // ── ALPHABETIC row: numeric and numeric-edited receivers are "No" (a PIC A sender into PIC 9 stored zeros). ──
         if (sender is Table16Category.Alphabetic && IsNumericColumn(receiver))
             return "an alphabetic sending operand does not move to a numeric or numeric-edited receiver "
-                 + "(ISO §2023:14.9.25.3 SR10, Table 16)";
+                 + $"({cites.ToNumeric})";
 
         // ── ALPHANUMERIC-EDITED row: numeric and numeric-edited receivers are "No". The DE-EDITING move is the
         //    NUMERIC-edited row's (numeric-edited → numeric is Yes) — an ALPHANUMERIC edit mask has no de-editable
         //    value, which is exactly why the two rows differ. ──
         if (sender is Table16Category.AlphanumericEdited && IsNumericColumn(receiver))
             return "an alphanumeric-edited sending operand does not move to a numeric or numeric-edited "
-                 + "receiver (ISO §2023:14.9.25.3 SR10, Table 16)";
+                 + $"receiver ({cites.ToNumeric})";
 
         // ── NUMERIC row, Noninteger: alphanumeric and alphanumeric-edited receivers are "No" (`MOVE 5.5 TO a-pic-x`
         //    printed "5.5"); the alphabetic receiver is refused by the column arm above, and the INTEGER row's Yes
@@ -143,7 +169,7 @@ public static class MoveValidity
         if (sender is Table16Category.NumericNoninteger
             && receiver is Table16Category.Alphanumeric or Table16Category.AlphanumericEdited)
             return "a noninteger numeric sending operand does not move to an alphabetic, alphanumeric or "
-                 + "alphanumeric-edited receiver (ISO §2023:14.9.25.3 SR10, Table 16)";
+                 + $"alphanumeric-edited receiver ({cites.Noninteger})";
 
         return null;
     }
@@ -156,10 +182,11 @@ public static class MoveValidity
     /// table's, which SR10 does not reach for a case SR8 describes.</summary>
     /// <param name="binaryWidthSender">The sending data item is described with one of the four usages.</param>
     /// <param name="receiver">The receiving operand's heading.</param>
-    public static string? BinaryWidthRefusal(bool binaryWidthSender, Table16Category receiver) =>
+    /// <param name="cites">The citations of the edition in force; the run time passes <see cref="MoveCitations.Iso2023"/>.</param>
+    public static string? BinaryWidthRefusal(bool binaryWidthSender, Table16Category receiver, MoveCitations cites) =>
         binaryWidthSender && !IsNumericColumn(receiver)
             ? "a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sending operand shall reference only a numeric or "
-              + "numeric-edited receiver (ISO §2023:14.9.25.3 SR8)"
+              + $"numeric-edited receiver ({cites.BinaryWidth})"
             : null;
 
     /// <summary>The rules of ISO §2023:14.9.25.3 that a FIGURATIVE-CONSTANT sender meets beside Table 16 (whose figurative row
@@ -183,15 +210,16 @@ public static class MoveValidity
     /// PB3101).</summary>
     /// <param name="sender">Which of the figurative senders the rules tell apart.</param>
     /// <param name="receiver">The receiving operand's heading.</param>
-    public static string? FigurativeRefusal(FigurativeSender sender, Table16Category receiver) => receiver switch
+    /// <param name="cites">The citations of the edition in force; the run time passes <see cref="MoveCitations.Iso2023"/>.</param>
+    public static string? FigurativeRefusal(FigurativeSender sender, Table16Category receiver, MoveCitations cites) => receiver switch
     {
         _ when sender is FigurativeSender.Space && IsNumericColumn(receiver) =>
-            "the figurative constant SPACE shall not be moved to a numeric or numeric-edited item (ISO §2023:14.9.25.3 SR5)",
+            $"the figurative constant SPACE shall not be moved to a numeric or numeric-edited item ({cites.Space})",
         Table16Category.Alphabetic when sender is FigurativeSender.Zero =>
-            "the figurative constant ZERO shall not be moved to an alphabetic data item (ISO §2023:14.9.25.3 SR6)",
+            $"the figurative constant ZERO shall not be moved to an alphabetic data item ({cites.Zero})",
         Table16Category.Boolean when sender is not (FigurativeSender.Zero or FigurativeSender.BooleanCharacters) =>
             "a figurative constant whose characters are not boolean characters shall not be moved to a boolean data "
-            + "item (ISO §2023:14.9.25.3 SR7)",
+            + $"item ({cites.Boolean})",
         _ => null,
     };
 

@@ -141,7 +141,8 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             if (_debuggingLinesBetweenLiteralParts.TryGetValue(origin, out int indicatorColumn))
                 diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.DebuggingLineBetweenLiteralParts.Code,
                     "a debugging line (indicator D or >>D) is source under WITH DEBUGGING MODE, and a source line shall not stand "
-                    + "between the parts of a continued literal: only comment lines and blank lines may (ISO §2023:6.3.5 2))",
+                    + "between the parts of a continued literal: only comment lines and blank lines may (ISO "
+                    + Edition.Cite("§1985:IV.7.2.2", "§2023:6.3.5 2)") + ")",
                     At(origin.File, origin.Line, indicatorColumn), default);
     }
 
@@ -196,11 +197,14 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
     /// <summary>§2023:6.3.5 2) — COBOL2688: a continuation line completes a multiple-character separator or invocation
-    /// operator (<c>==</c>, <c>::</c>) begun at the end of the latest logical line.</summary>
+    /// operator (<c>==</c>, <c>::</c>) begun at the end of the latest logical line. COBOL-85 states it of the one such
+    /// separator it has, the pseudo-text delimiter, in §1985:IV.7.2.2 (kb/Work PB4950).</summary>
     public void OnSplitSeparator(string file, int line, string token)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.MultipleCharacterTokenSplit.Code,
-            $"{token} is split across a continued line and its continuation line; all the characters of a "
-            + "multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 2))",
+            $"{token} is split across a continued line and its continuation line; "
+            + Edition.Cite(
+                "both characters composing the separator '==' must be on the same line (ISO §1985:IV.7.2.2)",
+                "all the characters of a multiple-character separator or operator shall be on the same line (ISO §2023:6.3.5 2))"),
             At(file, line, FixedFormLine.IndicatorColumn), default);
 
     /// <summary>§2023:6.2.3.2 SR6 / §2023:6.3.5 2) / §2023:6.4.2 — COBOL2684: the first nonblank character of a literal's
@@ -208,7 +212,7 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     public void OnContinuationQuote(string file, int line, int column, char quote)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.LiteralContinuationQuote.Code,
             $"the first nonblank character of a continuation line of a literal shall be {QuoteName(quote)}, the quotation "
-            + "symbol used in the literal's opening delimiter (ISO §2023:6.2.3.2 SR6)", At(file, line, column), default);
+            + $"symbol used in the literal's opening delimiter (ISO {Edition.Cite("§1985:IV.7.2.2", "§2023:6.2.3.2 SR6")})", At(file, line, column), default);
 
     /// <summary>§2023:6.3.5 2) — COBOL2685: a national literal continued by the fixed continuation indicator.</summary>
     public void OnNationalFixedContinuation(string file, int line)
@@ -269,9 +273,11 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
     /// (kb/Work PB1494). Every such line is reported; it is then read as a source line.</summary>
     public void OnInvalidIndicator(string file, int line, Rune indicator)
         => diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.FixedIndicatorInvalid.Code,
-            $"the indicator area (column 7) holds '{indicator}', which is not a fixed indicator: ISO §2023:6.2.2 lists "
-            + "*, / (comment line), - (continuation line) and space (source line); a NIST CCVS program's column-7 "
-            + "conventions are honored under --nist", At(file, line, FixedFormLine.IndicatorColumn), default);
+            $"the indicator area (column 7) holds '{indicator}', which is not a fixed indicator: ISO "
+            + Edition.Cite("§1985:IV.7.2.2 and §1985:IV.7.2.4 list * and / (comment line), - (continuation line) and space (source line), "
+                    + "and the Debug module's D (debugging line)",
+                "§2023:6.2.2 lists *, / (comment line), - (continuation line) and space (source line)")
+            + "; a NIST CCVS program's column-7 conventions are honored under --nist", At(file, line, FixedFormLine.IndicatorColumn), default);
 
     /// <summary>Any col-7 '-' continuation — OBSOLETE at 2023 (Annex F.2 item 4; VCR row 94).</summary>
     public void OnContinuation(string file, int line)

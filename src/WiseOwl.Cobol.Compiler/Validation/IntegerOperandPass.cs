@@ -88,7 +88,7 @@ internal sealed class IntegerOperandPass(EditionContext edition) : CursorFollowi
             string where = IntegerOperandRules.ConstructName(ctx);
             Sink.Report(new EditionDiagnostic(DiagnosticCatalog.IntegerOperandBeyondLimit.Code, EditionSeverity.Error,
                 DiagnosticCatalog.IntegerOperandBeyondLimit.Id,
-                IntegerOperandRules.BeyondLimitMessage(where, $"the integer operand {text}"), where,
+                IntegerOperandRules.BeyondLimitMessage(where, $"the integer operand {text}", edition.DialectLevel), where,
                 DiagnosticCatalog.IntegerOperandBeyondLimit.IsoSection));
         }
         return base.VisitChildren(ctx);
@@ -394,11 +394,15 @@ internal static class IntegerOperandRules
     /// operand) report it in the same words, quoting the integer as the source wrote it.</summary>
     /// <param name="where">The construct, as the site names it.</param>
     /// <param name="subject">What the integer is, e.g. <c>the integer operand 77777777777</c>.</param>
-    internal static string BeyondLimitMessage(string where, string subject) =>
+    /// <param name="dialectLevel">The edition in force: §1985:I.1.7 states the same allowance for COBOL-85 (kb/Work PB4950).</param>
+    internal static string BeyondLimitMessage(string where, string subject, int dialectLevel) =>
         $"{where}: {subject} exceeds this implementation's limit of {HostLimit:N0} for an integer-n that sizes, "
         + "counts or positions something the compiler lays out (docs/CONFORMANCE.md §3 'Integer operands and host "
-        + "carriers'). ISO §2023:4.5: \"Translation may be unsuccessful due to factors other than lack of conformance of "
-        + "a compilation group\" — the limits of an implementation";
+        + "carriers'). "
+        + new EditionInfo(dialectLevel).Cite(
+            "ISO §1985:I.1.7: \"Standard COBOL specifies no upper limit on such things as the number of statements in a program and "
+            + "the number of operands permitted in certain statements\" — the limits of an implementation",
+            "ISO §2023:4.5: \"Translation may be unsuccessful due to factors other than lack of conformance of a compilation group\" — the limits of an implementation");
 
     /// <summary>The slot of <paramref name="operand"/>, from the grammar rule that spells it. A rule the table
     /// does not name takes §2023:5.5 1)'s default — the drift test keeps that from being silent.</summary>
@@ -410,11 +414,11 @@ internal static class IntegerOperandRules
     /// <summary>The refusal of a zero <c>integer-n</c>, citing the rule of the targeted edition: §2023:5.5 1) from 2002 (its
     /// rule is the one 2023 prints), §1985:III.2 below (kb/Work PB5196).</summary>
     internal static string ZeroMessage(string where, string subject, int dialectLevel) =>
-        dialectLevel < 2002
-            ? $"{where}: {subject} shall be nonzero — §1985:III.2: an integer \"must be neither signed nor zero unless "
-              + "explicitly allowed by the rules for that format\", and no rule of this format permits zero here"
-            : $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
-              + "otherwise specified in the associated rules\", and no rule of this format permits zero here";
+        EditionInfo.Of(dialectLevel).Cite(
+            $"{where}: {subject} shall be nonzero — §1985:III.2: an integer \"must be neither signed nor zero unless "
+              + "explicitly allowed by the rules for that format\", and no rule of this format permits zero here",
+            $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
+              + "otherwise specified in the associated rules\", and no rule of this format permits zero here");
 
     /// <summary>The construct named in the diagnostic: the source text of the clause or phrase that spells the
     /// operand (an OCCURS bound names its whole OCCURS clause).</summary>

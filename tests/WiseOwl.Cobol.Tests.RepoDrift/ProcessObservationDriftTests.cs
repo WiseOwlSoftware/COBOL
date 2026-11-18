@@ -83,8 +83,14 @@ public sealed class ProcessObservationDriftTests
             string body = File.ReadAllText(file);
             if (!RunsDotnet.IsMatch(body)) continue;
             foreach (System.Text.RegularExpressions.Match call in ObserveCall.Matches(body))
-                if (!call.Value.Contains("runDirectory:", StringComparison.Ordinal))
+            {
+                if (call.Value.Contains("runDirectory:", StringComparison.Ordinal)) continue;
+                string? tool = ToolRun(body, call);
+                if (tool is null)
                     offenders.Add($"{Path.GetRelativePath(TestRepo.Root, file)}:  {call.Value}");
+                else if (tool.Length > 0)
+                    offenders.Add($"{Path.GetRelativePath(TestRepo.Root, file)}:  {call.Value}  (marked as a tool run, but {tool})");
+            }
         }
         Assert.True(offenders.Count == 0,
             "a compiled program is observed without naming its run directory, so a retry after a contention timeout runs "
@@ -96,7 +102,60 @@ public sealed class ProcessObservationDriftTests
         Assert.Matches(ObserveCall, "ProcessObserver.ObserveOrThrow(psi, stdin);");
         Assert.DoesNotContain("runDirectory:", ObserveCall.Match("ProcessObserver.ObserveOrThrow(psi, stdin);").Value, StringComparison.Ordinal);
         Assert.Contains("runDirectory:", ObserveCall.Match("ProcessObserver.ObserveOrThrow(psi, stdin, runDirectory: dir);").Value, StringComparison.Ordinal);
+        // The tool mark is CHECKED, never taken on trust (kb/Work PB4950 round 10): the observed ProcessStartInfo's first argument must
+        // be an SDK verb the source spells, not a compiled program's assembly.
+        static string? Verdict(string source) => ToolRun(source, ObserveCall.Match(source));
+        const string observed = "var run = ProcessObserver.ObserveOrThrow(psi);   " + ToolMark + " dotnet msbuild evaluating a project\n";
+        Assert.Equal("", Verdict("var psi = new ProcessStartInfo(\"dotnet\") { WorkingDirectory = root };\n"
+            + "foreach (string arg in (string[])[\"msbuild\", project, \"-nologo\"])\n    psi.ArgumentList.Add(arg);\n" + observed));
+        Assert.Equal("", Verdict("var psi = new ProcessStartInfo(\"dotnet\");\npsi.ArgumentList.Add(\"build\");\n" + observed));
+        Assert.Equal("", Verdict("var psi = new ProcessStartInfo(\"dotnet\", \"msbuild x.csproj\");\n" + observed));
+        Assert.Equal("its first argument is \"\\\"{dll}\\\"\", not an SDK verb",
+            Verdict("var psi = new ProcessStartInfo(\"dotnet\", $\"\\\"{dll}\\\"\");\n" + observed));
+        Assert.Equal("its first argument is no literal the source spells (dll), so it cannot be checked",
+            Verdict("var psi = new ProcessStartInfo(\"dotnet\");\npsi.ArgumentList.Add(dll);\n" + observed));
+        Assert.Null(Verdict("var psi = new ProcessStartInfo(\"dotnet\");\npsi.ArgumentList.Add(\"msbuild\");\n"
+            + "var run = ProcessObserver.ObserveOrThrow(psi);\n" + ToolMark + " on the next line, not this one\n"));
     }
+
+    /// <summary>Whether a call runs a TOOL of the SDK (<c>dotnet msbuild</c> evaluating a project, which reads the repository and writes
+    /// nothing): such a run has no run directory of its own to restore, as <see cref="ProcessObserver.ObserveOrThrow"/> says of git or
+    /// python run in the repository. The call's line claims it with <c>// a tool, not a compiled program: &lt;what&gt;</c>, and the claim
+    /// is CHECKED: the observed <c>ProcessStartInfo</c>'s first argument, as the source spells it (the constructor's second argument,
+    /// the first <c>ArgumentList.Add</c>, or the first element of the array a <c>foreach</c> adds its arguments from), must be an SDK verb. Null:
+    /// the call makes no claim. Empty: the claim holds. Otherwise: why the claim fails, which is an offence (a mark on a compiled
+    /// program's launch, or a first argument the source does not spell).</summary>
+    private static string? ToolRun(string body, System.Text.RegularExpressions.Match call)
+    {
+        int end = body.IndexOf('\n', call.Index + call.Length);
+        if (!body[call.Index..(end < 0 ? body.Length : end)].Contains(ToolMark, StringComparison.Ordinal)) return null;
+        string psi = System.Text.RegularExpressions.Regex.Match(call.Value, @"ObserveOrThrow\(\s*(\w+)").Groups[1].Value;
+        var declarations = System.Text.RegularExpressions.Regex.Matches(body[..call.Index],
+            @"\b" + psi + @"\s*=\s*new\s+ProcessStartInfo\(\s*""dotnet""\s*(?:,\s*(?<ctor>\$?@?""(?:[^""\\]|\\.)*""))?");
+        if (declarations.Count == 0) return $"no ProcessStartInfo(\"dotnet\") named {psi} precedes it";
+        var declaration = declarations[^1];
+        string? first;
+        if (declaration.Groups["ctor"].Success)
+            first = declaration.Groups["ctor"].Value.TrimStart('$', '@')[1..^1].Split(' ')[0];
+        else
+        {
+            string between = body[declaration.Index..call.Index];
+            var add = System.Text.RegularExpressions.Regex.Match(between, psi + @"\.ArgumentList\.Add\(\s*(?<arg>[^)]*)\)");
+            var array = System.Text.RegularExpressions.Regex.Match(between,
+                @"\bin\s*(?:\(string\[\]\)\s*\[|new\s*(?:string)?\[\]\s*\{)\s*""(?<verb>[^""]*)""");
+            first = array.Success && (!add.Success || array.Index < add.Index) ? array.Groups["verb"].Value
+                : add.Success && add.Groups["arg"].Value.StartsWith('"') ? add.Groups["arg"].Value.Trim('"')
+                : add.Success ? null : "";
+            if (first is null) return $"its first argument is no literal the source spells ({add.Groups["arg"].Value}), so it cannot be checked";
+        }
+        return SdkVerbs.Contains(first) ? "" : $"its first argument is \"{first}\", not an SDK verb";
+    }
+
+    /// <summary>The <c>dotnet</c> verbs that run a tool of the SDK, never a program: a compiled program's launch names its assembly.</summary>
+    private static readonly HashSet<string> SdkVerbs =
+        ["msbuild", "build", "restore", "clean", "pack", "publish", "test", "sln", "nuget", "tool", "format", "workload", "list", "new"];
+
+    private const string ToolMark = "// a tool, not a compiled program:";
 
     private static readonly System.Text.RegularExpressions.Regex RunsDotnet =
         new(@"new ProcessStartInfo\(\s*""dotnet""", System.Text.RegularExpressions.RegexOptions.Compiled);

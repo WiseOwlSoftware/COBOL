@@ -164,11 +164,8 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// <param name="Rule">The syntax or general rule that governs the operands it admits.</param>
     private readonly record struct RowAt1985(string Brace, string Rule);
 
-    /// <summary>The 1985 standard governs this compilation: §1985:VI.6.23.2's four formats, not §2023:14.9.39.2's seventeen.</summary>
-    private bool Is1985 => ctx.Edition.Edition.Year < 2002;
-
     /// <summary>The clause that prints the SET formats in the governing edition.</summary>
-    private string FormatsClause => Is1985 ? "ISO §1985:VI.6.23.2" : "ISO §2023:14.9.39.2";
+    private string FormatsClause => ctx.Edition.Edition.Cite("ISO §1985:VI.6.23.2", "ISO §2023:14.9.39.2");
 
     /// <summary>The row's format exists in the compiled edition: <see cref="Row.IntroducedIn"/> is the first edition
     /// whose general-format list prints it (kb/Work PB4954).</summary>
@@ -187,11 +184,11 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// wording.</summary>
     private string BraceOf(Row row) =>
         !InEdition(row) ? $"{row.Brace} (a format first printed in COBOL-{row.IntroducedIn}, absent from this edition)"
-        : Is1985 && row.At1985 is { } r ? r.Brace : row.Brace;
+        : row.At1985 is { } r ? ctx.Edition.Edition.Cite(r.Brace, row.Brace) : row.Brace;
 
     /// <summary>The row's governing rule in the governing edition's words (a row the edition lacks keeps the 2023
     /// rule, which <see cref="BraceOf"/> has already labelled).</summary>
-    private string RuleOf(Row row) => Is1985 && InEdition(row) && row.At1985 is { } r ? r.Rule : row.Rule;
+    private string RuleOf(Row row) => InEdition(row) && row.At1985 is { } r ? ctx.Edition.Edition.Cite(r.Rule, row.Rule) : row.Rule;
 
     /// <summary>The kinds as a bit set — one bit per <see cref="SetOperandKind"/> member.</summary>
     private static uint Bits(IEnumerable<SetOperandKind> kinds)

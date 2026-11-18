@@ -50,10 +50,10 @@ public abstract class CobolParserCoreBase : Parser
         => written is null ? null
          : CobolWords.Resolve(written);   // the keyword spelling, directive or none: Resolve spells it (kb/Work PB4240)
 
-    protected bool is85()   => Edition.Has(85);
-    protected bool is2002() => Edition.Has(2002);
-    protected bool is2014() => Edition.Has(2014);
-    protected bool is2023() => Edition.Has(2023);
+    [EditionDerived] protected bool is85()   => Edition.Has(85);
+    [EditionDerived] protected bool is2002() => Edition.Has(2002);
+    [EditionDerived] protected bool is2014() => Edition.Has(2014);
+    [EditionDerived] protected bool is2023() => Edition.Has(2023);
 
     /// <summary>
     /// True when a SPECIAL-NAMES entry is the §2023:12.3.7 <c>LOCALE locale-name-1 IS {external-locale-name-1 |
@@ -226,6 +226,7 @@ public abstract class CobolParserCoreBase : Parser
     /// (LT(1) is the SET token itself): true when LT(2)/LT(3) spell LOCALE and a locale category and LT(4) is TO — the
     /// format's own keywords, plain words reserved 2002+ (§2023:8.9); below 2002 they are user words and a SET of a data
     /// item named LOCALE keeps its '85 reading.</summary>
+    [EditionDerived]
     protected bool setLocaleAhead()
     {
         if (!Word(TokenStream.LT(2), "LOCALE")) return false;
@@ -1197,6 +1198,11 @@ public abstract class CobolParserCoreBase : Parser
     /// the register the parser's own hint for the vendor statement words reads (COBOL0313).</summary>
     internal bool ReservedAsAName(IToken token)
         => ReservedUserWordViolation(token, atAName: true) is not null || ExtensionReservedWord(token) is not null;
+
+    /// <summary>⛔ THE ONE EDITION READ OF A DIAGNOSIS (kb/Work PB4950): the edition the parse is diagnosed for, so a syntax diagnostic
+    /// cites the rule of the edition in force through <see cref="EditionInfo.Cite"/> (and a closed format's refusal through
+    /// <see cref="Cst.ClosedFormat.Refusal"/>). Diagnosis only (<c>CobolErrorStrategy</c>); never read while parsing.</summary>
+    internal EditionInfo EditionInForce => Edition;
 
     /// <summary>The canonical word of the keyword <paramref name="token"/> when this implementation reserves it for a
     /// nonstandard extension (§2023:4.2.10 3), else null.</summary>

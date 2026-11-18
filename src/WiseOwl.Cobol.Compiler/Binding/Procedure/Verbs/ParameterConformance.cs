@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Runtime;
 
@@ -70,34 +71,28 @@ internal readonly record struct BitAlignmentRule(string Clause, string Alignment
     /// from COBOL 2002; 1985 reads the 2002 form).</summary>
     internal static BitAlignmentRule For(BitAlignmentStatement statement, int year)
     {
-        bool is2023 = year >= 2023;
-        string alignment = is2023 ? "§2023:8.5.1.6.3" : year >= 2014 ? "§2014:8.5.1.5.3" : "§2002:8.5.1.5.3";
+        // The edition decides the citation through the one decider (kb/Work PB4950); 1985 reads the 2002 form (summary).
+        var edition = EditionInfo.Of(year);
+        bool is2023 = edition.Has(2023);
+        string alignment = From2002(edition, "§2002:8.5.1.5.3", "§2014:8.5.1.5.3", "§2023:8.5.1.6.3");
         bool narrowed = is2023 && statement is BitAlignmentStatement.CallReference or BitAlignmentStatement.CallReturning
             or BitAlignmentStatement.Invoke or BitAlignmentStatement.Function;
-        string clause = (statement, is2023 ? 2023 : year >= 2014 ? 2014 : 2002) switch
+        string clause = statement switch
         {
-            (BitAlignmentStatement.CallReference, 2023) => "§2023:14.9.4.3 SR6",
-            (BitAlignmentStatement.CallReference, 2014) => "§2014:14.9.4.2 SR6",
-            (BitAlignmentStatement.CallReference, _) => "§2002:14.8.4.2 SR6",
-            (BitAlignmentStatement.CallReturning, 2023) => "§2023:14.9.4.3 SR8",
-            (BitAlignmentStatement.CallReturning, 2014) => "§2014:14.9.4.2 SR8",
-            (BitAlignmentStatement.CallReturning, _) => "§2002:14.8.4.2 SR8",
-            (BitAlignmentStatement.Invoke, 2023) => "§2023:14.9.23.3 SR12",
-            (BitAlignmentStatement.Invoke, 2014) => "§2014:14.9.22.2 SR12",
-            (BitAlignmentStatement.Invoke, _) => "§2002:14.8.22.2 SR12",
-            (BitAlignmentStatement.Function, 2023) => "§2023:8.4.3.2.3 SR14",
-            (BitAlignmentStatement.Function, 2014) => "§2014:8.4.2.2.2 SR14",
-            (BitAlignmentStatement.Function, _) => "§2002:8.4.2.2.2 SR12",
-            (BitAlignmentStatement.FilePhrase, 2023) => "§2023:14.9.51.3 SR9, §2023:14.9.35.3 SR7",
-            (BitAlignmentStatement.FilePhrase, 2014) => "§2014:14.9.47.2 SR9, §2014:14.9.33.2 SR6",
-            (BitAlignmentStatement.FilePhrase, _) => "§2002:14.8.47.2 SR9, §2002:14.8.33.2 SR7",
-            (BitAlignmentStatement.AddressOf, 2023) => "§2023:8.4.3.11.3 SR4",
-            (BitAlignmentStatement.AddressOf, 2014) => "§2014:8.4.2.11.2 SR4",
-            (BitAlignmentStatement.AddressOf, _) => "§2002:8.4.2.11.2 SR3",
+            BitAlignmentStatement.CallReference => From2002(edition, "§2002:14.8.4.2 SR6", "§2014:14.9.4.2 SR6", "§2023:14.9.4.3 SR6"),
+            BitAlignmentStatement.CallReturning => From2002(edition, "§2002:14.8.4.2 SR8", "§2014:14.9.4.2 SR8", "§2023:14.9.4.3 SR8"),
+            BitAlignmentStatement.Invoke => From2002(edition, "§2002:14.8.22.2 SR12", "§2014:14.9.22.2 SR12", "§2023:14.9.23.3 SR12"),
+            BitAlignmentStatement.Function => From2002(edition, "§2002:8.4.2.2.2 SR12", "§2014:8.4.2.2.2 SR14", "§2023:8.4.3.2.3 SR14"),
+            BitAlignmentStatement.FilePhrase => From2002(edition, "§2002:14.8.47.2 SR9, §2002:14.8.33.2 SR7", "§2014:14.9.47.2 SR9, §2014:14.9.33.2 SR6", "§2023:14.9.51.3 SR9, §2023:14.9.35.3 SR7"),
+            BitAlignmentStatement.AddressOf => From2002(edition, "§2002:8.4.2.11.2 SR3", "§2014:8.4.2.11.2 SR4", "§2023:8.4.3.11.3 SR4"),
             _ => throw new ArgumentOutOfRangeException(nameof(statement), statement, "a bit-alignment statement the table does not carry"),
         };
         return new BitAlignmentRule(clause, alignment, WholeRefMod: !narrowed);
     }
+
+    /// <summary>A rule of bit items, which begin in COBOL 2002: COBOL-85 reads the 2002 text (each text written once here).</summary>
+    private static string From2002(EditionInfo edition, string y2002, string y2014, string y2023) =>
+        edition.Cite(y2002, y2023, y2002, y2014);
 }
 
 /// <summary>

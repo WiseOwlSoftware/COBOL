@@ -760,7 +760,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             if (SubscriptBinder.IsEmptyGroup(sub))
             {
                 owner.Edition.Error(DiagnosticCatalog.EmptyParenthesesOnDataReference,
-                    $"{where}: {phrase} '{written}': " + SubscriptBinder.EmptyParenthesesMessage);
+                    $"{where}: {phrase} '{written}': " + SubscriptBinder.EmptyParenthesesMessage(owner.Edition.Edition));
                 return null;
             }
             // §2023:13.10.3 SR3: all subscripts of data-name-1 and data-name-2 shall be literals. (A subscript never
@@ -1039,7 +1039,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
                 if (beyondLimit && !WiseOwl.Cobol.Validation.IntegerOperandRules.IsFullValueSlot(operand))
                 {
                     owner.Edition.Error(DiagnosticCatalog.IntegerOperandBeyondLimit,
-                        WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where, $"{what} '{word}', the integer {it},"));
+                        WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where, $"{what} '{word}', the integer {it},", owner.Edition.DialectLevel));
                     return null;
                 }
                 // §2023:5.5 1) — "unsigned": a negative literal is not an integer-n, so a constant that is one is not the
@@ -1073,7 +1073,9 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
             ? $"{where}: {what} '{word}' is not a defined constant-name — an integer-n position admits an integer "
               + "literal or an integer constant-name (ISO §2023:5.5 1) / §2023:13.10.3 SR2)"
             : $"{where}: {what} '{word}' is not an integer literal — an integer-n position admits an integer literal "
-              + "(ISO §2023:5.5 1)), and COBOL-85 has no constant-name to stand for one");
+              + owner.Edition.Edition.Cite(
+                  "(ISO §1985:III.2, \"integer must be a numeric literal which is an integer\"), and COBOL-85 has no constant-name to stand for one",
+                  "(ISO §2023:5.5 1)), and COBOL-85 has no constant-name to stand for one"));
         return null;
     }
 

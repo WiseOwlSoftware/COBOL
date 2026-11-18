@@ -63,7 +63,7 @@ internal static class AssignTargetRule
         using (edition.At(targets[1]))
             file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignTargetListNotAllowed, edition.Cursor,
                 $"SELECT {file.CobolName}: the ASSIGN clause's TO phrase lists {targets.Length} operands ("
-                + string.Join(" ", targets.Select(t => t.GetText())) + "); ISO §2023:12.4.5.2 SR5 leaves the "
+                + string.Join(" ", targets.Select(t => t.GetText())) + $"); ISO {edition.Edition.Cite("§1985:VII.2.3.3 SR3", "§2023:12.4.5.2 SR5")} leaves the "
                 + "allowable specification of device-name-1 and literal-1 to the implementor, and this "
                 + "implementation allows ONE operand naming the file, or a device class ("
                 + string.Join(" or ", DeviceClasses.Order(StringComparer.Ordinal)) + ") followed by ONE operand "
@@ -87,7 +87,7 @@ internal static class AssignTargetRule
             // entry's FORMAT: §1985:XI.2.3.3 has no rule making literal-1 nonnumeric, so Screen decides (kb/Work PB5587).
             using (edition.At(num))
                 file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor,
-                    $"ASSIGN TO {num.GetText()}: literal-1 shall be an alphanumeric literal (ISO §2023:12.4.5.2 SR4)"));
+                    $"ASSIGN TO {num.GetText()}: literal-1 shall be an alphanumeric literal (ISO {Sr4(edition)})"));
             return "";
         }
         if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord(), t.cobolWord().GetText());
@@ -98,8 +98,9 @@ internal static class AssignTargetRule
         // file as NULLS does.
         if (nn.predefinedNull() is not null && UnreservedKeywordReference.IsFreeAt("NULL", edition))
             return WordText(edition, env, nn, nn.GetText());
-        void Refuse(string why) =>
-            Report(edition, nn, $"ASSIGN TO {nn.GetText()}: literal-1 {why} (ISO §2023:12.4.5.2 SR4)");
+        void Refuse(string why, bool zeroLength = false) =>
+            Report(edition, nn, $"ASSIGN TO {nn.GetText()}: literal-1 {why} (ISO "
+                + (zeroLength ? edition.Edition.Cite("§1985:IV.4.2.2.2.1", "§2023:12.4.5.2 SR4") : Sr4(edition)) + ")");
         string value;
         if (nn.concatenationExpression() is { } ce)
         {
@@ -121,7 +122,7 @@ internal static class AssignTargetRule
             // carries none (§1985:XI.2.3.3): the file's kind is not known until its SD is read, so Screen decides.
             using (edition.At(nn))
                 file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor,
-                    $"ASSIGN TO {nn.GetText()}: literal-1 shall not be a figurative constant (ISO §2023:12.4.5.2 SR4)"));
+                    $"ASSIGN TO {nn.GetText()}: literal-1 shall not be a figurative constant (ISO {Sr4(edition)})"));
             return "";
         }
         else
@@ -135,7 +136,7 @@ internal static class AssignTargetRule
             }
             value = CobolLiteral.Decode(token);
         }
-        if (value.Length == 0) { Refuse("shall not be a zero-length literal"); return ""; }
+        if (value.Length == 0) { Refuse("shall not be a zero-length literal", zeroLength: true); return ""; }
         return value;
     }
 
@@ -172,6 +173,12 @@ internal static class AssignTargetRule
             + "\"as if literal-1 … were written\")");
         return "";
     }
+
+    /// <summary>The rule that literal-1 of the ASSIGN clause is an alphanumeric literal and no figurative constant, in the edition in
+    /// force (kb/Work PB4950): §2023:12.4.5.2 SR4, and at COBOL-85 §1985:VII.2.3.3 SR3 — "Literal-1 must be a nonnumeric literal
+    /// and must not be a figurative constant" (§1985:VIII.2.3.3 SR3 and §1985:IX.2.3.3 SR3 say it again for the other two modules).</summary>
+    private static string Sr4(EditionContext edition) =>
+        edition.Edition.Cite("§1985:VII.2.3.3 SR3", "§2023:12.4.5.2 SR4");
 
     /// <summary>The ONE report of an ASSIGN operand's literal-1 shape (COBOL2645), anchored at the operand.</summary>
     private static void Report(EditionContext edition, Antlr4.Runtime.ParserRuleContext at, string message)

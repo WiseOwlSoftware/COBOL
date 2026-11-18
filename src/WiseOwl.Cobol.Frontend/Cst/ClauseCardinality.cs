@@ -17,6 +17,9 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// ISO/IEC 1989:2023, <c>"ANSI X3.23-1985"</c> for an earlier edition's figure that the 2023 text does not carry
 /// (<see cref="Earlier"/>; kb/Work PB2532).</param>
 /// <param name="FormatLabel">"Format 1 " where the subclause prints several formats; the empty string otherwise.</param>
+/// <param name="Format1985">How a diagnostic at COBOL-85 names this figure when it has no <see cref="Earlier"/> figure of its
+/// own: <c>"ISO §1985:VI.5.3.2"</c> where one 1985 clause prints it, <c>"ANSI X3.23-1985"</c> where the figure is spread over
+/// the I-O modules (the file description and file control entries), kb/Work PB4950.</param>
 /// <param name="Subject">The construct as the standard names it ("data description entry").</param>
 /// <param name="Repeatable">The figure's elements that ARE allowed to repeat: an ellipsis follows them in the figure
 /// (the file control entry's ALTERNATE RECORD KEY and collating-sequence clauses, §2023:12.4.5.1; the 1985 SPECIAL-NAMES
@@ -60,8 +63,13 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// <see cref="Sequence"/> (kb/Work PB3133, ISO review R1-1).</param>
 public sealed record ClauseList(string Format, string FormatLabel, string Subject, IReadOnlySet<Type> Repeatable,
     IReadOnlySet<Type> NotInFigure, IReadOnlyList<Type>? Sequence, Func<ParserRuleContext, object>? KindOf = null, EarlierFigure? Earlier = null,
-    bool ChoiceIndicators = false)
+    bool ChoiceIndicators = false, string? Format1985 = null)
 {
+    /// <summary>The general format as a diagnostic names it in the edition in force (kb/Work PB4950): the 1985 clause
+    /// where this figure has one recorded (<see cref="Format1985"/>), otherwise <see cref="Format"/>, which an
+    /// <see cref="Earlier"/> figure already words as "ANSI X3.23-1985".</summary>
+    public string FormatIn(WiseOwl.Cobol.Editions.EditionInfo edition) => edition.Cite(Format1985 ?? Format, Format);
+
     /// <summary>The figure the edition <paramref name="year"/> prints for this list: this one, or the
     /// <see cref="Earlier"/> chain's figure in force at that edition.</summary>
     public ClauseList At(int year) => Earlier is { } earlier && year < earlier.Until ? earlier.Figure.At(year) : this;
@@ -132,25 +140,25 @@ public static class ClauseCardinalities
                 new("ISO §2023:13.16.2", "Format 1 ", "data description entry",
                     new HashSet<Type> { typeof(Core.ValidationClauseContext) },
                     new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) },
-                    Sequence: null),
+                    Sequence: null, Format1985: "ISO §1985:VI.5.3.2"),
 
             // §2023:13.15.2: sixteen brackets and one braced choice {source | sum | value}, no ellipsis. ORDER: free,
             // §2023:13.15.3 SR2 ("All other clauses may be written in any order").
             [typeof(Core.ReportGroupClauseContext)] =
-                new("ISO §2023:13.15.2", "", "report group description entry", None, None, Sequence: null),
+                new("ISO §2023:13.15.2", "", "report group description entry", None, None, Sequence: null, Format1985: "ISO §1985:XIII.3.9.2"),
 
             // §2023:13.4.5.2 Formats 1-3: every element in its own bracket (`IS EXTERNAL` and `IS GLOBAL` are two). ORDER:
             // free, §2023:13.4.5.3 SR2 ("The clauses that follow file-name-1 may appear in any order").
             [typeof(Core.FileDescriptionClauseContext)] =
                 new("ISO §2023:13.4.5.2", "", "file description entry", None,
                     new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) },
-                    Sequence: null, KindOfFileDescriptionClause),
+                    Sequence: null, KindOfFileDescriptionClause, Format1985: "ANSI X3.23-1985"),
 
             // §2023:13.4.6.2: `SD file-name-1 [ record-clause ] .` (and the '85 DATA RECORDS clause, removal-gated at
             // 2002). ORDER: nothing to order — the figure prints one element.
             [typeof(Core.SortMergeDescriptionClauseContext)] =
                 new("ISO §2023:13.4.6.2", "", "sort-merge file description entry", None,
-                    new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) }, Sequence: null),
+                    new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) }, Sequence: null, Format1985: "ANSI X3.23-1985"),
 
             // §2023:12.4.5.1: only `ALTERNATE RECORD KEY … …` and `[ collating-sequence-clause ] …` carry an ellipsis.
             // ORDER: free after SELECT, §2023:12.4.5.2 SR1 ("The clauses that follow the SELECT clause may appear in any
@@ -159,7 +167,7 @@ public static class ClauseCardinalities
                 new("ISO §2023:12.4.5.1", "", "file control entry",
                     new HashSet<Type> { typeof(Core.AlternateKeyClauseContext), typeof(Core.FileCollatingSequenceClauseContext) },
                     new HashSet<Type> { typeof(Core.UnrecognizedClauseContext) },
-                    Sequence: null),
+                    Sequence: null, Format1985: "ANSI X3.23-1985"),
 
             // §2023:11.9.2 (RENDERED, PDF p302 / folio 272): `OPTIONS.` then seven separate brackets and an independent
             // `[.]` — no ellipsis and no choice indicators — and §2023:11.9.3 has one syntax rule (the period), so no rule
@@ -186,7 +194,7 @@ public static class ClauseCardinalities
                     [
                         typeof(Core.SourceComputerParagraphContext), typeof(Core.ObjectComputerParagraphContext),
                         typeof(Core.SpecialNamesParagraphContext), typeof(Core.RepositoryParagraphContext),
-                    ]),
+                    ], Format1985: "ISO §1985:VI.4.2"),
 
             // §2023:11.2.1: the identification division prints `[ options-paragraph ]` ONCE after the PROGRAM-ID (or other
             // identifying) paragraph, which the grammar already places first — so a second OPTIONS paragraph, which

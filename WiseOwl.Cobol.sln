@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseOwl.Cobol.Tests.RepoDri
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseOwl.Cobol.Listing", "src\WiseOwl.Cobol.Listing\WiseOwl.Cobol.Listing.csproj", "{3F4AE3A1-F872-4A1F-BB7B-2622A2FB463D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseOwl.Cobol.Analyzers", "src\WiseOwl.Cobol.Analyzers\WiseOwl.Cobol.Analyzers.csproj", "{361739A2-38E8-4897-81FF-2C771072EA62}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -199,6 +201,18 @@ Global
 		{3F4AE3A1-F872-4A1F-BB7B-2622A2FB463D}.Release|x64.Build.0 = Release|Any CPU
 		{3F4AE3A1-F872-4A1F-BB7B-2622A2FB463D}.Release|x86.ActiveCfg = Release|Any CPU
 		{3F4AE3A1-F872-4A1F-BB7B-2622A2FB463D}.Release|x86.Build.0 = Release|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Debug|x64.Build.0 = Debug|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Debug|x86.Build.0 = Debug|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Release|x64.ActiveCfg = Release|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Release|x64.Build.0 = Release|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Release|x86.ActiveCfg = Release|Any CPU
+		{361739A2-38E8-4897-81FF-2C771072EA62}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -217,5 +231,6 @@ Global
 		{EB484EAA-75DB-4D69-BFA0-47142CB3876E} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{CDA61B45-91FE-4D93-9F91-AA90A0B3E478} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{3F4AE3A1-F872-4A1F-BB7B-2622A2FB463D} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{361739A2-38E8-4897-81FF-2C771072EA62} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

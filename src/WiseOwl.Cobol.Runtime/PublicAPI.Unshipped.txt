@@ -211,6 +211,8 @@ WiseOwl.Cobol.Runtime.DialectBehavior.SumSizeErrorRaisedAtAddition = 27 -> WiseO
 WiseOwl.Cobol.Runtime.DialectBehavior.TerminateDiscardsSavedNextGroup = 9 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.UnphrasedSizeErrorIsFatal = 20 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.UnstringZeroLengthSenderTerminates = 24 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.EditionDerivedAttribute
+WiseOwl.Cobol.Runtime.EditionDerivedAttribute.EditionDerivedAttribute() -> void
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool
@@ -405,6 +407,27 @@ WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.ServedName.init -> void
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Time.get -> System.TimeProvider!
 WiseOwl.Cobol.Runtime.Messaging.MessagingSettings.Time.init -> void
 WiseOwl.Cobol.Runtime.ModuleStack.RunningIsMain.get -> bool
+WiseOwl.Cobol.Runtime.MoveCitations
+WiseOwl.Cobol.Runtime.MoveCitations.<Clone>$() -> WiseOwl.Cobol.Runtime.MoveCitations!
+WiseOwl.Cobol.Runtime.MoveCitations.BinaryWidth.get -> string!
+WiseOwl.Cobol.Runtime.MoveCitations.BinaryWidth.init -> void
+WiseOwl.Cobol.Runtime.MoveCitations.Boolean.get -> string!
+WiseOwl.Cobol.Runtime.MoveCitations.Boolean.init -> void
+WiseOwl.Cobol.Runtime.MoveCitations.Deconstruct(out string! Space, out string! Zero, out string! Boolean, out string! BinaryWidth, out string! ToNumeric, out string! NumericToAlphabetic, out string! Noninteger, out string! Table16) -> void
+WiseOwl.Cobol.Runtime.MoveCitations.Equals(WiseOwl.Cobol.Runtime.MoveCitations? other) -> bool
+WiseOwl.Cobol.Runtime.MoveCitations.MoveCitations(string! Space, string! Zero, string! Boolean, string! BinaryWidth, string! ToNumeric, string! NumericToAlphabetic, string! Noninteger, string! Table16) -> void
+WiseOwl.Cobol.Runtime.MoveCitations.Noninteger.get -> string!
+WiseOwl.Cobol.Runtime.MoveCitations.Noninteger.init -> void
+WiseOwl.Cobol.Runtime.MoveCitations.NumericToAlphabetic.get -> string!
+WiseOwl.Cobol.Runtime.MoveCitations.NumericToAlphabetic.init -> void
+WiseOwl.Cobol.Runtime.MoveCitations.Space.get -> string!
+WiseOwl.Cobol.Runtime.MoveCitations.Space.init -> void
+WiseOwl.Cobol.Runtime.MoveCitations.Table16.get -> string!
+WiseOwl.Cobol.Runtime.MoveCitations.Table16.init -> void
+WiseOwl.Cobol.Runtime.MoveCitations.ToNumeric.get -> string!
+WiseOwl.Cobol.Runtime.MoveCitations.ToNumeric.init -> void
+WiseOwl.Cobol.Runtime.MoveCitations.Zero.get -> string!
+WiseOwl.Cobol.Runtime.MoveCitations.Zero.init -> void
 WiseOwl.Cobol.Runtime.MoveSending.Approximate.get -> bool
 WiseOwl.Cobol.Runtime.MoveSending.Approximate.init -> void
 WiseOwl.Cobol.Runtime.MoveSending.Computed.get -> bool
@@ -932,6 +955,9 @@ override WiseOwl.Cobol.Runtime.IO.KeySegment.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.IO.RecordStep.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.MessageOutcome.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.MessageWait.GetHashCode() -> int
+override WiseOwl.Cobol.Runtime.MoveCitations.Equals(object? obj) -> bool
+override WiseOwl.Cobol.Runtime.MoveCitations.GetHashCode() -> int
+override WiseOwl.Cobol.Runtime.MoveCitations.ToString() -> string!
 override WiseOwl.Cobol.Runtime.ObjectReferenceOperand.GetHashCode() -> int
 override WiseOwl.Cobol.Runtime.Occurrence.ToString() -> string!
 override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.GetHashCode() -> int
@@ -1259,7 +1285,11 @@ static WiseOwl.Cobol.Runtime.MessageTagImage.Of(WiseOwl.Cobol.Runtime.MessageTag
 static WiseOwl.Cobol.Runtime.MessageTagImage.TagOf(string! image) -> WiseOwl.Cobol.Runtime.MessageTag
 static WiseOwl.Cobol.Runtime.MessageWait.operator !=(WiseOwl.Cobol.Runtime.MessageWait left, WiseOwl.Cobol.Runtime.MessageWait right) -> bool
 static WiseOwl.Cobol.Runtime.MessageWait.operator ==(WiseOwl.Cobol.Runtime.MessageWait left, WiseOwl.Cobol.Runtime.MessageWait right) -> bool
-static WiseOwl.Cobol.Runtime.MoveValidity.FigurativeRefusal(WiseOwl.Cobol.Runtime.FigurativeSender sender, WiseOwl.Cobol.Runtime.Table16Category receiver) -> string?
+static WiseOwl.Cobol.Runtime.MoveCitations.operator !=(WiseOwl.Cobol.Runtime.MoveCitations? left, WiseOwl.Cobol.Runtime.MoveCitations? right) -> bool
+static WiseOwl.Cobol.Runtime.MoveCitations.operator ==(WiseOwl.Cobol.Runtime.MoveCitations? left, WiseOwl.Cobol.Runtime.MoveCitations? right) -> bool
+static WiseOwl.Cobol.Runtime.MoveValidity.BinaryWidthRefusal(bool binaryWidthSender, WiseOwl.Cobol.Runtime.Table16Category receiver, WiseOwl.Cobol.Runtime.MoveCitations! cites) -> string?
+static WiseOwl.Cobol.Runtime.MoveValidity.FigurativeRefusal(WiseOwl.Cobol.Runtime.FigurativeSender sender, WiseOwl.Cobol.Runtime.Table16Category receiver, WiseOwl.Cobol.Runtime.MoveCitations! cites) -> string?
+static WiseOwl.Cobol.Runtime.MoveValidity.Table16Refusal(WiseOwl.Cobol.Runtime.Table16Category sender, WiseOwl.Cobol.Runtime.Table16Category receiver, WiseOwl.Cobol.Runtime.MoveCitations! cites) -> string?
 static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator !=(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
 static WiseOwl.Cobol.Runtime.ObjectReferenceOperand.operator ==(WiseOwl.Cobol.Runtime.ObjectReferenceOperand left, WiseOwl.Cobol.Runtime.ObjectReferenceOperand right) -> bool
 static WiseOwl.Cobol.Runtime.ObjectReferenceSet.Refusal(WiseOwl.Cobol.Runtime.ObjectReferenceOperand send, WiseOwl.Cobol.Runtime.ObjectReferenceOperand recv, bool activeClassSenderAdmitted = true) -> string?
@@ -1307,6 +1337,7 @@ static WiseOwl.Cobol.Runtime.SwitchStore.Names.get -> System.Collections.Generic
 static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackFixed(object? box, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal, string! image, WiseOwl.Cobol.Runtime.ReceivingReferences? received) -> object!
 static WiseOwl.Cobol.Runtime.UniversalGroupCarrier.WriteBackVariable(object? box, WiseOwl.Cobol.Runtime.ActivationDescription! argument, WiseOwl.Cobol.Runtime.ActivationDescription! formal, WiseOwl.Cobol.Runtime.CobolVarGroup! carrier, WiseOwl.Cobol.Runtime.ReceivingReferences? received) -> object!
 static readonly WiseOwl.Cobol.Runtime.MessageTag.Null -> WiseOwl.Cobol.Runtime.MessageTag
+static readonly WiseOwl.Cobol.Runtime.MoveCitations.Iso2023 -> WiseOwl.Cobol.Runtime.MoveCitations!
 ~override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.CobolDecWithPrecision.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Communication.CommunicationReceipt.Equals(object obj) -> bool

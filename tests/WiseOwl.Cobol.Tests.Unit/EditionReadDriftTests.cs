@@ -107,7 +107,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
+            "EditionInForce", "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
             "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "UserWordViolationOf", "conditionalPhraseAssociates",
             "entryNameHere", "facilityWord",
             "gatedDeclaration", "gatedWordFreeHere", "is2002", "is2014",
@@ -195,7 +195,12 @@ public sealed class EditionReadDriftTests
         // neither table, and the words a format spells where §2023:8.9 leaves them free (IsKeywordWhereFree). It refuses nothing
         // itself and gates no construct.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.DiagnosisOnly),
-        // The same sentence names a user-defined word where an operand is due only where the compile edition has one to write
+        // ⛔ THE ERROR STRATEGY READS THE EDITION ONE WAY (kb/Work PB4950 review R1-2): EditionOf, through EditionInForce, so a syntax
+        // diagnostic cites the rule of the edition in force (CiteAt, a closed format's refusal, the MOVE CORRESPONDING position, the
+        // empty block, the GO TO complement, the COBOL0313 extension-word sentence). A recognizer that is no COBOL parser is an
+        // internal error, never a later-edition default. Wording only: it refuses nothing and gates no construct.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.EditionOf | EditionInForce"] = (1, Verdict.DiagnosisOnly),
+        // The COBOL5506 sentence names a user-defined word where an operand is due only where the compile edition has one to write
         // (kb/Work PB4435, PrintsConstantName): where every word the position takes stands for a literal (§2023:13.10.3 SR2), the
         // word is a constant-name, and the constant entry is COBOL-2002's, so a COBOL-85 sentence names the literal alone.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsConstantName"] = (1, Verdict.DiagnosisOnly),

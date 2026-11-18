@@ -860,8 +860,8 @@ public sealed class ReferenceResolver(DataBinder data)
             case CapacityRefFault.RefModified:
                 // §2023:8.4.3.3.3 SR1 lives in ONE place — RefModExclusion — and the register answers it like any item.
                 data.Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted,
-                    $"'{text}': reference modification of {RefModBinder.RefModExclusion(cap.Register) ?? "a CAPACITY register"} "
-                    + "is not permitted (ISO §2023:8.4.3.3.3 SR1)");
+                    $"'{text}': reference modification of {RefModBinder.RefModExclusion(cap.Register, data.Edition.Edition) ?? "a CAPACITY register"} "
+                    + $"is not permitted (ISO {RefModBinder.RefModIdentifierRule(data.Edition.Edition)})");
                 return null;
             case CapacityRefFault.Qualifiers:
                 string innermost = cap.Register.Parent is { CobolName: { } p }

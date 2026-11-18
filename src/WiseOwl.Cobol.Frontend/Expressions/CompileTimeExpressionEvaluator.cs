@@ -632,7 +632,7 @@ public sealed class CompileTimeExpressionEvaluator
         {
             any = true;
             _diag.Report(CtDiagCode.ArithmeticRule, $"{where}: {message}");
-        });
+        }, _edition);
         return any;
     }
 

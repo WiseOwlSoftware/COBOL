@@ -469,7 +469,7 @@ public sealed class IntrinsicArgumentClassDriftTests
             + "shape changed and this guard has gone blind; fix the walk, do not lower the floor.");
 
         var admitted = positions
-            .Where(x => IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest, ArithmeticMode.Native) is null)
+            .Where(x => IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest, ArithmeticMode.Native, x.Fn) is null)
             .Select(x => $"FUNCTION {x.Fn} argument-{x.Ordinal}")
             .Order()
             .ToList();
@@ -498,8 +498,8 @@ public sealed class IntrinsicArgumentClassDriftTests
             .SelectMany(kv => kv.Value.Positions
                 .Select((r, i) => (Fn: kv.Key, Ordinal: i + 1, Rule: r))
                 .Concat(kv.Value.Tail is { } t ? [(kv.Key, kv.Value.Positions.Length + 1, t)] : []))
-            .Where(x => x.Rule.Kind == 'i' && IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest, ArithmeticMode.Native) is { } why)
-            .Select(x => $"FUNCTION {x.Fn} argument-{x.Ordinal}: {IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest, ArithmeticMode.Native)}")
+            .Where(x => x.Rule.Kind == 'i' && IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest, ArithmeticMode.Native, x.Fn) is { } why)
+            .Select(x => $"FUNCTION {x.Fn} argument-{x.Ordinal}: {IntrinsicArgumentRules.Violation(x.Rule, op, EditionInfo.Latest, ArithmeticMode.Native, x.Fn)}")
             .Order()
             .ToList();
         Assert.True(rejected.Count == 0,
@@ -603,10 +603,10 @@ public sealed class IntrinsicArgumentClassDriftTests
                     if (IntrinsicArgumentRules.TableTwoClass(ca) != IntrinsicArgumentRules.TableTwoClass(cb)) continue;
                     // …and only pairs the PER-POSITION screen already admits, so this fact measures the cross
                     // screen alone and never re-litigates §15.x.3 r1.
-                    if (RuleAt(schema, 0) is not { } r0 || IntrinsicArgumentRules.Violation(r0, opA, EditionInfo.Latest, ArithmeticMode.Native) is not null) continue;
-                    if (RuleAt(schema, 1) is not { } r1 || IntrinsicArgumentRules.Violation(r1, opB, EditionInfo.Latest, ArithmeticMode.Native) is not null) continue;
+                    if (RuleAt(schema, 0) is not { } r0 || IntrinsicArgumentRules.Violation(r0, opA, EditionInfo.Latest, ArithmeticMode.Native, fn) is not null) continue;
+                    if (RuleAt(schema, 1) is not { } r1 || IntrinsicArgumentRules.Violation(r1, opB, EditionInfo.Latest, ArithmeticMode.Native, fn) is not null) continue;
                     exercised++;
-                    if (IntrinsicArgumentRules.CrossViolation(schema, [opA, opB]) is { } why)
+                    if (IntrinsicArgumentRules.CrossViolation(schema, [opA, opB], EditionInfo.Latest, fn) is { } why)
                         rejected.Add($"FUNCTION {fn}({ca} {cb}): {why}");
                 }
             }

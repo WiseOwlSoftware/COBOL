@@ -28,7 +28,6 @@ internal static class UnreservedKeywordReference
         string head = CobolNames.UpperFold(word);
         edition.Error(DiagnosticCatalog.UndefinedReference, $"'{head}' is not defined — no declaration in this "
             + $"source element gives the name '{head}', and §2023:8.9 does not reserve the word at this edition, so it is "
-            + "no predefined identifier here (ISO §2023:8.4.2.1: \"a statement shall contain a reference that uniquely "
-            + "identifies that resource\"). Check the spelling, or declare the item.");
+            + $"no predefined identifier here ({edition.Edition.Quoted()}). Check the spelling, or declare the item.");
     }
 }

@@ -407,7 +407,7 @@ internal sealed class LinkageBinder(DataBinder data)
                 // §2023:14.2.2 SR1: each formal parameter shall be a level-01/77 entry in the LINKAGE SECTION.
                 data.Edition.Error(DiagnosticCatalog.ProcedureHeaderItemNotLinkageRoot,
                     $"PROCEDURE DIVISION USING parameter '{pname}' is not a level-01/77 LINKAGE SECTION item "
-                    + "(ISO §2023:14.2.2 SR1)");
+                    + $"(ISO {data.Edition.Edition.Cite("§1985:X.5.1", "§2023:14.2.2 SR1")})");
                 pos++;
                 continue;
             }
@@ -714,6 +714,10 @@ internal sealed class LinkageBinder(DataBinder data)
         // so it costs nothing when there is nothing to compare.
         if (_externalBackings.Count == 0 && !data.State.Files.Declared.Any(f => f.IsExternal)) return;
         var seen = new Dictionary<string, string>(CobolNames.Comparer);   // the ExternalTable's own comparer
+        const string Rule2023 = "\"In the same source element, the externalized name of the subject of the entry that includes the "
+            + "EXTERNAL clause shall not be the same as the externalized name of any other entry that includes the EXTERNAL "
+            + "clause\" (ISO §2023:13.18.22.3 SR2). The EXTERNAL clause's AS phrase names the run-unit cell the subject shares "
+            + "(§2023:13.18.22.4 GR5), so two subjects claiming one name would share one storage area.";
         void Claim(string externalized, string where, DiagnosticCursor at)
         {
             if (seen.TryGetValue(externalized, out var prior))
@@ -721,12 +725,14 @@ internal sealed class LinkageBinder(DataBinder data)
                 using var _ = data.Edition.At(at);   // an unset cursor leaves the current position standing
                 data.Edition.Error(DiagnosticCatalog.ExternalizedNameNotUnique,
                     $"{where}: the externalized name '{externalized}' is already the externalized name of "
-                    + $"{prior} in this source element; \"In the same source element, the externalized name of "
-                    + "the subject of the entry that includes the EXTERNAL clause shall not be the same as the "
-                    + "externalized name of any other entry that includes the EXTERNAL clause\" "
-                    + "(ISO §2023:13.18.22.3 SR2). The EXTERNAL clause's AS phrase names the run-unit cell the "
-                    + "subject shares (§2023:13.18.22.4 GR5), so two subjects claiming one name would share one "
-                    + "storage area.");
+                    + $"{prior} in this source element; "
+                    + data.Edition.Edition.Cite(
+                        "\"In the same program, the data-name specified as the subject of the entry whose level-number is 01 that "
+                        + "includes the EXTERNAL clause must not be the same data-name specified for any other data description entry "
+                        + "which includes the EXTERNAL clause\" (ISO §1985:X.4.5.3 SR2). The record named by the data-name is the "
+                        + "run unit's one external record, which every program describing it shares (§1985:X.4.5.4 GR1), so two "
+                        + "subjects claiming one name would share one storage area.",
+                        Rule2023));
                 return;
             }
             seen[externalized] = where;

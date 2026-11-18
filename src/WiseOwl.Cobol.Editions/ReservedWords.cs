@@ -217,7 +217,7 @@ public sealed class ReservedWordSet
     public static string UserWordViolationMessage(string written, CobolWordsMap words, int edition)
         => words.SynonymOf(written) is not { } original
             ? $"'{written}' is a reserved word in COBOL-{edition} and cannot be used as a "
-              + "user-defined word (ISO §2023:8.9)"
+              + "user-defined word (ISO " + EditionInfo.Of(edition).Cite("§1985:IV.4.2.2.1.3", "§2023:8.9") + ")"
             : $"'{written}' is a synonym for the reserved word {original} (>>COBOL-WORDS, ISO §2023:7.3.10.4 GR2, GR4) and cannot be "
               + "used as a user-defined word (ISO §2023:8.3.2.1 1)";
 }

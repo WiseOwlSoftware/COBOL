@@ -412,7 +412,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// MOVE syntax rule lands here without an edit.</para>
     /// </summary>
     private static bool CorrRule2MoveValid(DataItem src, DataItem dst) =>
-        MoveTable16.DataItemRefusal(src, dst) is null;
+        MoveTable16.DataItemRefusal(src, dst, MoveCitations.Iso2023) is null;   // only the verdict is read: no reason is shown
 
     /// <summary>
     /// The per-statement child-place factory over ONE resolved group operand. At 1985 a MOVE has no anchor (<c>perPair</c>:

@@ -304,7 +304,7 @@ public static class CobolWordsDirectiveProcessor
         bool ok = CobolCharacterRepertoire.IsWordShape(word) && word.Any(CobolCharacterRepertoire.IsLetter);
         if (!ok)
         {
-            Invalid(diag, loc, CobolCharacterRepertoire.SeparatorPositionViolation(word) is { } position
+            Invalid(diag, loc, CobolCharacterRepertoire.SeparatorPositionViolation(word, 2023) is { } position
                 ? $">>COBOL-WORDS: '{word}' is not a valid user-defined word — {position} (ISO §2023:7.3.10.3 SR4)"
                 : $">>COBOL-WORDS: '{word}' is not a valid user-defined word (ISO §2023:7.3.10.3 SR4 / §2023:8.3.2.2)");
             return false;

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 
 namespace WiseOwl.Cobol.Frontend.Parsing;
@@ -39,10 +40,10 @@ public static class PictureSeparatorPeriodRule
     }
 
     /// <summary>The COBOL2419 message for one violating character-string.</summary>
-    public static string Message(IToken t)
+    public static string Message(IToken t, EditionInfo edition)
         => $"the PICTURE character-string {t.Text} ends in the symbol '{t.Text![^1]}', so the PICTURE clause shall "
            + "be the last clause of the entry and be followed immediately, with no intervening separator, by the "
-           + "separator period (ISO §2023:13.18.40.3 SR7); a comma or semicolon followed by a space is a separator "
-           + "(ISO §2023:8.3.5 rule 2), not the end of the entry. Write the clause last and end it with '.', or drop "
+           + $"separator period (ISO {edition.Cite("§1985:VI.5.9.5 GR5", "§2023:13.18.40.3 SR7")}); a comma or semicolon followed by a space is a separator "
+           + $"(ISO {edition.Cite("§1985:IV.4.2.1 SR2", "§2023:8.3.5 rule 2")}), not the end of the entry. Write the clause last and end it with '.', or drop "
            + "the trailing symbol.";
 }

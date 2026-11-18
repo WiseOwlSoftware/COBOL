@@ -10,8 +10,10 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// language server of a session (csharp-ls, the LSP tool of MANDATORY-PRACTICES P13) loads each Roslyn component's
 /// assembly from its <c>bin\</c> and holds it for the life of the session, long after the agent that used it has
 /// returned, and Windows refuses to overwrite a loaded image. Every project that sets <c>IsRoslynComponent</c> therefore
-/// carries the <c>MoveAsideHeldOutput</c> target, which deletes a stale output and renames a held one aside before the
-/// copy, and <c>scripts/test_held_analyzer_output.py</c> (a script self-test, run by the self-test runner in every gate
+/// runs the <c>MoveAsideHeldOutput</c> target, which deletes a stale output and renames a held one aside before the
+/// copy. The target is defined ONCE, in <c>src/Directory.Build.targets</c>, for every src project that sets
+/// <c>IsRoslynComponent</c> (kb/Work PB4950 round 7: a second component, the build's analyzers, would otherwise have needed a
+/// copy), so every Roslyn component lives under <c>src/</c>; <c>scripts/test_held_analyzer_output.py</c> (a script self-test, run by the self-test runner in every gate
 /// and in CI's Windows self-tests) rebuilds the generator with a real process holding it.
 /// </summary>
 /// <remarks>
@@ -25,8 +27,10 @@ public sealed class HeldAnalyzerOutputDriftTests
     /// names this class for each of them).</summary>
     private static readonly TreeScope Projects = new(Under: ["src/", "tests/"], Kinds: [".csproj"]);
 
-    /// <summary>Every project that is a Roslyn component (<c>IsRoslynComponent</c>) carries the target that keeps a held
-    /// output from blocking its build, and at least one such project exists (the sweep scans something).</summary>
+    /// <summary>Every project that is a Roslyn component (<c>IsRoslynComponent</c>) lies under <c>src/</c>, where
+    /// <c>src/Directory.Build.targets</c> gives it the target that keeps a held output from blocking its build; the target is
+    /// defined there, for exactly those projects, and in no project file; and at least one such project exists (the sweep
+    /// scans something).</summary>
     [Fact]
     public void EveryRoslynComponent_MovesAsideAHeldOutput()
     {
@@ -35,12 +39,13 @@ public sealed class HeldAnalyzerOutputDriftTests
         var components = projects.Where(p => File.ReadAllText(Path.Combine(TestRepo.Root, p))
             .Contains("<IsRoslynComponent>true</IsRoslynComponent>", StringComparison.Ordinal)).ToList();
         Assert.NotEmpty(components);
-        foreach (string project in components)
-        {
-            string text = File.ReadAllText(Path.Combine(TestRepo.Root, project));
-            Assert.True(text.Contains("<Target Name=\"MoveAsideHeldOutput\" BeforeTargets=\"CopyFilesToOutputDirectory\">", StringComparison.Ordinal),
-                $"{project} is a Roslyn component a language server loads from bin and holds: copy its MoveAsideHeldOutput target "
-                + "(delete the stale output, rename a held one aside before the copy; kb/Work PB3674)");
-        }
+        Assert.All(components, project => Assert.True(project.StartsWith("src/", StringComparison.Ordinal),
+            $"{project} is a Roslyn component outside src/, where src/Directory.Build.targets does not reach: move it under src/ "
+            + "(kb/Work PB3674)"));
+        string targets = File.ReadAllText(TestRepo.Src("Directory.Build.targets"));
+        Assert.Contains("<Target Name=\"MoveAsideHeldOutput\" BeforeTargets=\"CopyFilesToOutputDirectory\" "
+            + "Condition=\"'$(IsRoslynComponent)' == 'true'\">", targets, StringComparison.Ordinal);
+        Assert.All(projects, project => Assert.DoesNotContain("MoveAsideHeldOutput",
+            File.ReadAllText(Path.Combine(TestRepo.Root, project)), StringComparison.Ordinal));
     }
 }

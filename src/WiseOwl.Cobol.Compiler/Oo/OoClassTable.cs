@@ -325,7 +325,7 @@ public sealed class OoClassTable
         if (_edition is null || CensusOf(site) is not { } elementWords) return false;
         if (elementWords.Record(name, kind) is not { } first) return true;
         using (_edition.At(site as Antlr4.Runtime.ParserRuleContext))
-            _edition.Error(DiagnosticCatalog.UserWordTypeConflict, UserWordCensus.ConflictMessage(name, first, kind));
+            _edition.Error(DiagnosticCatalog.UserWordTypeConflict, UserWordCensus.ConflictMessage(name, first, kind, _edition.Edition));
         return true;
     }
 

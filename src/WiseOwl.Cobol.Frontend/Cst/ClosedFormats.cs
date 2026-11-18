@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;   // RuntimeHelpers.GetUninitializedObjec
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using Antlr4.Runtime.Misc;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;     // DiagnosticCatalog — the band's three codes
 
 using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
@@ -27,16 +28,22 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// <param name="Diagnostic">The catalogue descriptor the refusal reports. §2023:13.16.2 keeps COBOL1941, allocated when
 /// it was closed alone (kb/Work PB487); the clause-list formats share COBOL1970 and the paragraph-list formats
 /// COBOL1971. Carried on the row, so neither refusal site re-derives the code from the noun.</param>
-public sealed record ClosedFormat(string Clause, string FormatLabel, string Subject, string Noun, DiagnosticDescriptor Diagnostic)
+/// <param name="Clause1985">The subclause of ANSI X3.23-1985 that prints the same closed format, in the locator form of
+/// <c>§1985:VI.5.3.2</c> without the edition prefix (several, joined as <c>VII.3.2.2, §1985:VIII.3.2.2</c>, where each module of
+/// the 1985 standard prints its own), or null where this row has none recorded (the message then cites
+/// <paramref name="Clause"/> at COBOL-85 too; kb/Work PB4950).</param>
+public sealed record ClosedFormat(string Clause, string FormatLabel, string Subject, string Noun, DiagnosticDescriptor Diagnostic,
+    string? Clause1985 = null)
 {
     /// <summary>⛔ THE ONE WORDING OF THE REFUSAL, for both of its sites (kb/Work PB2533): <c>ClosedFormatPass</c>, which
     /// refuses a word run the error production RECOGNIZED, and <c>CobolErrorStrategy</c>, which refuses a RESERVED word
     /// or a literal the data division's form cannot hold (<c>1,5</c>) written at the same position — a token the
     /// production never begins with (kb/Work PB3373, PB3390).
     /// <paramref name="owner"/> is the entry's own name (<see cref="ClosedFormats.OwnerName"/>) or null.</summary>
-    public string Refusal(string word, string? owner)
+    public string Refusal(string word, string? owner, EditionInfo edition)
         => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the ISO "
-           + $"§2023:{Clause} {FormatLabel}general format lists the {Noun}s that may be specified, and it is a closed list";
+           + $"{edition.Cite(Clause1985 is { } c1985 ? $"§1985:{c1985}" : $"§2023:{Clause}", $"§2023:{Clause}")} "
+           + $"{FormatLabel}general format lists the {Noun}s that may be specified, and it is a closed list";
 }
 
 /// <summary>
@@ -71,50 +78,53 @@ public static class ClosedFormats
             // folio 363. Keeps COBOL1941 and its message verbatim: the code was allocated for this format and
             // is pinned by conformance:cases/13.16-Data-description/pb487-unrecognized-data-clause.
             [typeof(Core.DataDescriptionClauseContext)] =
-                new("13.16.2", "Format 1 ", "data description entry", "clause", DiagnosticCatalog.DataClauseUnrecognized),
+                new("13.16.2", "Format 1 ", "data description entry", "clause", DiagnosticCatalog.DataClauseUnrecognized, "VI.5.3.2"),
 
             // §2023:13.4.5.2 — the file description entry (FD). PDF p372-373 / folios 342-343.
             [typeof(Core.FileDescriptionClauseContext)] =
-                new("13.4.5.2", "", "file description entry", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
+                new("13.4.5.2", "", "file description entry", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause,
+                    "VII.3.2.2, §1985:VIII.3.2.2 and §1985:IX.3.2.2"),
 
             // §2023:13.4.6.2 — the sort-merge file description entry (SD). PDF p376 / folio 346. The SAME grammar
             // rule used to serve both this format and the FD's, which is why one catch-all left TWO formats open.
             [typeof(Core.SortMergeDescriptionClauseContext)] =
-                new("13.4.6.2", "", "sort-merge file description entry", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
+                new("13.4.6.2", "", "sort-merge file description entry", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause, "XI.3.2.2"),
 
             // §2023:12.4.5.1 — the file control entry (SELECT). PDF p342-344 / folios 312-314.
             [typeof(Core.FileControlClausesContext)] =
-                new("12.4.5.1", "", "file control entry", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
+                new("12.4.5.1", "", "file control entry", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause,
+                    "VII.2.3.2, §1985:VIII.2.3.2, §1985:IX.2.3.2 and §1985:XI.2.3.2"),
 
             // §2023:12.4.6.2 — the I-O-CONTROL paragraph. PDF p363 / folio 333. ⚠ The alternative kb/Work PB487's
             // sweep missed: it is INLINE, not a named `xxxClause : genericClause` wrapper.
             [typeof(Core.IoControlClauseContext)] =
-                new("12.4.6.2", "", "I-O-CONTROL paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
+                new("12.4.6.2", "", "I-O-CONTROL paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause,
+                    "VII.2.10.2, §1985:VIII.2.6.2, §1985:IX.2.8.2 and §1985:XI.2.4.2"),
 
             // §2023:12.3.7.2 — the SPECIAL-NAMES paragraph. PDF p320 / folio 290.
             [typeof(Core.SpecialNameEntryContext)] =
-                new("12.3.7.2", "", "SPECIAL-NAMES paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
+                new("12.3.7.2", "", "SPECIAL-NAMES paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause, "VI.4.5.2"),
 
             // §2023:12.3.5.2 — the SOURCE-COMPUTER paragraph. PDF p314 / folio 284: `SOURCE-COMPUTER. [computer-name-1] .`
             // and nothing else (the WITH DEBUGGING MODE clause, §2002:12.2.4.1, obsolete 2002 and removed 2014, is modelled so
             // its edition gate can name it). Closed by kb/Work PB830 — the residue was a `~DOT` token sink, not `genericClause`.
             [typeof(Core.SourceComputerParagraphContext)] =
-                new("12.3.5.2", "", "SOURCE-COMPUTER paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
+                new("12.3.5.2", "", "SOURCE-COMPUTER paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause, "VI.4.3.2"),
 
             // §2023:12.3.6.2 — the OBJECT-COMPUTER paragraph. PDF p315 / folio 285: the CHARACTER CLASSIFICATION and
             // PROGRAM COLLATING SEQUENCE clauses (plus the modelled '85 MEMORY SIZE and SEGMENT-LIMIT, deleted
             // 2002). Closed by kb/Work PB830, the SOURCE-COMPUTER row's twin.
             [typeof(Core.ObjectComputerClauseContext)] =
-                new("12.3.6.2", "", "OBJECT-COMPUTER paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
+                new("12.3.6.2", "", "OBJECT-COMPUTER paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause, "VI.4.4.2"),
 
             // §2023:12.3.2 — the configuration section. PDF p313 / folio 283. A PARAGRAPH list, not a clause list:
             // four bracketed paragraph names and nothing else.
             [typeof(Core.ConfigurationParagraphContext)] =
-                new("12.3.2", "", "CONFIGURATION SECTION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph),
+                new("12.3.2", "", "CONFIGURATION SECTION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph, "VI.4.2"),
 
             // §2023:11.2.1 — the identification division structure. PDF p293 / folio 263. Also a PARAGRAPH list.
             [typeof(Core.IdentificationParagraphContext)] =
-                new("11.2.1", "", "IDENTIFICATION DIVISION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph),
+                new("11.2.1", "", "IDENTIFICATION DIVISION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph, "VI.3.2.1"),
         }.ToFrozenDictionary();
 
     /// <summary>The closed general format an error production node (either form) violates, or null if its parent

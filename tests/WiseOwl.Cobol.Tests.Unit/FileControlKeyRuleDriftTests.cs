@@ -417,8 +417,28 @@ public sealed class FileControlKeyRuleDriftTests
         Assert.NotEmpty(FileControlKeyRules.Catalog1985);
         foreach (var rule in FileControlKeyRules.Catalog1985)
         {
+            // A row on a GENERAL FORMAT (kb/Work PB4950: the 1985 entry of each organization prints the clauses it takes, and no numbered
+            // rule says so): its quoted words are inside the clause's "General Format" subsection, not under a numbered rule.
+            if (Regex.Match(rule.RuleId, @"^1985-FMT-(?<clause>[IVX]+\.[0-9.]+)-[A-Z-]+$") is { Success: true } fmt)
+            {
+                Assert.Equal(rule.Clause, fmt.Groups["clause"].Value);
+                string heading = rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " General Format";
+                bool inFormat = false;
+                for (int i = 0; i < lines.Length && !inFormat; i++)
+                {
+                    if (Bare(lines[i]).TrimStart('#', ' ') != heading) continue;
+                    var region = new List<string>();
+                    for (int j = i + 1; j < lines.Length && !Bare(lines[j]).StartsWith('#'); j++) region.Add(lines[j]);
+                    inFormat = Norm(Regex.Replace(string.Join(' ', region), "</?u>", "")).Contains(Norm(rule.RuleText));   // the figure underlines its key words
+                }
+                Assert.True(inFormat, $"§1985:{rule.Clause} has no general format containing \"{rule.RuleText}\".");
+                var fmtFile = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
+                var fmtItem = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
+                Assert.Contains(rule.Citation, rule.Message(fmtFile, new FileKeyOperand(rule.Role, "KEY", "K", fmtItem, default)));
+                continue;
+            }
             var m = Regex.Match(rule.RuleId, @"^1985-SR-(?<clause>[IVX]+\.[0-9.]+)-(?<n>\d+)$");
-            Assert.True(m.Success, $"rule-id '{rule.RuleId}' is not the 1985 inventory's 1985-SR-<clause>-<n> shape.");
+            Assert.True(m.Success, $"rule-id '{rule.RuleId}' is not the 1985 inventory's 1985-SR-<clause>-<n> (or 1985-FMT-<clause>-<key>) shape.");
             Assert.Equal(rule.Clause, m.Groups["clause"].Value);
             // Chapter IV prints its subclause headings without the markdown marks the other chapters carry (4.3.8.2.3 Syntax Rules).
             string subsection = rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " Syntax Rules";
