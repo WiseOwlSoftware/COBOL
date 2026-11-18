@@ -447,6 +447,31 @@ over `None` on the front end is the parent's (IX113A 6.78 MB against 6.59-6.67 M
 one buffer (the first version copied the whole listing to join the summary to it, 1.4 MB on IX113A). On these clean programs
 the diagnostics section is one summary page; full-compile rows vary by several MB from run to run (the backend's own
 variation, as at steps 1 and 2). Time rows are not shown: StdDev was again 20-40 % of the mean (kb/Work PB5927).
+
+**Step 4a (kb/Work PB5925, the directive hooks): the no-listing budget against the parent, and every row with the hooks.**
+Step 4a touches the path of a compilation that asks for no listing (the conditional-compilation driver carries the LISTING
+state for PUSH / POP; the DISPLAY directive's LISTING destination is a stream of its own; the replacing actions take a null
+match observer), so it measures `None` against its parent. Measured on 2026-11-18, Release, one Windows host, the parent
+(`14fc6f26ac`, main with step 3) and the `listing-step-4a` branch, back to back, each a full run of
+`dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter *CompileBenchmarks*` (24 cases). Allocated bytes
+per compile, parent -> step 4a:
+
+| Program | Method | None | Text | TextAndJson |
+|---|---|---|---|---|
+| IX113A | FrontEndAndBind | 67.63 -> 67.60 MB | 74.34 -> 74.70 MB | 83.09 -> 83.47 MB |
+| IX113A | FullCompile | 176.89 -> 176.43 MB | 179.66 -> 188.67 MB | 191.83 -> 190.76 MB |
+| NC105A | FrontEndAndBind | 34.09 -> 34.03 MB | 38.22 -> 37.70 MB | 42.21 -> 42.38 MB |
+| NC105A | FullCompile | 106.00 -> 103.35 MB | 105.68 -> 111.13 MB | 114.20 -> 111.31 MB |
+| NC218A | FrontEndAndBind | 30.08 -> 30.06 MB | 33.59 -> 34.34 MB | 38.35 -> 38.51 MB |
+| NC218A | FullCompile | 99.54 -> 96.33 MB | 99.11 -> 99.06 MB | 105.37 -> 103.84 MB |
+| SM201A | FrontEndAndBind | 14.90 -> 15.11 MB | 16.46 -> 16.65 MB | 18.24 -> 18.51 MB |
+| SM201A | FullCompile | 38.02 -> 37.49 MB | 39.24 -> 39.27 MB | 40.88 -> 41.25 MB |
+
+Reading them: the no-listing budget holds. The front end and bind, where step 4a's changes run, allocate within 0.21 MB of the
+parent on every program (-0.06 to +0.21 MB, run-to-run variation of the size steps 1 to 3 saw), and the full-compile `None`
+rows are at or under the parent. With a listing, the front end's rows move by -0.52 to +0.75 MB: these NIST programs hold no
+LISTING, PAGE, DISPLAY or REPLACE (the hooks record nothing for them), and the full-compile rows vary by several MB both ways
+(the backend's own variation, as before). Time rows are not shown: StdDev was 20-40 % of the mean again (kb/Work PB5927).
 ---
 
 ## Not measured here

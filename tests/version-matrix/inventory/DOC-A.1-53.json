@@ -3,7 +3,7 @@
  "rule-digest": "32b10241f868",
  "verdict": "CONFORMS",
  "code-location": "docs/CONFORMANCE.md#DOC-A.1-53; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#DisplayImage; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#ApplyDisplay",
- "test-ref": "unit:DisplayDirectiveTests.ConversionOfData_FollowsTheDeterminedImages; unit:DisplayDirectiveTests.OperandsAreTransferredInOrderAsOneLine; conformance:cases/7.3.12-DISPLAY/pb807_display_directive_operands",
+ "test-ref": "unit:DisplayDirectiveTests.ConversionOfData_FollowsTheDeterminedImages; unit:DisplayDirectiveTests.OperandsAreTransferredInOrderAsOneLine; conformance:cases/7.3.12-DISPLAY/pb807_display_directive_operands; conformance-test:Listing2023Tests.DisplayUponListing_LandsInTheListing_AtItsDirective_EvenUnderListingOff; conformance-test:Listing2023Tests.DisplayUponListing_WithNoListing_IsTheCompilersOutput",
  "editions": "2023",
- "notes": "kb/Work PB1538 landed (w1004b). The conversion of data transferred matches the documented determination: alphanumeric and national values as their characters, boolean values as 0 and 1, numeric values in the shortest decimal form, images of one directive joined by one space on ONE line."
+ "notes": "kb/Work PB1538 landed (w1004b); kb/Work PB5925 step 4a. The conversion of data transferred matches the documented determination: alphanumeric and national values as their characters, boolean values as 0 and 1, numeric values in the shortest decimal form, images of one directive joined by one space on ONE line. The line goes into the source listing at its directive when one is produced (DISPLAY: text), else to the compiler's standard output."
 }

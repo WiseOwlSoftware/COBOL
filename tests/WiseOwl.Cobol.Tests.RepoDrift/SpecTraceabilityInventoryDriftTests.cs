@@ -1544,10 +1544,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // definitional, R43's arm EXTENDED by this signing to a user-program constraint no rule gives a
             // consequence (§2023:4.4 2) leaves a violation undefined) and to a term definition no other rule reads:
             "GR-13.18.16.4-6", "GR-14.9.24.4-10", "GR-14.9.24.4-11", "GR-12.3.5.4-2", "GR-12.3.5.4-3",
-            // unpopulatable-antecedent — listing-only rules under §2023:7.3.18.3 GR1's "Otherwise" (no listing is
-            // produced, A.1 item 117):
-            "GR-7.2.3.4-4", "GR-7.2.3.4-5", "GR-7.3.18.3-2", "GR-7.3.18.3-3", "GR-7.3.18.3-4", "GR-7.3.18.3-5",
-            "GR-7.3.19.4-2",
+            // (The seven listing-only rows under §2023:7.3.18.3 GR1's "Otherwise", GR-7.2.3.4-4 and -5, GR-7.3.18.3-2 to -5
+            // and GR-7.3.19.4-2, LEFT this list with kb/Work PB5925 step 4a: a listing is produced on request, so their
+            // antecedent is populated and each is tested by Listing2023Tests, not derived.)
             // …the single-convention rows (>>CALL-CONVENTION and ENTRY-CONVENTION admit only COBOL):
             "GR-7.3.9.3-3", "GR-11.9.7.4-4", "GR-9.3.6-L3.2",
             // …and the rest, each stating its own closed set in its §8 Names cell:

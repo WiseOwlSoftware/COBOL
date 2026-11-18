@@ -3,7 +3,7 @@
  "rule-digest": "d2c6bff1d9ed",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.Display.cs#DisplayDestinations; src/WiseOwl.Cobol.Editions/ImplementorNames.cs#ImplementorNames",
- "test-ref": "unit:DisplayDirectiveTests.Upon_NamesTheDestinations; unit:DisplayDirectiveTests.Upon_BreakingItsFormat_IsDiagnosedAndTransfersNothing; conformance:cases/7.3.12-DISPLAY/pb807-display-directive-upon-input-device",
+ "test-ref": "unit:DisplayDirectiveTests.Upon_NamesTheDestinations; unit:DisplayDirectiveTests.Upon_BreakingItsFormat_IsDiagnosedAndTransfersNothing; conformance:cases/7.3.12-DISPLAY/pb807-display-directive-upon-input-device; conformance-test:Listing2023Tests.DisplayUponListing_LandsInTheListing_AtItsDirective_EvenUnderListingOff",
  "editions": "2023",
- "notes": "kb/Work PB807 landed (w1004b). UPON LISTING goes to the device used for source listings (none is produced: the compiler's standard output); UPON compile-time-device-1 goes to the output device-name's stream (CONSOLE and SYSOUT standard output, SYSERR standard error); an input-only or unknown word is COBOL2698."
+ "notes": "kb/Work PB807 landed (w1004b); kb/Work PB5925 step 4a. UPON LISTING goes to the device used for source listings: the listing itself when one is produced, else the compiler's standard output; UPON compile-time-device-1 goes to the output device-name's stream (CONSOLE and SYSOUT standard output, SYSERR standard error); an input-only or unknown word is COBOL2698."
 }
