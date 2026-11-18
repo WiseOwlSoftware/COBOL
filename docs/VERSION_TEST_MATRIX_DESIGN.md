@@ -322,7 +322,7 @@ the edition in force has no such rule, the message cites the edition where the r
   code and the code generator (whose strings are emitted C#). `EditionInfo`'s `bool` properties are named rule facts, a choice that
   can answer null (a message or none) is a verdict, and a hole that prints the compile edition names it. `EditionCiteAnalyzerTests`
   (Unit) runs the analyzer over planted source through `CompilationWithAnalyzers`, each shape, each alias and the cross-assembly mark,
-  and pins its edition list to `EditionInfo.All`; a src file planted with a violation fails `dotnet build` with `WOCA0001`. Every quotation a COBOL-85
+  and pins its edition list to `EditionInfo.All`; a src file planted with a violation fails `dotnet build` with `WOCA0001`. Generated trees (an auto-generated header: the ANTLR parser, the `*.Table.cs` files) are analyzed like any other, so a member derived there is derived where it is read; which trees hold no message is the analyzer's own path rule. `AnalyzerWiringDriftTests` (RepoDrift) has MSBuild evaluate every committed `src/**/*.csproj` in Debug and Release and requires each that is not a Roslyn component to hold the analyzer reference and leave `RunAnalyzers` and `RunAnalyzersDuringBuild` on, so a clean build stays evidence. Every quotation a COBOL-85
   message carries is the 1985 text of the rule it cites, checked with `cite.py` over the rendered diagnostics of every refusal at 85. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
   `SearchAllFormat2Rules.Rule`, which maps 2023's SR6 to SR13 of SEARCH to each edition's rule).
 - **Declines.** A descriptor whose `Title` is its message (a decline, composed by `EditionContext.Declined`) carries

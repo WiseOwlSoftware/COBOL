@@ -139,8 +139,8 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// <paramref name="y2002"/> at COBOL-2002 (and at COBOL-2014 unless <paramref name="y2014"/> is given), <paramref name="y2014"/>
     /// at COBOL-2014; <paramref name="later"/> is always COBOL-2023's. So a message sends the reader to the text of the edition they
     /// compile at. Every per-edition message asks it; no site spells its own <c>Year &lt; 2002 ? ... : ...</c> between texts
-    /// (EditionCiteOneDeciderDriftTests). Each citation is in the edition form of kb/Work PB4887 (<c>§1985:VI.6.22.3 SR1</c>),
-    /// checked by <c>scripts/spec/audit_code_citations.py</c>.</summary>
+    /// (the build refuses one: EditionCiteAnalyzer in <c>src/WiseOwl.Cobol.Analyzers</c>, WOCA0001). Each citation is in the
+    /// edition form of kb/Work PB4887 (<c>§1985:VI.6.22.3 SR1</c>), checked by <c>scripts/spec/audit_code_citations.py</c>.</summary>
     public string Cite(string y1985, string later, string? y2002 = null, string? y2014 = null) =>
         Year < 2002 ? y1985 : Year < 2014 ? y2002 ?? later : Year < 2023 ? y2014 ?? y2002 ?? later : later;
 

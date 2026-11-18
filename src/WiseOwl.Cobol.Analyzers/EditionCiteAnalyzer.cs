@@ -26,7 +26,7 @@ namespace WiseOwl.Cobol.Analyzers;
 /// <c>InternalsVisibleTo</c> only to tests) must carry <c>[EditionDerived]</c> (<see cref="UnmarkedId"/>, an error where it is
 /// declared; a seed, which every compilation knows by name, needs none), and a referenced member that carries it is derived in the compilation that reads it. The rule that requires the mark
 /// is the one that computes the need for it, so the set cannot drift. The attribute is matched by its name,
-/// <c>EditionDerivedAttribute</c>, in any namespace (<c>WiseOwl.Cobol.Editions.EditionDerivedAttribute</c> is the products' one).</para>
+/// <c>EditionDerivedAttribute</c>, in any namespace (<c>WiseOwl.Cobol.Runtime.EditionDerivedAttribute</c> is the products' one).</para>
 /// <para><b>THE CHOICES REFUSED</b> (<see cref="ChoiceId"/>), outside generated code and the code generator (whose strings are emitted C#):
 /// a conditional expression, a switch expression or statement, an if/else, or an if that returns with the next statement returning,
 /// that chooses between two strings (written, or of type string and not a call: Cite would run both arms) on a condition that reads an
@@ -71,7 +71,10 @@ public sealed class EditionCiteAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        // Generated trees (an auto-generated header: the ANTLR lexer and parser, the *.Table.cs files) are analyzed and reported
+        // like any other (kb/Work PB4950 round 8, R8-1): a member derived there is derived wherever it is read, and which trees hold
+        // no message is this analyzer's own decision (IsOutsideTheMessages), not the header's.
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.EnableConcurrentExecution();
         context.RegisterCompilationStartAction(start =>
         {

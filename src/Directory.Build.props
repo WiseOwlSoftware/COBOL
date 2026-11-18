@@ -12,10 +12,16 @@
     (WOCA0001, one decider of a message's words by edition, docs/VERSION_TEST_MATRIX_DESIGN.md P2.3a) is a build ERROR in the
     compilation MSBuild actually builds: its sources, its SDK-supplied generators' output, its references. Item conditions
     are evaluated after every property, so the project's own IsRoslynComponent is already set here.
+    ⛔ The platform-specific global properties do not reach the analyzer build (GlobalPropertiesToRemove). The runtime publishes one
+    ReadyToRun image per platform in parallel (RuntimeIdentifier and PublishDir differ per publish), and each publish resolves this
+    reference. With those properties flowing, each was a distinct build of the analyzer project, and both wrote the one
+    obj/Release/netstandard2.0 assembly at once (CS2012 "being used by another process", kb/Work PB4950 round 9). Without them
+    every publish asks for the same build, and MSBuild builds it once. The analyzer is platform-neutral, so nothing it builds differs.
   -->
   <ItemGroup Condition="'$(IsRoslynComponent)' != 'true'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)WiseOwl.Cobol.Analyzers/WiseOwl.Cobol.Analyzers.csproj"
-                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all"
+                      GlobalPropertiesToRemove="RuntimeIdentifier;PublishDir;SelfContained" />
   </ItemGroup>
 
 </Project>

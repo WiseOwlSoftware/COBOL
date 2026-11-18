@@ -25,7 +25,7 @@
   - Seeds (`DialectLevel`, `Std`, `EditionInfo`'s own) need no mark.
   - The attribute is `WiseOwl.Cobol.Runtime.EditionDerivedAttribute`, in the runtime, the one assembly every product project
     that reads an edition references. It is listed in `PublicAPI.Unshipped.txt`.
-  - The build marked 7 members, with no WOCA0001 anywhere:
+  - The build marked 8 members, with no WOCA0001 anywhere:
     - `CobolNames.HasEditionSpelling`
     - `CobolWordRule.MaxLength`
     - `CobolParserCoreBase.is85`, `is2002`, `is2014`, `is2023` and `setLocaleAhead`
