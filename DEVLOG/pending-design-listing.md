@@ -34,3 +34,14 @@ instant afterwards. WHEN-COMPILED, the heading and the DATE-COMPILED replacement
 **Step 1 closes PB5923.** It covers the 1985 minimum: source lines as written, '/' page ejection, DATE-COMPILED
 replaced, program-names in the headings, and the listing on by default at `--std 85`. PB5923's site block now names
 step 1's files and members.
+
+**Architecture review, round 1 (four blocking findings, four leads).** The review read the design against the code and
+found four things it got wrong. First, the Compiler cannot read `FixedFormLine`, which is internal, so the design now has
+the normalizer keep the line kind it already computes, as a public `PhysicalLineKind` per line on `ReferenceFormatMap`.
+Second, no step ran the benchmark, so each step that adds cost now measures it. Third, a `Place` has no position and
+`StoreKindOf` answers per item, so the cross-reference could not be filled. Step 7 now records a per-occurrence
+`ReferenceOccurrence` in `ReferenceResolver.ResolveImpl`, classified against the new `BoundStores.StorePositionsOf`.
+Fourth, the 2002 and 2014 rules were missing. They are now in the table, every quotation checked, with the twelve GAP
+2002 rows planned in step 4b, after 1985. The leads: the driver's listing hook no longer depends on its ten return
+points; a failed parse lists the pass whose diagnostics it reports; the margin and the links are computed once, into
+the model; step 1 now enters the new assembly in the architecture census and the R2 subsystem table.
