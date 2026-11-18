@@ -160,7 +160,7 @@ is tracked tooling with a self-test, so the next batch is a command, never a bri
 | runtime I/O (`runtime-io`) | `src/WiseOwl.Cobol.Runtime/IO/**` `src/WiseOwl.Cobol.Runtime/Communication/**` `src/WiseOwl.Cobol.Runtime/Messaging/**` `src/WiseOwl.Cobol.Runtime/Mcs/**` | — |
 | runtime control and exceptions (`runtime-control`) | `src/WiseOwl.Cobol.Runtime/{Control,Exceptions,Repository}/**` | — |
 | editions and diagnostics (`editions-diagnostics`) | `src/WiseOwl.Cobol.Editions/**` `src/WiseOwl.Cobol.Frontend/Diagnostics/**` `src/WiseOwl.Cobol.Analyzers/**` | — |
-| the source listing (`listing`) | `src/WiseOwl.Cobol.Listing/**` `src/WiseOwl.Cobol.Compiler/Listing/**` | — |
+| the source listing (`listing`) | `src/WiseOwl.Cobol.Listing/**` `src/WiseOwl.Cobol.Compiler/Listing/**` `src/WiseOwl.Cobol.Compiler/Symbols/**` | — |
 | CLI (`cli`) | `src/WiseOwl.Cobol.Cli/**` | — |
 | tests, scripts and CI (`tests-scripts-ci`) | `tests/**` `scripts/**` `tools/**` `.github/**` `.claude/**` `*.ps1` `Directory.*.props` `WiseOwl.Cobol.sln` | — |
 
