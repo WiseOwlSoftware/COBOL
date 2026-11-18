@@ -16,6 +16,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// function; the guard compares the two in both directions, so a function the catalog introduces at 85 and the module lacks (or the
 /// reverse) fails here, and the number can never be a hand-kept list that drifts.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class Intrinsic1989ModuleDriftTests
 {
     /// <summary>The module's headings, from the transcription of ANSI X3.23-1985 and its amendment: paragraph number → function.</summary>

@@ -29,6 +29,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// type string that is not a call: a call computes, and Cite would run both arms) on a condition
 /// that reads an edition-derived value. A program question beside it stays a ternary: <c>x &amp;&amp; is1985 ? a : b</c> is
 /// written <c>x ? Cite(a, b) : b</c>.</para></summary>
+[Trait("Sweep", "tree")]
 public sealed class EditionCiteOneDeciderDriftTests
 {
     /// <summary>The names of the seed members of <see cref="EditionInfo"/>.</summary>
@@ -112,7 +113,7 @@ public sealed class EditionCiteOneDeciderDriftTests
     private static CSharpCompilation RunSourceGenerator(CSharpCompilation compilation, CSharpParseOptions parse)
     {
         const string generator = "WiseOwl.Cobol.Compiler.SourceGen";
-        var assembly = System.Reflection.Assembly.LoadFrom(
+        var assembly = ScratchDirectory.LoadAssembly(
             TestRepo.Src(generator, "bin", TestRepo.Configuration, "netstandard2.0", generator + ".dll"));
         var generators = assembly.GetTypes()
             .Where(t => !t.IsAbstract && typeof(IIncrementalGenerator).IsAssignableFrom(t))
