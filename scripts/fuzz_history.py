@@ -678,11 +678,20 @@ def default_page(coord_override: str | None = None) -> pathlib.Path:
     return _coord().coord_dir(coord_override or None) / "scratch" / PAGE_NAME
 
 
-def main_ledger(repo: pathlib.Path = REPO, fetch: bool = False) -> str:
-    """FUZZ-LEDGER.md as origin/main carries it."""
+def resolve_main(repo: pathlib.Path = REPO) -> str | None:
+    """The ONE commit id origin/main names right now, or None when there is no origin/main. Every read of main in one
+    `status` (the key, the archive, the ledger text) goes by this id, never by the name: a fetch that lands between two
+    reads by name would pair one main's key with another main's content (kb/Work PB5939 review R1-2)."""
+    out = subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "-q", f"{MAIN_REF}^{{commit}}"],
+                         capture_output=True, text=True, encoding="utf-8")
+    return out.stdout.strip() if out.returncode == 0 and out.stdout.strip() else None
+
+
+def main_ledger(repo: pathlib.Path = REPO, fetch: bool = False, commit: str | None = None) -> str:
+    """FUZZ-LEDGER.md as origin/main (or `commit`, an id resolved from it) carries it."""
     if fetch:
         subprocess.run(["git", "-C", str(repo), "fetch", "-q", "origin", "main"], check=True)
-    out = subprocess.run(["git", "-C", str(repo), "show", f"{MAIN_REF}:{LEDGER_MD.relative_to(REPO).as_posix()}"],
+    out = subprocess.run(["git", "-C", str(repo), "show", f"{commit or MAIN_REF}:{LEDGER_MD.relative_to(REPO).as_posix()}"],
                          capture_output=True, text=True, encoding="utf-8")
     if out.returncode:
         raise SystemExit(f"⛔ cannot read FUZZ-LEDGER.md on {MAIN_REF}: {out.stderr.strip()}")
@@ -750,9 +759,12 @@ def verify() -> dict:
 MAIN_EXTRACT = ("scripts", "kb/Work", "conformance-suite/fuzz-history.json", "FUZZ-LEDGER.md")
 
 
-def extract_main(dest: pathlib.Path, paths: tuple[str, ...] = MAIN_EXTRACT, repo: pathlib.Path = REPO) -> None:
-    """`paths` as origin/main commits them, written under `dest` (git archive: never the working tree)."""
-    tar = subprocess.run(["git", "-C", str(repo), "archive", "--format=tar", MAIN_REF, "--", *paths], capture_output=True)
+def extract_main(dest: pathlib.Path, paths: tuple[str, ...] = MAIN_EXTRACT, repo: pathlib.Path = REPO,
+                 commit: str | None = None) -> None:
+    """`paths` as origin/main (or `commit`, an id resolved from it) commits them, written under `dest` (git archive: never
+    the working tree)."""
+    tar = subprocess.run(["git", "-C", str(repo), "archive", "--format=tar", commit or MAIN_REF, "--", *paths],
+                         capture_output=True)
     if tar.returncode:
         raise SystemExit(f"⛔ git archive {MAIN_REF}: {tar.stderr.decode('utf-8', 'replace').strip()}")
     with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as archive:
@@ -764,10 +776,10 @@ def extract_main(dest: pathlib.Path, paths: tuple[str, ...] = MAIN_EXTRACT, repo
 VERDICT_CACHE = "fuzz-ledger-verdict.json"
 
 
-def main_state(repo: pathlib.Path = REPO) -> tuple[str, pathlib.Path] | None:
-    """(the key, the file) the verdict is kept under: the object ids of everything MAIN_EXTRACT holds on origin/main, and
-    the interpreter that runs the verify. None when git cannot name them (no origin/main yet): then nothing is kept."""
-    ids = subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-common-dir", *(f"{MAIN_REF}:{p}" for p in MAIN_EXTRACT)],
+def main_state(repo: pathlib.Path, commit: str) -> tuple[str, pathlib.Path] | None:
+    """(the key, the file) the verdict is kept under: the object ids of everything MAIN_EXTRACT holds at `commit` (the one
+    id main resolved to), and the interpreter that runs the verify. None when git cannot name them: then nothing is kept."""
+    ids = subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-common-dir", *(f"{commit}:{p}" for p in MAIN_EXTRACT)],
                          capture_output=True, text=True, encoding="utf-8")
     lines = ids.stdout.split()
     if ids.returncode or len(lines) != len(MAIN_EXTRACT) + 1:
@@ -776,11 +788,14 @@ def main_state(repo: pathlib.Path = REPO) -> tuple[str, pathlib.Path] | None:
     return " ".join([sys.version, *lines[1:]]), (git_dir if git_dir.is_absolute() else pathlib.Path(repo) / git_dir) / VERDICT_CACHE
 
 
-def main_verdict(repo: pathlib.Path = REPO, compute=None) -> dict:
-    """The verdict of `compute` (default extract_verdict), kept while origin/main's content and the interpreter are the
-    same: the verdict is a pure function of them. An unreadable or stale file is recomputed; an error verdict is kept nowhere."""
+def main_verdict(repo: pathlib.Path = REPO, compute=None, commit: str | None = None) -> dict:
+    """The verdict of `compute(repo, commit)` (default extract_verdict), kept while origin/main's content and the
+    interpreter are the same: the verdict is a pure function of them. `commit` is origin/main resolved ONCE (resolved here
+    when the caller has not), and both the key and the compute go by that id, so the key and the content cannot disagree.
+    An unreadable or stale file is recomputed; an error verdict is kept nowhere."""
     compute = compute or extract_verdict
-    state = main_state(repo)
+    commit = commit or resolve_main(repo)
+    state = main_state(repo, commit) if commit else None
     if state:
         key, file = state
         try:
@@ -789,7 +804,7 @@ def main_verdict(repo: pathlib.Path = REPO, compute=None) -> dict:
                 return kept["verdict"]
         except (OSError, ValueError):
             pass
-    verdict = compute(repo)
+    verdict = compute(repo, commit)
     if state and "error" not in verdict:
         try:
             file.write_text(json.dumps({"key": key, "verdict": verdict}), encoding="utf-8", newline="\n")
@@ -798,10 +813,10 @@ def main_verdict(repo: pathlib.Path = REPO, compute=None) -> dict:
     return verdict
 
 
-def extract_verdict(repo: pathlib.Path = REPO) -> dict:
-    """`verify` run by origin/main's own fuzz_history.py over origin/main's own content (an extract of it, ~4 s)."""
+def extract_verdict(repo: pathlib.Path = REPO, commit: str | None = None) -> dict:
+    """`verify` run by origin/main's own fuzz_history.py over origin/main's own content (an extract of `commit`, ~4 s)."""
     with tempfile.TemporaryDirectory(prefix="fuzz-ledger-main-") as tmp:
-        extract_main(pathlib.Path(tmp), repo=repo)
+        extract_main(pathlib.Path(tmp), repo=repo, commit=commit)
         script = pathlib.Path(tmp) / "scripts" / "fuzz_history.py"
         run = subprocess.run([sys.executable, str(script), "verify"], capture_output=True, text=True, encoding="utf-8")
         lines = run.stdout.strip().splitlines()
@@ -839,7 +854,11 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(verify()))
         return 0
     if args.cmd == "status":
-        print(sync_status(main_ledger(), published_record(), history.get("artifact"), main_verdict))
+        commit = resolve_main()
+        if commit is None:
+            raise SystemExit(f"⛔ cannot read {MAIN_REF}: no such ref (git fetch origin main)")
+        print(sync_status(main_ledger(commit=commit), published_record(), history.get("artifact"),
+                          lambda: main_verdict(commit=commit)))
         return 0
     ctx = context(history, register().load(pathlib.Path(args.work)))
     page = pathlib.Path(args.out) if args.out else default_page()
