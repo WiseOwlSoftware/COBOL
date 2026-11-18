@@ -110,6 +110,8 @@ TABLE = [
     {"key": "runtime-control", "area": "runtime/control", "name": "runtime control and exceptions", "include": [R + "/{Control,Exceptions,Repository}/**"]},
     {"key": "editions-diagnostics", "area": "editions", "name": "editions and diagnostics",
      "include": ["src/WiseOwl.Cobol.Editions/**", F + "/Diagnostics/**"]},
+    {"key": "listing", "area": "listing", "name": "the source listing",
+     "include": ["src/WiseOwl.Cobol.Listing/**", C + "/Listing/**"]},
     {"key": "cli", "area": "cli", "name": "CLI", "include": ["src/WiseOwl.Cobol.Cli/**"]},
     {"key": "tests-scripts-ci", "area": "process/tooling", "name": "tests, scripts and CI",
      "include": ["tests/**", "scripts/**", "tools/**", ".github/**", ".claude/**", "*.ps1", "Directory.*.props", "WiseOwl.Cobol.sln"]},

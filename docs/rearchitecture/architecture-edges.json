@@ -4,6 +4,13 @@
   "census": "2a581b75c6067f1eafd8a846dd04d883d59e8687",
   "layers": [
     {
+      "id": "listing",
+      "namespaces": [
+        "WiseOwl.Cobol.Listing",
+        "WiseOwl.Cobol.Listing.Text"
+      ]
+    },
+    {
       "id": "runtime",
       "namespaces": [
         "WiseOwl.Cobol.Runtime",
@@ -85,6 +92,12 @@
       "namespaces": [
         "WiseOwl.Cobol.CodeGen",
         "WiseOwl.Cobol.CodeGen.Emit"
+      ]
+    },
+    {
+      "id": "compiler.listing",
+      "namespaces": [
+        "WiseOwl.Cobol.Listing.Building"
       ]
     },
     {
@@ -378,6 +391,38 @@
     [
       "cli",
       "runtime"
+    ],
+    [
+      "compiler.listing",
+      "listing"
+    ],
+    [
+      "compiler.listing",
+      "frontend.pipeline"
+    ],
+    [
+      "compiler.listing",
+      "frontend.preprocessor"
+    ],
+    [
+      "compiler.listing",
+      "frontend.common"
+    ],
+    [
+      "compiler.listing",
+      "editions"
+    ],
+    [
+      "compiler.pipeline",
+      "compiler.listing"
+    ],
+    [
+      "compiler.pipeline",
+      "listing"
+    ],
+    [
+      "cli",
+      "listing"
     ]
   ],
   "tolerated": [

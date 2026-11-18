@@ -311,6 +311,7 @@ public sealed class CompiledProgramCacheDriftTests : IDisposable
             return Enum.GetValues(t).Cast<object>().First(v => !Equals(v, value));
         if (typeof(IEnumerable<string>).IsAssignableFrom(t))
             return value is null ? new List<string> { "pb985-lib" } : null;
+        if (t == typeof(WiseOwl.Cobol.Listing.ListingRequest)) return value is null ? new WiseOwl.Cobol.Listing.ListingRequest() : null;
         return null;   // no flip for this type: reported by the caller
     }
 
