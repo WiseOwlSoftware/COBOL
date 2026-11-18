@@ -1,19 +1,19 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
-using WiseOwl.Cobol.Listing.Text;
 
 namespace WiseOwl.Cobol.Listing.Building;
 
-/// <summary>What the listing's exit produced: the document, the file written (null when the request writes none or the host
-/// refused it) and the error the host's refusal is reported as.</summary>
-internal sealed record ListingWritten(ListingDocument Document, string? File, string? Error);
+/// <summary>What the listing's exit produced: the document, the files written (none when the request writes none or the host
+/// refused each) and the errors the host's refusals are reported as, one per file refused.</summary>
+internal sealed record ListingWritten(ListingDocument Document, IReadOnlyList<string> Files, IReadOnlyList<string> Errors);
 
 /// <summary>
 /// ⛔ THE LISTING'S ONE EXIT from a compilation (DESIGN-listing.md section 4.6): <c>CompilerDriver.Compile</c> asks it once the
 /// body has returned, whatever return the body took. With no source text deposited there is no listing (null); with source,
-/// the listing is built (<see cref="ListingBuilder"/>) and written as <c>BASE.lst</c> unless the request writes no file. A
-/// listing the host refuses to write is one error and changes no outcome.
+/// the listing is built ONCE (<see cref="ListingBuilder"/>) and each requested format renders that one document
+/// (<see cref="ListingOutput.Render"/>) into <c>BASE</c> plus the format's extension, unless the request writes no file. A
+/// listing file the host refuses to write is one error and changes no outcome; the other formats are still written.
 /// </summary>
 internal static class ListingWriter
 {
@@ -21,16 +21,23 @@ internal static class ListingWriter
     {
         if (facts.Frontend is null) return null;
         var document = ListingBuilder.Build(facts, outcome);
-        if (!facts.Request.WritesFiles) return new ListingWritten(document, null, null);
-        string path = (facts.Request.OutputBase ?? Path.ChangeExtension(facts.OutputDll, null)) + ListingRequest.TextExtension;
-        try
+        if (!facts.Request.WritesFiles) return new ListingWritten(document, [], []);
+        string outputBase = facts.Request.OutputBase ?? Path.ChangeExtension(facts.OutputDll, null);
+        List<string> files = [], errors = [];
+        foreach (var format in ListingOutput.Each(facts.Request.Formats))
         {
-            File.WriteAllText(path, TextListingRenderer.Render(document, facts.Request), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            string path = outputBase + ListingOutput.Extension(format);
+            try
+            {
+                File.WriteAllText(path, ListingOutput.Render(format, document, facts.Request),
+                    new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                files.Add(Path.GetFullPath(path));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                errors.Add($"cannot write the listing '{path}': {e.Message}");
+            }
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-        {
-            return new ListingWritten(document, null, $"cannot write the listing '{path}': {e.Message}");
-        }
-        return new ListingWritten(document, Path.GetFullPath(path), null);
+        return new ListingWritten(document, files, errors);
     }
 }

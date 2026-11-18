@@ -6,21 +6,25 @@ namespace WiseOwl.Cobol.Listing;
 
 /// <summary>
 /// What listing a compilation is asked for (DESIGN-listing.md sections 4.2 and 8). <c>CompilerDriver.Options.Listing</c> is a
-/// <see cref="ListingRequest"/>, or null for no listing and no listing work. Step 1 writes the paginated text listing.
+/// <see cref="ListingRequest"/>, or null for no listing and no listing work. Every format renders the one document the builder
+/// made (<see cref="ListingOutput"/>), so the formats cannot disagree.
 /// </summary>
-/// <param name="OutputBase">Where the listing goes: <c>BASE.lst</c>; null for the output assembly's path without its
-/// extension; <see cref="StandardOutput"/> for no file (the caller prints the text listing itself).</param>
+/// <param name="OutputBase">Where the listing goes: <c>BASE</c> plus each format's extension (<see cref="ListingOutput.Extension"/>);
+/// null for the output assembly's path without its extension; <see cref="StandardOutput"/> for no file (the caller prints the
+/// one format requested itself).</param>
 /// <param name="PageLength">Lines per page, the heading included; 0 for no pagination (only a page-eject line or a new
 /// outermost program starts a page).</param>
 /// <param name="PageWidth">Columns, <see cref="MinimumPageWidth"/> through <see cref="MaximumPageWidth"/>.</param>
+/// <param name="Formats">The formats to write, at least one (<see cref="FormatsProblem"/>).</param>
 public sealed record ListingRequest(string? OutputBase = null, int PageLength = ListingRequest.DefaultPageLength,
-    int PageWidth = ListingRequest.DefaultPageWidth)
+    int PageWidth = ListingRequest.DefaultPageWidth, ListingFormats Formats = ListingFormats.Text)
 {
+    /// <summary>The formats to write: never none, and one alone when the listing goes to standard output.</summary>
+    public ListingFormats Formats { get; init; } = FormatsProblem(OutputBase, Formats) is { } problem
+        ? throw new ArgumentException(problem, nameof(Formats)) : Formats;
+
     /// <summary>The <see cref="OutputBase"/> that writes no file: the command line prints the text listing to standard output.</summary>
     public const string StandardOutput = "-";
-
-    /// <summary>The extension of the text listing file.</summary>
-    public const string TextExtension = ".lst";
 
     /// <summary>The default lines per page.</summary>
     public const int DefaultPageLength = 60;
@@ -51,6 +55,21 @@ public sealed record ListingRequest(string? OutputBase = null, int PageLength = 
         pageLength == 0 || pageLength >= MinimumPageLength ? null
             : string.Create(CultureInfo.InvariantCulture,
                 $"a page length is 0 (no pagination) or at least {MinimumPageLength} (got {pageLength})");
+
+    /// <summary>Why <paramref name="formats"/> are no formats for a listing written to <paramref name="outputBase"/>, or null
+    /// when they are: at least one known format, and exactly one when the listing goes to standard output
+    /// (<see cref="StandardOutput"/>), where two formats would interleave in one stream.</summary>
+    public static string? FormatsProblem(string? outputBase, ListingFormats formats)
+    {
+        var each = ListingOutput.Each(formats);
+        if ((formats & ~ListingOutput.All) != 0)
+            return string.Create(CultureInfo.InvariantCulture, $"a listing format is one of {ListingOutput.Spellings} (got {(int)formats})");
+        if (each.Count == 0) return "a listing is written in at least one format";
+        if (outputBase == StandardOutput && each.Count > 1)
+            return "a listing written to standard output (-) is written in one format (got "
+                + string.Join(", ", each.Select(ListingOutput.Spelling)) + ")";
+        return null;
+    }
 
     /// <summary>Why <paramref name="pageWidth"/> is no page width, or null when it is one.</summary>
     public static string? PageWidthProblem(int pageWidth) =>

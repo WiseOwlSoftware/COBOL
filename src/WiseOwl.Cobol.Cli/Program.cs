@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Cli;
 /// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std 85|2002|2014|2023] [--permissive]
 /// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions] [--repository-update on|off]
 /// [--repository DIR] [--reference FILE.dll] [--repository-check on|off] [--listing [on|off]] [--listing-output BASE]
-/// [--listing-page-length N] [--listing-page-width N]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
+/// [--listing-format text|json]... [--listing-page-length N] [--listing-page-width N]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
 /// option can swallow a following flag. The generated C# is written next to the output assembly
 /// (<c>&lt;name&gt;.g.cs</c>) so the translation is directly inspectable.
 /// </remarks>
@@ -224,6 +224,21 @@ internal static class Program
                 + "assembly's path without its extension). Implies --listing on.",
             HelpName = "BASE",
         };
+        var listingFormatOption = new Option<string[]>("--listing-format")
+        {
+            Description = $"A listing format to write ({WiseOwl.Cobol.Listing.ListingOutput.Spellings}): text is BASE.lst, json is "
+                + "BASE.lst.json (the versioned JSON document, with its published schema). Repeatable; default text. Implies "
+                + "--listing on.",
+            Arity = ArgumentArity.OneOrMore,
+            AllowMultipleArgumentsPerToken = false,   // one format per occurrence: `--listing-format json a.cob` keeps the source
+            HelpName = WiseOwl.Cobol.Listing.ListingOutput.Spellings,
+        };
+        listingFormatOption.Validators.Add(result =>
+        {
+            foreach (string v in result.GetValueOrDefault<string[]>() ?? [])
+                if (!WiseOwl.Cobol.Listing.ListingOutput.TryParse(v, out _))
+                    result.AddError($"--listing-format must be one of {WiseOwl.Cobol.Listing.ListingOutput.Spellings.Replace('|', ',')} (got {v}).");
+        });
         var listingPageLengthOption = new Option<int?>("--listing-page-length")
         {
             Description = $"Listing lines per page, the heading included; 0 = unpaginated (default {WiseOwl.Cobol.Listing.ListingRequest.DefaultPageLength}). Implies --listing on.",
@@ -252,8 +267,15 @@ internal static class Program
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
             signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption, repositoryUpdateOption,
             repositoryOption, referenceOption, repositoryCheckOption,
-            listingOption, listingOutputOption, listingPageLengthOption, listingPageWidthOption,
+            listingOption, listingOutputOption, listingFormatOption, listingPageLengthOption, listingPageWidthOption,
         };
+        // Two options together (DESIGN-listing.md section 8): a listing written to standard output is written in one format.
+        root.Validators.Add(result =>
+        {
+            if (result.GetValue(listingFormatOption) is { Length: > 0 } named
+                && WiseOwl.Cobol.Listing.ListingRequest.FormatsProblem(result.GetValue(listingOutputOption), ListingFormatsOf(named)) is { } problem)
+                result.AddError($"--listing-format: {problem}.");
+        });
 
         CliOptions Resolve(ParseResult parse)
         {
@@ -287,12 +309,14 @@ internal static class Program
             string? output = parse.GetValue(listingOutputOption);
             int? pageLength = parse.GetValue(listingPageLengthOption), pageWidth = parse.GetValue(listingPageWidthOption);
             bool listingNamed = parse.GetResult(listingOption) is not null;
+            string[]? formats = parse.GetValue(listingFormatOption) is { Length: > 0 } namedFormats ? namedFormats : null;
             bool listingOn = listingNamed ? TryParseOnOff(parse.GetValue(listingOption), out bool on) ? on : true
-                : output is not null || pageLength is not null || pageWidth is not null || std == 85;
+                : output is not null || formats is not null || pageLength is not null || pageWidth is not null || std == 85;
             var listing = listingOn
                 ? new WiseOwl.Cobol.Listing.ListingRequest(output,
                     pageLength ?? WiseOwl.Cobol.Listing.ListingRequest.DefaultPageLength,
-                    pageWidth ?? WiseOwl.Cobol.Listing.ListingRequest.DefaultPageWidth)
+                    pageWidth ?? WiseOwl.Cobol.Listing.ListingRequest.DefaultPageWidth,
+                    formats is null ? WiseOwl.Cobol.Listing.ListingFormats.Text : ListingFormatsOf(formats))
                 : null;
 
             return new CliOptions(
@@ -397,6 +421,15 @@ internal static class Program
         return value is not null && (!on || string.Equals(value, "on", StringComparison.OrdinalIgnoreCase));   // not a COBOL word: a command-line option value
     }
 
+    /// <summary>The formats <c>--listing-format</c> names; the option's validator has already refused any other spelling.</summary>
+    private static WiseOwl.Cobol.Listing.ListingFormats ListingFormatsOf(IEnumerable<string> spellings)
+    {
+        WiseOwl.Cobol.Listing.ListingFormats formats = 0;
+        foreach (string spelling in spellings)
+            if (WiseOwl.Cobol.Listing.ListingOutput.TryParse(spelling, out var format)) formats |= format;
+        return formats;
+    }
+
     /// <summary>The validator of an on/off option named <paramref name="option"/>: any other value is an argument error.</summary>
     private static void ValidateOnOff(System.CommandLine.Parsing.OptionResult result, string option)
     {
@@ -414,9 +447,10 @@ internal static class Program
             RepositoryUpdate: options.RepositoryUpdate, RepositoryPaths: options.RepositoryPaths,
             ReferencePaths: options.ReferencePaths, RepositoryCheck: options.RepositoryCheck, Listing: options.Listing));
 
-        // `--listing-output -`: the text listing goes to standard output (DESIGN-listing.md section 8), before the diagnostics.
+        // `--listing-output -`: the one format requested goes to standard output (DESIGN-listing.md section 8), before the
+        // diagnostics; the request admits exactly one format there (ListingRequest.FormatsProblem).
         if (options.Listing is { WritesFiles: false } request && result.Listing is { } document)
-            Console.Out.Write(WiseOwl.Cobol.Listing.Text.TextListingRenderer.Render(document, request));
+            Console.Out.Write(WiseOwl.Cobol.Listing.ListingOutput.Render(request.Formats, document, request));
 
         // What the compilation itself transferred — the lines of its DISPLAY directives (ISO §2023:7.3.12.4 GR1, DOC-A.1-53,
         // kb/Work PB1538) — each to the compiler stream it names, in the order the directives were met.

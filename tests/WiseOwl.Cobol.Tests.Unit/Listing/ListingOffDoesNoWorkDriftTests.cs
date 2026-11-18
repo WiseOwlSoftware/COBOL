@@ -74,7 +74,7 @@ public sealed class ListingOffDoesNoWorkDriftTests : WiseOwlCobolTestBase
         var result = CompilerDriver.Compile(options);
         Assert.True(result.Success, string.Join("\n", result.Errors));
         Assert.Null(result.Listing);
-        Assert.DoesNotContain(result.OutputFiles, f => f.EndsWith(ListingRequest.TextExtension, StringComparison.Ordinal));
+        Assert.DoesNotContain(result.OutputFiles, f => f.EndsWith(ListingOutput.Extension(ListingFormats.Text), StringComparison.Ordinal));
         Assert.False(result.Inputs.ReadsCompilationTime);
         Assert.Empty(result.Inputs.FileDigests);
     }

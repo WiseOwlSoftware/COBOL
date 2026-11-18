@@ -39,7 +39,13 @@ public sealed class ListingOutcomeTests : IDisposable
         return source;
     }
 
-    private static CompilerDriver.Result Compile(CompilerDriver.Options options) => CompiledProgramCache.CompileCold(options);
+    /// <summary>Compile, and hold every listing produced to the JSON contract (DESIGN-listing.md section 10 item 5).</summary>
+    private static CompilerDriver.Result Compile(CompilerDriver.Options options)
+    {
+        var result = CompiledProgramCache.CompileCold(options);
+        if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);
+        return result;
+    }
 
     /// <summary>Both sections of step 1 (DESIGN-listing.md section 4.3): the source (the source text was read) and the programs
     /// (the parser built a tree).</summary>
@@ -59,7 +65,7 @@ public sealed class ListingOutcomeTests : IDisposable
         AssertEverySectionProduced(listing);
         Assert.Equal(File.ReadAllText(source).Split('\n').Length, listing.Lines.Count);
         Assert.Equal("OUTCOME", Assert.Single(listing.Programs).Name);
-        string lst = Path.Combine(_dir, "outcome" + ListingRequest.TextExtension);
+        string lst = Path.Combine(_dir, "outcome" + ListingOutput.Extension(ListingFormats.Text));
         Assert.Equal([Path.GetFullPath(lst)], result.OutputFiles);
         Assert.False(File.Exists(Path.Combine(_dir, "outcome.dll")));
     }
@@ -79,7 +85,7 @@ public sealed class ListingOutcomeTests : IDisposable
         var listing = Assert.IsType<ListingDocument>(result.Listing);
         Assert.Equal(ListingOutcome.OutputNotWritable, listing.Header.Outcome);
         AssertEverySectionProduced(listing);
-        string lst = Path.GetFullPath(Path.Combine(_dir, "outcome" + ListingRequest.TextExtension));
+        string lst = Path.GetFullPath(Path.Combine(_dir, "outcome" + ListingOutput.Extension(ListingFormats.Text)));
         Assert.Contains(lst, result.OutputFiles);
         Assert.Contains("DISPLAY \"OUTCOME\".", File.ReadAllText(lst), StringComparison.Ordinal);
     }
@@ -107,11 +113,11 @@ public sealed class ListingOutcomeTests : IDisposable
             Listing: new ListingRequest(OutputBase: missing)));
         Assert.Equal(CompilerDriver.Outcome.Success, result.Status);
         string error = Assert.Single(result.Errors);
-        Assert.StartsWith($"cannot write the listing '{missing}{ListingRequest.TextExtension}': ", error, StringComparison.Ordinal);
+        Assert.StartsWith($"cannot write the listing '{missing}{ListingOutput.Extension(ListingFormats.Text)}': ", error, StringComparison.Ordinal);
         var listing = Assert.IsType<ListingDocument>(result.Listing);
         Assert.Equal(ListingOutcome.Success, listing.Header.Outcome);
         AssertEverySectionProduced(listing);
-        Assert.DoesNotContain(result.OutputFiles, f => f.EndsWith(ListingRequest.TextExtension, StringComparison.Ordinal));
+        Assert.DoesNotContain(result.OutputFiles, f => f.EndsWith(ListingOutput.Extension(ListingFormats.Text), StringComparison.Ordinal));
         Assert.True(File.Exists(Path.Combine(_dir, "outcome.dll")));
     }
 

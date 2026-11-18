@@ -84,6 +84,7 @@ public sealed class Listing1985Tests : IDisposable
         File.WriteAllText(copybook, Rec);
         var result = CompiledProgramCache.CompileCold(new CompilerDriver.Options(source, Path.Combine(_dir, "outer85.dll"),
             DialectLevel: 85, CopyPaths: [_dir], Listing: request));
+        if (result.Listing is { } listing) ListingJsonContract.AssertHolds(listing);   // section 10 item 5: every document
         return (result, source, copybook);
     }
 
