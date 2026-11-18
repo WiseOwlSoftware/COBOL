@@ -1019,13 +1019,6 @@
    "refuter": "tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl"
   },
   {
-   "key": "DRV-1985-GR-VI.3.4.4-1",
-   "arm": "unpopulatable-antecedent",
-   "names": "the set of source program listings is empty: the cobol command has no listing option, and a compilation writes only the assembly, its runtime configuration and the generated C# source, with diagnostics on standard error (section 7, A.1 item 117: the compiler never produces a source listing)",
-   "signature": "claude: 2026-11-14",
-   "refuter": "tests/version-matrix/derivation-refutations/pb5373-class2.jsonl"
-  },
-  {
    "key": "DRV-1985-GR-VI.5.13.4-3",
    "arm": "unfalsifiable-under-determination",
    "names": "DOC-A.1-197",
@@ -1196,7 +1189,7 @@
   {
    "key": "DRV-1989-RV-A.2.46.3-3",
    "arm": "unpopulatable-antecedent",
-   "names": "the set of compilation date-times provided outside the function's own value is empty: the compiler produces no listing in any edition (A.1 item 117), and the object code is a deterministic PE whose only compilation time is the WHEN-COMPILED constant itself",
+   "names": "the set of compilation date-times provided outside the function's own value is empty: the compiler produces no listing in any edition (at 2002, 2014 and 2023 that is the documented choice of A.1 item 117; at 1985 it is the known nonconformance of kb/Work PB5923, which §1985:IV.7.1 requires), and the object code is a deterministic PE whose only compilation time is the WHEN-COMPILED constant itself",
    "signature": "claude: 2026-11-16",
    "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
   },
