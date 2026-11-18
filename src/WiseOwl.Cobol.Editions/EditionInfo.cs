@@ -122,6 +122,17 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// user-defined words, and do not have to be different from user-defined words" (§2002:F.2, item 135).</summary>
     public bool CopyNamesAreUserDefinedWords => Year < 2002;
 
+    /// <summary>The name of the standard this edition is, as its document is titled: what the source listing's page heading
+    /// prints beside <c>--std</c> (DESIGN-listing.md section 6.1).</summary>
+    public string StandardName => Year switch
+    {
+        85 => "ANSI X3.23-1985",
+        2002 => "ISO/IEC 1989:2002",
+        2014 => "ISO/IEC 1989:2014",
+        2023 => "ISO/IEC 1989:2023",
+        _ => throw new InvalidOperationException($"edition {Year} has no standard name"),
+    };
+
     /// <summary>⛔ THE ONE CHOICE OF A RULE'S CITATION BY EDITION (kb/Work PB4950, the owner's decision of 2026-11-07: "a
     /// diagnostic cite the rule of the edition the program was compiled under"): <paramref name="y1985"/> at COBOL-85,
     /// <paramref name="y2002"/> at COBOL-2002, <paramref name="y2014"/> at COBOL-2014 (the 2002 citation where a caller gives

@@ -31,9 +31,9 @@ public static partial class ReferenceFormatProcessor
         if (!inIdentificationDivision)
         {
             bool? noComments = false;   // the converter reads no comment-entry where the division is none
-            return ConvertSegment([.. candidate.Select(c => c.Line)], isFixed, gates, file, candidate[0].CcvsIndicators, pins: null, candidate[0].Inclusion, gatesLineLength: false, asReplaced: null, ref noComments);
+            return ConvertSegment([.. candidate.Select(c => c.Line)], isFixed, gates, file, candidate[0].CcvsIndicators, pins: null, candidate[0].Inclusion, gatesLineLength: false, asReplaced: null, kinds: null, ref noComments);
         }
-        var builder = new LogicalLineBuilder(file, gates, isFixed);
+        var builder = new LogicalLineBuilder(file, gates, isFixed, kinds: null);   // the kinds were recorded when the candidate was carried
         foreach (var carried in candidate)
         {
             var line = carried.Line;

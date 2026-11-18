@@ -31,11 +31,17 @@ public sealed class ReferenceFormatMap
     // no tab and no supplementary-plane character (kb/Work PB5503).
     private readonly ColumnMap?[] _columns;
 
+    // Per 0-based physical line: what the logical conversion decided the line is (DESIGN-listing.md section 4.4.1).
+    private readonly PhysicalLineKind[] _kinds;
+
     private ReferenceFormatMap((int FromLine, bool Fixed, bool Detected)[] changes, int[] directiveLines,
-        ReadOnlySpan<PhysicalLine> lines)
+        ReadOnlySpan<PhysicalLine> lines, PhysicalLineKind[] kinds)
     {
+        if (kinds.Length != lines.Length)
+            throw new ArgumentException($"one kind per physical line: {kinds.Length} kinds for {lines.Length} lines", nameof(kinds));
         _changes = changes;
         _directiveLines = directiveLines;
+        _kinds = kinds;
         var physicalText = new string[lines.Length];
         _cuts = new MarginRCut?[lines.Length];
         _columns = new ColumnMap?[lines.Length];
@@ -85,11 +91,30 @@ public sealed class ReferenceFormatMap
     /// states each) from its 1-based physical line on (<paramref name="changes"/> ascending).
     /// <paramref name="directiveLines"/> are the lines of its written format directives (<see cref="DirectiveLines"/>) and
     /// <paramref name="lines"/> its physical lines, as the line-entry stage settled them (<see cref="PhysicalText"/>,
-    /// <see cref="AreaAt"/>).</summary>
+    /// <see cref="AreaAt"/>), and <paramref name="kinds"/> what the conversion decided each one is, one per line
+    /// (<see cref="KindAt"/>).</summary>
     public static ReferenceFormatMap Create(bool initialFixed, bool detected, IEnumerable<(int FromLine, bool Fixed)> changes,
-        IEnumerable<int> directiveLines, ReadOnlySpan<PhysicalLine> lines)
+        IEnumerable<int> directiveLines, ReadOnlySpan<PhysicalLine> lines, PhysicalLineKind[] kinds)
         => new([(1, initialFixed, detected), .. changes.Select(c => (c.FromLine, c.Fixed, false))], [.. directiveLines],
-            lines);
+            lines, kinds);
+
+    /// <summary>What 1-based physical <paramref name="line"/> of this text is, as the §2023:6.5 logical conversion decided
+    /// when it read the line (<see cref="PhysicalLineKind"/>; DESIGN-listing.md section 4.4.1): the one reader of a line's
+    /// indicator area records its answer here, so the source listing never reads the columns again. A line that is not
+    /// one of this text's is a caller's fault and throws.</summary>
+    public PhysicalLineKind KindAt(int line)
+        => line >= 1 && line <= _kinds.Length ? _kinds[line - 1]
+            : throw new ArgumentOutOfRangeException(nameof(line), line, $"this text has {_kinds.Length} physical lines");
+
+    /// <summary>Whether 1-based physical <paramref name="line"/> was read in fixed form.</summary>
+    public bool IsFixedAt(int line) => At(line).Fixed;
+
+    /// <summary>The 0-based index into the EXPANDED text of 1-based physical <paramref name="line"/>
+    /// (<see cref="PhysicalText"/>, tabs expanded) of the character at 0-based PHYSICAL <paramref name="column"/>, the
+    /// column a source map names (<see cref="Common.SourcePoint"/>; kb/Work PB5503). A line that is not one of this text's
+    /// reads the column as it is.</summary>
+    public int ExpandedIndexAt(int line, int column)
+        => line >= 1 && line <= _columns.Length ? _columns[line - 1]?.ToExpanded(column) ?? column : column;
 
     /// <summary>The COBOL-85 area the text at 0-based physical <paramref name="column"/> of 1-based physical
     /// <paramref name="line"/> stands in (kb/Work PB3147, PB5313): area A (positions 8–11) or area B (position 12 to

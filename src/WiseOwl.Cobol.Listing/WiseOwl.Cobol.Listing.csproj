@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WiseOwl.Cobol.Listing — the source listing's MODEL and its RENDERERS (docs/rearchitecture/DESIGN-listing.md section 4.2;
+    kb/Work PB5923, PB5925). It references NO project of the solution, so a renderer cannot reach a binder, parser or
+    emitter type: "renderers read only the model" is enforced by the compiler, and docs/rearchitecture/architecture-edges.json
+    gives its namespaces their own lowest layer (ArchitectureEdgesDriftTests). The compiler references it and fills the model
+    (WiseOwl.Cobol.Compiler/Listing, namespace WiseOwl.Cobol.Listing.Building); a .NET tool may reference it to read a listing.
+    TargetFramework / LangVersion / Nullable / ImplicitUsings / TreatWarningsAsErrors come from Directory.Build.props.
+  -->
+  <PropertyGroup>
+    <RootNamespace>WiseOwl.Cobol.Listing</RootNamespace>
+    <AssemblyName>WiseOwl.Cobol.Listing</AssemblyName>
+  </PropertyGroup>
+
+</Project>

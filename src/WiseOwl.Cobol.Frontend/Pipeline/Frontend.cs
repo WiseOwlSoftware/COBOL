@@ -60,6 +60,26 @@ public sealed class Frontend
     /// front end (the source-existence probe, the NIST copy library) passes its own instance here.</summary>
     public CompilationInputs Inputs { get; init; } = new();
 
+    /// <summary>Whether the compilation asks for a source listing (DESIGN-listing.md sections 4.4 and 9): only then does each run
+    /// of the text stages record a <see cref="Preprocessor.TextStageTrace"/> and does the parse collect its
+    /// <see cref="SourceUnitFacts"/>. False (the default) does no listing work at all.</summary>
+    public bool RecordsListing { get; init; }
+
+    /// <summary>The text stages' trace of the LISTED pass of the last parsed source (DESIGN-listing.md section 4.4): the pass
+    /// whose diagnostics are the compilation's, the same one <see cref="LineMap"/> describes.
+    /// <see cref="Preprocessor.TextStageTrace.None"/> when <see cref="RecordsListing"/> is false.</summary>
+    public Preprocessor.TextStageTrace ListingTrace { get; private set; } = Preprocessor.TextStageTrace.None;
+
+    /// <summary>The reference-format map of every text the listed pass read, by file (the source and each library text): their
+    /// physical text and the kind of each physical line (<see cref="Preprocessor.ReferenceFormatMap.KindAt"/>). Empty until a
+    /// source has been read.</summary>
+    public IReadOnlyDictionary<string, Preprocessor.ReferenceFormatMap> ReferenceFormats { get; private set; } =
+        new Dictionary<string, Preprocessor.ReferenceFormatMap>();
+
+    /// <summary>What the listed pass's parse says about the source units (DESIGN-listing.md section 4.3), or null when
+    /// <see cref="RecordsListing"/> is false or no text was parsed.</summary>
+    public SourceUnitFacts? UnitFacts { get; private set; }
+
     /// <summary>Add a directory to the COPY copybook search path.</summary>
     public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
 
@@ -113,19 +133,21 @@ public sealed class Frontend
         var formatOps = ImplicitFormatOps.None;
         // The FIRST pass that did not parse, kept so a speculative re-run that does no better reports the user's own
         // syntax errors, not ours (see below).
-        (DiagnosticBag Diagnostics, DirectiveResults Directives, SourceLineMap LineMap)? firstFailure = null;
+        (DiagnosticBag Diagnostics, DirectiveResults Directives, SourceLineMap LineMap, ListedPass Listed)? firstFailure = null;
         for (int pass = 1; ; pass++)
         {
             // Every stage from the normalizer on reports into THIS pass's bag; only the converged pass's diagnostics
             // are the compilation's (a DEFINE's SR2 redefinition, a FLAG warning or a line's reference-format gate
             // depends on the state in effect).
-            var (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames) =
+            var (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames, trace) =
                 RunTextStages(raw, sourcePath, implicitOps, formatOps);
             var passLineMap = new SourceLineMap(processed.Lines);
             LineMap = passLineMap;
             var passAreas = new FixedFormAreas(passLineMap, formats);
             int diagnosticsBeforeLexing = passDiagnostics.Diagnostics.Count;
             var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas, referenceFormatGates);
+            // What the source listing reads of this pass (DESIGN-listing.md section 4.4): taken from the SAME pass as LineMap.
+            var listed = new ListedPass(trace, formats, RecordsListing ? SourceUnitFacts.Read(tree) : null);
             // A debugging line the §2023:6.5 walk passed over as a comment between the parts of a literal, and that the unit's
             // WITH DEBUGGING MODE makes source, is a source line there (kb/Work PB2490).
             referenceFormatGates.OnSourceDebuggingLines(
@@ -154,15 +176,16 @@ public sealed class Frontend
                 // (the source's own errors, not the guess's).
                 if (!settled && pass <= SpeculationBound(encounters, formats))
                 {
-                    firstFailure ??= (passDiagnostics, directives, passLineMap);
+                    firstFailure ??= (passDiagnostics, directives, passLineMap, listed);
                     implicitOps = keyed;
                     formatOps = placed;
                     continue;
                 }
-                var (finalDiagnostics, finalDirectives, finalLineMap) = firstFailure ?? (passDiagnostics, directives, passLineMap);
+                var (finalDiagnostics, finalDirectives, finalLineMap, finalListed) = firstFailure ?? (passDiagnostics, directives, passLineMap, listed);
                 foreach (var d in finalDiagnostics.Diagnostics) diagnostics.Add(d);
                 diagnostics.AddCompileOutput(finalDiagnostics.CompileOutput);   // a DISPLAY directive's lines belong to the pass whose result this is (kb/Work PB1538)
                 LineMap = finalLineMap;
+                Listed(finalListed);
                 Directives = finalDirectives.WithStackOps([]);
                 return null;
             }
@@ -173,6 +196,7 @@ public sealed class Frontend
                 Directives = directives.WithStackOps(ops);
                 Areas = passAreas;
                 CopyNames = copyNames;
+                Listed(listed);
                 return tree;
             }
             if (pass > SpeculationBound(encounters, formats))
@@ -182,6 +206,19 @@ public sealed class Frontend
             implicitOps = keyed;
             formatOps = placed;
         }
+    }
+
+    /// <summary>What the source listing reads of one pass of the text stages and its parse (DESIGN-listing.md section 4.4).</summary>
+    private readonly record struct ListedPass(Preprocessor.TextStageTrace Trace,
+        IReadOnlyDictionary<string, Preprocessor.ReferenceFormatMap> Formats, SourceUnitFacts? UnitFacts);
+
+    /// <summary>Expose <paramref name="pass"/> as the listed pass, beside <see cref="LineMap"/>, which the caller set from the
+    /// same pass.</summary>
+    private void Listed(ListedPass pass)
+    {
+        ListingTrace = pass.Trace;
+        ReferenceFormats = pass.Formats;
+        UnitFacts = pass.UnitFacts;
     }
 
     /// <summary>The text stages — the normalizer, then <see cref="Preprocess"/> — run to a FIXED POINT of the comment-entry
@@ -196,20 +233,22 @@ public sealed class Frontend
     /// only the last run's are the pass's.</summary>
     private (DiagnosticBag Diagnostics, ReferenceFormatDiagnostics Gates, MappedText Text, DirectiveResults Directives,
         ConditionalCompilationResult Encounters, IReadOnlyDictionary<string, ReferenceFormatMap> Formats,
-        IReadOnlyList<CopyNameUse> CopyNames) RunTextStages(
+        IReadOnlyList<CopyNameUse> CopyNames, TextStageTrace Trace) RunTextStages(
         string raw, string sourcePath, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps)
     {
         var pins = CommentEntryPins.None;
         while (true)
         {
             var passDiagnostics = new DiagnosticBag();
+            // The run's trace for the source listing, beside its bag (DESIGN-listing.md section 4.4); none without a listing.
+            var trace = RecordsListing ? new TextStageTrace() : TextStageTrace.None;
             // ONE reference-format diagnostics per run: the main source and every copybook report through it, so a
             // once-per-compilation gate (the obsolete column-7 hyphen) fires once however many files use it (kb/Work PB1640).
             var referenceFormatGates = new ReferenceFormatDiagnostics(DialectLevel, Permissive, passDiagnostics);
             var (normalized, referenceFormats) = Normalize(raw, sourcePath, referenceFormatGates, formatOps, pins);
             var (processed, directives, encounters, formats, programText, copyNames) =
-                Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps, pins);
-            if (programText is not { } pin) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames);
+                Preprocess(normalized, referenceFormats, sourcePath, passDiagnostics, referenceFormatGates, implicitOps, formatOps, pins, trace);
+            if (programText is not { } pin) return (passDiagnostics, referenceFormatGates, processed, directives, encounters, formats, copyNames, trace);
             pins = pins.With(pin);
         }
     }
@@ -297,7 +336,7 @@ public sealed class Frontend
         IReadOnlyList<CopyNameUse> CopyNames) Preprocess(
         MappedText normalized, ReferenceFormatMap referenceFormats, string sourcePath, DiagnosticBag diagnostics,
         ReferenceFormatDiagnostics referenceFormatGates, IReadOnlyList<KeyedDirectiveOp> implicitOps, ImplicitFormatOps formatOps,
-        CommentEntryPins pins)
+        CommentEntryPins pins, TextStageTrace trace)
     {
         // The MERGED text-manipulation driver (ISO §2023:7.2.1) — conditional compilation INTERLEAVED with COPY, so a
         // >>DEFINE/>>IF/>>EVALUATE INSIDE a copybook is processed (the CC-before-COPY split could not see them), while
@@ -308,7 +347,8 @@ public sealed class Frontend
             dialectLevel: DialectLevel, permissive: Permissive, inputs: Inputs, ccvsIndicators: NistTestName is not null,
             implicitFormatOps: formatOps,   // library text's share of GR14's implicit PUSH/POP ALL (kb/Work PB1066)
             referenceFormatGates: referenceFormatGates,   // library text reports through the compilation's reference-format gates (PB1640)
-            commentEntryPins: pins);   // library text reads the candidates a previous run proved to be program text as such (PB4281)
+            commentEntryPins: pins,   // library text reads the candidates a previous run proved to be program text as such (PB4281)
+            trace: trace);   // the source listing's record of each COPY statement (DESIGN-listing.md section 4.4)
         copy.RegisterReferenceFormat(sourcePath, referenceFormats);
         var manipulated = ConditionalCompilationProcessor.Manipulate(normalized, copy, LeftDirectives,
             diagnostics, sourcePath, DialectLevel, Permissive, Inputs, implicitOps);
