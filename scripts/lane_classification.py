@@ -354,6 +354,10 @@ CLASSIFICATION = Classification(inert={
     "specs/ISO_COBOL_2014.md": "CompilerDirectiveWordsDriftTests (its 8.12 table, kb/Work PB5599)",  # spec_pdf: names-the-file
     "specs/ISO_COBOL_2023.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "  # spec_pdf: names-the-file
                           "expected tables from it",
+    "src/WiseOwl.Cobol.Analyzers/AnalyzerReleases.Shipped.md": "the build's analyzers' release-tracking record, an AdditionalFile "
+        "of their build (RS2008, RS2000): every src project's build reads it, and RepoDrift's AnalyzerBuildsOnceDriftTests stages it "
+        "(kb/Work PB4950)",
+    "src/WiseOwl.Cobol.Analyzers/AnalyzerReleases.Unshipped.md": "the same record's unshipped rows, read as the shipped ones are",
 }, tooling_under=("scripts/", ".github/", "tools/", ".claude/", ".gitattributes", "toolchain.env"),
    tooling_suffixes=(".py", ".ps1", ".sh"),
    # ⛔ TOOLING_READS: what the script self-tests read outside the scripts (module docstring), measured from the PASS store's

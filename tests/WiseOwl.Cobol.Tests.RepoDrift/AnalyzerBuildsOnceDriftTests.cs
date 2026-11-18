@@ -32,10 +32,13 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 [Trait("Sweep", "tree")]
 public sealed class AnalyzerBuildsOnceDriftTests
 {
-    /// <summary>What the staged build reads: the two projects and the build files that configure them, as committed.</summary>
+    /// <summary>What the staged build reads: the two projects and the build files that configure them, as committed. Of the Markdown
+    /// under them only the analyzer's release-tracking record is a build input (an AdditionalFile, RS2008), and only it is read.</summary>
     private static readonly TreeScope Staged = new(
         Under: ["src/WiseOwl.Cobol.Runtime/", "src/WiseOwl.Cobol.Analyzers/", "src/Directory.Build.", "Directory.Build.props",
-            "Directory.Packages.props", "global.json", "nuget.config"]);
+            "Directory.Packages.props", "global.json", "nuget.config"],
+        Kinds: [".cs", ".csproj", ".props", ".targets", ".json", ".config", ".txt", ".pin", ".bin", ".tailor", ".zip",
+            "AnalyzerReleases.Shipped.md", "AnalyzerReleases.Unshipped.md"]);
 
     private const string Analyzers = "WiseOwl.Cobol.Analyzers";
 
