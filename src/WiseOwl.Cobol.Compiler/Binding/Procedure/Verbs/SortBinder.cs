@@ -77,11 +77,16 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     {
         if (!ctx.Enclosing.InDeclarative) return;
         ctx.Edition.Error(DiagnosticCatalog.SortMergePlacement, merge
-            ? "a MERGE statement shall not appear in a declarative procedure (ISO §2023:14.9.24.3 SR1: \"A MERGE statement may "
-                + "appear anywhere in the procedure division except … in a declarative procedure\")"
-            : "a SORT statement shall not appear in a declarative procedure (ISO §2023:14.9.40.3 SR3: \"A SORT statement shall "
-                + "not appear in imperative-statement-1 of an exception-checking PERFORM statement, in an input or output "
-                + "procedure, or in a declarative procedure\")");
+            ? "a MERGE statement shall not appear in a declarative procedure (ISO " + ctx.Edition.Edition.Cite(
+                "§1985:XI.4.1.3 SR1: \"A MERGE statement may appear anywhere in the Procedure Division except in the declaratives portion\")",
+                "§2023:14.9.24.3 SR1: \"A MERGE statement may appear anywhere in the procedure division except … in a declarative procedure\")",
+                "§2023:14.9.24.3 SR1: \"A MERGE statement may appear anywhere in the procedure division except … in a declarative procedure\")")
+            : "a SORT statement shall not appear in a declarative procedure (ISO " + ctx.Edition.Edition.Cite(
+                "§1985:XI.4.4.3 SR1: \"A SORT statement may appear anywhere in the Procedure Division except in the declarative portion\")",
+                "§2023:14.9.40.3 SR3: \"A SORT statement shall not appear in imperative-statement-1 of an exception-checking PERFORM "
+                + "statement, in an input or output procedure, or in a declarative procedure\")",
+                "§2023:14.9.40.3 SR3: \"A SORT statement shall not appear in imperative-statement-1 of an exception-checking PERFORM "
+                + "statement, in an input or output procedure, or in a declarative procedure\")"));
     }
 
     /// <summary>Bind the Format-1 file sort: SD operand (SR4), keys (SR6 + GR1/GR2), DUPLICATES (GR3),
@@ -802,11 +807,12 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     private bool SortMapIoFiles(Core.DataReferenceListContext? list, List<FileModel> files, bool merge, bool giving)
     {
         string verb = merge ? "MERGE USING/GIVING" : "SORT USING/GIVING";
-        string reportRule = merge
+        string reportRule2002 = merge
             ? "ISO §2023:14.9.24.3 SR9 — \"File-name-2, file-name-3, and file-name-4 shall be described in a file "
               + "description entry that is not for a report file and is not a sort-merge file description entry\""
             : "ISO §2023:14.9.40.3 SR8 — \"File-name-2 and file-name-3 shall be described in a file description entry "
               + "that is not for a report file and is not a sort-merge file description entry\"";
+        string reportRule = ctx.Edition.Edition.Cite("", reportRule2002, reportRule2002);
         foreach (var dref in list?.dataReference() ?? [])
         {
             if (!ctx.Validation.ResolveFile(dref, verb, out var f, statementRule: reportRule))

@@ -428,7 +428,10 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             using var configurationAt = Edition.At(containedConfiguration);   // the section as written (kb/Work PB2034)
             Edition.Error(DiagnosticCatalog.ConfigurationSectionInContainedProgram,
                 "a CONFIGURATION SECTION is specified in a program contained within another program; the "
-                + "containing program's configuration section applies to it (ISO §2023:12.3.3 SR1 / §2023:12.3.4 GR1)");
+                + "containing program's configuration section applies to it " + Edition.Edition.Cite(
+                    "(ISO §1985:VI.4.2: \"The entries explicitly or implicitly stated in the Configuration Section of a program which "
+                    + "contains other programs apply to each contained program\")",
+                    "(ISO §2023:12.3.3 SR1 / §2023:12.3.4 GR1)", "(ISO §2023:12.3.3 SR1 / §2023:12.3.4 GR1)"));
         }
 
         // ARITHMETIC mode validity (§2023:11.9.5 / §2023:8.8.1): NATIVE, STANDARD-DECIMAL, and plain STANDARD are

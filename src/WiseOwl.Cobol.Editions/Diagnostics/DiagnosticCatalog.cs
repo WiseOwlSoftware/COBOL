@@ -5939,7 +5939,10 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor MessageTagUsageExclusive = new(
         "COBOL2158", "message-tag-usage-exclusive", EditionSeverity.Error,
         "USAGE MESSAGE-TAG is specified with another USAGE clause in the same data description entry.",
-        "ISO §2023:13.18.60.3 SR21");
+        "ISO §2023:13.18.60.3 SR21",
+        No1985Rule: "USAGE MESSAGE-TAG, the message-tag class and the message control facility are not in ANSI X3.23-1985, whose "
+            + "USAGE clause (§1985:VI.5.14) names DISPLAY, COMPUTATIONAL and INDEX, so there is no 1985 rule to cite; the "
+            + "facility begins in COBOL-2002 (kb/Work PB4950).");
 
     /// <summary>Two entries of one source element externalize the same name. §2023:13.18.22.3 SR2: "In the same
     /// source element, the externalized name of the subject of the entry that includes the EXTERNAL clause
@@ -6544,7 +6547,10 @@ public static class DiagnosticCatalog
         + "paragraph, reuses an expansion's name for a different expansion, or names an expansion that shares a run unit with another "
         + "of the same externalized name but different actual parameters (an assembly the group references, or the file the expansion "
         + "would be written to).",
-        "ISO §2023:12.3.8.3 SR4/SR7 / §2023:12.3.8.4 GR5/GR8 / §2023:9.3.12 / §2023:9.3.13");
+        "ISO §2023:12.3.8.3 SR4/SR7 / §2023:12.3.8.4 GR5/GR8 / §2023:9.3.12 / §2023:9.3.13",
+        No1985Rule: "The REPOSITORY paragraph, parameterized classes and interfaces and the EXPANDS phrase are not in ANSI X3.23-1985, "
+            + "which has no object-orientation and no REPOSITORY paragraph, so there is no 1985 rule to cite; the facility begins in "
+            + "COBOL-2002 (kb/Work PB4950).");
     // ── COBOL2241–2243 — what a SPECIAL-NAMES entry may consist of (kb/Work PB716 + PB790 + PB862). ──
 
     /// <summary>A SPECIAL-NAMES switch-name / feature-name / device-name entry names a system-name this

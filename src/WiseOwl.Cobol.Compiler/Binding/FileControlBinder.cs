@@ -202,7 +202,9 @@ public sealed partial class FileControlBinder
                     {
                         Edition.Error(DiagnosticCatalog.ReserveAreasBeyondLimit,
                             $"file '{name}': RESERVE {file.ReserveAreas} AREAS exceeds this implementation's limit of "
-                            + $"{WiseOwl.Cobol.Runtime.IO.HostFile.MaxInputOutputAreas} input-output areas (ISO §2023:4.2.15)");
+                            + $"{WiseOwl.Cobol.Runtime.IO.HostFile.MaxInputOutputAreas} input-output areas (ISO "
+                            + Edition.Edition.Cite("§1985:VII.2.9.3 GR1, which makes the number of input-output areas allocated equal to integer-1",
+                                "§2023:4.2.15", "§2023:4.2.15") + ")");
                         file.ReserveAreas = ConstantEntryBinder.RecoveredIntegerOperand;
                     }
                 }
@@ -272,7 +274,7 @@ public sealed partial class FileControlBinder
                     $"file '{name}': ACCESS MODE IS {file.AccessMode.ToString().ToUpperInvariant()} may not be "
                     + $"specified for a sequential file — this entry's organization is "
                     + file.OrganizationFace
-                    + " (ISO §2023:12.4.5.5.2 SR2)");
+                    + " (ISO " + Edition.Edition.Cite("§1985:VII.2.4.3 GR2", "§2023:12.4.5.5.2 SR2", "§2023:12.4.5.5.2 SR2") + ")");
             }
             // §2023:12.4.5.2 SR12 — "If the LINE SEQUENTIAL phrase of the ORGANIZATION clause is specified, the RESERVE
             // clause shall not be specified" (kb/Work PB781). A clause-pair exclusion decidable from the entry alone,

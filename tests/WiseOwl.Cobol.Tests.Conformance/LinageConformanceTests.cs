@@ -749,7 +749,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """, 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "SR13");
+        EditionHarness.AssertHasDiagnostic(diags, "§1985:VII.4.7.3 SR3");   // the 1985 rule at --std 85 (kb/Work PB4950), not 2023's SR13
     }
 
     [Fact]   // §1985:IV.4.3.8.1 SRL2.8: an UNQUALIFIED LINAGE-COUNTER is ambiguous when the program has two files with

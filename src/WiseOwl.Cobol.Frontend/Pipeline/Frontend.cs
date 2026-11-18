@@ -543,7 +543,7 @@ public sealed class Frontend
         // ISO §2023:13.18.40.3 SR7 — decided from the characters PICMODE delimited, once per PICTURE clause of every
         // entry kind (kb/Work PB569). Reported through the syntax-error listener so it is located exactly like a
         // parse error; the parse itself still runs, so every other diagnostic of the unit is reported too.
-        var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts);
+        var sr7 = new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts, edition);
         // ISO §2023:6.3.5 1) / §2023:6.4.2 — a literal its line ends inside (kb/Work PB3245), FIRST: it is why whatever else its line
         // and the next draw is drawn, and a parse it breaks never reaches the bind-time literal walk.
         LiteralScreen.ReportUnterminated(tokens.GetTokens(), (t, descriptor, message) =>
@@ -573,14 +573,14 @@ public sealed class Frontend
         // ReservationGateRewriter.ParseToFixpoint re-parses until no newly declared free gated word remains.
         int parseStart = diagnostics.Diagnostics.Count;   // the parse's own reports start here (the cause below is placed among them)
         var tree = ReservationGateRewriter.ParseToFixpoint(parser, tokens, retypes, diagnostics,
-            (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath, cuts));
+            (bag, witness) => ParsePass(parser, tokens, bag, witness, sourcePath, cuts, edition));
 
         // ISO §2023:4.2.14 — each embedded precompiler block, reported once at its EXEC and placed among the parse's reports by
         // position (kb/Work PB4341); a source that holds one did not parse, whatever the parse's own errors.
         if (embeddedBlocks.Any)
         {
             var blockReports = new DiagnosticBag();
-            var blockListener = new CobolErrorListener(blockReports, sourcePath, LineMap, cuts);
+            var blockListener = new CobolErrorListener(blockReports, sourcePath, LineMap, cuts, edition);
             embeddedBlocks.Report((exec, message) =>
                 blockListener.SyntaxError(TextWriter.Null, null!, exec, exec.Line, exec.Column, message, null!));
             diagnostics.AddBeforeEffects(blockReports.Diagnostics, parseStart);
@@ -589,7 +589,7 @@ public sealed class Frontend
         // ISO §2023:8.7.1 — the arithmetic operators' own separator context, decided from the characters beside each operator
         // the PARSE TREE found (only the tree says binary, unary or no operator at all) and reported the same way
         // (kb/Work PB2017). The two operator clauses that need no tree (§2023:8.7.3, §2023:8.7.4) were asked with the rest above.
-        foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, tree))
+        foreach (var v in SeparatorRule.ArithmeticOperatorViolations(text, tree, edition))
             sr7.SyntaxError(TextWriter.Null, null!, v.Token, v.Token.Line, v.Token.Column,
                 $"[{v.Descriptor.Code}] {v.Message}", null!);
 
@@ -615,7 +615,7 @@ public sealed class Frontend
         // ISO §2023:6.3.1 — a token the margin cut in two is read short, and a program that still parses means something else
         // (kb/Work PB4999). Asked AFTER the parse so a syntax error's own margin-R note (COBOL5788) has named its line already,
         // and placed among the parse's reports by position like the other causes (DiagnosticBag.AddBeforeEffects).
-        diagnostics.AddBeforeEffects(MarginRCutScreen.Warnings(tokens.GetTokens(), tree, cuts, diagnostics.Diagnostics), parseStart);
+        diagnostics.AddBeforeEffects(MarginRCutScreen.Warnings(tokens.GetTokens(), tree, cuts, diagnostics.Diagnostics, edition), parseStart);
 
         // §1985:VI.7.3, the two rules of the debugging-line presentation (kb/Work PB5212). A COBOL-85 rule: the later editions
         // carry the facility as obsolete or not at all (docs/CONFORMANCE.md D-DEBUG).
@@ -677,7 +677,7 @@ public sealed class Frontend
         ReservationGateRewriter.ParseToFixpoint(parser, copy, retypes, new DiagnosticBag(), (bag, witness) =>
         {
             first.Offender = null;   // only the last pass of the gate's loop describes the stream
-            return ParsePass(parser, copy, bag, new Tee(witness, first), sourcePath, cuts);
+            return ParsePass(parser, copy, bag, new Tee(witness, first), sourcePath, cuts, edition);
         });
         return (parser.NumberOfSyntaxErrors == 0, first.Offender);
     }
@@ -706,7 +706,8 @@ public sealed class Frontend
     /// <see cref="BailErrorStrategy"/> so an ambiguity throws rather than hangs), falling back to full LL on
     /// failure.</summary>
     private CobolParserCore.CompilationUnitContext ParsePass(CobolParserCore parser, CommonTokenStream tokens,
-        DiagnosticBag diagnostics, IAntlrErrorListener<IToken> gateWitness, string sourcePath, IMarginRCutLocator cuts)
+        DiagnosticBag diagnostics, IAntlrErrorListener<IToken> gateWitness, string sourcePath, IMarginRCutLocator cuts,
+        EditionInfo edition)
     {
         tokens.Seek(0);
         parser.Reset();
@@ -734,7 +735,7 @@ public sealed class Frontend
             parser.Reset();
             parser.Interpreter.PredictionMode = PredictionMode.LL;
             parser.ErrorHandler = new CobolErrorStrategy();
-            parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts));
+            parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath, LineMap, cuts, edition));
             parser.AddErrorListener(gateWitness);
             return parser.compilationUnit();
         }

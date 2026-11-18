@@ -424,7 +424,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
             $"SET '{DataBinder.WrittenText(dref)}': an index-name cannot be the {position} of a {carrier} SET — that operand "
             + $"shall be of category {carrier} ({cite}). An index-name operand belongs to Format 1, whose "
-            + "receiver is a data item of class index or an integer data item (ISO §2023:14.9.39.3 SR1)");
+            + "receiver is a data item of class index or an integer data item (ISO "
+            + ctx.Edition.Edition.Cite("§1985:VI.6.23.3 SR2", "§2023:14.9.39.3 SR1", "§2023:14.9.39.3 SR1") + ")");
         return true;
     }
 
@@ -448,6 +449,12 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         refusal = answer.Refusal(ctx.Edition);   // the resolver's answer (kb/Work PB1030)
         return null;
     }
+
+    /// <summary>The rule that governs a data-pointer SET (Format 7) in the edition in force (kb/Work PB4950): §2023:14.9.39.3 SR17;
+    /// COBOL-85's SET statement (§1985:VI.6.23.2) has no data-pointer format, so there it names that standard's formats.</summary>
+    private string DataPointerSetRule(string format2023) => ctx.Edition.Edition.Cite(
+        "ISO §1985:VI.6.23.2, whose SET statement has no data-pointer format",
+        $"ISO §2023:{format2023}, §2023:14.9.39.3 SR17", $"ISO §2023:{format2023}, §2023:14.9.39.3 SR17");
 
     /// <summary>SET data-pointer assignment (§2023:14.9.39 Format 7; Phase-4b increment 1): every target shall
     /// be USAGE POINTER (COBOL0869 otherwise); the sender is the NULL figurative or another data pointer
@@ -473,12 +480,12 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
         {
-            if (SetIndexNameOperand(t, "receiving operand", "data-pointer", "ISO §2023:14.9.39 Format 7, §2023:14.9.39.3 SR17")) return BoundRejected.Reported(ctx.Edition);
+            if (SetIndexNameOperand(t, "receiving operand", "data-pointer", DataPointerSetRule("14.9.39 Format 7"))) return BoundRejected.Reported(ctx.Edition);
             if (host.Expr.ResolveReceiving(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.Pointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
                     $"SET '{DataBinder.WrittenText(t)}': the receiving operand of a data-pointer SET shall be of category "
-                    + "data-pointer (ISO §2023:14.9.39 Format 7, §2023:14.9.39.3 SR17)");
+                    + $"data-pointer ({DataPointerSetRule("14.9.39 Format 7")})");
             }
             targets.Add(tp);
         }
@@ -497,9 +504,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                     + "identifier-6 shall be of category data-pointer — a data-pointer sender is the predefined "
                     + "address NULL, another USAGE POINTER item, a function-identifier or inline method invocation "
                     + "of category data-pointer, or ADDRESS OF an identifier, never a literal or "
-                    + "an arithmetic expression (ISO §2023:14.9.39.2 Format 7, §2023:14.9.39.3 SR17)");
+                    + $"an arithmetic expression ({DataPointerSetRule("14.9.39.2 Format 7")})");
             }
-            var sp = CarrierSenderPlace(sender, "data-pointer", "ISO §2023:14.9.39 Format 7, §2023:14.9.39.3 SR17", out var senderRefusal);
+            var sp = CarrierSenderPlace(sender, "data-pointer", DataPointerSetRule("14.9.39 Format 7"), out var senderRefusal);
             if (senderRefusal is not null) return senderRefusal;
             if (sp?.Item.Pic?.Category is not PicCategory.Pointer)
             {

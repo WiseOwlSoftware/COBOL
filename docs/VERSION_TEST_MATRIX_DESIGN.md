@@ -322,6 +322,11 @@ the edition in force has no such rule, the message cites the edition where the r
   `PlacementRules.SequenceRule.Cite1985`/`Shall1985`, `LiteralPosition`'s `Cite1985`), so the next row of a table is cited by
   adding its 1985 fields. A refusal's `expect` in `conformance-suite/wiseowl/diagnostics` names a phrase every edition's
   message holds, never a citation of one edition.
+- **Slice 7 seams** (kb/Work PB4950): `ArithmeticOperandRule` writes the arithmetic-operand rule once (§1985:VI.6.2.1 / §2023:8.8.1.1) for
+  the expression and subscript binders; a closed general format's row carries its 1985 locator (`ClosedFormat.Clause1985`) and renders
+  through `Refusal(word, owner, edition)`, the parser asking `CobolParserCoreBase.ClosedFormatRefusal`; `StartRule` and
+  `OpenTapePhraseRule.OrganizationClause1985` pick the 1985 module by the file's organization; `MarginRCut.AccountAt`, `SeparatorRule.
+  ArithmeticOperatorViolations` and `ReceivingOperandForms.Rule.Message` take the edition.
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
   1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
   `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.

@@ -331,22 +331,31 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (written == 0)
             data.Edition.Error(DiagnosticCatalog.TableElementNotSubscripted,
                 $"'{text}': '{subject}' is a table element — its description contains, or is subordinate to, "
-                + $"{arity} OCCURS clause{(arity == 1 ? "" : "s")} — and ISO §2023:8.4.2.3.3 SR5 requires \"Each table "
-                + "element reference shall be subscripted\" outside seven contexts (a SEARCH subject, a REDEFINES "
-                + "clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen FROM/TO/USING phrase, a "
-                + $"SUM addend), none of which this is. Write {arity} subscript{(arity == 1 ? "" : "s")}, "
+                + $"{arity} OCCURS clause{(arity == 1 ? "" : "s")} — and ISO "
+                + data.Edition.Edition.Cite(
+                    "§1985:IV.4.3.8.2.3 SR4 requires that \"Each table element reference must be subscripted\" outside four contexts "
+                    + "(a USE FOR DEBUGGING statement, a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase)",
+                    "§2023:8.4.2.3.3 SR5 requires \"Each table element reference shall be subscripted\" outside seven contexts "
+                    + "(a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen "
+                    + "FROM/TO/USING phrase, a SUM addend)",
+                    "§2023:8.4.2.3.3 SR5 requires \"Each table element reference shall be subscripted\" outside seven contexts "
+                    + "(a SEARCH subject, a REDEFINES clause, an OCCURS KEY IS phrase, a SORT key or table subject, a screen "
+                    + "FROM/TO/USING phrase, a SUM addend)")
+                + $", none of which this is. Write {arity} subscript{(arity == 1 ? "" : "s")}, "
                 + "outermost first.");
         else if (arity == 0)
             data.Edition.Error(DiagnosticCatalog.SubscriptOnNonTableItem,
                 $"'{text}': a subscript is written on '{subject}', whose data description entry neither "
                 + "contains an OCCURS clause nor is subordinate to one, so no subscript may be written on it "
-                + "(ISO §2023:8.4.2.3.3 SR2). For a character span write the reference-modification colon form "
+                + "(ISO " + data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR1", "§2023:8.4.2.3.3 SR2", "§2023:8.4.2.3.3 SR2")
+                + "). For a character span write the reference-modification colon form "
                 + $"instead — '{subject} (1:n)' (§2023:8.4.3.3).");
         else
             data.Edition.Error(DiagnosticCatalog.SubscriptCountMismatch,
                 $"'{text}': {written} subscript{(written == 1 ? "" : "s")} written, but the description of "
-                + $"'{subject}' contains {arity} OCCURS clause{(arity == 1 ? "" : "s")}; ISO §2023:8.4.2.3.3 SR3 "
-                + "requires one subscript per OCCURS clause, written in the order of successively less inclusive "
+                + $"'{subject}' contains {arity} OCCURS clause{(arity == 1 ? "" : "s")}; ISO "
+                + data.Edition.Edition.Cite("§1985:IV.4.3.8.2.3 SR2", "§2023:8.4.2.3.3 SR3", "§2023:8.4.2.3.3 SR3")
+                + " requires one subscript per OCCURS clause, written in the order of successively less inclusive "
                 + "dimensions of the table.");
         return true;
     }
@@ -1077,29 +1086,31 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         // numeric-only carriers belong to class NUMERIC items, which it accepts. So what reaches HERE is
         // exactly: an index DATA item (an <c>IndexCell</c> is a <c>long</c>) and the string-carrier categories
         // — alphanumeric, national, boolean, numeric-edited and their edited forms.
+        var edition = data.Edition.Edition;
         string what = item.Pic is { Usage: Usage.Index }
-                ? $"item '{name}', an index data item (class index, ISO §2023:8.5.2.1 Table 2; §2023:13.18.60.3 SR10 admits "
-                  + "an index data item only in SEARCH/SET, a relation condition, or an intrinsic argument)"
+                ? $"item '{name}', an index data item ("
+                  + edition.Cite("", "class index, ISO §2023:8.5.2.1 Table 2; ", "class index, ISO §2023:8.5.2.1 Table 2; ")
+                  + edition.IndexDataItemRule().Replace("ISO §2023:13.18.60.3", "§2023:13.18.60.3") + ")"
             // The class SPELLED by the one Table-2 spelling (kb/Work PB1400): `ToString().ToLowerInvariant()` of the
             // enum printed a numeric-edited subscript as "class numericediteddeediting".
             : $"item '{name}' of class "
               + $"{IntrinsicArgumentRules.ClassNameOf(item)} "
-              + "(ISO §2023:8.5.2.1 Table 2)";
+              + $"(ISO {edition.ClassRule()})";
         string where = position == SegmentPosition.Subscript
-            ? "a subscript is arithmetic-expression-1 (ISO §2023:8.4.2.3.2)"
-            : "a reference-modification leftmost-position/length is an arithmetic expression (ISO §2023:8.4.3.3.3 SR4)";
+            ? "a subscript is " + edition.Cite("an integer data-name or literal (ISO §1985:IV.4.3.8.2.3 SR5)",
+                "arithmetic-expression-1 (ISO §2023:8.4.2.3.2)", "arithmetic-expression-1 (ISO §2023:8.4.2.3.2)")
+            : "a reference-modification leftmost-position/length is an arithmetic expression (ISO "
+                + edition.Cite("§1985:IV.4.3.8.4.3 SR2", "§2023:8.4.3.3.3 SR4", "§2023:8.4.3.3.3 SR4") + ")";
         // The SAME dialect gate the expression-binder screen carries (dialect_two_axes — every leniency is
         // dialect-gated): --permissive keeps the CobolTable.Occ(string) digit decode, which is the leniency
         // already implemented by that overload, and the emitted text is unchanged either way.
         if (data.Edition.Permissive)
-            data.Edition.Warning(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand — {where}, and ISO §2023:8.8.1.1 "
-                + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
-                + "figurative constant ZERO; accepted under --permissive, decoding its digit characters as an "
+            data.Edition.Warning(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand — {where}, and ISO {edition.ArithmeticCitation()} "
+                + $"{edition.Admits()}; accepted under --permissive, decoding its digit characters as an "
                 + "unsigned integer");
         else
-            data.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: {where}, and ISO §2023:8.8.1.1 "
-                + "admits only an identifier referencing a NUMERIC data item, a numeric literal, or the "
-                + "figurative constant ZERO. --permissive accepts it as a digit-decoding extension");
+            data.Edition.Error(DiagnosticCatalog.ArithmeticOperandNotNumeric, $"{what} is not a numeric operand: {where}, and ISO {edition.ArithmeticCitation()} "
+                + $"{edition.Admits()}. --permissive accepts it as a digit-decoding extension");
     }
 
     /// <summary>⛔ THE ONE ORDINAL-POSITION READ (fix-queue PB41): an already-resolved numeric item → the C#

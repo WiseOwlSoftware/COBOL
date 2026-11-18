@@ -316,7 +316,7 @@ public sealed partial class SpecialNamesBinder
         {
             if (CollatingAlphabetFault(alnumName, national: false) is { } fault)
                 Edition.Error(DiagnosticCatalog.CollatingSequenceAlphabetKind, CollatingAlphabetViolation("PROGRAM COLLATING SEQUENCE", alnumName,
-                    national: false, fault, "ISO §2023:12.3.6.3 SR1"));
+                    national: false, fault, "ISO " + Edition.Edition.Cite("§1985:VI.4.5.4 GR4", "§2023:12.3.6.3 SR1", "§2023:12.3.6.3 SR1")));
             else if (Cfg.Alphabets.TryUse(pcs, alnumName, out var def)) Cfg.Collating = def.IsIdentity ? null : def;
         }
         if (natName is not null)

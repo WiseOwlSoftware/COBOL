@@ -235,7 +235,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
                 + "in ClosedFormats.ByContext, which ClosedFormatDriftTests exists to prevent");
             return null;
         }
-        _edition.Error(format.Diagnostic, format.Refusal(word, ClosedFormats.OwnerName(ctx)));
+        _edition.Error(format.Diagnostic, format.Refusal(word, ClosedFormats.OwnerName(ctx), _edition.Edition));
         return null;   // nothing below an error production is diagnosed — one diagnostic per word run
     }
 

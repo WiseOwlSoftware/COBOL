@@ -2108,8 +2108,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var run = at.ResidueRunOpening;
         return new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                 Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
-            closedFormat.Refusal(run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token),
-                at.OwnerName()) + ".", 0, run?.Start, LeavesNoTail: run is null);
+            ((CobolParserCoreBase)recognizer).ClosedFormatRefusal(closedFormat,
+                run is not null ? WrittenSource.Of(run) : WrittenResidueItem(recognizer, at.Token), at.OwnerName()) + ".", 0, run?.Start, LeavesNoTail: run is null);
     }
 
     /// <summary>A closed format's residue: the format whose list stands there, and the error production's form

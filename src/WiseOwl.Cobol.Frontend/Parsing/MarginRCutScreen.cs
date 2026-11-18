@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
@@ -29,7 +30,7 @@ public static class MarginRCutScreen
     /// <summary>The warnings for every token of <paramref name="tokens"/> that ends at margin R with cut text right after it,
     /// except on a line <paramref name="reported"/> already holds a COBOL5788 for: the syntax-error note names that cut, and
     /// one cut is named once. In source order.</summary>
-    public static List<Diagnostic> Warnings(IEnumerable<IToken> tokens, IParseTree tree, IMarginRCutLocator cuts, IReadOnlyList<Diagnostic> reported)
+    public static List<Diagnostic> Warnings(IEnumerable<IToken> tokens, IParseTree tree, IMarginRCutLocator cuts, IReadOnlyList<Diagnostic> reported, EditionInfo edition)
     {
         var warnings = new List<Diagnostic>();
         var commentEntries = CommentEntryTokens.Of(tree);
@@ -49,7 +50,7 @@ public static class MarginRCutScreen
                 string code = DiagnosticCatalog.TokenCutAtMarginR.Code;
                 if (warnings.Any(d => d.Code == code && d.Location.Equals(at))) continue;
                 warnings.Add(new Diagnostic(code, DiagnosticSeverity.Warning,
-                    $"{cut.Cut.Account} The token '{WrittenSource.Of(token)}' ends at position {cut.Cut.LastProgramTextPosition} with the "
+                    $"{cut.Cut.AccountAt(edition)} The token '{WrittenSource.Of(token)}' ends at position {cut.Cut.LastProgramTextPosition} with the "
                     + "cut text right after it and no space between, so the compiler read the token as far as it was written within "
                     + $"the program-text area, which may not be the token meant. {cut.Cut.Remedy}", at, TextSpan.Empty));
             }

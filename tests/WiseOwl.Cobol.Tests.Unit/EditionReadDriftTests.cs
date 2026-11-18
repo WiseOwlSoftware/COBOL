@@ -107,7 +107,7 @@ public sealed class EditionReadDriftTests
     {
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs"] =
         [
-            "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
+            "ClosedFormatRefusal", "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
             "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "UserWordViolationOf", "conditionalPhraseAssociates",
             "entryNameHere", "facilityWord",
             "gatedDeclaration", "gatedWordFreeHere", "is2002", "is2014",
@@ -195,6 +195,8 @@ public sealed class EditionReadDriftTests
         // neither table, and the words a format spells where §2023:8.9 leaves them free (IsKeywordWhereFree). It refuses nothing
         // itself and gates no construct.
         ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.GuessCobolIntent | PrintsKeyword"] = (1, Verdict.DiagnosisOnly),
+        // A closed format's refusal cites the general format of the edition in force (kb/Work PB4950): wording only, never a verdict.
+        ["src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs | CobolErrorStrategy.ResidueRefusal | ClosedFormatRefusal"] = (1, Verdict.DiagnosisOnly),
         // The same sentence names a user-defined word where an operand is due only where the compile edition has one to write
         // (kb/Work PB4435, PrintsConstantName): where every word the position takes stands for a literal (§2023:13.10.3 SR2), the
         // word is a constant-name, and the constant entry is COBOL-2002's, so a COBOL-85 sentence names the literal alone.

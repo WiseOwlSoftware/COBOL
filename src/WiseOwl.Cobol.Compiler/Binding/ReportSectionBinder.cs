@@ -181,7 +181,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                             model.Controls.Add(new ReportControlModel
                             {
                                 Operand = ControlOperandRef(dref, DiagnosticCatalog.ReportControlOperandShape,
-                                    $"RD '{model.Name}': CONTROL operand", "ISO §2023:13.18.16.3 SR4"),
+                                    $"RD '{model.Name}': CONTROL operand",
+                                    "ISO " + Edition.Edition.Cite("§1985:XIII.3.7.3 SR1", "§2023:13.18.16.3 SR4", "§2023:13.18.16.3 SR4")),
                             });
                             break;
                     }
@@ -893,6 +894,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// </list></summary>
     private void BindNextGroupClauses(Core.ReportGroupEntryContext[] entries, ReportModel model)
     {
+        string NextGroupRule(string rule2023, string rule1985) =>
+            Edition.Edition.Cite(rule1985, $"§2023:13.18.37.3 {rule2023}", $"§2023:13.18.37.3 {rule2023}");
         foreach (var ge in entries)
         {
             if (int.TryParse(ge.levelNumber().GetText(), out int level) && level == 1) continue;
@@ -902,7 +905,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     using var _ = Edition.At(misplaced);
                     Edition.Error(DiagnosticCatalog.ReportNextGroupClauseRule, $"RD '{model.Name}' entry "
                         + $"'{ge.dataName().NameOrNull() ?? "FILLER"}' is a level {level} entry; the NEXT GROUP "
-                        + "clause may be specified only in a level 1 entry (ISO §2023:13.15.3 SR6)");
+                        + $"clause may be specified only in a level 1 entry (ISO {Edition.Edition.Cite("§1985:XIII.3.9.3 SR4", "§2023:13.15.3 SR6", "§2023:13.15.3 SR6")})");
                 }
         }
         foreach (var g in model.Groups)
@@ -929,23 +932,23 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (g.Kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.ReportFooting)
             {
                 Violation("the NEXT GROUP clause shall not be specified in a page heading or report footing (ISO "
-                    + "§2023:13.18.37.3 SR4)");
+                    + $"{NextGroupRule("SR4", "§1985:XIII.3.16.3 SR5")})");
                 continue;
             }
             if (ng.Kind == ReportNextGroupKind.NextPage)
             {
                 if (g.Kind == ReportGroupKindModel.PageFooting)
-                    Violation("the NEXT PAGE phrase shall not be specified in a page footing (ISO §2023:13.18.37.3 SR5)");
+                    Violation($"the NEXT PAGE phrase shall not be specified in a page footing (ISO {NextGroupRule("SR5", "§1985:XIII.3.16.3 SR4")})");
                 if (!model.Paged)
                     Violation("the report is not divided into pages, so only the relative form of the NEXT GROUP "
-                        + "clause may be specified (ISO §2023:13.18.37.3 SR3)");
+                        + $"clause may be specified (ISO {NextGroupRule("SR3", "§1985:XIII.3.16.3 SR3")})");
                 continue;
             }
             bool absolute = ng.Kind == ReportNextGroupKind.Absolute;
             if (ng.Value > model.VerticalLimit)
                 Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} exceeds {model.VerticalLimitWords}"
                     + "; integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
-                    + "divided into pages (ISO §2023:13.18.37.3 SR1)");
+                    + $"divided into pages (ISO {NextGroupRule("SR1", "§1985:XIII.3.10.8 GR5 and §1985:XIII.3.16.3 SR2")})");
             else if (ExceedsThreeSignificantDigits85(ng.Value))
                 Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} has more than three "
                     + "significant digits; integer-1 and integer-2 must not exceed three significant digits in length "
@@ -954,7 +957,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 if (absolute)
                     Violation("the report is not divided into pages, so only the relative form of the NEXT GROUP "
-                        + "clause may be specified (ISO §2023:13.18.37.3 SR3)");
+                        + $"clause may be specified (ISO {NextGroupRule("SR3", "§1985:XIII.3.16.3 SR3")})");
                 continue;   // SR6/SR7 are stated against the page regions, which an unpaged report has none of
             }
             int? minLast = g.Kind is ReportGroupKindModel.ReportHeading or ReportGroupKindModel.PageFooting
@@ -965,25 +968,25 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     when ng.Value >= model.FirstDetail || (minLast is { } m && ng.Value <= m):
                     Violation($"integer-1 {ng.Value} shall be greater than the minimum last line number of the report "
                         + $"heading ({minLast?.ToString() ?? "none"}) and less than the FIRST DETAIL integer "
-                        + $"{model.FirstDetail} (ISO §2023:13.18.37.3 SR6a)");
+                        + $"{model.FirstDetail} (ISO {NextGroupRule("SR6a", "§1985:XIII.3.10.6 GR4a")})");
                     break;
                 case (ReportGroupKindModel.ControlHeading or ReportGroupKindModel.Detail
                       or ReportGroupKindModel.ControlFooting, true)
                     when ng.Value < model.FirstDetail || ng.Value > model.Footing:
                     Violation($"integer-1 {ng.Value} shall lie between the FIRST DETAIL integer {model.FirstDetail} and "
-                        + $"the FOOTING integer {model.Footing}, inclusive (ISO §2023:13.18.37.3 SR6b)");
+                        + $"the FOOTING integer {model.Footing}, inclusive (ISO {NextGroupRule("SR6b", "§1985:XIII.3.10.8 GR5")})");
                     break;
                 case (ReportGroupKindModel.PageFooting, true) when minLast is { } m && ng.Value <= m:
                     Violation($"integer-1 {ng.Value} shall be greater than the minimum last line number of the page "
-                        + $"footing ({m}) (ISO §2023:13.18.37.3 SR6c)");
+                        + $"footing ({m}) (ISO {NextGroupRule("SR6c", "§1985:XIII.3.10.9 GR4a")})");
                     break;
                 case (ReportGroupKindModel.ReportHeading, false) when minLast is { } m && m + ng.Value >= model.FirstDetail:
                     Violation($"the minimum last line number of the report heading ({m}) plus integer-2 {ng.Value} shall "
-                        + $"be less than the FIRST DETAIL integer {model.FirstDetail} (ISO §2023:13.18.37.3 SR7a)");
+                        + $"be less than the FIRST DETAIL integer {model.FirstDetail} (ISO {NextGroupRule("SR7a", "§1985:XIII.3.10.6 GR4b")})");
                     break;
                 case (ReportGroupKindModel.PageFooting, false) when minLast is { } m && m + ng.Value > model.PageLimit:
                     Violation($"the minimum last line number of the page footing ({m}) plus integer-2 {ng.Value} shall "
-                        + $"not exceed the page limit {model.PageLimit} (ISO §2023:13.18.37.3 SR7b)");
+                        + $"not exceed the page limit {model.PageLimit} (ISO {NextGroupRule("SR7b", "§1985:XIII.3.10.9 GR4b")})");
                     break;
             }
         }
@@ -3076,7 +3079,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 else if (name.dataReference() is { } dref)
                     group.ControlOperand = ControlOperandRef(dref, DiagnosticCatalog.ReportControlTypeOperand,
                         $"RD '{model.Name}': TYPE {(group.Kind == ReportGroupKindModel.ControlHeading ? "CH" : "CF")} operand",
-                        "ISO §2023:13.18.57.3 SR10");
+                        "ISO " + Edition.Edition.Cite("§1985:XIII.3.20.3 SR4", "§2023:13.18.57.3 SR10", "§2023:13.18.57.3 SR10"));
             }
             // Omitted operand: legal only with a one-operand CONTROL clause (§2023:13.18.57.3 SR11) — resolved later.
             // §2023:13.18.57.2: the OR PAGE phrase belongs to the control HEADING (the grammar writes it nowhere else).
@@ -3087,7 +3090,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             && !model.Paged)
             Edition.Error(DiagnosticCatalog.ReportPageTypeRequiresPage, $"RD '{model.Name}': "
                 + (group.OrPage ? "the OR PAGE phrase of TYPE CONTROL HEADING" : $"TYPE {group.Kind}")
-                + " requires a PAGE clause that defines the page limit (ISO §2023:13.18.57.3 SR12)");
+                + " requires a PAGE clause that defines the page limit (ISO " + Edition.Edition.Cite(
+                    group.OrPage
+                        ? "§1985:XIII.3.20.3 SR3 asks a PAGE clause for a page heading or page footing, and COBOL-85 has no OR PAGE phrase"
+                        : "§1985:XIII.3.20.3 SR3",
+                    "§2023:13.18.57.3 SR12", "§2023:13.18.57.3 SR12") + ")");
     }
 
     /// <summary>THE §2023:13.15.4 GR3 REPETITION COUNT of one report group description entry: "An entry that contains
@@ -3554,7 +3561,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             if (reset.FINAL() is not null) sum.ResetFinal = true;
             else if (reset.dataReference() is { } rref)
                 sum.ResetOperand = ControlOperandRef(rref, DiagnosticCatalog.ReportResetNotControlOperand,
-                    $"RD '{model.Name}': SUM … RESET ON operand", "ISO §2023:13.18.54.3 SR8");
+                    $"RD '{model.Name}': SUM … RESET ON operand",
+                    "ISO " + Edition.Edition.Cite("§1985:XIII.3.19.3 SR4", "§2023:13.18.54.3 SR8", "§2023:13.18.54.3 SR8"));
         }
         model.Sums.Add(sum);   // in binding order; SealSumCounters puts the list in id order
         return sum;
@@ -3774,7 +3782,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     if (group.ControlLevel < 0)
                         Edition.Error(DiagnosticCatalog.ReportControlTypeOperand, $"RD '{model.Name}': the TYPE C{(group.Kind == ReportGroupKindModel.ControlHeading ? "H" : "F")} operand "
                             + $"{(group.ControlOperand is { } d ? $"'{d}' " : "")}shall be the same as one of the "
-                            + "operands of the CONTROL clause (ISO §2023:13.18.57.3 SR10/SR11)");
+                            + "operands of the CONTROL clause (ISO "
+                            + Edition.Edition.Cite("§1985:XIII.3.20.3 SR4", "§2023:13.18.57.3 SR10/SR11", "§2023:13.18.57.3 SR10/SR11") + ")");
                 }
                 foreach (var ln in group.Lines)
                     foreach (var f in ln.Fields)
@@ -3843,7 +3852,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     sum.ResetLevel = ControlLevelOf(model, rn);
                 if ((sum.ResetFinal || sum.ResetOperand is not null) && sum.ResetLevel < 0)
                     Edition.Error(DiagnosticCatalog.ReportResetNotControlOperand, $"RD '{model.Name}': RESET ON '{sum.ResetOperand?.ToString() ?? "FINAL"}' is "
-                        + "not an operand of the CONTROL clause (ISO §2023:13.18.54.3 SR8)");
+                        + "not an operand of the CONTROL clause (ISO "
+                        + Edition.Edition.Cite("§1985:XIII.3.19.3 SR4", "§2023:13.18.54.3 SR8", "§2023:13.18.54.3 SR8") + ")");
                 else if (sum.ResetLevel >= 0 && sum.PrintedIn is { Kind: ReportGroupKindModel.ControlFooting, ControlLevel: >= 0 } footing)
                     ScreenResetLevel(model, sum, footing);
             }
@@ -4876,8 +4886,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             }
             else
                 Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is subscripted. A control operand may not be subject "
-                    + "to an OCCURS clause (ISO §2023:13.18.16.3 SR3), and a subscript may be written only for an item that "
-                    + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal.");
+                    + Edition.Edition.Cite(
+                        "to an OCCURS clause (ISO §1985:XIII.3.7.3 SR1: data-name-1 may be qualified, and nothing admits a subscript), "
+                        + "so a subscripted control operand is never legal.",
+                        "to an OCCURS clause (ISO §2023:13.18.16.3 SR3), and a subscript may be written only for an item that "
+                        + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal.",
+                        "to an OCCURS clause (ISO §2023:13.18.16.3 SR3), and a subscript may be written only for an item that "
+                        + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal."));
         }
         if (sfx.RefMods > 1)
             Edition.Error(DiagnosticCatalog.RefModOfRefMod, $"{where} '{DataBinder.WrittenText(dref)}' carries {sfx.RefMods} reference "

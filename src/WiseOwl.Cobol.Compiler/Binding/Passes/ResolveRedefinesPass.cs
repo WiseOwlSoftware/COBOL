@@ -447,7 +447,8 @@ internal sealed class ResolveRedefinesPass : IBindPass
         if (!exempt && StorageBitsOf(item) is var itemBits && StorageBitsOf(target) is var targetBits && itemBits > targetBits)
             binder.Edition.Error(DiagnosticCatalog.RedefinesStorageLargerThanTarget, $"'{name}' REDEFINES '{tname}': the redefining storage area "
                 + $"({itemBits} bits) is larger than the redefined ({targetBits}) — permitted only when the redefined "
-                + "item is level 1 and not EXTERNAL (ISO §2023:13.18.44.3 SR8)");
+                + "item is level 1 and not EXTERNAL (ISO "
+                + binder.Edition.Edition.Cite("§1985:VI.5.10.3 SR6", "§2023:13.18.44.3 SR8", "§2023:13.18.44.3 SR8") + ")");
 
         // SR15 — "The description of the subject of the entry shall be such that its required alignment is the same
         // as the alignment of the data item referenced by data-name-2." §2023:8.5.1.6.3 puts an elementary bit item that
@@ -524,8 +525,11 @@ internal sealed class ResolveRedefinesPass : IBindPass
         {
             binder.Edition.Error(DiagnosticCatalog.RenamesEntryRule,
                 $"'{alias}' RENAMES: {role} '{op}' refers to an entry described with level-number "
-                + $"{(operand.Level is 77 ? "77" : operand.Level is 66 ? "66" : "1")} (ISO §2023:13.18.45.3 SR5: \"Neither data-name-2 nor data-name-3 "
-                + "shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")");
+                + $"{(operand.Level is 77 ? "77" : operand.Level is 66 ? "66" : "1")} "
+                + binder.Edition.Edition.Cite(
+                    "(ISO §1985:VI.5.11.3 SR4: \"A 66 level entry cannot rename another 66 level entry nor can it rename a 77, 88, or 01 level entry.\")",
+                    "(ISO §2023:13.18.45.3 SR5: \"Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")",
+                    "(ISO §2023:13.18.45.3 SR5: \"Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")"));
             ok = false;
         }
 
@@ -537,8 +541,10 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 binder.Edition.Error(DiagnosticCatalog.RenamesEntryRule,
                     $"'{alias}' RENAMES: {role} '{op}' is subject to an OCCURS clause"
                     + (ReferenceEquals(n, operand) ? "" : $" (of '{n.CobolName ?? "FILLER"}')")
-                    + " (ISO §2023:13.18.45.3 SR3: \"Data-name-1, data-name-2 and data-name-3 shall not be subject to any "
-                    + "OCCURS clauses.\")");
+                    + " " + binder.Edition.Edition.Cite(
+                        "(ISO §1985:VI.5.11.3 SR3: \"Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry nor be subordinate to an item that has an OCCURS clause in its data description entry.\")",
+                        "(ISO §2023:13.18.45.3 SR3: \"Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses.\")",
+                        "(ISO §2023:13.18.45.3 SR3: \"Data-name-1, data-name-2 and data-name-3 shall not be subject to any OCCURS clauses.\")"));
                 ok = false;
                 break;
             }
@@ -571,9 +577,16 @@ internal sealed class ResolveRedefinesPass : IBindPass
                 ? "the beginning of data-name-3 precedes the beginning of data-name-2"
                 : "the end of data-name-3 does not follow the end of data-name-2 (data-name-3 cannot be subordinate to, "
                   + "or coincide with, data-name-2)")
-            + " (ISO §2023:13.18.45.3 SR11: \"The beginning of the storage area described by data-name-3 shall not precede the "
-            + "beginning of the storage area described by data-name-2. The end of the storage area described by "
-            + "data-name-3 shall follow the end of the storage area described by data-name-2.\")");
+            + " " + binder.Edition.Edition.Cite(
+                "(ISO §1985:VI.5.11.3 SR8: \"The beginning of the area described by data-name-3 must not be to the left of the "
+                + "beginning of the area described by data-name-2. The end of the area described by data-name-3 must be to the right "
+                + "of the end of the area described by data-name-2.\")",
+                "(ISO §2023:13.18.45.3 SR11: \"The beginning of the storage area described by data-name-3 shall not precede the "
+                + "beginning of the storage area described by data-name-2. The end of the storage area described by "
+                + "data-name-3 shall follow the end of the storage area described by data-name-2.\")",
+                "(ISO §2023:13.18.45.3 SR11: \"The beginning of the storage area described by data-name-3 shall not precede the "
+                + "beginning of the storage area described by data-name-2. The end of the storage area described by "
+                + "data-name-3 shall follow the end of the storage area described by data-name-2.\")"));
         return false;
     }
 }
