@@ -1587,7 +1587,12 @@ public static class DiagnosticCatalog
         + "file\" — is the sentence that forbids it elsewhere. That rejection cited §2023:12.4.5.7.1, the clause's "
         + "descriptive General paragraph, which states no obligation; repaired in kb/Work PB742, which added "
         + "SR8's key-clause operands as rows of FileControlKeyRules.",
-        "ISO §2023:12.4.5.7.3 SR3-SR8 / §2023:12.4.5.2 SR8");
+        "ISO §2023:12.4.5.7.3 SR3-SR8 / §2023:12.4.5.2 SR8",
+        No1985Rule: "The file-control COLLATING SEQUENCE clause (file-level and key-level) is not in ANSI X3.23-1985: the file control "
+            + "entry has no such clause, and \"for an indexed file, the collating sequence associated with the native character set "
+            + "is assumed\" (§1985:IX.2.3.4 GR3); the 1985 collating sequences are the PROGRAM COLLATING SEQUENCE of "
+            + "OBJECT-COMPUTER and the COLLATING SEQUENCE phrase of SORT and MERGE, so there is no 1985 rule to cite; the "
+            + "message names the edition where the clause begins (COBOL-2002), kb/Work PB4950.");
     public static readonly DiagnosticDescriptor FileCollatingAlphabet = new(
         "COBOL1583", "file-collating-alphabet", EditionSeverity.Error,
         "A file-control COLLATING SEQUENCE clause names an alphabet that is not declared in SPECIAL-NAMES or that "
@@ -2529,7 +2534,11 @@ public static class DiagnosticCatalog
         + "'+hhmm' / '+hh:mm' subformat (§2023:15.3.3.4–§2023:15.3.3.6); a plain 'hhmmss' / 'hh:mm:ss' is local. ⚠ The "
         + "converse is NOT an error: omitting the argument for a UTC or offset format is explicitly legal and "
         + "evaluates as though 0 were specified (§2023:15.40.3 r7 / §2023:15.41.3 r6).",
-        "ISO §2023:15.40.3 r6 / §2023:15.41.3 r5 (zone per §2023:15.3.3.4–§2023:15.3.3.6)");
+        "ISO §2023:15.40.3 r6 / §2023:15.41.3 r5 (zone per §2023:15.3.3.4–§2023:15.3.3.6)",
+        No1985Rule: "FORMATTED-TIME and FORMATTED-DATETIME, and the UTC and offset time formats whose argument this rule governs, are "
+            + "not in ANSI X3.23-1985 or its 1989 intrinsic function amendment, whose function summary (§1989:A.2.4) lists no "
+            + "formatted-date or time function, so there is no 1985 rule to cite; the intrinsic-function edition gate names the "
+            + "edition where the function begins (COBOL-2002), kb/Work PB4950.");
     // PB47. A SYNTAX RULE violation, so a compile-time diagnostic — and that is the whole point of the entry:
     // an invalid pairing used to compile clean and reach a RUN-TIME NotImplementedCobolFeatureException reading
     // "a COBOL feature that is not yet implemented", which is doubly wrong (it IS implemented; the source is
@@ -3138,7 +3147,10 @@ public static class DiagnosticCatalog
         + "define, so it refuses the file rather than substitute a character. Re-save the file in the encoding its "
         + "mark names, or remove the mark so the file is read as UTF-8 (or as ISO/IEC 8859-1 when it is not "
         + "well-formed UTF-8).",
-        "ISO §2023:8.1.3.2 GR1 / Annex A.1 items 25, 26");
+        "ISO §2023:8.1.3.2 GR1 / Annex A.1 items 25, 26",
+        No1985Rule: "ANSI X3.23-1985 names no source-file encoding and no byte-order mark: its character set is the implementor-defined "
+            + "native character set of the computer (§1985:III.2), so there is no 1985 rule for a marked file that is not well-formed "
+            + "in the encoding its mark names; the rule is an implementor's recorded choice (docs/CONFORMANCE.md §7), kb/Work PB4950.");
     /// <summary>COBOL5435 — a source or library text file with NO byte-order mark that is not well-formed UTF-8, read as
     /// ISO/IEC 8859-1 (kb/Work PB1397; docs/CONFORMANCE.md §7, Annex A.1 item 25). Every byte is then the character with
     /// that code point, so no source byte is lost or altered — and the compiler says so, naming the file and the
@@ -3235,7 +3247,10 @@ public static class DiagnosticCatalog
         "A free-form line has more than 255 character positions. ISO §2023:6.1 3) a): \"The number of character positions "
         + "on a line may vary from line to line, ranging from a minimum of 0 to a maximum of 255.\" Break the line "
         + "(the floating literal continuation indicator continues a literal) or split the statement.",
-        "ISO §2023:6.1 3) a)");
+        "ISO §2023:6.1 3) a)",
+        No1985Rule: "The free-form reference format, and so its limit of 255 character positions on a line, is not in ANSI X3.23-1985: "
+            + "its one reference format is the fixed one (§1985:IV.7.1), so there is no 1985 rule to cite; a free-form line at COBOL-85 is "
+            + "an edition gate and cites the edition where free form begins (COBOL-2002), kb/Work PB4950.");
 
     /// <summary>COBOL2684 — a continuation line of a literal whose first nonblank character is not the quotation
     /// symbol of the literal's opening delimiter (kb/Work PB1492, PB1359). One check for the fixed continuation
@@ -6442,7 +6457,11 @@ public static class DiagnosticCatalog
         + "class-name-1 references an operand whose usage is neither display nor national. ISO §2023:8.8.4.4.3 SR3: "
         + "\"If the alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, or class-name-1 "
         + "phrase is specified, identifier-1 shall reference a data-item whose usage is display or national.\"",
-        "ISO §2023:8.8.4.4.3 SR3");
+        "ISO §2023:8.8.4.4.3 SR3",
+        No1985Rule: "The alphabet-name-1 and BOOLEAN phrases of the class condition are not in ANSI X3.23-1985, whose class condition "
+            + "names NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER and class-name-1 only (§1985:VI.6.3.1.2); the 1985 "
+            + "usage rule for the operand of those tests is a code of its own (COBOL-85's DISPLAY rule), so the 2002 phrases "
+            + "that reach this code at COBOL-85 are edition gates and cite the edition where they begin, kb/Work PB4950.");
     // COBOL2205 ("mcs-message-tag-set-unsupported") is RETIRED, NEVER REALLOCATE IT: SET Format 17 (message-tag)
     // binds since kb/Work PB4740 (SetBinder.BindMessageTagSet).
 

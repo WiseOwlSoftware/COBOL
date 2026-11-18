@@ -40,8 +40,8 @@ internal static class UnrepeatedElements
         if (count > 1)
             edition.Error(DiagnosticCatalog.FormatElementRepeated,
                 $"{where}: {element} is written {count} times; {format}'s general format admits it at most once — a "
-                + "bracket with no ellipsis allows its element once (§2023:5.2.6.2, §2023:5.2.7)"
+                + $"bracket with no ellipsis allows its element once ({edition.Edition.Cite("§1985:IV.2.1.4, §1985:IV.2.1.5", "§2023:5.2.6.2, §2023:5.2.7", "§2023:5.2.6.2, §2023:5.2.7")})"
                 + (orderFree ? " — the elements may be written in any order, but each once"
-                             : " — once, in the sequence the format prints (§2023:5.2.1)"));
+                             : $" — once, in the sequence the format prints ({edition.Edition.Cite("§1985:IV.2.1", "§2023:5.2.1", "§2023:5.2.1")})"));
     }
 }

@@ -40,11 +40,15 @@ using Core = CobolParserCore;
 /// outside every section is refused.</item>
 /// </list>
 /// </summary>
-internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowingVisitor(sink)
+internal sealed class ProcedureFormatPass(IDiagnosticSink sink, EditionInfo edition) : CursorFollowingVisitor(sink)
 {
     /// <summary>Screen every procedure division in the group's raw parse tree.</summary>
-    internal static void Run(Core.CompilationUnitContext tree, IDiagnosticSink sink) =>
-        new ProcedureFormatPass(sink).VisitPositioned(tree);
+    internal static void Run(Core.CompilationUnitContext tree, WiseOwl.Cobol.Binding.EditionContext edition) =>
+        new ProcedureFormatPass(edition, edition.Edition).VisitPositioned(tree);
+
+    /// <summary>The procedure division's two body formats, in the edition in force (kb/Work PB4950): §2023:14.2.1 prints
+    /// the with-sections and the without-sections formats; §1985:IV.6.4.1.4.2 prints the same two as Format 1 and Format 2.</summary>
+    private string Formats => edition.Cite("§1985:IV.6.4.1.4.2", "§2023:14.2.1", "§2023:14.2.1");
 
     // No statement and no procedure division header lives in these divisions; a nested program's or a method's
     // procedure division is a sibling of them, never inside one.
@@ -148,15 +152,15 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
         var declaratives = ctx.declarativePart();
         if (declaratives.Length > 1)
             ReportFormat(declaratives[1],
-                "a second DECLARATIVES portion — §2023:14.2.1 Format 1 prints ONE bracketed DECLARATIVES … END DECLARATIVES "
+                $"a second DECLARATIVES portion — {Formats} Format 1 prints ONE bracketed DECLARATIVES … END DECLARATIVES "
                 + "portion, immediately after the procedure division header");
 
         bool hasSectionDefinitions = ctx.sectionDefinition().Length > 0;
         if (hasSectionDefinitions || declaratives.Length > 0)
         {
             string why = hasSectionDefinitions
-                ? "the procedure division has sections, so it is §2023:14.2.1 Format 1 (with-sections)"
-                : "the procedure division has DECLARATIVES, which only §2023:14.2.1 Format 1 (with-sections) admits";
+                ? $"the procedure division has sections, so it is {Formats} Format 1 (with-sections)"
+                : $"the procedure division has DECLARATIVES, which only {Formats} Format 1 (with-sections) admits";
             var sentences = ctx.sentence();
             if (sentences.Length > 0)
                 ReportFormat(sentences[0],
@@ -167,7 +171,10 @@ internal sealed class ProcedureFormatPass(IDiagnosticSink sink) : CursorFollowin
                 ReportFormat(paragraphs[0],
                     $"paragraph {ProcedureNameShape.Head(paragraphs[0].paragraphName().procedureName()).ToUpperInvariant()} is not in a section"
                     + (paragraphs.Length > 1 ? $" (nor are {paragraphs.Length - 1} more paragraphs after it)" : "")
-                    + $" — {why}, and §2023:14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\"");
+                    + $" — {why}, and "
+                    + edition.Cite("§1985:IV.6.4.1.2: \"If one paragraph is in a section, all paragraphs must be in sections\"",
+                        "§2023:14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\"",
+                        "§2023:14.4.1: \"If one paragraph is in a section, all paragraphs shall be in sections\""));
         }
         return base.VisitChildren(ctx);
     }

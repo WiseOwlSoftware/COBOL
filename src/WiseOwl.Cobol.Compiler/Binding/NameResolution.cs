@@ -84,7 +84,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         if (nonData is { Kind: NonDataDeclarationKind.IndexName })
         {
             data.Edition.Error(DiagnosticCatalog.IndexNameContext,
-                $"'{text}' is an index-name, which is not an identifier (ISO §2023:8.4.3.1.2): §2023:13.18.38.3 SR7 admits an "
+                $"'{text}' is an index-name, which is not an identifier (ISO {data.Edition.Edition.NotAnIdentifier()}): {data.Edition.Edition.Contexts()} admits an "
                 + "index-name only as a subscript, in PERFORM/SEARCH VARYING, in SET, or in a relation condition, and "
                 + $"this position needs an identifier. SET a data item to the index first (SET data-item TO {text}) "
                 + "and reference the data item");

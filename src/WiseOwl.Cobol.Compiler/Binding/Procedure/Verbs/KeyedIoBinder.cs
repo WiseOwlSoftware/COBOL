@@ -140,7 +140,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                         return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {keyRef.GetText()} on "
                             + $"'{file.CobolName}': '{keyRef.GetText()}' is a record-key-name of another file; "
                             + "record-key-name-1 shall be specified in the RECORD KEY clause or an ALTERNATE RECORD KEY "
-                            + "clause associated with file-name-1 (ISO §2023:14.9.30.3 SR11)");
+                            + $"clause associated with file-name-1 (ISO {ctx.Edition.Edition.Cite("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11", "§2023:14.9.30.3 SR11")})");
                     keyIndex = rki;
                 }
                 else if (host.Expr.ResolveSending(keyRef).PlaceOrReported(ctx.Edition) is not { } keyPlace)
@@ -155,7 +155,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                     || Model.RecordLayout.KeyIndexOfKeyItem(file, keyItem, keyOccurrence) is not { } ki)
                 {
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
-                        + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §2023:14.9.30.3 SR11)");
+                        + $"operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO {ctx.Edition.Edition.Cite("§1985:IX.4.5.3 SR2", "§2023:14.9.30.3 SR11", "§2023:14.9.30.3 SR11")})");
                 }
                 else keyIndex = ki;
             }

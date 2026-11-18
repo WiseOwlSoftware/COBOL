@@ -243,7 +243,7 @@ internal sealed class OdoResolvePass : IBindPass
                     binder.Edition.Error(DiagnosticCatalog.OccursDependingTableNotLast, $"occurs-depending table '{subject}' is followed by a "
                         + "non-subordinate entry in its record: the subject of an OCCURS DEPENDING ON entry may "
                         + "be followed, within that record, only by data items subordinate to it "
-                        + "(ISO §2023:13.18.38.3 SR22)" + via);
+                        + $"(ISO {binder.Edition.Edition.Cite("§1985:VI.5.8.3 SR10", "§2023:13.18.38.3 SR22", "§2023:13.18.38.3 SR22")})" + via);
                     break;
                 }
             }

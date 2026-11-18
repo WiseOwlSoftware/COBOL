@@ -134,9 +134,11 @@ public sealed partial class FileControlBinder
             if (file.IsReportFile && fd.dataDescriptionEntry() is { Length: > 0 } entries)
                 Edition.Error(DiagnosticCatalog.ReportFileRecordEntry, $"file description entry '{name}' specifies a "
                     + $"REPORT clause and has {entries.Length} record description or constant "
-                    + $"entr{(entries.Length == 1 ? "y" : "ies")} subordinate to it — ISO §2023:13.4.5.3 SR8: \"No record "
-                    + "description entries or constant entries shall be associated with the file description entry "
-                    + "for a report file.\" Remove them; the report's lines come from its REPORT SECTION description.");
+                    + $"entr{(entries.Length == 1 ? "y" : "ies")} subordinate to it — ISO "
+                    + Edition.Edition.Cite("§1985:XIII.3.2.3 SR4: \"No record description entries may follow the file description entry for a report file.\"",
+                        "§2023:13.4.5.3 SR8: \"No record description entries or constant entries shall be associated with the file description entry for a report file.\"",
+                        "§2023:13.4.5.3 SR8: \"No record description entries or constant entries shall be associated with the file description entry for a report file.\"")
+                    + " Remove them; the report's lines come from its REPORT SECTION description.");
             // §2023:13.16.3 SR7's FD half — every WRITTEN record of an EXTERNAL / GLOBAL FD has a data-name
             // (DataBinder.ClausePlacement.cs; kb/Work PB518). Before the implied record, which is not written.
             ScreenFileRecordEntryNames(file);

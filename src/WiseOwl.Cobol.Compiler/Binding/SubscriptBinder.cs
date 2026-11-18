@@ -1020,9 +1020,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// bound.</summary>
     private void IndexNameInPositionError(string name, SegmentPosition position)
     {
-        string what = $"the index-name '{name}' is not an identifier (ISO §2023:8.4.3.1.2) and a "
-            + "reference-modification leftmost-position/length is not one of §2023:13.18.38.3 r7's five contexts (a "
-            + "subscript, PERFORM/SEARCH VARYING, SET, a relation condition) — §2023:8.4.3.3.3 SR4 makes both bounds "
+        var ed = data.Edition.Edition;
+        string what = $"the index-name '{name}' is not an identifier (ISO {ed.NotAnIdentifier()}) and a "
+            + $"reference-modification leftmost-position/length is not one of {ed.Contexts()}'s five contexts (a "
+            + $"subscript, PERFORM/SEARCH VARYING, SET, a relation condition) — {ed.Cite("§1985:VI.5.8.3 SR13", "§2023:8.4.3.3.3 SR4", "§2023:8.4.3.3.3 SR4")} makes both bounds "
             + "arithmetic expressions";
         if (data.Edition.Permissive)
             data.Edition.Warning(DiagnosticCatalog.IndexNameContext,

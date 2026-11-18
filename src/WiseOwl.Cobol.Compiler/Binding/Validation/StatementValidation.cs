@@ -43,17 +43,29 @@ using Core = CobolParserCore;
 /// <param name="OpenModeClause">The clause that states the open-mode rule.</param>
 /// <param name="OrganizationCode">The diagnostic for the organization rule.</param>
 /// <param name="OpenModeCode">The diagnostic for the open-mode rule.</param>
+/// <param name="OrganizationClause1985">The 1985 rule that states the organization rule (kb/Work PB4950), the one a program
+/// compiled at <c>--std 85</c> reads in place of <paramref name="OrganizationClause"/>.</param>
+/// <param name="OpenModeClause1985">The 1985 rule that states the open-mode rule, in place of <paramref name="OpenModeClause"/>.</param>
 internal readonly record struct OpenTapePhraseRule(
     string Phrase, Func<FileModel, bool> AdmitsOrganization, string OrganizationFace, string OrganizationClause,
-    BoundOpenMode[] Modes, string OpenModeClause, string OrganizationCode, string OpenModeCode)
+    BoundOpenMode[] Modes, string OpenModeClause, string OrganizationCode, string OpenModeCode,
+    string OrganizationClause1985, string OpenModeClause1985)
 {
+    /// <summary>The organization rule's citation text in the edition in force.</summary>
+    public string OrganizationClauseIn(EditionInfo edition) => edition.Cite(OrganizationClause1985, OrganizationClause, OrganizationClause);
+
+    /// <summary>The open-mode rule's citation text in the edition in force.</summary>
+    public string OpenModeClauseIn(EditionInfo edition) => edition.Cite(OpenModeClause1985, OpenModeClause, OpenModeClause);
+
     /// <summary>§2023:14.9.27.3 SR5 + SR6 — NO REWIND is for sequential files (§2023:9.1.7.2 admits BOTH sequential
     /// kinds, the same <see cref="FileModel.IsSequential"/> predicate the CLOSE twin §2023:14.9.6.3 SR1 tests) under
     /// INPUT or OUTPUT.</summary>
     private static readonly OpenTapePhraseRule NoRewind = new(
         "WITH NO REWIND", f => f.IsSequential, "sequential", "ISO §2023:14.9.27.3 SR5",
         [BoundOpenMode.Input, BoundOpenMode.Output], "ISO §2023:14.9.27.3 SR6",
-        DiagnosticCatalog.OpenNoRewindOrganization.Code, DiagnosticCatalog.OpenNoRewindOpenMode.Code);
+        DiagnosticCatalog.OpenNoRewindOrganization.Code, DiagnosticCatalog.OpenNoRewindOpenMode.Code,
+        "ISO §1985:VII.4.3.2 — the Sequential I-O module's OPEN general format is the one that prints WITH NO REWIND",
+        "ISO §1985:VII.4.3.2 — WITH NO REWIND is written in the INPUT and OUTPUT groups only");
 
     /// <summary>COBOL-85's REVERSED — NARROWER than its sibling on BOTH axes (VERSION_CHANGE_REFERENCE row
     /// 7.12): RECORD sequential organization only, because the phrase's whole effect is the backward retrieval
@@ -66,7 +78,8 @@ internal readonly record struct OpenTapePhraseRule(
         + "VERSION_CHANGE_REFERENCE row 7.12",
         [BoundOpenMode.Input], "VERSION_CHANGE_REFERENCE row 7.12 — COBOL-85's OPEN general format writes "
         + "REVERSED in the INPUT group only",
-        DiagnosticCatalog.OpenReversedOrganization.Code, DiagnosticCatalog.OpenReversedOpenMode.Code);
+        DiagnosticCatalog.OpenReversedOrganization.Code, DiagnosticCatalog.OpenReversedOpenMode.Code,
+        "ISO §1985:VII.4.3.3 SR1", "ISO §1985:VII.4.3.2 — REVERSED is written in the INPUT group only");
 
     /// <summary>⛔ THE ONE LOOKUP, and the reason the rows are named rather than indexed: a switch over the
     /// enum cannot silently mis-key when a member is inserted, and a member with NO row is LOUD at the first
@@ -210,10 +223,18 @@ internal sealed class StatementValidation(DataBinder data)
         using var _ = data.Edition.At(operand);
         data.Edition.Error(DiagnosticCatalog.FileNameOperandShape,
             $"{verb} '{DataBinder.WrittenText(operand)}' — a file-name is a user-defined word naming a file "
-            + "connector, and is written alone: ISO §2023:8.4.2.2.2 gives a file-name no qualified format (it "
-            + "appears there only as the file-report-qualifier of another name), and subscripting (§2023:8.4.2.3.1) and "
-            + "reference modification (§2023:8.4.3.3.1) decorate identifiers, not file-names. Write the file-name as its "
-            + "SELECT clause spells it.");
+            + "connector, and is written alone: "
+            + data.Edition.Edition.Cite(
+                "ISO §1985:IV.4.3.8.1 gives a file-name no qualified format (it appears there only as the qualifier of a "
+                + "data-name or condition-name), and subscripting (§1985:IV.4.3.8.2.1) and reference modification "
+                + "(§1985:IV.4.3.8.4.1) decorate data items, not file-names.",
+                "ISO §2023:8.4.2.2.2 gives a file-name no qualified format (it appears there only as the file-report-qualifier "
+                + "of another name), and subscripting (§2023:8.4.2.3.1) and reference modification (§2023:8.4.3.3.1) decorate "
+                + "identifiers, not file-names.",
+                "ISO §2023:8.4.2.2.2 gives a file-name no qualified format (it appears there only as the file-report-qualifier "
+                + "of another name), and subscripting (§2023:8.4.2.3.1) and reference modification (§2023:8.4.3.3.1) decorate "
+                + "identifiers, not file-names.")
+            + " Write the file-name as its SELECT clause spells it.");
         return null;
     }
 
@@ -337,10 +358,19 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.ParagraphNameDuplicatedInSection,
                 $"{verb} '{ambiguity.Name}': that paragraph-name is declared {ambiguity.Candidates.Count} times "
                 + $"within section '{ambiguity.Section}' ({candidates}), "
-                + "and it is explicitly referenced here (ISO §2023:8.4.2.2.3 SR7 — \"If explicitly referenced, a "
-                + "paragraph-name shall not be duplicated within a section\"). No qualifier can separate the "
-                + "two: §2023:8.4.2.2.2 format 4 gives a paragraph-name only its section-name as a qualifier, and "
-                + "both declarations carry the same one — rename one of the paragraphs.");
+                + data.Edition.Edition.Cite(
+                    "and it is explicitly referenced here (ISO §1985:IV.4.3.8.1 SRL2.6 — \"If explicitly referenced, a "
+                    + "paragraph-name must not be duplicated within a section\"). No qualifier can separate the "
+                    + "two: the qualification format of a paragraph-name gives it only its section-name as a qualifier "
+                    + "(§1985:IV.4.3.8.1), and both declarations carry the same one — rename one of the paragraphs.",
+                    "and it is explicitly referenced here (ISO §2023:8.4.2.2.3 SR7 — \"If explicitly referenced, a "
+                    + "paragraph-name shall not be duplicated within a section\"). No qualifier can separate the "
+                    + "two: §2023:8.4.2.2.2 format 4 gives a paragraph-name only its section-name as a qualifier, and "
+                    + "both declarations carry the same one — rename one of the paragraphs.",
+                    "and it is explicitly referenced here (ISO §2023:8.4.2.2.3 SR7 — \"If explicitly referenced, a "
+                    + "paragraph-name shall not be duplicated within a section\"). No qualifier can separate the "
+                    + "two: §2023:8.4.2.2.2 format 4 gives a paragraph-name only its section-name as a qualifier, and "
+                    + "both declarations carry the same one — rename one of the paragraphs."));
             return false;
         }
         data.Edition.Error(DiagnosticCatalog.AmbiguousProcedureName,
@@ -1681,16 +1711,17 @@ internal sealed class StatementValidation(DataBinder data)
         bool previous)
     {
         if (file.AccessMode == FileAccessMode.Random) return true;
+        var ed = data.Edition.Edition;
         string? refusal = WrittenSequentialReadPhrases(advancing, atEnd, notAtEnd, next, previous) is { } phrases
             ? $"the KEY phrase belongs to the random READ (Format 2), whose general format prints none of the phrases "
-                + $"ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO §2023:14.9.30.2), and this statement specifies {phrases}; "
-                + "those phrases make a sequential read (ISO §2023:14.9.30.4 GR19), which has no KEY phrase"
+                + $"ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO {ed.Cite("§1985:IX.4.5.2", "§2023:14.9.30.2", "§2023:14.9.30.2")}), and this statement specifies {phrases}; "
+                + $"those phrases make a sequential read (ISO {ed.Cite("§1985:IX.4.5.3 SR4", "§2023:14.9.30.4 GR19", "§2023:14.9.30.4 GR19")}), which has no KEY phrase"
             : file.AccessMode == FileAccessMode.Sequential
                 ? "the file's access mode is SEQUENTIAL"
-                    + (file.AccessModeWritten ? "" : " (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO §2023:12.4.5.5.3 GR1)")
-                    + ", so the NEXT phrase is implied (ISO §2023:14.9.30.3 SR8) and the READ is a sequential read (ISO §2023:14.9.30.4 GR19), "
-                    + "which has no KEY phrase: the KEY phrase belongs to the random READ (Format 2, ISO §2023:14.9.30.2); specify "
-                    + "ACCESS MODE IS RANDOM, or DYNAMIC to read both ways (ISO §2023:12.4.5.5.3 GR3, GR4)"
+                    + (file.AccessModeWritten ? "" : $" (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO {ed.Cite("§1985:IX.2.4.4 GR1", "§2023:12.4.5.5.3 GR1", "§2023:12.4.5.5.3 GR1")})")
+                    + $", so the NEXT phrase is implied (ISO {ed.Cite("§1985:IX.4.5.4 GR2", "§2023:14.9.30.3 SR8", "§2023:14.9.30.3 SR8")}) and the READ is a sequential read (ISO {ed.Cite("§1985:IX.4.5.3 SR4", "§2023:14.9.30.4 GR19", "§2023:14.9.30.4 GR19")}), "
+                    + $"which has no KEY phrase: the KEY phrase belongs to the random READ (Format 2, ISO {ed.Cite("§1985:IX.4.5.3 SR6", "§2023:14.9.30.2", "§2023:14.9.30.2")}); specify "
+                    + $"ACCESS MODE IS RANDOM, or DYNAMIC to read both ways (ISO {ed.Cite("§1985:IX.2.4.4 GR3, GR4", "§2023:12.4.5.5.3 GR3, GR4", "§2023:12.4.5.5.3 GR3, GR4")})"
                 : null;
         if (refusal is null) return true;
         data.Edition.Error(DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY on '{file.CobolName}': {refusal}");
@@ -1732,7 +1763,7 @@ internal sealed class StatementValidation(DataBinder data)
     {
         if (file.Organization == FileOrganization.Indexed) return true;
         data.Edition.Error(DiagnosticCatalog.ReadKeyOnNonIndexedFile, $"READ KEY on '{file.CobolName}': the KEY phrase may be "
-            + "specified only when ORGANIZATION IS INDEXED (ISO §2023:14.9.30.3 SR10)");
+            + $"specified only when ORGANIZATION IS INDEXED (ISO {data.Edition.Edition.Cite("§1985:IX.4.5.2", "§2023:14.9.30.3 SR10", "§2023:14.9.30.3 SR10")})");
         return false;
     }
 
@@ -1773,7 +1804,7 @@ internal sealed class StatementValidation(DataBinder data)
         data.Edition.Error(DiagnosticCatalog.FormatRequiredPhraseOmitted,
             $"the {phrase} phrase is required on every {verb} statement and is omitted — {because} "
             + $"({citation}; brackets are the only convention that makes a portion of a general format "
-            + "omissible, ISO §2023:5.2.6.2)");
+            + $"omissible, ISO {data.Edition.Edition.Cite("§1985:IV.2.1.4", "§2023:5.2.6.2", "§2023:5.2.6.2")})");
         return true;
     }
 
@@ -1835,7 +1866,7 @@ internal sealed class StatementValidation(DataBinder data)
         {
             data.Edition.Error(rule.OrganizationCode,
                 $"OPEN '{file.CobolName}' {rule.Phrase} — the phrase may be specified only for "
-                + $"{rule.OrganizationFace} files ({rule.OrganizationClause})");
+                + $"{rule.OrganizationFace} files ({rule.OrganizationClauseIn(data.Edition.Edition)})");
             return false;
         }
         if (!rule.Modes.Contains(mode))
@@ -1843,7 +1874,7 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(rule.OpenModeCode,
                 $"OPEN {OpenModeFace(mode)} '{file.CobolName}' {rule.Phrase} — the phrase may be specified only "
                 + $"when the {string.Join(" or ", rule.Modes.Select(OpenModeFace))} phrase is specified "
-                + $"({rule.OpenModeClause})");
+                + $"({rule.OpenModeClauseIn(data.Edition.Edition)})");
             return false;
         }
         return true;

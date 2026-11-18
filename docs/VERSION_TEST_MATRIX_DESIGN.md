@@ -322,6 +322,11 @@ the edition in force has no such rule, the message cites the edition where the r
   `PlacementRules.SequenceRule.Cite1985`/`Shall1985`, `LiteralPosition`'s `Cite1985`), so the next row of a table is cited by
   adding its 1985 fields. A refusal's `expect` in `conformance-suite/wiseowl/diagnostics` names a phrase every edition's
   message holds, never a citation of one edition.
+- **A shared screen takes its rule as data with the 1985 arm beside it** (kb/Work PB4950 slice 4): `EditionRule(In1985, InLater)` for the
+  receiver-category screen of the arithmetic statements, `IndexNameRule` for every index-name-is-no-identifier message,
+  `OpenTapePhraseRule.OrganizationClause1985`, `LevelNumberRules.Arm.Citation1985`, `ClauseList.Format1985` and `ClosedFormat.Clause1985`
+  for the general-format tables, and the parse layer reads the edition through `CobolParserCoreBase.EditionInForce` (`AdmittedKinds`,
+  `GoToFormats`, the empty-block message). The next row of such a table is cited by writing its 1985 field.
 - **Later.** PB4950's rule lineage (kb/Work PB4991) is to generate the per-edition citations from the change records once the
   1985 chains are adjudicated (kb/Work PB4995); until then each site writes its map by hand, each locator through
   `cite.py --check`. The 2002 and 2014 directions are the same mechanism; their net waits for those editions' work.

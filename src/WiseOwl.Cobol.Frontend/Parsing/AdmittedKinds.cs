@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using Antlr4.Runtime.Misc;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Runtime;
 
@@ -90,9 +91,11 @@ internal static class AdmittedKinds
     public static string? Refusal(IToken token, IntervalSet admitted, IReadOnlyCollection<string> words,
         Func<int, bool> aWordChangesNothing, IntervalSet statementStart, Func<bool> aPeriodLetsTheSentenceFollow,
         Func<string, bool> theEditionPrints, bool aUserWordIsPrinted, Func<IntervalSet?> whatTheConstructBeforeCouldTake,
-        out bool anOperandIsDue)
+        EditionInfo edition, out bool anOperandIsDue)
     {
         anOperandIsDue = false;
+        // The rule that the elements of a general format are written in its sequence, in the edition in force (kb/Work PB4950).
+        string sequence = edition.Cite("§1985:IV.2.1", "§2023:5.2.1", "§2023:5.2.1");
         if (token.Type == TokenConstants.EOF || admitted.Contains(token.Type) || admitted.Count == 0 && words.Count == 0)
             return null;
         // ⛔ A TOKEN THE CONSTRUCT JUST BEFORE IT COULD HAVE TAKEN IS A FAULT FURTHER ON, NOT A KIND REFUSED HERE (kb/Work
@@ -111,7 +114,7 @@ internal static class AdmittedKinds
             return null;   // nothing the position expects can be named, so nothing is said
         if (!named.Open)
             return $"{written} is not expected here: expected {Join([.. named.Words, .. named.Literals, .. named.Symbols])} "
-                   + "(ISO §2023:5.2.1).";
+                   + $"(ISO {sequence}).";
         if (admitted.Contains(CobolLexer.DOT) && aPeriodLetsTheSentenceFollow())
             return null;
         // A literal's category is the fault only where the position takes an operand: a user-defined word or a literal of
@@ -119,12 +122,12 @@ internal static class AdmittedKinds
         // no operand at all, and saying "no literal" would call it one.
         if (IsLiteral(token.Type) && (admitted.Contains(CobolLexer.IDENTIFIER) || named.Literals.Count > 0))
             return named.Literals.Count == 0
-                ? $"{written} is not expected here: no literal is expected at this position (ISO §2023:5.2.1)."
+                ? $"{written} is not expected here: no literal is expected at this position (ISO {sequence})."
                 : $"{written} is not expected here: of the literals, only {Join(named.Literals)} is expected at this "
-                  + "position (ISO §2023:5.2.1).";
+                  + $"position (ISO {sequence}).";
         if (token.Type == CobolLexer.IDENTIFIER && !admitted.Contains(CobolLexer.IDENTIFIER) && named.Literals.Count > 0)
             return $"{written} is not expected here: no user-defined word is expected at this position, and of the "
-                   + $"literals only {Join(named.Literals)} (ISO §2023:5.2.1).";
+                   + $"literals only {Join(named.Literals)} (ISO {sequence}).";
         // A statement position takes neither a literal nor a user-defined word: a statement begins with the first word of
         // its statement name (§2023:14.5.3.1; the names are Table 12's, §2023:14.5.1), and that is a reserved word.
         // A figurative constant is a literal too (§2023:8.3.3.1: "A literal is defined by a reserved word that references a
@@ -139,7 +142,7 @@ internal static class AdmittedKinds
         if (named.Statement && (literal || token.Type == CobolLexer.IDENTIFIER))
             return $"{written} is not expected here: a statement may begin at this position, and a statement begins with the "
                    + $"first word of its statement name, which {(literal ? "a literal" : "a user-defined word")} is not "
-                   + "(ISO §2023:14.5.3.1; the names are Table 12's, §2023:14.5.1).";
+                   + $"(ISO {edition.Cite("§1985:IV.6.4.1.2", "§2023:14.5.3.1; the names are Table 12's, §2023:14.5.1", "§2023:14.5.3.1; the names are Table 12's, §2023:14.5.1")}).";
         // ⛔ A RESERVED WORD WHERE AN OPERAND IS DUE (kb/Work PB4301, PB4426): the position takes a user-defined word or a
         // literal, and a keyword of the next phrase (the TIMES of `OCCURS 0 TO TIMES`, the WHEN of `DISPLAY WHEN OTHER`)
         // was written instead: the element before it is incomplete, and what it needs is the position's own. Not at a
@@ -172,7 +175,7 @@ internal static class AdmittedKinds
             anOperandIsDue = true;
             return $"{written} is not expected here: expected "
                    + $"{Join([.. takesAWord && aUserWordIsPrinted ? (string[])["a user-defined word"] : [], .. operand.Words, .. operand.Literals])} "
-                   + "(ISO §2023:5.2.1).";
+                   + $"(ISO {sequence}).";
         }
         return null;
     }

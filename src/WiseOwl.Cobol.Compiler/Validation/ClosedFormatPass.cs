@@ -176,8 +176,8 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
             string subject = $"{list.Subject}{OwnerSuffix(container)}", written = $"the {noun} '{WrittenOpening(first)}'";
             // A figure whose clauses sit in CHOICE INDICATORS is §2023:5.2.6.4's, read by the ONE choice-indicator reader
             // (COBOL2104); any other repeated bracket is §2023:5.2.6.2 / §2023:5.2.7's (COBOL2423; kb/Work PB3133, review R1-1).
-            if (list.ChoiceIndicators) ChoiceIndicators.AtMostOnce(_edition, count, subject, written, list.Format);
-            else UnrepeatedElements.AtMostOnce(_edition, count, subject, written, list.Format, orderFree: list.Sequence is null);
+            if (list.ChoiceIndicators) ChoiceIndicators.AtMostOnce(_edition, count, subject, written, list.FormatIn(_edition.Edition));
+            else UnrepeatedElements.AtMostOnce(_edition, count, subject, written, list.FormatIn(_edition.Edition), orderFree: list.Sequence is null);
         }
     }
 
@@ -191,7 +191,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
         using var at = _edition.At(clause);
         _edition.Error(DiagnosticCatalog.FormatElementOutOfOrder,
             $"{list.Subject}{OwnerSuffix(container)}: '{WrittenOpening(clause)}' is written after "
-            + $"'{WrittenOpening(printedLater)}', but {list.Format}'s general format prints it before — no rule "
+            + $"'{WrittenOpening(printedLater)}', but {list.FormatIn(_edition.Edition)}'s general format prints it before — no rule "
             + "of that format frees the order, so the elements shall be written in the sequence the format gives "
             + "(§2023:5.2.1)");
     }
@@ -235,7 +235,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
                 + "in ClosedFormats.ByContext, which ClosedFormatDriftTests exists to prevent");
             return null;
         }
-        _edition.Error(format.Diagnostic, format.Refusal(word, ClosedFormats.OwnerName(ctx)));
+        _edition.Error(format.Diagnostic, format.Refusal(word, ClosedFormats.OwnerName(ctx), _edition.Edition));
         return null;   // nothing below an error production is diagnosed — one diagnostic per word run
     }
 

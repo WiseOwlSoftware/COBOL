@@ -580,10 +580,12 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // `atEnd is null` holds for no phrase at all AND for a RETURN that writes only NOT AT END (kb/Work PB350 —
         // the two-arm trap: screening "no phrase written" alone would have left the NOT-only spelling compiling).
         ctx.Validation.ScreenOmittedRequiredPhrase(atEnd is null, "AT END", "RETURN",
-            "its general format prints the AT END line without brackets, and §2023:14.9.34.4 GR3 gives that phrase "
+            "its general format prints the AT END line without brackets, and "
+            + ctx.Edition.Edition.Cite("§1985:XI.4.3.4 GR2", "§2023:14.9.34.4 GR3", "§2023:14.9.34.4 GR3")
+            + " gives that phrase "
             + "the only defined destination for control when no next logical record exists — without it a "
             + "RETURN at end of data falls through onto a record area the same rule leaves undefined",
-            "ISO §2023:14.9.34.2");
+            "ISO " + ctx.Edition.Edition.Cite("§1985:XI.4.3.2", "§2023:14.9.34.2", "§2023:14.9.34.2"));
         return new BoundReturn(file, area, into, atEnd, notAtEnd, SortVaryingOf(file));
     }
 

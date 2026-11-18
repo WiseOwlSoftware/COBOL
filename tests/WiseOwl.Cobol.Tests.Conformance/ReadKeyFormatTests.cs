@@ -47,7 +47,10 @@ public sealed class ReadKeyFormatTests
         string message = Single0864(diagnostics);
         Assert.Contains("the file's access mode is SEQUENTIAL", message);
         // ONE reading of SR8 + GR19, the binder's and the INVALID KEY screen's: the implied NEXT makes it sequential.
-        Assert.Contains("so the NEXT phrase is implied (ISO §2023:14.9.30.3 SR8) and the READ is a sequential read (ISO §2023:14.9.30.4 GR19)", message);
+        // The citation is the rule of the edition in force (kb/Work PB4950): §1985:IX.4.5.4 GR2 and IX.4.5.3 SR4 at COBOL-85.
+        Assert.Contains(edition == 85
+            ? "so the NEXT phrase is implied (ISO §1985:IX.4.5.4 GR2) and the READ is a sequential read (ISO §1985:IX.4.5.3 SR4)"
+            : "so the NEXT phrase is implied (ISO §2023:14.9.30.3 SR8) and the READ is a sequential read (ISO §2023:14.9.30.4 GR19)", message);
         Assert.DoesNotContain("random READ (ISO §2023:14.9.30.4 GR19)", message);   // GR19 is not the rule that makes THIS a random read
         Assert.Contains("ACCESS MODE IS RANDOM, or DYNAMIC", message);
         if (accessClause.Length == 0) Assert.Contains(AccessModeNotSpecified, message);
@@ -106,7 +109,9 @@ public sealed class ReadKeyFormatTests
         Assert.False(ok, $"'{statement}' compiled");
         string message = Single0864(diagnostics);
         Assert.Contains($"this statement specifies {written};", message);
-        Assert.Contains("whose general format prints none of the phrases ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO §2023:14.9.30.2)", message);
+        Assert.Contains(edition == 85
+            ? "whose general format prints none of the phrases ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO §1985:IX.4.5.2)"
+            : "whose general format prints none of the phrases ADVANCING, AT END, NEXT, NOT AT END or PREVIOUS (ISO §2023:14.9.30.2)", message);
         Assert.DoesNotContain("access mode is SEQUENTIAL", message);   // the file's mode is not what is wrong here
     }
 

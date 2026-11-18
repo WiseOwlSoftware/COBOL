@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;   // RuntimeHelpers.GetUninitializedObjec
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using Antlr4.Runtime.Misc;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;     // DiagnosticCatalog — the band's three codes
 
 using Core = WiseOwl.Cobol.Frontend.Generated.CobolParserCore;
@@ -27,16 +28,21 @@ namespace WiseOwl.Cobol.Frontend.Cst;
 /// <param name="Diagnostic">The catalogue descriptor the refusal reports. §2023:13.16.2 keeps COBOL1941, allocated when
 /// it was closed alone (kb/Work PB487); the clause-list formats share COBOL1970 and the paragraph-list formats
 /// COBOL1971. Carried on the row, so neither refusal site re-derives the code from the noun.</param>
-public sealed record ClosedFormat(string Clause, string FormatLabel, string Subject, string Noun, DiagnosticDescriptor Diagnostic)
+/// <param name="Clause1985">The subclause of ANSI X3.23-1985 that prints the same closed format, in the locator form of
+/// <c>§1985:VI.5.3.2</c> without the edition prefix, or null where this row has none recorded (the message then cites
+/// <paramref name="Clause"/> at COBOL-85 too; kb/Work PB4950).</param>
+public sealed record ClosedFormat(string Clause, string FormatLabel, string Subject, string Noun, DiagnosticDescriptor Diagnostic,
+    string? Clause1985 = null)
 {
     /// <summary>⛔ THE ONE WORDING OF THE REFUSAL, for both of its sites (kb/Work PB2533): <c>ClosedFormatPass</c>, which
     /// refuses a word run the error production RECOGNIZED, and <c>CobolErrorStrategy</c>, which refuses a RESERVED word
     /// or a literal the data division's form cannot hold (<c>1,5</c>) written at the same position — a token the
     /// production never begins with (kb/Work PB3373, PB3390).
     /// <paramref name="owner"/> is the entry's own name (<see cref="ClosedFormats.OwnerName"/>) or null.</summary>
-    public string Refusal(string word, string? owner)
+    public string Refusal(string word, string? owner, EditionInfo edition)
         => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the ISO "
-           + $"§2023:{Clause} {FormatLabel}general format lists the {Noun}s that may be specified, and it is a closed list";
+           + $"{edition.Cite(Clause1985 is { } c1985 ? $"§1985:{c1985}" : $"§2023:{Clause}", $"§2023:{Clause}", $"§2023:{Clause}")} "
+           + $"{FormatLabel}general format lists the {Noun}s that may be specified, and it is a closed list";
 }
 
 /// <summary>
@@ -110,11 +116,11 @@ public static class ClosedFormats
             // §2023:12.3.2 — the configuration section. PDF p313 / folio 283. A PARAGRAPH list, not a clause list:
             // four bracketed paragraph names and nothing else.
             [typeof(Core.ConfigurationParagraphContext)] =
-                new("12.3.2", "", "CONFIGURATION SECTION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph),
+                new("12.3.2", "", "CONFIGURATION SECTION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph, "VI.4.2"),
 
             // §2023:11.2.1 — the identification division structure. PDF p293 / folio 263. Also a PARAGRAPH list.
             [typeof(Core.IdentificationParagraphContext)] =
-                new("11.2.1", "", "IDENTIFICATION DIVISION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph),
+                new("11.2.1", "", "IDENTIFICATION DIVISION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph, "VI.3.2.1"),
         }.ToFrozenDictionary();
 
     /// <summary>The closed general format an error production node (either form) violates, or null if its parent

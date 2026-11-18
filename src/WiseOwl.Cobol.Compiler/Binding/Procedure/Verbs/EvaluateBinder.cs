@@ -153,9 +153,14 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         if (word is null) return true;
         using var _ = ctx.Edition.At(negation.Symbol);
         ctx.Edition.Error(DiagnosticCatalog.EvaluateObjectNegationNotPermitted,
-            $"the selection object '{DataBinder.WrittenText(item)}' writes NOT before the word {word}; ISO §2023:14.9.13.2 "
-            + "admits the bracketed NOT only before identifier-2, literal-2, arithmetic-expression-2, "
-            + $"boolean-expression-2 and a range-expression, never before {word}");
+            $"the selection object '{DataBinder.WrittenText(item)}' writes NOT before the word {word}; "
+            + ctx.Edition.Edition.Cite(
+                "ISO §1985:VI.6.13.2 admits the bracketed NOT only before identifier-3, literal-3 and arithmetic-expression-1, "
+                + $"with the THROUGH phrase that ends their range, never before {word}",
+                "ISO §2023:14.9.13.2 admits the bracketed NOT only before identifier-2, literal-2, arithmetic-expression-2, "
+                + $"boolean-expression-2 and a range-expression, never before {word}",
+                "ISO §2023:14.9.13.2 admits the bracketed NOT only before identifier-2, literal-2, arithmetic-expression-2, "
+                + $"boolean-expression-2 and a range-expression, never before {word}"));
         return false;
     }
 
