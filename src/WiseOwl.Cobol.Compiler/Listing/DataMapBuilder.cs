@@ -34,9 +34,11 @@ internal static class DataMapBuilder
         // A data-map id is the 1-based place among the data map's own entries; an attribute naming another entry names its id.
         var itemIds = new Dictionary<int, int>();
         foreach (var entry in symbols.Entries)
-            if (entry.Class is NameClass.Data or NameClass.Condition or NameClass.Index or NameClass.Constant)
+            if (entry.Class is NameClass.Data or NameClass.Condition or NameClass.Index or NameClass.Constant or NameClass.Report)
                 itemIds[entry.Id] = itemIds.Count + 1;
         int? Item(int? entry) => entry is { } id && itemIds.TryGetValue(id, out int item) ? item : null;
+        IReadOnlyList<int> Items(IEnumerable<int> entries) => [.. entries.Select(e => Item(e)).OfType<int>()];
+        ListingFileKey? Key(FileKey? key) => key is null ? null : new ListingFileKey(key.Name, Items(key.Items), key.Duplicates);
 
         var items = new List<ListingDataItem>(itemIds.Count);
         var files = new List<ListingFileEntry>();
@@ -49,26 +51,33 @@ internal static class DataMapBuilder
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Data, entry.Name, at.Program, at.Line, at.Column,
                         d.Level, Item(d.Parent), SectionWord(d.Section), d.Usage, d.Picture, d.Category, d.OccursMin, d.OccursMax,
                         Item(d.DependingOn), [.. d.Indexes.Select(i => Item(i)).OfType<int>()], Item(d.Redefines), Item(d.RenamesFrom),
-                        Item(d.RenamesThru), d.Global, d.External, d.Based, d.Offset, d.Length, d.Bytes, d.NativeField, d.NativeType, []));
+                        Item(d.RenamesThru), d.Global, d.External, d.Based, d.Offset, d.Length, d.Bytes, d.NativeField, d.NativeType, [],
+                        d.TypeDeclaration, d.Implicit));
                     break;
                 case ConditionAttributes c:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Condition, entry.Name, at.Program, at.Line, at.Column,
                         88, Item(c.ConditionalVariable), null, null, null, null, null, null, null, [], null, null, null, false, false,
-                        false, null, null, null, null, null, c.Values));
+                        false, null, null, null, null, null, c.Values, false, false));
                     break;
                 case IndexAttributes x:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Index, entry.Name, at.Program, at.Line, at.Column,
                         null, Item(x.Table), null, null, null, null, null, null, null, [], null, null, null, false, false, false,
-                        null, null, null, x.NativeField, x.NativeType, []));
+                        null, null, null, x.NativeField, x.NativeType, [], false, false));
                     break;
                 case ConstantAttributes k:
                     items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Constant, entry.Name, at.Program, at.Line, at.Column,
                         null, null, null, null, null, null, null, null, null, [], null, null, null, k.Global, false, false,
-                        null, null, null, null, null, k.Value is { } value ? [value] : []));
+                        null, null, null, null, null, k.Value is { } value ? [value] : [], false, false));
+                    break;
+                case ReportAttributes r:
+                    items.Add(new ListingDataItem(items.Count + 1, ListingDataItemKind.Report, entry.Name, at.Program, at.Line, at.Column,
+                        null, null, SectionWord(DataSection.Report), null, null, null, null, null, null, [], null, null, null, r.Global,
+                        false, false, null, null, null, null, null, [], false, false));
                     break;
                 case FileNameAttributes f:
                     files.Add(new ListingFileEntry(files.Count + 1, entry.Name, at.Program, at.Line, at.Column, f.SortMerge,
-                        f.Organization, f.Access, [.. f.Records.Select(r => Item(r)).OfType<int>()], f.External, f.Global));
+                        f.Organization, f.Access, Items(f.Records), f.External, f.Global, Key(f.RecordKey),
+                        [.. f.AlternateKeys.Select(k => Key(k)!)], Item(f.RelativeKey), f.Connector, f.ConnectorField));
                     break;
                 case ProgramAttributes:
                     break;   // the program map's (ProgramAttributesOf)
@@ -100,6 +109,7 @@ internal static class DataMapBuilder
         DataSection.LocalStorage => "LOCAL-STORAGE",
         DataSection.Linkage => "LINKAGE",
         DataSection.Communication => "COMMUNICATION",
+        DataSection.Report => "REPORT",
         DataSection.Other => "OTHER",
         _ => throw new ArgumentOutOfRangeException(nameof(section), section, "a data division section with no word"),
     };

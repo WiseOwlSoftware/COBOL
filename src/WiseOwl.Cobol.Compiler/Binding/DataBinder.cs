@@ -3180,6 +3180,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
                 ThruQualifiers = info.ThruQualifiers,
             },
         };
+        clone.ClonedFrom = src;   // a copy like every other member of the type (§2023:8.4.2.2.1 rule 4; DataItem.ReferenceSite)
         clone.Uid = _uidCounter++;
         clone.Parent = target;
         target.Renames66.Add(clone);

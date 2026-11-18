@@ -31,6 +31,8 @@ internal enum NameClass
     Constant,
     /// <summary>A file-name.</summary>
     File,
+    /// <summary>A report-name (a report description entry).</summary>
+    Report,
 }
 
 /// <summary>A resultant position: the ANTLR token line (1-based) and column (0-based), or line 0 for none.</summary>
@@ -63,7 +65,7 @@ internal sealed record ProgramAttributes(bool Function, bool Common, bool Initia
     string ExternalizedName, string NativeType) : SymbolAttributes;
 
 /// <summary>The section of the data division a data item is described in.</summary>
-internal enum DataSection { File, WorkingStorage, LocalStorage, Linkage, Communication, Other }
+internal enum DataSection { File, WorkingStorage, LocalStorage, Linkage, Communication, Report, Other }
 
 /// <summary>A data item's attributes (DESIGN-listing.md section 6.6).</summary>
 /// <param name="Level">The level-number as the entry writes it (66 for a RENAMES entry).</param>
@@ -83,14 +85,22 @@ internal enum DataSection { File, WorkingStorage, LocalStorage, Linkage, Communi
 /// <param name="External">The EXTERNAL clause.</param>
 /// <param name="Based">The BASED clause.</param>
 /// <param name="Offset">The offset of its first occurrence from the start of its level-1 record, in bytes, or null when it
-/// has none (a dynamic table's element, a level-66 alias).</param>
-/// <param name="Length">Its length in character positions (FUNCTION LENGTH's value, ISO §2023:15.50).</param>
-/// <param name="Bytes">The bytes it occupies (every occurrence of a table).</param>
-/// <param name="NativeField">The field that holds it, or null for an item that owns no field (a RENAMES alias).</param>
+/// has none (a dynamic table's element, an entry of a type declaration or of a report group, an implicit register).</param>
+/// <param name="Length">Its length in character positions (FUNCTION LENGTH's value, ISO §2023:15.50), or null for a report group
+/// entry that describes no printable item.</param>
+/// <param name="Bytes">The bytes it occupies (every occurrence of a table), or null for an entry that occupies no storage (an entry
+/// of a type declaration or of a report group, an implicit register).</param>
+/// <param name="NativeField">The field that holds it, or null for an item that owns no field (a RENAMES alias, an entry of a
+/// type declaration or of a report group, an implicit register).</param>
 /// <param name="NativeType">The .NET type of that field, or null with it.</param>
+/// <param name="TypeDeclaration">The entry is a type declaration (a TYPEDEF entry) or part of one: it describes a type and has no
+/// storage (ISO §2023:13.18.58.4 GR2).</param>
+/// <param name="Implicit">The standard defines the item implicitly where the entry that names it is written: a CAPACITY IN
+/// register (ISO §2023:13.18.38.3 SR30).</param>
 internal sealed record DataAttributes(int Level, int? Parent, DataSection Section, string? Usage, string? Picture, string Category,
     int? OccursMin, int? OccursMax, int? DependingOn, IReadOnlyList<int> Indexes, int? Redefines, int? RenamesFrom, int? RenamesThru,
-    bool Global, bool External, bool Based, int? Offset, int Length, int Bytes, string? NativeField, string? NativeType) : SymbolAttributes;
+    bool Global, bool External, bool Based, int? Offset, int? Length, int? Bytes, string? NativeField, string? NativeType,
+    bool TypeDeclaration, bool Implicit) : SymbolAttributes;
 
 /// <summary>A condition-name's attributes.</summary>
 /// <param name="ConditionalVariable">The entry of its conditional variable.</param>
@@ -116,5 +126,24 @@ internal sealed record ConstantAttributes(string? Value, bool Global) : SymbolAt
 /// <param name="Records">The entries of its record descriptions.</param>
 /// <param name="External">The EXTERNAL clause.</param>
 /// <param name="Global">The GLOBAL clause.</param>
+/// <param name="RecordKey">The RECORD KEY clause's key (ISO §2023:12.4.5.12), or null when the entry writes none.</param>
+/// <param name="AlternateKeys">Each ALTERNATE RECORD KEY clause's key (ISO §2023:12.4.5.6), in the order written.</param>
+/// <param name="RelativeKey">The entry of the RELATIVE KEY data item (ISO §2023:12.4.5.13), or null.</param>
+/// <param name="Connector">The name the run unit registers the file connector under: the program's path and the file-name, the
+/// external name of an EXTERNAL file, or a class's band for a file of an object or a factory.</param>
+/// <param name="ConnectorField">For a file of an object or a factory, the field that holds each object's own connector key; null
+/// for every other file, whose connector is registered under <paramref name="Connector"/> alone.</param>
 internal sealed record FileNameAttributes(bool SortMerge, string Organization, string Access, IReadOnlyList<int> Records,
-    bool External, bool Global) : SymbolAttributes;
+    bool External, bool Global, FileKey? RecordKey, IReadOnlyList<FileKey> AlternateKeys, int? RelativeKey, string Connector,
+    string? ConnectorField) : SymbolAttributes;
+
+/// <summary>A key of an indexed file.</summary>
+/// <param name="Name">The key as written: the data-name (with its subscripts), or the record-key-name a SOURCE phrase defines.</param>
+/// <param name="Items">The entries of the data items the key is made of, in the order they compose it.</param>
+/// <param name="Duplicates">The WITH DUPLICATES phrase.</param>
+internal sealed record FileKey(string Name, IReadOnlyList<int> Items, bool Duplicates);
+
+/// <summary>A report-name's attributes (a report description entry, ISO §2023:13.15).</summary>
+/// <param name="File">The entry of the file whose REPORT clause names the report, or null.</param>
+/// <param name="Global">The GLOBAL clause.</param>
+internal sealed record ReportAttributes(int? File, bool Global) : SymbolAttributes;

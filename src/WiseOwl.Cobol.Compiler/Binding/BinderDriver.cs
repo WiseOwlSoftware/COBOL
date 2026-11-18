@@ -284,8 +284,6 @@ internal sealed class BinderDriver
         // fact set is complete. Each element's DataBindResult — what a backend reads in place of the binder — is made here, once;
         // everything below reads the bound model, and the binders stay with the session.
         var interfaceData = session.Binders.Freeze(units, classes);
-        // The finished symbol table, before the file connectors are renamed for the run unit (DESIGN-listing.md section 6.7.1).
-        if (edition.RecordsSymbols) Symbols = SymbolTableFinish.Of(units, classes, session.Binders, edition.RecordsNames);
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
@@ -324,6 +322,8 @@ internal sealed class BinderDriver
         // in a __fkey field — see QualifyClassFiles); an EXTERNAL class file keys
         // by its run-unit external name, exactly like a program's.
         foreach (var cls in classes) QualifyClassFiles(cls);
+        // The finished symbol table, once every file connector has its run-unit name (DESIGN-listing.md sections 6.6 and 6.7.1).
+        if (edition.RecordsSymbols) Symbols = SymbolTableFinish.Of(units, classes, interfaceData, session.Binders, edition.RecordsNames);
 
         // Declaratives emit the __IoCheck/__RunUse machinery, which reads CobolFile even when the unit declares
         // NO files (IC401M: mode-scoped USE procedures in a file-less flagging program) — the IO using must

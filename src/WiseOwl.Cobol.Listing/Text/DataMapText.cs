@@ -14,8 +14,9 @@ public static class DataMapText
     /// <summary>The data map's rows: a heading, then one row per name in the order written (its id, listing line, level, kind,
     /// name indented two columns per level of nesting, offset, length in character positions, bytes, usage and picture), and
     /// under it, indented, what else the data map holds of it (the OCCURS, REDEFINES, RENAMES, GLOBAL, EXTERNAL and BASED facts,
-    /// the condition-name's values or the constant's specification, and the .NET field and type it became). Then the file map:
-    /// each file-name, its line, organization, access mode and records.</summary>
+    /// whether it is part of a type declaration or an implicit item, the condition-name's values or the constant's specification,
+    /// and the .NET field and type it became). Then the file map: each file-name, its line, organization, access mode and records,
+    /// and under it its keys and its connector (<see cref="FileDetails"/>).</summary>
     public static IEnumerable<string> Rows(ListingDataMap map, int width)
     {
         yield return string.Create(CultureInfo.InvariantCulture,
@@ -43,8 +44,26 @@ public static class DataMapText
             if (file.External) row.Append("  EXTERNAL");
             if (file.Global) row.Append("  GLOBAL");
             foreach (string piece in TextListingRenderer.Indented(row.ToString().TrimEnd(), 0, 16, width)) yield return piece;
+            foreach (string piece in TextListingRenderer.Indented(FileDetails(file), 16, 18, width)) yield return piece;
         }
     }
+
+    /// <summary>What the second row of a file map entry says: its RECORD KEY, each ALTERNATE RECORD KEY (with DUPLICATES when the
+    /// phrase is written), its RELATIVE KEY item, and the connector the run unit registers it under (with the field that holds an
+    /// object's connector key).</summary>
+    public static string FileDetails(ListingFileEntry file)
+    {
+        var facts = new List<string>();
+        if (file.RecordKey is { } key) facts.Add("RECORD KEY " + KeyText(key));
+        foreach (var alternate in file.AlternateKeys) facts.Add("ALTERNATE KEY " + KeyText(alternate));
+        if (file.RelativeKey is { } relative) facts.Add(string.Create(CultureInfo.InvariantCulture, $"RELATIVE KEY #{relative}"));
+        facts.Add("CONNECTOR " + file.Connector + (file.ConnectorField is { } field ? " (.NET " + field + ")" : ""));
+        return string.Join("  ", facts);
+    }
+
+    private static string KeyText(ListingFileKey key) =>
+        key.Name + " (" + string.Join(" ", key.Items.Select(i => "#" + i.ToString(CultureInfo.InvariantCulture))) + ")"
+            + (key.Duplicates ? " DUPLICATES" : "");
 
     /// <summary>What the second row of a data map entry says: every fact of the entry the first row does not print.</summary>
     public static string Details(ListingDataItem item)
@@ -64,6 +83,8 @@ public static class DataMapText
         if (item.Global) facts.Add("GLOBAL");
         if (item.External) facts.Add("EXTERNAL");
         if (item.Based) facts.Add("BASED");
+        if (item.TypeDeclaration) facts.Add("TYPE DECLARATION");
+        if (item.Implicit) facts.Add("IMPLICIT");
         if (item.Values.Count > 0) facts.Add((item.Kind == ListingDataItemKind.Constant ? "AS " : "VALUE ") + string.Join(", ", item.Values));
         if (item.NativeField is { } field) facts.Add($".NET {field} : {item.NativeType}");
         return string.Join("  ", facts);
@@ -76,6 +97,7 @@ public static class DataMapText
         ListingDataItemKind.Condition => "cond",
         ListingDataItemKind.Index => "index",
         ListingDataItemKind.Constant => "const",
+        ListingDataItemKind.Report => "rd",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "a data map entry kind with no word"),
     };
 

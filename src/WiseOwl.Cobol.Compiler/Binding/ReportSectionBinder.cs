@@ -2782,6 +2782,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     CobolName = entryName,
                     ClrName = "_rptItem" + uid,
                     Pic = pic,
+                    PictureText = picText,   // the PICTURE character-string as written, which the symbol table lists
                     OwnSign = ownSign,
                     Justified = justified,
                     BlankWhenZero = blankWhenZero,
