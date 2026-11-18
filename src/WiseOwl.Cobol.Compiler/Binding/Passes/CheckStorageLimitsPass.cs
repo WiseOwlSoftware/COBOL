@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// <remarks>
 /// <para><b>Why a limit, and why this one.</b> No edition's text bounds the size of a data item (an OCCURS integer and a PICTURE
 /// repetition factor each bound only themselves), and §2023:4.5 says "Translation may be unsuccessful due to factors other than lack
-/// of conformance of a compilation group", whose NOTE names "the limits of an implementation". Each integer-n is already within
+/// of conformance of a compilation group", whose NOTE names "the limits of an implementation"; X3.23-1985 says it as §1985:I.1.7 ("these limits will vary from one implementation of Standard COBOL to another"), which the message cites at --std 85. Each integer-n is already within
 /// COBOL2427's limit; their PRODUCT is not: <c>05 E PIC X(1000) OCCURS 2000000000.</c> is 2,000,000,000,000 character positions. It
 /// compiled clean at every edition, its size wrapped in the compiler's 32-bit model (emitted as −1,454,759,936), and the program
 /// committed memory until the host ran out (79.8 GB when killed). The limit is the one an elementary item's PICTURE already met
@@ -70,14 +70,22 @@ internal sealed class CheckStorageLimitsPass : IBindPass
             using var _ = binder.Edition.At(item);
             binder.Edition.Error(DiagnosticCatalog.DataItemBeyondSizeLimit,
                 $"data item '{item.CobolName ?? "FILLER"}': {what} for one data item, elementary or group (docs/CONFORMANCE.md §3 "
-                + "D-ITEM-SIZE). ISO §2023:4.5: \"Translation may be unsuccessful due to factors other than lack of "
-                + "conformance of a compilation group\" — the limits of an implementation");
+                + $"D-ITEM-SIZE). {binder.Edition.Edition.Cite(LimitsOfAnImplementation1985, LimitsOfAnImplementation, LimitsOfAnImplementation)}");
             return true;
         }
         bool refused = false;
         foreach (var child in item.Children) refused |= Screen(binder, child);
         return refused;
     }
+
+    /// <summary>The rule that admits an implementation's limits, as the message quotes it in the edition in force (kb/Work PB4950).</summary>
+    private const string LimitsOfAnImplementation1985 =
+        "ISO §1985:I.1.7: \"It is recognized that these limits will vary from one implementation of Standard COBOL to another and may "
+        + "prevent the successful translation of some programs that meet the requirements of Standard COBOL\"";
+
+    private const string LimitsOfAnImplementation =
+        "ISO §2023:4.5: \"Translation may be unsuccessful due to factors other than lack of conformance of a compilation group\" "
+        + "— the limits of an implementation";
 
     /// <summary>A size as the diagnostic prints it; a size past <see cref="long"/> (the saturated width) is said to be so.</summary>
     private static string Count(long n) =>

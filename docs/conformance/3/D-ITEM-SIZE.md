@@ -1,4 +1,4 @@
-- **D-ITEM-SIZE — The size of one data item (§2023:4.5 — the limits of an implementation; kb/Work PB531, PB5695)**:
+- **D-ITEM-SIZE — The size of one data item (§2023:4.5, §1985:I.1.7 — the limits of an implementation; kb/Work PB531, PB5695)**:
   ⚠ implementor-defined. One data item, elementary or group, is within the limit when (1) its character image is at most
   **134,217,728 (2^27) character positions** (a group's image counts a national position as the two storage characters it
   occupies in an alphanumeric group, as every group MOVE does); (2) its storage, every item that redefines within it
@@ -8,7 +8,7 @@
   positions, but every occurrence is a string the program allocates). No edition sets a maximum: §2023:13.18.40.3 SR4
   bounds only the WRITTEN picture character-string, SR14 only a numeric item's digit positions, an OCCURS integer only its
   own count (each integer-n is limited by D-INTEGER-CARRIERS (1)), and Annex A.1 carries no maximum-item-size item;
-  X3.23-1985 and ISO/IEC 1989:2002 set none either. 2^27 is the largest power of two whose UTF-16 image stays inside .NET's
+  X3.23-1985 and ISO/IEC 1989:2002 set none either, and X3.23-1985 says so in words: "Standard COBOL specifies no upper limit on such things as the number of statements in a program ... It is recognized that these limits will vary from one implementation of Standard COBOL to another" (§1985:I.1.7), the clause COBOL7641 cites at `--std 85`. 2^27 is the largest power of two whose UTF-16 image stays inside .NET's
   single-object ceiling, and an item's image IS one such string; the byte bound keeps every BIT offset in an item (eight to
   a byte) an `int`. The limit is ONE set of constants in `RecordLayout` (`MaxCharacterPositions`, `MaxStorageBytes`) and
   two screens, each where the size is first known: an elementary item's PICTURE expansion is `COBOL2148` (kb/Work PB531),

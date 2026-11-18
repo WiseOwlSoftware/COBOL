@@ -7000,7 +7000,9 @@ public static class DiagnosticCatalog
     /// size wrapped in the compiler's 32-bit model and the program allocated until the host ran out of memory, and the same group
     /// with a REDEFINES over it crashed the compiler (kb/Work PB5695 and its review R1-1). Decided once per item by
     /// <c>RecordLayout.ExceedsSizeLimit</c> in <c>CheckStorageLimitsPass</c>, at every edition, which then stops the compile: no
-    /// edition's text bounds the size of a data item, and §2023:4.5 admits the limits of an implementation.</summary>
+    /// edition's text bounds the size of a data item, and each admits the limits of an implementation — §1985:I.1.7 ("these limits
+    /// will vary from one implementation of Standard COBOL to another and may prevent the successful translation of some programs")
+    /// at <c>--std 85</c>, §2023:4.5 otherwise (kb/Work PB4950: the message cites the edition in force).</summary>
     public static readonly DiagnosticDescriptor DataItemBeyondSizeLimit = new(
         "COBOL7641", "data-item-beyond-size-limit", EditionSeverity.Error,
         "⚠ IMPLEMENTOR-DEFINED LIMIT. A data item's size exceeds this implementation's limit for one data item, elementary or "
@@ -7008,10 +7010,7 @@ public static class DiagnosticCatalog
         + "storage with the items that redefine within it, and 134,217,728 elementary items. ISO §2023:4.5: 'Translation may be "
         + "unsuccessful due to factors other than lack of conformance of a compilation group', and its NOTE names 'the limits of "
         + "an implementation'. The limit is documented in docs/CONFORMANCE.md §3 D-ITEM-SIZE.",
-        "ISO §2023:4.5",
-        No1985Rule: "X3.23-1985 states no limit on the size of a data item and no clause on the limits of an implementation (its "
-            + "conformance clauses, §1985:I.1.5.2, speak of none): the refusal is this implementation's limit (D-ITEM-SIZE), which "
-            + "§2023:4.5 is the first edition to license in words");
+        "ISO §2023:4.5");
     /// <summary>§2023:14.9.16.3 SR3/SR4, §2023:14.9.21.3 SR2, §2023:14.9.46.3 SR2 — a contained program's GENERATE, INITIATE or
     /// TERMINATE names a GLOBAL report (§2023:13.18.27.3 SR1 e)) of a containing program whose file description entry
     /// is not GLOBAL (kb/Work PB369). The report is visible; the statement drives output to its file, which the
