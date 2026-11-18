@@ -41,7 +41,7 @@ internal static class OptionsSectionBuilder
     internal static readonly IReadOnlyList<Row> Table =
     [
         new(nameof(CompilerDriver.Options.SourcePath), "source", o => o.SourcePath, _ => false),
-        new(nameof(CompilerDriver.Options.OutputPath), "-o", o => o.OutputDll(), o => o.OutputPath is null,
+        new(nameof(CompilerDriver.Options.OutputPath), "--output", o => o.OutputDll(), o => o.OutputPath is null,
             nameof(CompilerDriver.Options.SourcePath)),
         new(nameof(CompilerDriver.Options.NistTestName), "--nist", o => o.NistTestName ?? "off"),
         new(nameof(CompilerDriver.Options.DialectLevel), "--std", o => string.Create(CultureInfo.InvariantCulture,

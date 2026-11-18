@@ -158,7 +158,7 @@ public sealed class ListingSectionsOfACompilationTests : IDisposable
         var options = result.Listing!.Options.ToDictionary(o => o.Name);
         Assert.Equal(("85 (ANSI X3.23-1985)", ListingOptionOrigin.Specified), (options["--std"].Value, options["--std"].Origin));
         Assert.Equal((_dir, ListingOptionOrigin.Specified), (options["--copy"].Value, options["--copy"].Origin));
-        Assert.Equal((Path.Combine(_dir, "stats85.dll"), ListingOptionOrigin.Specified), (options["-o"].Value, options["-o"].Origin));
+        Assert.Equal((Path.Combine(_dir, "stats85.dll"), ListingOptionOrigin.Specified), (options["--output"].Value, options["--output"].Origin));
         Assert.Equal(("off", ListingOptionOrigin.Default), (options["--permissive"].Value, options["--permissive"].Origin));
         Assert.Equal(("0", ListingOptionOrigin.Specified), (options["--listing-page-length"].Value, options["--listing-page-length"].Origin));
         Assert.Equal(("standard", ListingOptionOrigin.Default), (options["--listing-sections"].Value, options["--listing-sections"].Origin));

@@ -472,6 +472,37 @@ parent on every program (-0.06 to +0.21 MB, run-to-run variation of the size ste
 rows are at or under the parent. With a listing, the front end's rows move by -0.52 to +0.75 MB: these NIST programs hold no
 LISTING, PAGE, DISPLAY or REPLACE (the hooks record nothing for them), and the full-compile rows vary by several MB both ways
 (the backend's own variation, as before). Time rows are not shown: StdDev was 20-40 % of the mean again (kb/Work PB5927).
+
+**Step 5 (kb/Work PB5925, options, program map, statistics and verbs): every row with the standard sections.** Step 5 adds
+no work to a compilation that asks for no listing (the statements are read off the parse only when `Frontend.RecordsListing`
+is set, and the options rows are built only inside the driver's listing branch; `git diff` of the branch against its parent
+touches no other path), and it makes the default request (`standard`) produce three more sections: the options, the program
+map and the statistics with the verbs. Measured on 2026-11-18, Release, one Windows host, the `listing-step-5` branch, one full
+run of `dotnet run -c Release --project tests/WiseOwl.Cobol.Benchmarks -- --filter *CompileBenchmarks*` (24 cases). Allocated
+bytes per compile, step 5, with step 4a's run (the same product code as the parent, `64e0c51de1`, whose step 4b changed no
+file under `src/`) beside it:
+
+| Program | Method | None | Text | TextAndJson | Text over None |
+|---|---|---|---|---|---|
+| IX113A | FrontEndAndBind | 67.67 (67.60) MB | 75.35 (74.70) MB | 84.29 (83.47) MB | +11.3 % |
+| IX113A | FullCompile | 176.47 (176.43) MB | 185.95 (188.67) MB | 190.00 (190.76) MB | +5.4 % |
+| NC105A | FrontEndAndBind | 34.26 (34.03) MB | 38.35 (37.70) MB | 43.74 (42.38) MB | +11.9 % |
+| NC105A | FullCompile | 106.08 (103.35) MB | 106.29 (111.13) MB | 115.58 (111.31) MB | +0.2 % |
+| NC218A | FrontEndAndBind | 30.08 (30.06) MB | 34.81 (34.34) MB | 39.26 (38.51) MB | +15.7 % |
+| NC218A | FullCompile | 97.75 (96.33) MB | 100.37 (99.06) MB | 109.10 (103.84) MB | +2.7 % |
+| SM201A | FrontEndAndBind | 15.12 (15.11) MB | 17.03 (16.65) MB | 18.81 (18.51) MB | +12.6 % |
+| SM201A | FullCompile | 37.94 (37.49) MB | 39.92 (39.27) MB | 39.72 (41.25) MB | +5.2 % |
+
+Reading them: the standard text listing's budget (at most 10 % over the no-listing compile, DESIGN-listing.md section 9)
+holds on every program, +0.2 % to +5.4 % of a full compile. Step 5's own cost is the front end and bind's with a listing,
+where the sections are built: +0.38 to +0.65 MB on `Text` and +0.30 to +1.36 MB on `TextAndJson` over step 4a's rows (the
+statements' walk of the parse tree, the options rows and the statistics, and in JSON every line kind and severity counted
+for the listing and for each file). The `None` rows of the front end and bind are within 0.23 MB of step 4a's, the
+run-to-run variation of the earlier steps, as a change that adds no no-listing work should be. The full-compile rows move
+by several MB both ways (NC105A's `Text` is 4.8 MB under step 4a's, NC218A's `TextAndJson` 5.3 MB over), the backend's own
+variation. The front end and bind with `Text` is 11 to 16 % over `None`, as it was before step 5 (10.2 to 14.2 % at step 4a):
+that ratio is of the front end alone, where the listing's work is, and the budget is the compile's. Time rows are not shown:
+StdDev was up to 51 % of the mean (kb/Work PB5927).
 ---
 
 ## Not measured here

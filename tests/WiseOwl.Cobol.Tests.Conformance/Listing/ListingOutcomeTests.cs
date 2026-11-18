@@ -48,7 +48,7 @@ public sealed class ListingOutcomeTests : IDisposable
     }
 
     /// <summary>Every section (DESIGN-listing.md section 4.3): the source (the source text was read), the programs (the parser built a
-    /// tree) and the diagnostics (always: what was reported).</summary>
+    /// tree), the diagnostics (always: what was reported), the options and the statistics (always: the standard sections, step 5).</summary>
     private static void AssertEverySectionProduced(ListingDocument listing) =>
         Assert.Equal([(ListingSection.Source, true, (string?)null), (ListingSection.Programs, true, null), (ListingSection.Diagnostics, true, null),
              (ListingSection.Options, true, null), (ListingSection.Statistics, true, null)],

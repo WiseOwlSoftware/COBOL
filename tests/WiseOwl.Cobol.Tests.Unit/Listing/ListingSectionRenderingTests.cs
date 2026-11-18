@@ -108,8 +108,8 @@ public sealed class ListingSectionRenderingTests
             "    ID  KIND       FIRST    LAST  NAME",
             "     0  program        1       6  OUTER",
             "     1  program        4       5    INNER",
-        ], TextListingRenderer.ProgramRows(document.Programs, 132));
-        Assert.Equal(TextListingRenderer.ProgramNameColumn, "     0  program        1       6  ".Length);
+        ], ProgramMapText.Rows(document.Programs, 132));
+        Assert.Equal(ProgramMapText.NameColumn, "     0  program        1       6  ".Length);
     }
 
     /// <summary>Section 6.4: each row's name, origin and value; a long value wraps under the value column, no row wider than the
@@ -118,7 +118,7 @@ public sealed class ListingSectionRenderingTests
     public void TheOptions_PrintNameOriginAndValue_WrappingALongValue()
     {
         var document = Document([Produced(ListingSection.Options)]);
-        var rows = TextListingRenderer.OptionRows(document.Options, ListingRequest.MinimumPageWidth).ToList();
+        var rows = OptionsText.Rows(document.Options, ListingRequest.MinimumPageWidth).ToList();
         Assert.Equal("OPTION                  ORIGIN     VALUE", rows[0]);
         Assert.Equal("--std                   default    2023 (ISO/IEC 1989:2023)", rows[1]);
         Assert.StartsWith("--copy                  specified  /a/very/long/library/directory/", rows[2], StringComparison.Ordinal);
@@ -136,7 +136,7 @@ public sealed class ListingSectionRenderingTests
     {
         var statistics = Statistics(new ListingParseStatistics(2, 3, [new ListingVerb("MOVE", 2, [1, 6]), new ListingVerb("STOP", 1, [6])]));
         var document = Document([Produced(ListingSection.Statistics)], statistics);
-        var rows = TextListingRenderer.StatisticsRows(statistics, document.Files, 132).ToList();
+        var rows = StatisticsText.Rows(statistics, document.Files, 132).ToList();
         Assert.Equal(
         [
             "LINES                         6",
@@ -168,7 +168,7 @@ public sealed class ListingSectionRenderingTests
     public void Statistics_OfASourceNotParsed_SaySo()
     {
         var statistics = Statistics(parse: null);
-        var rows = TextListingRenderer.StatisticsRows(statistics, Document([]).Files, 132).ToList();
+        var rows = StatisticsText.Rows(statistics, Document([]).Files, 132).ToList();
         Assert.Contains("PROGRAMS AND STATEMENTS: not counted, the source was not parsed", rows);
         Assert.DoesNotContain(rows, r => r.StartsWith("VERB", StringComparison.Ordinal));
     }
@@ -190,10 +190,10 @@ public sealed class ListingSectionRenderingTests
     public void EveryWordMap_IsTotal()
     {
         Assert.Equal(Enum.GetValues<ListingLineKind>().Length,
-            Enum.GetValues<ListingLineKind>().Select(TextListingRenderer.LineKindWord).Distinct(StringComparer.Ordinal).Count());
+            Enum.GetValues<ListingLineKind>().Select(StatisticsText.LineKindWord).Distinct(StringComparer.Ordinal).Count());
         Assert.Equal(Enum.GetValues<ListingProgramKind>().Length,
-            Enum.GetValues<ListingProgramKind>().Select(TextListingRenderer.KindWord).Distinct(StringComparer.Ordinal).Count());
+            Enum.GetValues<ListingProgramKind>().Select(ProgramMapText.KindWord).Distinct(StringComparer.Ordinal).Count());
         Assert.Equal(Enum.GetValues<ListingOptionOrigin>().Length,
-            Enum.GetValues<ListingOptionOrigin>().Select(TextListingRenderer.OriginWord).Distinct(StringComparer.Ordinal).Count());
+            Enum.GetValues<ListingOptionOrigin>().Select(OptionsText.OriginWord).Distinct(StringComparer.Ordinal).Count());
     }
 }

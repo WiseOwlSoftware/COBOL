@@ -119,6 +119,6 @@ public static class ListingSections
         return null;
     }
 
-    // Not a COBOL word: a command-line section name.
-    private static bool WordIs(string word, string spelling) => string.Equals(word, spelling, StringComparison.OrdinalIgnoreCase);
+    private static bool WordIs(string word, string spelling) =>
+        string.Equals(word, spelling, StringComparison.OrdinalIgnoreCase);   // not a COBOL word: a command-line section name
 }
