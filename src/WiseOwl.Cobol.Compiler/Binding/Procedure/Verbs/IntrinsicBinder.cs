@@ -689,10 +689,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             string upper = name.ToUpperInvariant();
             // The REPOSITORY paragraph and the user-defined function are COBOL-2002 (§2023:12.3.8.4 GR12); 1985 has neither, so
             // at COBOL-85 the hint would send the reader to a construct the edition lacks (kb/Work PB4950).
-            string declareHint = host.UserFunctions?.ContainsKey(name) == true && ctx.Edition.Edition.Has(2002)
-                ? $"; the compilation group defines FUNCTION-ID {upper} — declare FUNCTION {upper} in this unit's "
-                  + "REPOSITORY paragraph to reference it as a user-defined function (ISO §2023:12.3.8.4 GR12)"
-                : "";
+            string hint = $"; the compilation group defines FUNCTION-ID {upper} — declare FUNCTION {upper} in this unit's "
+                + "REPOSITORY paragraph to reference it as a user-defined function (ISO §2023:12.3.8.4 GR12)";
+            string declareHint = host.UserFunctions?.ContainsKey(name) == true ? ctx.Edition.Edition.Cite("", hint, hint) : "";
             // ⛔ The directive's SR3 lets it name a RESERVED word that never named a function (UNDEFINE "ACCEPT"); it
             // withdrew nothing the FUNCTION keyword could reach, so COBOL1501 is the true answer there. The cause is
             // told only for a word the catalog holds (review r1 R1-1).

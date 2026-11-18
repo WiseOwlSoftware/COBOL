@@ -570,13 +570,11 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             $"this statement alters control data item '{hit!.CobolName}' in USE BEFORE REPORTING declarative section "
             + $"'{ctx.Enclosing.Declarative!.SectionName}' — \"A USE BEFORE REPORTING procedure "
             + ctx.Edition.Edition.Cite("must", "shall", "shall") + " not alter the value of any control data item\" ("
-            + ctx.Edition.DialectLevel switch
-            {
-                < 2002 => "ISO §1985:XIII.4.9.3 SR4)",
-                < 2014 => "ISO §2002:14.8.45.2 SR11)",
-                < 2023 => "ISO §2014:14.9.45.2 SR11)",
-                _ => "ISO §2023:14.9.49.3 SR11)",
-            });
+            + ctx.Edition.Edition.Cite(
+                "ISO §1985:XIII.4.9.3 SR4)",
+                "ISO §2002:14.8.45.2 SR11)",
+                "ISO §2023:14.9.49.3 SR11)",
+                "ISO §2014:14.9.45.2 SR11)"));
         return true;
     }
 

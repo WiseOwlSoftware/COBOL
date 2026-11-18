@@ -344,10 +344,11 @@ internal static class PictureComposition
         if (blankWhenZero && Count("*") > 0)
             return Fail(DiagnosticCatalog.PictureComposition,
                 "the symbol '*' is specified beside a BLANK WHEN ZERO clause — "
-                + (edition.DialectLevel < 2002
-                    ? "the asterisk when used as the zero suppression symbol and the clause BLANK WHEN ZERO may not appear in "
-                      + "the same entry (ISO §1985:VI.5.9.3 SR7)"
-                    : "neither 'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)"));
+                + (edition.Edition.Cite(
+                    "the asterisk when used as the zero suppression symbol and the clause BLANK WHEN ZERO may not appear in "
+                      + "the same entry (ISO §1985:VI.5.9.3 SR7)",
+                    "neither 'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)",
+                    "neither 'S' nor '*' may be (ISO §2023:13.18.40.3 SR22)")));
         if (blankWhenZero && Count("S") > 0 && edition.DialectLevel >= 2002)
             return Fail(DiagnosticCatalog.PictureComposition,
                 "the symbol 'S' is specified beside a BLANK WHEN ZERO clause — neither 'S' nor '*' may be (ISO "
@@ -753,10 +754,11 @@ internal static class PictureComposition
                 : "")
             // The COBOL-85 chart is that table cell for cell save its one non-floating cs row and column, the leading
             // ones (kb/Work PB5175), so the 85 message names its own clause too.
-            + (dialectLevel < 2002
-                ? " (at COBOL-85 the chart of §1985:VI.5.9.6, whose fixed currency symbol is leftmost, preceded at most by "
-                  + "'+' or '-', §1985:VI.5.9.5 GR6)"
-                : ""));
+            + (EditionInfo.Of(dialectLevel).Cite(
+                " (at COBOL-85 the chart of §1985:VI.5.9.6, whose fixed currency symbol is leftmost, preceded at most by "
+                  + "'+' or '-', §1985:VI.5.9.5 GR6)",
+                "",
+                "")));
 
         bool IsFixedExtended(Sym s, int at) => char1Extended.Contains(s.Kind) && !isFloating(at);
     }

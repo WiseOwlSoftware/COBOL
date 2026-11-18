@@ -76,9 +76,10 @@ public sealed partial class FileControlBinder
     /// constant-name that stands for the literal.</summary>
     private void ReportPaddingLiteral(string written, string via) =>
         Edition.Error(DiagnosticCatalog.PaddingCharacterOperand, $"PADDING CHARACTER IS {written}: {via}literal-1 is not a "
-            + "one-character " + (Edition.DialectLevel < 2002
-                ? "nonnumeric literal (ISO §1985:VII.2.7.3 SR1: \"Literal-1 must be a one-character nonnumeric literal.\")"
-                : "alphanumeric literal (ISO §2002:12.3.4.10.2 SR1: \"Literal-1 shall be a one-character alphanumeric literal.\")"));
+            + "one-character " + (Edition.Edition.Cite(
+                "nonnumeric literal (ISO §1985:VII.2.7.3 SR1: \"Literal-1 must be a one-character nonnumeric literal.\")",
+                "alphanumeric literal (ISO §2002:12.3.4.10.2 SR1: \"Literal-1 shall be a one-character alphanumeric literal.\")",
+                "alphanumeric literal (ISO §2002:12.3.4.10.2 SR1: \"Literal-1 shall be a one-character alphanumeric literal.\")")));
 
     /// <summary>The one character literal-1 stands for, or null when it is not a one-character alphanumeric literal.</summary>
     private static string? OneCharacter(Core.LiteralContext lit, LiteralEnvironment env)
@@ -134,11 +135,13 @@ public sealed partial class FileControlBinder
         using var _ = Edition.At(pad.At);
         Edition.Error(DiagnosticCatalog.PaddingCharacterOperand, $"PADDING CHARACTER IS "
             + $"{DataBinder.WrittenQualified(pad.DataName!, pad.Qualifiers)}: data-name-1 {fault} "
-            + (table ? "" : Edition.DialectLevel < 2002
-                ? "(ISO §1985:VII.2.7.3 SR3: \"Data-name-1 must be defined in the Data Division as a one-character data item of "
+            + (table ? "" : Edition.Edition.Cite(
+                "(ISO §1985:VII.2.7.3 SR3: \"Data-name-1 must be defined in the Data Division as a one-character data item of "
                   + "the category alphanumeric and must not be defined in the Communication Section, the File Section, or the "
-                  + "Report Section.\")"
-                : "(ISO §2002:12.3.4.10.2 SR3: \"Data-name-1 shall be a one-character data item of category alphanumeric, "
-                  + "defined in the working-storage, local-storage, or linkage section.\")"));
+                  + "Report Section.\")",
+                "(ISO §2002:12.3.4.10.2 SR3: \"Data-name-1 shall be a one-character data item of category alphanumeric, "
+                  + "defined in the working-storage, local-storage, or linkage section.\")",
+                "(ISO §2002:12.3.4.10.2 SR3: \"Data-name-1 shall be a one-character data item of category alphanumeric, "
+                  + "defined in the working-storage, local-storage, or linkage section.\")")));
     }
 }

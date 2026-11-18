@@ -197,9 +197,10 @@ public sealed partial class FileControlBinder
         Edition.Error(DiagnosticCatalog.TableElementNotSubscripted,
             $"{file.EntryFace} '{file.CobolName}': the RECORD clause's DEPENDING ON '{name}' is subject to an OCCURS clause, so naming it "
             + "is a table element reference, which "
-            + (Edition.DialectLevel < 2002
-                ? $"must be subscripted, and data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})"
-                : "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)"));
+            + (Edition.Edition.Cite(
+                $"must be subscripted, and data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
+                "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)",
+                "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)")));
         return false;
     }
 
@@ -241,11 +242,13 @@ public sealed partial class FileControlBinder
         // occurrence its subscripts select (kb/Work PB5602), judged by DataBinder.ScreenOperandOccurrence.
         string? fault =
             RecordLayout.IsSubjectToOccurs(item) && !Edition.SubscriptedClauseOperands
-                ? Edition.DialectLevel < 2002
-                    ? "is subject to an OCCURS clause, so naming it is a table element reference, which must be subscripted, and "
-                      + $"data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})"
-                    : "is subject to an OCCURS clause; data-name-1 shall not be subject to any OCCURS clauses "
-                      + "(ISO §2023:12.4.5.8.3 SR1)"
+                ? Edition.Edition.Cite(
+                    "is subject to an OCCURS clause, so naming it is a table element reference, which must be subscripted, and "
+                      + $"data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})",
+                    "is subject to an OCCURS clause; data-name-1 shall not be subject to any OCCURS clauses "
+                      + "(ISO §2023:12.4.5.8.3 SR1)",
+                    "is subject to an OCCURS clause; data-name-1 shall not be subject to any OCCURS clauses "
+                      + "(ISO §2023:12.4.5.8.3 SR1)")
             : SubjectToBased(item)
                 ? "is subject to a BASED clause; data-name-1 shall not be subject to a BASED clause in its data "
                   + "description (ISO §2023:12.4.5.8.3 SR4)"
@@ -253,13 +256,14 @@ public sealed partial class FileControlBinder
                 ? $"is {variableShape}; data-name-1 shall not reference a dynamic-length elementary item or a "
                   + "variable-length group (ISO §2023:12.4.5.8.3 SR3)"
             : FileStatusShapeFault(item) is { } shape
-                ? Edition.DialectLevel < 2002
-                    // COBOL-85 words the section half as a ban (File, Report and Communication Sections) and has no local-storage section.
-                    ? $"is {shape}; data-name-1 must be defined in the Data Division as a two-character data item of the category "
+                ? Edition.Edition.Cite(
+                    $"is {shape}; data-name-1 must be defined in the Data Division as a two-character data item of the category "
                       + "alphanumeric and must not be defined in the File Section, Report Section, or the Communication Section "
-                      + $"({ClauseOperandRules1985.FileStatusItem.Citation})"
-                    : $"is {shape}; data-name-1 shall reference a two-character data item of the category alphanumeric, "
-                      + "defined in the working-storage, local-storage, or linkage section (ISO §2023:12.4.5.8.3 SR2)"
+                      + $"({ClauseOperandRules1985.FileStatusItem.Citation})",
+                    $"is {shape}; data-name-1 shall reference a two-character data item of the category alphanumeric, "
+                      + "defined in the working-storage, local-storage, or linkage section (ISO §2023:12.4.5.8.3 SR2)",
+                    $"is {shape}; data-name-1 shall reference a two-character data item of the category alphanumeric, "
+                      + "defined in the working-storage, local-storage, or linkage section (ISO §2023:12.4.5.8.3 SR2)")
             : null;
         if (fault is not null)
             Edition.Error(DiagnosticCatalog.FileStatusItemRule, $"file '{file.SelectName}': FILE STATUS '{face}' {fault}");
@@ -383,13 +387,16 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(op.At);
             if (RecordLayout.IsSubjectToOccurs(item))
                 Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
-                    Edition.DialectLevel < 2002
-                        ? $"LINAGE clause operand '{name}' is subject to an OCCURS clause, so naming it is a table element reference, which "
+                    Edition.Edition.Cite(
+                        $"LINAGE clause operand '{name}' is subject to an OCCURS clause, so naming it is a table element reference, which "
                           + "must be subscripted, and the clause's data-names are written without a subscript "
-                          + $"({ClauseOperandRules1985.TableElementSubscripted.Citation})"
-                        : $"LINAGE clause operand '{name}' is subject to an OCCURS clause; data-name-1, data-name-2, "
+                          + $"({ClauseOperandRules1985.TableElementSubscripted.Citation})",
+                        $"LINAGE clause operand '{name}' is subject to an OCCURS clause; data-name-1, data-name-2, "
                           + "data-name-3, and data-name-4 shall not be subject to any OCCURS clauses "
-                          + "(ISO §2023:13.18.34.3 SR1)");
+                          + "(ISO §2023:13.18.34.3 SR1)",
+                        $"LINAGE clause operand '{name}' is subject to an OCCURS clause; data-name-1, data-name-2, "
+                          + "data-name-3, and data-name-4 shall not be subject to any OCCURS clauses "
+                          + "(ISO §2023:13.18.34.3 SR1)"));
             else if (LinageOperandShapeFault(item) is { } fault)
                 Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
                     $"LINAGE clause operand '{name}' is {fault}; data-name-1, data-name-2, data-name-3, and "

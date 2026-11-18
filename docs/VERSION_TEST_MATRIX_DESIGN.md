@@ -299,8 +299,11 @@ the edition in force has no such rule, the message cites the edition where the r
 
 - **One decider.** `EditionInfo.Cite(y1985, y2002, y2023, y2014)` (`src/WiseOwl.Cobol.Editions/EditionInfo.cs`) is the one choice
   of a citation, or of the words a message quotes, by edition. A site never spells its own `DialectLevel < 2002 ? …` between two
-  citations; `EditionCiteOneDeciderDriftTests` (Unit) refuses, anywhere under `src/` but the decider and the generated parser, an
-  edition comparison whose ternary arm is a string. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
+  citations; `EditionCiteOneDeciderDriftTests` (Unit) reads the syntax tree of every `src/**/*.cs` but the decider and the generated
+  parser and refuses a conditional expression, a switch expression or an if/else that chooses between strings on a condition that
+  reads the edition (an `int` member or `bool`-of-`int` method of `EditionInfo`, `DialectLevel`, `Std`, or an edition-named value
+  against an edition of `EditionInfo.All`), on one line or many. `EditionInfo`'s `bool` properties are named rule facts, so a
+  choice on one of them is a verdict and is not refused. A rule family with a numbering map keeps the map in one member that asks `Cite` (for example
   `SearchAllFormat2Rules.Rule`, which maps 2023's SR6 to SR13 of SEARCH to each edition's rule).
 - **Declines.** A descriptor whose `Title` is its message (a decline, composed by `EditionContext.Declined`) carries
   `Title1985`, the message at 85 citing the 1985 ground; `Declined` renders it through `Cite`.
@@ -333,9 +336,10 @@ the edition in force has no such rule, the message cites the edition where the r
   `CorrespondingOperandRule` take the edition: the sort-merge key rule is `§1985:XI.4.4.3 SR4` / `§1985:XI.4.1.3 SR4` with its own
   letters (a, c, e, f), CORRESPONDING's group rule is `§1985:VI.6.19.3 SR3` (MOVE), `VI.6.6.3 SR1` (ADD), `VI.6.26.3 SR1` (SUBTRACT).
 - **A rule whose words live in the runtime takes its citations as data** (kb/Work PB4950 slice 3): `MoveValidity` (Runtime, which has no
-  edition) states Table 16's reasons once, and the compiler hands it a `MoveCitations` (`MoveTable16.CitationsOf(edition)`: the 2023
-  numbers, or §1985:VI.6.19.4 GR3a/b/c at 85, and the edition gate's phrase for a cell COBOL-85 lacks); the run time asks the
-  two-argument form, which cites §2023. The functions' argument rules have one place, `IntrinsicCitations.Clause`: at 85 the
+  edition) states Table 16's reasons once, and each of its checks (`Table16Refusal`, `BinaryWidthRefusal`, `FigurativeRefusal`) takes
+  a `MoveCitations` and has no other form: the compiler passes `MoveTable16.CitationsOf(edition)` (the 2023 numbers, or §1985:VI.6.19.4
+  GR3a/b/c at 85, and the edition gate's phrase for a cell COBOL-85 lacks), and the run time, which has no edition, passes
+  `MoveCitations.Iso2023` explicitly (`ActivationRelations.MoveViolation`). The functions' argument rules have one place, `IntrinsicCitations.Clause`: at 85 the
   paragraph of the 1989 Intrinsic Function module (`IntrinsicCatalog.Paragraph1989`, derived from the catalog and pinned to the
   transcription's headings by `Intrinsic1989ModuleDriftTests`), and for a function a later edition introduced the 2023 clause with
   the gate's "(targeting COBOL-85)". A construct COBOL-2002 introduced whose rule still fires at 85 (a page width, a multiple COLUMN

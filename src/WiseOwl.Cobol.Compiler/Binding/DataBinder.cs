@@ -6275,11 +6275,13 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             : typeof(T) == typeof(KeyNameReading) ? "a record key or data item" : "a data item";
         // The rule is the edition's own (kb/Work PB5627): COBOL-85 prints "uniqueness must then be established through qualification
         // for each user-defined name explicitly referenced" (§1985:IV.4.3.8.1 SR3), and §2023:8.4.2.2.3 SR1 is the later text.
-        string rule = Edition.DialectLevel < 2002
-            ? "ISO §1985:IV.4.3.8.1 SR3: \"uniqueness must then be established through qualification for each user-defined "
-                + "name explicitly referenced\""
-            : "ISO §2023:8.4.2.2.3 SR1: \"For each non unique user-defined name that is explicitly referenced, uniqueness "
-                + "shall be established through a sequence of qualifiers that precludes any ambiguity of reference\"";
+        string rule = Edition.Edition.Cite(
+            "ISO §1985:IV.4.3.8.1 SR3: \"uniqueness must then be established through qualification for each user-defined "
+                + "name explicitly referenced\"",
+            "ISO §2023:8.4.2.2.3 SR1: \"For each non unique user-defined name that is explicitly referenced, uniqueness "
+                + "shall be established through a sequence of qualifiers that precludes any ambiguity of reference\"",
+            "ISO §2023:8.4.2.2.3 SR1: \"For each non unique user-defined name that is explicitly referenced, uniqueness "
+                + "shall be established through a sequence of qualifiers that precludes any ambiguity of reference\"");
         string msg = $"{clauseFace} '{written}' does not uniquely identify {what} — {candidates.Count} "
             + $"declarations match the written reference ({rule})";
         if (verdict is null)

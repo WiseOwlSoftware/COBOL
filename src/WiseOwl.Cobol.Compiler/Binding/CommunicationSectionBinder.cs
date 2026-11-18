@@ -268,11 +268,12 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                         CommunicationFormat.Input => "SR6",
                         CommunicationFormat.Output => "SR10",
                         _ => "SR15",
-                    }) + (Edition.DialectLevel < 2002
-                        ? format == CommunicationFormat.Output
+                    }) + (Edition.Edition.Cite(
+                        format == CommunicationFormat.Output
                             ? ": the data-names \"must be unique within a CD entry\"."
-                            : ": the data-names \"must be unique within the CD entry\"."
-                        : ": the data-names \"shall be unique within the CD entry\"."));
+                            : ": the data-names \"must be unique within the CD entry\".",
+                        ": the data-names \"shall be unique within the CD entry\".",
+                        ": the data-names \"shall be unique within the CD entry\".")));
             names[field] = name;
         }
     }

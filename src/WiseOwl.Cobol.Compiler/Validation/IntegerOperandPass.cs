@@ -415,11 +415,13 @@ internal static class IntegerOperandRules
     /// <summary>The refusal of a zero <c>integer-n</c>, citing the rule of the targeted edition: §2023:5.5 1) from 2002 (its
     /// rule is the one 2023 prints), §1985:III.2 below (kb/Work PB5196).</summary>
     internal static string ZeroMessage(string where, string subject, int dialectLevel) =>
-        dialectLevel < 2002
-            ? $"{where}: {subject} shall be nonzero — §1985:III.2: an integer \"must be neither signed nor zero unless "
-              + "explicitly allowed by the rules for that format\", and no rule of this format permits zero here"
-            : $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
-              + "otherwise specified in the associated rules\", and no rule of this format permits zero here";
+        EditionInfo.Of(dialectLevel).Cite(
+            $"{where}: {subject} shall be nonzero — §1985:III.2: an integer \"must be neither signed nor zero unless "
+              + "explicitly allowed by the rules for that format\", and no rule of this format permits zero here",
+            $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
+              + "otherwise specified in the associated rules\", and no rule of this format permits zero here",
+            $"{where}: {subject} shall be nonzero — ISO §2023:5.5 1): an integer-n \"shall be unsigned and nonzero unless "
+              + "otherwise specified in the associated rules\", and no rule of this format permits zero here");
 
     /// <summary>The construct named in the diagnostic: the source text of the clause or phrase that spells the
     /// operand (an OCCURS bound names its whole OCCURS clause).</summary>

@@ -257,14 +257,19 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
     internal void ReportUnreferenceableLinkage(string written, DataItem record) =>
         data.Edition.Error(DiagnosticCatalog.LinkageItemNotReferenceable,
             $"'{written}' belongs to LINKAGE SECTION record '{record.CobolName}', which the procedure division may not "
-            + (data.Edition.DialectLevel < 2002
-                ? "reference (ISO §1985:X.5.1 GR4): the record is not an operand of the USING phrase of the Procedure "
-                    + "Division header, nor a redefinition or renaming of one. Name it in the header."
-                : "reference (ISO " + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.6.2 SR4", y2014: "§2014:13.7.2 SR4",
+            + (data.Edition.Edition.Cite(
+                "reference (ISO §1985:X.5.1 GR4): the record is not an operand of the USING phrase of the Procedure "
+                    + "Division header, nor a redefinition or renaming of one. Name it in the header.",
+                "reference (ISO " + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.6.2 SR4", y2014: "§2014:13.7.2 SR4",
                         y2023: "§2023:13.7.3 SR4")
                     + "): the record is not an operand of the USING or RETURNING phrase of the procedure division header, "
                     + "not a redefinition or renaming of one, and not BASED. Name it in the header, or describe it BASED ("
-                    + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5", y2023: "§2023:13.18.5") + ")."));
+                    + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5", y2023: "§2023:13.18.5") + ").",
+                "reference (ISO " + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.6.2 SR4", y2014: "§2014:13.7.2 SR4",
+                        y2023: "§2023:13.7.3 SR4")
+                    + "): the record is not an operand of the USING or RETURNING phrase of the procedure division header, "
+                    + "not a redefinition or renaming of one, and not BASED. Name it in the header, or describe it BASED ("
+                    + data.Edition.Edition.Cite(y1985: "", y2002: "§2002:13.16.5", y2014: "§2014:13.18.5", y2023: "§2023:13.18.5") + ").")));
 
     /// <summary>COBOL2364 — a reference to a name whose declaration the compiler REFUSED (a Tier-D REDEFINES
     /// view; a SCREEN SECTION name, the section being declined as COBOL1560; a constant-name whose entry yielded no

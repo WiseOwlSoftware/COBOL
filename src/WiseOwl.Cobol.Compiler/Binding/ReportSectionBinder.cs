@@ -1762,10 +1762,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (faults.Count > 0)
                     Edition.Error(DiagnosticCatalog.ReportGroupIndicatePlacement, $"{where} specifies GROUP INDICATE "
                         + $"but {string.Join(" and ", faults)}; the GROUP INDICATE clause may be specified only within "
-                        + (Edition.DialectLevel < 2002
-                            ? "a detail report group entry that defines a printable item, one with a COLUMN NUMBER clause (ISO §1985:XIII.3.13.3 SR1; §1985:III.2)"
-                            : "a detail report group description, in an elementary entry that also contains a COLUMN "
-                                + "clause and a SOURCE or VALUE clause (ISO §2023:13.18.28.3 SR1)"));
+                        + (Edition.Edition.Cite(
+                            "a detail report group entry that defines a printable item, one with a COLUMN NUMBER clause (ISO §1985:XIII.3.13.3 SR1; §1985:III.2)",
+                            "a detail report group description, in an elementary entry that also contains a COLUMN "
+                                + "clause and a SOURCE or VALUE clause (ISO §2023:13.18.28.3 SR1)",
+                            "a detail report group description, in an elementary entry that also contains a COLUMN "
+                                + "clause and a SOURCE or VALUE clause (ISO §2023:13.18.28.3 SR1)")));
             }
         }
     }
@@ -4884,15 +4886,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         const string sr7 = "ISO §2023:13.15.3 SR7: \"The data-name shall not be referenced in any other way\" than in a GENERATE "
             + "statement, a USE BEFORE REPORTING statement, as a qualifier for a SUM counter, in the UPON phrase of the SUM "
             + "clause, or as an operand in a SUM clause.";
-        Edition.Error(DiagnosticCatalog.ReportItemReference,
-            $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "
-            + "here may not name. "
-            + (!entry.IsSumCounter && Edition.DialectLevel < 2002
-                // COBOL-85 has no section rule (SumCounterOperand85); its rule is the entry's: "Data-name-1 may be referenced only
-                // if the entry defines a sum counter" (kb/Work PB5310), and this entry defines none.
-                ? "ISO §1985:XIII.3.9.3 SR10d: \"Data-name-1 may be referenced only if the entry defines a sum counter\", and the "
-                  + "entry defines none."
-                : inReportSection
+        string sectionRule = inReportSection
                 ? sr7 + (entry.IsSumCounter
                     ? " A sum counter is admitted in the report section only by a SOURCE clause (ISO §2023:13.18.53.3 SR4) or a "
                       + "SUM clause."
@@ -4901,7 +4895,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                   + "of the data division or by any other procedure division statements, except in the following cases: "
                   + "1) Sum counters may be inspected or altered in the procedure division. 2) Report groups of type DETAIL "
                   + "are accessed by the GENERATE statement\"; and " + sr7
-                  + (entry.IsSumCounter ? " A sum counter is admitted in the procedure division only." : "")));
+                  + (entry.IsSumCounter ? " A sum counter is admitted in the procedure division only." : "");
+        Edition.Error(DiagnosticCatalog.ReportItemReference,
+            $"{subject} names the report group description entry '{entry.Name}' of report '{report.Name}', which a reference "
+            + "here may not name. "
+            + (entry.IsSumCounter
+                ? sectionRule
+                // COBOL-85 has no section rule (SumCounterOperand85); its rule is the entry's: "Data-name-1 may be referenced only
+                // if the entry defines a sum counter" (kb/Work PB5310), and this entry defines none.
+                : Edition.Edition.Cite(
+                    "ISO §1985:XIII.3.9.3 SR10d: \"Data-name-1 may be referenced only if the entry defines a sum counter\", and the "
+                    + "entry defines none.",
+                    sectionRule, sectionRule)));
         return true;
     }
 

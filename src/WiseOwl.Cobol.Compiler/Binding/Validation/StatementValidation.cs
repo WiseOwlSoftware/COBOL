@@ -1655,12 +1655,11 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>The citation of the SR4 text in force at the edition being compiled: the rule is SR4 of §2002:13.3.5.2,
     /// of §2014:13.4.5.2 and of §2023:13.4.6.3, in the same words (each --checked); §1985 has none
     /// (<see cref="ScreenSortMergeRecordReferences"/> asks nothing below 2002).</summary>
-    private string SortMergeRecordRuleCite => data.Edition.DialectLevel switch
-    {
-        >= 2023 => "ISO §2023:13.4.6.3 SR4",
-        >= 2014 => "ISO §2014:13.4.5.2 SR4",
-        _ => "ISO §2002:13.3.5.2 SR4",
-    };
+    private string SortMergeRecordRuleCite => data.Edition.Edition.Cite(
+        "ISO §2002:13.3.5.2 SR4",
+        "ISO §2002:13.3.5.2 SR4",
+        "ISO §2023:13.4.6.3 SR4",
+        "ISO §2014:13.4.5.2 SR4");
 
     /// <summary>The citation of an input-output statement's rule in the edition in force (kb/Work PB4950): COBOL-85 states each
     /// statement once per I-O module, so its rule is the sequential (chapter VII), relative (VIII) or indexed (IX) module's
@@ -2175,12 +2174,11 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>The citation of the "at least one reference to an operand that is not a literal" sentence in the edition
     /// compiled (2002 onward; below it <see cref="CheckRelationHasNonLiteralOperand"/> asks the 1985 sentence): §2002:8.8.4.1.1,
     /// §2014:8.8.4.1.1 and §2023:8.8.4.2.1, each --checked.</summary>
-    private string RelationOperandRuleCite => data.Edition.DialectLevel switch
-    {
-        >= 2023 => "§2023:8.8.4.2.1",
-        >= 2014 => "§2014:8.8.4.1.1",
-        _ => "§2002:8.8.4.1.1",
-    };
+    private string RelationOperandRuleCite => data.Edition.Edition.Cite(
+        "§2002:8.8.4.1.1",
+        "§2002:8.8.4.1.1",
+        "§2023:8.8.4.2.1",
+        "§2014:8.8.4.1.1");
 
     /// <summary>⛔ THE ONE READING OF §1985:VI.6.3.1.5 — "Arithmetic-expression-1 must contain at least one reference to a
     /// variable" — for the sign condition <c>arithmetic-expression-1 IS [NOT] POSITIVE | NEGATIVE | ZERO</c> as written

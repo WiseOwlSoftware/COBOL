@@ -1023,9 +1023,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InlineInvocationReturningShape,
                     $"the inline method invocation of \"{m.Name}\": the data item referenced in the "
                     + "RETURNING phrase of the invoked method's procedure division header shall not be "
-                    + (ctx.Edition.Edition.Has(2014)
-                        ? "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase (ISO §2023:8.4.3.4.3 SR4)"
-                        : "described with the ANY LENGTH clause (ISO §2002:8.4.2.4.2 SR4)"));
+                    + (ctx.Edition.Edition.Cite(
+                        "described with the ANY LENGTH clause (ISO §2002:8.4.2.4.2 SR4)",
+                        "described with the ANY LENGTH clause (ISO §2002:8.4.2.4.2 SR4)",
+                        "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase (ISO §2023:8.4.3.4.3 SR4)",
+                        "described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase (ISO §2023:8.4.3.4.3 SR4)")));
             }
             if (ctx.Edition.Edition.Has(2014) && retModel.Pic is { Category: PicCategory.ObjectReference, ObjectRef: { Kind: ObjectRefKind.ActiveClass } })
             {

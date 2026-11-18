@@ -840,9 +840,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 return ctx.Validation.RejectStatementOperand(
                     $"{verb} file '{f.CobolName}' is described with ACCESS MODE IS RANDOM: \"The RANDOM clause shall not be specified "
                     + "for file-names specified in the USING or GIVING phrase of a SORT or MERGE statement\" (ISO "
-                    + (ctx.Edition.Edition.Year < 2002
-                        ? (f.Organization is FileOrganization.Indexed ? "§1985:IX.2.4.3 SR1)" : "§1985:VIII.2.4.3 SR4)")
-                        : "§2023:12.4.5.5.2 SR1" + (giving ? ")" : merge ? "; §2023:14.9.24.3 SR13)" : "; §2023:14.9.40.3 SR12)")));
+                    + (ctx.Edition.Edition.Cite(
+                        f.Organization is FileOrganization.Indexed ? "§1985:IX.2.4.3 SR1)" : "§1985:VIII.2.4.3 SR4)",
+                        "§2023:12.4.5.5.2 SR1" + (giving ? ")" : merge ? "; §2023:14.9.24.3 SR13)" : "; §2023:14.9.40.3 SR12)"),
+                        "§2023:12.4.5.5.2 SR1" + (giving ? ")" : merge ? "; §2023:14.9.24.3 SR13)" : "; §2023:14.9.40.3 SR12)"))));
             files.Add(f);
         }
         return true;

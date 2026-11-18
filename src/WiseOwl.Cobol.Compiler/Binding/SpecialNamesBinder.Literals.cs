@@ -512,9 +512,14 @@ public sealed partial class SpecialNamesBinder
                 {
                     // An ordinal that lands on an ALSO group (GR7 k6) names SEVERAL characters, and a THROUGH bound
                     // is ONE character: the specification defines no run that begins at, or ends at, a group.
+                    // ⚠ No COBOL-85 program reaches this rule: an ordinal is read here only against the CLASS clause's IN
+                    // alphabet-name, which 1985 does not have, so at 85 the edition gate class-clause-in-alphabet-2002 has already
+                    // refused the program and this line follows it (refusal pb1095-class-in-also-group-through). Its 1985 arm names
+                    // the 1985 ALPHABET rule that gives ALSO characters one ordinal position, §1985:VI.4.5.4 GR4d.6 (kb/Work PB4950
+                    // review R2-2). Behaviour unchanged.
                     Edition.Error(r.Code, $"{r.What}: the ordinal {op.Spelling} names {op.Members} characters of the "
                         + "character set referenced by the IN alphabet (an ALSO group shares one ordinal position, "
-                        + $"ISO {Edition.Edition.Cite("§1985:VI.4.5.3 SR4b", "§2023:12.3.7.4 GR7 k6", "§2023:12.3.7.4 GR7 k6")}), "
+                        + $"ISO {Edition.Edition.Cite("§1985:VI.4.5.4 GR4d.6", "§2023:12.3.7.4 GR7 k6", "§2023:12.3.7.4 GR7 k6")}), "
                         + "so it is no single character to begin or end the run of native "
                         + $"characters a THROUGH phrase expands (ISO {Edition.Edition.Cite("§1985:VI.4.5.3 SR11b", "§2023:12.3.7.4 GR12", "§2023:12.3.7.4 GR12")})");
                     ok = false;

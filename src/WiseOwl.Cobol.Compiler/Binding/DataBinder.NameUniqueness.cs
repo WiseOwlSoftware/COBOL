@@ -53,10 +53,11 @@ public sealed partial class DataBinder
                     using var _ = Edition.At(item.ReferenceSite);
                     Edition.Error(DiagnosticCatalog.GlobalDataNameNotUnique, $"data-name '{name}' names {(global ? "this GLOBAL item" : "this item")} "
                         + $"and also {(global && firstGlobal is null ? "another data item" : "a GLOBAL item")} described in the same source element{ViaReference(item)}; "
-                        + (Edition.DialectLevel < 2002
-                            ? "the same data-name must not name an item possessing the global attribute and any other data item (ISO §1985:IV.4.3.8.1), "
-                                + "and no two data items of a Data Division with the same data-name may include the GLOBAL clause (ISO §1985:X.4.6.3 SR2)"
-                            : "the same name shall not be used both as the name of an item possessing the global attribute and as the name of any other data item (ISO §2023:8.4.2.1)"));
+                        + (Edition.Edition.Cite(
+                            "the same data-name must not name an item possessing the global attribute and any other data item (ISO §1985:IV.4.3.8.1), "
+                                + "and no two data items of a Data Division with the same data-name may include the GLOBAL clause (ISO §1985:X.4.6.3 SR2)",
+                            "the same name shall not be used both as the name of an item possessing the global attribute and as the name of any other data item (ISO §2023:8.4.2.1)",
+                            "the same name shall not be used both as the name of an item possessing the global attribute and as the name of any other data item (ISO §2023:8.4.2.1)")));
                 }
                 if (global) firstGlobal ??= item;
             }
