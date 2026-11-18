@@ -1,4 +1,4 @@
-## PB5925: the source listing, step 5 - the options, the program map, the statistics and verbs, and --listing-sections
+## Entry 3843 — 2026-11-18 09:19 PST — PB5925: the source listing, step 5 - the options, the program map, the statistics and verbs, and --listing-sections
 
 Step 5 of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5925; the owner's order of 2026-11-18 to build the full
 listing). The default listing (`standard`) now has five sections, each starting a page: the options, the source, the program
@@ -46,3 +46,4 @@ the no-listing rows are within 0.23 MB of step 4a's.
 only what it kept: the front end's own verdict now reaches the listing header (`ListingHeader.Parse`, `Recovered`), and both
 sections print a note saying so. The compiler and runtime versions are spelled by one function (`ListingBuilder.VersionOf`),
 and two comments that named the wrong test are corrected (kb/Work/PB5925/2026-11-18-listing-step-5-review-r1.md).
+
