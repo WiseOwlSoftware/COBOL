@@ -1,4 +1,4 @@
-## A listing test asserted the length of the host's scratch path
+## Entry 3842 — 2026-11-18 08:29 PST — A listing test asserted the length of the host's scratch path
 
 The merge group's Windows shard 7 of PR #1864 failed `ListingDiagnosticsTests.ABindError_IsPlacedOnItsLine_...`: the test
 asserted `"     5  error COBOL0801 <source path>(5,8): "` as one substring of the listing's summary. The renderer wraps a summary entry at
@@ -13,3 +13,4 @@ Before the change, the old assertion failed in the long directory on this host a
 test that reads listing text found no other assertion on a host path inside a rendered row. The long-path case is the guard
 against the next one; lengthening every scratch directory was not done, because it moves the whole suite toward Windows path
 limits for one site.
+
