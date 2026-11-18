@@ -47,7 +47,7 @@ internal static class InheritStep
             inherited.AddContainerTypeDecls(binders.Of(anc).Data.State.Forest.TypeDecls);
             // …and its files' names (§2023:13.18.27.4 GR1): the data division's own resolutions ask whether a name that is no
             // data item IS a visible file-name (kb/Work PB3557).
-            inherited.AddContainerFiles(binders.Of(anc).Data.State.Files.Declared, binders.Of(anc).Data.Linkage.GlobalRoots, depth);
+            data.Symbols.InheritFiles(binders.Of(anc).Data.State.Files.Declared, binders.Of(anc).Data.Linkage.GlobalRoots, depth);
         }
         // The member names every container's GLOBAL root will occupy in this unit's class (kb/Work PB1047): the bridges are
         // emitted for every global root (Merge), so a LOCAL root spelled like one (the §2023:8.4.6.2.1 3) a) shadowing case)
@@ -100,10 +100,15 @@ internal static class InheritStep
     /// <c>MOVE S1 TO Y</c> moved the container's figurative instead of the local <c>01 S1</c>, with no diagnostic). Run by
     /// <see cref="Merge"/> for a program unit and by <c>OoDriver</c> for an OBJECT or FACTORY half, whose class definition
     /// hands it symbolic-characters (§2023:8.4.6.1) and no constants.
-    /// <para>Every tier a name can be declared at is asked by <c>DataBinder.DeclaredNearerThan</c>; a METHOD's own names
+    /// <para>Every tier a name can be declared at is asked by <c>SymbolTable.Declarations.DeclaredNearerThan</c>; a METHOD's own names
     /// are the one tier nearer still, asked at reference time (<c>OoDataBinder.ActiveMethodDeclares</c>).</para></summary>
-    internal static void DropShadowed(DataBinder data) =>
+    internal static void DropShadowed(DataBinder data)
+    {
         data.State.Inherited.DropShadowed(data.Symbols.Declared.DeclaredNearerThan, data.State.Configuration.SymbolicCharacters.InheritedDepths);
+        // An inherited GLOBAL file-name is hidden the same way (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786): a
+        // data-name, condition-name or index-name of its spelling declared in a nearer source element is the referenced item.
+        data.Symbols.HideShadowedFiles(data.Symbols.Declared.DeclaredNearerThan);
+    }
 
     /// <summary>⛔ THE ONE LIST OF A UNIT'S INHERITED GLOBAL DATA ROOTS: every named GLOBAL root of every container of
     /// <paramref name="unit"/>, nearest container first, each with its container and how many containment levels out it

@@ -206,7 +206,7 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
 
     /// <summary>The containment distance of the container whose GLOBAL constant <paramref name="name"/> names here (1 = the
     /// direct container), 0 when the name is not an inherited constant — this element's own declaration hides it
-    /// (ISO §2023:8.4.6.2.1 3); kb/Work PB4432: the depth <c>DataBinder.NonConditionDeclarationsOf</c> ranks it at).</summary>
+    /// (ISO §2023:8.4.6.2.1 3); kb/Work PB4432: the depth <c>SymbolTable.Declarations.NonConditionDeclarationsOf</c> ranks it at).</summary>
     internal int InheritedDepthOf(string name) =>
         !_constants.Declared.ContainsKey(name) && owner.State.Inherited.Constants.TryGetValue(name, out var inherited)
             ? inherited.Depth : 0;

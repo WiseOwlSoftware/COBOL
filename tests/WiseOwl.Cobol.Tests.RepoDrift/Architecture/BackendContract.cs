@@ -27,8 +27,6 @@ internal static class BackendContract
             // a call's catalog facts the bound layer's carrier prediction reads (kb/Work PB5891 review R5-2)
             "Model.IntrinsicCarrierFacts.Name",
             "Model.ApplyCommitModel.Identifiers", "Model.IndexNameRegistry._byName",
-            // the file-names visible in a source element, its own and its containers' GLOBAL ones (kb/Work PB2296)
-            "Model.FileNameScope._hidden", "Model.FileNameScope._inherited", "Model.FileNameScope._own",
             "Model.ItemCategory.CategoryName()", "Model.ItemCategory.Spell()", "Model.ItemCategory.Sr14PhraseOf()",
             "Model.ItemCategory.Sr4PhraseOf()", "Model.RecordLayout.CategoryOfItem()",
             "Model.StrongTypeModel.DeclaredTypeName()", "Model.StrongTypeModel+TypeRestriction.Name",
@@ -95,9 +93,7 @@ internal static class BackendContract
             "Model.ForestSlice.ByName", "Model.ForestSlice._byName", "Model.ForestSlice.Conditions", "Model.ForestSlice._conditions",
             "Model.ForestSlice.CapacityRegisters", "Model.ForestSlice._capacityRegisters", "Model.ForestSlice.CapacityRegistersSoFar",
             "Model.ForestSlice.ScreenNames", "Model.ForestSlice._screenNames", "Model.ForestSlice.TypeDecls",
-            "Model.ForestSlice._typeDecls", "Model.ForestSlice.TypeDeclsOf()", "Model.FileSlice.FilesByName",
-            "Model.FileSlice._filesByName", "Model.DataBindResult.RangeCollations",
-            "Model.CommunicationSlice.ByName", "Model.CommunicationSlice._byName",
+            "Model.ForestSlice._typeDecls", "Model.ForestSlice.TypeDeclsOf()", "Model.DataBindResult.RangeCollations",
         ]),
         new(NeutralKind.ClrName,
         [

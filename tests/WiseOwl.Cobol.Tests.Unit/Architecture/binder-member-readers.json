@@ -788,7 +788,6 @@
       "WiseOwl.Cobol.Binding.Procedure.EcBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.Procedure.IntrinsicBinder",
-      "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.Procedure.MnemonicRegistry",
       "WiseOwl.Cobol.Binding.Procedure.MoveBinder",
       "WiseOwl.Cobol.Binding.Procedure.ProcedureTableBuilder",
@@ -835,6 +834,7 @@
       "WiseOwl.Cobol.Binding.Passes.PtrBindBasedAndAddressablesPass",
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder",
+      "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
@@ -998,6 +998,9 @@
     ],
     "WiseOwl.Cobol.Binding.FileControlBinder::BindIoControl": [
       "WiseOwl.Cobol.Binding.DataBinder"
+    ],
+    "WiseOwl.Cobol.Binding.FileControlBinder::ForeignCommitFiles": [
+      "WiseOwl.Cobol.Binding.Bound.StatementBinder"
     ],
     "WiseOwl.Cobol.Binding.FileControlBinder::MapSharing": [
       "WiseOwl.Cobol.Binding.Procedure.SequentialIoBinder"

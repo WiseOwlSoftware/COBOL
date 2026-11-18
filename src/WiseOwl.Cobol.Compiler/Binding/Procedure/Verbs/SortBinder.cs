@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Symbols;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -40,7 +41,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     {
         var operand = s.sortFileName().dataReference();
         string name = SubjectName(s);
-        if (!ctx.Data.State.VisibleFiles.TryGetValue(name, out var file)) return SortBindTable(s, operand, name);
+        if (ctx.Symbols.Identify(SubjectWord(s), NameClass.File, report: true) is not { Symbol: FileModel file })
+            return SortBindTable(s, operand, name);
         // The FILE reading of the operand is file-name-1, which is written alone — `SORT S OF X …` named the SD `S`
         // with its qualifier dropped in silence until kb/Work PB2040. The table reading's data-name-2 MAY be
         // qualified and subscripted, which is why the split is decided by the base word and the shape asked after.
@@ -50,10 +52,13 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>The base word of the SORT's first operand — the name the file / table split is decided by.</summary>
-    private static string SubjectName(Core.SortStatementContext s)
+    private static string SubjectName(Core.SortStatementContext s) => SubjectWord(s).GetText();
+
+    /// <summary>The written base word of the SORT's first operand (the whole operand when it has no word of its own).</summary>
+    private static Antlr4.Runtime.ParserRuleContext SubjectWord(Core.SortStatementContext s)
     {
         var operand = s.sortFileName().dataReference();
-        return operand.cobolWord()?.GetText() ?? operand.GetText();
+        return (Antlr4.Runtime.ParserRuleContext?)operand.cobolWord() ?? operand;
     }
 
     /// <summary>Is this SORT the FILE format (Format 1)? The parse node is shared by both formats and the split is
@@ -61,7 +66,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// statement" under the FORMAT 1 heading (§2023:14.9.40.3 SR3-SR12) asks THIS, never the node type: §2023:14.9.40.3 SR3's
     /// exception-checking-PERFORM ban bound a legal Format-2 table SORT until kb/Work PB1139.</summary>
     internal static bool IsFileFormat(BinderContext ctx, Core.SortStatementContext s) =>
-        ctx.Data.State.VisibleFiles.ContainsKey(SubjectName(s));
+        ctx.Symbols.Identify(SubjectWord(s), NameClass.File, report: false) is not null;
 
     /// <summary>⛔ THE DECLARATIVE LEG OF THE SORT/MERGE PLACEMENT RULES (kb/Work PB1139, PB5275): at COBOL-85 a SORT "may appear
     /// anywhere in the Procedure Division except in the declarative portion" (§1985:XI.4.4.3 SR1), a MERGE "may appear anywhere in the

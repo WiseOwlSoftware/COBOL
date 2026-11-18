@@ -108,7 +108,7 @@ public sealed partial class SymbolTable
             if (_table.IndexCandidates(name, qualifiers, scope) is { } indexes)
                 yield return new(DeclarationKind.IndexName,
                     Depth: indexes.Count > 0 ? indexes.NearestDepth(i => _data.State.Forest.DeclaringDepth(i.Table)) : int.MaxValue);
-            if (!dataName && qualifiers.Count == 0 && _data.State.VisibleFiles.TryGetValue(name, out var file))
+            if (!dataName && qualifiers.Count == 0 && _table.FileNamed(Key(name), NameReach.Visible) is { } file)
                 yield return new(DeclarationKind.FileName, Depth: _data.State.Inherited.FileDepth(file));
             // A cd-name is this element's own (2002 8.4.5), so it ranks at depth 0 (kb/Work PB4713).
             if (!dataName && qualifiers.Count == 0 && _table._cds.ContainsKey(Key(name)))
@@ -146,8 +146,19 @@ public sealed partial class SymbolTable
         /// qualifier, so a qualified reference is never hidden by one. The caller meets an unidentified reference, and
         /// <see cref="DeclarationFactOf"/> words it as "declared as a file-name". The reverse arm — an own data-name hiding
         /// a container's GLOBAL file — is <c>InheritedGlobals.DropShadowed</c>'s.</summary>
+        /// <summary>Whether a SELECT of this element already names <paramref name="name"/> (§2023:12.4.5.2 SR2: one SELECT per
+        /// file-name).</summary>
+        public bool IsSelected(string name) => _table._selectedFiles.ContainsKey(Key(name));
+
+        /// <summary>A container's GLOBAL file of the spelling, with its containment depth; hidden or not, since the question
+        /// is how near the GLOBAL declaration is (<c>FileControlBinder.ScreenEnclosingFileOperand</c>).</summary>
+        public DeclarationFact? InheritedFile(string name) =>
+            _table._inheritedFiles.TryGetValue(Key(name), out var file)
+                ? new DeclarationFact(DeclarationKind.FileName, Depth: _data.State.Inherited.FileDepth(file), Spelling: file.CobolName)
+                : null;
+
         public bool NearerFileNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
-            depth != 0 && qualifiers.Count == 0 && _data.State.VisibleFiles.TryGetValue(name, out var file)
+            depth != 0 && qualifiers.Count == 0 && _table.FileNamed(Key(name), NameReach.Visible) is { } file
             && _data.State.Inherited.FileDepth(file) < depth;
 
         /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS

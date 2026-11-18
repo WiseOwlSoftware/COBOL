@@ -38,9 +38,12 @@ internal enum DeclarationKind
 /// declaration itself was REFUSED and reported at its entry (a constant entry that yielded no value), so a reference to
 /// it is that one fault's consequence and its reader reports nothing more, and the <paramref name="Depth"/> of the
 /// source element that declares it (0 = this one, n = its n-th container, <see cref="ForestSlice.DeclaringDepth"/>'s
-/// measure), the tier ISO §2023:8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).</summary>
+/// measure), the tier ISO §2023:8.4.6.2.1 3) ranks it in against the other declarations of the spelling (kb/Work PB4219).
+/// <paramref name="Spelling"/> is the declaration's own spelling where a message quotes it (an inherited GLOBAL file-name).
+/// The fact names no symbol: it answers a declaration question (<see cref="SymbolTable.Declarations"/>), never a reference
+/// (docs/rearchitecture/DESIGN-listing.md section 6.7.1).</summary>
 internal readonly record struct DeclarationFact(
-    DeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0)
+    DeclarationKind Kind, string? TypeName = null, bool DeclarationRefused = false, int Depth = 0, string? Spelling = null)
 {
     /// <summary>⛔ THE ONE WORDING of what <paramref name="name"/> IS (kb/Work PB1906), completing a sentence whose subject
     /// is the reference as <paramref name="written"/>: "'T' is declared as a type-name …". Every site that refuses a

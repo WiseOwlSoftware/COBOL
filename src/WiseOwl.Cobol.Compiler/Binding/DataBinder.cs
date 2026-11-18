@@ -6390,7 +6390,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
             while (root.Parent is { } p) root = p;
             // A record of a communication description entry is qualified by its cd-name (ISO/IEC 1989:2002 8.4.1.1.1's file-cd-report-qualifier).
             if (Symbols.CdQualifies(q, root) is { } describes) return describes;
-            return State.VisibleFiles.TryGetValue(q, out var file) && file.Records.Contains(root);
+            return Symbols.FileQualifies(q, root);
         });
 
         static IEnumerable<string?> NamesFrom(DataItem? anc)

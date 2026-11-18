@@ -133,7 +133,7 @@ public sealed partial class SymbolTable
     /// <summary>The condition-name twin of <see cref="NearestDeclaringData"/>: the nearest declaring source element's
     /// condition-names, or none when a data-name (or a report entry) of the spelling is declared nearer
     /// (<see cref="NearerDataNameHides"/>), or a constant-name, index-name or file-name is
-    /// (<see cref="DataBinder.NonConditionDeclarationHides"/>, kb/Work PB4432 review R1-1): the reverse arm of the
+    /// (<see cref="SymbolTable.Declarations.NonConditionDeclarationHides"/>, kb/Work PB4432 review R1-1): the reverse arm of the
     /// ranking <see cref="IndexCandidates"/> and <c>ReferenceResolver.CapacityRegisterFor</c> already apply to a condition-name
     /// beside them. (A nearer CAPACITY register is asked by <c>ConditionBinder.ConditionOf</c> of the register's one lookup.)
     /// The caller's own verdict then says what the name is declared as.</summary>

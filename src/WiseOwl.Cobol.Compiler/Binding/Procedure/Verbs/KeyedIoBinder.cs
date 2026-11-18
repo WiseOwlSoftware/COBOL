@@ -510,7 +510,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// is (−1 = prime): one of this file's, one only ANOTHER visible file declares (the SR7 / SR11 violation), or
     /// none, when it is to be read as data-name-1 (kb/Work PB1099). The operand may carry §2023:8.4.2.2.2 Format 6's one
     /// file-name qualifier, which <see cref="FileModel.RecordKeyNameCandidates"/> reads; the files asked are the
-    /// VISIBLE set (<c>DataBindState.VisibleFiles</c>, a container's GLOBAL file included — §2023:8.4.6.2.4 gives a GLOBAL file's
+    /// VISIBLE set (<c>SymbolTable.VisibleFiles</c>, a container's GLOBAL file included — §2023:8.4.6.2.4 gives a GLOBAL file's
     /// record-key-names its scope).
     /// <para>⛔ EVERY READING IS COUNTED, NONE IS "ASKED FIRST" (kb/Work PB1099 review R1-2). The KEY phrase admits
     /// data-name-1 or record-key-name-1, §2023:8.3.2.2 lets one word be a data-name and a record-key-name, and two files
@@ -530,7 +530,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     {
         var (word, quals) = DataBinder.KeyReference(dref);
         var names = file.RecordKeyNameCandidates(word, quals);
-        foreach (var other in ctx.Data.State.VisibleFiles.Values)
+        foreach (var other in ctx.Data.Symbols.VisibleFiles)
             if (!ReferenceEquals(other, file)) names = names.Plus(other.RecordKeyNameCandidates(word, quals));
         if (names.Count == 0)
             return (RecordKeyNameUse.None, 0);

@@ -9,6 +9,7 @@ namespace WiseOwl.Cobol.Binding;
 
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// The FILE SECTION half of the file binder (ISO §2023:13.4.5 FD, §2023:13.4.6 SD; DESIGN-architecture-review §8.3 (1); kb/Work PB2296 M7):
@@ -28,7 +29,7 @@ public sealed partial class FileControlBinder
     /// FD or SD that no SELECT names, is reported where the entry binds.</summary>
     internal void ScreenSelectsHaveDescriptions()
     {
-        foreach (var (name, file) in SelectedFiles)
+        foreach (var (name, file) in _host.Symbols.SelectedFiles)
         {
             if (file.HasFd) continue;
             using var _ = Edition.At(file.EntryAt);
@@ -55,9 +56,10 @@ public sealed partial class FileControlBinder
         foreach (var fd in fs.fileDescriptionEntry())
         {
             using var _ = Edition.At(fd);
-            if (fd.fileName()?.GetText() is not { } name) continue;
+            if (fd.fileName() is not { } fdName) continue;
+            string name = fdName.GetText();
             var records = _host.BindEntries(fd.dataDescriptionEntry(), rootNames, EntrySection.File);
-            if (!_host.State.Files.FilesByName.TryGetValue(name, out var file))
+            if (_host.Symbols.Identify(fdName, NameClass.File, report: true, NameReach.Own) is not { Symbol: FileModel file })
             {
                 // ISO §2023:13.4.5.3 SR1 — "File-name-1 shall be specified in a file control entry." The model is still
                 // built, so the entry's records resolve and the compile reports this one error rather than a
@@ -69,7 +71,7 @@ public sealed partial class FileControlBinder
                         + "specified only once in the FILE-CONTROL paragraph.\"",
                         "§2023:13.4.5.3 SR1: \"File-name-1 shall be specified in a file control entry.\""));
                 file = new FileModel { CobolName = name, SelectName = name };
-                _host.State.Files.Declare(name, file);
+                _host.Symbols.Declare(file, name, selected: false);
             }
             if (DescriptionRepeated(firstDescription, fd.Start, name, "file description entry")) continue;
             file.HasFd = true;
@@ -161,9 +163,10 @@ public sealed partial class FileControlBinder
         foreach (var sd in fs.sortMergeDescriptionEntry())
         {
             using var _ = Edition.At(sd);
-            if (sd.fileName()?.GetText() is not { } sdName) continue;
+            if (sd.fileName() is not { } sdNameCtx) continue;
+            string sdName = sdNameCtx.GetText();
             var sdRecords = _host.BindEntries(sd.dataDescriptionEntry(), rootNames, EntrySection.File);
-            if (!_host.State.Files.FilesByName.TryGetValue(sdName, out var sdFile))
+            if (_host.Symbols.Identify(sdNameCtx, NameClass.File, report: true, NameReach.Own) is not { Symbol: FileModel sdFile })
             {
                 // ISO §2023:13.4.6.3 SR1 — the SD twin of the FD arm above (kb/Work PB1290).
                 Edition.Error(DiagnosticCatalog.FileDescriptionWithoutSelect, $"sort-merge file description entry "
@@ -172,7 +175,7 @@ public sealed partial class FileControlBinder
                         + "the FILE-CONTROL paragraph.\"",
                         "§2023:13.4.6.3 SR1: \"File-name-1 shall be specified in a file control entry.\""));
                 sdFile = new FileModel { CobolName = sdName, SelectName = sdName };
-                _host.State.Files.Declare(sdName, sdFile);
+                _host.Symbols.Declare(sdFile, sdName, selected: false);
             }
             if (DescriptionRepeated(firstDescription, sd.Start, sdName, "sort-merge file description entry")) continue;
             sdFile.HasFd = true;

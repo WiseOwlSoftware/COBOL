@@ -173,7 +173,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
 
     /// <summary>The wording of a reference in a CONDITION-ONLY position whose word names a level-88 of a containing program
     /// that a nearer declaration of the spelling hides (<see cref="DataBinder.ConditionNameHiddenByNearerDataItem"/>, kb/Work
-    /// PB4219 review R1-1; <see cref="DataBinder.ConditionNameHiddenByNearerNonDataName"/>, kb/Work PB4432 review R1-1):
+    /// PB4219 review R1-1; <see cref="SymbolTable.Declarations.ConditionNameHiddenByNearerNonDataName"/>, kb/Work PB4432 review R1-1):
     /// the reference names that item, so it is neither a misqualified condition-name nor an undeclared word, and saying
     /// either states the opposite of the facts. <paramref name="nearer"/> is what the nearer declaration is ("a data
     /// item", <see cref="NonDataDeclaration.ClassPhrase"/>, <see cref="CapacityRegisterClassPhrase"/>).</summary>

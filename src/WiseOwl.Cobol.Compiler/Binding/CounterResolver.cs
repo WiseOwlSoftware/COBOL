@@ -14,6 +14,7 @@ namespace WiseOwl.Cobol.Binding;
 using Core = CobolParserCore;
 using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Editions;
+using WiseOwl.Cobol.Symbols;
 
 /// <summary>
 /// ⛔ <b>THE REPORT SECTION'S COUNTERS AS REFERENCE OPERANDS</b> (DESIGN-architecture-review §8.3 (4), kb/Work PB2299): the
@@ -193,7 +194,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         {
             // Two causes, two messages (kb/Work PB5906): a qualifier this program cannot see is a question of the name's
             // scope, never of a LINAGE clause the file may well have.
-            if (!data.State.VisibleFiles.TryGetValue(q.GetText(), out var named))
+            if (data.Symbols.Identify(q, NameClass.File, report: true) is not { Symbol: FileModel named })
                 data.Edition.Error(DiagnosticCatalog.FileKeyClauseRule, $"LINAGE-COUNTER OF '{q.GetText()}': '{q.GetText()}' "
                     + "names no file this program can reference — a file-name declared in another program is referenced here "
                     + "only when it is global, its file description entry specifying the GLOBAL clause (ISO "
@@ -209,7 +210,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // containers' GLOBAL FDs too (§2023:13.18.27.4 GR1), so a contained program whose only LINAGE file is the
         // container's GLOBAL one resolves the unqualified register instead of drawing COBOL0864; two
         // visible LINAGE files — own plus inherited — still require qualification (§2023:8.4.2.2.3 SR8).
-        var linageFiles = data.State.VisibleFiles.Values.Where(f => f.Linage is not null).Distinct().ToList();
+        var linageFiles = data.Symbols.VisibleFiles.Where(f => f.Linage is not null).Distinct().ToList();
         // ⛔ Before 2014 the count is the source element's OWN entries: §1985:IV.4.3.8.1 SRL2.8 and §2002:8.4.1.1.2 SR6 qualify
         // LINAGE-COUNTER only "if more than one file description entry containing a LINAGE clause has been specified in the
         // source" program/element (§2002:4, definition 4.172: a source element excludes its contained source units), and a program's
@@ -221,7 +222,7 @@ internal sealed class CounterResolver(ReferenceResolver refs, DataBinder data)
         // Reports.NearestInScope. That nearest program's own count then decides the qualification.
         if (!data.Edition.Edition.Has(2014))
         {
-            var own = data.State.Files.FilesByName.Values.Where(f => f.Linage is not null).Distinct().ToList();
+            var own = data.Symbols.OwnFiles.Where(f => f.Linage is not null).Distinct().ToList();
             linageFiles = own.Count > 0 ? own : NearestContainerLevel(linageFiles);
         }
         if (linageFiles.Count == 1) return linageFiles[0];

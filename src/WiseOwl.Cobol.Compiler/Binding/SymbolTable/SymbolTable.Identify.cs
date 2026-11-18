@@ -31,14 +31,16 @@ public sealed partial class SymbolTable
     /// is the name as the parser read it, <paramref name="wanted"/> the class its position admits. Null when the name denotes
     /// no symbol of that class here. <paramref name="report"/> says whether this is the reference itself (true) or a probe
     /// that classifies a word before the reference is resolved (false); listing step 7b records an occurrence for a reference
-    /// and none for a probe, so a probe followed by its resolution is one occurrence.
+    /// and none for a probe, so a probe followed by its resolution is one occurrence. <paramref name="reach"/> narrows a
+    /// file-name position that names only this element's own entries (<see cref="NameReach.Own"/>).
     /// </summary>
-    internal IdentifiedName? Identify(ParserRuleContext written, NameClass wanted, bool report)
+    internal IdentifiedName? Identify(ParserRuleContext written, NameClass wanted, bool report, NameReach reach = NameReach.Visible)
     {
         _ = report;   // the occurrence it gates is listing step 7b's
         object? symbol = wanted switch
         {
             NameClass.CommunicationDescription => _cds.GetValueOrDefault(Key(written.GetText())),
+            NameClass.File => FileNamed(Key(written.GetText()), reach),
             _ => throw new ArgumentOutOfRangeException(nameof(wanted), wanted, "not yet a class SymbolTable.Identify resolves"),
         };
         return symbol is null ? null : new IdentifiedName(wanted, symbol);
