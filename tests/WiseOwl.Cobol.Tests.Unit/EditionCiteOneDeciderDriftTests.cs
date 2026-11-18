@@ -77,58 +77,98 @@ public sealed class EditionCiteOneDeciderDriftTests
 
     private static readonly Lazy<IReadOnlyList<CSharpCompilation>> s_sourceCompilations = new(BuildSourceCompilations);
 
-    private static readonly string[] Projects =
-        ["WiseOwl.Cobol.Runtime", "WiseOwl.Cobol.Editions", "WiseOwl.Cobol.Frontend", "WiseOwl.Cobol.Compiler", "WiseOwl.Cobol.Cli"];
+    /// <summary>One <c>src/</c> project as its project file declares it: the file (its full path is its identity, the one a
+    /// ProjectReference resolves to), its directory relative to <c>src/</c>, the assembly it builds, its target framework, whether it is a Roslyn component (an analyzer or
+    /// source generator, which the build RUNS rather than references), its project references and its analyzer references.</summary>
+    private sealed record SrcProject(string File, string Name, string AssemblyName, string TargetFramework, bool IsRoslynComponent,
+        IReadOnlyList<string> References, IReadOnlyList<string> Analyzers)
+    {
+        /// <summary>The project's directory, under <c>src/</c> (a src directory holds no test host's build output).</summary>
+        public string Directory => TestRepo.Src(Name);
+    }
 
+    /// <summary>⛔ EVERY <c>src/</c> PROJECT, DISCOVERED, NEVER LISTED (kb/Work PB4950 round 6: a sixth project, WiseOwl.Cobol.Listing,
+    /// landed on main and a fixed list could not see it). Each <c>src/**/*.csproj</c>, read through <see cref="TestRepo.MsBuildPath"/>,
+    /// with the properties MSBuild would use: the assembly name and target framework the project sets, else the file's name and the
+    /// repository default of <c>Directory.Build.props</c>.</summary>
+    private static IReadOnlyList<SrcProject> DiscoverSrcProjects()
+    {
+        string src = TestRepo.Src();
+        string defaultFramework = System.Xml.Linq.XDocument.Load(TestRepo.At("Directory.Build.props"))
+            .Descendants("TargetFramework").Select(e => e.Value.Trim()).First();
+        return [.. Directory.EnumerateFiles(src, "*.csproj", SearchOption.AllDirectories)
+            .Where(f => !Path.GetRelativePath(src, f).Split(Path.DirectorySeparatorChar).Any(seg => seg is "bin" or "obj"))
+            .Select(Path.GetFullPath)
+            .Order(StringComparer.Ordinal)
+            .Select(file =>
+            {
+                var xml = System.Xml.Linq.XDocument.Load(file);
+                string? Property(string name) => xml.Descendants(name).Select(e => e.Value.Trim()).FirstOrDefault(v => v.Length > 0);
+                var refs = xml.Descendants("ProjectReference").ToList();
+                string Resolve(System.Xml.Linq.XElement r) =>
+                    TestRepo.MsBuildPath(Path.GetDirectoryName(file)!, (string)r.Attribute("Include")!);
+                bool IsAnalyzer(System.Xml.Linq.XElement r) => (string?)r.Attribute("OutputItemType") == "Analyzer";
+                return new SrcProject(file, Path.GetRelativePath(src, Path.GetDirectoryName(file)!), Property("AssemblyName") ?? Path.GetFileNameWithoutExtension(file),
+                    Property("TargetFramework") ?? defaultFramework, Property("IsRoslynComponent") == "true",
+                    [.. refs.Where(r => !IsAnalyzer(r) && (string?)r.Attribute("ReferenceOutputAssembly") != "false").Select(Resolve)],
+                    [.. refs.Where(IsAnalyzer).Select(Resolve)]);
+            })];
+    }
+
+    /// <summary>The products' compilations, every <c>src/</c> project that is not a Roslyn component, in reference order.</summary>
     private static IReadOnlyList<CSharpCompilation> BuildSourceCompilations()
     {
         // Directory.Build.props sets LangVersion 14; the Roslyn this test links (4.14) names C# 14 Preview.
         var parse = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
-        // Projects are keyed by their project file's full path, the identity MSBuild gives them (a ProjectReference resolves to it).
-        static string ProjectFile(string project) => Path.GetFullPath(TestRepo.Src(project, project + ".csproj"));
+        var projects = DiscoverSrcProjects().ToDictionary(p => p.File, StringComparer.Ordinal);
+        Assert.True(projects.Values.Count(p => !p.IsRoslynComponent) >= 2, "no src project found under " + TestRepo.Src());
+        foreach (var project in projects.Values)
+            foreach (string reference in project.References.Concat(project.Analyzers))
+                Assert.True(projects.ContainsKey(reference),
+                    $"{project.File} references {reference}, which is no src project this test discovered (src/**/*.csproj): a "
+                    + "reference outside src, or a project file the discovery does not read; extend DiscoverSrcProjects for it");
         var built = new Dictionary<string, CSharpCompilation>(StringComparer.Ordinal);
         var closure = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
-        foreach (string project in Projects)   // in dependency order
+        // Built in reference order: a project after every project it references (MSBuild's order; a cycle cannot build).
+        var pending = projects.Values.Where(p => !p.IsRoslynComponent).ToList();
+        while (pending.Count > 0)
         {
-            string dir = TestRepo.Src(project);
-            string obj = TestRepo.Src(project, "obj", TestRepo.Configuration, TestRepo.TargetFramework);
-            string file = ProjectFile(project);
+            var ready = pending.FirstOrDefault(p => p.References.All(built.ContainsKey));
+            Assert.True(ready is not null, "the src project references form a cycle among: " + string.Join(", ", pending.Select(p => p.File)));
+            var project = ready!;
+            pending.Remove(project);
+            string obj = Path.Combine(project.Directory, "obj", TestRepo.Configuration, project.TargetFramework);
+            string dir = TestRepo.Src(project.Name);
             var sources = Directory.EnumerateFiles(dir, "*.cs", SearchOption.AllDirectories)
                 .Where(f => !Path.GetRelativePath(dir, f).Split(Path.DirectorySeparatorChar).Any(seg => seg is "bin" or "obj"))
                 .Concat(Directory.EnumerateFiles(obj, "*.cs", SearchOption.TopDirectoryOnly))
                 .Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f), parse, path: f));
             // MSBuild flows project references transitively, so a project sees every project below its own references.
-            var direct = System.Xml.Linq.XDocument.Load(file)
-                .Descendants("ProjectReference")
-                .Where(r => (string?)r.Attribute("ReferenceOutputAssembly") != "false")
-                .Select(r => TestRepo.MsBuildPath(Path.GetDirectoryName(file)!, (string)r.Attribute("Include")!))
-                .ToList();
-            closure[file] = [.. direct.Concat(direct.SelectMany(d => closure[d])).Distinct(StringComparer.Ordinal)];
-            var references = closure[file].Select(reference => built[reference].ToMetadataReference());
-            var compilation = CSharpCompilation.Create(project, sources, [.. FrameworkAndPackages, .. references],
+            closure[project.File] = [.. project.References.Concat(project.References.SelectMany(d => closure[d])).Distinct(StringComparer.Ordinal)];
+            var references = closure[project.File].Select(reference => built[reference].ToMetadataReference());
+            var compilation = CSharpCompilation.Create(project.AssemblyName, sources, [.. FrameworkAndPackages, .. references],
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
-            if (project == "WiseOwl.Cobol.Compiler")
-                compilation = RunSourceGenerator(compilation, parse);
+            foreach (string analyzer in project.Analyzers)
+                compilation = RunSourceGenerators(compilation, projects[analyzer], parse);
             var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
-            Assert.True(errors.Count == 0, $"{project} does not bind as the build binds it: {errors.Count} error(s); the first 20:\n"
-                + string.Join("\n", errors.Take(20)));
-            built[file] = compilation;
+            Assert.True(errors.Count == 0, $"{project.AssemblyName} does not bind as the build binds it: {errors.Count} error(s); the "
+                + "first 20:\n" + string.Join("\n", errors.Take(20)));
+            built[project.File] = compilation;
         }
-        return [.. Projects.Select(p => built[ProjectFile(p)])];
+        return [.. built.Values];
     }
 
-    /// <summary>The compiler's bound-tree visitor generator (<c>WiseOwl.Cobol.Compiler.SourceGen</c>, an analyzer the compiler project
-    /// references with <c>OutputItemType="Analyzer"</c>), run over the compilation as the build runs it.</summary>
-    private static CSharpCompilation RunSourceGenerator(CSharpCompilation compilation, CSharpParseOptions parse)
+    /// <summary>The source generators a Roslyn-component project builds (one the referencing project names with
+    /// <c>OutputItemType="Analyzer"</c>), loaded from its build output and run over the compilation as the build runs them.</summary>
+    private static CSharpCompilation RunSourceGenerators(CSharpCompilation compilation, SrcProject generator, CSharpParseOptions parse)
     {
-        const string generator = "WiseOwl.Cobol.Compiler.SourceGen";
-        var assembly = ScratchDirectory.LoadAssembly(
-            TestRepo.Src(generator, "bin", TestRepo.Configuration, "netstandard2.0", generator + ".dll"));
+        var assembly = ScratchDirectory.LoadAssembly(Path.Combine(generator.Directory, "bin", TestRepo.Configuration,
+            generator.TargetFramework, generator.AssemblyName + ".dll"));
         var generators = assembly.GetTypes()
             .Where(t => !t.IsAbstract && typeof(IIncrementalGenerator).IsAssignableFrom(t))
             .Select(t => ((IIncrementalGenerator)Activator.CreateInstance(t)!).AsSourceGenerator())
             .ToList();
-        Assert.NotEmpty(generators);
+        Assert.True(generators.Count > 0, $"{generator.File} is referenced as an analyzer but its assembly holds no source generator");
         CSharpGeneratorDriver.Create(generators, parseOptions: parse)
             .RunGeneratorsAndUpdateCompilation(compilation, out var output, out _);
         return (CSharpCompilation)output;
