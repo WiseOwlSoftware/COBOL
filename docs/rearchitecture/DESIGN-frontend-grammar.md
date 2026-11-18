@@ -2960,6 +2960,22 @@ rule spells a phrase keyword; every head alternative names one family; every Tab
 owner's child rule or a child bracket's alternative. The conformance cases of
 `cases/14.5.3.3-Implicit-scope-termination/` pin each family both ways.
 
+### 3.17 Every name slot carries a classifying label (kb/Work PB5925, DESIGN-listing.md section 6.7.1)
+
+Every place the grammar lets the programmer write a NAME (a transition into `cobolWord`, `reservedGatedWord`, a name rule
+or a reference rule, or a token that is an alternative of such a slot) carries an ANTLR element label whose prefix says
+what the name does there: `ref` (a reference), `qual` (a qualifier), `def` (a definition), `nn` (a word that names nothing
+the program declares: an implementor-name, an exception-name, a keyword or literal beside a name) or `name` (inside a name
+rule's own body, deferring to each use). A label is a prefix, a capitalized name and an ordinal, unique in its rule
+(`refDataReference1=dataReference`, `defProcedureName1=procedureName`, `nnBoolean1=BOOLEAN`). The labels change no parse;
+the listing's cross-reference reads each name's class from them.
+
+`GrammarNameSlotDriftTests` (Unit) computes the slots from the generated parser's ATN (nothing lists them) and is red on a
+rule whose slots and labels are not one for one, so a rule added or changed with an unlabelled name slot fails at test
+time, naming the rule and the slot. DESIGN-listing.md section 6.7.1 defines the name rules, the reference rules and the
+alternative-of-a-slot tokens. A test that reads a rule's shape from the grammar's TEXT reads it through
+`tests/_shared/GrammarSource.cs` (`GrammarSource.Read`), which removes the labels, so the shape it checks is the grammar's.
+
 ## 4. Current → target module changes
 
 | Action | From | To | Why |

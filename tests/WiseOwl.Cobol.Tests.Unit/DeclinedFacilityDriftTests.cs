@@ -25,7 +25,7 @@ public sealed class DeclinedFacilityDriftTests
     /// <summary>Every top-level parser rule defined in <c>CobolDeclined.g4</c>, in file order.</summary>
     private static List<string> GrammarRules()
     {
-        string text = File.ReadAllText(GrammarPath);
+        string text = GrammarSource.Read(GrammarPath);
         // A rule definition is a name at the START of a line followed (possibly on the next line) by ':'.
         // Comment lines start with '//' and never begin at column 0 with an identifier followed by a colon.
         var rules = new List<string>();
@@ -52,7 +52,7 @@ public sealed class DeclinedFacilityDriftTests
     /// must therefore refuse by name.</summary>
     private static List<string> EntryPointRules()
     {
-        string text = File.ReadAllText(GrammarPath);
+        string text = GrammarSource.Read(GrammarPath);
         var rules = GrammarRules();
         // Strip line comments so a rule NAMED in prose does not count as a reference.
         string body = Regex.Replace(text, @"//[^\n]*", "");
@@ -227,7 +227,7 @@ public sealed class DeclinedFacilityDriftTests
         var hosts = Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar"), "*.g4", SearchOption.AllDirectories)
             .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                 && !f.EndsWith("CobolDeclined.g4", StringComparison.Ordinal) && !f.EndsWith("CobolLexer.g4", StringComparison.Ordinal))
-            .SelectMany(f => ReadRules(File.ReadAllText(f)).Values)
+            .SelectMany(f => ReadRules(GrammarSource.Read(f)).Values)
             .ToDictionary(r => r.Name, StringComparer.Ordinal);   // one definition per name: GrammarRuleUniquenessDriftTests
         var missing = new List<string>();
         citedRules = 0;
@@ -262,7 +262,7 @@ public sealed class DeclinedFacilityDriftTests
     [Fact]
     public void EveryPrintedKeyword_IsAnArmOfItsRule()
     {
-        var missing = MissingPrintedKeywords(File.ReadAllText(GrammarPath), out int cited);
+        var missing = MissingPrintedKeywords(GrammarSource.Read(GrammarPath), out int cited);
         // Population (feedback_verdict_evidence_invariant): the eight clauses of the band each cite their format.
         Assert.True(cited >= 8, $"only {cited} rule(s) of CobolDeclined.g4 cite a general format (`ISO §2023:<n>`) — the "
             + "citation reader is broken, or a rule lost the comment that ties it to its printed format");
@@ -278,7 +278,7 @@ public sealed class DeclinedFacilityDriftTests
     [Fact]
     public void EveryKeywordWritingRule_IsReachedFromACitedFormat()
     {
-        var rules = ReadRules(File.ReadAllText(GrammarPath));
+        var rules = ReadRules(GrammarSource.Read(GrammarPath));
         var covered = rules.Values.Where(r => CitedFormat(r) is not null)
             .SelectMany(r => ReachedRules(r.Name, rules)).ToHashSet(StringComparer.Ordinal);
         var uncovered = rules.Values.Where(r => TokenRef.IsMatch(r.Body) && !covered.Contains(r.Name)).Select(r => r.Name).ToList();
@@ -309,7 +309,7 @@ public sealed class DeclinedFacilityDriftTests
     [InlineData(@"\(VALID \| INVALID\)", "validateValidPhrase: §2023:13.18.63.2 Format 5 prints VALID (token VALID)")]
     public void ThePrintedKeywordGuard_ReportsAnOmittedArm(string arm, string expected)
     {
-        string text = File.ReadAllText(GrammarPath);
+        string text = GrammarSource.Read(GrammarPath);
         string mutated = Regex.Replace(text, arm, m => m.Value.StartsWith('(') ? "INVALID" : m.Groups[1].Value);
         Assert.NotEqual(text, mutated);
         var missing = MissingPrintedKeywords(mutated, out _);

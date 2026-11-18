@@ -80,7 +80,7 @@ nestedProgram
     ;
 
 endProgramHeader
-    : END (PROGRAM | FUNCTION) programName DOT
+    : END (PROGRAM | FUNCTION) refProgramName1=programName DOT
     ;
 
 // ==========================================
@@ -112,7 +112,7 @@ identificationBody
 // body, so a caller resolves a separately-compiled definition across the run unit (M2-UDF-3). The optional tail
 // starts with a unique leading token, so it changes no other parse; it is gated 2002+.
 functionIdParagraph
-    : FUNCTION_ID DOT programName externalizedNamePhrase? prototypePhrase? DOT  // [AS literal-1] rides BOTH formats (ISO §2023:11.5.2 F1/F2 print it between the name and IS PROTOTYPE); IS PROTOTYPE introduction-gated by VersionConformancePass ParseArm.VisitPrototypePhrase (kb/Work PB894); position-safe (dedicated tail, programName consumes a bare name)
+    : FUNCTION_ID DOT defProgramName1=programName externalizedNamePhrase? prototypePhrase? DOT  // [AS literal-1] rides BOTH formats (ISO §2023:11.5.2 F1/F2 print it between the name and IS PROTOTYPE); IS PROTOTYPE introduction-gated by VersionConformancePass ParseArm.VisitPrototypePhrase (kb/Work PB894); position-safe (dedicated tail, programName consumes a bare name)
     ;
 
 // ------------------------------------------
@@ -142,7 +142,7 @@ functionIdParagraph
 // screen decides what the word names (`ExternalizedName.Screen` over the phrase, through the constant reading its
 // caller hands it — `DataBinder.ReadConstant` inside the data bind, `PreBindConstants.Read` before it).
 externalizedNamePhrase
-    : AS (literal | cobolWord)
+    : AS (literal | nnCobolWord1=cobolWord)
     ;
 
 // ------------------------------------------
@@ -165,7 +165,7 @@ externalizedNamePhrase
 // PROTOTYPE never combines with COMMON / INITIAL / RECURSIVE — and the tail is the ONE `prototypePhrase` both
 // paragraphs share, so BinderDriver.MakeUnit reads one node for either unit kind.
 programIdParagraph
-    : PROGRAM_ID DOT programName externalizedNamePhrase? (prototypePhrase | IS? programIdAttributes PROGRAM?)? DOT
+    : PROGRAM_ID DOT defProgramName1=programName externalizedNamePhrase? (prototypePhrase | IS? programIdAttributes PROGRAM?)? DOT
     ;
 
 // The `IS PROTOTYPE` tail of §2023:11.10.2 Format 2 and of the FUNCTION-ID paragraph's prototype format — ONE rule for
@@ -183,8 +183,8 @@ prototypePhrase
 // FREE, this match is the declaration the token-level gate retypes the word for. A retyped word is an
 // IDENTIFIER, so the two alternatives never compete for one token.
 programName
-    : cobolWord
-    | reservedGatedWord
+    : nameCobolWord1=cobolWord
+    | nameReservedGatedWord1=reservedGatedWord
     ;
 
 programIdAttributes
@@ -302,7 +302,7 @@ formatWord
 // §2023:11.9.7 — ENTRY-CONVENTION IS {COBOL | entry-convention-name}. The value is matched as cobolWord (COBOL or an
 // implementor name), text-distinguished in the binder, so COBOL need not be reserved globally.
 entryConventionClause
-    : ENTRY_CONVENTION IS? entryConventionName
+    : ENTRY_CONVENTION IS? nnEntryConventionName1=entryConventionName
     ;
 
 // { COBOL | entry-convention-name-1 } — COBOL is the format's KEYWORD (a formatWord, kb/Work PB764);
@@ -310,7 +310,7 @@ entryConventionClause
 // stays a cobolWord the §2023:8.9 funnel screens.
 entryConventionName
     : {wordAhead("COBOL")}? formatWord
-    | cobolWord
+    | nnCobolWord1=cobolWord
     ;
 
 // §2023:11.9.8 — FLOAT-BINARY [DEFAULT] IS {HIGH-ORDER-LEFT | HIGH-ORDER-RIGHT}.
@@ -342,7 +342,7 @@ floatDecimalClause
 // `INITIALIZE ALL SPACES.` was rejected. The fill words are disjoint from the target words, so the omission
 // leaves the clause unambiguous.
 optionsInitializeClause
-    : INITIALIZE optionsInitializeTarget SECTION? TO? optionsInitializeFill
+    : INITIALIZE optionsInitializeTarget SECTION? TO? refOptionsInitializeFill1=optionsInitializeFill
     ;
 
 optionsInitializeTarget
@@ -360,14 +360,14 @@ optionsInitializeFill
     // §2023:11.9.10.2 prints each fill word in ONE spelling — the plural — as a keyword, not as a figurative
     // constant, so no other spelling is admitted (kb/Work PB510; §2023:5.2.2).
     : BINARY ZEROES
-    | HIGH_VALUES
-    | LOW_VALUES
-    | SPACES
+    | nnHighValues1=HIGH_VALUES
+    | nnLowValues1=LOW_VALUES
+    | nnSpaces1=SPACES
     | literal              // literal-1 (one-byte hex-alphanumeric, §2023:11.9.10.3 — checked in the binder)
     // literal-1 spelled as a constant-name (ISO §2023:13.10.3 SR2: a constant-name "may be used anywhere that a format
     // specifies a literal"; kb/Work PB780). One word, so it cannot swallow the next clause's keyword; the binder
     // substitutes the entry's literal (§2023:13.10.4 GR1) and asks SR1 of it.
-    | cobolWord
+    | refCobolWord1=cobolWord
     ;
 
 // §2023:11.9.11 — INTERMEDIATE ROUNDING IS {NEAREST-AWAY-FROM-ZERO | NEAREST-EVEN | PROHIBITED | TRUNCATION}. A
@@ -499,12 +499,12 @@ repositoryParagraph
 
 repositoryEntry
     : FUNCTION ALL INTRINSIC
-    | FUNCTION functionName+ INTRINSIC
-    | FUNCTION functionName externalizedNamePhrase?   // §2023:12.3.8.2 user-defined-function-specifier [AS literal-5]
-    | CLASS className externalizedNamePhrase? expandsPhrase?   // OO (2002): CLASS class-name [AS literal-1] [EXPANDS …] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); className rule in Core/CobolOO.g4
-    | INTERFACE interfaceName externalizedNamePhrase? expandsPhrase?   // OO (2002): the interface specifier [AS literal-2] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (entry-leading keyword in a closed alt set)
-    | PROGRAM programPrototypeName externalizedNamePhrase?   // §2023:12.3.8.2 program-specifier (2002) — kb/Work PB237; introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry; position-safe (entry-leading keyword in a closed alt set — no configuration paragraph, section header or division header begins with the PROGRAM token)
-    | PROPERTY propertyName externalizedNamePhrase?     // OO (2002): the property specifier [AS literal-4] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (§2023:8.4.3.9.3 SR1)
+    | FUNCTION nnFunctionName1=functionName+ INTRINSIC
+    | FUNCTION defFunctionName1=functionName externalizedNamePhrase?   // §2023:12.3.8.2 user-defined-function-specifier [AS literal-5]
+    | CLASS defClassName1=className externalizedNamePhrase? nnExpandsPhrase1=expandsPhrase?   // OO (2002): CLASS class-name [AS literal-1] [EXPANDS …] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); className rule in Core/CobolOO.g4
+    | INTERFACE defInterfaceName1=interfaceName externalizedNamePhrase? nnExpandsPhrase2=expandsPhrase?   // OO (2002): the interface specifier [AS literal-2] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (entry-leading keyword in a closed alt set)
+    | PROGRAM defProgramPrototypeName1=programPrototypeName externalizedNamePhrase?   // §2023:12.3.8.2 program-specifier (2002) — kb/Work PB237; introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry; position-safe (entry-leading keyword in a closed alt set — no configuration paragraph, section header or division header begins with the PROGRAM token)
+    | PROPERTY defPropertyName1=propertyName externalizedNamePhrase?     // OO (2002): the property specifier [AS literal-4] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (§2023:8.4.3.9.3 SR1)
     ;
 
 // §2023:12.3.8.2 class-specifier / interface-specifier `[ EXPANDS object-class-name-2 USING { object-class-name-3 |
@@ -517,15 +517,15 @@ repositoryEntry
 // SR4/SR7 requires to be declared by its own specifier in the same paragraph. The specifier itself is already
 // introduction-gated (RepositoryClass2002 / RepositoryInterface2002), so the phrase needs no gate of its own.
 expandsPhrase
-    : {expandsAhead()}? cobolWord expandsTarget USING expandsActual+
+    : {expandsAhead()}? nnCobolWord1=cobolWord refExpandsTarget1=expandsTarget USING refExpandsActual1=expandsActual+
     ;
 
 expandsTarget
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 expandsActual
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // §2023:12.3.8.2 program-specifier: `PROGRAM program-prototype-name-1 [ AS literal-3 ]` (PDF page 334 rendered — PROGRAM
@@ -534,7 +534,7 @@ expandsActual
 // not a figurative constant, not zero-length) is a BIND-time narrowing of the deliberately wide `literal`, matching
 // the cancelTarget/callTarget discipline. The phrase itself is the SHARED `externalizedNamePhrase` above.
 programPrototypeName
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // SOURCE-COMPUTER. [computer-name-1] . (ISO §2023:12.3.5.2 — computer-name-1 is OPTIONAL; §2023:12.3.5.3 SR1: without it the
@@ -566,7 +566,7 @@ programPrototypeName
 // rather than readable only as a name-less paragraph and an unrecognized `XYZ "LIT"` paragraph, and the tie goes to
 // the name.
 sourceComputerParagraph
-    : SOURCE_COMPUTER DOT ((computerName debuggingModeClause? | debuggingModeClause) unrecognizedClause?)? DOT?
+    : SOURCE_COMPUTER DOT ((nnComputerName1=computerName debuggingModeClause? | debuggingModeClause) unrecognizedClause?)? DOT?
     ;
 
 // X3.23-1985 `WITH DEBUGGING MODE` (the '85 debug facility's compile-time switch; WITH is not underlined). Obsolete at
@@ -604,7 +604,7 @@ debuggingModeClause
 // when neither the name nor a clause is written; ClosedFormatPass refuses it otherwise (COBOL3408). A literal
 // after the name resolves to the name the same way (kb/Work PB3373, sourceComputerParagraph's note).
 objectComputerParagraph
-    : OBJECT_COMPUTER DOT ({!objectComputerClauseAhead()}? computerName)? objectComputerClause* DOT?
+    : OBJECT_COMPUTER DOT ({!objectComputerClauseAhead()}? nnComputerName1=computerName)? objectComputerClause* DOT?
     ;
 
 objectComputerClause
@@ -649,18 +649,18 @@ segmentLimitClause
 // shape). classificationAhead() therefore reads the CHARACTER-then-CLASSIFICATION pair or a bare leading
 // CLASSIFICATION, and demands the clause actually continue — a lone word before the period is a computer-name.
 characterClassificationClause
-    : {classificationAhead()}? CHARACTER? formatWord (classificationForPhrase+ | IS? localePhrase localePhrase?)
+    : {classificationAhead()}? CHARACTER? formatWord (classificationForPhrase+ | IS? refLocalePhrase1=localePhrase refLocalePhrase2=localePhrase?)
     ;
 
 classificationForPhrase
-    : FOR? (ALPHANUMERIC | NATIONAL) IS? localePhrase
+    : FOR? (ALPHANUMERIC | NATIONAL) IS? refLocalePhrase1=localePhrase
     ;
 
 // §2023:12.3.6.2 locale-phrase-1 / locale-phrase-2: { locale-name-1 | LOCALE | SYSTEM-DEFAULT | USER-DEFAULT } — three
 // KEYWORDS (formatWord, kb/Work PB764) and one REFERENCE to a SPECIAL-NAMES locale-name (§2023:12.3.6.3 SR3).
 localePhrase
     : {wordAhead("LOCALE", "SYSTEM-DEFAULT", "USER-DEFAULT")}? formatWord
-    | cobolWord
+    | refCobolWord1=cobolWord
     ;
 
 // PROGRAM COLLATING SEQUENCE {IS alphabet-name-1 [alphabet-name-2] | {FOR ALPHANUMERIC IS alphabet-name-1 |
@@ -675,7 +675,7 @@ localePhrase
 // right after this clause, and SEGMENT-LIMIT, MEMORY and CLASSIFICATION open their clauses as bare words, so the optional
 // second name asks the one clause-or-name question the computer-name slot asks.
 programCollatingSequenceClause
-    : PROGRAM? COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord ({!objectComputerClauseAhead()}? cobolWord)?)
+    : PROGRAM? COLLATING? SEQUENCE (collatingForPhrase+ | IS? refCobolWord1=cobolWord ({!objectComputerClauseAhead()}? refCobolWord2=cobolWord)?)
     ;
 
 // computer-name-1 is a SYSTEM-NAME (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1, §1985:XVI.2.2.3 SR1: "Computer-name is a
@@ -692,8 +692,8 @@ programCollatingSequenceClause
 // `REPOSITORY.` at 2023). Migration-blind on purpose, the entryNameHere reason: --permissive never changes the reading of
 // conforming source.
 computerName
-    : cobolWord
-    | {gatedWordFreeHere()}? reservedGatedWord
+    : nameCobolWord1=cobolWord
+    | {gatedWordFreeHere()}? nameReservedGatedWord1=reservedGatedWord
     ;
 
 // ==========================================
@@ -737,23 +737,23 @@ usingClause
 usingParameter
     : usingByReference
     | usingByValue
-    | OPTIONAL? dataReference
+    | OPTIONAL? refDataReference1=dataReference
     ;
 
 usingByReference
-    : BY? REFERENCE OPTIONAL? dataReference
+    : BY? REFERENCE OPTIONAL? refDataReference1=dataReference
     ;
 
 usingByValue
-    : BY? VALUE dataReference   // BY is optional (§2023:14.2.1 — only VALUE is underlined; kb/Work PB130)
+    : BY? VALUE refDataReference1=dataReference   // BY is optional (§2023:14.2.1 — only VALUE is underlined; kb/Work PB130)
     ;
 
 returningClause
-    : RETURNING dataReference
+    : RETURNING refDataReference1=dataReference
     ;
 
 dataReferenceList
-    : dataReference (COMMA? dataReference)*
+    : refDataReference1=dataReference (COMMA? refDataReference2=dataReference)*
     ;
 
 dataReference
@@ -761,13 +761,13 @@ dataReference
     // current line within the page body of a LINAGE file, optionally qualified by file-name when more
     // than one LINAGE file exists. Listed first so the distinct LINAGE_COUNTER token is recognized as
     // the register rather than a data name.
-    : LINAGE_COUNTER ((OF | IN) cobolWord)?
+    : LINAGE_COUNTER ((OF | IN) qualCobolWord1=cobolWord)?
     // LINE-COUNTER / PAGE-COUNTER special registers (ISO §2023:8.4.3.15/§13.x): read-only counters the Report
     // Writer Control System maintains per report, optionally qualified by report-name. Listed before the
     // generic data-name alternative so the distinct tokens are recognized as registers, not data names.
-    | LINE_COUNTER ((OF | IN) cobolWord)?
-    | PAGE_COUNTER ((OF | IN) cobolWord)?
-    | cobolWord dataReferenceSuffix*
+    | LINE_COUNTER ((OF | IN) qualCobolWord2=cobolWord)?
+    | PAGE_COUNTER ((OF | IN) qualCobolWord3=cobolWord)?
+    | refCobolWord1=cobolWord dataReferenceSuffix*
     ;
 
 // ⚠ THE SUFFIX ORDER IS A SUPERSET PARSE (kb/Work PB1455, PB1426). The standard prints every qualifier BEFORE the
@@ -783,7 +783,7 @@ dataReferenceSuffix
     ;
 
 qualification
-    : (OF | IN) cobolWord (subscriptPart | refModPart)*
+    : (OF | IN) qualCobolWord1=cobolWord (subscriptPart | refModPart)*
     ;
 
 // ⛔ THE OBJECT OF AN OBJECT PROPERTY WHEN IT IS NOT A DATA NAME (kb/Work PB1425, PB1783). §2023:8.4.3.1.2 Format 7 is
@@ -866,7 +866,7 @@ refModSpec
     ;
 
 fileName
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // ==========================================
@@ -913,7 +913,7 @@ sectionDefinition
 // a header's name only where the header follows it (procedureHeaderHere, kb/Work PB4132): elsewhere it is its keyword,
 // so a stray END-DISPLAY at the start of a sentence is the misplaced terminator, not a paragraph missing its period.
 sectionName
-    : {procedureHeaderHere(SECTION)}? procedureName
+    : {procedureHeaderHere(SECTION)}? defProcedureName1=procedureName
     ;
 
 paragraphDefinition
@@ -930,7 +930,7 @@ paragraphDefinition
 // COBOL-85's own placement of a header — area A, beginning its fixed-form line — is not a parse rule either: it is the
 // reference format's, asked of every token at --std 85 by AreaPlacementPass (kb/Work PB3147; ISO §2023:6.3.1 has no areas).
 paragraphName
-    : {procedureHeaderHere(DOT)}? procedureName
+    : {procedureHeaderHere(DOT)}? defProcedureName1=procedureName
     ;
 
 // A procedure-name (§2023:14.4.1: "a word used to refer to a paragraph or section") is a user-defined word (§2023:8.3.2.2),
@@ -952,8 +952,8 @@ paragraphName
 // entry needs `TO` after its word, so neither can absorb the next statement's leading verb. Consumers read the
 // context's children with GetText(), so the alternative costs no binder change.
 procedureName
-    : (cobolWord | INTEGERLIT | reservedGatedWord)
-      ((OF | IN) (cobolWord | INTEGERLIT | reservedGatedWord))?
+    : (refCobolWord1=cobolWord | refIntegerlit1=INTEGERLIT | refReservedGatedWord1=reservedGatedWord)
+      ((OF | IN) (qualCobolWord1=cobolWord | qualIntegerlit1=INTEGERLIT | qualReservedGatedWord1=reservedGatedWord))?
     ;
 
 // ==========================================
@@ -1107,8 +1107,8 @@ embeddedBlockStatement
 // `messageKeyword cobolWord`, so `CONTINUE AFTER MESSAGE FOO` compiled. RECEIVED stays a cobolWord because §2023:8.9 does not reserve it and §2023:8.10 does not list
 // it as context-sensitive. The two statements are named for the facility, not for its message control system, because the communication facility has an MCS too.
 messagingReceiveStatement
-    : RECEIVE FROM? dataReference GIVING dataReference dataReference
-      (CONTINUE AFTER? (arithmeticExpression SECONDS? | messageKeyword {wordAhead("RECEIVED")}? cobolWord))?
+    : RECEIVE FROM? refDataReference1=dataReference GIVING refDataReference2=dataReference refDataReference3=dataReference
+      (CONTINUE AFTER? (arithmeticExpression SECONDS? | messageKeyword {wordAhead("RECEIVED")}? nnCobolWord1=cobolWord))?
       conditionalPhrases
       END_RECEIVE?
     ;
@@ -1140,16 +1140,16 @@ messagingSendStatement
     // is a fact about its DECLARATION, which no parse alternative can read — so splitting the rule per format would
     // still leave `SEND TO name FROM x` to the binder. MessagingBinder.ClassifySend assigns the format once;
     // a phrase of each format in one statement is COBOL5488 and a Format 1 without RETURNING is COBOL1850.
-    : SEND TO? (literal | dataReference) FROM (inlineMethodInvocation | dataReference | functionCall)
-      (RETURNING dataReference)?
-      (RAISING (EXCEPTION cobolWord | LAST EXCEPTION?))?
+    : SEND TO? (literal | refDataReference1=dataReference) FROM (inlineMethodInvocation | refDataReference2=dataReference | functionCall)
+      (RETURNING refDataReference3=dataReference)?
+      (RAISING (EXCEPTION nnCobolWord1=cobolWord | LAST EXCEPTION?))?
       conditionalPhrases
       END_SEND?
     ;
 
 // ISO §2023:14.9.50.2 — VALIDATE { identifier-1 } …
 validateFacilityStatement
-    : VALIDATE dataReference+
+    : VALIDATE refDataReference1=dataReference+
     ;
 
 // A.3 items 6–7: bare-verb transaction statements. Real tokens + real rules rather than refining the §2023:8.9
@@ -1248,7 +1248,7 @@ sendingOperand
     : literal
     | functionCall
     | inlineMethodInvocation   // ISO 8.4.3.1.2 Format 4 (8.4.3.4); kb/Work PB428
-    | dataReference
+    | refDataReference1=dataReference
     ;
 
 // ⛔ THE TO / FROM / BY / INTO OPERAND OF ADD, SUBTRACT, MULTIPLY AND DIVIDE IS ONE RULE (kb/Work PB2114, PB2144).
@@ -1298,7 +1298,7 @@ roundingModeName
 // literal-2} GIVING …` (only the word TO optional: without it the last sendingOperand is identifier-2) and Format 3
 // CORRESPONDING. ArithmeticBinder narrows the union per format, and refuses a Format 2 of one addend (kb/Work PB5203).
 addStatement
-    : ADD (CORRESPONDING | CORR) dataReference TO receivingIdentifier roundedPhrase? conditionalPhrases END_ADD?
+    : ADD (CORRESPONDING | CORR) refDataReference1=dataReference TO receivingIdentifier roundedPhrase? conditionalPhrases END_ADD?
     | ADD sendingOperand+ addToPhrase? arithmeticGivingPhrase? conditionalPhrases END_ADD?
     ;
 
@@ -1314,7 +1314,7 @@ subtractStatement
     // Every §2023:14.9.44.2 format prints FROM; `subtractFromPhrase?` lets the binder name the omission (COBOL1689), and
     // the grammar audit reads the next line and reports FROM as DECIDED (kb/Work PB2024):
     // audit:required-word FROM decided-by ArithmeticBinder.BindSubtract
-    : SUBTRACT (CORRESPONDING | CORR) dataReference FROM receivingIdentifier roundedPhrase? conditionalPhrases END_SUBTRACT?
+    : SUBTRACT (CORRESPONDING | CORR) refDataReference1=dataReference FROM receivingIdentifier roundedPhrase? conditionalPhrases END_SUBTRACT?
     | SUBTRACT sendingOperand+ subtractFromPhrase? arithmeticGivingPhrase? conditionalPhrases END_SUBTRACT?
     ;
 
@@ -1369,7 +1369,7 @@ computeStore
 // ==========================================
 
 moveStatement
-    : MOVE (CORRESPONDING | CORR) dataReference TO receivingIdentifier
+    : MOVE (CORRESPONDING | CORR) refDataReference1=dataReference TO receivingIdentifier
     | MOVE sendingOperand moveReceivingPhrase
     ;
 
@@ -1430,7 +1430,7 @@ callTarget
 // paragraph, §2023:14.9.4.3 SR16, so a reserved word there is a real violation). The predicate reads NESTED through the
 // >>COBOL-WORDS map, so an UNDEFINE'd NESTED falls to the name arm and an EQUATEd synonym takes the keyword arm.
 callAsPhrase
-    : AS ({wordAhead("NESTED")}? formatWord | cobolWord)
+    : AS ({wordAhead("NESTED")}? formatWord | refCobolWord1=cobolWord)
     ;
 
 callUsingPhrase
@@ -1561,7 +1561,7 @@ entryStatement
 // cobolWord, and reservedGatedWord for a word a later edition reserves (FREE, UNLOCK, VALIDATE, GOBACK) — so the
 // sentence parses whole and is refused once, at the statement, rather than at the routine-name.
 enterStatement
-    : ENTER enterOperand routineName?
+    : ENTER enterOperand nnRoutineName1=routineName?
     ;
 
 enterOperand
@@ -1570,8 +1570,8 @@ enterOperand
     ;
 
 routineName
-    : cobolWord
-    | reservedGatedWord
+    : nameCobolWord1=cobolWord
+    | nameReservedGatedWord1=reservedGatedWord
     ;
 
 // ==========================================
@@ -1635,7 +1635,7 @@ setLocaleStatement
 // names; the names stay ONE dataReference the binder splits (§2023:14.9.39.3 SR26 / SR27).
 setLocaleSource
     : {wordAhead("USER-DEFAULT", "SYSTEM-DEFAULT")}? formatWord
-    | dataReference
+    | refDataReference1=dataReference
     ;
 
 // ⛔ SET program-pointer+ TO ENTRY {literal | identifier} IS A VENDOR EXTENSION, NOT AN ISO FORMAT — and this
@@ -1649,7 +1649,7 @@ setLocaleSource
 // ENTRY is a reserved token (not in cobolWord), so no other SET form can claim the `TO ENTRY` prefix. A not-locatable program → EC-PROGRAM-NOT-FOUND + NULL (§2023:8.4.3.13.4 GR4, which
 // governs the shared semantics whichever surface reaches them).
 setEntryStatement
-    : SET setReceivingIdentifier+ TO ENTRY (nonNumericLiteral | dataReference)
+    : SET setReceivingIdentifier+ TO ENTRY (nonNumericLiteral | refDataReference1=dataReference)
     ;
 
 // SET LAST EXCEPTION TO OFF (ISO §2023:14.9.39 Format 13, saved-exception; 2002+ — binder-gated): the last
@@ -1708,7 +1708,7 @@ setContentSign
 
 // SET {{mnemonic-name-1}… TO {ON | OFF}}… (COBOL-85 §2023:14.9.39 Format 3, switch-setting)
 setSwitchStatement
-    : SET setSwitchPhrase+
+    : SET refSetSwitchPhrase1=setSwitchPhrase+
     ;
 
 // ONE printed Format-3 unit: `{ mnemonic-name-1 } … TO { ON | OFF }`. Each receiver is a mnemonic-name — a WORD
@@ -1716,7 +1716,7 @@ setSwitchStatement
 // statement (kb/Work PB2499 — `SET MYSW (1) TO ON` used to bind the word and drop the suffix; acceptSource and
 // displayUpon spell the same slot the same way).
 setSwitchPhrase
-    : cobolWord+ TO (ON | OFF)
+    : refCobolWord1=cobolWord+ TO (ON | OFF)
     ;
 
 // SET [SIZE OF] data-name-3 TO {integer-2 | arithmetic-expression-5} (ISO §2023:14.9.39 Format 16, COBOL-2023):
@@ -1767,7 +1767,7 @@ setToStatement
 // data-name-1, the BASED receiver §2023:14.9.39.3 SR18 screens and §2023:14.9.39.4 GR13 assigns to; absent is an identifier,
 // which the selected format screens (SR17 and GR12 for Format 7's identifier-5).
 setToReceiver
-    : (ADDRESS OF?)? dataReference
+    : (ADDRESS OF?)? refDataReference1=dataReference
     | nonReceivableIdentifier
     ;
 
@@ -1805,7 +1805,7 @@ setBooleanStatement
 // condition-names are specified, the results are the same as if a separate SET statement had been written for
 // each condition-name-1" — is why the binder may flatten the phrases into one ordered list of stores.
 setConditionPhrase
-    : dataReference+ TO (TRUE_ | FALSE_)
+    : refDataReference1=dataReference+ TO (TRUE_ | FALSE_)
     ;
 
 // §2023:8.4.3.1.2 identifier FORMAT 9 — "address-identifier": `{ data-address-identifier-1 |
@@ -1824,7 +1824,7 @@ addressIdentifier
 // Format-7 sender and the CALL argument (kb/Work PB239); the data pass forces each named record onto cell
 // storage by walking THESE nodes, so a new surface that uses the rule is storage-forced automatically.
 dataAddressIdentifier
-    : ADDRESS OF? dataReference
+    : ADDRESS OF? refDataReference1=dataReference
     ;
 
 // SET { identifier-12 } … TO ADDRESS OF FUNCTION { function-prototype-name-1 | identifier-1 }
@@ -1857,7 +1857,7 @@ setFunctionAddressStatement
 // The function-identifier / inline-invocation alternatives PRECEDE dataReference because an inline invocation's own
 // first element IS a dataReference (ANTLR takes the first matching alternative — feedback_grammar_precedence).
 functionAddressIdentifier
-    : ADDRESS OF? FUNCTION (functionCall | inlineMethodInvocation | dataReference)
+    : ADDRESS OF? FUNCTION (functionCall | inlineMethodInvocation | refDataReference1=dataReference)
     ;
 
 // §2023:8.4.3.13.2 PROGRAM-ADDRESS-IDENTIFIER — its OWN rule, because it is an IDENTIFIER format (§2023:8.4.3), not a
@@ -1878,7 +1878,7 @@ functionAddressIdentifier
 // §2023:8.4.3.4.4 GR1) and §2023:8.4.3.13.3 SR1 asks only its category. Ahead of dataReference, which an invocation's own first
 // element is; the nonNumericLiteral arm stays first and cannot overlap (a literal heads no identifier).
 programAddressIdentifier
-    : ADDRESS OF? PROGRAM (nonNumericLiteral | functionCall | inlineMethodInvocation | dataReference)
+    : ADDRESS OF? PROGRAM (nonNumericLiteral | functionCall | inlineMethodInvocation | refDataReference1=dataReference)
     ;
 
 // SET { identifier-7 } … TO program-address-identifier — ISO §2023:14.9.39.2 Format 9 (program-pointer-assignment)
@@ -1901,12 +1901,12 @@ setProgramAddressStatement
 //   ALLOCATE based-item   [INITIALIZED] [RETURNING p]   — allocate storage for a BASED item, set its address
 allocateStatement
     : ALLOCATE arithmeticExpression CHARACTERS INITIALIZED? (RETURNING receivingIdentifier)?
-    | ALLOCATE dataReference INITIALIZED? (RETURNING receivingIdentifier)?
+    | ALLOCATE refDataReference1=dataReference INITIALIZED? (RETURNING receivingIdentifier)?
     ;
 
 // FREE statement (COBOL-2002 §2023:14.9.15): release storage previously ALLOCATEd; set each data-pointer to NULL.
 freeStatement
-    : FREE dataReference+
+    : FREE refDataReference1=dataReference+
     ;
 
 // ⛔ THE RECEIVING IDENTIFIER: EVERY RECEIVING POSITION PARSES EVERY IDENTIFIER FORMAT THAT IS NEVER A RECEIVING
@@ -1922,7 +1922,7 @@ freeStatement
 // The two computed formats (§2023:8.4.3.2.3 SR1 function-identifier, §2023:8.4.3.4.3 SR1 inline invocation) stay out: their
 // exclusion is structural (InlineMethodInvocationOperandDriftTests), and the mixed arithmetic rules name them.
 receivingIdentifier
-    : dataReference
+    : refDataReference1=dataReference
     | nonReceivableIdentifier
     | dataAddressIdentifier      // §2023:8.4.3.11.3 SR5 — every receiving position but SET's (setReceivingIdentifier)
     ;
@@ -1932,7 +1932,7 @@ receivingIdentifier
 // a SET statement is not considered a data-address-identifier"), and the formats that use this rule print no ADDRESS
 // receiver at all.
 setReceivingIdentifier
-    : dataReference
+    : refDataReference1=dataReference
     | nonReceivableIdentifier
     ;
 
@@ -1942,7 +1942,7 @@ setReceivingIdentifier
 // receiver, so SET takes them too). Its identifier-1 is never the sending `objectReferenceTerm`, which would let a
 // function-identifier or an inline invocation in.
 nonReceivableIdentifier
-    : dataReference objectViewPhrase+
+    : refDataReference1=dataReference objectViewPhrase+
     | selfAndSuper objectViewPhrase*
     | predefinedNull objectViewPhrase*
     | functionAddressIdentifier
@@ -1996,7 +1996,7 @@ objectReferenceAtom
 objectReferenceTerm
     : functionCall
     | selfAndSuper
-    | dataReference
+    | refDataReference1=dataReference
     | predefinedNull
     ;
 
@@ -2011,7 +2011,7 @@ objectView
 // refuses FACTORY / ONLY on an interface-name once the name resolves.
 objectViewPhrase
     : AS UNIVERSAL
-    | AS (FACTORY OF?)? className ONLY?
+    | AS (FACTORY OF?)? refClassName1=className ONLY?
     ;
 
 selfAndSuper
@@ -2035,7 +2035,7 @@ setIndexStatement
 // screen record (kb/Work PB260). The positioning phrase lives in CobolScreen.g4; the exception phrases are the
 // statement's own `conditionalPhrases`, printed independently of it (kb/Work PB1528; see screenPositionPhrase).
 acceptStatement
-    : ACCEPT receivingIdentifier (FROM acceptSource)? screenPositionPhrase? conditionalPhrases END_ACCEPT?   // END-ACCEPT: 2002+ (gated in VersionConformancePass; kb/Work PB134)
+    : ACCEPT receivingIdentifier (FROM refAcceptSource1=acceptSource)? screenPositionPhrase? conditionalPhrases END_ACCEPT?   // END-ACCEPT: 2002+ (gated in VersionConformancePass; kb/Work PB134)
     ;
 
 // ⛔ THE FORMAT-1 SLOT IS A WORD, NOT A dataReference (kb/Work PB2499). §2023:14.9.1.2 Format 1 prints
@@ -2049,12 +2049,12 @@ acceptStatement
 // identifier-2's `dataReference`, so SequentialIoBinder.MnemonicOperand refuses the suffix there instead).
 acceptSource
     : DATE YYYYMMDD
-    | DATE
-    | TIME
+    | nnDate1=DATE
+    | nnTime1=TIME
     | DAY YYYYDDD
-    | DAY
-    | DAY_OF_WEEK
-    | cobolWord
+    | nnDay1=DAY
+    | nnDayOfWeek1=DAY_OF_WEEK
+    | refCobolWord1=cobolWord
     ;
 
 // ==========================================
@@ -2092,13 +2092,13 @@ acceptSource
 // funnel's named diagnostic. A unification that changes a parse is not a unification, so the set stays here until
 // that recovery is settled; SendingOperandDriftTests names this rule as its one recorded exemption.
 displayStatement
-    : DISPLAY (inlineMethodInvocation | dataReference | literal | functionCall)
-      ({!screenPositionAhead()}? (inlineMethodInvocation | dataReference | literal | functionCall))*
+    : DISPLAY (inlineMethodInvocation | refDataReference1=dataReference | literal | functionCall)
+      ({!screenPositionAhead()}? (inlineMethodInvocation | refDataReference2=dataReference | literal | functionCall))*
       displayUpon? displayNoAdvancing? screenPositionPhrase? conditionalPhrases END_DISPLAY?
     ;
 
 displayUpon
-    : UPON cobolWord
+    : UPON refCobolWord1=cobolWord
     ;
 
 displayNoAdvancing
@@ -2123,7 +2123,7 @@ displayNoAdvancing
 // two alternatives. It is kept (the `goback-returning` registry row records the latitude and its authority);
 // what it may NOT do is cite a GOBACK clause as if the standard printed it.
 gobackStatement
-    : GOBACK ((RETURNING | GIVING) dataReference)? (raisingPhrase | statusPhrase)*
+    : GOBACK ((RETURNING | GIVING) refDataReference1=dataReference)? (raisingPhrase | statusPhrase)*
     ;
 
 // ==========================================
@@ -2139,13 +2139,13 @@ gobackStatement
 // be specified" gets a TARGETED diagnostic instead of a parse error, and RAISE SELF (legal) parses
 // (§2023:14.9.29.3 SR2; the EC-OO wave, deep-dive slice 6).
 raiseStatement
-    : RAISE (EXCEPTION cobolWord | objectReference)
+    : RAISE (EXCEPTION nnCobolWord1=cobolWord | objectReference)
     ;
 
 // RESUME [AT] {NEXT STATEMENT | procedure-name-1} (ISO §2023:14.9.33.2 — AT is an OPTIONAL word: it is not
 // underlined in the general format, so `RESUME NEXT STATEMENT` / `RESUME procedure-name` are legal too).
 resumeStatement
-    : RESUME AT? (NEXT STATEMENT | procedureName)
+    : RESUME AT? (NEXT STATEMENT | refProcedureName1=procedureName)
     ;
 
 // RAISING {EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION} (ISO §2023:14.9.18.2 / §2023:14.9.14.2 F2) —
@@ -2161,7 +2161,7 @@ resumeStatement
 // format answer — SELF, an object-view, an inline invocation or a function returning one, exactly the operand RAISE's
 // identifier-1 is. EcBinder.EcBindRaising binds it through the same door RAISE does (OoBindComputedObjectReference).
 raisingPhrase
-    : RAISING (EXCEPTION cobolWord | LAST EXCEPTION? | objectReference)
+    : RAISING (EXCEPTION nnCobolWord1=cobolWord | LAST EXCEPTION? | objectReference)
     ;
 
 // The PROCEDURE DIVISION header RAISING phrase (ISO §2023:14.2.1), measured off the printed diagram (PDF page 557,
@@ -2180,10 +2180,10 @@ raisingPhrase
 // the partition is the binder's (RaisingPhrase.Partition, the ONE partition every header arm calls); FACTORY is
 // the only axis the grammar CAN see, and it is kept.
 raisingClause
-    : RAISING raisingTarget+
+    : RAISING refRaisingTarget1=raisingTarget+
     ;
 
 raisingTarget
-    : FACTORY OF? cobolWord          // object-class-name-1 with its optional phrase; SR8 of §2023:14.2.2 is the binder's
-    | cobolWord                      // exception-name-1 | object-class-name-1 | interface-name-1 — §2023:14.2.2 SR7/SR8/SR9
+    : FACTORY OF? refCobolWord1=cobolWord          // object-class-name-1 with its optional phrase; SR8 of §2023:14.2.2 is the binder's
+    | refCobolWord2=cobolWord                      // exception-name-1 | object-class-name-1 | interface-name-1 — §2023:14.2.2 SR7/SR8/SR9
     ;

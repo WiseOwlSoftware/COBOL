@@ -56,9 +56,9 @@ public sealed class GrammarNameSlotDriftTests
     }
 
     /// <summary>The planted failure (section 6.7.1): the same counter over <c>NameSlotFixture.g4</c> reports exactly its
-    /// four bad rules, each at the slot that hides, and passes its clean one. So the check can fail on each way a slot
-    /// can hide: a reused label, an unlabelled <c>cobolWord</c>, an unlabelled alternative-of-a-slot token, and a header
-    /// whose transition into a reference rule carries no label.</summary>
+    /// five bad rules, each at the slot that hides, and passes its clean one. So the check can fail on each way a slot
+    /// can hide: a reused label, an unlabelled <c>cobolWord</c>, an unlabelled alternative-of-a-slot token, a header
+    /// whose transition into a reference rule carries no label, and a label not of the name-slot label's form.</summary>
     [Fact]
     public void TheCounter_ReportsEachPlantedFailure_AtItsSlot()
     {
@@ -68,12 +68,13 @@ public sealed class GrammarNameSlotDriftTests
         Assert.Equal(["dataRef", "procName"], analysis.ReferenceRules);
 
         Dictionary<string, NameSlotFinding> findings = analysis.Findings().ToDictionary(f => f.Rule);
-        Assert.Equal(["header", "numbered", "reused", "unlabelled"], findings.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(["header", "malformed", "numbered", "reused", "unlabelled"], findings.Keys.Order(StringComparer.Ordinal));
 
         AssertFinding(findings["reused"], ["cobolWord", "cobolWord"], 1);
         AssertFinding(findings["unlabelled"], ["cobolWord", "cobolWord"], 1);
         AssertFinding(findings["numbered"], ["INTEGERLIT", "cobolWord"], 1);
         AssertFinding(findings["header"], ["procName"], 0);
+        AssertFinding(findings["malformed"], ["cobolWord"], 0);
 
         // The clean rules hold one field per slot: the reference rules' heads and qualifiers included.
         Assert.Equal(2, analysis.SlotsOf("clean").Count);

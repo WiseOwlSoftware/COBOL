@@ -2,9 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
+using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Unit.Listing;
 
@@ -51,14 +51,13 @@ internal static class GrammarNameSlots
     /// rule's own body (the class is the use site's).</summary>
     internal static readonly IReadOnlyList<string> Prefixes = ["ref", "qual", "def", "nn", "name"];
 
-    private static readonly Regex Classified = new("^(ref|qual|def|nn|name)[A-Z0-9]", RegexOptions.CultureInvariant);
-
     /// <summary>The two rules the closure starts from; a parser without them has no name slots to check, which is an
     /// input this check cannot resolve, so it throws.</summary>
     internal static readonly IReadOnlyList<string> BaseRules = ["cobolWord", "reservedGatedWord"];
 
-    /// <summary>Whether <paramref name="field"/> is a label field with a classifying prefix.</summary>
-    internal static bool IsClassified(string field) => Classified.IsMatch(field);
+    /// <summary>Whether <paramref name="field"/> is a name-slot label field: a classifying prefix, a name and an ordinal
+    /// (<see cref="GrammarSource.LabelPattern"/>, the one statement of the label's form).</summary>
+    internal static bool IsClassified(string field) => GrammarSource.Label().IsMatch(field);
 
     /// <summary>The analysis of one generated parser type: its ATN, rule names and vocabulary through the members ANTLR's
     /// C# target generates (<c>_ATN</c>, <c>ruleNames</c>, <c>DefaultVocabulary</c>).</summary>

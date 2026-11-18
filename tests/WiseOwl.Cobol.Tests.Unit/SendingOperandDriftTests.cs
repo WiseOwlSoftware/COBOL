@@ -45,7 +45,7 @@ public sealed class SendingOperandDriftTests
         var rules = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (string path in Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar"), "*.g4",
                      SearchOption.AllDirectories).Order(StringComparer.Ordinal))
-            foreach (var (name, body) in Rules(File.ReadAllText(path)))
+            foreach (var (name, body) in Rules(GrammarSource.Read(path)))
                 rules.TryAdd(name, body);
         return rules;
     }

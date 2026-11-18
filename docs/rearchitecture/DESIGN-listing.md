@@ -5,10 +5,11 @@
 > `listing-step-2`); STEP 3 BUILT (diagnostics, branch `listing-step-3`); STEP 4a BUILT (the directive hooks, witnessed at 2023,
 > branch `listing-step-4a`); STEP 4b BUILT (the hooks witnessed at 2002 and 2014, branch `listing-step-4b`); STEP 5 BUILT (the
 > options, the program map, the statistics and verbs, `--listing-sections`, branch `listing-step-5`); STEP 6 BUILT (the
-> finished symbol table, the data map and file map, the program attributes and the margin, branch `listing-step-6`); steps
-> 6b (the one store of names, kb/Work PB5932) and 7 to 9 not yet built.** Where building a step proved this document wrong it
-> was corrected in the same change; each correction is marked "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)",
-> "(step 5)" or "(step 6)" in the section it changed.
+> finished symbol table, the data map and file map, the program attributes and the margin, branch `listing-step-6`); STEP 7a
+> BUILT (every name slot of the grammar labelled and held by `GrammarNameSlotDriftTests`, branch `listing-step-7`); steps 6b
+> (the one store of names, kb/Work PB5932), 7b (the occurrences and the cross-reference, which stand on 6b) and 8 to 9 not yet
+> built.** Where building a step proved this document wrong it was corrected in the same change; each correction is marked
+> "(step 1)", "(step 2)", "(step 3)", "(step 4a)", "(step 4b)", "(step 5)", "(step 6)" or "(step 7a)" in the section it changed.
 > Architecture review round 1 (2026-11-17, `review-w20262103-listing.jsonl`): R1-1 to R1-4 and the leads R1-6 to R1-9 are
 > answered in sections 2.2, 3, 4.2, 4.4, 4.4.1, 4.6, 6.7.1, 9 and 11; R1-5 is a finding against the citation audit.
 > Round 2 (same record): R2-1 in sections 6.7.1 and 6.7.2 (one recording point, `SymbolTable.Identify`), R2-2 in 6.7.1, R2-3 in 2.2;
@@ -153,7 +154,8 @@ Four facts the listing needs are missing today and are added by this design:
 3. structured bind diagnostics (section 6.3; step 3, built);
 4. ONE symbol table holding every name with its attributes and its occurrences (position, length, use), which today
    is spread over dozens of tables and recorded nowhere (section 6.7.1: (step 6) the finished table's entries and attributes
-   in step 6, the one store in step 6b, the occurrences in step 7).
+   in step 6, the one store in step 6b, (step 7a) the grammar's classified name slots the occurrences are checked against in
+   step 7a, the occurrences in step 7b).
 
 ## 4. The ONE listing model
 
@@ -867,7 +869,12 @@ Symbols: data items, condition-names, index-names, procedure-names (sections and
 programs (CALL targets and units), and copy members (from the inclusions). Each use is one `ListingReference(Symbol,
 Line, Column, Length, Use)` with `Use` one of:
 
-- `Defined` - the declaration (`DataItem.DeclaredAt`, a paragraph header, an FD, a PROGRAM-ID, a COPY statement);
+- `Defined` - the declaration (`DataItem.DeclaredAt`, a paragraph header, a file control entry's SELECT, a PROGRAM-ID, a COPY
+  statement). (Step 7a, correction:) this said "an FD"; step 6's table declares a file at its SELECT entry
+  (`FileModel.EntryAt`), and the file-name of an FD or SD "shall be specified in a file control entry" (§2023:13.4.5.3 SR1,
+  §2023:13.4.6.3 SR1), so it is a reference to that declaration (its slot is labelled `ref`), and each name has one `Defined`
+  occurrence. Likewise the data-name of OCCURS DYNAMIC's CAPACITY phrase is a definition (`def`): a SET statement's operand
+  "shall reference a data item defined in the CAPACITY phrase" (§2023:14.9.39.3 SR29);
 - `Read` - an occurrence at no store position of its statement;
 - `Written` - an occurrence at a store position of kind `Write` or `WriteInPart`;
 - `Modified` - an occurrence at a store position of kind `ReadWrite` (ADD TO, SUBTRACT FROM, INSPECT REPLACING, a STRING
@@ -1049,8 +1056,9 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     inner `qual` labels stay qualifiers. A transition into a reference rule with no classifying label is red in
     `GrammarNameSlotDriftTests` like an unlabelled slot, so a header can never be read as a reference. **Every label is
     unique within its rule**: the prefix is followed by a name and an ordinal, so no two elements share one. The labels add
-    context fields and change no parse. Step 7 labels the 257 `cobolWord` occurrences of the grammar files and every
-    other slot.
+    context fields and change no parse. (Step 7a:) the counter found 452 slots in 269 rules (not "the 257 `cobolWord`
+    occurrences": the slots are also the `reservedGatedWord`s, the transitions into name rules and reference rules, and the
+    alternative-of-a-slot tokens); they are labelled 281 `ref`, 73 `nn`, 64 `def`, 25 `name` and 9 `qual`.
   - *`GrammarNameSlotDriftTests` (Unit) counts per ELEMENT OCCURRENCE, so a reused label cannot hide a slot.* It
     deserializes the generated parser's ATN (`CobolParserCore._serializedATN` through the ANTLR runtime's
     `ATNDeserializer`), computes the name-rule closure above, and walks each rule's ATN alternative by alternative,
@@ -1067,6 +1075,43 @@ guarantees of review rounds 2 to 4. Each is an invariant of the table; each drif
     transition into a reference rule carries no `def` label (R5-2). The self-test runs the same counter over the fixture's
     ATN and context classes and asserts it reports exactly the last four rules, each at the right slot: the check is shown
     able to fail on each way a slot can hide.
+  - *As built (step 7a), with the corrections the code proved.* `GrammarNameSlots` (Unit, `Listing/`) is the counter and
+    `GrammarNameSlotDriftTests` its three facts: the COBOL parser clean, the closure and reference rules the ATN computes
+    (`fileName` and `programName` name rules, `procedureName` and `dataReference` reference rules, the headers neither), and
+    the fixture. The branch's first commit is the test red on the unlabelled grammar (269 rules), its witness that the check
+    can fail on the real tree.
+    - **A reference rule is defined by its ATN, not by "holds slots and other elements"** (correction): read literally that
+      made every statement rule a reference rule, so `statement -> moveStatement` would need a label. A REFERENCE RULE is a
+      rule, not a name rule, some path of which BEGINS with a direct slot (a transition into a name rule or an
+      alternative-of-a-slot token): its head. That is `procedureName` (every path) and `dataReference` (its `cobolWord`
+      alternative; the LINAGE-COUNTER, LINE-COUNTER and PAGE-COUNTER alternatives begin with the register's token, which
+      is no slot: a register reference is covered by the planted programs, below), and 36 rules in all (beside 21 name rules). "Begins" counts a
+      direct slot only, so a rule whose paths begin with a transition into a reference rule (`recordName : dataReference`)
+      is not one, and its uses need no label: the closure does not climb to the statements.
+    - **An alternative of a slot** is a one-element alternative of a block one of whose other alternatives is one
+      transition into a name rule. Many name nothing (`FILLER` beside `cobolWord` in `dataName`, the class names `NUMERIC`
+      and `ALPHABETIC` beside a class-name, the literal kinds beside a constant-name in `concatOperand`), so such a slot is
+      labelled `nn` even inside a name rule's own body: `name` defers to the use site, and `nn` stays `nn`. Likewise a use-site
+      label overrides only an inner `ref` head: a reference rule whose head is `nn` (`implementorSwitchEntry`'s
+      implementor-name) keeps it whatever the use site says.
+    - **The label's form is one pattern**, `GrammarSource.LabelPattern` (`tests/_shared/GrammarSource.cs`): a prefix, a
+      capitalized name and an ordinal (`refDataReference1`, `nnBoolean1`). The counter counts only fields of that form, so a
+      label with no ordinal classifies nothing (a sixth fixture rule, `malformed`, shows it red). A test that reads the
+      grammar's shape from its text reads it through `GrammarSource.Read`, which removes the labels; the nine tests the
+      labels broke do (kb/Work PB5925's lead `2026-11-18-grammar-text-readers`).
+    - **Labels are `=`, never `+=`.** A list label is a `List` allocated in every context instance of every parse; a plain
+      label is one field. One field per element is what the counter needs; for an element in a loop, step 7b's oracle reads
+      the earlier iterations' nodes by the child's ATN state (`RuleContext.invokingState`), which the field's own node names.
+    - **The fixture is generated at test time**, with the vendored jar the Frontend csproj names (`AntlrJar`) and the
+      generator's language and encoding flags, compiled in memory with Roslyn and loaded from its bytes: not by
+      `Invoke-Antlr4CSharp.ps1`, whose grammar set is the product's and whose contract `AntlrGenerationDriftTests` pins, so a
+      test grammar does not enter the product build. The ATN is the generated `_ATN` (the generated class's own
+      `ATNDeserializer` run over `_serializedATN`).
+    - **Where the class depends on resolution**: four kinds of slot can hold either a declared name or a word of the
+      implementor or the standard, and are labelled `ref`: `functionName`'s `cobolWord` (a user-defined function or an
+      intrinsic), `raisingTarget`'s (an exception-name, a class or an interface), `assignTarget`'s (a device-name or a
+      data-name) and RERUN ON's (a file-name or an implementor-name). Step 7b's oracle counts an occurrence there only when the
+      word identified a symbol (kb/Work PB5925's lead `2026-11-18-resolution-dependent-slots`).
   - *Completeness, independent of path:* `EveryWrittenReferenceIsRecorded` binds every conformance-suite program that
     binds clean, walks its parse tree, and for every name-slot node reads its class from the label that holds it: each
     `ref` node has EXACTLY one occurrence at its first-token position, each `def` node exactly one `Defined` entry (a
@@ -1377,7 +1422,7 @@ renderer. Naming it asks for a listing at any edition.
   occurrence was recorded and no `ListingFacts` was built. (Step 1:) the test is in the Unit assembly, because it reads
   the front end the driver builds through the internal `CompilerDriver.NewFrontend`; it also asserts that no file was
   hashed (`CompilationInputs.FileDigests` empty) and the clock was not read, and a control case with a listing shows each
-  assertion able to fail. Occurrences join it in step 7. (Step 1, review R1-3:) a recording call's ARGUMENTS are work too
+  assertion able to fail. Occurrences join it in step 7b. (Step 1, review R1-3:) a recording call's ARGUMENTS are work too
   (`CopyProcessor.ExpandCopiesOneLevel` computes the COPY statement's last origin, a `LineOrigin` per statement, to pass
   to `BeginInclusion`), so every recording call into `TextStageTrace` is asked only when `TextStageTrace.Records` is true,
   and `TextStageTrace.None`'s recording methods THROW: a call site that forgets the question fails every compilation of a
@@ -1504,6 +1549,10 @@ captured listing.
    given and defaulted, only the sections asked for in the text and the JSON, no diagnostic printed without its section). The
    tests of one section read that section's pages (`ListingPages`), so a section printed beside it moves nothing they check.
    `JsonSchemaSubset` checks `$ref`, which the exporter writes once the statistics hold one type twice.
+7c. **Name slots (step 7a).** `GrammarNameSlotDriftTests` (Unit): every rule of `CobolParserCore` has one classified label per
+   name slot; the name rules and reference rules are what the ATN computes; the counter over `NameSlotFixture.g4` reports
+   exactly its five planted failures, each at its slot (section 6.7.1). Its first commit on the branch is the test red on the
+   unlabelled grammar.
 8. **Failed compilations.** One test per kind of outcome (section 4.6): the sections present and the
    `ListingSectionStatus` of each absent one; the failed-parse test of section 4.4 (the listed pass). (Step 1:)
    `tests/WiseOwl.Cobol.Tests.Conformance/Listing/ListingOutcomeTests.cs`, beside the 1985 class's failed-compilation
@@ -1623,12 +1672,18 @@ benchmark row. `Identify` records nothing yet; the table's entries and attribute
 `LineAnnotationBuilder` margin and the `All` row are built in step 6; step 6b moves the finishing into the grown table, whose
 `Declare` then replaces `SymbolTableWriter.Declare`, and the data map is unchanged.
 
-**Step 7 - occurrences and the cross-reference.** The table's second half: `GrammarNameSlotDriftTests` written first
-and red (with the `NameSlotFixture.g4` self-test), then the grammar labels on every name slot (`CobolParserCore.g4` and
-the `Core/*.g4` fragments, regenerated) and `ReferenceOccurrenceDriftTests`; `Identify` appends each `SymbolOccurrence`
+**Step 7 - occurrences and the cross-reference.** (Step 7a, kb/Work PB5932's dated file `2026-11-18-step-7-split`:) step 7
+was dispatched while step 6b, which it stands on ("`Identify` appends each `SymbolOccurrence`" needs the one `Identify`), had
+not been built, so it is split like step 6. **Step 7a - the grammar's name slots. BUILT (branch `listing-step-7`; the
+corrections above marked "step 7a").** `GrammarNameSlotDriftTests` written first and red, with the `NameSlotFixture.g4`
+self-test, then the labels on every name slot of `CobolParserCore.g4` and the `Core/*.g4` fragments (452 slots, section
+6.7.1), `GrammarSource` for the tests that read the grammar's text, and the diagram generator's cleaning
+(`scripts/gen-grammar-diagrams.ps1`) taught to drop a label. It changes no parse and depends on nothing step 6b changes.
+**Step 7b - the occurrences and the cross-reference, after step 6b lands.** `ReferenceOccurrenceDriftTests`; `Identify`
+appends each `SymbolOccurrence`
 to its entry (Identify's register arms included), `PlaceBuilder.PlaceForItem` / `PlaceBuilder.WholeTable` take
 `IdentifiedName`, `StatementBinder.BindStatement` classifies the occurrences since its mark through the new
-`BoundStores.StorePositionsOf`, all gated by `EditionContext.RecordsReferences`. The step lands with the grammar test,
+`BoundStores.StorePositionsOf`, all gated by `EditionContext.RecordsReferences`. Step 7b lands with the grammar test,
 the completeness oracle and the pairing test green. Then `CrossReferenceBuilder` (a view of the entries and their
 occurrences), the PERFORM and CALL graphs, `LineAnnotationBuilder`'s `ListingLine.Names` and statement-line `Margin`;
 the `All` row.

@@ -1,7 +1,7 @@
 // The planted failures of GrammarNameSlotDriftTests (docs/rearchitecture/DESIGN-listing.md section 6.7.1, "Guards"):
-// five rules the name-slot counter must judge, one clean and one for each way a name slot can hide from it. The
+// six rules the name-slot counter must judge, one clean and one for each way a name slot can hide from it. The
 // self-test generates this grammar with the vendored ANTLR tool and the product generator's flags, compiles it, runs
-// the same counter over its ATN and context classes, and expects exactly the last four rules, each at its slot.
+// the same counter over its ATN and context classes, and expects exactly the last five rules, each at its slot.
 grammar NameSlotFixture;
 
 // 1. Every slot labelled, each label unique in the rule: clean.
@@ -22,13 +22,18 @@ unlabelled
 
 // 4. A name rule whose INTEGERLIT alternative (an alternative of a slot) has no label.
 numbered
-    : name1=cobolWord
+    : nameWord1=cobolWord
     | INTEGERLIT
     ;
 
 // 5. A header whose transition into a reference rule carries no def label (R5-2).
 header
     : procName DOT
+    ;
+
+// 6. A label with no ordinal: not of the name-slot label's form (GrammarSource.LabelPattern), so it classifies nothing.
+malformed
+    : DOT refMalformed=cobolWord
     ;
 
 // A reference rule: every path begins with its head slot.

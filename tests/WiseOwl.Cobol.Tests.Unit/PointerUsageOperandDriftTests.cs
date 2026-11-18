@@ -227,7 +227,7 @@ public sealed class PointerUsageOperandDriftTests
         var guarded = new List<string>();
         foreach (string file in Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar"), "*.g4",
                      SearchOption.AllDirectories))
-            foreach (Match m in rule.Matches(File.ReadAllText(file)))
+            foreach (Match m in rule.Matches(GrammarSource.Read(file)))
                 if (m.Groups["body"].Value.Contains("pointerOperandHere()", StringComparison.Ordinal))
                 {
                     string name = m.Groups["name"].Value;

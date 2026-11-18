@@ -35,12 +35,12 @@ fileSection
     ;
 
 fileDescriptionEntry
-    : FD fileName fileDescriptionClauses? DOT dataDescriptionEntry*
+    : FD refFileName1=fileName fileDescriptionClauses? DOT dataDescriptionEntry*
     ;
 
 // SD entry — per §2023:13.4.6.3, only RECORD clause is permitted (not BLOCK, CODE-SET, etc.)
 sortMergeDescriptionEntry
-    : SD fileName sortMergeDescriptionClauses? DOT dataDescriptionEntry*
+    : SD refFileName1=fileName sortMergeDescriptionClauses? DOT dataDescriptionEntry*
     ;
 
 sortMergeDescriptionClauses
@@ -109,7 +109,7 @@ formatClause
 
 // REPORT(S) clause (§2023:13.18.46): names the report(s) produced on this file by the Report Writer.
 reportClause
-    : (REPORT IS? | REPORTS ARE?) reportName+
+    : (REPORT IS? | REPORTS ARE?) refReportName1=reportName+
     ;
 
 // IS GLOBAL / IS EXTERNAL on an FD (§2023:13.18.27/§2023:13.18.22): GLOBAL makes the file-name and
@@ -128,7 +128,7 @@ fileGlobalExternalClause
 
 // BLOCK CONTAINS clause (§2023:13.18.10)
 blockContainsClause
-    : BLOCK CONTAINS? integerOperand (TO integerOperand)? (CHARACTERS | RECORDS)?
+    : BLOCK CONTAINS? refIntegerOperand1=integerOperand (TO refIntegerOperand2=integerOperand)? (CHARACTERS | RECORDS)?
     ;
 
 // RECORD clause (§2023:13.18.43) — fixed-length, variable-length, or VARYING forms.
@@ -144,8 +144,8 @@ blockContainsClause
 // context-sensitive word outside its format "is treated as a user-defined word"), so `01 BYTES PIC X.`
 // stays legal COBOL-85 — the gate is on the CLAUSE, never on the word.
 recordClause
-    : RECORD CONTAINS? integerOperand (TO integerOperand)? (CHARACTERS | BYTES)?
-    | RECORD IS? VARYING IN? SIZE? (FROM? integerOperand)? (TO integerOperand)? (CHARACTERS | BYTES)? (DEPENDING ON? dataReference)?
+    : RECORD CONTAINS? refIntegerOperand1=integerOperand (TO refIntegerOperand2=integerOperand)? (CHARACTERS | BYTES)?
+    | RECORD IS? VARYING IN? SIZE? (FROM? refIntegerOperand3=integerOperand)? (TO refIntegerOperand4=integerOperand)? (CHARACTERS | BYTES)? (DEPENDING ON? refDataReference1=dataReference)?
     ;
 
 // CODE-SET clause (§2023:13.18.13.2 — the 2002 two-class format; kb/Work PB110): IS alphabet-name-1
@@ -153,7 +153,7 @@ recordClause
 // carries choice indicators, §2023:5.2.6.4; the binder enforces each class at most once). The '85 one-name form is
 // the first alternative's degenerate case.
 codeSetClause
-    : CODE_SET IS? cobolWord cobolWord?
+    : CODE_SET IS? refCobolWord1=cobolWord refCobolWord2=cobolWord?
     | CODE_SET codeSetForPhrase+
     ;
 
@@ -167,7 +167,7 @@ codeSetClause
 // ⚠ The COBOL-2002 gate keys on the SUBRULE (VersionConformancePass.VisitCodeSetClause reads
 // `ctx.codeSetForPhrase().Length`), never on `ctx.FOR()` — relaxing the word cannot switch the gate off.
 codeSetForPhrase
-    : FOR? (ALPHANUMERIC | NATIONAL) IS? cobolWord
+    : FOR? (ALPHANUMERIC | NATIONAL) IS? refCobolWord1=cobolWord
     ;
 
 // LABEL RECORDS clause — §1985:VII.3.6.2, verbatim: LABEL {RECORD IS | RECORDS ARE} {STANDARD | OMITTED}. An obsolete
@@ -182,7 +182,7 @@ labelRecordsClause
 // an obsolete COBOL-85 element, deleted from COBOL-2002 (COBOL0873). §1985:VII.3.5.3 SR1, each data-name-1 the name of
 // an 01 record description of the entry, is FileControlBinder.ScreenDataRecords (COBOL6849, kb/Work PB5070).
 dataRecordsClause
-    : DATA (RECORD IS? | RECORDS ARE?) cobolWord+
+    : DATA (RECORD IS? | RECORDS ARE?) refCobolWord1=cobolWord+
     ;
 
 // VALUE OF clause — §1985:VII.3.9.2: VALUE OF {implementor-name-1 IS {data-name-1 | literal-1}} …, an obsolete COBOL-85
@@ -192,31 +192,31 @@ dataRecordsClause
 // implementation does not check (any word is admitted: docs/CONFORMANCE.md 3.7); data-name-1's syntax rules
 // (§1985:VII.3.9.3 SR1, SR2) are FileControlBinder.CaptureValueOf and ResolveValueOfDataNames (COBOL6849).
 valueOfClause
-    : VALUE OF valueOfEntry+
+    : VALUE OF nnValueOfEntry1=valueOfEntry+
     ;
 
 valueOfEntry
-    : cobolWord IS? (literal | dataReference)
+    : nnCobolWord1=cobolWord IS? (literal | refDataReference1=dataReference)
     ;
 
 // LINAGE clause (ISO §2023:13.18.34) — page-based printing for sequential files
 linageClause
-    : LINAGE IS? (dataReference | integerLiteral) LINES?
+    : LINAGE IS? (refDataReference1=dataReference | integerLiteral) LINES?
       linageFootingPhrase?
       linageLinesAtTopPhrase?
       linageLinesAtBottomPhrase?
     ;
 
 linageFootingPhrase
-    : WITH? FOOTING AT? (dataReference | integerLiteral)
+    : WITH? FOOTING AT? (refDataReference1=dataReference | integerLiteral)
     ;
 
 linageLinesAtTopPhrase
-    : LINES? AT? TOP (dataReference | integerLiteral)
+    : LINES? AT? TOP (refDataReference1=dataReference | integerLiteral)
     ;
 
 linageLinesAtBottomPhrase
-    : LINES? AT? BOTTOM (dataReference | integerLiteral)
+    : LINES? AT? BOTTOM (refDataReference1=dataReference | integerLiteral)
     ;
 
 // ==========================================
@@ -256,7 +256,7 @@ linkageSection
 // (NATIONAL at COBOL-85) is still a name. The report group description entry asks the same predicate of its own clause
 // list (CobolReportWriter.g4 reportGroupEntry, kb/Work PB4889).
 dataDescriptionEntry
-    : levelNumber ({entryNameHere(RULE_dataDescriptionBody)}? dataName)? dataDescriptionBody DOT
+    : levelNumber ({entryNameHere(RULE_dataDescriptionBody)}? defDataName1=dataName)? dataDescriptionBody DOT
     ;
 
 levelNumber
@@ -267,8 +267,8 @@ dataName
     // The trailing action records the declared name for keywordContinuesHere() (kb/Work PB805/PB655): a word
     // §2023:8.9 leaves free at this edition that the program DECLARES is a user word in every operand list; one it
     // does not declare keeps its keyword reading. Actions never run during prediction.
-    : ( cobolWord
-    | FILLER
+    : ( nameCobolWord1=cobolWord
+    | nnFiller1=FILLER
     // kb/Work PB137/PB655: a reservation-gated word is never a cobolWord (so operand lists cannot absorb the
     // bare facility verbs), but a DECLARATION naming one must still PARSE — where §2023:8.9 reserves it so the
     // funnel's targeted COBOL0901 can NAME the word instead of a generic parse error (the user-word-commit
@@ -283,7 +283,7 @@ dataName
     // word as the missing period rather than naming an entry after it.
     // ⛔ NO PROCEDURE ALTERNATIVE (kb/Work PB4706): §2023:8.9 reserves PROCEDURE at every edition, so §2023:8.3.2.1 1) keeps it out of
     // this slot. NC205A names no item PROCEDURE: its `77 PROCEDURE` continues on the next line as `DIVISION`, one word.
-    | {noHeaderWrittenHere()}? reservedGatedWord
+    | {noHeaderWrittenHere()}? nameReservedGatedWord1=reservedGatedWord
       ) { declareName(TokenStream.LT(-1)); }
     ;
 
@@ -308,7 +308,7 @@ dataDescriptionBody
 // optional words are "shown in uppercase and not underlined in general formats" and "may be written to add clarity"). No alternative of constantValue begins with a word the clause list or FROM can
 // begin with (FROM and RECORD are reserved), so the bare operand stays LL-disjoint from `CONSTANT RECORD`.
 constantEntryBody
-    : CONSTANT (IS? GLOBAL)? (AS? constantValue | FROM cobolWord)
+    : CONSTANT (IS? GLOBAL)? (AS? constantValue | FROM nnCobolWord1=cobolWord)
     ;
 
 // The constant entry as a REPORT SECTION entry (kb/Work PB1226): §2023:13.8.2's brace group
@@ -319,7 +319,7 @@ constantEntryBody
 // ONE body rule (constantEntryBody), ONE binder (ConstantEntryBinder.BindConstantEntry), ONE version gate
 // (VersionConformancePass.VisitConstantEntryBody): the report section adds a host, never a second constant form.
 constantEntry
-    : levelNumber dataName? constantEntryBody DOT
+    : levelNumber defDataName1=dataName? constantEntryBody DOT
     ;
 
 // The AS operand (§2023:13.10.2). LENGTH OF and BYTE-LENGTH OF are listed FIRST so they win over arithmeticExpression's
@@ -332,8 +332,8 @@ constantEntry
 // not underline it, kb/Work PB1225): `LENGTH W` and `BYTE-LENGTH W` are no arithmetic expression, so the omission is
 // unambiguous.
 constantValue
-    : LENGTH OF? dataReference
-    | constantByteLengthWord OF? dataReference
+    : LENGTH OF? refDataReference1=dataReference
+    | constantByteLengthWord OF? refDataReference2=dataReference
     | nonNumericLiteral
     | arithmeticExpression
     ;
@@ -421,12 +421,12 @@ alignedClause
 // OTHER leads so ANTLR's first-match cannot route it into the conditionName slot (OTHER is reserved at every
 // edition and is not cobolWord-admitted, so this is belt-and-braces, not load-bearing).
 selectWhenClause
-    : SELECT WHEN (OTHER | conditionName)
+    : SELECT WHEN (nnOther1=OTHER | refConditionName1=conditionName)
     ;
 
 // condition-name-1 of the SELECT WHEN clause (§2023:13.18.51.2) — a user-defined word, the level-88 name slot.
 conditionName
-    : cobolWord
+    : nameCobolWord1=cobolWord
     ;
 
 // GROUP-USAGE clause (COBOL-2002 §2023:13.18.29): the group item is treated as an elementary item of usage bit /
@@ -492,7 +492,7 @@ anyLengthClause
 // conforming source. DYNAMIC stays the required anchor and heads no other data-description clause, so the
 // relaxation adds no ambiguity; the COBOL-2014 gate keys on the CLAUSE context, not on the word.
 dynamicLengthClause
-    : DYNAMIC LENGTH? cobolWord? (LIMIT IS? integerOperand)?
+    : DYNAMIC LENGTH? refCobolWord1=cobolWord? (LIMIT IS? refIntegerOperand1=integerOperand)?
     ;
 
 // GLOBAL clause (§2023:13.18.27) — visible to contained programs
@@ -516,7 +516,7 @@ globalClause
 // which they are defined") was declared cleanly by `01 CAPACITY TYPEDEF …` and then refused by `TYPE CAPACITY`
 // (COBOL0001), because CAPACITY has a lexer token. UserWordSlotDriftTests holds every name slot to cobolWord.
 typeClause
-    : TYPE TO? cobolWord   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitTypeClause (rearch 14g.2)
+    : TYPE TO? refCobolWord1=cobolWord   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitTypeClause (rearch 14g.2)
     ;
 
 // TYPEDEF clause (ISO §2023:13.18.58, COBOL-2002; data-model D17) — marks this data description entry as a TYPE
@@ -535,7 +535,7 @@ typedefClause
 // dataDescriptionClause (unique leading token SAME; the I-O-CONTROL sameArea rule is a different context).
 // Expansion rides the ONE TYPEDEF clone machinery (DataBinder.ExpandSameAs → CloneItem; data-model D17).
 sameAsClause
-    : SAME AS cobolWord ((OF | IN) cobolWord)*   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitSameAsClause (recognition; the typedefClause pattern)
+    : SAME AS refCobolWord1=cobolWord ((OF | IN) qualCobolWord1=cobolWord)*   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitSameAsClause (recognition; the typedefClause pattern)
     ;
 
 // PIC Clause — PIC/PICTURE triggers PICMODE in the lexer, which emits a single PIC_STRING token after the one
@@ -557,7 +557,7 @@ pictureClause
 // required IS this rule used to demand before locale-name-1 rejected legal source (kb/Work PB114). A superset
 // parse admits editingPhrase* alongside; format 2 has no EDITING phrase and the binder diagnoses the pairing.
 pictureLocalePhrase
-    : {pictureLocaleAhead()}? formatWord (IS? cobolWord)? SIZE IS? integerOperand   // LOCALE = formatWord (kb/Work PB764)
+    : {pictureLocaleAhead()}? formatWord (IS? refCobolWord1=cobolWord)? SIZE IS? refIntegerOperand1=integerOperand   // LOCALE = formatWord (kb/Work PB764)
     ;
 
 // EDITING character-1 { IS literal-1 | FOR { NEGATIVE/POSITIVE choice } } (ISO §2023:13.18.40.2 Format 1). `IS` is
@@ -585,7 +585,7 @@ pictureLocalePhrase
 // literal) and keeps its own spelling above: the two kinds are separate rules so they can never again be
 // widened or narrowed together by accident.
 editingPhrase
-    : EDITING ( cobolWord | literal ) ( IS? editingLiteral | FOR editingForPhrase )
+    : EDITING ( nnCobolWord1=cobolWord | literal ) ( IS? editingLiteral | FOR editingForPhrase )
     ;
 
 editingForPhrase
@@ -735,19 +735,19 @@ usageKeyword
 // POINTER: the operand declares a RESTRICTED data-pointer, §2023:13.18.60.4 GR23 ("If type-name-1 is specified, this
 // data item is a restricted data-pointer"); §2023:13.18.60.3 SR18 requires the SUBJECT to carry TYPEDEF (binder).
 dataPointerUsage
-    : POINTER (TO cobolWord | {pointerOperandHere()}? cobolWord)?
+    : POINTER (TO refCobolWord1=cobolWord | {pointerOperandHere()}? refCobolWord2=cobolWord)?
     ;
 
 // PROGRAM-POINTER: a program-pointer data item (GR24); the operand declares a RESTRICTED program-pointer (GR25 —
 // only NULL or a same-signature program's address); §2023:13.18.60.3 SR19 requires TYPEDEF on the subject (binder).
 programPointerUsage
-    : PROGRAM_POINTER (TO cobolWord | {pointerOperandHere()}? cobolWord)?
+    : PROGRAM_POINTER (TO refCobolWord1=cobolWord | {pointerOperandHere()}? refCobolWord2=cobolWord)?
     ;
 
 // FUNCTION-POINTER: the operand is MANDATORY (unbracketed on folio 503; GR26 takes every function-pointer's
 // signature restriction from it) — the superset `?` parses its omission so the binder can name the rule.
 functionPointerUsage
-    : FUNCTION_POINTER (TO cobolWord | {pointerOperandHere()}? cobolWord)?
+    : FUNCTION_POINTER (TO refCobolWord1=cobolWord | {pointerOperandHere()}? refCobolWord2=cobolWord)?
     ;
 
 // SIGNED / UNSIGNED — ISO §2023:13.18.60.2 prints `{ SIGNED | UNSIGNED }` after BINARY-CHAR, BINARY-SHORT, BINARY-LONG
@@ -769,11 +769,11 @@ occursClause
     // that order; `occursDynamicPhrase*` parses any sequence and the binder refuses a repeated or reordered phrase
     // (COBOL2789). The grammar audit reads the next line and reports those words as DECIDED (kb/Work PB2024):
     // audit:repeated-word CAPACITY FROM TO INITIALIZED decided-by DataBinder.NarrowToDataDivisionFormats
-    : OCCURS integerOperand (TO integerOperand)? timesKeyword?
-      (DEPENDING ON? dataReference)?
-      occursStepPhrase?
+    : OCCURS refIntegerOperand1=integerOperand (TO refIntegerOperand2=integerOperand)? timesKeyword?
+      (DEPENDING ON? refDataReference1=dataReference)?
+      nnOccursStepPhrase1=occursStepPhrase?
       occursKeyClause*
-      (INDEXED BY? indexNameList)?
+      (INDEXED BY? defIndexNameList1=indexNameList)?
     // Format 4 — a DYNAMIC-capacity table (ISO §2023:13.18.38 Format 4, COBOL-2014; D9). LL-disjoint from Format 1/2
     // on the token after OCCURS (DYNAMIC is not an integerLiteral). occursDynamicPhrase* is a SUPERSET parse: the
     // printed once-each, CAPACITY-FROM-TO-INITIALIZED order (§2023:13.18.38.2 with §2023:5.2.1) is enforced at bind time
@@ -781,7 +781,7 @@ occursClause
     // The Format 1/2 alternative above is likewise the union of Formats 1, 2 and 3; the same binder site narrows a
     // data description entry to Formats 1 and 2, and ReportSectionBinder.cs#ReportOccursOf a report group entry to
     // Format 3. Edition-gated so a pre-2014 probe upgrades to COBOL0900.
-    | OCCURS DYNAMIC occursDynamicPhrase* occursKeyClause* (INDEXED BY? indexNameList)?   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitOccursClause (rearch 14g.3)
+    | OCCURS DYNAMIC occursDynamicPhrase* occursKeyClause* (INDEXED BY? defIndexNameList2=indexNameList)?   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitOccursClause (rearch 14g.3)
     ;
 
 // The INDEXED BY phrase's index-names (§2023:13.18.38.2, every format: `[ INDEXED BY { index-name-1 } … ]`). Each is a
@@ -791,7 +791,7 @@ occursClause
 // `INDEXED BY IX OF G` compiled clean and declared an index named IXOFG (the PB1281 REDEFINES glue, unswept). A
 // qualifier or subscript is now what the general format makes it, a syntax error. The comma is the §2023:8.3.5 separator.
 indexNameList
-    : cobolWord (COMMA? cobolWord)*
+    : defCobolWord1=cobolWord (COMMA? defCobolWord2=cobolWord)*
     ;
 
 // OCCURS … STEP integer-3 — the REPORT-WRITER format's own phrase (ISO §2023:13.18.38.2 Format 3:
@@ -805,18 +805,18 @@ indexNameList
 // entry, COBOL2789; §2023:13.18.38.2 — the TO/DEPENDING/STEP shape is Format 3), and no other clause
 // can begin with a user word here, so there is no earlier-edition reading to protect.
 occursStepPhrase
-    : {occursStepAhead()}? cobolWord integerOperand
+    : {occursStepAhead()}? nnCobolWord1=cobolWord refIntegerOperand1=integerOperand
     ;
 
 occursDynamicPhrase
-    : CAPACITY IN? dataReference   // CAPACITY IN data-name-3 (the current-capacity register, §2023:13.18.38 GR15)
-    | FROM integerOperand         // integer-4 — the minimum / initial capacity (GR16)
-    | TO integerOperand           // integer-5 — the expected capacity (GR17)
+    : CAPACITY IN? defDataReference1=dataReference   // CAPACITY IN data-name-3 (the current-capacity register, §2023:13.18.38 GR15)
+    | FROM refIntegerOperand1=integerOperand         // integer-4 — the minimum / initial capacity (GR16)
+    | TO refIntegerOperand2=integerOperand           // integer-5 — the expected capacity (GR17)
     | INITIALIZED                 // seed new occurrences per §2023:8.5.1.9.5
     ;
 
 occursKeyClause
-    : (ASCENDING | DESCENDING) KEY? IS? dataReference+
+    : (ASCENDING | DESCENDING) KEY? IS? refDataReference1=dataReference+
     ;
 
 timesKeyword
@@ -825,12 +825,12 @@ timesKeyword
 
 // REDEFINES Clause
 redefinesClause
-    : REDEFINES dataReference
+    : REDEFINES refDataReference1=dataReference
     ;
 
 // RENAMES (Level 66)
 renamesClause
-    : RENAMES dataReference ((THRU | THROUGH) dataReference)?
+    : RENAMES refDataReference1=dataReference ((THRU | THROUGH) refDataReference2=dataReference)?
     ;
 
 // VALUE Clause — IS is optional noise word
@@ -879,7 +879,7 @@ valueClause
       // PB3751; the IN-less spelling is pinned by the pb983_range_alphabet_in_optional golden and
       // TrailingInPhraseDriftTests):
       // audit:optional-word IN decided-by DataBinder.RangeAlphabetPhraseOf
-      (IN cobolWord)?
+      (IN refCobolWord1=cobolWord)?
       valueClauseFalsePhrase?
       // Format 5 (content-validation-entry, ISO §2023:13.18.63.2) — the DECLINED A.4.14 tail
       // `[IS|ARE] {INVALID|VALID} [WHEN condition-1]`, refused by name with COBOL1708 at bind. Written as
@@ -918,8 +918,8 @@ valueClauseFalsePhrase
 // existing SR20/SR21 range screen's named COBOL1586/1587 — never as a parse error.
 valueClauseTablePhrase
     : valueClauseOperand (COMMA? valueClauseOperand)*
-      FROM LPAREN valueTableSubscript (COMMA? valueTableSubscript)* RPAREN
-      (TO LPAREN valueTableSubscript (COMMA? valueTableSubscript)* RPAREN)?
+      FROM LPAREN refValueTableSubscript1=valueTableSubscript (COMMA? refValueTableSubscript2=valueTableSubscript)* RPAREN
+      (TO LPAREN refValueTableSubscript3=valueTableSubscript (COMMA? refValueTableSubscript4=valueTableSubscript)* RPAREN)?
     ;
 
 // ⛔ subscript-1 / subscript-2 IS A LITERAL POSITION, SO AN INTEGER CONSTANT-NAME STANDS THERE (kb/Work PB780).
@@ -931,7 +931,7 @@ valueClauseTablePhrase
 // (DiagnosticCatalog.ConstantEntryRule, COBOL1547).
 valueTableSubscript
     : signedIntegerLiteral
-    | cobolWord
+    | refCobolWord1=cobolWord
     ;
 
 valueItem

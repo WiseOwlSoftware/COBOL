@@ -42,7 +42,7 @@ public sealed class ReceivingOperandFormDriftTests
         {
             string path = TestRepo.Within("src/WiseOwl.Cobol.Frontend/Grammar/", rel);
             Assert.True(File.Exists(path), $"grammar file '{rel}' not found — if it moved, move this guard");
-            string g4 = Regex.Replace(File.ReadAllText(path), @"//[^\n]*", " ");
+            string g4 = Regex.Replace(GrammarSource.Read(path), @"//[^\n]*", " ");
             foreach (Match m in Regex.Matches(g4, @"^(?<name>[a-z][A-Za-z0-9_]*)\s*\r?\n?\s*:(?<body>.*?);",
                          RegexOptions.Multiline | RegexOptions.Singleline))
                 rules.TryAdd(m.Groups["name"].Value, m.Groups["body"].Value);

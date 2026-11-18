@@ -51,7 +51,7 @@ specialNameEntry
     // DYNAMIC is reserved at every edition, so it heads no switch entry — but it is listed ahead of
     // implementorSwitchEntry anyway, the LOCALE / ORDER TABLE posture for a clause with a keyword anchor.
     | dynamicLengthStructureClause
-    | implementorSwitchEntry
+    | nnImplementorSwitchEntry1=implementorSwitchEntry
     // ⛔ THE §2023:12.3.7.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p320 /
     // folio 290): alphabet-name-clause · CLASS · CRT STATUS · CURRENCY SIGN · CURSOR · DECIMAL-POINT ·
     // dynamic-length-structure-clause · LOCALE · the switch-name/feature-name/device-name entry ·
@@ -79,7 +79,7 @@ specialNameEntry
 // word, so `SPECIAL-NAMES. LOCALE IS FOO.` is a legal implementor-switch entry and must keep parsing as one —
 // below 2002 localeClauseAhead() is false and this alternative is unreachable.
 localeClause
-    : {localeClauseAhead()}? formatWord cobolWord IS? (cobolWord | literal)
+    : {localeClauseAhead()}? formatWord defCobolWord1=cobolWord IS? (nnCobolWord1=cobolWord | literal)
     ;
 // ⚠ Three slots, three KINDS of word (kb/Work PB764): the keyword LOCALE is a formatWord (a use OF the reserved
 // word, §2023:5.2.2); locale-name-1 is a user-defined word (§2023:8.3.2.2) and external-locale-name-1 a SYSTEM-NAME
@@ -101,7 +101,7 @@ localeClause
 // Recognizing the clause at every --std is what lets the version pass answer below 2002 with the explanatory
 // `order-table-2002` introduction gate rather than a parse error.
 orderTableClause
-    : ORDER TABLE cobolWord IS? specialNamesLiteral
+    : ORDER TABLE defCobolWord1=cobolWord IS? refSpecialNamesLiteral1=specialNamesLiteral
     ;
 
 // ⛔ A SPECIAL-NAMES LITERAL POSITION WHOSE ONLY WORD IS A CONSTANT-NAME (kb/Work PB1942): literal-5 / literal-6 of the
@@ -116,7 +116,7 @@ orderTableClause
 // `cobolWord | literal` shape, and their binders ask the same constant question of the word.
 specialNamesLiteral
     : literal
-    | cobolWord
+    | refCobolWord1=cobolWord
     ;
 
 // dynamic-length-structure-clause (ISO §2023:12.3.7.2; kb/Work PB829 — it had NO rule, so the clause was COBOL0001
@@ -132,7 +132,7 @@ specialNamesLiteral
 // own rule, where it steers prediction (a mid-alternative predicate throws instead of steering). The clause is a
 // COBOL-2014 introduction, gated at its node by VersionConformancePass (`dynamic-length-structure-2014`).
 dynamicLengthStructureClause
-    : DYNAMIC LENGTH dynamicLengthStructureWord? cobolWord IS? dynamicLengthLayout
+    : DYNAMIC LENGTH dynamicLengthStructureWord? defCobolWord1=cobolWord IS? nnDynamicLengthLayout1=dynamicLengthLayout
     ;
 
 dynamicLengthStructureWord
@@ -141,7 +141,7 @@ dynamicLengthStructureWord
 
 dynamicLengthLayout
     : (dynamicLengthPrefixedPhrase | dynamicLengthDelimitedPhrase)+
-    | cobolWord                                   // physical-structure-name-1 (§2023:12.3.7.3 SR32 — implementor names)
+    | nnCobolWord1=cobolWord                                   // physical-structure-name-1 (§2023:12.3.7.3 SR32 — implementor names)
     ;
 
 // [SIGNED] [SHORT] PREFIXED — the length-field prefix (SPECIAL-NAMES paragraph, §2023:12.3.7.4 GR18).
@@ -178,7 +178,7 @@ dynamicLengthDelimitedPhrase
 // table (WiseOwl.Cobol.Editions/ImplementorNames.cs, COBOL2241), a semantic rule the grammar cannot decide: the three arms
 // share one shape here and the NAME picks the arm.
 implementorSwitchEntry
-    : cobolWord ( IS? cobolWord switchStatusPhrases?
+    : nnCobolWord1=cobolWord ( IS? defCobolWord1=cobolWord switchStatusPhrases?
                 | switchStatusPhrases
                 )
     ;
@@ -196,11 +196,11 @@ switchStatusPhrases
 // two-arm spelling was a hand-written power set of the same two optional words and, as such power sets do, it
 // dropped a member (STATUS written, IS omitted) — see OptionalWordSubsetDriftTests for the mechanical form.
 switchOnClause
-    : ON STATUS? IS? cobolWord
+    : ON STATUS? IS? defCobolWord1=cobolWord
     ;
 
 switchOffClause
-    : OFF STATUS? IS? cobolWord
+    : OFF STATUS? IS? defCobolWord1=cobolWord
     ;
 
 // CURRENCY SIGN IS literal [WITH PICTURE SYMBOL literal]
@@ -213,7 +213,7 @@ switchOffClause
 // under PICTURE and SYMBOL only — `CURRENCY SIGN IS "$" PICTURE SYMBOL "#"` is conforming and was rejected.
 // literal-7 and literal-8 are specialNamesLiteral positions: either may be a constant-name (kb/Work PB1942).
 currencySignClause
-    : CURRENCY SIGN? IS? specialNamesLiteral (WITH? PIC PIC_STRING specialNamesLiteral)?
+    : CURRENCY SIGN? IS? refSpecialNamesLiteral1=specialNamesLiteral (WITH? PIC PIC_STRING refSpecialNamesLiteral2=specialNamesLiteral)?
     ;
 
 // [ DECIMAL-POINT IS COMMA ] — folio 290 underlines DECIMAL-POINT and COMMA, never the IS (kb/Work PB695).
@@ -232,7 +232,7 @@ decimalPointClause
 // conforming. The phrase is the SHARED specialNamesForPhrase, so its 2002 gate keys on the SUBRULE and not on a
 // word the standard lets the user omit.
 classDefinitionClause
-    : CLASS cobolWord specialNamesForPhrase? IS? classValueSet (IN cobolWord)? misplacedSpecialNamesForPhrase?
+    : CLASS defCobolWord1=cobolWord specialNamesForPhrase? IS? classValueSet (IN refCobolWord1=cobolWord)? misplacedSpecialNamesForPhrase?
     ;
 
 // { literal-5 [ THROUGH literal-6 ] }… — JUXTAPOSED groups (the SPECIAL-NAMES paragraph's §2023:12.3.7.2
@@ -252,7 +252,7 @@ classValueSet
     ;
 
 classValueItem
-    : specialNamesLiteral ((THRU | THROUGH) specialNamesLiteral)?
+    : refSpecialNamesLiteral1=specialNamesLiteral ((THRU | THROUGH) refSpecialNamesLiteral2=specialNamesLiteral)?
     ;
 
 // SYMBOLIC CHARACTERS [FOR {ALPHANUMERIC|NATIONAL}]
@@ -268,7 +268,7 @@ classValueItem
 // the claim was made in the same change set that decided the grammar, and nothing checked it against the file.
 symbolicCharactersClause
     : SYMBOLIC CHARACTERS? specialNamesForPhrase?
-      symbolicCharacterEntry+ (IN cobolWord)? misplacedSpecialNamesForPhrase?
+      defSymbolicCharacterEntry1=symbolicCharacterEntry+ (IN refCobolWord1=cobolWord)? misplacedSpecialNamesForPhrase?
     ;
 
 // ⛔ integer-1 IS AN `integer-n` POSITION, so an integer constant-name stands there (ISO §2023:13.10.3 SR2; kb/Work PB1948)
@@ -284,9 +284,9 @@ symbolicCharactersClause
 // separates a name from an ordinal — so a greedy parse that folded a following IS-less group into the previous
 // group's ordinals (`SC-A IS K1 SC-B K2`) is regrouped correctly.
 symbolicCharacterEntry
-    : cobolWord+ (IS | ARE)? integerLiteral+
-    | cobolWord+ (IS | ARE) integerOperand+
-    | cobolWord+
+    : defCobolWord1=cobolWord+ (IS | ARE)? integerLiteral+
+    | defCobolWord2=cobolWord+ (IS | ARE) refIntegerOperand1=integerOperand+
+    | defCobolWord3=cobolWord+
     ;
 
 // ALPHABET alphabet-name-1 [FOR ALPHANUMERIC] IS {NATIVE|STANDARD-1|STANDARD-2|literal-phrase…}
@@ -303,7 +303,7 @@ symbolicCharacterEntry
 // neither IS in `alphabet-name-1 [ FOR ALPHANUMERIC ] IS …` / `alphabet-name-2 FOR NATIONAL IS …`, nor either
 // FOR. `ALPHABET A NATIVE` and `ALPHABET N NATIONAL IS UTF-8` are conforming and were both rejected.
 alphabetClause
-    : ALPHABET cobolWord specialNamesForPhrase? IS? alphabetDefinition misplacedSpecialNamesForPhrase?
+    : ALPHABET defCobolWord1=cobolWord specialNamesForPhrase? IS? alphabetDefinition misplacedSpecialNamesForPhrase?
     ;
 
 // ⛔ THE ONE `FOR {ALPHANUMERIC | NATIONAL}` PHRASE OF THE SPECIAL-NAMES PARAGRAPH (ISO §2023:12.3.7.2) — its ALPHABET
@@ -332,7 +332,7 @@ alphabetDefinition
     | STANDARD_1
     | STANDARD_2
     | alphabetLocalePhrase
-    | alphabetEntry (COMMA? alphabetEntry)*
+    | refAlphabetEntry1=alphabetEntry (COMMA? refAlphabetEntry2=alphabetEntry)*
     ;
 
 // `IS LOCALE [ locale-name-2 ]` (§2023:12.3.7.2, either branch; kb/Work PB100/PB101): LOCALE is the phrase's own
@@ -341,7 +341,7 @@ alphabetDefinition
 // (§2023:12.3.7.3 SR24). Not edition-gated: below 2002 the ONE construct gate (alphabet-locale-2002) names the phrase.
 // ALL(*) prefers the entry list whenever the words that follow cannot end the phrase (`LOCALE ALSO "A"`).
 alphabetLocalePhrase
-    : {wordAhead("LOCALE")}? formatWord cobolWord?
+    : {wordAhead("LOCALE")}? formatWord refCobolWord1=cobolWord?
     ;
 
 // literal-1 [ {THROUGH|THRU} literal-2 | {ALSO literal-3}… ] — ⚠ A DELIBERATE SUPERSET (kb/Work PB790). The printed
@@ -349,20 +349,20 @@ alphabetLocalePhrase
 // entry carries at most one of them (§2023:5.2.6.2). The rule still admits both so the binder can refuse the pair BY NAME
 // (COBOL2242, SpecialNamesBinder.AlphabetLiteralPhrase) instead of a parse error at ALSO that names no rule.
 alphabetEntry
-    : (cobolWord | literal) ((THRU | THROUGH) (cobolWord | literal))?
-      (ALSO (cobolWord | literal))*
+    : (refCobolWord1=cobolWord | literal) ((THRU | THROUGH) (refCobolWord2=cobolWord | literal))?
+      (ALSO (refCobolWord3=cobolWord | literal))*
     ;
 
 // [ CRT STATUS IS data-name-2 ] — folio 290 rules CRT and STATUS, not IS (kb/Work PB695). The clause is still
 // refused by name at bind (COBOL1560, the DECLINED screen module); an optional word omitted must reach that
 // documented refusal, not a parse error.
 crtStatusClause
-    : CRT STATUS IS? dataReference
+    : CRT STATUS IS? refDataReference1=dataReference
     ;
 
 // [ CURSOR IS data-name-1 ] — folio 290 rules CURSOR alone (kb/Work PB695).
 cursorClause
-    : CURSOR IS? dataReference
+    : CURSOR IS? refDataReference1=dataReference
     ;
 
 
