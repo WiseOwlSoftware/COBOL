@@ -1,4 +1,4 @@
-## PB5925: the source listing, step 6 - the finished symbol table, the data map and file map, the program attributes and the margin
+## Entry 3845 — 2026-11-18 12:32 PST — PB5925: the source listing, step 6 - the finished symbol table, the data map and file map, the program attributes and the margin
 
 Step 6 of `docs/rearchitecture/DESIGN-listing.md` (kb/Work PB5925; the owner's order of 2026-11-18 to build the full
 listing, and his direction that the listing is built from the symbol table plus the source). `--listing-sections data-map`
@@ -65,3 +65,4 @@ its length and no picture or usage (GR1). A LINKAGE item has no native field (§
 element's), and a type declaration's condition-names and index-names are marked `TypeDeclaration`. One new
 `ListingDataMapTests` case and two extended; three mutations each turned one red; kb/Work/PB5925's
 2026-11-18-listing-step-6-review-r2.md records each fix.
+
