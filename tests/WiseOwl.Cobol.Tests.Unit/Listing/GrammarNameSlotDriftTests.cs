@@ -19,6 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Listing;
 /// label, so a slot with no label, or two slots sharing one, would hide a name from it. The slots come from the
 /// generated parser's ATN (<see cref="GrammarNameSlots"/>); nothing lists a slot or a rule.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class GrammarNameSlotDriftTests
 {
     /// <summary>Every rule of the COBOL parser has exactly one classified label per name slot.</summary>
